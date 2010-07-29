@@ -340,8 +340,12 @@ void RemoveEvent(int event_type)
 
 void RemoveThreadsafeEvent(int event_type)
 {
+	externalEventSection.Enter();
 	if (!tsFirst)
+	{
+		externalEventSection.Leave();
 		return;
+	}
 	if (tsFirst->type == event_type)
 	{
 		Event *next = tsFirst->next;
@@ -349,7 +353,10 @@ void RemoveThreadsafeEvent(int event_type)
 		tsFirst = next;
 	}
 	if (!tsFirst)
+	{
+		externalEventSection.Leave();
 		return;
+	}
 	Event *prev = tsFirst;
 	Event *ptr = prev->next;
 	while (ptr)
@@ -366,6 +373,7 @@ void RemoveThreadsafeEvent(int event_type)
 			ptr = ptr->next;
 		}
 	}
+	externalEventSection.Leave();
 }
 
 void RemoveAllEvents(int event_type)
