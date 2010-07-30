@@ -71,7 +71,7 @@ static Common::Thread *saveThread = NULL;
 
 
 // Don't forget to increase this after doing changes on the savestate system 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 
 
 void DoState(PointerWrap &p)
@@ -93,16 +93,6 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
-
-	// TODO: it's a GIGANTIC waste of time and space to savestate the following
-	// (adds 128MB of mostly-empty cache data to every savestate).
-	// it seems to be unnecessary as far as I can tell,
-	// but I can't prove it is yet so I'll leave it here for now...
-#ifdef JIT_UNLIMITED_ICACHE	
-	p.DoVoid(jit->GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);
-	p.DoVoid(jit->GetBlockCache()->GetICacheEx(), JIT_ICACHEEX_SIZE);
-	p.DoVoid(jit->GetBlockCache()->GetICacheVMEM(), JIT_ICACHE_SIZE);
-#endif
 }
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)
@@ -111,8 +101,6 @@ void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("State does not exist", 1000);
 		return;
 	}
-
-	jit->ClearCache();
 
 	u8 *ptr = *cur_buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
@@ -128,8 +116,6 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("Error saving state", 1000);
 		return;
 	}
-
-	jit->ClearCache();
 
 	u8 *ptr = NULL;
 
@@ -162,8 +148,6 @@ void VerifyBufferStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("State does not exist", 1000);
 		return;
 	}
-
-	jit->ClearCache();
 
 	u8 *ptr = *cur_buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
@@ -248,9 +232,13 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
-	State_Flush();
+	// Stop the clock while we save the state
+	PowerPC::Pause();
 
-	jit->ClearCache();
+	// Wait for the other threaded sub-systems to stop too
+	Sleep(100);
+
+	State_Flush();
 
 	// Measure the size of the buffer.
 	u8 *ptr = 0;
@@ -271,11 +259,20 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	Core::DisplayMessage("Saving State...", 1000);
 
 	saveThread = new Common::Thread(CompressAndDumpState, saveData);
+
+	// Resume the clock
+	PowerPC::Start();
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
 	bool bCompressedState;
+
+	// Stop the clock while we load the state
+	PowerPC::Pause();
+
+	// Wait for the other threaded sub-systems to stop too
+	Sleep(100);
 
 	State_Flush();
 
@@ -362,8 +359,6 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	fclose(f);
 
-	jit->ClearCache();
-
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
@@ -374,6 +369,11 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
 
 	delete[] buffer;
+
+	state_op_in_progress = false;
+
+	// Resume the clock
+	PowerPC::Start();
 }
 
 void VerifyStateCallback(u64 userdata, int cyclesLate)
@@ -455,8 +455,6 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 	}
 
 	fclose(f);
-
-	jit->ClearCache();
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
