@@ -22,8 +22,8 @@
 namespace PowerPC
 {
 
-	u32 plru_mask[8] = {11,11,19,19,37,37,69,69};
-	u32 plru_value[8] = {11,3,17,1,36,4,64,0};
+	const u32 plru_mask[8] = {11,11,19,19,37,37,69,69};
+	const u32 plru_value[8] = {11,3,17,1,36,4,64,0};
 
 	InstructionCache::InstructionCache()
 	{

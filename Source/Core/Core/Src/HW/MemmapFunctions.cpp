@@ -185,7 +185,8 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 	{
 		_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
 	}
-	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000))
+	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000) ||
+		bFakeVMEM && ((em_address &0xF0000000) == 0x40000000))
 	{
 		// fake VMEM
 		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
@@ -286,7 +287,8 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
 		return;
 	}
-	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000))
+	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000) ||
+		bFakeVMEM && ((em_address &0xF0000000) == 0x40000000))
 	{
 		// fake VMEM
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
@@ -324,7 +326,12 @@ u32 Read_Opcode(u32 _Address)
 		return 0x00000000;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && (_Address >> 28) == 0x7)
+	if (Core::g_CoreStartupParameter.bMMU &&
+		(_Address >> 28) != 0x0 &&
+		(_Address >> 28) != 0x8 &&
+		(_Address >> 28) != 0x9 &&
+		(_Address >> 28) != 0xC &&
+		(_Address >> 28) != 0xD)
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
 		u32 tlb_addr = Memory::TranslateAddress(_Address, FLAG_OPCODE);
@@ -667,6 +674,7 @@ typedef struct tlb_entry
 	u8 flags;
 } tlb_entry;
 
+// TODO: tlb needs to be in ppcState for save-state purposes.
 tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
 
 u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)

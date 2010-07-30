@@ -80,7 +80,6 @@ private:
 
 		bool isLastInstruction;
 		bool memcheck;
-		bool broken_block;
 
 		int fifoBytesThisBlock;
 

@@ -421,7 +421,13 @@ u32 Read_Instruction(const u32 em_address)
 u32 Read_Opcode_JIT(u32 _Address)
 {
 #ifdef FAST_ICACHE	
-	if (bMMU && !bFakeVMEM && (_Address >> 28) == 0x7)
+	if (bMMU && !bFakeVMEM && 
+		(_Address >> 28) != 0x0 &&
+		(_Address >> 28) != 0x8 &&
+		(_Address >> 28) != 0x9 &&
+		(_Address >> 28) != 0xC &&
+		(_Address >> 28) != 0xD		
+		)
 	{
 		_Address = Memory::TranslateAddress(_Address, FLAG_OPCODE);
 		if (_Address == 0)
@@ -634,13 +640,6 @@ u8 *GetPointer(const u32 _Address)
 		else
 			return 0;
 
-	case 0x7E:
-	case 0x7F:
-		if (bFakeVMEM)
-			return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
-		else
-			return 0;
-
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
 			return GetCachePtr() + (_Address & L1_CACHE_MASK);
@@ -654,14 +653,17 @@ u8 *GetPointer(const u32 _Address)
 	case 0xCD:
 		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
 		return NULL;
-	//case 0x47: TODO
-	case 0x7B:
-	case 0xFF: 
-		break;
-
 	default:
-		if (!PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
-			Crash();
+		if (bFakeVMEM)
+		{
+			return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
+		}
+		else
+		{
+			if (!PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
+				Crash();
+			return 0;
+		}
 		break;
 	}
 	return NULL;

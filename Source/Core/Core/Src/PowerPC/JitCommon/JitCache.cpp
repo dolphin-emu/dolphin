@@ -127,7 +127,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	// is full and when saving and loading states.
 	void JitBlockCache::Clear()
 	{		
-		Core::DisplayMessage("Cleared code cache.", 3000);
+		Core::DisplayMessage("Clearing code cache.", 3000);
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);

@@ -428,7 +428,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-	if (Core::g_CoreStartupParameter.bMMU && (em_address >> 28) == 0x7)
+	if (Core::g_CoreStartupParameter.bMMU  &&
+			(em_address >> 28) != 0x0 &&
+			(em_address >> 28) != 0x8 &&
+			(em_address >> 28) != 0x9 &&
+			(em_address >> 28) != 0xC &&
+			(em_address >> 28) != 0xD		
+			)
 	{
 		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
 		{
@@ -551,13 +557,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
-			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
-			{
-				// If a memory exception occurs, the exception handler will read
-				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, M(&PC), Imm32(ops[i].address));
-			}
-
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
 				//This instruction uses FPU - needs to add FP exception bailout
@@ -579,6 +578,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z);
 
+				// If a memory exception occurs, the exception handler will read
+				// from PC.  Update PC with the latest value in case that happens.
+				MOV(32, M(&PC), Imm32(ops[i].address));
 				WriteExceptionExit();
 				SetJumpTarget(noMemException);
 			}
