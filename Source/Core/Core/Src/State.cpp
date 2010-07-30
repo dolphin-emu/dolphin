@@ -236,7 +236,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	PowerPC::Pause();
 
 	// Wait for the other threaded sub-systems to stop too
-	Sleep(100);
+	SLEEP(100);
 
 	State_Flush();
 
@@ -272,7 +272,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	PowerPC::Pause();
 
 	// Wait for the other threaded sub-systems to stop too
-	Sleep(100);
+	SLEEP(100);
 
 	State_Flush();
 

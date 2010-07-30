@@ -529,9 +529,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	InitializeGUITooltips();
 
 	Fit();
-#ifndef __APPLE__
-	Center(); //it seems to cause problems on macs with small screens
-#endif
+	Center();
 	UpdateGUI();
 }
 
