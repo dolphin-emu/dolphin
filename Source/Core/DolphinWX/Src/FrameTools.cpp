@@ -148,8 +148,8 @@ void CFrame::CreateMenu()
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
-	fileMenu->Append(IDM_LOADSTATE, _T("&Load State"), loadMenu);
-	fileMenu->Append(IDM_SAVESTATE, _T("&Load State"), saveMenu);
+	emulationMenu->Append(IDM_LOADSTATE, _T("&Load State"), loadMenu);
+	emulationMenu->Append(IDM_SAVESTATE, _T("Sa&ve State"), saveMenu);
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _T("Save State..."));
 	loadMenu->Append(IDM_UNDOSAVESTATE, _T("Last Overwritten State\tShift+F12"));
