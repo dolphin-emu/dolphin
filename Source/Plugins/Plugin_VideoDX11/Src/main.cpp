@@ -96,15 +96,6 @@ bool IsD3D()
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-	wxSetInstance((HINSTANCE)g_hInstance);
-	wxWindow* win = new wxWindow();
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-	return win;
-}
 #endif
 
 void *DllDebugger(void *_hParent, bool Show)
@@ -186,9 +177,9 @@ void DllAbout(HWND _hParent)
 	MessageBoxA(NULL, "DllAbout not implemented, how did you come here? Anyway, report this to the devs.", "Error!", MB_OK);
 }
 
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
-	DlgSettings_Show(g_hInstance, _hParent);
+	DlgSettings_Show(g_hInstance, (HWND)((wxWindow *)_hParent)->GetHandle());
 }
 
 void Initialize(void* init)

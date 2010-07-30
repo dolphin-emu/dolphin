@@ -25,7 +25,7 @@
 namespace Common
 {
 	typedef void (__cdecl * TGetDllInfo)(PLUGIN_INFO*);
-	typedef void (__cdecl * TDllConfig)(HWND);
+	typedef void (__cdecl * TDllConfig)(void *);
 	typedef void* (__cdecl * TDllDebugger)(void *, bool);
 	typedef void (__cdecl * TSetDllGlobals)(PLUGIN_GLOBALS*);
 	typedef void (__cdecl * TInitialize)(void *);
@@ -47,8 +47,8 @@ public:
 	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
 	void *LoadSymbol(const char *sym);
 
-	void Config(HWND _hwnd);
-	void About(HWND _hwnd);
+	void Config(void *_hwnd);
+	void About(void *_hwnd);
 	void *Debug(void *Parent, bool Show);
 	void DoState(unsigned char **ptr, int mode);
 	void EmuStateChange(PLUGIN_EMUSTATE newState);

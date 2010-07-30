@@ -85,15 +85,6 @@ bool IsD3D()
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-	wxSetInstance((HINSTANCE)g_hInstance);
-	wxWindow *win = new wxWindow();
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-	return win;
-}
 #endif
 
 void *DllDebugger(void *_hParent, bool Show)
@@ -187,7 +178,7 @@ void DllAbout(HWND _hParent)
 	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
 	// If not initialized, only init D3D so we can enumerate resolutions.
 	if (!s_PluginInitialized)
@@ -196,21 +187,11 @@ void DllConfig(HWND _hParent)
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow *frame = GetParentedWxWindow(_hParent);
-	m_ConfigFrame = new GFXConfigDialogDX(frame);
+	m_ConfigFrame = new GFXConfigDialogDX((wxWindow *)_hParent);
 
-	// Prevent user to show more than 1 config window at same time
-	frame->Disable();
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
-	frame->Enable();
-
-	frame->SetFocus();
-	frame->SetHWND(NULL);
-
 	m_ConfigFrame->Destroy();
-	m_ConfigFrame = NULL;
-	frame->Destroy();
 #endif
 	if (!s_PluginInitialized)
 		D3D::Shutdown();

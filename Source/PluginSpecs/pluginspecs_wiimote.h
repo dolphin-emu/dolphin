@@ -18,7 +18,7 @@ typedef bool (*TRendererHasFocus)(void);
 // This data is passed from the core on initialization.
 typedef struct
 {
-	HWND hWnd;
+	void *hWnd;
 	u32 ISOId;
 	TLogv pLog;
 	TWiimoteInterruptChannel pWiimoteInterruptChannel;

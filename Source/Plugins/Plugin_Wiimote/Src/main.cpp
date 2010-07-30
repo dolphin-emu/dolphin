@@ -115,21 +115,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-#ifdef _WIN32
-	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
-	wxWindow *win = new wxWindow();
-#ifdef _WIN32
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-#endif
-	return win;
-}
-#endif
-
 // Exports
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
@@ -157,7 +142,7 @@ void *DllDebugger(void *_hParent, bool Show)
 	return NULL;
 }
 
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
 #ifdef _WIN32
 	if (WiiMoteReal::g_AutoPairUpInvisibleWindow == NULL)
@@ -177,24 +162,9 @@ void DllConfig(HWND _hParent)
 
 
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow *frame = GetParentedWxWindow(_hParent);
-	m_BasicConfigFrame = new WiimoteBasicConfigDialog(frame);
-#ifdef _WIN32
-	frame->Disable();
+	m_BasicConfigFrame = new WiimoteBasicConfigDialog((wxWindow *)_hParent);
 	m_BasicConfigFrame->ShowModal();
-	frame->Enable();
-#else
-	m_BasicConfigFrame->ShowModal();
-#endif
-
-#ifdef _WIN32
-	frame->SetFocus();
-	frame->SetHWND(NULL);
-#endif
-
 	m_BasicConfigFrame->Destroy();
-	m_BasicConfigFrame = NULL;
-	frame->Destroy();
 #endif
 }
 
@@ -347,7 +317,7 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 		WiiMoteEmu::g_ReportingAuto[_number] = false;
 		WARN_LOG(WIIMOTE, "Wiimote: #%i Disconnected", _number);
 #ifdef _WIN32
-		PostMessage(g_WiimoteInitialize.hWnd, WM_USER, WIIMOTE_DISCONNECT, _number);
+		PostMessage((HWND)g_WiimoteInitialize.hWnd, WM_USER, WIIMOTE_DISCONNECT, _number);
 #endif
 		return;
 	}

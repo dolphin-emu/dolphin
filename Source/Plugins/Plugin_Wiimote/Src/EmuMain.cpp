@@ -213,11 +213,11 @@ void GetMousePos(float& x, float& y)
 	// Get the cursor position for the entire screen
 	GetCursorPos(&point);
 	// Get the cursor position relative to the upper left corner of the rendering window
-	ScreenToClient(g_WiimoteInitialize.hWnd, &point);
+	ScreenToClient((HWND)g_WiimoteInitialize.hWnd, &point);
 
 	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
 	RECT Rect;
-	GetClientRect(g_WiimoteInitialize.hWnd, &Rect);
+	GetClientRect((HWND)g_WiimoteInitialize.hWnd, &Rect);
 	// Width and height is the size of the rendering window
 	float WinWidth = (float)(Rect.right - Rect.left);
 	float WinHeight = (float)(Rect.bottom - Rect.top);

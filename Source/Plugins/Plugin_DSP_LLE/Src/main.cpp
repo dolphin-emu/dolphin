@@ -95,22 +95,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-#ifdef _WIN32
-	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
-	wxWindow *win = new wxWindow();
-#ifdef _WIN32
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-#endif
-	return win;
-}
-#endif
-
-
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
@@ -133,11 +117,10 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow *frame = GetParentedWxWindow(_hParent);
-	m_ConfigFrame = new DSPConfigDialogLLE(frame);
+	m_ConfigFrame = new DSPConfigDialogLLE((wxWindow *)_hParent);
 
 	// add backends
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
@@ -148,23 +131,9 @@ void DllConfig(HWND _hParent)
 		m_ConfigFrame->AddBackend((*iter).c_str());
 	}
 
-	// Only allow one open at a time
-#ifdef _WIN32
-	frame->Disable();
 	m_ConfigFrame->ShowModal();
-	frame->Enable();
-#else
-	m_ConfigFrame->ShowModal();
-#endif
-
-#ifdef _WIN32
-	frame->SetFocus();
-	frame->SetHWND(NULL);
-#endif
 
 	m_ConfigFrame->Destroy();
-	m_ConfigFrame = NULL;
-	frame->Destroy();
 #endif
 }
 

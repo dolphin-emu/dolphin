@@ -101,7 +101,7 @@ void Stop();
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
-HWND g_pWindowHandle = NULL;
+void *g_pWindowHandle = NULL;
 
 Common::Thread* g_EmuThread = NULL;
 
@@ -367,7 +367,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
 
 	// Under linux, this is an X11 Window, not a HWND!
-	g_pWindowHandle			= (HWND)VideoInitialize.pWindowHandle;
+	g_pWindowHandle			= VideoInitialize.pWindowHandle;
 	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 

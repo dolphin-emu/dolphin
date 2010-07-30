@@ -1181,7 +1181,19 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 		if (pInfo != NULL)
-			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFilename().c_str(), pInfo->GetPluginInfo().Type);
+		{
+			#ifdef _WIN32
+			// Make sure only one dialog can be opened at a time in Windows,
+			// but is unnecessary and looks bad in linux.
+			Disable();
+			#endif
+			CPluginManager::GetInstance().OpenConfig(this,
+					pInfo->GetFilename().c_str(), pInfo->GetPluginInfo().Type);
+			#ifdef _WIN32
+			Enable();
+			Raise();
+			#endif
+		}
 	}
 }
 

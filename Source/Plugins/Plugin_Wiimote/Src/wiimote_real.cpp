@@ -794,7 +794,7 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 
 
 void ToggleEmulatorState(bool stop) {
-	PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
+	PostMessage(GetParent((HWND)g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
 	if (stop) {
 		while (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) Sleep(50);
 	}
@@ -832,7 +832,7 @@ int PairUpRefreshWiimote(bool addwiimote)
 		Allocate();
 		ToggleEmulatorState(false);
 		if (addwiimote)
-			PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_KEYDOWN, (3 + connectslot));
+			PostMessage(GetParent((HWND)g_WiimoteInitialize.hWnd), WM_USER, WM_USER_KEYDOWN, (3 + connectslot));
 		
 	}
 	return 0;

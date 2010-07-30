@@ -143,38 +143,9 @@ class CFrame : public CRenderFrame
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 		bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
-		// Utility
-		wxWindow * GetNotebookPageFromId(wxWindowID Id);
-		wxAuiNotebook * GetNotebookFromId(u32 NBId);
-		int GetNotebookCount();
-		wxString GetMenuLabel(int Id);
-
-		// Perspectives
-		void AddRemoveBlankPage();
-		void OnNotebookPageClose(wxAuiNotebookEvent& event);
-		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
-		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
-		void OnFloatWindow(wxCommandEvent& event);
-		void ToggleFloatWindow(int Id);
-		void OnTab(wxAuiNotebookEvent& event);
-		int GetNotebookAffiliation(wxWindowID Id);
-		void ClosePages();
-		void CloseAllNotebooks();
+		// Perspectives (Should find a way to make all of this private)
 		void DoAddPage(wxWindow *Win, int i, bool Float);
 		void DoRemovePage(wxWindow *, bool bHide = true);
-		void TogglePane();
-		void SetPaneSize();
-		void ResetToolbarStyle();
-		void TogglePaneStyle(bool On, int EventId);
-		void ToggleNotebookStyle(bool On, long Style);
-		void ResizeConsole();
-		// Float window
-		void DoUnfloatPage(int Id);
-		void OnFloatingPageClosed(wxCloseEvent& event);
-		void OnFloatingPageSize(wxSizeEvent& event);
-		void DoFloatNotebookPage(wxWindowID Id);
-		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = wxT(""), wxWindow * = NULL);
-		// User perspectives. Should find a way to make these private.
 		struct SPerspectives
 		{
 			std::string Name;
@@ -182,39 +153,20 @@ class CFrame : public CRenderFrame
 			std::vector<int> Width, Height;
 		};
 		std::vector<SPerspectives> Perspectives;
-		wxString AuiFullscreen, AuiCurrent;
-		wxArrayString AuiPerspective;
 		u32 ActivePerspective;	
-		void AddPane();
-		void UpdateCurrentPerspective();
-		void SaveIniPerspectives();
-		void LoadIniPerspectives();
-		void OnPaneClose(wxAuiManagerEvent& evt);
-		void ReloadPanes();
-		void DoLoadPerspective();
-		void OnDropDownToolbarSelect(wxCommandEvent& event);		
-		void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
-		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
-		void OnSelectPerspective(wxCommandEvent& event);		
 
 	private:
-		wxStatusBar* m_pStatusBar;
-		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 		CRenderFrame* m_RenderFrame;
 		wxPanel* m_RenderParent;
-		wxToolBarToolBase* m_ToolPlay;
 		CLogWindow* m_LogWindow;
 		bool UseDebugger;
 		bool m_bBatchMode;
 		bool m_bEdit;
 		bool m_bTabSplit;
 		bool m_bNoDocking;
-		bool m_bControlsCreated;
 		bool m_bGameLoading;
-		char newDiscpath[2048];
-		wxMessageDialog *m_StopDlg;
 
 		std::vector<std::string> drives;
 
@@ -253,7 +205,51 @@ class CFrame : public CRenderFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
+
+		// Utility
+		wxString GetMenuLabel(int Id);
+		wxWindow * GetNotebookPageFromId(wxWindowID Id);
+		wxAuiNotebook * GetNotebookFromId(u32 NBId);
+		int GetNotebookCount();
 		wxAuiNotebook *CreateEmptyNotebook();
+
+		// Perspectives
+		void AddRemoveBlankPage();
+		void OnNotebookPageClose(wxAuiNotebookEvent& event);
+		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+		void OnFloatWindow(wxCommandEvent& event);
+		void ToggleFloatWindow(int Id);
+		void OnTab(wxAuiNotebookEvent& event);
+		int GetNotebookAffiliation(wxWindowID Id);
+		void ClosePages();
+		void CloseAllNotebooks();
+		void TogglePane();
+		void SetPaneSize();
+		void ResetToolbarStyle();
+		void TogglePaneStyle(bool On, int EventId);
+		void ToggleNotebookStyle(bool On, long Style);
+		void ResizeConsole();
+		// Float window
+		void DoUnfloatPage(int Id);
+		void OnFloatingPageClosed(wxCloseEvent& event);
+		void OnFloatingPageSize(wxSizeEvent& event);
+		void DoFloatNotebookPage(wxWindowID Id);
+		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
+			   	const wxString& title = wxT(""),
+			   	wxWindow * = NULL);
+		wxString AuiFullscreen, AuiCurrent;
+		void AddPane();
+		void UpdateCurrentPerspective();
+		void SaveIniPerspectives();
+		void LoadIniPerspectives();
+		void OnPaneClose(wxAuiManagerEvent& evt);
+		void ReloadPanes();
+		void DoLoadPerspective();
+		void OnDropDownToolbarSelect(wxCommandEvent& event);		
+		void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
+		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
+		void OnSelectPerspective(wxCommandEvent& event);		
 
 #ifdef _WIN32
 		// Override window proc for tricks like screensaver disabling
@@ -328,21 +324,6 @@ class CFrame : public CRenderFrame
 		void OnRenderParentResize(wxSizeEvent& event);
 		bool RendererIsFullscreen();
 		void StartGame(const std::string& filename);
-
-		// MenuBar
-		// File - Drive
-		wxMenuItem* m_pSubMenuDrive;
-
-		// Emulation
-		wxMenuItem* m_pSubMenuLoad;
-		wxMenuItem* m_pSubMenuSave;
-		wxMenuItem* m_pSubMenuFrameSkipping;
-
-#if wxUSE_TIMER
-		// Used to process command events
-		void OnTimer(wxTimerEvent& WXUNUSED(event));
-		wxTimer m_timer;
-#endif
 
 		// Event table
 		DECLARE_EVENT_TABLE();

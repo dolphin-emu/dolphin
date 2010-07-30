@@ -306,9 +306,6 @@ EVT_SIZE(CFrame::OnResize)
 EVT_MOVE(CFrame::OnMove)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
-#if wxUSE_TIMER
-EVT_TIMER(wxID_ANY, CFrame::OnTimer)
-#endif
 
 EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
@@ -338,14 +335,11 @@ CFrame::CFrame(wxFrame* parent,
 	, g_pCodeWindow(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
-	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
+	, m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
 	, m_LogWindow(NULL), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bControlsCreated(false), m_bGameLoading(false), m_StopDlg(NULL)
-	#if wxUSE_TIMER
-		, m_timer(this)
-	#endif
+	, m_bGameLoading(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -367,14 +361,7 @@ CFrame::CFrame(wxFrame* parent,
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
 		LoadIniPerspectives();
 		g_pCodeWindow->Load();
-		g_pCodeWindow->Hide();
 	}
-
-	// Create timer
-	#if wxUSE_TIMER
-		const int TimesPerSecond = 10; // We don't need more than this
-		m_timer.Start(1000 / TimesPerSecond);
-	#endif
 
 	// Create toolbar bitmaps
 	InitBitmaps();
@@ -385,9 +372,9 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status bar
-	m_pStatusBar = CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR);
+	SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));
 	if (!SConfig::GetInstance().m_InterfaceStatusbar)
-		m_pStatusBar->Hide();
+		GetStatusBar()->Hide();
 
 	// Give it a menu bar
 	CreateMenu();
@@ -413,26 +400,19 @@ CFrame::CFrame(wxFrame* parent,
 
 	if (g_pCodeWindow)
 	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Show());
-	}
-	else
-	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Hide());
-		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Name(wxT("Pane 1")).Caption(wxT("Logging")).Hide());
-	}
-
-	// Setup perspectives
-	if (g_pCodeWindow)
-	{
-		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(false);
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
+				.Name(wxT("Pane 0")).Caption(wxT("Pane 0"))
+				.CenterPane().PaneBorder(false).Show());
 		AuiFullscreen = m_Mgr->SavePerspective();
-		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(true);
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
-		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
-			.FloatingSize(wxSize(600, 350)).CloseButton(false);
+		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
+				.Name(wxT("Pane 0")).Caption(wxT("Pane 0")).PaneBorder(false)
+				.CaptionVisible(false).Layer(0).Center().Show());
+		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
+				.Name(wxT("Pane 1")).Caption(wxT("Logging")).CaptionVisible(true)
+				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 
@@ -482,7 +462,6 @@ CFrame::CFrame(wxFrame* parent,
 	// ----------
 
 	// Update controls
-	m_bControlsCreated = true;
 	UpdateGUI();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
@@ -495,14 +474,7 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
-	m_bControlsCreated = false;
-
 	drives.clear();
-	/* The statbar sample has this so I add this to, but I guess timer will be deleted after
-	   this anyway */
-	#if wxUSE_TIMER
-		if (m_timer.IsRunning()) m_timer.Stop();
-	#endif
 
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR
 		delete m_XRRConfig;
@@ -641,15 +613,6 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
-#if wxUSE_TIMER
-void CFrame::OnTimer(wxTimerEvent& WXUNUSED(event))
-{
-	// Process events.  Primarily to update the statusbar text.
-	if (wxGetApp().Pending())
-		wxGetApp().ProcessPendingEvents();
-}
-#endif
-
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -659,9 +622,9 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATESTATUSBAR:
-		if (m_pStatusBar != NULL)
+		if (GetStatusBar() != NULL)
 		{
-			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+			GetStatusBar()->SetStatusText(event.GetString(), event.GetInt());
 		}
 		break;
 

@@ -136,19 +136,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 	extern HINSTANCE g_hInstance;
 #endif
-
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-#ifdef _WIN32
-	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
-	wxWindow *win = new wxWindow();
-#ifdef _WIN32
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-#endif
-	return win;
-}
 #endif
 
 void *DllDebugger(void *_hParent, bool Show)
@@ -160,35 +147,18 @@ void *DllDebugger(void *_hParent, bool Show)
 #endif
 }
 
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow *frame = GetParentedWxWindow(_hParent);
-	m_ConfigFrame = new GFXConfigDialogOGL(frame);
+	m_ConfigFrame = new GFXConfigDialogOGL((wxWindow *)_hParent);
 
-	// Prevent user to show more than 1 config window at same time
-#ifdef _WIN32
-	frame->Disable();
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
-	frame->Enable();
-#else
-	m_ConfigFrame->CreateGUIControls();
-	m_ConfigFrame->ShowModal();
-#endif
-
-#ifdef _WIN32
-	frame->SetFocus();
-	frame->SetHWND(NULL);
-#endif
-
 	m_ConfigFrame->Destroy();
-	m_ConfigFrame = NULL;
-	frame->Destroy();
 #endif
 }
 

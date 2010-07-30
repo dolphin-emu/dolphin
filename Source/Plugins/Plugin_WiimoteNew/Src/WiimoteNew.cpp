@@ -53,23 +53,6 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 HINSTANCE g_hInstance;
 #endif
 
-// copied from GCPad
-#if defined(HAVE_WX) && HAVE_WX
-wxWindow* GetParentedWxWindow(HWND Parent)
-{
-#ifdef _WIN32
-	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
-	wxWindow *win = new wxWindow();
-#ifdef _WIN32
-	win->SetHWND((WXHWND)Parent);
-	win->AdoptAttributesFromHWND();
-#endif
-	return win;
-}
-#endif
-// /
-
 #ifdef _WIN32
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 {
@@ -271,7 +254,7 @@ void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 // input:    A handle to the window that calls this function
 // output:   none
 //
-void DllConfig(HWND _hParent)
+void DllConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	const bool was_init = g_plugin.controller_interface.IsInit();
@@ -279,34 +262,18 @@ void DllConfig(HWND _hParent)
 	if (false == was_init)
 	{
 #if defined(HAVE_X11) && HAVE_X11
-		Window win = GDK_WINDOW_XID(GTK_WIDGET(_hParent)->window);
+		Window win = GDK_WINDOW_XID(GTK_WIDGET(((wxWindow *)_hParent)->GetHandle())->window);
 		InitPlugin((void *)win);
 #else
-		InitPlugin(_hParent);
+		InitPlugin(((wxWindow *)_hParent)->GetHandle());
 #endif
 	}
 
-	wxWindow *frame = GetParentedWxWindow(_hParent);
-	WiimoteConfigDiag* const m_ConfigFrame = new WiimoteConfigDiag(frame, g_plugin);
-	//InputConfigDialog* const m_ConfigFrame = new InputConfigDialog(frame, g_plugin, PLUGIN_FULL_NAME);
+	WiimoteConfigDiag* const m_ConfigFrame = new WiimoteConfigDiag((wxWindow *)_hParent, g_plugin);
 
-#ifdef _WIN32
-	frame->Disable();
 	m_ConfigFrame->ShowModal();
-	frame->Enable();
-#else
-	m_ConfigFrame->ShowModal();
-#endif
-
-#ifdef _WIN32
-	wxMilliSleep(50);	// hooray for hacks
-	frame->SetFocus();
-	frame->SetHWND(NULL);
-#endif
 
 	m_ConfigFrame->Destroy();
-	frame->Destroy();
-	// /
 
 	if (false == was_init)
 		DeInitPlugin();

@@ -107,7 +107,7 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 
 	wxMenu *externalDrive = new wxMenu;
-	m_pSubMenuDrive = fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
+	fileMenu->Append(IDM_DRIVES, _T("&Boot from DVD Drive..."), externalDrive);
 	
 	drives = cdio_get_devices();
 	// Windows Limitation of 24 character drives
@@ -139,7 +139,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_FRAMESTEP, _T("&Frame Stepping"), wxEmptyString, wxITEM_CHECK);
 
 	wxMenu *skippingMenu = new wxMenu;
-	m_pSubMenuFrameSkipping = emulationMenu->AppendSubMenu(skippingMenu, _T("Frame S&kipping"));
+	emulationMenu->AppendSubMenu(skippingMenu, _T("Frame S&kipping"));
 	for(int i = 0; i < 10; i++)
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(_T("%i"), i), wxEmptyString, wxITEM_RADIO);
 
@@ -148,8 +148,8 @@ void CFrame::CreateMenu()
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
-	m_pSubMenuLoad = emulationMenu->AppendSubMenu(loadMenu, _T("&Load State"));
-	m_pSubMenuSave = emulationMenu->AppendSubMenu(saveMenu, _T("Sa&ve State"));
+	fileMenu->Append(IDM_LOADSTATE, _T("&Load State"), loadMenu);
+	fileMenu->Append(IDM_SAVESTATE, _T("&Load State"), saveMenu);
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _T("Save State..."));
 	loadMenu->Append(IDM_UNDOSAVESTATE, _T("Last Overwritten State\tShift+F12"));
@@ -311,16 +311,11 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = _T("&Stop\t");
 			break;
 		case HK_WIIMOTE1_CONNECT:
-			Label = _T("Connect Wiimote 1\t");
-			break;
 		case HK_WIIMOTE2_CONNECT:
-			Label = _T("Connect Wiimote 2\t");
-			break;
 		case HK_WIIMOTE3_CONNECT:
-			Label = _T("Connect Wiimote 3\t");
-			break;
 		case HK_WIIMOTE4_CONNECT:
-			Label = _T("Connect Wiimote 4\t");
+			Label = wxString::Format(_T("Connect Wiimote %i\t"),
+				   	Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
 	}
 
@@ -604,6 +599,7 @@ void CFrame::DoOpen(bool Boot)
 	}
 	else
 	{
+		char newDiscpath[2048];
 		strncpy(newDiscpath, path.mb_str(), strlen(path.mb_str())+1);
 		DVDInterface::ChangeDisc(newDiscpath);
 	}
@@ -879,11 +875,7 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			// Suppress duplicate dialog boxes
-			if (m_StopDlg)
-				return;
-
-			m_StopDlg = new wxMessageDialog(
+			wxMessageDialog *m_StopDlg = new wxMessageDialog(
 				this,
 				wxT("Do you want to stop the current emulation?"),
 				wxT("Please confirm..."),
@@ -892,8 +884,7 @@ void CFrame::DoStop()
 
 			int Ret = m_StopDlg->ShowModal();
 			m_StopDlg->Destroy();
-			m_StopDlg = NULL;
-			if (Ret == wxID_NO)
+			if (Ret != wxID_YES)
 				return;
 		}
 
@@ -933,10 +924,10 @@ void CFrame::DoStop()
 		UpdateGUI();
 
 		// Clean framerate indications from the status bar.
-		m_pStatusBar->SetStatusText(wxT(" "), 0);
+		GetStatusBar()->SetStatusText(wxT(" "), 0);
 
 		// Clear wiimote connection status from the status bar.
-		m_pStatusBar->SetStatusText(wxT(" "), 1);
+		GetStatusBar()->SetStatusText(wxT(" "), 1);
 
 		// If batch mode was specified on the command-line, exit now.
 		if (m_bBatchMode)
@@ -965,7 +956,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
+			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
 			PLUGIN_TYPE_VIDEO
 			);
@@ -974,7 +965,7 @@ void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
+			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
 			PLUGIN_TYPE_DSP
 			);
@@ -1007,7 +998,7 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
+			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin.c_str(),
 			PLUGIN_TYPE_WIIMOTE
 			);
@@ -1231,9 +1222,6 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()
 {
-	if (!m_bControlsCreated)
-		return;
-
 	// Save status
 	bool Initialized = Core::isRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;
@@ -1252,7 +1240,7 @@ void CFrame::UpdateGUI()
 
 	// File
 	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!Initialized);
-	m_pSubMenuDrive->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_DRIVES)->Enable(!Initialized);
 	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_BROWSE)->Enable(!Initialized);
 
@@ -1274,24 +1262,33 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->SetItemLabel(GetMenuLabel(HK_WIIMOTE3_CONNECT));
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->SetItemLabel(GetMenuLabel(HK_WIIMOTE4_CONNECT));
 
-	m_pSubMenuLoad->Enable(Initialized);
-	m_pSubMenuSave->Enable(Initialized);
+	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
+	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);
 
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string(File::GetUserPath(D_WIIMENU_IDX))).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader
+			(std::string(File::GetUserPath(D_WIIMENU_IDX))).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->
+		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->
+		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->
+		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->
+		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
 	if (Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected() == 3);
-		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->AccessWiiMote(0x0101)->IsConnected() == 3);
-		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(GetUsbPointer()->AccessWiiMote(0x0102)->IsConnected() == 3);
-		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->AccessWiiMote(0x0103)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0100)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0101)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0102)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0103)->IsConnected() == 3);
 	}
 
 	if (Running)
@@ -1475,9 +1472,9 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked();
 	if (SConfig::GetInstance().m_InterfaceStatusbar == true)
-		m_pStatusBar->Show();
+		GetStatusBar()->Show();
 	else
-		m_pStatusBar->Hide();
+		GetStatusBar()->Hide();
 
 	this->SendSizeEvent();
 }

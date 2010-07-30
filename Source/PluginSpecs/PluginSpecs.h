@@ -42,10 +42,6 @@ enum PLUGIN_COMM
 		#define TRUE 1
 		#define FALSE 0 
 	#endif
-
-	// simulate something that looks like win32
-	// long term, kill these
-	#define HWND  void*
 #endif
 
 #if defined(__cplusplus)
@@ -116,7 +112,7 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
 // input:    A handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllConfig(HWND _hParent);
+EXPORT void CALL DllConfig(void *_hParent);
 
 // ___________________________________________________________________________
 // Function: DllDebugger

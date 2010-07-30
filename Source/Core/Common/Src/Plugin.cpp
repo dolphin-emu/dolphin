@@ -93,7 +93,7 @@ bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
 }
 
 // Config: Open the Config window
-void CPlugin::Config(HWND _hwnd)
+void CPlugin::Config(void *_hwnd)
 {
 	if (m_DllConfig != NULL)
 		m_DllConfig(_hwnd);
