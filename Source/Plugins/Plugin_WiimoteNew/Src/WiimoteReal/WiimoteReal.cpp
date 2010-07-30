@@ -389,6 +389,7 @@ void Refresh()	// this gets called from the GUI thread
 	// make sure real wiimotes have been initialized
 	if (!g_real_wiimotes_initialized)
 	{
+		g_refresh_critsec.Leave();
 		Initialize();
 		return;
 	}
@@ -401,10 +402,13 @@ void Refresh()	// this gets called from the GUI thread
 
 	// don't scan for wiimotes if we don't want any more
 	if (wanted_wiimotes <= g_wiimotes_found)
+	{
+		g_refresh_critsec.Leave();
 		return;
+	}
 
 	// scan for wiimotes
-	unsigned int num_wiimotes = wiiuse_find_more(g_wiimotes_from_wiiuse, wanted_wiimotes, 5);
+	unsigned int num_wiimotes = wiiuse_find(g_wiimotes_from_wiiuse, wanted_wiimotes, 5);
 	
 	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted", num_wiimotes, wanted_wiimotes);
 
