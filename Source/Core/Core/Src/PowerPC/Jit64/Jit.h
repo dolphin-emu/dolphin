@@ -169,9 +169,15 @@ public:
 	void DynaRunTable63(UGeckoInstruction _inst);
 
 	void addx(UGeckoInstruction inst);
+	void addcx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);
+	void orcx(UGeckoInstruction inst);
+	void norx(UGeckoInstruction inst);
 	void xorx(UGeckoInstruction inst);
+	void eqvx(UGeckoInstruction inst);
 	void andx(UGeckoInstruction inst);
+	void nandx(UGeckoInstruction inst);
+	void andcx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void mulhwux(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
@@ -179,6 +185,8 @@ public:
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
+	void addmex(UGeckoInstruction inst);
+	void addzex(UGeckoInstruction inst);
 
 	void extsbx(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);
@@ -198,6 +206,17 @@ public:
 	void mftb(UGeckoInstruction inst);
 	void mtcrf(UGeckoInstruction inst);
 	void mfcr(UGeckoInstruction inst);
+	void mcrf(UGeckoInstruction inst);
+	void mcrxr(UGeckoInstruction inst);
+
+	void crand(UGeckoInstruction inst);
+	void crandc(UGeckoInstruction inst);
+	void creqv(UGeckoInstruction inst);
+	void crnand(UGeckoInstruction inst);
+	void crnor(UGeckoInstruction inst);
+	void cror(UGeckoInstruction inst);
+	void crorc(UGeckoInstruction inst);
+	void crxor(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);
 
@@ -247,6 +266,8 @@ public:
 	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 	void subfex(UGeckoInstruction inst);
+	void subfmex(UGeckoInstruction inst);
+	void subfzex(UGeckoInstruction inst);
 
 	void lbzx(UGeckoInstruction inst);
 	void lwzx(UGeckoInstruction inst);

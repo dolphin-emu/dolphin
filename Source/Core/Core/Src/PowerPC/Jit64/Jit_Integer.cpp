@@ -28,29 +28,42 @@
 void Jit64::GenerateCarry() {
 	// USES_XER
 	FixupBranch pNoCarry = J_CC(CC_NC);
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(1 << 29));
+	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK));
 	FixupBranch pContinue = J();
 	SetJumpTarget(pNoCarry);
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
+	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(XER_CA_MASK)));
 	SetJumpTarget(pContinue);
 }
 
 void Jit64::ComputeRC(const Gen::OpArg & arg) {
-	CMP(32, arg, Imm8(0));
-	FixupBranch pLesser  = J_CC(CC_L);
-	FixupBranch pGreater = J_CC(CC_G);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
-	FixupBranch continue1 = J();
+	if( arg.IsImm() )
+	{
+		s32 value = (s32)arg.offset;
+		if( value < 0 )
+			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8));
+		else if( value > 0 )
+			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4));
+		else
+			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2));
+	}
+	else
+	{
+		CMP(32, arg, Imm8(0));
+		FixupBranch pLesser  = J_CC(CC_L);
+		FixupBranch pGreater = J_CC(CC_G);
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
+		FixupBranch continue1 = J();
 
-	SetJumpTarget(pGreater);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
-	FixupBranch continue2 = J();
+		SetJumpTarget(pGreater);
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
+		FixupBranch continue2 = J();
 
-	SetJumpTarget(pLesser);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
+		SetJumpTarget(pLesser);
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
 
-	SetJumpTarget(continue1);
-	SetJumpTarget(continue2);
+		SetJumpTarget(continue1);
+		SetJumpTarget(continue2);
+	}
 }
 
 u32 Add(u32 a, u32 b) {return a + b;}
@@ -139,6 +152,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 					// FIXME: Seems to be required on OS X (see r5799)
 					gpr.StoreFromX64(d);
 #endif
+					js.downcountAmount++;
 					js.skipnext = true;
 					break;
 				}
@@ -148,6 +162,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 					// FIXME: Seems to be required on OS X (see r5799)
 					gpr.StoreFromX64(d);
 #endif
+					js.downcountAmount++;
 					js.skipnext = true;
 					break;
 				}
@@ -365,6 +380,67 @@ void Jit64::orx(UGeckoInstruction inst)
 	}
 }
 
+void Jit64::orcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA, s = inst.RS, b = inst.RB;
+	if (a != s && a != b) {
+		gpr.LoadToX64(a, false, true);
+	} else {
+		gpr.LoadToX64(a, true, true);
+	}
+	gpr.Lock(a, s, b);
+	MOV(32, R(EAX), gpr.R(b));
+	NOT(32, R(EAX));
+	OR(32, R(EAX), gpr.R(s));
+	MOV(32, gpr.R(a), R(EAX));
+	gpr.UnlockAll();
+
+	if (inst.Rc) {
+		// result is already in eax
+		ComputeRC(R(EAX));
+	}
+}
+
+void Jit64::norx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA;
+	int s = inst.RS;
+	int b = inst.RB;
+
+	if (s == b && s != a)
+	{
+		gpr.Lock(a,s);
+		gpr.LoadToX64(a, false);
+		MOV(32, gpr.R(a), gpr.R(s));
+		NOT(32, gpr.R(a));
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, s, b);
+		gpr.LoadToX64(a, (a == s || a == b), true);
+		if (a == s) 
+			OR(32, gpr.R(a), gpr.R(b));
+		else if (a == b)
+			OR(32, gpr.R(a), gpr.R(s));
+		else {
+			MOV(32, gpr.R(a), gpr.R(b));
+			OR(32, gpr.R(a), gpr.R(s));
+		}
+		NOT(32, gpr.R(a));
+		gpr.UnlockAll();
+	}
+
+	if (inst.Rc)
+	{
+		ComputeRC(gpr.R(a));
+	}
+}
+
 
 // m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
 void Jit64::xorx(UGeckoInstruction inst)
@@ -394,6 +470,34 @@ void Jit64::xorx(UGeckoInstruction inst)
 	}
 }
 
+void Jit64::eqvx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA;
+	int s = inst.RS;
+	int b = inst.RB;
+
+	if (s == b) {
+		gpr.SetImmediate32(a, 0);
+	}
+	else
+	{
+		gpr.LoadToX64(a, a == s || a == b, true);
+		gpr.Lock(a, s, b);
+		MOV(32, R(EAX), gpr.R(s));
+		XOR(32, R(EAX), gpr.R(b));
+		NOT(32, R(EAX));
+		MOV(32, gpr.R(a), R(EAX));
+		gpr.UnlockAll();
+	}
+
+	if (inst.Rc)
+	{
+		ComputeRC(gpr.R(a));
+	}
+}
+
 void Jit64::andx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -407,6 +511,52 @@ void Jit64::andx(UGeckoInstruction inst)
 	gpr.Lock(a, s, b);
 	MOV(32, R(EAX), gpr.R(s));
 	AND(32, R(EAX), gpr.R(b));
+	MOV(32, gpr.R(a), R(EAX));
+	gpr.UnlockAll();
+
+	if (inst.Rc) {
+		// result is already in eax
+		ComputeRC(R(EAX));
+	}
+}
+
+void Jit64::nandx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA, s = inst.RS, b = inst.RB;
+	if (a != s && a != b) {
+		gpr.LoadToX64(a, false, true);
+	} else {
+		gpr.LoadToX64(a, true, true);
+	}
+	gpr.Lock(a, s, b);
+	MOV(32, R(EAX), gpr.R(s));
+	AND(32, R(EAX), gpr.R(b));
+	NOT(32, R(EAX));
+	MOV(32, gpr.R(a), R(EAX));
+	gpr.UnlockAll();
+
+	if (inst.Rc) {
+		// result is already in eax
+		ComputeRC(R(EAX));
+	}
+}
+
+void Jit64::andcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA, s = inst.RS, b = inst.RB;
+	if (a != s && a != b) {
+		gpr.LoadToX64(a, false, true);
+	} else {
+		gpr.LoadToX64(a, true, true);
+	}
+	gpr.Lock(a, s, b);
+	MOV(32, R(EAX), gpr.R(b));
+	NOT(32, R(EAX));
+	AND(32, R(EAX), gpr.R(s));
 	MOV(32, gpr.R(a), R(EAX));
 	gpr.UnlockAll();
 
@@ -542,6 +692,80 @@ void Jit64::subfex(UGeckoInstruction inst)
 	}
 }
 
+void Jit64::subfmex(UGeckoInstruction inst)
+{
+    // USES_XER
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, d = inst.RD;
+	
+	if (d == a)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, true);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		MOV(32, gpr.R(d), gpr.R(a));
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
+    if (inst.Rc)
+    {
+            ComputeRC(gpr.R(d));
+    }
+}
+
+void Jit64::subfzex(UGeckoInstruction inst)
+{
+    // USES_XER
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, d = inst.RD;
+	
+	if (d == a)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, true);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), Imm8(0));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		MOV(32, gpr.R(d), gpr.R(a));
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), Imm8(0));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
+    if (inst.Rc)
+    {
+            ComputeRC(gpr.R(d));
+    }
+}
+
 void Jit64::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -655,101 +879,176 @@ void Jit64::divwux(UGeckoInstruction inst)
 
 void Jit64::addx(UGeckoInstruction inst)
 {
-	INSTRUCTION_START
-	JITDISABLE(Integer)
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	_assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
-
-	if (a != d && b != d && a != b)
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, b = inst.RB, d = inst.RD;
+    _assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
+	
+	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
 		gpr.Lock(a, b, d);
 		gpr.LoadToX64(d, false);
-		if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg()) {
-			LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
-		} else {
-			MOV(32, gpr.R(d), gpr.R(a));
-			ADD(32, gpr.R(d), gpr.R(b));
-		}
-		if (inst.Rc)
-		{
-			ComputeRC(gpr.R(d));
-		}
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
 		gpr.UnlockAll();
 	}
-	else if (d == a && d != b)
+	else if ((d == a) || (d == b))
 	{
-		gpr.Lock(b, d);
+		int operand = ((d == a) ? b : a);
+		gpr.Lock(a, b, d);
 		gpr.LoadToX64(d, true);
-		ADD(32, gpr.R(d), gpr.R(b));
-		if (inst.Rc)
-		{
-			ComputeRC(gpr.R(d));
-		}
-		gpr.UnlockAll();
-	}
-	else if (d == b && d != a)
-	{
-		gpr.Lock(a, d);
-		gpr.LoadToX64(d, true);
-		ADD(32, gpr.R(d), gpr.R(a));
-		if (inst.Rc)
-		{
-			ComputeRC(gpr.R(d));
-		}
-		gpr.UnlockAll();
-	}
-	else if( a == b && b == d && a == d)
-	{
-		gpr.Lock(d);
-		gpr.LoadToX64(d, true);
-		ADD(32, gpr.R(d), gpr.R(d));
-		if (inst.Rc)
-		{
-			ComputeRC(gpr.R(d));
-		}
-		gpr.UnlockAll();
-	}
-	else if( a == b && b != d)
-	{
-		gpr.Lock(a, d);
-		gpr.LoadToX64(d, false);
-		MOV(32, gpr.R(d), gpr.R(a)); 
-		ADD(32, gpr.R(d), gpr.R(d));
-		if (inst.Rc)
-		{
-			ComputeRC(gpr.R(d));
-		}
+		ADD(32, gpr.R(d), gpr.R(operand));
 		gpr.UnlockAll();
 	}
 	else
 	{
-		Default(inst);	return;
+		gpr.Lock(a, b, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, gpr.R(d), gpr.R(a)); 
+		ADD(32, gpr.R(d), gpr.R(b));
+		gpr.UnlockAll();
+	}
+	
+	if (inst.Rc)
+	{
+			ComputeRC(gpr.R(d));
 	}
 }
 
-// This can be optimized
 void Jit64::addex(UGeckoInstruction inst)
 {
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(Integer)
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	if (d != a && d != b)
-		gpr.LoadToX64(d, false);
-	else
+    // USES_XER
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, b = inst.RB, d = inst.RD;
+	
+	if ((d == a) || (d == b))
+	{
+		gpr.Lock(a, b, d);
 		gpr.LoadToX64(d, true);
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-	SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
-	MOV(32, R(EAX), gpr.R(a));
-	ADC(32, R(EAX), gpr.R(b));
-	MOV(32, gpr.R(d), R(EAX));
-	GenerateCarry();
-	gpr.UnlockAll();
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		ADC(32, gpr.R(d), gpr.R((d == a) ? b : a));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, b, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		MOV(32, gpr.R(d), gpr.R(a));
+		ADC(32, gpr.R(d), gpr.R(b));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
+    if (inst.Rc)
+    {
+            ComputeRC(gpr.R(d));
+    }
+}
+
+void Jit64::addcx(UGeckoInstruction inst)
+{
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, b = inst.RB, d = inst.RD;
+    _assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
+	
+	if ((d == a) || (d == b))
+	{
+		int operand = ((d == a) ? b : a);
+		gpr.Lock(a, b, d);
+		gpr.LoadToX64(d, true);
+		ADD(32, gpr.R(d), gpr.R(operand));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, b, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, gpr.R(d), gpr.R(a)); 
+		ADD(32, gpr.R(d), gpr.R(b));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
 	if (inst.Rc)
 	{
-		ComputeRC(R(EAX));
+			ComputeRC(gpr.R(d));
 	}
+}
+
+void Jit64::addmex(UGeckoInstruction inst)
+{
+    // USES_XER
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, d = inst.RD;
+	
+	if (d == a)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, true);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		MOV(32, gpr.R(d), gpr.R(a));
+		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
+    if (inst.Rc)
+    {
+            ComputeRC(gpr.R(d));
+    }
+}
+
+void Jit64::addzex(UGeckoInstruction inst)
+{
+    // USES_XER
+    INSTRUCTION_START
+    JITDISABLE(Integer)
+    int a = inst.RA, d = inst.RD;
+	
+	if (d == a)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, true);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		ADC(32, gpr.R(d), Imm8(0));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	else
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		MOV(32, gpr.R(d), gpr.R(a));
+		ADC(32, gpr.R(d), Imm8(0));
+		GenerateCarry();
+		gpr.UnlockAll();
+	}
+	
+    if (inst.Rc)
+    {
+            ComputeRC(gpr.R(d));
+    }
 }
 
 void Jit64::rlwinmx(UGeckoInstruction inst)
