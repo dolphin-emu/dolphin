@@ -145,6 +145,7 @@ void CFrame::CreateMenu()
 
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_SCREENSHOT, _T("Take S&creenshot\tF9"));
+
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
@@ -626,7 +627,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),
-			wxFD_SAVE | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			wxFD_SAVE | wxFD_PREVIEW,
 			this);
 
 	if(path.IsEmpty())

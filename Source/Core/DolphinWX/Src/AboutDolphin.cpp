@@ -105,7 +105,7 @@ void AboutDolphin::CreateGUIControls()
 
 void AboutDolphin::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	Destroy();
+	EndModal(wxID_OK);
 }
 
 void AboutDolphin::CloseClick(wxCommandEvent& WXUNUSED (event))
