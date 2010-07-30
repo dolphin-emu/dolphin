@@ -108,6 +108,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
+		game_ini.Get("Core", "SMC",					&StartUp.bSMC, StartUp.bSMC);
 		// Wii settings
 		if (StartUp.bWii)
 		{

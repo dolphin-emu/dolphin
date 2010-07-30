@@ -292,6 +292,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SMC = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable self modifying code check"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -349,6 +350,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(SMC, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
@@ -821,6 +823,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "SMC", &bTemp))
+		SMC->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		SMC->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -906,6 +913,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "TLBHack");
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
+
+	if (SMC->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "SMC");
+	else
+		GameIni.Set("Core", "SMC", SMC->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");

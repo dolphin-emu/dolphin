@@ -270,7 +270,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
 
 		// Required for games with self modifying code (e.g. Monster House)
-		if (Core::g_CoreStartupParameter.bMMU)
+		if (Core::g_CoreStartupParameter.bSMC)
 			Write_Opcode_JIT(em_address, 0x14141414);
 
 		return;
