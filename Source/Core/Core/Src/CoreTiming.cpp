@@ -178,6 +178,7 @@ void DoState(PointerWrap &p)
 			p.Do(ev->time);
 			p.Do(ev->type);
 			p.Do(ev->userdata);
+			p.Do(ev->fifoWait);
 			ev->next = 0;
 			prev = ev;
 			ev = ev->next;
@@ -195,6 +196,7 @@ void DoState(PointerWrap &p)
 			p.Do(ev->time);
 			p.Do(ev->type);
 			p.Do(ev->userdata);
+			p.Do(ev->fifoWait);
 			ev = ev->next;
 		}
 		more_events = 0;
