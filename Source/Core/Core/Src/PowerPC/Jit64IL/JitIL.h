@@ -112,7 +112,7 @@ public:
 
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInEAX(int exit_num);
-	void WriteExceptionExit(u32 exception);
+	void WriteExceptionExit();
 	void WriteRfiExitDestInEAX();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();

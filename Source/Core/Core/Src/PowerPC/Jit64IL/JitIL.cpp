@@ -172,7 +172,11 @@ void JitIL::Init()
 	}
 	else
 	{
-		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
+		if (!Core::g_CoreStartupParameter.bJITBlockLinking)
+			jo.enableBlocklink = false;
+		else
+			// Speed boost, but not 100% safe
+			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 
 #ifdef _M_X64
@@ -185,6 +189,7 @@ void JitIL::Init()
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;
+	js.memcheck = Core::g_CoreStartupParameter.bMMU;
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
@@ -336,11 +341,10 @@ void JitIL::WriteRfiExitDestInEAX()
 	JMP(asm_routines.testExceptions, true);
 }
 
-void JitIL::WriteExceptionExit(u32 exception)
+void JitIL::WriteExceptionExit()
 {
 	Cleanup();
-	OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
-	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
 
@@ -401,6 +405,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
+	// Memory exception on instruction fetch
+	bool memory_exception = false;
+
 	// A broken block is a block that does not end in a branch
 	bool broken_block = false;
 
@@ -414,7 +421,21 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-	int size;
+	if (Core::g_CoreStartupParameter.bMMU &&
+				(em_address >> 28) != 0x0 &&
+				(em_address >> 28) != 0x8 &&
+				(em_address >> 28) != 0x9 &&
+				(em_address >> 28) != 0xC &&
+				(em_address >> 28) != 0xD)	
+	{
+		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
+		{
+			// Memory exception occurred during instruction fetch
+			memory_exception = true;
+		}
+	}
+
+	int size = 0;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -423,7 +444,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize);
+	b->exitAddress[0] = em_address;
+	if (!memory_exception)
+	{
+		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
+		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize);
+	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
@@ -459,8 +485,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	ibuild.Reset();
 
 	
-	js.downcountAmount = js.st.numCycles;
-
+	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
@@ -470,6 +495,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
+		const GekkoOPInfo *opinfo = GetOpInfo(ops[i].inst);
+		js.downcountAmount += (opinfo->numCyclesMinusOne + 1);
+
 		if (i == (int)size - 1)
 		{
 			js.isLastInstruction = true;
@@ -484,8 +512,23 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
+			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			{
+				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+			}
+			
 			JitILTables::CompileInstruction(ops[i]);
+
+			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				ibuild.EmitFPExceptionCheckEnd(ibuild.EmitIntConst(ops[i].address));
+			}
 		}
+	}
+
+	if (memory_exception)
+	{
+		ibuild.EmitISIException(ibuild.EmitIntConst(em_address));
 	}
 
 	// Perform actual code generation

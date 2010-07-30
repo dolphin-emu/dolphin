@@ -705,6 +705,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case RFIExit:
 		case InterpreterBranch:		
 		case ShortIdleLoop:
+		case FPExceptionCheckStart:
+		case FPExceptionCheckEnd:
+		case ISIException:
 		case Int3:
 		case Tramp:
 			// No liveness effects
@@ -1607,10 +1610,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case SystemCall: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->Cleanup();
 			Jit->OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
 			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
-			Jit->JMP(((JitIL *)jit)->asm_routines.testExceptions, true);
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case InterpreterBranch: {
@@ -1627,12 +1629,44 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->AND(32, R(EAX), Imm32(~mask));
 			Jit->AND(32, R(ECX), Imm32(mask));
 			Jit->OR(32, R(EAX), R(ECX));       
-			// MSR &= 0xFFFDFFFF; //TODO: VERIFY
-			Jit->AND(32, R(EAX), Imm32(0xFFFDFFFF));
+			// MSR &= 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
+			Jit->AND(32, R(EAX), Imm32(0xFFFBFFFF));
 			Jit->MOV(32, M(&MSR), R(EAX));
 			// NPC = SRR0; 
 			Jit->MOV(32, R(EAX), M(&SRR0));
 			Jit->WriteRfiExitDestInEAX();
+			break;
+		}
+		case FPExceptionCheckStart: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			//This instruction uses FPU - needs to add FP exception bailout
+			Jit->TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
+			FixupBranch b1 = Jit->J_CC(CC_NZ);
+
+			// If a FPU exception occurs, the exception handler will read
+			// from PC.  Update PC with the latest value in case that happens.
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->SUB(32, M(&CoreTiming::downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount)); 
+			Jit->JMP(Jit->asm_routines.fpException, true);
+			Jit->SetJumpTarget(b1);
+			break;
+		}
+		case FPExceptionCheckEnd: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+			FixupBranch noMemException = Jit->J_CC(CC_Z);
+
+			// If a memory exception occurs, the exception handler will read
+			// from PC.  Update PC with the latest value in case that happens.
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->WriteExceptionExit();
+			Jit->SetJumpTarget(noMemException);
+			break;
+		}
+		case ISIException: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->ABI_CallFunctionC(reinterpret_cast<void *>(&Memory::GenerateISIException_JIT), InstLoc);
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case Int3: {

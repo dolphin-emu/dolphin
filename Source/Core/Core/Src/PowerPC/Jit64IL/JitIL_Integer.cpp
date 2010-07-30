@@ -125,6 +125,7 @@ void JitIL::cmpXX(UGeckoInstruction inst)
 		rhs = ibuild.EmitIntConst(inst.SIMM_16);
 		res = ibuild.EmitICmpCRSigned(lhs, rhs);
 	}
+	js.downcountAmount++; //TODO: should this be somewhere else?
 	
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }

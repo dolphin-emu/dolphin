@@ -163,6 +163,10 @@ enum Opcode {
 	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
 		       // just a branch
 
+	// used for MMU, at least until someone 
+	// has a better idea of integrating it
+	FPExceptionCheckStart, FPExceptionCheckEnd,
+	ISIException,
 	// "Opcode" representing a register too far away to
 	// reference directly; this is a size optimization
 	Tramp,
@@ -388,6 +392,15 @@ public:
 	}
 	InstLoc EmitSystemCall(InstLoc pc) {
 		return FoldUOp(SystemCall, pc);
+	}
+	InstLoc EmitFPExceptionCheckStart(InstLoc pc) {
+		return EmitUOp(FPExceptionCheckStart, pc);
+	}
+	InstLoc EmitFPExceptionCheckEnd(InstLoc pc) {
+		return EmitUOp(FPExceptionCheckEnd, pc);
+	}
+	InstLoc EmitISIException(InstLoc dest) {
+		return EmitUOp(ISIException, dest);
 	}
 	InstLoc EmitRFIExit() {
 		return FoldZeroOp(RFIExit, 0);
