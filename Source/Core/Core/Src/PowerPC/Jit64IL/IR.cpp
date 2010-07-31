@@ -129,6 +129,7 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #pragma warning(disable:4146)   // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
+#include <algorithm>
 #include "IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
@@ -374,6 +375,22 @@ InstLoc IRBuilder::FoldAdd(InstLoc Op1, InstLoc Op2) {
 		return getOp1(Op1);
 	}
 
+	if (InstLoc negOp1 = isNeg(Op1)) {
+		// TODO: Test the folding below
+		// -A + -B  -->  -(A + B)
+		if (InstLoc negOp2 = isNeg(Op2)) {
+			return FoldSub(EmitIntConst(0), FoldAdd(negOp1, negOp2));
+		}
+
+		// -A + B  -->  B - A
+		return FoldSub(Op2, negOp1);
+	}
+
+	// A + -B  -->  A - B
+	if (InstLoc negOp2 = isNeg(Op2)) {
+		return FoldSub(Op1, negOp2);
+	}
+
 	// TODO: Test the folding below
 	// (x * i0) + x => x * (i0 + 1)
 	if (getOpcode(*Op1) == Mul && isImm(*getOp2(Op1)) && isSameValue(getOp1(Op1), Op2)) {
@@ -423,6 +440,12 @@ InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2) {
 	// (x - x) => 0
 	if (isSameValue(Op1, Op2)) {
 		return EmitIntConst(0);
+	}
+
+	// TODO: Test the folding below
+	// x - (-A) => x + A
+	if (InstLoc negOp2 = isNeg(Op2)) {
+		return FoldAdd(Op1, negOp2);
 	}
 
 	// (x - i0) => x + -i0
@@ -563,6 +586,14 @@ InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
 	// The later format can be folded by other rules, again.
 	if (getOpcode(*Op1) == Add && isImm(*getOp2(Op1)) && isImm(*Op2)) {
 		return FoldAdd(FoldMul(getOp1(Op1), Op2), EmitIntConst(GetImmValue(getOp2(Op1)) * GetImmValue(Op2)));
+	}
+
+	// TODO: Test the folding below
+	// -X * -Y => X * Y
+	if (InstLoc negOp1 = isNeg(Op1)) {
+		if (InstLoc negOp2 = isNeg(Op2)) {
+			return FoldMul(negOp1, negOp2);
+		}
 	}
 
 	// TODO: Test the folding below
@@ -1017,6 +1048,12 @@ unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
 		return true;
 	}
 
+	if (getNumberOfOperands(Op1) == 2 && getOpcode(*Op1) != StorePaired && getOpcode(*Op1) == getOpcode(*Op2) &&
+		isSameValue(getOp1(Op1), getOp1(Op2)) && isSameValue(getOp2(Op1), getOp2(Op2)))
+	{
+		return true;
+	}
+
 	return false;
 }
 
@@ -1028,27 +1065,44 @@ unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
 // 3 -> UOp
 // 4 -> BiOp
 unsigned IRBuilder::getComplexity(InstLoc I) const {
-	static unsigned complexities[256];
-	if (complexities[0] == 0) {
-		complexities[Nop] = 1;
-		complexities[CInt16] = 1;
-		complexities[CInt32] = 1;
+	const unsigned Opcode = getOpcode(*I);
+	if (Opcode == Nop || Opcode == CInt16 || Opcode == CInt32) {
+		return 1;
+	}
+
+	const unsigned numberOfOperands = getNumberOfOperands(I);
+	if (numberOfOperands == -1U) {
+		return 0;
+	}
+
+	return numberOfOperands + 2;
+}
+
+
+unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
+	static unsigned numberOfOperands[256];
+	if (numberOfOperands[0] == 0) {
+		std::fill_n(numberOfOperands, sizeof(numberOfOperands) / sizeof(numberOfOperands[0]), -1U);
+
+		numberOfOperands[Nop] = 0;
+		numberOfOperands[CInt16] = 0;
+		numberOfOperands[CInt32] = 0;
 
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
 		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
 		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
 		for (size_t i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
-			complexities[ZeroOp[i]] = 2;
+			numberOfOperands[ZeroOp[i]] = 0;
 		}
 		for (size_t i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
-			complexities[UOp[i]] = 3;
+			numberOfOperands[UOp[i]] = 1;
 		}
 		for (size_t i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
-			complexities[BiOp[i]] = 4;
+			numberOfOperands[BiOp[i]] = 2;
 		}
 	}
 
-	return complexities[getOpcode(*I)];
+	return numberOfOperands[getOpcode(*I)];
 }
 
 // Performs a few simplifications for commutative operators
@@ -1073,7 +1127,7 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 			return;
 	}
 
-	// Transform: (op (op V, C1), C2) ==> (op V, (op C1, C2))
+	// (V op C1) op C2 => V + (C1 + C2)
 	if (getOpcode(*Op1) == Opcode && isImm(*getOp2(Op1)) && isImm(*Op2)) {
 		const InstLoc Op1Old = Op1;
 		const InstLoc Op2Old = Op2;
@@ -1081,12 +1135,29 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), Op2Old);
 	}
 
+	// ((V1 op C1) op (V2 op C2)) => ((V1 op V2) op (C1 op C2))
 	// Transform: (op (op V1, C1), (op V2, C2)) ==> (op (op V1, V2), (op C1,C2))
 	if (getOpcode(*Op1) == Opcode && isImm(*getOp2(Op1)) && getOpcode(*Op2) == Opcode && isImm(*getOp2(Op2))) {
 		const InstLoc Op1Old = Op1;
 		const InstLoc Op2Old = Op2;
 		Op1 = FoldBiOp(Opcode, getOp1(Op1Old), getOp1(Op2Old));
 		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), getOp2(Op2Old));
+	}
+
+	// ((w op x) op (y op z)) => (((w op x) op y) op z)
+	if (getOpcode(*Op1) == Opcode && getOpcode(*Op2) == Opcode) {
+		// Sort the operands where the complexities will be descending order.
+		std::pair<unsigned, InstLoc> ops[4];
+		ops[0] = std::make_pair(getComplexity(getOp1(Op1)), getOp1(Op1));
+		ops[1] = std::make_pair(getComplexity(getOp2(Op1)), getOp2(Op1));
+		ops[2] = std::make_pair(getComplexity(getOp1(Op2)), getOp1(Op2));
+		ops[3] = std::make_pair(getComplexity(getOp2(Op2)), getOp2(Op2));
+		std::sort(ops, ops + 4, std::greater<std::pair<unsigned, InstLoc> >());
+
+		const InstLoc Op1Old = Op1;
+		const InstLoc Op2Old = Op2;
+		Op1 = FoldBiOp(Opcode, FoldBiOp(Opcode, ops[0].second, ops[1].second), ops[2].second);
+		Op2 = ops[3].second;
 	}
 }
 
@@ -1109,6 +1180,15 @@ InstLoc IRBuilder::isNot(InstLoc I) const {
 		if (isImm(*Op2) && GetImmValue(Op2) == -1U) {
 			return Op1;
 		}
+	}
+
+	return NULL;
+}
+
+// Returns I' if I == (0 - I')
+InstLoc IRBuilder::isNeg(InstLoc I) const {
+	if (getOpcode(*I) == Sub && isImm(*getOp1(I)) && GetImmValue(getOp1(I)) == 0) {
+		return getOp2(I);
 	}
 
 	return NULL;

@@ -557,6 +557,8 @@ public:
 
 	IRBuilder() { Reset(); }
 
+	unsigned getNumberOfOperands(InstLoc I) const;
+
 private:
 	IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
 	unsigned isSameValue(InstLoc Op1, InstLoc Op2) const;
@@ -564,6 +566,7 @@ private:
 	void simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2);
 	bool maskedValueIsZero(InstLoc Op1, InstLoc Op2) const;
 	InstLoc isNot(InstLoc I) const;
+	InstLoc isNeg(InstLoc I) const;
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is 
 				    // continuous!
