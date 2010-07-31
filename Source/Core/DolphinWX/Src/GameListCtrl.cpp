@@ -438,7 +438,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		case DiscIO::IVolume::COUNTRY_JAPAN:
 			{
 				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
-				m_gameList.append(StringFromFormat("%s (J)\n", name.c_str()));
+				m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
 				SetItem(_Index, COLUMN_TITLE, name, -1);
 				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
 							company.c_str() : rISOFile.GetDescription(0).c_str(),
