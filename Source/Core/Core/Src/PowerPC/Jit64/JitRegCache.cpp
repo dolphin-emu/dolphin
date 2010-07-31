@@ -330,7 +330,7 @@ void FPURegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 	{
 		// Reg is at home in the memory register file. Let's pull it out.
 		X64Reg xr = GetFreeXReg();
-		_assert_msg_(DYNA_REC, xr >= 0 && xr < NUMXREGS, "WTF - load - invalid reg");
+		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - load - invalid reg");
 		xregs[xr].ppcReg = i;
 		xregs[xr].free = false;
 		xregs[xr].dirty = makeDirty;
@@ -357,7 +357,7 @@ void FPURegCache::StoreFromX64(int i)
 	if (regs[i].away)
 	{
 		X64Reg xr = regs[i].location.GetSimpleReg();
-		_assert_msg_(DYNA_REC, xr >= 0 && xr < NUMXREGS, "WTF - store - invalid reg");
+		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - store - invalid reg");
 		xregs[xr].free = true;
 		xregs[xr].dirty = false;
 		xregs[xr].ppcReg = -1;

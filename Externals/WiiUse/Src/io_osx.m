@@ -56,7 +56,7 @@ volatile int reader, writer, outstanding, watermark;
 
 @interface SearchBT: NSObject {
 @public
-	int maxDevices;
+	unsigned int maxDevices;
 }
 @end
 

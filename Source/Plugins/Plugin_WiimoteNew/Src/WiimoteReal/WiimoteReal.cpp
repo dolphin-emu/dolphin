@@ -174,7 +174,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	if (0 == m_channel)	// first interrupt/control channel sent
 	{
 		// clear all msgs, silly maybe
-		while (wiiuse_io_read(m_wiimote));
+		while (wiiuse_io_read(m_wiimote)) {};
 
 		// request status
 		wm_request_status rpt = wm_request_status();
@@ -251,7 +251,7 @@ void Wiimote::Disconnect()
 	ClearReports();
 
 	// clear out wiiuse queue, or maybe not, silly? idk
-	while (wiiuse_io_read(m_wiimote));
+	while (wiiuse_io_read(m_wiimote)) {};
 }
 
 Wiimote* g_wiimotes[4];

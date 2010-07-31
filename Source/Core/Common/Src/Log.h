@@ -140,8 +140,8 @@ void GenericLogC(int level, int type,
 #define _dbg_update_() ;
 
 #ifndef _dbg_assert_
-#define _dbg_assert_(_t_, _a_) ;
-#define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
+#define _dbg_assert_(_t_, _a_) {}
+#define _dbg_assert_msg_(_t_, _a_, _desc_, ...) {}
 #endif // dbg_assert
 #endif // MAX_LOGLEVEL DEBUG
 

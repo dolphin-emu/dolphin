@@ -169,7 +169,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 		m_step = 0;
 	}
 
-	if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
+	if (m_step >= sizeof(m_Buffer) / 4)
 		PanicAlert("m_step out of range");
 
 	((u32*)m_Buffer)[m_step] = _uMail;
@@ -226,7 +226,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 
 	if (m_bListInProgress)
 	{
-		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
+		if (m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
 		((u32*)m_Buffer)[m_step] = _uMail;
@@ -349,7 +349,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 	if (m_bListInProgress)
 	{
-		if (m_step < 0 || m_step >= sizeof(m_Buffer) / 4)
+		if (m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
 		((u32*)m_Buffer)[m_step] = _uMail;

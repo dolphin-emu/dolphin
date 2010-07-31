@@ -419,7 +419,7 @@ static void skip(stbi *s, int n)
       s->img_buffer += n;
 }
 
-static int get16(stbi *s)
+static uint16 get16(stbi *s)
 {
    int z = get8(s);
    return (z << 8) + get8(s);
@@ -431,7 +431,7 @@ static uint32 get32(stbi *s)
    return (z << 16) + get16(s);
 }
 
-static int get16le(stbi *s)
+static uint16 get16le(stbi *s)
 {
    int z = get8(s);
    return z + (get8(s) << 8);

@@ -299,7 +299,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									msg.addData((void *)"\x00\x00\x00\x00", 4); 
 									break;
 								case 0x15:
-									while (*jvs_io++);
+									while (*jvs_io++) {};
 									msg.addData(1);
 									break;
 								case 0x20:
