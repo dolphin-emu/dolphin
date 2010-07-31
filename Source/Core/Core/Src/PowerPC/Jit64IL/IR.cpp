@@ -1154,8 +1154,6 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 		ops[3] = std::make_pair(getComplexity(getOp2(Op2)), getOp2(Op2));
 		std::sort(ops, ops + 4, std::greater<std::pair<unsigned, InstLoc> >());
 
-		const InstLoc Op1Old = Op1;
-		const InstLoc Op2Old = Op2;
 		Op1 = FoldBiOp(Opcode, FoldBiOp(Opcode, ops[0].second, ops[1].second), ops[2].second);
 		Op2 = ops[3].second;
 	}
