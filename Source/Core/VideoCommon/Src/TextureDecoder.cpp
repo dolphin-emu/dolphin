@@ -15,14 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <cmath>
-
-#if _M_SSE >= 0x401
-#include <smmintrin.h>
-#elif _M_SSE >= 0x301
-#include <tmmintrin.h>
-#endif
-
 #include "Common.h"
 //#include "VideoCommon.h" // to get debug logs
 
@@ -36,6 +28,14 @@
 #endif
 
 #include "LookUpTables.h"
+
+#include <cmath>
+
+#if _M_SSE >= 0x401
+#include <smmintrin.h>
+#elif _M_SSE >= 0x301
+#include <tmmintrin.h>
+#endif
 
 bool TexFmt_Overlay_Enable=false;
 bool TexFmt_Overlay_Center=false;

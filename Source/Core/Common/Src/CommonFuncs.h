@@ -27,6 +27,19 @@
 template <bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
 
+#if defined __GNUC__ && !defined __SSSE3__
+#include <emmintrin.h>
+static __inline __m128i __attribute__((__always_inline__))
+_mm_shuffle_epi8(__m128i a, __m128i mask)
+{
+	__m128i result;
+	__asm__("pshufb %1, %0"
+		: "=x" (result)
+		: "xm" (mask), "0" (a));
+	return result;
+}
+#endif
+
 #ifndef _WIN32
 
 #include <errno.h>
@@ -44,6 +57,7 @@ size_t strnlen(const char *s, size_t n);
 		#define Crash() {asm ("int $3");}
 	#endif
 	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
+
 inline u32 _rotl(u32 x, int shift) {
     shift &= 31;
     if (!shift) return x;
@@ -65,7 +79,7 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	unsigned int n = shift % 64;
 	return (x >> n) | (x << (64 - n));
 }
-	#define SLEEP(x) usleep(x*1000)
+
 #else // WIN32
 // Function Cross-Compatibility
 	#define strcasecmp _stricmp
@@ -80,7 +94,6 @@ char* strndup (char const *s, size_t n);
 	#define ftell _ftelli64
 	#define atoll _atoi64
 	#define stat64 _stat64
-	#define SLEEP(x) Sleep(x)
 
 	#if _M_IX86
 		#define Crash() {__asm int 3}

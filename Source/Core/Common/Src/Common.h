@@ -145,4 +145,8 @@ extern const char *netplay_dolphin_ver;
 #define __chdir chdir
 #endif
 
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || defined __APPLE__
+#define _M_SSE 0x301
+#endif
+
 #endif // _COMMON_H_
