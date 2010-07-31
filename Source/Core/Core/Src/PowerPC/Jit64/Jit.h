@@ -209,14 +209,7 @@ public:
 	void mcrf(UGeckoInstruction inst);
 	void mcrxr(UGeckoInstruction inst);
 
-	void crand(UGeckoInstruction inst);
-	void crandc(UGeckoInstruction inst);
-	void creqv(UGeckoInstruction inst);
-	void crnand(UGeckoInstruction inst);
-	void crnor(UGeckoInstruction inst);
-	void cror(UGeckoInstruction inst);
-	void crorc(UGeckoInstruction inst);
-	void crxor(UGeckoInstruction inst);
+	void crXXX(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);
 

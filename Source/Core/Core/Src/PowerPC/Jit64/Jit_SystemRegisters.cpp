@@ -219,10 +219,11 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(0x0FFFFFFF));
 }
 
-void Jit64::crand(UGeckoInstruction inst)
+void Jit64::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(SystemRegisters)
+	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
 	// USES_CR 
 
@@ -244,257 +245,45 @@ void Jit64::crand(UGeckoInstruction inst)
 		SHR(8, R(ECX), Imm8(shiftB));
 
 	// Compute combined bit
-	AND(8, R(EAX), R(ECX));
+	switch(inst.SUBOP10)
+	{
+	case 33:	// crnor
+		OR(8, R(EAX), R(ECX));
+		NOT(8, R(EAX));
+		break;
 
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
+	case 129:	// crandc
+		NOT(8, R(ECX));
+		AND(8, R(EAX), R(ECX));
+		break;
 
-	gpr.UnlockAllX();
-}
+	case 193:	// crxor
+		XOR(8, R(EAX), R(ECX));
+		break;
 
-void Jit64::crandc(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	case 225:	// crnand
+		AND(8, R(EAX), R(ECX));
+		NOT(8, R(EAX));
+		break;
 
-	// USES_CR 
+	case 257:	// crand
+		AND(8, R(EAX), R(ECX));
+		break;
 
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
+	case 289:	// creqv
+		XOR(8, R(EAX), R(ECX));
+		NOT(8, R(EAX));
+		break;
 
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
+	case 417:	// crorc
+		NOT(8, R(ECX));
+		OR(8, R(EAX), R(ECX));
+		break;
 
-	// Compute combined bit
-	NOT(8, R(ECX));
-	AND(8, R(EAX), R(ECX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::creqv(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	XOR(8, R(EAX), R(ECX));
-	NOT(8, R(EAX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::crnand(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	AND(8, R(EAX), R(ECX));
-	NOT(8, R(EAX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::crnor(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	OR(8, R(EAX), R(ECX));
-	NOT(8, R(EAX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::cror(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	OR(8, R(EAX), R(ECX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::crorc(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	NOT(8, R(ECX));
-	OR(8, R(EAX), R(ECX));
-
-	// Store result bit in CRBD
-	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
-	AND(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), Imm8(~(0x8 >> (inst.CRBD & 3))));
-	OR(8, M(&PowerPC::ppcState.cr_fast[inst.CRBD >> 2]), R(EAX));
-
-	gpr.UnlockAllX();
-}
-
-void Jit64::crxor(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
-
-	// USES_CR 
-
-	// Get bit CRBA in EAX aligned with bit CRBD
-	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[inst.CRBA >> 2]));
-	if (shiftA < 0)
-		SHL(8, R(EAX), Imm8(-shiftA));
-	else if (shiftA > 0)
-		SHR(8, R(EAX), Imm8(shiftA));
-
-	// Get bit CRBB in ECX aligned with bit CRBD
-	gpr.FlushLockX(ECX);
-	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
-	MOV(8, R(ECX), M(&PowerPC::ppcState.cr_fast[inst.CRBB >> 2]));
-	if (shiftB < 0)
-		SHL(8, R(ECX), Imm8(-shiftB));
-	else if (shiftB > 0)
-		SHR(8, R(ECX), Imm8(shiftB));
-
-	// Compute combined bit
-	XOR(8, R(EAX), R(ECX));
+	case 449:	// cror
+		OR(8, R(EAX), R(ECX));
+		break;
+	}
 
 	// Store result bit in CRBD
 	AND(8, R(EAX), Imm8(0x8 >> (inst.CRBD & 3)));
