@@ -186,3 +186,76 @@ void JitIL::mtcrf(UGeckoInstruction inst)
 	}
 #endif
 }
+
+void JitIL::crXX(UGeckoInstruction inst)
+{
+	// Ported from Jit_SystemRegister.cpp
+
+	// Get bit CRBA in EAX aligned with bit CRBD
+	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
+	IREmitter::InstLoc eax = ibuild.EmitLoadCR(inst.CRBA >> 2);
+	if (shiftA < 0)
+		eax = ibuild.EmitShl(eax, ibuild.EmitIntConst(-shiftA));
+	else if (shiftA > 0)
+		eax = ibuild.EmitShrl(eax, ibuild.EmitIntConst(shiftA));
+
+	// Get bit CRBB in ECX aligned with bit CRBD
+	const int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
+	IREmitter::InstLoc ecx = ibuild.EmitLoadCR(inst.CRBB >> 2);
+	if (shiftB < 0)
+		ecx = ibuild.EmitShl(ecx, ibuild.EmitIntConst(-shiftB));
+	else if (shiftB > 0)
+		ecx = ibuild.EmitShrl(ecx, ibuild.EmitIntConst(shiftB));
+
+	// Compute combined bit
+	const unsigned subop = inst.SUBOP10;
+	switch (subop) {
+		case 257:
+			// crand
+			eax = ibuild.EmitAnd(eax, ecx);	
+			break;
+		case 129:
+			// crandc
+			ecx = ibuild.EmitXor(ecx, ibuild.EmitIntConst(-1U));
+			eax = ibuild.EmitAnd(eax, ecx);	
+			break;
+		case 289:
+			// creqv
+			eax = ibuild.EmitXor(eax, ecx);
+			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(-1U));
+			break;
+		case 225:
+			// crnand
+			eax = ibuild.EmitAnd(eax, ecx);
+			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(-1U));
+			break;
+		case 33:
+			// crnor
+			eax = ibuild.EmitOr(eax, ecx);
+			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(-1U));
+			break;
+		case 449:
+			// cror
+			eax = ibuild.EmitOr(eax, ecx);
+			break;
+		case 417:
+			// crorc
+			ecx = ibuild.EmitXor(ecx, ibuild.EmitIntConst(-1U));
+			eax = ibuild.EmitOr(eax, ecx);
+			break;
+		case 193:
+			// crxor
+			eax = ibuild.EmitXor(eax, ecx);
+			break;
+		default:
+			PanicAlert("crXX: invalid instruction");
+			break;
+	}
+
+	// Store result bit in CRBD
+	eax = ibuild.EmitAnd(eax, ibuild.EmitIntConst(0x8 >> (inst.CRBD & 3)));
+	IREmitter::InstLoc bd = ibuild.EmitLoadCR(inst.CRBD >> 2);
+	bd = ibuild.EmitAnd(bd, ibuild.EmitIntConst(~(0x8 >> (inst.CRBD & 3))));
+	bd = ibuild.EmitOr(bd, eax);
+	ibuild.EmitStoreCR(bd, inst.CRBD >> 2);
+}

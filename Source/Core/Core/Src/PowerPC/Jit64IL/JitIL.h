@@ -171,6 +171,7 @@ public:
 	void mftb(UGeckoInstruction inst);
 	void mtcrf(UGeckoInstruction inst);
 	void mfcr(UGeckoInstruction inst);
+	void crXX(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);
 
@@ -205,6 +206,7 @@ public:
 	void fsign(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst); //stw sth stb
 	void lXz(UGeckoInstruction inst);
+	void lbzu(UGeckoInstruction inst);
 	void lha(UGeckoInstruction inst);
 	void rlwinmx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
