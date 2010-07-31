@@ -597,7 +597,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 				Tmp.Name = dlg.GetValue().mb_str();
 				Tmp.Perspective = m_Mgr->SavePerspective();
 
-				ActivePerspective = Perspectives.size();
+				ActivePerspective = (u32)Perspectives.size();
 				Perspectives.push_back(Tmp);
 
 				UpdateCurrentPerspective();

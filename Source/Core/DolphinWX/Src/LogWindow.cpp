@@ -46,6 +46,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CHECKBOX(IDM_WRITEWINDOW, CLogWindow::OnOptionsCheck)
 	EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
 	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
+	EVT_SIZE(CLogWindow::OnSize)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
@@ -170,14 +171,28 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 	event.Skip();
 }
 
+void CLogWindow::OnSize(wxSizeEvent& event)
+{
+	if (!Parent->g_pCodeWindow &&
+		   	Parent->m_Mgr->GetPane(wxT("Pane 1")).IsShown())
+	{
+		x = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
+		y = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
+		winpos = Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
+	}
+	event.Skip();
+}
+
 void CLogWindow::SaveSettings()
 {
 	IniFile ini;
+	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+
 	if (!Parent->g_pCodeWindow)
 	{
-		ini.Set("LogWindow", "x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
-		ini.Set("LogWindow", "y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
-		ini.Set("LogWindow", "pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
+			ini.Set("LogWindow", "x", x);
+			ini.Set("LogWindow", "y", y);
+			ini.Set("LogWindow", "pos", winpos);
 	}
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());

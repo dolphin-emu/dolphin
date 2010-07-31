@@ -97,6 +97,7 @@ private:
 	void CreateGUIControls();
 	void PopulateRight(); void UnPopulateRight();
 	void OnClose(wxCloseEvent& event);
+	void OnSize(wxSizeEvent& event);
 	void OnSubmit(wxCommandEvent& event);
 	void OnOptionsCheck(wxCommandEvent& event);
 	void OnLogCheck(wxCommandEvent& event);
