@@ -318,24 +318,20 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
 	for (int i = 0; i < maxsize; i++)
-	{
-		num_inst++;
-		memset(&code[i], 0, sizeof(CodeOp));
-		code[i].address = address;
-		
-		UGeckoInstruction inst = Memory::Read_Opcode_JIT(code[i].address);
-
+	{		
+		UGeckoInstruction inst = Memory::Read_Opcode_JIT(address);
 		if (inst.hex != 0)
 		{
+			num_inst++;
+			memset(&code[i], 0, sizeof(CodeOp));
+			GekkoOPInfo *opinfo = GetOpInfo(inst);
+			code[i].opinfo = opinfo;
+			code[i].address = address;
 			code[i].inst = inst;
 			code[i].branchTo = -1;
 			code[i].branchToIndex = -1;
 			code[i].skip = false;
-			GekkoOPInfo *opinfo = GetOpInfo(inst);
-			code[i].opinfo = opinfo;
-			if (opinfo)
-				numCycles += opinfo->numCyclesMinusOne + 1;
-			_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
+			numCycles += opinfo->numCyclesMinusOne + 1;
 
 			code[i].wantsCR0 = false;
 			code[i].wantsCR1 = false;
@@ -477,7 +473,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 	st->numCycles = numCycles;
 
 	// Instruction Reordering Pass
-	if (num_inst > 2)
+	if (num_inst > 1)
 	{
 		// Bubble down compares towards branches, so that they can be merged.
 		// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
@@ -500,7 +496,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 		}
 	}
 
-	if (!foundExit && num_inst > 1)
+	if (!foundExit && num_inst > 0)
 	{
 		// A broken block is a block that does not end in a branch
 		broken_block = true;
