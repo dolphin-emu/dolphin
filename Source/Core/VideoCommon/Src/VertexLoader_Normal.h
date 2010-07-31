@@ -18,6 +18,7 @@
 #ifndef _VERTEXLOADER_NORMAL_H
 #define _VERTEXLOADER_NORMAL_H
 
+#include "Common.h"
 #include "CommonTypes.h"
 
 class VertexLoader_Normal
