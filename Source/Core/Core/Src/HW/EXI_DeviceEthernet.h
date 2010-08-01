@@ -64,7 +64,7 @@ public:
 		_size = _size + s;
 	}
 	void clear() { _size = 0; }
-	u8* const p() { return _buffer; }
+	u8* p() { return _buffer; }
 
 private:
 	u8* _buffer;

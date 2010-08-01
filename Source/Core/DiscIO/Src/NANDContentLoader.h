@@ -59,9 +59,9 @@ public:
     virtual const u8* GetTicketView() const = 0;
     virtual const u8* GetTmdHeader() const = 0;
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
-    virtual const u16 GetTitleVersion() const = 0;
-    virtual const u16 GetNumEntries() const = 0;
-    virtual const DiscIO::IVolume::ECountry GetCountry() const = 0;
+    virtual u16 GetTitleVersion() const = 0;
+    virtual u16 GetNumEntries() const = 0;
+    virtual DiscIO::IVolume::ECountry GetCountry() const = 0;
 
     enum
     {

@@ -87,7 +87,7 @@ struct usb_ctl_report {
 
 struct report {
 	struct	usb_ctl_report *buf;	/* Buffer */
-	size_t	size;			/* Buffer size */
+	ssize_t	size;			/* Buffer size */
 	int	rid;			/* Report ID */
 	enum {
 		SREPORT_UNINIT,

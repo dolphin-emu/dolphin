@@ -117,9 +117,9 @@ public:
 
 	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
-	const u16 GetTitleVersion() const {return m_TileVersion;}
-	const u16 GetNumEntries() const {return m_numEntries;}
-	const DiscIO::IVolume::ECountry GetCountry() const;
+	u16 GetTitleVersion() const {return m_TileVersion;}
+	u16 GetNumEntries() const {return m_numEntries;}
+	DiscIO::IVolume::ECountry GetCountry() const;
 
 private:
 
@@ -333,7 +333,7 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 	return true;
 }
 
-const DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
+DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 {
 	if (!IsValid())
 		return DiscIO::IVolume::COUNTRY_UNKNOWN;

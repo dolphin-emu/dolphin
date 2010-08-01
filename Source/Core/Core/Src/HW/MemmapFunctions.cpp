@@ -185,8 +185,8 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 	{
 		_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
 	}
-	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000) ||
-		bFakeVMEM && ((em_address &0xF0000000) == 0x40000000))
+	else if ((bFakeVMEM && ((em_address &0xF0000000) == 0x70000000)) ||
+		(bFakeVMEM && ((em_address &0xF0000000) == 0x40000000)))
 	{
 		// fake VMEM
 		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
@@ -287,8 +287,8 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
 		return;
 	}
-	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000) ||
-		bFakeVMEM && ((em_address &0xF0000000) == 0x40000000))
+	else if ((bFakeVMEM && ((em_address &0xF0000000) == 0x70000000)) ||
+		(bFakeVMEM && ((em_address &0xF0000000) == 0x40000000)))
 	{
 		// fake VMEM
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
