@@ -1145,19 +1145,21 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 	}
 
 	// FIXME: Following code has a bug.
-	//// ((w op x) op (y op z)) => (((w op x) op y) op z)
-	//if (getOpcode(*Op1) == Opcode && getOpcode(*Op2) == Opcode) {
-	//	// Sort the operands where the complexities will be descending order.
-	//	std::pair<unsigned, InstLoc> ops[4];
-	//	ops[0] = std::make_pair(getComplexity(getOp1(Op1)), getOp1(Op1));
-	//	ops[1] = std::make_pair(getComplexity(getOp2(Op1)), getOp2(Op1));
-	//	ops[2] = std::make_pair(getComplexity(getOp1(Op2)), getOp1(Op2));
-	//	ops[3] = std::make_pair(getComplexity(getOp2(Op2)), getOp2(Op2));
-	//	std::sort(ops, ops + 4, std::greater<std::pair<unsigned, InstLoc> >());
+	// ((w op x) op (y op z)) => (((w op x) op y) op z)
+	/*
+	if (getOpcode(*Op1) == Opcode && getOpcode(*Op2) == Opcode) {
+		// Sort the operands where the complexities will be descending order.
+		std::pair<unsigned, InstLoc> ops[4];
+		ops[0] = std::make_pair(getComplexity(getOp1(Op1)), getOp1(Op1));
+		ops[1] = std::make_pair(getComplexity(getOp2(Op1)), getOp2(Op1));
+		ops[2] = std::make_pair(getComplexity(getOp1(Op2)), getOp1(Op2));
+		ops[3] = std::make_pair(getComplexity(getOp2(Op2)), getOp2(Op2));
+		std::sort(ops, ops + 4, std::greater<std::pair<unsigned, InstLoc> >());
 
-	//	Op1 = FoldBiOp(Opcode, FoldBiOp(Opcode, ops[0].second, ops[1].second), ops[2].second);
-	//	Op2 = ops[3].second;
-	//}
+		Op1 = FoldBiOp(Opcode, FoldBiOp(Opcode, ops[0].second, ops[1].second), ops[2].second);
+		Op2 = ops[3].second;
+	}
+	*/
 }
 
 bool IRBuilder::maskedValueIsZero(InstLoc Op1, InstLoc Op2) const {
