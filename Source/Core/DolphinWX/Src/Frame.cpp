@@ -432,9 +432,9 @@ CFrame::CFrame(wxFrame* parent,
 	else
 	{
 		if (SConfig::GetInstance().m_InterfaceLogWindow)
-		   	ToggleLogWindow(true);
+			ToggleLogWindow(true);
 		if (SConfig::GetInstance().m_InterfaceConsole)
-		   	ToggleConsole(true);
+			ToggleConsole(true);
 	}
 
 	// Show window
@@ -450,7 +450,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR
 		m_XRRConfig = new X11Utils::XRRConfiguration(X11Utils::XDisplayFromHandle(GetHandle()),
-			   	X11Utils::XWindowFromHandle(GetHandle()));
+				X11Utils::XWindowFromHandle(GetHandle()));
 	#endif
 
 	// -------------------------
@@ -666,8 +666,8 @@ bool CFrame::RendererHasFocus()
 		return false;
 	// Why these different cases?
 	if (m_RenderParent == wxWindow::FindFocus() ||
-	    m_RenderParent == wxWindow::FindFocus()->GetParent() ||
-	    m_RenderParent->GetParent() == wxWindow::FindFocus()->GetParent())
+			m_RenderParent == wxWindow::FindFocus()->GetParent() ||
+			m_RenderParent->GetParent() == wxWindow::FindFocus()->GetParent())
 		return true;
 #endif
 	return false;

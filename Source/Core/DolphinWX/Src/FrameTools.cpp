@@ -316,7 +316,7 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_WIIMOTE3_CONNECT:
 		case HK_WIIMOTE4_CONNECT:
 			Label = wxString::Format(_T("Connect Wiimote %i\t"),
-				   	Id - HK_WIIMOTE1_CONNECT + 1);
+					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
 	}
 
@@ -361,7 +361,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
-	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
+		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,	wxT("Save"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], wxT("Save current perspective"));
@@ -719,7 +719,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 		m_RenderParent->GetSize(&width, &height);
 		m_RenderParent->GetPosition(&x, &y);
 		X11Utils::SendClientEvent(X11Utils::XDisplayFromHandle(GetHandle()),
-			   	"RESIZE", x, y, width, height);
+				"RESIZE", x, y, width, height);
 #endif
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
@@ -736,7 +736,7 @@ void CFrame::ToggleDisplayMode (bool bFullscreen)
 		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-			   	"%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
+				"%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
 		dmScreenSettings.dmBitsPerPel = 32;
 		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
 
@@ -1450,20 +1450,20 @@ void CFrame::DoToggleToolbar(bool _show)
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Show();
 		if (g_pCodeWindow)
-	   	{
-		   	m_Mgr->GetPane(wxT("TBDebug")).Show();
-		   	m_Mgr->GetPane(wxT("TBAui")).Show();
-	   	}
+		{
+			m_Mgr->GetPane(wxT("TBDebug")).Show();
+			m_Mgr->GetPane(wxT("TBAui")).Show();
+		}
 		m_Mgr->Update();
 	}
 	else
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Hide();
 		if (g_pCodeWindow)
-	   	{
-		   	m_Mgr->GetPane(wxT("TBDebug")).Hide();
-		   	m_Mgr->GetPane(wxT("TBAui")).Hide();
-	   	}
+		{
+			m_Mgr->GetPane(wxT("TBDebug")).Hide();
+			m_Mgr->GetPane(wxT("TBAui")).Hide();
+		}
 		m_Mgr->Update();
 	}
 }

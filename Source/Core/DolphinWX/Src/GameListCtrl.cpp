@@ -1200,19 +1200,19 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 			);
 
-	progressDialog.SetSize(wxSize(600, 180));
+	progressDialog.SetSize(wxSize(340, 180));
 	progressDialog.CenterOnParent();
 
 	m_currentItem = 0;
 	m_numberItem = GetSelectedItemCount();
-	for (u32 i=0; i<m_numberItem; i++)
+	for (u32 i=0; i < m_numberItem; i++)
 	{
 		const GameListItem *iso = GetSelectedISO();
 
 			if (!iso->IsCompressed() && _compress)
 			{
-				std::string FileName;
-				SplitPath(iso->GetFileName(), NULL, &FileName, NULL);
+				std::string FileName, FileExt;
+				SplitPath(iso->GetFileName(), NULL, &FileName, &FileExt);
 				m_currentFilename = FileName;
 				FileName.append(".gcz");
 
@@ -1221,6 +1221,14 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
 						FileName);
 
+				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+						wxMessageBox(
+							_("The file ") + wxString::FromAscii(OutputFileName.c_str()) +
+							_(" already exists.\nDo you wish to replace it?"), 
+							_("Confirm File Overwrite"),
+							wxYES_NO) == wxNO)
+					continue;
+
 				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
 						OutputFileName.c_str(),
 						(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
@@ -1228,8 +1236,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			}
 			else if (iso->IsCompressed() && !_compress)
 			{
-				std::string FileName;
-				SplitPath(iso->GetFileName(), NULL, &FileName, NULL);
+				std::string FileName, FileExt;
+				SplitPath(iso->GetFileName(), NULL, &FileName, &FileExt);
 				m_currentFilename = FileName;
 				if (iso->GetPlatform() == GameListItem::WII_DISC)
 					FileName.append(".iso");
@@ -1240,6 +1248,14 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				BuildCompleteFilename(OutputFileName,
 						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
 						FileName);
+
+				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+						wxMessageBox(
+							_("The file ") + wxString::FromAscii(OutputFileName.c_str()) +
+							_(" already exists.\nDo you wish to replace it?"), 
+							_("Confirm File Overwrite"),
+							wxYES_NO) == wxNO)
+					continue;
 
 				DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
@@ -1261,52 +1277,60 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	wxString path, Ext;
+	wxString path;
 
-	std::string FileName;
-	SplitPath(iso->GetFileName(), NULL, &FileName, NULL);
+	std::string FileName, FilePath, FileExtension;
+	SplitPath(iso->GetFileName(), &FilePath, &FileName, &FileExtension);
 
-	if (iso->IsCompressed())
+	do
 	{
-		if (iso->GetPlatform() == GameListItem::WII_DISC)
-			Ext = wxT("*.iso");
+		if (iso->IsCompressed())
+		{
+			wxString Ext;
+			if (iso->GetPlatform() == GameListItem::WII_DISC)
+				Ext = wxT("*.iso");
+			else
+				Ext = wxT("*.gcm");
+
+			path = wxFileSelector(
+					_T("Save decompressed GCM/ISO"),
+					wxString(FilePath.c_str(), *wxConvCurrent),
+					wxString(FileName.c_str(), *wxConvCurrent) + Ext.After('*'),
+					wxEmptyString,
+					wxString::Format
+					(
+					 _T("All GC/Wii ISO files (%s)|%s|All files (%s)|%s"),
+					 (wxChar *)Ext.After('.').wchar_str(),
+					 (wxChar *)Ext.wchar_str(),
+					 wxFileSelectorDefaultWildcardStr,
+					 wxFileSelectorDefaultWildcardStr
+					),
+					wxFD_SAVE,
+					this);
+		}
 		else
-			Ext = wxT("*.gcm");
-
-		path = wxFileSelector(
-				_T("Save decompressed ISO"),
-				wxEmptyString, wxString(FileName.c_str(), *wxConvCurrent), wxEmptyString,
-				wxString::Format
-				(
-				 _T("All GC/Wii ISO files (%s)|%s|All files (%s)|%s"),
-				 (char *)Ext.After('.').char_str(wxConvUTF8),
-				 (char *)Ext.char_str(wxConvUTF8),
-				 wxFileSelectorDefaultWildcardStr,
-				 wxFileSelectorDefaultWildcardStr
-				),
-				wxFD_SAVE,
-				this);
-
+		{
+			path = wxFileSelector(
+					_T("Save compressed GCM/ISO"),
+					wxString(FilePath.c_str(), *wxConvCurrent),
+					wxString(FileName.c_str(), *wxConvCurrent) + _T(".gcz"),
+					wxEmptyString,
+					wxString::Format
+					(
+					 _T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
+					 wxFileSelectorDefaultWildcardStr,
+					 wxFileSelectorDefaultWildcardStr
+					),
+					wxFD_SAVE,
+					this);
+		}
 		if (!path)
 			return;
-	}
-	else
-	{
-		path = wxFileSelector(
-			_T("Save compressed ISO"),
-			wxEmptyString, wxString(FileName.c_str(), *wxConvCurrent), wxEmptyString,
-			wxString::Format
-			(
-			 _T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
-			 wxFileSelectorDefaultWildcardStr,
-			 wxFileSelectorDefaultWildcardStr
-			),
-			wxFD_SAVE,
-			this);
-
-		if (!path)
-			return;
-	}
+	} while (wxFileExists(path) &&
+			wxMessageBox(
+				_("The file ") + path + _(" already exists.\nDo you wish to replace it?"), 
+				_("Confirm File Overwrite"),
+				wxYES_NO) == wxNO);
 
 	wxProgressDialog dialog(iso->IsCompressed() ?
 			_T("Decompressing ISO") : _T("Compressing ISO"),
@@ -1320,7 +1344,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 			);
 
-	dialog.SetSize(wxSize(280, 180));
+	dialog.SetSize(wxSize(340, 180));
 	dialog.CenterOnParent();
 
 	if (iso->IsCompressed())

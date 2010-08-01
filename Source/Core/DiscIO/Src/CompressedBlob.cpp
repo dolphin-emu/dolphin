@@ -227,7 +227,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
 			char temp[512];
-			sprintf(temp, "%i of %i blocks. compression ratio %i%%", i, header.num_blocks, ratio);
+			sprintf(temp, "%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
 			callback(temp, (float)i / (float)header.num_blocks, arg);
 		}
 
