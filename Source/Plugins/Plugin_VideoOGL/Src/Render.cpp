@@ -571,7 +571,6 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	return g_framebufferManager.ConvertEFBRectangle(rc);
 }
 
-
 void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
@@ -1202,14 +1201,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Count FPS.
 	// -------------
 	static int fpscount = 0;
-	static unsigned long lasttime;
-	++fpscount;
-	if (Common::Timer::GetTimeMs() - lasttime > 1000)
+	static unsigned long lasttime = 0;
+	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
 	{
 		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount - 1;
+		s_fps = fpscount;
 		fpscount = 0;
 	}
+	++fpscount;
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
 	

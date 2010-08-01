@@ -1004,11 +1004,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// update FPS counter
 	static int fpscount = 0;
-	static unsigned long lasttime = Common::Timer::GetTimeMs();
+	static unsigned long lasttime = 0;
 	if (Common::Timer::GetTimeMs() - lasttime >= 1000) 
 	{
 		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount-1;
+		s_fps = fpscount;
 		fpscount = 0;
 	}
 	if (XFBWrited) ++fpscount;
