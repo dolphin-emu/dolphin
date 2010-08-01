@@ -350,8 +350,8 @@ bool DolphinApp::OnInit()
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin =
 			std::string(wiimotePluginFilename.mb_str());
 
-	// Enable the PNG image handler
-	wxInitAllImageHandlers(); 
+	// Enable the PNG image handler for screenshots
+	wxImage::AddHandler(new wxPNGHandler);
 
 	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
