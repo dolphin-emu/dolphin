@@ -97,7 +97,7 @@ void FramebufferManager::Create()
 	{
 		hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
 	}
-	CHECK(hr, "Create Color Texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+	CHECK(hr, "Create color texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 	hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, s_efb_color_surface_Format, 
 										  D3DPOOL_DEFAULT, &s_efb_colorRead_texture, NULL);
 	CHECK(hr, "Create Color Read Texture (hr=%#x)", hr);
@@ -107,71 +107,61 @@ void FramebufferManager::Create()
 	}
 	// Create an offscreen surface that we can lock to retrieve the data
 	hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, s_efb_color_surface_Format, D3DPOOL_SYSTEMMEM, &s_efb_color_OffScreenReadBuffer, NULL);
-	CHECK(hr, "Create Color offScreen Surface (hr=%#x)", hr);
-	
-	// Select Zbuffer format supported by hardware.
-	if (g_ActiveConfig.bEFBAccessEnable)
+	CHECK(hr, "Create offscreen color surface (hr=%#x)", hr);
+
+	// Select a Z-buffer format with hardware support
+	D3DFORMAT *DepthTexFormats = new D3DFORMAT[5];
+	DepthTexFormats[0] = FOURCC_INTZ;
+	DepthTexFormats[1] = FOURCC_DF24;
+	DepthTexFormats[2] = FOURCC_RAWZ;
+	DepthTexFormats[3] = FOURCC_DF16;
+	DepthTexFormats[4] = D3DFMT_D24X8;
+
+	for(int i = 0; i < 5; i++)
 	{
-		D3DFORMAT *DepthTexFormats = new D3DFORMAT[5];
-		DepthTexFormats[0] = FOURCC_INTZ;
-		DepthTexFormats[1] = FOURCC_DF24;
-		DepthTexFormats[2] = FOURCC_RAWZ;
-		DepthTexFormats[3] = FOURCC_DF16;
-		DepthTexFormats[4] = D3DFMT_D24X8;
-
-		for(int i = 0; i < 5; i++)
-		{
-			s_efb_depth_surface_Format = DepthTexFormats[i];
-			// Get the framebuffer Depth texture
-			hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_DEPTHSTENCIL, s_efb_depth_surface_Format, 
-											 D3DPOOL_DEFAULT, &s_efb_depth_texture, NULL);
-			if (!FAILED(hr))
-				break;
-		}
-		CHECK(hr, "Depth Color Texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
-		// Get the Surface
-		if(s_efb_depth_texture)
-		{
-			s_efb_depth_texture->GetSurfaceLevel(0, &s_efb_depth_surface);
-		}
-		// Create a 4x4 pixel texture to work as a buffer for peeking
-		if(s_efb_depth_surface_Format == FOURCC_RAWZ || s_efb_depth_surface_Format == D3DFMT_D24X8)
-		{
-			DepthTexFormats[0] = D3DFMT_A8R8G8B8;
-		}
-		else
-		{
-			DepthTexFormats[0] = D3DFMT_R32F;
-		}
-		DepthTexFormats[1] = D3DFMT_A8R8G8B8;
-
-		for(int i = 0; i < 2; i++)
-		{
-			s_efb_depth_ReadBuffer_Format = DepthTexFormats[i];
-			// Get the framebuffer Depth texture
-			hr = D3D::dev->CreateTexture(4, 4, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_ReadBuffer_Format, 
-											  D3DPOOL_DEFAULT, &s_efb_depthRead_texture, NULL);
-			if (!FAILED(hr))
-				break;
-		}
-		
-		CHECK(hr, "Create Depth Read texture (hr=%#x)", hr);
-		if(s_efb_depthRead_texture)
-		{
-			s_efb_depthRead_texture->GetSurfaceLevel(0, &s_efb_depth_ReadBuffer);
-		}
-		// Create an offscreen surface that we can lock to retrieve the data
-		hr = D3D::dev->CreateOffscreenPlainSurface(4, 4, s_efb_depth_ReadBuffer_Format, D3DPOOL_SYSTEMMEM, &s_efb_depth_OffScreenReadBuffer, NULL);
-		CHECK(hr, "Create Depth offScreen Surface (hr=%#x)", hr);
-		delete [] DepthTexFormats;
+		s_efb_depth_surface_Format = DepthTexFormats[i];
+		// Create the framebuffer depth texture
+		hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_DEPTHSTENCIL, s_efb_depth_surface_Format, 
+									 D3DPOOL_DEFAULT, &s_efb_depth_texture, NULL);
+		if (!FAILED(hr))
+			break;
+	}
+	CHECK(hr, "Framebuffer depth texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+	// Get the Surface
+	if(s_efb_depth_texture)
+	{
+		s_efb_depth_texture->GetSurfaceLevel(0, &s_efb_depth_surface);
+	}
+	// Create a 4x4 pixel texture to work as a buffer for peeking
+	if(s_efb_depth_surface_Format == FOURCC_RAWZ || s_efb_depth_surface_Format == D3DFMT_D24X8)
+	{
+		DepthTexFormats[0] = D3DFMT_A8R8G8B8;
 	}
 	else
 	{
-		s_efb_depth_surface_Format = D3DFMT_D24X8;
-		hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb_depth_surface_Format, 
-											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
-		CHECK(hr, "CreateDepthStencilSurface (hr=%#x)", hr);
+		DepthTexFormats[0] = D3DFMT_R32F;
 	}
+	DepthTexFormats[1] = D3DFMT_A8R8G8B8;
+
+	for(int i = 0; i < 2; i++)
+	{
+		s_efb_depth_ReadBuffer_Format = DepthTexFormats[i];
+		// Get the framebuffer Depth texture
+		hr = D3D::dev->CreateTexture(4, 4, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_ReadBuffer_Format, 
+									  D3DPOOL_DEFAULT, &s_efb_depthRead_texture, NULL);
+		if (!FAILED(hr))
+			break;
+	}
+		
+	CHECK(hr, "Create depth read texture (hr=%#x)", hr);
+	if(s_efb_depthRead_texture)
+	{
+		s_efb_depthRead_texture->GetSurfaceLevel(0, &s_efb_depth_ReadBuffer);
+	}
+	// Create an offscreen surface that we can lock to retrieve the data
+	hr = D3D::dev->CreateOffscreenPlainSurface(4, 4, s_efb_depth_ReadBuffer_Format, D3DPOOL_SYSTEMMEM, &s_efb_depth_OffScreenReadBuffer, NULL);
+	CHECK(hr, "Create depth offscreen surface (hr=%#x)", hr);
+	delete [] DepthTexFormats;
 }
 
 void FramebufferManager::Destroy()
