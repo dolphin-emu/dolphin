@@ -70,7 +70,7 @@ void JitIL::lXz(UGeckoInstruction inst)
 void JitIL::lbzu(UGeckoInstruction inst) {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
-	// TODO: Check whether lbzu crashes GFZP01(F-Zero GX) @ 0x8008575C or not
+	// FIXME: lbzu crashes GFZP01(F-Zero GX) @ 0x8008575C
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
 	const IREmitter::InstLoc temp = ibuild.EmitLoad8(uAddress);
 	ibuild.EmitStoreGReg(temp, inst.RD);
