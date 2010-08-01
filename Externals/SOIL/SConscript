@@ -2,6 +2,9 @@
 
 Import('env')
 
+if env.has_key('shared_soil') and env['shared_soil']:
+	Return()
+
 files = [
 	'image_DXT.c',
 	'image_helper.c',
@@ -10,3 +13,4 @@ files = [
 	]
 
 env.StaticLibrary(env['local_libs'] + "SOIL", files)
+env['CPPPATH'] += ['#Externals/SOIL']

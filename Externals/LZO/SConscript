@@ -2,8 +2,12 @@
 
 Import('env')
 
+if env.has_key('shared_lzo') and env['shared_lzo']:
+	Return()
+
 files = [
 	"minilzo.c",
 	]
 
 env.StaticLibrary(env['local_libs'] + "lzo2", files)
+env['CPPPATH'] += ['#Externals/LZO']

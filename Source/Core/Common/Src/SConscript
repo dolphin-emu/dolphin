@@ -1,7 +1,12 @@
 # -*- python -*-
 
 Import('env')
+import os
 import sys
+from SconsTests import utils
+
+utils.GenerateRevFile(env['flavor'], Dir('#Source/Core/Common/Src').abspath +
+    os.sep + 'svnrev_template.h', 'svnrev.h')
 
 files = [
 	"ABI.cpp",
@@ -48,3 +53,4 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 
 env.StaticLibrary(env['local_libs'] + "common", files)
+env['CPPPATH'] += ['.']

@@ -15,3 +15,4 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 
 env.StaticLibrary(env['local_libs'] + "bdisasm", files)
+env['CPPPATH'] += ['#Externals/Bochs_disasm']

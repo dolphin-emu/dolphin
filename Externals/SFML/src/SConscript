@@ -2,6 +2,9 @@
 
 Import('env')
 
+if env.has_key('shared_sfml') and env['shared_sfml']:
+	Return()
+
 files = [
 	"SFML/Network/Ftp.cpp",
 	"SFML/Network/Http.cpp",
@@ -14,3 +17,4 @@ files = [
 	]
 
 env.StaticLibrary(env['local_libs'] + "sfml-network", files)
+env['CPPPATH'] += ['#Externals/SFML/include']

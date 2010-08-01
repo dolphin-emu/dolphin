@@ -2,6 +2,9 @@
 
 Import('env')
 
+if env.has_key('shared_glew') and env['shared_glew']:
+	Return()
+
 files = [
 	'src/glew.c',
 	'src/glewinfo.c',
@@ -9,3 +12,4 @@ files = [
 	]
 
 env.StaticLibrary(env['local_libs'] + "GLEW", files)
+env['CPPPATH'] += ['#Externals/GLew/include']

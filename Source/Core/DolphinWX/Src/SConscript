@@ -3,6 +3,7 @@
 Import('env')
 import os
 import sys
+from SconsTests import utils
 
 files = [
 	'BootManager.cpp',
@@ -64,6 +65,8 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		'Library/Frameworks/Cg.framework',
 		'#Externals/Cg/Cg.framework/Cg')
 
+	env.Install(env['data_dir'], '#Data/Sys')
+	env.Install(env['data_dir'], '#Data/User')
 	env.Install(env['data_dir'],
 		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
@@ -79,23 +82,26 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		CFBundleIdentifier = 'com.dolphin-emu.dolphin',
 		CFBundlePackageType = 'APPL',
 		CFBundleShortVersionString =
-			os.popen('svnversion -n ' + Dir('#').abspath).read(),
+			utils.GenerateRevFile('', Dir('#None').abspath, None),
 		CFBundleVersion = '2.0',
 		LSMinimumSystemVersion = '10.5.0',
 		LSRequiresCarbon = True,
 		)))
 
 	def Fixup(target, source, env):
+		if env['CPPDEFINES'].count('WXUSINGDLL'):
+			pass
 		os.link(str(source[0]), str(target[0]))
 	env.Append(BUILDERS = {'Fixup' : Builder(action = Fixup)})
 	env.Depends(exeGUIdist, env['plugin_dir'])
-	if env['CPPDEFINES'].count('WXUSINGDLL'):
-		env.Fixup(exeGUIdist, exeGUI)
+	env.Fixup(exeGUIdist, exeGUI)
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]
 	exeGUI = env['binary_dir'] + '/dolphin-emu'
 	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
+	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
+	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
 if env['HAVE_WX']:
 	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)

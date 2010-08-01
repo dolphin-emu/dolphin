@@ -30,14 +30,14 @@ def ConfigPKG(context, name):
     if ret:
         context.env.ParseConfig('pkg-config --cflags --libs \'%s\'' % name)
     return int(ret)
-    
+
 def CheckPKG(context, name):
     context.Message( 'Checking for %s... ' % name )
     if platform.system().lower() == 'windows':
-        return 0 
+        return 0
     ret = 1
     if not ConfigPKG(context, name.lower()):
-        ret = CheckLib(context, name) 
+        ret = CheckLib(context, name)
 
     context.Result(ret)
     return int(ret)
@@ -52,20 +52,20 @@ def CheckSDL(context, version):
     else:
         found_ver = os.popen('sdl-config --version').read().strip()
         required = [int(n) for n in version.split(".")]
-        found  = [int(n) for n in found_ver.split(".")]
+        found = [int(n) for n in found_ver.split(".")]
         ret = (found >= required)
-        
+
         context.Result(ret)
         if ret:
             context.env.ParseConfig('sdl-config --cflags --libs')
             ret = CheckLib(context, 'SDL')
         return int(ret)
-    
+
 def CheckPortaudio(context, version):
     found = 0
     if CheckPKG(context, 'portaudio'):
         context.Message( 'Checking for lib portaudio version > %s... ' % version)
-        found  = context.TryRun("""
+        found = context.TryRun("""
               #include <portaudio.h>
               #include <stdio.h>
               int main(int argc, char **argv) {
@@ -81,18 +81,22 @@ def CheckPortaudio(context, version):
 
     context.Result(ret)
     return int(ret)
-    
-def GenerateRevFile(flavour, template, output):
 
+def GenerateRevFile(flavour, template, output):
     try:
-        svnrev = os.popen('svnversion .').read().strip().split(':')[0]
+        svnrev = os.popen('svnversion ' + os.path.dirname(template)).\
+            read().strip().split(':')[0]
     except:
-        svnrev = ""
-        
-    revstr = svnrev + "-" + flavour
-    tmpstr = open(template, "r").read().replace("$WCMODS?$WCREV$M:$WCREV$$",revstr)
-    outfile = open(output, 'w') 
-    outfile.write(tmpstr +"\n")
-    outfile.close()
-    
-    return revstr
+        svnrev = ''
+
+    if flavour:
+        svnrev += '-' + flavour
+
+    if output:
+        tmpstr = open(template, 'r').read().\
+            replace("$WCMODS?$WCREV$M:$WCREV$$", svnrev)
+        outfile = open(output, 'w')
+        outfile.write(tmpstr + '\n')
+        outfile.close()
+
+    return svnrev

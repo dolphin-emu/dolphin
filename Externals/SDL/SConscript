@@ -3,6 +3,9 @@
 Import('env')
 import sys
 
+if env.has_key('shared_sdl') and env['shared_sdl']:
+	Return()
+
 files = [
 	'src/SDL.c',
 	'src/SDL_error.c',
@@ -36,3 +39,4 @@ else:
 		]
 
 env.StaticLibrary(env['local_libs'] + "SDL", files)
+env['CPPPATH'] += ['#Externals/SDL', '#Externals/SDL/include']

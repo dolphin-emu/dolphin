@@ -42,3 +42,4 @@ files = [
 	]
 
 luaenv.StaticLibrary(env['local_libs'] + "lua", files)
+env['CPPPATH'] += ['#Externals/Lua']

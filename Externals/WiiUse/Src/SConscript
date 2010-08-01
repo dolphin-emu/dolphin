@@ -3,11 +3,10 @@
 Import('env')
 import sys
 
-if (sys.platform == 'linux2' and not env['HAVE_BLUEZ']) or \
-	(not sys.platform == 'darwin' and
-	not sys.platform == 'linux2' and
-	not sys.platform == 'win32'):
-	env['HAVE_WIIUSE'] = 0
+env['HAVE_WIIUSE'] = 0
+
+if not sys.platform == 'darwin' and not sys.platform == 'win32' and \
+	not (sys.platform == 'linux2' and env['HAVE_BLUEZ']): 
 	Return()
 
 env['HAVE_WIIUSE'] = 1
@@ -25,3 +24,4 @@ elif sys.platform == 'win32':
 	files += [ "io_win.c" ]
 
 env.StaticLibrary(env['local_libs'] + "wiiuse", files)
+env['CPPPATH'] += ['#Externals/WiiUse/Src']

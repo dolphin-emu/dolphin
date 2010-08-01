@@ -5,12 +5,14 @@ import sys
 import platform
 
 # Home made tests
-sys.path.append('SconsTests')
-import wxconfig
-import utils
+from SconsTests import utils
+from SconsTests import wxconfig
 
 # Some features need at least SCons 1.2
 EnsureSConsVersion(1, 2)
+
+# Construction presets for platform
+env = Environment(ENV = os.environ)
 
 # Handle command line options
 vars = Variables('args.cache')
@@ -19,104 +21,43 @@ vars.AddVariables(
     BoolVariable('verbose', 'Set to show compilation lines', False),
     BoolVariable('bundle', 'Set to create distribution bundle', False),
     BoolVariable('lint', 'Set for lint build (fail on warnings)', False),
-    BoolVariable('nowx', 'Set for building with no WX libs', False),
+    BoolVariable('nowx', 'Set for building without wxWidgets', False),
     PathVariable('wxconfig', 'Path to wxconfig', None),
-    EnumVariable('flavor', 'Choose a build flavor', 'release',
-                 allowed_values = ('release','devel','debug','fastlog','prof'),
-                 ignorecase = 2),
+    EnumVariable('flavor', 'Choose a build flavor', 'release', allowed_values =
+                ('release','devel','debug','fastlog','prof'), ignorecase = 2),
     )
 
-if not sys.platform == 'win32' and not sys.platform == 'darwin':
-    vars.AddVariables(
-        PathVariable('destdir',
-                     'Temporary install location (for package building)',
-                     None, PathVariable.PathAccept),
-        EnumVariable('install',
-                     'Choose a local or global installation', 'local',
-                     allowed_values = ('local', 'global'), ignorecase = 2),
-        PathVariable('prefix',
-                     'Installation prefix (only used for a global build)',
-                     '/usr', PathVariable.PathAccept),
-        PathVariable('userdir',
-                     'Set the name of the user data directory in home',
-                     '.dolphin-emu', PathVariable.PathAccept),
-        BoolVariable('opencl', 'Build with OpenCL', False),
-        EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)',
-                     'none', allowed_values = ('none', 'generate', 'use'),
-                     ignorecase = 2),
-        BoolVariable('shared_glew', 'Use system shared libGLEW', True),
-        BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
-        BoolVariable('shared_sdl', 'Use system shared libSDL', True),
-        BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
-        BoolVariable('shared_soil', 'Use system shared libSOIL', True),
-        BoolVariable('shared_zlib', 'Use system shared libz', True),
-        ('CC', 'The C compiler', 'gcc'),
-        ('CXX', 'The C++ compiler', 'g++'),
-        )
+if env['PLATFORM'] == 'posix': vars.AddVariables(
+    PathVariable('destdir', 'Temporary install location (for package building)',
+                 None, PathVariable.PathAccept),
+    EnumVariable('install', 'Choose a local or global installation', 'local',
+                 allowed_values = ('local', 'global'), ignorecase = 2),
+    PathVariable('prefix', 'Installation prefix (only used for a global build)',
+                 '/usr', PathVariable.PathAccept),
+    PathVariable('userdir', 'Set the name of the user data directory in home',
+                 '.dolphin-emu', PathVariable.PathAccept),
+    BoolVariable('opencl', 'Build with OpenCL', False),
+    EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
+                 allowed_values = ('none', 'generate', 'use'), ignorecase = 2),
+    BoolVariable('shared_glew', 'Use system shared libGLEW', True),
+    BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
+    BoolVariable('shared_sdl', 'Use system shared libSDL', True),
+    BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
+    BoolVariable('shared_soil', 'Use system shared libSOIL', True),
+    BoolVariable('shared_zlib', 'Use system shared libz', True),
+    PathVariable('CC', 'The C compiler', 'gcc', PathVariable.PathAccept),
+    PathVariable('CXX', 'The C++ compiler', 'g++', PathVariable.PathAccept),
+    )
 
-env = Environment(ENV = os.environ, variables = vars)
-Export('env')
+# Save the given command line options
+vars.Update(env)
+vars.Save('args.cache', env)
 
 # Die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
     print "Unknown variables:", unknown.keys()
     Exit(1)
-
-# Save the given command line options
-vars.Save('args.cache', env)
-
-cppDefines = [
-    ( '_FILE_OFFSET_BITS', 64),
-    '_LARGEFILE_SOURCE',
-    'GCC_HASCLASSVISIBILITY',
-    ]
-
-ccFlags = [
-    '-Wall',
-    '-Wpacked',
-    '-Wpointer-arith',
-    '-Wshadow',
-    '-Wwrite-strings',
-    '-fPIC',
-    '-fno-exceptions',
-    '-fno-strict-aliasing',
-    '-fvisibility=hidden',
-    '-msse2',
-    ]
-
-if env['CCVERSION'] >= '4.3.0': ccFlags += [
-    '-Wno-array-bounds',  # False positives
-    '-Wno-unused-result', # Too many syscalls
-    ]
-
-# Build flavor
-if env['flavor'] == 'debug':
-    ccFlags.append('-ggdb')
-    cppDefines.append('_DEBUG') #enables LOGGING
-    # FIXME: this disable wx debugging how do we make it work?
-    cppDefines.append('NDEBUG')
-elif env['flavor'] == 'devel':
-    ccFlags.append('-ggdb')
-elif env['flavor'] == 'fastlog':
-    ccFlags.append('-O3')
-    cppDefines.append('DEBUGFAST')
-elif env['flavor'] == 'prof':
-    ccFlags.append('-O3')
-    ccFlags.append('-ggdb')
-elif env['flavor'] == 'release':
-    ccFlags.append('-O3')
-    ccFlags.append('-fomit-frame-pointer');
-
-if env['flavor'] == 'debug':
-    extra = '-debug'
-elif env['flavor'] == 'prof':
-    extra = '-prof'
-else:
-    extra = ''
-
-if env['lint']:
-    ccFlags.append('-Werror')
 
 # Verbose compile
 if not env['verbose']:
@@ -132,6 +73,36 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking $TARGET"
     env['TARCOMSTR'] = "Creating $TARGET"
 
+if not env['flavor'] == 'debug':
+    env['CCFLAGS'] += ['-O3']
+if env['flavor'] == 'release':
+    env['CCFLAGS'] += ['-fomit-frame-pointer']
+elif not env['flavor'] == 'fastlog':
+    env['CCFLAGS'] += ['-ggdb']
+env['CCFLAGS'] += ['-fno-exceptions', '-fno-strict-aliasing']
+if env['CCVERSION'] >= '4.2.0':
+    env['CCFLAGS'] += ['-fvisibility=hidden']
+    env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
+
+if env['lint']:
+    env['CCFLAGS'] += ['-Werror']
+env['CCFLAGS'] += ['-Wall', '-Wextra']
+env['CCFLAGS'] += ['-Wno-missing-field-initializers', '-Wno-unused-parameter']
+env['CCFLAGS'] += ['-Wpacked', '-Wpointer-arith', '-Wshadow', '-Wwrite-strings']
+if env['CCVERSION'] < '4.2.0':
+    env['CCFLAGS'] += ['-Wno-pragmas']
+if env['CCVERSION'] >= '4.3.0':
+    env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
+
+env['CPPDEFINES'] = []
+if env['flavor'] == 'debug':
+    env['CPPDEFINES'] += ['_DEBUG']
+elif env['flavor'] == 'fastlog':
+    env['CPPDEFINES'] += ['DEBUGFAST']
+env['CPPPATH'] = ['#Source/PluginSpecs']
+env['LIBPATH'] = []
+env['LIBS'] = []
+
 # Object files
 env['build_dir'] = 'Build' + os.sep + platform.system() + \
     '-' + platform.machine() + '-' + env['flavor']
@@ -142,71 +113,70 @@ env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 # Default install path
 if not env.has_key('install') or env['install'] == 'local':
     env['prefix'] = 'Binary' + os.sep + platform.system() + \
-        '-' + platform.machine() + extra
+        '-' + platform.machine()
+    if env['flavor'] == 'debug':
+        env['prefix'] += '-debug'
+    elif env['flavor'] == 'prof':
+        env['prefix'] += '-prof'
 
-# Configuration tests section
-tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
-         'CheckPKGConfig' : utils.CheckPKGConfig,
-         'CheckPKG' : utils.CheckPKG,
-         'CheckSDL' : utils.CheckSDL,
-         'CheckPortaudio' : utils.CheckPortaudio,
-         }
-
-rev = utils.GenerateRevFile(env['flavor'],
-                            "Source/Core/Common/Src/svnrev_template.h",
-                            "Source/Core/Common/Src/svnrev.h")
-
-env['CCFLAGS'] = ccFlags
-env['CPPDEFINES'] = cppDefines
-env['CPPPATH'] = ['#Source/PluginSpecs']
-env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
-env['LIBPATH'] = []
-env['LIBS'] = []
-env['RPATH'] = []
+rev = utils.GenerateRevFile(env['flavor'], '.', None)
 
 # OS X specifics
 if sys.platform == 'darwin':
-    gccflags = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
-    env['CCFLAGS'] += gccflags
-    env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
+    ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
+    env['CCFLAGS'] += ccld
+    env['CCFLAGS'] += ['-msse3']
     env['CC'] = "gcc-4.2 -ObjC"
     env['CXX'] = "g++-4.2 -ObjC++"
+    #env['FRAMEWORKPATH'] += [
+    #    '/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks',
+    #    '/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks']
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['LIBS'] += ['iconv']
-    env['LINKFLAGS'] += gccflags
-    env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
+    #env['LIBPATH'] += ['/Developer/SDKs/MacOSX10.5.sdk/usr/lib']
+    env['LIBS'] = ['gcc_s.10.5', 'iconv'] # , 'stdc++-static'] # XXX
+    env['LINKFLAGS'] += ccld
+    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
+    env['LINKFLAGS'] += ['-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
         '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
+
     if platform.mac_ver()[0] < '10.6.0':
         env['HAVE_OPENCL'] = 0
     else:
+        env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
         env['HAVE_OPENCL'] = 1
-        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
+        env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
+
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
-        conf = env.Configure(custom_tests = tests)
-        env['HAVE_WX'] = conf.CheckWXConfig(2.9,
-            ['aui', 'adv', 'core', 'base', 'gl'], 0)
+        wxenv = env.Clone(LIBPATH = '')
+        conf = wxenv.Configure(conf_dir = None, log_file = None,
+            custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
+        env['HAVE_WX'] = \
+            conf.CheckWXConfig(2.9, 'aui adv core base gl'.split(), 0)
         conf.Finish()
-        # wx-config wants us to link with the OS X QuickTime framework
-        # which is not available for x86_64 and we don't use it anyway.
-        # Strip it out to silence some harmless linker warnings.
-        # In the 10.5 SDK, Carbon is only partially built for x86_64.
-        frameworks = env['FRAMEWORKS']
-        wxconfig.ParseWXConfig(env)
-        if env['CPPDEFINES'].count('WXUSINGDLL'):
-            env['FRAMEWORKS'] = frameworks
+        if not env['HAVE_WX']:
+            print "wxWidgets 2.9 not found using " + env['wxconfig']
+            Exit(1)
+        wxconfig.ParseWXConfig(wxenv)
+        env['CPPDEFINES'] += ['__WXOSX_COCOA__']
+        env['CPPPATH'] = wxenv['CPPPATH']
+        if not wxenv['CPPDEFINES'].count('WXUSINGDLL'):
+            env['FRAMEWORKS'] = wxenv['FRAMEWORKS']
+        env['LIBPATH'] += wxenv['LIBPATH']
+        env['LIBS'] = wxenv['LIBS']
+
     env['CPPPATH'] += ['#Externals']
+    env['FRAMEWORKPATH'] += ['Externals/Cg']
     env['FRAMEWORKS'] += ['Cg']
-    env['LINKFLAGS'] += ['-FExternals/Cg']
     env['shared_zlib'] = True
+
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
     env['plugin_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/PlugIns'
-    env.Install(env['data_dir'], 'Data/Sys')
-    env.Install(env['data_dir'], 'Data/User')
+
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
         dmg = env['prefix'] + '/Dolphin-r' + rev + '.dmg'
@@ -215,14 +185,24 @@ if sys.platform == 'darwin':
             ' && hdiutil internet-enable -yes ' + dmg)
 
 elif sys.platform == 'win32':
-    env['tools'] = ['mingw']
+    pass
 
 else:
-    env['CCFLAGS'] += ['-pthread']
-    env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
-    env['CPPPATH'].insert(0, '#')
+    env['CCFLAGS'] += ['-fPIC', '-msse2']
+    env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
+    if sys.platform == 'linux2':
+        env['CPPDEFINES'] += [('_FILE_OFFSET_BITS', 64), '_LARGEFILE_SOURCE']
+        env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
     env['LINKFLAGS'] += ['-pthread']
-    conf = env.Configure(custom_tests = tests, config_h="#config.h")
+    env['RPATH'] = []
+
+    conf = env.Configure(config_h = "#config.h", custom_tests = {
+        'CheckPKG'       : utils.CheckPKG,
+        'CheckPKGConfig' : utils.CheckPKGConfig,
+        'CheckPortaudio' : utils.CheckPortaudio,
+        'CheckSDL'       : utils.CheckSDL,
+        'CheckWXConfig'  : wxconfig.CheckWXConfig,
+    })
 
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
@@ -249,12 +229,11 @@ else:
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
-        env['HAVE_WX'] = conf.CheckWXConfig(2.8,
-            ['aui', 'adv', 'core', 'base'], 0)
+        env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(), 0)
         conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:
-            print "WX libraries not found - see config.log"
+            print "wxWidgets not found - see config.log"
             Exit(1)
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
@@ -276,7 +255,6 @@ else:
     conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
     conf.Define('HAVE_X11', env['HAVE_X11'])
 
-    # Check for GTK 2.0 or newer
     if env['HAVE_WX'] and not conf.CheckPKG('gtk+-2.0'):
         print "gtk+-2.0 developement headers not detected"
         print "gtk+-2.0 is required to build the WX GUI"
@@ -302,18 +280,18 @@ else:
         env['HAVE_OPENCL'] = 0
 
     # PGO - Profile Guided Optimization
-    if env['pgo']=='generate':
-        ccFlags.append('-fprofile-generate')
-        env['LINKFLAGS']='-fprofile-generate'
-    if env['pgo']=='use':
-        ccFlags.append('-fprofile-use')
-        env['LINKFLAGS']='-fprofile-use'
+    if env['pgo'] == 'generate':
+        env['CCFLAGS'] += ['-fprofile-generate']
+        env['LINKFLAGS'] += ['-fprofile-generate']
+    if env['pgo'] == 'use':
+        env['CCFLAGS'] += ['-fprofile-use']
+        env['LINKFLAGS'] += ['-fprofile-use']
 
     # Profiling
-    if (env['flavor'] == 'prof'):
-        proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
-        env['LIBPATH'].append(proflibs)
-        env['RPATH'].append(proflibs)
+    if env['flavor'] == 'prof':
+        proflibs = ['/usr/lib/oprofile', '/usr/local/lib/oprofile']
+        env['LIBPATH'] += ['proflibs']
+        env['RPATH'] += ['proflibs']
         if conf.CheckPKG('opagent'):
             conf.Define('USE_OPROFILE', 1)
         else:
@@ -356,10 +334,6 @@ else:
     # After all configuration tests are done
     conf.Finish()
 
-    # Data install
-    env.InstallAs(env['data_dir'] + '/sys', 'Data/Sys')
-    env.InstallAs(env['data_dir'] + '/user', 'Data/User')
-
     env.Alias('install', env['prefix'])
 
 # Local (static) libraries must be first in the search path for the build in
@@ -367,37 +341,20 @@ else:
 # during autoconfiguration as they will then be detected as system libraries.
 env['LIBPATH'].insert(0, env['local_libs'])
 
-dirs = []
-
-if not env.has_key('shared_glew') or not env['shared_glew']:
-    env['CPPPATH'] += ['#Externals/GLew/include']
-    dirs += ['Externals/GLew']
-if not env.has_key('shared_lzo') or not env['shared_lzo']:
-    env['CPPPATH'] += ['#Externals/LZO']
-    dirs += ['Externals/LZO']
-if not env.has_key('shared_sdl') or not env['shared_sdl']:
-    env['CPPPATH'] += ['#Externals/SDL']
-    env['CPPPATH'] += ['#Externals/SDL/include']
-    dirs += ['Externals/SDL']
-if not env.has_key('shared_soil') or not env['shared_soil']:
-    env['CPPPATH'] += ['#Externals/SOIL']
-    dirs += ['Externals/SOIL']
-if not env.has_key('shared_sfml') or not env['shared_sfml']:
-    env['CPPPATH'] += ['#Externals/SFML/include']
-    dirs += ['Externals/SFML/src']
-if not env.has_key('shared_zlib') or not env['shared_zlib']:
-    env['CPPPATH'] += ['#Externals/zlib']
-    dirs += ['Externals/zlib']
-
-dirs += [
+dirs = [
     'Externals/Bochs_disasm',
     #'Externals/CLRun',
     'Externals/Lua',
     'Externals/MemcardManager',
     'Externals/WiiUse/Src',
+    'Externals/GLew',
+    'Externals/LZO',
     #'Externals/OpenAL',
-    #'Externals/dylibbundler',
+    'Externals/SDL',
+    'Externals/SOIL',
+    'Externals/SFML/src',
     #'Externals/wxWidgets',
+    'Externals/zlib',
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
@@ -412,8 +369,8 @@ dirs += [
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
-    #'Source/Plugins/Plugin_VideoDX9/Src',
     #'Source/Plugins/Plugin_VideoDX11/Src',
+    #'Source/Plugins/Plugin_VideoDX9/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
@@ -421,14 +378,15 @@ dirs += [
     'Source/UnitTests',
     ]
 
+# Now that platform configuration is done, propagate it to modules
 for subdir in dirs:
     SConscript(dirs = subdir, duplicate = 0, exports = 'env',
         variant_dir = env['build_dir'] + os.sep + subdir)
-    if subdir.count('Externals') or subdir.count('Source/Core'):
+    if subdir.startswith('Source/Core'):
         env['CPPPATH'] += ['#' + subdir]
 
 # Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
 
-# Generate help
+# Generate help, printing current status of options
 Help(vars.GenerateHelpText(env))
