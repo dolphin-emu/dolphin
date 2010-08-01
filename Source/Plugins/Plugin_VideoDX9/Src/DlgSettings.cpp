@@ -84,7 +84,7 @@ GFXConfigDialogDX::GFXConfigDialogDX(wxWindow *parent, wxWindowID id, const wxSt
 // ---------------
 GFXConfigDialogDX::~GFXConfigDialogDX()
 {
-	INFO_LOG(CONSOLE, "GFXConfigDialogDX Closed");
+	INFO_LOG(CONSOLE, "GFXConfigDialogDX closed");
 }
 
 void GFXConfigDialogDX::OnClose(wxCloseEvent& event)
@@ -182,12 +182,12 @@ void GFXConfigDialogDX::CreateGUIControls()
 	const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
 
 	m_AdapterCB = new wxChoice( m_PageDirect3D, ID_ADAPTER, wxDefaultPosition, wxDefaultSize, arrayStringFor_AdapterCB, 0);
-	m_VSync = new wxCheckBox( m_PageDirect3D, ID_VSYNC, wxT("Vsync"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
-	m_WidescreenHack = new wxCheckBox( m_PageDirect3D, ID_WIDESCREEN_HACK, wxT("Widescreen Hack"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
+	m_VSync = new wxCheckBox( m_PageDirect3D, ID_VSYNC, wxT("V-sync"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
+	m_WidescreenHack = new wxCheckBox( m_PageDirect3D, ID_WIDESCREEN_HACK, wxT("Widescreen hack"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
 
-	m_staticARText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("Aspect Ratio:"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
+	m_staticARText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("Aspect ratio:"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
 	m_staticARText->Wrap( -1 );
-	wxString m_KeepARChoices[] = { wxT("Auto"), wxT("Force 16:9 Widescreen"), wxT("Force 4:3 Standart"), wxT("Stretch to Window") };
+	wxString m_KeepARChoices[] = { wxT("Auto"), wxT("Force 16:9 (widescreen)"), wxT("Force 4:3 (standard)"), wxT("Stretch to window") };
 	int m_KeepARNChoices = sizeof( m_KeepARChoices ) / sizeof( wxString );
 	m_KeepAR = new wxChoice( m_PageDirect3D, ID_ASPECT, wxPoint( -1,-1 ), wxDefaultSize, m_KeepARNChoices, m_KeepARChoices, 0 );
 	m_KeepAR->SetSelection( 0 );
@@ -200,20 +200,20 @@ void GFXConfigDialogDX::CreateGUIControls()
 		arrayStringFor_MSAAModeCB.Add(wxString::FromAscii(adapter.aa_levels[i].name));
 	}
 	m_MSAAModeCB = new wxChoice( m_PageDirect3D, ID_ANTIALIASMODE, wxPoint( -1,-1 ), wxDefaultSize, arrayStringFor_MSAAModeCB, 0);
-	m_EFBScaleText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("EFB Scale:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_EFBScaleText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("EFB scale:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EFBScaleText->Wrap( -1 );
-	wxString m_EFBScaleModeChoices[] = { wxT("Auto (Fractional)"), wxT("Auto (Integral)"), wxT("1x"), wxT("2x"), wxT("3x") };
+	wxString m_EFBScaleModeChoices[] = { wxT("Auto (fractional)"), wxT("Auto (integral)"), wxT("1x"), wxT("2x"), wxT("3x") };
 	int m_EFBScaleModeNChoices = sizeof( m_EFBScaleModeChoices ) / sizeof( wxString );
 	m_EFBScaleMode = new wxChoice( m_PageDirect3D, ID_EFBSCALEMODE, wxDefaultPosition, wxDefaultSize, m_EFBScaleModeNChoices, m_EFBScaleModeChoices, 0 );
 
 	m_EnableEFBAccess = new wxCheckBox( m_PageDirect3D, ID_EFB_ACCESS_ENABLE, wxT("Enable CPU->EFB access"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	wxStaticBoxSizer* sbSTC;
-	sbSTC = new wxStaticBoxSizer( new wxStaticBox( m_PageDirect3D, wxID_ANY, wxT("Safe Texture Cache") ), wxVERTICAL );
-	m_SafeTextureCache = new wxCheckBox( m_PageDirect3D, ID_SAFETEXTURECACHE, wxT("Use Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_SafeTextureCache_Safe = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("Safe"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_SafeTextureCache_Normal = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("Normal"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_SafeTextureCache_Fast = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("Fast"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbSTC = new wxStaticBoxSizer( new wxStaticBox( m_PageDirect3D, wxID_ANY, wxT("Safe texture cache") ), wxVERTICAL );
+	m_SafeTextureCache = new wxCheckBox( m_PageDirect3D, ID_SAFETEXTURECACHE, wxT("Use safe texture cache"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_SafeTextureCache_Safe = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("safe"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_SafeTextureCache_Normal = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("normal"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_SafeTextureCache_Fast = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("fast"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Sizers
 	wxGridBagSizer* sBasic;
@@ -252,18 +252,18 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_PageDirect3D->SetSizer( sGeneral );
 	m_PageDirect3D->Layout();
 	sGeneral->Fit( m_PageDirect3D );
-	m_Notebook->AddPage( m_PageDirect3D, wxT("Direct3D"), true );
+	m_Notebook->AddPage( m_PageDirect3D, wxT("General"), true );
 
 	//Enhancements Tab
 	wxStaticBoxSizer* sbTextureFilter;
-	sbTextureFilter = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("Texture Filtering") ), wxVERTICAL );
-	m_ForceFiltering = new wxCheckBox( m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering  (Breaks video in several Wii games )"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_MaxAnisotropy = new wxCheckBox( m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Enable 16x Anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_HiresTextures = new wxCheckBox( m_PageEnhancements, ID_LOADHIRESTEXTURES, wxT("Enable hires Texture loading"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbTextureFilter = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("Texture filtering") ), wxVERTICAL );
+	m_ForceFiltering = new wxCheckBox( m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering  (breaks video in several Wii games)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_MaxAnisotropy = new wxCheckBox( m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Enable 16x anisotropic filtering"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_HiresTextures = new wxCheckBox( m_PageEnhancements, ID_LOADHIRESTEXTURES, wxT("Enable hires texture loading"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	wxStaticBoxSizer* sbEFBHacks;
-	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB Hacks") ), wxVERTICAL );
-	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB Scaled Copy"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB hacks") ), wxVERTICAL );
+	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB scaled copy"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Sizers
 	wxBoxSizer* sEnhancements;
@@ -294,29 +294,29 @@ void GFXConfigDialogDX::CreateGUIControls()
 	//Advanced Tab
 	wxStaticBoxSizer* sbSettings;
 	sbSettings = new wxStaticBoxSizer( new wxStaticBox( m_PageAdvanced, wxID_ANY, wxT("Settings") ), wxVERTICAL );
-	m_DisableFog = new wxCheckBox( m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_OverlayFPS = new wxCheckBox( m_PageAdvanced, ID_OVERLAYFPS, wxT("Overlay FPS Counter"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_CopyEFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEEFBCOPY, wxT("Enable EFB Copy"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_EnableHotkeys = new wxCheckBox( m_PageAdvanced, ID_ENABLEHOTKEY, wxT("Enable Hotkey"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_DisableFog = new wxCheckBox( m_PageAdvanced, ID_DISABLEFOG, wxT("Disable fog"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_OverlayFPS = new wxCheckBox( m_PageAdvanced, ID_OVERLAYFPS, wxT("Overlay FPS counter"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_CopyEFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEEFBCOPY, wxT("Enable EFB copy"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_EnableHotkeys = new wxCheckBox( m_PageAdvanced, ID_ENABLEHOTKEY, wxT("Enable hotkey"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_CopyEFBToRAM = new wxRadioButton( m_PageAdvanced, ID_EFBTORAM, wxT("To RAM (accuracy)"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_CopyEFBToGL = new wxRadioButton( m_PageAdvanced, ID_EFBTOTEX, wxT("To Texture (performance, resolution)"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_WireFrame = new wxCheckBox( m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_EnableRealXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEREALXFB, wxT("Enable Real XFB"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_CopyEFBToGL = new wxRadioButton( m_PageAdvanced, ID_EFBTOTEX, wxT("To texture (performance, resolution)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_WireFrame = new wxCheckBox( m_PageAdvanced, ID_WIREFRAME, wxT("Enable wireframe"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_EnableRealXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEREALXFB, wxT("Enable real XFB"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEXFB, wxT("Enable XFB"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_UseNativeMips = new wxCheckBox( m_PageAdvanced, ID_USENATIVEMIPS, wxT("Use Native Mips"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_UseNativeMips = new wxCheckBox( m_PageAdvanced, ID_USENATIVEMIPS, wxT("Use native mipmaps"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	wxStaticBoxSizer* sbDataDumping;
-	sbDataDumping = new wxStaticBoxSizer( new wxStaticBox( m_PageAdvanced, wxID_ANY, wxT("Data Dumping") ), wxVERTICAL );
-	m_DumpTextures = new wxCheckBox( m_PageAdvanced, ID_TEXDUMP, wxT("Dump Textures"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_DumpFrames = new wxCheckBox( m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Frames To User/Dump/Frames"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbDataDumping = new wxStaticBoxSizer( new wxStaticBox( m_PageAdvanced, wxID_ANY, wxT("Data dumping") ), wxVERTICAL );
+	m_DumpTextures = new wxCheckBox( m_PageAdvanced, ID_TEXDUMP, wxT("Dump textures"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_DumpFrames = new wxCheckBox( m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump frames To User/Dump/Frames"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	wxStaticBoxSizer* sbDebuggingTools;
 	sbDebuggingTools = new wxStaticBoxSizer( new wxStaticBox( m_PageAdvanced, wxID_ANY, wxT("Debugging tools") ), wxVERTICAL );
-	m_OverlayStats = new wxCheckBox( m_PageAdvanced, ID_OVERLAYSTATS, wxT("Overlay Some Statics"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_ShaderErrors = new wxCheckBox( m_PageAdvanced, ID_SHADERERRORS, wxT("Show Shader Compilation Errors"), wxDefaultPosition, wxDefaultSize, 0 );	
-	m_TexfmtOverlay = new wxCheckBox( m_PageAdvanced, ID_TEXFMT_OVERLAY, wxT("Enable TexFmt Overlay"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_OverlayStats = new wxCheckBox( m_PageAdvanced, ID_OVERLAYSTATS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_ShaderErrors = new wxCheckBox( m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation errors"), wxDefaultPosition, wxDefaultSize, 0 );	
+	m_TexfmtOverlay = new wxCheckBox( m_PageAdvanced, ID_TEXFMT_OVERLAY, wxT("Enable texture format overlay"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_TexfmtCenter = new wxCheckBox( m_PageAdvanced, ID_TEXFMT_CENTER, wxT("Centered"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_ProjStats = new wxCheckBox( m_PageAdvanced, wxID_ANY, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_ProjStats = new wxCheckBox( m_PageAdvanced, wxID_ANY, wxT("Overlay projection stats"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Sizers
 	wxBoxSizer* sAdvanced;
