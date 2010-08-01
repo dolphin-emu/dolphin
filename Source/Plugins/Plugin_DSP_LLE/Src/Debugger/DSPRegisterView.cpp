@@ -89,6 +89,6 @@ DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
 
 void DSPRegisterView::Update()
 {
-	ForceRefresh();
 	((CRegTable *)GetTable())->UpdateCachedRegs();
+	ForceRefresh();
 }
