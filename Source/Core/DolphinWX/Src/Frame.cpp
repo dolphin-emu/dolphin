@@ -349,9 +349,6 @@ CFrame::CFrame(wxFrame* parent,
 	// Give it a console early to show potential messages from this onward
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
-	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
-	m_LogWindow->Hide();
-	m_LogWindow->Disable();
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
@@ -419,6 +416,10 @@ CFrame::CFrame(wxFrame* parent,
 	// Create toolbar
 	RecreateToolbar();
 	if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
+
+	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
+	m_LogWindow->Hide();
+	m_LogWindow->Disable();
 
 	// Create list of available plugins for the configuration window
 	CPluginManager::GetInstance().ScanForPlugins();

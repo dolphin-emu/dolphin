@@ -956,20 +956,34 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
+	#ifdef _WIN32
+	Disable(); // Fake a modal dialog
+	#endif
 	CPluginManager::GetInstance().OpenConfig(
 			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
 			PLUGIN_TYPE_VIDEO
 			);
+	#ifdef _WIN32
+	Enable();
+	Raise();
+	#endif
 }
 
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
+	#ifdef _WIN32
+	Disable(); // Fake a modal dialog
+	#endif
 	CPluginManager::GetInstance().OpenConfig(
 			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
 			PLUGIN_TYPE_DSP
 			);
+	#ifdef _WIN32
+	Enable();
+	Raise();
+	#endif
 }
 
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
@@ -998,11 +1012,18 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
+	#ifdef _WIN32
+	Disable(); // Fake a modal dialog
+	#endif
 	CPluginManager::GetInstance().OpenConfig(
 			this,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin.c_str(),
 			PLUGIN_TYPE_WIIMOTE
 			);
+	#ifdef _WIN32
+	Enable();
+	Raise();
+	#endif
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)

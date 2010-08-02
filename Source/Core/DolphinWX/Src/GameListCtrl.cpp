@@ -1286,22 +1286,21 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	{
 		if (iso->IsCompressed())
 		{
-			wxString Ext;
+			wxString FileType;
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
-				Ext = wxT("*.iso");
+				FileType = wxT("All Wii ISO files (iso)|*.iso");
 			else
-				Ext = wxT("*.gcm");
+				FileType = wxT("All Gamecube GCM files (gcm)|*.gcm");
 
 			path = wxFileSelector(
 					_T("Save decompressed GCM/ISO"),
 					wxString(FilePath.c_str(), *wxConvCurrent),
-					wxString(FileName.c_str(), *wxConvCurrent) + Ext.After('*'),
+					wxString(FileName.c_str(), *wxConvCurrent) + FileType.After('*'),
 					wxEmptyString,
+					FileType +
 					wxString::Format
 					(
-					 _T("All GC/Wii ISO files (%s)|%s|All files (%s)|%s"),
-					 (wxChar *)Ext.After('.').wchar_str(),
-					 (wxChar *)Ext.wchar_str(),
+					 _T("|All files (%s)|%s"),
 					 wxFileSelectorDefaultWildcardStr,
 					 wxFileSelectorDefaultWildcardStr
 					),

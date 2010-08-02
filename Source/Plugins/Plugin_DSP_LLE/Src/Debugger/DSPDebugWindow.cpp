@@ -163,11 +163,19 @@ void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
 
 void DSPDebuggerLLE::Refresh()
 {
+#ifdef __linux__
+	if (!wxIsMainThread())
+		wxMutexGuiEnter();
+#endif
 	UpdateSymbolMap();
 	UpdateDisAsmListView();
 	UpdateRegisterFlags();
 	UpdateState();
 	m_mgr.Update();
+#ifdef __linux__
+	if (!wxIsMainThread())
+		wxMutexGuiLeave();
+#endif
 }
 
 void DSPDebuggerLLE::FocusOnPC()
