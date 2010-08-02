@@ -260,8 +260,6 @@ void Jit64::stfs(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
 
-	if (js.memcheck) { Default(inst); return; }
-
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
@@ -301,7 +299,11 @@ void Jit64::stfs(UGeckoInstruction inst)
 	ADD(32, R(ABI_PARAM2), Imm32(offset));
 	if (update && offset)
 	{
+		MEMCHECK_START
+
 		MOV(32, gpr.R(a), R(ABI_PARAM2));
+
+		MEMCHECK_END
 	}
 	CVTSD2SS(XMM0, fpr.R(s));
 	SafeWriteFloatToReg(XMM0, ABI_PARAM2);
@@ -315,8 +317,6 @@ void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
-
-	if (js.memcheck) { Default(inst); return; }
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);

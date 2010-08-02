@@ -74,8 +74,9 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 
 void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset, bool signExtend)
 {
-	if (Core::g_CoreStartupParameter.bUseFastMem && accessSize == 32 && !Core::g_CoreStartupParameter.bMMU)
+	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32 || accessSize == 8) && !Core::g_CoreStartupParameter.bMMU)
 	{
+		// FIXME: accessSize == 16 does not work.  Breaks mkdd
 		UnsafeLoadRegToReg(reg_addr, EAX, accessSize, offset, signExtend);
 	}
 	else
@@ -87,8 +88,11 @@ void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset,
 		FixupBranch addr20;
 		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
 		{
-			CMP(32, R(reg_addr), Imm32(0xf0000000));
-			addrf0 = J_CC(CC_GE);
+			if (Core::g_CoreStartupParameter.bMMU)
+			{
+				CMP(32, R(reg_addr), Imm32(0xf0000000));
+				addrf0 = J_CC(CC_GE);
+			}
 			TEST(32, R(reg_addr), Imm32(0x20000000));
 			addr20 = J_CC(CC_NZ);
 		}
@@ -98,8 +102,11 @@ void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset,
 
 		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
 		{
+			if (Core::g_CoreStartupParameter.bMMU)
+			{
+				SetJumpTarget(addrf0);				
+			}			
 			SetJumpTarget(addr20);
-			SetJumpTarget(addrf0);
 		}
 
 		switch (accessSize)
@@ -144,8 +151,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	// TODO: Figure out a cleaner way to check memory bounds
 	FixupBranch addrf0;
 	FixupBranch addr20;
-	FixupBranch fast;
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	if (Core::g_CoreStartupParameter.bMMU)
 	{
 		CMP(32, R(reg_addr), Imm32(0xf0000000));
 		addrf0 = J_CC(CC_GE);
@@ -153,16 +159,13 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		addr20 = J_CC(CC_NZ);
 	}
 
-	if (!Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bUseFastMem)
-	{
-		TEST(32, R(reg_addr), Imm32(0x0C000000));
-		fast = J_CC(CC_Z);
-	}
+	TEST(32, R(reg_addr), Imm32(0x0C000000));
+	FixupBranch fast = J_CC(CC_Z);
 
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	if (Core::g_CoreStartupParameter.bMMU)
 	{
-		SetJumpTarget(addr20);
 		SetJumpTarget(addrf0);
+		SetJumpTarget(addr20);
 	}
 
 	switch (accessSize)
