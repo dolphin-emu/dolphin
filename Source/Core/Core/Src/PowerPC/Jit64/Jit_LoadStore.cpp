@@ -412,14 +412,12 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		//Still here? Do regular path.
 
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-		gpr.Lock(s, a);
-		if (update && offset)
-			gpr.LoadToX64(a, true, true);
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		MOV(32, R(ABI_PARAM1), gpr.R(s));
-		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, accessSize, offset);
-
+		gpr.FlushLockX(ECX, EDX);
+		gpr.Lock(a);
+		MOV(32, R(EDX), gpr.R(a));
+		MOV(32, R(ECX), gpr.R(s));
+		if (offset)
+			ADD(32, R(EDX), Imm32((u32)offset));
 		if (update && offset)
 		{
 			MEMCHECK_START
@@ -428,7 +426,24 @@ void Jit64::stX(UGeckoInstruction inst)
 
 			MEMCHECK_END
 		}
-
+		TEST(32, R(EDX), Imm32(0x0C000000));
+		FixupBranch unsafe_addr = J_CC(CC_NZ);
+		BSWAP(accessSize, ECX);
+#ifdef _M_X64
+		MOV(accessSize, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
+#else
+		AND(32, R(EDX), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(accessSize, MDisp(EDX, (u32)Memory::base), R(ECX));
+#endif
+		FixupBranch skip_call = J();
+		SetJumpTarget(unsafe_addr);
+		switch (accessSize)
+		{
+		case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ECX, EDX); break;
+		case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), ECX, EDX); break;
+		case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8,  2), ECX, EDX); break;
+		}
+		SetJumpTarget(skip_call);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 	}
