@@ -36,8 +36,7 @@ DSPDebuggerLLE* m_DebuggerFrame = NULL;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
-	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
-	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
+	EVT_MENU_RANGE(ID_RUNTOOL, ID_SHOWPCTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)
     EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
 END_EVENT_TABLE()
@@ -153,12 +152,6 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 
 	UpdateState();
 	m_mgr.Update();
-}
-
-void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
-{
-	// UpdateDisAsmListView will focus on PC
-	Refresh();
 }
 
 void DSPDebuggerLLE::Refresh()

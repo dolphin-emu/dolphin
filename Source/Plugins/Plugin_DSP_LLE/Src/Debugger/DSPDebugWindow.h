@@ -90,7 +90,6 @@ private:
 
 	void OnClose(wxCloseEvent& event);
 	void OnChangeState(wxCommandEvent& event);
-	void OnShowPC(wxCommandEvent& event);
 	void OnRightClick(wxListEvent& event);
 	void OnDoubleClick(wxListEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);

@@ -105,21 +105,6 @@ u32 HashFNV(const u8* ptr, int length)
 }
 
 
-// Another fast and decent hash
-u32 HashFNV1(const u8* ptr, int length)
-{
-	u32 hash = 0x811c9dc5;
-
-	for (int i = 0; i < length; i++)
-	{
-		hash *= 1677761;
-		hash ^= ptr[i];
-	}
-
-	return(hash);
-}
-
-
 // Stupid hash - but can't go back now :)
 // Don't use for new things. At least it's reasonably fast.
 u32 HashEctor(const u8* ptr, int length)
