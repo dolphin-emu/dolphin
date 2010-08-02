@@ -175,11 +175,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), reg_value, reg_addr);  break;
 	}
 	FixupBranch exit = J();
-
-	if (!Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bUseFastMem)
-	{
-		SetJumpTarget(fast);
-	}
+	SetJumpTarget(fast);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
 	SetJumpTarget(exit);
 }
