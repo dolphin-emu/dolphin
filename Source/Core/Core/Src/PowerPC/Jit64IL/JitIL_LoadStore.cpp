@@ -39,6 +39,7 @@ void JitIL::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -50,7 +51,8 @@ void JitIL::lhax(UGeckoInstruction inst)
 void JitIL::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)	
+	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -81,6 +83,7 @@ void JitIL::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr =
 		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
 	if (inst.RA)
@@ -94,6 +97,7 @@ void JitIL::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -141,6 +145,7 @@ void JitIL::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   value = ibuild.EmitLoadGReg(inst.RS);
 	if (inst.RA)
@@ -160,6 +165,7 @@ void JitIL::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   value = ibuild.EmitLoadGReg(inst.RS);
 	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -179,6 +185,7 @@ void JitIL::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -194,6 +201,7 @@ void JitIL::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));

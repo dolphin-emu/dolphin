@@ -394,8 +394,7 @@ void dcbtst(UGeckoInstruction _inst)
 void dcbz(UGeckoInstruction _inst)
 {	
 	// HACK but works... we think
-	if (!Core::g_CoreStartupParameter.bMMU)
-		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32); // Breaks Rogue Leader, fixes Super Mario Sunshine
+	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
 
 // eciwx/ecowx technically should access the specified device

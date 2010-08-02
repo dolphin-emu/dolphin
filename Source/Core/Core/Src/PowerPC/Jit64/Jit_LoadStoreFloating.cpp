@@ -63,7 +63,6 @@ void Jit64::lfs(UGeckoInstruction inst)
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	gpr.FlushLockX(ABI_PARAM1);
-	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	if (jo.assumeFPLoadFromMem)
 	{
@@ -74,12 +73,16 @@ void Jit64::lfs(UGeckoInstruction inst)
 		SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
 	}
 
+	MEMCHECK_START
+	
 	MOV(32, M(&temp32), R(EAX));
 	fpr.Lock(d);
 	fpr.LoadToX64(d, false);
 	CVTSS2SD(fpr.RX(d), M(&temp32));
 	MOVDDUP(fpr.RX(d), fpr.R(d));
-	gpr.UnlockAll();
+
+	MEMCHECK_END
+
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
@@ -89,6 +92,8 @@ void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+
+	if (js.memcheck) { Default(inst); return; }
 
 	int d = inst.RD;
 	int a = inst.RA;
@@ -119,18 +124,28 @@ void Jit64::lfd(UGeckoInstruction inst)
 		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64, EAX);
 		MOV(64, M(&temp64), R(EAX));
+
+		MEMCHECK_START
+
 		MOVSD(XMM0, M(&temp64));
 		MOVSD(xd, R(XMM0));
+
+		MEMCHECK_END
 #else
 		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset));
 		BSWAP(32, EAX);
 		MOV(32, M((void*)((u8 *)&temp64+4)), R(EAX));
+
+		MEMCHECK_START
+		
 		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4));
 		BSWAP(32, EAX);
 		MOV(32, M(&temp64), R(EAX));
 		MOVSD(XMM0, M(&temp64));
 		MOVSD(xd, R(XMM0));
+
+		MEMCHECK_END
 #if 0
 		// Alternate implementation; possibly faster
 		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
@@ -155,6 +170,8 @@ void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+
+	if (js.memcheck) { Default(inst); return; }
 
 	int s = inst.RS;
 	int a = inst.RA;
@@ -207,18 +224,28 @@ void Jit64::stfd(UGeckoInstruction inst)
 #ifdef _M_X64
 		fpr.LoadToX64(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
+
+		MEMCHECK_START
+
 		MOV(64, R(EAX), M(&temp64));
 		BSWAP(64, EAX);
 		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, 0), R(EAX));
+
+		MEMCHECK_END
 #else
 		fpr.LoadToX64(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
+
+		MEMCHECK_START
+
 		MOV(32, R(EAX), M(&temp64));
 		BSWAP(32, EAX);
 		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + 4), R(EAX));
 		MOV(32, R(EAX), M((void*)((u8 *)&temp64 + 4)));
 		BSWAP(32, EAX);
 		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
+
+		MEMCHECK_END
 #endif
 	}
 	SetJumpTarget(quit);
@@ -232,6 +259,8 @@ void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+
+	if (js.memcheck) { Default(inst); return; }
 
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
@@ -287,6 +316,8 @@ void Jit64::stfsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
 
+	if (js.memcheck) { Default(inst); return; }
+
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
 	fpr.Lock(inst.RS);
@@ -295,7 +326,8 @@ void Jit64::stfsx(UGeckoInstruction inst)
 		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
 	CVTSD2SS(XMM0, fpr.R(inst.RS));
 	MOVD_xmm(R(EAX), XMM0);
-	UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
@@ -306,12 +338,14 @@ void Jit64::lfsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
 
-	fpr.Lock(inst.RS);
-	fpr.LoadToX64(inst.RS, false, true);
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
+	{
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	if (cpu_info.bSSSE3) {
+	}
+	if (cpu_info.bSSSE3 && !js.memcheck) {
+		fpr.Lock(inst.RS);
+		fpr.LoadToX64(inst.RS, false, true);
 		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 #ifdef _M_IX86
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
@@ -319,14 +353,25 @@ void Jit64::lfsx(UGeckoInstruction inst)
 #else
 		MOVD_xmm(r, MComplex(RBX, EAX, SCALE_1, 0));
 #endif
+		MEMCHECK_START
+		
 		PSHUFB(r, M((void *)bswapShuffle1x4));
 		CVTSS2SD(r, R(r));
 		MOVDDUP(r, R(r));
+
+		MEMCHECK_END
 	} else {
-		UnsafeLoadRegToReg(EAX, EAX, 32, false);
+		SafeLoadRegToEAX(EAX, 32, false);
+
+		MEMCHECK_START
+
 		MOV(32, M(&temp32), R(EAX));
 		CVTSS2SD(XMM0, M(&temp32));
+		fpr.Lock(inst.RS);
+		fpr.LoadToX64(inst.RS, false, true);
 		MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
+
+		MEMCHECK_END
 	}
 	fpr.UnlockAll();
 }

@@ -184,7 +184,7 @@ void JitIL::Init()
 #else
 	jo.enableFastMem = false;
 #endif
-	jo.assumeFPLoadFromMem = true;
+	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;

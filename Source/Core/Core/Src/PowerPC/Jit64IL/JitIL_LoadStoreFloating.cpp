@@ -43,6 +43,7 @@ void JitIL::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -56,6 +57,7 @@ void JitIL::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -70,6 +72,7 @@ void JitIL::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -85,6 +88,7 @@ void JitIL::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -101,6 +105,7 @@ void JitIL::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -115,6 +120,7 @@ void JitIL::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
+	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));

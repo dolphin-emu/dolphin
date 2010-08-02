@@ -31,15 +31,9 @@
 
 using namespace Gen;
 
-void EmuCodeBlock::JitClearCA()
-{
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
-}
 
-void EmuCodeBlock::JitSetCA()
-{
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
-}
+static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+static u32 GC_ALIGNED16(float_buffer);
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
@@ -60,7 +54,9 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 			SAR(32, R(reg_value), Imm8(16));
 		else
 			SHR(32, R(reg_value), Imm8(16));
-	} else if (signExtend) {
+	}
+	else if (signExtend)
+	{
 		// TODO: bake 8-bit into the original load.
 		MOVSX(32, accessSize, reg_value, R(reg_value));   
 	}
@@ -76,26 +72,53 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 #endif
 }
 
-void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
+void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset, bool signExtend)
 {
-	if (offset)
-		ADD(32, R(reg), Imm32((u32)offset));
-	TEST(32, R(reg), Imm32(0x0C000000));
-	FixupBranch argh = J_CC(CC_Z);
-	switch (accessSize)
+	if (Core::g_CoreStartupParameter.bUseFastMem && accessSize == 32 && !Core::g_CoreStartupParameter.bMMU)
 	{
-	case 32: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
-	case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), reg); break;
-	case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), reg);  break;
+		UnsafeLoadRegToReg(reg_addr, EAX, accessSize, offset, signExtend);
 	}
-	if (signExtend && accessSize < 32) {
-		// Need to sign extend values coming from the Read_U* functions.
-		MOVSX(32, accessSize, EAX, R(EAX));
+	else
+	{
+		if (offset)
+			ADD(32, R(reg_addr), Imm32((u32)offset));
+
+		FixupBranch addrf0;
+		FixupBranch addr20;
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		{
+			CMP(32, R(reg_addr), Imm32(0xf0000000));
+			addrf0 = J_CC(CC_GE);
+			TEST(32, R(reg_addr), Imm32(0x20000000));
+			addr20 = J_CC(CC_NZ);
+		}
+
+		TEST(32, R(reg_addr), Imm32(0x0C000000));
+		FixupBranch fast = J_CC(CC_Z);
+
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		{
+			SetJumpTarget(addr20);
+			SetJumpTarget(addrf0);
+		}
+
+		switch (accessSize)
+		{
+		case 32: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), reg_addr); break;
+		case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), reg_addr); break;
+		case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), reg_addr);  break;
+		}
+		if (signExtend && accessSize < 32)
+		{
+			// Need to sign extend values coming from the Read_U* functions.
+			MOVSX(32, accessSize, EAX, R(EAX));
+		}
+
+		FixupBranch exit = J();
+		SetJumpTarget(fast);
+		UnsafeLoadRegToReg(reg_addr, EAX, accessSize, 0, signExtend);
+		SetJumpTarget(exit);
 	}
-	FixupBranch arg2 = J();
-	SetJumpTarget(argh);
-	UnsafeLoadRegToReg(reg, EAX, accessSize, 0, signExtend);
-	SetJumpTarget(arg2);
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
@@ -116,23 +139,47 @@ void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int ac
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
 	if (offset)
-		ADD(32, R(reg_addr), Imm32(offset));
-	TEST(32, R(reg_addr), Imm32(0x0C000000));
-	FixupBranch argh = J_CC(CC_Z);
+		ADD(32, R(reg_addr), Imm32((u32)offset));
+
+	// TODO: Figure out a cleaner way to check memory bounds
+	FixupBranch addrf0;
+	FixupBranch addr20;
+	FixupBranch fast;
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	{
+		CMP(32, R(reg_addr), Imm32(0xf0000000));
+		addrf0 = J_CC(CC_GE);
+		TEST(32, R(reg_addr), Imm32(0x20000000));
+		addr20 = J_CC(CC_NZ);
+	}
+
+	if (!Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bUseFastMem)
+	{
+		TEST(32, R(reg_addr), Imm32(0x0C000000));
+		fast = J_CC(CC_Z);
+	}
+
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	{
+		SetJumpTarget(addr20);
+		SetJumpTarget(addrf0);
+	}
+
 	switch (accessSize)
 	{
 	case 32: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), reg_value, reg_addr); break;
 	case 16: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), 2), reg_value, reg_addr); break;
 	case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), reg_value, reg_addr);  break;
 	}
-	FixupBranch arg2 = J();
-	SetJumpTarget(argh);
-	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
-	SetJumpTarget(arg2);
-}
+	FixupBranch exit = J();
 
-static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-static u32 GC_ALIGNED16(float_buffer);
+	if (!Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bUseFastMem)
+	{
+		SetJumpTarget(fast);
+	}
+	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+	SetJumpTarget(exit);
+}
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
@@ -147,12 +194,12 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		PSHUFB(xmm_value, M((void *)pbswapShuffle1x4));
-	#ifdef _M_IX86
+#ifdef _M_IX86
 		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
 		MOVD_xmm(MDisp(reg_addr, (u32)Memory::base), xmm_value);
-	#else
+#else
 		MOVD_xmm(MComplex(RBX, reg_addr, SCALE_1, 0), xmm_value);
-	#endif
+#endif
 		SetJumpTarget(arg2);
 	} else {
 		MOVSS(M(&float_buffer), xmm_value);
@@ -196,4 +243,14 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 		CVTPD2PS(xmm, R(xmm));
 		CVTPS2PD(xmm, R(xmm));
 	}
+}
+
+void EmuCodeBlock::JitClearCA()
+{
+	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+}
+
+void EmuCodeBlock::JitSetCA()
+{
+	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }

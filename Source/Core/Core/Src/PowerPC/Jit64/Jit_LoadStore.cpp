@@ -38,51 +38,27 @@ void Jit64::lbzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+
 	if (Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
 	{ Default(inst); return; }
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
 	gpr.FlushLockX(ABI_PARAM1);
-	if (b == d || a == d)
-		gpr.LoadToX64(d, true, true);
-	else 
-		gpr.LoadToX64(d, false, true);
 	MOV(32, R(ABI_PARAM1), gpr.R(b));
 	if (a)
+	{
 		ADD(32, R(ABI_PARAM1), gpr.R(a));
-#if 0
+	}
+
 	SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
-	MOV(32, gpr.R(d), R(EAX));
-#else
-	UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 8, 0, false);
-#endif
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
-}
 
-void Jit64::lwzx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	MEMCHECK_START
 
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.FlushLockX(ABI_PARAM1);
-	if (b == d || a == d)
-		gpr.LoadToX64(d, true, true);
-	else 
-		gpr.LoadToX64(d, false, true);
-	MOV(32, R(ABI_PARAM1), gpr.R(b));
-	if (a)
-		ADD(32, R(ABI_PARAM1), gpr.R(a));
-#if 1
-	SafeLoadRegToEAX(ABI_PARAM1, 32, 0);
+	gpr.KillImmediate(d);
 	MOV(32, gpr.R(d), R(EAX));
-#else
-	UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 32, 0, false);
-#endif
-	gpr.UnlockAll();
+
+	MEMCHECK_END
+
 	gpr.UnlockAllX();
 }
 
@@ -92,21 +68,48 @@ void Jit64::lhax(UGeckoInstruction inst)
 	JITDISABLE(LoadStore)
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
 	gpr.FlushLockX(ABI_PARAM1);
-	if (b == d || a == d)
-		gpr.LoadToX64(d, true, true);
-	else 
-		gpr.LoadToX64(d, false, true);
 	MOV(32, R(ABI_PARAM1), gpr.R(b));
 	if (a)
+	{
 		ADD(32, R(ABI_PARAM1), gpr.R(a));
+	}
 
 	// Some homebrew actually loads from a hw reg with this instruction
 	SafeLoadRegToEAX(ABI_PARAM1, 16, 0, true);
+
+	MEMCHECK_START
+
+	gpr.KillImmediate(d);
 	MOV(32, gpr.R(d), R(EAX));
 
-	gpr.UnlockAll();
+	MEMCHECK_END
+
+	gpr.UnlockAllX();
+}
+
+void Jit64::lwzx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.FlushLockX(ABI_PARAM1);
+	MOV(32, R(ABI_PARAM1), gpr.R(b));
+	if (a)
+	{
+		ADD(32, R(ABI_PARAM1), gpr.R(a));
+	}
+
+	SafeLoadRegToEAX(ABI_PARAM1, 32, 0);
+
+	MEMCHECK_START
+
+	gpr.KillImmediate(d);
+	MOV(32, gpr.R(d), R(EAX));
+
+	MEMCHECK_END
+
 	gpr.UnlockAllX();
 }
 
@@ -114,6 +117,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
+
 	if (Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
 	{ Default(inst); return; }
 
@@ -135,7 +139,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	{
 		// TODO(LinesPrower): 			
 		// - Rewrite this!
-		// It seems to be ugly and unefficient, but I don't know JIT stuff enough to make it right
+		// It seems to be ugly and inefficient, but I don't know JIT stuff enough to make it right
 		// It only demonstrates the idea
 
 		// do our job at first
@@ -178,6 +182,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	}
+
 	int accessSize;
 	switch (inst.OPCD)
 	{
@@ -193,40 +198,32 @@ void Jit64::lXz(UGeckoInstruction inst)
 		return;
 	}
 
-	//Still here? Do regular path.
-#if defined(_M_X64)
-	if (accessSize == 8 || accessSize == 16 || !jo.enableFastMem) {
-#else
-	if (true) {
-#endif
-		// Safe and boring
+	if (accessSize == 32 && jo.enableFastMem && !Core::g_CoreStartupParameter.bMMU)
+	{
+		// Fast and daring
+		gpr.Lock(a, d);
+		gpr.LoadToX64(a, true, false);
+		gpr.LoadToX64(d, a == d, true);
+		MOV(accessSize, gpr.R(d), MComplex(RBX, gpr.R(a).GetSimpleReg(), SCALE_1, offset));
+		BSWAP(32, gpr.R(d).GetSimpleReg());
+		gpr.UnlockAll();
+		gpr.Flush(FLUSH_ALL);
+	}
+	else
+	{
 		gpr.FlushLockX(ABI_PARAM1);
-		gpr.Lock(d, a);
 		MOV(32, R(ABI_PARAM1), gpr.R(a));
 		SafeLoadRegToEAX(ABI_PARAM1, accessSize, offset);
-		gpr.LoadToX64(d, false, true);
-		MOV(32, gpr.R(d), R(EAX));
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		return;
-	}
+		
+		MEMCHECK_START
 
-	// Fast and daring
-	gpr.Lock(a, d);
-	gpr.LoadToX64(a, true, false);
-	gpr.LoadToX64(d, a == d, true);
-	MOV(accessSize, gpr.R(d), MComplex(RBX, gpr.R(a).GetSimpleReg(), SCALE_1, offset));
-	switch (accessSize) {
-		case 32:
-			BSWAP(32, gpr.R(d).GetSimpleReg());
-			break;
-			// Careful in the backpatch - need to properly nop over first
-			//		case 16:
-			//			BSWAP(32, gpr.R(d).GetSimpleReg());
-			//			SHR(32, gpr.R(d), Imm8(16));
-			//			break;
+		gpr.KillImmediate(d);
+		MOV(32, gpr.R(d), R(EAX));
+		
+		MEMCHECK_END
+
+		gpr.UnlockAllX();
 	}
-	gpr.UnlockAll();
 }
 
 void Jit64::lha(UGeckoInstruction inst)
@@ -239,14 +236,17 @@ void Jit64::lha(UGeckoInstruction inst)
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	// Safe and boring
 	gpr.FlushLockX(ABI_PARAM1);
-	gpr.Lock(d, a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	SafeLoadRegToEAX(ABI_PARAM1, 16, offset, true);
-	gpr.LoadToX64(d, d == a, true);
+
+	MEMCHECK_START
+
+	gpr.KillImmediate(d);
 	MOV(32, gpr.R(d), R(EAX));
-	gpr.UnlockAll();
+
+	MEMCHECK_END
+
 	gpr.UnlockAllX();
-	return;
 }
 
 void Jit64::lwzux(UGeckoInstruction inst)
@@ -260,17 +260,20 @@ void Jit64::lwzux(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	}
-	gpr.Lock(a, b, d);
-
-	gpr.LoadToX64(d, b == d, true);
+	gpr.Lock(a);
 	gpr.LoadToX64(a, true, true);
 	ADD(32, gpr.R(a), gpr.R(b));
 	MOV(32, R(EAX), gpr.R(a));
 	SafeLoadRegToEAX(EAX, 32, 0, false);
+
+	MEMCHECK_START
+
+	gpr.KillImmediate(d);
 	MOV(32, gpr.R(d), R(EAX));
 
+	MEMCHECK_END
+
 	gpr.UnlockAll();
-	return;
 }
 
 // Zero cache line.
@@ -348,7 +351,7 @@ void Jit64::stX(UGeckoInstruction inst)
 					gpr.SetImmediate32(a, addr);
 				MOV(accessSize, R(EAX), gpr.R(s));
 				BSWAP(accessSize, EAX);
-				WriteToConstRamAddress(accessSize, R(EAX), addr); 
+				WriteToConstRamAddress(accessSize, R(EAX), addr);
 				return;
 			}
 			// Other IO not worth the trouble.
@@ -387,35 +390,23 @@ void Jit64::stX(UGeckoInstruction inst)
 		#endif*/
 
 		//Still here? Do regular path.
-		gpr.Lock(s, a);
-		gpr.FlushLockX(ECX, EDX);
-		MOV(32, R(EDX), gpr.R(a));
-		MOV(32, R(ECX), gpr.R(s));
-		if (offset)
-			ADD(32, R(EDX), Imm32((u32)offset));
+
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+		gpr.Lock(a);
+		MOV(32, R(ABI_PARAM2), gpr.R(a));
+		MOV(32, R(ABI_PARAM1), gpr.R(s));
+		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, accessSize, offset);
+
 		if (update && offset)
 		{
-			gpr.LoadToX64(a, true, true);
-			MOV(32, gpr.R(a), R(EDX));
+			MEMCHECK_START
+
+			gpr.KillImmediate(a);
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
+
+			MEMCHECK_END
 		}
-		TEST(32, R(EDX), Imm32(0x0C000000));
-		FixupBranch unsafe_addr = J_CC(CC_NZ);
-		BSWAP(accessSize, ECX);
-#ifdef _M_X64
-		MOV(accessSize, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
-#else
-		AND(32, R(EDX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(accessSize, MDisp(EDX, (u32)Memory::base), R(ECX));
-#endif
-		FixupBranch skip_call = J();
-		SetJumpTarget(unsafe_addr);
-		switch (accessSize)
-		{
-		case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ECX, EDX); break;
-		case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), ECX, EDX); break;
-		case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8,  2), ECX, EDX); break;
-		}
-		SetJumpTarget(skip_call);
+
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 	}
@@ -459,9 +450,14 @@ void Jit64::stXx(UGeckoInstruction inst)
 	MOV(32, R(ECX), gpr.R(s));
 	SafeWriteRegToReg(ECX, EDX, accessSize, 0);
 
+	//MEMCHECK_START
+
+	// TODO: Insert rA update code here
+
+	//MEMCHECK_END
+
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	return;
 }
 
 // A few games use these heavily in video codecs.

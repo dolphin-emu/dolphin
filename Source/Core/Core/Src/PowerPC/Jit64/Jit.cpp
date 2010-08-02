@@ -194,7 +194,7 @@ void Jit64::Init()
 #else
 	jo.enableFastMem = false;
 #endif
-	jo.assumeFPLoadFromMem = true;
+	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = true; // Fallback to Interpreter
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
@@ -575,6 +575,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
+				// In case we are about to jump to the dispatcher, flush regs
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
 				TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z);
 

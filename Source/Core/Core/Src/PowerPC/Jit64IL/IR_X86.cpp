@@ -465,7 +465,6 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 }
 
 static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
-	bool win32 = false;
 	if (RI.UseProfile) {
 		unsigned curLoad = ProfiledLoads[RI.numProfiledLoads++];
 		if (!(curLoad & 0x0C000000)) {
@@ -486,15 +485,8 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	if (RI.MakeProfile) {
 		RI.Jit->MOV(32, M(&ProfiledLoads[RI.numProfiledLoads++]), R(ECX));
 	}
-#ifdef _M_IX86
-	win32 = true;
-#endif
-	FixupBranch argh;
-	if (!(win32 && SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1))
-	{
-		RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000));
-		argh = RI.Jit->J_CC(CC_Z);
-	}
+	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000));
+	FixupBranch argh = RI.Jit->J_CC(CC_Z);
 
 	// Slow safe read using Memory::Read_Ux routines
 #ifdef _M_IX86  // we don't allocate EAX on x64 so no reason to save it.
@@ -514,14 +506,10 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 		RI.Jit->POP(32, R(EAX));
 #endif
 	}
-	if (!(win32 && SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1))
-	{
-		FixupBranch arg2 = RI.Jit->J();
-	// Fast unsafe read using memory pointer EBX
-		RI.Jit->SetJumpTarget(argh);
-		RI.Jit->UnsafeLoadRegToReg(ECX, reg, Size, 0, false);
-		RI.Jit->SetJumpTarget(arg2);
-	}
+	FixupBranch arg2 = RI.Jit->J();
+	RI.Jit->SetJumpTarget(argh);
+	RI.Jit->UnsafeLoadRegToReg(ECX, reg, Size, 0, false);
+	RI.Jit->SetJumpTarget(arg2);
 	if (regReadUse(RI, I))
 		RI.regs[reg] = I;
 }

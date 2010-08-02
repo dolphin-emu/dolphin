@@ -184,14 +184,6 @@ bool Init()
 
 	g_CoreStartupParameter = _CoreParameter;
 
-	// TODO: Reenable JIT instructions
-	if (g_CoreStartupParameter.bMMU)
-	{
-		g_CoreStartupParameter.bJITLoadStoreOff = true;
-		g_CoreStartupParameter.bJITLoadStorePairedOff = true;
-		g_CoreStartupParameter.bJITLoadStoreFloatingOff = true;
-	}
-
 	// FIXME DEBUG_LOG(BOOT, dump_params());
 	Host_SetWaitCursor(true);
 
