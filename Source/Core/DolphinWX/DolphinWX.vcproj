@@ -30,7 +30,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
@@ -146,7 +146,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
@@ -263,7 +263,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
@@ -374,7 +374,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
@@ -485,7 +485,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
@@ -600,7 +600,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
+				CommandLine="cscript /nologo /E:VBScript &quot;..\Common\make_svnrev.h.vbs&quot; &quot;..\Common&quot;"
 				ExcludedFromBuild="false"
 			/>
 			<Tool
