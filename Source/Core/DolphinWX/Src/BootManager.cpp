@@ -35,7 +35,6 @@
 #include <string>
 #include <vector>
 
-#include "Globals.h"
 #include "Common.h"
 #include "IniFile.h"
 #include "BootManager.h"
@@ -46,6 +45,7 @@
 #include "SysConf.h"
 #include "Core.h"
 #if defined(HAVE_WX) && HAVE_WX
+	#include "Globals.h"
 	#include "ConfigMain.h"
 	#include "Frame.h"
 	#include "CodeWindow.h"

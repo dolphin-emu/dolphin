@@ -37,7 +37,6 @@
 #include "Main.h"
 #include "ConfigManager.h"
 #include "CodeWindow.h"
-#include "LogWindow.h"
 #include "JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"

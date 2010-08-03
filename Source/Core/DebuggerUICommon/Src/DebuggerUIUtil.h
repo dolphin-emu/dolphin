@@ -20,17 +20,6 @@
 
 #include <wx/wx.h>
 
-#define wxUSE_XPM_IN_MSW 1
-#define USE_XPM_BITMAPS 1
-
-// Defined in CodeWindow.cpp
 extern wxFont DebuggerFont;
-
-// define this to use XPMs everywhere (by default, BMPs are used under Win)
-// BMPs use less space, but aren't compiled into the executable on other platforms
-
-#if USE_XPM_BITMAPS && defined (__WXMSW__) && !wxUSE_XPM_IN_MSW
-#error You need to enable XPM support to use XPM bitmaps with toolbar!
-#endif // USE_XPM_BITMAPS
 
 #endif

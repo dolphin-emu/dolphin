@@ -17,12 +17,9 @@
 
 #ifndef LOGWINDOW_H_
 #define LOGWINDOW_H_
-#include "Main.h" // for wxGetApp
+
 #include "LogManager.h"
 #include "Frame.h"
-#include "DebuggerUIUtil.h"
-
-#include "IniFile.h" // Common
 #include "Thread.h"
 #include <queue>
 
@@ -60,7 +57,6 @@ public:
 		const wxString& name = wxT("Log")
 		);
 	~CLogWindow();
-	void NotifyUpdate();
 
 	void SaveSettings();
 	void LoadSettings();
@@ -71,7 +67,7 @@ public:
 private:
 	CFrame *Parent;
 	wxFont DefaultFont, MonoSpaceFont;
-	std::vector<wxFont> Font;
+	std::vector<wxFont> LogFont;
 	wxTimer *m_LogTimer;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;

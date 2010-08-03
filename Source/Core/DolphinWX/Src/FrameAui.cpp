@@ -789,8 +789,6 @@ void CFrame::ReloadPanes()
 	// Open notebook pages
 	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
-	if (g_pCodeWindow->bShowOnStart[0]) ToggleLogWindow(true);
-	if (g_pCodeWindow->bShowOnStart[1]) ToggleConsole(true);
 }
 
 void CFrame::DoLoadPerspective()

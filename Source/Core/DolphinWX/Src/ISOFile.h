@@ -21,6 +21,10 @@
 #include "Volume.h"
 #include "VolumeCreator.h"
 
+#if defined(HAVE_WX) && HAVE_WX
+#include <wx/image.h>
+#endif
+
 class PointerWrap;
 class GameListItem
 {

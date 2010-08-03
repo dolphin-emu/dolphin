@@ -717,6 +717,8 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 		m_GameListCtrl->Update();
 	}
+	else if (!m_GameListCtrl->GetGameNames().size())
+		m_GameListCtrl->BrowseForDirectory();
 	else
 		// Game started by double click
 		BootGame(std::string(""));

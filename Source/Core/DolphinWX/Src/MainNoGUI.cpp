@@ -37,9 +37,7 @@
 #endif
 
 #include "Core.h"
-#include "Globals.h"
 #include "Host.h"
-#include "ISOFile.h"
 #include "CPUDetect.h"
 #include "cmdline.h"
 #include "Thread.h"
