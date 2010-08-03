@@ -780,7 +780,8 @@ void CFrame::StartGame(const std::string& filename)
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position, size);
+		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
+		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
 		m_RenderFrame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
 				wxCloseEventHandler(CFrame::OnRenderParentClose),
 				(wxObject*)0, this);
