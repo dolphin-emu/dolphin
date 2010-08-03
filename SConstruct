@@ -97,7 +97,7 @@ if env['CCVERSION'] >= '4.3.0':
 env['CPPDEFINES'] = []
 if env['flavor'] == 'debug':
     env['CPPDEFINES'] += ['_DEBUG']
-				if sys.platform == 'linux2':
+    if sys.platform == 'linux2':
         # FIXME: This disables wx debugging how do we make it work?
         env['CPPDEFINES'] += ['NDEBUG']
 elif env['flavor'] == 'fastlog':
