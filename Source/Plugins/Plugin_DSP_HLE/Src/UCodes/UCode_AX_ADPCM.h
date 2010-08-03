@@ -83,7 +83,8 @@ inline u16 ADPCM_Vol(u16 vol, u16 delta)
 	//if (mixer_control > 1000 && x > mixer_control) x = mixer_control; // maybe mixer_control also
 		// has a volume target?
 	//if (x >= 0x7fff) x = 0x7fff; // this seems a little high
-	if (x >= 0x4e20) x = 0x4e20; // add a definitive limit at 20 000
+	//if (x >= 0x4e20) x = 0x4e20; // add a definitive limit at 20 000
+	if (x >= 0x8000) x = 0x8000; // clamp to 32768;
 	return x; // update volume
 }
 

@@ -156,6 +156,7 @@ inline void MixAddVoice(ParamBlockType &pb,
 		for (int s = 0; s < _iSize; s++)
 		{
 			int sample = 0;
+			u32 oldFrac = frac;
 			frac += ratio;
 			u32 newSamplePos = samplePos + (frac >> 16); //whole number of frac
 
@@ -164,36 +165,37 @@ inline void MixAddVoice(ParamBlockType &pb,
 			switch (pb.audio_addr.sample_format)
 			{
 			    case AUDIOFORMAT_PCM8:
-					// TODO - the linear interpolation code below is somewhat suspicious
-				    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-				    pb.adpcm.yn1 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos)) << 8;
+				    pb.adpcm.yn2 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos)) << 8; //current sample
+				    pb.adpcm.yn1 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos + 1)) << 8; //next sample
 
 				    if (pb.src_type == SRCTYPE_NEAREST)
-				    {
-					    sample = pb.adpcm.yn1;
-				    }
+					    sample = pb.adpcm.yn2;
 				    else // linear interpolation
-				    {
-					    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
-				    }
+						sample = (pb.adpcm.yn1 * (u16)oldFrac + pb.adpcm.yn2 * (u16)(0xFFFF - oldFrac) + pb.adpcm.yn2) >> 16;
 
 				    samplePos = newSamplePos;
 				    break;
 
 			    case AUDIOFORMAT_PCM16:
-					// TODO - the linear interpolation code below is somewhat suspicious
-				    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-				    pb.adpcm.yn1 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8(samplePos * 2) << 8) | (g_dspInitialize.pARAM_Read_U8((samplePos * 2 + 1))));
-				    if (pb.src_type == SRCTYPE_NEAREST)
-					    sample = pb.adpcm.yn1;
+				    pb.adpcm.yn2 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8(samplePos * 2) << 8) | (g_dspInitialize.pARAM_Read_U8((samplePos * 2 + 1)))); //current sample
+				    pb.adpcm.yn1 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8((samplePos + 1) * 2) << 8) | (g_dspInitialize.pARAM_Read_U8(((samplePos + 1) * 2 + 1)))); //next sample
+
+					if (pb.src_type == SRCTYPE_NEAREST)
+					    sample = pb.adpcm.yn2;
 				    else // linear interpolation
-					    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
+					    sample = (pb.adpcm.yn1 * (u16)oldFrac + pb.adpcm.yn2 * (u16)(0xFFFF - oldFrac) + pb.adpcm.yn2) >> 16;
 
 				    samplePos = newSamplePos;
 				    break;
 
 			    case AUDIOFORMAT_ADPCM:
-				    sample = ADPCM_Step(pb.adpcm, samplePos, newSamplePos, frac);
+					ADPCM_Step(pb.adpcm, samplePos, newSamplePos, frac);
+					
+					if (pb.src_type == SRCTYPE_NEAREST)
+					    sample = pb.adpcm.yn2;
+				    else // linear interpolation
+					    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac) + pb.adpcm.yn2) >> 16; //adpcm moves on frac
+
 				    break;
 
 			    default:
