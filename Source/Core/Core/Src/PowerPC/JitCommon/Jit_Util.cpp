@@ -31,7 +31,6 @@
 
 using namespace Gen;
 
-
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 static u32 GC_ALIGNED16(float_buffer);
 
@@ -84,30 +83,8 @@ void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset,
 		if (offset)
 			ADD(32, R(reg_addr), Imm32((u32)offset));
 
-		FixupBranch addrf0;
-		FixupBranch addr20;
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-		{
-			if (Core::g_CoreStartupParameter.bMMU)
-			{
-				CMP(32, R(reg_addr), Imm32(0xf0000000));
-				addrf0 = J_CC(CC_GE);
-			}
-			TEST(32, R(reg_addr), Imm32(0x20000000));
-			addr20 = J_CC(CC_NZ);
-		}
-
-		TEST(32, R(reg_addr), Imm32(0x0C000000));
+		TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
 		FixupBranch fast = J_CC(CC_Z);
-
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-		{
-			if (Core::g_CoreStartupParameter.bMMU)
-			{
-				SetJumpTarget(addrf0);				
-			}			
-			SetJumpTarget(addr20);
-		}
 
 		switch (accessSize)
 		{
@@ -148,25 +125,8 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	if (offset)
 		ADD(32, R(reg_addr), Imm32((u32)offset));
 
-	// TODO: Figure out a cleaner way to check memory bounds
-	FixupBranch addrf0;
-	FixupBranch addr20;
-	if (Core::g_CoreStartupParameter.bMMU)
-	{
-		CMP(32, R(reg_addr), Imm32(0xf0000000));
-		addrf0 = J_CC(CC_GE);
-		TEST(32, R(reg_addr), Imm32(0x20000000));
-		addr20 = J_CC(CC_NZ);
-	}
-
-	TEST(32, R(reg_addr), Imm32(0x0C000000));
+	TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
 	FixupBranch fast = J_CC(CC_Z);
-
-	if (Core::g_CoreStartupParameter.bMMU)
-	{
-		SetJumpTarget(addrf0);
-		SetJumpTarget(addr20);
-	}
 
 	switch (accessSize)
 	{
@@ -182,7 +142,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
-	TEST(32, R(reg_addr), Imm32(0x0C000000));
+	TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
 		FixupBranch argh = J_CC(CC_Z);
