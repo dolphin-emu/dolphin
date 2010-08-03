@@ -975,11 +975,11 @@ unsigned int
 void check_for_GL_errors( const char *calling_location )
 {
 	/*	check for errors	*/
-	GLenum err_code = glGetError();
+	GLenum err_code = GL_REPORT_ERROR();
 	while( GL_NO_ERROR != err_code )
 	{
 		printf( "OpenGL Error @ %s: %i", calling_location, err_code );
-		err_code = glGetError();
+		err_code = GL_REPORT_ERROR();
 	}
 }
 #else

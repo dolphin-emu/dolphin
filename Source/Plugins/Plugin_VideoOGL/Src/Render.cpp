@@ -198,7 +198,7 @@ void SetDefaultRectTexParams()
 	// Set some standard texture filter modes.
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	if (glGetError() != GL_NO_ERROR) {
+	if (GL_REPORT_ERROR() != GL_NO_ERROR) {
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		GL_REPORT_ERRORD();
@@ -479,7 +479,7 @@ bool Renderer::Init()
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	UpdateActiveConfig();
-	return glGetError() == GL_NO_ERROR && bSuccess;
+	return GL_REPORT_ERROR() == GL_NO_ERROR && bSuccess;
 }
 
 void Renderer::Shutdown(void)
@@ -1058,7 +1058,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(back_rc.left, back_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (glGetError() == GL_NO_ERROR && w > 0 && h > 0)
+		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!s_bLastFrameDumped)
 			{
@@ -1102,7 +1102,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(back_rc.left, back_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (glGetError() == GL_NO_ERROR) {
+		if (GL_REPORT_ERROR() == GL_NO_ERROR) {
 			if (!s_bLastFrameDumped) {
 				sprintf(movie_file_name, "%sframedump.raw", File::GetUserPath(D_DUMPFRAMES_IDX));
 				f_pFrameDump = fopen(movie_file_name, "wb");
@@ -1522,7 +1522,7 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
 	
 	// Show failure message
-	if (glGetError() != GL_NO_ERROR)
+	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
