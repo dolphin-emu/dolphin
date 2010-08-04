@@ -83,7 +83,14 @@ void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset,
 		if (offset)
 			ADD(32, R(reg_addr), Imm32((u32)offset));
 
-		TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		{
+			mem_mask |= Memory::ADDR_MASK_MEM1;
+		}
+
+		TEST(32, R(reg_addr), Imm32(mem_mask));
 		FixupBranch fast = J_CC(CC_Z);
 
 		switch (accessSize)
@@ -125,7 +132,14 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	if (offset)
 		ADD(32, R(reg_addr), Imm32((u32)offset));
 
-	TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	{
+		mem_mask |= Memory::ADDR_MASK_MEM1;
+	}
+
+	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z);
 
 	switch (accessSize)
@@ -142,7 +156,14 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
-	TEST(32, R(reg_addr), Imm32(Memory::ADDR_MASK_HW_ACCESS | Memory::ADDR_MASK_MEM1));
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	{
+		mem_mask |= Memory::ADDR_MASK_MEM1;
+	}
+
+	TEST(32, R(reg_addr), Imm32(mem_mask));
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
 		FixupBranch argh = J_CC(CC_Z);
