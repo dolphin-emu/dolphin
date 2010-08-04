@@ -21,6 +21,7 @@ CDSPHandler* CDSPHandler::m_pInstance = NULL;
 
 CDSPHandler::CDSPHandler()
 	: m_pUCode(NULL),
+	m_lastUCode(NULL),
 	m_bHalt(false),
 	m_bAssertInt(false)
 {
@@ -85,4 +86,24 @@ void CDSPHandler::SetUCode(u32 _crc)
 	m_pUCode = NULL;
 	m_MailHandler.Clear();
 	m_pUCode = UCodeFactory(_crc, m_MailHandler);
+}
+
+// TODO do it better?
+// Assumes that every odd call to this func is by the persistent ucode.
+// Even callers are deleted.
+void CDSPHandler::SwapUCode(u32 _crc)
+{
+	m_MailHandler.Clear();
+
+	if (m_lastUCode == NULL)
+	{
+		m_lastUCode = m_pUCode;
+		m_pUCode = UCodeFactory(_crc, m_MailHandler);
+	}
+	else
+	{
+		delete m_pUCode;
+		m_pUCode = m_lastUCode;
+		m_lastUCode = NULL;
+	}
 }

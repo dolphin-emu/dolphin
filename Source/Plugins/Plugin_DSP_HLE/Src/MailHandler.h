@@ -45,7 +45,7 @@ public:
 		else
 		{
 			// WARN_LOG(DSPHLE, "GetNextMail: No mails");
-			return 0;  // 
+			return 0;
 		}
 	}
 

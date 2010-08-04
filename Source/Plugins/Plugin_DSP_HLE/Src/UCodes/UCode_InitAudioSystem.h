@@ -29,25 +29,6 @@ public:
 	void HandleMail(u32 _uMail);
 	void Update(int cycles);
 	void Init();
-
-private:
-	struct SUCode
-	{
-		u32 m_RAMAddress;
-		u32 m_Length;
-		u32 m_IMEMAddress;
-		u32 m_DMEMLength;
-		u32 m_StartPC;
-	};
-
-	SUCode m_CurrentUCode;
-	int m_BootTask_numSteps;
-
-	u32 m_NextParameter;
-
-	bool IsInitialized;
-
-	void BootUCode();
 };
 
 #endif

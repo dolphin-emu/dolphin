@@ -22,9 +22,6 @@
 
 CUCode_InitAudioSystem::CUCode_InitAudioSystem(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
-	, m_BootTask_numSteps(0)
-	, m_NextParameter(0)
-	, IsInitialized(false)
 {
 	DEBUG_LOG(DSPHLE, "CUCode_InitAudioSystem - initialized");
 }

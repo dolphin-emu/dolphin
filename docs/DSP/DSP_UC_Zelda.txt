@@ -1555,7 +1555,7 @@ void 0243_COMMAND_02()  // sync frame
 	
 	// 0419 0080 002d lri         $AR0, #0x002d
 	// 041b 029f 0603 jmp         0x0603
-	0603_Unk(0x02d)	
+	0603_FinalizeFrame(0x02d)	
 }
  
 // Command 07 - not seen used.
@@ -2111,7 +2111,8 @@ void 05f0_HaltUCode()
 0601 0658      cmpis       $ACC0, #0x58
 0602 065b      cmpis       $ACC0, #0x5b
  
-void 0603_Unk(_returnAddr($AR0))
+ // at the end of a frame, we get a mail telling ucode what to do next
+void 0603_FinalizeFrame(_returnAddr($AR0))
 {
 	// 0603 00e0 03f9 sr          @0x03f9, $AR0
 	0x03f9 = _returnAddr
@@ -2143,28 +2144,32 @@ void 0603_Unk(_returnAddr($AR0))
 	switch(AR3 - 0x05FF)
 	{
 	case 0x00: HALT(); break;
-	case 0x00: HALT(); break;
-	case 0x01: 0658_SoftReset(); break;
-	case 0x02: 065b_ContinueWithUCode(); break;
+	case 0x01: 0618_PrepareBootUcode(); break;
+	case 0x02: 0658_SoftReset(); break;
+	case 0x03: 065b_ContinueWithUCode(); break;
+	default: HALT();
+	// 0616 0021      halt
 	}
-
 }	 
- 
- 
-0616 0021      halt        
+        
 0617 0021      halt        
  
-void 0618_Unk() {
+ // Sets up info needed to dma in a chunk to iram or dram,
+ // and calls irom to do actual dma. irom returns to address given in AR0
+void 0618_PrepareBootUcode() {
+	// Dunno what that's about...
 	0618 009a 0002 lri         $AX0.H, #0x0002
 	061a 00fa 03a3 sr          @0x03a3, $AX0.H
+	
 	061c 8100      clr         $ACC0
 	061d 8900      clr         $ACC1
+	
 	//061e 02bf 065e call        0x065e
 	065e_WaitForCPUMailBox_AC0()
 	
 	0620 24ff      lrs         $AC0.L, @CMBL
 	
-		//0621 02bf 0664 call        0x0664
+	//0621 02bf 0664 call        0x0664
 	0664_WaitForCPUMailBox_AC1()
 	
 	0623 25ff      lrs         $AC1.L, @CMBL
@@ -2174,10 +2179,11 @@ void 0618_Unk() {
 	        
 	0626 27ff      lrs         $AC1.M, @CMBL
 	0627 2ece      srs         @DSMAH, $AC0.M
-	0628 2ccf      srs         @DSMAL, $AC0.L
+	0628 2ccf      srs         @DSMAL, $AC0.L	// 0
 	0629 16c9 0001 si          @DSCR, #0x0001
-	062b 2fcd      srs         @DSPA, $AC1.M
-	062c 2dcb      srs         @DSBL, $AC1.L
+	062b 2fcd      srs         @DSPA, $AC1.M	// 2
+	062c 2dcb      srs         @DSBL, $AC1.L	// 1
+	
 	062d 8100      clr         $ACC0
 	062e 8900      clr         $ACC1
 	
@@ -2220,15 +2226,22 @@ void 0618_Unk() {
 	065e_WaitForCPUMailBox_AC0()
 	
 	064b 23ff      lrs         $AX1.H, @CMBL
-	064c 26c9      lrs         $AC0.M, @DSCR
-	064d 02a0 0004 andf        $AC0.M, #0x0004
-	064f 029c 064c jlnz        0x064c
-	0651 1206      sbclr       #0x06
-	0652 1203      sbclr       #0x03
-	0653 1204      sbclr       #0x04
-	0654 1205      sbclr       #0x05
-	0655 029f 80b5 jmp         0x80b5
- 	**** GOTO ROM!!
+	
+	// Make sure dma is ready
+	// 064c 26c9      lrs         $AC0.M, @DSCR
+	// 064d 02a0 0004 andf        $AC0.M, #0x0004
+	// 064f 029c 064c jlnz        0x064c
+
+	// Reset some of the state
+	// 0651 1206      sbclr       #0x06
+	// 0652 1203      sbclr       #0x03
+	// 0653 1204      sbclr       #0x04
+	// 0654 1205      sbclr       #0x05
+		
+	// 0655 029f 80b5 jmp         0x80b5
+ 	80b5_BootUcode();
+ 	
+ 	// Should not reach here
 	0657 0021      halt
 }
 

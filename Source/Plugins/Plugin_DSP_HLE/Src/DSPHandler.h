@@ -32,6 +32,7 @@ public:
 	void SendMailToDSP(u32 _uMail);
 	IUCode* GetUCode();
 	void SetUCode(u32 _crc);
+	void SwapUCode(u32 _crc);
 
 	CMailHandler& AccessMailHandler() { return m_MailHandler; }
 
@@ -63,6 +64,8 @@ private:
 	static CDSPHandler* m_pInstance;
 
 	IUCode* m_pUCode;
+	IUCode* m_lastUCode;
+
 	UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;
 

@@ -28,6 +28,8 @@
 #include "Mixer.h"
 
 #include "WaveFile.h"
+#include "../DSPHandler.h"
+
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	: 
@@ -117,6 +119,12 @@ void CUCode_Zelda::Update(int cycles)
 	{
 		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
 			g_dspInitialize.pGenerateDSPInterrupt();
+	}
+
+	if (NeedsResumeMail())
+	{
+		m_rMailHandler.PushMail(DSP_RESUME);
+		g_dspInitialize.pGenerateDSPInterrupt();
 	}
 }
 
@@ -284,6 +292,13 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
+
+	if (m_UploadSetupInProgress) // evaluated first!
+	{
+		PrepareBootUCode(_uMail);
+		return;
+	}
+
 	if (m_bSyncInProgress)
 	{
 		if (m_bSyncCmdPending)
@@ -381,23 +396,31 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 		m_numSteps = _uMail;
 		m_step = 0;
 	}
-	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
+	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
 	{
 		// The low part of the mail tells the operation to perform
 		// Seeing as every possible operation number halts the uCode,
 		// except 3, that thing seems to be intended for debugging
 		switch (_uMail & 0xFFFF)
 		{
-		case 0x0003:		// Do nothing
+		case 0x0003:	// Do nothing - continue normally
 			return;
 
-		case 0x0000:		// Halt
-		case 0x0001:		// Dump memory? and halt
-		case 0x0002:		// Do something and halt
+		case 0x0001:	// accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
+			// TODO find a better way to protect from HLEMixer?
+			soundStream->GetMixer()->SetHLEReady(false);
+			m_UploadSetupInProgress = true;
+			return;
+
+		case 0x0002:	// Let IROM play us off
+			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+			return;
+
+		case 0x0000:	// Halt
 			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", _uMail & 0xFFFF);
 			return;
 
-		default:			// Invalid (the real ucode would likely crash)
+		default:		// Invalid (the real ucode would likely crash)
 			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", _uMail & 0xFFFF);
 			return;
 		}
@@ -593,6 +616,8 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	p.Do(m_NumPBs);
 	p.Do(m_PBAddress);
 	p.Do(m_PBAddress2);
+
+	p.Do(m_UploadSetupInProgress);
 
 	m_rMailHandler.DoState(p);
 

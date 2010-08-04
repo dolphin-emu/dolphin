@@ -19,9 +19,11 @@
 #include "../DSPHandler.h"
 #include "UCodes.h"
 #include "UCode_ROM.h"
+#include "Hash.h"
 
 CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
+	, m_CurrentUCode()
 	, m_BootTask_numSteps(0)
 	, m_NextParameter(0)
 {
@@ -93,25 +95,19 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 
 void CUCode_Rom::BootUCode()
 {
-	// simple non-scientific crc invented by ector :P
-	// too annoying to change now, and probably good enough anyway
-	u32 crc = 0;
-	for (u32 i = 0; i < m_CurrentUCode.m_Length; i++)
-	{
-		crc ^= Memory_Read_U8(m_CurrentUCode.m_RAMAddress + i);
-		//let's rol
-		crc = (crc << 3) | (crc >> 29);
-	}
+	u32 ector_crc = HashEctor(
+		(u8*)Memory_Get_Pointer(m_CurrentUCode.m_RAMAddress),
+		m_CurrentUCode.m_Length);
 
 	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
 	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
 	DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_CurrentUCode.m_IMEMAddress);
 	DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_CurrentUCode.m_DMEMLength);
 	DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_CurrentUCode.m_StartPC);
-	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", crc);
+	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
 	DEBUG_LOG(DSPHLE, "BootTask - done");
 
-	CDSPHandler::GetInstance().SetUCode(crc);
+	CDSPHandler::GetInstance().SetUCode(ector_crc);
 }
 
 

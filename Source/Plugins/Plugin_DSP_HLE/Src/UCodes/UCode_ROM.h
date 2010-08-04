@@ -38,7 +38,6 @@ private:
 		u32 m_DMEMLength;
 		u32 m_StartPC;
 	};
-
 	SUCode m_CurrentUCode;
 	int m_BootTask_numSteps;
 

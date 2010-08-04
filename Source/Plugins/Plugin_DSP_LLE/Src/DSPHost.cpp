@@ -92,6 +92,7 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 		case 0x3daf59b9: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_D9D066EA.txt"); break;
 		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_6A696CE7.txt"); break;
 		case 0xe2136399: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_EB79C705.txt"); break;
+		case 0xdd7e72d5: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_3B3B30CA.txt"); break;
 		default: success = false; break;
 	}
 

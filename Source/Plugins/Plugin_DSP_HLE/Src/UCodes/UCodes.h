@@ -32,6 +32,10 @@ class IUCode
 public:
 	IUCode(CMailHandler& _rMailHandler)
 		: m_rMailHandler(_rMailHandler)
+		, m_NextUCode_steps(0)
+		, m_NextUCode()
+		, m_NeedsResumeMail(false)
+		, m_UploadSetupInProgress(false)
 	{}
 
 	virtual ~IUCode()
@@ -46,6 +50,13 @@ public:
 	virtual void DoState(PointerWrap &p) {}
 
 protected:
+	void PrepareBootUCode(u32 mail);
+
+	// Some ucodes (notably zelda) require a resume mail to be
+	// sent if they are be started via PrepareBootUCode.
+	// The HLE can use this to 
+	bool NeedsResumeMail();
+
 	CMailHandler& m_rMailHandler;
 	Common::CriticalSection m_csMix;
 
@@ -58,6 +69,29 @@ protected:
 		DSP_SYNC        = 0xDCD10004,
 		DSP_FRAME_END   = 0xDCD10005,
 	};
+
+	// UCode is forwarding mails to PrepareBootUCode
+	// UCode only needs to set this to true, IUCode will set to false when done!
+	bool m_UploadSetupInProgress;
+
+private:
+	struct SUCode
+	{
+		u32 mram_dest_addr;
+		u16 mram_size;
+		u16 mram_dram_addr;
+		u32 iram_mram_addr;
+		u16 iram_size;
+		u16 iram_dest;
+		u16 iram_startpc;
+		u32 dram_mram_addr;
+		u16 dram_size;
+		u16 dram_dest;
+	};
+	SUCode	m_NextUCode;
+	int		m_NextUCode_steps;
+
+	bool m_NeedsResumeMail;
 };
 
 extern IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler);

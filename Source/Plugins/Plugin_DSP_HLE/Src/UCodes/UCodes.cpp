@@ -25,6 +25,9 @@
 #include "UCode_ROM.h"
 #include "UCode_CARD.h"
 #include "UCode_InitAudioSystem.h"
+#include "UCode_GBA.h"
+#include "Hash.h"
+#include "../DSPHandler.h"
 
 IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 {
@@ -42,14 +45,18 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		INFO_LOG(DSPHLE, "Switching to CARD ucode");
 		return new CUCode_CARD(_rMailHandler);
 
+	case 0xdd7e72d5:
+		INFO_LOG(DSPHLE, "Switching to GBA ucode");
+		return new CUCode_GBA(_rMailHandler);
+
 	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
 	case 0x3daf59b9: // Alien Hominid
 	case 0x4e8a8b21: // spdemo, ctaxi, 18 wheeler, disney, monkeyball 1/2,cubivore,puzzlecollection,wario,
-	// capcom vs snk, naruto2, lost kingdoms, star fox, mario party 4, mortal kombat,
-       // smugglers run warzone, smash brothers, sonic mega collection, ZooCube
-       // nddemo, starfox
+					 // capcom vs snk, naruto2, lost kingdoms, star fox, mario party 4, mortal kombat,
+					 // smugglers run warzone, smash brothers, sonic mega collection, ZooCube
+					 // nddemo, starfox
 	case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
-       // Zelda:OOT, Tony hawk, viewtiful joe
+					 // Zelda:OOT, Tony hawk, viewtiful joe
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
 		return new CUCode_AX(_rMailHandler);
@@ -103,4 +110,65 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	return NULL;
 }
 
+bool IUCode::NeedsResumeMail()
+{
+	if (m_NeedsResumeMail)
+	{
+		m_NeedsResumeMail = false;
+		return true;
+	}
+	return false;
+}
 
+void IUCode::PrepareBootUCode(u32 mail)
+{
+	switch (m_NextUCode_steps)
+	{
+	case 0: m_NextUCode.mram_dest_addr	= mail;				break;
+	case 1: m_NextUCode.mram_size		= mail & 0xffff;	break;
+	case 2: m_NextUCode.mram_dram_addr	= mail & 0xffff;	break;
+	case 3: m_NextUCode.iram_mram_addr	= mail;				break;
+	case 4: m_NextUCode.iram_size		= mail & 0xffff;	break;
+	case 5: m_NextUCode.iram_dest		= mail & 0xffff;	break;
+	case 6: m_NextUCode.iram_startpc	= mail & 0xffff;	break;
+	case 7: m_NextUCode.dram_mram_addr	= mail;				break;
+	case 8: m_NextUCode.dram_size		= mail & 0xffff;	break;
+	case 9: m_NextUCode.dram_dest		= mail & 0xffff;	break;
+	}
+	m_NextUCode_steps++;
+
+	if (m_NextUCode_steps == 10)
+	{
+		m_NextUCode_steps = 0;
+		m_NeedsResumeMail = true;
+		m_UploadSetupInProgress = false;
+
+		u32 ector_crc = HashEctor(
+			(u8*)Memory_Get_Pointer(m_NextUCode.iram_mram_addr),
+			m_NextUCode.iram_size);
+
+		DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
+		DEBUG_LOG(DSPHLE, "DRAM -> MRAM: src %04x dst %08x size %04x",
+			m_NextUCode.mram_dram_addr, m_NextUCode.mram_dest_addr,
+			m_NextUCode.mram_size);
+		DEBUG_LOG(DSPHLE, "MRAM -> IRAM: src %08x dst %04x size %04x startpc %04x",
+			m_NextUCode.iram_mram_addr, m_NextUCode.iram_dest,
+			m_NextUCode.iram_size, m_NextUCode.iram_startpc);
+		DEBUG_LOG(DSPHLE, "MRAM -> DRAM: src %08x dst %04x size %04x",
+			m_NextUCode.dram_mram_addr, m_NextUCode.dram_dest,
+			m_NextUCode.dram_size);
+
+		if (m_NextUCode.mram_size)
+		{
+			WARN_LOG(DSPHLE,
+				"Trying to boot new ucode with dram download - not implemented");
+		}
+		if (m_NextUCode.dram_size)
+		{
+			WARN_LOG(DSPHLE,
+				"Trying to boot new ucode with dram upload - not implemented");
+		}
+
+		CDSPHandler::GetInstance().SwapUCode(ector_crc);
+	}
+}

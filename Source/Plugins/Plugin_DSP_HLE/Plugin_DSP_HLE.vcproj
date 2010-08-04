@@ -571,6 +571,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\UCodes\UCode_GBA.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\UCodes\UCode_GBA.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\UCodes\UCode_InitAudioSystem.cpp"
 				>
 			</File>
