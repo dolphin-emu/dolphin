@@ -386,6 +386,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				gpr.Lock(a);
 				gpr.KillImmediate(a, true, true);
 				ADD(32, gpr.R(a), Imm32(offset));
+				gpr.UnlockAll();
 			}
 			gpr.UnlockAllX();
 			return;

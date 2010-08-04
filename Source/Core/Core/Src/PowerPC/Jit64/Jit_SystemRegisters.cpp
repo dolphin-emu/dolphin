@@ -162,6 +162,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[i]));
 	}
 	MOV(32, gpr.R(d), R(EAX));
+	gpr.UnlockAll();
 }
 
 void Jit64::mtcrf(UGeckoInstruction inst)
