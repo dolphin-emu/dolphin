@@ -409,6 +409,10 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 	return 0;
 }
 
+void VideoFifo_CheckAsyncRequest() {
+	VideoFifo_CheckSwapRequest();
+	VideoFifo_CheckEFBAccess();
+}
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
 {

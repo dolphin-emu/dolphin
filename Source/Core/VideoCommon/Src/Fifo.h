@@ -43,8 +43,6 @@ void Fifo_DoState(PointerWrap &f);
 void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Plugin
-void VideoFifo_CheckSwapRequest();
-void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
-void VideoFifo_CheckEFBAccess();
+void VideoFifo_CheckAsyncRequest();
 
 #endif // _FIFO_H

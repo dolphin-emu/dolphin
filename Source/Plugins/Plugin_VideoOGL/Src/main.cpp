@@ -103,6 +103,9 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 static bool s_PluginInitialized = false;
 
 volatile u32 s_swapRequested = FALSE;
+#if defined(HAVE_X11) && HAVE_X11
+static volatile u32 s_doStateRequested = FALSE;
+#endif
 static u32 s_efbAccessRequested = FALSE;
 static volatile u32 s_FifoShuttingDown = FALSE;
 
@@ -191,24 +194,53 @@ void Initialize(void *init)
 	OSD::AddMessage("Dolphin OpenGL Video Plugin", 5000);
 }
 
-void DoState(unsigned char **ptr, int mode)
+static volatile struct
 {
+	unsigned char **ptr;
+	int mode;
+} s_doStateArgs;
+
+// Run from the GPU thread on X11, CPU thread on the rest
+static void check_DoState() {
 #if defined(HAVE_X11) && HAVE_X11
-	OpenGL_MakeCurrent();
-#endif
-	// Clear all caches that touch RAM
-	TextureMngr::Invalidate(false);
-	VertexLoaderManager::MarkAllDirty();
-	
-	PointerWrap p(ptr, mode);
-	VideoCommon_DoState(p);
-	
-	// Refresh state.
-	if (mode == PointerWrap::MODE_READ)
+	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
-		BPReload();
-		RecomputeCachedArraybases();
+#endif
+		// Clear all caches that touch RAM
+		TextureMngr::Invalidate(false);
+		VertexLoaderManager::MarkAllDirty();
+
+		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
+		VideoCommon_DoState(p);
+
+		// Refresh state.
+		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
+		{
+			BPReload();
+			RecomputeCachedArraybases();
+		}
+
+#if defined(HAVE_X11) && HAVE_X11
+		Common::AtomicStoreRelease(s_doStateRequested, FALSE);
 	}
+#endif
+}
+
+// Run from the CPU thread
+void DoState(unsigned char **ptr, int mode) {
+	s_doStateArgs.ptr = ptr;
+	s_doStateArgs.mode = mode;
+#if defined(HAVE_X11) && HAVE_X11
+	Common::AtomicStoreRelease(s_doStateRequested, TRUE);
+	if (g_VideoInitialize.bOnThread)
+	{
+		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
+			//Common::SleepCurrentThread(1);
+			Common::YieldCPU();
+	}
+	else
+#endif
+		check_DoState();
 }
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
@@ -216,7 +248,8 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
 }
 
-// This is called after Video_Initialize() from the Core
+// This is called after Initialize() from the Core
+// Run from the graphics thread
 void Video_Prepare(void)
 {
 	OpenGL_MakeCurrent();
@@ -335,7 +368,7 @@ void VideoFifo_CheckSwapRequest()
 	}
 }
 
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+static inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
 	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
@@ -428,6 +461,14 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 	}
 
 	return 0;
+}
+
+void VideoFifo_CheckAsyncRequest() {
+	VideoFifo_CheckSwapRequest();
+	VideoFifo_CheckEFBAccess();
+#if defined(HAVE_X11) && HAVE_X11
+	check_DoState();
+#endif
 }
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)

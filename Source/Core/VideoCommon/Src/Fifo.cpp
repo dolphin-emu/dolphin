@@ -142,8 +142,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	{
 		video_initialize.pPeekMessages();
 
-		VideoFifo_CheckEFBAccess();
-		VideoFifo_CheckSwapRequest();
+		VideoFifo_CheckAsyncRequest();
 
 		// check if we are able to run this buffer		
 		
@@ -209,8 +208,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			
-			VideoFifo_CheckEFBAccess();
-			VideoFifo_CheckSwapRequest();
+			VideoFifo_CheckAsyncRequest();
 			CommandProcessor::isFifoBusy = false;						
 		}
 		

@@ -41,6 +41,8 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 
+#include "main.h"
+
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
 

@@ -35,6 +35,7 @@
 #include "NativeVertexFormat.h"
 #include "NativeVertexWriter.h"
 #include "TextureCache.h"
+#include "main.h"
 
 #include "BPStructs.h"
 #include "XFStructs.h"
