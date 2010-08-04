@@ -97,9 +97,6 @@ if env['CCVERSION'] >= '4.3.0':
 env['CPPDEFINES'] = []
 if env['flavor'] == 'debug':
     env['CPPDEFINES'] += ['_DEBUG']
-    if sys.platform == 'linux2':
-        # FIXME: This disables wx debugging how do we make it work?
-        env['CPPDEFINES'] += ['NDEBUG']
 elif env['flavor'] == 'fastlog':
     env['CPPDEFINES'] += ['DEBUGFAST']
 env['CPPPATH'] = ['#Source/PluginSpecs']
@@ -232,7 +229,8 @@ else:
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
-        env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(), 0)
+        env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(),
+                env['flavor'] == 'debug')
         conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:
