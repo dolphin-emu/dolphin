@@ -524,9 +524,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	sMain->SetMinSize(wxSize(400, 600));
+	sMain->SetMinSize(wxSize(550, 600));
 
-	m_Notebook->SetMaxSize(wxSize(400, 600));
+	m_Notebook->SetMaxSize(wxSize(550, 600));
 	SetSizerAndFit(sMain);
 }
 

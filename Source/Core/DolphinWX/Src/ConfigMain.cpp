@@ -36,7 +36,7 @@
 #include "../../Common/Src/OpenCL.h"
 
 #ifdef __APPLE__
-#include <Cocoa/Cocoa.h>
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 extern CFrame* main_frame;

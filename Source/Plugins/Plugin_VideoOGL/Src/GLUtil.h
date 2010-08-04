@@ -117,15 +117,15 @@ GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#define GL_REPORT_ERROR()         OpenGL_ReportGLError        (__FUNCTION__, __FILE__, __LINE__)
+#define GL_REPORT_ERROR()         OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
+#define GL_REPORT_ERRORD()        OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
+#define GL_REPORT_FBO_ERROR()     OpenGL_ReportFBOError(__FUNCTION__, __FILE__, __LINE__)
 #define GL_REPORT_PROGRAM_ERROR() OpenGL_ReportARBProgramError()
-#define GL_REPORT_FBO_ERROR()     OpenGL_ReportFBOError       (__FUNCTION__, __FILE__, __LINE__)
-#define GL_REPORT_ERRORD() OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
 #else
 #define GL_REPORT_ERROR() GL_NO_ERROR
-#define GL_REPORT_PROGRAM_ERROR()
-#define GL_REPORT_FBO_ERROR()
-#define GL_REPORT_ERRORD()
+#define GL_REPORT_ERRORD() (void)GL_NO_ERROR
+#define GL_REPORT_FBO_ERROR() (void)true
+#define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
 #if defined __APPLE__ || defined __linux__ || defined _WIN32

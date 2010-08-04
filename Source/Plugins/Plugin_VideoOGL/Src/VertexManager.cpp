@@ -144,7 +144,7 @@ void AddVertices(int primitive, int numvertices)
 {
 	if (numvertices <= 0)
 		return;
-	GL_REPORT_ERROR();
+	(void)GL_REPORT_ERROR();
 	switch (primitive)
 	{
 		case GX_DRAW_QUADS:
@@ -233,9 +233,7 @@ void Flush()
 
 	DVSTARTPROFILE();
 
-	GL_REPORT_ERROR();
-
-	
+	(void)GL_REPORT_ERROR();
 	
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
 	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);

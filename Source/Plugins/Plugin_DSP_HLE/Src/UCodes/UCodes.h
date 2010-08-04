@@ -32,9 +32,9 @@ class IUCode
 public:
 	IUCode(CMailHandler& _rMailHandler)
 		: m_rMailHandler(_rMailHandler)
+		, m_UploadSetupInProgress(false)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
-		, m_UploadSetupInProgress(false)
 		, m_NeedsResumeMail(false)
 	{}
 
@@ -89,7 +89,7 @@ private:
 		u16 dram_dest;
 	};
 	SUCode	m_NextUCode;
-	int		m_NextUCode_steps;
+	int	m_NextUCode_steps;
 
 	bool m_NeedsResumeMail;
 };
