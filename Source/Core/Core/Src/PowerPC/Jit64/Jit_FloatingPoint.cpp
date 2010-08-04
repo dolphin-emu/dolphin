@@ -34,24 +34,24 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 	fpr.Lock(d, a, b);
 	if (d == a)
 	{
-		fpr.LoadToX64(d, true);
+		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
 	else if (d == b && reversible)
 	{
-		fpr.LoadToX64(d, true);
+		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(a));
 	}
 	else if (a != d && b != d) 
 	{
 		// Sources different from d, can use rather quick solution
-		fpr.LoadToX64(d, !dupe);
+		fpr.BindToRegister(d, !dupe);
 		MOVSD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
 	else if (b != d)
 	{
-		fpr.LoadToX64(d, !dupe);
+		fpr.BindToRegister(d, !dupe);
 		MOVSD(XMM0, fpr.R(b));
 		MOVSD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), Gen::R(XMM0));
@@ -60,7 +60,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 	{
 		MOVSD(XMM0, fpr.R(a));
 		MOVSD(XMM1, fpr.R(b));
-		fpr.LoadToX64(d, !dupe);
+		fpr.BindToRegister(d, !dupe);
 		(this->*op)(XMM0, Gen::R(XMM1));
 		MOVSD(fpr.RX(d), Gen::R(XMM0));
 	}
@@ -87,7 +87,7 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		int d = inst.FD;
 		int b = inst.FB;
 		fpr.Lock(b, d);
-		fpr.LoadToX64(d, true, true);
+		fpr.BindToRegister(d, true, true);
 		MOVSD(XMM0, M((void *)&one_const));
 		SQRTSD(XMM1, fpr.R(b));
 		DIVSD(XMM0, R(XMM1));
@@ -160,7 +160,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		XORPD(XMM0, M((void*)&psSignBits2));
 		break;
 	}
-	fpr.LoadToX64(d, false);
+	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
 	if (single_precision) {
@@ -186,7 +186,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
-	fpr.LoadToX64(d, true, true);
+	fpr.BindToRegister(d, true, true);
 	MOVSD(XMM0, fpr.R(b));
 	switch (inst.SUBOP10) {
 	case 40:  // fnegx
@@ -216,7 +216,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
-	fpr.LoadToX64(d, true, true);
+	fpr.BindToRegister(d, true, true);
 	MOVSD(XMM0, fpr.R(b));
 	MOVSD(fpr.R(d), XMM0);
 	fpr.UnlockAll();
@@ -238,7 +238,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	int crf	= inst.CRFD;
 
 	fpr.Lock(a,b);
-	if (a != b) fpr.LoadToX64(a, true);
+	if (a != b) fpr.BindToRegister(a, true);
 
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
 	UCOMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));

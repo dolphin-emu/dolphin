@@ -50,7 +50,7 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 	int b = inst.FB;
 	if (d == b)
 		return;
-	fpr.LoadToX64(d, false);
+	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), fpr.R(b));
 }
 
@@ -72,8 +72,8 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	fpr.FlushLockX(XMM7);
 	fpr.FlushLockX(XMM6);
 	fpr.Lock(a, b, c, d);
-	fpr.LoadToX64(a, true, false);
-	fpr.LoadToX64(d, false, true);
+	fpr.BindToRegister(a, true, false);
+	fpr.BindToRegister(d, false, true);
 	// BLENDPD would have been nice...
 	MOVAPD(XMM7, fpr.R(a));
 	CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
@@ -99,12 +99,12 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.Lock(d, b);
 	if (d != b)
 	{
-		fpr.LoadToX64(d, false);
+		fpr.BindToRegister(d, false);
 		MOVAPD(fpr.RX(d), fpr.R(b));
 	}
 	else
 	{
-		fpr.LoadToX64(d, true);
+		fpr.BindToRegister(d, true);
 	}
 
 	switch (inst.SUBOP10)
@@ -133,6 +133,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(d, b);
+	fpr.BindToRegister(d, (d == b), true);
 	SQRTPD(XMM0, fpr.R(b));
 	MOVAPD(XMM1, M((void*)&psOneOne));
 	DIVPD(XMM1, R(XMM0));
@@ -161,24 +162,24 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 
 	if (d == a)
 	{
-		fpr.LoadToX64(d, true);
+		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
 	else if (d == b && reversible)
 	{
-		fpr.LoadToX64(d, true);
+		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(a));
 	}
 	else if (a != d && b != d) 
 	{
 		//sources different from d, can use rather quick solution
-		fpr.LoadToX64(d, false);
+		fpr.BindToRegister(d, false);
 		MOVAPD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
 	else if (b != d)
 	{
-		fpr.LoadToX64(d, false);
+		fpr.BindToRegister(d, false);
 		MOVAPD(XMM0, fpr.R(b));
 		MOVAPD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), Gen::R(XMM0));
@@ -187,7 +188,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 	{
 		MOVAPD(XMM0, fpr.R(a));
 		MOVAPD(XMM1, fpr.R(b));
-		fpr.LoadToX64(d, false);
+		fpr.BindToRegister(d, false);
 		(this->*op)(XMM0, Gen::R(XMM1));
 		MOVAPD(fpr.RX(d), Gen::R(XMM0));
 	}
@@ -231,7 +232,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 	fpr.Lock(a,b,c,d);
-	fpr.LoadToX64(d, d == a || d == b || d == c, true);
+	fpr.BindToRegister(d, d == a || d == b || d == c, true);
 	switch (inst.SUBOP5)
 	{
 	case 10:
@@ -271,7 +272,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	int a = inst.FA;
 	int c = inst.FC;
 	fpr.Lock(a, c, d);
-	fpr.LoadToX64(d, d == a || d == c, true);
+	fpr.BindToRegister(d, d == a || d == c, true);
 	switch (inst.SUBOP5)
 	{
 	case 12:
@@ -329,7 +330,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
 	}
-	fpr.LoadToX64(d, false);
+	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), Gen::R(XMM0));
 	fpr.UnlockAll();
 }
@@ -387,7 +388,7 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 		//fpr.UnlockAll();
 		return;
 	}
-	fpr.LoadToX64(d, false);
+	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), Gen::R(XMM0));
 	ForceSinglePrecisionP(fpr.RX(d));
 	fpr.UnlockAll();

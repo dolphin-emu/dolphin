@@ -72,8 +72,11 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	}
 
 	// OK, this is easy.
-	gpr.Lock(d);
-	gpr.LoadToX64(d, true);
+	if (!gpr.R(d).IsImm())
+	{
+		gpr.Lock(d);
+		gpr.BindToRegister(d, true, false);
+	}
 	MOV(32, M(&PowerPC::ppcState.spr[iIndex]), gpr.R(d));
 	gpr.UnlockAll();
 }
@@ -98,7 +101,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// fall through
 	default:
 		gpr.Lock(d);
-		gpr.LoadToX64(d, false);
+		gpr.BindToRegister(d, false);
 		MOV(32, gpr.R(d), M(&PowerPC::ppcState.spr[iIndex]));
 		gpr.UnlockAll();
 		break;
@@ -113,8 +116,13 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(SystemRegisters)
-	gpr.LoadToX64(inst.RS, true, false);
+	if (!gpr.R(inst.RS).IsImm())
+	{
+		gpr.Lock(inst.RS);
+		gpr.BindToRegister(inst.RS, true, false);
+	}
 	MOV(32, M(&MSR), gpr.R(inst.RS));
+	gpr.UnlockAll();
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 	WriteExit(js.compilerPC + 4, 0);
@@ -127,8 +135,10 @@ void Jit64::mfmsr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(SystemRegisters)
 	//Privileged?
-	gpr.LoadToX64(inst.RD, false);
+	gpr.Lock(inst.RD);
+	gpr.BindToRegister(inst.RD, false, true);
 	MOV(32, gpr.R(inst.RD), M(&MSR));
+	gpr.UnlockAll();
 }
 
 void Jit64::mftb(UGeckoInstruction inst)
@@ -144,7 +154,8 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(SystemRegisters)
 	// USES_CR
 	int d = inst.RD;
-	gpr.LoadToX64(d, false, true);
+	gpr.Lock(d);
+	gpr.KillImmediate(d, false, true);
 	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[0]));
 	for (int i = 1; i < 8; i++) {
 		SHL(32, R(EAX), Imm8(4));
@@ -175,7 +186,8 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 		}
 		else
 		{
-			gpr.LoadToX64(inst.RS, true);
+			gpr.Lock(inst.RS);
+			gpr.BindToRegister(inst.RS, true, false);
 			for (int i = 0; i < 8; i++)
 			{
 				if ((crm & (0x80 >> i)) != 0)
@@ -186,6 +198,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 					MOV(8, M(&PowerPC::ppcState.cr_fast[i]), R(EAX));
 				}
 			}
+			gpr.UnlockAll();
 		}
 	}
 }

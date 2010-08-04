@@ -96,12 +96,12 @@ public:
 	virtual void Flush(FlushMode mode);
 	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
 	int SanityCheck() const;
-	void KillImmediate(int preg);
+	void KillImmediate(int preg, bool doLoad, bool makeDirty);
 
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
-	virtual void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true) = 0;
-	virtual void StoreFromX64(int preg) = 0;
+	virtual void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) = 0;
+	virtual void StoreFromRegister(int preg) = 0;
 
 	const OpArg &R(int preg) const {return regs[preg].location;}
 	X64Reg RX(int preg) const
@@ -131,8 +131,8 @@ class GPRRegCache : public RegCache
 {
 public:
 	void Start(PPCAnalyst::BlockRegStats &stats);
-	void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromX64(int preg);
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
+	void StoreFromRegister(int preg);
 	OpArg GetDefaultLocation(int reg) const;
 	const int *GetAllocationOrder(int &count);
 	void SetImmediate32(int preg, u32 immValue);
@@ -143,8 +143,8 @@ class FPURegCache : public RegCache
 {
 public:
 	void Start(PPCAnalyst::BlockRegStats &stats);
-	void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromX64(int preg);
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
+	void StoreFromRegister(int preg);
 	const int *GetAllocationOrder(int &count);
 	OpArg GetDefaultLocation(int reg) const;
 };

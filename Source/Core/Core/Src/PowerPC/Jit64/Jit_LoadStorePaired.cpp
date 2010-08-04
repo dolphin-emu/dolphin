@@ -99,8 +99,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	gpr.FlushLockX(EAX, EDX);
 	gpr.FlushLockX(ECX);
 	if (update)
-		gpr.LoadToX64(inst.RA, true, true);
-	fpr.LoadToX64(inst.RS, true);
+		gpr.BindToRegister(inst.RA, true, true);
+	fpr.BindToRegister(inst.RS, true, false);
 	MOV(32, R(ECX), gpr.R(inst.RA));
 	if (offset)
 		ADD(32, R(ECX), Imm32((u32)offset));
@@ -159,8 +159,8 @@ void Jit64::psq_l(UGeckoInstruction inst)
 
 	gpr.FlushLockX(EAX, EDX);
 	gpr.FlushLockX(ECX);
-	gpr.LoadToX64(inst.RA, true, true);
-	fpr.LoadToX64(inst.RS, false, true);
+	gpr.BindToRegister(inst.RA, true, update && offset);
+	fpr.BindToRegister(inst.RS, false, true);
 	if (offset)
 		LEA(32, ECX, MDisp(gpr.RX(inst.RA), offset));
 	else

@@ -77,7 +77,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 	
 	MOV(32, M(&temp32), R(EAX));
 	fpr.Lock(d);
-	fpr.LoadToX64(d, false);
+	fpr.BindToRegister(d, false);
 	CVTSS2SD(fpr.RX(d), M(&temp32));
 	MOVDDUP(fpr.RX(d), fpr.R(d));
 
@@ -107,8 +107,8 @@ void Jit64::lfd(UGeckoInstruction inst)
 	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	// TODO - optimize. This has to load the previous value - upper double should stay unmodified.
-	fpr.LoadToX64(d, true);
 	fpr.Lock(d);
+	fpr.BindToRegister(d, true);
 	X64Reg xd = fpr.RX(d);
 	if (cpu_info.bSSSE3) {
 #ifdef _M_X64
@@ -184,7 +184,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	fpr.Lock(s);
-	gpr.LoadToX64(a, true, false);
+	gpr.BindToRegister(a, true, false);
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
 	TEST(32, R(ABI_PARAM1), Imm32(0x0c000000));
 	FixupBranch not_ram = J_CC(CC_Z);
@@ -222,7 +222,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 #endif
 	} else {
 #ifdef _M_X64
-		fpr.LoadToX64(s, true, false);
+		fpr.BindToRegister(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
 
 		MEMCHECK_START
@@ -233,7 +233,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 		MEMCHECK_END
 #else
-		fpr.LoadToX64(s, true, false);
+		fpr.BindToRegister(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
 
 		MEMCHECK_START
@@ -301,6 +301,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 	{
 		MEMCHECK_START
 
+		gpr.KillImmediate(a, false, true);
 		MOV(32, gpr.R(a), R(ABI_PARAM2));
 
 		MEMCHECK_END
@@ -345,7 +346,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 	}
 	if (cpu_info.bSSSE3 && !js.memcheck) {
 		fpr.Lock(inst.RS);
-		fpr.LoadToX64(inst.RS, false, true);
+		fpr.BindToRegister(inst.RS, false, true);
 		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 #ifdef _M_IX86
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
@@ -368,7 +369,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 		MOV(32, M(&temp32), R(EAX));
 		CVTSS2SD(XMM0, M(&temp32));
 		fpr.Lock(inst.RS);
-		fpr.LoadToX64(inst.RS, false, true);
+		fpr.BindToRegister(inst.RS, false, true);
 		MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
 
 		MEMCHECK_END

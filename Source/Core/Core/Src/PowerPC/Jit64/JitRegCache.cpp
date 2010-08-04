@@ -128,7 +128,7 @@ X64Reg RegCache::GetFreeXReg()
 		int preg = xregs[xr].ppcReg;
 		if (!locks[preg])
 		{
-			StoreFromX64(preg);
+			StoreFromRegister(preg);
 			return xr;
 		}
 	}
@@ -159,7 +159,7 @@ void RegCache::FlushR(X64Reg reg)
 		PanicAlert("Flushing non existent reg");
 	if (!xregs[reg].free)
 	{
-		StoreFromX64(xregs[reg].ppcReg);
+		StoreFromRegister(xregs[reg].ppcReg);
 	}
 }
 
@@ -185,9 +185,12 @@ void RegCache::DiscardRegContentsIfCached(int preg)
 {
 	if (regs[preg].away && regs[preg].location.IsSimpleReg())
 	{
-		xregs[regs[preg].location.GetSimpleReg()].free = true;
-		xregs[regs[preg].location.GetSimpleReg()].dirty = false;
+		X64Reg xr = regs[preg].location.GetSimpleReg();
+		xregs[xr].free = true;
+		xregs[xr].dirty = false;
+		xregs[xr].ppcReg = -1;
 		regs[preg].away = false;
+		regs[preg].location = GetDefaultLocation(preg);
 	}
 }
 
@@ -252,15 +255,18 @@ OpArg FPURegCache::GetDefaultLocation(int reg) const
 	return M(&ppcState.ps[reg][0]);
 }
 
-void RegCache::KillImmediate(int preg)
+void RegCache::KillImmediate(int preg, bool doLoad, bool makeDirty)
 {
-	if (regs[preg].away && regs[preg].location.IsImm())
+	if (regs[preg].away)
 	{
-		LoadToX64(preg, true, true);
+		if (regs[preg].location.IsImm())
+			BindToRegister(preg, doLoad, makeDirty);
+		else if (regs[preg].location.IsSimpleReg())
+			xregs[RX(preg)].dirty |= makeDirty;
 	}
 }
 
-void GPRRegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
+void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 {
 	if (!regs[i].away && regs[i].location.IsImm())
 		PanicAlert("Bad immediate");
@@ -297,7 +303,7 @@ void GPRRegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 	}
 }
 
-void GPRRegCache::StoreFromX64(int i)
+void GPRRegCache::StoreFromRegister(int i)
 {
 	if (regs[i].away)
 	{
@@ -316,14 +322,14 @@ void GPRRegCache::StoreFromX64(int i)
 			doStore = true;
 		}
 		OpArg newLoc = GetDefaultLocation(i);
-		// if (doStore) //<-- Breaks JIT compilation
+		if (doStore)
 			emit->MOV(32, newLoc, regs[i].location);
 		regs[i].location = newLoc;
 		regs[i].away = false;
 	}
 }
 
-void FPURegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
+void FPURegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 {
 	_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - load - imm");
 	if (!regs[i].away)
@@ -351,7 +357,7 @@ void FPURegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 	}
 }
 
-void FPURegCache::StoreFromX64(int i)
+void FPURegCache::StoreFromRegister(int i)
 {
 	_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - store - imm");
 	if (regs[i].away)
@@ -389,12 +395,12 @@ void RegCache::Flush(FlushMode mode)
 			if (regs[i].location.IsSimpleReg())
 			{
 				X64Reg xr = RX(i);
-				StoreFromX64(i);
+				StoreFromRegister(i);
 				xregs[xr].dirty = false;
 			}
 			else if (regs[i].location.IsImm())
 			{
-				StoreFromX64(i);
+				StoreFromRegister(i);
 			}
 			else
 			{
