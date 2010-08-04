@@ -32,10 +32,10 @@ class IUCode
 public:
 	IUCode(CMailHandler& _rMailHandler)
 		: m_rMailHandler(_rMailHandler)
-		, m_NextUCode_steps(0)
 		, m_NextUCode()
-		, m_NeedsResumeMail(false)
+		, m_NextUCode_steps(0)
 		, m_UploadSetupInProgress(false)
+		, m_NeedsResumeMail(false)
 	{}
 
 	virtual ~IUCode()

@@ -39,7 +39,7 @@ void CUCode_GBA::Update(int cycles)
 		g_dspInitialize.pGenerateDSPInterrupt();
 	}
 }
-#pragma optimize("", off)
+
 void CUCode_GBA::HandleMail(u32 _uMail)
 {
 	static bool nextmail_is_mramaddr = false;
@@ -75,8 +75,8 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		u16 x11 = 0, x12 = 0,
 			x20 = 0, x21 = 0, x22 = 0, x23 = 0;
 
-		x20 = ((sec_params.key[0] >> 8) | (sec_params.key[0] << 8)) ^ 0x6f64;
-		x21 = ((sec_params.key[1] >> 8) | (sec_params.key[1] << 8)) ^ 0x6573;
+		x20 = Common::swap16(sec_params.key[0]) ^ 0x6f64;
+		x21 = Common::swap16(sec_params.key[1]) ^ 0x6573;
 
 		s16 unk2 = (s8)sec_params.unk2[0];
 		if (unk2 < 0)
@@ -95,11 +95,9 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		s32 rounded_sub = ((sec_params.length + 7) & ~7) - 0x200;
 		u16 size = (rounded_sub < 0) ? 0 : rounded_sub >> 3;
 
-		u32 t = ((size << 16) & 0x4000ffff) << 2;
-		u32 u = (((size << 16) | 0x3f80) & 0x3f80ffff) << 1;
-		t += u;
-		s16 u_low = (s8)(u >> 8);
-		t += (u_low & size) << 16;
+		u32 t = (((size << 16) | 0x3f80) & 0x3f80ffff) << 1;
+		s16 t_low = (s8)(t >> 8);
+		t += (t_low & size) << 16;
 		x12 = t >> 16;
 		x11 |= (size & 0x4000) >> 14; // this would be stored in ac0.h if we weren't constrained to 32bit :)
 		t = ((x11 & 0xff) << 16) + ((x12 & 0xff) << 16) + (x12 << 8);
@@ -154,4 +152,3 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown cmd: %08x", _uMail);
 	}
 }
-#pragma optimize("", on)
