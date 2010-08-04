@@ -51,14 +51,10 @@ CUCode_AXWii::~CUCode_AXWii()
 
 void CUCode_AXWii::HandleMail(u32 _uMail)
 {
-	static s8 newucodemails = -1;
-
-	if (newucodemails > -1) {
-		newucodemails++;
-		if (newucodemails == 10) {
-			newucodemails = -1;				
-			m_rMailHandler.PushMail(DSP_RESUME);
-		}
+	if (m_UploadSetupInProgress) 
+	{
+		PrepareBootUCode(_uMail);
+		return;
 	}
 	else if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
 	{
@@ -72,24 +68,24 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 			break;
 
 		case 0xCDD10001: // Action 1 - new ucode upload
-			NOTICE_LOG(DSPHLE,"DSP IROM - New Ucode!");
-			newucodemails = 0;
+			DEBUG_LOG(DSPHLE,"DSP IROM - New Ucode!");
+			// TODO find a better way to protect from HLEMixer?
+			soundStream->GetMixer()->SetHLEReady(false);
+			m_UploadSetupInProgress = true;
 			break;
 
 		case 0xCDD10002: // Action 2 - IROM_Reset(); ( WII: De Blob, Cursed Mountain,...)
-			NOTICE_LOG(DSPHLE,"DSP IROM - Reset!");
+			DEBUG_LOG(DSPHLE,"DSP IROM - Reset!");
 			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
-			break;
+			return;
 
 		case 0xCDD10003: // Action 3 - AX_GetNextCmdBlock()
-			//TODO: Implement??
 			break;
 
 		default:
-		{
 			DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
 			AXTask(_uMail);
-		}
+			break;
 	}
 }
 
@@ -147,8 +143,13 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 
 void CUCode_AXWii::Update(int cycles)
 {
-	// check if we have to sent something
-	if (!m_rMailHandler.IsEmpty())
+	if (NeedsResumeMail())
+	{
+		m_rMailHandler.PushMail(DSP_RESUME);
+		g_dspInitialize.pGenerateDSPInterrupt();
+	}
+	// check if we have to send something
+	else if (!m_rMailHandler.IsEmpty())
 	{
 		g_dspInitialize.pGenerateDSPInterrupt();
 	}
