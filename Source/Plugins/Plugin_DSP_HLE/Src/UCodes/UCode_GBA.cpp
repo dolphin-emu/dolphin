@@ -124,7 +124,7 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		*(u32*)Memory_Get_Pointer(sec_params.dest_addr+4) = Common::swap32((x22 << 16) | x23);
 
 		// Done!
-		WARN_LOG(DSPHLE, "\n%08x -> key %08x len %08x dest_addr %08x unk1 %08x unk2 %08x"
+		DEBUG_LOG(DSPHLE, "\n%08x -> key %08x len %08x dest_addr %08x unk1 %08x unk2 %08x"
 			" 22 %04x 23 %04x",
 			mramaddr,
 			*(u32*)sec_params.key, sec_params.length, sec_params.dest_addr,
