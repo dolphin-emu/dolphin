@@ -96,6 +96,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "FIFOWatermarkTightness", &iFIFOWatermarkTightness, 50);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
+   iniFile.Get("Hacks", "ZTPSpeedHack", &bZTPSpeedHack, false);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1)
@@ -201,6 +202,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
+   iniFile.Set("Hacks", "ZTPSpeedHack", bZTPSpeedHack);
 	
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 	

@@ -54,6 +54,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_LOADHIRESTEXTURES, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
+   EVT_CHECKBOX(ID_ZTPSPEEDHACK, GFXConfigDialogDX::EnhancementsSettingsChanged)
 
 	//Advanced Tab
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogDX::AdvancedSettingsChanged)
@@ -131,6 +132,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
+   m_ZTPSpeedHack->SetValue(g_Config.bZTPSpeedHack);
 
 	//Advance
 	m_DisableFog->SetValue(g_Config.bDisableFog);
@@ -265,6 +267,10 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB hacks") ), wxVERTICAL );
 	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB scaled copy"), wxDefaultPosition, wxDefaultSize, 0 );
 
+   wxStaticBoxSizer* sbOtherHacks;
+	sbOtherHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("Other Hacks") ), wxVERTICAL );
+	m_ZTPSpeedHack = new wxCheckBox( m_PageEnhancements, ID_ZTPSPEEDHACK, wxT("ZTP Speed-Up Hack"), wxDefaultPosition, wxDefaultSize, 0 );
+
 	// Sizers
 	wxBoxSizer* sEnhancements;
 	wxGridBagSizer* sTextureFilter;
@@ -285,6 +291,14 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sEFBHacks->Add( m_EFBScaledCopy, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sbEFBHacks->Add( sEFBHacks, 1, wxEXPAND, 5 );
 	sEnhancements->Add( sbEFBHacks, 0, wxEXPAND|wxALL, 5 );
+
+   wxGridBagSizer* sOtherHacks;
+	sOtherHacks = new wxGridBagSizer( 0, 0 );
+	sOtherHacks->SetFlexibleDirection( wxBOTH );
+	sOtherHacks->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	sOtherHacks->Add( m_ZTPSpeedHack, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sbOtherHacks->Add( sOtherHacks, 1, wxEXPAND, 5 );
+	sEnhancements->Add( sbOtherHacks, 0, wxEXPAND|wxALL, 5 );
 	
 	m_PageEnhancements->SetSizer( sEnhancements );
 	m_PageEnhancements->Layout();
@@ -442,6 +456,9 @@ void GFXConfigDialogDX::EnhancementsSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBSCALEDCOPY:
 			g_Config.bCopyEFBScaled = m_EFBScaledCopy->IsChecked();
+		break;
+   case ID_ZTPSPEEDHACK:
+			g_Config.bZTPSpeedHack = m_ZTPSpeedHack->IsChecked();
 		break;
 	}
 	UpdateGUI();

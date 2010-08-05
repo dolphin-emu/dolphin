@@ -125,6 +125,7 @@ struct VideoConfig
 	float fhackvalue1, fhackvalue2;
 	bool bProjHack1;
 	float fAspectRatioHackW, fAspectRatioHackH;
+   bool bZTPSpeedHack;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;

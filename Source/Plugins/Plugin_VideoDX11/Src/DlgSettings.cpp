@@ -182,6 +182,7 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg, IDC_WIREFRAME), g_Config.bWireFrame);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_DISABLEFOG), g_Config.bDisableFog);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_ENABLEEFBCOPY), !g_Config.bEFBCopyDisable);
+      Button_SetCheck(GetDlgItem(hDlg, IDC_ZTPSPEEDUP), g_Config.bZTPSpeedHack);
 
 		Button_SetCheck(GetDlgItem(hDlg, IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
@@ -226,6 +227,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bDumpFrames = false;
 		g_Config.bShowShaderErrors = true;
 		g_Config.bUseNativeMips = true;
+      g_Config.bZTPSpeedHack = Button_GetCheck(GetDlgItem(hDlg, IDC_ZTPSPEEDUP)) ? true : false;
 
 		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 16 : 1;
 		g_Config.bForceFiltering = false;
