@@ -54,13 +54,11 @@ void Jit64::lbzx(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(32, gpr.R(d), R(EAX));
 
 	MEMCHECK_END
 
-	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
 
@@ -82,13 +80,11 @@ void Jit64::lhax(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(32, gpr.R(d), R(EAX));
 
 	MEMCHECK_END
 
-	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
 
@@ -109,13 +105,11 @@ void Jit64::lwzx(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(32, gpr.R(d), R(EAX));
 
 	MEMCHECK_END
 
-	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
 
@@ -217,12 +211,13 @@ void Jit64::lXz(UGeckoInstruction inst)
 	else
 	{
 		gpr.FlushLockX(ABI_PARAM1);
+		gpr.Lock(a);
+		gpr.BindToRegister(a, true, false);
 		MOV(32, R(ABI_PARAM1), gpr.R(a));
 		SafeLoadRegToEAX(ABI_PARAM1, accessSize, offset);
 		
 		MEMCHECK_START
 
-		gpr.Lock(d);
 		gpr.KillImmediate(d, false, true);
 		MOV(32, gpr.R(d), R(EAX));
 		
@@ -248,13 +243,11 @@ void Jit64::lha(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(32, gpr.R(d), R(EAX));
 
 	MEMCHECK_END
 
-	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
 
@@ -277,13 +270,11 @@ void Jit64::lwzux(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(32, gpr.R(d), R(EAX));
 
 	MEMCHECK_END
 
-	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
 
@@ -409,8 +400,6 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		gpr.FlushLockX(ECX, EDX);
 		gpr.Lock(s, a);
-		if (update && offset)
-			gpr.BindToRegister(a, true, true);
 		MOV(32, R(EDX), gpr.R(a));
 		MOV(32, R(ECX), gpr.R(s));
 		SafeWriteRegToReg(ECX, EDX, accessSize, offset);
@@ -419,6 +408,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		{
 			MEMCHECK_START
 			
+			gpr.KillImmediate(a, true, true);
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 
 			MEMCHECK_END
