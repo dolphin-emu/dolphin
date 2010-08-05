@@ -67,28 +67,6 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 	return File::WriteStringToFile(true, text, txtFile);
 }
 
-u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
-{
-	unsigned long CRC = 0xFFFFFFFF;
-
-	while (_pLength--)
-	{
-		unsigned long Temp = (unsigned long)((CRC & 0xFF) ^ *_pBuffer++);
-
-		for (int j = 0; j < 8; j++)
-		{
-			if (Temp & 0x1)
-				Temp = (Temp >> 1) ^ 0xEDB88320;
-			else
-				Temp >>= 1;
-		}
-
-		CRC = (CRC >> 8) ^ Temp;
-	}
-
-	return CRC ^ 0xFFFFFFFF;
-}
-
 // TODO make this useful :p
 bool DumpCWCode(u32 _Address, u32 _Length)
 {

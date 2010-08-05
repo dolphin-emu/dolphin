@@ -147,6 +147,18 @@ void IUCode::PrepareBootUCode(u32 mail)
 			(u8*)Memory_Get_Pointer(m_NextUCode.iram_mram_addr),
 			m_NextUCode.iram_size);
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		char binFile[MAX_PATH];
+		sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX), ector_crc);
+
+		FILE* pFile = fopen(binFile, "wb");
+		if (pFile)
+		{
+			fwrite((u8*)Memory_Get_Pointer(m_NextUCode.iram_mram_addr), m_NextUCode.iram_size, 1, pFile);
+			fclose(pFile);
+		}
+#endif
+
 		DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
 		DEBUG_LOG(DSPHLE, "DRAM -> MRAM: src %04x dst %08x size %04x",
 			m_NextUCode.mram_dram_addr, m_NextUCode.mram_dest_addr,

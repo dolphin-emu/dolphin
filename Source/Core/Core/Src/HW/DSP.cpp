@@ -497,11 +497,30 @@ void Write16(const u16 _Value, const u32 _Address)
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
 	INFO_LOG(DSPINTERFACE, "DSPInterface(r32) 0x%08x", _iAddress);
+
 	switch (_iAddress & 0xFFFF)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		_uReturnValue = (dsp_plugin->DSP_ReadMailboxHigh(true) << 16) | dsp_plugin->DSP_ReadMailboxLow(true);
+		break;
+
+		// AI
+	case AUDIO_DMA_START_HI:
+		_uReturnValue = g_audioDMA.SourceAddress;
+		break;
+
+		// ARAM
+	case AR_DMA_ARADDR_H:
+		_uReturnValue = g_arDMA.ARAddr;
+		break;
+
+	case AR_DMA_CNT_H:
+		_uReturnValue = g_arDMA.Cnt.Hex;
+		break;
+	
+	case AR_DMA_MMADDR_H:
+		_uReturnValue = g_arDMA.MMAddr;
 		break;
 
 	default:

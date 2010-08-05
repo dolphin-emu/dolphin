@@ -62,23 +62,23 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 			    break;
 
 		    case 0x80F3A002:
-			    m_CurrentUCode.m_Length = _uMail;
+			    m_CurrentUCode.m_Length = _uMail & 0xffff;
 			    break;
 
 		    case 0x80F3C002:
-			    m_CurrentUCode.m_IMEMAddress = _uMail;
+			    m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
 			    break;
 
 		    case 0x80F3B002:
-			    m_CurrentUCode.m_DMEMLength = _uMail;
-				if (_uMail) {
-					NOTICE_LOG(DSPHLE,"Game wanted to DMA sth to DSP DRAM.");
+			    m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
+				if (m_CurrentUCode.m_DMEMLength) {
+					NOTICE_LOG(DSPHLE,"m_CurrentUCode.m_DMEMLength = 0x%04x.", m_CurrentUCode.m_DMEMLength);
 				}
 			    break;
 
 		    case 0x80F3D001:
 		    {
-			    m_CurrentUCode.m_StartPC = _uMail;
+			    m_CurrentUCode.m_StartPC = _uMail & 0xffff;
 			    BootUCode();
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
 		    }
@@ -98,6 +98,18 @@ void CUCode_Rom::BootUCode()
 	u32 ector_crc = HashEctor(
 		(u8*)Memory_Get_Pointer(m_CurrentUCode.m_RAMAddress),
 		m_CurrentUCode.m_Length);
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	char binFile[MAX_PATH];
+	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX), ector_crc);
+
+	FILE* pFile = fopen(binFile, "wb");
+	if (pFile)
+	{
+		fwrite((u8*)Memory_Get_Pointer(m_CurrentUCode.m_RAMAddress), m_CurrentUCode.m_Length, 1, pFile);
+		fclose(pFile);
+	}
+#endif
 
 	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
 	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
