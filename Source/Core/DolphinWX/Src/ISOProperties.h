@@ -90,7 +90,7 @@ class CISOProperties : public wxDialog
 		// Video
 		wxCheckBox *ForceFiltering,
 			*EFBCopyDisable, *EFBToTextureEnable,
-			*SafeTextureCache, *DstAlphaPass, *UseXFB;
+			*SafeTextureCache, *DstAlphaPass, *UseXFB, *UseZTPSpeedupHack;
 		wxStaticText *Hacktext;
 		wxArrayString arrayStringFor_Hack;
 		wxChoice *Hack;
@@ -173,6 +173,7 @@ class CISOProperties : public wxDialog
 			ID_SAFETEXTURECACHE,
 			ID_DSTALPHAPASS,
 			ID_USEXFB,
+			ID_ZTP_SPEEDUP,
 			ID_HACK_TEXT,
 			ID_HACK,
 			ID_WMTIGHTNESS_TEXT,

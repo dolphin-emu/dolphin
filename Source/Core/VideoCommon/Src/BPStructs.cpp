@@ -43,9 +43,9 @@ void BPInit()
 	memset(&bpmem, 0, sizeof(bpmem));
 	bpmem.bpMask = 0xFFFFFF;
 
-   mapTexAddress = 0;
-   numWrites = 0;
-   mapTexFound = false;
+	mapTexAddress = 0;
+	numWrites = 0;
+	mapTexFound = false;
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight)
@@ -91,39 +91,34 @@ void BPWritten(const BPCmd& bp)
 	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
 	//s_bpCritical.Enter();
 
-   //BEGIN ZTP SPEEDUP HACK CHANGES
-   //This hunk of code disables the usual pipeline flush for certain BP Writes
-   //that occur while the minimap is being drawn in Zelda: twilight princess.
-   //This significantly increases speed while in hyrule field. In depth discussion
-   //on how this Hack came to be can be found at:http://forums.dolphin-emu.com/thread-10638.html
-   //-fircrestsk8
-   if (g_ActiveConfig.bZTPSpeedHack)
-   {
-      if (!mapTexFound)
-      {
-         if (bp.address == BPMEM_TEV_COLOR_ENV || bp.address == BPMEM_TEV_ALPHA_ENV)
-         {
-            numWrites++;
-            if (numWrites >= 100) //seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
-            {                      //then it is safe to assume the map texture address is currently loaded into the BP memory
-               mapTexAddress = (bpmem.tex[0].texImage3[0].hex << 5);
-               mapTexFound = true;
-               WARN_LOG(VIDEO, "\nZTP map texture found at address %08x\n", mapTexAddress);
-            }
-         }
-         else
-            numWrites = 0;
-         FlushPipeline();
-      }
-      else
-      {
-         if ( ((bpmem.tex[0].texImage3[0].hex << 5) != mapTexAddress) || !(bpmem.tevorders[0].getEnable(0))  || bp.address == BPMEM_TREF )
-	         FlushPipeline();
-      }
-   }
-   else
-      FlushPipeline();
-   //END ZTP SPEEDUP HACK CHANGES
+	// BEGIN ZTP SPEEDUP HACK CHANGES
+	// This hunk of code disables the usual pipeline flush for certain BP Writes
+	// that occur while the minimap is being drawn in Zelda: Twilight Princess.
+	// This significantly increases speed while in hyrule field. In depth discussion
+	// on how this Hack came to be can be found at: http://forums.dolphin-emu.com/thread-10638.html
+	// -fircrestsk8
+	if (g_ActiveConfig.bZTPSpeedHack)
+	{
+		if (!mapTexFound)
+		{
+			if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
+				numWrites = 0;
+			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
+			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
+				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
+				mapTexFound = true;
+				WARN_LOG(VIDEO, "\nZTP map texture found at address %08x\n", mapTexAddress);
+			}
+			FlushPipeline();
+		}
+		else if ( (bpmem.tex[0].texImage3[0].hex << 5) != mapTexAddress ||
+					bpmem.tevorders[0].getEnable(0) == 0 ||
+					bp.address == BPMEM_TREF)
+		{
+			FlushPipeline();
+		}
+	}  // END ZTP SPEEDUP HACK
+	else FlushPipeline();
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	

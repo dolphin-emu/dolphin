@@ -106,7 +106,6 @@ class GFXConfigDialogDX : public wxDialog
 		wxCheckBox *m_MaxAnisotropy;
 		wxCheckBox *m_HiresTextures;
 		wxCheckBox *m_EFBScaledCopy;
-      wxCheckBox *m_ZTPSpeedHack;
 
 		//Advanced Tab
 		wxCheckBox *m_DisableFog;
@@ -173,8 +172,7 @@ class GFXConfigDialogDX : public wxDialog
 			ID_ABOUT,
 			ID_DIRERCT3D,
 			ID_PAGEENHANCEMENTS,
-			ID_PAGEADVANCED,
-         ID_ZTPSPEEDHACK
+			ID_PAGEADVANCED
 		};
 		void InitializeAdapters();
 		void OnClose(wxCloseEvent& event);

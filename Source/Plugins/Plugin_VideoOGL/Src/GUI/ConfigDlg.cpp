@@ -68,7 +68,6 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_OSDHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_HACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_ZTPSPEEDHACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_SAFE, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_NORMAL, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -205,7 +204,6 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 	m_UseNativeMips->SetValue(g_Config.bUseNativeMips);
 	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
-	m_ZTPSpeedHack->SetValue(g_Config.bZTPSpeedHack);
 	// Enhancements
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
@@ -293,7 +291,7 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 		wxT(" But it may also cause graphical errors and missing graphics."));
 	m_Radio_CopyEFBToRAM->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 	m_Radio_CopyEFBToGL->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
-	m_ZTPSpeedHack->SetToolTip(wxT("Speeds up Hyrule Field in Zelda: Twilight Princess"));
+	
 	// Utility
 #ifdef _WIN32
 	m_DumpFrames->SetToolTip(
@@ -470,7 +468,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Radio_SafeTextureCache_Safe = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("Safe"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	m_Radio_SafeTextureCache_Normal = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("Normal"));
 	m_Radio_SafeTextureCache_Fast = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("Fast"));
-	m_ZTPSpeedHack = new wxCheckBox( m_PageAdvanced, ID_ZTPSPEEDHACK, wxT("ZTP Speed-Up Hack"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Sizers
 	sHacks->Add(m_PhackvalueCB, 0, wxTOP, 0);
@@ -481,7 +478,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sbHacks->Add(m_Radio_SafeTextureCache_Normal, 0, wxALL, 5);
 	sbHacks->Add(m_Radio_SafeTextureCache_Fast, 0, wxALL, 5);
 	sHacks->Add(sbHacks, 0, wxEXPAND | (wxTOP), 5);
-	sHacks->Add(m_ZTPSpeedHack, 0, wxEXPAND | (wxTOP), 0);
 
 	// Sizers
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
@@ -708,9 +704,6 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bOSDHotKey = m_OSDHotKey->IsChecked();
 		break;
 	// Hacks
-	case ID_ZTPSPEEDHACK:
-		g_Config.bZTPSpeedHack = m_ZTPSpeedHack->IsChecked();
-		break;
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;

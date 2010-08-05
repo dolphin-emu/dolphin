@@ -318,6 +318,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_USEXFB, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	UseZTPSpeedupHack->SetToolTip(wxT("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	// Hack
 	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Hack.Add(_("None"));
@@ -329,7 +331,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	WMTightnessText = new wxStaticText(m_GameConfig, ID_WMTIGHTNESS_TEXT, wxT("Watermark tightness: "), wxDefaultPosition, wxDefaultSize);
 	WMTightness = new wxTextCtrl(m_GameConfig, ID_WMTIGHTNESS, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxTextValidator(wxFILTER_NUMERIC));
-	WMTightness->SetToolTip(wxT("Change this if you get lots of FIFO overflow errors. Reasonable values range from 0 to 200."));
+	WMTightness->SetToolTip(wxT("Change this if you get lots of FIFO overflow errors. Reasonable values range from 0 to 1000."));
 
 	// Emulation State
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
@@ -359,6 +361,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
 
 	wxFlexGridSizer* fifosizer = new wxFlexGridSizer(2, 2, 0, 0);
 	fifosizer->Add(Hacktext, 0, wxLEFT, 5);
@@ -868,6 +871,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Video", "ZTPSpeedupHack", &bTemp))
+		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		UseZTPSpeedupHack->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Video", "FIFOWatermarkTightness", &sTemp))
 		WMTightness->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
 	else
@@ -958,6 +966,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "UseXFB");
 	else
 		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
+
+	if (UseZTPSpeedupHack->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "ZTPSpeedupHack");
+	else
+		GameIni.Set("Video", "ZTPSpeedupHack", UseZTPSpeedupHack->Get3StateValue());
 
 	if (Hack->GetSelection() == -1)
 		GameIni.DeleteKey("Video", "ProjectionHack");
