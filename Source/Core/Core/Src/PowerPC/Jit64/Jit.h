@@ -170,14 +170,6 @@ public:
 
 	void addx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
-	void orx(UGeckoInstruction inst);
-	void orcx(UGeckoInstruction inst);
-	void norx(UGeckoInstruction inst);
-	void xorx(UGeckoInstruction inst);
-	void eqvx(UGeckoInstruction inst);
-	void andx(UGeckoInstruction inst);
-	void nandx(UGeckoInstruction inst);
-	void andcx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void mulhwux(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
@@ -209,6 +201,7 @@ public:
 	void mcrf(UGeckoInstruction inst);
 	void mcrxr(UGeckoInstruction inst);
 
+	void boolX(UGeckoInstruction inst);
 	void crXXX(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);

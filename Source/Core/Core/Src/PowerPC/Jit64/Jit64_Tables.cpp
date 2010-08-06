@@ -193,14 +193,14 @@ static GekkoOPTemplate table19[] =
 
 static GekkoOPTemplate table31[] = 
 {
-	{28,  &Jit64::andx}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{60,  &Jit64::andcx}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{444, &Jit64::orx}, //"orx",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{124, &Jit64::norx}, //"norx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{316, &Jit64::xorx}, //"xorx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{412, &Jit64::orcx}, //"orcx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{476, &Jit64::nandx}, //"nandx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{284, &Jit64::eqvx}, //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{28,  &Jit64::boolX}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{60,  &Jit64::boolX}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{444, &Jit64::boolX}, //"orx",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{124, &Jit64::boolX}, //"norx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{316, &Jit64::boolX}, //"xorx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{412, &Jit64::boolX}, //"orcx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{476, &Jit64::boolX}, //"nandx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{284, &Jit64::boolX}, //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{0,   &Jit64::cmpXX}, //"cmp",    OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
 	{32,  &Jit64::cmpXX}, //"cmpl",   OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
 	{26,  &Jit64::cntlzwx}, //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
