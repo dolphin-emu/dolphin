@@ -148,6 +148,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "ProjectionHack", &iPhackvalue);
 	if (iniFile.Exists("Video", "UseNativeMips"))
 		iniFile.Get("Video", "UseNativeMips", &bUseNativeMips);
+	if (iniFile.Exists("Video", "ZTPSpeedupHack"))
+	   iniFile.Get("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
 }
 
 void VideoConfig::Save(const char *ini_file)
