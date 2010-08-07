@@ -275,7 +275,7 @@ void Jit64::lwzux(UGeckoInstruction inst)
 
 	MEMCHECK_END
 
-	gpr.UnlockAllX();
+	gpr.UnlockAll();
 }
 
 // Zero cache line.
