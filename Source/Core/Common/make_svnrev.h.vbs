@@ -23,7 +23,7 @@ do while testexec.status = 0 : wscript.sleep 100 : loop
 if testexec.exitcode = 0 then
 	testout		= testexec.stdout.readall
 	set re		= new regexp
-	re.pattern	= "Updated to revision [0-9]+"
+	re.pattern	= "Last committed at revision [0-9]+"
 	cur_rev		= split(re.execute(testout)(0))(3)
 	cur_cms		= svn
 else
