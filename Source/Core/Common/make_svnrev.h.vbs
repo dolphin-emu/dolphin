@@ -24,7 +24,7 @@ if testexec.exitcode = 0 then
 	testout		= testexec.stdout.readall
 	set re		= new regexp
 	re.pattern	= "Last committed at revision [0-9]+"
-	cur_rev		= split(re.execute(testout)(0))(3)
+	cur_rev		= split(re.execute(testout)(0))(4)
 	cur_cms		= svn
 else
 	set hgexec	= wshShell.exec(hgcmd)
