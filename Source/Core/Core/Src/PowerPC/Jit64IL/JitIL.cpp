@@ -256,15 +256,6 @@ void JitIL::DoNothing(UGeckoInstruction _inst)
 	// Yup, just don't do anything.
 }
 
-void JitIL::NotifyBreakpoint(u32 em_address, bool set)
-{
-	int block_num = blocks.GetBlockNumberFromStartAddress(em_address);
-	if (block_num >= 0)
-	{
-		blocks.DestroyBlock(block_num, false);
-	}
-}
-
 static const bool ImHereDebug = false;
 static const bool ImHereLog = false;
 static std::map<u32, int> been_here;

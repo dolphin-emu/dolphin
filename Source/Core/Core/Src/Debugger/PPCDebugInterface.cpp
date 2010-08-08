@@ -113,14 +113,12 @@ bool PPCDebugInterface::isBreakpoint(unsigned int address)
 
 void PPCDebugInterface::setBreakpoint(unsigned int address)
 {
-	if (PowerPC::breakpoints.Add(address))
-		jit->NotifyBreakpoint(address, true);
+	PowerPC::breakpoints.Add(address);
 }
 
 void PPCDebugInterface::clearBreakpoint(unsigned int address)
 {
-	if (PowerPC::breakpoints.Remove(address))
-		jit->NotifyBreakpoint(address, false);
+	PowerPC::breakpoints.Remove(address);
 }
 
 void PPCDebugInterface::clearAllBreakpoints() {}

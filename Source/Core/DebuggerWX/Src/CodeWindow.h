@@ -129,8 +129,12 @@ class CCodeWindow
 		void OnCallersListChange(wxCommandEvent& event);
 		void OnCallsListChange(wxCommandEvent& event);
 		void OnCodeViewChange(wxCommandEvent &event);
-		void SingleCPUStep();
 		void OnHostMessage(wxCommandEvent& event);
+
+		// Debugger functions
+		void SingleStep();
+		void StepOver();
+		void ToggleBreakpoint();
 
 		void UpdateLists();
 		void UpdateCallstack();

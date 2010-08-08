@@ -47,6 +47,7 @@ public:
 	void InsertBlrNop(int);
 
 	u32 GetSelection() {return(selection);}
+	void ToggleBreakpoint(u32 address);	
 
 	struct BlrStruct // for IDM_INSERTBLR
 	{

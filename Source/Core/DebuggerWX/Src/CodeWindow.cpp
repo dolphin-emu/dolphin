@@ -116,6 +116,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	// Toolbar
 	EVT_MENU(IDM_STEP,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEPOVER,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_TOGGLE_BREAKPOINT,				CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_SKIP,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_SETPC,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_GOTOPC,				CCodeWindow::OnCodeStep)
@@ -167,9 +168,10 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
-	event.Skip();
-
-	if ((event.GetKeyCode() == WXK_SPACE) && Parent->IsActive()) SingleCPUStep();
+	if (event.GetKeyCode() == WXK_SPACE && event.GetModifiers() == wxMOD_NONE)
+		SingleStep();
+	else
+		event.Skip();
 }
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
@@ -199,12 +201,16 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	    case IDM_STEP:
-			SingleCPUStep();
+			SingleStep();
 		    break;
 
 	    case IDM_STEPOVER:
-		    CCPU::EnableStepping(true);   // TODO: Huh?
+			StepOver();
 		    break;
+
+		case IDM_TOGGLE_BREAKPOINT:
+			ToggleBreakpoint();
+			break;
 
 	    case IDM_SKIP:
 		    PC += 4;
@@ -289,14 +295,47 @@ void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 	}
 }
 
-void CCodeWindow::SingleCPUStep()
+void CCodeWindow::SingleStep()
 {
-	CCPU::StepOpcode(&sync_event);
-	wxThread::Sleep(20);
-	// need a short wait here
-	JumpToAddress(PC);
-	Update();
-	Host_UpdateLogDisplay();
+	if (CCPU::IsStepping())
+	{
+		CCPU::StepOpcode(&sync_event);
+		wxThread::Sleep(20);
+		// need a short wait here
+		JumpToAddress(PC);
+		Update();
+		Host_UpdateLogDisplay();
+	}
+}
+
+void CCodeWindow::StepOver()
+{
+	if (CCPU::IsStepping())
+	{
+		UGeckoInstruction inst = Memory::Read_Instruction(PC);
+		if (inst.LK)
+		{
+			PowerPC::breakpoints.Add(PC + 4, true);
+			CCPU::EnableStepping(false);
+			JumpToAddress(PC);
+			Update();
+		}
+		else
+			SingleStep();
+
+		UpdateButtonStates();
+		// Update all toolbars in the aui manager
+		Parent->UpdateGUI();
+	}
+}
+
+void CCodeWindow::ToggleBreakpoint()
+{
+	if (CCPU::IsStepping())
+	{
+		if (codeview) codeview->ToggleBreakpoint(codeview->GetSelection());
+		Update();
+	}
 }
 
 void CCodeWindow::UpdateLists()
@@ -438,6 +477,16 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		   	wxEmptyString, wxITEM_CHECK);
 
 	pMenuBar->Append(pCoreMenu, _T("&JIT"));
+
+
+	// Debug Menu
+	wxMenu* pDebugMenu = new wxMenu;
+
+	wxMenuItem* stepinto = pDebugMenu->Append(IDM_STEP, _T("Step &Into\tF11"));
+	wxMenuItem* stepover = pDebugMenu->Append(IDM_STEPOVER, _T("Step &Over\tF10"));
+	wxMenuItem* togglebreakpoint = pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _T("Toggle &Breakpoint\tF9"));
+
+	pMenuBar->Append(pDebugMenu, _T("&Debug"));
 
 	CreateMenuSymbols(pMenuBar);
 }

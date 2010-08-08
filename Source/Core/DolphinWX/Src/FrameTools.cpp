@@ -157,7 +157,13 @@ void CFrame::CreateMenu()
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOADSTATEFILE, _T("Load State..."));
-	loadMenu->Append(IDM_LOADLASTSTATE, _T("Last Saved State\tF11"));
+
+	// Reserve F11 for the "step into" function in the debugger
+	if (g_pCodeWindow)
+		loadMenu->Append(IDM_LOADLASTSTATE, _T("Last Saved State"));
+	else
+		loadMenu->Append(IDM_LOADLASTSTATE, _T("Last Saved State\tF11"));
+	
 	loadMenu->Append(IDM_UNDOLOADSTATE, _T("Undo Load State\tF12"));
 	loadMenu->AppendSeparator();
 

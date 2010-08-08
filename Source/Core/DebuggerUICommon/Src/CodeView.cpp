@@ -123,12 +123,18 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 	}
 	else
 	{
-		debugger->toggleBreakpoint(YToAddress(y));
-		redraw();
-		Host_UpdateBreakPointView();
+		ToggleBreakpoint(YToAddress(y));
 	}
 
 	event.Skip(true);
+}
+
+
+void CCodeView::ToggleBreakpoint(u32 address)
+{
+	debugger->toggleBreakpoint(address);
+	redraw();
+	Host_UpdateBreakPointView();
 }
 
 

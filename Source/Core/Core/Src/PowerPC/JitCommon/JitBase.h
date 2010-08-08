@@ -92,7 +92,6 @@ public:
 	virtual void ClearCache() = 0;
 	virtual void Run() = 0;
 	virtual void SingleStep() = 0;
-	virtual void NotifyBreakpoint(u32 em_address, bool set) = 0;
 
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
 

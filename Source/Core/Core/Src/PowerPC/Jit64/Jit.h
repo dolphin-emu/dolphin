@@ -115,7 +115,6 @@ public:
 
 	JitBlockCache *GetBlockCache() { return &blocks; }
 
-	void NotifyBreakpoint(u32 em_address, bool set);
 	void Trace();
 
 	void ClearCache();
