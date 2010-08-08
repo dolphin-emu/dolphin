@@ -267,6 +267,13 @@ void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2
 	CALL(func);
 }
 
+void XEmitter::ABI_CallFunctionA(void *func, const Gen::OpArg &arg1)
+{
+	if (!arg1.IsSimpleReg(ABI_PARAM1))
+		MOV(32, R(ABI_PARAM1), arg1);
+	CALL(func);
+}
+
 unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
 	return frameSize;
 }
