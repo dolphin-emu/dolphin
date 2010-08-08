@@ -28,18 +28,15 @@ using namespace PowerPC;
 RegCache::RegCache() : emit(0) {
 	memset(locks, 0, sizeof(locks));
 	memset(xlocks, 0, sizeof(xlocks));
-	memset(saved_locks, 0, sizeof(saved_locks));
-	memset(saved_xlocks, 0, sizeof(saved_xlocks));
 	memset(regs, 0, sizeof(regs));
 	memset(xregs, 0, sizeof(xregs));
-	memset(saved_regs, 0, sizeof(saved_regs));
-	memset(saved_xregs, 0, sizeof(saved_xregs));
 }
 
 void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 {
 	for (int i = 0; i < NUMXREGS; i++)
 	{
+		xregs[i].ppcReg = -1;
 		xregs[i].free = true;
 		xregs[i].dirty = false;
 		xlocks[i] = false;
@@ -48,6 +45,7 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
+		locks[i] = false;
 	}
 	
 	// todo: sort to find the most popular regs
@@ -137,20 +135,20 @@ X64Reg RegCache::GetFreeXReg()
 	return (X64Reg) -1;
 }
 
-void RegCache::SaveState()
+void RegCache::SaveState(RegCacheState & state)
 {
-	memcpy(saved_locks, locks, sizeof(locks));
-	memcpy(saved_xlocks, xlocks, sizeof(xlocks));
-	memcpy(saved_regs, regs, sizeof(regs));
-	memcpy(saved_xregs, xregs, sizeof(xregs));
+	memcpy(state.locks, locks, sizeof(locks));
+	memcpy(state.xlocks, xlocks, sizeof(xlocks));
+	memcpy(state.regs, regs, sizeof(regs));
+	memcpy(state.xregs, xregs, sizeof(xregs));
 }
 
-void RegCache::LoadState()
+void RegCache::LoadState(const RegCacheState & state)
 {
-	memcpy(xlocks, saved_xlocks, sizeof(xlocks));
-	memcpy(locks, saved_locks, sizeof(locks));
-	memcpy(regs, saved_regs, sizeof(regs));
-	memcpy(xregs, saved_xregs, sizeof(xregs));
+	memcpy(xlocks, state.xlocks, sizeof(xlocks));
+	memcpy(locks, state.locks, sizeof(locks));
+	memcpy(regs, state.regs, sizeof(regs));
+	memcpy(xregs, state.xregs, sizeof(xregs));
 }
 
 void RegCache::FlushR(X64Reg reg)

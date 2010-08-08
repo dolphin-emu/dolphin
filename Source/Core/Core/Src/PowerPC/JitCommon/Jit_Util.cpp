@@ -71,6 +71,56 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 #endif
 }
 
+void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
+{
+	if (opAddress.IsImm())
+	{
+	#ifdef _M_IX86
+		MOVZX(32, accessSize, EAX, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
+	#else
+		MOVZX(32, accessSize, EAX, M(Memory::base + (u32)opAddress.offset + offset));
+	#endif
+	}
+	else
+	{
+	#ifdef _M_IX86
+		MOV(32, R(EAX), opAddress);
+		if (offset)
+			ADD(32, R(EAX), Imm32(offset));
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVZX(32, accessSize, EAX, MDisp(EAX, (u32)Memory::base));
+	#else
+		if (opAddress.IsSimpleReg())
+		{
+			MOVZX(32, accessSize, EAX, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+		}
+		else
+		{
+			MOV(32, R(EAX), opAddress);
+			MOVZX(32, accessSize, EAX, MComplex(RBX, EAX, SCALE_1, offset));
+		}
+	#endif
+	}
+	
+	if (accessSize == 32)
+	{
+		BSWAP(32, EAX);
+	}
+	else if (accessSize == 16)
+	{
+		BSWAP(32, EAX);
+		if (signExtend)
+			SAR(32, R(EAX), Imm8(16));
+		else
+			SHR(32, R(EAX), Imm8(16));
+	}
+	else if (signExtend)
+	{
+		// TODO: bake 8-bit into the original load.
+		MOVSX(32, accessSize, EAX, R(EAX));   
+	}
+}
+
 void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset, bool signExtend)
 {
 	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32 || accessSize == 8) && !Core::g_CoreStartupParameter.bMMU)
@@ -109,6 +159,95 @@ void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg_addr, int accessSize, s32 offset,
 		SetJumpTarget(fast);
 		UnsafeLoadRegToReg(reg_addr, EAX, accessSize, 0, signExtend);
 		SetJumpTarget(exit);
+	}
+}
+
+void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
+{
+	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32 || accessSize == 8) && !Core::g_CoreStartupParameter.bMMU)
+	{
+		// FIXME: accessSize == 16 does not work.  Breaks mkdd
+		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+	}
+	else
+	{
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		{
+			mem_mask |= Memory::ADDR_MASK_MEM1;
+		}
+		
+		if (opAddress.IsImm())
+		{
+			u32 address = (u32)opAddress.offset + offset;
+			if ((address & mem_mask) == 0)
+			{
+				UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+			}
+			else
+			{
+				switch (accessSize)
+				{
+				case 32: ABI_CallFunctionC(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), address); break;
+				case 16: ABI_CallFunctionC(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), address); break;
+				case 8:  ABI_CallFunctionC(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), address); break;
+				}
+				if (signExtend && accessSize < 32)
+				{
+					// Need to sign extend values coming from the Read_U* functions.
+					MOVSX(32, accessSize, EAX, R(EAX));
+				}
+			}
+		}
+		else
+		{
+			if (offset)
+			{
+				MOV(32, R(EAX), opAddress);
+				ADD(32, R(EAX), Imm32(offset));
+				TEST(32, R(EAX), Imm32(mem_mask));
+				FixupBranch fast = J_CC(CC_Z);
+
+				switch (accessSize)
+				{
+				case 32: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), EAX); break;
+				case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), EAX); break;
+				case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), EAX);  break;
+				}
+				if (signExtend && accessSize < 32)
+				{
+					// Need to sign extend values coming from the Read_U* functions.
+					MOVSX(32, accessSize, EAX, R(EAX));
+				}
+
+				FixupBranch exit = J();
+				SetJumpTarget(fast);
+				UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+				SetJumpTarget(exit);
+			}
+			else
+			{
+				TEST(32, opAddress, Imm32(mem_mask));
+				FixupBranch fast = J_CC(CC_Z);
+
+				switch (accessSize)
+				{
+				case 32: ABI_CallFunctionA(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), opAddress); break;
+				case 16: ABI_CallFunctionA(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), opAddress); break;
+				case 8:  ABI_CallFunctionA(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), opAddress);  break;
+				}
+				if (signExtend && accessSize < 32)
+				{
+					// Need to sign extend values coming from the Read_U* functions.
+					MOVSX(32, accessSize, EAX, R(EAX));
+				}
+
+				FixupBranch exit = J();
+				SetJumpTarget(fast);
+				UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+				SetJumpTarget(exit);
+			}
+		}
 	}
 }
 

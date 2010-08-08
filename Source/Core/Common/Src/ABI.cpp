@@ -127,10 +127,18 @@ void XEmitter::ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2
 void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
 	ABI_AlignStack(2 * 4);
-	PUSH(32, arg1);
 	PUSH(32, Imm32(param2));
+	PUSH(32, arg1);
 	CALL(func);
 	ABI_RestoreStack(2 * 4);
+}
+
+void XEmitter::ABI_CallFunctionA(void *func, const Gen::OpArg &arg1)
+{
+	ABI_AlignStack(1 * 4);
+	PUSH(32, arg1);
+	CALL(func);
+	ABI_RestoreStack(1 * 4);
 }
 
 void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
