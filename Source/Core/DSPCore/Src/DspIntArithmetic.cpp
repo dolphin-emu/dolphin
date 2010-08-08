@@ -47,8 +47,7 @@ void clr(const UDSPInstruction opc)
 void clrl(const UDSPInstruction opc)
 {
 	u8 reg = (opc >> 8) & 0x1;
-
-	s64 acc = (dsp_get_long_acc(reg) + 0x7fff) & ~0xffff;
+	s64 acc = dsp_round_long_acc(dsp_get_long_acc(reg));
 
 	zeroWriteBackLog();
 

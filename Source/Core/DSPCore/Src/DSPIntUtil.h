@@ -160,11 +160,6 @@ inline void dsp_op_write_reg(int reg, u16 val)
 		g_dsp.r[reg] = (u16)(s16)(s8)(u8)val;
 		break;
 
-	case DSP_REG_ACM0:
-	case DSP_REG_ACM1:
-		g_dsp.r[reg] = val;
-		break;
-
 	// Stack registers.
 	case DSP_REG_ST0:
 	case DSP_REG_ST1:
@@ -217,7 +212,19 @@ inline s64 dsp_get_long_prod()
 
 inline s64 dsp_get_long_prod_round_prodl()
 {
-	return (dsp_get_long_prod() + 0x7fff) & ~0xffff;
+	s64 prod = dsp_get_long_prod();
+	
+	if (g_dsp.r[DSP_REG_SR] & SR_ROUNDING_MODE)
+		prod = (prod + 0x8000) & ~0xffff;
+	else 
+	{
+		if (prod & 0x10000)
+			prod = (prod + 0x8000) & ~0xffff;
+		else
+			prod = (prod + 0x7fff) & ~0xffff;
+	}
+
+	return prod;
 }
 
 // For accurate emulation, this is wrong - but the real prod registers behave
@@ -269,6 +276,21 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
 {
 	return ((s64)(s8)(val >> 32))<<32 | (u32)val;
+}
+
+inline s64 dsp_round_long_acc(s64 val)
+{
+	if (g_dsp.r[DSP_REG_SR] & SR_ROUNDING_MODE)
+		val = (val + 0x8000) & ~0xffff;
+	else 
+	{
+		if (val & 0x10000)
+			val = (val + 0x8000) & ~0xffff;
+		else
+			val = (val + 0x7fff) & ~0xffff;
+	}
+
+	return val;
 }
 
 inline s16 dsp_get_acc_l(int _reg)
