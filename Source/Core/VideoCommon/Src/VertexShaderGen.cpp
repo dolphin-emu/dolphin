@@ -468,7 +468,19 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	if (is_d3d) {
 		WRITE(p, "o.pos.z = "I_DEPTHPARAMS".x * o.pos.w + o.pos.z * "I_DEPTHPARAMS".y;\n");
 	} else {
-		WRITE(p, "o.pos.z = "I_DEPTHPARAMS".x * o.pos.w + o.pos.z * "I_DEPTHPARAMS".y * 2.0f;\n");
+	    // this results in a scale from -1..0 to -1..1 after perspective
+	    // divide
+	    WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
+	    // the next steps of the OGL pipeline are:
+	    // o.pos.xyz /= o.pos.w;         //perspective divide
+	    // o.pos.z = clamp(o.pos.z,-1,1) //clamp to -1..1
+	    // o.pos.z = (o.pos.z+1)/2;      //scale to 0..1
+	    // o.pos.z = o.pos.z/(glFar-glNear))+glNear 
+	    //scale to glNear..glFar of glDepthRange
+	    // o.pos.z now contains the value to go to the 0..1 depth buffer
+	    
+	    //trying to get the correct semantic while not using glDepthRange
+	    //seems to get rather complicated
 	}
 
 	WRITE(p, "return o;\n}\n");
