@@ -744,6 +744,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Stop
 		else if (IsHotkey(event, HK_STOP))
 			DoStop();
+		// Screenshot hotkey
+		else if (IsHotkey(event, HK_SCREENSHOT))
+			Core::ScreenShot();
 		// Wiimote connect and disconnect hotkeys
 		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 			WiimoteId = 0;
@@ -753,7 +756,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 2;
 		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
 			WiimoteId = 3;
-		// state save and state load hotkeys
+		// State save and state load hotkeys
 		else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
 		{
 			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
@@ -775,9 +778,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			else
 				event.Skip();
 		}
-		// screenshot hotkeys
-		else if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
-			Core::ScreenShot();
 		else
 			event.Skip();
 

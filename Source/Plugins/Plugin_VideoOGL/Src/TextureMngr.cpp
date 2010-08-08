@@ -583,13 +583,12 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.SetTextureParameters(tm0,tm1);
     if (g_ActiveConfig.bDumpTextures) // dump texture to file
 	{ 
-
         char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
 		const char* uniqueId = globals->unique_id;
-		bool bCheckedDumpDir = false;
+		static bool bCheckedDumpDir = false;
 
-		sprintf(szDir,"%s%s",File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
+		sprintf(szDir,"%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
 
 		if(!bCheckedDumpDir)
 		{
@@ -599,11 +598,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			bCheckedDumpDir = true;
 		}
 
-		sprintf(szTemp, "%s/%s_%08x_%i.tga",szDir, uniqueId, (unsigned int) texHash, tex_format);
+		sprintf(szTemp, "%s/%s_%08x_%i.tga", szDir, uniqueId, (unsigned int) texHash, tex_format);
 		if (!File::Exists(szTemp))
-		{
-			SaveTexture(szTemp, target, entry.texture, expandedWidth, expandedHeight);
-		}
+			SaveTexture(szTemp, target, entry.texture, entry.w, entry.h);
     }
 
     INCSTAT(stats.numTexturesCreated);

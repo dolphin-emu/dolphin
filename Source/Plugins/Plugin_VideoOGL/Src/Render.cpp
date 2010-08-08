@@ -496,6 +496,11 @@ void Renderer::Shutdown(void)
 	}
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
+	if (scrshotThread)
+		delete scrshotThread;
+#endif
+
 	g_framebufferManager.Shutdown();
 
 #ifdef _WIN32

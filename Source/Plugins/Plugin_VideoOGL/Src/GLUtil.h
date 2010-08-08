@@ -40,7 +40,6 @@
 
 #elif defined(HAVE_X11) && HAVE_X11
 #include <GL/glxew.h>
-#include <X11/XKBlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include "Thread.h"

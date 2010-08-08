@@ -191,6 +191,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		wxT("Toggle Fullscreen"),
 		wxT("Play/Pause"),
 		wxT("Stop"),
+		wxT("Take Screenshot"),
 		wxT("Connect Wiimote 1"),
 		wxT("Connect Wiimote 2"),
 		wxT("Connect Wiimote 3"),

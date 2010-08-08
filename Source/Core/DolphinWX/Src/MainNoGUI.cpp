@@ -138,7 +138,7 @@ void X11_MainLoop()
 
 	Display *dpy = XOpenDisplay(0);
 	Window win = (Window)Core::GetWindowHandle();
-	XSelectInput(dpy, win, KeyPressMask | KeyReleaseMask | FocusChangeMask);
+	XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	X11Utils::XRRConfiguration *XRRConfig = new X11Utils::XRRConfiguration(dpy, win);

@@ -144,7 +144,7 @@ void CFrame::CreateMenu()
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(_T("%i"), i), wxEmptyString, wxITEM_RADIO);
 
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_SCREENSHOT, _T("Take S&creenshot\tF9"));
+	emulationMenu->Append(IDM_SCREENSHOT, GetMenuLabel(HK_SCREENSHOT));
 
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
@@ -310,6 +310,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 		case HK_STOP:
 			Label = _T("&Stop\t");
+			break;
+		case HK_SCREENSHOT:
+			Label = _T("Take Screenshot\t");
 			break;
 		case HK_WIIMOTE1_CONNECT:
 		case HK_WIIMOTE2_CONNECT:
@@ -1280,6 +1283,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->SetItemLabel(GetMenuLabel(HK_FULLSCREEN));
 	GetMenuBar()->FindItem(IDM_PLAY)->SetItemLabel(GetMenuLabel(HK_PLAY_PAUSE));
 	GetMenuBar()->FindItem(IDM_STOP)->SetItemLabel(GetMenuLabel(HK_STOP));
+	GetMenuBar()->FindItem(IDM_SCREENSHOT)->SetItemLabel(GetMenuLabel(HK_SCREENSHOT));
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->SetItemLabel(GetMenuLabel(HK_WIIMOTE1_CONNECT));
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->SetItemLabel(GetMenuLabel(HK_WIIMOTE2_CONNECT));
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->SetItemLabel(GetMenuLabel(HK_WIIMOTE3_CONNECT));

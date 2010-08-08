@@ -115,8 +115,7 @@ void CreateXWindow (void)
 	// Setup window attributes
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
-	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask;
+	GLWin.attr.event_mask = KeyPressMask | StructureNotifyMask | FocusChangeMask;
 	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
 	GLWin.attr.border_pixel = 0;
 
@@ -348,7 +347,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 	if (GLWin.parent == 0)
 		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
-	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
 	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
@@ -404,8 +402,10 @@ bool OpenGL_MakeCurrent()
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
+#if defined(HAVE_WX) && (HAVE_WX)
 	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
+#endif
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
 	return true;
