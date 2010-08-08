@@ -37,7 +37,6 @@
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
-static float GC_ALIGNED16(lastVSconstants[C_VENVCONST_END][4]);
 #define MAX_SSAA_SHADERS 3
 
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[MAX_SSAA_SHADERS];
@@ -58,59 +57,31 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
 
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if (lastVSconstants[const_number][0] != f1 || 
-		lastVSconstants[const_number][1] != f2 ||
-		lastVSconstants[const_number][2] != f3 ||
-		lastVSconstants[const_number][3] != f4)
-	{
-		lastVSconstants[const_number][0] = f1;
-		lastVSconstants[const_number][1] = f2;
-		lastVSconstants[const_number][2] = f3;
-		lastVSconstants[const_number][3] = f4;
-		D3D::dev->SetVertexShaderConstantF(const_number, lastVSconstants[const_number], 1);
-	}
+	const float f[4] = { f1, f2, f3, f4 };
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
 }
 
 void SetVSConstant4fv(unsigned int const_number, const float *f)
 {
-	if (memcmp(&lastVSconstants[const_number], f, sizeof(float) * 4)) {
-		memcpy(&lastVSconstants[const_number], f, sizeof(float) * 4);
-		D3D::dev->SetVertexShaderConstantF(const_number, lastVSconstants[const_number], 1);
-	}	
+	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
 }
 
 void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	bool change = false;
+	float buf[4*C_VENVCONST_END];
 	for (unsigned int i = 0; i < count; i++)
 	{
-		if (lastVSconstants[const_number + i][0] != f[0 + i*3] || 
-			lastVSconstants[const_number + i][1] != f[1 + i*3] ||
-			lastVSconstants[const_number + i][2] != f[2 + i*3])
-		{
-			change = true;
-			break;
-		}
+		buf[4*i  ] = *f++;
+		buf[4*i+1] = *f++;
+		buf[4*i+2] = *f++;
+		buf[4*i+3] = 0.f;
 	}
-	if (change)
-	{
-		for (unsigned int i = 0; i < count; i++)
-		{
-			lastVSconstants[const_number + i][0] = f[0 + i*3];
-			lastVSconstants[const_number + i][1] = f[1 + i*3];
-			lastVSconstants[const_number + i][2] = f[2 + i*3];
-			lastVSconstants[const_number + i][3] = 0.0f;
-		}
-		D3D::dev->SetVertexShaderConstantF(const_number, lastVSconstants[const_number], count);
-	}
+	D3D::dev->SetVertexShaderConstantF(const_number, buf, count);
 }
 
 void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	if (memcmp(&lastVSconstants[const_number], f, count * sizeof(float) * 4)) {
-		memcpy(&lastVSconstants[const_number], f, count * sizeof(float) * 4);
-		D3D::dev->SetVertexShaderConstantF(const_number, lastVSconstants[const_number], count);
-	}
+	D3D::dev->SetVertexShaderConstantF(const_number, f, count);
 }
 
 class VertexShaderCacheInserter : public LinearDiskCacheReader {
@@ -218,8 +189,6 @@ void VertexShaderCache::Clear()
 		iter->second.Destroy();
 	vshaders.clear();
 
-	for (int i = 0; i < (C_VENVCONST_END * 4); i++)
-		lastVSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 }
 

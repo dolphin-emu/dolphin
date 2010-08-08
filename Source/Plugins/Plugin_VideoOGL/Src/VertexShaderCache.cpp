@@ -41,58 +41,34 @@ bool VertexShaderCache::ShaderEnabled;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
-static float GC_ALIGNED16(lastVSconstants[C_VENVCONST_END][4]);
 
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if ( lastVSconstants[const_number][0] != f1 || 
-		lastVSconstants[const_number][1] != f2 ||
-		lastVSconstants[const_number][2] != f3 ||
-		lastVSconstants[const_number][3] != f4)
-	{
-		lastVSconstants[const_number][0] = f1;
-		lastVSconstants[const_number][1] = f2;
-		lastVSconstants[const_number][2] = f3;
-		lastVSconstants[const_number][3] = f4;
-		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, lastVSconstants[const_number]);
-	}
+	float f[4] = { f1, f2, f3, f4 };
+	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
 }
 
 void SetVSConstant4fv(unsigned int const_number, const float *f)
 {
-	if (memcmp(&lastVSconstants[const_number], f, sizeof(float) * 4)) {
-		memcpy(&lastVSconstants[const_number], f, sizeof(float) * 4);
-		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, lastVSconstants[const_number]);
-	}	
+	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
 }
 
 void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	const float *f0 = f;
-	for (unsigned int i = 0; i < count; i++,f0+=4)
-	{
-		if (memcmp(&lastVSconstants[const_number + i], f0, sizeof(float) * 4)) {
-			memcpy(&lastVSconstants[const_number + i], f0, sizeof(float) * 4);
-			glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, lastVSconstants[const_number + i]);
-		}
-	}
+	for (unsigned int i = 0; i < count; i++,f+=4)
+		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, f);
 }
 
 void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	for (unsigned int i = 0; i < count; i++)
 	{
-		if (lastVSconstants[const_number + i][0] != f[0 + i*3] || 
-			lastVSconstants[const_number + i][1] != f[1 + i*3] ||
-			lastVSconstants[const_number + i][2] != f[2 + i*3] ||
-			lastVSconstants[const_number + i][3] != 0.0f)
-		{
-			lastVSconstants[const_number + i][0] = f[0 + i*3];
-			lastVSconstants[const_number + i][1] = f[1 + i*3];
-			lastVSconstants[const_number + i][2] = f[2 + i*3];
-			lastVSconstants[const_number + i][3] = 0.0f;
-			glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, lastVSconstants[const_number + i]);
-		}
+		float buf[4];
+		buf[0] = *f++;
+		buf[1] = *f++;
+		buf[2] = *f++;
+		buf[3] = 0.f;
+		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, buf);
 	}
 }
 
@@ -102,8 +78,6 @@ void VertexShaderCache::Init()
 	glEnable(GL_VERTEX_PROGRAM_ARB);
 	ShaderEnabled = true;
 	CurrentShader = 0;
-	for (int i = 0; i < (C_VENVCONST_END * 4); i++)
-		lastVSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 
 	s_displayCompileAlert = true;

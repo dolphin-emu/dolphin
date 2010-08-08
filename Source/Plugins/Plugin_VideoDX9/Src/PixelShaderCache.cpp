@@ -44,8 +44,6 @@ const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 static LinearDiskCache g_ps_disk_cache;
 static std::set<u32> unique_shaders;
 
-static float lastPSconstants[C_COLORMATRIX+16][4];
-
 #define MAX_SSAA_SHADERS 3
 
 static LPDIRECT3DPIXELSHADER9 s_ColorMatrixProgram[MAX_SSAA_SHADERS];
@@ -75,32 +73,18 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetClearProgram()
 
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if (lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
-		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4)
-	{
-		lastPSconstants[const_number][0] = f1;
-		lastPSconstants[const_number][1] = f2;
-		lastPSconstants[const_number][2] = f3;
-		lastPSconstants[const_number][3] = f4;
-		D3D::dev->SetPixelShaderConstantF(const_number, lastPSconstants[const_number], 1);
-		
-	}	
+	float f[4] = { f1, f2, f3, f4 };
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
 void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
-	if (memcmp(&lastPSconstants[const_number], f, sizeof(float) * 4)) {
-		memcpy(&lastPSconstants[const_number], f, sizeof(float) * 4);
-		D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
-	}	
+	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
 void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	if (memcmp(&lastPSconstants[const_number], f, count * sizeof(float) * 4)) {
-		memcpy(&lastPSconstants[const_number], f, count * sizeof(float) * 4);
-		D3D::dev->SetPixelShaderConstantF(const_number, f, count);
-	}
+	D3D::dev->SetPixelShaderConstantF(const_number, f, count);
 }
 
 class PixelShaderCacheInserter : public LinearDiskCacheReader {
@@ -266,8 +250,6 @@ void PixelShaderCache::Clear()
 		iter->second.Destroy();
 	PixelShaders.clear(); 
 
-	for (int i = 0; i < C_PENVCONST_END * 4; i++)
-		lastPSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 }
 
