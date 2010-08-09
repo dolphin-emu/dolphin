@@ -236,6 +236,8 @@ public:
 	void fmaddXX(UGeckoInstruction inst);
 	void fsign(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst); //stw sth stb
+	void lXz(UGeckoInstruction inst);
+	void lha(UGeckoInstruction inst);
 	void rlwinmx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
 	void rlwnmx(UGeckoInstruction inst);
@@ -252,8 +254,12 @@ public:
 	void subfmex(UGeckoInstruction inst);
 	void subfzex(UGeckoInstruction inst);
 
-	void lXXx(UGeckoInstruction inst);
+	void lbzx(UGeckoInstruction inst);
+	void lwzx(UGeckoInstruction inst);
+	void lhax(UGeckoInstruction inst);
 	
+	void lwzux(UGeckoInstruction inst);
+
 	void stXx(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);

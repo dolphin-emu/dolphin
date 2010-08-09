@@ -55,17 +55,21 @@ typedef int PReg;
 #define NUMXREGS 8
 #endif
 
-struct RegCacheState
+class RegCache
 {
+private:
 	bool locks[32];
+	bool saved_locks[32];
+	bool saved_xlocks[NUMXREGS];
+
+protected:
 	bool xlocks[NUMXREGS];
 	PPCCachedReg regs[32];
 	X64CachedReg xregs[NUMXREGS];
-};
 
-class RegCache : protected RegCacheState
-{
-protected:
+	PPCCachedReg saved_regs[32];
+	X64CachedReg saved_xregs[NUMXREGS];
+
 	virtual const int *GetAllocationOrder(int &count) = 0;
 	
 	XEmitter *emit;
@@ -119,8 +123,8 @@ public:
 
 	X64Reg GetFreeXReg();
 
-	void SaveState(RegCacheState & state);
-	void LoadState(const RegCacheState & state);
+	void SaveState();
+	void LoadState();
 };
 
 class GPRRegCache : public RegCache

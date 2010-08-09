@@ -123,6 +123,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	}
 	MOV(32, M(&MSR), gpr.R(inst.RS));
 	gpr.UnlockAll();
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
 	WriteExit(js.compilerPC + 4, 0);
 }
 // ==============

@@ -300,14 +300,6 @@ void Jit64::Cleanup()
 
 void Jit64::WriteExit(u32 destination, int exit_num)
 {
-	// We are about to jump to the dispatcher => save and flush regs
-	RegCacheState regCacheStateGPR;
-	RegCacheState regCacheStateFPR;
-	gpr.SaveState(regCacheStateGPR);
-	fpr.SaveState(regCacheStateFPR);
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
-
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
@@ -329,69 +321,29 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 		MOV(32, M(&PC), Imm32(destination));
 		JMP(asm_routines.dispatcher, true);
 	}
-
-	// Restore registers states so that the next instructions could still use the cached values
-	gpr.LoadState(regCacheStateGPR);
-	fpr.LoadState(regCacheStateFPR);
 }
 
 void Jit64::WriteExitDestInEAX(int exit_num) 
 {
-	// We are about to jump to the dispatcher => save and flush regs
-	RegCacheState regCacheStateGPR;
-	RegCacheState regCacheStateFPR;
-	gpr.SaveState(regCacheStateGPR);
-	fpr.SaveState(regCacheStateFPR);
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
-
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
-
-	// Restore registers states so that the next instructions could still use the cached values
-	gpr.LoadState(regCacheStateGPR);
-	fpr.LoadState(regCacheStateFPR);
 }
 
 void Jit64::WriteRfiExitDestInEAX() 
 {
-	// We are about to jump to the exception handler => save and flush regs
-	RegCacheState regCacheStateGPR;
-	RegCacheState regCacheStateFPR;
-	gpr.SaveState(regCacheStateGPR);
-	fpr.SaveState(regCacheStateFPR);
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
-	
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
-
-	// Restore registers states so that the next instructions could still use the cached values
-	gpr.LoadState(regCacheStateGPR);
-	fpr.LoadState(regCacheStateFPR);
 }
 
 void Jit64::WriteExceptionExit()
 {
-	// We are about to jump to the exception handler => save and flush regs
-	RegCacheState regCacheStateGPR;
-	RegCacheState regCacheStateFPR;
-	gpr.SaveState(regCacheStateGPR);
-	fpr.SaveState(regCacheStateFPR);
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
-	
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
-
-	// Restore registers states so that the next instructions could still use the cached values
-	gpr.LoadState(regCacheStateGPR);
-	fpr.LoadState(regCacheStateFPR);
 }
 
 void STACKALIGN Jit64::Run()
@@ -600,15 +552,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			{
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
-				FixupBranch b1 = J_CC(CC_NZ, true);
-
-				// We are about to jump to the exception handler => save and flush regs
-				RegCacheState regCacheStateGPR;
-				RegCacheState regCacheStateFPR;
-				gpr.SaveState(regCacheStateGPR);
-				fpr.SaveState(regCacheStateFPR);
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
+				FixupBranch b1 = J_CC(CC_NZ);
 
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -616,19 +560,18 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 				JMP(asm_routines.fpException, true);
 				SetJumpTarget(b1);
-
-				// Restore registers states
-				// (If no memory exception occured, the next instructions could still use the cached values)
-				gpr.LoadState(regCacheStateGPR);
-				fpr.LoadState(regCacheStateFPR);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
+				// In case we are about to jump to the dispatcher, flush regs
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
 				TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch noMemException = J_CC(CC_Z, true);
+				FixupBranch noMemException = J_CC(CC_Z);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -664,6 +607,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (broken_block)
 	{
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		WriteExit(nextPC, 0);
 	}
 

@@ -45,6 +45,8 @@ void Jit64::sc(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Branch)
 
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
 	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
 	OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
 	WriteExceptionExit();
@@ -55,6 +57,8 @@ void Jit64::rfi(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Branch)
 
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
 	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
 	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
@@ -75,6 +79,8 @@ void Jit64::bx(UGeckoInstruction inst)
 
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
 
 	if (js.isLastInstruction)
 	{
@@ -114,14 +120,17 @@ void Jit64::bcx(UGeckoInstruction inst)
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
+
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
-			pCTRDontBranch = J_CC(CC_NZ, true);
+			pCTRDontBranch = J_CC(CC_NZ);
 		else
-			pCTRDontBranch = J_CC(CC_Z, true);
+			pCTRDontBranch = J_CC(CC_Z);
 	}
 
 	FixupBranch pConditionDontBranch;
@@ -129,9 +138,9 @@ void Jit64::bcx(UGeckoInstruction inst)
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
-			pConditionDontBranch = J_CC(CC_Z, true);
+			pConditionDontBranch = J_CC(CC_Z);
 		else
-			pConditionDontBranch = J_CC(CC_NZ, true);
+			pConditionDontBranch = J_CC(CC_NZ);
 	}
 	
 	if (inst.LK)
@@ -155,6 +164,9 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Branch)
+
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
 
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -184,7 +196,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 			branch = CC_Z;
 		else
 			branch = CC_NZ; 
-		FixupBranch b = J_CC(branch, true);
+		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&CTR));
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
@@ -202,14 +214,17 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Branch)
 
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
+
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
-			pCTRDontBranch = J_CC(CC_NZ, true);
+			pCTRDontBranch = J_CC(CC_NZ);
 		else
-			pCTRDontBranch = J_CC(CC_Z, true);
+			pCTRDontBranch = J_CC(CC_Z);
 	}
 
 	FixupBranch pConditionDontBranch;
@@ -217,9 +232,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
-			pConditionDontBranch = J_CC(CC_Z, true);
+			pConditionDontBranch = J_CC(CC_Z);
 		else
-			pConditionDontBranch = J_CC(CC_NZ, true);
+			pConditionDontBranch = J_CC(CC_NZ);
 	}
 
 		// This below line can be used to prove that blr "eats flags" in practice.

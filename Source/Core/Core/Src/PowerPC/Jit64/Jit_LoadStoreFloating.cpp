@@ -62,13 +62,15 @@ void Jit64::lfs(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
+	gpr.FlushLockX(ABI_PARAM1);
+	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	if (jo.assumeFPLoadFromMem)
 	{
-		UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
+		UnsafeLoadRegToReg(ABI_PARAM1, EAX, 32, offset, false);
 	}
 	else
 	{
-		SafeLoadToEAX(gpr.R(a), 32, offset, false);
+		SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
 	}
 
 	MEMCHECK_START
@@ -81,6 +83,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 	MEMCHECK_END
 
+	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
 
@@ -296,12 +299,9 @@ void Jit64::stfs(UGeckoInstruction inst)
 	ADD(32, R(ABI_PARAM2), Imm32(offset));
 	if (update && offset)
 	{
-		// We must flush immediate values from the following register because
-		// it may take another value at runtime if no MMU exception has been raised
-		gpr.KillImmediate(a, true, true);
-
 		MEMCHECK_START
 
+		gpr.KillImmediate(a, false, true);
 		MOV(32, gpr.R(a), R(ABI_PARAM2));
 
 		MEMCHECK_END

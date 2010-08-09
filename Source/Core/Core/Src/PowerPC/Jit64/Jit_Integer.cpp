@@ -264,6 +264,9 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		{
 			js.downcountAmount++;
 
+			gpr.Flush(FLUSH_ALL);
+			fpr.Flush(FLUSH_ALL);
+
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			u8 conditionResult = (js.next_inst.BO & BO_BRANCH_IF_TRUE) ? test_bit : 0;
 			if ((compareResult & test_bit) == conditionResult)
@@ -356,19 +359,21 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			// if (rand() & 1)
 			//     std::swap(destination1, destination2), condition = !condition;
 
+			gpr.Flush(FLUSH_ALL);
+			fpr.Flush(FLUSH_ALL);
 			FixupBranch pLesser  = J_CC(less_than);
 			FixupBranch pGreater = J_CC(greater_than);
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));  //  == 0
-			FixupBranch continue1 = J(true);
+			FixupBranch continue1 = J();
 
 			SetJumpTarget(pGreater);
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));  //  > 0
-			FixupBranch continue2 = J(true);
+			FixupBranch continue2 = J();
 
 			SetJumpTarget(pLesser);
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));  //  < 0
 			FixupBranch continue3;
-			if (!!(8 & test_bit) == condition) continue3 = J(true);
+			if (!!(8 & test_bit) == condition) continue3 = J();
 			if (!!(4 & test_bit) != condition) SetJumpTarget(continue2);
 			if (!!(2 & test_bit) != condition) SetJumpTarget(continue1);
 			if (js.next_inst.OPCD == 16) // bcx
