@@ -453,3 +453,8 @@ bool Video_IsFifoBusy(void)
 {
 	return CommandProcessor::isFifoBusy;
 }
+
+void Video_AbortFrame(void)
+{
+	CommandProcessor::AbortFrame();
+}

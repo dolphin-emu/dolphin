@@ -220,3 +220,7 @@ bool Video_IsFifoBusy(void)
 {
 	return false;
 }
+
+void Video_AbortFrame(void)
+{
+}

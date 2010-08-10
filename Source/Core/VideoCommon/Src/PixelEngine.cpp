@@ -393,4 +393,16 @@ void ResetSetFinish()
 	}
 }
 
+void ResetSetToken()
+{
+	if (g_bSignalTokenInterrupt)
+	{
+		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, false);
+		g_bSignalTokenInterrupt = false;
+		
+	}else
+	{
+		g_VideoInitialize.pRemoveEvent(et_SetTokenOnMainThread);
+	}
+}
 } // end of namespace PixelEngine

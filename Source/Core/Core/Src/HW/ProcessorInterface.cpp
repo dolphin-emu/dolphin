@@ -24,7 +24,7 @@
 #include "../CoreTiming.h"
 #include "ProcessorInterface.h"
 #include "GPFifo.h"
-
+#include "../PluginManager.h"
 namespace ProcessorInterface
 {
 
@@ -181,6 +181,8 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
     case PI_FIFO_RESET:
+		//Abort the actual frame
+		CPluginManager::GetInstance().GetVideo()->Video_AbortFrame();
         //Fifo_CPUWritePointer = Fifo_CPUBase; ??
 		//PanicAlert("Unknown write to PI_FIFO_RESET (%08x)", _uValue);
 		WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", _uValue);

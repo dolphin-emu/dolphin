@@ -189,5 +189,7 @@ EXPORT void CALL Video_WaitForFrameFinish(void);
 //
 EXPORT bool CALL Video_IsFifoBusy(void);
 
+EXPORT void CALL Video_AbortFrame(void);
+
 #include "ExportEpilog.h"
 #endif

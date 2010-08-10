@@ -162,6 +162,7 @@ void WaitForFrameFinish();
 void FifoCriticalEnter();
 void FifoCriticalLeave();
 
+void AbortFrame();
 } // namespace CommandProcessor
 
 #endif // _COMMANDPROCESSOR_H

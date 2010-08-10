@@ -39,6 +39,7 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
     Video_GatherPipeBursted = 0;
     Video_WaitForFrameFinish = 0;
 	Video_IsFifoBusy = 0;
+	Video_AbortFrame = 0;
 
 	Video_Prepare  = reinterpret_cast<TVideo_Prepare>
 		(LoadSymbol("Video_Prepare"));
@@ -74,6 +75,8 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
 		(LoadSymbol("Video_WaitForFrameFinish"));
     Video_IsFifoBusy = reinterpret_cast<TVideo_IsFifoBusy>
 		(LoadSymbol("Video_IsFifoBusy"));
+    Video_AbortFrame = reinterpret_cast<TVideo_AbortFrame>
+		(LoadSymbol("Video_AbortFrame"));	
 	if ((Video_Prepare                  != 0) &&
 		(Video_BeginField               != 0) &&
 		(Video_EndField                 != 0) &&
@@ -91,7 +94,8 @@ PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo
         (Video_PixelEngineWrite32       != 0) &&
         (Video_GatherPipeBursted        != 0) &&
         (Video_WaitForFrameFinish       != 0) &&
-		(Video_IsFifoBusy		        != 0))
+		(Video_IsFifoBusy		        != 0) &&
+		(Video_AbortFrame               != 0))
 		validVideo = true;
 }
 

@@ -701,4 +701,18 @@ void SetFifoIdleFromVideoPlugin()
 	s_fifoIdleEvent.Set();
 }
 
+// This is called by the ProcessorInterface when PI_FIFO_RESET is writed,
+// the general idea is abort all commands in the FIFO. 
+// This prevent Negative fifo.CPReadWriteDistance because when PI_FIFO_RESET happens
+// the fifo.CPReadWriteDistance is writed to 0
+void AbortFrame()
+{
+	Fifo_SetRendering(false);
+		while(!fifo.CPCmdIdle)
+			Common::YieldCPU();
+	Fifo_SetRendering(true);
+	PixelEngine::ResetSetToken();
+	PixelEngine::ResetSetFinish();
+}
+
 } // end of namespace CommandProcessor

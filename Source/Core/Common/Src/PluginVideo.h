@@ -40,6 +40,7 @@ typedef void (__cdecl* TVideo_Write32)(const u32 _Data, const u32 _Address);
 typedef void (__cdecl* TVideo_GatherPipeBursted)();
 typedef void (__cdecl* TVideo_WaitForFrameFinish)();
 typedef bool (__cdecl* TVideo_IsFifoBusy)();
+typedef void (__cdecl* TVideo_AbortFrame)();
 
 class PluginVideo : public CPlugin
 {
@@ -68,6 +69,7 @@ public:
     TVideo_GatherPipeBursted    Video_GatherPipeBursted;
     TVideo_WaitForFrameFinish   Video_WaitForFrameFinish;
 	TVideo_IsFifoBusy		    Video_IsFifoBusy;
+	TVideo_AbortFrame		    Video_AbortFrame;
 private:
 	bool validVideo;
 };
