@@ -114,10 +114,8 @@ env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 if not env.has_key('install') or env['install'] == 'local':
     env['prefix'] = 'Binary' + os.sep + platform.system() + \
         '-' + platform.machine()
-    if env['flavor'] == 'debug':
-        env['prefix'] += '-debug'
-    elif env['flavor'] == 'prof':
-        env['prefix'] += '-prof'
+    if env['flavor'] == 'debug' or env['flavor'] == 'prof':
+        env['prefix'] += '-' + env['flavor']
 
 rev = utils.GenerateRevFile(env['flavor'], '.', None)
 
@@ -134,11 +132,11 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    #env['LIBPATH'] += ['/Developer/SDKs/MacOSX10.5.sdk/usr/lib']
-    env['LIBS'] = ['gcc_s.10.5', 'iconv'] # , 'stdc++-static'] # XXX
+    env['LIBPATH'] += ['/Developer/SDKs/MacOSX10.5.sdk/usr/lib']
+    env['LIBS'] = ['gcc_s.10.5', 'iconv']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
-    env['LINKFLAGS'] += ['-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
+    env['LINKFLAGS'] += [
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
         '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
 
@@ -156,7 +154,8 @@ if sys.platform == 'darwin':
         conf = wxenv.Configure(conf_dir = None, log_file = None,
             custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
         env['HAVE_WX'] = \
-            conf.CheckWXConfig(2.9, 'aui adv core base gl'.split(), 0)
+            conf.CheckWXConfig(2.9, 'aui adv core base gl'.split(),
+                env['flavor'] == 'debug')
         conf.Finish()
         if not env['HAVE_WX']:
             print "wxWidgets 2.9 not found using " + env['wxconfig']
@@ -230,7 +229,7 @@ else:
         env['HAVE_WX'] = 0
     else:
         env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(),
-                env['flavor'] == 'debug')
+            env['flavor'] == 'debug')
         conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:

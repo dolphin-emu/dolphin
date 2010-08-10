@@ -150,7 +150,7 @@ def CheckWXConfigPosix(context, version, debug):
     # use `wx-config --debug` if it's in its help
     helpoutput = SystemWXConfig(context.env,'--help')[1]
     if helpoutput.find('--debug') != -1:
-        context.Message('--debug')
+        context.Message('--debug ')
         if SystemWXConfig(context.env,'--debug --libs')[0] == 0:
             context.env['wxconfig'] = context.env['wxconfig'] +' --debug'
             return CheckWXConfigVersion(context, version)
