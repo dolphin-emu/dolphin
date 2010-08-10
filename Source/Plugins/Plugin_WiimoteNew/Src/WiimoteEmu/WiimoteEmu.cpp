@@ -510,8 +510,6 @@ void Wiimote::GetIRData(u8* const data)
 
 void Wiimote::GetExtData(u8* const data)
 {
-	const bool has_focus = HAS_FOCUS;
-
 	m_extension->GetState(data, HAS_FOCUS);
 
 	// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.

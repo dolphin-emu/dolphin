@@ -47,10 +47,10 @@ THREAD_RETURN WiimoteThreadFunc(void* arg);
 Wiimote *g_wiimotes[4];
 
 Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
-	: m_wiimote(wm)
-	, m_index(index)
+	: m_last_data_report(NULL)
 	, m_channel(0)
-	, m_last_data_report(NULL)
+	, m_wiimote(wm)
+	, m_index(index)
 {
 	// disable reporting
 	DisableDataReporting();

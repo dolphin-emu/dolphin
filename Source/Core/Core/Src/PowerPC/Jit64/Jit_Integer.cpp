@@ -231,6 +231,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			comparand = Imm32((u32)(s32)(s16)inst.UIMM);
 			signedCompare = true;
 		} else {
+			signedCompare = false;	// silence compiler warning
 			PanicAlert("cmpXX");
 		}
 	}

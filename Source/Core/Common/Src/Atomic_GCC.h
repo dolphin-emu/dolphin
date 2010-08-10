@@ -45,6 +45,10 @@ inline void AtomicAnd(volatile u32& target, u32 value) {
 	__sync_and_and_fetch(&target, value);
 }
 
+inline void AtomicDecrement(volatile u32& target) {
+	__sync_add_and_fetch(&target, -1);
+}
+
 inline void AtomicIncrement(volatile u32& target) {
 	__sync_add_and_fetch(&target, 1);
 }
