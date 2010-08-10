@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Globals.h"
 #include "Thread.h"
 #include "Atomic.h"
@@ -119,16 +118,15 @@ static unsigned int s_XFB_height;
 static float xScale;
 static float yScale;
 
-static int EFBxScale;
-static int EFByScale;
+static float EFBxScale;
+static float EFByScale;
 
 static bool s_skipSwap = false;
 
-#ifndef _WIN32
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
-#endif
 
-namespace {
+namespace
+{
 
 #if defined(HAVE_WX) && HAVE_WX
 // Screenshot thread struct
@@ -147,19 +145,19 @@ static const GLenum glSrcFactors[8] =
 	GL_DST_COLOR,
 	GL_ONE_MINUS_DST_COLOR,
 	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, 
+	GL_ONE_MINUS_SRC_ALPHA,
 	GL_DST_ALPHA,
 	GL_ONE_MINUS_DST_ALPHA
 };
 
 static const GLenum glDestFactors[8] = {
-	GL_ZERO, 
-	GL_ONE, 
-	GL_SRC_COLOR, 
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
 	GL_ONE_MINUS_SRC_COLOR,
-	GL_SRC_ALPHA, 
-	GL_ONE_MINUS_SRC_ALPHA,  
-	GL_DST_ALPHA, 
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_ALPHA,
 	GL_ONE_MINUS_DST_ALPHA
 };
 
@@ -181,7 +179,7 @@ static const GLenum glLogicOpCodes[16] = {
 	GL_COPY,
 	GL_AND_INVERTED,
 	GL_NOOP,
-	GL_XOR, 
+	GL_XOR,
 	GL_OR,
 	GL_NOR,
 	GL_EQUIV,
@@ -198,7 +196,8 @@ void SetDefaultRectTexParams()
 	// Set some standard texture filter modes.
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	if (GL_REPORT_ERROR() != GL_NO_ERROR) {
+	if (GL_REPORT_ERROR() != GL_NO_ERROR)
+	{
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		GL_REPORT_ERRORD();
@@ -212,9 +211,8 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
 	DEBUG_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
 	const char* listing = cgGetLastListing(g_cgcontext);
-	if (listing != NULL) {
+	if (listing != NULL)
 		DEBUG_LOG(VIDEO, "    last listing: %s", listing);
-	}
 }
 #endif
 
@@ -223,7 +221,6 @@ void VideoConfig::UpdateProjectionHack()
 {
 	::UpdateProjectionHack(g_Config.iPhackvalue);
 }
-
 
 // Init functions
 bool Renderer::Init()
@@ -240,10 +237,14 @@ bool Renderer::Init()
 		case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
 		case MULTISAMPLE_4X:  s_MSAASamples = 4; break;
 		case MULTISAMPLE_8X:  s_MSAASamples = 8; break;
-		case MULTISAMPLE_CSAA_8X:   s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
-		case MULTISAMPLE_CSAA_8XQ:  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
-		case MULTISAMPLE_CSAA_16X:  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
-		case MULTISAMPLE_CSAA_16XQ: s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
+		case MULTISAMPLE_CSAA_8X:
+							  s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
+		case MULTISAMPLE_CSAA_8XQ:
+							  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
+		case MULTISAMPLE_CSAA_16X:
+							  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
+		case MULTISAMPLE_CSAA_16XQ:
+							  s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
 		default:
 		s_MSAASamples = 1;
 	}
@@ -259,9 +260,8 @@ bool Renderer::Init()
 	if (!ptoken)
 	{
 		PanicAlert("Your OpenGL Driver seems to be not working.\n"
-				   "Please make sure your drivers are up-to-date and\n"
-				   "that your video hardware is OpenGL 2.x compatible "
-					);
+				"Please make sure your drivers are up-to-date and\n"
+				"that your video hardware is OpenGL 2.x compatible.");
 		return false;
 	}
 
@@ -269,35 +269,48 @@ bool Renderer::Init()
 	INFO_LOG(VIDEO, ptoken);  // write to the log file
 	INFO_LOG(VIDEO, "");
 
-	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", (const char*)glGetString(GL_VENDOR), 
-															 (const char*)glGetString(GL_RENDERER), 
-															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
+	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
+				glGetString(GL_VENDOR),
+				glGetString(GL_RENDERER),
+				glGetString(GL_VERSION)).c_str(), 5000);
 
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
-	if (numvertexattribs < 11) {
-		ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********Does your video card support OpenGL 2.x?", numvertexattribs);
+	if (numvertexattribs < 11)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Number of attributes %d not enough.\n"
+				"GPU: Does your video card support OpenGL 2.x?",
+				numvertexattribs);
 		bSuccess = false;
 	}
 
 	// Init extension support.
-	if (glewInit() != GLEW_OK) {
-		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+	if (glewInit() != GLEW_OK)
+	{
+		ERROR_LOG(VIDEO, "glewInit() failed! Does your video card support OpenGL 2.x?");
 		return false;
 	}
-	if (!GLEW_EXT_framebuffer_object) {
-		ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********Does your video card support OpenGL 2.x?");
+
+	if (!GLEW_EXT_framebuffer_object)
+	{
+		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets.\n"
+				"GPU: Does your video card support OpenGL 2.x?");
 		bSuccess = false;
 	}
-	if (!GLEW_EXT_secondary_color) {
-		ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********Does your video card support OpenGL 2.x?");
+
+	if (!GLEW_EXT_secondary_color)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_EXT_secondary_color.\n"
+				"GPU: Does your video card support OpenGL 2.x?");
 		bSuccess = false;
 	}
+
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	if (!s_bHaveFramebufferBlit)
 	{
 		// MSAA ain't gonna work. turn it off if enabled.
 		s_MSAASamples = 1;
 	}
+
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 	if (!s_bHaveCoverageMSAA)
 	{
@@ -314,30 +327,29 @@ bool Renderer::Init()
 	if (WGLEW_EXT_swap_control)
 		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
 	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
+		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 #elif defined(HAVE_X11) && HAVE_X11
 	if (glXSwapIntervalSGI)
 		glXSwapIntervalSGI(g_ActiveConfig.bVSync ? 1 : 0);
 	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
+		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 #endif
 
 	// check the max texture width and height
 	GLint max_texture_size;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
-	if (max_texture_size < 1024) {
-		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
-	}
+	if (max_texture_size < 1024)
+		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.",
+				max_texture_size);
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
 	if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
 		glDrawBuffers = glDrawBuffersARB;
-	
-	if (!GLEW_ARB_texture_non_power_of_two) {
+
+	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
-	}
 
 	// Decide frambuffer size
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
@@ -364,8 +376,7 @@ bool Renderer::Init()
 			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 		}
 	}
-	
-	
+
 	EFBxScale = ceilf(xScale);
 	EFByScale = ceilf(yScale);
 
@@ -376,14 +387,16 @@ bool Renderer::Init()
 	m_CustomWidth = W;
 	m_CustomHeight = H;
 
-	// Because of the fixed framebuffer size we need to disable the resolution options while running
+	// Because of the fixed framebuffer size we need to disable the resolution
+	// options while running
 	g_Config.bRunning = true;
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
 	// Initialize the FramebufferManager
-	g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight, s_MSAASamples, s_MSAACoverageSamples);
+	g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight,
+			s_MSAASamples, s_MSAACoverageSamples);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
@@ -394,12 +407,14 @@ bool Renderer::Init()
 
 #if defined HAVE_CG && HAVE_CG
 	// load the effect, find the best profiles (if any)
-	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
+	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE)
+	{
 		ERROR_LOG(VIDEO, "arbvp1 not supported");
 		return false;
 	}
 
-	if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
+	if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE)
+	{
 		ERROR_LOG(VIDEO, "arbfp1 not supported");
 		return false;
 	}
@@ -411,24 +426,31 @@ bool Renderer::Init()
 	// so this will not work on ATI. ATI returns MAXINT = 2147483647 (0x7fffffff)
 	// which is correct in OpenGL but Cg fails to handle it properly. As a result
 	// -1 is used by Cg resulting (signedness incorrect) and compilation fails.
-	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL) 
+	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL)
+#endif
 	{
 		cgGLSetOptimalOptions(g_cgvProf);
 		cgGLSetOptimalOptions(g_cgfProf);
 	}
-#else
-	cgGLSetOptimalOptions(g_cgvProf);
-	cgGLSetOptimalOptions(g_cgfProf);
-#endif
 #endif	// HAVE_CG
 
 	int nenvvertparams, nenvfragparams, naddrregisters[2];
-	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
-	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-	DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d", nenvvertparams, nenvfragparams);
-	DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d", naddrregisters[0], naddrregisters[1]);
+	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,
+			GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,
+			(GLint *)&nenvvertparams);
+	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB,
+			GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,
+			(GLint *)&nenvfragparams);
+	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,
+			GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB,
+			(GLint *)&naddrregisters[0]);
+	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB,
+			GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB,
+			(GLint *)&naddrregisters[1]);
+	DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d",
+			nenvvertparams, nenvfragparams);
+	DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d",
+			naddrregisters[0], naddrregisters[1]);
 
 	if (nenvvertparams < 238)
 		ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
@@ -441,7 +463,7 @@ bool Renderer::Init()
 	cgGLSetDebugMode(GL_FALSE);
 #endif
 #endif
-	
+
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
 
@@ -458,9 +480,9 @@ bool Renderer::Init()
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	glDepthFunc(GL_LEQUAL);
-	
+
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-	
+
 	glDisable(GL_STENCIL_TEST);
 	glEnable(GL_SCISSOR_TEST);
 
@@ -490,7 +512,8 @@ void Renderer::Shutdown(void)
 	s_pfont = 0;
 
 #if defined HAVE_CG && HAVE_CG
-	if (g_cgcontext) {
+	if (g_cgcontext)
+	{
 		cgDestroyContext(g_cgcontext);
 		g_cgcontext = 0;
 	}
@@ -504,13 +527,11 @@ void Renderer::Shutdown(void)
 	g_framebufferManager.Shutdown();
 
 #ifdef _WIN32
-	if(s_bAVIDumping) {
+	if(s_bAVIDumping)
 		AVIDump::Stop();
-	}
 #else
-	if(f_pFrameDump != NULL) {
+	if(f_pFrameDump != NULL)
 		fclose(f_pFrameDump);
-	}
 #endif
 }
 
@@ -522,6 +543,7 @@ bool Renderer::Allow2x()
 	else
 		return false;
 }
+
 bool Renderer::AllowCustom()
 {
 	if (GetCustomWidth() <= GetFrameBufferWidth() && GetCustomHeight() <= GetFrameBufferHeight())
@@ -535,28 +557,34 @@ int Renderer::GetFrameBufferWidth()
 {
 	return m_FrameBufferWidth;
 }
+
 int Renderer::GetFrameBufferHeight()
 {
 	return m_FrameBufferHeight;
 }
+
 // Return the custom resolution
 int Renderer::GetCustomWidth()
 {
 	return m_CustomWidth;
 }
+
 int Renderer::GetCustomHeight()
 {
 	return m_CustomHeight;
 }
+
 // Return the rendering target width and height
 int Renderer::GetTargetWidth()
 {
 	return  m_FrameBufferWidth;
 }
+
 int Renderer::GetTargetHeight()
 {
 	return m_FrameBufferHeight;
 }
+
 float Renderer::GetTargetScaleX()
 {
 	return EFBxScale;
@@ -567,9 +595,15 @@ float Renderer::GetTargetScaleY()
 	return EFByScale;
 }
 
+float Renderer::GetXFBScaleX()
+{
+	return xScale;
+}
 
-float Renderer::GetXFBScaleX() { return xScale; }
-float Renderer::GetXFBScaleY() { return yScale; }
+float Renderer::GetXFBScaleY()
+{
+	return yScale;
+}
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
@@ -619,7 +653,7 @@ void Renderer::SetColorMask()
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
-{	
+{
 	// blend mode bit mask
 	// 0 - blend enable
 	// 2 - reverse subtract enable (else add)
@@ -628,30 +662,28 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	u32 newval = bpmem.blendmode.subtract << 2;
 
-	if (bpmem.blendmode.subtract) {
+	if (bpmem.blendmode.subtract)
 		newval |= 0x0049;   // enable blending src 1 dst 1
-	} else if (bpmem.blendmode.blendenable) {
+	else if (bpmem.blendmode.blendenable)
+	{
 		newval |= 1;    // enable blending
 		newval |= bpmem.blendmode.srcfactor << 3;
 		newval |= bpmem.blendmode.dstfactor << 6;
 	}
-	
+
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
-	if (changes & 1) {
+	if (changes & 1)
 		// blend enable change
 		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-	}
 
-	if (changes & 4) {
+	if (changes & 4)
 		// subtract enable change
 		glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
-	}
 
-	if (changes & 0x1F8) {
+	if (changes & 0x1F8)
 		// blend RGB change
 		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
-	}
 
 	s_blendMode = newval;
 }
@@ -759,10 +791,9 @@ bool Renderer::SetScissorRect()
 
 	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
 	if (rc_top < 0) rc_top = 0;
-	
+
 	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
 	if (rc_right > EFB_WIDTH) rc_right = EFB_WIDTH;
-	
 
 	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
 	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;
@@ -780,7 +811,6 @@ bool Renderer::SetScissorRect()
 		rc_top = temp;
 	}
 
-	
 	// Check that the coordinates are good
 	if (rc_right != rc_left && rc_bottom != rc_top)
 	{
@@ -789,7 +819,7 @@ bool Renderer::SetScissorRect()
 			(int)((EFB_HEIGHT - rc_bottom) * EFByScale), // y = 0 for example
 			(int)((rc_right - rc_left)* EFBxScale), // width = 640 for example
 			(int)((rc_bottom - rc_top) * EFByScale) // height = 480 for example
-			); 
+			);
 		return true;
 	}
 	else
@@ -797,24 +827,22 @@ bool Renderer::SetScissorRect()
 		glScissor(
 			0,
 			0,
-			Renderer::GetTargetWidth(), 
+			Renderer::GetTargetWidth(),
 			Renderer::GetTargetHeight()
 			);
 	}
 	return false;
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable,
+		bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-	
 
 	// Always set the scissor in case it was set by the game and has not been reset
-	
 
 	VertexShaderManager::SetViewportChanged();
 
@@ -839,6 +867,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	glClear(bits);
 	SetScissorRect();
 }
+
 static bool XFBWrited = false;
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
@@ -851,9 +880,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
-	{
 		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	}
 	else
 	{
 		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
@@ -902,7 +929,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Copy the framebuffer to screen.
 
-	
 	// Texture map s_xfbTexture onto the main buffer
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
@@ -973,32 +999,51 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.left = -1;
 				drawRc.right = 1;
 			}
-			
+
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
 			// Texture map xfbSource->texture onto the main buffer
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
 
-			// We must call ApplyShader here even if no post proc is selected - it takes
-			// care of disabling it in that case. It returns false in case of no post processing.
+			// We must call ApplyShader here even if no post proc is selected.
+			// It takes care of disabling it in that case. It returns false in
+			// case of no post processing.
 			if (applyShader)
 			{
 				glBegin(GL_QUADS);
-					glTexCoord2f(sourceRc.left, sourceRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(drawRc.left, drawRc.bottom);
-					glTexCoord2f(sourceRc.left, sourceRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(drawRc.left, drawRc.top);
-					glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f(drawRc.right, drawRc.top);
-					glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f(drawRc.right, drawRc.bottom);
+					glTexCoord2f(sourceRc.left, sourceRc.bottom);
+					glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
+					glVertex2f(drawRc.left, drawRc.bottom);
+
+					glTexCoord2f(sourceRc.left, sourceRc.top);
+					glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
+					glVertex2f(drawRc.left, drawRc.top);
+
+					glTexCoord2f(sourceRc.right, sourceRc.top);
+					glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
+					glVertex2f(drawRc.right, drawRc.top);
+
+					glTexCoord2f(sourceRc.right, sourceRc.bottom);
+					glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
+					glVertex2f(drawRc.right, drawRc.bottom);
 				glEnd();
 				PixelShaderCache::DisableShader();
 			}
 			else
 			{
 				glBegin(GL_QUADS);
-					glTexCoord2f(sourceRc.left, sourceRc.bottom);  glVertex2f(drawRc.left, drawRc.bottom);
-					glTexCoord2f(sourceRc.left, sourceRc.top);	   glVertex2f(drawRc.left, drawRc.top);
-					glTexCoord2f(sourceRc.right, sourceRc.top);	   glVertex2f(drawRc.right, drawRc.top);
-					glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f(drawRc.right, drawRc.bottom);
+					glTexCoord2f(sourceRc.left, sourceRc.bottom);
+					glVertex2f(drawRc.left, drawRc.bottom);
+
+					glTexCoord2f(sourceRc.left, sourceRc.top);
+					glVertex2f(drawRc.left, drawRc.top);
+
+					glTexCoord2f(sourceRc.right, sourceRc.top);
+					glVertex2f(drawRc.right, drawRc.top);
+
+					glTexCoord2f(sourceRc.right, sourceRc.bottom);
+					glVertex2f(drawRc.right, drawRc.bottom);
 				glEnd();
 			}
 
@@ -1015,24 +1060,41 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (applyShader)
 		{
 			glBegin(GL_QUADS);
-				glTexCoord2f(targetRc.left, targetRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
-				glTexCoord2f(targetRc.left, targetRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
-				glTexCoord2f(targetRc.right, targetRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
-				glTexCoord2f(targetRc.right, targetRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
+				glTexCoord2f(targetRc.left, targetRc.bottom);
+				glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
+				glVertex2f(-1, -1);
+
+				glTexCoord2f(targetRc.left, targetRc.top);
+				glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
+				glVertex2f(-1,  1);
+
+				glTexCoord2f(targetRc.right, targetRc.top);
+				glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
+				glVertex2f( 1,  1);
+
+				glTexCoord2f(targetRc.right, targetRc.bottom);
+				glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
+				glVertex2f( 1, -1);
 			glEnd();
 			PixelShaderCache::DisableShader();
 		}
 		else
 		{
 			glBegin(GL_QUADS);
-				glTexCoord2f(targetRc.left, targetRc.bottom);  glVertex2f(-1, -1);
-				glTexCoord2f(targetRc.left, targetRc.top);	   glVertex2f(-1, 1);
-				glTexCoord2f(targetRc.right, targetRc.top);	   glVertex2f( 1, 1);
-				glTexCoord2f(targetRc.right, targetRc.bottom); glVertex2f( 1, -1);
+				glTexCoord2f(targetRc.left, targetRc.bottom);
+				glVertex2f(-1, -1);
+
+				glTexCoord2f(targetRc.left, targetRc.top);
+				glVertex2f(-1, 1);
+
+				glTexCoord2f(targetRc.right, targetRc.top);
+				glVertex2f( 1, 1);
+
+				glTexCoord2f(targetRc.right, targetRc.bottom);
+				glVertex2f( 1, -1);
 			glEnd();
 		}
-		
-		
+
 	}
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	TextureMngr::DisableStage(0);
@@ -1050,7 +1112,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();		
+		s_criticalScreenshot.Leave();
 	}
 
 	// Frame dumps are handled a little differently in Windows
@@ -1068,12 +1130,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			if (!s_bLastFrameDumped)
 			{
 				s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
-				if (!s_bAVIDumping) 
+				if (!s_bAVIDumping)
 					OSD::AddMessage("AVIDump Start failed", 2000);
 				else
 				{
 					OSD::AddMessage(StringFromFormat(
-						"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
+						"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+						File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
 				}
 			}
 			if (s_bAVIDumping)
@@ -1082,11 +1145,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_bLastFrameDumped = true;
 		}
 		else
-		{
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
-		}
+
 		free(data);
-		s_criticalScreenshot.Leave();		
+		s_criticalScreenshot.Leave();
 	}
 	else
 	{
@@ -1099,7 +1161,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_bLastFrameDumped = false;
 	}
 #else
-	if (g_ActiveConfig.bDumpFrames) {
+	if (g_ActiveConfig.bDumpFrames)
+	{
 		s_criticalScreenshot.Enter();
 		char movie_file_name[255];
 		int w = back_rc.GetWidth();
@@ -1107,33 +1170,40 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(back_rc.left, back_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (GL_REPORT_ERROR() == GL_NO_ERROR) {
-			if (!s_bLastFrameDumped) {
+		if (GL_REPORT_ERROR() == GL_NO_ERROR)
+		{
+			if (!s_bLastFrameDumped)
+			{
 				sprintf(movie_file_name, "%sframedump.raw", File::GetUserPath(D_DUMPFRAMES_IDX));
 				f_pFrameDump = fopen(movie_file_name, "wb");
-				if (f_pFrameDump == NULL) {
-					PanicAlert("Error opening framedump.raw for writing.");
-				} else {
+				if (f_pFrameDump == NULL)
+					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+				else
+				{
 					char msg [255];
 					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name, w, h);
 					OSD::AddMessage(msg, 2000);
 				}
 			}
-			if (f_pFrameDump != NULL) {
+			if (f_pFrameDump != NULL)
+			{
 				FlipImageData(data, w, h);
 				fwrite(data, w * 3, h, f_pFrameDump);
 				fflush(f_pFrameDump);
 			}
 			s_bLastFrameDumped = true;
 		}
+
 		free(data);
 		s_criticalScreenshot.Leave();
-	} else {
-		if (s_bLastFrameDumped && f_pFrameDump != NULL) {
+	}
+	else
+	{
+		if (s_bLastFrameDumped && f_pFrameDump != NULL)
+		{
 			fclose(f_pFrameDump);
 			f_pFrameDump = NULL;
 		}
-
 		s_bLastFrameDumped = false;
 	}
 #endif
@@ -1160,7 +1230,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		m_CustomHeight = H;
 	}
 
-
 	if( xfbchanged || WindowResized)
 	{
 		TargetRectangle dst_rect;
@@ -1182,23 +1251,24 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 			}
 		}
-		
-		
+
 		EFBxScale = ceilf(xScale);
 		EFByScale = ceilf(yScale);
 
 		int m_newFrameBufferWidth  = EFB_WIDTH * EFBxScale;
 		int m_newFrameBufferHeight = EFB_HEIGHT * EFByScale;
-		if(m_newFrameBufferWidth != m_FrameBufferWidth || m_newFrameBufferHeight != m_FrameBufferHeight )
+		if(m_newFrameBufferWidth != m_FrameBufferWidth ||
+				m_newFrameBufferHeight != m_FrameBufferHeight )
 		{
 			m_FrameBufferWidth  = m_newFrameBufferWidth;
 			m_FrameBufferHeight = m_newFrameBufferHeight;
 
 			g_framebufferManager.Shutdown();
-			g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight, s_MSAASamples, s_MSAACoverageSamples);
+			g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight,
+					s_MSAASamples, s_MSAACoverageSamples);
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		}
-		
+
 	}
 
 	// Place messages on the picture, then copy it to the screen
@@ -1216,7 +1286,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	++fpscount;
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
-	
+
 	DrawDebugText();
 
 	GL_REPORT_ERRORD();
@@ -1228,21 +1298,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (blend_enabled)
 		glEnable(GL_BLEND);
 	GL_REPORT_ERRORD();
+
 #if defined(DVPROFILE)
-	if (g_bWriteProfile) {
+	if (g_bWriteProfile)
+	{
 		//g_bWriteProfile = 0;
 		static int framenum = 0;
 		const int UPDATE_FRAMES = 8;
-		if (++framenum >= UPDATE_FRAMES) {
+		if (++framenum >= UPDATE_FRAMES)
+		{
 			DVProfWrite("prof.txt", UPDATE_FRAMES);
 			DVProfClear();
 			framenum = 0;
 		}
 	}
 #endif
+
 	// Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
-	
+
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
@@ -1277,10 +1351,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
-	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);	
+	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
+	// 		GetTargetWidth(), GetTargetHeight());
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
-	
 }
 
 // Create On-Screen-Messages
@@ -1308,7 +1382,8 @@ void Renderer::DrawDebugText()
 		glBegin(GL_LINES);
 
 		// Draw EFB copy regions rectangles
-		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
+		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
+				it != stats.efb_regions.end(); ++it)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
 			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
@@ -1342,14 +1417,10 @@ void Renderer::DrawDebugText()
 	}
 
 	if (g_ActiveConfig.bOverlayStats)
-	{
 		p = Statistics::ToString(p);
-	}
 
 	if (g_ActiveConfig.bOverlayProjStats)
-	{
 		p = Statistics::ToStringProj(p);
-	}
 
 	// Render a shadow, and then the text.
 	if (p != debugtext_buffer)
@@ -1376,8 +1447,8 @@ void Renderer::DrawDebugText()
 			H = OpenGL_GetBackbufferHeight();
 
 			std::string OSDM1 =
-				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ? 
-				(g_ActiveConfig.bNativeResolution ? 
+				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
+				(g_ActiveConfig.bNativeResolution ?
 				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
 				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
 				: StringFromFormat("%i x %i (custom)", W, H);
@@ -1407,11 +1478,16 @@ void Renderer::DrawDebugText()
 				{ T1 += "\n\n"; T2 += "\n\n"; }
 
 			// The rows
-			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
-			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
-			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
-			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
+			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n",
+						OSDM1.c_str()));
+			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n",
+						OSDM21.c_str(), OSDM22.c_str()));
+			T0.push_back(StringFromFormat("5: Copy EFB: %s\n",
+						OSDM3.c_str()));
+			T0.push_back(StringFromFormat("6: Fog: %s\n",
+						g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
+			T0.push_back(StringFromFormat("7: Material Lighting: %s\n",
+						g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
 
 			// The latest changed setting in yellow
 			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
@@ -1435,15 +1511,16 @@ void Renderer::DrawDebugText()
 		}
 	}
 }
+
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
-	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f, 
+	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 			  ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
-	s_pfont->printMultilineText(pstr, 
-		left * 2.0f / (float)nBackbufferWidth - 1, 
-		1 - top * 2.0f / (float)nBackbufferHeight, 
+	s_pfont->printMultilineText(pstr,
+		left * 2.0f / (float)nBackbufferWidth - 1,
+		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
 	GL_REPORT_ERRORD();
 }
@@ -1461,7 +1538,7 @@ void Renderer::SetScreenshot(const char *filename)
 THREAD_RETURN TakeScreenshot(void *pArgs)
 {
 	ScrStrct *threadStruct = (ScrStrct *)pArgs;
-	
+
 	// These will contain the final image size
 	float FloatW = (float)threadStruct->W;
 	float FloatH = (float)threadStruct->H;
@@ -1470,33 +1547,35 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
 		bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
-		
+
 		// Check for force-settings and override.
 		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
 			use16_9 = true;
 		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
 			use16_9 = false;
-		
+
 		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-		
+
 		// If ratio > 1 the picture is too wide and we have to limit the width.
 		if (Ratio > 1)
 			FloatW /= Ratio;
 		// ratio == 1 or the image is too high, we have to limit the height.
 		else
 			FloatH *= Ratio;
-		
+
 		// This is a bit expensive on high resolutions
 		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
 	}
 
 	// Save the screenshot and finally kill the wxImage object
 	// This is really expensive when saving to PNG, but not at all when using BMP
-	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()), wxBITMAP_TYPE_PNG);
+	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()),
+			wxBITMAP_TYPE_PNG);
 	threadStruct->img->Destroy();
-	
+
 	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH, threadStruct->filename.c_str()).c_str(), 2000);
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
+				threadStruct->filename.c_str()).c_str(), 2000);
 	delete threadStruct;
 
 	return 0;
@@ -1523,52 +1602,49 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 	u32 H = back_rc.GetHeight();
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	
+
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
-	
+
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
-	
+
 	// Turn image upside down
 	FlipImageData(data, W, H);
-	
+
 #if defined(HAVE_WX) && HAVE_WX
 	// Create wxImage
 	wxImage *a = new wxImage(W, H, data);
-	
+
 	if (scrshotThread)
 	{
 		delete scrshotThread;
 		scrshotThread = NULL;
 	}
-	
+
 	ScrStrct *threadStruct = new ScrStrct;
 	threadStruct->filename = std::string(filename);
 	threadStruct->img = a;
 	threadStruct->H = H; threadStruct->W = W;
-	
+
 	scrshotThread = new Common::Thread(TakeScreenshot, threadStruct);
 #ifdef _WIN32
 	scrshotThread->SetPriority(THREAD_PRIORITY_BELOW_NORMAL);
 #endif
 	bool result = true;
-	
+
 	OSD::AddMessage("Saving Screenshot... ", 2000);
-	
+
 #else
 	bool result = SaveTGA(filename, W, H, data);
 	free(data);
 #endif
-	
+
 	return result;
 }
-
-
-
 
 // Called from VertexShaderManager
 void UpdateViewport()
@@ -1580,14 +1656,17 @@ void UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
-	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
-	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
-	
+	float scissorXOff = float(bpmem.scissorOffset.x) * 2.0f;   // 342
+	float scissorYOff = float(bpmem.scissorOffset.y) * 2.0f;   // 342
+
 	// Stretch picture with increased internal resolution
-	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) * EFBxScale);
-	int GLy = (int)ceil((float)((int)(EFB_HEIGHT - xfregs.rawViewport[4] + xfregs.rawViewport[1] + scissorYOff)) * EFByScale);
-	int GLWidth = (int)ceil((float)(2 * xfregs.rawViewport[0]) * EFBxScale);
-	int GLHeight = (int)ceil((float)(-2 * xfregs.rawViewport[1]) * EFByScale);
+	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) *
+			EFBxScale);
+	int GLy = (int)ceil(
+			(float(EFB_HEIGHT) - xfregs.rawViewport[4] + xfregs.rawViewport[1] + scissorYOff) *
+			EFByScale);
+	int GLWidth = (int)ceil(2.0f * xfregs.rawViewport[0] * EFBxScale);
+	int GLHeight = (int)ceil(-2.0f * xfregs.rawViewport[1] * EFByScale);
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
 	if(GLWidth < 0)
@@ -1652,12 +1731,13 @@ void Renderer::SetDitherMode()
 		glDisable(GL_DITHER);
 }
 
-
 void Renderer::SetLineWidth()
 {
-	float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
+	float fratio = xfregs.rawViewport[0] != 0 ?
+		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 	if (bpmem.lineptwidth.linesize > 0)
-		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
+		// scale by ratio of widths
+		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
 	if (bpmem.lineptwidth.pointsize > 0)
 		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 }

@@ -76,8 +76,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 
 extern bool gShowDebugger;
-int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
-
 
 // ---------------------------------------------------------------------
 // OSD Menu

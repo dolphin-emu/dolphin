@@ -143,15 +143,6 @@ class CCodeWindow
 		void InitBitmaps();
 		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);
 
-		wxMenuItem* jitblocklinking, *jitnoblockcache, *jitoff;
-		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;
-		wxMenuItem* jitlspoff;
-		wxMenuItem* jitlsfoff;
-		wxMenuItem* jitfpoff;
-		wxMenuItem* jitioff;
-		wxMenuItem* jitpoff;
-		wxMenuItem* jitsroff;
-
 		CCodeView* codeview;
 		wxListBox* callstack;
 		wxListBox* symbols;
