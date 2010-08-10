@@ -38,23 +38,21 @@
 #include "pluginspecs_wiimote.h"
 
 #include "WiimoteEmu.h"
+#include "WiimoteHid.h"
+#include "../WiimoteReal/WiimoteReal.h"
+
 #include "Attachment/Attachment.h"
 
 /* Bit shift conversions */
-u32 convert24bit(const u8* src)
+u32 swap24(const u8* src)
 {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
-}
-
-u16 convert16bit(const u8* src)
-{
-	return (src[0] << 8) | src[1];
 }
 
 namespace WiimoteEmu
 {
 
-void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr) 
+void Wiimote::ReportMode(const wm_report_mode* const dr)
 {
 	//INFO_LOG(WIIMOTE, "Set data report mode");
 	//DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
@@ -92,9 +90,9 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
    The IR enable/disable and speaker enable/disable and mute/unmute values are
 		bit2: 0 = Disable (0x02), 1 = Enable (0x06)
 */
-void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
+void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 {
-	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, _channelID, sr->wm);
+	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, m_reporting_channel, sr->wm);
 
 	// wiibrew:
 	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
@@ -113,7 +111,7 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_REPORT_MODE :  // 0x12
-		ReportMode(_channelID, (wm_report_mode*)sr->data);
+		ReportMode((wm_report_mode*)sr->data);
 		break;
 
 	case WM_IR_PIXEL_CLOCK : // 0x13
@@ -128,16 +126,16 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_REQUEST_STATUS : // 0x15
-		RequestStatus(_channelID, (wm_request_status*)sr->data);
+		RequestStatus((wm_request_status*)sr->data);
 		return;	// sends its own ack
 		break;
 
 	case WM_WRITE_DATA : // 0x16
-		WriteData(_channelID, (wm_write_data*)sr->data);
+		WriteData((wm_write_data*)sr->data);
 		break;
 
 	case WM_READ_DATA : // 0x17
-		ReadData(_channelID, (wm_read_data*)sr->data);
+		ReadData((wm_read_data*)sr->data);
 		return;	// sends its own ack
 		break;
 
@@ -175,7 +173,8 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 	}
 
 	// send ack
-	SendAck(_channelID, sr->wm);
+	if (send_ack)
+		SendAck(sr->wm);
 }
 
 /* This will generate the 0x22 acknowledgement for most Input reports.
@@ -183,7 +182,7 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(const u16 _channelID, u8 _reportID)
+void Wiimote::SendAck(u8 _reportID)
 {
 	u8 data[6];
 
@@ -196,23 +195,16 @@ void Wiimote::SendAck(const u16 _channelID, u8 _reportID)
 	ack->reportID = _reportID;
 	ack->errorID = 0;
 
-	g_WiimoteInitialize.pWiimoteInterruptChannel( m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel( m_index, m_reporting_channel, data, sizeof(data));
 }
 
-// old comment
-/* Here we produce a 0x20 status report to send to the Wii. We currently ignore
-   the status request rs and all its eventual instructions it may include (for
-   example turn off rumble or something else) and just send the status
-   report. */
-void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
+void Wiimote::HandleExtensionSwap()
 {
-	//if (rs)
-
 	// handle switch extension
-	if ( m_extension->active_extension != m_extension->switch_extension )
+	if (m_extension->active_extension != m_extension->switch_extension)
 	{
 		// if an extension is currently connected and we want to switch to a different extension
-		if ( (m_extension->active_extension > 0) && m_extension->switch_extension )
+		if ((m_extension->active_extension > 0) && m_extension->switch_extension)
 			// detach extension first, wait til next Update() or RequestStatus() call to change to the new extension
 			m_extension->active_extension = 0;
 		else
@@ -223,8 +215,18 @@ void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 		m_status.extension = m_extension->active_extension ? 1 : 0;
 
 		// set register, I hate this line
-		m_register[ 0xa40000 ] = ((WiimoteEmu::Attachment*)m_extension->attachments[ m_extension->active_extension ])->reg;
+		m_register[0xa40000] = ((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->reg;
 	}
+}
+
+// old comment
+/* Here we produce a 0x20 status report to send to the Wii. We currently ignore
+   the status request rs and all its eventual instructions it may include (for
+   example turn off rumble or something else) and just send the status
+   report. */
+void Wiimote::RequestStatus(const wm_request_status* const rs)
+{
+	HandleExtensionSwap();
 
 	// set up report
 	u8 data[8];
@@ -234,14 +236,31 @@ void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 	// status values
 	*(wm_status_report*)(data + 2) = m_status;
 
+	// hybrid wiimote stuff
+	if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
+	{
+		using namespace WiimoteReal;
+
+		g_refresh_critsec.Enter();
+		if (g_wiimotes[m_index])
+		{
+			wm_request_status rpt;
+			rpt.rumble = 0;
+			g_wiimotes[m_index]->SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+		}
+		g_refresh_critsec.Leave();
+
+		return;
+	}
+
 	// send report
-	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
 /* Write data to Wiimote and Extensions registers. */
-void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd) 
+void Wiimote::WriteData(const wm_write_data* const wd)
 {
-	u32 address = convert24bit(wd->address);
+	u32 address = swap24(wd->address);
 
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
@@ -324,13 +343,23 @@ void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd)
 }
 
 /* Read data from Wiimote and Extensions registers. */
-void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd) 
+void Wiimote::ReadData(const wm_read_data* const rd) 
 {
-	u32 address = convert24bit(rd->address);
-	u16 size = convert16bit(rd->size);
+	u32 address = swap24(rd->address);
+	u16 size = Common::swap16(rd->size);
 
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
+
+	// hybrid wiimote stuff
+	// relay the read data request to real-wiimote
+	if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && ((0xA4 != (address >> 16)) || (m_extension->switch_extension <= 0)))
+	{
+		WiimoteReal::InterruptChannel(m_index, m_reporting_channel, ((u8*)rd) - 2, sizeof(wm_read_data) + 2); // hacky
+		
+		// don't want emu-wiimote to send reply
+		return;
+	}
 
 	ReadRequest rr;
 	u8* block = new u8[size];
@@ -416,14 +445,14 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 	}
 
 	// want the requested address, not the above modified one
-	rr.address = convert24bit(rd->address);
+	rr.address = swap24(rd->address);
 	rr.size = size;
 	//rr.channel = _channelID;
 	rr.position = 0;
 	rr.data = block;
 
 	// send up to 16 bytes
-	SendReadDataReply( _channelID, rr );
+	SendReadDataReply(rr);
 
 	// if there is more data to be sent, add it to the queue
 	if (rr.size)
@@ -440,7 +469,7 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
    bytes in the message, the 0 means no error, the 00 20 means that the message
    is at the 00 20 offest in the registry that was read.
 */
-void Wiimote::SendReadDataReply(const u16 _channelID, ReadRequest& _request)
+void Wiimote::SendReadDataReply(ReadRequest& _request)
 {
 	u8 data[23];
 	data[0] = 0xA1;
@@ -488,7 +517,7 @@ void Wiimote::SendReadDataReply(const u16 _channelID, ReadRequest& _request)
 	}
 
 	// Send a piece
-	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
 void Wiimote::DoState(PointerWrap& p)

@@ -3,9 +3,9 @@
 #include "pluginspecs_wiimote.h"
 
 #include "WiimoteReal/WiimoteReal.h"
+#include "WiimoteEmu/WiimoteEmu.h"
 
 #include "ControllerInterface/ControllerInterface.h"
-#include "WiimoteEmu/WiimoteEmu.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "WiimoteConfigDiag.h"
@@ -127,15 +127,11 @@ void InitPlugin( void* const hwnd )
 //
 void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	switch (g_wiimote_sources[_number])
-	{
-	case WIIMOTE_SRC_REAL :
+	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->ControlChannel(_channelID, _pData, _Size);
+
+	if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
 		WiimoteReal::ControlChannel(_number, _channelID, _pData, _Size);
-		break;
-	case WIIMOTE_SRC_EMU :
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->ControlChannel( _channelID, _pData, _Size );
-		break;
-	}
 }
 
 // __________________________________________________________________________________________________
@@ -169,15 +165,10 @@ unsigned int Wiimote_UnPairWiimotes(void)
 //
 void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	switch (g_wiimote_sources[_number])
-	{
-	case WIIMOTE_SRC_REAL :
+	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->InterruptChannel(_channelID, _pData, _Size);
+	else
 		WiimoteReal::InterruptChannel(_number, _channelID, _pData, _Size);
-		break;
-	case WIIMOTE_SRC_EMU :
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->InterruptChannel( _channelID, _pData, _Size );
-		break;
-	}
 }
 
 // __________________________________________________________________________________________________
@@ -201,15 +192,10 @@ void Wiimote_Update(int _number)
 	}
 	_last_number = _number;
 
-	switch (g_wiimote_sources[_number])
-	{
-	case WIIMOTE_SRC_REAL :
-		WiimoteReal::Update(_number);
-		break;
-	case WIIMOTE_SRC_EMU :
+	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
-		break;
-	}
+	else
+		WiimoteReal::Update(_number);
 
 	g_plugin.controls_crit.Leave();
 }

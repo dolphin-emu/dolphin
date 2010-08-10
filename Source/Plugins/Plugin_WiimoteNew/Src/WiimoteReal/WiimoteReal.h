@@ -21,6 +21,9 @@
 
 #include "wiiuse.h"
 #include "ChunkFile.h"
+#include "Thread.h"
+#include "FifoQueue.h"
+#include "../WiimoteEmu/WiimoteEmu.h"
 
 #include "../../InputCommon/Src/InputConfig.h"
 
@@ -33,12 +36,52 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 enum
 {
 	WIIMOTE_SRC_NONE = 0,
-	WIIMOTE_SRC_EMU,
-	WIIMOTE_SRC_REAL,
+	WIIMOTE_SRC_EMU = 1,
+	WIIMOTE_SRC_REAL = 2,
+	WIIMOTE_SRC_HYBRID = 3,	// emu + real
 };
 
 namespace WiimoteReal
 {
+
+class Wiimote
+{
+	friend class WiimoteEmu::Wiimote;
+public:
+	Wiimote(wiimote_t* const wm, const unsigned int index);
+	~Wiimote();
+
+	void ControlChannel(const u16 channel, const void* const data, const u32 size);
+	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
+	void Update();
+
+	u8* ProcessReadQueue();
+
+	void Read();
+	void Write();
+	void Disconnect();
+	void DisableDataReporting();
+
+	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
+
+	// pointer to data, and size of data
+	typedef std::pair<u8*,u8> Report;
+
+protected:
+	u8	*m_last_data_report;
+	u16	m_channel;
+
+private:
+	void ClearReports();
+
+	wiimote_t* const	m_wiimote;
+	const unsigned int	m_index;
+	Common::FifoQueue<u8*>		m_read_reports;
+	Common::FifoQueue<Report>	m_write_reports;
+};
+
+extern Common::CriticalSection	g_refresh_critsec;
+extern Wiimote *g_wiimotes[4];
 
 unsigned int Initialize();
 void Shutdown();

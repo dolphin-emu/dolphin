@@ -5,6 +5,8 @@
 // a simple lockless thread-safe,
 // single reader, single writer queue
 
+#include "Atomic.h"
+
 namespace Common
 {
 
@@ -12,7 +14,7 @@ template <typename T>
 class FifoQueue
 {
 public:
-	FifoQueue()
+	FifoQueue() : m_size(0)
 	{
 		 m_write_ptr = m_read_ptr = new ElementPtr();
 	}
@@ -23,9 +25,20 @@ public:
 		delete m_read_ptr;
 	}
 
-	bool Empty() const	// true if the queue is empty
+	u32 Size() const
 	{
-		return (m_read_ptr == m_write_ptr);
+		return m_size;
+	}
+
+	bool Empty() const
+	{
+		//return (m_read_ptr == m_write_ptr);
+		return (0 == m_size);
+	}
+
+	const T& Front() const
+	{
+		return *m_read_ptr->current;
 	}
 
 	void Push(const T& t)
@@ -35,42 +48,41 @@ public:
 		// set the next pointer to a new element ptr
 		// then advance the write pointer 
 		m_write_ptr = m_write_ptr->next = new ElementPtr();
+		Common::AtomicIncrement(m_size);
+	}
+
+	void Pop()
+	{
+		Common::AtomicDecrement(m_size);
+		ElementPtr *const tmpptr = m_read_ptr;
+		// advance the read pointer
+		m_read_ptr = m_read_ptr->next;
+		// set the next element to NULL to stop the recursive deletion
+		tmpptr->next = NULL;
+		delete tmpptr;	// this also deletes the element
 	}
 
 	bool Pop(T& t)
 	{
-		// if write pointer points to the same element, queue is empty
-		if (m_read_ptr == m_write_ptr)
+		if (Empty())
 			return false;
 
-		// get the element from out of the queue
-		t = *m_read_ptr->current;
-
-		ElementPtr *const tmpptr = m_read_ptr;
-		// advance the read pointer
-		m_read_ptr = m_read_ptr->next;
-		
-		// set the next element to NULL to stop the recursive deletion
-		tmpptr->next = NULL;
-		delete tmpptr;	// this also deletes the element
+		t = Front();
+		Pop();
 
 		return true;
 	}
 
-	bool Peek(T& t)
+	// not thread-safe
+	void Clear()
 	{
-		// if write pointer points to the same element, queue is empty
-		if (m_read_ptr == m_write_ptr)
-			return false;
-
-		// get the element from out of the queue
-		t = *m_read_ptr->current;
-
-		return true;
+		m_size = 0;
+		delete m_read_ptr;
+		m_write_ptr = m_read_ptr = new ElementPtr();
 	}
 
 private:
-	// stores a pointer to element at front of queue
+	// stores a pointer to element
 	// and a pointer to the next ElementPtr
 	class ElementPtr
 	{
@@ -94,6 +106,7 @@ private:
 
 	ElementPtr *volatile m_write_ptr;
 	ElementPtr *volatile m_read_ptr;
+	volatile u32 m_size;
 };
 
 }

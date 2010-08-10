@@ -7,8 +7,10 @@
 #include "WiimoteEmu.h"
 #include "WiimoteHid.h"
 
-#include <Timer.h>
-#include <Common.h>
+#include "../WiimoteReal/WiimoteReal.h"
+
+#include "Timer.h"
+#include "Common.h"
 
 #include "UDPTLayer.h"
 
@@ -38,10 +40,7 @@ static const u8 eeprom_data_16D0[] = {
 
 #define SWING_INTENSITY		0x40
 
-static struct ReportFeatures
-{
-	u8		core, accel, ir, ext, size;
-} const reporting_mode_features[] = 
+const ReportFeatures reporting_mode_features[] = 
 {
     //0x30: Core Buttons
 	{ 2, 0, 0, 0, 4 },
@@ -324,18 +323,214 @@ std::string Wiimote::GetName() const
 	return std::string("Wiimote") + char('1'+m_index);
 }
 
-void Wiimote::Update()
-{
-	const bool is_sideways = m_options->settings[1]->value > 0;
-	const bool is_upright = m_options->settings[2]->value > 0; 
+// if windows is focused or background input is enabled
+#define HAS_FOCUS	(g_WiimoteInitialize.pRendererHasFocus() || (m_options->settings[0]->value != 0))
 
-	// if windows is focused or background input is enabled
-	const bool is_focus = g_WiimoteInitialize.pRendererHasFocus() || (m_options->settings[0]->value != 0);
+bool Wiimote::Step()
+{
+	const bool has_focus = HAS_FOCUS;
+	const bool is_sideways = m_options->settings[1]->value != 0;
 
 	// no rumble if no focus
-	if (false == is_focus)
+	if (false == has_focus)
 		m_rumble_on = false;
+
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
+
+	// update buttons in status struct
+	m_status.buttons = 0;
+	if (has_focus)
+	{
+		m_buttons->GetState(&m_status.buttons, button_bitmasks);
+		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
+		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
+	}
+
+	// check if there is a read data request
+	if (m_read_requests.size())
+	{
+		ReadRequest& rr = m_read_requests.front();
+		// send up to 16 bytes to the wii
+		SendReadDataReply(rr);
+		//SendReadDataReply(rr.channel, rr);
+
+		// if there is no more data, remove from queue
+		if (0 == rr.size)
+		{
+			delete[] rr.data;
+			m_read_requests.pop();
+		}
+
+		// dont send any other reports
+		return true;
+	}
+
+	// check if a status report needs to be sent
+	// this happens on wiimote sync and when extensions are switched
+	if (m_extension->active_extension != m_extension->switch_extension)
+	{
+		RequestStatus();
+
+		// Wiibrew: Following a connection or disconnection event on the Extension Port,
+		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
+		// after a game receives an unrequested status report,
+		// it expects data reports to stop until it sets the reporting mode again
+		m_reporting_auto = false;
+
+		return true;
+	}
+
+	return false;
+}
+
+void Wiimote::GetCoreData(u8* const data)
+{
+	*(wm_core*)data |= m_status.buttons;
+}
+
+void Wiimote::GetAccelData(u8* const data)
+{
+	const bool has_focus = HAS_FOCUS;
+	const bool is_sideways = m_options->settings[1]->value != 0;
+	const bool is_upright = m_options->settings[2]->value != 0;
+
+	// ----TILT----
+	EmulateTilt((wm_accel*)data, m_tilt, (accel_cal*)&m_eeprom[0x16], has_focus, is_sideways, is_upright);
+
+	// ----SWING----
+	// ----SHAKE----
+	if (has_focus)
+	{
+		EmulateSwing((wm_accel*)data, m_swing, (accel_cal*)&m_eeprom[0x16], is_sideways, is_upright);
+		EmulateShake(data, m_shake, m_shake_step);
+		// UDP Wiimote
+		UDPTLayer::GetAcceleration(m_udp, (wm_accel*)data, (accel_cal*)&m_eeprom[0x16]);
+	}
+}
+
+void Wiimote::GetIRData(u8* const data)
+{
+	const bool has_focus = HAS_FOCUS;
+
+	u16 x[4], y[4];
+	memset(x, 0xFF, sizeof(x));
+
+	if (has_focus)
+	{
+		float xx = 10000, yy = 0, zz = 0;
+		float tx, ty;
+
+		m_ir->GetState(&xx, &yy, &zz, true);
+		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+
+		m_tilt->GetState(&tx, &ty, 0, PI/2, false);
+
+		// disabled cause my math still fails
+		const float rsin = 0;//sin(tx);
+		const float rcos = 1;//cos(tx);
+
+		{
+			const float xxx = (xx * -256 * 0.95f);
+			const float yyy = (yy * -256 * 0.90f);
+
+			xx = 512 + xxx * rcos + (144 + yyy) * rsin;
+			yy = 384 + (108 + yyy) * rcos - xxx * rsin;
+		}
+
+		// dot distance of 25 is too little
+		const unsigned int distance = (unsigned int)(150 + 100 * zz);
+
+		x[0] = (unsigned int)(xx - distance * rcos);
+		x[1] = (unsigned int)(xx + distance * rcos);
+		x[2] = (unsigned int)(xx - 1.2f * distance * rcos);
+		x[3] = (unsigned int)(xx + 1.2f * distance * rcos);
+
+		y[0] = (unsigned int)(yy - 0.75 * distance * rsin);
+		y[1] = (unsigned int)(yy + 0.75 * distance * rsin);
+		y[2] = (unsigned int)(yy - 0.75 * 1.2f * distance * rsin);
+		y[3] = (unsigned int)(yy + 0.75 * 1.2f * distance * rsin);
+
+	}
+
+	// Fill report with valid data when full handshake was done
+	if (m_reg_ir->data[0x30])
+	// ir mode
+	switch (m_reg_ir->mode)
+	{
+	// basic
+	case 1 :
+		{
+		memset(data, 0xFF, 10);
+		wm_ir_basic* const irdata = (wm_ir_basic*)data;
+		for (unsigned int i=0; i<2; ++i)
+		{
+			if (x[i*2] < 1024 && y[i*2] < 768) 
+			{
+				irdata[i].x1 = u8(x[i*2]);
+				irdata[i].x1hi = x[i*2] >> 8;
+
+				irdata[i].y1 = u8(y[i*2]);
+				irdata[i].y1hi = y[i*2] >> 8;
+			}
+			if (x[i*2+1] < 1024 && y[i*2+1] < 768)
+			{
+				irdata[i].x2 = u8(x[i*2+1]);
+				irdata[i].x2hi = x[i*2+1] >> 8;
+
+				irdata[i].y2 = u8(y[i*2+1]);
+				irdata[i].y2hi = y[i*2+1] >> 8;
+			}
+		}
+		}
+		break;
+	// extended
+	case 3 :
+		{
+		memset(data, 0xFF, 12);
+		wm_ir_extended* const irdata = (wm_ir_extended*)data;
+		for (unsigned int i=0; i<4; ++i)
+			if (x[i] < 1024 && y[i] < 768)
+			{
+				irdata[i].x = u8(x[i]);
+				irdata[i].xhi = x[i] >> 8;
+
+				irdata[i].y = u8(y[i]);
+				irdata[i].yhi = y[i] >> 8;
+
+				irdata[i].size = 10;
+			}
+		}
+		break;
+	// full
+	case 5 :
+		// UNSUPPORTED
+		break;
+	}
+}
+
+void Wiimote::GetExtData(u8* const data)
+{
+	const bool has_focus = HAS_FOCUS;
+
+	m_extension->GetState(data, HAS_FOCUS);
+
+	// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
+	// i think it should be unencrpyted in the register, encrypted when read.
+	memcpy(m_reg_ext->controller_data, data, sizeof(wm_extension));
+
+	if (0xAA == m_reg_ext->encryption)
+		wiimote_encrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
+}
+
+void Wiimote::Update()
+{
+	// no channel == not connected i guess
+	if (0 == m_reporting_channel)
+		return;
+
+	// returns true if a report was sent
+	if (Step())
+		return;
 
 	// ----speaker----
 #ifdef USE_WIIMOTE_EMU_SPEAKER
@@ -367,208 +562,119 @@ void Wiimote::Update()
 	//}
 #endif
 
-	// update buttons in status struct
-	m_status.buttons = 0;
-	if (is_focus)
-	{
-		m_buttons->GetState(&m_status.buttons, button_bitmasks);
-		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
-		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
-	}
-	
-	// no channel == not connected i guess
-	if (0 == m_reporting_channel)
-		return;
-
-	// check if there is a read data request
-	if (m_read_requests.size())
-	{
-		ReadRequest& rr = m_read_requests.front();
-		// send up to 16 bytes to the wii
-		SendReadDataReply(m_reporting_channel, rr);
-		//SendReadDataReply(rr.channel, rr);
-
-		// if there is no more data, remove from queue
-		if (0 == rr.size)
-		{
-			delete[] rr.data;
-			m_read_requests.pop();
-		}
-
-		// dont send any other reports
-		return;
-	}
-
-	// -- maybe this should happen before the read request stuff?
-	// check if a status report needs to be sent
-	// this happens on wiimote sync and when extensions are switched
-	if (m_extension->active_extension != m_extension->switch_extension)
-	{
-		RequestStatus(m_reporting_channel);
-
-		// Wiibrew: Following a connection or disconnection event on the Extension Port,
-		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
-		// after a game receives an unrequested status report,
-		// it expects data reports to stop until it sets the reporting mode again
-		m_reporting_auto = false;
-	}
-
-	if (false == m_reporting_auto)
-		return;
-
-	// figure out what data we need
-	const ReportFeatures& rpt = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
-
-	// what does the real wiimote do when put in a reporting mode with extension data,
-	// but with no extension attached? should i just send zeros? sure
-	//if (rpt.ext && (m_extension->active_extension <= 0))
-	//{
-	//	m_reporting_auto = false;
-	//	return;
-	//}
-
-	// set up output report
-	// made data bigger than needed in case the wii specifies the wrong ir mode for a reporting mode
-	u8 data[46];
-	memset( data, 0, sizeof(data) );
-
+	u8 data[MAX_PAYLOAD];
+	memset(data, 0, sizeof(data));
 	data[0] = 0xA1;
 	data[1] = m_reporting_mode;
 
+	// figure out what data we need
+	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
+	s8 rptf_size = rptf.size;
+
 	// core buttons
-	if (rpt.core)
-		*(wm_core*)(data + rpt.core) = m_status.buttons;
+	if (rptf.core)
+		GetCoreData(data + rptf.core);
 
-	// ----accelerometer----
-	if (rpt.accel)
+	// acceleration
+	if (rptf.accel)
+		GetAccelData(data + rptf.accel);
+
+	// IR
+	if (rptf.ir)
+		GetIRData(data + rptf.ir);
+
+	// extension
+	if (rptf.ext)
+		GetExtData(data + rptf.ext);
+
+	// hybrid wiimote stuff
+	if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
 	{
-		// ----TILT----
-		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], is_focus, is_sideways, is_upright);
+		using namespace WiimoteReal;
 
-		// ----SWING----
-		// ----SHAKE----
-		if (is_focus)
+		g_refresh_critsec.Enter();
+		if (g_wiimotes[m_index])
 		{
-			EmulateSwing((wm_accel*)&data[rpt.accel], m_swing, (accel_cal*)&m_eeprom[0x16], is_sideways, is_upright);
-			EmulateShake(data + rpt.accel, m_shake, m_shake_step);
-			// UDP Wiimote
-			UDPTLayer::GetAcceleration(m_udp, (wm_accel*)&data[rpt.accel], (accel_cal*)&m_eeprom[0x16]);
+			u8* const real_data = g_wiimotes[m_index]->ProcessReadQueue();
+			if (real_data)
+			{
+				switch (real_data[1])
+				{
+					// use data reports
+				default:
+					if (real_data[1] >= WM_REPORT_CORE)
+					{
+						const ReportFeatures& real_rptf = reporting_mode_features[real_data[1] - WM_REPORT_CORE];
+
+						// force same report type from real-wiimote
+						if (&real_rptf != &rptf)
+							rptf_size = 0;
+
+						// core
+						// mix real-buttons with emu-buttons in the status struct, and in the report
+						if (real_rptf.core && rptf.core)
+						{
+							m_status.buttons |= *(wm_core*)(real_data + real_rptf.core);
+							*(wm_core*)(data + rptf.core) = m_status.buttons;
+						}
+
+						// accel
+						// use real-accel data always i guess
+						if (real_rptf.accel && rptf.accel)
+							memcpy(data + rptf.accel, real_data + real_rptf.accel, sizeof(wm_accel));
+
+						// ir
+						// TODO
+
+						// ext
+						// use real-ext data if an emu-extention isn't chosen
+						if (real_rptf.ext && rptf.ext && (0 == m_extension->switch_extension))
+							memcpy(data + rptf.ext, real_data + real_rptf.ext, sizeof(wm_extension));
+					}
+					else if (WM_ACK_DATA != real_data[1] || m_extension->active_extension > 0)
+						rptf_size = 0;
+					else
+						// use real-acks if an emu-extension isn't chosen
+						rptf_size = -1;
+					break;
+
+					// use all status reports, after modification of the extension bit
+				case WM_STATUS_REPORT :
+					//if (m_extension->switch_extension)
+						//((wm_status_report*)(real_data + 2))->extension = (m_extension->active_extension > 0);
+					if (m_extension->active_extension)
+						((wm_status_report*)(real_data + 2))->extension = 1;
+					rptf_size = -1;
+					break;
+
+					// use all read-data replies
+				case WM_READ_DATA_REPLY:
+					rptf_size = -1;
+					break;
+
+				}
+
+				// copy over report from real-wiimote
+				if (-1 == rptf_size)
+				{
+					memcpy(data, real_data, MAX_PAYLOAD);
+					rptf_size = MAX_PAYLOAD;
+				}
+
+				if (real_data != g_wiimotes[m_index]->m_last_data_report)
+					delete[] real_data;
+			}
 		}
+		g_refresh_critsec.Leave();
 	}
 
-	// ----ir----
-	if (rpt.ir)
-	{
-		float xx = 10000, yy = 0, zz = 0;
-		unsigned int x[4], y[4];
+	// don't send a data report if auto reporting is off
+	if (false == m_reporting_auto && data[2] >= WM_REPORT_CORE)
+		return;
 
-		if (is_focus)
-		{
-			m_ir->GetState(&xx, &yy, &zz, true);
-			UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
-
-			float tx, ty;
-			m_tilt->GetState(&tx, &ty, 0, 1, false);
-
-			// TODO: fix tilt math stuff
-
-			const float rtan = tan(0.0f/*tx*/);	// disabled cause my math fails
-			const float rsin = sin(rtan);
-			const float rcos = cos(rtan);
-
-			{
-				const float xxx = (xx * -256 * 0.95f);
-				const float yyy = (yy * -256 * 0.90f);
-
-				xx = 512 + xxx * rcos + yyy * rsin;
-				yy = 490 + yyy * rcos + xxx * rsin;
-			}
-
-			const unsigned int distance = (unsigned int)(200 + 100 * zz);
-
-			x[0] = (unsigned int)(xx - distance * rcos);
-			x[1] = (unsigned int)(xx + distance * rcos);
-			x[2] = (unsigned int)(xx - 1.2f * distance * rcos);
-			x[3] = (unsigned int)(xx + 1.2f * distance * rcos);
-
-			y[0] = (unsigned int)(yy - 0.75 * distance * rsin);
-			y[1] = (unsigned int)(yy + 0.75 * distance * rsin);
-			y[2] = (unsigned int)(yy - 0.75 * 1.2f * distance * rsin);
-			y[3] = (unsigned int)(yy + 0.75 * 1.2f * distance * rsin);
-
-		}
-
-		// Fill report with valid data when full handshake was done
-		if (m_reg_ir->data[0x30])
-		// ir mode
-		switch (m_reg_ir->mode)
-		{
-		// basic
-		case 1 :
-			{
-			memset(data + rpt.ir, 0xFF, 10);
-			wm_ir_basic* const irdata = (wm_ir_basic*)(data + rpt.ir);
-			for (unsigned int i=0; i<2; ++i)
-			{
-				if (x[i*2] < 1024 && y[i*2] < 768) 
-				{
-					irdata[i].x1 = u8(x[i*2]);
-					irdata[i].x1hi = x[i*2] >> 8;
-
-					irdata[i].y1 = u8(y[i*2]);
-					irdata[i].y1hi = y[i*2] >> 8;
-				}
-				if (x[i*2+1] < 1024 && y[i*2+1] < 768)
-				{
-					irdata[i].x2 = u8(x[i*2+1]);
-					irdata[i].x2hi = x[i*2+1] >> 8;
-
-					irdata[i].y2 = u8(y[i*2+1]);
-					irdata[i].y2hi = y[i*2+1] >> 8;
-				}
-			}
-			}
-			break;
-		// extended
-		case 3 :
-			{
-			memset(data + rpt.ir, 0xFF, 12);
-			wm_ir_extended* const irdata = (wm_ir_extended*)(data + rpt.ir);
-			for (unsigned int i=0; i<4; ++i)
-				if (x[i] < 1024 && y[i] < 768)
-				{
-					irdata[i].x = u8(x[i]);
-					irdata[i].xhi = x[i] >> 8;
-
-					irdata[i].y = u8(y[i]);
-					irdata[i].yhi = y[i] >> 8;
-
-					irdata[i].size = 10;
-				}
-			}
-			break;
-		// full
-		case 5 :
-			// UNSUPPORTED
-			break;
-		}
-	}
-
-	// ----extension----
-	if (rpt.ext)
-	{
-		m_extension->GetState(data + rpt.ext, is_focus);
-
-		// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
-		// i think it should be unencrpyted in the register, encrypted when read.
-		memcpy(m_reg_ext->controller_data, data + rpt.ext, sizeof(wm_extension));
-
-		if (0xAA == m_reg_ext->encryption) {
-			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
-		}
-	}
 	// send data report
-	g_WiimoteInitialize.pWiimoteInterruptChannel( m_index, m_reporting_channel, data, rpt.size );
+	if (rptf_size)
+		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
 }
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
@@ -587,7 +693,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 	// this all good?
 	m_reporting_channel = _channelID;
 
-	hid_packet* hidp = (hid_packet*)_pData;
+	const hid_packet* const hidp = (hid_packet*)_pData;
 
 	INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index, hidp->type, hidp->param);
 
@@ -606,7 +712,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 		{
 			// AyuanX: My experiment shows Control Channel is never used
 			// shuffle2: but homebrew uses this, so we'll do what we must :)
-			HidOutputReport(_channelID, (wm_report*)hidp->data);
+			HidOutputReport((wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
 			g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, &handshake, 1);
@@ -631,7 +737,7 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 	// this all good?
 	m_reporting_channel = _channelID;
 
-	hid_packet* hidp = (hid_packet*)_pData;
+	const hid_packet* const hidp = (hid_packet*)_pData;
 
 	switch (hidp->type)
 	{
@@ -640,8 +746,26 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 		{
 		case HID_PARAM_OUTPUT :
 			{
-				wm_report* sr = (wm_report*)hidp->data;
-				HidOutputReport(_channelID, sr);
+				const wm_report* const sr = (wm_report*)hidp->data;
+
+				if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
+				{
+					switch (sr->wm)
+					{
+						// these two types are handled in RequestStatus() & ReadData()
+					case WM_REQUEST_STATUS :
+					case WM_READ_DATA :
+						break;
+
+					default :
+						WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
+						break;
+					}
+
+					HidOutputReport(sr, m_extension->switch_extension > 0);
+				}
+				else
+					HidOutputReport(sr);
 			}
 			break;
 
@@ -762,7 +886,7 @@ void Wiimote::Register::Read( size_t address, void* dst, size_t length )
 }
 
 // TODO: i need to test this
-void Wiimote::Register::Write( size_t address, void* src, size_t length )
+void Wiimote::Register::Write( size_t address, const void* src, size_t length )
 {
 	iterator i = begin();
 	const const_iterator e = end();

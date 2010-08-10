@@ -205,7 +205,7 @@ struct wm_read_data {
 	u8 space : 2;	//see WM_SPACE_*
 	u8 : 5;
 	u8 address[3];
-	u8 size[2];
+	u16 size;
 };
 
 #define WM_SPACE_EEPROM 0

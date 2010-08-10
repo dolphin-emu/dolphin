@@ -8,7 +8,7 @@
 // just used to get the OpenAL includes :p
 //#include <OpenALStream.h>
 
-#include <ControllerEmu.h>
+#include "ControllerEmu.h"
 #include "ChunkFile.h"
 
 #include "WiimoteHid.h"
@@ -31,6 +31,13 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiimoteEmu
 {
+
+struct ReportFeatures
+{
+	u8		core, accel, ir, ext, size;
+};
+
+extern const ReportFeatures reporting_mode_features[];
 
 void EmulateShake(u8* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
@@ -77,6 +84,19 @@ public:
 
 	void LoadDefaults(const ControllerInterface& ciface);
 
+protected:
+	bool Step();
+	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
+	void HandleExtensionSwap();
+
+	void GetCoreData(u8* const data);
+	void GetAccelData(u8* const data);
+	void GetIRData(u8* const data);
+	void GetExtData(u8* const data);
+
+	bool HaveExtension() const { return m_extension->active_extension > 0; }
+	bool WantExtension() const { return m_extension->switch_extension != 0; }
+
 private:
 	struct ReadRequest
 	{
@@ -87,14 +107,12 @@ private:
 
 	void Reset();
 
-	void ReportMode(const u16 _channelID, wm_report_mode* dr);
-	void HidOutputReport(const u16 _channelID, wm_report* sr);
-	void SendAck(const u16 _channelID, u8 _reportID);
-	void RequestStatus(const u16 _channelID, wm_request_status* rs = NULL);
-
-	void WriteData(const u16 _channelID, wm_write_data* wd);
-	void ReadData(const u16 _channelID, wm_read_data* rd);
-	void SendReadDataReply(const u16 _channelID, ReadRequest& _request);
+	void ReportMode(const wm_report_mode* const dr);
+	void SendAck(const u8 _reportID);
+	void RequestStatus(const wm_request_status* const rs = NULL);
+	void ReadData(const wm_read_data* const rd);
+	void WriteData(const wm_write_data* const wd);
+	void SendReadDataReply(ReadRequest& _request);
 
 #ifdef USE_WIIMOTE_EMU_SPEAKER
 	void SpeakerData(wm_speaker_data* sd);
@@ -131,7 +149,7 @@ private:
 	class Register : public std::map< size_t, std::vector<u8> >
 	{
 	public:
-		void Write( size_t address, void* src, size_t length );
+		void Write( size_t address, const void* src, size_t length );
 		void Read( size_t address, void* dst, size_t length );
 
 	} m_register;

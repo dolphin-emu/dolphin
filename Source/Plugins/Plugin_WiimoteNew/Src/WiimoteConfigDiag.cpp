@@ -13,6 +13,7 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	m_input_src_choice->Append(wxT("None"));
 	m_input_src_choice->Append(wxT("Emulated Wiimote"));
 	m_input_src_choice->Append(wxT("Real Wiimote"));
+	m_input_src_choice->Append(wxT("Hybrid Wiimote"));
 	m_input_src_choice->Select(g_wiimote_sources[m_index]);
 	_connect_macro_(m_input_src_choice, WiimoteConfigPage::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
 
