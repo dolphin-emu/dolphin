@@ -99,6 +99,7 @@ public:
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 
 	void Clear();
+	void ClearSafe();
 	void Init();
 	void Shutdown();
 	void Reset();

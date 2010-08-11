@@ -560,7 +560,10 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	}
 
 	// Clear the JIT cache to enable these changes
-	jit->ClearCache();
+	if (jit)
+	{
+		jit->ClearCache();
+	}
 	// Update
 	UpdateButtonStates();
 }

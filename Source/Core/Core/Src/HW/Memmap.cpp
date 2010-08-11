@@ -660,7 +660,7 @@ u8 *GetPointer(const u32 _Address)
 		}
 		else
 		{
-			if (!PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
+			if (!Core::g_CoreStartupParameter.bMMU && !PanicYesNo("Unknown pointer address prefix %02X, report this to the devs: 0x%08X \n Continue?", (_Address >> 24), _Address))
 				Crash();
 			return 0;
 		}

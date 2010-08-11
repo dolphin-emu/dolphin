@@ -18,6 +18,8 @@
 #include "PPCCache.h"
 #include "../HW/Memmap.h"
 #include "PowerPC.h"
+#include "JitCommon/JitBase.h"
+#include "JitCommon/JitCache.h"
 
 namespace PowerPC
 {
@@ -74,10 +76,14 @@ namespace PowerPC
 		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
 		memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
 #endif
+		if (jit)
+			jit->GetBlockCache()->ClearSafe();
 	}
 
 	void InstructionCache::Invalidate(u32 addr)
 	{
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(addr);
 		if (!HID0.ICE)
 			return;
 		// invalidates the whole set

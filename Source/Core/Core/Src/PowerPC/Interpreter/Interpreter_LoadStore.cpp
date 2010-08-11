@@ -455,7 +455,6 @@ void icbi(UGeckoInstruction _inst)
 {	
 	u32 address = Helper_Get_EA_X(_inst);	
 	PowerPC::ppcState.iCache.Invalidate(address);
-	jit->GetBlockCache()->InvalidateICache(address);
 }
 
 void lbzux(UGeckoInstruction _inst)
