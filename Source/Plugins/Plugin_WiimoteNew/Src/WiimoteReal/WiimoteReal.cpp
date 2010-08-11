@@ -383,8 +383,10 @@ void Refresh()	// this gets called from the GUI thread
 #ifdef __linux__
 	// make sure real wiimotes have been initialized
 	if (!g_real_wiimotes_initialized)
+	{
 		Initialize();
 		return;
+	}
 
 	// find the number of slots configured for real wiimotes
 	unsigned int wanted_wiimotes = 0;
