@@ -139,10 +139,12 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	}
 
 	void JitBlockCache::ClearSafe()
-	{				
+	{
+#ifdef JIT_UNLIMITED_ICACHE
 		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
 		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
 		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
+#endif
 	}
 
 	/*void JitBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
