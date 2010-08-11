@@ -151,12 +151,6 @@ class WiimotePadConfigDialog : public wxDialog
 
 		wxNotebook *m_Notebook;
 
-		wxPanel *m_Controller[MAX_WIIMOTES],
-			*m_pLeftInStatus[MAX_WIIMOTES],
-			*m_pLeftOutStatus[MAX_WIIMOTES],
-			*m_pRightInStatus[MAX_WIIMOTES],
-			*m_pRightOutStatus[MAX_WIIMOTES];
-
 		wxStaticBitmap *m_bmpSquareLeftIn[MAX_WIIMOTES],
 			*m_bmpSquareLeftOut[MAX_WIIMOTES],
 			*m_bmpSquareRightIn[MAX_WIIMOTES],
@@ -169,7 +163,7 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_TiltRollInvert[MAX_WIIMOTES],
 			*m_TiltPitchInvert[MAX_WIIMOTES];
 
-		wxButton *m_Close, *m_Apply, *ClickedButton,
+		wxButton *ClickedButton,
 			*m_Button_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
 			*m_Button_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
 			*m_Button_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
@@ -192,79 +186,12 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_CcComboTriggers[MAX_WIIMOTES],
 			*m_GH3ComboAnalog[MAX_WIIMOTES];
 
-		wxGridBagSizer *m_sGridTilt[MAX_WIIMOTES], 
-			*m_sGridStickLeft[MAX_WIIMOTES],
-			*m_sGridStickRight[MAX_WIIMOTES],
-			*m_sGridTrigger[MAX_WIIMOTES];
+		wxBoxSizer *m_Sizer_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES];
 
-		wxBoxSizer  *m_MainSizer,
-					*m_sMain[MAX_WIIMOTES],
-					*m_sDeadZoneHoriz[MAX_WIIMOTES],
-					*m_sDeadZone[MAX_WIIMOTES],
-					*m_sDiagonal[MAX_WIIMOTES],
-					*m_sCircle2Square[MAX_WIIMOTES],
-					*m_sC2SDeadZone[MAX_WIIMOTES],
-					*m_sJoyname[MAX_WIIMOTES],
-					*m_sRumble[MAX_WIIMOTES],
-					*m_sTiltType[MAX_WIIMOTES],
-					*m_sHorizController[MAX_WIIMOTES],
-					*m_sHorizStatus[MAX_WIIMOTES],
-					*m_Sizer_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
-					*m_sAnalogLeft[MAX_WIIMOTES],
-					*m_sAnalogMiddle[MAX_WIIMOTES],
-					*m_sAnalogRight[MAX_WIIMOTES],
-					*m_sHorizAnalogMapping[MAX_WIIMOTES],
-					*m_Sizer_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
-					*m_sWmVertLeft[MAX_WIIMOTES],
-					*m_sWmVertRight[MAX_WIIMOTES],
-					*m_Sizer_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
-					*m_sNunchuckStick[MAX_WIIMOTES],
-					*m_sNCVertLeft[MAX_WIIMOTES],
-					*m_sNCVertRight[MAX_WIIMOTES],
-					*m_Sizer_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
-					*m_sCcLeftStick[MAX_WIIMOTES],
-					*m_sCcRightStick[MAX_WIIMOTES],
-					*m_sCcTriggers[MAX_WIIMOTES],
-					*m_sCcVertLeft[MAX_WIIMOTES],
-					*m_sCcVertMiddle[MAX_WIIMOTES],
-					*m_sCcVertRight[MAX_WIIMOTES],
-					*m_Sizer_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES],
-					*m_sGH3Analog[MAX_WIIMOTES],
-					*m_sGH3VertLeft[MAX_WIIMOTES],
-					*m_sGH3VertRight[MAX_WIIMOTES],
-					*m_sHorizControllerMapping[MAX_WIIMOTES];
-
-		wxStaticBoxSizer *m_gJoyPad[MAX_WIIMOTES],
-			*m_gTilt[MAX_WIIMOTES],
-			*m_gStickLeft[MAX_WIIMOTES],
-			*m_gStickRight[MAX_WIIMOTES],
-			*m_gTriggers[MAX_WIIMOTES],
-			*m_gAnalog[MAX_WIIMOTES],
-			*m_gWiimote[MAX_WIIMOTES],
-			*m_gNunchuck[MAX_WIIMOTES],
-			*m_gClassicController[MAX_WIIMOTES],
-			*m_gGuitarHero3Controller[MAX_WIIMOTES];
-
-		wxStaticText *m_ComboDeadZoneLabel[MAX_WIIMOTES],
-			*m_DiagonalLabel[MAX_WIIMOTES],
-			*m_RumbleStrengthLabel[MAX_WIIMOTES],
-			*m_tTiltTypeWM[MAX_WIIMOTES], *m_tTiltTypeNC[MAX_WIIMOTES],
-			*m_TiltTextRoll[MAX_WIIMOTES], *m_TiltTextPitch[MAX_WIIMOTES],
+		wxStaticText
 			*m_tStatusLeftIn[MAX_WIIMOTES], *m_tStatusLeftOut[MAX_WIIMOTES],
 			*m_tStatusRightIn[MAX_WIIMOTES], *m_tStatusRightOut[MAX_WIIMOTES],
-			*m_TriggerL[MAX_WIIMOTES], *m_TriggerR[MAX_WIIMOTES],
-			*m_TriggerStatusL[MAX_WIIMOTES], *m_TriggerStatusR[MAX_WIIMOTES],
-			*m_tTriggerSource[MAX_WIIMOTES],
-			*m_statictext_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
-			*m_statictext_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
-			*m_statictext_Nunchuk[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
-			*m_statictext_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
-			*m_statictext_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES],
-			*m_NunchuckTextStick[5],
-			*m_CcTextLeftStick[MAX_WIIMOTES],
-			*m_CcTextRightStick[MAX_WIIMOTES],
-			*m_CcTextTriggers[MAX_WIIMOTES],
-			*m_tGH3Analog[MAX_WIIMOTES];
+			*m_TriggerStatusL[MAX_WIIMOTES], *m_TriggerStatusR[MAX_WIIMOTES];
 
 		wxBitmap CreateBitmap();
 		wxBitmap CreateBitmapDot();
