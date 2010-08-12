@@ -145,6 +145,7 @@ enum Opcode {
 	StoreDouble,
 	StoreFReg,
 	FDCmpCR,
+	CFloatOne,	// Store 1.0f into the specified floating register
 
 	// "Trinary" operators
 	// FIXME: Need to change representation!
@@ -512,6 +513,9 @@ public:
 	}
 	InstLoc EmitFDCmpCR(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FDCmpCR, op1, op2);
+	}
+	InstLoc EmitCFloatOne() {
+		return FoldZeroOp(CFloatOne, 0);
 	}
 	InstLoc EmitLoadGQR(unsigned gqr) {
 		return FoldZeroOp(LoadGQR, gqr);

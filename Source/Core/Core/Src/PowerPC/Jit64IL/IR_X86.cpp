@@ -725,6 +725,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case LoadDouble:
 		case LoadSingle:
 		case LoadPaired:
+		case CFloatOne:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1164,6 +1165,16 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
 			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+			Jit->MOVD_xmm(reg, R(ECX));
+			RI.fregs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case CFloatOne: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			static const float one = 1.0f;
+			Jit->MOV(32, R(ECX), Imm32(*(u32*)&one));
 			Jit->MOVD_xmm(reg, R(ECX));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
