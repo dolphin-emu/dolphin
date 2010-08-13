@@ -107,19 +107,19 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return std::string();
 	}
 
 	char ID[7];
 
 	if (!Read(0, 6, (u8*)ID))
 	{
-		return(false);
+		return std::string();
 	}
 
-	ID[6] = 0;
+	ID[6] = '\0';
 
-	return(ID);
+	return ID;
 }
 
 
@@ -138,83 +138,83 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 {
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return std::string();
 	}
 
 	char makerID[3];
 
 	if (!Read(0x4, 0x2, (u8*)&makerID))
 	{
-		return(false);
+		return std::string();
 	}
 	
-	makerID[2] = 0;
+	makerID[2] = '\0';
 
-	return(makerID);
+	return makerID;
 }
 
 std::string CVolumeWiiCrypted::GetName() const
 {
 	if (m_pReader == NULL)
 	{
-		return("");
+		return std::string();
 	}
 
 	char name[0xFF];
 
 	if (!Read(0x20, 0x60, (u8*)&name))
 	{
-		return("");
+		return std::string();
 	}
 
-	return(name);
+	return name;
 }
 
 u32 CVolumeWiiCrypted::GetFSTSize() const
 {
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return 0;
 	}
 
 	u32 size;
 
 	if (!Read(0x428, 0x4, (u8*)&size))
 	{
-		return(false);
+		return 0;
 	}
 
-	return(size);
+	return size;
 }
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return std::string();
 	}
 
 	char date[16];
 
 	if (!Read(0x2440, 0x10, (u8*)&date))
 	{
-		return(false);
+		return std::string();
 	}
 	
-	date[10] = 0;
+	date[10] = '\0';
 
-	return(date);
+	return date;
 }
 
 u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)
 	{
-		return(m_pReader->GetDataSize());
+		return m_pReader->GetDataSize();
 	}
 	else
 	{
-		return(0);
+		return 0;
 	}
 }
 

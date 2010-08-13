@@ -78,12 +78,12 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 std::string CVolumeGC::GetMakerID() const
 {
 	if (m_pReader == NULL)
-		return false;
+		return std::string();
 
 	char makerID[3];
 	if (!Read(0x4, 0x2, (u8*)&makerID))
-		return false;
-	makerID[2] = 0;
+		return std::string();
+	makerID[2] = '\0';
 
 	return makerID;
 }
@@ -103,11 +103,11 @@ std::string CVolumeGC::GetName() const
 u32 CVolumeGC::GetFSTSize() const
 {
 	if (m_pReader == NULL)
-		return false;
+		return 0;
 
 	u32 size;
 	if (!Read(0x428, 0x4, (u8*)&size))
-		return false;
+		return 0;
 
 	return Common::swap32(size);
 }
@@ -115,13 +115,13 @@ u32 CVolumeGC::GetFSTSize() const
 std::string CVolumeGC::GetApploaderDate() const
 {
 	if (m_pReader == NULL)
-		return false;
+		return std::string();
 
 	char date[16];
 	if (!Read(0x2440, 0x10, (u8*)&date))
-		return false;
+		return std::string();
 	// Should be 0 already, but just in case
-	date[10] = 0;
+	date[10] = '\0';
 
 	return date;
 }

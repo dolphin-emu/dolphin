@@ -202,7 +202,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 
 	if ((*pc & 0x7fff) >= 0x1000)
 	{
-		*pc++;
+		++pc;
 		dest.append("; outside memory");
 		return false;
 	}
