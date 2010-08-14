@@ -74,12 +74,7 @@ void mv(const UDSPInstruction opc)
  	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
 	u8 dreg = ((opc >> 2) & 0x3);
 
-#if 0 //more tests 
-	if ((sreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
-		writeToBackLog(0, dreg + DSP_REG_AXL0, ((u16)dsp_get_acc_h(sreg-DSP_REG_ACM0) & 0x0080) ? 0x8000 : 0x7fff);
-	else
-#endif	
-		writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r[sreg]);
+	writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r[sreg]);
 }
 	
 // S @$arD, $acS.S
@@ -475,7 +470,8 @@ void zeroWriteBackLog()
 	}
 }
 
-//needed for 0x3... 
+//needed for 0x3... cases when main and extended are modifying the same ACC 
+//games are not doing that + in motorola (similar dsp) dox this is forbidden to do
 //ex. corner case -> 0x3060: main opcode modifies .m, and extended .l -> .l shoudnt be zeroed because of .m write...
 void zeroWriteBackLogPreserveAcc(u8 acc) 
 {

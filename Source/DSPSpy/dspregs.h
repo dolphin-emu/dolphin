@@ -17,7 +17,6 @@
 
 #ifndef _DSPREGS_H
 #define _DSPREGS_H
-#endif
 
 #define DSP_REG_AR0		0x00 // address registers
 #define DSP_REG_AR1		0x01
@@ -61,3 +60,5 @@
 #define DSP_REG_ACM1	0x1f
 #define DSP_REG_ACH0	0x10 // Sign extended 8 bit register 0
 #define DSP_REG_ACH1	0x11 // Sign extended 8 bit register 1
+
+#endif

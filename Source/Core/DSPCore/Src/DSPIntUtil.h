@@ -214,15 +214,10 @@ inline s64 dsp_get_long_prod_round_prodl()
 {
 	s64 prod = dsp_get_long_prod();
 	
-	if (g_dsp.r[DSP_REG_SR] & SR_ROUNDING_MODE)
+	if (prod & 0x10000)
 		prod = (prod + 0x8000) & ~0xffff;
-	else 
-	{
-		if (prod & 0x10000)
-			prod = (prod + 0x8000) & ~0xffff;
-		else
-			prod = (prod + 0x7fff) & ~0xffff;
-	}
+	else
+		prod = (prod + 0x7fff) & ~0xffff;
 
 	return prod;
 }
@@ -280,15 +275,10 @@ inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
 
 inline s64 dsp_round_long_acc(s64 val)
 {
-	if (g_dsp.r[DSP_REG_SR] & SR_ROUNDING_MODE)
+	if (val & 0x10000)
 		val = (val + 0x8000) & ~0xffff;
-	else 
-	{
-		if (val & 0x10000)
-			val = (val + 0x8000) & ~0xffff;
-		else
-			val = (val + 0x7fff) & ~0xffff;
-	}
+	else
+		val = (val + 0x7fff) & ~0xffff;
 
 	return val;
 }
