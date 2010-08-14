@@ -50,8 +50,7 @@
 
 #include "ConsoleHelper.h"
 
-// Pull in some constants etc from DSPCore.
-#include "../Core/DSPCore/Src/DSPCore.h"
+#include "dspregs.h"
 
 // This is where the DSP binary is.
 #include "dsp_code.h"

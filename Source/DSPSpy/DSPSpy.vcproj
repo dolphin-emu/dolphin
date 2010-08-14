@@ -231,6 +231,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\dspregs.h"
+			>
+		</File>
+		<File
 			RelativePath=".\main_spy.cpp"
 			>
 		</File>

@@ -17,6 +17,7 @@
 
 // Stubs to make DSPCore compile as part of DSPSpy.
 
+/*
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -117,3 +118,5 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 }
 
 }
+
+*/
