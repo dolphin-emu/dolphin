@@ -71,7 +71,7 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
 	if (false == m_reporting_auto)
 		PanicAlert("Wiimote: Reporting is set to OFF! Everything should be fine, but games never do this.");
 
-	if (dr->mode >= WM_REPORT_INTERLEAVE1)
+	if (dr->mode > 0x37)
 		PanicAlert("Wiimote: Unsupported Reporting mode.");
 	else if (dr->mode < WM_REPORT_CORE)
 		PanicAlert("Wiimote: Reporting mode < 0x30.");

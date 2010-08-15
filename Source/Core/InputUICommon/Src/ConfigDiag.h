@@ -161,12 +161,13 @@ class ControlGroupBox : public wxStaticBoxSizer
 {
 public:
 	ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink );
+	~ControlGroupBox();
 
-	ControllerEmu::ControlGroup*	control_group;
+	std::vector<PadSetting*>		options;
+
+	ControllerEmu::ControlGroup* const	control_group;
 	wxStaticBitmap*					static_bitmap;
-	std::vector< PadSetting* >		options;
-	std::vector< wxButton* >		controls;
-	std::vector<ControlButton*>		control_buttons;	
+	std::vector<ControlButton*>		control_buttons;
 };
 
 class ControlGroupsSizer : public wxBoxSizer

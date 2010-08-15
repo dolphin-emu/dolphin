@@ -670,11 +670,20 @@ void GamepadPage::RefreshDevices( wxCommandEvent& event )
 	m_plugin.controls_crit.Leave();		// leave
 }
 
+ControlGroupBox::~ControlGroupBox()
+{
+	std::vector<PadSetting*>::const_iterator
+		i = options.begin(),
+		e = options.end();
+	for (; i!=e; ++i)
+		delete *i;
+}
+
 ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink )
 	: wxStaticBoxSizer(wxVERTICAL, parent, wxString::FromAscii(group->name))
+	, control_group(group)
 {
 
-	control_group = group;
 	static_bitmap = NULL;
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -689,7 +698,6 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
 		control_button->SetFont(m_SmallFont);
 
-		controls.push_back(control_button);
 		control_buttons.push_back(control_button);
 
 		if ((*ci)->control_ref->is_input)

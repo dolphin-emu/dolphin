@@ -39,62 +39,42 @@ unsigned int	g_wiimotes_found = 0;
 volatile unsigned int	g_wiimotes_lastfound = 0;
 
 volatile bool	g_run_wiimote_thread = false;
-Common::Thread	*g_wiimote_thread = NULL;
-Common::CriticalSection		g_refresh_critsec, g_wiimote_critsec;
+Common::Thread	*g_wiimote_threads[MAX_WIIMOTES] = {};
+Common::CriticalSection		g_refresh_critsec;
+
 
 THREAD_RETURN WiimoteThreadFunc(void* arg);
+void StartWiimoteThreads();
+void StopWiimoteThreads();
 
-Wiimote *g_wiimotes[4];
+Wiimote *g_wiimotes[MAX_WIIMOTES];
 
-Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
-	: m_last_data_report(NULL)
+Wiimote::Wiimote(wiimote_t* const _wiimote, const unsigned int _index)
+	: wiimote(_wiimote)
+	, index(_index)
+	, m_last_data_report(NULL)
 	, m_channel(0)
-	, m_wiimote(wm)
-	, m_index(index)
 {
 	// disable reporting
 	DisableDataReporting();
 
-	// clear all msgs, silly maybe
-	// - cleared on first InterruptChannel call
-	//while (wiiuse_io_read(m_wiimote));
-
-	//{
-	// LEDs test
-	//wm_leds	rpt = wm_leds();
-	//rpt.leds = 1 << i;
-	//SendPacket(g_wiimotes_from_wiiuse[i], WM_LEDS, &rpt, sizeof(rpt));
-	//}
-
-	// Rumble briefly, this is a bad spot for the rumble
-	wiiuse_rumble(m_wiimote, 1);
-	SLEEP(200);
-	wiiuse_rumble(m_wiimote, 0);
-
 	// set LEDs
-	wiiuse_set_leds(m_wiimote, WIIMOTE_LED_1 << m_index);
+	wiiuse_set_leds(wiimote, WIIMOTE_LED_1 << index);
 
 	// TODO: make Dolphin connect wiimote, maybe
 }
 
 Wiimote::~Wiimote()
 {
-	ClearReports();
+	ClearReadQueue();
+
+	// clear write queue
+	Report rpt;
+	while (m_write_reports.Pop(rpt))
+		delete[] rpt.first;
 
 	// disable reporting / wiiuse might do this on shutdown anyway, o well, don't know for sure
 	DisableDataReporting();
-
-	// send disconnect message to wii, maybe, i hope, naw shit messes up on emu-stop
-	//if (g_WiimoteInitialize.pWiimoteInterruptChannel)
-	//{
-	//	//u8* const rpt = new u8[2];
-	//	//rpt[0] = 0XA1; rpt[1] = 0x15;
-	//	//m_read_reports.push(rpt);
-	//	//Update();
-
-	//	const u8 rpt[] = { 0xA1, 0x15 };
-	//	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, rpt, sizeof(rpt));
-	//}
 }
 
 // silly, copying data n stuff, o well, don't use this too often
@@ -119,18 +99,20 @@ void Wiimote::DisableDataReporting()
 	SendPacket(WM_REPORT_MODE, &rpt, sizeof(rpt));
 }
 
-void Wiimote::ClearReports()
+void Wiimote::ClearReadQueue()
 {
+	// might be silly
+	while (wiiuse_io_read(wiimote)) {};
+
 	if (m_last_data_report)
 	{
 		delete[] m_last_data_report;
 		m_last_data_report = NULL;
 	}
-	Report rpt;
-	while (m_write_reports.Pop(rpt))
-		delete rpt.first;
-	while (m_read_reports.Pop(rpt.first))
-		delete rpt.first;
+
+	u8 *rpt;
+	while (m_read_reports.Pop(rpt))
+		delete[] rpt;
 }
 
 void Wiimote::ControlChannel(const u16 channel, const void* const data, const u32 size)
@@ -146,8 +128,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 {
 	if (0 == m_channel)	// first interrupt/control channel sent
 	{
-		// clear all msgs, silly maybe
-		while (wiiuse_io_read(m_wiimote)) {};
+		ClearReadQueue();
 
 		// request status
 		wm_request_status rpt;
@@ -182,29 +163,36 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	m_write_reports.Push(rpt);
 }
 
-void Wiimote::Read()
+bool Wiimote::Read()
 {
-	// if not connected to Dolphin, don't do anything, to keep sanchez happy :p
-	if (0 == m_channel)
-		return;
-
-	if (wiiuse_io_read(m_wiimote))
+	if (wiiuse_io_read(wiimote))
 	{
-		// add it to queue
-		u8* const rpt = new u8[MAX_PAYLOAD];
-		memcpy(rpt, m_wiimote->event_buf, MAX_PAYLOAD);
-		m_read_reports.Push(rpt);
+		if (m_channel)
+		{
+			// add it to queue
+			u8* const rpt = new u8[MAX_PAYLOAD];
+			memcpy(rpt, wiimote->event_buf, MAX_PAYLOAD);
+			m_read_reports.Push(rpt);
+		}
+
+		return true;
 	}
+
+	return false;
 }
 
-void Wiimote::Write()
+bool Wiimote::Write()
 {
 	Report rpt;
 	if (m_write_reports.Pop(rpt))
 	{
-		wiiuse_io_write(m_wiimote, rpt.first, rpt.second);
+		wiiuse_io_write(wiimote, rpt.first, rpt.second);
 		delete[] rpt.first;
+
+		return true;
 	}
+
+	return false;
 }
 
 // returns the next report that should be sent
@@ -232,8 +220,8 @@ void Wiimote::Update()
 	u8* const rpt = ProcessReadQueue();
 
 	// send the report
-	if (rpt)
-		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, rpt, MAX_PAYLOAD);
+	if (rpt && m_channel)
+		g_WiimoteInitialize.pWiimoteInterruptChannel(index, m_channel, rpt, MAX_PAYLOAD);
 
 	// delete the data if it isn't also the last data rpt
 	if (rpt != m_last_data_report)
@@ -246,14 +234,6 @@ void Wiimote::Disconnect()
 
 	// disable reporting
 	DisableDataReporting();
-
-	// clear queue
-	u8 *rpt;
-	while (m_read_reports.Pop(rpt))
-		delete rpt;
-
-	// clear out wiiuse queue, or maybe not, silly? idk
-	while (wiiuse_io_read(m_wiimote)) {};
 }
 
 void LoadSettings()
@@ -297,7 +277,6 @@ unsigned int Initialize()
 	// initialized
 	g_real_wiimotes_initialized = true;
 
-
 #ifdef WIN32 
 	// Alloc memory for wiimote structure only if we're starting fresh
 	if(!g_wiimotes_from_wiiuse)
@@ -310,14 +289,13 @@ unsigned int Initialize()
 	g_wiimotes_found = wiiuse_find(g_wiimotes_from_wiiuse, wanted_wiimotes, 5);
 #endif
 	g_wiimotes_lastfound = g_wiimotes_found;
-	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted and %i previously found", g_wiimotes_found, wanted_wiimotes, g_wiimotes_lastfound);
+	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted and %i previously found",
+		g_wiimotes_found, wanted_wiimotes, g_wiimotes_lastfound);
 
 	g_wiimotes_found =
 		wiiuse_connect(g_wiimotes_from_wiiuse, g_wiimotes_found);
 
 	DEBUG_LOG(WIIMOTE, "Connected to %i Real Wiimotes", g_wiimotes_found);
-
-	g_wiimote_critsec.Enter();	// enter
 
 	// create real wiimote class instances, assign wiimotes
 	for (unsigned int i = 0, w = 0; i<MAX_WIIMOTES && w<g_wiimotes_found; ++i)
@@ -327,11 +305,7 @@ unsigned int Initialize()
 			g_wiimotes[i] = new Wiimote(g_wiimotes_from_wiiuse[w++], i);
 	}
 
-	g_wiimote_critsec.Leave();	// leave
-
-	// start wiimote thread
-	g_run_wiimote_thread = true;
-	g_wiimote_thread = new Common::Thread(WiimoteThreadFunc, 0);
+	StartWiimoteThreads();
 	
 	return g_wiimotes_found;
 }
@@ -344,16 +318,7 @@ void Shutdown(void)
 	// Uninitialized
 	g_real_wiimotes_initialized = false;
 
-	// stop wiimote thread
-	if (g_wiimote_thread)
-	{
-		g_run_wiimote_thread = false;
-		g_wiimote_thread->WaitForDeath();
-		delete g_wiimote_thread;
-		g_wiimote_thread = NULL;
-	}
-
-	g_wiimote_critsec.Enter();	// enter
+	StopWiimoteThreads();
 
 	// delete wiimotes
 	for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
@@ -362,14 +327,6 @@ void Shutdown(void)
 			delete g_wiimotes[i];
 			g_wiimotes[i] = NULL;
 		}
-
-	g_wiimote_critsec.Leave();	// leave
-
-	// set all LEDs on, idk
-	//for (unsigned int i=0; i<g_wiimotes_found; ++i)
-	//{
-	//	wiiuse_set_leds(g_wiimotes_from_wiiuse[i], 0xF0);
-	//}
 
 	// Clean up wiiuse, win32: we cant just delete the struct on win32, since wiiuse_find() maintains it and
 	// adds/removes wimotes directly to/from it to prevent problems, which would occur when using more than 1 wiimote if we create it from scratch everytime
@@ -407,8 +364,9 @@ void Refresh()	// this gets called from the GUI thread
 
 	DEBUG_LOG(WIIMOTE, "Connected to %i additional Real Wiimotes", num_new_wiimotes);
 
+	StopWiimoteThreads();
+
 	g_refresh_critsec.Enter();
-	g_wiimote_critsec.Enter();	// enter
 
 	// create real wiimote class instances, and assign wiimotes for the new wiimotes
 	for (unsigned int i = g_wiimotes_found, w = g_wiimotes_found;
@@ -420,8 +378,9 @@ void Refresh()	// this gets called from the GUI thread
 	}
 	g_wiimotes_found = num_wiimotes;
 
-	g_wiimote_critsec.Leave();	// leave
 	g_refresh_critsec.Leave();
+
+	StartWiimoteThreads();
 
 #else	// windows/ OSX
 	g_refresh_critsec.Enter();
@@ -468,31 +427,54 @@ void Update(int _WiimoteNumber)
 
 void StateChange(PLUGIN_EMUSTATE newState)
 {
-	g_wiimote_critsec.Enter();	// enter
+	//g_refresh_critsec.Enter();	// enter
 
 	// TODO: disable/enable auto reporting, maybe
 
-	g_wiimote_critsec.Leave();	// leave
+	//g_refresh_critsec.Leave();	// leave
+}
+
+void StartWiimoteThreads()
+{
+	g_run_wiimote_thread = true;
+	for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
+		if (g_wiimotes[i])
+			g_wiimote_threads[i] = new Common::Thread(WiimoteThreadFunc, g_wiimotes[i]);
+}
+
+void StopWiimoteThreads()
+{
+	g_run_wiimote_thread = false;
+	for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
+		if (g_wiimote_threads[i])
+		{
+			g_wiimote_threads[i]->WaitForDeath();
+			delete g_wiimote_threads[i];
+			g_wiimote_threads[i] = NULL;
+		}
 }
 
 THREAD_RETURN WiimoteThreadFunc(void* arg)
 {
-	Common::SetCurrentThreadName("Wiimote Thread");
+	Wiimote* const wiimote = (Wiimote*)arg;
 
+	{
+	char thname[] = "Wiimote # Thread";
+	thname[8] = (char)('1' + wiimote->index);
+	Common::SetCurrentThreadName(thname);
+	}
+
+	// rumble briefly
+	wiiuse_rumble(wiimote->wiimote, 1);
+	SLEEP(200);
+	wiiuse_rumble(wiimote->wiimote, 0);
+
+	// main loop
 	while (g_run_wiimote_thread)
 	{
-		g_wiimote_critsec.Enter();	// enter
-
-		for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
-			if (g_wiimotes[i])
-			{
-				g_wiimotes[i]->Read();
-				g_wiimotes[i]->Write();
-			}
-
-		g_wiimote_critsec.Leave();	// leave
-
-		Common::SleepCurrentThread(1);
+		wiimote->Write();
+		if (false == wiimote->Read())
+			Common::SleepCurrentThread(1);	// sleep if there was nothing to read
 	}
 
 	return 0;

@@ -58,11 +58,6 @@ const ReportFeatures reporting_mode_features[] =
 	{ 2, 0, 4, 14, 23 },
     //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
 	{ 2, 4, 7, 17, 23 },
-    //0x3d: 21 Extension Bytes
-	{ 0, 0, 0, 2, 23 },
-    //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
-	// UNSUPPORTED
-	{ 0, 0, 0, 0, 23 },
 };
 
 void EmulateShake( u8* const accel

@@ -57,8 +57,8 @@ public:
 
 	u8* ProcessReadQueue();
 
-	void Read();
-	void Write();
+	bool Read();
+	bool Write();
 	void Disconnect();
 	void DisableDataReporting();
 
@@ -67,15 +67,16 @@ public:
 	// pointer to data, and size of data
 	typedef std::pair<u8*,u8> Report;
 
+	const unsigned int	index;
+	wiimote_t* const	wiimote;
+
 protected:
 	u8	*m_last_data_report;
 	u16	m_channel;
 
 private:
-	void ClearReports();
+	void ClearReadQueue();
 
-	wiimote_t* const	m_wiimote;
-	const unsigned int	m_index;
 	Common::FifoQueue<u8*>		m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 };
