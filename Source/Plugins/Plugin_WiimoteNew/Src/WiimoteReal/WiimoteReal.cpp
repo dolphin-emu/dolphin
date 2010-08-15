@@ -101,9 +101,6 @@ void Wiimote::DisableDataReporting()
 
 void Wiimote::ClearReadQueue()
 {
-	// might be silly
-	while (wiiuse_io_read(wiimote)) {};
-
 	if (m_last_data_report)
 	{
 		delete[] m_last_data_report;

@@ -585,7 +585,7 @@ void GamepadPage::GetProfilePath(std::string& path)
 	}
 }
 
-void GamepadPage::LoadProfile( wxCommandEvent& event )
+void GamepadPage::LoadProfile(wxCommandEvent& event)
 {
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
@@ -604,7 +604,7 @@ void GamepadPage::LoadProfile( wxCommandEvent& event )
 	UpdateGUI();
 }
 
-void GamepadPage::SaveProfile( wxCommandEvent& event )
+void GamepadPage::SaveProfile(wxCommandEvent& event)
 {
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
@@ -615,22 +615,27 @@ void GamepadPage::SaveProfile( wxCommandEvent& event )
 		IniFile inifile;
 		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
 		inifile.Save(fname);
+		
+		m_config_dialog->UpdateProfileComboBox();
 	}
-
-	m_config_dialog->UpdateProfileComboBox();
+	else
+		PanicAlert("You must enter a valid profile name.");
 }
 
-void GamepadPage::DeleteProfile( wxCommandEvent& event )
+void GamepadPage::DeleteProfile(wxCommandEvent& event)
 {
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
 
 	const char* const fnamecstr = fname.c_str();
 
-	if (File::Exists(fnamecstr))
+	if (File::Exists(fnamecstr) && AskYesNo("Are you sure you want to delete \"%s\"?",
+		STR_FROM_WXSTR(profile_cbox->GetValue()).c_str()))
+	{
 		File::Delete(fnamecstr);
 
-	m_config_dialog->UpdateProfileComboBox();
+		m_config_dialog->UpdateProfileComboBox();
+	}
 }
 
 void InputConfigDialog::UpdateDeviceComboBox()
@@ -641,7 +646,8 @@ void InputConfigDialog::UpdateDeviceComboBox()
 	for ( ; i != e; ++i  )
 	{
 		(*i)->device_cbox->Clear();
-		std::vector<ControllerInterface::Device*>::const_iterator di = m_plugin.controller_interface.Devices().begin(),
+		std::vector<ControllerInterface::Device*>::const_iterator
+			di = m_plugin.controller_interface.Devices().begin(),
 			de = m_plugin.controller_interface.Devices().end();
 		for ( ; di!=de; ++di )
 		{
