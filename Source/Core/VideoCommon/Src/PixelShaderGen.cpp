@@ -275,11 +275,11 @@ static const char *tevCInputTable[] = // CC
 	"(cc2.aaa)",           // A2,
 	"(textemp.rgb)",            // TEXC,
 	"(textemp.aaa)",      // TEXA,
-	"(rastemp.rgb)",            // RASC,
-	"(rastemp.aaa)",      // RASA,
+	"(crastemp.rgb)",            // RASC,
+	"(crastemp.aaa)",      // RASA,
 	"float3(1.0f, 1.0f, 1.0f)",              // ONE
 	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
-	"(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
+	"(ckonsttemp.rgb)", //"konsttemp.rgb",        // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
 	"PADERROR", "PADERROR", "PADERROR", "PADERROR"
 };
@@ -300,8 +300,8 @@ static const char *tevAInputTable[] = // CA
 	"cc1",              // A1,
 	"cc2",              // A2,
 	"textemp",         // TEXA,
-	"rastemp",         // RASA,
-	"konsttemp",       // KONST,  (hw1 had quarter)
+	"crastemp",         // RASA,
+	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
 	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
 	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
@@ -487,7 +487,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 			"  float4 alphabump=0;\n"
 			"  float3 tevcoord;\n"
 			"  float2 wrappedcoord, tempcoord;\n"
-			"  float4 cc0, cc1, cc2, cprev;\n\n");
+			"  float4 cc0, cc1, cc2, cprev,crastemp,ckonsttemp;\n\n");
 
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
@@ -739,7 +739,18 @@ static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 			WRITE(p, "tevcoord.xy = wrappedcoord + indtevtrans%d;\n", n);
 	}
 
-	WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
+	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
+
+	bool bCRas = cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC || cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC || cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC || cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC;
+	bool bARas = ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA || ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA;
+
+	if(bCRas || bARas)
+	{
+		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+		WRITE(p, "crastemp = frac(4.0f + rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+	}
+
 
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 	{
@@ -761,13 +772,22 @@ static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 	int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 	int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 
-	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
-	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
+	
 
 	bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
 	bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
 	if (bCKonst || bAKonst )
+	{
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
+		if(kc > 12 || ka > 15)
+		{
+			WRITE(p, "ckonsttemp = frac(4.0f + konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		}
+		else
+		{
+			WRITE(p, "ckonsttemp = konsttemp;\n");
+		}
+	}
 
 	if(cc.a == TEVCOLORARG_CPREV 
 	|| cc.a == TEVCOLORARG_APREV 
@@ -1067,10 +1087,10 @@ static const char *tevFogFuncsTable[] =
 	"",																//?
 	"",																//Linear
 	"",																//?
-	"  fog = 1.0f - pow(2, -8.0f * fog);\n",						//exp
-	"  fog = 1.0f - pow(2, -8.0f * fog * fog);\n",					//exp2
-	"  fog = pow(2, -8.0f * (1.0f - fog));\n",						//backward exp
-	"  fog = 1.0f - fog;\n   fog = pow(2, -8.0f * fog * fog);\n"	//backward exp2
+	"  fog = 1.0f - pow(2.0f, -8.0f * fog);\n",						//exp
+	"  fog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",					//exp2
+	"  fog = pow(2.0f, -8.0f * (1.0f - fog));\n",						//backward exp
+	"  fog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
 };
 
 static void WriteFog(char *&p)

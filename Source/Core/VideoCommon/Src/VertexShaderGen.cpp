@@ -260,18 +260,19 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			if (alpha.matsource) {// from vertex
 				if (components & (VB_HAS_COL0<<j))
 					WRITE(p, "mat.w = color%d.w;\n", j);
-				else WRITE(p, "mat.w = 1;\n");
+				else WRITE(p, "mat.w = 1.0f;\n");
 			}
 			else // from color
 				WRITE(p, "mat.w = "I_MATERIALS".C%d.w;\n", j+2);
 		}
 
-		if (alpha.enablelighting && alpha.ambsource != color.ambsource) {
+		if (alpha.enablelighting) 
+		{
 			if (alpha.ambsource) {// from vertex
 				if (components & (VB_HAS_COL0<<j) )
 					WRITE(p, "lacc.w = color%d.w;\n", j);
 				else
-					WRITE(p, "lacc.w = 0;\n");
+					WRITE(p, "lacc.w = 0.0f;\n");
 			}
 			else // from color
 				WRITE(p, "lacc.w = "I_MATERIALS".C%d.w;\n", j);
