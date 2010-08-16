@@ -142,7 +142,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 	if (!m_throttle)
 	{
 		return;
-	{
+	}
 	else
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
