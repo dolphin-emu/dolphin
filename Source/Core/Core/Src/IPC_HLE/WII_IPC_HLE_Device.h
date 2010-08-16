@@ -101,11 +101,7 @@ protected:
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-
-				// Restore cached address, mauled by emulator's ioctl functions.
-				Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
 				BufferVectorOffset += 4;
-
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
 				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
@@ -118,10 +114,7 @@ protected:
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-
-				Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
 				BufferVectorOffset += 4;
-
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
 				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
