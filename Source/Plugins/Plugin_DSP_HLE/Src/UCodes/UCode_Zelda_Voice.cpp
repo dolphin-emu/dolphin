@@ -579,9 +579,6 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			break;
 		}
 	}
-                    
-	// Necessary for SMG, not for Zelda. Weird. Where's it from?
-	PB.NeedsReset = 0;
 
 ContinueWithBlock:
 	
@@ -732,6 +729,10 @@ ContinueWithBlock:
 	
 			addr++;
 		}
+	}
+	// 03b2, this is the reason of using PB.NeedsReset. Seems to be necessary for SMG, and maybe other games.
+	if (PB.IsBlank == 0){
+		PB.NeedsReset = 0;
 	}
 }
 

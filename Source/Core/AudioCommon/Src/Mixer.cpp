@@ -136,9 +136,16 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 
 void CMixer::PushSamples(short *samples, unsigned int num_samples)
 {
-	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-	if (m_throttle)
+	// Audio Throttle is off. On Ayuanx commit 4717, it is used to write Other Audio.
+	// I've just bring that back, and games like Donkey Kong Jungle Beat (WII) now will
+	// work properly without using Audio Throttle.
+	if (!m_throttle)
 	{
+		return;
+	{
+	else
+	{
+		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (Common::AtomicLoad(m_numSamples) >= MAX_SAMPLES - RESERVED_SAMPLES)
 		{
 			if (g_dspInitialize.pEmulatorState)
