@@ -33,7 +33,7 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 	s64 prod;
 
 	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
-		prod = a * b;
+		prod = (u32)(a * b);
 	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
 		prod = a * (s16)b;
 	else
