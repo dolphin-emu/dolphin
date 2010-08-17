@@ -19,9 +19,7 @@
 #define _PULSE_AUDIO_STREAM_H
 
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
-#include <pulse/simple.h>
-#include <pulse/error.h>
-#include <pulse/gccmacro.h>
+#include <pulse/pulseaudio.h>
 #endif
 
 #include "Common.h"
@@ -37,30 +35,34 @@ public:
 	virtual ~PulseAudio();
 
 	virtual bool Start();
-	virtual void SoundLoop();
 	virtual void Stop(); 
+	virtual void SetVolume(int volume);
 
-	static bool isValid() {
-		return true;
-	}
-	virtual bool usesMixer() const { 
-		return true; 
-	}
+	static bool isValid() {return true;}
+
+	virtual bool usesMixer() const {return true;}
 
 	virtual void Update();
 
 private:
+	virtual void SoundLoop();
+	static void *ThreadTrampoline(void *args);
 	bool PulseInit();
 	void PulseShutdown();
+	bool Write(const void *data, size_t bytes);
+	void SignalMainLoop();
+	static void ContextStateCB(pa_context *c, void *userdata);
+	static void StreamStateCB(pa_stream *s, void * userdata);
+	static void StreamWriteCB(pa_stream *s, size_t length, void *userdata);
 
 	u8 *mix_buffer;
 	Common::Thread *thread;
-	// 0 = continue
-	// 1 = shutdown
-	// 2 = done shutting down.
-	volatile int thread_data;
+	volatile bool thread_running;
 
-	pa_simple *handle;
+	pa_threaded_mainloop *mainloop;
+	pa_context *context;
+	pa_stream *stream;
+	int iVolume;
 #else
 public:
 	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}
@@ -68,4 +70,3 @@ public:
 };
 
 #endif
-

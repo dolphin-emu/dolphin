@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Config.h"
 #include "ConfigDlg.h"
 
@@ -28,24 +27,33 @@ BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
 
-DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
+		const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	
+	wxButton *m_OK = new wxButton(this, wxID_OK, wxT("OK"),
+			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
 	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
 
 	// Create items
-	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
-	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20), wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
+	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"),
+			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"),
+			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"),
+			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"),
+		   	wxDefaultPosition, wxDefaultSize, 0);
+	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20),
+			wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 
-	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100,
+			wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	m_volumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
+	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"),
+				ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
 
 	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
@@ -59,8 +67,9 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
 		wxT("But sometimes enabling this could cause constant noise.\n")
 		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
-	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
-	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound and OpenAL."));
+	m_BackendSelection->
+		SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
+	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound, OpenAL, and PulseAudio."));
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
@@ -75,14 +84,14 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
 	sbSettings->Add(sBackend, 0, wxALL, 2);
 
-	sbSettingsV->Add(m_volumeSlider, 0, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
+	sbSettingsV->Add(m_volumeSlider, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
 	sbSettingsV->Add(m_volumeText, 0, wxALL|wxALIGN_LEFT, 4);
 
 	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
 	sSettings->Add(sbSettingsV, 0, wxALL|wxEXPAND, 4);
 	sMain->Add(sSettings, 0, wxALL|wxEXPAND, 4);
-	
-	sButtons->AddStretchSpacer(); 
+
+	sButtons->AddStretchSpacer();
 	sButtons->Add(m_OK, 0, wxALL, 1);
 	sMain->Add(sButtons, 0, wxALL|wxEXPAND, 4);
 	SetSizerAndFit(sMain);
@@ -145,10 +154,12 @@ bool DSPConfigDialogHLE::SupportsVolumeChanges(std::string backend)
 	//       but getting the backend from string etc. is probably
 	//       too much just to enable/disable a stupid slider...
 	return (backend == BACKEND_DIRECTSOUND ||
-			backend == BACKEND_OPENAL);
+			backend == BACKEND_OPENAL ||
+			backend == BACKEND_PULSEAUDIO);
 }
 
 void DSPConfigDialogHLE::BackendChanged(wxCommandEvent& event)
 {
-	m_volumeSlider->Enable(SupportsVolumeChanges(std::string(m_BackendSelection->GetStringSelection().mb_str())));
+	m_volumeSlider->Enable(SupportsVolumeChanges(
+				std::string(m_BackendSelection->GetStringSelection().mb_str())));
 }

@@ -247,7 +247,7 @@ else:
     conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
     env['HAVE_PORTAUDIO'] = conf.CheckPortaudio(1890)
     conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse-simple')
+    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
     conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
 
     env['HAVE_X11'] = conf.CheckPKG('x11')

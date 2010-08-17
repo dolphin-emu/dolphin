@@ -36,13 +36,12 @@ public:
 	virtual ~DSPConfigDialogHLE();
 	void AddBackend(const char *backend);
 	void ClearBackends();
-	
+
 private:
 	DECLARE_EVENT_TABLE();
-	
+
 	wxSlider* m_volumeSlider;
 	wxStaticText* m_volumeText;
-	wxButton* m_OK;
 	wxCheckBox* m_buttonEnableHLEAudio;
 	wxCheckBox* m_buttonEnableDTKMusic;
 	wxCheckBox* m_buttonEnableThrottle;
@@ -57,7 +56,7 @@ private:
 		ID_BACKEND,
 		ID_VOLUME
 	};
-	
+
 	void OnOK(wxCommandEvent& event);
 	void SettingsChanged(wxCommandEvent& event);
 	void VolumeChanged(wxScrollEvent& event);
