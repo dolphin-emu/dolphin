@@ -312,7 +312,7 @@ else:
         env['binary_dir'] = env['prefix'] + '/bin'
         env['data_dir'] = env['prefix'] + "/share/dolphin-emu"
         env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu'
-        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "/\"")
         conf.Define('LIBS_DIR', "\"" + env['prefix'] + '/lib/' + "\"")
         # Setup destdir for package building
         # Warning: The program will not run from this location.

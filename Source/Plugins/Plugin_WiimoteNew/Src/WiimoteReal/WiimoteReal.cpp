@@ -50,8 +50,8 @@ void StopWiimoteThreads();
 Wiimote *g_wiimotes[MAX_WIIMOTES];
 
 Wiimote::Wiimote(wiimote_t* const _wiimote, const unsigned int _index)
-	: wiimote(_wiimote)
-	, index(_index)
+	: index(_index)
+	, wiimote(_wiimote)
 	, m_last_data_report(NULL)
 	, m_channel(0)
 {
