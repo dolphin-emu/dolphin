@@ -105,8 +105,8 @@ CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote)
 
 	#ifdef _WIN32
 		// F|RES: i dunno if we really need this
-		//CancelIo(m_pWiiMote->dev_handle);
-		CancelIoEx(m_pWiiMote->dev_handle,NULL);
+		CancelIo(m_pWiiMote->dev_handle);
+		//CancelIoEx(m_pWiiMote->dev_handle,NULL); //causing problems under older win systems
 	#endif
 }
 
