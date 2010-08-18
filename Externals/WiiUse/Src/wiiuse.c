@@ -38,7 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 	#include <unistd.h>
 #else
 	#include <Winsock2.h>
@@ -352,7 +352,7 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 	{
 		int x = 2;
 		printf("[DEBUG] (id %i) SEND: (%x) %.2x ", wm->unid, buf[0], buf[1]);
-		#ifndef WIN32
+		#ifndef _WIN32
 		for (; x < len+2; ++x)
 		#else
 		for (; x < len+1; ++x)
@@ -376,7 +376,7 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
  *	@param type		The type of bluetooth stack to use.
  */
 void wiiuse_set_bluetooth_stack(struct wiimote_t** wm, int wiimotes, enum win_bt_stack_t type) {
-	#ifdef WIN32
+	#ifdef _WIN32
 	int i;
 
 	if (!wm)	return;

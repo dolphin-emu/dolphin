@@ -220,7 +220,7 @@ WIIUSE_EXPORT extern int wiiuse_connect(struct wiimote_t** wm, int wiimotes);
 WIIUSE_EXPORT extern void wiiuse_disconnect(struct wiimote_t* wm);
 WIIUSE_EXPORT extern void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte timeout);
 
-#ifdef WIN32
+#ifdef _WIN32
 WIIUSE_EXPORT extern int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lParam);
 WIIUSE_EXPORT extern int wiiuse_register_system_notification(HWND hwnd);
 #endif

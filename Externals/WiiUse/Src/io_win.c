@@ -31,7 +31,7 @@
  *	@brief Handles device I/O for Windows.
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +43,8 @@
 
 #include "definitions.h"
 #include "wiiuse_internal.h"
+
+int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes);
 
 int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	GUID device_id;
@@ -58,8 +60,8 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	// todo: handle/remove (unexpected and forced) disconnected wiimotes here
 
 	// removal of unneeded wiimotes and exiting when we got enough wiimotes connected
-	if(wiiuse_remove(wm, wiimotes, max_wiimotes))
-		return wm;
+	if (wiiuse_remove(wm, wiimotes, max_wiimotes))
+		return max_wiimotes;
 
 	device_data.cbSize = sizeof(device_data);
 
@@ -69,7 +71,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	// get all hid devices connected
 	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
-	for (;wiimotes < max_wiimotes; ++index) {
+	for (index = 0; wiimotes < max_wiimotes; ++index) {
 
 		if (detail_data) {
 			free(detail_data);
@@ -398,4 +400,4 @@ int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes) {
 }
 
 
-#endif /* ifdef WIN32 */
+#endif /* ifdef _WIN32 */

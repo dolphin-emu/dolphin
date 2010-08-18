@@ -34,7 +34,7 @@
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 
-#ifndef WIN32
+#ifndef _WIN32
 #include "Log.h"
 
 // NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
