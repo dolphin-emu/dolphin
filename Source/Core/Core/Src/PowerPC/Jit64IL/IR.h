@@ -286,6 +286,9 @@ public:
 	InstLoc EmitStoreGReg(InstLoc value, unsigned reg) {
 		return FoldUOp(StoreGReg, value, reg);
 	}
+	InstLoc EmitNot(InstLoc op1) {
+		return EmitXor(op1, EmitIntConst(-1U));
+	}
 	InstLoc EmitAnd(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(And, op1, op2);
 	}

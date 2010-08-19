@@ -130,39 +130,55 @@ void JitIL::cmpXX(UGeckoInstruction inst)
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }
 
-void JitIL::orx(UGeckoInstruction inst)
+void JitIL::boolX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
-	val = ibuild.EmitOr(ibuild.EmitLoadGReg(inst.RS), val);
-	ibuild.EmitStoreGReg(val, inst.RA);
-	if (inst.Rc)
-		ComputeRC(ibuild, val);
-}
 
+	IREmitter::InstLoc a = NULL;
+	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
+	IREmitter::InstLoc b = ibuild.EmitLoadGReg(inst.RB);
 
-// m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
-void JitIL::xorx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(Integer)
-	IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
-	val = ibuild.EmitXor(ibuild.EmitLoadGReg(inst.RS), val);
-	ibuild.EmitStoreGReg(val, inst.RA);
-	if (inst.Rc)
-		ComputeRC(ibuild, val);
-}
+	if (inst.SUBOP10 == 28) /* andx */
+	{
+		a = ibuild.EmitAnd(s, b);
+	}
+	else if (inst.SUBOP10 == 476) /* nandx */
+	{
+		a = ibuild.EmitNot(ibuild.EmitAnd(s, b));
+	}
+	else if (inst.SUBOP10 == 60) /* andcx */
+	{
+		a = ibuild.EmitAnd(s, ibuild.EmitNot(b));
+	}
+	else if (inst.SUBOP10 == 444) /* orx */
+	{
+		a = ibuild.EmitOr(s, b);
+	}
+	else if (inst.SUBOP10 == 124) /* norx */
+	{
+		a = ibuild.EmitNot(ibuild.EmitOr(s, b));
+	}
+	else if (inst.SUBOP10 == 412) /* orcx */
+	{
+		a = ibuild.EmitOr(s, ibuild.EmitNot(b));
+	}
+	else if (inst.SUBOP10 == 316) /* xorx */
+	{
+		a = ibuild.EmitXor(s, b);
+	}
+	else if (inst.SUBOP10 == 284) /* eqvx */
+	{
+		a = ibuild.EmitNot(ibuild.EmitXor(s, b));
+	}
+	else
+	{
+		PanicAlert("WTF!");
+	}
 
-void JitIL::andx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(Integer)
-	IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
-	val = ibuild.EmitAnd(ibuild.EmitLoadGReg(inst.RS), val);
-	ibuild.EmitStoreGReg(val, inst.RA);
+	ibuild.EmitStoreGReg(a, inst.RA);
 	if (inst.Rc)
-		ComputeRC(ibuild, val);
+		ComputeRC(ibuild, a);
 }
 
 void JitIL::extsbx(UGeckoInstruction inst)
