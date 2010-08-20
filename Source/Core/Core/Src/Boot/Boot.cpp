@@ -135,9 +135,9 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	return success;
 }
 
-// This function does *some* of what BS1 does: loading IPL(BS2) and jumping to it
-// It does not initialize the hardware or anything else like BS1 does
-// We should eventually just load BS1 and let it take care of everything :)
+// If ipl.bin is not found, this function does *some* of what BS1 does: 
+// loading IPL(BS2) and jumping to it.
+// It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 {
 	// Load the whole ROM dump
@@ -148,10 +148,9 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
 
-	//File::WriteStringToFile(false, data, "decrypted_bs1_bs2.bin");
-	//Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
+	Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
 	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, 0x1AFE00);
-	PC = 0x81300000;
+	PC = 0x81200000;
     return true;
 }
 

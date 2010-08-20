@@ -148,7 +148,7 @@ void Init(int cpu_core)
 		jit = new JitIL;
 	jit->Init();
 	// ... but start as interpreter by default.
-	mode = MODE_INTERPRETER;
+	mode = MODE_JIT;
 	state = CPU_STEPPING;
 
 	ppcState.iCache.Reset();

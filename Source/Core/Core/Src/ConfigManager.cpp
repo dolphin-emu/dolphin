@@ -262,7 +262,7 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListUnknown",		&m_ListUnknown, true);
 
 		// Core
-		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		true);
+		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
 		ini.Get("Core", "EnableOpenCL",	&m_LocalCoreStartupParameter.bEnableOpenCL,	false);
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
