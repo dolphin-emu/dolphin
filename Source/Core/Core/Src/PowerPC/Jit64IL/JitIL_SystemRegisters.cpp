@@ -128,63 +128,31 @@ void JitIL::mftb(UGeckoInstruction inst)
 
 void JitIL::mfcr(UGeckoInstruction inst)
 {
-	Default(inst); return;
-#if 0
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
-	{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
-	// USES_CR
-	int d = inst.RD;
-	gpr.LoadToX64(d, false, true);
-	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[0]));
-	SHL(32, R(EAX), Imm8(4));
-	for (int i = 1; i < 7; i++) {
-		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[i]));
-		SHL(32, R(EAX), Imm8(4));
+	JITDISABLE(SystemRegisters)
+
+	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
+	for (int i = 0; i < 8; ++i)
+	{
+		d = ibuild.EmitShl(d, ibuild.EmitIntConst(4));
+		d = ibuild.EmitOr(d, ibuild.EmitLoadCR(i));
 	}
-	OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[7]));
-	MOV(32, gpr.R(d), R(EAX));
-#endif
+	ibuild.EmitStoreGReg(d, inst.RD);
 }
 
 void JitIL::mtcrf(UGeckoInstruction inst)
 {
-	Default(inst); return;
-#if 0
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
-	{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
+	JITDISABLE(SystemRegisters)
 
-	// USES_CR
-	u32 mask = 0;
-	u32 crm = inst.CRM;
-	if (crm == 0xFF) {
-		gpr.FlushLockX(ECX);			
-		MOV(32, R(EAX), gpr.R(inst.RS));
-		for (int i = 0; i < 8; i++) {
-			MOV(32, R(ECX), R(EAX));
-			SHR(32, R(ECX), Imm8(28 - (i * 4)));
-			AND(32, R(ECX), Imm32(0xF));
-			MOV(8, M(&PowerPC::ppcState.cr_fast[i]), R(ECX));
+	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
+	for (int i = 0; i < 8; ++i)
+	{
+		if (inst.CRM & (1 << i))
+		{
+			ibuild.EmitStoreCR(ibuild.EmitAnd(ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - 4 * i)), ibuild.EmitIntConst(0xf)), i);
 		}
-		gpr.UnlockAllX();
-	} else {
-		Default(inst);
-		return;
-
-		// TODO: translate this to work in new CR model.
-		for (int i = 0; i < 8; i++) {
-			if (crm & (1 << i))
-				mask |= 0xF << (i*4);
-		}
-		MOV(32, R(EAX), gpr.R(inst.RS));
-		MOV(32, R(ECX), M(&PowerPC::ppcState.cr));
-		AND(32, R(EAX), Imm32(mask));
-		AND(32, R(ECX), Imm32(~mask));
-		OR(32, R(EAX), R(ECX));
-		MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
 	}
-#endif
 }
 
 void JitIL::crXX(UGeckoInstruction inst)
