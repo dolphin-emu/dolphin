@@ -168,6 +168,7 @@ public:
 	void mftb(UGeckoInstruction inst);
 	void mtcrf(UGeckoInstruction inst);
 	void mfcr(UGeckoInstruction inst);
+	void mcrf(UGeckoInstruction inst);
 	void crXX(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);

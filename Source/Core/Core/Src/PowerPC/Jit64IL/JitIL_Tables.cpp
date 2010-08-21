@@ -186,7 +186,7 @@ static GekkoOPTemplate table19[] =
 	{193, &JitIL::crXX}, //"crxor",  OPTYPE_CR, FL_EVIL}},
 												   
 	{150, &JitIL::DoNothing}, //"isync",  OPTYPE_ICACHE, FL_EVIL}},
-	{0,   &JitIL::mfcr}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
+	{0,   &JitIL::mcrf}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 												   
 	{50,  &JitIL::rfi}, //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &JitIL::Default}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}

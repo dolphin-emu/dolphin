@@ -155,6 +155,17 @@ void JitIL::mtcrf(UGeckoInstruction inst)
 	}
 }
 
+void JitIL::mcrf(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(SystemRegisters)
+
+	if (inst.CRFS != inst.CRFD)
+	{
+		ibuild.EmitStoreCR(ibuild.EmitLoadCR(inst.CRFS), inst.CRFD);
+	}
+}
+
 void JitIL::crXX(UGeckoInstruction inst)
 {
 	// Ported from Jit_SystemRegister.cpp
