@@ -56,7 +56,7 @@ public:
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,
 	//            converted to a pair of floats.
 	// Trashes: EAX ECX EDX
-	const u8 GC_ALIGNED16(*pairedLoadQuantized[8]);
+	const u8 GC_ALIGNED16(*pairedLoadQuantized[16]);
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.

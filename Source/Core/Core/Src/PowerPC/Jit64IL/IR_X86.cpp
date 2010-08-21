@@ -725,7 +725,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case LoadDouble:
 		case LoadSingle:
 		case LoadPaired:
-		case CFloatOne:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1170,16 +1169,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			regNormalRegClear(RI, I);
 			break;
 		}
-		case CFloatOne: {
-			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			static const float one = 1.0f;
-			Jit->MOV(32, R(ECX), Imm32(*(u32*)&one));
-			Jit->MOVD_xmm(reg, R(ECX));
-			RI.fregs[reg] = I;
-			regNormalRegClear(RI, I);
-			break;
-		}
 		case LoadDouble: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1200,9 +1189,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			regSpill(RI, EAX);
 			regSpill(RI, EDX);
 			X64Reg reg = fregFindFreeReg(RI);
-			unsigned int quantreg = *I >> 16;
+			// The lower 3 bits is for GQR index. The next 1 bit is for inst.W
+			unsigned int quantreg = (*I >> 16) & 0x7;
+			unsigned int w = *I >> 19;
 			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
+			Jit->OR(32, R(EDX), Imm8(w << 3));
 			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
 #ifdef _M_IX86
 			Jit->SHL(32, R(EDX), Imm8(2));

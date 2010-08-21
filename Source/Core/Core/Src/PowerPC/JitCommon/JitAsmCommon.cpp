@@ -148,6 +148,7 @@ void CommonAsmRoutines::GenFifoXmm64Write()
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
+static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
 static const float GC_ALIGNED16(m_quantizeTableS[]) =
@@ -198,6 +199,8 @@ static const float GC_ALIGNED16(m_m32768) = -32768.0f;
 static const float GC_ALIGNED16(m_255) = 255.0f;
 static const float GC_ALIGNED16(m_127) = 127.0f;
 static const float GC_ALIGNED16(m_m128) = -128.0f;
+
+static const float GC_ALIGNED16(m_one[]) = {1.0f, 0.0f, 0.0f, 0.0f};
 
 #define QUANTIZE_OVERFLOW_SAFE
 
@@ -426,7 +429,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 void CommonAsmRoutines::GenQuantizedLoads() {
 	const u8* loadPairedIllegal = AlignCode4();
 	UD2();
-	const u8* loadPairedFloat = AlignCode4();
+
+	const u8* loadPairedFloatTwo = AlignCode4();
 	if (cpu_info.bSSSE3) {
 #ifdef _M_X64
 		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
@@ -465,7 +469,33 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	}
 	RET();
 
-	const u8* loadPairedU8 = AlignCode4();
+	const u8* loadPairedFloatOne = AlignCode4();
+	if (cpu_info.bSSSE3) {
+#ifdef _M_X64
+		MOVD_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
+#else
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVD_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
+#endif
+		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
+		UNPCKLPS(XMM0, M((void*)m_one));
+	} else {
+#ifdef _M_X64
+		MOV(32, R(RCX), MComplex(RBX, RCX, 1, 0));
+		BSWAP(32, RCX);
+		MOVD_xmm(XMM0, R(RCX));
+		UNPCKLPS(XMM0, M((void*)m_one));
+#else
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
+		BSWAP(32, EAX);
+		MOVD_xmm(XMM0, M(&psTemp[0]));
+		UNPCKLPS(XMM0, M((void*)m_one));
+#endif
+	}
+	RET();
+
+	const u8* loadPairedU8Two = AlignCode4();
 	UnsafeLoadRegToRegNoSwap(ECX, ECX, 16, 0);
 	MOVD_xmm(XMM0, R(ECX));
 	PXOR(XMM1, R(XMM1));
@@ -478,7 +508,17 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	MULPS(XMM0, R(XMM1));
 	RET();
 
-	const u8* loadPairedS8 = AlignCode4();
+	const u8* loadPairedU8One = AlignCode4();
+	UnsafeLoadRegToRegNoSwap(ECX, ECX, 8, 0);	// ECX = 0x000000xx
+	MOVD_xmm(XMM0, R(ECX));
+	CVTDQ2PS(XMM0, R(XMM0));	// Is CVTSI2SS better?
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	UNPCKLPS(XMM0, M((void*)m_one));
+	RET();
+
+	const u8* loadPairedS8Two = AlignCode4();
 	UnsafeLoadRegToRegNoSwap(ECX, ECX, 16, 0);
 	MOVD_xmm(XMM0, R(ECX));
 	PUNPCKLBW(XMM0, R(XMM0));
@@ -491,7 +531,19 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	MULPS(XMM0, R(XMM1));
 	RET();
 
-	const u8* loadPairedU16 = AlignCode4();
+	const u8* loadPairedS8One = AlignCode4();
+	UnsafeLoadRegToRegNoSwap(ECX, ECX, 8, 0);
+	SHL(32, R(ECX), Imm8(24));
+	SAR(32, R(ECX), Imm8(24));
+	MOVD_xmm(XMM0, R(ECX));
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	UNPCKLPS(XMM0, M((void*)m_one));
+	RET();
+
+	const u8* loadPairedU16Two = AlignCode4();
 	UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
 	ROL(32, R(ECX), Imm8(16));
 	MOVD_xmm(XMM0, R(ECX));
@@ -504,7 +556,18 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	MULPS(XMM0, R(XMM1));
 	RET();
 
-	const u8* loadPairedS16 = AlignCode4();
+	const u8* loadPairedU16One = AlignCode4();
+	UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+	SHR(32, R(ECX), Imm8(16));
+	MOVD_xmm(XMM0, R(ECX));
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	UNPCKLPS(XMM0, M((void*)m_one));
+	RET();
+
+	const u8* loadPairedS16Two = AlignCode4();
 	UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
 	ROL(32, R(ECX), Imm8(16));
 	MOVD_xmm(XMM0, R(ECX));
@@ -518,12 +581,33 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	MULPS(XMM0, R(XMM1));
 	RET();
 
-	pairedLoadQuantized[0] = loadPairedFloat;
+	const u8* loadPairedS16One = AlignCode4();
+	UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+	SAR(32, R(ECX), Imm8(16));
+	MOVD_xmm(XMM0, R(ECX));
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	AND(32, R(EAX), Imm32(0xFC));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_dequantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	UNPCKLPS(XMM0, M((void*)m_one));
+	RET();
+
+	pairedLoadQuantized[0] = loadPairedFloatTwo;
 	pairedLoadQuantized[1] = loadPairedIllegal;
 	pairedLoadQuantized[2] = loadPairedIllegal;
 	pairedLoadQuantized[3] = loadPairedIllegal;
-	pairedLoadQuantized[4] = loadPairedU8;
-	pairedLoadQuantized[5] = loadPairedU16;
-	pairedLoadQuantized[6] = loadPairedS8;
-	pairedLoadQuantized[7] = loadPairedS16;
+	pairedLoadQuantized[4] = loadPairedU8Two;
+	pairedLoadQuantized[5] = loadPairedU16Two;
+	pairedLoadQuantized[6] = loadPairedS8Two;
+	pairedLoadQuantized[7] = loadPairedS16Two;
+
+	pairedLoadQuantized[8] = loadPairedFloatOne;
+	pairedLoadQuantized[9] = loadPairedIllegal;
+	pairedLoadQuantized[10] = loadPairedIllegal;
+	pairedLoadQuantized[11] = loadPairedIllegal;
+	pairedLoadQuantized[12] = loadPairedU8One;
+	pairedLoadQuantized[13] = loadPairedU16One;
+	pairedLoadQuantized[14] = loadPairedS8One;
+	pairedLoadQuantized[15] = loadPairedS16One;
 }
