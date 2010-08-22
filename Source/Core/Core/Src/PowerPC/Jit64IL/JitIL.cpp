@@ -227,7 +227,7 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 	if (js.isLastInstruction)
 	{
 		MOV(32, R(EAX), M(&NPC));
-		WriteRfiExitDestInEAX();
+		WriteRfiExitDestInOpArg(R(EAX));
 	}
 }
 
@@ -248,7 +248,7 @@ void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInEAX(0);
+	WriteExitDestInOpArg(R(EAX), 0);
 }
 
 void JitIL::DoNothing(UGeckoInstruction _inst)
@@ -316,17 +316,17 @@ void JitIL::WriteExit(u32 destination, int exit_num)
 	}
 }
 
-void JitIL::WriteExitDestInEAX(int exit_num) 
+void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg, int exit_num)
 {
-	MOV(32, M(&PC), R(EAX));
+	MOV(32, M(&PC), arg);
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
 }
 
-void JitIL::WriteRfiExitDestInEAX() 
+void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
-	MOV(32, M(&PC), R(EAX));
+	MOV(32, M(&PC), arg);
 	Cleanup();
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);

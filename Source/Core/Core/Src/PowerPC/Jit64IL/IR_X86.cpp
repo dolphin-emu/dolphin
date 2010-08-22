@@ -653,9 +653,7 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
 		RI.Jit->WriteExit(RI.Build->GetImmValue(dest), RI.exitNumber++);
 	} else {
-		if (!regLocForInst(RI, dest).IsSimpleReg(EAX))
-			RI.Jit->MOV(32, R(EAX), regLocForInst(RI, dest));
-		RI.Jit->WriteExitDestInEAX(RI.exitNumber++);
+		RI.Jit->WriteExitDestInOpArg(regLocForInst(RI, dest), RI.exitNumber++);
 	}
 }
 
@@ -1608,7 +1606,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case InterpreterBranch: {
 			Jit->MOV(32, R(EAX), M(&NPC));
-			Jit->WriteExitDestInEAX(0);
+			Jit->WriteExitDestInOpArg(R(EAX), 0);
 			break;
 		}
 		case RFIExit: {
@@ -1625,7 +1623,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOV(32, M(&MSR), R(EAX));
 			// NPC = SRR0; 
 			Jit->MOV(32, R(EAX), M(&SRR0));
-			Jit->WriteRfiExitDestInEAX();
+			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
 		case FPExceptionCheckStart: {

@@ -110,9 +110,9 @@ public:
 	// Utilities for use by opcodes
 
 	void WriteExit(u32 destination, int exit_num);
-	void WriteExitDestInEAX(int exit_num);
+	void WriteExitDestInOpArg(const Gen::OpArg& arg, int exit_num);
 	void WriteExceptionExit();
-	void WriteRfiExitDestInEAX();
+	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 	
