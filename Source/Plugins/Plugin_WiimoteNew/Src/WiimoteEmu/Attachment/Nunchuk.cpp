@@ -111,7 +111,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			m_udpWrap->inst->getNunchuckAccel(x,y,z);
 			accel->x=u8(x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
 			accel->y=u8(y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
-			accel->z=u8(-z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
+			accel->z=u8(z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
 		}	
 	}
 	//End UDPNunchuck

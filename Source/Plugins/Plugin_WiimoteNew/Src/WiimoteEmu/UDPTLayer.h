@@ -36,7 +36,7 @@ namespace UDPTLayer
 		m->inst->getAccel(x,y,z);
 		data->x=u8(x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
 		data->y=u8(y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
-		data->z=u8(-z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
+		data->z=u8(z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
 	}
 
 	void GetIR( UDPWrapper * m, float * x,  float * y,  float * z)
