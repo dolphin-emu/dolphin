@@ -27,7 +27,8 @@ public:
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset);
 	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
-	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
+	void UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend);
+	void SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend);
 	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, bool swap = true);
 
 	// Trashes both inputs and EAX.

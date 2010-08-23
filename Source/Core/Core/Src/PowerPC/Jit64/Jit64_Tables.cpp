@@ -77,14 +77,14 @@ static GekkoOPTemplate primarytable[] =
 	{28, &Jit64::reg_imm}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, &Jit64::reg_imm}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-	{32, &Jit64::lXz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &Jit64::Default}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, &Jit64::lXz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, &Jit64::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, &Jit64::lXz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, &Jit64::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{42, &Jit64::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{43, &Jit64::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{32, &Jit64::lXXx}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{33, &Jit64::lXXx}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{34, &Jit64::lXXx}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{35, &Jit64::lXXx}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{40, &Jit64::lXXx}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{41, &Jit64::lXXx}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{42, &Jit64::lXXx}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{43, &Jit64::lXXx}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
 	{44, &Jit64::stX}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{45, &Jit64::stX}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
@@ -220,20 +220,20 @@ static GekkoOPTemplate table31[] =
 	{1014, &Jit64::dcbz}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  &Jit64::lwzx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &Jit64::lwzux}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{23,  &Jit64::lXXx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  &Jit64::lXXx}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
-	{279, &Jit64::Default}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, &Jit64::Default}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{279, &Jit64::lXXx}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{311, &Jit64::lXXx}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, &Jit64::lhax}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &Jit64::Default}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{343, &Jit64::lXXx}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{375, &Jit64::lXXx}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
-	{87,  &Jit64::lbzx}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, &Jit64::Default}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{87,  &Jit64::lXXx}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{119, &Jit64::lXXx}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
 	{534, &Jit64::Default}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
