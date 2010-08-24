@@ -414,7 +414,7 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	if (buttons)
 	{
 		buttons[0]|=(u8(cx*4)&3)<<5;
-		buttons[1]|=((u8(cy*4)&1)<<5)|((u8(cz*4)&1)<<6);
+		buttons[1]|=((u8(cy*2)&1)<<5)|((u8(cz*2)&1)<<6);
 	}
 }
 
