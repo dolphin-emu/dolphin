@@ -68,8 +68,8 @@ THREAD_RETURN UDPWiiThread(void* arg)
 
 UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) : 
 	port(_port), displayName(name),
-	d(new _d) ,x(0),y(0),z(0),naX(0),naY(0),naZ(0),nunX(0),nunY(0),
-	pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
+	d(new _d) ,x(0),y(0),z(1.0f),naX(0),naY(0),naZ(-1.0f),nunX(0),nunY(0),
+	pointerX(1001.0f/2),pointerY(0),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
 {
 		
 	static bool sranded=false;

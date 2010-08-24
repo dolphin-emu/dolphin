@@ -14,6 +14,10 @@
 
 #include "UDPTLayer.h"
 
+inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
+
+#include "MatrixMath.h"
+
 namespace WiimoteEmu
 {
 
@@ -38,8 +42,6 @@ static const u8 eeprom_data_16D0[] = {
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
-#define SWING_INTENSITY		0x40
-
 const ReportFeatures reporting_mode_features[] = 
 {
     //0x30: Core Buttons
@@ -58,6 +60,11 @@ const ReportFeatures reporting_mode_features[] =
 	{ 2, 0, 4, 14, 23 },
     //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
 	{ 2, 4, 7, 17, 23 },
+    //0x3d: 21 Extension Bytes
+	{ 0, 0, 0, 2, 23 },
+    //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+	// UNSUPPORTED
+	{ 0, 0, 0, 0, 23 },
 };
 
 void EmulateShake( u8* const accel
@@ -79,20 +86,12 @@ void EmulateShake( u8* const accel
 			shake_step[i] = 0;
 }
 
-void EmulateTilt(wm_accel* const accel
+void EmulateTilt(AccelData* const accel
 	, ControllerEmu::Tilt* const tilt_group
-	, const accel_cal* const cal
 	, const bool focus, const bool sideways, const bool upright)
 {
 	float roll, pitch;
 	tilt_group->GetState( &roll, &pitch, 0, focus ? (PI / 2) : 0 ); // 90 degrees
-
-	// this isn't doing anything with those low bits in the calib data, o well
-
-	const u8* const zero_g = &cal->zero_g.x;
-	s8 one_g[3];
-	for ( unsigned int i=0; i<3; ++i )
-		one_g[i] = (&cal->one_g.x)[i] - zero_g[i];
 
 	unsigned int	ud = 0, lr = 0, fb = 0;
 
@@ -107,20 +106,22 @@ void EmulateTilt(wm_accel* const accel
 	lr = sideways;
 	fb = upright ? 2 : (sideways ? 0 : 1);
 
-	if (sideways && !upright)
-		one_g[fb] *= -1;
-	if (!sideways && upright)
-		one_g[ud] *= -1;
+	int sgn[3]={-1,1,1}; //sign fix
 
-	(&accel->x)[ud] = u8(sin((PI / 2) -
-		std::max(fabsf(roll), fabsf(pitch))) * one_g[ud] + zero_g[ud]);
-	(&accel->x)[lr] = u8(sin(roll) * -one_g[lr] + zero_g[lr]);
-	(&accel->x)[fb] = u8(sin(pitch) * one_g[fb] + zero_g[fb]);
+	if (sideways && !upright)
+		sgn[fb] *= -1;
+	if (!sideways && upright)
+		sgn[ud] *= -1;
+
+	(&accel->x)[ud] = (sin((PI / 2) - std::max(fabsf(roll), fabsf(pitch))))*sgn[ud];
+	(&accel->x)[lr] = -sin(roll)*sgn[lr];
+	(&accel->x)[fb] = sin(pitch)*sgn[fb];
 }
 
-void EmulateSwing(wm_accel* const accel
+#define SWING_INTENSITY		2.5f//-uncalibrated(aprox) 0x40-calibrated
+
+void EmulateSwing(AccelData* const accel
 	, ControllerEmu::Force* const swing_group
-	, const accel_cal* const cal
 	, const bool sideways, const bool upright)
 {
 	float swing[3];
@@ -383,27 +384,41 @@ void Wiimote::GetCoreData(u8* const data)
 	*(wm_core*)data |= m_status.buttons;
 }
 
-void Wiimote::GetAccelData(u8* const data)
+void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 {
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
 
 	// ----TILT----
-	EmulateTilt((wm_accel*)data, m_tilt, (accel_cal*)&m_eeprom[0x16], has_focus, is_sideways, is_upright);
+	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
 
 	// ----SWING----
 	// ----SHAKE----
 	if (has_focus)
 	{
-		EmulateSwing((wm_accel*)data, m_swing, (accel_cal*)&m_eeprom[0x16], is_sideways, is_upright);
+		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
 		EmulateShake(data, m_shake, m_shake_step);
 		// UDP Wiimote
-		UDPTLayer::GetAcceleration(m_udp, (wm_accel*)data, (accel_cal*)&m_eeprom[0x16]);
+		UDPTLayer::GetAcceleration(m_udp, &m_accel);
+	}
+	wm_accel* dt = (wm_accel*)data;
+	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
+	double cx,cy,cz;
+	cx=m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x;
+	cy=m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y;
+	cz=m_accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z;
+	dt->x=u8(cx);
+	dt->y=u8(cy);
+	dt->z=u8(cz);
+	if (buttons)
+	{
+		buttons[0]|=(u8(cx*4)&3)<<5;
+		buttons[1]|=((u8(cy*4)&1)<<5)|((u8(cz*4)&1)<<6);
 	}
 }
 
-void Wiimote::GetIRData(u8* const data)
+void Wiimote::GetIRData(u8* const data, bool use_accel)
 {
 	const bool has_focus = HAS_FOCUS;
 
@@ -413,40 +428,82 @@ void Wiimote::GetIRData(u8* const data)
 	if (has_focus)
 	{
 		float xx = 10000, yy = 0, zz = 0;
-		float tx, ty;
+		double sin,cos;
+		
+		if (use_accel)
+		{
+			double ax,az,len;
+			ax=m_accel.x;
+			az=m_accel.z;
+			len=sqrt(ax*ax+az*az);
+			if (len)
+			{
+				ax/=len; 
+				az/=len; //normalizing the vector
+				sin=-ax;
+				cos=az;
+			} else
+			{
+				sin=0;
+				cos=1;
+			}
+		//	PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
+			//PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
+			//	calib->one_g.x,calib->one_g.y,calib->one_g.z);
+		} else
+		{
+			sin=0; //m_tilt stuff here (can't figure it out yet....)
+			cos=1;
+		}
 
 		m_ir->GetState(&xx, &yy, &zz, true);
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
 
-		m_tilt->GetState(&tx, &ty, 0, PI/2, false);
+		Vertex v[4];
+		
+		static const int camWidth=1024;
+		static const int camHeight=768;
+		static const double bndup=-0.315447;	
+		static const double bnddown=0.85;	
+		static const double bndleft=0.443364;		
+		static const double bndright=-0.443364;	
+		static const double dist1=250.0f/camWidth; //this seems the optimal distance for zelda
+		static const double dist2=1.2f*dist1;
 
-		// disabled cause my math still fails
-		const float rsin = 0;//sin(tx);
-		const float rcos = 1;//cos(tx);
-
+		for (int i=0; i<4; i++)
 		{
-			const float xxx = (xx * -256 * 0.95f);
-			const float yyy = (yy * -256 * 0.90f);
-
-			xx = 512 + xxx * rcos + (144 + yyy) * rsin;
-			yy = 384 + (108 + yyy) * rcos - xxx * rsin;
+			v[i].x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
+			v[i].y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
+			v[i].z=0;
 		}
 
-		// dot distance of 25 is too little
-		const unsigned int distance = (unsigned int)(150 + 100 * zz);
+		v[0].x-=(zz*0.5+1)*dist1;
+		v[1].x+=(zz*0.5+1)*dist1;
+		v[2].x-=(zz*0.5+1)*dist2;
+		v[3].x+=(zz*0.5+1)*dist2;
 
-		x[0] = (unsigned int)(xx - distance * rcos);
-		x[1] = (unsigned int)(xx + distance * rcos);
-		x[2] = (unsigned int)(xx - 1.2f * distance * rcos);
-		x[3] = (unsigned int)(xx + 1.2f * distance * rcos);
+#define printmatrix(m) PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",m[0][0],m[0][1],m[0][2],m[0][3],m[1][0],m[1][1],m[1][2],m[1][3],m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3])
+		Matrix rot,tot;
+		static Matrix scale;
+		static bool isscale=false;
+		if (!isscale)
+			MatrixScale(scale,1,camWidth/camHeight,1);
+		//MatrixRotationByZ(rot,sin,cos);
+		MatrixIdentity(rot);
+		MatrixMultiply(tot,scale,rot);
 
-		y[0] = (unsigned int)(yy - 0.75 * distance * rsin);
-		y[1] = (unsigned int)(yy + 0.75 * distance * rsin);
-		y[2] = (unsigned int)(yy - 0.75 * 1.2f * distance * rsin);
-		y[3] = (unsigned int)(yy + 0.75 * 1.2f * distance * rsin);
-
+		for (int i=0; i<4; i++)
+		{
+			MatrixTransformVertex(tot,v[i]);
+			if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
+				continue;
+			x[i]=(u16)round((v[i].x+1)/2*(camWidth-1));
+			y[i]=(u16)round((v[i].y+1)/2*(camHeight-1));
+		}
+	//	PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
+	//		v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
+	//		x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
 	}
-
 	// Fill report with valid data when full handshake was done
 	if (m_reg_ir->data[0x30])
 	// ir mode
@@ -498,6 +555,7 @@ void Wiimote::GetIRData(u8* const data)
 		break;
 	// full
 	case 5 :
+		PanicAlert("Full IR report");
 		// UNSUPPORTED
 		break;
 	}
@@ -570,11 +628,11 @@ void Wiimote::Update()
 
 	// acceleration
 	if (rptf.accel)
-		GetAccelData(data + rptf.accel);
+		GetAccelData(data + rptf.accel, rptf.core?(data+rptf.core):NULL);
 
 	// IR
 	if (rptf.ir)
-		GetIRData(data + rptf.ir);
+		GetIRData(data + rptf.ir, (rptf.accel!=NULL)); 
 
 	// extension
 	if (rptf.ext)

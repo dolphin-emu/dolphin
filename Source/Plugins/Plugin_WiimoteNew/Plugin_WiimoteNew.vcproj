@@ -542,6 +542,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\WiimoteEmu\MatrixMath.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\WiimoteEmu\Speaker.cpp"
 				>
 			</File>

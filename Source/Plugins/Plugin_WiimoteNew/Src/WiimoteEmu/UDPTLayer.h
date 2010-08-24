@@ -28,22 +28,22 @@ namespace UDPTLayer
 		*butt|=(mask&UDPWM_BR)?Wiimote::PAD_RIGHT:0;
 	}
 
-	void GetAcceleration(UDPWrapper * m , wm_accel * data, accel_cal * calib)
+	void GetAcceleration(UDPWrapper * m , WiimoteEmu::AccelData * const data)
 	{
 		if (!(m->inst)) return;
 		if (!(m->updAccel)) return;
 		float x,y,z;
 		m->inst->getAccel(x,y,z);
-		data->x=u8(x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
-		data->y=u8(y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
-		data->z=u8(z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
+		data->x=x;
+		data->y=y;
+		data->z=z;
 	}
 
 	void GetIR( UDPWrapper * m, float * x,  float * y,  float * z)
 	{
 		if (!(m->inst)) return;
 		if (!(m->updIR)) return;
-		if ((*x>-1)&&(*x<1)&&(*y>-1)&&(*y<1)) return; //the recieved values are used ONLY when the normal pointer is offscreen
+		if ((*x>=-0.999)&&(*x<=0.999)&&(*y>=-0.999)&&(*y<=0.999)) return; //the recieved values are used ONLY when the normal pointer is offscreen
 		float _x,_y;
 		m->inst->getIR(_x,_y);
 		*x=_x*2-1;

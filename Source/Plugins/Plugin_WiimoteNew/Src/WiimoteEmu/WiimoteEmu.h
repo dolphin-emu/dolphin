@@ -37,20 +37,23 @@ struct ReportFeatures
 	u8		core, accel, ir, ext, size;
 };
 
+struct AccelData
+{
+	double x,y,z;
+};	
+
 extern const ReportFeatures reporting_mode_features[];
 
 void EmulateShake(u8* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
 	  , unsigned int* const shake_step);
 
-void EmulateTilt(wm_accel* const accel
+void EmulateTilt(AccelData* const accel
 	 , ControllerEmu::Tilt* const tilt_group
-	 , const accel_cal* const cal
 	 , const bool focus, const bool sideways = false, const bool upright = false);
 
-void EmulateSwing(wm_accel* const accel
+void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
-	 , const accel_cal* const cal
 	 , const bool sideways = false, const bool upright = false);
 
 class Wiimote : public ControllerEmu
@@ -90,8 +93,8 @@ protected:
 	void HandleExtensionSwap();
 
 	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data);
-	void GetIRData(u8* const data);
+	void GetAccelData(u8* const data, u8* const buttons);
+	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 
 	bool HaveExtension() const { return m_extension->active_extension > 0; }
@@ -128,6 +131,8 @@ private:
 	ControlGroup*			m_rumble;
 	Extension*				m_extension;
 	ControlGroup*			m_options;
+	// WiiMote accel data
+	AccelData				m_accel;
 
 	//UDPWiimote
 	UDPWrapper* m_udp;

@@ -66,14 +66,16 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 
 	// stick / not using calibration data for stick, o well
 	m_stick->GetState(&ncdata->jx, &ncdata->jy, 0x80, focus ? 127 : 0);
+	
+	AccelData accel;
 
 	// tilt
-	EmulateTilt((wm_accel*)&ncdata->ax, m_tilt, (accel_cal*)&reg[0x20], focus);
+	EmulateTilt(&accel, m_tilt, focus);
 
 	if (focus)
 	{
 		// swing
-		EmulateSwing((wm_accel*)&ncdata->ax, m_swing, (accel_cal*)&reg[0x20]);
+		EmulateSwing(&accel, m_swing);
 		// shake
 		EmulateShake(&ncdata->ax, m_shake, m_shake_step);
 		// buttons
@@ -105,16 +107,20 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		}
 		if (m_udpWrap->updNunAccel)
 		{
-			const accel_cal * const calib = (accel_cal*)&reg[0x20];
-			wm_accel * const accel = (wm_accel*)&ncdata->ax;
 			float x,y,z;
 			m_udpWrap->inst->getNunchuckAccel(x,y,z);
-			accel->x=u8(x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
-			accel->y=u8(y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
-			accel->z=u8(z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
+			accel.x=x;
+			accel.y=y;
+			accel.z=z;
 		}	
 	}
 	//End UDPNunchuck
+
+	wm_accel* dt = (wm_accel*)&ncdata->ax;
+	accel_cal* calib = (accel_cal*)&reg[0x20];
+	dt->x=u8(accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
+	dt->y=u8(accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
+	dt->z=u8(accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
 }
 
 
