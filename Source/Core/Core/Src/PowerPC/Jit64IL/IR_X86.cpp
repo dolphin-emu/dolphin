@@ -297,6 +297,27 @@ static X64Reg regUReg(RegInfo& RI, InstLoc I) {
 	return reg;
 }
 
+static X64Reg fregUReg(RegInfo& RI, InstLoc I) {
+	if (RI.IInfo[I - RI.FirstI] & 4 && fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+		return fregLocForInst(RI, getOp1(I)).GetSimpleReg();
+	}
+	X64Reg reg = fregFindFreeReg(RI);
+	return reg;
+}
+
+// If the lifetime of the register used by an operand ends at I,
+// return the register. Otherwise return a free register.
+static X64Reg regBinReg(RegInfo& RI, InstLoc I) {
+	if (RI.IInfo[I - RI.FirstI] & 4 && regLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+		return regLocForInst(RI, getOp1(I)).GetSimpleReg();
+	} else if (RI.IInfo[I - RI.FirstI] & 8 && regLocForInst(RI, getOp2(I)).IsSimpleReg()) {
+		return regLocForInst(RI, getOp2(I)).GetSimpleReg();
+	}
+
+	X64Reg reg = regFindFreeReg(RI);
+	return reg;
+}
+
 static X64Reg regBinLHSReg(RegInfo& RI, InstLoc I) {
 	if (RI.IInfo[I - RI.FirstI] & 4) {
 		return regEnsureInReg(RI, getOp1(I));
@@ -631,7 +652,7 @@ static void regEmitCmp(RegInfo& RI, InstLoc I) {
 static void regEmitICmpInst(RegInfo& RI, InstLoc I, CCFlags flag) {
 	regEmitCmp(RI, I);
 	RI.Jit->SETcc(flag, R(ECX)); // Caution: SETCC uses 8-bit regs!
-	X64Reg reg = regFindFreeReg(RI);
+	X64Reg reg = regBinReg(RI, I);
 	RI.Jit->MOVZX(32, 8, reg, R(ECX));
 	RI.regs[reg] = I;
 	regNormalRegClear(RI, I);
@@ -980,7 +1001,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case SExt8: {
 			if (!thisUsed) break;
-			X64Reg reg = regFindFreeReg(RI);
+			X64Reg reg = regUReg(RI, I);
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
 			Jit->MOVSX(32, 8, reg, R(ECX));
 			RI.regs[reg] = I;
@@ -1122,7 +1143,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case ICmpCRUnsigned: {
 			if (!thisUsed) break;
 			regEmitCmp(RI, I);
-			X64Reg reg = regFindFreeReg(RI);
+			X64Reg reg = regBinReg(RI, I);
 			FixupBranch pLesser  = Jit->J_CC(CC_B);
 			FixupBranch pGreater = Jit->J_CC(CC_A);
 			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
@@ -1141,7 +1162,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case ICmpCRSigned: {
 			if (!thisUsed) break;
 			regEmitCmp(RI, I);
-			X64Reg reg = regFindFreeReg(RI);
+			X64Reg reg = regBinReg(RI, I);
 			FixupBranch pLesser  = Jit->J_CC(CC_L);
 			FixupBranch pGreater = Jit->J_CC(CC_G);
 			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
@@ -1272,7 +1293,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case DupSingleToMReg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
+			X64Reg reg = fregUReg(RI, I);
 			Jit->CVTSS2SD(reg, fregLocForInst(RI, getOp1(I)));
 			Jit->MOVDDUP(reg, R(reg));
 			RI.fregs[reg] = I;
@@ -1281,10 +1302,27 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case InsertDoubleInMReg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp2(I)));
-			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->MOVSD(reg, R(XMM0));
+			// r0 = op1[0], r1 = op2[1]
+
+			// FIXME: Optimize the case that the register of op1 can be recycled.
+			//        (SHUFPD may not be so fast.)
+
+			X64Reg reg;
+			// If the register of op2 can be recycled, we recycle it as the register of I.
+			if ((RI.IInfo[I - RI.FirstI] & 8) && fregLocForInst(RI, getOp2(I)).IsSimpleReg()) {
+				reg = fregLocForInst(RI, getOp2(I)).GetSimpleReg();
+			} else {
+				reg = fregFindFreeReg(RI);
+				Jit->MOVAPD(reg, fregLocForInst(RI, getOp2(I)));
+			}
+
+			if (fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+				Jit->MOVSD(reg, fregLocForInst(RI, getOp1(I)));
+			} else {
+				Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
+				Jit->MOVSD(reg, R(XMM0));
+			}
+
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
