@@ -340,7 +340,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		WRITE(p, "o.colors_%d = mat * saturate(lacc);\n", j);
 		WRITE(p, "}\n");
 	}	
-	if(xfregs.nNumChans == 1)
+	if(xfregs.nNumChans < 2)
 	{
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
