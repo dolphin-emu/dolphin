@@ -289,25 +289,17 @@ void ExecuteCommand(u32 _Address)
 				if (DeviceName.find("/dev/") != std::string::npos)
 				{
 					ERROR_LOG(WII_IPC_FILEIO, "Unknown device: %s", DeviceName.c_str());
-				 	PanicAlert("Unknown device: %s\n\nMaybe you can continue to play or maybe the game will freeze.", DeviceName.c_str());
-
-					pDevice = AccessDeviceByID(GetDeviceIDByName(std::string("_Unknown_Device_")));
-					CmdSuccess = pDevice->Open(_Address, Mode);
 				}
-				else
-				{
-					// create new file handle
-		            u32 CurrentDeviceID = g_LastDeviceID;
-			        pDevice = CreateFileIO(CurrentDeviceID, DeviceName);			
-				    g_DeviceMap[CurrentDeviceID] = pDevice;
-					g_FileNameMap[CurrentDeviceID] = DeviceName;
-					g_LastDeviceID++;
-                                
-					CmdSuccess = pDevice->Open(_Address, Mode);
+				u32 CurrentDeviceID = g_LastDeviceID;
+				pDevice = CreateFileIO(CurrentDeviceID, DeviceName);			
+				g_DeviceMap[CurrentDeviceID] = pDevice;
+				g_FileNameMap[CurrentDeviceID] = DeviceName;
+				g_LastDeviceID++;
 
-					INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-							pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
-				}
+				CmdSuccess = pDevice->Open(_Address, Mode);
+
+				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
+					pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
             }
             else
             {
