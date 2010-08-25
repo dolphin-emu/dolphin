@@ -44,7 +44,7 @@ struct AccelData
 
 extern const ReportFeatures reporting_mode_features[];
 
-void EmulateShake(u8* const accel_data
+void EmulateShake(AccelData* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
 	  , unsigned int* const shake_step);
 
@@ -55,6 +55,13 @@ void EmulateTilt(AccelData* const accel
 void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
 	 , const bool sideways = false, const bool upright = false);
+
+inline double trim(double a)
+{
+	if (a<=0) return 0;
+	if (a>=255) return 255;
+	return a;
+}
 
 class Wiimote : public ControllerEmu
 {

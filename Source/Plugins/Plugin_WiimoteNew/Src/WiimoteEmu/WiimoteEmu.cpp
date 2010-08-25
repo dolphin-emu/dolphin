@@ -67,11 +67,11 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void EmulateShake( u8* const accel
+void EmulateShake( AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , unsigned int* const shake_step )
 {
-	static const u8 shake_data[] = { 0x40, 0x01, 0x40, 0x80, 0xC0, 0xFF, 0xC0, 0x80 };
+	static const double shake_data[] = { -2.5f, -5.0f, -2.5f, 0.0f, 2.5f, 5.0f, 2.5f, 0.0f };
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
 	unsigned int shake = 0;
 
@@ -79,8 +79,8 @@ void EmulateShake( u8* const accel
 	for ( unsigned int i=0; i<3; ++i )
 		if (shake & (1 << i))
 		{
-			accel[i] = shake_data[shake_step[i]++];
-			shake_step[i] %= sizeof(shake_data);
+			(&(accel->x))[i] = shake_data[shake_step[i]++];
+			shake_step[i] %= sizeof(shake_data)/sizeof(double);
 		}
 		else
 			shake_step[i] = 0;
@@ -398,16 +398,16 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	if (has_focus)
 	{
 		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
-		EmulateShake(data, m_shake, m_shake_step);
+		EmulateShake(&m_accel, m_shake, m_shake_step);
 		// UDP Wiimote
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 	wm_accel* dt = (wm_accel*)data;
 	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
 	double cx,cy,cz;
-	cx=m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x;
-	cy=m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y;
-	cz=m_accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z;
+	cx=trim(m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
+	cy=trim(m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
+	cz=trim(m_accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
 	dt->x=u8(cx);
 	dt->y=u8(cy);
 	dt->z=u8(cz);
