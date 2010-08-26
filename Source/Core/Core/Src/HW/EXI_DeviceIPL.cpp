@@ -254,6 +254,9 @@ bool CEXIIPL::IsPresent()
 
 void CEXIIPL::TransferByte(u8& _uByte)
 {
+	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
+	const u32 cWiiBias = 0x0F1114A6;
+
 	// The first 4 bytes must be the address
 	// If we haven't read it, do it now
 	if (m_uPosition < 4)
@@ -267,7 +270,8 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		if (m_uPosition == 3)
 		{
 			// Get the time ... 
-            u32 GCTime = CEXIIPL::GetGCTime();
+			// Subtract Wii bias
+            u32 GCTime = CEXIIPL::GetGCTime() - cWiiBias;
 			u8* pGCTime = (u8*)&GCTime;
 			for (int i=0; i<4; i++)
 			{
@@ -405,8 +409,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 u32 CEXIIPL::GetGCTime()
 {
 	u64 ltime = 0;
-	const u32 cJanuary2000 = 0x386D42C0;  // Seconds between 1.1.1970 and 1.1.2000
-	const u32 cWiiBias     = 0x0F111566;  // Seconds between 1.1.2000 and 5.1.2008 (Wii epoch)
+	const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
 #if defined(HAVE_WX) && HAVE_WX
 	// hack in some netplay stuff
@@ -415,10 +418,7 @@ u32 CEXIIPL::GetGCTime()
 	if (0 == ltime)
 		ltime = Common::Timer::GetLocalTimeSinceJan1970();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		return ((u32)ltime - cJanuary2000 - cWiiBias/* + 32434790*/);
-	else
-		return ((u32)ltime - cJanuary2000);
+	return ((u32)ltime - cJanuary2000);
 
 #if 0
 	// (mb2): I think we can get rid of the IPL bias.
