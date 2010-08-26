@@ -289,17 +289,19 @@ static void regSpillCallerSaved(RegInfo& RI) {
 }
 
 static X64Reg regUReg(RegInfo& RI, InstLoc I) {
-	if (RI.IInfo[I - RI.FirstI] & 4 &&
-	    regLocForInst(RI, getOp1(I)).IsSimpleReg()) {
-		return regLocForInst(RI, getOp1(I)).GetSimpleReg();
+	const OpArg loc = regLocForInst(RI, getOp1(I));
+	if ((RI.IInfo[I - RI.FirstI] & 4) &&
+	    loc.IsSimpleReg()) {
+		return loc.GetSimpleReg();
 	}
 	X64Reg reg = regFindFreeReg(RI);
 	return reg;
 }
 
 static X64Reg fregUReg(RegInfo& RI, InstLoc I) {
-	if (RI.IInfo[I - RI.FirstI] & 4 && fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
-		return fregLocForInst(RI, getOp1(I)).GetSimpleReg();
+	const OpArg loc = fregLocForInst(RI, getOp1(I));
+	if ((RI.IInfo[I - RI.FirstI] & 4) && loc.IsSimpleReg()) {
+		return loc.GetSimpleReg();
 	}
 	X64Reg reg = fregFindFreeReg(RI);
 	return reg;
@@ -308,9 +310,13 @@ static X64Reg fregUReg(RegInfo& RI, InstLoc I) {
 // If the lifetime of the register used by an operand ends at I,
 // return the register. Otherwise return a free register.
 static X64Reg regBinReg(RegInfo& RI, InstLoc I) {
-	if (RI.IInfo[I - RI.FirstI] & 4 && regLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+	// FIXME: When regLocForInst() is extracted as a local variable,
+	//        "Retrieving unknown spill slot?!" is shown.
+	if ((RI.IInfo[I - RI.FirstI] & 4) &&
+		regLocForInst(RI, getOp1(I)).IsSimpleReg()) {
 		return regLocForInst(RI, getOp1(I)).GetSimpleReg();
-	} else if (RI.IInfo[I - RI.FirstI] & 8 && regLocForInst(RI, getOp2(I)).IsSimpleReg()) {
+	} else if ((RI.IInfo[I - RI.FirstI] & 8) &&
+		regLocForInst(RI, getOp2(I)).IsSimpleReg()) {
 		return regLocForInst(RI, getOp2(I)).GetSimpleReg();
 	}
 
@@ -462,11 +468,12 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 			*dest = baseReg;
 	} else if (dest) {
 		X64Reg reg = regFindFreeReg(RI);
-		if (!regLocForInst(RI, AddrBase).IsSimpleReg()) {
-			RI.Jit->MOV(32, R(reg), regLocForInst(RI, AddrBase));
+		const OpArg loc = regLocForInst(RI, AddrBase);
+		if (!loc.IsSimpleReg()) {
+			RI.Jit->MOV(32, R(reg), loc);
 			baseReg = reg;
 		} else {
-			baseReg = regLocForInst(RI, AddrBase).GetSimpleReg();
+			baseReg = loc.GetSimpleReg();
 		}
 		*dest = reg;
 	} else {
@@ -1191,11 +1198,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case LoadDouble: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			const OpArg loc = regLocForInst(RI, getOp1(I));
+			Jit->MOV(32, R(ECX), loc);
 			Jit->ADD(32, R(ECX), Imm8(4));
 			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
 			Jit->MOVD_xmm(reg, R(ECX));
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			Jit->MOV(32, R(ECX), loc);
 			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
 			Jit->MOVD_xmm(XMM0, R(ECX));
 			Jit->PUNPCKLDQ(reg, R(XMM0));
@@ -1231,10 +1239,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case StoreSingle: {
 			regSpill(RI, EAX);
-			if (fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
-				Jit->MOVD_xmm(R(EAX), fregLocForInst(RI, getOp1(I)).GetSimpleReg());
+			const OpArg loc1 = fregLocForInst(RI, getOp1(I));
+			if (loc1.IsSimpleReg()) {
+				Jit->MOVD_xmm(R(EAX), loc1.GetSimpleReg());
 			} else {
-				Jit->MOV(32, R(EAX), fregLocForInst(RI, getOp1(I)));
+				Jit->MOV(32, R(EAX), loc1);
 			}
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
@@ -1309,17 +1318,19 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 
 			X64Reg reg;
 			// If the register of op2 can be recycled, we recycle it as the register of I.
-			if ((RI.IInfo[I - RI.FirstI] & 8) && fregLocForInst(RI, getOp2(I)).IsSimpleReg()) {
-				reg = fregLocForInst(RI, getOp2(I)).GetSimpleReg();
+			const OpArg loc1 = fregLocForInst(RI, getOp1(I));
+			const OpArg loc2 = fregLocForInst(RI, getOp2(I));
+			if ((RI.IInfo[I - RI.FirstI] & 8) && loc2.IsSimpleReg()) {
+				reg = loc2.GetSimpleReg();
 			} else {
 				reg = fregFindFreeReg(RI);
-				Jit->MOVAPD(reg, fregLocForInst(RI, getOp2(I)));
+				Jit->MOVAPD(reg, loc2);
 			}
 
-			if (fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
-				Jit->MOVSD(reg, fregLocForInst(RI, getOp1(I)));
+			if (loc1.IsSimpleReg()) {
+				Jit->MOVSD(reg, loc1);
 			} else {
-				Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
+				Jit->MOVAPD(XMM0, loc1);
 				Jit->MOVSD(reg, R(XMM0));
 			}
 
