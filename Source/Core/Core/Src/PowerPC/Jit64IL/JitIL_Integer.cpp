@@ -139,6 +139,8 @@ void JitIL::boolX(UGeckoInstruction inst)
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	IREmitter::InstLoc b = ibuild.EmitLoadGReg(inst.RB);
 
+	// FIXME: Some instructions does not work well in NSMBW, MP2, etc.
+	//        Refer JitIL_Tables.cpp.
 	if (inst.SUBOP10 == 28) /* andx */
 	{
 		a = ibuild.EmitAnd(s, b);
