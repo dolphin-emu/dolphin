@@ -76,9 +76,9 @@ enum
 	ADDR_MASK_HW_ACCESS	= 0x0c000000,
 	ADDR_MASK_MEM1		= 0x20000000,
 
-	#ifdef _M_IX86
-		MEMVIEW32_MASK  = 0x3FFFFFFF,
-	#endif
+#ifdef _M_IX86
+	MEMVIEW32_MASK  = 0x3FFFFFFF,
+#endif
 };
 
 // Init and Shutdown

@@ -147,7 +147,7 @@ void Init(int cpu_core)
 	else
 		jit = new JitIL;
 	jit->Init();
-	// ... but start as interpreter by default.
+
 	mode = MODE_JIT;
 	state = CPU_STEPPING;
 

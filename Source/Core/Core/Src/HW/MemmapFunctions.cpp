@@ -89,10 +89,6 @@ inline u64 bswap(u64 val) {return Common::swap64(val);}
 // Read and write
 // ----------------
 // The read and write macros that direct us to the right functions
-// ----------------
-/* Instructions: To test the TLB functions in F-Zero disable the "&& ((_Address & 0xFE000000)
-   == 0x7e000000)" condition next to bFakeVMEM below. */
-// ----------------
 
 // All these little inline functions are needed because we can't paste symbols together in templates
 // like we can in macros.
@@ -326,12 +322,9 @@ u32 Read_Opcode(u32 _Address)
 		return 0x00000000;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU &&
-		(_Address >> 28) != 0x0 &&
-		(_Address >> 28) != 0x8 &&
-		(_Address >> 28) != 0x9 &&
-		(_Address >> 28) != 0xC &&
-		(_Address >> 28) != 0xD)
+	if (Core::g_CoreStartupParameter.bMMU && 
+		!Core::g_CoreStartupParameter.iTLBHack && 
+		(_Address & ADDR_MASK_MEM1))
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
 		u32 tlb_addr = Memory::TranslateAddress(_Address, FLAG_OPCODE);

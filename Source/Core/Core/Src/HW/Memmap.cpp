@@ -421,13 +421,7 @@ u32 Read_Instruction(const u32 em_address)
 u32 Read_Opcode_JIT(u32 _Address)
 {
 #ifdef FAST_ICACHE	
-	if (bMMU && !bFakeVMEM && 
-		(_Address >> 28) != 0x0 &&
-		(_Address >> 28) != 0x8 &&
-		(_Address >> 28) != 0x9 &&
-		(_Address >> 28) != 0xC &&
-		(_Address >> 28) != 0xD		
-		)
+	if (bMMU && !bFakeVMEM && (_Address & ADDR_MASK_MEM1))
 	{
 		_Address = Memory::TranslateAddress(_Address, FLAG_OPCODE);
 		if (_Address == 0)
@@ -439,22 +433,6 @@ u32 Read_Opcode_JIT(u32 _Address)
 	u32 inst =  PowerPC::ppcState.iCache.ReadInstruction(_Address);
 #else
 	u32 inst = Memory::ReadUnchecked_U32(_Address);
-#endif
-	// if a crash occured after that message
-	// that means that we have compiled outdated code from the cache instead of memory
-	// this could happen if a game forgot to icbi the new code
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	u32 inst_mem = Memory::ReadUnchecked_U32(_Address);	
-	if (inst_mem != inst)
-			ERROR_LOG(POWERPC, "JIT: compiling outdated code. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
-
-	inst = Read_Opcode_JIT_LC(_Address);
-	if (inst_mem != inst)
-	{
-		ERROR_LOG(POWERPC, "JIT: self-modifying code detected. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
-		PanicAlert("JIT: self-modifying code detected. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
-		Write_Opcode_JIT(_Address, inst_mem);
-	}
 #endif
 	return inst;
 }

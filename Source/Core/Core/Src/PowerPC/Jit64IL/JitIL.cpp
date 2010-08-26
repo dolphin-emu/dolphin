@@ -47,7 +47,7 @@ using namespace PowerPC;
 // * Fast dispatcher
 
 // Unfeatures:
-// * Does not recompile all instructions - sometimes falls back to inserting a CALL to the corresponding JIT function.
+// * Does not recompile all instructions - sometimes falls back to inserting a CALL to the corresponding Interpreter function.
 
 // Various notes below
 
@@ -67,8 +67,6 @@ using namespace PowerPC;
 // Open questions
 // * Should there be any statically allocated registers? r3, r4, r5, r8, r0 come to mind.. maybe sp
 // * Does it make sense to finish off the remaining non-jitted instructions? Seems we are hitting diminishing returns.
-// * Why is the FPU exception handling not working 100%? Several games still get corrupted floating point state.
-//   This can even be seen in one homebrew Wii demo - RayTracer.elf
 
 // Other considerations
 //
@@ -412,12 +410,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-	if (Core::g_CoreStartupParameter.bMMU &&
-				(em_address >> 28) != 0x0 &&
-				(em_address >> 28) != 0x8 &&
-				(em_address >> 28) != 0x9 &&
-				(em_address >> 28) != 0xC &&
-				(em_address >> 28) != 0xD)	
+	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
 		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
 		{
