@@ -376,6 +376,7 @@ static GekkoOPTemplate table63_2[] =
 
 namespace JitILTables
 {
+
 void CompileInstruction(PPCAnalyst::CodeOp & op)
 {
 	JitIL *jitil = (JitIL *)jit;
@@ -393,8 +394,15 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex, jit->js.compilerPC);
 	}
 }
+
+bool initialized = false;
+
 void InitTables()
 {
+	// once initialized, tables are read-only
+	if (initialized)
+		return;
+
 	//clear
 	for (int i = 0; i < 32; i++) 
 	{
@@ -483,5 +491,8 @@ void InitTables()
 			dynaOpTable63[op] = table63_2[j].Inst;
 		}
 	}
+
+	initialized = true;
 }
+
 }

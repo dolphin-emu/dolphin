@@ -18,10 +18,7 @@
 #include "Interpreter.h"
 #include "../../Core.h"
 
-namespace Interpreter
-{
-
-void Helper_UpdateCR0(u32 _uValue)
+void Interpreter::Helper_UpdateCR0(u32 _uValue)
 {
 	u32 new_cr0;
 	int sValue = (int)_uValue;
@@ -35,7 +32,7 @@ void Helper_UpdateCR0(u32 _uValue)
 	SetCRField(0, new_cr0);
 }
 
-void Helper_UpdateCRx(int _x, u32 _uValue)
+void Interpreter::Helper_UpdateCRx(int _x, u32 _uValue)
 {
 	u32 new_crX;
 	int sValue = (int)_uValue;
@@ -49,12 +46,12 @@ void Helper_UpdateCRx(int _x, u32 _uValue)
 	SetCRField(_x, new_crX);
 }
 
-u32 Helper_Carry(u32 _uValue1, u32 _uValue2)
+u32 Interpreter::Helper_Carry(u32 _uValue1, u32 _uValue2)
 {
 	return _uValue2 > (~_uValue1);
 }
 
-u32 Helper_Mask(int mb, int me)
+u32 Interpreter::Helper_Mask(int mb, int me)
 {
 	//first make 001111111111111 part
 	u32 begin = 0xFFFFFFFF >> mb;
@@ -69,7 +66,7 @@ u32 Helper_Mask(int mb, int me)
 		return mask;
 }
 
-void addi(UGeckoInstruction _inst)
+void Interpreter::addi(UGeckoInstruction _inst)
 {
 	if (_inst.RA)
 		m_GPR[_inst.RD] = m_GPR[_inst.RA] + _inst.SIMM_16;
@@ -77,7 +74,7 @@ void addi(UGeckoInstruction _inst)
 		m_GPR[_inst.RD] = _inst.SIMM_16;
 }
 
-void addic(UGeckoInstruction _inst)
+void Interpreter::addic(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 imm = (u32)(s32)_inst.SIMM_16;
@@ -86,13 +83,13 @@ void addic(UGeckoInstruction _inst)
 	SetCarry(Helper_Carry(a, imm));
 }
 
-void addic_rc(UGeckoInstruction _inst)
+void Interpreter::addic_rc(UGeckoInstruction _inst)
 {
 	addic(_inst);
 	Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void addis(UGeckoInstruction _inst)
+void Interpreter::addis(UGeckoInstruction _inst)
 {
 	if (_inst.RA)
 		m_GPR[_inst.RD] = m_GPR[_inst.RA] + (_inst.SIMM_16 << 16);
@@ -100,24 +97,24 @@ void addis(UGeckoInstruction _inst)
 		m_GPR[_inst.RD] = (_inst.SIMM_16 << 16);
 }
 
-void andi_rc(UGeckoInstruction _inst)
+void Interpreter::andi_rc(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] & _inst.UIMM;
 	Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void andis_rc(UGeckoInstruction _inst)
+void Interpreter::andis_rc(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] & ((u32)_inst.UIMM<<16);
 	Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void cmpi(UGeckoInstruction _inst)
+void Interpreter::cmpi(UGeckoInstruction _inst)
 {
 	Helper_UpdateCRx(_inst.CRFD, m_GPR[_inst.RA] - _inst.SIMM_16);
 }
 
-void cmpli(UGeckoInstruction _inst)
+void Interpreter::cmpli(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = _inst.UIMM;
@@ -129,22 +126,22 @@ void cmpli(UGeckoInstruction _inst)
 	SetCRField(_inst.CRFD, f);
 }
 
-void mulli(UGeckoInstruction _inst)
+void Interpreter::mulli(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = (s32)m_GPR[_inst.RA] * _inst.SIMM_16;
 }
 
-void ori(UGeckoInstruction _inst)
+void Interpreter::ori(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] | _inst.UIMM;
 }
 
-void oris(UGeckoInstruction _inst)
+void Interpreter::oris(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] | (_inst.UIMM << 16);
 }
 
-void subfic(UGeckoInstruction _inst)
+void Interpreter::subfic(UGeckoInstruction _inst)
 {
 /*	u32 rra = ~m_GPR[_inst.RA];
 	s32 immediate = (s16)_inst.SIMM_16 + 1;
@@ -163,7 +160,7 @@ void subfic(UGeckoInstruction _inst)
 	SetCarry((m_GPR[_inst.RA] == 0) || (Helper_Carry(0-m_GPR[_inst.RA], immediate)));
 }
 
-void twi(UGeckoInstruction _inst) 
+void Interpreter::twi(UGeckoInstruction _inst) 
 {
 	s32 a = m_GPR[_inst.RA];
 	s32 b = _inst.SIMM_16;
@@ -183,31 +180,31 @@ void twi(UGeckoInstruction _inst)
 	}
 }
 
-void xori(UGeckoInstruction _inst)
+void Interpreter::xori(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ _inst.UIMM;
 }
 
-void xoris(UGeckoInstruction _inst)
+void Interpreter::xoris(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ (_inst.UIMM << 16);
 }
 
-void rlwimix(UGeckoInstruction _inst)
+void Interpreter::rlwimix(UGeckoInstruction _inst)
 {
 	u32 mask = Helper_Mask(_inst.MB,_inst.ME);
 	m_GPR[_inst.RA] = (m_GPR[_inst.RA] & ~mask) | (_rotl(m_GPR[_inst.RS],_inst.SH) & mask);
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void rlwinmx(UGeckoInstruction _inst)
+void Interpreter::rlwinmx(UGeckoInstruction _inst)
 {
 	u32 mask = Helper_Mask(_inst.MB,_inst.ME);
 	m_GPR[_inst.RA] = _rotl(m_GPR[_inst.RS],_inst.SH) & mask;
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void rlwnmx(UGeckoInstruction _inst)
+void Interpreter::rlwnmx(UGeckoInstruction _inst)
 {
 	u32 mask = Helper_Mask(_inst.MB,_inst.ME);
 	m_GPR[_inst.RA] = _rotl(m_GPR[_inst.RS], m_GPR[_inst.RB] & 0x1F) & mask;
@@ -215,21 +212,21 @@ void rlwnmx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void andx(UGeckoInstruction _inst)
+void Interpreter::andx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] & m_GPR[_inst.RB];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void andcx(UGeckoInstruction _inst)
+void Interpreter::andcx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] & ~m_GPR[_inst.RB];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void cmp(UGeckoInstruction _inst)
+void Interpreter::cmp(UGeckoInstruction _inst)
 {
 	s32 a = (s32)m_GPR[_inst.RA];
 	s32 b = (s32)m_GPR[_inst.RB];
@@ -241,7 +238,7 @@ void cmp(UGeckoInstruction _inst)
 	SetCRField(_inst.CRFD, fTemp);
 }
 
-void cmpl(UGeckoInstruction _inst)
+void Interpreter::cmpl(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -254,7 +251,7 @@ void cmpl(UGeckoInstruction _inst)
 	SetCRField(_inst.CRFD, fTemp);
 }
 
-void cntlzwx(UGeckoInstruction _inst)
+void Interpreter::cntlzwx(UGeckoInstruction _inst)
 {
 	u32 val = m_GPR[_inst.RS];
 	u32 mask = 0x80000000;
@@ -266,56 +263,56 @@ void cntlzwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void eqvx(UGeckoInstruction _inst)
+void Interpreter::eqvx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = ~(m_GPR[_inst.RS] ^ m_GPR[_inst.RB]);
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void extsbx(UGeckoInstruction _inst)
+void Interpreter::extsbx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = (u32)(s32)(s8)m_GPR[_inst.RS];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void extshx(UGeckoInstruction _inst)
+void Interpreter::extshx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = (u32)(s32)(s16)m_GPR[_inst.RS];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void nandx(UGeckoInstruction _inst)
+void Interpreter::nandx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = ~(m_GPR[_inst.RS] & m_GPR[_inst.RB]);
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void norx(UGeckoInstruction _inst)
+void Interpreter::norx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = ~(m_GPR[_inst.RS] | m_GPR[_inst.RB]);
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void orx(UGeckoInstruction _inst)
+void Interpreter::orx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] | m_GPR[_inst.RB];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void orcx(UGeckoInstruction _inst)
+void Interpreter::orcx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] | (~m_GPR[_inst.RB]);
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void slwx(UGeckoInstruction _inst)
+void Interpreter::slwx(UGeckoInstruction _inst)
 {
 	u32 amount = m_GPR[_inst.RB];
 	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : m_GPR[_inst.RS] << amount;
@@ -323,7 +320,7 @@ void slwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void srawx(UGeckoInstruction _inst)
+void Interpreter::srawx(UGeckoInstruction _inst)
 {
 	int rb = m_GPR[_inst.RB];
 	if (rb & 0x20)
@@ -360,7 +357,7 @@ void srawx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void srawix(UGeckoInstruction _inst)
+void Interpreter::srawix(UGeckoInstruction _inst)
 {
 	int amount = _inst.SH;
 
@@ -383,7 +380,7 @@ void srawix(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void srwx(UGeckoInstruction _inst)
+void Interpreter::srwx(UGeckoInstruction _inst)
 {
 	u32 amount = m_GPR[_inst.RB];
 	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : (m_GPR[_inst.RS] >> (amount & 0x1f));
@@ -391,7 +388,7 @@ void srwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void tw(UGeckoInstruction _inst)  
+void Interpreter::tw(UGeckoInstruction _inst)  
 {
 	s32 a = m_GPR[_inst.RA];
 	s32 b = m_GPR[_inst.RB];
@@ -411,14 +408,14 @@ void tw(UGeckoInstruction _inst)
 	}
 }
 
-void xorx(UGeckoInstruction _inst)
+void Interpreter::xorx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void addx(UGeckoInstruction _inst)
+void Interpreter::addx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = m_GPR[_inst.RA] + m_GPR[_inst.RB];
 
@@ -426,7 +423,7 @@ void addx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void addcx(UGeckoInstruction _inst)
+void Interpreter::addcx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -437,7 +434,7 @@ void addcx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void addex(UGeckoInstruction _inst)
+void Interpreter::addex(UGeckoInstruction _inst)
 {
 	int carry = GetCarry();
 	int a = m_GPR[_inst.RA];
@@ -449,7 +446,7 @@ void addex(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void addmex(UGeckoInstruction _inst)
+void Interpreter::addmex(UGeckoInstruction _inst)
 {
 	int carry = GetCarry();
 	int a = m_GPR[_inst.RA];
@@ -460,7 +457,7 @@ void addmex(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void addzex(UGeckoInstruction _inst)
+void Interpreter::addzex(UGeckoInstruction _inst)
 {
 	int carry = GetCarry();
 	int a = m_GPR[_inst.RA];
@@ -471,7 +468,7 @@ void addzex(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void divwx(UGeckoInstruction _inst)
+void Interpreter::divwx(UGeckoInstruction _inst)
 {
 	s32 a = m_GPR[_inst.RA];
 	s32 b = m_GPR[_inst.RB];
@@ -492,7 +489,7 @@ void divwx(UGeckoInstruction _inst)
 }
 
 
-void divwux(UGeckoInstruction _inst)
+void Interpreter::divwux(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -510,7 +507,7 @@ void divwux(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void mulhwx(UGeckoInstruction _inst)
+void Interpreter::mulhwx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -519,7 +516,7 @@ void mulhwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void mulhwux(UGeckoInstruction _inst)
+void Interpreter::mulhwux(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -528,7 +525,7 @@ void mulhwux(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void mullwx(UGeckoInstruction _inst)
+void Interpreter::mullwx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -539,7 +536,7 @@ void mullwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void negx(UGeckoInstruction _inst)
+void Interpreter::negx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = (~m_GPR[_inst.RA]) + 1;
 	if (m_GPR[_inst.RD] == 0x80000000)
@@ -549,7 +546,7 @@ void negx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void subfx(UGeckoInstruction _inst)
+void Interpreter::subfx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = m_GPR[_inst.RB] - m_GPR[_inst.RA];
 
@@ -557,7 +554,7 @@ void subfx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void subfcx(UGeckoInstruction _inst)
+void Interpreter::subfcx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -568,7 +565,7 @@ void subfcx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
-void subfex(UGeckoInstruction _inst)
+void Interpreter::subfex(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -581,7 +578,7 @@ void subfex(UGeckoInstruction _inst)
 }
 
 // sub from minus one
-void subfmex(UGeckoInstruction _inst)
+void Interpreter::subfmex(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	int carry = GetCarry();
@@ -593,7 +590,7 @@ void subfmex(UGeckoInstruction _inst)
 }
 
 // sub from zero
-void subfzex(UGeckoInstruction _inst)
+void Interpreter::subfzex(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	int carry = GetCarry();
@@ -603,5 +600,3 @@ void subfzex(UGeckoInstruction _inst)
 	if (_inst.OE) PanicAlert("OE: subfzex");
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
-
-}  // namespace

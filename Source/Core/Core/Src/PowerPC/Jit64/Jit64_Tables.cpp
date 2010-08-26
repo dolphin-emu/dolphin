@@ -392,8 +392,14 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 	}
 }
 
+bool initialized = false;
+
 void InitTables()
 {
+	// once initialized, tables are read-only
+	if (initialized)
+		return;
+
 	//clear
 	for (int i = 0; i < 32; i++) 
 	{
@@ -482,6 +488,8 @@ void InitTables()
 			dynaOpTable63[op] = table63_2[j].Inst;
 		}
 	}
+
+	initialized = true;
 }
 
 }  // namespace

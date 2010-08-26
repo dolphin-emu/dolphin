@@ -32,8 +32,11 @@
 #include "Jit64/Jit.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
+#include "CPUCoreBase.h"
 
 #include "../Host.h"
+
+CPUCoreBase *cpu_core_base;
 
 namespace PowerPC
 {
@@ -42,7 +45,8 @@ namespace PowerPC
 PowerPCState GC_ALIGNED16(ppcState);
 volatile CPUState state = CPU_STEPPING;
 
-static CoreMode mode;
+Interpreter * const interpreter = Interpreter::getInstance();
+CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
@@ -137,18 +141,46 @@ void Init(int cpu_core)
 #endif
 
 	ResetRegisters();
-	PPCTables::InitTables();
+	PPCTables::InitTables(cpu_core);
 
-	// Initialize both execution engines ... 
-	Interpreter::Init();
+	// We initialize the interpreter because
+	// it is used on boot and code window independently.
+	interpreter->Init();
 
-	if (cpu_core == 1)
-		jit = new Jit64;
+	switch (cpu_core)
+	{
+	case 0:
+		{
+			cpu_core_base = interpreter;
+			break;
+		}
+	case 1:
+		{
+			cpu_core_base = new Jit64();
+			break;
+		}
+	case 2:
+		{
+			cpu_core_base = new JitIL();
+			break;
+		}
+	default:
+		{
+			PanicAlert("Unrecognizable cpu_core: %d", cpu_core);
+			break;
+		}
+	}
+
+	if (cpu_core_base != interpreter)
+	{
+		jit = dynamic_cast<JitBase*>(cpu_core_base);
+		jit->Init();
+		mode = MODE_JIT;
+	}
 	else
-		jit = new JitIL;
-	jit->Init();
-
-	mode = MODE_JIT;
+	{
+		mode = MODE_INTERPRETER;
+	}
 	state = CPU_STEPPING;
 
 	ppcState.iCache.Reset();
@@ -156,12 +188,15 @@ void Init(int cpu_core)
 
 void Shutdown()
 {
-	// Shutdown both execution engines. Doesn't matter which one is active.
-	jit->Shutdown();
+	if (jit)
+	{
+		jit->Shutdown();
+		delete jit;
+		jit = NULL;
+	}
+	interpreter->Shutdown();
+	cpu_core_base = NULL;
 	state = CPU_POWERDOWN;
-	delete jit;
-	jit = 0;
-	Interpreter::Shutdown();
 }
 
 void SetMode(CoreMode new_mode)
@@ -170,43 +205,30 @@ void SetMode(CoreMode new_mode)
 		return;  // We don't need to do anything.
 
 	mode = new_mode;
+
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
 		jit->ClearCache();  // Remove all those nasty JIT patches.
+		cpu_core_base = interpreter;
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
+		cpu_core_base = jit;
 		break;
 	}
 }
 
 void SingleStep() 
 {
-	switch (mode)
-	{
-	case MODE_INTERPRETER:
-		Interpreter::SingleStep();
-		break;
-	case MODE_JIT:
-		jit->SingleStep();
-		break;
-	}
+	cpu_core_base->SingleStep();
 }
 
 void RunLoop()
 {
 	state = CPU_RUNNING;
-	switch (mode) 
-	{
-	case MODE_INTERPRETER:
-		Interpreter::Run();
-		break;
-	case MODE_JIT:
-		jit->Run();
-		break;
-	}
+	cpu_core_base->Run();
 	Host_UpdateDisasmDialog();
 }
 

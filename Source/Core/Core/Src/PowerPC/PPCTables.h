@@ -113,7 +113,7 @@ class cJit64;
 namespace PPCTables
 {
 
-void InitTables();
+void InitTables(int cpu_core);
 bool IsValidInstruction(UGeckoInstruction _instCode);
 bool UsesFPU(UGeckoInstruction _inst);
 

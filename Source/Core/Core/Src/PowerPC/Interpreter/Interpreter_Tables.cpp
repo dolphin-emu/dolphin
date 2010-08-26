@@ -361,8 +361,15 @@ static GekkoOPTemplate table63_2[] =
 };
 namespace InterpreterTables
 {
+
+bool initialized = false;
+
 void InitTables()
 {
+	// once initialized, tables are read-only
+	if (initialized)
+		return;
+
 	//clear
 	for (int i = 0; i < 32; i++) 
 	{
@@ -491,6 +498,8 @@ void InitTables()
 	if (m_numInstructions >= 512) {
 		PanicAlert("m_allInstructions underdimensioned");
 	}
+
+	initialized = true;
 }
 
 }

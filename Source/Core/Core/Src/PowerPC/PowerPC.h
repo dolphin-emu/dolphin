@@ -19,12 +19,15 @@
 #define _POWERPC_H
 
 #include "Common.h"
+#include "CPUCoreBase.h"
 #include "Gekko.h"
 #include "BreakPoints.h"
 #include "../Debugger/PPCDebugInterface.h"
 #include "PPCCache.h"
 
 class PointerWrap;
+
+extern CPUCoreBase *cpu_core_base;
 
 namespace PowerPC
 {

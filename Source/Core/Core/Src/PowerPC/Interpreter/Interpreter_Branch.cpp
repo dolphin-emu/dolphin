@@ -20,10 +20,7 @@
 #include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
 
-namespace Interpreter
-{
-
-void bx(UGeckoInstruction _inst)
+void Interpreter::bx(UGeckoInstruction _inst)
 {
 	if (_inst.LK)
 		LR = PC + 4;
@@ -43,7 +40,7 @@ void bx(UGeckoInstruction _inst)
 }
 
 // bcx - ugly, straight from PPC manual equations :)
-void bcx(UGeckoInstruction _inst)
+void Interpreter::bcx(UGeckoInstruction _inst)
 {
 	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
@@ -67,7 +64,7 @@ void bcx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void bcctrx(UGeckoInstruction _inst)
+void Interpreter::bcctrx(UGeckoInstruction _inst)
 {
 	_dbg_assert_msg_(POWERPC, _inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
 
@@ -82,7 +79,7 @@ void bcctrx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void bclrx(UGeckoInstruction _inst)
+void Interpreter::bclrx(UGeckoInstruction _inst)
 {
 	if ((_inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
@@ -99,18 +96,18 @@ void bclrx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void HLEFunction(UGeckoInstruction _inst)
+void Interpreter::HLEFunction(UGeckoInstruction _inst)
 {
 	m_EndBlock = true;
 	HLE::Execute(PC, _inst.hex);
 }
 
-void CompiledBlock(UGeckoInstruction _inst)
+void Interpreter::CompiledBlock(UGeckoInstruction _inst)
 {
 	_assert_msg_(POWERPC, 0, "CompiledBlock - shouldn't be here!");
 }
 
-void rfi(UGeckoInstruction _inst)
+void Interpreter::rfi(UGeckoInstruction _inst)
 {
 	// Restore saved bits from SRR1 to MSR.
 	// Gecko/Broadway can save more bits than explicitly defined in ppc spec
@@ -127,7 +124,7 @@ void rfi(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void rfid(UGeckoInstruction _inst) 
+void Interpreter::rfid(UGeckoInstruction _inst) 
 {
 	_dbg_assert_msg_(POWERPC,0,"Instruction unimplemented (does this instruction even exist?)","rfid");
 	m_EndBlock = true;
@@ -135,11 +132,9 @@ void rfid(UGeckoInstruction _inst)
 
 // sc isn't really used for anything important in gc games (just for a write barrier) so we really don't have to emulate it.
 // We do it anyway, though :P
-void sc(UGeckoInstruction _inst)
+void Interpreter::sc(UGeckoInstruction _inst)
 {
 	PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
 	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }
-
-}  // namespace

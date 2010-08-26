@@ -22,6 +22,7 @@
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
 
+#include "../CPUCoreBase.h"
 #include "JitCache.h"
 #include "Jit_Util.h"  // for EmuCodeBlock
 #include "JitBackpatch.h"  // for EmuCodeBlock
@@ -32,9 +33,7 @@
 
 #define JIT_OPCODE 0
 
-// TODO: In the future, inherit this from CPUCoreBase and have Interpreter
-// inherit from that too?
-class JitBase : public EmuCodeBlock
+class JitBase : public CPUCoreBase, public EmuCodeBlock
 {
 protected:
 	JitBlockCache blocks;
@@ -85,18 +84,11 @@ public:
 
 	JitBlockCache *GetBlockCache() { return &blocks; }
 
-	virtual void Init() = 0;
-	virtual void Shutdown() = 0;
-
 	virtual void Jit(u32 em_address) = 0;
-	virtual void ClearCache() = 0;
-	virtual void Run() = 0;
-	virtual void SingleStep() = 0;
 
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
 
 	virtual const CommonAsmRoutines *GetAsmRoutines() = 0;
-	virtual const char *GetName() = 0;
 };
 
 extern JitBase *jit;

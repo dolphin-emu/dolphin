@@ -24,13 +24,11 @@
 #include "FileUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
-#if !(defined(NOJIT) && NOJIT)
 #include "Jit64IL/JitIL_Tables.h"
 #include "Jit64/Jit64_Tables.h"
 
 #include "Jit64IL/JitIL.h"
 #include "Jit64/Jit.h"
-#endif
 
 struct op_inf
 {
@@ -156,15 +154,33 @@ bool UsesFPU(UGeckoInstruction _inst)
 	}
 }
 
-void InitTables()
+void InitTables(int cpu_core)
 {
 	// Interpreter ALWAYS needs to be initialized
 	InterpreterTables::InitTables();
-	#if !(defined(NOJIT) && NOJIT)
-	// Should be able to do this a better way than defines in this function
-	Jit64Tables::InitTables();
-	JitILTables::InitTables();
-	#endif
+	switch (cpu_core)
+	{
+	case 0:
+		{
+			// Interpreter
+			break;
+		}
+	case 1:
+		{
+			Jit64Tables::InitTables();
+			break;
+		}
+	case 2:
+		{
+			JitILTables::InitTables();
+			break;
+		}
+	default:
+		{
+			PanicAlert("Unrecognizable cpu_core: %d", cpu_core);
+			break;
+		}
+	}
 }
 
 #define OPLOG

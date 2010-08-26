@@ -25,7 +25,7 @@
 namespace JitILTables
 {
 	void CompileInstruction(PPCAnalyst::CodeOp & op);
-void InitTables();
+	void InitTables();
 }
 
 #endif

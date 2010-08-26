@@ -31,36 +31,33 @@ namespace {
 	u32 last_pc;
 }
 
+bool Interpreter::m_EndBlock;
+
 // function tables
+Interpreter::_interpreterInstruction Interpreter::m_opTable[64];
+Interpreter::_interpreterInstruction Interpreter::m_opTable4[1024];
+Interpreter::_interpreterInstruction Interpreter::m_opTable19[1024];
+Interpreter::_interpreterInstruction Interpreter::m_opTable31[1024];
+Interpreter::_interpreterInstruction Interpreter::m_opTable59[32];
+Interpreter::_interpreterInstruction Interpreter::m_opTable63[1024];
 
-namespace Interpreter
+void Interpreter::RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
+void Interpreter::RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
+void Interpreter::RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
+void Interpreter::RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
+void Interpreter::RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
+
+void Interpreter::Init()
 {
-// cpu register to keep the code readable
-u32 *m_GPR = PowerPC::ppcState.gpr;
-bool m_EndBlock = false;
+	g_bReserve = false;
+	m_EndBlock = false;
+}
 
-_interpreterInstruction m_opTable[64];
-_interpreterInstruction m_opTable4[1024];
-_interpreterInstruction m_opTable19[1024];
-_interpreterInstruction m_opTable31[1024];
-_interpreterInstruction m_opTable59[32];
-_interpreterInstruction m_opTable63[1024];
-
-void RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
-void RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
-void RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
-void RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
-void RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
-
-void Init()
+void Interpreter::Shutdown()
 {
 }
 
-void Shutdown()
-{
-}
-
-void patches()
+static void patches()
 {
 /*	if (Memory::Read_U16(0x90000880) == 0x130b)
 	{
@@ -77,7 +74,7 @@ void patches()
 	}*/
 }
 
-void SingleStepInner(void)
+void Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
 
@@ -135,7 +132,7 @@ void SingleStepInner(void)
     patches();
 }
 
-void SingleStep()
+void Interpreter::SingleStep()
 {	
 	SingleStepInner();
 	
@@ -159,7 +156,7 @@ int ShowSteps = 300;
 #endif
 
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
-void Run()
+void Interpreter::Run()
 {
 	while (!PowerPC::GetState())
 	{
@@ -244,7 +241,7 @@ void Run()
 	}
 }
 
-void unknown_instruction(UGeckoInstruction _inst)
+void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
 	if (_inst.hex != 0)
 	{
@@ -257,4 +254,18 @@ void unknown_instruction(UGeckoInstruction _inst)
 
 }
 
-}  // namespace
+void Interpreter::ClearCache()
+{
+	// Do nothing.
+}
+
+const char *Interpreter::GetName()
+{
+	return "Interpreter";
+}
+
+Interpreter *Interpreter::getInstance()
+{
+	static Interpreter instance;
+	return &instance;
+}

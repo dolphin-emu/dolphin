@@ -21,9 +21,6 @@
 
 #include "Interpreter_FPUtils.h"
 
-namespace Interpreter
-{
-
 // dequantize table
 const float m_dequantizeTable[] =
 {
@@ -73,7 +70,7 @@ inline T CLAMP(T a, T bottom, T top) {
 	return a;
 }
 
-void Helper_Quantize(const u32 _Addr, const double _fValue, 
+void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, 
 					 const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
 	switch (_quantizeType) 
@@ -117,8 +114,8 @@ void Helper_Quantize(const u32 _Addr, const double _fValue,
 	}
 }
 
-float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, 
-								const unsigned int _uScale)
+float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, 
+									 const unsigned int _uScale)
 {
 	// dequantize the value
 	float fResult;
@@ -156,7 +153,7 @@ float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType,
 	return fResult;
 }
 
-void psq_l(UGeckoInstruction _inst) 
+void Interpreter::psq_l(UGeckoInstruction _inst) 
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
@@ -190,7 +187,7 @@ void psq_l(UGeckoInstruction _inst)
 	}
 }
 
-void psq_lu(UGeckoInstruction _inst)
+void Interpreter::psq_lu(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
@@ -225,7 +222,7 @@ void psq_lu(UGeckoInstruction _inst)
 	m_GPR[_inst.RA] = EA;
 }
 
-void psq_st(UGeckoInstruction _inst)
+void Interpreter::psq_st(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
@@ -247,7 +244,7 @@ void psq_st(UGeckoInstruction _inst)
 	}
 }
 
-void psq_stu(UGeckoInstruction _inst)
+void Interpreter::psq_stu(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
@@ -274,7 +271,7 @@ void psq_stu(UGeckoInstruction _inst)
 	m_GPR[_inst.RA] = EA;
 }
 
-void psq_lx(UGeckoInstruction _inst)
+void Interpreter::psq_lx(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
@@ -313,7 +310,7 @@ void psq_lx(UGeckoInstruction _inst)
 	}
 }
 
-void psq_stx(UGeckoInstruction _inst)
+void Interpreter::psq_stx(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
@@ -335,7 +332,7 @@ void psq_stx(UGeckoInstruction _inst)
 	}
 }
 
-void psq_lux(UGeckoInstruction _inst)
+void Interpreter::psq_lux(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
@@ -370,7 +367,7 @@ void psq_lux(UGeckoInstruction _inst)
 	m_GPR[_inst.RA] = EA;
 }
 
-void psq_stux(UGeckoInstruction _inst)
+void Interpreter::psq_stux(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
@@ -397,4 +394,3 @@ void psq_stux(UGeckoInstruction _inst)
 	m_GPR[_inst.RA] = EA;
 
 }  // namespace=======
-}
