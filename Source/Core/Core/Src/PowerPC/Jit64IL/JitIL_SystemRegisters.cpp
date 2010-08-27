@@ -148,9 +148,12 @@ void JitIL::mtcrf(UGeckoInstruction inst)
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	for (int i = 0; i < 8; ++i)
 	{
-		if (inst.CRM & (1 << i))
+		if (inst.CRM & (0x80 >> i))
 		{
-			ibuild.EmitStoreCR(ibuild.EmitAnd(ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - 4 * i)), ibuild.EmitIntConst(0xf)), i);
+			IREmitter::InstLoc value;
+			value = ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - i * 4));
+			value = ibuild.EmitAnd(value, ibuild.EmitIntConst(0xF));
+			ibuild.EmitStoreCR(value, i);
 		}
 	}
 }
