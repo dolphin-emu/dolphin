@@ -77,7 +77,7 @@ void Jit64AsmRoutineManager::Generate()
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
-			FixupBranch bail = J_CC(CC_BE);
+			FixupBranch bail = J_CC(CC_BE, true);
 
 			if (Core::g_CoreStartupParameter.bEnableDebugging)
 			{
@@ -95,8 +95,72 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, R(EAX), M(&PowerPC::ppcState.pc));
 			dispatcherPcInEAX = GetCodePtr();
 
-			FixupBranch needinst = J(true);
-			const u8* haveinst = GetCodePtr();
+#ifdef JIT_UNLIMITED_ICACHE
+			u32 mask = 0;
+			FixupBranch no_mem;
+			FixupBranch exit_mem;
+			FixupBranch exit_vmem;
+			if (Core::g_CoreStartupParameter.bWii)
+				mask = JIT_ICACHE_EXRAM_BIT;
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+				mask |= JIT_ICACHE_VMEM_BIT;
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			{
+				TEST(32, R(EAX), Imm32(mask));
+				no_mem = J_CC(CC_NZ);
+			}
+			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
+#ifdef _M_IX86
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICache()));
+#else
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
+			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+#endif
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			{
+				exit_mem = J();
+				SetJumpTarget(no_mem);
+			}
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			{
+				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
+				FixupBranch no_vmem = J_CC(CC_Z);
+				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
+#ifdef _M_IX86
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheVMEM()));
+#else
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheVMEM()));
+				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+#endif
+				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
+				SetJumpTarget(no_vmem);
+			}
+			if (Core::g_CoreStartupParameter.bWii)
+			{
+				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
+				FixupBranch no_exram = J_CC(CC_Z);
+				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
+#ifdef _M_IX86
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheEx()));
+#else
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheEx()));
+				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+#endif
+				SetJumpTarget(no_exram);
+			}
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+				SetJumpTarget(exit_mem);
+			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack))
+				SetJumpTarget(exit_vmem);
+#else
+#ifdef _M_IX86
+			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(32, R(EBX), Imm32((u32)Memory::base));
+			MOV(32, R(EAX), MComplex(EBX, EAX, SCALE_1, 0));
+#else
+			MOV(32, R(EAX), MComplex(RBX, RAX, SCALE_1, 0));
+#endif
+#endif
 
 			TEST(32, R(EAX), Imm32(0xFC));
 			FixupBranch notfound = J_CC(CC_NZ);
@@ -133,7 +197,7 @@ void Jit64AsmRoutineManager::Generate()
 			ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
-			JMP(dispatcher);
+			JMP(dispatcher, true);
 
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
@@ -156,77 +220,6 @@ void Jit64AsmRoutineManager::Generate()
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
-
-
-	SetJumpTarget(needinst);
-#ifdef JIT_UNLIMITED_ICACHE
-	u32 mask = 0;
-	FixupBranch no_mem;
-	FixupBranch exit_mem;
-	FixupBranch exit_vmem;
-	if (Core::g_CoreStartupParameter.bWii)
-		mask = JIT_ICACHE_EXRAM_BIT;
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-		mask |= JIT_ICACHE_VMEM_BIT;
-	if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		TEST(32, R(EAX), Imm32(mask));
-		no_mem = J_CC(CC_NZ);
-	}
-	AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#ifdef _M_IX86
-	MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICache()));
-#else
-	MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
-	MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
-	if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		exit_mem = J();
-		SetJumpTarget(no_mem);
-	}
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
-		FixupBranch no_vmem = J_CC(CC_Z);
-		AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#ifdef _M_IX86
-		MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheVMEM()));
-#else
-		MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheVMEM()));
-		MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
-		if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
-		SetJumpTarget(no_vmem);
-	}
-	if (Core::g_CoreStartupParameter.bWii)
-	{
-		TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
-		FixupBranch no_exram = J_CC(CC_Z);
-		AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
-#ifdef _M_IX86
-		MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheEx()));
-#else
-		MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheEx()));
-		MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
-		SetJumpTarget(no_exram);
-	}
-	if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-		SetJumpTarget(exit_mem);
-	if (Core::g_CoreStartupParameter.bWii)
-		SetJumpTarget(exit_vmem);
-#else
-#ifdef _M_IX86
-	AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-	MOV(32, R(EBX), Imm32((u32)Memory::base));
-	MOV(32, R(EAX), MComplex(EBX, EAX, SCALE_1, 0));
-#else
-	MOV(32, R(EAX), MComplex(RBX, RAX, SCALE_1, 0));
-#endif
-#endif
-	JMP(haveinst, true);
-
 
 	breakpointBailout = GetCodePtr();
 	//Landing pad for drec space
