@@ -697,9 +697,8 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 		{
 			if ((_Address & ~0xfff) == (PowerPC::ppcState.itlb_va[i & 127]))
 			{
-				u32 result = PowerPC::ppcState.itlb_pa[i & 127] | (_Address & 0xfff);
+				*paddr = PowerPC::ppcState.itlb_pa[i & 127] | (_Address & 0xfff);
 				PowerPC::ppcState.itlb_last = i;
-				paddr = &result;
 				return 1;
 			}
 		}
@@ -710,9 +709,8 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 		{
 			if ((_Address & ~0xfff) == (PowerPC::ppcState.dtlb_va[i & 127]))
 			{
-				u32 result = PowerPC::ppcState.dtlb_pa[i & 127] | (_Address & 0xfff);
+				*paddr = PowerPC::ppcState.dtlb_pa[i & 127] | (_Address & 0xfff);
 				PowerPC::ppcState.dtlb_last = i;
-				paddr = &result;
 				return 1;
 			}
 		}
