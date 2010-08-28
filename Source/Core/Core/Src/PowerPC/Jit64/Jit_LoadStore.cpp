@@ -50,8 +50,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	{ Default(inst); return; }
 
 	// Determine memory access size and sign extend
-	int accessSize;
-	bool signExtend;
+	int accessSize = 0;
+	bool signExtend = false;
 	switch (inst.OPCD)
 	{
 	case 32: /* lwz */

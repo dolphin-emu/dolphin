@@ -632,7 +632,7 @@ void Wiimote::Update()
 
 	// IR
 	if (rptf.ir)
-		GetIRData(data + rptf.ir, (rptf.accel!=NULL)); 
+		GetIRData(data + rptf.ir, (rptf.accel != 0)); 
 
 	// extension
 	if (rptf.ext)

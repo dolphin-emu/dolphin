@@ -200,9 +200,9 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 				break;
 			case GX_CMD_CALL_DL:
 				{
-					u32 address = DataReadU32();
+					u32 addr = DataReadU32();
 					u32 count = DataReadU32();
-					ExecuteDisplayList(address, count);
+					ExecuteDisplayList(addr, count);
 				}			
 				break;
 			case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
@@ -359,9 +359,9 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 			case GX_CMD_CALL_DL:
 				{
-					u32 address = DataReadU32();
+					u32 addr= DataReadU32();
 					u32 count = DataReadU32();
-					ExecuteDisplayList(address, count);
+					ExecuteDisplayList(addr, count);
 					emitter.ABI_CallFunctionCC((void *)&ExecuteDisplayList, address, count);
 				}
 				break;

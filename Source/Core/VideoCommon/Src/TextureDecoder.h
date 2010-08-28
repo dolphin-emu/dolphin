@@ -17,7 +17,7 @@
 
 #ifndef _TEXTUREDECODER_H
 #define _TEXTUREDECODER_H
-#include "hash.h"
+#include "Hash.h"
 enum 
 {
     TMEM_SIZE = 1024*1024,

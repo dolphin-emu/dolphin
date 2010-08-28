@@ -240,7 +240,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			if (components & (VB_HAS_COL0 << j))
 				WRITE(p, "mat = color%d;\n", j);
 			else if (components & VB_HAS_COL0)
-				WRITE(p, "mat = color0;\n", j);
+				WRITE(p, "mat = color0;\n");
 			else
 				WRITE(p, "mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 		}
@@ -252,7 +252,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 				if (components & (VB_HAS_COL0<<j) )
 					WRITE(p, "lacc = color%d;\n", j);
 				else if (components & VB_HAS_COL0 )
-					WRITE(p, "lacc = color0;\n", j);
+					WRITE(p, "lacc = color0;\n");
 				else
 					WRITE(p, "lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			}
@@ -270,7 +270,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 				if (components & (VB_HAS_COL0<<j))
 					WRITE(p, "mat.w = color%d.w;\n", j);
 				else if (components & VB_HAS_COL0)
-					WRITE(p, "mat.w = color0.w;\n", j);
+					WRITE(p, "mat.w = color0.w;\n");
 				else WRITE(p, "mat.w = 1.0f;\n");
 			}
 			else // from color
@@ -283,7 +283,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 				if (components & (VB_HAS_COL0<<j) )
 					WRITE(p, "lacc.w = color%d.w;\n", j);
 				else if (components & VB_HAS_COL0 )
-					WRITE(p, "lacc.w = color0.w;\n", j);
+					WRITE(p, "lacc.w = color0.w;\n");
 				else
 					WRITE(p, "lacc.w = 0.0f;\n");
 			}
@@ -533,7 +533,7 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 		else if (chan.attnfunc == 1) 
 		{ // specular
 			WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz);\n",index);
-			WRITE(p, "attn = (dot(_norm0,ldir) > 0.0f) ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);			
+			WRITE(p, "attn = (dot(_norm0,ldir) > 0.0f) ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index);
 			WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1,attn,attn*attn));\n", index, index);
 		}
 
