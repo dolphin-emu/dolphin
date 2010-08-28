@@ -381,7 +381,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float
 
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0 && !bFromZBuffer);
 	TextureMngr::MakeRangeDynamic(address,size_in_bytes);
-	return TexDecoder_GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);		
+	return GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);		
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,

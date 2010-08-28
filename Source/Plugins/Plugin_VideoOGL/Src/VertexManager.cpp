@@ -60,8 +60,8 @@ static GLint max_Index_size = 0;
 #define MAXIBUFFERSIZE 0xFFFF
 #define MAXVBOBUFFERCOUNT 0x8
 
-static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
-static int s_nCurVBOIndex = 0; // current free buffer
+//static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
+//static int s_nCurVBOIndex = 0; // current free buffer
 static bool Flushed=false;
 
 
@@ -79,8 +79,9 @@ bool Init()
 	PIBuffer = new u16[max_Index_size];
 	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 	s_pCurBufferPointer = LocalVBuffer;
-	s_nCurVBOIndex = 0;
-	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
+	s_pBaseBufferPointer = LocalVBuffer;
+	//s_nCurVBOIndex = 0;
+	//glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
 	Flushed=false;
@@ -95,13 +96,13 @@ void Shutdown()
 	delete [] TIBuffer;
 	delete [] LIBuffer;
 	delete [] PIBuffer;
-	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-	s_nCurVBOIndex = 0;
+	//glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
+	//s_nCurVBOIndex = 0;
 }
 
 void ResetBuffer()
 {
-	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
+	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = LocalVBuffer;
 }
 
@@ -237,8 +238,8 @@ void Flush()
 
 	(void)GL_REPORT_ERROR();
 	
-	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
+	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
@@ -339,7 +340,7 @@ void Flush()
 		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
 			glEnable(GL_BLEND);
 	}
-	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
+	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = LocalVBuffer;
 	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 

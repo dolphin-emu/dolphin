@@ -17,7 +17,7 @@
 
 #ifndef _TEXTUREDECODER_H
 #define _TEXTUREDECODER_H
-
+#include "hash.h"
 enum 
 {
     TMEM_SIZE = 1024*1024,
@@ -86,9 +86,6 @@ enum PC_TexFormat
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly = false);
 PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt);
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
-
-u64 TexDecoder_GetHash64(const u8 *src, int len, u32 samples = 0);
-
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 #endif

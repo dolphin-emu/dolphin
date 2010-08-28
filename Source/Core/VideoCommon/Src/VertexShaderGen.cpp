@@ -45,10 +45,6 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 			(u32)xfregs.colChans[i].alpha.matsource) << 15;
 	}
 
-	// fog
-	uid->values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-	uid->values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
-
 	u32 *pcurvalue = &uid->values[3];
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;

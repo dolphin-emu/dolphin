@@ -48,5 +48,5 @@
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
 void OpcodeDecoder_Run(bool skipped_frame);
-
+void ExecuteDisplayList(u32 address, u32 size);
 #endif // _OPCODE_DECODING_H

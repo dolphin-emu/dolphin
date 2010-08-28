@@ -29,6 +29,7 @@ int GetRemainingVertices(int primitive); // remaining number of vertices that ca
 
 // TODO: move, rename.
 extern u8* s_pCurBufferPointer;
+extern u8* s_pBaseBufferPointer;
 
 }
 

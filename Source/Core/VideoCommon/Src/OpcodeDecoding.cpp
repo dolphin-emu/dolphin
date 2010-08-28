@@ -233,12 +233,12 @@ static void Decode()
         {
             u32 Cmd2 = DataReadU32();
             int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-            u32 address = Cmd2 & 0xFFFF;
+            u32 xf_address = Cmd2 & 0xFFFF;
 			// TODO - speed this up. pshufb?
             u32 data_buffer[16];
             for (int i = 0; i < transfer_size; i++)
                 data_buffer[i] = DataReadU32();
-            LoadXFReg(transfer_size, address, data_buffer);
+            LoadXFReg(transfer_size, xf_address, data_buffer);
 			INCSTAT(stats.thisFrame.numXFLoads);
         }
         break;

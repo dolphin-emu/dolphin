@@ -22,6 +22,7 @@ namespace VertexManager
 {
 
 u8* s_pCurBufferPointer = NULL;
+u8* s_pBaseBufferPointer = NULL;
 
 }
 

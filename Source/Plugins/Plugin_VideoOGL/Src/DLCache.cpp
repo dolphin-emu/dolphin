@@ -78,7 +78,7 @@ struct CachedDisplayList
 	bool uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
 
 	int pass;
-	u32 dl_hash;
+	u64 dl_hash;
 
 	int check;
 	int next_check;
@@ -128,136 +128,125 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 	int num_index_xf = 0;
 	//int num_draw_call = 0; // unused?
 
-	u8 *old_datareader = g_pVideoData;
-	g_pVideoData = Memory_GetPtr(address);
+	u8* old_pVideoData = g_pVideoData;
+	u8* startAddress = Memory_GetPtr(address);
 
-	u8 *end = g_pVideoData + size;
-	while (g_pVideoData < end)
+	// Avoid the crash if Memory_GetPtr failed ..
+	if (startAddress != 0)
 	{
-		// Yet another reimplementation of the DL reading...
-		int cmd_byte = DataReadU8();
-		switch (cmd_byte)
+		g_pVideoData = startAddress;
+
+		// temporarily swap dl and non-dl (small "hack" for the stats)
+		Statistics::SwapDL();
+
+		u8 *end = g_pVideoData + size;
+		while (g_pVideoData < end)
 		{
-		case GX_NOP:
-			break;
-
-		case GX_LOAD_CP_REG: //0x08
+			// Yet another reimplementation of the DL reading...
+			int cmd_byte = DataReadU8();
+			switch (cmd_byte)
 			{
-				// Execute
-				u8 sub_cmd = DataReadU8();
-				u32 value = DataReadU32();
-				LoadCPReg(sub_cmd, value);
-				INCSTAT(stats.thisFrame.numCPLoads);
+			case GX_NOP:
+				break;
 
-				// Analyze
-				num_cp_reg++;
-			}
-			break;
+			case GX_LOAD_CP_REG: //0x08
+				{
+					u8 sub_cmd = DataReadU8();
+					u32 value = DataReadU32();
+					LoadCPReg(sub_cmd, value);
+					INCSTAT(stats.thisFrame.numCPLoads);
+					num_cp_reg++;
+				}
+				break;
 
-		case GX_LOAD_XF_REG:
-			{
-				// Execute
-				u32 Cmd2 = DataReadU32();
-				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-				u32 xf_address = Cmd2 & 0xFFFF;
-				// TODO - speed this up. pshufb?
-				u32 data_buffer[16];
-				for (int i = 0; i < transfer_size; i++)
-					data_buffer[i] = DataReadU32();
-				LoadXFReg(transfer_size, xf_address, data_buffer);
-				INCSTAT(stats.thisFrame.numXFLoads);
+			case GX_LOAD_XF_REG:
+				{
+					u32 Cmd2 = DataReadU32();
+					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+					u32 xf_address = Cmd2 & 0xFFFF;
+					// TODO - speed this up. pshufb?
+					u32 data_buffer[16];
+					for (int i = 0; i < transfer_size; i++)
+						data_buffer[i] = DataReadU32();
+					LoadXFReg(transfer_size, xf_address, data_buffer);
+					INCSTAT(stats.thisFrame.numXFLoads);
+					num_xf_reg++;
+				}
+				break;
 
-				// Analyze
-				num_xf_reg++;
-			}
-			break;
-
-		case GX_LOAD_INDX_A: //used for position matrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xC);
-				// Analyze
-				num_index_xf++;
-			}
-			break;
-		case GX_LOAD_INDX_B: //used for normal matrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xD);
-				// Analyze
-				num_index_xf++;
-			}
-			break;
-		case GX_LOAD_INDX_C: //used for postmatrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xE);
-				// Analyze
-				num_index_xf++;
-			}
-			break;
-		case GX_LOAD_INDX_D: //used for lights
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xF);
-				// Analyze
-				num_index_xf++;
-			}
-			break;
-
-		case GX_CMD_CALL_DL:
-			PanicAlert("Seeing DL call inside DL.");
-			break;
-
-		case GX_CMD_UNKNOWN_METRICS:
-			// zelda 4 swords calls it and checks the metrics registers after that
-			break;
-
-		case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
-			DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
-			break;
-
-		case GX_LOAD_BP_REG: //0x61
-			{
-				u32 bp_cmd = DataReadU32();
-				// Execute
-				LoadBPReg(bp_cmd);
-				INCSTAT(stats.thisFrame.numBPLoads);
-
-				// Analyze
-			}
-			break;
+			case GX_LOAD_INDX_A: //used for position matrices
+				{
+					LoadIndexedXF(DataReadU32(), 0xC);
+					num_index_xf++;
+				}
+				break;
+			case GX_LOAD_INDX_B: //used for normal matrices
+				{
+					LoadIndexedXF(DataReadU32(), 0xD);
+					num_index_xf++;
+				}
+				break;
+			case GX_LOAD_INDX_C: //used for postmatrices
+				{
+					LoadIndexedXF(DataReadU32(), 0xE);
+					num_index_xf++;
+				}
+				break;
+			case GX_LOAD_INDX_D: //used for lights
+				{
+					LoadIndexedXF(DataReadU32(), 0xF);
+					num_index_xf++;
+				}
+				break;
+			case GX_CMD_CALL_DL:
+				{
+					u32 address = DataReadU32();
+					u32 count = DataReadU32();
+					ExecuteDisplayList(address, count);
+				}			
+				break;
+			case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+				DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
+				break;
+			case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+				DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
+				break;
+			case GX_LOAD_BP_REG: //0x61
+				{
+					u32 bp_cmd = DataReadU32();
+					LoadBPReg(bp_cmd);
+					INCSTAT(stats.thisFrame.numBPLoads);
+				}
+				break;
 
 			// draw primitives 
-		default:
-			if (cmd_byte & 0x80)
-			{
-				// load vertices (use computed vertex size from FifoCommandRunnable above)
+			default:
+				if (cmd_byte & 0x80)
+				{
+					// load vertices (use computed vertex size from FifoCommandRunnable above)
+					u16 numVertices = DataReadU16();
 
-				// Execute
-				u16 numVertices = DataReadU16();
-
-				VertexLoaderManager::RunVertices(
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					numVertices);
-
-				// Analyze
-			}
-			else
-			{
-				ERROR_LOG(VIDEO, "DLCache::CompileAndRun: Illegal command %02x", cmd_byte);
+					VertexLoaderManager::RunVertices(
+						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+						numVertices);
+				}
+				else
+				{
+					ERROR_LOG(VIDEO, "OpcodeDecoding::Decode: Illegal command %02x", cmd_byte);
+					break;
+				}
 				break;
 			}
-			break;
 		}
+		INCSTAT(stats.numDListsCalled);
+		INCSTAT(stats.thisFrame.numDListsCalled);
+		// un-swap
+		Statistics::SwapDL();
 	}
 
-	g_pVideoData = old_datareader;
+    // reset to the old pointer
+	g_pVideoData = old_pVideoData;	
 	return true;
 }
 
@@ -271,171 +260,173 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 // have the compiled code so we don't have to interpret anymore, we just run it.
 bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 {
-	VertexManager::Flush();
+	u8* old_pVideoData = g_pVideoData;
+	u8* startAddress = Memory_GetPtr(address);
 
-	u8 *old_datareader = g_pVideoData;
-	g_pVideoData = Memory_GetPtr(address);
-	
-	u8 *end = g_pVideoData + size;
-
-	emitter.AlignCode4();
-	dl->compiled_code = emitter.GetCodePtr();
-	emitter.ABI_EmitPrologue(4);
-
-	while (g_pVideoData < end)
+	// Avoid the crash if Memory_GetPtr failed ..
+	if (startAddress != 0)
 	{
-		// Yet another reimplementation of the DL reading...
-		int cmd_byte = DataReadU8();
-		switch (cmd_byte)
+		g_pVideoData = startAddress;
+
+		// temporarily swap dl and non-dl (small "hack" for the stats)
+		Statistics::SwapDL();
+
+		u8 *end = g_pVideoData + size;
+
+		emitter.AlignCode4();
+		dl->compiled_code = emitter.GetCodePtr();
+		emitter.ABI_EmitPrologue(4);
+
+		while (g_pVideoData < end)
 		{
-		case GX_NOP:
-			// Execute
-			// Compile
-			break;
-
-		case GX_LOAD_CP_REG: //0x08
+			// Yet another reimplementation of the DL reading...
+			int cmd_byte = DataReadU8();
+			switch (cmd_byte)
 			{
+			case GX_NOP:
 				// Execute
-				u8 sub_cmd = DataReadU8();
-				u32 value = DataReadU32();
-				LoadCPReg(sub_cmd, value);
-				INCSTAT(stats.thisFrame.numCPLoads);
-
 				// Compile
-				emitter.ABI_CallFunctionCC((void *)&LoadCPReg, sub_cmd, value);
-			}
-			break;
+				break;
 
-		case GX_LOAD_XF_REG:
-			{
-				// Execute
-				u32 Cmd2 = DataReadU32();
-				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-				u32 xf_address = Cmd2 & 0xFFFF;
-				// TODO - speed this up. pshufb?
-				u8 *real_data_buffer = AllocStaticData(4 * transfer_size);
-				u32 *data_buffer = (u32 *)real_data_buffer;
-				for (int i = 0; i < transfer_size; i++)
-					data_buffer[i] = DataReadU32();
-				LoadXFReg(transfer_size, xf_address, data_buffer);
-				INCSTAT(stats.thisFrame.numXFLoads);
+			case GX_LOAD_CP_REG: //0x08
+				{
+					// Execute
+					u8 sub_cmd = DataReadU8();
+					u32 value = DataReadU32();
+					LoadCPReg(sub_cmd, value);
+					INCSTAT(stats.thisFrame.numCPLoads);
 
-				// Compile
-				emitter.ABI_CallFunctionCCP((void *)&LoadXFReg, transfer_size, address, data_buffer);
-			}
-			break;
+					// Compile
+					emitter.ABI_CallFunctionCC((void *)&LoadCPReg, sub_cmd, value);
+				}
+				break;
 
-		case GX_LOAD_INDX_A: //used for position matrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xC);
-				// Compile
-				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xC);
-			}
-			break;
-		case GX_LOAD_INDX_B: //used for normal matrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xD);
-				// Compile
-				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xD);
-			}
-			break;
-		case GX_LOAD_INDX_C: //used for postmatrices
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xE);
-				// Compile
-				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xE);
-			}
-			break;
-		case GX_LOAD_INDX_D: //used for lights
-			{
-				u32 value = DataReadU32();
-				// Execute
-				LoadIndexedXF(value, 0xF);
-				// Compile
-				emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xF);
-			}
-			break;
+			case GX_LOAD_XF_REG:
+				{
+					// Execute
+					u32 Cmd2 = DataReadU32();
+					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+					u32 xf_address = Cmd2 & 0xFFFF;
+					// TODO - speed this up. pshufb?
+					u8 *real_data_buffer = AllocStaticData(4 * transfer_size);
+					u32 *data_buffer = (u32 *)real_data_buffer;
+					for (int i = 0; i < transfer_size; i++)
+						data_buffer[i] = DataReadU32();
+					LoadXFReg(transfer_size, xf_address, data_buffer);
+					INCSTAT(stats.thisFrame.numXFLoads);
 
-		case GX_CMD_CALL_DL:
-			PanicAlert("Seeing DL call inside DL.");
-			break;
+					// Compile
+					emitter.ABI_CallFunctionCCP((void *)&LoadXFReg, transfer_size, xf_address, data_buffer);
+				}
+				break;
 
-		case GX_CMD_UNKNOWN_METRICS:
-			// zelda 4 swords calls it and checks the metrics registers after that
-			break;
+			case GX_LOAD_INDX_A: //used for position matrices
+				{
+					u32 value = DataReadU32();
+					// Execute
+					LoadIndexedXF(value, 0xC);
+					// Compile
+					emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xC);
+				}
+				break;
+			case GX_LOAD_INDX_B: //used for normal matrices
+				{
+					u32 value = DataReadU32();
+					// Execute
+					LoadIndexedXF(value, 0xD);
+					// Compile
+					emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xD);
+				}
+				break;
+			case GX_LOAD_INDX_C: //used for postmatrices
+				{
+					u32 value = DataReadU32();
+					// Execute
+					LoadIndexedXF(value, 0xE);
+					// Compile
+					emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xE);
+				}
+				break;
+			case GX_LOAD_INDX_D: //used for lights
+				{
+					u32 value = DataReadU32();
+					// Execute
+					LoadIndexedXF(value, 0xF);
+					// Compile
+					emitter.ABI_CallFunctionCC((void *)&LoadIndexedXF, value, 0xF);
+				}
+				break;
 
-		case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
-			DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
-			break;
+			case GX_CMD_CALL_DL:
+				{
+					u32 address = DataReadU32();
+					u32 count = DataReadU32();
+					ExecuteDisplayList(address, count);
+					emitter.ABI_CallFunctionCC((void *)&ExecuteDisplayList, address, count);
+				}
+				break;
 
-		case GX_LOAD_BP_REG: //0x61
-			{
-				u32 bp_cmd = DataReadU32();
-				// Execute
-				LoadBPReg(bp_cmd);
-				INCSTAT(stats.thisFrame.numBPLoads);
-				// Compile
-				emitter.ABI_CallFunctionC((void *)&LoadBPReg, bp_cmd);
-			}
-			break;
+			case GX_CMD_UNKNOWN_METRICS:
+				// zelda 4 swords calls it and checks the metrics registers after that
+				break;
 
-			// draw primitives 
-		default:
-			if (cmd_byte & 0x80)
-			{
-				// load vertices (use computed vertex size from FifoCommandRunnable above)
+			case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
+				DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
+				break;
 
-				// Execute
-				u16 numVertices = DataReadU16();
+			case GX_LOAD_BP_REG: //0x61
+				{
+					u32 bp_cmd = DataReadU32();
+					// Execute
+					LoadBPReg(bp_cmd);
+					INCSTAT(stats.thisFrame.numBPLoads);
+					// Compile
+					emitter.ABI_CallFunctionC((void *)&LoadBPReg, bp_cmd);
+				}
+				break;
 
-				u64 pre_draw_video_data = (u64)g_pVideoData;
+				// draw primitives 
+			default:
+				if (cmd_byte & 0x80)
+				{
+					// load vertices (use computed vertex size from FifoCommandRunnable above)
 
-				VertexLoaderManager::RunVertices(
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					numVertices);
+					// Execute
+					u16 numVertices = DataReadU16();
 
-				// Compile
-#ifdef _M_X64
-				emitter.MOV(64, R(RAX), Imm64(pre_draw_video_data));
-				emitter.MOV(64, M(&g_pVideoData), R(RAX));
-#else
-				emitter.MOV(32, R(EAX), Imm32((u32)pre_draw_video_data));
-				emitter.MOV(32, M(&g_pVideoData), R(EAX));
-#endif
-				emitter.ABI_CallFunctionCCC(
-					(void *)&VertexLoaderManager::RunVertices,
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					numVertices);
-			}
-			else
-			{
-				ERROR_LOG(VIDEO, "DLCache::CompileAndRun: Illegal command %02x", cmd_byte);
+					u64 pre_draw_video_data = (u64)g_pVideoData;
+
+					VertexLoaderManager::RunVertices(
+						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+						numVertices);
+
+					// Compile
+	#ifdef _M_X64
+					emitter.MOV(64, R(RAX), Imm64(pre_draw_video_data));
+					emitter.MOV(64, M(&g_pVideoData), R(RAX));
+	#else
+					emitter.MOV(32, R(EAX), Imm32((u32)pre_draw_video_data));
+					emitter.MOV(32, M(&g_pVideoData), R(EAX));
+	#endif
+					emitter.ABI_CallFunctionCCC(
+						(void *)&VertexLoaderManager::RunVertices,
+						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+						numVertices);
+				}
+				else
+				{
+					ERROR_LOG(VIDEO, "DLCache::CompileAndRun: Illegal command %02x", cmd_byte);
+					break;
+				}
 				break;
 			}
-			break;
 		}
+		emitter.ABI_EmitEpilogue(4);
 	}
-
-	emitter.ABI_EmitEpilogue(4);
-
-	g_pVideoData = old_datareader;
+	g_pVideoData = old_pVideoData;
 	return true;
-}
-
-// This one's pretty expensive. We should check if we can get away with only
-// hashing the entire DL the first 3 frames or something.
-u32 ComputeDLHash(u32 address, u32 size)
-{
-	u8 *ptr = Memory_GetPtr(address);
-	return HashFletcher(ptr, size & ~1);
 }
 
 void Init()
@@ -485,8 +476,12 @@ bool HandleDisplayList(u32 address, u32 size)
 {
 	// Disable display list caching since the benefit isn't much to write home about
 	// right now...
+	//Fixed DlistCaching now is fully functional benefits still marginal but when vertex data is stored here the story will be diferent :)
+	//to test remove the next line;
 	return false;
 
+
+	if(size == 0) return false;
 	u64 dl_id = DLCache::CreateMapId(address, size);
 	DLCache::DLMap::iterator iter = DLCache::dl_map.find(dl_id);
 
@@ -509,7 +504,7 @@ bool HandleDisplayList(u32 address, u32 size)
 			break;
 		case DLCache::DLPASS_COMPILE:
 			// First, check that the hash is the same as the last time.
-			if (dl.dl_hash != HashAdler32(Memory_GetPtr(address), size))
+			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0))
 			{
 				// PanicAlert("uncachable %08x", address);
 				dl.uncachable = true;
@@ -524,13 +519,13 @@ bool HandleDisplayList(u32 address, u32 size)
 				dl.check--;
 				if (dl.check <= 0)
 				{
-					if (dl.dl_hash != HashAdler32(Memory_GetPtr(address), size)) 
+					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0)) 
 					{
 						dl.uncachable = true;
 						return false;
 					}
 					dl.check = dl.next_check;
-					dl.next_check *= 2;
+					//dl.next_check *= 2;
 					if (dl.next_check > 1024)
 						dl.next_check = 1024;
 				}
@@ -546,7 +541,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	DLCache::CachedDisplayList dl;
 	
 	if (DLCache::AnalyzeAndRunDisplayList(address, size, &dl)) {
-		dl.dl_hash = HashAdler32(Memory_GetPtr(address), size);
+		dl.dl_hash = GetHash64(Memory_GetPtr(address), size,0);
 		dl.pass = DLCache::DLPASS_COMPILE;
 		dl.check = 1;
 		dl.next_check = 1;

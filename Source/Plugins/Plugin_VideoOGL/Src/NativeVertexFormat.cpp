@@ -29,13 +29,13 @@
 #define COMPILED_CODE_SIZE 4096
 
 u32 s_prevcomponents; // previous state set
-
+/*
 #ifdef _WIN32
 #ifdef _M_IX86
 #define USE_JIT
 #endif
 #endif
-
+*/
 // Note the use of CallCdeclFunction3I etc.
 // This is a horrible hack that is necessary because in 64-bit mode, Opengl32.dll is based way, way above the 32-bit
 // address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
@@ -181,21 +181,21 @@ void GLVertexFormat::SetupVertexPointers() const {
 #ifdef USE_JIT
 	((void (*)())(void*)m_compiledCode)();
 #else
-	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, 0);
+	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, VertexManager::s_pBaseBufferPointer);
 	if (vtx_decl.num_normals >= 1) {
-		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)vtx_decl.normal_offset[0]);
+		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[0]));
 		if (vtx_decl.num_normals == 3) {
-			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)vtx_decl.normal_offset[1]);
-			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)vtx_decl.normal_offset[2]);
+			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[1]));
+			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[2]));
 		}
 	}
 
 	for (int i = 0; i < 2; i++) {
 		if (vtx_decl.color_offset[i] != -1) {
 			if (i == 0)
-				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]);
+				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.color_offset[i]));
 			else {
-				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]); 
+				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.color_offset[i])); 
 			}
 		}
 	}
@@ -205,12 +205,12 @@ void GLVertexFormat::SetupVertexPointers() const {
 			int id = GL_TEXTURE0 + i;
 			glClientActiveTexture(id);
 			glTexCoordPointer(vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
-				vtx_decl.stride, (void *)vtx_decl.texcoord_offset[i]);
+				vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.texcoord_offset[i]));
 		}
 	}
 
 	if (vtx_decl.posmtx_offset != -1) {
-		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
+		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.posmtx_offset));
 	}
 #endif
 }
