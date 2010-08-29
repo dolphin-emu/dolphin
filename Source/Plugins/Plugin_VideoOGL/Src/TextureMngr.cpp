@@ -109,42 +109,26 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode,TexMode1 &
 {
     mode = newmode;
 	mode1 = newmode1;
-    if (isRectangle) 
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+
+    if (bHaveMipMaps) 
 	{
-        // very limited!
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER,
-			            (newmode.mag_filter || g_ActiveConfig.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER,
-			            (g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
+            mode.min_filter += 4; // take equivalent forced linear
+        int filt = newmode.min_filter;            
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
+		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/32.0f));
 
-		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) 
-            DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode");
-
-		if (newmode.wrap_s == 1 || newmode.wrap_t == 1)
-            DEBUG_LOG(VIDEO, "cannot support repeat mode");
     }
-    else 
-	{
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-
-        if (bHaveMipMaps) 
-		{
-			if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-                mode.min_filter += 4; // take equivalent forced linear
-            int filt = newmode.min_filter;            
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-			glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/32.0f));
-
-        }
-        else
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			                (g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
-    }
+    else
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		                (g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
     
     if (g_Config.iMaxAnisotropy >= 1)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_ActiveConfig.iMaxAnisotropy));
@@ -355,8 +339,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			|| ((address == entry.addr) && (hash_value == entry.hash) && ((int) FullFormat == entry.fmt) && entry.MipLevels >= maxlevel))
 		{
             entry.frameCount = frameCount;
-			glEnable(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
-			glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, entry.texture);
 			GL_REPORT_ERRORD();
             entry.SetTextureParameters(tm0,tm1);
 			entry.isDynamic = false;
@@ -369,10 +353,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// Might speed up movie playback very, very slightly.
 			TextureisDynamic = (entry.isRenderTarget || entry.isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
 			if (((!(entry.isRenderTarget || entry.isDynamic)  && width == entry.w && height == entry.h && (int)FullFormat == entry.fmt) ||
-				((entry.isRenderTarget || entry.isDynamic)  && entry.w == width && entry.h == height && entry.Scaledw == width && entry.Scaledh == height)) 
-				&& !entry.isRectangle)
+				((entry.isRenderTarget || entry.isDynamic)  && entry.w == width && entry.h == height && entry.Scaledw == width && entry.Scaledh == height)))
 			{
-				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+				glBindTexture(GL_TEXTURE_2D, entry.texture);
 				GL_REPORT_ERRORD();
 				entry.SetTextureParameters(tm0,tm1);
 				skip_texture_create = true;
@@ -405,14 +388,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		{
 			expandedWidth = width;
 			expandedHeight = height;
-			entry.scaleX = (float) width / oldWidth;
-			entry.scaleY = (float) height / oldHeight;
 		}
-	}
-	else
-	{
-		entry.scaleX = 1.0f;
-		entry.scaleY = 1.0f;
 	}
 
 	if (dfmt == PC_TEX_FMT_NONE)
@@ -431,11 +407,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);    
 
-	// For static textures, we use NPOT.
-	entry.isRectangle = false;
-    // old code: entry.isRectangle = ((width & (width - 1)) || (height & (height - 1)));
-
-	GLenum target = entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
+	GLenum target = GL_TEXTURE_2D;
 	if (!skip_texture_create) {
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(target, entry.texture);
@@ -749,9 +721,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	if (!bIsInit) 
 	{
 		glGenTextures(1, (GLuint *)&entry.texture);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+		glBindTexture(GL_TEXTURE_2D, entry.texture);
 		GL_REPORT_ERRORD();
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
 		GL_REPORT_ERRORD();
 		entry.isRenderTarget = true;
 		entry.isDynamic = false;
@@ -767,7 +739,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		}
 		if (((entry.isRenderTarget || entry.isDynamic)  && entry.Scaledw == Scaledtex_w && entry.Scaledh == Scaledtex_h))
 		{
-			glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+			glBindTexture(GL_TEXTURE_2D, entry.texture);
 			// for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
 			GL_REPORT_ERRORD();
@@ -775,8 +747,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 			// Delete existing texture.			
 			glDeleteTextures(1,(GLuint *)&entry.texture);
 			glGenTextures(1, (GLuint *)&entry.texture);
-			glBindTexture(entry.isDynamic ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-			glTexImage2D(entry.isDynamic ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
+			glBindTexture(GL_TEXTURE_2D, entry.texture);
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
 			GL_REPORT_ERRORD();
 			entry.isRenderTarget = !entry.isDynamic;
 		}
@@ -784,14 +756,14 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	if (!bIsInit) 
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		if (GL_REPORT_ERROR() != GL_NO_ERROR) {
-			glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			GL_REPORT_ERRORD();
 		}
 	}
@@ -801,9 +773,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	entry.h = h;
 	entry.Scaledw = Scaledtex_w;
 	entry.Scaledh = Scaledtex_h;
-	entry.isRectangle = !entry.isDynamic;
-	entry.scaleX = (g_ActiveConfig.bCopyEFBScaled  && !entry.isDynamic) ? xScale : 1.0f;
-	entry.scaleY = (g_ActiveConfig.bCopyEFBScaled  && !entry.isDynamic) ? yScale : 1.0f;
 	entry.fmt = copyfmt;	
 	entry.hash = 0;
 
@@ -821,7 +790,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 		g_framebufferManager.SetFramebuffer(s_TempFramebuffer);
 		// Bind texture to temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, entry.texture, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, entry.texture, 0);
 		GL_REPORT_FBO_ERROR();
 		GL_REPORT_ERRORD();
 	    
@@ -848,7 +817,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		GL_REPORT_ERRORD();
 
 		// Unbind texture from temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
 	}
 
 	if(!g_ActiveConfig.bCopyEFBToTexture)
@@ -876,7 +845,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{
 		static int count = 0;
-		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
+		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), count++).c_str(), GL_TEXTURE_2D, entry.texture, entry.w, entry.h);
 	}
 }
 
