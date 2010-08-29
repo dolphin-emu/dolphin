@@ -630,13 +630,7 @@ void VideoThrottle()
 		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
 		
 		// Settings are shown the same for both extended and summary info
-		std::string SSettings = StringFromFormat("%s %s",
-		#ifdef _M_IX86
-					_CoreParameter.iCPUCore ? jit->GetName() : "Int32", 
-		#else
-					_CoreParameter.iCPUCore ? jit->GetName() : "Int64", 
-		#endif
-		_CoreParameter.bCPUThread ? "DC" : "SC");
+		std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
 
 		// Use extended or summary information. The summary information does not print the ticks data,
 		// that's more of a debugging interest, it can always be optional of course if someone is interested.

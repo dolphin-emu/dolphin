@@ -392,11 +392,10 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 	}
 }
 
-bool initialized = false;
-
 void InitTables()
 {
 	// once initialized, tables are read-only
+	static bool initialized = false;
 	if (initialized)
 		return;
 

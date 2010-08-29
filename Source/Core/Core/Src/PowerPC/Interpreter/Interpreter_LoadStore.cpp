@@ -521,12 +521,40 @@ void Interpreter::lhzx(UGeckoInstruction _inst)
 	}
 }
 
+// TODO: is this right?
+// FIXME: Should rollback if a DSI occurs
 void Interpreter::lswx(UGeckoInstruction _inst)
 {
-	static bool bFirst = true;
-	if (bFirst)
-		PanicAlert("lswx - Instruction unimplemented");
-	bFirst = false;
+	u32 EA = Helper_Get_EA_X(_inst);
+	u32 n = rSPR(SPR_XER) & 0x7F;
+	int r = _inst.RD;
+	int i = 0;
+
+	if (n > 0)
+	{
+		m_GPR[r] = 0;
+		do
+		{
+			u32 TempValue = Memory::Read_U8(EA) << (24 - i);
+			if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+			{
+				PanicAlert("DSI exception in lswx.");
+				NOTICE_LOG(POWERPC, "DSI exception in lswx");
+				return;
+			}
+			m_GPR[r] |= TempValue;
+
+			EA++;
+			n--;
+			i += 8;
+			if (i == 32)
+			{
+				i = 0;
+				r = (r + 1) & 31;
+				m_GPR[r] = 0;
+			}
+		} while (n > 0);
+	}
 }
 
 void Interpreter::lwbrx(UGeckoInstruction _inst)
@@ -722,12 +750,27 @@ void Interpreter::stswi(UGeckoInstruction _inst)
 	}
 }
 
+// TODO: is this right? is it DSI interruptible?
 void Interpreter::stswx(UGeckoInstruction _inst)
 {
-	static bool bFirst = true;
-	if (bFirst)
-		PanicAlert("stswx - Instruction unimplemented");
-	bFirst = false;
+	u32 EA = Helper_Get_EA_X(_inst);
+	u32 n = rSPR(SPR_XER) & 0x7F;
+	int r = _inst.RS;
+	int i = 0;
+
+	while (n > 0)
+	{
+		Memory::Write_U8((m_GPR[r] >> (24 - i)) & 0xFF, EA);
+
+		EA++;
+		n--;
+		i += 8;
+		if (i == 32)
+		{
+			i = 0;
+			r++;
+		}
+	}
 }
 
 void Interpreter::stwbrx(UGeckoInstruction _inst)
