@@ -52,6 +52,7 @@ GFXConfigDialogDX *m_ConfigFrame = NULL;
 #include "VideoState.h"
 #include "XFBConvert.h"
 #include "render.h"
+#include "DLCache.h"
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
@@ -71,11 +72,6 @@ static volatile struct
 } s_beginFieldArgs;
 
 static volatile EFBAccessType s_AccessEFBType;
-
-bool HandleDisplayList(u32 address, u32 size)
-{
-	return false;
-}
 
 bool IsD3D()
 {
@@ -249,7 +245,7 @@ void Video_Prepare()
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
-
+	DLCache::Init();
 	// Tell the host the window is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
 }
@@ -259,6 +255,7 @@ void Shutdown()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
+	DLCache::Shutdown();
 	Fifo_Shutdown();
 	CommandProcessor::Shutdown();
 	VertexManager::Shutdown();

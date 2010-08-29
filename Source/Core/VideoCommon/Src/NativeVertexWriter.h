@@ -23,6 +23,7 @@ namespace VertexManager
 {
 
 void AddVertices(int primitive, int numvertices);
+void AddCompiledVertices(int primitive, int numvertices, u8* Vdata);
 void Flush(); // flushes the current buffer
 int GetRemainingSize();  // remaining space in the current buffer.
 int GetRemainingVertices(int primitive); // remaining number of vertices that can be processed in one AddVertices call

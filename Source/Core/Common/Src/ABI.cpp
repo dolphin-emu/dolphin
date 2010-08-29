@@ -106,6 +106,16 @@ void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *par
 	ABI_RestoreStack(3 * 4);
 }
 
+void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param3, void *param4) {
+	ABI_AlignStack(4 * 4);
+	PUSH(32, Imm32((u32)param4));
+	PUSH(32, Imm32(param3));
+	PUSH(32, Imm32(param2));
+	PUSH(32, Imm32(param1));
+	CALL(func);
+	ABI_RestoreStack(4 * 4);
+}
+
 // Pass a register as a parameter.
 void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ABI_AlignStack(1 * 4);
@@ -233,6 +243,14 @@ void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *par
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
 	MOV(64, R(ABI_PARAM3), Imm64((u64)param3));
+	CALL(func);
+}
+
+void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2, u32 param3, void *param4) {
+	MOV(32, R(ABI_PARAM1), Imm32(param1));
+	MOV(32, R(ABI_PARAM2), Imm32(param2));
+	MOV(32, R(ABI_PARAM3), Imm32(param3));
+	MOV(64, R(ABI_PARAM4), Imm64((u64)param4));
 	CALL(func);
 }
 

@@ -31,16 +31,14 @@
 #include "CPMemory.h"
 #include "BPMemory.h"
 
-#include "VertexManager.h"
 #include "VertexLoaderManager.h"
-
+#include "NativeVertexWriter.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
 #include "DLCache.h"
 
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
-#define DL_STATIC_DATA_SIZE (1024*1024*4)
 extern int frameCount;
 
 using namespace Gen;
@@ -64,13 +62,21 @@ struct VDataHashRegion
 	u32 start_address;
 	int size;
 };
+typedef u8* DataPointer;
+typedef std::map<u8, DataPointer> VdataMap;
 
 struct CachedDisplayList
 {
 	CachedDisplayList()
-		: uncachable(false),
-		  pass(DLPASS_ANALYZE),
-		  next_check(1)
+			: uncachable(false),
+			pass(DLPASS_ANALYZE),
+			next_check(1),
+			BufferCount(0),
+			num_xf_reg(0),
+			num_cp_reg(0),
+			num_bp_reg(0), 
+			num_index_xf(0),
+			num_draw_call(0)
 	{
 		frame_count = frameCount;
 	}
@@ -83,16 +89,20 @@ struct CachedDisplayList
 	int check;
 	int next_check;
 
-	u32 vdata_hash;
-
-	std::vector<VDataHashRegion> hash_regions;
-
 	int frame_count;
 
 	// ... Something containing cached vertex buffers here ...
+	u8 BufferCount;	
+	VdataMap Vdata;
+
+	int num_xf_reg;
+	int num_cp_reg;
+	int num_bp_reg; 
+	int num_index_xf;
+	int num_draw_call;
 
 	// Compile the commands themselves down to native code.
-	const u8 *compiled_code;
+	const u8* compiled_code;
 };
 
 // We want to allow caching DLs that start at the same address but have different lengths,
@@ -105,28 +115,18 @@ inline u64 CreateMapId(u32 address, u32 size)
 typedef std::map<u64, CachedDisplayList> DLMap;
 
 static DLMap dl_map;
-static u8 *dlcode_cache;
-static u8 *static_data_buffer;
-static u8 *static_data_ptr;
+static DataPointer dlcode_cache;
 
 static Gen::XEmitter emitter;
-
-// Everything gets free'd when the cache is cleared.
-u8 *AllocStaticData(int size)
-{
-	u8 *cur_ptr = static_data_ptr;
-	static_data_ptr += (size + 3) & ~3;
-	return cur_ptr;
-}
 
 // First pass - analyze
 bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 {
 	int num_xf_reg = 0;
 	int num_cp_reg = 0;
-	//int num_bp_reg = 0; // unused?
+	int num_bp_reg = 0; 
 	int num_index_xf = 0;
-	//int num_draw_call = 0; // unused?
+	int num_draw_call = 0;
 
 	u8* old_pVideoData = g_pVideoData;
 	u8* startAddress = Memory_GetPtr(address);
@@ -216,6 +216,7 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 					u32 bp_cmd = DataReadU32();
 					LoadBPReg(bp_cmd);
 					INCSTAT(stats.thisFrame.numBPLoads);
+					num_bp_reg++;
 				}
 				break;
 
@@ -230,6 +231,7 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 						numVertices);
+					num_draw_call++;
 				}
 				else
 				{
@@ -244,7 +246,11 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 		// un-swap
 		Statistics::SwapDL();
 	}
-
+	dl->num_bp_reg = num_bp_reg;
+	dl->num_cp_reg = num_cp_reg;
+	dl->num_draw_call = num_draw_call;
+	dl->num_index_xf = num_index_xf;
+	dl->num_xf_reg = num_xf_reg;
     // reset to the old pointer
 	g_pVideoData = old_pVideoData;	
 	return true;
@@ -308,13 +314,14 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 					u32 xf_address = Cmd2 & 0xFFFF;
 					// TODO - speed this up. pshufb?
-					u8 *real_data_buffer = AllocStaticData(4 * transfer_size);
-					u32 *data_buffer = (u32 *)real_data_buffer;
+					DataPointer real_data_buffer = (DataPointer) new u8[transfer_size * 4]; 
+					u32 *data_buffer = (u32*)real_data_buffer;
 					for (int i = 0; i < transfer_size; i++)
 						data_buffer[i] = DataReadU32();
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);
-
+					dl->Vdata[dl->BufferCount] = real_data_buffer;
+					dl->BufferCount++;
 					// Compile
 					emitter.ABI_CallFunctionCCP((void *)&LoadXFReg, transfer_size, xf_address, data_buffer);
 				}
@@ -396,24 +403,23 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 					u64 pre_draw_video_data = (u64)g_pVideoData;
 
+					u8* StartAddress = VertexManager::s_pBaseBufferPointer;
+					VertexManager::Flush();
 					VertexLoaderManager::RunVertices(
 						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 						numVertices);
-
+					u8* EndAddress = VertexManager::s_pCurBufferPointer;
+					u32 Vdatasize = (u32)(EndAddress - StartAddress);
+					if (size > 0)
+					{
 					// Compile
-	#ifdef _M_X64
-					emitter.MOV(64, R(RAX), Imm64(pre_draw_video_data));
-					emitter.MOV(64, M(&g_pVideoData), R(RAX));
-	#else
-					emitter.MOV(32, R(EAX), Imm32((u32)pre_draw_video_data));
-					emitter.MOV(32, M(&g_pVideoData), R(EAX));
-	#endif
-					emitter.ABI_CallFunctionCCC(
-						(void *)&VertexLoaderManager::RunVertices,
-						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-						numVertices);
+						DataPointer NewData = (DataPointer)new u8[Vdatasize];
+						memcpy(NewData,StartAddress,Vdatasize);
+						dl->Vdata[dl->BufferCount] = NewData;
+						dl->BufferCount++;
+						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices,cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewData);	
+					}
 				}
 				else
 				{
@@ -424,6 +430,9 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 			}
 		}
 		emitter.ABI_EmitEpilogue(4);
+		INCSTAT(stats.numDListsCalled);
+		INCSTAT(stats.thisFrame.numDListsCalled);
+		Statistics::SwapDL();
 	}
 	g_pVideoData = old_pVideoData;
 	return true;
@@ -431,27 +440,34 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 void Init()
 {
-	dlcode_cache = (u8 *)AllocateExecutableMemory(DL_CODE_CACHE_SIZE, false);  // Don't need low memory.
-	static_data_buffer = (u8 *)AllocateMemoryPages(DL_STATIC_DATA_SIZE);
-	static_data_ptr = static_data_buffer;
+	dlcode_cache = (DataPointer)AllocateExecutableMemory(DL_CODE_CACHE_SIZE, false);  // Don't need low memory.
 	emitter.SetCodePtr(dlcode_cache);
 }
 
 void Shutdown()
 {
 	Clear();
-	FreeMemoryPages(dlcode_cache, DL_CODE_CACHE_SIZE);
-	FreeMemoryPages(static_data_buffer, DL_STATIC_DATA_SIZE);
+	FreeMemoryPages(dlcode_cache, DL_CODE_CACHE_SIZE);	
 	dlcode_cache = NULL;
 }
 
 void Clear() 
 {
+	DLMap::iterator iter = dl_map.begin();
+	while (iter != dl_map.end()) {
+		CachedDisplayList &entry = iter->second;
+		VdataMap::iterator viter = entry.Vdata.begin();
+		while (viter != entry.Vdata.end())
+		{
+			DataPointer &ventry = viter->second;
+			delete [] ventry;
+			entry.Vdata.erase(viter++);
+		}
+		iter++;
+	}
 	dl_map.clear();
-
 	// Reset the cache pointers.
-	emitter.SetCodePtr(dlcode_cache);
-	static_data_ptr = static_data_buffer;
+	emitter.SetCodePtr(dlcode_cache);	
 }
 
 void ProgressiveCleanup()
@@ -462,6 +478,13 @@ void ProgressiveCleanup()
 		int limit = iter->second.uncachable ? 1200 : 400;
 		if (entry.frame_count < frameCount - limit) {
 			// entry.Destroy();
+			VdataMap::iterator viter = entry.Vdata.begin();
+			while (viter != entry.Vdata.end())
+			{
+				DataPointer &ventry = viter->second;
+				delete [] ventry;
+				entry.Vdata.erase(viter++);
+			}
 			dl_map.erase(iter++);  // (this is gcc standard!)
 		}
 		else
@@ -478,8 +501,6 @@ bool HandleDisplayList(u32 address, u32 size)
 	// right now...
 	//Fixed DlistCaching now is fully functional benefits still marginal but when vertex data is stored here the story will be diferent :)
 	//to test remove the next line;
-	return false;
-
 
 	if(size == 0) return false;
 	u64 dl_id = DLCache::CreateMapId(address, size);
@@ -492,7 +513,7 @@ bool HandleDisplayList(u32 address, u32 size)
 		if (dl.uncachable)
 		{
 			// We haven't compiled it - let's return false so it gets
-			// interpreted.
+			// interpreted.			
 			return false;
 		}
 
@@ -507,7 +528,7 @@ bool HandleDisplayList(u32 address, u32 size)
 			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0))
 			{
 				// PanicAlert("uncachable %08x", address);
-				dl.uncachable = true;
+				dl.uncachable = true;				
 				return false;
 			}
 			DLCache::CompileAndRunDisplayList(address, size, &dl);
@@ -522,15 +543,37 @@ bool HandleDisplayList(u32 address, u32 size)
 					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0)) 
 					{
 						dl.uncachable = true;
+						DLCache::VdataMap::iterator viter = dl.Vdata.begin();
+						while (viter != dl.Vdata.end())
+						{
+							DLCache::DataPointer &ventry = viter->second;
+							delete [] ventry;
+							dl.Vdata.erase(viter++);
+						}
+						dl.BufferCount = 0;
 						return false;
 					}
 					dl.check = dl.next_check;
-					//dl.next_check *= 2;
+					dl.next_check *= 2;
 					if (dl.next_check > 1024)
 						dl.next_check = 1024;
 				}
+				dl.frame_count= frameCount;
 				u8 *old_datareader = g_pVideoData;
 				((void (*)())(void*)(dl.compiled_code))();
+				Statistics::SwapDL();
+				ADDSTAT(stats.thisFrame.numCPLoadsInDL,dl.num_cp_reg);
+				ADDSTAT(stats.thisFrame.numXFLoadsInDL,dl.num_xf_reg);
+				ADDSTAT(stats.thisFrame.numBPLoadsInDL,dl.num_bp_reg);
+
+				ADDSTAT(stats.thisFrame.numCPLoads,dl.num_cp_reg);
+				ADDSTAT(stats.thisFrame.numXFLoads,dl.num_xf_reg);
+				ADDSTAT(stats.thisFrame.numBPLoads,dl.num_bp_reg);
+
+				INCSTAT(stats.numDListsCalled);
+				INCSTAT(stats.thisFrame.numDListsCalled);
+				
+				Statistics::SwapDL();
 				g_pVideoData = old_datareader;
 				break;
 			}

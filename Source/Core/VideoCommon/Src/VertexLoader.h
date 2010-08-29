@@ -84,6 +84,7 @@ public:
 
 	int GetVertexSize() const {return m_VertexSize;}
 	void RunVertices(int vtx_attr_group, int primitive, int count);
+	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;

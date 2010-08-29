@@ -143,6 +143,14 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 	g_VertexLoaders[vtx_attr_group]->RunVertices(vtx_attr_group, primitive, count);
 }
 
+void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
+{
+	if (!count || !Data)
+		return;
+	RefreshLoader(vtx_attr_group);
+	g_VertexLoaders[vtx_attr_group]->RunCompiledVertices(vtx_attr_group, primitive, count,Data);
+}
+
 int GetVertexSize(int vtx_attr_group)
 {
 	RefreshLoader(vtx_attr_group);

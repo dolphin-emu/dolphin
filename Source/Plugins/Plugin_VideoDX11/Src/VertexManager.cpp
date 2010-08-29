@@ -123,6 +123,7 @@ bool Init()
 	LIBuffer = new u16[MAXIBUFFERSIZE];
 	PIBuffer = new u16[MAXIBUFFERSIZE];
 	s_pCurBufferPointer = LocalVBuffer;
+	s_pBaseBufferPointer = LocalVBuffer;
 	Flushed=false;
 
 	CreateDeviceObjects();

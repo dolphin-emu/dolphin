@@ -44,6 +44,7 @@
 #include "OnScreenDisplay.h"
 #include "FBManager.h"
 #include "Fifo.h"
+#include "DLCache.h"
 
 #include <strsafe.h>
 
@@ -982,6 +983,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	OSD::DrawMessages();
 	D3D::EndFrame();
 	frameCount++;
+	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
 	// enable any configuration changes

@@ -680,6 +680,63 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		VertexManager::AddVertices(primitive, count - startv + extraverts);
 }
 
+
+
+
+void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
+{
+	DVSTARTPROFILE();
+
+	m_numLoadedVertices += count;
+
+	// Flush if our vertex format is different from the currently set.
+	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
+	{
+		// We really must flush here. It's possible that the native representations
+		// of the two vtx formats are the same, but we have no way to easily check that 
+		// now. 
+		VertexManager::Flush();
+		// Also move the Set() here?
+	}
+	g_nativeVertexFmt = m_NativeFmt;
+
+	if (bpmem.genMode.cullmode == 3 && primitive < 5)
+	{
+		// if cull mode is none, ignore triangles and quads
+		DataSkip(count * m_VertexSize);
+		return;
+	}
+
+	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
+
+	// Load position and texcoord scale factors.
+	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
+	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
+	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
+	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
+	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
+	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
+	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
+	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
+	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
+
+	pVtxAttr = &m_VtxAttr;
+	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
+	if (m_NativeFmt->m_components & VB_HAS_UVALL)
+		for (int i = 0; i < 8; i++)
+			tcScale[i] = texCoordFrac[m_VtxAttr.texCoord[i].Frac];
+	for (int i = 0; i < 2; i++)
+		colElements[i] = m_VtxAttr.color[i].Elements;
+
+	if(VertexManager::GetRemainingSize() < native_stride * count)
+		VertexManager::Flush();
+	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * count);
+	VertexManager::s_pCurBufferPointer += native_stride * count;
+	VertexManager::AddVertices(primitive, count);
+}
+
+
+
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2) 
 {
 	VAT vat;

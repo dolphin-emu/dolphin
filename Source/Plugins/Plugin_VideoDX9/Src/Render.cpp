@@ -47,6 +47,7 @@
 #include "FramebufferManager.h"
 #include "Fifo.h"
 #include "TextureConverter.h"
+#include "DLCache.h"
 
 #include "debugger/debugger.h"
 
@@ -1193,6 +1194,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::EndFrame();
 
 	frameCount++;
+	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
 	// Make any new configuration settings active.

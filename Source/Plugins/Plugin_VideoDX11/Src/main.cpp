@@ -53,6 +53,7 @@
 #include "W32Util/Misc.h"
 #include "EmuWindow.h"
 #include "FBManager.h"
+#include "DLCache.h"
 
 
 #if defined(DEBUGFAST)
@@ -82,11 +83,6 @@ static volatile struct
 } s_beginFieldArgs;
 
 static volatile EFBAccessType s_AccessEFBType;
-
-bool HandleDisplayList(u32 address, u32 size)
-{
-	return false;
-}
 
 bool IsD3D()
 {
@@ -234,6 +230,7 @@ void Video_Prepare()
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
+	DLCache::Init();
 
 	// tell the host that the window is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
@@ -246,6 +243,7 @@ void Shutdown()
 	s_swapRequested = FALSE;
 
 	// VideoCommon
+	DLCache::Shutdown();
 	CommandProcessor::Shutdown();
 	PixelShaderManager::Shutdown();
 	VertexShaderManager::Shutdown();
