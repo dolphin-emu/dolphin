@@ -803,6 +803,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case Or:
 		case Xor:
 		case Mul:
+		case MulHighUnsigned:
 		case Rol:
 		case Shl:
 		case Shrl:
@@ -1101,6 +1102,23 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			} else {
 				Jit->IMUL(32, reg, regLocForInst(RI, getOp2(I)));
 			}
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case MulHighUnsigned: {
+			if (!thisUsed) break;
+			regSpill(RI, EAX);
+			regSpill(RI, EDX);
+			X64Reg reg = regBinReg(RI, I);
+			if (isImm(*getOp2(I))) {
+				unsigned RHS = RI.Build->GetImmValue(getOp2(I));
+				Jit->MOV(32, R(EAX), Imm32(RHS));
+			} else {
+				Jit->MOV(32, R(EAX), regLocForInst(RI, getOp2(I)));
+			}
+			Jit->MUL(32, regLocForInst(RI, getOp1(I)));
+			Jit->MOV(32, R(reg), R(EDX));
 			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;

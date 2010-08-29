@@ -68,6 +68,7 @@ enum Opcode {
 	Or,
 	Xor,
 	// Non-commutative integer operators
+	MulHighUnsigned,
 	Sub,
 	Shl,  // Note that shifts ignore bits above the bottom 5
 	Shrl,
@@ -224,6 +225,7 @@ private:
 	InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
+	InstLoc FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
@@ -305,6 +307,9 @@ public:
 	}
 	InstLoc EmitMul(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(Mul, op1, op2);
+	}
+	InstLoc EmitMulHighUnsigned(InstLoc op1, InstLoc op2) {
+		return FoldBiOp(MulHighUnsigned, op1, op2);
 	}
 	InstLoc EmitRol(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(Rol, op1, op2);

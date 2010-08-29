@@ -617,6 +617,36 @@ InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(Mul, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2) {
+	// (i0 * i1) >> 32
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst((u32)(((u64)GetImmValue(Op1) * (u64)GetImmValue(Op2)) >> 32));
+	}
+
+	if (isImm(*Op1) && !isImm(*Op2)) {
+		return FoldMulHighUnsigned(Op2, Op1);
+	}
+
+	if (isImm(*Op2)) {
+		const unsigned imm = GetImmValue(Op2);
+
+		// (x * 0) >> 32 => 0
+		if (imm == 0) {
+			return EmitIntConst(0);
+		}
+
+		for (unsigned i0 = 0; i0 < 30; ++i0) {
+			// (x * (1 << i0)) => x >> (32 - i0)
+			// One "shl" is faster than one "imul".
+			if (imm == (1U << i0)) {
+				return FoldShrl(Op1, EmitIntConst(32 - i0));
+			}
+		}
+	}
+
+	return EmitBiOp(MulHighUnsigned, Op1, Op2);
+}
+
 InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
 	simplifyCommutative(And, Op1, Op2);
 
@@ -1001,6 +1031,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case Add: return FoldAdd(Op1, Op2);
 		case Sub: return FoldSub(Op1, Op2);
 		case Mul: return FoldMul(Op1, Op2);
+		case MulHighUnsigned: return FoldMulHighUnsigned(Op1, Op2);
 		case And: return FoldAnd(Op1, Op2);
 		case Or: return FoldOr(Op1, Op2);
 		case Xor: return FoldXor(Op1, Op2);

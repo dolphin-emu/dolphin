@@ -299,42 +299,12 @@ void JitIL::mulhwux(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	// Compute upper 32-bit of (a * b) using Karatsuba algorithm
-	// Karatsuba algorithm reduces the number of multiplication 4 to 3
-	//   d = a * b
-	//     = {a1 * (1 << 16) + a0} * {b1 * (1 << 16) + b0};
-	//     = d2 * (1 << 32) + d1 * (1 << 16) + d0
-	// where
-	//   d2 = a1 * b1
-	//   d0 = a0 * b0
-	//   d1 = (a1 + a0) * (b1 * b0) - d2 - d0
-	// since
-	//   d1 = (a1 + a0) * (b1 * b0) - d2 - d0
-	//      = a1 * b1 + a1 * b0 + a0 * b1 + a0 * b0 - a1 * b1 - a0 * b0
-	//      = a1 * b0 + a0 * b1
-	// The result of mulhwux is
-	//   d2' = (((d0 >> 16) + d1) >> 16) + d2
-	//
-	// Though it is not so fast...
 	IREmitter::InstLoc a = ibuild.EmitLoadGReg(inst.RA);
-	IREmitter::InstLoc a0 = ibuild.EmitAnd(a, ibuild.EmitIntConst(0xFFFF));
-	IREmitter::InstLoc a1 = ibuild.EmitShrl(a, ibuild.EmitIntConst(16));
 	IREmitter::InstLoc b = ibuild.EmitLoadGReg(inst.RB);
-	IREmitter::InstLoc b0 = ibuild.EmitAnd(b, ibuild.EmitIntConst(0xFFFF));
-	IREmitter::InstLoc b1 = ibuild.EmitShrl(b, ibuild.EmitIntConst(16));
-
-	IREmitter::InstLoc d2 = ibuild.EmitMul(a1, b1);
-	IREmitter::InstLoc d0 = ibuild.EmitMul(a0, b0);
-	IREmitter::InstLoc d1 = ibuild.EmitMul(ibuild.EmitAdd(a1, a0), ibuild.EmitAdd(b1, b0));
-	d1 = ibuild.EmitSub(d1, d2);
-	d1 = ibuild.EmitSub(d1, d0);
-
-	d1 = ibuild.EmitAdd(d1, ibuild.EmitShrl(d0, ibuild.EmitIntConst(16)));
-	d2 = ibuild.EmitAdd(d2, ibuild.EmitShrl(d1, ibuild.EmitIntConst(16)));
-
-	ibuild.EmitStoreGReg(d2, inst.RD);
+	IREmitter::InstLoc d = ibuild.EmitMulHighUnsigned(a, b);
+	ibuild.EmitStoreGReg(d, inst.RD);
 	if (inst.Rc)
-		ComputeRC(ibuild, d2);
+		ComputeRC(ibuild, d);
 }
 
 // skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
