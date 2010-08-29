@@ -908,7 +908,11 @@ GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned 
 
 	wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Device") );
 
-	device_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1), 0, 0, wxTE_PROCESS_ENTER );
+	device_cbox = new wxComboBox(this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1));
+#ifndef __APPLE__
+	// causes a crash with some OS X wxWidgets
+	device_cbox->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+#endif
 
 	wxButton* refresh_button = new wxButton( this, -1, wxT("Refresh"), wxDefaultPosition, wxSize(60,-1) );
 

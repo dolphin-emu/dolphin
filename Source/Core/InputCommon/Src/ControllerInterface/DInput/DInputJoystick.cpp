@@ -5,11 +5,6 @@
 #include "DInputJoystick.h"
 #include "DInput.h"
 
-inline bool operator<(const GUID & lhs, const GUID & rhs)
-{
-	return memcmp(&lhs, &rhs, sizeof(GUID)) < 0;
-}
-
 namespace ciface
 {
 namespace DInput
@@ -198,18 +193,20 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
 	// polled or buffered data
+	m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
+	if (false == m_must_poll)
 	{
-	DIPROPDWORD dipdw;
-	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
-	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-	dipdw.diph.dwObj = 0;
-	dipdw.diph.dwHow = DIPH_DEVICE;
-	dipdw.dwData = DATA_BUFFER_SIZE;
+		DIPROPDWORD dipdw;
+		dipdw.diph.dwSize = sizeof(DIPROPDWORD);
+		dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+		dipdw.diph.dwObj = 0;
+		dipdw.diph.dwHow = DIPH_DEVICE;
+		dipdw.dwData = DATA_BUFFER_SIZE;
 
-    // set the buffer size,
-	// if we can't set the property, we can't use buffered data,
-	// must use polling, which apparently doesn't work as well
-	m_must_poll = (DI_OK != m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+		// set the buffer size,
+		// if we can't set the property, we can't use buffered data,
+		// must use polling, which apparently doesn't work as well
+		m_must_poll = (DI_OK != m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
 	}
 
 	m_device->Acquire();
@@ -225,68 +222,28 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			AddInput( new Hat( i, d ) );
 	}
 	// get up to 6 axes and 2 sliders
-	std::list<DIDEVICEOBJECTINSTANCE> axes;
-	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_ABSAXIS);
-
-	unsigned int cur_slider = 0;
-
-	// map of axis offsets in joystate dataformat based on axis guidType
-	std::map<GUID,int> types;
-	types[GUID_XAxis] = 0;
-	types[GUID_YAxis] = 1;
-	types[GUID_ZAxis] = 2;
-	types[GUID_RxAxis] = 3;
-	types[GUID_RyAxis] = 4;
-	types[GUID_RzAxis] = 5;
-
-	// going in reverse leaves the list more organized in the end for me :/
-	std::list<DIDEVICEOBJECTINSTANCE>::const_reverse_iterator
-		i = axes.rbegin(),
-		e = axes.rend();
-	for( ; i!=e; ++i )
+	// screw EnumObjects, just go through all the axis offsets and try to GetProperty
+	// this should be more foolproof, less code, and probably faster
+	for (unsigned int offset = 0; offset < DIJOFS_BUTTON(0) / sizeof(LONG); ++offset)
 	{
 		DIPROPRANGE range;
-		ZeroMemory( &range, sizeof(range ) );
 		range.diph.dwSize = sizeof(range);
 		range.diph.dwHeaderSize = sizeof(range.diph);
-		range.diph.dwHow = DIPH_BYID;
-		range.diph.dwObj = i->dwType;
+		range.diph.dwHow = DIPH_BYOFFSET;
+		range.diph.dwObj = offset * sizeof(LONG);
 		// try to set some nice power of 2 values (8192)
-		range.lMin = -(1<<13);
-		range.lMax = (1<<13);
+		range.lMin = -(1 << 13);
+		range.lMax = (1 << 13);
+		m_device->SetProperty(DIPROP_RANGE, &range.diph);
 		// but i guess not all devices support setting range
-		m_device->SetProperty( DIPROP_RANGE, &range.diph );
 		// so i getproperty right afterward incase it didn't set :P
+		// this also checks that the axis is present
 		if (SUCCEEDED(m_device->GetProperty(DIPROP_RANGE, &range.diph)))
 		{
-			int offset = -1;
-
-			if (GUID_Slider ==i->guidType)
-			{
-				// max of 2 sliders / limit of used data format
-				if (cur_slider < 2)
-					offset = 6 + cur_slider++;
-			}
-			else
-			{
-				// don't add duplicate axes, some buggy drivers report the same axis twice
-				const std::map<GUID,int>::iterator f = types.find(i->guidType);
-				if (types.end() != f)
-				{
-					offset = f->second;
-					// remove from the map so it isn't added again
-					types.erase(f);
-				}
-			}
-
-
-			if ( offset >= 0 )
-			{
-				const LONG base = (range.lMin + range.lMax) / 2;
-				// each axis gets a negative and a positive input instance associated with it
-				AddInput( new Axis( offset, base, range.lMin-base ) );
-				AddInput( new Axis( offset, base, range.lMax-base ) );
-			}
+			const LONG base = (range.lMin + range.lMax) / 2;
+			// each axis gets a negative and a positive input instance associated with it
+			AddInput(new Axis(offset, base, range.lMin-base));
+			AddInput(new Axis(offset, base, range.lMax-base));
 		}
 	}
 
