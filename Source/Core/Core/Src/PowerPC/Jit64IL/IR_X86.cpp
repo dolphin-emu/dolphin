@@ -290,20 +290,50 @@ static void regSpillCallerSaved(RegInfo& RI) {
 
 static X64Reg regUReg(RegInfo& RI, InstLoc I) {
 	const OpArg loc = regLocForInst(RI, getOp1(I));
-	if ((RI.IInfo[I - RI.FirstI] & 4) &&
-	    loc.IsSimpleReg()) {
+	if ((RI.IInfo[I - RI.FirstI] & 4) && loc.IsSimpleReg()) {
 		return loc.GetSimpleReg();
 	}
-	X64Reg reg = regFindFreeReg(RI);
-	return reg;
+	return regFindFreeReg(RI);
 }
 
-static X64Reg fregUReg(RegInfo& RI, InstLoc I) {
+// Recycle the register if the lifetime of op1 register ends at I.
+static X64Reg fregURegWithoutMov(RegInfo& RI, InstLoc I) {
+	const OpArg loc = fregLocForInst(RI, getOp1(I));
+	if ((RI.IInfo[I - RI.FirstI] & 4) && loc.IsSimpleReg()) {
+		return loc.GetSimpleReg();
+	}
+	return fregFindFreeReg(RI);
+}
+
+static X64Reg fregURegWithMov(RegInfo& RI, InstLoc I) {
 	const OpArg loc = fregLocForInst(RI, getOp1(I));
 	if ((RI.IInfo[I - RI.FirstI] & 4) && loc.IsSimpleReg()) {
 		return loc.GetSimpleReg();
 	}
 	X64Reg reg = fregFindFreeReg(RI);
+	RI.Jit->MOVAPD(reg, loc);
+	return reg;
+}
+
+// Recycle the register if the lifetime of op1 register ends at I.
+static X64Reg fregBinLHSRegWithMov(RegInfo& RI, InstLoc I) {
+	const OpArg loc = fregLocForInst(RI, getOp1(I));
+	if ((RI.IInfo[I - RI.FirstI] & 4) && loc.IsSimpleReg()) {
+		return loc.GetSimpleReg();
+	}
+	X64Reg reg = fregFindFreeReg(RI);
+	RI.Jit->MOVAPD(reg, loc);
+	return reg;
+}
+
+// Recycle the register if the lifetime of op2 register ends at I.
+static X64Reg fregBinRHSRegWithMov(RegInfo& RI, InstLoc I) {
+	const OpArg loc = fregLocForInst(RI, getOp2(I));
+	if ((RI.IInfo[I - RI.FirstI] & 8) && loc.IsSimpleReg()) {
+		return loc.GetSimpleReg();
+	}
+	X64Reg reg = fregFindFreeReg(RI);
+	RI.Jit->MOVAPD(reg, loc);
 	return reg;
 }
 
@@ -319,9 +349,7 @@ static X64Reg regBinReg(RegInfo& RI, InstLoc I) {
 		regLocForInst(RI, getOp2(I)).IsSimpleReg()) {
 		return regLocForInst(RI, getOp2(I)).GetSimpleReg();
 	}
-
-	X64Reg reg = regFindFreeReg(RI);
-	return reg;
+	return regFindFreeReg(RI);
 }
 
 static X64Reg regBinLHSReg(RegInfo& RI, InstLoc I) {
@@ -1302,7 +1330,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case DupSingleToMReg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregUReg(RI, I);
+			X64Reg reg = fregURegWithoutMov(RI, I);
 			Jit->CVTSS2SD(reg, fregLocForInst(RI, getOp1(I)));
 			Jit->MOVDDUP(reg, R(reg));
 			RI.fregs[reg] = I;
@@ -1311,36 +1339,21 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case InsertDoubleInMReg: {
 			if (!thisUsed) break;
-			// r0 = op1[0], r1 = op2[1]
+			// r[0] = op1[0]; r[1] = op2[1];
 
-			// FIXME: Optimize the case that the register of op1 can be recycled.
-			//        (SHUFPD may not be so fast.)
-
-			X64Reg reg;
-			// If the register of op2 can be recycled, we recycle it as the register of I.
-			const OpArg loc1 = fregLocForInst(RI, getOp1(I));
-			const OpArg loc2 = fregLocForInst(RI, getOp2(I));
-			if ((RI.IInfo[I - RI.FirstI] & 8) && loc2.IsSimpleReg()) {
-				reg = loc2.GetSimpleReg();
-			} else {
-				reg = fregFindFreeReg(RI);
-				Jit->MOVAPD(reg, loc2);
-			}
-
-			if (loc1.IsSimpleReg()) {
-				Jit->MOVSD(reg, loc1);
-			} else {
-				Jit->MOVAPD(XMM0, loc1);
-				Jit->MOVSD(reg, R(XMM0));
-			}
-
+			// TODO: Optimize the case that the register of op1 can be
+			//       recycled. (SHUFPD may not be so fast.)
+			X64Reg reg = fregBinRHSRegWithMov(RI, I);
+			// TODO: Check whether the following code works
+			//       when the op1 is in the FSlotSet
+			Jit->MOVSD(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}
 		case ExpandPackedToMReg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
+			X64Reg reg = fregURegWithoutMov(RI, I);
 			Jit->CVTPS2PD(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1348,7 +1361,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case CompactMRegToPacked: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
+			X64Reg reg = fregURegWithoutMov(RI, I);
 			Jit->CVTPD2PS(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1356,8 +1369,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FSNeg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			X64Reg reg = fregURegWithMov(RI, I);
 			static const u32 GC_ALIGNED16(ssSignBits[4]) = 
 				{0x80000000};
 			Jit->PXOR(reg, M((void*)&ssSignBits));
@@ -1367,8 +1379,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FDNeg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			X64Reg reg = fregURegWithMov(RI, I);
 			static const u64 GC_ALIGNED16(ssSignBits[2]) = 
 				{0x8000000000000000ULL};
 			Jit->PXOR(reg, M((void*)&ssSignBits));
@@ -1378,8 +1389,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FPNeg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			X64Reg reg = fregURegWithMov(RI, I);
 			static const u32 GC_ALIGNED16(psSignBits[4]) = 
 				{0x80000000, 0x80000000};
 			Jit->PXOR(reg, M((void*)&psSignBits));
@@ -1389,8 +1399,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FPDup0: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			X64Reg reg = fregURegWithMov(RI, I);
 			Jit->PUNPCKLDQ(reg, R(reg));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1398,8 +1407,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FPDup1: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			X64Reg reg = fregURegWithMov(RI, I);
 			Jit->SHUFPS(reg, R(reg), 0xE5);
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1438,7 +1446,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case DoubleToSingle: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
+			X64Reg reg = fregURegWithoutMov(RI, I);
 			Jit->CVTSD2SS(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1461,7 +1469,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FSRSqrt: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
+			X64Reg reg = fregURegWithoutMov(RI, I);
 			Jit->RSQRTSS(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
@@ -1527,40 +1535,51 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case FPMerge00: {
+			// r[0] = op1[0]; r[1] = op2[0];
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			// TODO: Optimize the case that the register of only op2 can be
+			//       recycled.
+			X64Reg reg = fregBinLHSRegWithMov(RI, I);
 			Jit->PUNPCKLDQ(reg, fregLocForInst(RI, getOp2(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}
 		case FPMerge01: {
+			// r[0] = op1[0]; r[1] = op2[1];
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			// Note reversed operands!
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp2(I)));
-			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->MOVSS(reg, R(XMM0));
+			// TODO: Optimize the case that the register of only op1 can be
+			//       recycled.
+			X64Reg reg = fregBinRHSRegWithMov(RI, I);
+			// TODO: Check whether the following code works
+			//       when the op1 is in the FSlotSet
+			Jit->MOVSS(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}
 		case FPMerge10: {
+			// r[0] = op1[1]; r[1] = op2[0];
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp2(I)));
-			Jit->MOVSS(reg, R(XMM0));
+			// TODO: Optimize the case that the register of only op2 can be
+			//       recycled.
+			X64Reg reg = fregBinLHSRegWithMov(RI, I);
+			// TODO: Check whether the following code works
+			//       when the op1 is in the FSlotSet
+			Jit->MOVSS(reg, fregLocForInst(RI, getOp2(I)));
 			Jit->SHUFPS(reg, R(reg), 0xF1);
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}
 		case FPMerge11: {
+			// r[0] = op1[1]; r[1] = op2[1];
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			// TODO: Optimize the case that the register of only op2 can be
+			//       recycled.
+			X64Reg reg = fregBinLHSRegWithMov(RI, I);
+			// TODO: Check whether the following code works
+			//       when the op1 is in the FSlotSet
 			Jit->PUNPCKLDQ(reg, fregLocForInst(RI, getOp2(I)));
 			Jit->SHUFPD(reg, R(reg), 0x1);
 			RI.fregs[reg] = I;
