@@ -234,6 +234,8 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
+	, ir_sin(0)
+	, ir_cos(1)
 //	, m_sound_stream( NULL )
 {
 	// ---- set up all the controls ----
@@ -417,6 +419,13 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 		buttons[1]|=((u8(cy*2)&1)<<5)|((u8(cz*2)&1)<<6);
 	}
 }
+#define kCutoffFreq 5.0f
+inline void LowPassFilter(double & var, double newval, double period)
+{
+	double RC=1.0/kCutoffFreq;
+	double alpha=period/(period+RC);
+	var = newval * alpha + var * (1.0 - alpha);
+}
 
 void Wiimote::GetIRData(u8* const data, bool use_accel)
 {
@@ -428,7 +437,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 	if (has_focus)
 	{
 		float xx = 10000, yy = 0, zz = 0;
-		double sin,cos;
+		double nsin,ncos;
 		
 		if (use_accel)
 		{
@@ -440,21 +449,24 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 			{
 				ax/=len; 
 				az/=len; //normalizing the vector
-				sin=-ax;
-				cos=az;
+				nsin=ax;
+				ncos=az;
 			} else
 			{
-				sin=0;
-				cos=1;
+				nsin=0;
+				ncos=1;
 			}
 		//	PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
 			//PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
 			//	calib->one_g.x,calib->one_g.y,calib->one_g.z);
 		} else
 		{
-			sin=0; //m_tilt stuff here (can't figure it out yet....)
-			cos=1;
+			nsin=0; //m_tilt stuff here (can't figure it out yet....)
+			ncos=1;
 		}
+
+		LowPassFilter(ir_sin,nsin,1.0f/60);
+		LowPassFilter(ir_cos,ncos,1.0f/60);
 
 		m_ir->GetState(&xx, &yy, &zz, true);
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
@@ -467,7 +479,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		static const double bnddown=0.85;	
 		static const double bndleft=0.443364;		
 		static const double bndright=-0.443364;	
-		static const double dist1=250.0f/camWidth; //this seems the optimal distance for zelda
+		static const double dist1=100.f/camWidth; //this seems the optimal distance for zelda
 		static const double dist2=1.2f*dist1;
 
 		for (int i=0; i<4; i++)
@@ -487,9 +499,12 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		static Matrix scale;
 		static bool isscale=false;
 		if (!isscale)
+		{
 			MatrixScale(scale,1,camWidth/camHeight,1);
-		//MatrixRotationByZ(rot,sin,cos);
-		MatrixIdentity(rot);
+			//MatrixIdentity(scale);
+		}
+		MatrixRotationByZ(rot,ir_sin,ir_cos);
+		//MatrixIdentity(rot);
 		MatrixMultiply(tot,scale,rot);
 
 		for (int i=0; i<4; i++)

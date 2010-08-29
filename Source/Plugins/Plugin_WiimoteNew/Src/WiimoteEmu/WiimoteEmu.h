@@ -141,6 +141,8 @@ private:
 	// WiiMote accel data
 	AccelData				m_accel;
 
+	double					ir_sin,ir_cos; //for the low pass filter
+	
 	//UDPWiimote
 	UDPWrapper* m_udp;
 
