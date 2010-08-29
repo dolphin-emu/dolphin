@@ -164,7 +164,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, PixelShaderManager::GetTextureMask(), dstAlphaEnable ? 1 : 0);
+	GetPixelShaderId(&uid, dstAlphaEnable ? 1 : 0);
 	if (uid == last_pixel_shader_uid && pshaders[uid].frameCount == frameCount)
 	{
 		return pShaderLast;
@@ -189,8 +189,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	PSCacheEntry& newentry = pshaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(),
-                                               dstAlphaEnable,API_OPENGL);
+	const char *code = GeneratePixelShaderCode(dstAlphaEnable,API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	

@@ -218,7 +218,7 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(bool dstAlpha)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, PixelShaderManager::GetTextureMask(), dstAlpha);
+	GetPixelShaderId(&uid, dstAlpha);
 
 	// check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
@@ -243,7 +243,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// need to compile a new shader
-	const char* code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D11);
+	const char* code = GeneratePixelShaderCode(dstAlpha, API_D3D11);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))

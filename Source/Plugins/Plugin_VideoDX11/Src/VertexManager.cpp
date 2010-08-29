@@ -338,7 +338,6 @@ void Flush()
 			}
 		}
 	}
-	PixelShaderManager::SetTexturesUsed(0);
 
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();

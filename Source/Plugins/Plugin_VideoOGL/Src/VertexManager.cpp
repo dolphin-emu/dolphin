@@ -260,7 +260,6 @@ void Flush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
-	u32 nonpow2tex = 0;
 	for (int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
@@ -289,8 +288,6 @@ void Flush()
 				ERROR_LOG(VIDEO, "error loading tex\n");
 		}
 	}
-
-	PixelShaderManager::SetTexturesUsed(nonpow2tex);
 
 	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);

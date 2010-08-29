@@ -31,7 +31,7 @@ PIXELSHADERUID last_pixel_shader_uid;
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID *uid, u32 dstAlphaEnable)
 {
 	u32 numstages = bpmem.genMode.numtevstages + 1;
 	u32 projtexcoords = 0;
@@ -57,7 +57,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	uid->values[2] = texturemask;
+	uid->values[2] = 0;
 
 	u32 enableZTexture = (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)?1:0;
 
@@ -147,8 +147,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType);
-static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, API_TYPE ApiType);
+static void WriteStage(char *&p, int n, API_TYPE ApiType);
+static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
 static void WriteFog(char *&p);
@@ -366,7 +366,7 @@ static void BuildSwapModeTable()
 	}
 }
 
-const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_TYPE ApiType)
+const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -392,55 +392,33 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 	}
 	DepthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable;
 	// Declare samplers
-	if (texture_mask && ApiType == API_OPENGL)
-	{
-		WRITE(p, "uniform samplerRECT ");
-		bool bfirst = true;
-		for (int i = 0; i < 8; ++i)
-		{
-			if (texture_mask & (1<<i))
-			{
-				WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
-				bfirst = false;
-			}
-		}
-		WRITE(p, ";\n");
-	}
 
-	if (texture_mask != 0xff)
+	if(ApiType != API_D3D11)
 	{
-		if(ApiType != API_D3D11)
-		{
-			WRITE(p, "uniform sampler2D ");
-		}
-		else
-		{
-			WRITE(p, "sampler ");
-		}
-		
-		bool bfirst = true;
+		WRITE(p, "uniform sampler2D ");
+	}
+	else
+	{
+		WRITE(p, "sampler ");
+	}
+	
+	bool bfirst = true;
+	for (int i = 0; i < 8; ++i)
+	{
+		WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
+		bfirst = false;
+	}
+	WRITE(p, ";\n");
+	if(ApiType == API_D3D11)
+	{
+		WRITE(p, "Texture2D ");
+		bfirst = true;
 		for (int i = 0; i < 8; ++i)
 		{
-			if (!(texture_mask & (1<<i))) {
-				WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
-				bfirst = false;
-			}
+			WRITE(p, "%s Tex%d : register(t%d)", bfirst?"":",", i, i);
+			bfirst = false;
 		}
 		WRITE(p, ";\n");
-		if(ApiType == API_D3D11)
-		{
-			WRITE(p, "Texture2D ");
-			bfirst = true;
-			for (int i = 0; i < 8; ++i)
-			{
-				if (!(texture_mask & (1<<i)))
-				{
-					WRITE(p, "%s Tex%d : register(t%d)", bfirst?"":",", i, i);
-					bfirst = false;
-				}
-			}
-			WRITE(p, ";\n");
-		}
 	}
 
 	WRITE(p, "\n");
@@ -521,7 +499,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 
 			char buffer[32];
 			sprintf(buffer, "float3 indtex%d", i);
-			SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask, ApiType);
+			SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), ApiType);
 		}
 	}
 
@@ -536,7 +514,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 	}
 
 	for (int i = 0; i < numStages; i++)
-		WriteStage(p, i, texture_mask, ApiType); //build the equation for this stage
+		WriteStage(p, i, ApiType); //build the equation for this stage
 
 	if(numStages)
 	{
@@ -657,7 +635,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
+static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
 	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -764,7 +742,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 				WRITE(p, "tevcoord.xy = float2(0.0f, 0.0f);\n");
 		}
 
-		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask, ApiType);
+		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
@@ -978,41 +956,12 @@ static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 	WRITE(p, ";\n\n");
 }
 
-void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, API_TYPE ApiType)
+void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
-	if (texture_mask & (1<<texmap)) {// opengl only
-		// non pow 2
-		bool bwraps = (texture_mask & (0x100<<texmap)) ? true : false;
-		bool bwrapt = (texture_mask & (0x10000<<texmap)) ? true : false;
-
-		if (bwraps || bwrapt) {
-			if (bwraps) {
-				WRITE(p, "tempcoord.x = fmod(%s.x, "I_TEXDIMS"[%d].x);\n", texcoords, texmap);
-			}
-			else {
-				WRITE(p, "tempcoord.x = %s.x;\n", texcoords);
-			}
-
-			if (bwrapt) {
-				WRITE(p, "tempcoord.y = fmod(%s.y, "I_TEXDIMS"[%d].y);\n", texcoords, texmap);
-			}
-			else {
-				WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
-			}
-			WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
-		}
-		else
-		{
-			 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
-		}
-	}
+	if (ApiType == API_D3D11)
+		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else
-	{
-		if (ApiType == API_D3D11)
-			WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
-		else
-			WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
-	}
+		WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =

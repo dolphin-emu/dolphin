@@ -277,7 +277,7 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(bool dstAlpha)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, PixelShaderManager::GetTextureMask(), dstAlpha);
+	GetPixelShaderId(&uid, dstAlpha);
 
 	// Is the shader already set?
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
@@ -312,7 +312,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// OK, need to generate and compile it.
-	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D9);
+	const char *code = GeneratePixelShaderCode(dstAlpha, API_D3D9);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);
