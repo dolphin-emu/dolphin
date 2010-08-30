@@ -23,6 +23,7 @@
 #include "StringUtil.h"
 #include "Thread.h"
 #include "CoreTiming.h"
+#include "OnFrame.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
@@ -255,6 +256,9 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	saveStruct *saveData = new saveStruct;
 	saveData->buffer = buffer;
 	saveData->size = sz;
+	
+	if (Frame::IsRecordingInput())
+		Frame::SaveRecording(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
 
 	Core::DisplayMessage("Saving State...", 1000);
 
@@ -369,6 +373,11 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
 
 	delete[] buffer;
+	
+	if (File::Exists(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str()))
+		Frame::LoadInput(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
+	else
+		Frame::EndPlayInput();
 
 	state_op_in_progress = false;
 

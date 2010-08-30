@@ -117,6 +117,7 @@ class CFrame : public CRenderFrame
 		void InitBitmaps();
 		void DoPause();
 		void DoStop();
+		void DoRecordingSave();
 		bool bRenderToMain;
 		bool bNoWiimoteMsg;
 		void UpdateGUI();
@@ -272,6 +273,7 @@ class CFrame : public CRenderFrame
 		void OnReset(wxCommandEvent& event);
 		void OnRecord(wxCommandEvent& event);
 		void OnPlayRecording(wxCommandEvent& event);
+		void OnRecordExport(wxCommandEvent& event);
 		void OnChangeDisc(wxCommandEvent& event);
 		void OnScreenshot(wxCommandEvent& event);
 		void OnActive(wxActivateEvent& event);

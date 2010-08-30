@@ -31,20 +31,21 @@ bool g_bFrameStep = false;
 bool g_bFrameStop = false;
 bool g_bAutoFire = false;
 u32 g_autoFirstKey = 0, g_autoSecondKey = 0;
+u32 g_rerecords = 0;
 bool g_bFirstKey = true;
 PlayMode g_playMode = MODE_NONE;
 
 unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 int g_numPads = 0;
-ControllerState *g_padStates;
+ControllerState g_padState;
 FILE *g_recordfd = NULL;
 
 u64 g_frameCounter = 0, g_lagCounter = 0;
 bool g_bPolled = false;
 
 int g_numRerecords = 0;
-std::string g_recordFile;
+std::string g_recordFile = "0.dtm";
 
 void FrameUpdate()
 {
@@ -66,17 +67,6 @@ void FrameUpdate()
 	
 	if (g_bAutoFire)
 		g_bFirstKey = !g_bFirstKey;
-	
-	// Dump/Read all controllers' states for this frame
-	if(IsRecordingInput())
-		fwrite(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd); 
-	else if(IsPlayingInput()) {
-		fread(g_padStates, sizeof(ControllerState), g_numPads, g_recordfd);
-			
-		// End of recording
-		if(feof(g_recordfd))
-			EndPlayInput();
-	}
 	
 	g_bPolled = false;
 }
@@ -196,10 +186,12 @@ bool IsPlayingInput()
 }
 
 // TODO: Add BeginRecordingFromSavestate
-bool BeginRecordingInput(const char *filename, int controllers)
+bool BeginRecordingInput(int controllers)
 {
-	if(!filename || g_playMode != MODE_NONE || g_recordfd)
+	if(g_playMode != MODE_NONE || g_recordfd)
 		return false;
+	
+	const char *filename = g_recordFile.c_str();
 	
 	if(File::Exists(filename))
 		File::Delete(filename);
@@ -215,79 +207,44 @@ bool BeginRecordingInput(const char *filename, int controllers)
 	fwrite(&dummy, sizeof(DTMHeader), 1, g_recordfd);
 	
 	g_numPads = controllers;
-	g_padStates = new ControllerState[controllers];
 	
 	g_frameCounter = 0;
 	g_lagCounter = 0;
 	
 	g_playMode = MODE_RECORDING;
 	
-	g_recordFile = filename;
+	Core::DisplayMessage("Starting movie recording", 2000);
 	
 	return true;
-}
-
-void EndRecordingInput()
-{
-	rewind(g_recordfd);
-
-	// Create the real header now and write it
-	DTMHeader header;
-	memset(&header, 0, sizeof(DTMHeader));
-	
-	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.bWii = Core::g_CoreStartupParameter.bWii;
-	header.numControllers = g_numPads;
-	
-	header.bFromSaveState = false; // TODO: add the case where it's true
-	header.frameCount = g_frameCounter;
-	header.lagCount = g_lagCounter; 
-	
-	// TODO
-	header.uniqueID = 0; 
-	header.numRerecords = 0;
-	// header.author;
-	// header.videoPlugin; 
-	// header.audioPlugin;
-	
-	fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
-	
-	fclose(g_recordfd);
-	g_recordfd = NULL;
-	
-	delete[] g_padStates;
-	
-	g_playMode = MODE_NONE;
 }
 
 void RecordInput(SPADStatus *PadStatus, int controllerID)
 {
 	if(!IsRecordingInput() || controllerID >= g_numPads || controllerID < 0)
 		return;
+
+	g_padState.A		 = ((PadStatus->button & PAD_BUTTON_A) != 0);
+	g_padState.B		 = ((PadStatus->button & PAD_BUTTON_B) != 0);
+	g_padState.X		 = ((PadStatus->button & PAD_BUTTON_X) != 0);
+	g_padState.Y		 = ((PadStatus->button & PAD_BUTTON_Y) != 0);
+	g_padState.Z		 = ((PadStatus->button & PAD_TRIGGER_Z) != 0);
+	g_padState.Start     = ((PadStatus->button & PAD_BUTTON_START) != 0);
 	
-	g_padStates[controllerID].A		= ((PadStatus->button & PAD_BUTTON_A) != 0);
-	g_padStates[controllerID].B		= ((PadStatus->button & PAD_BUTTON_B) != 0);
-	g_padStates[controllerID].X		= ((PadStatus->button & PAD_BUTTON_X) != 0);
-	g_padStates[controllerID].Y		= ((PadStatus->button & PAD_BUTTON_Y) != 0);
-	g_padStates[controllerID].Z		= ((PadStatus->button & PAD_TRIGGER_Z) != 0);
-	g_padStates[controllerID].Start = ((PadStatus->button & PAD_BUTTON_START) != 0);
+	g_padState.DPadUp	 = ((PadStatus->button & PAD_BUTTON_UP) != 0);
+	g_padState.DPadDown  = ((PadStatus->button & PAD_BUTTON_DOWN) != 0);
+	g_padState.DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
+	g_padState.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
 	
-	g_padStates[controllerID].DPadUp	= ((PadStatus->button & PAD_BUTTON_UP) != 0);
-	g_padStates[controllerID].DPadDown  = ((PadStatus->button & PAD_BUTTON_DOWN) != 0);
-	g_padStates[controllerID].DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
-	g_padStates[controllerID].DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
+	g_padState.L = PadStatus->triggerLeft;
+	g_padState.R = PadStatus->triggerRight;
 	
-	g_padStates[controllerID].L = PadStatus->triggerLeft;
-	g_padStates[controllerID].R = PadStatus->triggerRight;
+	g_padState.AnalogStickX = PadStatus->stickX;
+	g_padState.AnalogStickY = PadStatus->stickY;
 	
-	g_padStates[controllerID].AnalogStickX = PadStatus->stickX;
-	g_padStates[controllerID].AnalogStickY = PadStatus->stickY;
+	g_padState.CStickX = PadStatus->substickX;
+	g_padState.CStickY = PadStatus->substickY;
 	
-	g_padStates[controllerID].CStickX = PadStatus->substickX;
-	g_padStates[controllerID].CStickY = PadStatus->substickY;
-	
-	PlayController(PadStatus, controllerID);
+	fwrite(&g_padState, sizeof(ControllerState), 1, g_recordfd);
 }
 
 bool PlayInput(const char *filename)
@@ -330,9 +287,7 @@ bool PlayInput(const char *filename)
 	*/
 	
 	g_numPads = header.numControllers;
-	g_padStates = new ControllerState[g_numPads];
 	g_numRerecords = header.numRerecords;
-	g_recordFile = filename;
 	
 	g_playMode = MODE_PLAYING;
 	
@@ -344,61 +299,146 @@ cleanup:
 	return false;
 }
 
+void LoadInput(const char *filename)
+{
+	FILE *t_record = fopen(filename, "rb");
+	
+	DTMHeader header;
+	
+	fread(&header, sizeof(DTMHeader), 1, t_record);
+	
+	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
+		PanicAlert("Savestate movie %s is corrupted, movie recording stopping...", filename);
+		fclose(t_record);
+		EndPlayInput();
+		return;
+	}
+	
+	if (g_rerecords == 0)
+		g_rerecords = header.numRerecords;
+	
+	g_numPads = header.numControllers;
+	
+	fclose(t_record);
+	
+	if (g_recordfd)
+		fclose(g_recordfd);
+	
+	File::Delete(g_recordFile.c_str());
+	File::Copy(filename, g_recordFile.c_str());
+	
+	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
+	fseek(g_recordfd, 0, SEEK_END);
+	
+	g_rerecords++;
+	
+	Core::DisplayMessage("Resuming movie recording", 2000);
+	
+	g_playMode = MODE_RECORDING;
+}
+
 void PlayController(SPADStatus *PadStatus, int controllerID)
 {
+	// Correct playback is entirely dependent on the emulator polling the controllers
+	// in the same order done during recording
 	if(!IsPlayingInput() || controllerID >= g_numPads || controllerID < 0)
 		return;
 	
 	memset(PadStatus, 0, sizeof(SPADStatus));
+	fread(&g_padState, sizeof(ControllerState), 1, g_recordfd);
 	
 	PadStatus->button |= PAD_USE_ORIGIN;
 	
-	if(g_padStates[controllerID].A) {
+	if(g_padState.A) {
 		PadStatus->button |= PAD_BUTTON_A;
 		PadStatus->analogA = 0xFF;
 	}
-	if(g_padStates[controllerID].B) {
+	if(g_padState.B) {
 		PadStatus->button |= PAD_BUTTON_B;
 		PadStatus->analogB = 0xFF;
 	}
-	if(g_padStates[controllerID].X)
+	if(g_padState.X)
 		PadStatus->button |= PAD_BUTTON_X;
-	if(g_padStates[controllerID].Y)
+	if(g_padState.Y)
 		PadStatus->button |= PAD_BUTTON_Y;
-	if(g_padStates[controllerID].Z)
+	if(g_padState.Z)
 		PadStatus->button |= PAD_TRIGGER_Z;
-	if(g_padStates[controllerID].Start)
+	if(g_padState.Start)
 		PadStatus->button |= PAD_BUTTON_START;
 	
-	if(g_padStates[controllerID].DPadUp)
+	if(g_padState.DPadUp)
 		PadStatus->button |= PAD_BUTTON_UP;
-	if(g_padStates[controllerID].DPadDown)
+	if(g_padState.DPadDown)
 		PadStatus->button |= PAD_BUTTON_DOWN;
-	if(g_padStates[controllerID].DPadLeft)
+	if(g_padState.DPadLeft)
 		PadStatus->button |= PAD_BUTTON_LEFT;
-	if(g_padStates[controllerID].DPadRight)
+	if(g_padState.DPadRight)
 		PadStatus->button |= PAD_BUTTON_RIGHT;
 	
-	PadStatus->triggerLeft = g_padStates[controllerID].L;
+	PadStatus->triggerLeft = g_padState.L;
 	if(PadStatus->triggerLeft > 230)
 		PadStatus->button |= PAD_TRIGGER_L;
-	PadStatus->triggerRight = g_padStates[controllerID].R;
+	PadStatus->triggerRight = g_padState.R;
 	if(PadStatus->triggerRight > 230)
 		PadStatus->button |= PAD_TRIGGER_R;
 	
-	PadStatus->stickX = g_padStates[controllerID].AnalogStickX;
-	PadStatus->stickY = g_padStates[controllerID].AnalogStickY;
+	PadStatus->stickX = g_padState.AnalogStickX;
+	PadStatus->stickY = g_padState.AnalogStickY;
 	
-	PadStatus->substickX = g_padStates[controllerID].CStickX;
-	PadStatus->substickY = g_padStates[controllerID].CStickY;
+	PadStatus->substickX = g_padState.CStickX;
+	PadStatus->substickY = g_padState.CStickY;
+	
+	if(feof(g_recordfd))
+	{
+		Core::DisplayMessage("Movie End", 2000);
+		// TODO: read-only mode
+		//EndPlayInput();
+		g_playMode = MODE_RECORDING;
+	}
 }
 
 void EndPlayInput() {
-	fclose(g_recordfd);
+	if (g_recordfd)
+		fclose(g_recordfd);
 	g_recordfd = NULL;
-	g_numPads = 0;
-	delete[] g_padStates;
+	g_numPads = g_rerecords = 0;
+	g_frameCounter = g_lagCounter = 0;
 	g_playMode = MODE_NONE;
 }
 
+void SaveRecording(const char *filename)
+{
+	rewind(g_recordfd);
+
+	// Create the real header now and write it
+	DTMHeader header;
+	memset(&header, 0, sizeof(DTMHeader));
+	
+	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
+	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
+	header.bWii = Core::g_CoreStartupParameter.bWii;
+	header.numControllers = g_numPads;
+	
+	header.bFromSaveState = false; // TODO: add the case where it's true
+	header.frameCount = g_frameCounter;
+	header.lagCount = g_lagCounter; 
+	header.numRerecords = g_rerecords;
+	
+	// TODO
+	header.uniqueID = 0; 
+	// header.author;
+	// header.videoPlugin; 
+	// header.audioPlugin;
+	
+	fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
+	fclose(g_recordfd);
+	
+	if (File::Copy(g_recordFile.c_str(), filename))
+		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
+	else
+		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
+	
+	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
+	fseek(g_recordfd, 0, SEEK_END);
+}
 };

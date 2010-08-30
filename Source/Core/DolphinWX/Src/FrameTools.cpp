@@ -131,8 +131,9 @@ void CFrame::CreateMenu()
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));	
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_RECORD, _T("Start Re&cording..."));
+	emulationMenu->Append(IDM_RECORD, _T("Start Re&cording"));
 	emulationMenu->Append(IDM_PLAYRECORD, _T("P&lay Recording..."));
+	emulationMenu->Append(IDM_RECORDEXPORT, _T("Export Recording..."));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	
@@ -627,23 +628,8 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 {
-	wxString path = wxFileSelector(
-			_T("Select The Recording File"),
-			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
-			wxFD_SAVE | wxFD_PREVIEW,
-			this);
-
-	if(path.IsEmpty())
-		return;
-
 	// TODO: Take controller settings from Gamecube Configuration menu
-	if(Frame::BeginRecordingInput(path.mb_str(), 1))
+	if(Frame::BeginRecordingInput(1))
 		BootGame(std::string(""));
 }
 
@@ -666,6 +652,11 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 
 	if(Frame::PlayInput(path.mb_str()))
 		BootGame(std::string(""));
+}
+
+void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED (event))
+{
+	DoRecordingSave();
 }
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
@@ -901,8 +892,8 @@ void CFrame::DoStop()
 
 		// TODO: Show the author/description dialog here
 		if(Frame::IsRecordingInput())
-			Frame::EndRecordingInput();
-		if(Frame::IsPlayingInput())
+			DoRecordingSave();
+		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			Frame::EndPlayInput();
 
 		// These windows cause segmentation faults if they are open when the emulator
@@ -944,6 +935,34 @@ void CFrame::DoStop()
 		if (m_bBatchMode)
 			Close(true);
 	}
+}
+
+void CFrame::DoRecordingSave()
+{
+	bool paused = (Core::GetState() == Core::CORE_PAUSE);
+	
+	if (!paused)
+		DoPause();
+	
+	wxString path = wxFileSelector(
+			_T("Select The Recording File"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_SAVE | wxFD_PREVIEW,
+			this);
+
+	if(path.IsEmpty())
+		return;
+	
+	Frame::SaveRecording(path.mb_str());
+	
+	if (!paused)
+		DoPause();
 }
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
@@ -1281,6 +1300,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Frame::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);

@@ -24,6 +24,7 @@
 #include "../ConfigManager.h"
 #include "MemoryUtil.h"
 #include "FileUtil.h"
+#include "../OnFrame.h"
 
 // english
 SRAM sram_dump = {{
@@ -415,7 +416,9 @@ u32 CEXIIPL::GetGCTime()
 	// hack in some netplay stuff
 	ltime = NetPlay_GetGCTime();
 #endif
-	if (0 == ltime)
+	if (Frame::IsRecordingInput() || Frame::IsPlayingInput())
+		ltime = 1234567890; // TODO: Should you be able to set a custom time in movies?
+	else if (0 == ltime)
 		ltime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	return ((u32)ltime - cJanuary2000);

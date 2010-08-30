@@ -40,11 +40,12 @@ struct ControllerState {
 	bool Start:1, A:1, B:1, X:1, Y:1, Z:1;		// Binary buttons, 6 bits
 	bool DPadUp:1, DPadDown:1,					// Binary D-Pad buttons, 4 bits
 		DPadLeft:1, DPadRight:1;
+	bool reserved:6;							// Reserved bits used for padding, 6 bits
+
 	u8   L, R;									// Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
 	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
 	
-	bool reserved:6;							// Reserved bits, 6 bits
 }; // Total: 58 + 6 = 64 bits per frame
 #pragma pack(pop)
 
@@ -110,13 +111,14 @@ void FrameSkipping();
 
 void ModifyController(SPADStatus *PadStatus, int controllerID);
 
-bool BeginRecordingInput(const char *filename, int controllers);
+bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
-void EndRecordingInput();
 
 bool PlayInput(const char *filename);
+void LoadInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
 void EndPlayInput();
+void SaveRecording(const char *filename);
 
 };
 
