@@ -36,6 +36,7 @@ files = [
 	'Profiler.cpp',
 	'OnScreenDisplay.cpp',
 	'HiresTextures.cpp',
+	'DLCache.cpp',
 	]
 
 if env['HAVE_OPENCL']:
