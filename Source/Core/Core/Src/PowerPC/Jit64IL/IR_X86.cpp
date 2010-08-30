@@ -1362,9 +1362,17 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			// TODO: Optimize the case that the register of op1 can be
 			//       recycled. (SHUFPD may not be so fast.)
 			X64Reg reg = fregBinRHSRegWithMov(RI, I);
-			// TODO: Check whether the following code works
-			//       when the op1 is in the FSlotSet
-			Jit->MOVSD(reg, fregLocForInst(RI, getOp1(I)));
+			OpArg loc1 = fregLocForInst(RI, getOp1(I));
+			if (loc1.IsSimpleReg()) {
+				Jit->MOVSD(reg, loc1);
+			} else {
+				// If op1 is in FSlotSet, we have to mov loc1 to XMM0
+				// before MOVSD/MOVSS.
+				// Because register<->memory transfer with MOVSD/MOVSS
+				// clears upper 64/96-bits of the destination register.
+				Jit->MOVAPD(XMM0, loc1);
+				Jit->MOVSD(reg, R(XMM0));
+			}
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -1569,9 +1577,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			// TODO: Optimize the case that the register of only op1 can be
 			//       recycled.
 			X64Reg reg = fregBinRHSRegWithMov(RI, I);
-			// TODO: Check whether the following code works
-			//       when the op1 is in the FSlotSet
-			Jit->MOVSS(reg, fregLocForInst(RI, getOp1(I)));
+			OpArg loc1 = fregLocForInst(RI, getOp1(I));
+			if (loc1.IsSimpleReg()) {
+				Jit->MOVSS(reg, loc1);
+			} else {
+				Jit->MOVAPD(XMM0, loc1);
+				Jit->MOVSS(reg, R(XMM0));
+			}
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -1582,9 +1594,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			// TODO: Optimize the case that the register of only op2 can be
 			//       recycled.
 			X64Reg reg = fregBinLHSRegWithMov(RI, I);
-			// TODO: Check whether the following code works
-			//       when the op1 is in the FSlotSet
-			Jit->MOVSS(reg, fregLocForInst(RI, getOp2(I)));
+			OpArg loc2 = fregLocForInst(RI, getOp2(I));
+			if (loc2.IsSimpleReg()) {
+				Jit->MOVSS(reg, loc2);
+			} else {
+				Jit->MOVAPD(XMM0, loc2);
+				Jit->MOVSS(reg, R(XMM0));
+			}
 			Jit->SHUFPS(reg, R(reg), 0xF1);
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
