@@ -41,7 +41,6 @@ public:
 	static void SetAlpha(const AlphaFunc& alpha);
 	static void SetDestAlpha(const ConstantAlpha& alpha);
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
-	static void SetCustomTexScale(int texmapid, float x, float y);
 	static void SetZTextureBias(u32 bias);
 	static void SetViewport(float* viewport,int VIndex = -1);
 	static void SetIndMatrixChanged(int matrixidx);

@@ -330,8 +330,6 @@ void Flush()
 			if (tentry)
 			{
 				PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
-				if (tentry->scaleX != 1.0f || tentry->scaleY != 1.0f)
-					PixelShaderManager::SetCustomTexScale(i, tentry->scaleX, tentry->scaleY);
 			}
 			else
 			{

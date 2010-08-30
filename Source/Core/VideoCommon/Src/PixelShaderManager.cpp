@@ -34,7 +34,6 @@ static bool s_bFogColorChanged;
 static bool s_bFogParamChanged;
 static float lastDepthRange[2]; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
-static float lastCustomTexScale[8][2];
 static u8 s_nTexDimsChanged;
 static u8 s_nIndTexScaleChanged;
 static u32 lastAlpha;
@@ -43,8 +42,6 @@ static u32 lastZBias;
 
 void PixelShaderManager::Init()
 {
-	for (int i = 0; i < 8; i++)
-		lastCustomTexScale[i][0] = lastCustomTexScale[i][1] = 1.0f;
 	lastAlpha = 0;
 	memset(lastTexDims, 0, sizeof(lastTexDims));
 	lastZBias = 0;
@@ -55,8 +52,8 @@ void PixelShaderManager::Init()
 void PixelShaderManager::Dirty()
 {
 	s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
-	s_nTexDimsChanged = true;
-	s_nIndTexScaleChanged = true;
+	s_nTexDimsChanged = 0xFF;
+	s_nIndTexScaleChanged = 0xFF;
 	s_nIndTexMtxChanged = 15;
 	s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
 	s_bFogColorChanged = s_bFogParamChanged = true;
@@ -210,9 +207,6 @@ void PixelShaderManager::SetConstants()
 		}
         s_bFogParamChanged = false;
     }
-
-	for (int i = 0; i < 8; i++)
-		lastCustomTexScale[i][0] = lastCustomTexScale[i][1] = 1.0f;
 }
 
 void PixelShaderManager::SetPSTextureDims(int texid)
@@ -224,8 +218,8 @@ void PixelShaderManager::SetPSTextureDims(int texid)
     TCoordInfo& tc = bpmem.texcoords[texid];
 	fdims[0] = 1.0f / (float)(lastTexDims[texid] & 0xffff);
 	fdims[1] = 1.0f / (float)((lastTexDims[texid] >> 16) & 0xfff);
-	fdims[2] = (float)(tc.s.scale_minus_1 + 1) * lastCustomTexScale[texid][0];
-	fdims[3] = (float)(tc.t.scale_minus_1 + 1) * lastCustomTexScale[texid][1];
+	fdims[2] = (float)(tc.s.scale_minus_1 + 1);
+	fdims[3] = (float)(tc.t.scale_minus_1 + 1);
 
 	PRIM_LOG("texdims%d: %f %f %f %f\n", texid, fdims[0], fdims[1], fdims[2], fdims[3]);
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
@@ -274,16 +268,6 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
         lastTexDims[texmapid] = wh;
 		s_nTexDimsChanged |= 1 << texmapid;        
     }
-}
-
-void PixelShaderManager::SetCustomTexScale(int texmapid, float x, float y)
-{
-	if (lastCustomTexScale[texmapid][0] != x || lastCustomTexScale[texmapid][1] != y)
-	{
-		s_nTexDimsChanged |= 1 << texmapid;
-		lastCustomTexScale[texmapid][0] = x;
-		lastCustomTexScale[texmapid][1] = y;
-	}
 }
 
 void PixelShaderManager::SetZTextureBias(u32 bias)

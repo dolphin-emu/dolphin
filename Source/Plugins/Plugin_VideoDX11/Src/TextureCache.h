@@ -41,14 +41,12 @@ public:
 		unsigned int w, h, fmt, MipLevels;
 		int Scaledw, Scaledh;
 
-		float scaleX, scaleY; // for hires texutres
-
 		bool isRenderTarget;
 		bool isNonPow2;
 
 		TCacheEntry() : texture(NULL), addr(0), size_in_bytes(0), hash(0), paletteHash(0), oldpixel(0),
 						frameCount(0), w(0), h(0), fmt(0), MipLevels(0), Scaledw(0), Scaledh(0),
-						scaleX(1.f), scaleY(1.f), isRenderTarget(false), isNonPow2(true) {}
+						isRenderTarget(false), isNonPow2(true) {}
 
 		void Destroy(bool shutdown);
 		bool IntersectsMemoryRange(u32 range_address, u32 range_size);

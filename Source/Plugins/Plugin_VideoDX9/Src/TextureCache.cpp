@@ -274,8 +274,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		{
 			expandedWidth = width;
 			expandedHeight = height;
-			entry.scaleX = (float) width / oldWidth;
-			entry.scaleY = (float) height / oldHeight;
 		}
 	}
 

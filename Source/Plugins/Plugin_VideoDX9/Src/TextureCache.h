@@ -42,8 +42,6 @@ public:
 		int w, h, fmt,MipLevels;
 		int Scaledw, Scaledh;
 
-		float scaleX, scaleY; // Hires texutres need this
-
 		bool isRenderTarget;
 		bool isDynamic;// mofified from cpu
 		bool isNonPow2;
@@ -58,8 +56,6 @@ public:
 			addr = 0;
 			size_in_bytes = 0;
 			frameCount = 0;
-			scaleX = 1.0f;
-			scaleY = 1.0f;
 			isNonPow2 = true;
 			w = 0;
 			h = 0;
