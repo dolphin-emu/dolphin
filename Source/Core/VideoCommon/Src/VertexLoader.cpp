@@ -732,7 +732,8 @@ void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int co
 		VertexManager::Flush();
 	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * count);
 	VertexManager::s_pCurBufferPointer += native_stride * count;
-	VertexManager::AddVertices(primitive, count);
+	DataSkip(count * m_VertexSize);
+	VertexManager::AddVertices(primitive, count);	
 }
 
 

@@ -37,6 +37,7 @@
 #include "ABI.h"
 
 #include "DLCache.h"
+#include "VideoConfig.h"
 
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
 extern int frameCount;
@@ -497,11 +498,9 @@ void ProgressiveCleanup()
 // NOTE - outside the namespace on purpose.
 bool HandleDisplayList(u32 address, u32 size)
 {
-	// Disable display list caching since the benefit isn't much to write home about
-	// right now...
-	//Fixed DlistCaching now is fully functional benefits still marginal but when vertex data is stored here the story will be diferent :)
-	//to test remove the next line;
-
+	//Fixed DlistCaching now is fully functional still some things to workout
+	if(!g_ActiveConfig.bDlistCahchingEnable)
+		return false;
 	if(size == 0) return false;
 	u64 dl_id = DLCache::CreateMapId(address, size);
 	DLCache::DLMap::iterator iter = DLCache::dl_map.find(dl_id);
@@ -512,23 +511,41 @@ bool HandleDisplayList(u32 address, u32 size)
 		DLCache::CachedDisplayList &dl = iter->second;
 		if (dl.uncachable)
 		{
-			// We haven't compiled it - let's return false so it gets
-			// interpreted.			
-			return false;
+			dl.check--;
+			if(dl.check <= 0)
+			{
+				dl.pass = DLCache::DLPASS_ANALYZE;
+				dl.uncachable = false;
+				dl.check = dl.next_check;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		// Got one! And it's been compiled too, so let's run the compiled code!
 		switch (dl.pass)
 		{
 		case DLCache::DLPASS_ANALYZE:
-			PanicAlert("DLPASS_ANALYZE - should have been done the first pass");
+			if (DLCache::AnalyzeAndRunDisplayList(address, size, &dl)) {
+				dl.dl_hash = GetHash64(Memory_GetPtr(address), size,0);
+				dl.pass = DLCache::DLPASS_COMPILE;
+				dl.check = 1;
+				dl.next_check = 1;				
+				return true;
+			} else {
+				dl.uncachable = true;			
+				return true;  // don't also interpret the list.
+			}
 			break;
 		case DLCache::DLPASS_COMPILE:
 			// First, check that the hash is the same as the last time.
 			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0))
 			{
 				// PanicAlert("uncachable %08x", address);
-				dl.uncachable = true;				
+				dl.uncachable = true;
+				dl.check = 60;
 				return false;
 			}
 			DLCache::CompileAndRunDisplayList(address, size, &dl);
@@ -543,6 +560,7 @@ bool HandleDisplayList(u32 address, u32 size)
 					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0)) 
 					{
 						dl.uncachable = true;
+						dl.check = 60;
 						DLCache::VdataMap::iterator viter = dl.Vdata.begin();
 						while (viter != dl.Vdata.end())
 						{
@@ -554,9 +572,9 @@ bool HandleDisplayList(u32 address, u32 size)
 						return false;
 					}
 					dl.check = dl.next_check;
-					dl.next_check *= 2;
-					if (dl.next_check > 1024)
-						dl.next_check = 1024;
+					/*dl.next_check ++;
+					if (dl.next_check > 60)
+						dl.next_check = 60;*/
 				}
 				dl.frame_count= frameCount;
 				u8 *old_datareader = g_pVideoData;
