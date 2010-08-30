@@ -499,7 +499,7 @@ void ProgressiveCleanup()
 bool HandleDisplayList(u32 address, u32 size)
 {
 	//Fixed DlistCaching now is fully functional still some things to workout
-	if(!g_ActiveConfig.bDlistCahchingEnable)
+	if(!g_ActiveConfig.bDlistCachingEnable)
 		return false;
 	if(size == 0) return false;
 	u64 dl_id = DLCache::CreateMapId(address, size);

@@ -89,8 +89,8 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
 	
-	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, false);
-	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCahchingEnable);
+	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
+	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
 	iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, false);
 	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
@@ -199,7 +199,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
 	
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
-	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCahchingEnable);
+	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
 	iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
