@@ -47,6 +47,7 @@ The register allocation is linear scan allocation.
 #include "../../HW/GPFifo.h"
 #include "../../ConfigManager.h"
 #include "x64Emitter.h"
+#include "../../../../Common/Src/CPUDetect.h"
 
 static ThunkManager thunks;
 
@@ -1244,15 +1245,29 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case LoadDouble: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
-			const OpArg loc = regLocForInst(RI, getOp1(I));
-			Jit->MOV(32, R(ECX), loc);
-			Jit->ADD(32, R(ECX), Imm8(4));
-			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-			Jit->MOVD_xmm(reg, R(ECX));
-			Jit->MOV(32, R(ECX), loc);
-			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-			Jit->MOVD_xmm(XMM0, R(ECX));
-			Jit->PUNPCKLDQ(reg, R(XMM0));
+			if (cpu_info.bSSSE3) {
+				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) = 
+				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
+#ifdef _M_X64
+				X64Reg address = regEnsureInReg(RI, getOp1(I));
+				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
+#else
+				X64Reg address = regBinLHSReg(RI, I);
+				Jit->AND(32, R(address), Imm32(Memory::MEMVIEW32_MASK));
+				Jit->MOVQ_xmm(reg, MDisp(address, (u32)Memory::base));
+#endif
+				Jit->PSHUFB(reg, M((void*)maskSwapa64_1));
+			} else {
+				const OpArg loc = regLocForInst(RI, getOp1(I));
+				Jit->MOV(32, R(ECX), loc);
+				Jit->ADD(32, R(ECX), Imm8(4));
+				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+				Jit->MOVD_xmm(reg, R(ECX));
+				Jit->MOV(32, R(ECX), loc);
+				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+				Jit->MOVD_xmm(XMM0, R(ECX));
+				Jit->PUNPCKLDQ(reg, R(XMM0));
+			}
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
