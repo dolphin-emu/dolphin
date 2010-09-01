@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "Atomic.h"
 
 #include "GPFifo.h"
 #include "Memmap.h"
@@ -605,7 +606,7 @@ void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 
 	PowerPC::ppcState.spr[SPR_DAR] = _EffectiveAddress;
 
-	PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
 }
 
 
@@ -615,7 +616,7 @@ void GenerateISIException(u32 _EffectiveAddress)
 	SRR1 = (1 << 30) | (MSR & 0x3fffff);
 	NPC = _EffectiveAddress;
 
-	PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ISI);
 }
 
 

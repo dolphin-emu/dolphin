@@ -25,6 +25,7 @@
 #include "../../ConfigManager.h"
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
+#include "Atomic.h"
 
 
 namespace {
@@ -107,7 +108,7 @@ void Interpreter::SingleStepInner(void)
 			}
 			else
 			{
-				PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+				Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_FPU_UNAVAILABLE);
 				PowerPC::CheckExceptions();
 				m_EndBlock = true;
 			}

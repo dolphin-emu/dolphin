@@ -55,7 +55,7 @@
 #define MEMCHECK_START \
 	FixupBranch memException; \
 	if (js.memcheck) \
-	{ TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
+	{ TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
 	memException = J_CC(CC_NZ); }
 
 #define MEMCHECK_END \

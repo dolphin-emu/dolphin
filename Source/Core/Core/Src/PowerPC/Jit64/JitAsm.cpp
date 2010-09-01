@@ -193,7 +193,8 @@ void Jit64AsmRoutineManager::Generate()
 
 			//FP blocks test for FPU available, jump here if false
 			fpException = AlignCode4(); 
-			OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+			LOCK();
+			OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 			ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
@@ -205,7 +206,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		
 		testExceptions = GetCodePtr();
-		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
+		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 		FixupBranch skipExceptions = J_CC(CC_Z);
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));

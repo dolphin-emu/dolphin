@@ -17,6 +17,7 @@
 
 #include "Interpreter.h"
 #include "../../Core.h"
+#include "Atomic.h"
 
 void Interpreter::Helper_UpdateCR0(u32 _uValue)
 {
@@ -174,7 +175,7 @@ void Interpreter::twi(UGeckoInstruction _inst)
 		|| (((u32)a <(u32)b) && (TO & 0x02))
 		|| (((u32)a >(u32)b) && (TO & 0x01)))
 	{
-		PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();
 		m_EndBlock = true; // Dunno about this
 	}
@@ -402,7 +403,7 @@ void Interpreter::tw(UGeckoInstruction _inst)
 		|| (((u32)a <(u32)b) && (TO & 0x02))
 		|| (((u32)a >(u32)b) && (TO & 0x01)))
 	{
-		PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();
 		m_EndBlock = true; // Dunno about this
 	}

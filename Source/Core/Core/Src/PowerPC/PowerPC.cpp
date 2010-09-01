@@ -18,6 +18,7 @@
 #include <float.h>
 
 #include "Common.h"
+#include "Atomic.h"
 #include "MathUtil.h"
 #include "ChunkFile.h"
 
@@ -262,8 +263,11 @@ void Stop()
 
 void CheckExceptions()
 {
+	// Read volatile data once
+	u32 exceptions = ppcState.Exceptions;
+
 	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
-	if (!ppcState.Exceptions)
+	if (!exceptions)
 		return;
 
 	// gcemu uses the mask 0x87C0FFFF instead of 0x0780FF77
@@ -285,7 +289,7 @@ void CheckExceptions()
 	// set to exception type entry point
 	//NPC = 0x80000x00;
 
-	if (ppcState.Exceptions & EXCEPTION_ISI)
+	if (exceptions & EXCEPTION_ISI)
 	{
 		SRR0 = NPC;
 		//GenerateISIException() sets up SRR1
@@ -294,9 +298,9 @@ void CheckExceptions()
 		NPC = 0x80000400;
 
 		INFO_LOG(POWERPC, "EXCEPTION_ISI");
-		ppcState.Exceptions &= ~EXCEPTION_ISI;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_ISI);
 	}
-	else if (ppcState.Exceptions & EXCEPTION_PROGRAM)
+	else if (exceptions & EXCEPTION_PROGRAM)
 	{
 		SRR0 = PC;
 		SRR1 = MSR & 0x87C0FFFF;
@@ -307,9 +311,9 @@ void CheckExceptions()
 		NPC = 0x80000700;
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
-		ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PROGRAM);
 	} 
-	else if (ppcState.Exceptions & EXCEPTION_SYSCALL)
+	else if (exceptions & EXCEPTION_SYSCALL)
 	{
 		SRR0 = NPC;
 		SRR1 = MSR & 0x87C0FFFF;
@@ -318,9 +322,9 @@ void CheckExceptions()
 		NPC = 0x80000C00;
 
 		INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
-		ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_SYSCALL);
 	}
-	else if (ppcState.Exceptions & EXCEPTION_FPU_UNAVAILABLE)
+	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{			
 		//This happens a lot - Gamecube OS uses deferred FPU context switching
 		SRR0 = PC;	// re-execute the instruction
@@ -334,9 +338,9 @@ void CheckExceptions()
 		NPC = 0x80000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
-		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_FPU_UNAVAILABLE);
 	}
-	else if (ppcState.Exceptions & EXCEPTION_DSI)
+	else if (exceptions & EXCEPTION_DSI)
 	{
 		SRR0 = PC;
 		SRR1 = MSR & 0x87C0FFFF;
@@ -346,9 +350,9 @@ void CheckExceptions()
 		//DSISR and DAR regs are changed in GenerateDSIException()
 
 		INFO_LOG(POWERPC, "EXCEPTION_DSI");
-		ppcState.Exceptions &= ~EXCEPTION_DSI;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DSI);
 	} 
-	else if (ppcState.Exceptions & EXCEPTION_ALIGNMENT)
+	else if (exceptions & EXCEPTION_ALIGNMENT)
 	{
 		//This never happens ATM
 		// perhaps we can get dcb* instructions to use this :p
@@ -361,13 +365,13 @@ void CheckExceptions()
 		//TODO crazy amount of DSISR options to check out
 
 		INFO_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
-		ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
+		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_ALIGNMENT);
 	}
 
 	// EXTERNAL INTERRUPT
 	else if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
 	{
-		if (ppcState.Exceptions & EXCEPTION_EXTERNAL_INT)
+		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{
 			// Pokemon gets this "too early", it hasn't a handler yet
 			SRR0 = NPC;
@@ -377,11 +381,11 @@ void CheckExceptions()
 			NPC = 0x80000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
-			ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 
 			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");
 		}
-		else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
+		else if (exceptions & EXCEPTION_DECREMENTER)
 		{
 			SRR0 = NPC;
 			SRR1 = MSR & 0x87C0FFFF;
@@ -390,12 +394,12 @@ void CheckExceptions()
 			NPC = 0x80000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
-			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DECREMENTER);
 		}
 		else
 		{
-			_dbg_assert_msg_(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", ppcState.Exceptions);
-			ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", ppcState.Exceptions);
+			_dbg_assert_msg_(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+			ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", exceptions);
 		}
 	}
 }

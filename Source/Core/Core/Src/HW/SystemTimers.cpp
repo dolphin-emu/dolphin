@@ -58,6 +58,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 
 
 #include "Common.h"
+#include "Atomic.h"
 #include "../PatchEngine.h"
 #include "SystemTimers.h"
 #include "../PluginManager.h"
@@ -192,7 +193,7 @@ void DecrementerCallback(u64 userdata, int cyclesLate)
 	// A: Because it's 64bit (0xffffffffffffffff)...?
 	fakeDec = -1;
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
-	PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
 }
 
 void DecrementerSet()

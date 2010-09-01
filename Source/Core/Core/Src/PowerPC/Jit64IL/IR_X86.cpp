@@ -1716,7 +1716,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case SystemCall: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
+			Jit->LOCK();
+			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
 			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
 			Jit->WriteExceptionExit();
 			break;
@@ -1759,7 +1760,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case FPExceptionCheckEnd: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 			FixupBranch noMemException = Jit->J_CC(CC_Z);
 
 			// If a memory exception occurs, the exception handler will read

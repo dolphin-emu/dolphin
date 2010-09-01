@@ -562,7 +562,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				gpr.Flush(FLUSH_ALL);
 				fpr.Flush(FLUSH_ALL);
 
-				TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z);
 
 				// If a memory exception occurs, the exception handler will read

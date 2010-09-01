@@ -19,6 +19,7 @@
 #include "../../HW/CPU.h"
 #include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
+#include "Atomic.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
 {
@@ -134,7 +135,7 @@ void Interpreter::rfid(UGeckoInstruction _inst)
 // We do it anyway, though :P
 void Interpreter::sc(UGeckoInstruction _inst)
 {
-	PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_SYSCALL);
 	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }

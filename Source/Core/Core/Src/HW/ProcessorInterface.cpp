@@ -17,6 +17,7 @@
 #include <stdio.h>
 
 #include "Common.h"
+#include "Atomic.h"
 #include "ChunkFile.h"
 #include "../PowerPC/PowerPC.h"
 
@@ -155,7 +156,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 	switch(_iAddress & 0xFFF) 
 	{
 	case PI_INTERRUPT_CAUSE:
-		m_InterruptCause &= ~_uValue; // writes turn them off
+		Common::AtomicAnd(m_InterruptCause, ~_uValue); // writes turn them off
 		UpdateException();
 		return;
 
@@ -203,9 +204,9 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 void UpdateException()
 {
 	if ((m_InterruptCause & m_InterruptMask) != 0)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_EXTERNAL_INT);
 	else
-		PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
+		Common::AtomicAnd(PowerPC::ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 }
 
 static const char *Debug_GetInterruptName(u32 _causemask)
@@ -247,9 +248,9 @@ void SetInterrupt(u32 _causemask, bool _bSet)
     }
 	
 	if (_bSet)
-		m_InterruptCause |= _causemask;
+		Common::AtomicOr(m_InterruptCause, _causemask);
 	else
-		m_InterruptCause &= ~_causemask;// is there any reason to have this possibility?
+		Common::AtomicAnd(m_InterruptCause, ~_causemask);// is there any reason to have this possibility?
 										// F|RES: i think the hw devices reset the interrupt in the PI to 0 
 										// if the interrupt cause is eliminated. that isnt done by software (afaik)
 	UpdateException();
@@ -258,9 +259,9 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 void SetResetButton(bool _bSet)
 {
 	if (_bSet)
-		m_InterruptCause &= ~INT_CAUSE_RST_BUTTON;
+		Common::AtomicAnd(m_InterruptCause, ~INT_CAUSE_RST_BUTTON);
 	else
-		m_InterruptCause |= INT_CAUSE_RST_BUTTON;			
+		Common::AtomicOr(m_InterruptCause, INT_CAUSE_RST_BUTTON);
 }
 
 void ToggleResetButtonCallback(u64 userdata, int cyclesLate)

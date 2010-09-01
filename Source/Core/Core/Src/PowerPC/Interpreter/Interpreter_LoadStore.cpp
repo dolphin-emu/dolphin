@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "Atomic.h"
 #include "MathUtil.h"
 
 #include "../../HW/Memmap.h"
@@ -405,10 +406,10 @@ void Interpreter::eciwx(UGeckoInstruction _inst)
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
-		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
 	}
 	if (EA & 3)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ALIGNMENT);
 
 // 	_assert_msg_(POWERPC,0,"eciwx - fill r%i with word @ %08x from device %02x",
 // 		_inst.RS, EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
@@ -427,10 +428,10 @@ void Interpreter::ecowx(UGeckoInstruction _inst)
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
-		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
 	}
 	if (EA & 3)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ALIGNMENT);
 	
 // 	_assert_msg_(POWERPC,0,"ecowx - send stw request (%08x@%08x) to device %02x",
 // 		m_GPR[_inst.RS], EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);

@@ -59,7 +59,7 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 fpscr;  // floating point flags/status bits
 
 	// Exception management.
-	u32 Exceptions;
+	volatile u32 Exceptions;
 
 	u32 sr[16];  // Segment registers.
 

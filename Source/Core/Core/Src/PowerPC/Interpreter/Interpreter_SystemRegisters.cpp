@@ -36,6 +36,7 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #endif
 
 #include "CPUDetect.h"
+#include "Atomic.h"
 #include "../../CoreTiming.h"
 #include "../../HW/Memmap.h"
 #include "../../HW/GPFifo.h"
@@ -413,7 +414,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		if (!(oldValue >> 31) && (m_GPR[_inst.RD]>>31))   //top bit from 0 to 1
 		{
 			PanicAlert("Interesting - Software triggered Decrementer exception");
-			PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
+			Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
 		}
 		else
 		{
