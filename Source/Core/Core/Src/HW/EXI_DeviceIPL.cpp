@@ -271,13 +271,10 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		if (m_uPosition == 3)
 		{
 			// Get the time ... 
-			// Subtract Wii bias
-            u32 GCTime = CEXIIPL::GetGCTime() - cWiiBias;
-			u8* pGCTime = (u8*)&GCTime;
-			for (int i=0; i<4; i++)
-			{
-				m_RTC[i] = pGCTime[i^3];
-			}	
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+				*((u32 *)&m_RTC) = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias); // Subtract Wii bias
+			else
+				*((u32 *)&m_RTC) = Common::swap32(CEXIIPL::GetGCTime());
 
 #if MAX_LOGLEVEL >= INFO_LEVEL
 			

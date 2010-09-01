@@ -90,15 +90,11 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	switch (iIndex)
 	{
 	case SPR_WPAR:
-		Default(inst);
-		return;
-		//		case SPR_DEC:
-		//MessageBox(NULL, "Read from DEC", "????", MB_OK);
-		//break;
+	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
-		//CALL((void Jit64::*)&CoreTiming::Advance);
-		// fall through
+		Default(inst);
+		return;
 	default:
 		gpr.Lock(d);
 		gpr.BindToRegister(d, false);

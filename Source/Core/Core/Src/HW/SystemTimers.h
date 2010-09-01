@@ -29,6 +29,10 @@ void Shutdown();
 
 // Notify timing system that somebody wrote to the decrementer
 void DecrementerSet();
+u32 GetFakeDecrementer();
+
+void TimeBaseSet();
+u64 GetFakeTimeBase();
 
 }
 

@@ -263,9 +263,8 @@ void Interpreter::mtsrin(UGeckoInstruction _inst)
 void Interpreter::mftb(UGeckoInstruction _inst)
 {
 	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
-	if (iIndex == SPR_TL)		m_GPR[_inst.RD] = TL;
-	else if (iIndex == SPR_TU)	m_GPR[_inst.RD] = TU;
-	else					_dbg_assert_(POWERPC, 0);
+	_dbg_assert_msg_(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
+	mfspr(_inst);
 }
 
 
@@ -279,9 +278,18 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	switch (iIndex) 
 	{
-	//case SPR_DEC:
-	//	MessageBox(NULL, "Read from DEC", "????", MB_OK);
-	//	break;
+	case SPR_DEC:
+		if ((rSPR(iIndex) & 0x80000000) == 0) // We are still decrementing
+		{
+			rSPR(iIndex) = SystemTimers::GetFakeDecrementer();
+		}
+		break;
+
+	case SPR_TL:
+	case SPR_TU:
+		*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+		break;
+
 	case SPR_WPAR:
 		{
 			// If wpar_empty ever is false, Paper Mario hangs. Strange.			
@@ -318,10 +326,12 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	case SPR_TL_W:
 		TL = m_GPR[_inst.RD];
+		SystemTimers::TimeBaseSet();
 		break;
 
 	case SPR_TU_W:
 		TU = m_GPR[_inst.RD];
+		SystemTimers::TimeBaseSet();
 		break;
 
 	case SPR_HID0: // HID0
@@ -416,10 +426,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 			PanicAlert("Interesting - Software triggered Decrementer exception");
 			Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
 		}
-		else
-		{
-			SystemTimers::DecrementerSet();
-		}
+		SystemTimers::DecrementerSet();
 		break;
 
 	// Page table base etc

@@ -26,6 +26,7 @@
 #include "../HW/CPU.h"
 #include "../Core.h"
 #include "../CoreTiming.h"
+#include "../HW/SystemTimers.h"
 
 #include "Interpreter/Interpreter.h"
 #include "JitCommon/JitBase.h"
@@ -73,7 +74,13 @@ void ExpandCR()
 
 void DoState(PointerWrap &p)
 {
+	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+
 	p.Do(ppcState);
+
+	SystemTimers::DecrementerSet();
+	SystemTimers::TimeBaseSet();
 }
 
 void ResetRegisters()
@@ -110,10 +117,12 @@ void ResetRegisters()
 
 	TL = 0;
 	TU = 0;
+	SystemTimers::TimeBaseSet();
 
 	// MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
 	ppcState.msr = 0;
 	rDEC = 0xFFFFFFFF;
+	SystemTimers::DecrementerSet();
 }
 
 void Init(int cpu_core)

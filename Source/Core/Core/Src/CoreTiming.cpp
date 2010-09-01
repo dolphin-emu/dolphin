@@ -66,7 +66,7 @@ s64 idledCycles;
 
 Common::CriticalSection externalEventSection;
 
-void (*advanceCallback)(int cyclesExecuted);
+void (*advanceCallback)(int cyclesExecuted) = NULL;
 
 Event* GetNewEvent()
 {
