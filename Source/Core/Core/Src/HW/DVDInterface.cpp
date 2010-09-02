@@ -71,14 +71,14 @@ union UDISR
 	u32 Hex;
 	struct
 	{
-		unsigned BREAK          :  1;	// Stop the Device + Interrupt
-		unsigned DEINITMASK     :  1;	// Access Device Error Int Mask
-		unsigned DEINT          :  1;	// Access Device Error Int
-		unsigned TCINTMASK      :  1;	// Transfer Complete Int Mask
-		unsigned TCINT          :  1;	// Transfer Complete Int
-		unsigned BRKINTMASK     :  1;
-		unsigned BRKINT         :  1;	// w 1: clear brkint
-		unsigned                : 25;
+		u32 BREAK          :  1;	// Stop the Device + Interrupt
+		u32 DEINITMASK     :  1;	// Access Device Error Int Mask
+		u32 DEINT          :  1;	// Access Device Error Int
+		u32 TCINTMASK      :  1;	// Transfer Complete Int Mask
+		u32 TCINT          :  1;	// Transfer Complete Int
+		u32 BRKINTMASK     :  1;
+		u32 BRKINT         :  1;	// w 1: clear brkint
+		u32                : 25;
 	};
 	UDISR() {Hex = 0;}
 	UDISR(u32 _hex) {Hex = _hex;}
@@ -90,10 +90,10 @@ union UDICVR
 	u32 Hex;
 	struct
 	{
-		unsigned CVR            :  1;	// 0: Cover closed	1: Cover open
-		unsigned CVRINTMASK	    :  1;	// 1: Interrupt enabled
-		unsigned CVRINT         :  1;	// r 1: Interrupt requested w 1: Interrupt clear
-		unsigned                : 29;
+		u32 CVR            :  1;	// 0: Cover closed	1: Cover open
+		u32 CVRINTMASK	   :  1;	// 1: Interrupt enabled
+		u32 CVRINT         :  1;	// r 1: Interrupt requested w 1: Interrupt clear
+		u32                : 29;
 	};
 	UDICVR() {Hex = 0;}
 	UDICVR(u32 _hex) {Hex = _hex;}
@@ -117,13 +117,13 @@ union UDIMAR
 	u32 Hex;
 	struct
 	{
-		unsigned Zerobits	:	5; // Must be zero (32byte aligned)
-		unsigned			:	27;
+		u32 Zerobits	:	5; // Must be zero (32byte aligned)
+		u32				:	27;
 	};
 	struct
 	{
-		unsigned Address	:	26;
-		unsigned			:	6;
+		u32 Address		:	26;
+		u32				:	6;
 	};
 };
 
@@ -133,13 +133,13 @@ union UDILENGTH
 	u32 Hex;
 	struct
 	{
-		unsigned Zerobits	:	5; // Must be zero (32byte aligned)
-		unsigned			:	27;
+		u32 Zerobits	:	5; // Must be zero (32byte aligned)
+		u32				:	27;
 	};
 	struct
 	{
-		unsigned Length		:	26;
-		unsigned			:	6;
+		u32 Length		:	26;
+		u32				:	6;
 	};
 };
 
@@ -149,10 +149,10 @@ union UDICR
 	u32 Hex;
 	struct
 	{
-		unsigned TSTART		:	1;	// w:1 start   r:0 ready
-		unsigned DMA		:	1;	// 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
-		unsigned RW			:	1;	// 0: Read Command (DVD to Memory)  1: Write COmmand (Memory to DVD)
-		unsigned			:  29;
+		u32 TSTART		:	1;	// w:1 start   r:0 ready
+		u32 DMA			:	1;	// 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
+		u32 RW			:	1;	// 0: Read Command (DVD to Memory)  1: Write COmmand (Memory to DVD)
+		u32				:  29;
 	};
 };
 
@@ -174,8 +174,8 @@ union UDICFG
 	u32 Hex;
 	struct
 	{
-		unsigned CONFIG		:	8;
-		unsigned			:  24;
+		u32 CONFIG		:	8;
+		u32				:  24;
 	};
 	UDICFG() {Hex = 0;}
 	UDICFG(u32 _hex) {Hex = _hex;}
@@ -439,19 +439,17 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	case DI_DMA_ADDRESS_REGISTER:
 		{
-			m_DIMAR.Hex = _iValue; 
-			_dbg_assert_msg_(DVDINTERFACE, m_DIMAR.Zerobits == 0, "DMA Addr not 32byte aligned!");
+			m_DIMAR.Hex = _iValue & ~0xfc00001f;
 		}
 		break;
 	case DI_DMA_LENGTH_REGISTER:
 		{
-			m_DILENGTH.Hex = _iValue; 
-			_dbg_assert_msg_(DVDINTERFACE, m_DILENGTH.Zerobits == 0, "DMA Length not 32byte aligned!");
+			m_DILENGTH.Hex = _iValue & ~0x1f;
 		}
 		break;
 	case DI_DMA_CONTROL_REGISTER:	
 		{
-			m_DICR.Hex = _iValue;
+			m_DICR.Hex = _iValue & 7;
 			if (m_DICR.TSTART)
 				ExecuteCommand(m_DICR);
 		}
@@ -460,10 +458,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case DI_IMMEDIATE_DATA_BUFFER:	m_DIIMMBUF.Hex = _iValue; break;
 
 	case DI_CONFIG_REGISTER:
-		{	
-			UDICFG tmpConfigReg(_iValue);
-			m_DICFG.CONFIG = tmpConfigReg.CONFIG;
-			WARN_LOG(DVDINTERFACE, "Write to DICFG, should be read-only");
+		{
+			WARN_LOG(DVDINTERFACE, "Write to DICFG, ignored as it's read-only");
 		}
 		break;
 
@@ -631,6 +627,7 @@ void ExecuteCommand(UDICR& _DICR)
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
 					PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address))
 				break;
 
 			default:
