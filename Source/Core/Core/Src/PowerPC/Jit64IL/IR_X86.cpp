@@ -543,7 +543,12 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	if (RI.MakeProfile) {
 		RI.Jit->MOV(32, M(&ProfiledLoads[RI.numProfiledLoads++]), R(ECX));
 	}
-	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000));
+	u32 mem_mask = 0;
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack)
+		mem_mask = 0x20000000;
+
+	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000 | mem_mask));
 	FixupBranch argh = RI.Jit->J_CC(CC_Z);
 
 	// Slow safe read using Memory::Read_Ux routines
