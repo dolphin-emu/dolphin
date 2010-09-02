@@ -41,7 +41,6 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "CommonPaths.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
-#include "WII_IPC_HLE_Device_Error.h"
 #include "WII_IPC_HLE_Device_DI.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
 #include "WII_IPC_HLE_Device_stm.h"
@@ -76,7 +75,6 @@ typedef std::queue<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
 
-// General IPC functions 
 void Init()
 {
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
@@ -93,11 +91,9 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, std::string("/dev/net/kd/time")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, std::string("/dev/net/ncd/manage")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, std::string("/dev/net/ip/top")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh0(i, std::string("/dev/usb/oh0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_hid(i, std::string("/dev/usb/hid")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_Error(i, std::string("_Unknown_Device_")); i++;
+	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_"));
 
 	g_LastDeviceID = IPC_FIRST_FILEIO_ID;
 }
@@ -151,7 +147,7 @@ u32 GetDeviceIDByName(const std::string& _rDeviceName)
         ++itr;
     }
 
-    return 0;
+    return -1;
 }
 
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
@@ -284,22 +280,29 @@ void ExecuteCommand(u32 _Address)
             DeviceID = GetDeviceIDByName(DeviceName);
 
 			// check if a device with this name has been created already
-            if (DeviceID == 0)				
+            if (DeviceID == -1)				
             {
 				if (DeviceName.find("/dev/") != std::string::npos)
 				{
-					ERROR_LOG(WII_IPC_FILEIO, "Unknown device: %s", DeviceName.c_str());
+					WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", DeviceName.c_str());
+
+					pDevice = AccessDeviceByID(GetDeviceIDByName(std::string("_Unimplemented_Device_")));
+					CmdSuccess = pDevice->Open(_Address, Mode);
 				}
-				u32 CurrentDeviceID = g_LastDeviceID;
-				pDevice = CreateFileIO(CurrentDeviceID, DeviceName);			
-				g_DeviceMap[CurrentDeviceID] = pDevice;
-				g_FileNameMap[CurrentDeviceID] = DeviceName;
-				g_LastDeviceID++;
+				else
+				{
+					// create new file handle
+		            u32 CurrentDeviceID = g_LastDeviceID;
+			        pDevice = CreateFileIO(CurrentDeviceID, DeviceName);			
+				    g_DeviceMap[CurrentDeviceID] = pDevice;
+					g_FileNameMap[CurrentDeviceID] = DeviceName;
+					g_LastDeviceID++;
+                                
+					CmdSuccess = pDevice->Open(_Address, Mode);
 
-				CmdSuccess = pDevice->Open(_Address, Mode);
-
-				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-					pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
+					INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
+							pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
+				}
             }
             else
             {
@@ -356,31 +359,50 @@ void ExecuteCommand(u32 _Address)
     case COMMAND_CLOSE_DEVICE:
         if (pDevice)
 		{
-            pDevice->Close(_Address);
+            CmdSuccess = pDevice->Close(_Address);
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
 				DeleteDeviceByID(DeviceID);
-            CmdSuccess = true;
+		}
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			CmdSuccess = true;
 		}
         break;
 
     case COMMAND_READ:
-		if (pDevice != NULL)
+		if (pDevice)
 			CmdSuccess = pDevice->Read(_Address);
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			CmdSuccess = true;
+		}
         break;
     
     case COMMAND_WRITE:
-		if (pDevice != NULL)
+		if (pDevice)
 			CmdSuccess = pDevice->Write(_Address);
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			CmdSuccess = true;
+		}
         break;
 
     case COMMAND_SEEK:
-		if (pDevice != NULL)
+		if (pDevice)
 			CmdSuccess = pDevice->Seek(_Address);
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			CmdSuccess = true;
+		}
         break;
 
     case COMMAND_IOCTL:
-		if (pDevice != NULL)
+		if (pDevice)
 			CmdSuccess = pDevice->IOCtl(_Address);
         break;
 
@@ -395,7 +417,7 @@ void ExecuteCommand(u32 _Address)
     }
 
     // It seems that the original hardware overwrites the command after it has been
-	//	   executed. We write 8 which is not any valid command, and what IOS does 
+	// executed. We write 8 which is not any valid command, and what IOS does 
 	Memory::Write_U32(8, _Address);
 	// IOS seems to write back the command that was responded to
 	Memory::Write_U32(Command, _Address + 8);
@@ -407,7 +429,14 @@ void ExecuteCommand(u32 _Address)
     }
 	else
 	{
-		//DEBUG_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to IPC Request @ 0x%08x ", _Address);
+		if (pDevice)
+		{
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to %s IPC Request %i @ 0x%08x ", pDevice->GetDeviceName().c_str(), Command, _Address);
+		}
+		else
+		{
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to Unknown (%08x) IPC Request %i @ 0x%08x ", DeviceID, Command, _Address);
+		}
 	}
 }
 

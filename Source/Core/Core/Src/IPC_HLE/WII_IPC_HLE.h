@@ -25,8 +25,8 @@ class IWII_IPC_HLE_Device;
 namespace WII_IPC_HLE_Interface
 {
 
-#define IPC_FIRST_HARDWARE_ID	0x13370000		// first IPC device ID
-#define IPC_FIRST_FILEIO_ID		0x13380000		// first IPC file ID 
+#define IPC_FIRST_HARDWARE_ID	0		// first IPC device ID
+#define IPC_FIRST_FILEIO_ID		33		// first IPC file ID 
 
 // Init
 void Init();

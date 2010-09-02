@@ -23,6 +23,31 @@
 
 class PointerWrap;
 
+
+#define	FS_SUCCESS		(u32)0		// Success
+#define	FS_EACCES		(u32)-1		// Permission denied 
+#define	FS_EEXIST		(u32)-2		// File exists 
+#define	FS_EINVAL		(u32)-4		// Invalid argument Invalid FD
+#define	FS_ENOENT		(u32)-6		// File not found 
+#define	FS_EBUSY		(u32)-8		// Resource busy 
+#define	FS_EIO			(u32)-12	// returned on ECC error 
+#define	FS_ENOMEM		(u32)-22	// Alloc failed during request 
+#define	FS_EFATAL		(u32)-101	// Fatal error 
+#define	FS_EACCESS		(u32)-102	// Permission denied 
+#define	FS_ECORRUPT		(u32)-103	// returned for "corrupted" NAND 
+#define	FS_EEXIST2		(u32)-105	// File exists 
+#define	FS_ENOENT2		(u32)-106	// File not found 
+#define	FS_ENFILE		(u32)-107	// Too many fds open 
+#define	FS_EFBIG		(u32)-108	// max block count reached? 
+#define	FS_ENFILE2 		(u32)-109	// Too many fds open 
+#define	FS_ENAMELEN		(u32)-110	// pathname is too long 
+#define	FS_EFDOPEN		(u32)-111	// FD is already open 
+#define	FS_EIO2			(u32)-114	// returned on ECC error 
+#define	FS_ENOTEMPTY 	(u32)-115	// Directory not empty 
+#define	FS_EDIRDEPTH	(u32)-116	// max directory depth exceeded 
+#define	FS_EBUSY2		(u32)-118	// Resource busy 
+//#define	FS_EFATAL		(u32)-119		// fatal error not used by IOS as fatal ERROR
+
 class IWII_IPC_HLE_Device
 {
 public:
@@ -42,19 +67,21 @@ public:
     u32 GetDeviceID() const { return m_DeviceID; }
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode) {
-		(void)_CommandAddress; (void)_Mode;
-		_dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Open()", m_Name.c_str());
+		(void)_Mode;
+		WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
+		Memory::Write_U32(FS_ENOENT, _CommandAddress + 4);
 		m_Active = true;
 		return true;
 	}
     virtual bool Close(u32 _CommandAddress, bool _bForce = false) {
-		(void)_CommandAddress; (void)_bForce;
-		_dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Close()", m_Name.c_str());
+		WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
+		if (!_bForce)
+			Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
 		m_Active = false;
 		return true;
 	}
 
-#define UNIMPLEMENTED_CMD(cmd) _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support "#cmd"()", m_Name.c_str()); return true;
+#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return true;
 	virtual bool Seek	(u32) { UNIMPLEMENTED_CMD(Seek) }
 	virtual bool Read	(u32) { UNIMPLEMENTED_CMD(Read) }
 	virtual bool Write	(u32) { UNIMPLEMENTED_CMD(Write) }
@@ -80,46 +107,43 @@ protected:
 	// A struct for IOS ioctlv calls
     struct SIOCtlVBuffer
     {
-        SIOCtlVBuffer(u32 _Address)
-            : m_Address(_Address)
+        SIOCtlVBuffer(u32 _Address) : m_Address(_Address)
         {
 			// These are the Ioctlv parameters in the IOS communication. The BufferVector
 			// is a memory address offset at where the in and out buffer addresses are
 			// stored.
-            Parameter = Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
-            NumberInBuffer = Memory::Read_U32(m_Address + 0x10); // 4, arg1
-            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14); // 5, arg2
-            BufferVector = Memory::Read_U32(m_Address + 0x18); // 6, arg3
+            Parameter			= Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
+            NumberInBuffer		= Memory::Read_U32(m_Address + 0x10); // 4, arg1
+            NumberPayloadBuffer	= Memory::Read_U32(m_Address + 0x14); // 5, arg2
+            BufferVector		= Memory::Read_U32(m_Address + 0x18); // 6, arg3
 
 			// The start of the out buffer
             u32 BufferVectorOffset = BufferVector;
-
-			//if(Parameter = 0x1d) PanicAlert("%i: %i", Parameter, NumberInBuffer);
 
 			// Write the address and size for all in messages
             for (u32 i = 0; i < NumberInBuffer; i++)
             {
                 SBuffer Buffer;
-                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
+                Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
-                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
+                Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
+				InBuffer.push_back(Buffer);
 				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
 						  i, Buffer.m_Address, Buffer.m_Size);
-                InBuffer.push_back(Buffer);
             }
 
 			// Write the address and size for all out or in-out messages
             for (u32 i = 0; i < NumberPayloadBuffer; i++)
             {
                 SBuffer Buffer;
-                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
+                Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
-                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
+                Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
+				PayloadBuffer.push_back(Buffer);
 				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
 						  i, Buffer.m_Address, Buffer.m_Size);
-                PayloadBuffer.push_back(Buffer);
             }
         }
 
