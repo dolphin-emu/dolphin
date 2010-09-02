@@ -53,7 +53,7 @@ static const SPatch OSPatches[] =
 	{ "FAKE_TO_SKIP_0",					HLE_Misc::UnimplementedFunction },
 
 	// speedup
-	{ "OSProtectRange",					HLE_Misc::UnimplementedFunctionFalse },
+	//{ "OSProtectRange",					HLE_Misc::UnimplementedFunctionFalse },
 	//{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
@@ -68,7 +68,7 @@ static const SPatch OSPatches[] =
 	{ "__write_console",				HLE_OS::HLE_write_console		}, // used by sysmenu (+more?)
 
 	// wii only
-	{ "__OSInitAudioSystem",			HLE_Misc::UnimplementedFunction },
+	//{ "__OSInitAudioSystem",			HLE_Misc::UnimplementedFunction },
 
 	// Super Monkey Ball - no longer needed.
 	//{ ".evil_vec_cosine",				HLE_Misc::SMB_EvilVecCosine },
