@@ -1573,7 +1573,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					Jit->MOVSD(XMM0, loc2);
 					Jit->MOVSD(M(isSNANTemp[1]), XMM0);
 				}
-				Jit->ABI_CallFunction(checkIsSNAN);
+				Jit->ABI_CallFunction((void*)checkIsSNAN);
 				Jit->TEST(8, R(EAX), R(EAX));
 				FixupBranch ok = Jit->J_CC(CC_Z);
 					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
@@ -1597,7 +1597,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					Jit->MOVSD(XMM0, loc2);
 					Jit->MOVSD(M(isSNANTemp[1]), XMM0);
 				}
-				Jit->ABI_CallFunction(checkIsSNAN);
+				Jit->ABI_CallFunction((void*)checkIsSNAN);
 				Jit->TEST(8, R(EAX), R(EAX));
 				FixupBranch finish = Jit->J_CC(CC_Z);
 					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
