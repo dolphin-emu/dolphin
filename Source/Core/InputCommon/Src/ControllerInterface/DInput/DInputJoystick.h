@@ -98,10 +98,11 @@ protected:
 	public:
 		std::string GetName() const;
 	protected:
-		Force( const unsigned int index ) : m_index(index) {}
+		Force(const unsigned int index, const unsigned int type) : m_index(index), m_type(type) {}
 		void SetState( const ControlState state, EffectState* const joystate );
 	private:
 		const unsigned int	m_index;
+		const unsigned int	m_type;
 	};
 
 	bool UpdateInput();
@@ -121,14 +122,14 @@ public:
 	std::string GetSource() const;
 
 private:
-	const LPDIRECTINPUTDEVICE8			m_device;
-	const unsigned int					m_index;
-	//const std::string					m_name;
+	const LPDIRECTINPUTDEVICE8		m_device;
+	const unsigned int				m_index;
+	//const std::string				m_name;
 
-	DIJOYSTATE							m_state_in;
-	std::vector<EffectState>			m_state_out;
+	DIJOYSTATE						m_state_in;
+	std::vector<EffectState>		m_state_out;
 
-	bool								m_must_poll;
+	bool							m_buffered;
 };
 
 }

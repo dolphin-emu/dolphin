@@ -10,6 +10,25 @@ namespace ciface
 namespace DInput
 {
 
+static const struct
+{
+	GUID guid;
+	const char* name;
+} force_type_names[] =
+{
+	{GUID_ConstantForce, "Constant"},
+	{GUID_RampForce, "Ramp"},
+	{GUID_Square, "Square"},
+	{GUID_Sine, "Sine"},
+	{GUID_Triangle, "Triangle"},
+	{GUID_SawtoothUp, "SawtoothUp"},
+	{GUID_SawtoothDown, "SawtoothDown"},
+	//{GUID_Spring, "Spring"},
+	//{GUID_Damper, "Damper"},
+	//{GUID_Inertia, "Inertia"},
+	//{GUID_Friction, "Friction"},
+};
+
 #define DATA_BUFFER_SIZE	32
 
 #ifdef NO_DUPLICATE_DINPUT_XINPUT
@@ -182,38 +201,36 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	, m_index(index)
 	//, m_name(TStringToString(lpddi->tszInstanceName))
 {
+	// this needs to be done before GetCapabilities() maybe?
+	m_device->Acquire();
+
 	// get joystick caps
 	DIDEVCAPS js_caps;
-	ZeroMemory( &js_caps, sizeof(js_caps) );
 	js_caps.dwSize = sizeof(js_caps);
-	m_device->GetCapabilities(&js_caps);
+	if (FAILED(m_device->GetCapabilities(&js_caps)))
+		return;
 
 	// max of 32 buttons and 4 hats / the limit of the data format i am using
 	js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
+	//m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
+
 	// polled or buffered data
-	m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
-	if (false == m_must_poll)
-	{
-		DIPROPDWORD dipdw;
-		dipdw.diph.dwSize = sizeof(DIPROPDWORD);
-		dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-		dipdw.diph.dwObj = 0;
-		dipdw.diph.dwHow = DIPH_DEVICE;
-		dipdw.dwData = DATA_BUFFER_SIZE;
-
-		// set the buffer size,
-		// if we can't set the property, we can't use buffered data,
-		// must use polling, which apparently doesn't work as well
-		m_must_poll = (DI_OK != m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
-	}
-
-	m_device->Acquire();
+	DIPROPDWORD dipdw;
+	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
+	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	dipdw.diph.dwObj = 0;
+	dipdw.diph.dwHow = DIPH_DEVICE;
+	dipdw.dwData = DATA_BUFFER_SIZE;
+	// set the buffer size,
+	// if we can't set the property, we can't use buffered data
+	m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
 
 	// buttons
 	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
 		AddInput( new Button( i ) );
+
 	// hats
 	for ( unsigned int i = 0; i < js_caps.dwPOVs; ++i )
 	{
@@ -221,15 +238,16 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		for ( unsigned int d = 0; d<4; ++d )
 			AddInput( new Hat( i, d ) );
 	}
+
 	// get up to 6 axes and 2 sliders
+	DIPROPRANGE range;
+	range.diph.dwSize = sizeof(range);
+	range.diph.dwHeaderSize = sizeof(range.diph);
+	range.diph.dwHow = DIPH_BYOFFSET;
 	// screw EnumObjects, just go through all the axis offsets and try to GetProperty
 	// this should be more foolproof, less code, and probably faster
 	for (unsigned int offset = 0; offset < DIJOFS_BUTTON(0) / sizeof(LONG); ++offset)
 	{
-		DIPROPRANGE range;
-		range.diph.dwSize = sizeof(range);
-		range.diph.dwHeaderSize = sizeof(range.diph);
-		range.diph.dwHow = DIPH_BYOFFSET;
 		range.diph.dwObj = offset * sizeof(LONG);
 		// try to set some nice power of 2 values (8192)
 		range.lMin = -(1 << 13);
@@ -247,6 +265,8 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		}
 	}
 
+	// TODO: check for DIDC_FORCEFEEDBACK in devcaps?
+
 	// get supported ff effects
 	std::list<DIDEVICEOBJECTINSTANCE> objects;
 	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS);
@@ -254,33 +274,45 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	if ( objects.size() )
 	{
 		// temporary
-		DWORD rgdwAxes[] = { DIJOFS_X, DIJOFS_Y };
-		LONG rglDirection[] = { 0, 0 };
-		DICONSTANTFORCE cf = { 0 };
+		DWORD rgdwAxes[] = {DIJOFS_X, DIJOFS_Y};
+		LONG rglDirection[] = {0, 0};
+
 		DIEFFECT eff;
-		ZeroMemory(&eff, sizeof(DIEFFECT));
 		eff.dwSize = sizeof(DIEFFECT);
 		eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 		eff.dwDuration = INFINITE;
+		eff.dwSamplePeriod = 0;
 		eff.dwGain = DI_FFNOMINALMAX;
 		eff.dwTriggerButton = DIEB_NOTRIGGER;
-		eff.cAxes = std::min( (DWORD)2, (DWORD)objects.size() );
+		eff.dwTriggerRepeatInterval = 0;
+		eff.cAxes = std::min((DWORD)2, (DWORD)objects.size());
 		eff.rgdwAxes = rgdwAxes;
 		eff.rglDirection = rglDirection;
+		eff.lpEnvelope = NULL;
+		eff.dwStartDelay = 0;
+
+		// TODO: this only works for Constant force
+		DICONSTANTFORCE cf = {0};
 		eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
 		eff.lpvTypeSpecificParams = &cf;
 
-		LPDIRECTINPUTEFFECT pEffect;
-		if (SUCCEEDED(m_device->CreateEffect(GUID_ConstantForce, &eff, &pEffect, NULL)))
+		for (unsigned int f = 0, i = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
 		{
-			// temp
-			AddOutput( new Force( 0 ) );
-			m_state_out.push_back( EffectState( pEffect ) );
+			// TODO: diff specific params for different effect types
+			//eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
+			//eff.lpvTypeSpecificParams = &cf;
+
+			LPDIRECTINPUTEFFECT pEffect;
+			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
+			{
+				AddOutput(new Force(i++, f));
+				m_state_out.push_back(EffectState(pEffect));
+			}
 		}
 	}
 
 	// disable autocentering
-	if ( Outputs().size() )
+	if (Outputs().size())
 	{
 		DIPROPDWORD dipdw;
 		dipdw.diph.dwSize = sizeof( DIPROPDWORD );
@@ -297,9 +329,10 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 Joystick::~Joystick()
 {
 	// release the ff effect iface's
-	std::vector<EffectState>::iterator i = m_state_out.begin(),
+	std::vector<EffectState>::iterator
+		i = m_state_out.begin(),
 		e = m_state_out.end();
-	for ( ; i!=e; ++i )
+	for (; i!=e; ++i)
 	{
 		i->iface->Stop();
 		i->iface->Unload();
@@ -338,21 +371,16 @@ bool Joystick::UpdateInput()
 {
 	HRESULT hr = 0;
 
-	if (m_must_poll)
-	{
-		m_device->Poll();
-		hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
-	}
-	else
+	// just always poll,
+	// msdn says if this isn't needed it doesnt do anything
+	m_device->Poll();
+
+	bool need_ = true;
+
+	if (m_buffered)
 	{
 		DIDEVICEOBJECTDATA evtbuf[DATA_BUFFER_SIZE];
-		DWORD numevents;
-
-		//DWORD wantevents = INFINITE;
-		//hr = m_device->GetDeviceData(sizeof(*evtbuf), NULL, &wantevents, DIGDD_PEEK);
-
-GETDEVDATA :
-		numevents = DATA_BUFFER_SIZE;
+		DWORD numevents = DATA_BUFFER_SIZE;
 		hr = m_device->GetDeviceData(sizeof(*evtbuf), evtbuf, &numevents, 0);
 
 		if (SUCCEEDED(hr))
@@ -367,14 +395,15 @@ GETDEVDATA :
 					((BYTE*)&m_state_in)[evt->dwOfs] = (BYTE)evt->dwData;
 			}
 
-			// if there is more data to be received
-			// it seems like to me this could cause problems,
-			// if the device was producing so many events that GetDeviceData always returned bufferoverflow
-			// it seems to be working fine tho
+			// we lost some data, attempt to use GetDeviceState
+			// maybe this isn't the best thing to do
+			// maybe I should clear the input state?
 			if (DI_BUFFEROVERFLOW == hr)
-				goto GETDEVDATA;
+				hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
 		}
 	}
+	else
+		hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
 
 	// try reacquire if input lost
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
@@ -389,21 +418,34 @@ bool Joystick::UpdateOutput()
 	size_t ok_count = 0;
 	std::vector<EffectState>::iterator i = m_state_out.begin(),
 		e = m_state_out.end();
-	for ( ; i!=e; ++i )
+	for (; i!=e; ++i)
 	{
-		if ( i->changed )
+		if (i->changed)
 		{
 			i->changed = false;
+
+			// TODO: this only works for constant force
 			DICONSTANTFORCE cf;
 			cf.lMagnitude = LONG(10000 * i->magnitude);
 
-			if ( cf.lMagnitude )
+			// TODO: different specific params for different effect types
+			//DIPERIODIC pf;
+			//pf.dwMagnitude = LONG(10000 * i->magnitude);
+			//pf.lOffset = 0;
+			//pf.dwPhase = 0;
+			//pf.dwPeriod = 0;
+
+			//DIRAMPFORCE rf;
+			//rf.lStart = LONG(10000 * i->magnitude);
+			//rf.lEnd = 0;
+
+			if (cf.lMagnitude)
 			{
 				DIEFFECT eff;
-				ZeroMemory( &eff, sizeof( eff ) );
-				eff.dwSize = sizeof( DIEFFECT );
+				ZeroMemory( &eff, sizeof(eff));
+				eff.dwSize = sizeof(DIEFFECT);
 				eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-				eff.cbTypeSpecificParams = sizeof( cf );
+				eff.cbTypeSpecificParams = sizeof(cf);
 				eff.lpvTypeSpecificParams = &cf;
 				// set params and start effect
 				ok_count += SUCCEEDED(i->iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
@@ -455,8 +497,7 @@ std::string Joystick::Hat::GetName() const
 
 std::string Joystick::Force::GetName() const
 {
-	// temporary
-	return "Constant";
+	return force_type_names[m_type].name;
 }
 
 // get / set state
