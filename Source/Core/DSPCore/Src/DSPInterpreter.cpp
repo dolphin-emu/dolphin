@@ -42,12 +42,20 @@ volatile u32 gdsp_running;
 void WriteCR(u16 val)
 {
 	// reset
-	if (val & 0x0001)
+	if (val & 1)
 	{
 		DSPCore_Reset();
+		val &= ~1;
 	}
-
-	val &= ~0x0001;
+	// init - can reset and init be done at the same time?
+	else if (val == 4)
+	{
+		// this looks like a hack! OSInitAudioSystem ucode
+		// should send this mail - not dsp core itself
+		gdsp_mbox_write_h(GDSP_MBOX_DSP, 0x8054);
+		gdsp_mbox_write_l(GDSP_MBOX_DSP, 0x4348);
+		val |= 0x800;
+	}
 
 	// update cr
 	g_dsp.cr = val;

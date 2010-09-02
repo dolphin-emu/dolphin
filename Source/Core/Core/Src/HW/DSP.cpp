@@ -387,6 +387,13 @@ void Write16(const u16 _Value, const u32 _Address)
 			tmpControl.Hex = (_Value & ~DSP_CONTROL_MASK) |
 							(dsp_plugin->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
+			// HACK for DSPReset: do it instantaneously
+			if (_Value & 1)
+			{
+				Shutdown();
+				Init();
+			}
+
 			// Update DSP related flags
 			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
 			g_dspState.DSPControl.DSPAssertInt	= tmpControl.DSPAssertInt;
