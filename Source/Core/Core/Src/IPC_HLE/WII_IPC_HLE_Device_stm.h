@@ -176,7 +176,7 @@ public:
 				m_EventHookAddress = _CommandAddress;
 
                 INFO_LOG(WII_IPC_STM, "%s registers event hook:", GetDeviceName().c_str());
-                DEBUG_LOG(WII_IPC_STM, "0x1000 - IOCTL_STM_EVENTHOOK", Parameter);
+                DEBUG_LOG(WII_IPC_STM, "%x - IOCTL_STM_EVENTHOOK", Parameter);
                 DEBUG_LOG(WII_IPC_STM, "BufferIn: 0x%08x", BufferIn);
                 DEBUG_LOG(WII_IPC_STM, "BufferInSize: 0x%08x", BufferInSize);
                 DEBUG_LOG(WII_IPC_STM, "BufferOut: 0x%08x", BufferOut);
@@ -194,7 +194,7 @@ public:
 
 		// Write return value to the IPC call, 0 means success
         Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-        return true;
+        return false;
 	}
 
 	// STATE_TO_SAVE
