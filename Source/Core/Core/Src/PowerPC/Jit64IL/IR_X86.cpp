@@ -48,6 +48,7 @@ The register allocation is linear scan allocation.
 #include "../../ConfigManager.h"
 #include "x64Emitter.h"
 #include "../../../../Common/Src/CPUDetect.h"
+#include "MathUtil.h"
 
 static ThunkManager thunks;
 
@@ -712,6 +713,12 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	} else {
 		RI.Jit->WriteExitDestInOpArg(regLocForInst(RI, dest), RI.exitNumber++);
 	}
+}
+
+// Helper function to check floating point exceptions
+static double GC_ALIGNED16(isSNANTemp[2][2]);
+static bool checkIsSNAN() {
+	return MathUtil::IsSNAN(isSNANTemp[0][0]) || MathUtil::IsSNAN(isSNANTemp[1][0]);
 }
 
 static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool MakeProfile) {
@@ -1532,10 +1539,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case FDCmpCR: {
+			const u32 ordered = *I >> 24;
 			X64Reg destreg = regFindFreeReg(RI);
-			// TODO: Add case for NaN (CC_P)
-			Jit->MOVSD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->UCOMISD(XMM0, fregLocForInst(RI, getOp2(I)));
+			// TODO: Remove an extra MOVSD if loc1.IsSimpleReg()
+			OpArg loc1 = fregLocForInst(RI, getOp1(I));
+			OpArg loc2 = fregLocForInst(RI, getOp2(I));
+			Jit->MOVSD(XMM0, loc1);
+			Jit->UCOMISD(XMM0, loc2);
 			FixupBranch pNan     = Jit->J_CC(CC_P);
 			FixupBranch pEqual   = Jit->J_CC(CC_Z);
 			FixupBranch pLesser  = Jit->J_CC(CC_C);
@@ -1545,6 +1555,56 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			// NaN
 			Jit->SetJumpTarget(pNan);
 			Jit->MOV(32, R(destreg), Imm32(0x1));
+
+			static const u32 FPSCR_VE = (u32)1 << (31 - 24);
+			static const u32 FPSCR_VXVC = (u32)1 << (31 - 12);
+			static const u32 FPSCR_VXSNAN = (u32)1 << (31 - 7);
+			static const u32 FPSCR_FX = (u32)1 << (31 - 0);
+
+			if (ordered) {
+				// fcmpo
+				// TODO: Optimize the following code if slow.
+				//       SNAN check may not be needed
+				//       because it does not happen so much.
+				Jit->MOVSD(M(isSNANTemp[0]), XMM0);
+				if (loc2.IsSimpleReg()) {
+					Jit->MOVSD(M(isSNANTemp[1]), loc2.GetSimpleReg());
+				} else {
+					Jit->MOVSD(XMM0, loc2);
+					Jit->MOVSD(M(isSNANTemp[1]), XMM0);
+				}
+				Jit->ABI_CallFunction(checkIsSNAN);
+				Jit->TEST(8, R(EAX), R(EAX));
+				FixupBranch ok = Jit->J_CC(CC_Z);
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXSNAN)); // FPSCR.Hex |= mask;
+					Jit->TEST(32, M(&FPSCR), Imm32(FPSCR_VE));
+					FixupBranch finish0 = Jit->J_CC(CC_NZ);
+						Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+						FixupBranch finish1 = Jit->J();
+				Jit->SetJumpTarget(ok);
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+				Jit->SetJumpTarget(finish0);
+				Jit->SetJumpTarget(finish1);
+			} else {
+				// fcmpu
+				// TODO: Optimize the following code if slow
+				Jit->MOVSD(M(isSNANTemp[0]), XMM0);
+				if (loc2.IsSimpleReg()) {
+					Jit->MOVSD(M(isSNANTemp[1]), loc2.GetSimpleReg());
+				} else {
+					Jit->MOVSD(XMM0, loc2);
+					Jit->MOVSD(M(isSNANTemp[1]), XMM0);
+				}
+				Jit->ABI_CallFunction(checkIsSNAN);
+				Jit->TEST(8, R(EAX), R(EAX));
+				FixupBranch finish = Jit->J_CC(CC_Z);
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+				Jit->SetJumpTarget(finish);
+			}
+
 			FixupBranch continue2 = Jit->J();
 			// Equal
 			Jit->SetJumpTarget(pEqual);

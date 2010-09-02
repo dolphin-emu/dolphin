@@ -115,9 +115,10 @@ void JitIL::fcmpx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
 	IREmitter::InstLoc lhs, rhs, res;
-	lhs = ibuild.EmitLoadFRegDENToZero(inst.FA);
-	rhs = ibuild.EmitLoadFRegDENToZero(inst.FB);
-	res = ibuild.EmitFDCmpCR(lhs, rhs);
+	lhs = ibuild.EmitLoadFReg(inst.FA);
+	rhs = ibuild.EmitLoadFReg(inst.FB);
+	int ordered = (inst.SUBOP10 == 32) ? 1 : 0;
+	res = ibuild.EmitFDCmpCR(lhs, rhs, ordered);
 	ibuild.EmitStoreFPRF(res);
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }

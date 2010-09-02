@@ -518,8 +518,8 @@ public:
 	InstLoc EmitDoubleToSingle(InstLoc op1) {
 		return FoldUOp(DoubleToSingle, op1);
 	}
-	InstLoc EmitFDCmpCR(InstLoc op1, InstLoc op2) {
-		return FoldBiOp(FDCmpCR, op1, op2);
+	InstLoc EmitFDCmpCR(InstLoc op1, InstLoc op2, int ordered) {
+		return FoldBiOp(FDCmpCR, op1, op2, ordered);
 	}
 	InstLoc EmitLoadGQR(unsigned gqr) {
 		return FoldZeroOp(LoadGQR, gqr);
