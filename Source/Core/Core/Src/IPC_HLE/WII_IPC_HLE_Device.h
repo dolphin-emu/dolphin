@@ -217,4 +217,40 @@ protected:
     }
 };
 
+class CWII_IPC_HLE_Device_stub : public IWII_IPC_HLE_Device
+{
+public:
+	CWII_IPC_HLE_Device_stub(u32 DeviceID, const std::string& Name)
+		: IWII_IPC_HLE_Device(DeviceID, Name)
+	{}
+
+	bool Open(u32 CommandAddress, u32 Mode) {
+		(void)Mode;
+		WARN_LOG(WII_IPC_HLE, "%s faking Open()", m_Name.c_str());
+		Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
+		m_Active = true;
+		return true;
+	}
+	bool Close(u32 CommandAddress, bool bForce = false) {
+		WARN_LOG(WII_IPC_HLE, "%s faking Close()", m_Name.c_str());
+		if (!bForce)
+			Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
+		m_Active = false;
+		return true;
+	}
+
+	bool IOCtl(u32 CommandAddress)
+	{
+		WARN_LOG(WII_IPC_HLE, "%s faking IOCtl()", m_Name.c_str());
+		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
+		return true;
+	}
+	bool IOCtlV(u32 CommandAddress)
+	{
+		WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_Name.c_str());
+		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
+		return true;
+	}
+};
+
 #endif
