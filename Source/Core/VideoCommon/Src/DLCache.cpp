@@ -367,10 +367,10 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 			case GX_CMD_CALL_DL:
 				{
-					u32 addr= DataReadU32();
+					u32 addr = DataReadU32();
 					u32 count = DataReadU32();
 					ExecuteDisplayList(addr, count);
-					emitter.ABI_CallFunctionCC((void *)&ExecuteDisplayList, address, count);
+					emitter.ABI_CallFunctionCC((void *)&ExecuteDisplayList, addr, count);
 				}
 				break;
 
@@ -419,7 +419,8 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 						memcpy(NewData,StartAddress,Vdatasize);
 						dl->Vdata[dl->BufferCount] = NewData;
 						dl->BufferCount++;
-						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices,cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewData);	
+						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices,
+							cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewData);	
 					}
 				}
 				else
@@ -529,7 +530,7 @@ bool HandleDisplayList(u32 address, u32 size)
 		{
 		case DLCache::DLPASS_ANALYZE:
 			if (DLCache::AnalyzeAndRunDisplayList(address, size, &dl)) {
-				dl.dl_hash = GetHash64(Memory_GetPtr(address), size,0);
+				dl.dl_hash = GetHash64(Memory_GetPtr(address), size, 0);
 				dl.pass = DLCache::DLPASS_COMPILE;
 				dl.check = 1;
 				dl.next_check = 1;				
@@ -541,7 +542,7 @@ bool HandleDisplayList(u32 address, u32 size)
 			break;
 		case DLCache::DLPASS_COMPILE:
 			// First, check that the hash is the same as the last time.
-			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0))
+			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size, 0))
 			{
 				// PanicAlert("uncachable %08x", address);
 				dl.uncachable = true;
@@ -557,7 +558,7 @@ bool HandleDisplayList(u32 address, u32 size)
 				dl.check--;
 				if (dl.check <= 0)
 				{
-					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size,0)) 
+					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size, 0)) 
 					{
 						dl.uncachable = true;
 						dl.check = 60;
@@ -580,13 +581,13 @@ bool HandleDisplayList(u32 address, u32 size)
 				u8 *old_datareader = g_pVideoData;
 				((void (*)())(void*)(dl.compiled_code))();
 				Statistics::SwapDL();
-				ADDSTAT(stats.thisFrame.numCPLoadsInDL,dl.num_cp_reg);
-				ADDSTAT(stats.thisFrame.numXFLoadsInDL,dl.num_xf_reg);
-				ADDSTAT(stats.thisFrame.numBPLoadsInDL,dl.num_bp_reg);
+				ADDSTAT(stats.thisFrame.numCPLoadsInDL, dl.num_cp_reg);
+				ADDSTAT(stats.thisFrame.numXFLoadsInDL, dl.num_xf_reg);
+				ADDSTAT(stats.thisFrame.numBPLoadsInDL, dl.num_bp_reg);
 
-				ADDSTAT(stats.thisFrame.numCPLoads,dl.num_cp_reg);
-				ADDSTAT(stats.thisFrame.numXFLoads,dl.num_xf_reg);
-				ADDSTAT(stats.thisFrame.numBPLoads,dl.num_bp_reg);
+				ADDSTAT(stats.thisFrame.numCPLoads, dl.num_cp_reg);
+				ADDSTAT(stats.thisFrame.numXFLoads, dl.num_xf_reg);
+				ADDSTAT(stats.thisFrame.numBPLoads, dl.num_bp_reg);
 
 				INCSTAT(stats.numDListsCalled);
 				INCSTAT(stats.thisFrame.numDListsCalled);
@@ -602,7 +603,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	DLCache::CachedDisplayList dl;
 	
 	if (DLCache::AnalyzeAndRunDisplayList(address, size, &dl)) {
-		dl.dl_hash = GetHash64(Memory_GetPtr(address), size,0);
+		dl.dl_hash = GetHash64(Memory_GetPtr(address), size, 0);
 		dl.pass = DLCache::DLPASS_COMPILE;
 		dl.check = 1;
 		dl.next_check = 1;
