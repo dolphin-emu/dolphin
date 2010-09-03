@@ -360,12 +360,7 @@ Common::PluginVideo *CPluginManager::GetVideo()
 	   if it's not valid */
 	if (m_video != NULL)
 	{
-		// Check if the video plugin has been changed
-		if (m_video->GetFilename() == m_params->m_strVideoPlugin)
-			return m_video;
-		// Then free the current video plugin
-		else
-			FreeVideo();
+		return m_video;
 	}
 
 	// and load a new plugin
