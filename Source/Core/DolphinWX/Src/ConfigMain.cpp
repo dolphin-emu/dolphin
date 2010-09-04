@@ -1152,9 +1152,12 @@ void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	// Update plugin filenames
-	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
-	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
+	if (GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin))
+		CPluginManager::GetInstance().FreeVideo();
+	if (GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin))
+		CPluginManager::GetInstance().FreeDSP();
+	if (GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin))
+		CPluginManager::GetInstance().FreeWiimote();
 }
 
 void CConfigMain::OnConfig(wxCommandEvent& event)
