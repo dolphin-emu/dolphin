@@ -1105,7 +1105,9 @@ unsigned IRBuilder::getComplexity(InstLoc I) const {
 
 unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 	static unsigned numberOfOperands[256];
-	if (numberOfOperands[0] == 0) {
+	static bool initialized = false;
+	if (!initialized) {
+		initialized = true;
 		std::fill_n(numberOfOperands, sizeof(numberOfOperands) / sizeof(numberOfOperands[0]), -1U);
 
 		numberOfOperands[Nop] = 0;
