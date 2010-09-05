@@ -720,7 +720,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// The following is obviously a hack
 				// Lie to mem about loading a different ios
 				// someone with an affected game should test
-				IOSv = TitleID && 0xffff;
+				IOSv = TitleID & 0xffff;
 			}
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it
@@ -730,18 +730,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U16(IOSv, 0x00003140);
 			Memory::Write_U16(0xFFFF, 0x00003142);
 			Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
-
-			/*
-			u8* lSys = new u8[0xe0];
-			memset(lSys, 0, 0x100);
-			*(u64*)lSys = Common::swap64(TitleID);
-			Memory::ReadBigEData(lSys + sizeof(u64), view, 0xD8);
-			char lSysPath[1024];
-			sprintf(lSysPath, "%ssys/launch.sys", File::GetUserPath(D_WIIUSER_IDX));
-			FILE* launchSys = fopen(lSysPath, "wb");
-			fwrite(lSys, 0xe0, 1, launchSys);
-			fclose(launchSys);			
-			*/
 			
 			//TODO: provide correct return code when bSuccess= false
 			Memory::Write_U32(0, _CommandAddress + 0x4);
