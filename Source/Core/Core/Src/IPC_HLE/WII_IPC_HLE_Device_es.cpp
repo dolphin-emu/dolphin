@@ -53,7 +53,7 @@
 #include "FileUtil.h"
 #include "AES/aes.h"
 
-
+#include "../Boot/Boot_DOL.h"
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -680,6 +680,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     case IOCTL_ES_LAUNCH:
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
+			bool bSuccess = false;
+			u16 IOSv = 0xffff;
 
             u64 TitleID		= Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
@@ -689,12 +691,60 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 titleid		= Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
             u16 access		= Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
-            PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x \n"
+/*            PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x \n"
                 "This means that dolphin tries to relaunch the WiiMenu or"
                 "launches code from the an URL. Both wont work and dolphin will prolly hang...",
                 (u32)(TitleID>>32), (u32)TitleID, (u32)(titleid>>32), (u32)titleid );
+*/
+			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == 0x0000000100000002ull)
+			{
+				std::string titlePath = CreateTitleContentPath(TitleID);
+				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(titlePath);
+				if (ContentLoader.IsValid())
+				{
+					u32 bootInd = ContentLoader.GetBootIndex();
+					const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
+					if (pContent)
+					{
+						LoadWAD(titlePath);
+						CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
+						PC = DolLoader.GetEntryPoint() | 0x80000000;
+						IOSv = ContentLoader.GetIosVersion();
+						bSuccess = true;
+					}
+				}
+			}
+			else // IOS, MIOS, BC etc
+			{
+				//TODO: fixme
+				// The following is obviously a hack
+				// Lie to mem about loading a different ios
+				// someone with an affected game should test
+				IOSv = TitleID && 0xffff;
+			}
+			// Pass the "#002 check"
+			// Apploader should write the IOS version and revision to 0x3140, and compare it
+			// to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS rev...
+			// Currently we just write 0xFFFF for the revision, copy manually and it works fine :p
+			// TODO : figure it correctly : where should we read the IOS rev that the wad "needs" ?
+			Memory::Write_U16(IOSv, 0x00003140);
+			Memory::Write_U16(0xFFFF, 0x00003142);
+			Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);
+			/*
+			u8* lSys = new u8[0xe0];
+			memset(lSys, 0, 0x100);
+			*(u64*)lSys = Common::swap64(TitleID);
+			Memory::ReadBigEData(lSys + sizeof(u64), view, 0xD8);
+			char lSysPath[1024];
+			sprintf(lSysPath, "%ssys/launch.sys", File::GetUserPath(D_WIIUSER_IDX));
+			FILE* launchSys = fopen(lSysPath, "wb");
+			fwrite(lSys, 0xe0, 1, launchSys);
+			fclose(launchSys);			
+			*/
+			
+			//TODO: provide correct return code when bSuccess= false
+			Memory::Write_U32(0, _CommandAddress + 0x4);
 
             ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
@@ -764,9 +814,9 @@ std::string CWII_IPC_HLE_Device_es::CreateTicketFileName(u64 _TitleID) const
 
 std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
 {
-    char TicketFilename[1024];
-    sprintf(TicketFilename, "%stitle/%08x/%08x/content", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
+    char ContentPath[1024];
+    sprintf(ContentPath, "%stitle/%08x/%08x/content", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
 
-    return TicketFilename;
+    return ContentPath;
 }
 
