@@ -117,8 +117,6 @@ void SendReportCore(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -142,9 +140,6 @@ void SendReportCoreAccel(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -171,9 +166,6 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -216,9 +208,6 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -291,9 +280,6 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 	
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 

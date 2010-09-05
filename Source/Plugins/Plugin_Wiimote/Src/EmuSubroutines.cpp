@@ -179,9 +179,6 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	DEBUG_LOG(WIIMOTE,  "  Report ID: %02x", _reportID);
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -367,9 +364,6 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI,
 
 		// Update the size that is left
 		_Size -= copySize;
-
-		// Debugging
-		//ReadDebugging(true, DataFrame, Offset);
 	}
 }
 
@@ -542,9 +536,6 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 
 
 	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
-
-	// Debugging
-	//ReadDebugging(true, DataFrame, Offset);
 }
 
 //http://snzgoo.blogspot.com for more details on what this is doing

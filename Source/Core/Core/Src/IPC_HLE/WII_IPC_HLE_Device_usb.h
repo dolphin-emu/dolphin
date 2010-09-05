@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _WII_IPC_HLE_DEVICE_USB_H_
-#define _WII_IPC_HLE_DEVICE_USB_H_
+#pragma once
 
 #include "hci.h"
 #include <vector>
@@ -24,21 +23,6 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_WiiMote.h"
-
-#define HCI_MAX_SIZE	128
-#define ACL_MAX_SIZE	128
-
-union UACLHeader
-{
-	struct
-	{
-		unsigned ConnectionHandle : 12;
-		unsigned PBFlag : 2;
-		unsigned BCFlag : 2;
-		unsigned Size : 16;
-	};
-	u32 Hex;
-};
 
 struct SQueuedEvent
 {
@@ -55,6 +39,7 @@ struct SQueuedEvent
 			// i know this code sux...
 			PanicAlert("SQueuedEvent: allocate too big buffer!!");
 		}
+		memset(m_buffer, 0, 1024);
 	}
 };
 
@@ -66,7 +51,6 @@ struct SQueuedEvent
 class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
 {
 public:
-
 	CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305();
@@ -79,16 +63,13 @@ public:
 
 	virtual u32 Update();
 
+	// Send ACL data back to bt stack
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
-	void PurgeACLPool();
-	void PurgeHCIPool();
 
 	bool RemoteDisconnect(u16 _connectionHandle);
 
-	//hack for wiimote plugin
-
-public:	
-
+// hack for wiimote plugin
+public:
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
@@ -98,28 +79,22 @@ public:
 	void NetPlay_WiimoteUpdate(int _number);
 
 private:
-
-	enum
+	enum USBIOCtl
 	{
-		USB_IOCTL_HCI_COMMAND_MESSAGE	= 0,
-		USB_IOCTL_BLKMSG				= 1,
-		USB_IOCTL_INTRMSG				= 2,
-		USB_IOCTL_SUSPENDDEV			= 5,
-		USB_IOCTL_RESUMEDEV				= 6,
-		USB_IOCTL_GETDEVLIST			= 12,
-		USB_IOCTL_DEVREMOVALHOOK		= 26,
-		USB_IOCTL_DEVINSERTHOOK			= 27,
+		USBV0_IOCTL_CTRLMSG		= 0,
+		USBV0_IOCTL_BLKMSG		= 1,
+		USBV0_IOCTL_INTRMSG		= 2,
 	};
 
-	enum
+	enum USBEndpoint
 	{
-		HCI_EVENT_ENDPOINT				= 0x81,
-		ACL_DATA_BLK_OUT				= 0x02,
-		ACL_DATA_ENDPOINT				= 0x82,
+		HCI_CTRL		= 0x00,	
+		HCI_EVENT		= 0x81,
+		ACL_DATA_IN		= 0x82,
+		ACL_DATA_OUT	= 0x02
 	};
 
-
-	struct SHCICommandMessage 
+	struct SHCICommandMessage
 	{
 		u8  bRequestType;
 		u8  bRequest;
@@ -132,75 +107,75 @@ private:
 		u32 m_Address;
 	};
 
-	struct ACLPool 
-	{
-		u32 m_number;
-		u8 m_data[ACL_MAX_SIZE * 16];
-
-		ACLPool(int num)
-			: m_number(num)
-		{
-		}
-	};
-
-	struct HCIPool 
-	{
-		u32 m_number;
-		u8 m_data[HCI_MAX_SIZE * 16];
-		u8 m_size[16];
-
-		HCIPool(int num)
-			: m_number(num)
-		{
-		}
-	};
-
-	struct CtrlBuffer 
+	// This is a lightweight/specialized version of SIOCtlVBuffer
+	struct CtrlBuffer
 	{
 		u32 m_address;
 		u32 m_buffer;
 
-		CtrlBuffer(u32 _Address)
-			: m_address(_Address)
+		CtrlBuffer(u32 _Address) : m_address(_Address), m_buffer()
 		{
-			if(_Address == 0)
+			if (m_address)
 			{
-				m_buffer = 0;
+				u32 InBufferNum		= Memory::Read_U32(m_address + 0x10);
+				u32 BufferVector	= Memory::Read_U32(m_address + 0x18);
+				m_buffer = Memory::Read_U32(
+					BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
 			}
-			else
-			{
-				u32 _BufferVector = Memory::Read_U32(_Address + 0x18);
-				u32 _InBufferNum = Memory::Read_U32(_Address + 0x10);
-				m_buffer = Memory::Read_U32(_BufferVector + _InBufferNum * 8);
-			}
+		}
+
+		inline void FillBuffer(const void* src, const size_t size) const
+		{
+			memcpy(Memory::GetPointer(m_buffer), src, size);
+		}
+
+		inline void SetRetVal(const u32 retval) const
+		{
+			Memory::Write_U32(retval, m_address + 4);
+		}
+
+		inline bool IsValid() const
+		{
+			return m_address != 0;
+		}
+
+		inline void Invalidate()
+		{
+			m_address = m_buffer = 0;
 		}
 	};
 
 	bdaddr_t m_ControllerBD;
-	u8 m_ClassOfDevice[HCI_CLASS_SIZE];
-	char m_LocalName[HCI_UNIT_NAME_SIZE];
-	u8 m_PINType;
+
+	// this is used to trigger connecting via ACL
 	u8 m_ScanEnable;
 
-	u8 m_EventFilterType;
-	u8 m_EventFilterCondition;
-
-	u16 m_HostMaxACLSize; 
-	u8  m_HostMaxSCOSize; 
-	u16 m_HostNumACLPackets; 
-	u16 m_HostNumSCOPackets;
-
-	// STATE_TO_SAVE
 	SHCICommandMessage m_CtrlSetup;
+	CtrlBuffer m_HCIEndpoint;
+	std::queue<SQueuedEvent> m_EventQueue;
+	
 	u32 m_ACLSetup;
-	CtrlBuffer m_HCIBuffer;
-	HCIPool m_HCIPool;
-	CtrlBuffer m_ACLBuffer;
-	ACLPool m_ACLPool;
-	u32 m_LastCmd;
+	CtrlBuffer m_ACLEndpoint;
+	struct ACLQ
+	{
+		u8* m_buffer;
+		size_t m_size;
+		u16 m_conn_handle;
+		ACLQ(const u8* data, const size_t size, const u16 conn_handle)
+			: m_size(size), m_conn_handle(conn_handle)
+		{
+			m_buffer = new u8[m_size];
+			memcpy(m_buffer, data, m_size);
+		}
+	};
+	std::queue<ACLQ> m_ACLQ;
+
 	u32 m_PacketCount[4];
-	u32 m_FreqDividerMote;
-	u32 m_FreqDividerSync;
+	u32 m_WiimoteUpdate_Freq;
+	u32 m_NumCompPackets_Freq;
+
+	// Send ACL data to a device (wiimote)
+	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
 	// Events
 	void AddEventToQueue(const SQueuedEvent& _event);
@@ -216,12 +191,12 @@ private:
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
-	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
+	bool SendEventNumberOfCompletedPackets();
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
 	bool SendEventRequestLinkKey(const bdaddr_t& _bd);
-	bool SendEventLinkKeyNotification(const CWII_IPC_HLE_WiiMote& _rWiiMote);
+	bool SendEventLinkKeyNotification(const u8 num_to_send);
 
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
@@ -271,45 +246,6 @@ private:
 	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);	
 
-	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
-
+	// Debugging
 	void LOG_LinkKey(const u8* _pLinkKey);
 };
-
-class CWII_IPC_HLE_Device_usb_oh0 : public IWII_IPC_HLE_Device
-{
-public:
-
-	CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName);
-
-	virtual ~CWII_IPC_HLE_Device_usb_oh0();
-
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);  // hermes' dsp demo
-
-	virtual bool IOCtlV(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
-
-//	virtual u32 Update();
-};
-
-
-// Addresses Human Interface Devices via the Wii's USB 2.0 ports.
-// Used by Rock Band 1 + 2 instruments.
-class CWII_IPC_HLE_Device_usb_hid : public IWII_IPC_HLE_Device
-{
-public:
-	CWII_IPC_HLE_Device_usb_hid(u32 _DeviceID, const std::string& _rDeviceName);
-	virtual ~CWII_IPC_HLE_Device_usb_hid();
-
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-
-	virtual bool IOCtlV(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
-
-	//	virtual u32 Update();
-};
-
-#endif
-

@@ -1335,13 +1335,13 @@ void CFrame::UpdateGUI()
 	if (Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
-				AccessWiiMote(0x0100)->IsConnected() == 3);
+				AccessWiiMote(0x0100)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->
-				AccessWiiMote(0x0101)->IsConnected() == 3);
+				AccessWiiMote(0x0101)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(GetUsbPointer()->
-				AccessWiiMote(0x0102)->IsConnected() == 3);
+				AccessWiiMote(0x0102)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->
-				AccessWiiMote(0x0103)->IsConnected() == 3);
+				AccessWiiMote(0x0103)->IsConnected());
 	}
 
 	if (Running)

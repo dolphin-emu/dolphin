@@ -18,7 +18,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <iostream> // System
+#include <iostream>
 #include <vector>
 
 #include "CommonTypes.h"
@@ -30,10 +30,8 @@
 	#include <X11/XKBlib.h>
 	extern Display* WMdisplay;
 #endif
-// Definitions and declarations
+
 bool IsFocus();
-//void InterruptDebugging(bool Emu, const void* _pData);
-//void ReadDebugging(bool Emu, const void* _pData, int Size);
 
 // Movement recording
 #define RECORDING_ROWS 15

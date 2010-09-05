@@ -127,10 +127,6 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 		memcpy(WriteEvent.m_PayLoad, _pData, _Size);
 		WriteEvent._Size = _Size;
 		m_EventWriteQueue.push(WriteEvent);
-
-		// Debugging
-		//std::string Temp = ArrayToString(WriteEvent.m_PayLoad, 28, 0, 30);
-		//DEBUG_LOG(WIIMOTE, "Wiimote Write:\n%s", Temp.c_str());
 	}
 	m_pCriticalSection->Leave();
 }
@@ -147,9 +143,10 @@ void ReadData()
 	// Send data to the Wiimote
 	if (!m_EventWriteQueue.empty())
 	{
-		//DEBUG_LOG(WIIMOTE, "Writing data to the Wiimote");
-		SEvent& rEvent = m_EventWriteQueue.front();
+		const SEvent& rEvent = m_EventWriteQueue.front();
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, rEvent._Size);
+		//std::string Temp = ArrayToString(rEvent.m_PayLoad, rEvent._Size);
+		//DEBUG_LOG(WIIMOTE, "Wiimote Write:\n%s:%d", Temp.c_str(), ret);
 #ifdef _WIN32
 		if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
 		{
@@ -157,8 +154,6 @@ void ReadData()
 		}
 #endif
 		m_EventWriteQueue.pop();
-
-		//		InterruptDebugging(false, rEvent.m_PayLoad);
 	}
 
 	m_pCriticalSection->Leave();
@@ -168,6 +163,8 @@ void ReadData()
 	if (wiiuse_io_read(m_pWiiMote))
 	{
 		const byte* pBuffer = m_pWiiMote->event_buf;
+		//std::string Temp = ArrayToString(pBuffer, 20);
+		//DEBUG_LOG(WIIMOTE, "Wiimote Read:\n%s", Temp.c_str());
 		// Check if we have a channel (connection) if so save the data...
 		if (m_channelID > 0)
 		{
@@ -191,6 +188,8 @@ void ReadData()
 			}
 			m_pCriticalSection->Leave();
 		}
+
+		memset((void*)&m_pWiiMote->event_buf,0,sizeof(m_pWiiMote->event_buf));
 	}
 #ifdef _WIN32
 	else if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
@@ -277,9 +276,6 @@ void SendEvent(SEvent& _rEvent)
 
 	// Send it
 	g_WiimoteInitialize.pWiimoteInterruptChannel(m_WiimoteNumber, m_channelID, Buffer, Offset);
-
-	// Debugging
-	// ReadDebugging(false, Buffer, Offset);
 }
 };
 
@@ -541,8 +537,14 @@ void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u3
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//DEBUG_LOG(WIIMOTE, "Real ControlChannel on WiiMote #%i", _WiimoteNumber);
 	g_WiiMotes[_WiimoteNumber]->SendData(_channelID, (const u8*)_pData, _Size);
+
+	const hid_packet* const hidp = (hid_packet*)_pData;
+	if (hidp->type == HID_TYPE_SET_REPORT)
+	{
+		u8 handshake_ok = HID_HANDSHAKE_SUCCESS;
+		g_WiimoteInitialize.pWiimoteInterruptChannel(_WiimoteNumber, _channelID, &handshake_ok, sizeof(handshake_ok));
+	}
 }
 
 

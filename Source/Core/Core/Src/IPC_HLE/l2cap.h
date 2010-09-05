@@ -1,353 +1,353 @@
-/* 
-BlueZ - Bluetooth protocol stack for Linux
-Copyright (C) 2000-2001 Qualcomm Incorporated
+/*      $NetBSD: l2cap.h,v 1.9 2009/09/13 18:45:11 pooka Exp $  */
 
-Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 2 as
-published by the Free Software Foundation;
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.
-IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) AND AUTHOR(S) BE LIABLE FOR ANY
-CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES 
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN 
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF 
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-ALL LIABILITY, INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PATENTS, 
-COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS, RELATING TO USE OF THIS 
-SOFTWARE IS DISCLAIMED.
+/*-
+* Copyright (c) 2005 Iain Hibbert.
+* Copyright (c) 2006 Itronix Inc.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+* 3. The name of Itronix Inc. may not be used to endorse
+*    or promote products derived from this software without specific
+*    prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY ITRONIX INC. ``AS IS'' AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+* TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+* PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ITRONIX INC. BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*/
+/*-
+* Copyright (c) Maksim Yevmenkin <m_evmenkin@yahoo.com>
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+* OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+* SUCH DAMAGE.
+*
+* $Id: l2cap.h,v 1.9 2009/09/13 18:45:11 pooka Exp $
+* $FreeBSD: src/sys/netgraph/bluetooth/include/l2cap.h,v 1.4 2005/08/31 18:13:23 emax Exp $
 */
 
-#ifndef __L2CAP_H
-#define __L2CAP_H
+/*
+* This file contains everything that application needs to know about
+* Link Layer Control and Adaptation Protocol (L2CAP). All information
+* was obtained from Bluetooth Specification Books (v1.1 and up)
+*
+* This file can be included by both kernel and userland applications.
+*/
 
-//Dolphin - define missing types
-typedef unsigned short __le16;
-typedef unsigned short __u16;
-typedef unsigned char __u8;
-typedef unsigned long __u32;
+#pragma once
 
-#pragma pack(push)
-#pragma pack(1)
+/**************************************************************************
+**************************************************************************
+**                   Common defines and types (L2CAP)
+**************************************************************************
+**************************************************************************/
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4200)
-#endif
+/*
+* Channel IDs are assigned per machine. So the total number of channels that
+* a machine can have open at the same time is 0xffff - 0x0040 = 0xffbf (65471).
+* This number does not depend on number of HCI connections.
+*/
 
-/* L2CAP defaults */
-#define L2CAP_DEFAULT_MTU	672
-#define L2CAP_DEFAULT_FLUSH_TO	0xFFFF
+#define L2CAP_NULL_CID                  0x0000  /* DO NOT USE THIS CID */
+#define L2CAP_SIGNAL_CID                0x0001  /* signaling channel ID */
+#define L2CAP_CLT_CID                   0x0002  /* connectionless channel ID */
+/* 0x0003 - 0x003f Reserved */
+#define L2CAP_FIRST_CID                 0x0040  /* dynamically alloc. (start) */
+#define L2CAP_LAST_CID                  0xffff  /* dynamically alloc. (end) */
 
-#define L2CAP_CONN_TIMEOUT	(40000) /* 40 seconds */
-#define L2CAP_INFO_TIMEOUT	(4000)  /*  4 seconds */
+/* L2CAP MTU */
+#define L2CAP_MTU_MINIMUM               48
+#define L2CAP_MTU_DEFAULT               672
+#define L2CAP_MTU_MAXIMUM               0xffff
 
-/* L2CAP socket address */
-#ifdef NOT_DOLPHIN
-struct sockaddr_l2 {
-    sa_family_t	l2_family;
-    __le16		l2_psm;
-    bdaddr_t	l2_bdaddr;
-};
-#endif
+/* L2CAP flush and link timeouts */
+#define L2CAP_FLUSH_TIMO_DEFAULT        0xffff /* always retransmit */
+#define L2CAP_LINK_TIMO_DEFAULT         0xffff
 
-/* L2CAP socket options */
-#define L2CAP_OPTIONS	0x01
-struct l2cap_options {
-    __u16 omtu;
-    __u16 imtu;
-    __u16 flush_to;
-    __u8  mode;
-};
+/* L2CAP Command Reject reasons */
+#define L2CAP_REJ_NOT_UNDERSTOOD        0x0000
+#define L2CAP_REJ_MTU_EXCEEDED          0x0001
+#define L2CAP_REJ_INVALID_CID           0x0002
+/* 0x0003 - 0xffff - reserved for future use */
 
-#define L2CAP_CONNINFO	0x02
-struct l2cap_conninfo {
-    __u16 hci_handle;
-    __u8  dev_class[3];
-};
+/* Protocol/Service Multiplexor (PSM) values */
+#define L2CAP_PSM_ANY                   0x0000  /* Any/Invalid PSM */
+#define L2CAP_PSM_SDP                   0x0001  /* Service Discovery Protocol */
+#define L2CAP_PSM_RFCOMM                0x0003  /* RFCOMM protocol */
+#define L2CAP_PSM_TCP                   0x0005  /* Telephony Control Protocol */
+#define L2CAP_PSM_TCS                   0x0007  /* TCS cordless */
+#define L2CAP_PSM_BNEP                  0x000f  /* Bluetooth Network */
+/*      Encapsulation Protocol*/
+#define L2CAP_PSM_HID_CNTL              0x0011  /* HID Control */
+#define L2CAP_PSM_HID_INTR              0x0013  /* HID Interrupt */
+#define L2CAP_PSM_ESDP                  0x0015  /* Extended Service */
+/*      Discovery Profile */
+#define L2CAP_PSM_AVCTP                 0x0017  /* Audio/Visual Control */
+/*      Transport Protocol */
+#define L2CAP_PSM_AVDTP                 0x0019  /* Audio/Visual Distribution */
+/*      Transport Protocol */
+/* 0x0019 - 0x1000 - reserved for future use */
 
-#define L2CAP_LM	0x03
-#define L2CAP_LM_MASTER		0x0001
-#define L2CAP_LM_AUTH		0x0002
-#define L2CAP_LM_ENCRYPT	0x0004
-#define L2CAP_LM_TRUSTED	0x0008
-#define L2CAP_LM_RELIABLE	0x0010
-#define L2CAP_LM_SECURE		0x0020
+#define L2CAP_PSM_INVALID(psm)          (((psm) & 0x0101) != 0x0001)
 
-/* L2CAP command codes */
-#define L2CAP_COMMAND_REJ 0x01
-#define L2CAP_CONN_REQ    0x02
-#define L2CAP_CONN_RSP    0x03
-#define L2CAP_CONF_REQ    0x04
-#define L2CAP_CONF_RSP    0x05
-#define L2CAP_DISCONN_REQ 0x06
-#define L2CAP_DISCONN_RSP 0x07
-#define L2CAP_ECHO_REQ    0x08
-#define L2CAP_ECHO_RSP    0x09
-#define L2CAP_INFO_REQ    0x0a
-#define L2CAP_INFO_RSP    0x0b
+/* L2CAP Connection response command result codes */
+#define L2CAP_SUCCESS                   0x0000
+#define L2CAP_PENDING                   0x0001
+#define L2CAP_PSM_NOT_SUPPORTED         0x0002
+#define L2CAP_SECURITY_BLOCK            0x0003
+#define L2CAP_NO_RESOURCES              0x0004
+#define L2CAP_TIMEOUT                   0xeeee
+#define L2CAP_UNKNOWN                   0xffff
+/* 0x0005 - 0xffff - reserved for future use */
 
-/* L2CAP structures */
-struct l2cap_hdr {
-    __le16     len;
-    __le16     cid;
-};
-#define L2CAP_HDR_SIZE		4
+/* L2CAP Connection response status codes */
+#define L2CAP_NO_INFO                   0x0000
+#define L2CAP_AUTH_PENDING              0x0001
+#define L2CAP_AUTZ_PENDING              0x0002
+/* 0x0003 - 0xffff - reserved for future use */
 
-struct l2cap_cmd_hdr {
-    __u8       code;
-    __u8       ident;
-    __le16     len;
-};
-#define L2CAP_CMD_HDR_SIZE	4
+/* L2CAP Configuration response result codes */
+#define L2CAP_UNACCEPTABLE_PARAMS       0x0001
+#define L2CAP_REJECT                    0x0002
+#define L2CAP_UNKNOWN_OPTION            0x0003
+/* 0x0003 - 0xffff - reserved for future use */
 
-struct l2cap_cmd_rej {
-    __le16     reason;
-};
+/* L2CAP Configuration options */
+#define L2CAP_OPT_CFLAG_BIT             0x0001
+#define L2CAP_OPT_CFLAG(flags)          ((flags) & L2CAP_OPT_CFLAG_BIT)
+#define L2CAP_OPT_HINT_BIT              0x80
+#define L2CAP_OPT_HINT(type)            ((type) & L2CAP_OPT_HINT_BIT)
+#define L2CAP_OPT_HINT_MASK             0x7f
+#define L2CAP_OPT_MTU                   0x01
+#define L2CAP_OPT_MTU_SIZE              sizeof(uint16_t)
+#define L2CAP_OPT_FLUSH_TIMO            0x02
+#define L2CAP_OPT_FLUSH_TIMO_SIZE       sizeof(uint16_t)
+#define L2CAP_OPT_QOS                   0x03
+#define L2CAP_OPT_QOS_SIZE              sizeof(l2cap_qos_t)
+#define L2CAP_OPT_RFC                   0x04
+#define L2CAP_OPT_RFC_SIZE              sizeof(l2cap_rfc_t)
+/* 0x05 - 0xff - reserved for future use */
 
-struct l2cap_conn_req {
-    __le16     psm;
-    __le16     scid;
-};
+/* L2CAP Information request type codes */
+#define L2CAP_CONNLESS_MTU              0x0001
+#define L2CAP_EXTENDED_FEATURES         0x0002
+/* 0x0003 - 0xffff - reserved for future use */
 
-struct l2cap_conn_rsp {
-    __le16     dcid;
-    __le16     scid;
-    __le16     result;
-    __le16     status;
-};
+/* L2CAP Information response codes */
+#define L2CAP_NOT_SUPPORTED             0x0001
+/* 0x0002 - 0xffff - reserved for future use */
 
-/* connect result */
-#define L2CAP_CR_SUCCESS    0x0000
-#define L2CAP_CR_PEND       0x0001
-#define L2CAP_CR_BAD_PSM    0x0002
-#define L2CAP_CR_SEC_BLOCK  0x0003
-#define L2CAP_CR_NO_MEM     0x0004
+#pragma pack(push, 1)
 
-/* connect status */
-#define L2CAP_CS_NO_INFO      0x0000
-#define L2CAP_CS_AUTHEN_PEND  0x0001
-#define L2CAP_CS_AUTHOR_PEND  0x0002
+/* L2CAP Quality of Service option */
+typedef struct {
+	uint8_t  flags;                 /* reserved for future use */
+	uint8_t  service_type;          /* service type */
+	uint32_t token_rate;            /* bytes per second */
+	uint32_t token_bucket_size;     /* bytes */
+	uint32_t peak_bandwidth;        /* bytes per second */
+	uint32_t latency;               /* microseconds */
+	uint32_t delay_variation;       /* microseconds */
+} l2cap_qos_t;
 
-struct l2cap_conf_req {
-    __le16     dcid;
-    __le16     flags;
-    __u8       data[0];
-};
+/* L2CAP QoS type */
+#define L2CAP_QOS_NO_TRAFFIC    0x00
+#define L2CAP_QOS_BEST_EFFORT   0x01       /* (default) */
+#define L2CAP_QOS_GUARANTEED    0x02
+/* 0x03 - 0xff - reserved for future use */
 
-struct l2cap_conf_rsp {
-    __le16     scid;
-    __le16     flags;
-    __le16     result;
-    __u8       data[0];
-};
+/* L2CAP Retransmission & Flow Control option */
+typedef struct {
+	uint8_t mode;              /* RFC mode */
+	uint8_t window_size;       /* bytes */
+	uint8_t max_transmit;      /* max retransmissions */
+	uint16_t        retransmit_timo;   /* milliseconds */
+	uint16_t        monitor_timo;      /* milliseconds */
+	uint16_t        max_pdu_size;      /* bytes */
+} l2cap_rfc_t;
 
-#define L2CAP_CONF_SUCCESS	0x0000
-#define L2CAP_CONF_UNACCEPT	0x0001
-#define L2CAP_CONF_REJECT	0x0002
-#define L2CAP_CONF_UNKNOWN	0x0003
+/* L2CAP RFC mode */
+#define L2CAP_RFC_BASIC         0x00       /* (default) */
+#define L2CAP_RFC_RETRANSMIT    0x01
+#define L2CAP_RFC_FLOW          0x02
+/* 0x03 - 0xff - reserved for future use */
 
-struct l2cap_conf_opt {
-    __u8       type;
-    __u8       len;
-    __u8       val[0];
-};
-#define L2CAP_CONF_OPT_SIZE	2
+/**************************************************************************
+**************************************************************************
+**                 Link level defines, headers and types
+**************************************************************************
+**************************************************************************/
 
-#define L2CAP_CONF_MTU		0x01
-#define L2CAP_CONF_FLUSH_TO	0x02
-#define L2CAP_CONF_QOS		0x03
-#define L2CAP_CONF_RFC		0x04
+/* L2CAP header */
+typedef struct {
+	uint16_t        length; /* payload size */
+	uint16_t        dcid;   /* destination channel ID */
+} l2cap_hdr_t;
 
-#define L2CAP_CONF_MAX_SIZE	22
+/* L2CAP ConnectionLess Traffic         (dcid == L2CAP_CLT_CID) */
+typedef struct {
+	uint16_t        psm; /* Protocol/Service Multiplexor */
+} l2cap_clt_hdr_t;
 
-struct l2cap_conf_rfc {
-    __u8       mode;
-    __u8       txwin_size;
-    __u8       max_transmit;
-    __le16     retrans_timeout;
-    __le16     monitor_timeout;
-    __le16     max_pdu_size;
-};
+#define L2CAP_CLT_MTU_MAXIMUM \
+	(L2CAP_MTU_MAXIMUM - sizeof(l2cap_clt_hdr_t))
 
-#define L2CAP_MODE_BASIC	0x00
-#define L2CAP_MODE_RETRANS	0x01
-#define L2CAP_MODE_FLOWCTL	0x02
+/* L2CAP Command header                 (dcid == L2CAP_SIGNAL_CID) */
+typedef struct {
+	uint8_t code;   /* command OpCode */
+	uint8_t ident;  /* identifier to match request and response */
+	uint16_t        length; /* command parameters length */
+} l2cap_cmd_hdr_t;
 
-struct l2cap_disconn_req {
-    __le16     dcid;
-    __le16     scid;
-};
+/* L2CAP Command Reject */
+#define L2CAP_COMMAND_REJ                       0x01
+typedef struct {
+	uint16_t        reason; /* reason to reject command */
+	uint16_t        data[2];/* optional data */
+} l2cap_cmd_rej_cp;
 
-struct l2cap_disconn_rsp {
-    __le16     dcid;
-    __le16     scid;
-};
+/* L2CAP Connection Request */
+#define L2CAP_CONNECT_REQ                       0x02
+typedef struct {
+	uint16_t        psm;  /* Protocol/Service Multiplexor (PSM) */
+	uint16_t        scid; /* source channel ID */
+} l2cap_con_req_cp;
 
-struct l2cap_info_req {
-    __le16      type;
-};
+/* L2CAP Connection Response */
+#define L2CAP_CONNECT_RSP                       0x03
+typedef struct {
+	uint16_t        dcid;   /* destination channel ID */
+	uint16_t        scid;   /* source channel ID */
+	uint16_t        result; /* 0x00 - success */
+	uint16_t        status; /* more info if result != 0x00 */
+} l2cap_con_rsp_cp;
 
-struct l2cap_info_rsp {
-    __le16      type;
-    __le16      result;
-    __u8        data[0];
-};
+/* L2CAP Configuration Request */
+#define L2CAP_CONFIG_REQ                        0x04
+typedef struct {
+	uint16_t        dcid;  /* destination channel ID */
+	uint16_t        flags; /* flags */
+	/*      uint8_t options[] --  options */
+} l2cap_cfg_req_cp;
 
-/* info type */
-#define L2CAP_IT_CL_MTU     0x0001
-#define L2CAP_IT_FEAT_MASK  0x0002
+/* L2CAP Configuration Response */
+#define L2CAP_CONFIG_RSP                        0x05
+typedef struct {
+	uint16_t        scid;   /* source channel ID */
+	uint16_t        flags;  /* flags */
+	uint16_t        result; /* 0x00 - success */
+	/*      uint8_t options[] -- options */
+} l2cap_cfg_rsp_cp;
 
-/* info result */
-#define L2CAP_IR_SUCCESS    0x0000
-#define L2CAP_IR_NOTSUPP    0x0001
+/* L2CAP configuration option */
+typedef struct {
+	uint8_t type;
+	uint8_t length;
+	/*      uint8_t value[] -- option value (depends on type) */
+} l2cap_cfg_opt_t;
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+/* L2CAP configuration option value */
+typedef union {
+	uint16_t                mtu;            /* L2CAP_OPT_MTU */
+	uint16_t                flush_timo;     /* L2CAP_OPT_FLUSH_TIMO */
+	l2cap_qos_t             qos;            /* L2CAP_OPT_QOS */
+	l2cap_rfc_t             rfc;            /* L2CAP_OPT_RFC */
+} l2cap_cfg_opt_val_t;
+
+/* L2CAP Disconnect Request */
+#define L2CAP_DISCONNECT_REQ                    0x06
+typedef struct {
+	uint16_t        dcid; /* destination channel ID */
+	uint16_t        scid; /* source channel ID */
+} l2cap_discon_req_cp;
+
+/* L2CAP Disconnect Response */
+#define L2CAP_DISCONNECT_RSP                    0x07
+typedef l2cap_discon_req_cp     l2cap_discon_rsp_cp;
+
+/* L2CAP Echo Request */
+#define L2CAP_ECHO_REQ                          0x08
+/* No command parameters, only optional data */
+
+/* L2CAP Echo Response */
+#define L2CAP_ECHO_RSP                          0x09
+#define L2CAP_MAX_ECHO_SIZE \
+	(L2CAP_MTU_MAXIMUM - sizeof(l2cap_cmd_hdr_t))
+/* No command parameters, only optional data */
+
+/* L2CAP Information Request */
+#define L2CAP_INFO_REQ                          0x0a
+typedef struct {
+	uint16_t        type; /* requested information type */
+} l2cap_info_req_cp;
+
+/* L2CAP Information Response */
+#define L2CAP_INFO_RSP                          0x0b
+typedef struct {
+	uint16_t        type;   /* requested information type */
+	uint16_t        result; /* 0x00 - success */
+	/*      uint8_t info[]  -- info data (depends on type)
+	*
+	* L2CAP_CONNLESS_MTU - 2 bytes connectionless MTU
+	*/
+} l2cap_info_rsp_cp;
+
+typedef union {
+	/* L2CAP_CONNLESS_MTU */
+	struct {
+		uint16_t        mtu;
+	} mtu;
+} l2cap_info_rsp_data_t;
+
 #pragma pack(pop)
 
-struct value_string
-{
-	u32 value;
-	char* string;
-};
+/**************************************************************************
+**************************************************************************
+**             L2CAP Socket Definitions
+**************************************************************************
+**************************************************************************/
 
-static const value_string command_code_vals[] = {
-    { 0x01,	(char *)"Command Reject" },
-    { 0x02,	(char *)"Connection Request" },
-    { 0x03,	(char *)"Connection Response" },
-    { 0x04,	(char *)"Configure Request" },
-    { 0x05,	(char *)"Configure Response" },
-    { 0x06,	(char *)"Disconnect Request" },
-    { 0x07,	(char *)"Disconnect Response" },
-    { 0x08,	(char *)"Echo Request" },
-    { 0x09,	(char *)"Echo Response" },
-    { 0x0A,	(char *)"Information Request" },
-    { 0x0B,	(char *)"Information Response" },
-    { 0,		NULL }
-};
+/* Socket options */
+#define SO_L2CAP_IMTU           1       /* incoming MTU */
+#define SO_L2CAP_OMTU           2       /* outgoing MTU */
+#define SO_L2CAP_IQOS           3       /* incoming QoS */
+#define SO_L2CAP_OQOS           4       /* outgoing QoS */
+#define SO_L2CAP_FLUSH          5       /* flush timeout */
+#define SO_L2CAP_LM             6       /* link mode */
 
-
-
-static const value_string psm_vals[] = {
-	{ 0x0001,	(char *)"SDP" },
-	{ 0x0003,	(char *)"RFCOMM" },
-	{ 0x0005,	(char *)"TCS-BIN" },
-	{ 0x0007,	(char *)"TCS-BIN-CORDLESS" },
-	{ 0x000F,	(char *)"BNEP" },
-	{ 0x0011,	(char *)"HID_CONTROL" },
-	{ 0x0013,	(char *)"HID_INTERRUPT" },
-	{ 0x0015,	(char *)"UPnP" },
-	{ 0x0017,	(char *)"AVCTP" },
-	{ 0x0019,	(char *)"AVDTP" },
-	{ 0x001D,	(char *)"UDI_C-Plane" },
-	{ 0,			NULL }
-};
-
-
-static const value_string result_vals[] = {
-	{ 0x0000,	(char *)"Connection successful" },
-	{ 0x0001,	(char *)"Connection pending" },
-	{ 0x0002,	(char *)"Connection Refused - PSM not supported" },
-	{ 0x0003,	(char *)"Connection refused - security block" },
-	{ 0x0004,	(char *)"Connection refused - no resources available" },
-	{ 0,			NULL }
-};
-
-
-static const value_string status_vals[] = {
-	{ 0x0000,	(char *)"No further information available" },
-	{ 0x0001,	(char *)"Authentication panding" },
-	{ 0x0002,	(char *)"Authorization pending" },
-	{ 0,			NULL }
-};
-
-
-
-
-
-
-
-
-#ifdef NOT_DOLPHIN
-
-/* ----- L2CAP connections ----- */
-struct l2cap_chan_list {
-    struct sock	*head;
-    rwlock_t	lock;
-    long		num;
-};
-
-struct l2cap_conn {
-    struct hci_conn	*hcon;
-
-    bdaddr_t	*dst;
-    bdaddr_t	*src;
-
-    unsigned int	mtu;
-
-    __u32		feat_mask;
-
-    __u8		info_state;
-    __u8		info_ident;
-
-    struct timer_list info_timer;
-
-    spinlock_t	lock;
-
-    struct sk_buff *rx_skb;
-    __u32		rx_len;
-    __u8		rx_ident;
-    __u8		tx_ident;
-
-    struct l2cap_chan_list chan_list;
-};
-
-#define L2CAP_INFO_CL_MTU_REQ_SENT	0x01
-#define L2CAP_INFO_FEAT_MASK_REQ_SENT	0x02
-
-/* ----- L2CAP channel and socket info ----- */
-#define l2cap_pi(sk) ((struct l2cap_pinfo *) sk)
-
-struct l2cap_pinfo {
-    struct bt_sock	bt;
-    __le16		psm;
-    __u16		dcid;
-    __u16		scid;
-
-    __u16		imtu;
-    __u16		omtu;
-    __u16		flush_to;
-
-    __u32		link_mode;
-
-    __u8		conf_req[64];
-    __u8		conf_len;
-    __u8		conf_state;
-    __u8		conf_retry;
-
-    __u8		ident;
-
-    __le16		sport;
-
-    struct l2cap_conn	*conn;
-    struct sock		*next_c;
-    struct sock		*prev_c;
-};
-
-#define L2CAP_CONF_REQ_SENT	0x01
-#define L2CAP_CONF_INPUT_DONE	0x02
-#define L2CAP_CONF_OUTPUT_DONE	0x04
-
-#define L2CAP_CONF_MAX_RETRIES	2
-
-void l2cap_load(void);
-
-#endif	//NOT_DOLPHIN
-
-#endif /* __L2CAP_H */ 
+/* L2CAP link mode flags */
+#define L2CAP_LM_AUTH           (1<<0)  /* want authentication */
+#define L2CAP_LM_ENCRYPT        (1<<1)  /* want encryption */
+#define L2CAP_LM_SECURE         (1<<2)  /* want secured link */

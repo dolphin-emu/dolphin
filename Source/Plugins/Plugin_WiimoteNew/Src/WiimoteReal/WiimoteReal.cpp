@@ -118,7 +118,15 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 	if (99 == channel)
 		Disconnect();
 	else
+	{
 		InterruptChannel(channel, data, size);
+		const hid_packet* const hidp = (hid_packet*)data;
+		if (hidp->type == HID_TYPE_SET_REPORT)
+		{
+			u8 handshake_ok = HID_HANDSHAKE_SUCCESS;
+			g_WiimoteInitialize.pWiimoteInterruptChannel(index, channel, &handshake_ok, sizeof(handshake_ok));
+		}
+	}
 }
 
 void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)

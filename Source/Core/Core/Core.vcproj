@@ -1207,14 +1207,6 @@
 			Name="IPC HLE"
 			>
 			<File
-				RelativePath=".\Src\IPC_HLE\hci.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\l2cap.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE.cpp"
 				>
 			</File>
@@ -1227,19 +1219,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Error.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_stm.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb.h"
 				>
 			</File>
 			<Filter
@@ -1255,8 +1235,24 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="WiiMote"
+				Name="USB/BT/Wiimote"
 				>
+				<File
+					RelativePath=".\Src\IPC_HLE\hci.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\l2cap.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb.h"
+					>
+				</File>
 				<File
 					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp"
 					>
@@ -1299,18 +1295,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="FileIO"
-				>
-				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="DI -DVD Interface"
 				>
 				<File
@@ -1337,6 +1321,14 @@
 			<Filter
 				Name="FS"
 				>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h"
+					>
+				</File>
 				<File
 					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp"
 					>

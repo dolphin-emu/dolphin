@@ -605,11 +605,6 @@ void DoState(PointerWrap &p)
    response to Output from the Wii. */
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
 {
-	/* Debugging. We have not yet decided how much of 'data' we will use, it's
-	   not determined by sizeof(data). We have to determine it by looking at
-	   the data cases. */
-	//InterruptDebugging(true, (const void*)_pData);
-
 	g_ID = _number;
 
 	hid_packet* hidp = (hid_packet*)_pData;
@@ -673,13 +668,11 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 		else
 		{
 			// AyuanX: My experiment shows Control Channel is never used
-			// shuffle2: but homebrew uses this, so we'll do what we must :)
+			// shuffle2: but lwbt uses this, so we'll do what we must :)
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
 			g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, &handshake, 1);
-
-			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
 		break;
 

@@ -763,7 +763,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 
 	INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index, hidp->type, hidp->param);
 
-	switch(hidp->type)
+	switch (hidp->type)
 	{
 	case HID_TYPE_HANDSHAKE :
 		PanicAlert("HID_TYPE_HANDSHAKE - %s", (hidp->param == HID_PARAM_INPUT) ? "INPUT" : "OUPUT");
@@ -777,13 +777,11 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 		else
 		{
 			// AyuanX: My experiment shows Control Channel is never used
-			// shuffle2: but homebrew uses this, so we'll do what we must :)
+			// shuffle2: but lwbt uses this, so we'll do what we must :)
 			HidOutputReport((wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
 			g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, &handshake, 1);
-
-			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
 		break;
 
