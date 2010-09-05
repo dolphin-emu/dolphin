@@ -114,7 +114,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
-	ERROR_LOG(WII_IPC_WIIMOTE, "passing ioctl to ioctlv");
+	//ERROR_LOG(WII_IPC_WIIMOTE, "passing ioctl to ioctlv");
 	return IOCtlV(_CommandAddress);	//hack
 }
 
@@ -293,7 +293,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 
 		// Write the packet to the buffer
 		memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), _pData, pHeader->length);
-		//m_ACLEndpoint.FillBuffer(_pData, _Size);
 
 		m_ACLEndpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + _Size);
 		WII_IPC_HLE_Interface::EnqReply(m_ACLEndpoint.m_address);
