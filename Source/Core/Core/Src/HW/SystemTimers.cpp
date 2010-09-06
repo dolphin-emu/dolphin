@@ -285,7 +285,7 @@ void Init()
 	fakeTBStartTicks = CoreTiming::GetTicks();
 
 	fakeDecStartValue = 0xFFFFFFFF;
-	u64 fakeDecStartTicks = CoreTiming::GetTicks();
+	fakeDecStartTicks = CoreTiming::GetTicks();
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_AI = CoreTiming::RegisterEvent("AICallback", AICallback);

@@ -141,13 +141,13 @@ private:
 	// WiiMote accel data
 	AccelData				m_accel;
 
+	// wiimote index, 0-3
+	const unsigned int		m_index;
+
 	double					ir_sin,ir_cos; //for the low pass filter
 	
 	//UDPWiimote
 	UDPWrapper* m_udp;
-
-	// wiimote index, 0-3
-	const unsigned int		m_index;
 
 	bool		m_rumble_on;
 	bool		m_speaker_mute;

@@ -79,6 +79,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 // All structs in this file are packed
 #pragma pack(push, 1)
 
