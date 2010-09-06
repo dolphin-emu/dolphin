@@ -22,12 +22,12 @@
 struct NANDStat
 {
 	u32 BlockSize;
-	u32 FreeBlocks;
-	u32 UsedBlocks;
-	u32 unk3;
-	u32 unk4;
+	u32 FreeUserBlocks;
+	u32 UsedUserBlocks;
+	u32 FreeSysBlocks;
+	u32 UsedSysBlocks;
 	u32 Free_INodes;
-	u32 unk5; // Used INodes?
+	u32 Used_Inodes;
 };
 
 enum {

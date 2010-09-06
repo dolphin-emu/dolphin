@@ -26,6 +26,7 @@ files = [
 	"MemoryUtil.cpp",
 	"Misc.cpp",
 	"MsgHandler.cpp",
+	"NandPaths.cpp",
 	"OpenCL.cpp",
 	"Plugin.cpp",
 	"PluginDSP.cpp",

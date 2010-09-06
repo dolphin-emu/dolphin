@@ -276,12 +276,12 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 			//TODO: scrape the real amounts from somewhere...
 			fs.BlockSize	= 0x4000;
-			fs.FreeBlocks	= 0x5DEC;
-			fs.UsedBlocks	= 0x1DD4;
-			fs.unk3			= 0x10;
-			fs.unk4			= 0x02F0;
+			fs.FreeUserBlocks	= 0x5DEC;
+			fs.UsedUserBlocks	= 0x1DD4;
+			fs.FreeSysBlocks	= 0x10;
+			fs.UsedSysBlocks	= 0x02F0;
 			fs.Free_INodes	= 0x146B;
-			fs.unk5			= 0x0394;
+			fs.Used_Inodes	= 0x0394;
 
 			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
 

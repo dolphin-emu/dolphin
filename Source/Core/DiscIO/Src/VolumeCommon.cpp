@@ -71,7 +71,8 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 			break;
 
 		default:
-			WARN_LOG(DISCIO, "Unknown Country Code! %c", CountryCode);
+			if (CountryCode > 'A') // Silently ignore IOS wads
+				WARN_LOG(DISCIO, "Unknown Country Code! %c", CountryCode);
 			return IVolume::COUNTRY_UNKNOWN;
 			break;
 	}

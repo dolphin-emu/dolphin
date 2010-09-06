@@ -758,6 +758,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\NandPaths.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\NandPaths.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\OpenCL.cpp"
 			>
 		</File>

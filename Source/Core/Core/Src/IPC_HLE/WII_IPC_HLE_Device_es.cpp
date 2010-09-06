@@ -54,6 +54,7 @@
 #include "AES/aes.h"
 
 #include "../Boot/Boot_DOL.h"
+#include "NandPaths.h"
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -87,7 +88,7 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 		}
 		else
 		{
-			m_TitleIDs.push_back(0x0000000100000002ULL);
+			m_TitleIDs.push_back(TITLEID_SYSMENU);
 		}
     }
     else if (VolumeHandler::IsValid())
@@ -165,7 +166,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			// Return arbitrary device ID - TODO allow user to set value?
 			Memory::Write_U32(0x31337f11, Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
-			return true;            
+			return true;
 		}
 		break;
 
@@ -439,7 +440,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-            std::string TicketFilename = CreateTicketFileName(TitleID);
+			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
 
             u32 ViewCount = 0;
             if (File::Exists(TicketFilename.c_str()))
@@ -454,17 +455,17 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             }
             else
             {
-                if (TitleID == 0x0000000100000002ull)
+                if (TitleID == TITLEID_SYSMENU)
                 {
                     PanicAlert("There must be a ticket for 00000001/00000002. Prolly your NAND dump is incomplete");
                 }
-                ViewCount = 0;                
-            }            
+                ViewCount = 0;
+            }
             
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)", (u32)(TitleID>>32), (u32)TitleID, ViewCount);
 
             Memory::Write_U32(ViewCount, Buffer.PayloadBuffer[0].m_Address);
-            Memory::Write_U32(0, _CommandAddress + 0x4);		
+            Memory::Write_U32(0, _CommandAddress + 0x4);
             return true;
         }
         break;
@@ -476,7 +477,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-            std::string TicketFilename = CreateTicketFileName(TitleID);
+            std::string TicketFilename = Common::CreateTicketFileName(TitleID);
             if (File::Exists(TicketFilename.c_str()))
             {
                 const u32 SIZE_OF_ONE_TICKET = 676;
@@ -512,8 +513,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            std::string TitlePath = CreateTitleContentPath(TitleID);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitlePath);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
 
             _dbg_assert_(WII_IPC_ES, Loader.IsValid());
             u32 TMDViewCnt = 0;
@@ -540,8 +540,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-            std::string TitlePath = CreateTitleContentPath(TitleID);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitlePath);            
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);            
 
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -587,8 +586,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-            std::string TitlePath = CreateTitleContentPath(TitleID);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitlePath);            
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);            
 
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -622,8 +620,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_ES_GETSTOREDTMDSIZE no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            std::string TitlePath = CreateTitleContentPath(TitleID);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitlePath);
+            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
 
             _dbg_assert_(WII_IPC_ES, Loader.IsValid());
             u32 TMDCnt = 0;
@@ -634,10 +631,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             }
             Memory::Write_U32(TMDCnt, Buffer.PayloadBuffer[0].m_Address);
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);		
+            Memory::Write_U32(0, _CommandAddress + 0x4);
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
-            return true;            
+            return true;
         }
         break;
 
@@ -674,39 +671,30 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		break;
 
 
-    // ===============================================================================================
-    // unsupported functions 
-    // ===============================================================================================
-    case IOCTL_ES_LAUNCH:
+	case IOCTL_ES_LAUNCH:
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
 			bool bSuccess = false;
 			u16 IOSv = 0xffff;
 
             u64 TitleID		= Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-
             u32 view		= Memory::Read_U32(Buffer.InBuffer[1].m_Address);
             u64 ticketid	= Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
             u32 devicetype	= Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
             u64 titleid		= Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
             u16 access		= Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
-/*            PanicAlert("IOCTL_ES_LAUNCH: src titleID %08x/%08x -> start %08x/%08x \n"
-                "This means that dolphin tries to relaunch the WiiMenu or"
-                "launches code from the an URL. Both wont work and dolphin will prolly hang...",
-                (u32)(TitleID>>32), (u32)TitleID, (u32)(titleid>>32), (u32)titleid );
-*/
-			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == 0x0000000100000002ull)
+
+			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
 			{
-				std::string titlePath = CreateTitleContentPath(TitleID);
-				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(titlePath);
+				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
 				if (ContentLoader.IsValid())
 				{
 					u32 bootInd = ContentLoader.GetBootIndex();
 					const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
 					if (pContent)
 					{
-						LoadWAD(titlePath);
+						LoadWAD(Common::CreateTitleContentPath(TitleID));
 						CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
 						PC = DolLoader.GetEntryPoint() | 0x80000000;
 						IOSv = ContentLoader.GetIosVersion();
@@ -722,6 +710,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
 			}
+			if (!bSuccess)
+				PanicAlert("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
+					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it
 			// to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS rev...
@@ -741,19 +732,24 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
-        break;
-
-    case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
-        break;
 	case IOCTL_ES_CHECKKOREAREGION: //note by DacoTaco : name is unknown, i just tried to name it SOMETHING
 		//IOS70 has this to let system menu 4.2 check if the console is region changed. it returns -1017
 		//if the IOS didn't find the korean keys and 0 if it does. 0 leads to a error 003
 		WARN_LOG(WII_IPC_ES,"IOCTL_ES_CHECKKOREAREGION: Title Checked for korean Keys");
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
 		return true;
+
+    // ===============================================================================================
+    // unsupported functions 
+    // ===============================================================================================
+     case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+        break;
+
+    case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
+        break;
+
     default:
         WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
@@ -777,8 +773,7 @@ const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u6
     if (itr != m_NANDContent.end())
         return *itr->second;
 
-    std::string TitlePath = CreateTitleContentPath(_TitleID);
-    m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(TitlePath);
+    m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_TitleID);
 
     _dbg_assert_(WII_IPC_ES, m_NANDContent[_TitleID]->IsValid());
     return *m_NANDContent[_TitleID];
@@ -792,19 +787,4 @@ bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
     return false;
 }
 
-std::string CWII_IPC_HLE_Device_es::CreateTicketFileName(u64 _TitleID) const
-{
-    char TicketFilename[1024];
-    sprintf(TicketFilename, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
-
-    return TicketFilename;
-}
-
-std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
-{
-    char ContentPath[1024];
-    sprintf(ContentPath, "%stitle/%08x/%08x/content", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
-
-    return ContentPath;
-}
 

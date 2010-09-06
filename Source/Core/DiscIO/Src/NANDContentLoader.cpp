@@ -372,6 +372,13 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 	return *m_Map[_rName];
 }
 
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId)
+{
+
+	std::string _rName = Common::CreateTitleContentPath(_titleId);
+	return GetNANDLoader(_rName);
+}
+
 cUIDsys::cUIDsys()
 {
 	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX));
@@ -401,7 +408,7 @@ cUIDsys::cUIDsys()
 	else
 	{
 		SElement Element;
-		*(u64*)&(Element.titleID) = Common::swap64(0x0000000100000002ull);
+		*(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 
 		FILE* pFile = fopen(uidSys, "wb");

@@ -141,9 +141,6 @@ private:
     const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
 
     bool IsValid(u64 _TitleID) const;
-
-    std::string CreateTicketFileName(u64 _TitleID) const;
-    std::string CreateTitleContentPath(u64 _TitleID) const;
 };
 
 #endif

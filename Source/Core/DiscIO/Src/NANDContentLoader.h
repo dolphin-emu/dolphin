@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "Blob.h"
 #include "Volume.h"
+#include "NandPaths.h"
 
 namespace DiscIO
 {
@@ -80,7 +81,7 @@ public:
     static CNANDContentManager& Access() { return m_Instance; }
 
     const INANDContentLoader& GetNANDLoader(const std::string& _rName);
-
+	const INANDContentLoader& GetNANDLoader(u64 _titleId);
 private:
 
     CNANDContentManager() {};

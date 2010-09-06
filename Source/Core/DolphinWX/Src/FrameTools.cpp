@@ -198,7 +198,7 @@ void CFrame::CreateMenu()
 
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
 
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string (File::GetUserPath(D_WIIMENU_IDX))).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 	{
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
@@ -1122,7 +1122,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.ToUTF8().data());
+		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.mb_str());
 		delete saveFile;
 	}
 }
@@ -1141,7 +1141,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 {
 	if (event.GetId() == IDM_LOAD_WII_MENU)
 	{
-		BootGame(std::string (File::GetUserPath(D_WIIMENU_IDX)));
+		BootGame(Common::CreateTitleContentPath(TITLEID_SYSMENU));
 	}
 	else
 	{
@@ -1317,11 +1317,9 @@ void CFrame::UpdateGUI()
 
 	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
 	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);
-
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader
-			(std::string(File::GetUserPath(D_WIIMENU_IDX))).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->
