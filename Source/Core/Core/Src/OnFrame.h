@@ -99,6 +99,9 @@ bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsPlayingInput();
 
+bool IsUsingPad(int controller);
+void ChangePads();
+
 void SetAutoHold(bool bEnabled, u32 keyToHold = 0);
 void SetAutoFire(bool bEnabled, u32 keyOne = 0, u32 keyTwo = 0);
 

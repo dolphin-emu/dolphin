@@ -628,8 +628,18 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 {
-	// TODO: Take controller settings from Gamecube Configuration menu
-	if(Frame::BeginRecordingInput(1))
+	int controllers = 0;
+
+	if (SConfig::GetInstance().m_SIDevice[0] == SI_GC_CONTROLLER)
+		controllers |= 0x01;
+	if (SConfig::GetInstance().m_SIDevice[1] == SI_GC_CONTROLLER)
+		controllers |= 0x02;
+	if (SConfig::GetInstance().m_SIDevice[2] == SI_GC_CONTROLLER)
+		controllers |= 0x04;
+	if (SConfig::GetInstance().m_SIDevice[3] == SI_GC_CONTROLLER)
+		controllers |= 0x08;
+
+	if(Frame::BeginRecordingInput(controllers))
 		BootGame(std::string(""));
 }
 

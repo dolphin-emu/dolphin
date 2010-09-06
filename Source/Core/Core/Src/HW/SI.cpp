@@ -19,6 +19,7 @@
 #include "ChunkFile.h"
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
+#include "../OnFrame.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
@@ -245,7 +246,12 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
+		if (Frame::IsUsingPad(i))
+			AddDevice(SI_GC_CONTROLLER, i);
+		else if (Frame::IsRecordingInput() || Frame::IsPlayingInput())
+			AddDevice(SI_NONE, i);
+		else
+			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}
 
 	g_Poll.Hex = 0;

@@ -22,6 +22,7 @@
 #include "Thread.h"
 #include "FileUtil.h"
 #include "PowerPC/PowerPC.h"
+#include "HW/SI.h"
 
 Common::CriticalSection cs_frameSkip;
 
@@ -185,10 +186,37 @@ bool IsPlayingInput()
 	return (g_playMode == MODE_PLAYING);
 }
 
+bool IsUsingPad(int controller)
+{
+	switch (controller)
+	{
+	case 0:
+		return g_numPads & 0x01;
+	case 1:
+		return g_numPads & 0x02;
+	case 2:
+		return g_numPads & 0x04;
+	case 3:
+		return g_numPads & 0x08;
+	default:
+		return false;
+	}
+}
+
+void ChangePads()
+{
+	if (Core::GetState() != Core::CORE_UNINITIALIZED) {
+		SerialInterface::ChangeDevice(IsUsingPad(0) ? SI_GC_CONTROLLER : SI_NONE, 0);
+		SerialInterface::ChangeDevice(IsUsingPad(1) ? SI_GC_CONTROLLER : SI_NONE, 1);
+		SerialInterface::ChangeDevice(IsUsingPad(2) ? SI_GC_CONTROLLER : SI_NONE, 2);
+		SerialInterface::ChangeDevice(IsUsingPad(3) ? SI_GC_CONTROLLER : SI_NONE, 3);
+	}
+}
+
 // TODO: Add BeginRecordingFromSavestate
 bool BeginRecordingInput(int controllers)
 {
-	if(g_playMode != MODE_NONE || g_recordfd)
+	if(g_playMode != MODE_NONE || controllers == 0 || g_recordfd != NULL)
 		return false;
 	
 	const char *filename = g_recordFile.c_str();
@@ -220,7 +248,7 @@ bool BeginRecordingInput(int controllers)
 
 void RecordInput(SPADStatus *PadStatus, int controllerID)
 {
-	if(!IsRecordingInput() || controllerID >= g_numPads || controllerID < 0)
+	if(!IsRecordingInput() || !IsUsingPad(controllerID))
 		return;
 
 	g_padState.A		 = ((PadStatus->button & PAD_BUTTON_A) != 0);
@@ -289,6 +317,8 @@ bool PlayInput(const char *filename)
 	g_numPads = header.numControllers;
 	g_numRerecords = header.numRerecords;
 	
+	ChangePads();
+	
 	g_playMode = MODE_PLAYING;
 	
 	return true;
@@ -306,10 +336,10 @@ void LoadInput(const char *filename)
 	DTMHeader header;
 	
 	fread(&header, sizeof(DTMHeader), 1, t_record);
+	fclose(t_record);
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
 		PanicAlert("Savestate movie %s is corrupted, movie recording stopping...", filename);
-		fclose(t_record);
 		EndPlayInput();
 		return;
 	}
@@ -319,7 +349,7 @@ void LoadInput(const char *filename)
 	
 	g_numPads = header.numControllers;
 	
-	fclose(t_record);
+	ChangePads();
 	
 	if (g_recordfd)
 		fclose(g_recordfd);
@@ -341,7 +371,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
-	if(!IsPlayingInput() || controllerID >= g_numPads || controllerID < 0)
+	if(!IsPlayingInput() || !IsUsingPad(controllerID))
 		return;
 	
 	memset(PadStatus, 0, sizeof(SPADStatus));
