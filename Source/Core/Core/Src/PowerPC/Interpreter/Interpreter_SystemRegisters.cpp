@@ -264,6 +264,7 @@ void Interpreter::mftb(UGeckoInstruction _inst)
 {
 	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
 	_dbg_assert_msg_(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
+	(void)iIndex;
 	mfspr(_inst);
 }
 

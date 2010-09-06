@@ -138,7 +138,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 		pDevice->LoadWAD(_rFilename);
 }
 
-u32 GetDeviceIDByName(const std::string& _rDeviceName)
+int GetDeviceIDByName(const std::string& _rDeviceName)
 {
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
     while(itr != g_DeviceMap.end())
@@ -259,7 +259,7 @@ void ExecuteCommand(u32 _Address)
     bool CmdSuccess = false;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
-	u32 DeviceID = Memory::Read_U32(_Address + 8);
+	int DeviceID = Memory::Read_U32(_Address + 8);
 	IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 
 	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) ", _Address, Command, DeviceID);
@@ -280,7 +280,7 @@ void ExecuteCommand(u32 _Address)
             u32 Mode = Memory::Read_U32(_Address + 0x10);
             DeviceID = GetDeviceIDByName(DeviceName);
 
-			// check if a device with this name has been created already
+            // check if a device with this name has been created already
             if (DeviceID == -1)				
             {
 				if (DeviceName.find("/dev/") != std::string::npos)

@@ -43,7 +43,7 @@ void DoState(PointerWrap &p);
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
 
-u32 GetDeviceIDByName(const std::string& _rDeviceName);
+int GetDeviceIDByName(const std::string& _rDeviceName);
 
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
 

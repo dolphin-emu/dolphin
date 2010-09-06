@@ -130,11 +130,6 @@ static OpArg fregLocForSlot(RegInfo& RI, unsigned slot) {
 	return M(&FSlotSet[slot*16]);
 }
 
-// Used for accessing the top half of a spilled double
-static OpArg fregLocForSlotPlusFour(RegInfo& RI, unsigned slot) {
-	return M(&FSlotSet[slot*16+4]);
-}
-
 static unsigned fregCreateSpill(RegInfo& RI, InstLoc I) {
 	unsigned newSpill = ++RI.numFSpills;
 	RI.IInfo[I - RI.FirstI] |= newSpill << 16;

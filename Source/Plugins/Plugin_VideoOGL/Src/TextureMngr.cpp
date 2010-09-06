@@ -378,8 +378,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	{
 		//Load Custom textures
 		char texPathTemp[MAX_PATH];
-		int oldWidth = width;
-		int oldHeight = height;
 
 		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, (unsigned int) texHash, tex_format);
 		dfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);

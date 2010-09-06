@@ -402,8 +402,6 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					// Execute
 					u16 numVertices = DataReadU16();
 
-					u64 pre_draw_video_data = (u64)g_pVideoData;
-
 					u8* StartAddress = VertexManager::s_pBaseBufferPointer;
 					VertexManager::Flush();
 					VertexLoaderManager::RunVertices(

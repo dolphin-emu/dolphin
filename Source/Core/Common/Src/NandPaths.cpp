@@ -15,10 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "NandPaths.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
-#include <string.h>
+#include "NandPaths.h"
+
 namespace Common
 {
 std::string CreateTicketFileName(u64 _TitleID)

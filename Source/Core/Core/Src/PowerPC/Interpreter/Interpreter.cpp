@@ -86,7 +86,8 @@ void Trace( UGeckoInstruction &instCode )
 
 	char fregs[500]="";
 	for (int i=0; i<32; i++) {
-		sprintf(fregs, "%sf%02d: %08x %08x ", fregs, i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		sprintf(fregs, "%sf%02d: %08llx %08llx ", fregs, i,
+			PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 	}
 
 	char ppcInst[256];

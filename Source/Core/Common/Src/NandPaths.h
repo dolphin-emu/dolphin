@@ -17,6 +17,8 @@
 
 #ifndef __NANDPATHS_H__
 #define __NANDPATHS_H__
+
+#include <string>
 #include "CommonTypes.h"
 
 #define TITLEID_SYSMENU 0x0000000100000002ull
