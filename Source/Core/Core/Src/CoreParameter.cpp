@@ -47,7 +47,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bLockThreads(false),
   bEnableCheats(false),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), iTLBHack(0), bAlternateRFI(false),
+  bMMU(false), bMMUBAT(false), iTLBHack(0), bAlternateRFI(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false), 
   bAutoHideCursor(false), bUsePanicHandlers(true),
@@ -71,6 +71,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bLockThreads = true;
 	bEnableFPRF = false;
 	bMMU = false;
+	bMMUBAT = false;
 	iTLBHack = 0;
 	bAlternateRFI = false;
 	SelectedLanguage = 0;

@@ -291,7 +291,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	MMU->SetToolTip(wxT("Enables the Memory Management Unit, needed for some games (slow)."));
+	MMU->SetToolTip(wxT("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
+	MMUBAT = new wxCheckBox(m_GameConfig, ID_MMUBAT, _("Enable BAT"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	MMUBAT->SetToolTip(wxT("Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"));
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack->SetToolTip(wxT("Fast version of the MMU.  Does not work for every game."));
 	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -354,6 +356,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(MMUBAT, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(AlternateRFI, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
@@ -824,6 +827,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		MMU->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "BAT", &bTemp))
+		MMUBAT->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		MMUBAT->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Core", "TLBHack", &bTemp))
 		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -919,6 +927,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "MMU");
 	else
 		GameIni.Set("Core", "MMU", MMU->Get3StateValue());
+
+	if (MMUBAT->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "BAT");
+	else
+		GameIni.Set("Core", "BAT", MMUBAT->Get3StateValue());
 
 	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "TLBHack");

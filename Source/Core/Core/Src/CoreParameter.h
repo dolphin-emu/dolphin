@@ -79,6 +79,7 @@ struct SCoreStartupParameter
 	bool bRunCompareClient;
 
 	bool bMMU;
+	bool bMMUBAT;
 	int iTLBHack;
 	bool bAlternateRFI;
 
