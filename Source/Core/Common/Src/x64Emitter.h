@@ -526,8 +526,6 @@ public:
 	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
 
-	void PSRAD(X64Reg dest, int shift);
-
 	void PAND(X64Reg dest, OpArg arg);
 	void PANDN(X64Reg dest, OpArg arg);   
 	void PXOR(X64Reg dest, OpArg arg);    
@@ -581,8 +579,15 @@ public:
 	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
 
 	void PSRLW(X64Reg reg, int shift);
+	void PSRLD(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, int shift);
+
 	void PSLLW(X64Reg reg, int shift);
+	void PSLLD(X64Reg reg, int shift);
+	void PSLLQ(X64Reg reg, int shift);
+
 	void PSRAW(X64Reg reg, int shift);
+	void PSRAD(X64Reg reg, int shift);
 
 	void RTDSC();
 

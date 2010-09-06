@@ -1200,6 +1200,36 @@ void XEmitter::PUNPCKLWD(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x61, tr
 void XEmitter::PUNPCKLDQ(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x62, true, dest, arg);}
 //void PUNPCKLQDQ(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x60, true, dest, arg);}
 
+void XEmitter::PSRLW(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x71, true, (X64Reg)2, R(reg));
+	Write8(shift);
+}
+
+void XEmitter::PSRLD(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x72, true, (X64Reg)2, R(reg));
+	Write8(shift);
+}
+
+void XEmitter::PSRLQ(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x73, true, (X64Reg)2, R(reg));
+	Write8(shift);
+}
+
+void XEmitter::PSLLW(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x71, true, (X64Reg)6, R(reg));
+	Write8(shift);
+}
+
+void XEmitter::PSLLD(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x72, true, (X64Reg)6, R(reg));
+	Write8(shift);
+}
+
+void XEmitter::PSLLQ(X64Reg reg, int shift) {
+	WriteSSEOp(64, 0x73, true, (X64Reg)6, R(reg));
+	Write8(shift);
+}
+
 // WARNING not REX compatible
 void XEmitter::PSRAW(X64Reg reg, int shift) {
 	if (reg > 7)
@@ -1208,16 +1238,6 @@ void XEmitter::PSRAW(X64Reg reg, int shift) {
 	Write8(0x0f);
 	Write8(0x71);
 	Write8(0xE0 | reg);
-	Write8(shift);
-}
-
-void XEmitter::PSRLW(X64Reg reg, int shift) {
-	WriteSSEOp(64, 0x71, true, (X64Reg)2, R(reg));
-	Write8(shift);
-}
-
-void XEmitter::PSLLW(X64Reg reg, int shift) {
-	WriteSSEOp(64, 0x71, true, (X64Reg)6, R(reg));
 	Write8(shift);
 }
 
