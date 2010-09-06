@@ -141,7 +141,7 @@ public:
 	// Utilities for use by opcodes
 
 	void WriteExit(u32 destination, int exit_num);
-	void WriteExitDestInEAX(int exit_num);
+	void WriteExitDestInEAX();
 	void WriteExceptionExit();
 	void WriteRfiExitDestInEAX();
 	void WriteCallInterpreter(UGeckoInstruction _inst);

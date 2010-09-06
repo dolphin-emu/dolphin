@@ -265,11 +265,6 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		((em_address & 0xF0000000) == 0x00000000))
 	{
 		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
-
-		// Required for games with self modifying code (e.g. Monster House)
-		if (Core::g_CoreStartupParameter.bSMC)
-			Write_Opcode_JIT(em_address, 0x14141414);
-
 		return;
 	}
 	else if (((em_address & 0xF0000000) == 0x90000000) ||

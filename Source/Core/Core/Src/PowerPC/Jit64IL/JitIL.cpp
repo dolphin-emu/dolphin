@@ -246,7 +246,7 @@ void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInOpArg(R(EAX), 0);
+	WriteExitDestInOpArg(R(EAX));
 }
 
 void JitIL::DoNothing(UGeckoInstruction _inst)
@@ -314,7 +314,7 @@ void JitIL::WriteExit(u32 destination, int exit_num)
 	}
 }
 
-void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg, int exit_num)
+void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();

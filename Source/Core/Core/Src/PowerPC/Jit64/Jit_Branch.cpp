@@ -68,9 +68,12 @@ void Jit64::rfi(UGeckoInstruction inst)
 	MOV(32, R(EAX), M(&SRR1));
 	AND(32, R(EAX), Imm32(mask & clearMSR13));
 	OR(32, M(&MSR), R(EAX));
-	// NPC = SRR0; 
+	// NPC = SRR0;
 	MOV(32, R(EAX), M(&SRR0));
-	WriteRfiExitDestInEAX();
+	if (Core::g_CoreStartupParameter.bAlternateRFI)
+		WriteExitDestInEAX();
+	else
+		WriteRfiExitDestInEAX();
 }
 
 void Jit64::bx(UGeckoInstruction inst)
@@ -92,7 +95,7 @@ void Jit64::bx(UGeckoInstruction inst)
 			destination = js.compilerPC + SignExt26(inst.LI << 2);
 #ifdef ACID_TEST
 		if (inst.LK)
-			AND(32, M(&CR), Imm32(~(0xFF000000)));
+			AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 #endif
 		if (destination == js.compilerPC)
 		{
@@ -181,7 +184,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		WriteExitDestInEAX(0);
+		WriteExitDestInEAX();
 	}
 	else
 	{
@@ -203,7 +206,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-		WriteExitDestInEAX(0);
+		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
 		WriteExit(js.compilerPC + 4, 1);
@@ -241,14 +244,14 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		// This below line can be used to prove that blr "eats flags" in practice.
 		// This observation will let us do a lot of fun observations.
 #ifdef ACID_TEST
-		AND(32, M(&CR), Imm32(~(0xFF000000)));
+		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 #endif
 
 	MOV(32, R(EAX), M(&LR));	
 	AND(32, R(EAX), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-	WriteExitDestInEAX(0);
+	WriteExitDestInEAX();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );

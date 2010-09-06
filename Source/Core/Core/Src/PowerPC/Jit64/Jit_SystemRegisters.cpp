@@ -104,14 +104,11 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	}
 }
 
-
-// =======================================================================================
-// Don't interpret this, if we do we get thrown out
-// --------------
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+ 	// Don't interpret this, if we do we get thrown out
+	//JITDISABLE(SystemRegisters)
 	if (!gpr.R(inst.RS).IsImm())
 	{
 		gpr.Lock(inst.RS);
@@ -123,8 +120,6 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	fpr.Flush(FLUSH_ALL);
 	WriteExit(js.compilerPC + 4, 0);
 }
-// ==============
-
 
 void Jit64::mfmsr(UGeckoInstruction inst)
 {

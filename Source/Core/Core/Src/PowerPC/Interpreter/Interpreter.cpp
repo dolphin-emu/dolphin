@@ -75,12 +75,43 @@ static void patches()
 	}*/
 }
 
-void Interpreter::SingleStepInner(void)
+int startTrace = 0;
+
+void Trace( UGeckoInstruction &instCode )
+{
+	char regs[500]="";
+	for (int i=0; i<32; i++) {
+		sprintf(regs, "%sr%02d: %08x ", regs, i, PowerPC::ppcState.gpr[i]);
+	}
+
+	char fregs[500]="";
+	for (int i=0; i<32; i++) {
+		sprintf(fregs, "%sf%02d: %08x %08x ", fregs, i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+	}
+
+	char ppcInst[256];
+	DisassembleGekko(instCode.hex, PC, ppcInst, 256);
+
+	DEBUG_LOG(POWERPC, "INTER PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, instCode.hex, ppcInst);
+}
+
+int Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
 
 	NPC = PC + sizeof(UGeckoInstruction);
 	instCode.hex = Memory::Read_Opcode(PC);
+
+	// Uncomment to trace the interpreter
+	//if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
+	//	startTrace = 1;
+	//else
+	//	startTrace = 0;
+
+	if (startTrace)
+	{
+		Trace(instCode);
+	}
 
 	if (instCode.hex != 0)
 	{
@@ -131,6 +162,9 @@ void Interpreter::SingleStepInner(void)
 	PowerPC::ppcState.DebugCount++;
 #endif
     patches();
+
+	GekkoOPInfo *opinfo = GetOpInfo(instCode);
+	return opinfo->numCyclesMinusOne + 1;
 }
 
 void Interpreter::SingleStep()
@@ -224,11 +258,12 @@ void Interpreter::Run()
 			{
 				m_EndBlock = false;
 				int i;
+				int cycles = 0;
 				for (i = 0; !m_EndBlock; i++)
 				{
-					SingleStepInner();
+					cycles += SingleStepInner();
 				}
-				CoreTiming::downcount -= i;
+				CoreTiming::downcount -= cycles;
 			}
 		}
 

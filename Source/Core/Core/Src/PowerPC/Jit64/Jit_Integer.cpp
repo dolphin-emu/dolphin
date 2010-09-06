@@ -290,14 +290,14 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 					MOV(32, R(EAX), M(&CTR));
 					AND(32, R(EAX), Imm32(0xFFFFFFFC));
-					WriteExitDestInEAX(0);  
+					WriteExitDestInEAX();  
 				}
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 				{
 					MOV(32, R(EAX), M(&LR));
 					if (js.next_inst.LK)
 						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-					WriteExitDestInEAX(0);  
+					WriteExitDestInEAX();  
 				}
 				else
 				{
@@ -395,7 +395,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 				MOV(32, R(EAX), M(&CTR));
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
-				WriteExitDestInEAX(0);  
+				WriteExitDestInEAX();  
 			}
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 			{
@@ -403,7 +403,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
 				if (js.next_inst.LK)
 					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-				WriteExitDestInEAX(0);  
+				WriteExitDestInEAX();  
 			}
 			else
 			{

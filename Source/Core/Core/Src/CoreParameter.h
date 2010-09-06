@@ -79,8 +79,8 @@ struct SCoreStartupParameter
 	bool bRunCompareClient;
 
 	bool bMMU;
-	bool bSMC;
 	int iTLBHack;
+	bool bAlternateRFI;
 
 	int SelectedLanguage;
 

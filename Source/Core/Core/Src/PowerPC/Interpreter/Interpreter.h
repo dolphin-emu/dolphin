@@ -29,7 +29,8 @@ public:
 	void Shutdown();
 	void Reset();	
 	void SingleStep();	
-	void SingleStepInner();	
+	int SingleStepInner();	
+
 	void Run();
 	void ClearCache();
 	const char *GetName();

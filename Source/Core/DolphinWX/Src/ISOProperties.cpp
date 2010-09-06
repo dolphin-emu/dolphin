@@ -291,8 +291,11 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	MMU->SetToolTip(wxT("Enables the Memory Management Unit, needed for some games (slow)."));
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	SMC = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable self modifying code check"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	TLBHack->SetToolTip(wxT("Fast version of the MMU.  Does not work for every game."));
+	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	AlternateRFI->SetToolTip(wxT("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -352,7 +355,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(SMC, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(AlternateRFI, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
@@ -826,10 +829,10 @@ void CISOProperties::LoadGameConfig()
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "SMC", &bTemp))
-		SMC->Set3StateValue((wxCheckBoxState)bTemp);
+	if (GameIni.Get("Core", "AlternateRFI", &bTemp))
+		AlternateRFI->Set3StateValue((wxCheckBoxState)bTemp);
 	else
-		SMC->Set3StateValue(wxCHK_UNDETERMINED);
+		AlternateRFI->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
@@ -922,10 +925,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
 
-	if (SMC->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "SMC");
+	if (AlternateRFI->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "AlternateRFI");
 	else
-		GameIni.Set("Core", "SMC", SMC->Get3StateValue());
+		GameIni.Set("Core", "AlternateRFI", AlternateRFI->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");

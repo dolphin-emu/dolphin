@@ -255,7 +255,7 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
 	fpr.Flush(FLUSH_ALL);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInEAX(0);
+	WriteExitDestInEAX();
 }
 
 void Jit64::DoNothing(UGeckoInstruction _inst)
@@ -321,7 +321,7 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 	}
 }
 
-void Jit64::WriteExitDestInEAX(int exit_num) 
+void Jit64::WriteExitDestInEAX() 
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
@@ -379,7 +379,7 @@ void Jit64::Trace()
 	}
 #endif	
 
-	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
+	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
 		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
 		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
