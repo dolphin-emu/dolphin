@@ -49,6 +49,7 @@ The register allocation is linear scan allocation.
 #include "x64Emitter.h"
 #include "../../../../Common/Src/CPUDetect.h"
 #include "MathUtil.h"
+#include "../../Core.h"
 
 static ThunkManager thunks;
 
@@ -1261,6 +1262,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) = 
 				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
 #ifdef _M_X64
+				// TODO: Remove regEnsureInReg() and use ECX
 				X64Reg address = regEnsureInReg(RI, getOp1(I));
 				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
 #else
@@ -1328,22 +1330,62 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case StoreDouble: {
 			regSpill(RI, EAX);
-			// FIXME: Use 64-bit where possible
-			// FIXME: Use unsafe write with pshufb where possible
-			unsigned fspill = fregGetSpill(RI, getOp1(I));
-			if (!fspill) {
-				// Force the value to spill, so we can use
-				// memory operations to load it
-				fspill = fregCreateSpill(RI, getOp1(I));
-				X64Reg reg = fregLocForInst(RI, getOp1(I)).GetSimpleReg();
-				RI.Jit->MOVAPD(fregLocForSlot(RI, fspill), reg);
+			// Please fix the following code
+			// if SafeWriteRegToReg() is modified.
+			u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+			if (Core::g_CoreStartupParameter.bMMU ||
+				Core::g_CoreStartupParameter.iTLBHack) {
+				mem_mask |= Memory::ADDR_MASK_MEM1;
 			}
-			Jit->MOV(32, R(EAX), fregLocForSlotPlusFour(RI, fspill));
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
-			Jit->MOV(32, R(EAX), fregLocForSlot(RI, fspill));
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4);
+			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
+			FixupBranch safe = Jit->J_CC(CC_NZ);
+				// Fast routine
+				if (cpu_info.bSSSE3) {
+					static const u32 GC_ALIGNED16(maskSwapa64_1[4]) = 
+					{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
+
+					X64Reg value = fregBinLHSRegWithMov(RI, I);
+					Jit->PSHUFB(value, M((void*)maskSwapa64_1));
+					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+#ifdef _M_X64
+					Jit->MOVQ_xmm(MComplex(RBX, ECX, SCALE_1, 0), value);
+#else
+					Jit->AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+					Jit->MOVQ_xmm(MDisp(ECX, (u32)Memory::base), value);
+#endif
+				} else {
+					regSpill(RI, EAX);
+					OpArg loc = fregLocForInst(RI, getOp1(I));
+					if (!loc.IsSimpleReg() || !(RI.IInfo[I - RI.FirstI] & 4)) {
+						Jit->MOVAPD(XMM0, loc);
+						loc = R(XMM0);
+					}
+					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
+					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 4);
+
+					Jit->PSRLQ(loc.GetSimpleReg(), 32);
+					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
+					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
+				}
+			FixupBranch exit = Jit->J();
+			Jit->SetJumpTarget(safe);
+				// Safe but slow routine
+				OpArg value = fregLocForInst(RI, getOp1(I));
+				OpArg address = regLocForInst(RI, getOp2(I));
+				Jit->MOVAPD(XMM0, value);
+				Jit->PSRLQ(XMM0, 32);
+				Jit->MOVD_xmm(R(EAX), XMM0);
+				Jit->MOV(32, R(ECX), address);
+				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+
+				Jit->MOVAPD(XMM0, value);
+				Jit->MOVD_xmm(R(EAX), XMM0);
+				Jit->MOV(32, R(ECX), address);
+				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4);
+			Jit->SetJumpTarget(exit);
+
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
