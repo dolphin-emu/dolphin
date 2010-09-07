@@ -25,7 +25,11 @@
 
 namespace Common
 {
-	std::string CreateTicketFileName(u64 _TitleID);
-	std::string CreateTitleContentPath(u64 _TitleID);
+	std::string CreateTicketFileName(u64 _titleID);
+	std::string CreateTitleDataPath(u64 _titleID);
+	std::string CreateTitleContentPath(u64 _titleID);
+	bool CheckTitleTMD(u64 _titleID);
+	bool CheckTitleTIK(u64 _titleID);
 }
 #endif
+

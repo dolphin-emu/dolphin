@@ -18,6 +18,7 @@
 #include "Common.h"
 
 #include "WII_IPC_HLE_Device_DI.h"
+#include "WII_IPC_HLE.h"
 
 #include "../HW/DVDInterface.h"
 #include "../HW/CPU.h"
@@ -119,13 +120,20 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 			// Get TMD offset for requested partition...
 			u64 TMDOffset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2 ) + 0x2c0;
-			
+
 			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016llx", TMDOffset);
 
+			u32 TMDsz = CommandBuffer.PayloadBuffer[0].m_Size;
+			u8 *pTMD = new u8[TMDsz];
+			if (pTMD)
+			{
 			// Read TMD to the buffer
-			readOK |= VolumeHandler::RAWReadToPtr(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address),
-				TMDOffset, CommandBuffer.PayloadBuffer[0].m_Size);
+				VolumeHandler::RAWReadToPtr(pTMD, TMDOffset, TMDsz);
 
+				memcpy(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), pTMD, TMDsz);
+				readOK |= true;
+				WII_IPC_HLE_Interface::ES_DIVerify(pTMD, TMDsz);
+			}
 			ReturnValue = readOK ? 1 : 0;
 		}
 		break;

@@ -55,7 +55,7 @@
 
 #include "../Boot/Boot_DOL.h"
 #include "NandPaths.h"
-
+#include "CommonPaths.h"
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pContentLoader(NULL)
@@ -82,9 +82,12 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
         m_TitleID = m_pContentLoader->GetTitleID();
 		// System menu versions about 0xE0 will indicate that system files are corrupted if there is more than one title
 		// TODO: fix System menu versions above this and remove this check
+
 		if (m_pContentLoader->GetTitleVersion() <= 0xE0)
 		{
 			DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
+			// uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+			// DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
 		}
 		else
 		{
@@ -156,7 +159,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
 	};
 
-    switch (Buffer.Parameter)
+	switch (Buffer.Parameter)
     {
 	case IOCTL_ES_GETDEVICEID:
 		{
@@ -387,7 +390,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
             _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
-
+			// TODO: fs permissions based on this
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
         }
@@ -787,4 +790,36 @@ bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
     return false;
 }
 
+
+u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
+{
+	u64 titleID = 0xDEADBEEFDEADBEEFull;
+	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
+	VolumeHandler::GetVolume()->GetTitleID((u8*)&titleID);
+	if (Common::swap64(titleID) != tmdTitleID)
+	{
+		return -1;
+	}
+	std::string contentPath,
+				dataPath,
+				tmdPath;
+	contentPath = Common::CreateTitleContentPath(tmdTitleID) + DIR_SEP;
+	dataPath	= Common::CreateTitleDataPath(tmdTitleID) + DIR_SEP;
+	tmdPath = contentPath + "/title.tmd";
+
+	File::CreateFullPath(contentPath.c_str());
+	File::CreateFullPath(dataPath.c_str());
+	if(!File::Exists(tmdPath.c_str()))
+	{
+		FILE* _pTMDFile = fopen(tmdPath.c_str(), "wb");
+		if (_pTMDFile)
+		{
+			if (fwrite(_pTMD, _sz, 1, _pTMDFile) != 1)
+				ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc tmd to nand");
+			fclose(_pTMDFile);
+		}
+	}
+	DiscIO::cUIDsys::AccessInstance().AddTitle(tmdTitleID);
+	return 0;
+}
 
