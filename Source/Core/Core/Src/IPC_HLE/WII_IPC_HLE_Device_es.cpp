@@ -134,7 +134,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 {
     SIOCtlVBuffer Buffer(_CommandAddress);
 
-    INFO_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
+    DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
 
     // Prepare the out buffer(s) with zeroes as a safety precaution
     // to avoid returning bad values
@@ -372,7 +372,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
             sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s)", Path);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
         }
         break;
 
@@ -445,7 +445,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (TitleID != TITLEID_SYSMENU && (u32)(TitleID >> 32) == 0x00000001 && m_TitleID == TITLEID_SYSMENU)
 			{
 				// TODO: Check if any titles other than 1-2 call this for a ios tik
-				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT Give sysmenu tik for ios %x tik", TitleID & 0xFFFFFFFF);
+				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT tik for IOS %x requested, returning System Menu tik", TitleID & 0xFFFFFFFF);
 				TitleID = TITLEID_SYSMENU;
 			}
 
@@ -466,7 +466,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             {
                 if (TitleID == TITLEID_SYSMENU)
                 {
-                    PanicAlert("There must be a ticket for 00000001/00000002. Prolly your NAND dump is incomplete");
+                    PanicAlert("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
                 }
                 ViewCount = 0;
             }
@@ -480,47 +480,48 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         break;
 
     case IOCTL_ES_GETVIEWS:
-        {
-            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETVIEWS no in buffer");
-            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWS no out buffer");
+		{
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETVIEWS no in buffer");
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWS no out buffer");
 
-            u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			u32 maxViews = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 
 			if (TitleID != TITLEID_SYSMENU && (u32)(TitleID >> 32) == 0x00000001 && m_TitleID == TITLEID_SYSMENU)
 			{
 				// TODO: Check if any titles other than 1-2 call this for a ios tik
-				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT Give sysmenu tik for ios %x tik", TitleID & 0xFFFFFFFF);
+				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS tik for IOS %x requested, returning System Menu tik", TitleID & 0xFFFFFFFF);
 				TitleID = TITLEID_SYSMENU;
 			}
 
-            std::string TicketFilename = Common::CreateTicketFileName(TitleID);
-            if (File::Exists(TicketFilename.c_str()))
-            {
-                const u32 SIZE_OF_ONE_TICKET = 676;
-                FILE* pFile = fopen(TicketFilename.c_str(), "rb");
-                if (pFile)
-                {
-                    int View = 0;
-                    u8 Ticket[SIZE_OF_ONE_TICKET];
-                    while (fread(Ticket, SIZE_OF_ONE_TICKET, 1, pFile) == 1)
-                    {
-                        Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address);
-                        Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address+4, 212);
-                        View++;
-                    }
-                    fclose(pFile);
-                }
-            }
-            else
-            {
-                PanicAlert("IOCTL_ES_GETVIEWS: Try to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
-            }
+			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
+			if (File::Exists(TicketFilename.c_str()))
+			{
+				const u32 SIZE_OF_ONE_TICKET = 676;
+				FILE* pFile = fopen(TicketFilename.c_str(), "rb");
+				if (pFile)
+				{
+					int View = 0;
+					u8 Ticket[SIZE_OF_ONE_TICKET];
+					while (View < maxViews && fread(Ticket, SIZE_OF_ONE_TICKET, 1, pFile) == 1)
+					{
+						Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
+						Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
+						View++;
+					}
+					fclose(pFile);
+				}
+			}
+			else
+			{
+				PanicAlert("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+			}
 
-            INFO_LOG(WII_IPC_ES, "ES: IOCTL_ES_GETVIEWS for titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID );
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);
-            return true;
-        }
+			Memory::Write_U32(0, _CommandAddress + 0x4);
+			return true;
+		}
         break;
 
     case IOCTL_ES_GETTMDVIEWCNT:
