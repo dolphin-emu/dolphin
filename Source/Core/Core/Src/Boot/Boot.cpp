@@ -31,6 +31,7 @@
 #include "../HW/DVDInterface.h"
 #include "../HW/VideoInterface.h"
 #include "../HW/CPU.h"
+#include "../IPC_HLE/WII_IPC_HLE.h"
 
 #include "../Debugger/Debugger_SymbolMap.h" // Debugger
 
@@ -190,6 +191,16 @@ bool CBoot::BootUp()
 		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
+
+		u32 _TMDsz = 0x208;
+		u8* _pTMD = new u8[_TMDsz];
+		pVolume->GetTMD(_pTMD, &_TMDsz);
+		if (_TMDsz)
+		{
+			WII_IPC_HLE_Interface::ES_DIVerify(_pTMD, _TMDsz);
+		}
+		delete []_pTMD;
+
 
 		_StartupPara.bWii = VolumeHandler::IsWii();
 

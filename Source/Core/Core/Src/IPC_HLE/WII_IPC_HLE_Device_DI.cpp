@@ -123,7 +123,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016llx", TMDOffset);
 
-			u32 TMDsz = CommandBuffer.PayloadBuffer[0].m_Size;
+			u32 TMDsz = 0x208; //CommandBuffer.PayloadBuffer[0].m_Size;
 			u8 *pTMD = new u8[TMDsz];
 			if (pTMD)
 			{

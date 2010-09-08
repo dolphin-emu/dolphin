@@ -204,7 +204,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGr
 
 			// -1 means the caller just wanted the partition with matching type
 			if ((int)_VolumeNum == -1 || i == _VolumeNum)
-				return new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey);
+				return new CVolumeWiiCrypted(&_rReader, rPartition.Offset, VolumeKey);
 		}
 	}
 

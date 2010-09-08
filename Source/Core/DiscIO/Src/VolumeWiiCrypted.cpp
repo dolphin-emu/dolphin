@@ -28,6 +28,7 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 	: m_pReader(_pReader),
 	m_pBuffer(0),
 	m_VolumeOffset(_VolumeOffset),
+	dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
 {
 	AES_set_decrypt_key(_pVolumeKey, 128, &m_AES_KEY);
@@ -71,7 +72,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 		u64 Offset = _ReadOffset % 0x7C00;
 
 		// read current block
-		if (!m_pReader->Read(m_VolumeOffset + Block * 0x8000, 0x8000, m_pBuffer))
+		if (!m_pReader->Read(m_VolumeOffset + dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
 		{
 			return(false);
 		}
@@ -100,9 +101,24 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
 {
-	return RAWRead((u64)0x0F8001DC, 8, _pBuffer);
+	// Tik is at m_VolumeOffset size 0x2A4
+	// TitleID offset in tik is 0x1DC
+	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
 }
+void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
+{
+	*_sz = 0;
+	u32 tmdSz,
+		tmdAddr;
 
+	RAWRead(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmdSz);
+	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmdAddr);
+	tmdSz = Common::swap32(tmdSz);
+	tmdAddr = Common::swap32(tmdAddr) << 2;
+	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, _pBuffer);
+	*_sz = tmdSz;
+}
+	
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == NULL)

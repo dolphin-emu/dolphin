@@ -34,6 +34,7 @@ public:
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool GetTitleID(u8* _pBuffer) const;
+	void GetTMD(u8* _pBuffer, u32* _sz) const;
 	std::string GetUniqueID() const;
 	std::string GetMakerID() const;
 	std::string GetName() const;
@@ -49,6 +50,7 @@ private:
 	AES_KEY m_AES_KEY;
 
 	u64 m_VolumeOffset;
+	u64 dataOffset;
 
 	mutable u64 m_LastDecryptedBlockOffset;
 	mutable unsigned char m_LastDecryptedBlock[0x8000];
