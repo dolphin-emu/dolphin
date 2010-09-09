@@ -26,10 +26,8 @@
 
 #define GLEW_STATIC
 
-#include <GLew/glew.h>
-#include <GLew/wglew.h>
-#include <GLew/gl.h>
-#include <GLew/glext.h>
+#include <GL/glew.h>
+#include <GL/wglew.h>
 
 #else // linux and apple basic definitions
 
