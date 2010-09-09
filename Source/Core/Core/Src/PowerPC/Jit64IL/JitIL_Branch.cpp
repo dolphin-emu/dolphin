@@ -59,8 +59,17 @@ void JitIL::bx(UGeckoInstruction inst)
 	NORMALBRANCH_START
 	INSTRUCTION_START;
 
+	// We must always process the following sentence
+	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
 		ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+
+	// If this is not the last instruction of a block,
+	// we will skip the rest process.
+	// Because PPCAnalyst::Flatten() merged the blocks.
+	if (!js.isLastInstruction) {
+		return;
+	}
 
 	u32 destination;
 	if (inst.AA)

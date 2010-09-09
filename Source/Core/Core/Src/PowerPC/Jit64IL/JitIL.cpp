@@ -152,7 +152,7 @@ ps_adds1
 
 */
 
-static int CODE_SIZE = 1024*1024*16;
+static int CODE_SIZE = 1024*1024*32;
 
 namespace CPUCompare
 {

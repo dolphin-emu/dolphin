@@ -81,36 +81,39 @@ void Jit64::bx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Branch)
 
+	// We must always process the following sentence
+	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+
+	// If this is not the last instruction of a block,
+	// we will skip the rest process.
+	// Because PPCAnalyst::Flatten() merged the blocks.
+	if (!js.isLastInstruction) {
+		return;
+	}
+
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 
-	if (js.isLastInstruction)
-	{
-		u32 destination;
-		if (inst.AA)
-			destination = SignExt26(inst.LI << 2);
-		else
-			destination = js.compilerPC + SignExt26(inst.LI << 2);
+	u32 destination;
+	if (inst.AA)
+		destination = SignExt26(inst.LI << 2);
+	else
+		destination = js.compilerPC + SignExt26(inst.LI << 2);
 #ifdef ACID_TEST
-		if (inst.LK)
-			AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+	if (inst.LK)
+		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 #endif
-		if (destination == js.compilerPC)
-		{
-			//PanicAlert("Idle loop detected at %08x", destination);
+	if (destination == js.compilerPC)
+	{
+		//PanicAlert("Idle loop detected at %08x", destination);
 		//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
 		//	JMP(Asm::testExceptions, true);
-			// make idle loops go faster
-			js.downcountAmount += 8;
-		}
-		WriteExit(destination, 0);
+		// make idle loops go faster
+		js.downcountAmount += 8;
 	}
-	else {
-		// TODO: investigate the good old method of merging blocks here.
-		PanicAlert("bx not last instruction of block"); // this should not happen
-	}
+	WriteExit(destination, 0);
 }
 
 // TODO - optimize to hell and beyond

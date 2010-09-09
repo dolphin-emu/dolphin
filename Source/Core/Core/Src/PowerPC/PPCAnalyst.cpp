@@ -40,10 +40,9 @@ namespace PPCAnalyst {
 
 using namespace std;
 
-enum
-{
-	CODEBUFFER_SIZE = 32000,
-};
+static const int CODEBUFFER_SIZE = 32000;
+// 0 does not perform block merging
+static const int FUNCTION_FOLLOWING_THRESHOLD = 0;
 
 CodeBuffer::CodeBuffer(int size)
 {
@@ -446,9 +445,15 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 			}
 			if (follow)
 				numFollows++;
-			if (numFollows > 1)
+			// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
+			//       If it is small, the performance will be down.
+			//       If it is big, the size of generated code will be big and
+			//       cache clearning will happen many times.
+			// TODO: Investivate the reason why
+			//       "0" is fastest in some games, MP2 for example.
+			if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
 				follow = false;
-			follow = false;
+
 			if (!follow)
 			{
 				if (opinfo->flags & FL_ENDBLOCK) //right now we stop early
@@ -460,7 +465,9 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 			}
 			else
 			{
-				code[i].skip = true;
+				// We don't "code[i].skip = true" here
+				// because bx may store a certain value to the link register.
+				// Instead, we skip a part of bx in Jit**::bx().
 				address = destination;
 			}
 		}
