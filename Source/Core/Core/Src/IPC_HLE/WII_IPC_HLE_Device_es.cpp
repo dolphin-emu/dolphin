@@ -80,19 +80,10 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     if (m_pContentLoader->IsValid())
     {
         m_TitleID = m_pContentLoader->GetTitleID();
-		// System menu versions about 0xE0 will indicate that system files are corrupted if there is more than one title
-		// TODO: fix System menu versions above this and remove this check
 
-		if (m_pContentLoader->GetTitleVersion() <= 0xE0)
-		{
-			DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
-			// uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-			// DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
-		}
-		else
-		{
-			m_TitleIDs.push_back(TITLEID_SYSMENU);
-		}
+		DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
+		// uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+		// DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
     }
     else if (VolumeHandler::IsValid())
     {

@@ -319,12 +319,6 @@ void ExecuteCommand(u32 _Address)
 				// The device is already created 
                 pDevice = AccessDeviceByID(DeviceID);
 
-				// If we return -6 here after a Open > Failed > CREATE_FILE > ReOpen call
-				//   sequence Mario Galaxy and Mario Kart Wii will not start writing to the file,
-				//   it will just (seemingly) wait for one or two seconds and then give an error
-				//   message. So I'm trying to return the DeviceID instead to make it write to the file.
-				//   (Which was most likely the reason it created the file in the first place.)
-
 				// F|RES: prolly the re-open is just a mode change
 
                 INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
@@ -332,23 +326,7 @@ void ExecuteCommand(u32 _Address)
 
 				if (pDevice->IsHardware())
 				{
-					if (pDevice->IsOpened())
-					{
-						if (pDevice->GetDeviceName().find("/dev/net/kd/request") != std::string::npos)
-							// AyuanX: /dev/net/kd/request is more like event which doesn't need close so it can be reopened
-							pDevice->Open(_Address, Mode);
-						else
-							// We have already opened this hardware, return -6
-
-							// AyuanX: TO_BE_VERIFIED
-							// -6 seems to be a bad number as in NET it means "Retry Again"(?)
-							// I guess -4 stands for "Already Opened"(?)
-							Memory::Write_U32(u32(-6), _Address + 4);
-					}
-					else
-					{
-						pDevice->Open(_Address, Mode);
-					}
+					pDevice->Open(_Address, Mode);
 				}
 				else
 				{
