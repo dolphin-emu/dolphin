@@ -456,6 +456,29 @@ union UReg_HID2
 	UReg_HID2()			{ Hex = 0; }
 };
 
+// Hardware Implementation-Dependent Register 4
+union UReg_HID4
+{
+	struct
+	{
+		unsigned			:	20;
+		unsigned L2CFI		:	1;
+		unsigned L2MUM		:	1;
+		unsigned DBP		:	1;
+		unsigned LPE		:	1;
+		unsigned ST0		:	1;
+		unsigned SBE		:	1;
+		unsigned			:	1;
+		unsigned BPD		:	2;
+		unsigned L2FM		:	2;
+		unsigned			:	1;
+	};
+	u32 Hex;
+
+	UReg_HID4(u32 _hex)	{ Hex = _hex; }
+	UReg_HID4()			{ Hex = 0; }
+};
+
 // SPR1 - Page Table format
 union UReg_SPR1
 {
@@ -637,6 +660,7 @@ enum
 	SPR_HID0  = 1008,
 	SPR_HID1  = 1009,
 	SPR_HID2  = 920,
+	SPR_HID4  = 1011,
 	SPR_WPAR  = 921,
 	SPR_DMAU  = 922,
 	SPR_DMAL  = 923,

@@ -593,7 +593,18 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (memory_exception)
 	{
-		ABI_CallFunctionC(reinterpret_cast<void *>(&Memory::GenerateISIException_JIT), js.compilerPC);
+		// Address of instruction could not be translated
+		MOV(32, M(&NPC), Imm32(js.compilerPC));
+		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
+
+		// Remove the invalid instruction from the icache, forcing a recompile
+		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
+			MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+			MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+		else
+			MOV(32, M((jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+
 		WriteExceptionExit();
 	}
 

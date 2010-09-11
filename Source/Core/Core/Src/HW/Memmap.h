@@ -177,7 +177,6 @@ u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
 void InvalidateTLBEntry(u32 _Address);
 void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite);
 void GenerateISIException(u32 _EffectiveAdress);
-void GenerateISIException_JIT(u32 _EffectiveAdress);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 

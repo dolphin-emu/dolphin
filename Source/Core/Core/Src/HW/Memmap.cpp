@@ -501,14 +501,6 @@ void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 #endif	
 }
 
-void GenerateISIException_JIT(u32 _EffectiveAddress)
-{
-	GenerateISIException(_EffectiveAddress);
-
-	// Remove the invalid instruction from the icache, forcing a recompile
-	Write_Opcode_JIT(_EffectiveAddress, JIT_ICACHE_INVALID_WORD);
-}
-
 void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 {
 	memcpy(GetPointer(_Address), _pData, _iSize);

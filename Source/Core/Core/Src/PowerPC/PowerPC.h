@@ -118,6 +118,7 @@ void OnIdleIL();
 	// Easy register access macros.
 #define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
+#define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
 #define DMAU  (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
 #define DMAL  (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
 #define PC     PowerPC::ppcState.pc

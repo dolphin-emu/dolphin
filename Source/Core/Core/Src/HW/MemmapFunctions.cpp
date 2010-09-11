@@ -608,7 +608,6 @@ void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 void GenerateISIException(u32 _EffectiveAddress)
 {
 	// Address of instruction could not be translated
-	SRR1 = (1 << 30) | (MSR & 0x3fffff);
 	NPC = _EffectiveAddress;
 
 	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ISI);
@@ -892,8 +891,8 @@ u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	u32 result = 0;
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 
-	// TODO: Check for enhanced mode before switching to Wii mode
-	int bats = Core::g_CoreStartupParameter.bWii?8:4;
+	// Check for enhanced mode (secondary BAT enable) using 8 BATs
+	int bats = (Core::g_CoreStartupParameter.bWii && HID4.SBE)?8:4;
 
 	for (int i = 0; i < bats; i++) {
 		if (_Flag != FLAG_OPCODE)
@@ -944,9 +943,15 @@ u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	return 0;
 }
 
+// Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.
 u32 TranslateAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 {
-	// TODO: Check for MSR data/instruction address translation flag before translating
+	// Check MSR[IR] bit before translating instruction addresses.  Rogue Leader clears IR and DR??
+	//if ((_Flag == FLAG_OPCODE) && !(MSR & (1 << (31 - 26)))) return _Address;
+
+	// Check MSR[DR] bit before translating data addresses
+	//if (((_Flag == FLAG_READ) || (_Flag == FLAG_WRITE)) && !(MSR & (1 << (31 - 27)))) return _Address;
+
 	u32 tlb_addr = Core::g_CoreStartupParameter.bMMUBAT?TranslateBlockAddress(_Address, _Flag):0;
 	if (tlb_addr == 0)
 	{

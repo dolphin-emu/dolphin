@@ -279,20 +279,13 @@ void CheckExceptions()
 	if (!exceptions)
 		return;
 
-	// gcemu uses the mask 0x87C0FFFF instead of 0x0780FF77
-	// shuffle2: the MSR bits saved to SRR1 depend on the type of
-	// exception being taken, the common mask is 0x87C00008.
-	// I guess gcemu just uses 0x87C0FFFF for simplicity
-	// I think we should too, or else we would have to check what type of
-	// exception a rfi is returning from - I doubt a real cpu does this
-
 	// Example procedure:
 	// set SRR0 to either PC or NPC
 	//SRR0 = NPC;
 	// save specified MSR bits
 	//SRR1 = MSR & 0x87C0FFFF;
 	// copy ILE bit to LE
-	//MSR |= (MSR >> 17) & 1;
+	//MSR |= (MSR >> 16) & 1;
 	// clear MSR as specified
 	//MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
 	// set to exception type entry point
@@ -301,8 +294,9 @@ void CheckExceptions()
 	if (exceptions & EXCEPTION_ISI)
 	{
 		SRR0 = NPC;
-		//GenerateISIException() sets up SRR1
-		MSR |= (MSR >> 17) & 1;
+		// Page fault occurred
+		SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000400;
 
@@ -312,10 +306,9 @@ void CheckExceptions()
 	else if (exceptions & EXCEPTION_PROGRAM)
 	{
 		SRR0 = PC;
-		SRR1 = MSR & 0x87C0FFFF;
 		// say that it's a trap exception
-		SRR1 |= 0x40000;
-		MSR |= (MSR >> 17) & 1;
+		SRR1 = (MSR & 0x87C0FFFF) | 0x40000;
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000700;
 
@@ -326,7 +319,7 @@ void CheckExceptions()
 	{
 		SRR0 = NPC;
 		SRR1 = MSR & 0x87C0FFFF;
-		MSR |= (MSR >> 17) & 1;
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000C00;
 
@@ -338,12 +331,8 @@ void CheckExceptions()
 		//This happens a lot - Gamecube OS uses deferred FPU context switching
 		SRR0 = PC;	// re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
-		MSR |= (MSR >> 17) & 1;
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		// TODO: Verify whether the code below is correct
-		//SRR1 = MSR & 0x0000FFFF;
-		//MSR |= (MSR >> 16) & 1;
-		//MSR &= ~0x04EF32;
 		NPC = 0x80000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
@@ -353,7 +342,7 @@ void CheckExceptions()
 	{
 		SRR0 = PC;
 		SRR1 = MSR & 0x87C0FFFF;
-		MSR |= (MSR >> 17) & 1;
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000300;
 		//DSISR and DAR regs are changed in GenerateDSIException()
@@ -367,7 +356,7 @@ void CheckExceptions()
 		// perhaps we can get dcb* instructions to use this :p
 		SRR0 = PC;
 		SRR1 = MSR & 0x87C0FFFF;
-		MSR |= (MSR >> 17) & 1;
+		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000600;
 
@@ -385,7 +374,7 @@ void CheckExceptions()
 			// Pokemon gets this "too early", it hasn't a handler yet
 			SRR0 = NPC;
 			SRR1 = MSR & 0x87C0FFFF;
-			MSR |= (MSR >> 17) & 1;
+			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
 			NPC = 0x80000500;
 
@@ -398,7 +387,7 @@ void CheckExceptions()
 		{
 			SRR0 = NPC;
 			SRR1 = MSR & 0x87C0FFFF;
-			MSR |= (MSR >> 17) & 1;
+			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
 			NPC = 0x80000900;
 

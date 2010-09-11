@@ -1877,7 +1877,19 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 		case ISIException: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->ABI_CallFunctionC(reinterpret_cast<void *>(&Memory::GenerateISIException_JIT), InstLoc);
+
+			// Address of instruction could not be translated
+			Jit->MOV(32, M(&NPC), Imm32(InstLoc));
+			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
+
+			// Remove the invalid instruction from the icache, forcing a recompile
+			if (InstLoc & JIT_ICACHE_VMEM_BIT)
+				Jit->MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (InstLoc & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+			else if (InstLoc & JIT_ICACHE_EXRAM_BIT)
+				Jit->MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (InstLoc & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+			else
+				Jit->MOV(32, M((jit->GetBlockCache()->GetICache() + (InstLoc & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+
 			Jit->WriteExceptionExit();
 			break;
 		}
