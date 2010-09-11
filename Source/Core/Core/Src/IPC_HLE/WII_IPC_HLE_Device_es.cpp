@@ -81,8 +81,10 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     {
         m_TitleID = m_pContentLoader->GetTitleID();
 
+		m_TitleIDs.clear();
 		DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
 		// uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+		// m_TitleIDsOwned.clear();
 		// DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
     }
     else if (VolumeHandler::IsValid())
@@ -100,6 +102,8 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	if (m_Active)
+		INFO_LOG(WII_IPC_ES, "Device was ReOpened");
 	m_Active = true;
     return true;
 }
@@ -523,7 +527,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
 
-            _dbg_assert_(WII_IPC_ES, Loader.IsValid());
+            _dbg_assert_msg_(WII_IPC_ES, Loader.IsValid(), "Loader not valid for TitleID %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
             u32 TMDViewCnt = 0;
             if (Loader.IsValid())
             {
@@ -783,7 +787,7 @@ const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u6
 
     m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_TitleID);
 
-    _dbg_assert_(WII_IPC_ES, m_NANDContent[_TitleID]->IsValid());
+    _dbg_assert_msg_(WII_IPC_ES, m_NANDContent[_TitleID]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(_TitleID >> 32), (u32)_TitleID);
     return *m_NANDContent[_TitleID];
 }
 
