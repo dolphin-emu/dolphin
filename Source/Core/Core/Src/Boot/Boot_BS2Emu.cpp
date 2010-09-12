@@ -61,9 +61,8 @@ bool CBoot::EmulatedBS2_GC()
 	// Write necessary values
 	// Here we write values to memory that the apploader does not take care of. Game info goes
 	// to 0x80000000 according to yagcd 4.2.
-	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write disc info
+	DVDInterface::DVDRead(0x00000000, 0x80000000, 0x20); // write disc info
 
-	Memory::Write_U32(0xc2339f3d, 0x8000001C);	// gamecube game disc magic number
 	Memory::Write_U32(0x0D15EA5E, 0x80000020);	// booted from bootrom. 0xE5207C22 = booted from jtag
 	Memory::Write_U32(0x01800000, 0x80000028);	// Physical Memory Size (24MB on retail)
 	// TODO determine why some games fail when using a retail id. (Seem to take different EXI paths, see ikaruga for example)
@@ -214,27 +213,17 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	fclose(pTmp);
 
 
-	/* Set hardcoded global variables to Wii memory. These are partly collected from
+	/*
+	Set hardcoded global variables to Wii memory. These are partly collected from
 	Wiibrew. These values are needed for the games to function correctly. A few
 	values in this region will also be placed here by the game as it boots.
 	They are:
-
-	// Strange values that I don't know the meaning of, all games write these
-	0x00 to 0x18:	0x029f0010
-	0x029f0033
-	0x029f0034
-	0x029f0035
-	0x029f0036
-	0x029f0037
-	0x029f0038
-	0x029f0039 // Replaces the previous 0x5d1c9ea3 magic word
-
 	0x80000038	Start of FST
 	0x8000003c	Size of FST Size
-	0x80000060	Copyright code */	
+	0x80000060	Copyright code
+	*/	
 
-	DVDInterface::DVDRead(0x00000000, 0x00000000, 10); // Game Code
-	Memory::Write_U32(0x5d1c9ea3, 0x00000018);		// Magic word it is a wii disc
+	DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20); // Game Code
 	Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
 	Memory::Write_U32(0x00000001, 0x00000024);		// Unknown
 	Memory::Write_U32(0x01800000, 0x00000028);		// MEM1 size 24MB
