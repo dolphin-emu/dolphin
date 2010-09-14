@@ -72,7 +72,16 @@ int colElements[2];
 float posScale;
 float tcScale[8];
 
-static float texCoordFrac[32];
+static const float fractionTable[32] = {
+	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
+	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),
+	1.0f / (1U << 8), 1.0f / (1U << 9), 1.0f / (1U << 10), 1.0f / (1U << 11),
+	1.0f / (1U << 12), 1.0f / (1U << 13), 1.0f / (1U << 14), 1.0f / (1U << 15),
+	1.0f / (1U << 16), 1.0f / (1U << 17), 1.0f / (1U << 18), 1.0f / (1U << 19),
+	1.0f / (1U << 20), 1.0f / (1U << 21), 1.0f / (1U << 22), 1.0f / (1U << 23),
+	1.0f / (1U << 24), 1.0f / (1U << 25), 1.0f / (1U << 26), 1.0f / (1U << 27),
+	1.0f / (1U << 28), 1.0f / (1U << 29), 1.0f / (1U << 30), 1.0f / (1U << 31),
+};
 
 using namespace Gen;
 
@@ -179,10 +188,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
-
-	for (int i = 0; i < 32; ++i) {
-		texCoordFrac[i] = 1.0f / (1 << i);
-	}
 
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
@@ -577,10 +582,10 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
 	pVtxAttr = &m_VtxAttr;
-	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
+	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
-			tcScale[i] = texCoordFrac[m_VtxAttr.texCoord[i].Frac];
+			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
@@ -721,10 +726,10 @@ void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int co
 	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
 	pVtxAttr = &m_VtxAttr;
-	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
+	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
-			tcScale[i] = texCoordFrac[m_VtxAttr.texCoord[i].Frac];
+			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
