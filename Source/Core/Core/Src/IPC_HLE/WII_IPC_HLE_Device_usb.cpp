@@ -427,14 +427,14 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	// The Real Wiimote sends report at a fixed frequency of 100Hz
 	// So let's make it also 100Hz here
-	// Calculation: 15000Hz (IPC_HLE) / 100Hz (WiiMote) = 150
+	// Calculation: 1500Hz (IPC_HLE) / 100Hz (WiiMote) = 15
 	if (m_ACLEndpoint.IsValid())
 	{
-		if (++m_WiimoteUpdate_Freq > 150)
+		if (++m_WiimoteUpdate_Freq > 15)
 			m_WiimoteUpdate_Freq = 0;
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 		{
-			if (m_WiiMotes[i].IsConnected() && m_WiimoteUpdate_Freq == 150 / (i + 1))
+			if (m_WiiMotes[i].IsConnected() && m_WiimoteUpdate_Freq == 15 / (i + 1))
 			{
 				#if defined(HAVE_WX) && HAVE_WX
 				NetPlay_WiimoteUpdate(i);

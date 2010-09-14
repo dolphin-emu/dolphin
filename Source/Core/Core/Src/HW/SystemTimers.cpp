@@ -173,8 +173,10 @@ void AudioDMACallback(u64 userdata, int cyclesLate)
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
 		WII_IPC_HLE_Interface::Update();
-	CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
+		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
+	}
 }
 
 void VICallback(u64 userdata, int cyclesLate)
@@ -255,12 +257,12 @@ void Init()
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
 		// AyuanX: TO BE TWEAKED
-		// Now the 15000 is a pure assumption
+		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
 		// PS: When this period is tweaked, the FreqDividerMote
 		// in WII_IPC_HLE_Device_usb.cpp should also be tweaked accordingly
 		// to guarantee WiiMote updates at a fixed 100Hz
-		IPC_HLE_PERIOD = GetTicksPerSecond() / 15000;
+		IPC_HLE_PERIOD = GetTicksPerSecond() / 1500;
 	}
 	else
 	{

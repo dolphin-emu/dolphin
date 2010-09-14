@@ -137,6 +137,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 	if (pDevice)
 		pDevice->LoadWAD(_rFilename);
 }
+
 void ES_DIVerify(u8 *_pTMD, u32 _sz)
 {
 	CWII_IPC_HLE_Device_es* pDevice = (CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
@@ -448,14 +449,6 @@ void Update()
 
 	UpdateDevices();
 
-	if (reply_queue.size())
-	{
-		WII_IPCInterface::GenerateReply(reply_queue.front());
-		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-		reply_queue.pop();
-		return;
-	}
-
 	if (request_queue.size())
 	{
 		WII_IPCInterface::GenerateAck(request_queue.front());
@@ -464,9 +457,16 @@ void Update()
 		ExecuteCommand(request_queue.front());
 		request_queue.pop();
 
-		#if MAX_LOGLEVEL >= DEBUG_LEVEL
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
-		#endif
+#endif
+	}
+
+	if (reply_queue.size())
+	{
+		WII_IPCInterface::GenerateReply(reply_queue.front());
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+		reply_queue.pop();
 	}
 }
 

@@ -437,13 +437,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWCNT no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-			if (TitleID != TITLEID_SYSMENU && (u32)(TitleID >> 32) == 0x00000001 && m_TitleID == TITLEID_SYSMENU)
-			{
-				// TODO: Check if any titles other than 1-2 call this for a ios tik
-				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT tik for IOS %x requested, returning System Menu tik", TitleID & 0xFFFFFFFF);
-				TitleID = TITLEID_SYSMENU;
-			}
-
 			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
 
             u32 ViewCount = 0;
@@ -481,13 +474,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			u32 maxViews = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-
-			if (TitleID != TITLEID_SYSMENU && (u32)(TitleID >> 32) == 0x00000001 && m_TitleID == TITLEID_SYSMENU)
-			{
-				// TODO: Check if any titles other than 1-2 call this for a ios tik
-				ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS tik for IOS %x requested, returning System Menu tik", TitleID & 0xFFFFFFFF);
-				TitleID = TITLEID_SYSMENU;
-			}
 
 			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
 			if (File::Exists(TicketFilename.c_str()))
