@@ -100,7 +100,7 @@ class GFXConfigDialogDX : public wxDialog
 		wxRadioButton *m_Radio_SafeTextureCache_Fast;
 		wxRadioButton *m_Radio_SafeTextureCache_Normal;
 		wxRadioButton *m_Radio_SafeTextureCache_Safe;
-
+		wxCheckBox *m_DlistCaching;
 		//Enhancements Tab
 		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_MaxAnisotropy;
@@ -141,6 +141,7 @@ class GFXConfigDialogDX : public wxDialog
 			ID_RADIO_SAFETEXTURECACHE_SAFE,
 			ID_RADIO_SAFETEXTURECACHE_NORMAL,
 			ID_RADIO_SAFETEXTURECACHE_FAST,
+			ID_DLISTCACHING,
 			ID_FORCEFILTERING,
 			ID_FORCEANISOTROPY,
 			ID_LOADHIRESTEXTURES,

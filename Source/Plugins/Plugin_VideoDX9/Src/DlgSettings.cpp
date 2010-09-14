@@ -45,6 +45,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHOICE(ID_EFBSCALEMODE, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_CHECKBOX(ID_EFB_ACCESS_ENABLE, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE, GFXConfigDialogDX::DirectXSettingsChanged)
+	EVT_CHECKBOX(ID_DLISTCACHING, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_SAFE, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_NORMAL, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_FAST, GFXConfigDialogDX::DirectXSettingsChanged)
@@ -111,6 +112,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_EFBScaleMode->SetSelection(g_Config.iEFBScale);
 	m_EnableEFBAccess->SetValue(g_Config.bEFBAccessEnable);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+	m_DlistCaching->SetValue(g_Config.bDlistCachingEnable);
 	if(g_Config.iSafeTextureCache_ColorSamples == 0)
 		m_Radio_SafeTextureCache_Safe->SetValue(true);
 	else
@@ -214,7 +216,7 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_Radio_SafeTextureCache_Safe = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("safe"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_SafeTextureCache_Normal = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("normal"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_SafeTextureCache_Fast = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("fast"), wxDefaultPosition, wxDefaultSize, 0 );
-
+	m_DlistCaching = new wxCheckBox( m_PageDirect3D, ID_DLISTCACHING, wxT("Use DList Caching"), wxDefaultPosition, wxDefaultSize, 0 );
 	// Sizers
 	wxGridBagSizer* sBasic;
 	wxBoxSizer* sGeneral;
@@ -234,6 +236,7 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sBasic->Add( m_EFBScaleText, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sBasic->Add( m_EFBScaleMode, wxGBPosition( 4, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sBasic->Add( m_EnableEFBAccess, wxGBPosition( 5, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sBasic->Add( m_DlistCaching, wxGBPosition( 6, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sbBasic->Add( sBasic, 0, 0, 5 );
 	sGeneral->Add( sbBasic, 0, wxEXPAND|wxALL, 5 );
 	
@@ -411,6 +414,9 @@ void GFXConfigDialogDX::DirectXSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
+		break;
+	case ID_DLISTCACHING:
+		g_Config.bDlistCachingEnable = m_DlistCaching->IsChecked();
 		break;
 	case ID_RADIO_SAFETEXTURECACHE_SAFE:
 		g_Config.iSafeTextureCache_ColorSamples = 0;

@@ -76,6 +76,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DLISTCACHING, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHOICE(ID_PHACKVALUE, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_POSTSHADER, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_BUTTON(ID_RELOADSHADER, GFXConfigDialogOGL::ReloadShaderClick)
@@ -230,7 +231,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
 	m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
 	m_DisableFog->SetValue(g_Config.bDisableFog);
-
+	m_DlistCaching->SetValue(g_Config.bDlistCachingEnable);
 	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
 	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
 
@@ -251,6 +252,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 			m_Radio_SafeTextureCache_Normal->SetValue(true);
 		else
 			m_Radio_SafeTextureCache_Fast->SetValue(true);
+	
 }
 
 void GFXConfigDialogOGL::InitializeGUITooltips()
@@ -317,6 +319,7 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 		wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 	m_Radio_SafeTextureCache_Fast->SetToolTip(
 		wxT("[This option will apply immediately and does not require a restart to take effect.]"));
+	m_DlistCaching->SetToolTip(wxT("This will speed up things a little but still have some glitches in certain games."));
 }
 
 void GFXConfigDialogOGL::CreateGUIControls()
@@ -452,7 +455,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
 	m_Radio_CopyEFBToRAM = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTORAM, wxT("To RAM (accuracy)"));
 	m_Radio_CopyEFBToGL = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTOGL, wxT("To GL texture (performance)"));
-
+	m_DlistCaching = new wxCheckBox(m_PageAdvanced, ID_DLISTCACHING, wxT("Use Dlist Caching"));
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -468,7 +471,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Radio_SafeTextureCache_Safe = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("Safe"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	m_Radio_SafeTextureCache_Normal = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("Normal"));
 	m_Radio_SafeTextureCache_Fast = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("Fast"));
-
+	
 	// Sizers
 	sHacks->Add(m_PhackvalueCB, 0, wxTOP, 0);
 	sbHacks = new wxStaticBoxSizer(wxHORIZONTAL, m_PageAdvanced, wxT("Safe Texture Cache"));
@@ -477,6 +480,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sbHacks->Add(m_Radio_SafeTextureCache_Safe, 0, wxALL, 5);
 	sbHacks->Add(m_Radio_SafeTextureCache_Normal, 0, wxALL, 5);
 	sbHacks->Add(m_Radio_SafeTextureCache_Fast, 0, wxALL, 5);
+	sbHacks->AddStretchSpacer();
 	sHacks->Add(sbHacks, 0, wxEXPAND | (wxTOP), 5);
 
 	// Sizers
@@ -498,6 +502,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableFog, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_DlistCaching, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 4);
+
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 1);
 		wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
 			wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
@@ -706,6 +712,9 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	// Hacks
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
+		break;
+	case ID_DLISTCACHING:
+		g_Config.bDlistCachingEnable = m_DlistCaching->IsChecked();
 		break;
 	case ID_RADIO_SAFETEXTURECACHE_SAFE:
 		g_Config.iSafeTextureCache_ColorSamples = 0;

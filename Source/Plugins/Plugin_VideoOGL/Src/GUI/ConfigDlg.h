@@ -128,6 +128,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxRadioButton *m_Radio_SafeTextureCache_Safe;
 		wxRadioButton *m_Radio_SafeTextureCache_Normal;
 		wxRadioButton *m_Radio_SafeTextureCache_Fast;
+		wxCheckBox *m_DlistCaching;
 		// Screen size
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
 		wxSlider *m_SliderWidth, *m_SliderHeight, *m_SliderLeft, *m_SliderTop;
@@ -182,6 +183,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_RADIO_SAFETEXTURECACHE_FAST,
 			ID_HACK,
 			ID_PHACKVALUE,
+			ID_DLISTCACHING,
 
 			ID_DUMPTEXTURES,
 			ID_HIRESTEXTURES,
@@ -200,6 +202,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_POSTSHADERTEXT,
 			ID_RELOADSHADER,
 			ID_EDITSHADER,
+			
 		};
 
 		void LoadShaders();

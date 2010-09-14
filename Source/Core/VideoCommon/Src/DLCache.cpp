@@ -57,14 +57,32 @@ enum DisplayListPass {
 	DLPASS_RUN,
 };
 
-struct VDataHashRegion
+#define DL_HASH_STEPS 512
+
+struct ReferencedDataRegion
 {
-	u32 hash;
-	u32 start_address;
-	int size;
+	ReferencedDataRegion()
+		:hash(0),
+		start_address(NULL),
+		size(0),
+		MustClean(false),
+		NextRegion(NULL)
+	{}
+	u64 hash;
+	u8* start_address;
+	u32 size;
+	bool MustClean;
+	ReferencedDataRegion* NextRegion;
+
+	int IntersectsMemoryRange(u8* range_address, u32 range_size)
+	{
+		if (start_address + size < range_address)
+			return -1;
+		if (start_address >= range_address + range_size)
+			return 1;
+		return 0;
+	}
 };
-typedef u8* DataPointer;
-typedef std::map<u8, DataPointer> VdataMap;
 
 struct CachedDisplayList
 {
@@ -72,18 +90,26 @@ struct CachedDisplayList
 			: uncachable(false),
 			pass(DLPASS_ANALYZE),
 			next_check(1),
-			BufferCount(0),
 			num_xf_reg(0),
 			num_cp_reg(0),
 			num_bp_reg(0), 
 			num_index_xf(0),
-			num_draw_call(0)
+			num_draw_call(0),
+			Regions(NULL),
+			LastRegion(NULL),
+			BufferCount(0)
 	{
 		frame_count = frameCount;
 	}
-
+	
 	bool uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
-
+	// Analitic data
+	int num_xf_reg;
+	int num_cp_reg;
+	int num_bp_reg; 
+	int num_index_xf;
+	int num_draw_call;
+	
 	int pass;
 	u64 dl_hash;
 
@@ -93,17 +119,99 @@ struct CachedDisplayList
 	int frame_count;
 
 	// ... Something containing cached vertex buffers here ...
-	u8 BufferCount;	
-	VdataMap Vdata;
-
-	int num_xf_reg;
-	int num_cp_reg;
-	int num_bp_reg; 
-	int num_index_xf;
-	int num_draw_call;
-
+	int BufferCount;
+	ReferencedDataRegion* Regions;
+	ReferencedDataRegion* LastRegion;	
+	
 	// Compile the commands themselves down to native code.
+	
 	const u8* compiled_code;
+
+	void InsertRegion(ReferencedDataRegion* NewRegion)
+	{
+		if(LastRegion)
+		{
+			LastRegion->NextRegion = NewRegion;			
+		}
+		LastRegion = NewRegion;
+		if(!Regions)
+		{
+			Regions = LastRegion;
+		}
+		BufferCount++;
+	}
+
+	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size)
+	{
+		ReferencedDataRegion* NewRegion = FindOverlapingRegion(RegionStartAddress, Size);
+		if(NewRegion)
+		{
+			bool RegionChanged = false;
+			if(RegionStartAddress < NewRegion->start_address)
+			{
+				NewRegion->start_address = RegionStartAddress;
+				RegionChanged = true;
+			}
+			if(RegionStartAddress + Size > NewRegion->start_address + NewRegion->size)
+			{
+				NewRegion->size += (RegionStartAddress + Size) - (NewRegion->start_address + NewRegion->size);
+				RegionChanged = true;
+			}
+			if(RegionChanged)
+				NewRegion->hash = GetHash64(NewRegion->start_address, NewRegion->size, DL_HASH_STEPS);
+		}
+		else
+		{
+			NewRegion = new ReferencedDataRegion;
+			NewRegion->MustClean = false;
+			NewRegion->size = Size;
+			NewRegion->start_address = RegionStartAddress; 
+			NewRegion->hash = GetHash64(RegionStartAddress, Size, DL_HASH_STEPS);					
+			InsertRegion(NewRegion);
+		}
+	}
+
+	bool CheckRegions()
+	{
+		ReferencedDataRegion* Current = Regions;
+		while(Current)
+		{
+			if(Current->hash)
+			{
+				if(Current->hash != GetHash64(Current->start_address,  Current->size, DL_HASH_STEPS))
+					return false;
+			}
+			Current = Current->NextRegion;
+		}
+		return true;
+	}	
+
+	ReferencedDataRegion* FindOverlapingRegion(u8* RegionStart, int Regionsize)
+	{
+		ReferencedDataRegion* Current = Regions;
+		while(Current)
+		{
+			if(!Current->IntersectsMemoryRange(RegionStart, Regionsize))
+					return Current;			
+			Current = Current->NextRegion;
+		}
+		return Current;
+	}
+
+	void ClearRegions()
+	{
+		ReferencedDataRegion* Current = Regions;
+		while(Current)
+		{
+			ReferencedDataRegion* temp = Current;
+			Current = Current->NextRegion;
+			if(temp->MustClean)
+				delete [] temp->start_address;
+			delete temp;
+		}
+		LastRegion = NULL;
+		Regions = NULL;
+	}
 };
 
 // We want to allow caching DLs that start at the same address but have different lengths,
@@ -116,7 +224,7 @@ inline u64 CreateMapId(u32 address, u32 size)
 typedef std::map<u64, CachedDisplayList> DLMap;
 
 static DLMap dl_map;
-static DataPointer dlcode_cache;
+static u8* dlcode_cache;
 
 static Gen::XEmitter emitter;
 
@@ -315,14 +423,17 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 					u32 xf_address = Cmd2 & 0xFFFF;
 					// TODO - speed this up. pshufb?
-					DataPointer real_data_buffer = (DataPointer) new u8[transfer_size * 4]; 
-					u32 *data_buffer = (u32*)real_data_buffer;
+					ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
+					NewRegion->MustClean = true;
+					NewRegion->size = transfer_size * 4;
+					NewRegion->start_address = (u8*) new u8[NewRegion->size]; 
+					NewRegion->hash = 0;					
+					dl->InsertRegion(NewRegion);
+					u32 *data_buffer = (u32*)NewRegion->start_address;
 					for (int i = 0; i < transfer_size; i++)
 						data_buffer[i] = DataReadU32();
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);
-					dl->Vdata[dl->BufferCount] = real_data_buffer;
-					dl->BufferCount++;
 					// Compile
 					emitter.ABI_CallFunctionCCP((void *)&LoadXFReg, transfer_size, xf_address, data_buffer);
 				}
@@ -367,7 +478,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 			case GX_CMD_CALL_DL:
 				{
-					u32 addr = DataReadU32();
+					u32 addr= DataReadU32();
 					u32 count = DataReadU32();
 					ExecuteDisplayList(addr, count);
 					emitter.ABI_CallFunctionCC((void *)&ExecuteDisplayList, addr, count);
@@ -401,7 +512,6 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 					// Execute
 					u16 numVertices = DataReadU16();
-
 					u8* StartAddress = VertexManager::s_pBaseBufferPointer;
 					VertexManager::Flush();
 					VertexLoaderManager::RunVertices(
@@ -413,12 +523,27 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					if (size > 0)
 					{
 					// Compile
-						DataPointer NewData = (DataPointer)new u8[Vdatasize];
-						memcpy(NewData,StartAddress,Vdatasize);
-						dl->Vdata[dl->BufferCount] = NewData;
-						dl->BufferCount++;
-						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices,
-							cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewData);	
+						ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
+						NewRegion->MustClean = true;
+						NewRegion->size = Vdatasize;
+						NewRegion->start_address = (u8*)new u8[Vdatasize]; 
+						NewRegion->hash = 0;					
+						dl->InsertRegion(NewRegion);
+						memcpy(NewRegion->start_address, StartAddress, Vdatasize);
+						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);	
+					}					
+					const int tc[12] = {
+						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (g_VtxDesc.Hex >> 31) & 3
+					};
+					for(int i = 0; i < 12; i++)
+					{
+						if(tc[i] > 1)
+						{
+							u8* saddr = cached_arraybases[i];
+							int arraySize = arraystrides[i] * ((tc[i] == 2)? 256 : 8192);
+							dl->InsertOverlapingRegion(saddr, arraySize);
+						}
 					}
 				}
 				else
@@ -440,7 +565,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 
 void Init()
 {
-	dlcode_cache = (DataPointer)AllocateExecutableMemory(DL_CODE_CACHE_SIZE, false);  // Don't need low memory.
+	dlcode_cache = (u8*)AllocateExecutableMemory(DL_CODE_CACHE_SIZE, false);  // Don't need low memory.
 	emitter.SetCodePtr(dlcode_cache);
 }
 
@@ -456,13 +581,7 @@ void Clear()
 	DLMap::iterator iter = dl_map.begin();
 	while (iter != dl_map.end()) {
 		CachedDisplayList &entry = iter->second;
-		VdataMap::iterator viter = entry.Vdata.begin();
-		while (viter != entry.Vdata.end())
-		{
-			DataPointer &ventry = viter->second;
-			delete [] ventry;
-			entry.Vdata.erase(viter++);
-		}
+		entry.ClearRegions();
 		iter++;
 	}
 	dl_map.clear();
@@ -478,13 +597,7 @@ void ProgressiveCleanup()
 		int limit = iter->second.uncachable ? 1200 : 400;
 		if (entry.frame_count < frameCount - limit) {
 			// entry.Destroy();
-			VdataMap::iterator viter = entry.Vdata.begin();
-			while (viter != entry.Vdata.end())
-			{
-				DataPointer &ventry = viter->second;
-				delete [] ventry;
-				entry.Vdata.erase(viter++);
-			}
+			entry.ClearRegions();
 			dl_map.erase(iter++);  // (this is gcc standard!)
 		}
 		else
@@ -510,17 +623,7 @@ bool HandleDisplayList(u32 address, u32 size)
 		DLCache::CachedDisplayList &dl = iter->second;
 		if (dl.uncachable)
 		{
-			dl.check--;
-			if(dl.check <= 0)
-			{
-				dl.pass = DLCache::DLPASS_ANALYZE;
-				dl.uncachable = false;
-				dl.check = dl.next_check;
-			}
-			else
-			{
-				return false;
-			}
+			return false;			
 		}
 
 		// Got one! And it's been compiled too, so let's run the compiled code!
@@ -543,8 +646,7 @@ bool HandleDisplayList(u32 address, u32 size)
 			if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size, 0))
 			{
 				// PanicAlert("uncachable %08x", address);
-				dl.uncachable = true;
-				dl.check = 60;
+				dl.uncachable = true;				
 				return false;
 			}
 			DLCache::CompileAndRunDisplayList(address, size, &dl);
@@ -556,18 +658,11 @@ bool HandleDisplayList(u32 address, u32 size)
 				dl.check--;
 				if (dl.check <= 0)
 				{
-					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size, 0)) 
+					if (dl.dl_hash != GetHash64(Memory_GetPtr(address), size, 0) || !dl.CheckRegions()) 
 					{
 						dl.uncachable = true;
 						dl.check = 60;
-						DLCache::VdataMap::iterator viter = dl.Vdata.begin();
-						while (viter != dl.Vdata.end())
-						{
-							DLCache::DataPointer &ventry = viter->second;
-							delete [] ventry;
-							dl.Vdata.erase(viter++);
-						}
-						dl.BufferCount = 0;
+						dl.ClearRegions();						
 						return false;
 					}
 					dl.check = dl.next_check;
@@ -601,7 +696,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	DLCache::CachedDisplayList dl;
 	
 	if (DLCache::AnalyzeAndRunDisplayList(address, size, &dl)) {
-		dl.dl_hash = GetHash64(Memory_GetPtr(address), size, 0);
+		dl.dl_hash = GetHash64(Memory_GetPtr(address), size,0);
 		dl.pass = DLCache::DLPASS_COMPILE;
 		dl.check = 1;
 		dl.next_check = 1;
