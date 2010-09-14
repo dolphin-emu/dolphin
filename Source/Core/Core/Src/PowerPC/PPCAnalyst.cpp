@@ -24,6 +24,7 @@
 #include "PPCSymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
+#include "../ConfigManager.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls
@@ -453,6 +454,10 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 			//       "0" is fastest in some games, MP2 for example.
 			if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
 				follow = false;
+
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMergeBlocks) {
+				follow = false;
+			}
 
 			if (!follow)
 			{

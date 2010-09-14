@@ -298,6 +298,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	TLBHack->SetToolTip(wxT("Fast version of the MMU.  Does not work for every game."));
 	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	AlternateRFI->SetToolTip(wxT("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
+	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -325,6 +327,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack->SetToolTip(wxT("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
+	DListCache = new wxCheckBox(m_GameConfig, ID_DLISTCACHE, _("DList Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Hack
 	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Hack.Add(_("None"));
@@ -359,6 +362,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(MMUBAT, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(AlternateRFI, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
@@ -368,6 +372,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(DListCache, 0, wxEXPAND|wxLEFT, 5);
 
 	wxFlexGridSizer* fifosizer = new wxFlexGridSizer(2, 2, 0, 0);
 	fifosizer->Add(Hacktext, 0, wxLEFT, 5);
@@ -842,6 +847,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		AlternateRFI->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "BlockMerging", &bTemp))
+		BlockMerging->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		BlockMerging->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -886,6 +896,11 @@ void CISOProperties::LoadGameConfig()
 		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		UseZTPSpeedupHack->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Video", "DlistCachingEnable", &bTemp))
+		DListCache->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		DListCache->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Video", "FIFOWatermarkTightness", &sTemp))
 		WMTightness->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
@@ -943,6 +958,11 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "AlternateRFI", AlternateRFI->Get3StateValue());
 
+	if (BlockMerging->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "BlockMerging");
+	else
+		GameIni.Set("Core", "BlockMerging", BlockMerging->Get3StateValue());
+
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "ProgressiveScan");
 	else
@@ -987,6 +1007,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "ZTPSpeedupHack");
 	else
 		GameIni.Set("Video", "ZTPSpeedupHack", UseZTPSpeedupHack->Get3StateValue());
+
+	if (DListCache->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "DlistCachingEnable");
+	else
+		GameIni.Set("Video", "DlistCachingEnable", DListCache->Get3StateValue());
 
 	if (Hack->GetSelection() == -1)
 		GameIni.DeleteKey("Video", "ProjectionHack");

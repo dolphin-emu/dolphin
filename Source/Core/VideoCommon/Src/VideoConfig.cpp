@@ -151,6 +151,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "UseNativeMips", &bUseNativeMips);
 	if (iniFile.Exists("Video", "ZTPSpeedupHack"))
 	   iniFile.Get("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
+	if (iniFile.Exists("Video", "DlistCachingEnable"))
+	   iniFile.Get("Video", "DlistCachingEnable", &bDlistCachingEnable);
 }
 
 void VideoConfig::Save(const char *ini_file)
