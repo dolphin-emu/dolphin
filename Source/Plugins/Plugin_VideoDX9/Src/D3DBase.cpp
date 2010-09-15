@@ -265,7 +265,6 @@ HRESULT LoadD3DX9()
 	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx9_%d.dll", D3DX_SDK_VERSION).c_str());
 	if (hD3DXDll != NULL)
 	{
-		NOTICE_LOG(VIDEO, "Successfully loaded %s.", StringFromFormat("d3dx9_%d.dll", D3DX_SDK_VERSION).c_str());
 		hr = S_OK;
 	}
 	else

@@ -80,10 +80,6 @@ HRESULT Create(HWND wnd)
 			NOTICE_LOG(VIDEO, "Successfully loaded d3dx11_42.dll. If you're having trouble, try updating your DX runtime first.");
 		}
 	}
-	else
-	{
-		NOTICE_LOG(VIDEO, "Successfully loaded %s.", StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
-	}
 
 	PD3DX11CompileFromMemory = (D3DX11COMPILEFROMMEMORYTYPE)GetProcAddress(hD3DXDll, "D3DX11CompileFromMemory");
 	if (PD3DX11CompileFromMemory == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11CompileFromMemory!", "Critical error", MB_OK | MB_ICONERROR);

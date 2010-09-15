@@ -105,6 +105,7 @@ void CFrame::CreateMenu()
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
 	fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
+	fileMenu->Append(IDM_CHANGEDISC, _T("Change &Disc..."));
 
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->Append(IDM_DRIVES, _T("&Boot from DVD Drive..."), externalDrive);
@@ -135,7 +136,6 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_PLAYRECORD, _T("P&lay Recording..."));
 	emulationMenu->Append(IDM_RECORDEXPORT, _T("Export Recording..."));
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
 	
 	emulationMenu->Append(IDM_FRAMESTEP, _T("&Frame Stepping"), wxEmptyString, wxITEM_CHECK);
 

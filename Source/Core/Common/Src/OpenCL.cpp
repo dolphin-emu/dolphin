@@ -122,7 +122,6 @@ bool Initialize()
 		return false;
 	}
 
-	NOTICE_LOG(COMMON, "Initialized OpenCL!");
 	g_bInitialized = true;
 	return true;
 #else

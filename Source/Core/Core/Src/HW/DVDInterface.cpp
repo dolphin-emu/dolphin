@@ -208,8 +208,10 @@ static unsigned char media_buffer[0x40];
 // (both requests can happen at the same time, audio takes precedence)
 Common::CriticalSection dvdread_section;
 
-static int changeDisc;
-void ChangeDiscCallback(u64 userdata, int cyclesLate);
+static int ejectDisc;
+void EjectDiscCallback(u64 userdata, int cyclesLate);
+static int insertDisc;
+void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
@@ -253,7 +255,8 @@ void Init()
 	AudioPos		= 0;
 	AudioLength		= 0;
 
-	changeDisc = CoreTiming::RegisterEvent("ChangeDisc", ChangeDiscCallback);
+	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
+	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 }
 
 void Shutdown()
@@ -274,44 +277,35 @@ bool IsDiscInside()
 // We want this in the "backend", NOT the gui
 // any !empty string will be deleted to ensure
 // that the userdata string exists when called
-void ChangeDiscCallback(u64 userdata, int cyclesLate)
+void EjectDiscCallback(u64 userdata, int cyclesLate)
 {
-	std::string FileName((const char*)userdata);
+	// Empty the drive
 	SetDiscInside(false);
 	SetLidOpen();
-
-	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
-
-	if (FileName.empty())
-	{
-		// Empty the drive
-		VolumeHandler::EjectVolume();
-	}
-	else
-	{
-		if (VolumeHandler::SetVolumeName(FileName))
-		{
-			// Save the new ISO file name
-			SavedFileName = FileName;
-		}
-		else
-		{
-			PanicAlert("Invalid file \n %s", FileName.c_str());
-
-			// Put back the old one
-			VolumeHandler::SetVolumeName(SavedFileName);
-		}
-	}
-
-	SetLidOpen(false);
-	SetDiscInside(VolumeHandler::IsValid());
+	VolumeHandler::EjectVolume();
 }
 
-void ChangeDisc(const char* _FileName)
+void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
-	const char* NoDisc = "";
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDisc, (u64)NoDisc);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDisc, (u64)_FileName);
+	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+	std::string *_FileName = (std::string *)userdata;
+
+	if (!VolumeHandler::SetVolumeName(*_FileName))
+	{
+		// Put back the old one
+		VolumeHandler::SetVolumeName(SavedFileName);
+		PanicAlert("Invalid file");
+	}
+	SetLidOpen(false);
+	SetDiscInside(VolumeHandler::IsValid());
+	delete _FileName;
+}
+
+void ChangeDisc(const char* _newFileName)
+{
+	std::string* _FileName = new std::string(_newFileName);
+	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
 }
 
 void SetLidOpen(bool _bOpen)
