@@ -26,9 +26,9 @@ static const struct
 	{GUID_Square, "Square"},	// DIPERIODIC ...
 	{GUID_Sine, "Sine"},
 	{GUID_Triangle, "Triangle"},
-	{GUID_SawtoothUp, "SawtoothUp"},
-	{GUID_SawtoothDown, "SawtoothDown"},
-	//{GUID_Spring, "Spring"},	// DIEFT_CUSTOMFORCE ... < i think
+	{GUID_SawtoothUp, "Sawtooth Up"},
+	{GUID_SawtoothDown, "Sawtooth Down"},
+	//{GUID_Spring, "Spring"},	// DICUSTOMFORCE ... < i think
 	//{GUID_Damper, "Damper"},
 	//{GUID_Inertia, "Inertia"},
 	//{GUID_Friction, "Friction"},

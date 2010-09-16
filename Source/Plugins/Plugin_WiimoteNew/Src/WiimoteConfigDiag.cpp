@@ -4,6 +4,13 @@
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
+const wxString& ConnectedWiimotesString()
+{
+	static wxString str = wxT("Connected to . Wiimotes");
+	str[13] = wxChar(wxT('0') + WiimoteReal::Initialize());
+	return str;
+}
+
 WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	: wxNotebookPage(parent, -1, wxDefaultPosition, wxDefaultSize)
 	, m_index(index)
@@ -28,19 +35,26 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 
 	// real wiimote
 	m_connected_wiimotes_txt = new wxStaticText(this, -1, wxEmptyString);
-	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Real Wiimote"));
+	m_connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
+
 	wxButton* const refresh_btn = new wxButton(this, -1, wxT("Refresh"), wxDefaultPosition);
 	_connect_macro_(refresh_btn, WiimoteConfigPage::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	wiimote_real_sizer->Add(m_connected_wiimotes_txt, 1, wxALIGN_CENTER | wxALL, 5);
-	wiimote_real_sizer->Add(refresh_btn, 1, wxALIGN_CENTER | wxALL, 5);
-
-	m_connected_wiimotes_txt->SetLabel(wxString(wxT("Connected to ")) + wxChar(wxT('0') + WiimoteReal::Initialize()) + wxT(" Real Wiimotes"));
+	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Real Wiimote"));
+	wiimote_real_sizer->AddStretchSpacer(1);
+	wiimote_real_sizer->Add(m_connected_wiimotes_txt, 0, wxALIGN_CENTER | wxBOTTOM | wxLEFT | wxRIGHT, 5);
+#ifdef _WIN32
+	wxButton* const pairup_btn = new wxButton(this, -1, wxT("Pair Up"), wxDefaultPosition);
+	_connect_macro_(pairup_btn, WiimoteConfigPage::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wiimote_real_sizer->Add(pairup_btn, 0, wxALIGN_CENTER | wxBOTTOM, 5);
+#endif
+	wiimote_real_sizer->Add(refresh_btn, 0, wxALIGN_CENTER, 5);
+	wiimote_real_sizer->AddStretchSpacer(1);
 
 	// sizers
 	wxBoxSizer* const left_sizer = new wxBoxSizer(wxVERTICAL);
-	left_sizer->Add(input_src_sizer, 1, wxEXPAND | wxBOTTOM, 5);
-	left_sizer->Add(wiimote_emu_sizer, 1, wxEXPAND, 0);
+	left_sizer->Add(input_src_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+	left_sizer->Add(wiimote_emu_sizer, 0, wxEXPAND, 0);
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxHORIZONTAL);
 	main_sizer->Add(left_sizer, 1, wxLEFT | wxTOP | wxBOTTOM | wxEXPAND, 5);
@@ -81,10 +95,27 @@ void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& event)
 	m_emu_config_diag->Destroy();
 }
 
+#ifdef _WIN32
+void WiimoteConfigPage::PairUpRealWiimotes(wxCommandEvent& event)
+{
+	const int paired = WiimoteReal::PairUp();
+
+	if (paired > 0)
+	{
+		// Will this message be anoying?
+		//PanicAlert("Paired %d wiimotes.", paired);
+		WiimoteReal::Refresh();
+	}
+	else if (paired < 0)
+		PanicAlert("A supported bluetooth device was not found!\n"
+		"(Only the Microsoft bluetooth stack is supported.)");
+}
+#endif
+
 void WiimoteConfigPage::RefreshRealWiimotes(wxCommandEvent& event)
 {
 	WiimoteReal::Refresh();
-	m_connected_wiimotes_txt->SetLabel(wxString(wxT("Connected to ")) + wxChar(wxT('0') + WiimoteReal::Initialize()) + wxT(" Real Wiimotes"));
+	m_connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
 }
 
 void WiimoteConfigPage::SelectSource(wxCommandEvent& event)

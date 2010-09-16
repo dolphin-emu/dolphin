@@ -28,6 +28,12 @@
 
 #include "../WiimoteEmu/WiimoteHid.h"
 
+// used for pair up
+#ifdef _WIN32
+#include <BluetoothAPIs.h>
+#pragma comment(lib, "Bthprops.lib")
+#endif
+
 unsigned int	g_wiimote_sources[MAX_WIIMOTES];
 
 namespace WiimoteReal
@@ -483,5 +489,105 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 
 	return 0;
 }
+
+#ifdef _WIN32
+// WiiMote Pair-Up, function will return amount of either new paired or unpaired devices
+// negative number on failure
+int PairUp(bool unpair)
+{
+	int nPaired = 0;
+
+	BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
+	srch.dwSize = sizeof(srch);
+	srch.fReturnAuthenticated = true;
+	srch.fReturnRemembered = true;
+	srch.fReturnConnected = true; // does not filter properly somehow, so we've to do an additional check on fConnected BT Devices
+	srch.fReturnUnknown = true;
+	srch.fIssueInquiry = true;
+	srch.cTimeoutMultiplier = 2;	// == (2 * 1.28) seconds
+
+	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
+	radioParam.dwSize = sizeof(radioParam);
+	
+	HANDLE hRadio;
+
+	// Enumerate BT radios
+	HBLUETOOTH_RADIO_FIND hFindRadio = BluetoothFindFirstRadio(&radioParam, &hRadio);
+
+	if (NULL == hFindRadio)
+		return -1;
+
+	while (hFindRadio)
+	{
+		BLUETOOTH_RADIO_INFO radioInfo;
+		radioInfo.dwSize = sizeof(radioInfo);
+
+		// TODO: check for SUCCEEDED()
+		BluetoothGetRadioInfo(hRadio, &radioInfo);
+
+		srch.hRadio = hRadio;
+
+		BLUETOOTH_DEVICE_INFO btdi;
+		btdi.dwSize = sizeof(btdi);
+
+		// Enumerate BT devices
+		HBLUETOOTH_DEVICE_FIND hFindDevice = BluetoothFindFirstDevice(&srch, &btdi);
+		while (hFindDevice)
+		{
+			//btdi.szName is sometimes missings it's content - it's a bt feature..
+			DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ", btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
+
+			// TODO: Probably could just check for "Nintendo RVL"
+			if (0 == wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || 0 == wcscmp(btdi.szName, L"Nintendo RVL-CNT-01"))
+			{
+				if (unpair)
+				{
+					if (SUCCEEDED(BluetoothRemoveDevice(&btdi.Address)))
+					{
+						NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());
+						++nPaired;
+					}
+				}
+				else
+				{
+					if (false == btdi.fConnected)
+					{
+						//TODO: improve the read of the BT driver, esp. when batteries of the wiimote are removed while being fConnected
+						if (btdi.fRemembered)
+						{
+							// Make Windows forget old expired pairing
+							// we can pretty much ignore the return value here.
+							// it either worked (ERROR_SUCCESS), or the device did not exist (ERROR_NOT_FOUND)
+							// in both cases, there is nothing left.
+							BluetoothRemoveDevice(&btdi.Address);
+						}
+
+						// Activate service
+						const DWORD hr = BluetoothSetServiceState(hRadio, &btdi, &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+						if (SUCCEEDED(hr))
+							++nPaired;
+						else
+							ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
+					}
+				}
+			}
+
+			if (false == BluetoothFindNextDevice(hFindDevice, &btdi))
+			{
+				BluetoothFindDeviceClose(hFindDevice);
+				hFindDevice = NULL;
+			}
+		}
+
+		if (false == BluetoothFindNextRadio(hFindRadio, &hRadio))
+		{
+			BluetoothFindRadioClose(hFindRadio);
+			hFindRadio = NULL;
+		}
+	}
+
+	return nPaired;
+}
+#endif
 
 }; // end of namespace

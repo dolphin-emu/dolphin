@@ -105,6 +105,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_LEDS : // 0x11
 		//INFO_LOG(WIIMOTE, "Set LEDs: 0x%02x", sr->data[0]);
 		m_status.leds = sr->data[0] >> 4;
+		return; // no ack
 		break;
 
 	case WM_REPORT_MODE :  // 0x12
@@ -114,12 +115,18 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_IR_PIXEL_CLOCK : // 0x13
 		//INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
 		//m_ir_clock = (sr->data[0] & 0x04) ? 1 : 0;
+
+		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+			return;
 		break;
 
 	case WM_SPEAKER_ENABLE : // 0x14
 		//INFO_LOG(WIIMOTE, "WM Speaker Enable: 0x%02x", sr->data[0]);
 		//PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
 		m_status.speaker = (sr->data[0] & 0x04) ? 1 : 0;
+
+		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+			return;
 		break;
 
 	case WM_REQUEST_STATUS : // 0x15
@@ -153,6 +160,9 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 			memset(&m_channel_status, 0, sizeof(m_channel_status));
 #endif
 		m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
+
+		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+			return;
 		break;
 
 	case WM_IR_LOGIC: // 0x1a
@@ -161,6 +171,9 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	    // so that WmRequestStatus() knows about it
 		//INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
 		m_status.ir = (sr->data[0] & 0x04) ? 1 : 0;
+
+		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+			return;
 		break;
 
 	default:

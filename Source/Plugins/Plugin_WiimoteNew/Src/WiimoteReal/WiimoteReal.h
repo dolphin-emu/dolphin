@@ -96,6 +96,10 @@ void Update(int _WiimoteNumber);
 void DoState(PointerWrap &p);
 void StateChange(PLUGIN_EMUSTATE newState);
 
+#ifdef _WIN32
+int PairUp(bool unpair = false);
+#endif
+
 }; // WiiMoteReal
 
 #endif

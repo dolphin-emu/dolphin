@@ -20,7 +20,11 @@ class WiimoteConfigPage : public wxNotebookPage
 public:
 	WiimoteConfigPage(wxWindow* const parent, const int index);
 
+#ifdef _WIN32
+	void PairUpRealWiimotes(wxCommandEvent& event);
+#endif
 	void RefreshRealWiimotes(wxCommandEvent& event);
+
 	void SelectSource(wxCommandEvent& event);
 
 private:
