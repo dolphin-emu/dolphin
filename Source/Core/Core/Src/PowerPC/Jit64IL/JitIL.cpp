@@ -429,10 +429,11 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	b->exitAddress[0] = em_address;
+	std::vector<u32> merged_addresses;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize);
+		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses);
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -468,10 +469,15 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	// instruction processed by the JIT routines)
 	ibuild.Reset();
 
-	
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
-		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
+	{
+		for (int i = 0; i < merged_addresses.size(); ++i)
+		{
+			const u32 address = merged_addresses[i];
+			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);
+		}
+	}
 
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
