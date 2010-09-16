@@ -590,24 +590,21 @@ void CFrame::DoOpen(bool Boot)
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
-	bool fileChosen = !path.IsEmpty();
-
 	std::string currentDir2 = File::GetCurrentDir();
 
 	if (currentDir != currentDir2)
 	{
-		PanicAlert("Current dir changed from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
+		PanicAlert("Current dir changed from %s to %s after wxFileSelector!",
+				currentDir.c_str(), currentDir2.c_str());
 		File::SetCurrentDir(currentDir.c_str());
 	}
 
+	if (path.IsEmpty())
+		return;
 
 	// Should we boot a new game or just change the disc?
 	if (Boot)
-	{
-		if (!fileChosen)
-			return;
 		BootGame(std::string(path.mb_str()));
-	}
 	else
 	{
 		char newDiscpath[2048];
