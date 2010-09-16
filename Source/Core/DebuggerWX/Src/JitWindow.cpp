@@ -177,7 +177,8 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
 	bool broken_block = false;
-	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, broken_block, &code_buffer, size) != 0xffffffff)
+	std::vector<u32> merged_addresses;
+	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, broken_block, &code_buffer, size, merged_addresses) != 0xffffffff)
 	{
 		sptr = (char*)xDis;
 		for (int i = 0; i < size; i++)
