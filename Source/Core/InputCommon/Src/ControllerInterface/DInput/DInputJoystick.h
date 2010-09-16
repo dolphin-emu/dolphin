@@ -32,10 +32,11 @@ protected:
 
 	struct EffectState
 	{
-		EffectState( LPDIRECTINPUTEFFECT eff ) : changed(0), iface(eff) {}
-		LPDIRECTINPUTEFFECT			iface;
-		ControlState				magnitude;
-		bool						changed;
+		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(NULL), size(0) {}
+
+		LPDIRECTINPUTEFFECT		iface;
+		void*	params;	// null when force hasn't changed
+		u8		size;	// zero when force should stop
 	};
 
 	class Input : public ControllerInterface::Device::Input
@@ -92,18 +93,23 @@ protected:
 		const unsigned int	m_direction;
 	};
 
+	template <typename P>
 	class Force : public Output
 	{
 		friend class Joystick;
 	public:
 		std::string GetName() const;
 	protected:
-		Force(const unsigned int index, const unsigned int type) : m_index(index), m_type(type) {}
-		void SetState( const ControlState state, EffectState* const joystate );
+		Force(const unsigned int index, const unsigned int type);
+		void SetState(const ControlState state, EffectState* const joystate);
 	private:
 		const unsigned int	m_index;
 		const unsigned int	m_type;
+		P	params;
 	};
+	typedef Force<DICONSTANTFORCE>	ForceConstant;
+	typedef Force<DIRAMPFORCE>		ForceRamp;
+	typedef Force<DIPERIODIC>		ForcePeriodic;
 
 	bool UpdateInput();
 	bool UpdateOutput();
