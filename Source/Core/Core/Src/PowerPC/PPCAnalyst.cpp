@@ -434,7 +434,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 			}
 
 			bool follow = false;
-			u32 destination;
+			u32 destination = 0;
 			if (inst.OPCD == 18 && blockSize > 1)
 			{
 				//Is bx - should we inline? yes!

@@ -88,16 +88,16 @@ struct CachedDisplayList
 {
 	CachedDisplayList()
 			: uncachable(false),
-			pass(DLPASS_ANALYZE),
-			next_check(1),
 			num_xf_reg(0),
 			num_cp_reg(0),
 			num_bp_reg(0), 
 			num_index_xf(0),
 			num_draw_call(0),
+			pass(DLPASS_ANALYZE),
+			next_check(1),
+			BufferCount(0),
 			Regions(NULL),
-			LastRegion(NULL),
-			BufferCount(0)
+			LastRegion(NULL)
 	{
 		frame_count = frameCount;
 	}

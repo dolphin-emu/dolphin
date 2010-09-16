@@ -482,7 +482,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				FILE* pFile = fopen(TicketFilename.c_str(), "rb");
 				if (pFile)
 				{
-					int View = 0;
+					unsigned int View = 0;
 					u8 Ticket[SIZE_OF_ONE_TICKET];
 					while (View < maxViews && fread(Ticket, SIZE_OF_ONE_TICKET, 1, pFile) == 1)
 					{

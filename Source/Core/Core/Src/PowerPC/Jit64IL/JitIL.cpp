@@ -472,7 +472,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
 	{
-		for (int i = 0; i < merged_addresses.size(); ++i)
+		for (unsigned int i = 0; i < merged_addresses.size(); ++i)
 		{
 			const u32 address = merged_addresses[i];
 			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);
