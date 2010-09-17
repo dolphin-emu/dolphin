@@ -195,65 +195,39 @@ void Interpreter::lhzu(UGeckoInstruction _inst)
 	}
 }
 
+// FIXME: lmw should do a total rollback if a DSI occurs
 void Interpreter::lmw(UGeckoInstruction _inst)
 {
-	u32 EA = Helper_Get_EA(_inst);
-	int r = _inst.RD;
-
-	const int rb_r = r;
-	static u32 rb_GPR[32];
-
-	while (r <= 31)
+	u32 uAddress = Helper_Get_EA(_inst);
+	for (int iReg = _inst.RD; iReg <= 31; iReg++, uAddress += 4)
 	{
-		u32 TempReg = Memory::Read_U32(EA);		
+		u32 TempReg = Memory::Read_U32(uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			PanicAlert("DSI exception in lmw");
 			NOTICE_LOG(POWERPC, "DSI exception in lmw");
-
-			while (r > rb_r)
-			{
-				m_GPR[r] = rb_GPR[r];
-				r--;
-			}
 			return;
 		}
-		rb_GPR[r] = m_GPR[r];
-		m_GPR[r] = TempReg;
-
-		r++;
-		EA += 4;
+		else
+		{
+			m_GPR[iReg] = TempReg;
+		}
 	}
 }
 
+// FIXME: stmw should do a total rollback if a DSI occurs
 void Interpreter::stmw(UGeckoInstruction _inst)
 {
-	u32 EA = Helper_Get_EA(_inst);
-	int r = _inst.RS;
-
-	const int rb_r = r;
-	static u32 rb_mem[32];
-
-	while (r <= 31)
+	u32 uAddress = Helper_Get_EA(_inst);
+	for (int iReg = _inst.RS; iReg <= 31; iReg++, uAddress+=4)
 	{
-		rb_mem[r] = Memory::ReadUnchecked_U32(EA);
-		Memory::Write_U32(m_GPR[r], EA);
+		Memory::Write_U32(m_GPR[iReg], uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			PanicAlert("DSI exception in stmw");
 			NOTICE_LOG(POWERPC, "DSI exception in stmw");
-
-			while (r > rb_r)
-			{
-				Memory::WriteUnchecked_U32(rb_mem[r], EA);
-				r--;
-				EA -= 4;
-			}
 			return;
 		}
-
-		r++;
-		EA += 4;
 	}
 }
 
@@ -549,6 +523,7 @@ void Interpreter::lhzx(UGeckoInstruction _inst)
 }
 
 // TODO: is this right?
+// FIXME: Should rollback if a DSI occurs
 void Interpreter::lswx(UGeckoInstruction _inst)
 {
 	u32 EA = Helper_Get_EA_X(_inst);
@@ -556,13 +531,8 @@ void Interpreter::lswx(UGeckoInstruction _inst)
 	int r = _inst.RD;
 	int i = 0;
 
-	const u32 rb_EA = EA;
-	const int rb_r = r;
-	static u32 rb_GPR[32];
-
 	if (n > 0)
 	{
-		rb_GPR[r] = m_GPR[r];
 		m_GPR[r] = 0;
 		do
 		{
@@ -571,17 +541,6 @@ void Interpreter::lswx(UGeckoInstruction _inst)
 			{
 				PanicAlert("DSI exception in lswx.");
 				NOTICE_LOG(POWERPC, "DSI exception in lswx");
-
-				n = ((EA - rb_EA) / 4) + 1;
-				EA = rb_EA;
-				r = rb_r;
-				while (n > 0)
-				{
-					m_GPR[r] = rb_GPR[r];
-					r = (r + 1) & 31;
-					EA += 4;
-					n--;
-				}
 				return;
 			}
 			m_GPR[r] |= TempValue;
@@ -593,7 +552,6 @@ void Interpreter::lswx(UGeckoInstruction _inst)
 			{
 				i = 0;
 				r = (r + 1) & 31;
-				rb_GPR[r] = m_GPR[r];
 				m_GPR[r] = 0;
 			}
 		} while (n > 0);
@@ -709,6 +667,7 @@ void Interpreter::sthx(UGeckoInstruction _inst)
 
 // __________________________________________________________________________________________________
 // lswi - bizarro string instruction
+// FIXME: Should rollback if a DSI occurs
 void Interpreter::lswi(UGeckoInstruction _inst)
 {
 	u32 EA;
@@ -723,55 +682,38 @@ void Interpreter::lswi(UGeckoInstruction _inst)
 	else
 		n = _inst.NB;
 
-	int r = _inst.RD;
+	int r = _inst.RD - 1;
 	int i = 0;
-
-	const u32 rb_EA = EA;
-	const int rb_r = r;
-	static u32 rb_GPR[32];
-
-	if (n > 0)
+	while (n>0)
 	{
-		rb_GPR[r] = m_GPR[r];
-		m_GPR[r] = 0;
-		do
+		if (i==0)
 		{
-			u32 TempValue = Memory::Read_U8(EA) << (24 - i);
-			if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-			{
-				PanicAlert("DSI exception in lswi.");
+			r++;
+			r &= 31;
+			m_GPR[r] = 0;
+		}
 
-				n = ((EA - rb_EA) / 4) + 1;
-				EA = rb_EA;
-				r = rb_r;
-				while (n > 0)
-				{
-					m_GPR[r] = rb_GPR[r];
-					r = (r + 1) & 31;
-					EA += 4;
-					n--;
-				}
-				return;
-			}
-			m_GPR[r] |= TempValue;
+		u32 TempValue = Memory::Read_U8(EA) << (24 - i);
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			PanicAlert("DSI exception in lsw.");
+			return;
+		}
 
-			EA++;
-			n--;
-			i += 8;
-			if (i == 32)
-			{
-				i = 0;
-				r = (r + 1) & 31;
-				rb_GPR[r] = m_GPR[r];
-				m_GPR[r] = 0;
-			}
-		} while (n > 0);
+		m_GPR[r] |= TempValue;
+
+		i += 8;
+		if (i == 32)
+			i = 0;
+		EA++;
+		n--;
 	}
 }
 
 // todo : optimize ?
 // __________________________________________________________________________________________________
 // stswi - bizarro string instruction
+// FIXME: Should rollback if a DSI occurs
 void Interpreter::stswi(UGeckoInstruction _inst)
 {
 	u32 EA;
@@ -786,47 +728,26 @@ void Interpreter::stswi(UGeckoInstruction _inst)
 	else
 		n = _inst.NB;
 
-	int r = _inst.RS;
+	int r = _inst.RS - 1;
 	int i = 0;
-
-	const u32 rb_EA = EA;
-	const int rb_r = r;
-	static u32 rb_mem[32];
-
-	while (n > 0) {
-		rb_mem[r] |= Memory::ReadUnchecked_U8(EA) << (24 - i);
+	while (n > 0)
+	{
+		if (i == 0)
+		{
+			r++;
+			r &= 31;
+		}
 		Memory::Write_U8((m_GPR[r] >> (24 - i)) & 0xFF, EA);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in stswi.");
-
-			n = EA - rb_EA;
-			EA = rb_EA;
-			r = rb_r;
-			i = 0;
-			while (n > 0)
-			{
-				Memory::WriteUnchecked_U8((rb_mem[r] >> (24 - i)) & 0xFF, EA);
-				EA++;
-				i += 8;
-				if (i == 32)
-				{
-					i = 0;
-					r = (r + 1) & 31;
-				}
-				n--;
-			}
 			return;
 		}
 
-		EA++;
-		n--;
 		i += 8;
 		if (i == 32)
-		{
 			i = 0;
-			r = (r + 1) & 31;
-		}
+		EA++;
+		n--;
 	}
 }
 
