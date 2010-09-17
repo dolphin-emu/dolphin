@@ -30,6 +30,7 @@
 
 // used for pair up
 #ifdef _WIN32
+#include <bthdef.h>
 #include <BluetoothAPIs.h>
 #pragma comment(lib, "Bthprops.lib")
 #endif
@@ -482,9 +483,12 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 	// main loop
 	while (g_run_wiimote_thread)
 	{
-		wiimote->Write();
+		// hopefully this is alright
+		while (wiimote->Write()) {}
+
+		// sleep if there was nothing to read
 		if (false == wiimote->Read())
-			Common::SleepCurrentThread(1);	// sleep if there was nothing to read
+			Common::SleepCurrentThread(1);
 	}
 
 	return 0;
