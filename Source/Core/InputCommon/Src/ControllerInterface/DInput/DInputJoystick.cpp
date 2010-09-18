@@ -435,6 +435,12 @@ bool Joystick::UpdateInput()
 bool Joystick::UpdateOutput()
 {
 	size_t ok_count = 0;
+
+	DIEFFECT eff;
+	ZeroMemory(&eff, sizeof(eff));
+	eff.dwSize = sizeof(DIEFFECT);
+	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
+
 	std::vector<EffectState>::iterator
 		i = m_state_out.begin(),
 		e = m_state_out.end();
@@ -444,10 +450,6 @@ bool Joystick::UpdateOutput()
 		{
 			if (i->size)
 			{
-				DIEFFECT eff;
-				ZeroMemory(&eff, sizeof(eff));
-				eff.dwSize = sizeof(DIEFFECT);
-				eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 				eff.cbTypeSpecificParams = i->size;
 				eff.lpvTypeSpecificParams = i->params;
 				// set params and start effect

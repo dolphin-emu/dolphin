@@ -16,16 +16,16 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	, m_index(index)
 {
 	// input source
-	m_input_src_choice = new wxChoice(this, -1, wxDefaultPosition);
-	m_input_src_choice->Append(wxT("None"));
-	m_input_src_choice->Append(wxT("Emulated Wiimote"));
-	m_input_src_choice->Append(wxT("Real Wiimote"));
-	m_input_src_choice->Append(wxT("Hybrid Wiimote"));
-	m_input_src_choice->Select(g_wiimote_sources[m_index]);
-	_connect_macro_(m_input_src_choice, WiimoteConfigPage::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	const wxString src_choices[] = { wxT("None"),
+		wxT("Emulated Wiimote"), wxT("Real Wiimote"), wxT("Hybrid Wiimote") };
+
+	wxChoice* const input_src_choice = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
+		sizeof(src_choices)/sizeof(*src_choices), src_choices);
+	input_src_choice->Select(g_wiimote_sources[m_index]);
+	_connect_macro_(input_src_choice, WiimoteConfigPage::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
 
 	wxStaticBoxSizer* const input_src_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Input Source"));
-	input_src_sizer->Add(m_input_src_choice, 1, wxEXPAND | wxALL, 5);
+	input_src_sizer->Add(input_src_choice, 1, wxEXPAND | wxALL, 5);
 
 	// emulated wiimote
 	wxButton* const configure_wiimote_emu_btn = new wxButton(this, -1, wxT("Configure"));
@@ -34,18 +34,17 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	_connect_macro_(configure_wiimote_emu_btn, WiimoteConfigDiag::ConfigEmulatedWiimote, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 
 	// real wiimote
-	m_connected_wiimotes_txt = new wxStaticText(this, -1, wxEmptyString);
-	m_connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
+	connected_wiimotes_txt = new wxStaticText(this, -1, ConnectedWiimotesString());
 
 	wxButton* const refresh_btn = new wxButton(this, -1, wxT("Refresh"), wxDefaultPosition);
-	_connect_macro_(refresh_btn, WiimoteConfigPage::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(refresh_btn, WiimoteConfigDiag::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 
 	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Real Wiimote"));
 	wiimote_real_sizer->AddStretchSpacer(1);
-	wiimote_real_sizer->Add(m_connected_wiimotes_txt, 0, wxALIGN_CENTER | wxBOTTOM | wxLEFT | wxRIGHT, 5);
+	wiimote_real_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER | wxBOTTOM | wxLEFT | wxRIGHT, 5);
 #ifdef _WIN32
 	wxButton* const pairup_btn = new wxButton(this, -1, wxT("Pair Up"), wxDefaultPosition);
-	_connect_macro_(pairup_btn, WiimoteConfigPage::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(pairup_btn, WiimoteConfigDiag::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 	wiimote_real_sizer->Add(pairup_btn, 0, wxALIGN_CENTER | wxBOTTOM, 5);
 #endif
 	wiimote_real_sizer->Add(refresh_btn, 0, wxALIGN_CENTER, 5);
@@ -95,8 +94,15 @@ void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& event)
 	m_emu_config_diag->Destroy();
 }
 
+void WiimoteConfigDiag::UpdateGUI()
+{
+	for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
+		((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->
+			connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
+}
+
 #ifdef _WIN32
-void WiimoteConfigPage::PairUpRealWiimotes(wxCommandEvent& event)
+void WiimoteConfigDiag::PairUpRealWiimotes(wxCommandEvent& event)
 {
 	const int paired = WiimoteReal::PairUp();
 
@@ -105,6 +111,7 @@ void WiimoteConfigPage::PairUpRealWiimotes(wxCommandEvent& event)
 		// Will this message be anoying?
 		//PanicAlert("Paired %d wiimotes.", paired);
 		WiimoteReal::Refresh();
+		UpdateGUI();
 	}
 	else if (paired < 0)
 		PanicAlert("A supported bluetooth device was not found!\n"
@@ -112,16 +119,16 @@ void WiimoteConfigPage::PairUpRealWiimotes(wxCommandEvent& event)
 }
 #endif
 
-void WiimoteConfigPage::RefreshRealWiimotes(wxCommandEvent& event)
+void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent& event)
 {
 	WiimoteReal::Refresh();
-	m_connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
+	UpdateGUI();
 }
 
 void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
 {
 	// should be kinda fine, maybe should just set when user clicks OK, w/e change it later
-	g_wiimote_sources[m_index] = m_input_src_choice->GetSelection();
+	g_wiimote_sources[m_index] = event.GetInt();
 }
 
 void WiimoteConfigDiag::Save(wxCommandEvent& event)

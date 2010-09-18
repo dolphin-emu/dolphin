@@ -136,9 +136,20 @@ struct wm_drums_extension
 	u16 bt; // buttons
 };
 
-struct wm_report {
+struct wm_report
+{
 	u8 wm;
-	u8 data[0];
+	union
+	{
+		u8 data[0];
+		struct
+		{
+			u8 rumble : 1;	// enable/disable rumble
+			// only valid for certain reports
+			u8 ack : 1;		// respond with an ack
+			u8 enable : 1;	// enable/disable certain features
+		};
+	};
 };
 
 #define WM_RUMBLE 0x10

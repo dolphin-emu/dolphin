@@ -20,27 +20,27 @@ class WiimoteConfigPage : public wxNotebookPage
 public:
 	WiimoteConfigPage(wxWindow* const parent, const int index);
 
-#ifdef _WIN32
-	void PairUpRealWiimotes(wxCommandEvent& event);
-#endif
-	void RefreshRealWiimotes(wxCommandEvent& event);
-
 	void SelectSource(wxCommandEvent& event);
+
+	wxStaticText*	connected_wiimotes_txt;
 
 private:
 	const int	m_index;
-	
-	wxStaticText* m_connected_wiimotes_txt;
-	wxChoice* m_input_src_choice;
 };
 
 class WiimoteConfigDiag : public wxDialog
 {
 public:
 	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
+
+#ifdef _WIN32
+	void PairUpRealWiimotes(wxCommandEvent& event);
+#endif
+	void RefreshRealWiimotes(wxCommandEvent& event);
 	
 	void ConfigEmulatedWiimote(wxCommandEvent& event);
 	void Save(wxCommandEvent& event);
+	void UpdateGUI();
 
 private:
 	InputPlugin&	m_plugin;

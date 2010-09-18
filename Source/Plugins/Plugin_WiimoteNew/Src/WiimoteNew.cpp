@@ -23,15 +23,13 @@
 
 #define PLUGIN_VERSION		0x0100
 
-#define PLUGIN_NAME		"Dolphin Wiimote New Incomplete"
-#ifdef DEBUGFAST
+#define PLUGIN_NAME		"Dolphin Wiimote New"
+#if defined(DEBUGFAST)
 #define PLUGIN_FULL_NAME	PLUGIN_NAME" (DebugFast)"
-#else
-#ifdef _DEBUG
+#elif defined(_DEBUG)
 #define PLUGIN_FULL_NAME	PLUGIN_NAME" (Debug)"
 #else
 #define PLUGIN_FULL_NAME	PLUGIN_NAME
-#endif
 #endif
 
 // plugin globals
@@ -49,11 +47,8 @@ class wxDLLApp : public wxApp
 IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
-// copied from GCPad
 HINSTANCE g_hInstance;
-#endif
 
-#ifdef _WIN32
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 {
 	switch (fdwReason)

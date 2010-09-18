@@ -93,7 +93,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
 	// wiibrew:
 	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
-	m_rumble_on = (sr->data[0] & 0x01) != 0;
+	m_rumble_on = sr->rumble;
 
 	switch (sr->wm)
 	{
@@ -105,7 +105,6 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_LEDS : // 0x11
 		//INFO_LOG(WIIMOTE, "Set LEDs: 0x%02x", sr->data[0]);
 		m_status.leds = sr->data[0] >> 4;
-		return; // no ack
 		break;
 
 	case WM_REPORT_MODE :  // 0x12
@@ -114,18 +113,16 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
 	case WM_IR_PIXEL_CLOCK : // 0x13
 		//INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
-		//m_ir_clock = (sr->data[0] & 0x04) ? 1 : 0;
-
-		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+		//m_ir_clock = sr->enable;
+		if (false == sr->ack)
 			return;
 		break;
 
 	case WM_SPEAKER_ENABLE : // 0x14
 		//INFO_LOG(WIIMOTE, "WM Speaker Enable: 0x%02x", sr->data[0]);
 		//PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
-		m_status.speaker = (sr->data[0] & 0x04) ? 1 : 0;
-
-		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+		m_status.speaker = sr->enable;
+		if (false == sr->ack)
 			return;
 		break;
 
@@ -159,9 +156,8 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		if (sr->data[0] & 0x04)
 			memset(&m_channel_status, 0, sizeof(m_channel_status));
 #endif
-		m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
-
-		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+		m_speaker_mute = sr->enable;
+		if (false == sr->ack)
 			return;
 		break;
 
@@ -170,9 +166,8 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		// This enables or disables the IR lights, we update the global variable g_IR
 	    // so that WmRequestStatus() knows about it
 		//INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
-		m_status.ir = (sr->data[0] & 0x04) ? 1 : 0;
-
-		if (0 == (sr->data[0] & 0x02))	// only ack if 0x02 bit is set
+		m_status.ir = sr->enable;
+		if (false == sr->ack)
 			return;
 		break;
 
