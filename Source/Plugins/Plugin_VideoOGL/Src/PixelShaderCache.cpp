@@ -107,17 +107,42 @@ void PixelShaderCache::Init()
 		s_ColorMatrixProgram = 0;
 	}
 
-    sprintf(pmatrixprog, "!!ARBfp1.0"
+    sprintf(pmatrixprog, "!!ARBfp1.0\n"
 						"TEMP R0;\n"
 						"TEMP R1;\n"
                         "TEMP R2;\n"
-                        "PARAM K0 = { 65535.0, 255.0,1.0,16777215.0};\n" 
-						"PARAM K1 = { 0.999999940395355224609375, 1.0000000596046483281045155587504,0.0,0.0};\n" 
+                        //16777215/16777216*256, 1/255, 256, 0
+                        "PARAM K0 = { 255.99998474121, 0.003921568627451, 256.0, 0.0};\n" 
+                        //sample the depth value
 						"TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
-						"MUL R0, R2.x, K1.x;\n"
-                        "MUL R0, R0.x, K0;\n"						
-                        "FRC R0, R0;\n"
-						"MUL R0, R0, K1.y;\n"
+
+                        //scale from [0*16777216..1*16777216] to
+                        //[0*16777215..1*16777215], multiply by 256
+						"MUL R0, R2.x, K0.x;\n" // *16777215/16777216*256
+
+                        //It is easy to get bad results due to low precision
+                        //here, for example converting like this:
+                        //MUL R0,R0,{ 65536, 256, 1, 16777216 }
+                        //FRC R0,R0
+                        //gives {?, 128/255, 254/255, ?} for depth value 254/255
+                        //on some gpus
+
+                        "FLR R0.z,R0;\n"        //bits 31..24
+
+                        "SUB R0.xyw,R0,R0.z;\n" //subtract bits 31..24 from rest
+                        "MUL R0.xyw,R0,K0.z;\n" // *256
+                        "FLR R0.y,R0;\n"        //bits 23..16
+
+                        "SUB R0.xw,R0,R0.y;\n"  //subtract bits 23..16 from rest
+                        "MUL R0.xw,R0,K0.z;\n"  // *256
+                        "FLR R0.x,R0;\n"        //bits 15..8
+
+                        "SUB R0.w,R0,R0.x;\n"   //subtract bits 15..8 from rest
+                        "MUL R0.w,R0,K0.z;\n"   // *256
+                        "FLR R0.w,R0;\n"        //bits 7..0
+
+                        "MUL R0,R0,K0.y;\n"     // /255
+
 						"DP4 R1.x, R0, program.env[%d];\n"
 						"DP4 R1.y, R0, program.env[%d];\n"
                         "DP4 R1.z, R0, program.env[%d];\n"
