@@ -78,7 +78,10 @@ typedef struct {
 	int screen;
 	Window win;
 	Window parent;
-	Display *dpy;
+ // dpy (mainly) used for glx stuff, evdpy for window events etc.
+ // used to keep the two threads from eating each others events
+ // evdpy is to be used by XEventThread only (when it is running)
+	Display *dpy, *evdpy;
 	XVisualInfo *vi;
 	GLXContext ctx;
 	XSetWindowAttributes attr;
