@@ -124,7 +124,7 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 {
 #ifdef _WIN32
 	// Only used by D3D plugin.
-	const RECT *AsRECT() {
+	const RECT *AsRECT() const {
 		// The types are binary compatible so this works.
 		return (const RECT *)this;
 	}

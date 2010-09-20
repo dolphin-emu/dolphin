@@ -270,6 +270,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLRun", "..\Externals\CLRun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SVNRevGen", "Core\Common\SVNRevGen.vcproj", "{B807E8DB-4241-4754-BC2A-2F435BCA881A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_VideoMerge", "Plugins\Plugin_VideoMerge\Plugin_VideoMerge.vcproj", "{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -676,6 +678,12 @@ Global
 		{B807E8DB-4241-4754-BC2A-2F435BCA881A}.Release|Win32.Build.0 = Release|Win32
 		{B807E8DB-4241-4754-BC2A-2F435BCA881A}.Release|x64.ActiveCfg = Release|Win32
 		{B807E8DB-4241-4754-BC2A-2F435BCA881A}.Release|x64.Build.0 = Release|Win32
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.Debug|x64.ActiveCfg = Debug|x64
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.DebugFast|Win32.ActiveCfg = Debug|x64
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.DebugFast|x64.ActiveCfg = Debug|x64
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.Release|Win32.ActiveCfg = Release|Win32
+		{CA7F67A1-7DD9-4C49-94B8-F62AF3D4C72E}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
