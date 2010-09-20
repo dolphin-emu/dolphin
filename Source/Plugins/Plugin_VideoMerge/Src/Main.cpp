@@ -303,8 +303,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 //
 void Initialize(void *init)
 {
-	return;
-
 	frameCount = 0;
 
 	g_VideoInitialize = *(SVideoInitialize*)init;
