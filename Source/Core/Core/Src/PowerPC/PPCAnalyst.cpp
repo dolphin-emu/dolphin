@@ -285,9 +285,18 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 
 // Does not yet perform inlining - although there are plans for that.
 // Returns the exit address of the next PC
-u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer, int blockSize, std::vector<u32>& merged_addresses)
+u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
+			BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer,
+			int blockSize, u32* merged_addresses,
+			int capacity_of_merged_addresses, int& size_of_merged_addresses)
 {
-	merged_addresses.push_back(address);
+	if (capacity_of_merged_addresses < FUNCTION_FOLLOWING_THRESHOLD) {
+		PanicAlert("capacity of merged_addresses is too small!");
+	}
+	std::fill_n(merged_addresses, capacity_of_merged_addresses, 0);
+	merged_addresses[0] = address;
+	size_of_merged_addresses = 1;
+
 	memset(st, 0, sizeof(st));
 	
 	// Disabled the following optimization in preference of FAST_ICACHE
@@ -475,7 +484,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 				// because bx may store a certain value to the link register.
 				// Instead, we skip a part of bx in Jit**::bx().
 				address = destination;
-				merged_addresses.push_back(address);
+				merged_addresses[size_of_merged_addresses++] = address;
 			}
 		}
 		else

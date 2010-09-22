@@ -429,11 +429,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	b->exitAddress[0] = em_address;
-	std::vector<u32> merged_addresses;
+	u32 merged_addresses[32];
+	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
+	int size_of_merged_addresses;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses);
+		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -472,7 +474,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
 	{
-		for (unsigned int i = 0; i < merged_addresses.size(); ++i)
+		for (unsigned int i = 0; i < size_of_merged_addresses; ++i)
 		{
 			const u32 address = merged_addresses[i];
 			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);

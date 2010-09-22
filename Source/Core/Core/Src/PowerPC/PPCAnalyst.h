@@ -108,7 +108,10 @@ public:
 
 };
 
-u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer, int blockSize, std::vector<u32>& merged_addresses);
+u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
+			BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer,
+			int blockSize, u32* merged_addresses,
+			int capacity_of_merged_addresses, int& size_of_merged_addresses);
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
