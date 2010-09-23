@@ -325,6 +325,8 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 	CodeOp *code = buffer->codebuffer;
 	bool foundExit = false;
 
+	u32 returnAddress = 0;
+
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
 	for (int i = 0; i < maxsize; i++)
@@ -454,6 +456,29 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 				if (destination != blockstart)
 					follow = true;
 			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
+				returnAddress != 0)
+			{
+				// bclrx with unconditional branch = return
+				follow = true;
+				destination = returnAddress;
+				returnAddress = 0;
+
+				if (inst.LK)
+					returnAddress = address + 4;
+			}
+			else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+			{
+				// mtspr
+				const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+				if (index == SPR_LR) {
+					// We give up to follow the return address
+					// because we have to check the register usage.
+					returnAddress = 0;
+				}
+			}
+
 			if (follow)
 				numFollows++;
 			// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.

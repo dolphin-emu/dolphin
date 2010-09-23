@@ -185,6 +185,14 @@ void JitIL::bcctrx(UGeckoInstruction inst)
 void JitIL::bclrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
+
+	if (!js.isLastInstruction &&
+		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
+		if (inst.LK)
+			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+		return;
+	}
+
 	if (inst.hex == 0x4e800020) {
 		ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
 		return;

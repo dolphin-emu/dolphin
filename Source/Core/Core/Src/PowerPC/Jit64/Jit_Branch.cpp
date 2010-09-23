@@ -221,6 +221,13 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Branch)
 
+	if (!js.isLastInstruction &&
+		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
+		if (inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		return;
+	}
+
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 
