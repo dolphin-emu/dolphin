@@ -507,13 +507,20 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	    // this results in a scale from -1..0 to -1..1 after perspective
 	    // divide
 	    WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
+
+	    // Sonic Unleashed puts its final rendering at the near or
+	    // far plane of the viewing frustrum(actually box, they use
+	    // orthogonal projection for that), and we end up putting it
+	    // just beyond, and the rendering gets clipped away. (The
+	    // primitive gets dropped)
+	    WRITE(p, "o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
+
 	    // the next steps of the OGL pipeline are:
-	    // o.pos.xyz /= o.pos.w;         //perspective divide
-	    // o.pos.z = clamp(o.pos.z,-1,1) //clamp to -1..1
-	    // o.pos.z = (o.pos.z+1)/2;      //scale to 0..1
-	    // o.pos.z = o.pos.z/(glFar-glNear))+glNear 
-	    //scale to glNear..glFar of glDepthRange
-	    // o.pos.z now contains the value to go to the 0..1 depth buffer
+	    // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
+	    // clipping to -w_c <= (x_c,y_c,z_c) <= w_c
+	    // (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
+	    // z_w = (f-n)/2*z_d + (n+f)/2
+	    // z_w now contains the value to go to the 0..1 depth buffer
 	    
 	    //trying to get the correct semantic while not using glDepthRange
 	    //seems to get rather complicated
