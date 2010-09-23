@@ -274,7 +274,7 @@ void PixelShaderCache::Shutdown()
 	unique_shaders.clear();
 }
 
-bool PixelShaderCache::SetShader(bool dstAlpha)
+bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 {
 	PIXELSHADERUID uid;
 	GetPixelShaderId(&uid, dstAlpha);
@@ -312,7 +312,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// OK, need to generate and compile it.
-	const char *code = GeneratePixelShaderCode(dstAlpha, API_D3D9);
+	const char *code = GeneratePixelShaderCode(dstAlpha, API_D3D9,components);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);

@@ -19,6 +19,7 @@
 #define _PIXELSHADERMANAGER_H
 
 #include "BPMemory.h"
+#include "XFMemory.h"
 #include "PixelShaderGen.h"
 
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
@@ -51,6 +52,8 @@ public:
 	static void SetFogColorChanged();
 	static void SetFogParamChanged();
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
+	static void InvalidateXFRange(int start, int end);
+	static void SetMaterialColor(int index, u32 data);
 };
 
 

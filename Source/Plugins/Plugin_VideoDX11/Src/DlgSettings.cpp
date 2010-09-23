@@ -92,6 +92,8 @@ struct TabDirect3D : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg, IDC_VSYNC), g_Config.bVSync);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_DLIST_CACHING), g_Config.bDlistCachingEnable);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_ENABLEPIXELLIGHTING), g_Config.bEnablePixelLigting);
+
 
 
 		if (g_Config.iSafeTextureCache_ColorSamples == 0)
@@ -140,6 +142,9 @@ struct TabDirect3D : public W32Util::Tab
 			break;
 		case IDC_DLIST_CACHING:
 			g_Config.bDlistCachingEnable = Button_GetCheck(GetDlgItem(hDlg, IDC_DLIST_CACHING)) == 0 ? false : true;
+			break;
+		case IDC_ENABLEPIXELLIGHTING:
+			g_Config.bEnablePixelLigting = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEPIXELLIGHTING)) == 0 ? false : true;
 			break;
 		case IDC_EFB_ACCESS_ENABLE:
 			g_Config.bEFBAccessEnable = Button_GetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE)) == 0 ? false : true;

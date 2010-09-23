@@ -23,7 +23,7 @@
 #include "PixelShaderManager.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
-
+static float GC_ALIGNED16(s_fMaterials[16]);
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged;
 static bool s_bAlphaChanged;
@@ -32,6 +32,7 @@ static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
 static bool s_bFogColorChanged;
 static bool s_bFogParamChanged;
+static int nLightsChanged[2]; // min,max
 static float lastDepthRange[2]; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
@@ -39,6 +40,7 @@ static u8 s_nIndTexScaleChanged;
 static u32 lastAlpha;
 static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias;
+static int nMaterialsChanged;
 
 void PixelShaderManager::Init()
 {
@@ -57,6 +59,8 @@ void PixelShaderManager::Dirty()
 	s_nIndTexMtxChanged = 15;
 	s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
 	s_bFogColorChanged = s_bFogParamChanged = true;
+	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
+	nMaterialsChanged = 15;
 }
 
 void PixelShaderManager::Shutdown()
@@ -207,6 +211,50 @@ void PixelShaderManager::SetConstants()
 		}
         s_bFogParamChanged = false;
     }
+
+	if (nLightsChanged[0] >= 0)
+	{
+		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
+		int istart = nLightsChanged[0] / 0x10;
+		int iend = (nLightsChanged[1] + 15) / 0x10;
+		const float* xfmemptr = (const float*)&xfmem[0x10 * istart + XFMEM_LIGHTS];
+
+		for (int i = istart; i < iend; ++i)
+		{
+			u32 color = *(const u32*)(xfmemptr + 3);
+			float NormalizationCoef = 1 / 255.0f;
+			SetPSConstant4f(C_PLIGHTS + 5 * i,
+				((color >> 24) & 0xFF) * NormalizationCoef,
+				((color >> 16) & 0xFF) * NormalizationCoef,
+				((color >> 8)  & 0xFF) * NormalizationCoef,
+				((color)       & 0xFF) * NormalizationCoef);
+			xfmemptr += 4;
+
+			for (int j = 0; j < 4; ++j, xfmemptr += 3)
+			{
+				if (j == 1 &&
+					fabs(xfmemptr[0]) < 0.00001f &&
+					fabs(xfmemptr[1]) < 0.00001f &&
+					fabs(xfmemptr[2]) < 0.00001f)
+				{
+					// dist attenuation, make sure not equal to 0!!!
+					SetPSConstant4f(C_PLIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
+				}
+				else
+					SetPSConstant4fv(C_PLIGHTS+5*i+j+1, xfmemptr);
+			}
+		}
+
+		nLightsChanged[0] = nLightsChanged[1] = -1;
+	}
+	if (nMaterialsChanged)
+	{
+		for (int i = 0; i < 4; ++i)
+			if (nMaterialsChanged & (1 << i))
+				SetPSConstant4fv(C_PMATERIALS + i, &s_fMaterials[4 * i]);
+
+		nMaterialsChanged = 0;
+	}
 }
 
 void PixelShaderManager::SetPSTextureDims(int texid)
@@ -348,4 +396,36 @@ void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfCon
 {
 	SetMultiPSConstant4fv(C_COLORMATRIX,4,pmatrix);
     SetPSConstant4fv(C_COLORMATRIX+4, pfConstAdd);
+}
+
+void PixelShaderManager::InvalidateXFRange(int start, int end)
+{
+	if (start < XFMEM_LIGHTS_END && end > XFMEM_LIGHTS)
+	{
+		int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start-XFMEM_LIGHTS;
+		int _end = end < XFMEM_LIGHTS_END ? end-XFMEM_LIGHTS : XFMEM_LIGHTS_END-XFMEM_LIGHTS;
+
+		if (nLightsChanged[0] == -1 )
+		{
+			nLightsChanged[0] = _start;
+			nLightsChanged[1] = _end;
+		}
+		else
+		{
+			if (nLightsChanged[0] > _start) nLightsChanged[0] = _start;
+			if (nLightsChanged[1] < _end)   nLightsChanged[1] = _end;
+		}
+	}
+}
+
+void PixelShaderManager::SetMaterialColor(int index, u32 data)
+{
+	int ind = index * 4;
+
+	nMaterialsChanged  |= (1 << index);
+	float NormalizationCoef = 1 / 255.0f;
+	s_fMaterials[ind++] = ((data >> 24) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind++] = ((data >> 16) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind++] = ((data >>  8) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind]   = ( data        & 0xFF) * NormalizationCoef;
 }

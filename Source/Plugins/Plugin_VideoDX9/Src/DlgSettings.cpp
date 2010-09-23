@@ -55,6 +55,11 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_LOADHIRESTEXTURES, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	EVT_CHECKBOX(ID_PIXELLIGHTING, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	EVT_CHECKBOX(ID_ANAGLYPH, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	EVT_SLIDER(ID_ANAGLYPHSEPARATION, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	EVT_SLIDER(ID_ANAGLYPHFOCALANGLE, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	
 
 	//Advanced Tab
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogDX::AdvancedSettingsChanged)
@@ -133,7 +138,10 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
-
+	m_Anaglyph->SetValue(g_Config.bAnaglyphStereo);
+	m_PixelLighting->SetValue(g_Config.bEnablePixelLigting);
+	m_AnaglyphSeparation->SetValue(g_Config.iAnaglyphStereoSeparation);
+	m_AnaglyphFocalAngle->SetValue(g_Config.iAnaglyphFocalAngle);
 	//Advance
 	m_DisableFog->SetValue(g_Config.bDisableFog);
 	m_OverlayFPS->SetValue(g_Config.bShowFPS);
@@ -267,6 +275,12 @@ void GFXConfigDialogDX::CreateGUIControls()
 	wxStaticBoxSizer* sbEFBHacks;
 	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB hacks") ), wxVERTICAL );
 	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB scaled copy"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Anaglyph = new wxCheckBox( m_PageEnhancements, ID_ANAGLYPH, wxT("Enable Anaglyph Stereo"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_PixelLighting = new wxCheckBox( m_PageEnhancements, ID_PIXELLIGHTING, wxT("Enable Pixel Lighting"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_AnaglyphSeparation  = new wxSlider( m_PageEnhancements, ID_ANAGLYPHSEPARATION,2000,1,10000, wxDefaultPosition, wxDefaultSize, wxHORIZONTAL,wxDefaultValidator, wxT("Stereo separation") );
+	m_AnaglyphFocalAngle = new wxSlider( m_PageEnhancements, ID_ANAGLYPHFOCALANGLE,0,-1000,1000, wxDefaultPosition, wxDefaultSize, wxHORIZONTAL,wxDefaultValidator, wxT("Stereo Focal Angle") );
+	m_AnaglyphSeparationText = new wxStaticText( m_PageEnhancements, wxID_ANY, wxT("Stereo Separation:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_AnaglyphFocalAngleText= new wxStaticText( m_PageEnhancements, wxID_ANY, wxT("Focal Angle:"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	// Sizers
 	wxBoxSizer* sEnhancements;
@@ -289,6 +303,21 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sbEFBHacks->Add( sEFBHacks, 1, wxEXPAND, 5 );
 	sEnhancements->Add( sbEFBHacks, 0, wxEXPAND|wxALL, 5 );
 	
+	wxStaticBoxSizer* sbImprovements;
+	sbImprovements = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("Improvements") ), wxVERTICAL );
+	wxGridBagSizer* sImprovements;
+	sImprovements = new wxGridBagSizer(  0, 0  );
+	sImprovements->SetFlexibleDirection( wxBOTH );
+	sImprovements->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	sImprovements->Add( m_Anaglyph, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphSeparationText, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphFocalAngleText, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphSeparation, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphFocalAngle, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_PixelLighting, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sbImprovements->Add( sImprovements, 1, wxEXPAND, 5 );
+	sEnhancements->Add( sbImprovements, 0, wxEXPAND|wxALL, 5 );
+
 	m_PageEnhancements->SetSizer( sEnhancements );
 	m_PageEnhancements->Layout();
 	sEnhancements->Fit( m_PageEnhancements );
@@ -447,7 +476,19 @@ void GFXConfigDialogDX::EnhancementsSettingsChanged(wxCommandEvent& event)
 			g_Config.bHiresTextures = m_HiresTextures->IsChecked();
 		break;
 	case ID_EFBSCALEDCOPY:
-			g_Config.bCopyEFBScaled = m_EFBScaledCopy->IsChecked();
+		g_Config.bCopyEFBScaled = m_EFBScaledCopy->IsChecked();
+		break;
+	case ID_PIXELLIGHTING:
+		g_Config.bEnablePixelLigting = m_PixelLighting->IsChecked();
+		break;
+	case ID_ANAGLYPH:
+		g_Config.bAnaglyphStereo = m_Anaglyph->IsChecked();
+		break;
+	case ID_ANAGLYPHSEPARATION:
+		g_Config.iAnaglyphStereoSeparation = m_AnaglyphSeparation->GetValue();
+		break;
+	case ID_ANAGLYPHFOCALANGLE:
+		g_Config.iAnaglyphFocalAngle = m_AnaglyphFocalAngle->GetValue();
 		break;
 	}
 	UpdateGUI();

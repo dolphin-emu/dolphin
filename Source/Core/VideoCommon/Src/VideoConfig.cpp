@@ -72,6 +72,11 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
 	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
 	iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
+	iniFile.Get("Settings", "AnaglyphStereo", &bAnaglyphStereo, false);
+	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
+	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
+	iniFile.Get("Settings", "EnablePixelLigting", &bEnablePixelLigting, 0);
+	
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "EFBScale", &iEFBScale, 0);
@@ -184,6 +189,11 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
 	iniFile.Set("Settings", "DumpFrames", bDumpFrames);
 	iniFile.Set("Settings", "FreeLook", bFreeLook);
+	iniFile.Set("Settings", "AnaglyphStereo", bAnaglyphStereo);
+	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
+	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
+	iniFile.Set("Settings", "EnablePixelLigting", bEnablePixelLigting);
+
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);

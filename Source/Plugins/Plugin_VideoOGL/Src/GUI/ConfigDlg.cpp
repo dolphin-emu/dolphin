@@ -74,6 +74,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_FAST, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PIXELLIGHTING, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DLISTCACHING, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -240,7 +241,8 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
 	m_DumpFrames->SetValue(g_Config.bDumpFrames);
-	m_FreeLook->SetValue(g_Config.bFreeLook);
+	m_FreeLook->SetValue(g_Config.bFreeLook);	
+	m_PixelLighting->SetValue(g_Config.bEnablePixelLigting);;	
 
 	// Hacks controls
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
@@ -308,6 +310,8 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 	m_FreeLook->SetToolTip(
 		wxT("Use WASD to move around, 0 and 9 to move faster or slower, and the")
 		wxT(" left mouse button to pan the view."));
+	m_PixelLighting->SetToolTip(
+		wxT("Enables Pixel ligting to improve Ilumination."));
 
 	// Hacks controls
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games.")
@@ -450,6 +454,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableFog = new wxCheckBox(m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_PixelLighting = new wxCheckBox(m_PageAdvanced, ID_PIXELLIGHTING, wxT("Enable Pixel Lighting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
@@ -462,7 +467,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_HiresTextures = new wxCheckBox(m_PageAdvanced, ID_HIRESTEXTURES, wxT("Load Hires textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpEFBTarget = new wxCheckBox(m_PageAdvanced, ID_DUMPEFBTARGET, wxT("Dump EFB Target"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpFrames = new wxCheckBox(m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Rendered Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);	
 
 	// Hacks controls
 	sHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
@@ -503,6 +508,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableFog, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DlistCaching, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_PixelLighting, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 4);
 
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 1);
 		wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
@@ -682,6 +688,9 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DISABLEFOG:
 		g_Config.bDisableFog = m_DisableFog->IsChecked();
+		break;
+	case ID_PIXELLIGHTING:
+		g_Config.bEnablePixelLigting = m_PixelLighting->IsChecked();
 		break;
 	case ID_DSTALPHAPASS:
 		g_Config.bDstAlphaPass = m_DstAlphaPass->IsChecked();

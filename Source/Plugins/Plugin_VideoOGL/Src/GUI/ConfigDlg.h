@@ -119,6 +119,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_DumpEFBTarget;
 		wxCheckBox *m_DumpFrames;
 		wxCheckBox *m_FreeLook;
+		wxCheckBox *m_PixelLighting;		
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
@@ -174,6 +175,7 @@ class GFXConfigDialogOGL : public wxDialog
 
 			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
+			ID_PIXELLIGHTING,
 			ID_DISABLETEXTURING,
 			ID_DISABLEFOG,
 			ID_STATICBOX_EFB,

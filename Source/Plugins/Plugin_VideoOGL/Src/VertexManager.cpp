@@ -289,7 +289,7 @@ void Flush()
 		}
 	}
 
-	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false);
+	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false,g_nativeVertexFmt->m_components);
 	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	// set global constants
@@ -306,7 +306,7 @@ void Flush()
 	// run through vertex groups again to set alpha
 	if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 	{
-		ps = PixelShaderCache::GetShader(true);
+		ps = PixelShaderCache::GetShader(true,g_nativeVertexFmt->m_components);
 
 		if (ps)PixelShaderCache::SetCurrentShader(ps->glprogid);
 

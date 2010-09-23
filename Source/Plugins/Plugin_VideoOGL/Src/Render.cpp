@@ -894,7 +894,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DVSTARTPROFILE();
 
 	ResetAPIState();
-
 	TargetRectangle back_rc;
 	ComputeDrawRectangle(m_CustomWidth, m_CustomHeight, true, &back_rc);
 
@@ -1083,7 +1082,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	TextureMngr::DisableStage(0);
-
+	if(g_ActiveConfig.bAnaglyphStereo)
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	// Wireframe
 	if (g_ActiveConfig.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1305,8 +1305,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	if(!g_ActiveConfig.bAnaglyphStereo)
+	{
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
 	GL_REPORT_ERRORD();
 

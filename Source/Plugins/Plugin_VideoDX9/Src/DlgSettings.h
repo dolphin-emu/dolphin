@@ -106,7 +106,12 @@ class GFXConfigDialogDX : public wxDialog
 		wxCheckBox *m_MaxAnisotropy;
 		wxCheckBox *m_HiresTextures;
 		wxCheckBox *m_EFBScaledCopy;
-
+		wxCheckBox *m_Anaglyph;
+		wxCheckBox *m_PixelLighting;
+		wxStaticText* m_AnaglyphSeparationText;
+		wxSlider *m_AnaglyphSeparation;
+		wxStaticText* m_AnaglyphFocalAngleText;
+		wxSlider *m_AnaglyphFocalAngle;
 		//Advanced Tab
 		wxCheckBox *m_DisableFog;
 		wxCheckBox *m_OverlayFPS;
@@ -173,7 +178,11 @@ class GFXConfigDialogDX : public wxDialog
 			ID_ABOUT,
 			ID_DIRERCT3D,
 			ID_PAGEENHANCEMENTS,
-			ID_PAGEADVANCED
+			ID_PAGEADVANCED,
+			ID_PIXELLIGHTING,
+			ID_ANAGLYPH,
+			ID_ANAGLYPHSEPARATION,
+			ID_ANAGLYPHFOCALANGLE,
 		};
 		void InitializeAdapters();
 		void OnClose(wxCloseEvent& event);

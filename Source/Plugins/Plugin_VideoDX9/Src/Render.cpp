@@ -977,7 +977,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-
+static bool RightFrame = false;
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
@@ -1000,6 +1000,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	Renderer::ResetAPIState();
+	if(g_ActiveConfig.bAnaglyphStereo)
+	{
+		if(RightFrame)
+		{
+			D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_GREEN);
+			VertexShaderManager::ResetView();
+			VertexShaderManager::TranslateView(-0.001f * g_ActiveConfig.iAnaglyphStereoSeparation,0.0f);
+			VertexShaderManager::RotateView(-0.0001 *g_ActiveConfig.iAnaglyphFocalAngle,0.0f);
+			RightFrame = false;
+		}
+		else
+		{
+			D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED);
+			VertexShaderManager::ResetView();
+			VertexShaderManager::TranslateView(0.001f *g_ActiveConfig.iAnaglyphStereoSeparation,0.0f);
+			VertexShaderManager::RotateView(0.0001 * g_ActiveConfig.iAnaglyphFocalAngle,0.0f);
+			RightFrame = true;
+		}
+	}
 	// Set the backbuffer as the rendering target
 	D3D::dev->SetDepthStencilSurface(NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
@@ -1014,7 +1033,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
-	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	D3D::drawClearQuad(0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 
 	int X = dst_rect.left;
 	int Y = dst_rect.top;
@@ -1102,6 +1122,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
+	if(g_ActiveConfig.bAnaglyphStereo)
+	{
+		DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA | D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
+	}
 	vp.X = 0;
 	vp.Y = 0;
 	vp.Width  = s_backbuffer_width;

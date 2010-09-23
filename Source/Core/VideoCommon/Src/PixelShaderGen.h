@@ -28,18 +28,22 @@
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX   "cindmtx"
 #define I_FOG         "cfog"
+#define I_PLIGHTS	  "cLights"
+#define I_PMATERIALS   "cmtrl"
 
-#define C_COLORS       0
-#define C_KCOLORS      (C_COLORS + 4)
-#define C_ALPHA        (C_KCOLORS + 4)
-#define C_TEXDIMS      (C_ALPHA + 1)
-#define C_ZBIAS        (C_TEXDIMS + 8)
-#define C_INDTEXSCALE  (C_ZBIAS + 2)
-#define C_INDTEXMTX    (C_INDTEXSCALE + 2)
-#define C_FOG          (C_INDTEXMTX + 6)
-#define C_COLORMATRIX  (C_FOG + 2)
-#define C_PENVCONST_END (C_COLORMATRIX + 16)
-#define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11)
+#define C_COLORS		0
+#define C_KCOLORS		(C_COLORS + 4)
+#define C_ALPHA			(C_KCOLORS + 4)
+#define C_TEXDIMS		(C_ALPHA + 1)
+#define C_ZBIAS			(C_TEXDIMS + 8)
+#define C_INDTEXSCALE	(C_ZBIAS + 2)
+#define C_INDTEXMTX		(C_INDTEXSCALE + 2)
+#define C_FOG			(C_INDTEXMTX + 6)
+#define C_COLORMATRIX	(C_FOG + 2)
+#define C_PLIGHTS		(C_COLORMATRIX + 4)
+#define C_PMATERIALS	(C_PLIGHTS + 40)
+#define C_PENVCONST_END (C_PMATERIALS + 4)
+#define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11 + 2)
 
 // DO NOT make anything in this class virtual.
 class PIXELSHADERUID
@@ -100,7 +104,7 @@ public:
 	}
 };
 
-const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType);
+const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 components);
 void GetPixelShaderId(PIXELSHADERUID *uid, u32 dstAlphaEnable);
 
 extern PIXELSHADERUID last_pixel_shader_uid;

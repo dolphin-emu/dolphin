@@ -109,6 +109,9 @@ struct VideoConfig
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
 	bool bFreeLook;
+	bool bAnaglyphStereo;
+	int iAnaglyphStereoSeparation;
+	int iAnaglyphFocalAngle;
 	
 	// Hacks
 	bool bEFBAccessEnable;
@@ -127,6 +130,7 @@ struct VideoConfig
 	bool bProjHack1;
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
+	bool bEnablePixelLigting;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;

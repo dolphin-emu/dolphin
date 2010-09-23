@@ -36,6 +36,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
         {
             VertexManager::Flush();
 			VertexShaderManager::InvalidateXFRange(address, address + transferSize);
+			PixelShaderManager::InvalidateXFRange(address, address + transferSize);
             //PRIM_LOG("xfmem write: 0x%x-0x%x\n", address, address+transferSize);
 
             memcpy_gc((u32*)&xfmem[address], &pData[i], transferSize*4);
@@ -111,6 +112,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 						VertexManager::Flush();
 						xfregs.colChans[chan].ambColor = data;
 						VertexShaderManager::SetMaterialColor(chan, data);
+						PixelShaderManager::SetMaterialColor(chan, data);
 					}
 					break;
 				}
@@ -124,6 +126,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 						VertexManager::Flush();
 						xfregs.colChans[chan].matColor = data;
 						VertexShaderManager::SetMaterialColor(address - XFMEM_SETCHAN0_AMBCOLOR, data);
+						PixelShaderManager::SetMaterialColor(address - XFMEM_SETCHAN0_AMBCOLOR, data);
 					}
 					break;
 				}
@@ -217,6 +220,7 @@ void LoadIndexedXF(u32 val, int array)
 
     VertexManager::Flush();
     VertexShaderManager::InvalidateXFRange(address, address+size);
+	PixelShaderManager::InvalidateXFRange(address, address+size);
     //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
 
     for (int i = 0; i < size; i++)

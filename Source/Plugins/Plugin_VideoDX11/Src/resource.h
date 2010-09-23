@@ -31,6 +31,7 @@
 #define IDC_RADIO3                      1043
 #define IDC_SAFE_TEXTURE_CACHE_FAST     1043
 #define IDC_DLIST_CACHING               1044
+#define IDC_ENABLEPIXELLIGHTING         1045
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -39,7 +40,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1046
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

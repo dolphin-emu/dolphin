@@ -24,6 +24,7 @@
 #include "BPMemory.h"
 #include "CPMemory.h"
 #include "VertexShaderGen.h"
+#include "VideoConfig.h"
 
 VERTEXSHADERUID  last_vertex_shader_uid;
 
@@ -44,7 +45,7 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 			(u32)xfregs.colChans[i].alpha.hex :
 			(u32)xfregs.colChans[i].alpha.matsource) << 15;
 	}
-
+	uid->values[2] |= g_ActiveConfig.bEnablePixelLigting << 31;
 	u32 *pcurvalue = &uid->values[3];
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
@@ -115,11 +116,21 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		for (int i = 0; i < xfregs.numTexGens; ++i)
 			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
 		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGens);
+		if(g_ActiveConfig.bEnablePixelLigting)
+			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
-		for (int i = 0; i < xfregs.numTexGens; ++i)
-			WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i<4?4:3, i, i);
-	}
+		if(g_ActiveConfig.bEnablePixelLigting)
+		{
+			for (int i = 0; i < 8; ++i)
+				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
+		}
+		else
+		{
+			for (int i = 0; i < xfregs.numTexGens; ++i)
+				WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
+		}
+	}	
 	WRITE(p, "};\n");
 
 	// uniforms
@@ -134,7 +145,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	WRITE(p, "uniform s_"I_PROJECTION" "I_PROJECTION" : register(c%d);\n", C_PROJECTION);
 	WRITE(p, "uniform float4 "I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
 
-	WRITE(p, "VS_OUTPUT main(\n");
+	WRITE(p, "VS_OUTPUT main(\n");	
 	
 	// inputs
 	if (components & VB_HAS_NRM0)
@@ -169,8 +180,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 	}
 	WRITE(p, "  float4 rawpos : POSITION) {\n");
-	WRITE(p, "VS_OUTPUT o;\n");
-
+	WRITE(p, "VS_OUTPUT o;\n");	
 	// transforms
 	if (components & VB_HAS_POSMTXIDX) {
 		if (api_type == API_D3D9)
@@ -187,8 +197,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			WRITE(p, "int posmtx = fposmtx;\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");
-		
+		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");		
+
 		if (components & VB_HAS_NRMALL) {
 			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
 			WRITE(p, "float3 N0 = "I_NORMALMATRICES".T[normidx].t.xyz, N1 = "I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = "I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
@@ -215,9 +225,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	if (!(components & VB_HAS_NRM0))
 		WRITE(p, "float3 _norm0 = float3(0.0f, 0.0f, 0.0f);\n");
 
+	
+
 	WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
 
-	WRITE(p, "float4 mat, lacc;\n" // = half4(1, 1, 1, 1), lacc = half4(0, 0, 0, 0);\n"
+	WRITE(p, "float4 mat, lacc;\n"
 	"float3 ldir, h;\n"
 	"float dist, dist2, attn;\n");
 
@@ -226,7 +238,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		if (components & VB_HAS_COL0)
 			WRITE(p, "o.colors_0 = color0;\n");
 		else
-			WRITE(p, "o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
+			WRITE(p, "o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");		
 	}
 	// lights/colors
 	for (int j = 0; j < xfregs.nNumChans; j++)
@@ -293,8 +305,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		else
 		{
 			WRITE(p, "lacc.w = 1.0f;\n");
-		}
-
+		}	
 		
 		if(color.enablelighting && alpha.enablelighting)
 		{
@@ -341,7 +352,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
 		else
-			WRITE(p, "o.colors_1 = o.colors_0;\n");
+			WRITE(p, "o.colors_1 = o.colors_0;\n");		
 	}
 	// special case if only pos and tex coord 0 and tex coord input is AB11
 	// donko - this has caused problems in some games. removed for now.
@@ -460,12 +471,32 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	// clipPos/w needs to be done in pixel shader, not here
 	if (xfregs.numTexGens < 7) {
-		WRITE(p, "o.clipPos = o.pos;\n");
+		WRITE(p, "o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
 	} else {
-		WRITE(p, "o.tex0.w = o.pos.x;\n");
-		WRITE(p, "o.tex1.w = o.pos.y;\n");
+		WRITE(p, "o.tex0.w = pos.x;\n");
+		WRITE(p, "o.tex1.w = pos.y;\n");
 		WRITE(p, "o.tex2.w = o.pos.z;\n");
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
+	}
+
+	if(g_ActiveConfig.bEnablePixelLigting)
+	{
+		if (xfregs.numTexGens < 7) {
+			WRITE(p, "o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
+		} else {
+			WRITE(p, "o.tex4.w = _norm0.x;\n");
+			WRITE(p, "o.tex5.w = _norm0.y;\n");
+			WRITE(p, "o.tex6.w = _norm0.z;\n");
+			if (xfregs.numTexGens < 8)
+				WRITE(p, "o.tex7 = pos.xyzz;\n");
+			else
+				WRITE(p, "o.tex7.w = pos.z;\n");
+		}		
+		if (components & VB_HAS_COL0)
+			WRITE(p, "o.colors_0 = color0;\n");		
+
+		if (components & VB_HAS_COL1)
+			WRITE(p, "o.colors_1 = color1;\n");
 	}
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values

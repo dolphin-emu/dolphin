@@ -185,7 +185,7 @@ GLuint PixelShaderCache::GetDepthMatrixProgram()
 }
 
 
-FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
+FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable,u32 components)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
@@ -214,7 +214,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	PSCacheEntry& newentry = pshaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-	const char *code = GeneratePixelShaderCode(dstAlphaEnable,API_OPENGL);
+	const char *code = GeneratePixelShaderCode(dstAlphaEnable,API_OPENGL,components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	

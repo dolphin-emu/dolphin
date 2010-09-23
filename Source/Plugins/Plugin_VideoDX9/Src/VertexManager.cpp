@@ -274,7 +274,7 @@ void Flush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(false))
+	if (!PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components))
 	{
 		DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
@@ -294,7 +294,7 @@ void Flush()
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(true))
+		if (!PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components))
 		{
 			DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
@@ -304,7 +304,6 @@ void Flush()
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 		
 		Draw(stride);
-
 		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 	}
