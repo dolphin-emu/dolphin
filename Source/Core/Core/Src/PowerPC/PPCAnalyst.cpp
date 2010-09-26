@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <string>
+#include <queue>
 
 #include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
