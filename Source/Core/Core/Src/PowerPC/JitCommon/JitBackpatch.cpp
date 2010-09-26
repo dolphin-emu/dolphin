@@ -91,7 +91,9 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 		break;
 	}
 	ABI_PopAllCallerSavedRegsAndAdjustStack();
-	MOV(32, R(dataReg), R(EAX));
+	if (dataReg != EAX) {
+		MOV(32, R(dataReg), R(EAX));
+	}
 	RET();
 #endif
 	return trampoline;
