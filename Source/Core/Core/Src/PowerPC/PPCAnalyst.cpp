@@ -25,6 +25,7 @@
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 #include "../ConfigManager.h"
+#include "../GeckoCode.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls
@@ -327,17 +328,60 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 
 	u32 returnAddress = 0;
 
+	// Used for Gecko CST1 code. (See GeckoCode/GeckoCode.h)
+	// We use std::queue but it is not so slow
+	// because cst1_instructions does not allocate memory so many times.
+	std::queue<UGeckoInstruction> cst1_instructions;
+	const std::map<u32, std::vector<u32> >& inserted_asm_codes =
+		Gecko::GetInsertedAsmCodes();
+
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
 	for (int i = 0; i < maxsize; i++)
-	{		
-		UGeckoInstruction inst = Memory::Read_Opcode_JIT(address);
+	{
+		UGeckoInstruction inst;
+
+		if (!cst1_instructions.empty())
+		{
+			// If the Gecko CST1 instruction queue is not empty,
+			// we comsume the first instruction.
+			inst = UGeckoInstruction(cst1_instructions.front());
+			cst1_instructions.pop();
+			address -= 4;
+
+		}
+		else
+		{
+			// If the address is the insertion point of Gecko CST1 code,
+			// we push the code into the instruction queue and
+			// consume the first instruction.
+			std::map<u32, std::vector<u32> >::const_iterator it =
+				inserted_asm_codes.find(address);
+			if (it != inserted_asm_codes.end())
+			{
+				const std::vector<u32>& codes = it->second;
+				for (std::vector<u32>::const_iterator it = codes.begin(),
+					itEnd = codes.end(); it != itEnd; ++it)
+				{
+					cst1_instructions.push(*it);
+				}
+				inst = UGeckoInstruction(cst1_instructions.front());
+				cst1_instructions.pop();
+
+			}
+			else
+			{
+				inst = Memory::Read_Opcode_JIT(address);
+			}
+		}
+		
 		if (inst.hex != 0)
 		{
 			num_inst++;
 			memset(&code[i], 0, sizeof(CodeOp));
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
 			code[i].opinfo = opinfo;
+			// FIXME: code[i].address may not be correct due to CST1 code.
 			code[i].address = address;
 			code[i].inst = inst;
 			code[i].branchTo = -1;

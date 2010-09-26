@@ -66,6 +66,7 @@ namespace Gecko
 
 	void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
 	bool RunActiveCodes();
+	const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes();
 
 }	// namespace Gecko
 
