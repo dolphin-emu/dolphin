@@ -199,10 +199,10 @@ union IND_MTXA
 {
     struct
     {
-        signed ma : 11;
-        signed mb : 11;
-        unsigned s0 : 2; // bits 0-1 of scale factor
-        unsigned rid : 8;
+        s32 ma : 11;
+        s32 mb : 11;
+        u32 s0 : 2; // bits 0-1 of scale factor
+        u32 rid : 8;
     };
     u32 hex;
 };
@@ -211,10 +211,10 @@ union IND_MTXB
 {
     struct
     {
-        signed mc : 11;
-        signed md : 11;
-        unsigned s1 : 2; // bits 2-3 of scale factor
-        unsigned rid : 8;
+        s32 mc : 11;
+        s32 md : 11;
+        u32 s1 : 2; // bits 2-3 of scale factor
+        u32 rid : 8;
     };
     u32 hex;
 };
@@ -223,10 +223,10 @@ union IND_MTXC
 {
     struct
     {
-        signed me : 11;
-        signed mf : 11;
-        unsigned s2 : 2; // bits 4-5 of scale factor
-        unsigned rid : 8;
+        s32 me : 11;
+        s32 mf : 11;
+        u32 s2 : 2; // bits 4-5 of scale factor
+        u32 rid : 8;
     };
     u32 hex;
 };
@@ -242,8 +242,8 @@ union IND_IMASK
 {
     struct
     {
-        unsigned mask : 24;
-        unsigned rid : 8;
+        u32 mask : 24;
+        u32 rid : 8;
     };
     u32 hex;
 };
@@ -361,17 +361,17 @@ union TevStageIndirect
     // if mid, sw, tw, and addprev are 0, then no indirect stage is used, mask = 0x17fe00
     struct
     {
-        unsigned bt        : 2; // indirect tex stage ID
-        unsigned fmt       : 2; // format: ITF_X
-        unsigned bias      : 3; // ITB_X
-        unsigned bs        : 2; // ITBA_X, indicates which coordinate will become the 'bump alpha'
-        unsigned mid       : 4; // matrix id to multiply offsets with
-        unsigned sw        : 3; // ITW_X, wrapping factor for S of regular coord
-        unsigned tw        : 3; // ITW_X, wrapping factor for T of regular coord
-        unsigned lb_utclod : 1; // use modified or unmodified texture coordinates for LOD computation
-        unsigned fb_addprev : 1; // 1 if the texture coordinate results from the previous TEV stage should be added
-        unsigned pad0 : 3;
-        unsigned rid : 8;
+        u32 bt			: 2; // indirect tex stage ID
+        u32 fmt			: 2; // format: ITF_X
+        u32 bias		: 3; // ITB_X
+        u32 bs			: 2; // ITBA_X, indicates which coordinate will become the 'bump alpha'
+        u32 mid			: 4; // matrix id to multiply offsets with
+        u32 sw			: 3; // ITW_X, wrapping factor for S of regular coord
+        u32 tw			: 3; // ITW_X, wrapping factor for T of regular coord
+        u32 lb_utclod	: 1; // use modified or unmodified texture coordinates for LOD computation
+        u32 fb_addprev	: 1; // 1 if the texture coordinate results from the previous TEV stage should be added
+        u32 pad0		: 3;
+        u32 rid			: 8;
     };
     struct
     {
@@ -386,20 +386,20 @@ union TwoTevStageOrders
 {
     struct 
     {
-        unsigned texmap0    : 3; // indirect tex stage texmap
-        unsigned texcoord0  : 3;
-        unsigned enable0    : 1; // 1 if should read from texture
-        unsigned colorchan0 : 3; // RAS1_CC_X
+        u32 texmap0    : 3; // indirect tex stage texmap
+        u32 texcoord0  : 3;
+        u32 enable0    : 1; // 1 if should read from texture
+        u32 colorchan0 : 3; // RAS1_CC_X
 
-        unsigned pad0       : 2;
+        u32 pad0       : 2;
 
-        unsigned texmap1    : 3;
-        unsigned texcoord1  : 3;
-        unsigned enable1    : 1; // 1 if should read from texture
-        unsigned colorchan1 : 3; // RAS1_CC_X
+        u32 texmap1    : 3;
+        u32 texcoord1  : 3;
+        u32 enable1    : 1; // 1 if should read from texture
+        u32 colorchan1 : 3; // RAS1_CC_X
 
-        unsigned pad1       : 2;
-        unsigned rid        : 8;
+        u32 pad1       : 2;
+        u32 rid        : 8;
     };
     u32 hex;
     int getTexMap(int i){return i?texmap1:texmap0;}
@@ -412,12 +412,12 @@ union TEXSCALE
 {
     struct
     {
-        unsigned ss0 : 4; // indirect tex stage 0, 2^(-ss0)
-        unsigned ts0 : 4; // indirect tex stage 0
-        unsigned ss1 : 4; // indirect tex stage 1
-        unsigned ts1 : 4; // indirect tex stage 1
-        unsigned pad : 8;
-        unsigned rid : 8;
+        u32 ss0 : 4; // indirect tex stage 0, 2^(-ss0)
+        u32 ts0 : 4; // indirect tex stage 0
+        u32 ss1 : 4; // indirect tex stage 1
+        u32 ts1 : 4; // indirect tex stage 1
+        u32 pad : 8;
+        u32 rid : 8;
     };
     u32 hex;
 
@@ -429,15 +429,15 @@ union RAS1_IREF
 {
     struct
     {
-        unsigned bi0 : 3; // indirect tex stage 0 ntexmap
-        unsigned bc0 : 3; // indirect tex stage 0 ntexcoord
-        unsigned bi1 : 3;
-        unsigned bc1 : 3;
-        unsigned bi2 : 3;
-        unsigned bc3 : 3;
-        unsigned bi4 : 3;
-        unsigned bc4 : 3;
-        unsigned rid : 8;
+        u32 bi0 : 3; // indirect tex stage 0 ntexmap
+        u32 bc0 : 3; // indirect tex stage 0 ntexcoord
+        u32 bi1 : 3;
+        u32 bc1 : 3;
+        u32 bi2 : 3;
+        u32 bc3 : 3;
+        u32 bi4 : 3;
+        u32 bc4 : 3;
+        u32 rid : 8;
     };
     u32 hex;
 
@@ -452,15 +452,15 @@ union TexMode0
 {
     struct 
     {
-        unsigned wrap_s : 2;
-        unsigned wrap_t : 2;
-        unsigned mag_filter : 1;
-        unsigned min_filter : 3;
-        unsigned diag_lod : 1;
-        signed lod_bias : 8;
-		unsigned pad0 : 2;
-        unsigned max_aniso : 2;
-        unsigned lod_clamp : 1;
+        u32 wrap_s : 2;
+        u32 wrap_t : 2;
+        u32 mag_filter : 1;
+        u32 min_filter : 3;
+        u32 diag_lod : 1;
+        s32 lod_bias : 8;
+		u32 pad0 : 2;
+        u32 max_aniso : 2;
+        u32 lod_clamp : 1;
     };
     u32 hex;
 };
@@ -468,8 +468,8 @@ union TexMode1
 {
     struct 
     {
-        unsigned min_lod : 8;
-        unsigned max_lod : 8;
+        u32 min_lod : 8;
+        u32 max_lod : 8;
     };
     u32 hex;
 };
@@ -477,9 +477,9 @@ union TexImage0
 {
     struct 
     {
-        unsigned width : 10; //actually w-1
-        unsigned height : 10; //actually h-1
-        unsigned format : 4;
+        u32 width : 10; //actually w-1
+        u32 height : 10; //actually h-1
+        u32 format : 4;
     };
     u32 hex;
 };
@@ -487,10 +487,10 @@ union TexImage1
 {
     struct 
     {
-        unsigned tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
-        unsigned cache_width : 3; 
-        unsigned cache_height : 3;
-        unsigned image_type : 1;
+        u32 tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
+        u32 cache_width : 3; 
+        u32 cache_height : 3;
+        u32 image_type : 1;
     };
     u32 hex;
 };
@@ -499,9 +499,9 @@ union TexImage2
 {
     struct 
     {
-        unsigned tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
-        unsigned cache_width : 3; 
-        unsigned cache_height : 3;
+        u32 tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
+        u32 cache_width : 3; 
+        u32 cache_height : 3;
     };
     u32 hex;
 };
@@ -510,7 +510,7 @@ union TexImage3
 {
     struct 
     {
-        unsigned image_base: 24;  //address in memory >> 5 (was 20 for GC)
+        u32 image_base: 24;  //address in memory >> 5 (was 20 for GC)
     };
     u32 hex;
 };
@@ -518,8 +518,8 @@ union TexTLUT
 {
     struct 
     {	
-        unsigned tmem_offset : 10;
-        unsigned tlut_format : 2;
+        u32 tmem_offset : 10;
+        u32 tlut_format : 2;
     };
     u32 hex;
 };
@@ -528,7 +528,7 @@ union ZTex1
 {
     struct 
     {
-        unsigned bias : 24;
+        u32 bias : 24;
     };
     u32 hex;
 };
@@ -537,8 +537,8 @@ union ZTex2
 {
     struct 
     {
-        unsigned type : 2; // TEV_Z_TYPE_X
-        unsigned op : 2; // GXZTexOp
+        u32 type : 2; // TEV_Z_TYPE_X
+        u32 op : 2; // GXZTexOp
     };
     u32 hex;
 };
@@ -573,13 +573,13 @@ union GenMode
 {
     struct 
     {
-        unsigned numtexgens : 4;    //     0xF
-        unsigned numcolchans : 5;   //   0x1E0
-        unsigned ms_en : 1;         //   0x200
-        unsigned numtevstages : 4;  //  0x3C00
-        unsigned cullmode : 2;      //  0xC000
-        unsigned numindstages : 3;  // 0x30000
-        unsigned zfreeze : 5;       //0x3C0000
+        u32 numtexgens : 4;    //     0xF
+        u32 numcolchans : 5;   //   0x1E0
+        u32 ms_en : 1;         //   0x200
+        u32 numtevstages : 4;  //  0x3C00
+        u32 cullmode : 2;      //  0xC000
+        u32 numindstages : 3;  // 0x30000
+        u32 zfreeze : 5;       //0x3C0000
     };
     u32 hex;
 };
@@ -588,12 +588,12 @@ union LPSize
 {
     struct 
     {
-        unsigned linesize : 8; // in 1/6th pixels
-        unsigned pointsize : 8; // in 1/6th pixels
-        unsigned lineoff : 3;
-        unsigned pointoff : 3;
-        unsigned lineaspect : 1;
-        unsigned padding : 1;
+        u32 linesize : 8; // in 1/6th pixels
+        u32 pointsize : 8; // in 1/6th pixels
+        u32 lineoff : 3;
+        u32 pointoff : 3;
+        u32 lineaspect : 1;
+        u32 padding : 1;
     };
     u32 hex;
 };
@@ -603,8 +603,8 @@ union X12Y12
 {
     struct 
     {
-        unsigned y : 12;
-        unsigned x : 12;
+        u32 y : 12;
+        u32 x : 12;
     };
     u32 hex;
 };
@@ -612,8 +612,8 @@ union X10Y10
 {
     struct 
     {
-        unsigned x : 10;
-        unsigned y : 10;
+        u32 x : 10;
+        u32 y : 10;
     };
     u32 hex;
 };
@@ -625,15 +625,15 @@ union BlendMode
 {
     struct 
     {
-        unsigned blendenable   : 1;
-        unsigned logicopenable : 1;
-        unsigned dither : 1;
-        unsigned colorupdate : 1;
-        unsigned alphaupdate : 1;
-        unsigned dstfactor : 3; //BLEND_ONE, BLEND_INV_SRc etc
-        unsigned srcfactor : 3;
-        unsigned subtract : 1;
-        unsigned logicmode : 4;
+        u32 blendenable   : 1;
+        u32 logicopenable : 1;
+        u32 dither : 1;
+        u32 colorupdate : 1;
+        u32 alphaupdate : 1;
+        u32 dstfactor : 3; //BLEND_ONE, BLEND_INV_SRc etc
+        u32 srcfactor : 3;
+        u32 subtract : 1;
+        u32 logicmode : 4;
     };
     u32 hex;
 };
@@ -643,9 +643,9 @@ union FogParam0
 {
     struct 
     {
-        unsigned mantissa : 11;
-        unsigned exponent : 8;
-        unsigned sign : 1;
+        u32 mantissa : 11;
+        u32 exponent : 8;
+        u32 sign : 1;
     };
 
     float GetA() {
@@ -661,11 +661,11 @@ union FogParam3
 {
     struct
     {
-        unsigned c_mant : 11;
-        unsigned c_exp : 8;
-        unsigned c_sign : 1;
-        unsigned proj : 1; // 0 - perspective, 1 - orthographic
-        unsigned fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
+        u32 c_mant : 11;
+        u32 c_exp : 8;
+        u32 c_sign : 1;
+        u32 proj : 1; // 0 - perspective, 1 - orthographic
+        u32 fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
     };
 
     // amount to subtract from eyespacez after range adjustment
@@ -690,9 +690,9 @@ struct FogParams
     {
         struct
         {
-            unsigned b  : 8;
-            unsigned g  : 8;
-            unsigned r  : 8;
+            u32 b  : 8;
+            u32 g  : 8;
+            u32 r  : 8;
         };
         u32 hex;
     };
@@ -704,9 +704,9 @@ union ZMode
 {
     struct 
     {
-        unsigned testenable		: 1;
-        unsigned func			: 3;
-        unsigned updateenable	: 1;  //size?
+        u32 testenable		: 1;
+        u32 func			: 3;
+        u32 updateenable	: 1;  //size?
     };
     u32 hex;
 };
@@ -715,8 +715,8 @@ union ConstantAlpha
 {
     struct 
     {
-        unsigned alpha : 8;
-        unsigned enable : 1;
+        u32 alpha : 8;
+        u32 enable : 1;
     };
     u32 hex;
 };
@@ -734,11 +734,11 @@ union PE_CONTROL
 {
     struct
     {
-        unsigned pixel_format : 3; // PIXELFMT_X
-        unsigned zformat : 3; // 0 - linear, 1 - near, 2 - mid, 3 - far
-        unsigned zcomploc : 1; // 1: before tex stage
-        unsigned unused : 17;
-        unsigned rid : 8;
+        u32 pixel_format : 3; // PIXELFMT_X
+        u32 zformat : 3; // 0 - linear, 1 - near, 2 - mid, 3 - far
+        u32 zcomploc : 1; // 1: before tex stage
+        u32 unused : 17;
+        u32 rid : 8;
     };
     u32 hex;
 };
@@ -750,9 +750,9 @@ union TCInfo
 {
     struct 
     {
-        unsigned scale_minus_1 : 16;
-        unsigned range_bias : 1;
-        unsigned cylindric_wrap : 1;
+        u32 scale_minus_1 : 16;
+        u32 range_bias : 1;
+        u32 cylindric_wrap : 1;
     };
     u32 hex;
 };
@@ -768,10 +768,10 @@ union ColReg
     u32 hex;
     struct
     {
-        signed a : 11;
-        unsigned : 1;
-        signed b : 11;
-        unsigned type : 1;
+        s32 a : 11;
+        u32 : 1;
+        s32 b : 11;
+        u32 type : 1;
     };
 };
 
@@ -784,12 +784,12 @@ struct TevReg
 union TevKSel
 {
     struct {
-        unsigned swap1 : 2;
-        unsigned swap2 : 2;
-        unsigned kcsel0 : 5;
-        unsigned kasel0 : 5;
-        unsigned kcsel1 : 5;
-        unsigned kasel1 : 5;
+        u32 swap1 : 2;
+        u32 swap2 : 2;
+        u32 kcsel0 : 5;
+        u32 kasel0 : 5;
+        u32 kcsel1 : 5;
+        u32 kasel1 : 5;
     };
     u32 hex;
 
@@ -801,11 +801,11 @@ union AlphaFunc
 {
     struct
     {
-        unsigned ref0 : 8;
-        unsigned ref1 : 8;
-        unsigned comp0 : 3;
-        unsigned comp1 : 3;
-        unsigned logic : 2;
+        u32 ref0 : 8;
+        u32 ref1 : 8;
+        u32 comp0 : 3;
+        u32 comp1 : 3;
+        u32 logic : 2;
     };
     u32 hex;
 };
@@ -815,18 +815,18 @@ union UPE_Copy
     u32 Hex;
     struct 
     {
-        unsigned clamp0					: 1;
-        unsigned clamp1					: 1;
-        unsigned                        : 1;
-        unsigned target_pixel_format	: 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb
-        unsigned gamma					: 2;
-        unsigned half_scale             : 1; // real size should be 2x smaller (run a gauss filter?) "mipmap"
-        unsigned scale_invert			: 1;
-        unsigned clear					: 1;
-        unsigned frame_to_field			: 2;
-        unsigned copy_to_xfb			: 1;
-        unsigned intensity_fmt          : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
-        unsigned						: 16; // seems to set everything to 1s when target pixel format is invalid
+        u32 clamp0				: 1;
+		u32 clamp1				: 1;
+        u32                     : 1;
+        u32 target_pixel_format	: 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb
+        u32 gamma				: 2;
+        u32 half_scale          : 1; // real size should be 2x smaller (run a gauss filter?) "mipmap"
+        u32 scale_invert		: 1;
+        u32 clear				: 1;
+		u32 frame_to_field		: 2;
+        u32 copy_to_xfb			: 1;
+        u32 intensity_fmt       : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
+        u32						: 16; // seems to set everything to 1s when target pixel format is invalid
     };
 };
 

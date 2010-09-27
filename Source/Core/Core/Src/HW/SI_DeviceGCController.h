@@ -63,10 +63,10 @@ private:
 		u32 Hex;
 		struct  
 		{
-			unsigned Parameter1	:	8;
-			unsigned Parameter2	:	8;
-			unsigned Command	:	8;
-			unsigned			:	8;
+			u32 Parameter1	:	8;
+			u32 Parameter2	:	8;
+			u32 Command		:	8;
+			u32				:	8;
 		};
 		UCommand()				{Hex = 0;}
 		UCommand(u32 _iValue)	{Hex = _iValue;}		

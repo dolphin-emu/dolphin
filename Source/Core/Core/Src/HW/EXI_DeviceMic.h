@@ -53,13 +53,13 @@ private:
 		u8 U8[2];
 		struct
 		{
-			unsigned			:8; // Unknown
-			unsigned button		:1; // 1: Button Pressed
-			unsigned unk1		:1; // 1 ? Overflow?
-			unsigned unk2		:1; // Unknown related to 0 and 15 values It seems
-			unsigned sRate		:2; // Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
-			unsigned pLength	:2; // Period Length, 00-32, 01-64, 10-128, 11-???
-			unsigned sampling	:1; // If We Are Sampling or Not
+			u16				:8; // Unknown
+			u16 button		:1; // 1: Button Pressed
+			u16 unk1		:1; // 1 ? Overflow?
+			u16 unk2		:1; // Unknown related to 0 and 15 values It seems
+			u16 sRate		:2; // Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
+			u16 pLength		:2; // Period Length, 00-32, 01-64, 10-128, 11-???
+			u16 sampling	:1; // If We Are Sampling or Not
 		};
 	};
 	int Index;

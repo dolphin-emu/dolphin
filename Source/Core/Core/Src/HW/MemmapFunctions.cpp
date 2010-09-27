@@ -562,14 +562,15 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 #define PTE2_WIMG(v) (((v)>>3)&0xf)
 #define PTE2_PP(v)   ((v)&3)
 
+// Hey! these duplicate a structure in Gekko.h
 union UPTE1
 {
 	struct 
 	{
-		unsigned API    : 6;
-		unsigned H      : 1;
-		unsigned VSID   : 24;
-		unsigned V      : 1;        
+		u32 API    : 6;
+		u32 H      : 1;
+		u32 VSID   : 24;
+		u32 V      : 1;        
 	};
 	u32 Hex;
 };
@@ -578,13 +579,13 @@ union UPTE2
 {
 	struct 
 	{
-		unsigned PP     : 2;
-		unsigned        : 1;
-		unsigned WIMG   : 4;
-		unsigned C      : 1;
-		unsigned R      : 1;
-		unsigned        : 3;
-		unsigned RPN    : 20;
+		u32 PP     : 2;
+		u32        : 1;
+		u32 WIMG   : 4;
+		u32 C      : 1;
+		u32 R      : 1;
+		u32        : 3;
+		u32 RPN    : 20;
 	};
 	u32 Hex;
 };

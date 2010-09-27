@@ -53,15 +53,15 @@ union AICR
 	AICR(u32 _hex) { hex = _hex;}
 	struct 
 	{
-		unsigned PSTAT		: 1;  // sample counter/playback enable
-		unsigned AIFR		: 1;  // AI Frequency (0=32khz 1=48khz)
-		unsigned AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
-		unsigned AIINT		: 1;  // audio interrupt status
-		unsigned AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
+		u32 PSTAT		: 1;  // sample counter/playback enable
+		u32 AIFR		: 1;  // AI Frequency (0=32khz 1=48khz)
+		u32 AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
+		u32 AIINT		: 1;  // audio interrupt status
+		u32 AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
                                   // matching AISLRCNT. Once set, AIINT will hold
-		unsigned SCRESET	: 1;  // write to reset counter
-        unsigned DACFR  	: 1;  // DAC Frequency (0=48khz 1=32khz)
-		unsigned			:25;
+		u32 SCRESET		: 1;  // write to reset counter
+        u32 DACFR		: 1;  // DAC Frequency (0=48khz 1=32khz)
+		u32				:25;
 	};
 	u32 hex;
 };
@@ -71,9 +71,9 @@ union AIVR
 {
 	struct
 	{
-		unsigned leftVolume		:  8;
-		unsigned rightVolume	:  8;
-		unsigned				: 16;
+		u32 leftVolume		:  8;
+		u32 rightVolume		:  8;
+		u32					: 16;
 	};
 	u32 hex;
 };

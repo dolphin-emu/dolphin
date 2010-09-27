@@ -74,12 +74,12 @@ namespace CommandProcessor
     {
 	    struct
 	    {
-		    unsigned OverflowHiWatermark	:	1;
-		    unsigned UnderflowLoWatermark	:	1;
-		    unsigned ReadIdle				:	1; // done reading
-		    unsigned CommandIdle			:	1; // done processing commands
-		    unsigned Breakpoint				:	1;
-		    unsigned						:	11;
+		    u16 OverflowHiWatermark	:	1;
+		    u16 UnderflowLoWatermark:	1;
+		    u16 ReadIdle			:	1; // done reading
+		    u16 CommandIdle			:	1; // done processing commands
+		    u16 Breakpoint			:	1;
+		    u16						:	11;
 	    };
 	    u16 Hex;
 	    UCPStatusReg() {Hex = 0; }
@@ -91,13 +91,13 @@ namespace CommandProcessor
     {
 	    struct
 	    {
-		    unsigned GPReadEnable			:	1;
-		    unsigned BPEnable           	:	1;
-		    unsigned FifoOverflowIntEnable	:	1;
-		    unsigned FifoUnderflowIntEnable	:	1;
-		    unsigned GPLinkEnable			:	1;
-		    unsigned BreakPointIntEnable	:	1;
-		    unsigned						:	10;
+		    u16 GPReadEnable			:	1;
+		    u16 BPEnable           		:	1;
+		    u16 FifoOverflowIntEnable	:	1;
+		    u16 FifoUnderflowIntEnable	:	1;
+		    u16 GPLinkEnable			:	1;
+		    u16 BreakPointIntEnable		:	1;
+		    u16							:	10;
 	    };
 	    u16 Hex;
 	    UCPCtrlReg() {Hex = 0; }
@@ -109,10 +109,10 @@ namespace CommandProcessor
     {
 	    struct
 	    {
-		    unsigned ClearFifoOverflow		:	1;
-		    unsigned ClearFifoUnderflow		:	1;
-		    unsigned ClearMetrices			:	1;
-		    unsigned						:	13;
+		    u16 ClearFifoOverflow		:	1;
+		    u16 ClearFifoUnderflow		:	1;
+		    u16 ClearMetrices			:	1;
+		    u16							:	13;
 	    };
 	    u16 Hex;
 	    UCPClearReg() {Hex = 0; }

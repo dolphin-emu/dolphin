@@ -212,11 +212,11 @@ union TMatrixIndexA
 {
     struct
     {
-        unsigned PosNormalMtxIdx : 6;
-        unsigned Tex0MtxIdx : 6;
-        unsigned Tex1MtxIdx : 6;
-        unsigned Tex2MtxIdx : 6;
-        unsigned Tex3MtxIdx : 6;
+        u32 PosNormalMtxIdx : 6;
+        u32 Tex0MtxIdx : 6;
+        u32 Tex1MtxIdx : 6;
+        u32 Tex2MtxIdx : 6;
+        u32 Tex3MtxIdx : 6;
     };
     struct
     {
@@ -229,10 +229,10 @@ union TMatrixIndexB
 {
     struct
     {
-        unsigned Tex4MtxIdx : 6;
-        unsigned Tex5MtxIdx : 6;
-        unsigned Tex6MtxIdx : 6;
-        unsigned Tex7MtxIdx : 6;
+        u32 Tex4MtxIdx : 6;
+        u32 Tex5MtxIdx : 6;
+        u32 Tex6MtxIdx : 6;
+        u32 Tex7MtxIdx : 6;
     };
     struct
     {

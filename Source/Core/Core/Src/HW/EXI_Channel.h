@@ -62,17 +62,17 @@ private:
 		//	Channels 0, 1, 2
 		//		Channels 0, 1 only
 		//			Channel 0 only
-			unsigned EXIINTMASK		: 1;
-			unsigned EXIINT			: 1;
-			unsigned TCINTMASK		: 1;
-			unsigned TCINT			: 1;
-			unsigned CLK			: 3;
-			unsigned CHIP_SELECT	: 3; // CS1 and CS2 are Channel 0 only
-				unsigned EXTINTMASK	: 1;
-				unsigned EXTINT		: 1;
-				unsigned EXT		: 1; // External Insertion Status (1: External EXI device present)
-					unsigned ROMDIS	: 1; // ROM Disable
-			unsigned				:18;
+			u32 EXIINTMASK		: 1;
+			u32 EXIINT			: 1;
+			u32 TCINTMASK		: 1;
+			u32 TCINT			: 1;
+			u32 CLK				: 3;
+			u32 CHIP_SELECT		: 3; // CS1 and CS2 are Channel 0 only
+				u32 EXTINTMASK	: 1;
+				u32 EXTINT		: 1;
+				u32 EXT			: 1; // External Insertion Status (1: External EXI device present)
+					u32 ROMDIS	: 1; // ROM Disable
+			u32					:18;
 		};
 		UEXI_STATUS() {Hex = 0;}
 		UEXI_STATUS(u32 _hex) {Hex = _hex;}
@@ -84,11 +84,11 @@ private:
 		u32 Hex;
 		struct
 		{
-			unsigned TSTART			: 1;
-			unsigned DMA			: 1;
-			unsigned RW				: 2;
-			unsigned TLEN			: 2;
-			unsigned				:26;
+			u32 TSTART		: 1;
+			u32 DMA			: 1;
+			u32 RW			: 2;
+			u32 TLEN		: 2;
+			u32				:26;
 		};
 	};
 

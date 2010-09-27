@@ -35,233 +35,233 @@ union UGeckoInstruction
 
 	struct
 	{
-		unsigned Rc		:	1;
-		unsigned SUBOP10:	10;
-		unsigned RB		:	5;
-		unsigned RA		:	5;
-		unsigned RD		:	5;
-		unsigned OPCD	:	6;
+		u32 Rc		:	1;
+		u32 SUBOP10	:	10;
+		u32 RB		:	5;
+		u32 RA		:	5;
+		u32 RD		:	5;
+		u32 OPCD	:	6;
 	}; // changed
 	struct
 	{
 		signed SIMM_16	:	16;
-		unsigned 		:	5;
-		unsigned TO		:	5;
-		unsigned OPCD_2	:	6;
+		u32 			:	5;
+		u32 TO			:	5;
+		u32 OPCD_2		:	6;
 	};
 	struct
 	{
-		unsigned Rc_2	:	1;
-		unsigned		:	10;
-		unsigned 		:	5;
-		unsigned 		:	5;
-		unsigned RS		:	5;
-		unsigned OPCD_3	:	6;
+		u32 Rc_2	:	1;
+		u32			:	10;
+		u32 		:	5;
+		u32 		:	5;
+		u32 RS		:	5;
+		u32 OPCD_3	:	6;
 	};
 	struct
 	{
-		unsigned UIMM	:	16;
-		unsigned 		:	5;
-		unsigned 		:	5;
-		unsigned OPCD_4	:	6;
+		u32 UIMM	:	16;
+		u32 		:	5;
+		u32 		:	5;
+		u32 OPCD_4	:	6;
 	};
 	struct
 	{
-		unsigned LK		:	1;
-		unsigned AA		:	1;
-		unsigned LI		:	24;
-		unsigned OPCD_5	:	6;
+		u32 LK		:	1;
+		u32 AA		:	1;
+		u32 LI		:	24;
+		u32 OPCD_5	:	6;
 	};
 	struct
 	{     
-		unsigned LK_2	:	1;
-		unsigned AA_2	:	1;
-		unsigned BD		:	14;
-		unsigned BI		:	5;
-		unsigned BO		:	5;
-		unsigned OPCD_6	:	6;
+		u32 LK_2	:	1;
+		u32 AA_2	:	1;
+		u32 BD		:	14;
+		u32 BI		:	5;
+		u32 BO		:	5;
+		u32 OPCD_6	:	6;
 	};
 	struct
 	{
-		unsigned LK_3	:	1;
-		unsigned		:	10;
-		unsigned		:	5;
-		unsigned BI_2	:	5;
-		unsigned BO_2	:	5;
-		unsigned OPCD_7	:	6;
+		u32 LK_3	:	1;
+		u32			:	10;
+		u32			:	5;
+		u32 BI_2	:	5;
+		u32 BO_2	:	5;
+		u32 OPCD_7	:	6;
 	};
 	struct
 	{
-		unsigned		:	11;
-		unsigned RB_2	:	5;
-		unsigned RA_2	:	5;
-		unsigned L		:	1;
-		unsigned 		:	1;
-		unsigned CRFD	:	3;
-		unsigned OPCD_8	:	6;
+		u32			:	11;
+		u32 RB_2	:	5;
+		u32 RA_2	:	5;
+		u32 L		:	1;
+		u32 		:	1;
+		u32 CRFD	:	3;
+		u32 OPCD_8	:	6;
 	};
 	struct
 	{
 		signed  SIMM_16_2	:	16;
-		unsigned RA_3	:	5;
-		unsigned L_2	:	1;
-		unsigned		:	1;
-		unsigned CRFD_2	:	3;
-		unsigned OPCD_9	:	6;
+		u32 RA_3	:	5;
+		u32 L_2		:	1;
+		u32			:	1;
+		u32 CRFD_2	:	3;
+		u32 OPCD_9	:	6;
 	};
 	struct
 	{     
-		unsigned UIMM_2	:	16;
-		unsigned RA_4	:	5;
-		unsigned L_3	:	1;
-		unsigned dummy2	:	1;
-		unsigned CRFD_3	:	3;
-		unsigned OPCD_A	:	6;
+		u32 UIMM_2	:	16;
+		u32 RA_4	:	5;
+		u32 L_3		:	1;
+		u32 dummy2	:	1;
+		u32 CRFD_3	:	3;
+		u32 OPCD_A	:	6;
 	};
 	struct
 	{
-		unsigned		:	1;
-		unsigned SUBOP10_2:	10;
-		unsigned RB_5	:	5;
-		unsigned RA_5	:	5;
-		unsigned L_4	:	1;
-		unsigned dummy3	:	1;
-		unsigned CRFD_4	:	3;
-		unsigned OPCD_B	:	6;
+		u32			:	1;
+		u32 SUBOP10_2:	10;
+		u32 RB_5	:	5;
+		u32 RA_5	:	5;
+		u32 L_4		:	1;
+		u32 dummy3	:	1;
+		u32 CRFD_4	:	3;
+		u32 OPCD_B	:	6;
 	};
 	struct
 	{
-		unsigned		:	16;
-		unsigned SR		:	4;
-		unsigned 		:	1;
-		unsigned RS_2	:	5;
-		unsigned OPCD_C	:	6;
+		u32			:	16;
+		u32 SR		:	4;
+		u32 		:	1;
+		u32 RS_2	:	5;
+		u32 OPCD_C	:	6;
 	};
 
 	// Table 59
 	struct
 	{
-		unsigned Rc_4	:	1;
-		unsigned SUBOP5	:	5;
-		unsigned RC		:	5;
-		unsigned		:	5;
-		unsigned RA_6	:	5;
-		unsigned RD_2	:	5;
-		unsigned OPCD_D	:	6;
+		u32 Rc_4	:	1;
+		u32 SUBOP5	:	5;
+		u32 RC		:	5;
+		u32			:	5;
+		u32 RA_6	:	5;
+		u32 RD_2	:	5;
+		u32 OPCD_D	:	6;
 	};
 
 	struct
-	{	unsigned		:	10;
-		unsigned OE		:	1;
-		unsigned SPR	:	10;
-		unsigned		:	11;
+	{	u32			:	10;
+		u32 OE		:	1;
+		u32 SPR		:	10;
+		u32			:	11;
 	};
 	struct
 	{
-		unsigned		:	10;
-		unsigned OE_3	:	1;
-		unsigned SPRU	:	5;
-		unsigned SPRL	:	5;
-		unsigned		:	11;
+		u32			:	10;
+		u32 OE_3	:	1;
+		u32 SPRU	:	5;
+		u32 SPRL	:	5;
+		u32			:	11;
 	};
 
 	// rlwinmx
 	struct
 	{
-		unsigned Rc_3	:	1;
-		unsigned ME		:	5;
-		unsigned MB		:	5;
-		unsigned SH		:	5;
-		unsigned		:	16;
+		u32 Rc_3	:	1;
+		u32 ME		:	5;
+		u32 MB		:	5;
+		u32 SH		:	5;
+		u32			:	16;
 	};
 
 	// crxor
 	struct 
 	{
-		unsigned		:	11;
-		unsigned CRBB	:	5;
-		unsigned CRBA	:	5;
-		unsigned CRBD	:	5;		
-		unsigned		:	6;
+		u32			:	11;
+		u32 CRBB	:	5;
+		u32 CRBA	:	5;
+		u32 CRBD	:	5;		
+		u32			:	6;
 	};
 
 	// mftb
 	struct 
 	{
-		unsigned		:	11;
-		unsigned TBR	:	10;
-		unsigned		:	11;
+		u32			:	11;
+		u32 TBR		:	10;
+		u32			:	11;
 	};
 
 	struct 
 	{
-		unsigned		:	11;
-		unsigned TBRU	:	5;
-		unsigned TBRL	:	5;
-		unsigned		:	11;
+		u32			:	11;
+		u32 TBRU	:	5;
+		u32 TBRL	:	5;
+		u32			:	11;
 	};
 
 	struct 
 	{
-		unsigned		:	18;
-		unsigned CRFS	:	3;
-		unsigned 		:	2;
-		unsigned CRFD_5	:	3;
-		unsigned		:	6;
+		u32			:	18;
+		u32 CRFS	:	3;
+		u32 		:	2;
+		u32 CRFD_5	:	3;
+		u32			:	6;
 	};
 
 	// float
 	struct 
 	{
-		unsigned		:	12;
-		unsigned CRM	:	8;
-		unsigned		:	1;
-		unsigned FD		:	5;
-		unsigned		:	6;
+		u32			:	12;
+		u32 CRM		:	8;
+		u32			:	1;
+		u32 FD		:	5;
+		u32			:	6;
 	};
 	struct 
 	{
-		unsigned		:	6;
-		unsigned FC		:	5;
-		unsigned FB		:	5;
-		unsigned FA		:	5;
-		unsigned FS		:	5;
-		unsigned		:	6;
+		u32			:	6;
+		u32 FC		:	5;
+		u32 FB		:	5;
+		u32 FA		:	5;
+		u32 FS		:	5;
+		u32			:	6;
 	};
 	struct 
 	{
-		unsigned OFS    :	16;
-		unsigned        :	16;
+		u32 OFS		:	16;
+		u32			:	16;
 	};
 	struct
 	{
-		unsigned        :   17;
-		unsigned FM     :   8;
-		unsigned        :   7;
+		u32			:   17;
+		u32 FM		:   8;
+		u32			:   7;
 	};
 
 	// paired
 	struct 
 	{
-		unsigned	    :	7;
-		unsigned Ix     :	3;
-		unsigned Wx     :	1;
-		unsigned	     :	1;
-		unsigned I		:   3;
-		unsigned W		:   1;
-		unsigned	    :	16;
+		u32			:	7;
+		u32 Ix		:	3;
+		u32 Wx		:	1;
+		u32			:	1;
+		u32 I		:   3;
+		u32 W		:   1;
+		u32			:	16;
 	};
 
 	struct 
 	{
 		signed	SIMM_12	:	12;
-		unsigned		:	20;
+		u32				:	20;
 	};
 
 	struct 
 	{
-		unsigned dummyX :   11;
-		unsigned NB : 5;
+		u32 dummyX	:   11;
+		u32 NB		: 5;
 	};
 };
 
@@ -277,14 +277,14 @@ union UGQR
 	u32 Hex;
 	struct 
 	{
-		unsigned	ST_TYPE		: 3;
-		unsigned				: 5;
-		unsigned	ST_SCALE	: 6;
-		unsigned				: 2;
-		unsigned	LD_TYPE		: 3;
-		unsigned				: 5;
-		unsigned	LD_SCALE	: 6;
-		unsigned				: 2;
+		u32	ST_TYPE		: 3;
+		u32				: 5;
+		u32	ST_SCALE	: 6;
+		u32				: 2;
+		u32	LD_TYPE		: 3;
+		u32				: 5;
+		u32	LD_SCALE	: 6;
+		u32				: 2;
 	};
 
 	UGQR(u32 _hex) { Hex = _hex; }
@@ -308,11 +308,11 @@ union UReg_XER
 {
 	struct 
 	{
-		unsigned BYTE_COUNT	: 7;
-		unsigned			: 22;
-		unsigned CA			: 1;
-		unsigned OV			: 1;
-		unsigned SO			: 1;
+		u32 BYTE_COUNT	: 7;
+		u32				: 22;
+		u32 CA			: 1;
+		u32 OV			: 1;
+		u32 SO			: 1;
 	};
 	u32 Hex;
 
@@ -325,26 +325,26 @@ union UReg_MSR
 {
 	struct
 	{
-		unsigned LE		:	1;
-		unsigned RI		:	1;
-		unsigned PM		:	1;
-		unsigned 		:	1; // res28
-		unsigned DR		:	1;
-		unsigned IR		:	1;
-		unsigned IP		:	1;
-		unsigned 		:	1; // res24
-		unsigned FE1	:	1;
-		unsigned BE 	:	1;
-		unsigned SE  	:	1;
-		unsigned FE0	:	1;
-		unsigned MCHECK	:	1;
-		unsigned FP		:	1;
-		unsigned PR		:	1;
-		unsigned EE		:	1;
-		unsigned ILE	:	1;
-		unsigned		:	1; // res14
-		unsigned POW	:	1;
-		unsigned res	:	13;
+		u32 LE		:	1;
+		u32 RI		:	1;
+		u32 PM		:	1;
+		u32 		:	1; // res28
+		u32 DR		:	1;
+		u32 IR		:	1;
+		u32 IP		:	1;
+		u32 		:	1; // res24
+		u32 FE1		:	1;
+		u32 BE	 	:	1;
+		u32 SE  	:	1;
+		u32 FE0		:	1;
+		u32 MCHECK	:	1;
+		u32 FP		:	1;
+		u32 PR		:	1;
+		u32 EE		:	1;
+		u32 ILE		:	1;
+		u32			:	1; // res14
+		u32 POW		:	1;
+		u32 res		:	13;
 	};
 	u32 Hex;
 
@@ -357,33 +357,33 @@ union UReg_FPSCR
 {
 	struct
 	{
-		unsigned RN		:	2;
-		unsigned NI		:	1;
-		unsigned XE		:	1;
-		unsigned ZE		:	1;
-		unsigned UE		:	1;
-		unsigned OE		:	1;
-		unsigned VE		:	1;
-		unsigned VXCVI	:	1;
-		unsigned VXSQRT	:	1;
-		unsigned VXSOFT	:	1;
-		unsigned		:	1;
-		unsigned FPRF	:	5;
-		unsigned FI		:	1;
-		unsigned FR		:	1;
-		unsigned VXVC	:	1;
-		unsigned VXIMZ	:	1;
-		unsigned VXZDZ	:	1;
-		unsigned VXIDI	:	1;
-		unsigned VXISI	:	1;
-		unsigned VXSNAN	:	1;
-		unsigned XX		:	1;
-		unsigned ZX		:	1;
-		unsigned UX		:	1;
-		unsigned OX		:	1;
-		unsigned VX		:	1;
-		unsigned FEX	:	1;
-		unsigned FX		:	1;
+		u32 RN		:	2;
+		u32 NI		:	1;
+		u32 XE		:	1;
+		u32 ZE		:	1;
+		u32 UE		:	1;
+		u32 OE		:	1;
+		u32 VE		:	1;
+		u32 VXCVI	:	1;
+		u32 VXSQRT	:	1;
+		u32 VXSOFT	:	1;
+		u32			:	1;
+		u32 FPRF	:	5;
+		u32 FI		:	1;
+		u32 FR		:	1;
+		u32 VXVC	:	1;
+		u32 VXIMZ	:	1;
+		u32 VXZDZ	:	1;
+		u32 VXIDI	:	1;
+		u32 VXISI	:	1;
+		u32 VXSNAN	:	1;
+		u32 XX		:	1;
+		u32 ZX		:	1;
+		u32 UX		:	1;
+		u32 OX		:	1;
+		u32 VX		:	1;
+		u32 FEX		:	1;
+		u32 FX		:	1;
 	};
 	u32 Hex;
 
@@ -396,36 +396,36 @@ union UReg_HID0
 {
 	struct
 	{
-		unsigned NOOPTI		:	1;
-		unsigned			:	1;
-		unsigned BHT		:	1;
-		unsigned ABE		:	1;
-		unsigned			:	1;
-		unsigned BTIC		:	1;
-		unsigned DCFA		:	1;
-		unsigned SGE		:	1;
-		unsigned IFEM		:	1;
-		unsigned SPD		:	1;
-		unsigned DCFI		:	1;
-		unsigned ICFI		:	1;
-		unsigned DLOCK		:	1;
-		unsigned ILOCK		:	1;
-		unsigned DCE		:	1;
-		unsigned ICE		:	1;
-		unsigned NHR		:	1;
-		unsigned			:	3;
-		unsigned DPM		:	1;
-		unsigned SLEEP		:	1;
-		unsigned NAP		:	1;
-		unsigned DOZE		:	1;
-		unsigned PAR		:	1;
-		unsigned ECLK		:	1;
-		unsigned			:	1;
-		unsigned BCLK		:	1;
-		unsigned EBD		:	1;
-		unsigned EBA		:	1;
-		unsigned DBP		:	1;
-		unsigned EMCP		:	1;
+		u32 NOOPTI	:	1;
+		u32			:	1;
+		u32 BHT		:	1;
+		u32 ABE		:	1;
+		u32			:	1;
+		u32 BTIC	:	1;
+		u32 DCFA	:	1;
+		u32 SGE		:	1;
+		u32 IFEM	:	1;
+		u32 SPD		:	1;
+		u32 DCFI	:	1;
+		u32 ICFI	:	1;
+		u32 DLOCK	:	1;
+		u32 ILOCK	:	1;
+		u32 DCE		:	1;
+		u32 ICE		:	1;
+		u32 NHR		:	1;
+		u32			:	3;
+		u32 DPM		:	1;
+		u32 SLEEP	:	1;
+		u32 NAP		:	1;
+		u32 DOZE	:	1;
+		u32 PAR		:	1;
+		u32 ECLK	:	1;
+		u32			:	1;
+		u32 BCLK	:	1;
+		u32 EBD		:	1;
+		u32 EBA		:	1;
+		u32 DBP		:	1;
+		u32 EMCP	:	1;
 	};
 	u32 Hex;
 };
@@ -435,20 +435,20 @@ union UReg_HID2
 {
 	struct
 	{
-		unsigned			:	16;
-		unsigned DQOMEE		:	1;
-		unsigned DCMEE		:	1;
-		unsigned DNCEE		:	1;
-		unsigned DCHEE		:	1;
-		unsigned DQOERR		:	1;
-		unsigned DCEMERR	:	1;
-		unsigned DNCERR		:	1;
-		unsigned DCHERR		:	1;
-		unsigned DMAQL		:	4;
-		unsigned LCE		:	1;
-		unsigned PSE		:	1;
-		unsigned WPE		:	1;
-		unsigned LSQE		:	1;
+		u32			:	16;
+		u32 DQOMEE	:	1;
+		u32 DCMEE	:	1;
+		u32 DNCEE	:	1;
+		u32 DCHEE	:	1;
+		u32 DQOERR	:	1;
+		u32 DCEMERR	:	1;
+		u32 DNCERR	:	1;
+		u32 DCHERR	:	1;
+		u32 DMAQL	:	4;
+		u32 LCE		:	1;
+		u32 PSE		:	1;
+		u32 WPE		:	1;
+		u32 LSQE	:	1;
 	};
 	u32 Hex;
 
@@ -461,17 +461,17 @@ union UReg_HID4
 {
 	struct
 	{
-		unsigned			:	20;
-		unsigned L2CFI		:	1;
-		unsigned L2MUM		:	1;
-		unsigned DBP		:	1;
-		unsigned LPE		:	1;
-		unsigned ST0		:	1;
-		unsigned SBE		:	1;
-		unsigned			:	1;
-		unsigned BPD		:	2;
-		unsigned L2FM		:	2;
-		unsigned			:	1;
+		u32			:	20;
+		u32 L2CFI	:	1;
+		u32 L2MUM	:	1;
+		u32 DBP		:	1;
+		u32 LPE		:	1;
+		u32 ST0		:	1;
+		u32 SBE		:	1;
+		u32			:	1;
+		u32 BPD		:	2;
+		u32 L2FM	:	2;
+		u32			:	1;
 	};
 	u32 Hex;
 
@@ -485,9 +485,9 @@ union UReg_SPR1
 	u32 Hex;
 	struct 
 	{
-		unsigned htaborg  : 16;
-		unsigned          : 7;
-		unsigned htabmask : 9;
+		u32 htaborg  : 16;
+		u32          : 7;
+		u32 htabmask : 9;
 	};
 };
 
@@ -498,9 +498,9 @@ union UReg_WPAR
 {
 	struct
 	{
-		unsigned BNE		: 1;
-		unsigned			: 4;
-		unsigned GB_ADDR	: 27;
+		u32 BNE		: 1;
+		u32			: 4;
+		u32 GB_ADDR	: 27;
 	};
 	u32 Hex;
 
@@ -513,8 +513,8 @@ union UReg_DMAU
 {
 	struct
 	{
-		unsigned DMA_LEN_U	:	5;
-		unsigned MEM_ADDR	:	27;		
+		u32 DMA_LEN_U	:	5;
+		u32 MEM_ADDR	:	27;		
 	};
 	u32 Hex;
 
@@ -527,11 +527,11 @@ union UReg_DMAL
 {
 	struct
 	{
-		unsigned DMA_F		:	1;
-		unsigned DMA_T		:	1;
-		unsigned DMA_LEN_L	:	2;
-		unsigned DMA_LD		:	1;
-		unsigned LC_ADDR	:	27;		
+		u32 DMA_F		:	1;
+		u32 DMA_T		:	1;
+		u32 DMA_LEN_L	:	2;
+		u32 DMA_LD		:	1;
+		u32 LC_ADDR		:	27;		
 	};
 	u32 Hex;
 
@@ -543,11 +543,11 @@ union UReg_BAT_Up
 {
 	struct 
 	{
-		unsigned VP         :   1;
-		unsigned VS         :   1;
-		unsigned BL			:	11; // Block length (aka block size mask)
-		unsigned			:	4;
-		unsigned BEPI		:	15;		
+		u32 VP			:   1;
+		u32 VS			:   1;
+		u32 BL			:	11; // Block length (aka block size mask)
+		u32				:	4;
+		u32 BEPI		:	15;		
 	};
 	u32 Hex;
 
@@ -559,11 +559,11 @@ union UReg_BAT_Lo
 {
 	struct 
 	{
-		unsigned PP         :   2;
-		unsigned            :   1;
-		unsigned WIMG		:	4;
-		unsigned			:	10;
-		unsigned BRPN		:	15; // Physical Block Number
+		u32 PP			:   2;
+		u32				:   1;
+		u32 WIMG		:	4;
+		u32				:	10;
+		u32 BRPN		:	15; // Physical Block Number
 	};
 	u32 Hex;
 
@@ -575,17 +575,17 @@ union UReg_PTE
 {
 	struct 
 	{
-		unsigned API		:	6;
-		unsigned H			:	1;
-		unsigned VSID		:	24;
-		unsigned V			:	1;
-		unsigned PP			:	2;
-		unsigned			:	1;
-		unsigned WIMG		:	4;
-		unsigned C			:	1;
-		unsigned R			:	1;
-		unsigned			:   3;
-		unsigned RPN		:	20;
+		u64 API			:	6;
+		u64 H			:	1;
+		u64 VSID		:	24;
+		u64 V			:	1;
+		u64 PP			:	2;
+		u64				:	1;
+		u64 WIMG		:	4;
+		u64 C			:	1;
+		u64 R			:	1;
+		u64				:   3;
+		u64 RPN			:	20;
 
 	};
 
