@@ -280,17 +280,17 @@ struct TevStageCombiner
     {
         struct  //abc=8bit,d=10bit
         {
-            unsigned d : 4; // TEVSELCC_X
-            unsigned c : 4; // TEVSELCC_X
-            unsigned b : 4; // TEVSELCC_X
-            unsigned a : 4; // TEVSELCC_X
+            u32 d : 4; // TEVSELCC_X
+            u32 c : 4; // TEVSELCC_X
+            u32 b : 4; // TEVSELCC_X
+            u32 a : 4; // TEVSELCC_X
 
-            unsigned bias : 2;
-            unsigned op : 1;
-            unsigned clamp : 1;
+            u32 bias : 2;
+            u32 op : 1;
+            u32 clamp : 1;
 
-            unsigned shift : 2;
-            unsigned dest : 2;  //1,2,3
+            u32 shift : 2;
+            u32 dest : 2;  //1,2,3
 
         };
         u32 hex;
@@ -299,19 +299,19 @@ struct TevStageCombiner
     {
         struct 
         {
-            unsigned rswap : 2;
-            unsigned tswap : 2;
-            unsigned d : 3; // TEVSELCA_
-            unsigned c : 3; // TEVSELCA_
-            unsigned b : 3; // TEVSELCA_
-            unsigned a : 3; // TEVSELCA_
+            u32 rswap : 2;
+            u32 tswap : 2;
+            u32 d : 3; // TEVSELCA_
+            u32 c : 3; // TEVSELCA_
+            u32 b : 3; // TEVSELCA_
+            u32 a : 3; // TEVSELCA_
 
-            unsigned bias : 2; //GXTevBias
-            unsigned op : 1;
-            unsigned clamp : 1;
+            u32 bias : 2; //GXTevBias
+            u32 op : 1;
+            u32 clamp : 1;
 
-            unsigned shift : 2;
-            unsigned dest : 2;  //1,2,3
+            u32 shift : 2;
+            u32 dest : 2;  //1,2,3
         };
         u32 hex;
     };

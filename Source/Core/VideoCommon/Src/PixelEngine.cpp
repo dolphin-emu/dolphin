@@ -36,10 +36,10 @@ union UPEZConfReg
 	u16 Hex;
 	struct 
 	{
-		unsigned ZCompEnable	: 1; // Z Comparator Enable
-		unsigned Function		: 3;
-		unsigned ZUpdEnable		: 1;
-		unsigned				: 11;
+		u16 ZCompEnable		: 1; // Z Comparator Enable
+		u16 Function		: 3;
+		u16 ZUpdEnable		: 1;
+		u16					: 11;
 	};
 };
 
@@ -48,15 +48,15 @@ union UPEAlphaConfReg
 	u16 Hex;
 	struct 
 	{
-		unsigned BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
-		unsigned BMLogic		: 1; // GX_BM_LOGIC
-		unsigned Dither			: 1;
-		unsigned ColorUpdEnable	: 1;
-		unsigned AlphaUpdEnable	: 1;
-		unsigned DstFactor		: 3;
-		unsigned SrcFactor		: 3;
-		unsigned Substract		: 1; // Additive mode by default
-		unsigned BlendOperator	: 4;
+		u16 BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
+		u16 BMLogic			: 1; // GX_BM_LOGIC
+		u16 Dither			: 1;
+		u16 ColorUpdEnable	: 1;
+		u16 AlphaUpdEnable	: 1;
+		u16 DstFactor		: 3;
+		u16 SrcFactor		: 3;
+		u16 Substract		: 1; // Additive mode by default
+		u16 BlendOperator	: 4;
 	};
 };
 
@@ -65,9 +65,9 @@ union UPEDstAlphaConfReg
 	u16 Hex;
 	struct 
 	{
-		unsigned DstAlpha		: 8;
-		unsigned Enable			: 1;
-		unsigned				: 7;
+		u16 DstAlpha		: 8;
+		u16 Enable			: 1;
+		u16					: 7;
 	};
 };
 
@@ -76,8 +76,8 @@ union UPEAlphaModeConfReg
 	u16 Hex;
 	struct 
 	{
-		unsigned Threshold		: 8;
-		unsigned CompareMode	: 8;
+		u16 Threshold		: 8;
+		u16 CompareMode		: 8;
 	};
 };
 
@@ -87,8 +87,8 @@ union UPEAlphaReadReg
 	u16 Hex;
 	struct 
 	{
-		unsigned ReadMode		: 3;
-		unsigned				: 13;
+		u16 ReadMode		: 3;
+		u16					: 13;
 	};
 };
 
@@ -97,11 +97,11 @@ union UPECtrlReg
 {
 	struct 
 	{
-		unsigned PETokenEnable	:	1;
-		unsigned PEFinishEnable	:	1;
-		unsigned PEToken		:	1; // write only
-		unsigned PEFinish		:	1; // write only
-		unsigned				:	12;
+		u16 PETokenEnable	:	1;
+		u16 PEFinishEnable	:	1;
+		u16 PEToken			:	1; // write only
+		u16 PEFinish		:	1; // write only
+		u16					:	12;
 	};
 	u16 Hex;
 	UPECtrlReg() {Hex = 0; }

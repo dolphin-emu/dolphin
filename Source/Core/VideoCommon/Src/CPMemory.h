@@ -73,33 +73,33 @@ union TVtxDesc
 	{
 		// 0: not present
 		// 1: present
-		unsigned PosMatIdx		: 1;
-		unsigned Tex0MatIdx 	: 1;
-		unsigned Tex1MatIdx 	: 1;
-		unsigned Tex2MatIdx 	: 1;
-		unsigned Tex3MatIdx 	: 1;
-		unsigned Tex4MatIdx 	: 1;
-		unsigned Tex5MatIdx 	: 1;
-		unsigned Tex6MatIdx 	: 1;
-		unsigned Tex7MatIdx 	: 1;
+		u32 PosMatIdx	: 1;
+		u32 Tex0MatIdx 	: 1;
+		u32 Tex1MatIdx 	: 1;
+		u32 Tex2MatIdx 	: 1;
+		u32 Tex3MatIdx 	: 1;
+		u32 Tex4MatIdx 	: 1;
+		u32 Tex5MatIdx 	: 1;
+		u32 Tex6MatIdx 	: 1;
+		u32 Tex7MatIdx 	: 1;
 
 		// 00: not present 
 		// 01: direct 
 		// 10: 8 bit index 
 		// 11: 16 bit index
-		unsigned Position		: 2;
-		unsigned Normal			: 2;
-		unsigned Color0 		: 2;
-		unsigned Color1 		: 2;
-		unsigned Tex0Coord 		: 2;
-		unsigned Tex1Coord 		: 2;
-		unsigned Tex2Coord 		: 2;
-		unsigned Tex3Coord 		: 2;
-		unsigned Tex4Coord 		: 2;
-		unsigned Tex5Coord 		: 2;
-		unsigned Tex6Coord 		: 2;
-		unsigned Tex7Coord 		: 2;
-		unsigned				:31;
+		u32 Position	: 2;
+		u32 Normal		: 2;
+		u32 Color0 		: 2;
+		u32 Color1 		: 2;
+		u32 Tex0Coord 	: 2;
+		u32 Tex1Coord 	: 2;
+		u32 Tex2Coord 	: 2;
+		u32 Tex3Coord 	: 2;
+		u32 Tex4Coord 	: 2;
+		u32 Tex5Coord 	: 2;
+		u32 Tex6Coord 	: 2;
+		u32 Tex7Coord 	: 2;
+		u32				:31;
 	};
     struct {
         u32 Hex0, Hex1;
@@ -112,25 +112,25 @@ union UVAT_group0
     struct 
     {
         // 0:8
-        unsigned PosElements	: 1;
-        unsigned PosFormat		: 3; 
-        unsigned PosFrac		: 5; 
+        u32 PosElements			: 1;
+        u32 PosFormat			: 3; 
+        u32 PosFrac				: 5; 
         // 9:12
-        unsigned NormalElements	: 1; 
-        unsigned NormalFormat	: 3; 
+        u32 NormalElements		: 1; 
+        u32 NormalFormat		: 3; 
         // 13:16
-        unsigned Color0Elements : 1;
-        unsigned Color0Comp		: 3; 
+        u32 Color0Elements		: 1;
+        u32 Color0Comp			: 3; 
         // 17:20
-        unsigned Color1Elements : 1;
-        unsigned Color1Comp		: 3; 
+        u32 Color1Elements		: 1;
+        u32 Color1Comp			: 3; 
         // 21:29
-        unsigned Tex0CoordElements	: 1;
-        unsigned Tex0CoordFormat	: 3;
-        unsigned Tex0Frac			: 5;
+        u32 Tex0CoordElements	: 1;
+        u32 Tex0CoordFormat		: 3;
+        u32 Tex0Frac			: 5;
         // 30:31
-        unsigned ByteDequant: 1;
-        unsigned NormalIndex3: 1;
+        u32 ByteDequant			: 1;
+        u32 NormalIndex3		: 1;
     };
 };
 
@@ -140,22 +140,22 @@ union UVAT_group1
     struct 
     {
         // 0:8
-        unsigned Tex1CoordElements	: 1;
-        unsigned Tex1CoordFormat	: 3;
-        unsigned Tex1Frac			: 5;
+        u32 Tex1CoordElements	: 1;
+        u32 Tex1CoordFormat		: 3;
+        u32 Tex1Frac			: 5;
         // 9:17
-        unsigned Tex2CoordElements	: 1;
-        unsigned Tex2CoordFormat	: 3;
-        unsigned Tex2Frac			: 5;
+        u32 Tex2CoordElements	: 1;
+        u32 Tex2CoordFormat		: 3;
+        u32 Tex2Frac			: 5;
         // 18:26
-        unsigned Tex3CoordElements	: 1;
-        unsigned Tex3CoordFormat	: 3;
-        unsigned Tex3Frac			: 5;
+        u32 Tex3CoordElements	: 1;
+        u32 Tex3CoordFormat		: 3;
+        u32 Tex3Frac			: 5;
         // 27:30
-        unsigned Tex4CoordElements	: 1;
-        unsigned Tex4CoordFormat	: 3;
+        u32 Tex4CoordElements	: 1;
+        u32 Tex4CoordFormat		: 3;
         // 
-        unsigned					: 1;
+        u32						: 1;
     };
 };
 
@@ -165,19 +165,19 @@ union UVAT_group2
     struct 
     {
         // 0:4
-        unsigned Tex4Frac			: 5;
+        u32 Tex4Frac			: 5;
         // 5:13
-        unsigned Tex5CoordElements	: 1;
-        unsigned Tex5CoordFormat	: 3;
-        unsigned Tex5Frac			: 5;
+        u32 Tex5CoordElements	: 1;
+        u32 Tex5CoordFormat		: 3;
+        u32 Tex5Frac			: 5;
         // 14:22
-        unsigned Tex6CoordElements	: 1;
-        unsigned Tex6CoordFormat	: 3;
-        unsigned Tex6Frac			: 5;
+        u32 Tex6CoordElements	: 1;
+        u32 Tex6CoordFormat		: 3;
+        u32 Tex6Frac			: 5;
         // 23:31
-        unsigned Tex7CoordElements	: 1;
-        unsigned Tex7CoordFormat	: 3;
-        unsigned Tex7Frac			: 5;
+        u32 Tex7CoordElements	: 1;
+        u32 Tex7CoordFormat		: 3;
+        u32 Tex7Frac			: 5;
     };
 };
 

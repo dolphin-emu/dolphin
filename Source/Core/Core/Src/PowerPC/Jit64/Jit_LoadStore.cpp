@@ -413,7 +413,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 		MOV(32, R(EDX), gpr.R(a));
 		ADD(32, R(EDX), gpr.R(b));
 	}
-	unsigned accessSize;
+	int accessSize;
 	switch (inst.SUBOP10 & ~32) {
 		case 151: accessSize = 32; break;
 		case 407: accessSize = 16; break;
