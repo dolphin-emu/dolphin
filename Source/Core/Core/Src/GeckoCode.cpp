@@ -93,9 +93,9 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 			active_codes.push_back(*gcodes_iter);
 		}
 
-	active_codes_lock.Leave();
-
 	inserted_asm_codes.clear();
+
+	active_codes_lock.Leave();
 }
 
 bool RunGeckoCode(GeckoCode& gecko_code)
