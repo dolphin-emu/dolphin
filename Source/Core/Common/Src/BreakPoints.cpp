@@ -26,7 +26,7 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bo
 	{
 		if (Log)
 		{
-			DEBUG_LOG(MEMMAP, "CHK %08x %s%i %08x at %08x (%s)",
+			INFO_LOG(MEMMAP, "CHK %08x %s%i %08x at %08x (%s)",
 				debug_interface->getPC(),
 				write ? "Write" : "Read", size*8, iValue, addr, // address
 				debug_interface->getDescription(addr).c_str() // symbol map description
