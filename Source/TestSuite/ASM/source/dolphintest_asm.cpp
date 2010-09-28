@@ -26,11 +26,13 @@
 #include "Helpers.h"
 
 FILE *f = NULL;
-int main(int argc, char **argv) {
+
+int main(int argc, char **argv)
+{
 	init_crap();
 	initialise_fat();
 	
-	for(int a = 0; a < sizeof(instructions) / sizeof(inst); ++a)
+	for (uint a = 0; a < sizeof(instructions) / sizeof(inst); ++a)
 	{
 		RunInstruction(a);
 	}

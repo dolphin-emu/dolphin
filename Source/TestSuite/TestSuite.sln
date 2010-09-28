@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FPU", "FPU\FPU.vcproj", "{18373B64-BCAB-4677-A070-7AD45D4C8304}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ASM", "ASM\ASM.vcproj", "{B0723635-279A-44E0-80A6-FC21DBB7A4B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -78,6 +80,10 @@ Global
 		{18373B64-BCAB-4677-A070-7AD45D4C8304}.Debug|Win32.Build.0 = Debug|Win32
 		{18373B64-BCAB-4677-A070-7AD45D4C8304}.Release|Win32.ActiveCfg = Release|Win32
 		{18373B64-BCAB-4677-A070-7AD45D4C8304}.Release|Win32.Build.0 = Release|Win32
+		{B0723635-279A-44E0-80A6-FC21DBB7A4B4}.Debug|Win32.ActiveCfg = Release|Win32
+		{B0723635-279A-44E0-80A6-FC21DBB7A4B4}.Debug|Win32.Build.0 = Release|Win32
+		{B0723635-279A-44E0-80A6-FC21DBB7A4B4}.Release|Win32.ActiveCfg = Release|Win32
+		{B0723635-279A-44E0-80A6-FC21DBB7A4B4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
