@@ -180,7 +180,7 @@ void Initialize(void *init)
 	frameCount = 0;
 	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	// Create a shortcut to _pVideoInitialize that can also update it
-	g_VideoInitialize = *(_pVideoInitialize); 
+	g_VideoInitialize = *(_pVideoInitialize);
 	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
@@ -201,7 +201,7 @@ void Initialize(void *init)
 	// Now the window handle is written
 	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
+	OSD::AddMessage("Dolphin OpenGL Video Plugin.", 5000);
 	s_PluginInitialized = true;
 }
 
@@ -238,7 +238,8 @@ static void check_DoState() {
 }
 
 // Run from the CPU thread
-void DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode)
+{
 	s_doStateArgs.ptr = ptr;
 	s_doStateArgs.mode = mode;
 #if defined(HAVE_X11) && HAVE_X11
@@ -497,7 +498,7 @@ void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
 	PixelEngine::Write32(_Data, _Address);
 }
 
-inline void Video_GatherPipeBursted(void)
+void Video_GatherPipeBursted(void)
 {
 	CommandProcessor::GatherPipeBursted();
 }
