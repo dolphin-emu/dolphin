@@ -33,7 +33,7 @@
 #include "XFMemory.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
-const VertexShaderCache::VSCacheEntry* VertexShaderCache::last_entry;
+const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
 static ID3D11VertexShader* SimpleVertexShader = NULL;
 static ID3D11VertexShader* ClearVertexShader = NULL;
@@ -83,7 +83,7 @@ void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const 
 // this class will load the precompiled shaders into our cache
 class VertexShaderCacheInserter : public LinearDiskCacheReader {
 public:
-	void Read(const u8* key, int key_size, const u8* value, int value_size)
+	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
 	{
 		VERTEXSHADERUID uid;
 		if (key_size != sizeof(uid))
@@ -177,6 +177,9 @@ void VertexShaderCache::Init()
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
+	SETSTAT(stats.numVertexShadersCreated, 0);
+	SETSTAT(stats.numVertexShadersAlive, 0);
+
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
@@ -214,8 +217,7 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
-	VSCache::iterator iter;
-	iter = vshaders.find(uid);
+	VSCache::iterator iter = vshaders.find(uid);
 	if (iter != vshaders.end())
 	{
 		iter->second.frameCount = frameCount;
@@ -226,7 +228,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		return (entry.shader != NULL);
 	}
 
-	const char* code = GenerateVertexShaderCode(components, API_D3D11);
+	const char *code = GenerateVertexShaderCode(components, API_D3D11);
 
 	D3DBlob* pbytecode = NULL;
 	D3D::CompileVertexShader(code, (int)strlen(code), &pbytecode);

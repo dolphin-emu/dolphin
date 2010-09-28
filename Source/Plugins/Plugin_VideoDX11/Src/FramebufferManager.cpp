@@ -19,12 +19,12 @@
 #include "D3DTexture.h"
 #include "D3DUtil.h"
 #include "Render.h"
-#include "FBManager.h"
+#include "FramebufferManager.h"
 #include "VideoConfig.h"
 #include "PixelShaderCache.h"
 #include "VertexShaderCache.h"
 
-FramebufferManager FBManager;
+FramebufferManager g_framebufferManager;
 
 D3DTexture2D* &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
 ID3D11Texture2D* &FramebufferManager::GetEFBColorStagingBuffer() { return m_efb.color_staging_buf; }
@@ -120,19 +120,19 @@ FramebufferManager::VirtualXFBListType::iterator FramebufferManager::findVirtual
 			return it;
 	}
 
-	// that address is not in the Virtual XFB list.
+	// That address is not in the Virtual XFB list.
 	return m_virtualXFBList.end();
 }
 
 void FramebufferManager::replaceVirtualXFB()
 {
-	VirtualXFBListType::iterator it = m_virtualXFBList.begin();	
+	VirtualXFBListType::iterator it = m_virtualXFBList.begin();
 
 	s32 srcLower = it->xfbAddr;
 	s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
 	s32 lineSize = 2 * it->xfbWidth;
 
-	it++;
+	++it;
 
 	while (it != m_virtualXFBList.end())
 	{
@@ -141,13 +141,13 @@ void FramebufferManager::replaceVirtualXFB()
 
 		if (dstLower >= srcLower && dstUpper <= srcUpper)
 		{
-			// invalidate the data
+			// Invalidate the data
 			it->xfbAddr = 0;
 			it->xfbHeight = 0;
 			it->xfbWidth = 0;
 		}
 		else if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
-		{		
+		{
 			s32 upperOverlap = (srcUpper - dstLower) / lineSize;
 			s32 lowerOverlap = (dstUpper - srcLower) / lineSize;
 
@@ -162,7 +162,7 @@ void FramebufferManager::replaceVirtualXFB()
 			}
 		}
 
-		it++;
+		++it;
 	}
 }
 
@@ -195,15 +195,17 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	targetSource.right = (int)(sourceRc.right * scaleX);
 	unsigned int target_width = targetSource.right - targetSource.left;
 	unsigned int target_height = targetSource.bottom - targetSource.top;
-	if (it != m_virtualXFBList.end())   // overwrite an existing Virtual XFB
+	if (it != m_virtualXFBList.end())
 	{
+		// Overwrite an existing Virtual XFB.
+
 		it->xfbAddr = xfbAddr;
 		it->xfbWidth = fbWidth;
 		it->xfbHeight = fbHeight;
 
 		it->xfbSource.srcAddr = xfbAddr;
 		it->xfbSource.srcWidth = fbWidth;
-		it->xfbSource.srcHeight = fbHeight;		
+		it->xfbSource.srcHeight = fbHeight;
 
 		if (it->xfbSource.texWidth != target_width || it->xfbSource.texHeight != target_height || !(it->xfbSource.tex))
 		{
@@ -222,8 +224,9 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		// keep stale XFB data from being used
 		replaceVirtualXFB();
 	}
-	else   // create a new Virtual XFB and place it at the front of the list
+	else
 	{
+		// Create a new Virtual XFB and place it at the front of the list.
 		VirtualXFB newVirt;
 
 		newVirt.xfbSource.tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -253,7 +256,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
     
 	Renderer::ResetAPIState(); // reset any game specific settings
 
-	// copy EFB data to XFB and restore render target again
+	// Copy EFB data to XFB and restore render target again
 	D3D11_RECT sourcerect = CD3D11_RECT(efbSource.left, efbSource.top, efbSource.right, efbSource.bottom);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)target_width, (float)target_height);
 	D3D::context->RSSetViewports(1, &vp);
@@ -277,8 +280,11 @@ const XFBSource** FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWid
 {
 	xfbCount = 0;
 
-	if (m_virtualXFBList.size() == 0)  // no Virtual XFBs available
+	if (m_virtualXFBList.size() == 0)
+	{
+		// No Virtual XFBs available.
 		return NULL;
+	}
 
 	u32 srcLower = xfbAddr;
 	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
@@ -297,5 +303,6 @@ const XFBSource** FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWid
 			xfbCount++;
 		}
 	}
+
 	return &m_overlappingXFBArray[0];
 }

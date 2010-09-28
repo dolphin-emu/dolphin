@@ -20,7 +20,7 @@
 
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
-#include "TextureMngr.h"
+#include "TextureCache.h"
 #include "PixelShaderCache.h"
 #include "VertexShaderManager.h"
 #include "FramebufferManager.h"
@@ -54,7 +54,7 @@ void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgram =
-	"uniform samplerRECT samp0 : register(s0);\n"	
+	"uniform samplerRECT samp0 : register(s0);\n"
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
@@ -78,7 +78,7 @@ void CreateRgbToYuyvProgram()
 void CreateYuyvToRgbProgram()
 {
 	const char *FProgram =
-	"uniform samplerRECT samp0 : register(s0);\n"	
+	"uniform samplerRECT samp0 : register(s0);\n"
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
@@ -128,7 +128,6 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
 		}
     }
-
 	return s_encodingPrograms[format];
 }
 
@@ -180,7 +179,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	GL_REPORT_ERRORD();
 	
 	for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
+		TextureCache::DisableStage(i);
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
@@ -216,27 +215,26 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	// .. and then readback the results.
 	// TODO: make this less slow.
 
-    int writeStride = bpmem.copyMipMapStrideChannels * 32;
+	int writeStride = bpmem.copyMipMapStrideChannels * 32;
 
-    if (writeStride != readStride && toTexture)
-    {
-        // writing to a texture of a different size
+	if (writeStride != readStride && toTexture)
+	{
+		// writing to a texture of a different size
 
-        int readHeight = readStride / dstWidth;
-        readHeight /= 4; // 4 bytes per pixel
+		int readHeight = readStride / dstWidth;
+		readHeight /= 4; // 4 bytes per pixel
 
-        int readStart = 0;
-        int readLoops = dstHeight / readHeight;
-        for (int i = 0; i < readLoops; i++)
-        {
-            glReadPixels(0, readStart, (GLsizei)dstWidth, (GLsizei)readHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
-
-            readStart += readHeight;
-            destAddr += writeStride;
-        }
-    }
-    else
-        glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+		int readStart = 0;
+		int readLoops = dstHeight / readHeight;
+		for (int i = 0; i < readLoops; i++)
+		{
+			glReadPixels(0, readStart, (GLsizei)dstWidth, (GLsizei)readHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+			readStart += readHeight;
+			destAddr += writeStride;
+		}
+	}
+	else
+		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 
 	GL_REPORT_ERRORD();
 	
@@ -273,7 +271,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	// Invalidate any existing texture covering this memory range.
 	// TODO - don't delete the texture if it already exists, just replace the contents.
-	TextureMngr::InvalidateRange(address, size_in_bytes);
+	TextureCache::InvalidateRange(address, size_in_bytes);
 	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
@@ -303,9 +301,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.bottom = expandedHeight;
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
-
-
-    int cacheBytes = 32;
+	int cacheBytes = 32;
     if ((format & 0x0f) == 6)
         cacheBytes = 64;
 
@@ -315,11 +311,10 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	g_framebufferManager.SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureMngr::DisableStage(0);
+    TextureCache::DisableStage(0);
 	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();
 }
-
 
 u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float MValueY,bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
@@ -341,13 +336,13 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float
 	if (texconv_shader.glprogid == 0)
 		return 0;
 
-	u8 *dest_ptr = Memory_GetPtr(address);	
+	u8 *dest_ptr = Memory_GetPtr(address);
 
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);	
-	
+	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
@@ -371,28 +366,25 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float
 	scaledSource.bottom = expandedHeight;
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
-
-
-    int cacheBytes = 32;
+	int cacheBytes = 32;
     if ((format & 0x0f) == 6)
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0 && !bFromZBuffer);
-	TextureMngr::MakeRangeDynamic(address,size_in_bytes);
+	TextureCache::MakeRangeDynamic(address,size_in_bytes);
 	return GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);		
 }
 
-void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
-				     u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
 {
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	g_framebufferManager.SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();	
+    VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureMngr::DisableStage(0);
+    TextureCache::DisableStage(0);
 	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();
 }
@@ -421,7 +413,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	GL_REPORT_FBO_ERROR();
 
     for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
+		TextureCache::DisableStage(i);
 
 	// activate source texture
 	// set srcAddr as data for source texture
@@ -457,7 +449,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-    TextureMngr::DisableStage(0);
+    TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();
 

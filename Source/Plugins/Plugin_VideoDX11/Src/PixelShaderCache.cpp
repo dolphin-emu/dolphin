@@ -199,6 +199,9 @@ void PixelShaderCache::Init()
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
+	SETSTAT(stats.numPixelShadersCreated, 0);
+	SETSTAT(stats.numPixelShadersAlive, 0);
+
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
@@ -230,7 +233,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	PIXELSHADERUID uid;
 	GetPixelShaderId(&uid, dstAlpha);
 
-	// check if the shader is already set
+	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		PSCache::const_iterator iter = PixelShaders.find(uid);
@@ -239,7 +242,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 
 	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
 
-	// check if the shader is already in the cache
+	// Check if the shader is already in the cache
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
 	if (iter != PixelShaders.end())
@@ -252,7 +255,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 		return (entry.shader != NULL);
 	}
 
-	// need to compile a new shader
+	// Need to compile a new shader
 	const char* code = GeneratePixelShaderCode(dstAlpha, API_D3D11,components);
 
 	D3DBlob* pbytecode;
@@ -262,7 +265,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 		return false;
 	}
 
-	// insert the bytecode into the caches
+	// Insert the bytecode into the caches
 	g_ps_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->Data(), pbytecode->Size());
 	g_ps_disk_cache.Sync();
 
@@ -283,15 +286,19 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, void* bytecode,
 	// TODO: Somehow make the debug name a bit more specific
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of PixelShaderCache");
 
-	// make an entry in the table
+	// Make an entry in the table
 	PSCacheEntry newentry;
 	newentry.shader = shader;
 	newentry.frameCount = frameCount;
 	PixelShaders[uid] = newentry;
 	last_entry = &PixelShaders[uid];
 
+	if (!shader) {
+		// INCSTAT(stats.numPixelShadersFailed);
+		return false;
+	}
+
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
-
 	return true;
 }

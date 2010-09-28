@@ -716,11 +716,11 @@
 			Name="Render"
 			>
 			<File
-				RelativePath=".\Src\FBManager.cpp"
+				RelativePath=".\Src\FramebufferManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\FBManager.h"
+				RelativePath=".\Src\FramebufferManager.h"
 				>
 			</File>
 			<File

@@ -30,7 +30,7 @@ namespace D3D
 
 CD3DFont font;
 
-#define MAX_NUM_VERTICES 300
+#define MAX_NUM_VERTICES 50*6
 struct FONT2DVERTEX {
 	float x,y,z;
 	float col[4];
@@ -102,9 +102,10 @@ const char fontvertshader[] = {
 
 int CD3DFont::Init()
 {
+	// Create vertex buffer for the letters
 	HRESULT hr;
 
-	// prepare to create a bitmap
+	// Prepare to create a bitmap
 	unsigned int* pBitmapBits;
 	BITMAPINFO bmi;
 	ZeroMemory(&bmi.bmiHeader, sizeof(BITMAPINFOHEADER));
@@ -115,7 +116,7 @@ int CD3DFont::Init()
 	bmi.bmiHeader.biCompression = BI_RGB;
 	bmi.bmiHeader.biBitCount    = 32;
 
-	// create a DC and a bitmap for the font
+	// Create a DC and a bitmap for the font
 	HDC hDC = CreateCompatibleDC(NULL);
 	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&pBitmapBits, NULL, 0);
 	SetMapMode(hDC, MM_TEXT);
@@ -130,7 +131,7 @@ int CD3DFont::Init()
 	HGDIOBJ hOldbmBitmap = SelectObject(hDC, hbmBitmap);
 	HGDIOBJ hOldFont = SelectObject(hDC, hFont);
 
-	// set text properties
+	// Set text properties
 	SetTextColor(hDC, 0xFFFFFF);
 	SetBkColor  (hDC, 0);
 	SetTextAlign(hDC, TA_TOP);
@@ -139,8 +140,8 @@ int CD3DFont::Init()
 	GetTextMetricsW(hDC, &tm);
 	m_LineHeight = tm.tmHeight;
 
-	// loop through all printable characters and output them to the bitmap
-	// meanwhile, keep track of the corresponding tex coords for each character.
+	// Loop through all printable characters and output them to the bitmap
+	// Meanwhile, keep track of the corresponding tex coords for each character.
 	int x = 0, y = 0;
 	char str[2] = "\0";
 	for (int c = 0; c < 127 - 32; c++)
@@ -155,15 +156,15 @@ int CD3DFont::Init()
 		}
 
 		ExtTextOutA(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, NULL, str, 1, NULL);
-		m_fTexCoords[c][0] = (float) x         /m_dwTexWidth;
-		m_fTexCoords[c][1] = (float) y         /m_dwTexHeight;
-		m_fTexCoords[c][2] = (float)(x+size.cx)/m_dwTexWidth;
-		m_fTexCoords[c][3] = (float)(y+size.cy)/m_dwTexHeight;
+		m_fTexCoords[c][0] = ((float)(x+0))/m_dwTexWidth;
+		m_fTexCoords[c][1] = ((float)(y+0))/m_dwTexHeight;
+		m_fTexCoords[c][2] = ((float)(x+0+size.cx))/m_dwTexWidth;
+		m_fTexCoords[c][3] = ((float)(y+0+size.cy))/m_dwTexHeight;
 
 		x += size.cx + 3;  // 3 to work around annoying ij conflict (part of the j ends up with the i)
 	}
 
-	// create a new texture for the font
+	// Create a new texture for the font
 	// possible optimization: store the converted data in a buffer and fill the texture on creation.
 	//							That way, we can use a static texture
 	ID3D11Texture2D* buftex;
@@ -178,7 +179,7 @@ int CD3DFont::Init()
 	}
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)buftex, "texture of a CD3DFont object");
 
-	// lock the surface and write the alpha values for the set pixels
+	// Lock the surface and write the alpha values for the set pixels
 	D3D11_MAPPED_SUBRESOURCE texmap;
 	hr = context->Map(buftex, 0, D3D11_MAP_WRITE_DISCARD, 0, &texmap);
 	if (FAILED(hr)) PanicAlert("Failed to map a texture at %s %d\n", __FILE__, __LINE__);
@@ -193,7 +194,7 @@ int CD3DFont::Init()
 		}
 	}
 
-	// clean up
+	// Done updating texture, so clean up used objects
 	context->Unmap(buftex, 0);
 	hr = D3D::device->CreateShaderResourceView(buftex, NULL, &m_pTexture);
 	if (FAILED(hr)) PanicAlert("Failed to create shader resource view at %s %d\n", __FILE__, __LINE__);
@@ -274,7 +275,8 @@ int CD3DFont::Shutdown()
 
 int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText, bool center)
 {
-	if (!m_pVB) return 0;
+	if (!m_pVB)
+		return 0;
 
 	UINT stride = sizeof(FONT2DVERTEX);
 	UINT bufoffset = 0;
@@ -288,7 +290,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	float sy = 1.f - y * scaley;
 	char c;
 
-	// fill vertex buffer
+	// Fill vertex buffer
 	FONT2DVERTEX* pVertices;
 	int dwNumTriangles = 0L;
 
@@ -336,7 +338,8 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 			sx  = fStartX;
 			sy -= scaley * size;
 		}
-		if (c < (' ')) continue;
+		if (c < (' '))
+			continue;
 
 		c -= 32;
 		float tx1 = m_fTexCoords[c][0];
@@ -348,10 +351,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 		float h = (float)(ty1-ty2) * m_dwTexHeight * scaley * sizeratio;
 
 		FONT2DVERTEX v[6];
-		v[0] = InitFont2DVertex(  sx, h+sy, dwColor, tx1, ty2);
-		v[1] = InitFont2DVertex(  sx,   sy, dwColor, tx1, ty1);
-		v[2] = InitFont2DVertex(w+sx, h+sy, dwColor, tx2, ty2);
-		v[3] = InitFont2DVertex(w+sx,   sy, dwColor, tx2, ty1);
+		v[0] = InitFont2DVertex(sx,   sy+h, dwColor, tx1, ty2);
+		v[1] = InitFont2DVertex(sx,   sy,   dwColor, tx1, ty1);
+		v[2] = InitFont2DVertex(sx+w, sy+h, dwColor, tx2, ty2);
+		v[3] = InitFont2DVertex(sx+w, sy,   dwColor, tx2, ty1);
 		v[4] = v[2];
 		v[5] = v[1];
 

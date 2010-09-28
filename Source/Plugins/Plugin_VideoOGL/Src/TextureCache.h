@@ -24,7 +24,7 @@
 #include "GLUtil.h"
 #include "BPStructs.h"
 
-class TextureMngr
+class TextureCache
 {
 public:
     struct TCacheEntry
@@ -66,7 +66,7 @@ private:
 
 public:
     static void Init();
-    static void ProgressiveCleanup();
+    static void Cleanup();
     static void Shutdown();
     static void Invalidate(bool shutdown);
 	static void InvalidateRange(u32 start_address, u32 size);

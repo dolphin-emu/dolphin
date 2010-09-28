@@ -16,24 +16,26 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "BPFunctions.h"
-#include "D3DBase.h"
-#include "VideoConfig.h"
 #include "Common.h"
+#include "D3DBase.h"
+#include "Debugger/Debugger.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
-#include "Debugger/Debugger.h"
-#include "TextureConverter.h"
-
+#include "VideoConfig.h"
 
 bool textureChanged[8];
-
 const bool renderFog = false;
 
 using namespace D3D;
 
 namespace BPFunctions
 {
+// ----------------------------------------------
+// State translation lookup tables
+// Reference: Yet Another Gamecube Documentation
+// ----------------------------------------------
+
 
 void FlushPipeline()
 {
@@ -80,9 +82,10 @@ void SetColorMask(const BPCmd &bp)
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
 {
+	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);					
+		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);		
 	}
 }
 

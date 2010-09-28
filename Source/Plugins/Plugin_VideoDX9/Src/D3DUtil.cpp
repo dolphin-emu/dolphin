@@ -63,9 +63,9 @@ int CD3DFont::Init()
 	m_fTextScale  = 1.0f; // Draw fonts into texture without scaling
 
 	// Prepare to create a bitmap
-	int *pBitmapBits;
+	unsigned int* pBitmapBits;
 	BITMAPINFO bmi;
-	ZeroMemory(&bmi.bmiHeader,  sizeof(BITMAPINFOHEADER));
+	ZeroMemory(&bmi.bmiHeader, sizeof(BITMAPINFOHEADER));
 	bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth       =  (int)m_dwTexWidth;
 	bmi.bmiHeader.biHeight      = -(int)m_dwTexHeight;
@@ -74,8 +74,8 @@ int CD3DFont::Init()
 	bmi.bmiHeader.biBitCount    = 32;
 
 	// Create a DC and a bitmap for the font
-	HDC 	hDC 	  = CreateCompatibleDC(NULL);
-	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (VOID**)&pBitmapBits, NULL, 0);
+	HDC hDC = CreateCompatibleDC(NULL);
+	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&pBitmapBits, NULL, 0);
 	SetMapMode(hDC, MM_TEXT);
 
 	// Create a font.  By specifying ANTIALIASED_QUALITY, we might get an
@@ -99,7 +99,7 @@ int CD3DFont::Init()
 	SetBkColor  (hDC, 0);
 	SetTextAlign(hDC, TA_TOP);
 
-	// Loop through all printable character and output them to the bitmap..
+	// Loop through all printable characters and output them to the bitmap
 	// Meanwhile, keep track of the corresponding tex coords for each character.
 	int x = 0, y = 0;
 	char str[2] = "\0";
@@ -120,10 +120,12 @@ int CD3DFont::Init()
 		m_fTexCoords[c][2] = ((float)(x+0+size.cx))/m_dwTexWidth;
 		m_fTexCoords[c][3] = ((float)(y+0+size.cy))/m_dwTexHeight;
 
-		x += size.cx + 3;  //3 to work around annoying ij conflict (part of the j ends up with the i)
+		x += size.cx + 3;  // 3 to work around annoying ij conflict (part of the j ends up with the i)
 	}
 
 	// Create a new texture for the font
+	// possible optimization: store the converted data in a buffer and fill the texture on creation.
+	//							That way, we can use a static texture
 	hr = dev->CreateTexture(m_dwTexWidth, m_dwTexHeight, 1, D3DUSAGE_DYNAMIC,
 							D3DFMT_A4R4G4B4, D3DPOOL_DEFAULT, &m_pTexture, NULL);
 	if (FAILED(hr))
@@ -245,7 +247,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 	float invLineHeight = 1.0f / ((m_fTexCoords[0][3] - m_fTexCoords[0][1]) * m_dwTexHeight);
 	// Fill vertex buffer
 	FONT2DVERTEX* pVertices;
-	int         dwNumTriangles = 0L;
+	int dwNumTriangles = 0L;
 	m_pVB->Lock(0, 0, (void**)&pVertices, D3DLOCK_DISCARD);
 
 	const char *oldstrText=strText;
@@ -296,7 +298,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 		if (c < (' '))
 			continue;
 
-		c-=32;
+		c -= 32;
 		float tx1 = m_fTexCoords[c][0];
 		float ty1 = m_fTexCoords[c][1];
 		float tx2 = m_fTexCoords[c][2];
@@ -329,7 +331,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 			m_pVB->Lock(0, 0, (void**)&pVertices, D3DLOCK_DISCARD);
 			dwNumTriangles = 0;
 		}
-
 		sx += w + spacing*fXScale*vpWidth;
 	}
 

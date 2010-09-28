@@ -61,7 +61,7 @@ public:
 	static void Init();
 	static void Shutdown();
 
-	static VERTEXSHADER* GetShader(u32 components);
+	static VERTEXSHADER* SetShader(u32 components);
 	static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
 
 	static void SetCurrentShader(GLuint Shader);

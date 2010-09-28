@@ -16,16 +16,21 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "BPFunctions.h"
-#include "D3DBase.h"
-#include "VideoConfig.h"
 #include "Common.h"
+#include "D3DBase.h"
+#include "Render.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
-#include "Render.h"
+#include "VideoConfig.h"
 
 namespace BPFunctions
 {
+// ----------------------------------------------
+// State translation lookup tables
+// Reference: Yet Another Gamecube Documentation
+// ----------------------------------------------
+
 
 void FlushPipeline()
 {
@@ -72,21 +77,18 @@ void SetColorMask(const BPCmd &bp)
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
 {
+	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-//		if (g_ActiveConfig.bCopyEFBToTexture)
-//		{
-			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
-//		}
-//		else
-//		{
-//			PanicAlert("TODO: Implement EFB copying to RAM %s %d\n", __FILE__, __LINE__);
-//		}
+		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);		
 	}
 }
 
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
+	// it seems that the GC is able to alpha blend on color-fill
+	// we cant do that so if alpha is != 255 we skip it
+
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
 	bool zEnable = bpmem.zmode.updateenable;

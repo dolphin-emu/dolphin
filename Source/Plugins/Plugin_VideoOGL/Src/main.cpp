@@ -73,7 +73,7 @@ GFXConfigDialogOGL *m_ConfigFrame = NULL;
 #include "GLUtil.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
-#include "TextureMngr.h"
+#include "TextureCache.h"
 #include "BPStructs.h"
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
@@ -108,6 +108,16 @@ static volatile u32 s_doStateRequested = FALSE;
 #endif
 static u32 s_efbAccessRequested = FALSE;
 static volatile u32 s_FifoShuttingDown = FALSE;
+
+static volatile struct
+{
+	u32 xfbAddr;
+	FieldType field;
+	u32 fbWidth;
+	u32 fbHeight;
+} s_beginFieldArgs;
+
+static volatile EFBAccessType s_AccessEFBType;
 
 bool IsD3D()
 {
@@ -191,7 +201,8 @@ void Initialize(void *init)
 	// Now the window handle is written
 	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	OSD::AddMessage("Dolphin OpenGL Video Plugin", 5000);
+	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
+	s_PluginInitialized = true;
 }
 
 static volatile struct
@@ -207,7 +218,7 @@ static void check_DoState() {
 	{
 #endif
 		// Clear all caches that touch RAM
-		TextureMngr::Invalidate(false);
+		TextureCache::Invalidate(false);
 		VertexLoaderManager::MarkAllDirty();
 
 		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
@@ -259,14 +270,14 @@ void Video_Prepare(void)
 		exit(1);
 	}
 
-	s_swapRequested = FALSE;
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
+	s_swapRequested = FALSE;
 
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	TextureMngr::Init();
+	TextureCache::Init();
 
 	BPInit();
 	VertexManager::Init();
@@ -289,14 +300,13 @@ void Video_Prepare(void)
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 }
 
-void Shutdown(void)
+void Shutdown()
 {
-	s_PluginInitialized = false;	
+	s_PluginInitialized = false;
 
 	s_efbAccessRequested = FALSE;
-	s_swapRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
-
+	s_swapRequested = FALSE;
 	DLCache::Shutdown();
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
@@ -310,7 +320,7 @@ void Shutdown(void)
 	PixelShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
 	VertexManager::Shutdown();
-	TextureMngr::Shutdown();
+	TextureCache::Shutdown();
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	OpenGL_Shutdown();
@@ -325,34 +335,13 @@ void Video_EnterLoop()
 void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
-
 	s_FifoShuttingDown = TRUE;
-}
-
-// Screenshot and screen message
-
-void Video_Screenshot(const char *_szFilename)
-{
-	Renderer::SetScreenshot(_szFilename);
-}
-
-void Video_AddMessage(const char* pstr, u32 milliseconds)
-{
-	OSD::AddMessage(pstr, milliseconds);
 }
 
 void Video_SetRendering(bool bEnabled)
 {
 	Fifo_SetRendering(bEnabled);
 }
-
-static volatile struct
-{
-	u32 xfbAddr;
-	FieldType field;
-	u32 fbWidth;
-	u32 fbHeight;
-} s_beginFieldArgs;
 
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequest()
@@ -388,14 +377,14 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
 				VideoFifo_CheckSwapRequest();
 		}
-	}	
+	}
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
-	{		
+	{
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
@@ -403,7 +392,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();				
+			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -416,6 +405,17 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_EndField()
 {
+}
+
+void Video_AddMessage(const char* pstr, u32 milliseconds)
+{
+	OSD::AddMessage(pstr, milliseconds);
+}
+
+// Screenshot
+void Video_Screenshot(const char *_szFilename)
+{
+	Renderer::SetScreenshot(_szFilename);
 }
 
 static struct
@@ -446,6 +446,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 		s_accessEFBArgs.x = x;
 		s_accessEFBArgs.y = y;
 		s_accessEFBArgs.Data = InputData;
+
 		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
 		if (g_VideoInitialize.bOnThread)
@@ -496,7 +497,7 @@ void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
 	PixelEngine::Write32(_Data, _Address);
 }
 
-void Video_GatherPipeBursted(void)
+inline void Video_GatherPipeBursted(void)
 {
 	CommandProcessor::GatherPipeBursted();
 }

@@ -26,7 +26,7 @@
 #undef CHECK
 #define CHECK(hr, Message, ...) if (FAILED(hr)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
-FramebufferManager FBManager;
+FramebufferManager g_framebufferManager;
 
 LPDIRECT3DSURFACE9 FramebufferManager::GetEFBColorRTSurface()
 {
@@ -313,7 +313,6 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	LPDIRECT3DTEXTURE9 xfbTexture;
 	HRESULT hr = 0;
 
-
 	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
 	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
@@ -393,8 +392,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		m_virtualXFBList.push_front(newVirt);
 	}
 
-	// Copy EFB to XFB texture
-
+	// Copy EFB data to XFB and restore render target again
 	if(!xfbTexture)
 		return;
 	LPDIRECT3DTEXTURE9 read_texture = GetEFBColorTexture(sourceRc);

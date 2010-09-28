@@ -52,18 +52,8 @@
 #include "D3DUtil.h"
 #include "W32Util/Misc.h"
 #include "EmuWindow.h"
-#include "FBManager.h"
+#include "FramebufferManager.h"
 #include "DLCache.h"
-
-
-#if defined(DEBUGFAST)
-#define DLL_PLUGIN_NAME "Dolphin Direct3D 11 (DebugFast)"
-#elif defined(_DEBUG)
-#define DLL_PLUGIN_NAME "Dolphin Direct3D 11 (Debug)"
-#else
-#define DLL_PLUGIN_NAME "Dolphin Direct3D 11"
-#endif
-
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
@@ -148,7 +138,7 @@ unsigned int Callback_PeekMessages()
 }
 
 
-void UpdateFPSDisplay(const char* text)
+void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
 	sprintf_s(temp, 512, "SVN R%s: DX11: %s", svn_rev_str, text);
@@ -159,7 +149,13 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-	sprintf_s(_PluginInfo->Name, 100, DLL_PLUGIN_NAME);
+#ifdef DEBUGFAST
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11 (DebugFast)");
+#elif defined _DEBUG
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11 (Debug)");
+#else
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11");
+#endif
 }
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
@@ -170,7 +166,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 void DllAbout(HWND _hParent)
 {
-	MessageBoxA(NULL, "DllAbout not implemented, how did you come here? Anyway, report this to the devs.", "Error!", MB_OK);
+	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
 void DllConfig(void *_hParent)
@@ -178,11 +174,12 @@ void DllConfig(void *_hParent)
 	DlgSettings_Show(g_hInstance, (HWND)((wxWindow *)_hParent)->GetHandle());
 }
 
-void Initialize(void* init)
+void Initialize(void *init)
 {
 	frameCount = 0;
-	SVideoInitialize* _pVideoInitialize = (SVideoInitialize*)init;
-	g_VideoInitialize = *_pVideoInitialize;
+	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
+	// Create a shortcut to _pVideoInitialize that can also update it
+	g_VideoInitialize = *(_pVideoInitialize);
 	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
@@ -201,14 +198,17 @@ void Initialize(void* init)
 
 	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
 	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+
+	// Now the window handle is written
 	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	OSD::AddMessage("Dolphin Direct3D 11 Video Plugin.", 5000);
+	OSD::AddMessage("Dolphin Direct3D11 Video Plugin.", 5000);
 	s_PluginInitialized = true;
 }
 
 void Video_Prepare()
 {
+	// Better be safe...
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
@@ -232,24 +232,26 @@ void Video_Prepare()
 	PixelEngine::Init();
 	DLCache::Init();
 
-	// tell the host that the window is ready
+	// Tell the host that the window is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
 }
 
 void Shutdown()
 {
+	s_PluginInitialized = false;
+
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
 
 	// VideoCommon
 	DLCache::Shutdown();
+	Fifo_Shutdown();
 	CommandProcessor::Shutdown();
 	PixelShaderManager::Shutdown();
 	VertexShaderManager::Shutdown();
 	OpcodeDecoder_Shutdown();
 	VertexLoaderManager::Shutdown();
-	Fifo_Shutdown();
 
 	// internal interfaces
 	D3D::ShutdownUtils();
@@ -263,13 +265,13 @@ void Shutdown()
 	s_PluginInitialized = false;
 }
 
-void DoState(unsigned char** ptr, int mode)
+void DoState(unsigned char **ptr, int mode)
 {
-	// clear texture cache because it might have written to RAM
+	// Clear texture cache because it might have written to RAM
 	CommandProcessor::FifoCriticalEnter();
 	TextureCache::Invalidate(false);
 	CommandProcessor::FifoCriticalLeave();
-	// no need to clear shader caches
+	// No need to clear shader caches
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
 }
@@ -279,6 +281,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
 }
 
+// Enter and exit the video loop
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -349,6 +352,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 }
 
+// Run from the CPU thread (from VideoInterface.cpp)
 void Video_EndField()
 {
 }
@@ -358,7 +362,8 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 	OSD::AddMessage(pstr, milliseconds);
 }
 
-void Video_Screenshot(const char* _szFilename)
+// Screenshot
+void Video_Screenshot(const char *_szFilename)
 {
 	Renderer::SetScreenshot(_szFilename);
 }
@@ -391,6 +396,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 		s_accessEFBArgs.x = x;
 		s_accessEFBArgs.y = y;
 		s_accessEFBArgs.Data = InputData;
+
 		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
 		if (g_VideoInitialize.bOnThread)
@@ -404,6 +410,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 
 		return s_AccessEFBResult;
 	}
+
 	return 0;
 }
 

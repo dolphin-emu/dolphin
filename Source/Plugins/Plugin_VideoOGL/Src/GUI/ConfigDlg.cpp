@@ -25,7 +25,7 @@
 #include "ConfigDlg.h"
 #include "../Globals.h"
 #include "VideoConfig.h"
-#include "../TextureMngr.h"
+#include "../TextureCache.h"
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"
 #include "Render.h"
@@ -668,11 +668,11 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_TEXFMTOVERLAY:
 		g_Config.bTexFmtOverlayEnable = m_TexFmtOverlay->IsChecked();
 		m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
-		TextureMngr::Invalidate(false);
+		TextureCache::Invalidate(false);
 		break;
 	case ID_TEXFMTCENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
-		TextureMngr::Invalidate(false);
+		TextureCache::Invalidate(false);
 		break;
 	case ID_SHOWEFBCOPYREGIONS:
 		g_Config.bShowEFBCopyRegions = m_ShowEFBCopyRegions->IsChecked();

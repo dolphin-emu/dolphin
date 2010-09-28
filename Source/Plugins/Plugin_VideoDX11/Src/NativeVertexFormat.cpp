@@ -23,7 +23,6 @@
 #include "ABI.h"
 #include "MemoryUtil.h"
 #include "VertexShaderGen.h"
-#include "VertexShaderCache.h"
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
@@ -66,11 +65,11 @@ DXGI_FORMAT VarToD3D(VarType t, int size)
 
 	switch (size)
 	{
-		case 1: retval = lookup1[t]; break;
-		case 2: retval = lookup2[t]; break;
-		case 3: retval = lookup3[t]; break;
-		case 4: retval = lookup4[t]; break;
-		default: break;
+	case 1: retval = lookup1[t]; break;
+	case 2: retval = lookup2[t]; break;
+	case 3: retval = lookup3[t]; break;
+	case 4: retval = lookup4[t]; break;
+	default: break;
 	}
 	if (retval == DXGI_FORMAT_UNKNOWN)
 	{

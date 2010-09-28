@@ -145,14 +145,6 @@ void OSDMenu(WPARAM wParam)
 	case '3':
 		OSDChoice = 1;
 		// Toggle native resolution
-/*
-		if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
-			g_Config.bNativeResolution = true;
-		else if (g_Config.bNativeResolution && Renderer::AllowCustom())
-			{ g_Config.bNativeResolution = false; if (Renderer::Allow2x()) {g_Config.b2xResolution = true;} }
-		else if (Renderer::AllowCustom())
-			g_Config.b2xResolution = false;
-*/
 		OSDInternalW = D3D::GetBackBufferWidth();
 		OSDInternalH = D3D::GetBackBufferHeight();
 		break;
@@ -224,6 +216,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	// TODO:
 	// 1. Remove redundant window manipulation,
 	// 2. Make DX9 in fullscreen can be overlapped by other dialogs
+	// 3. Request window sizes which actually make the client area map to a common resolution
 	HWND Ret;
 	int x=0, y=0, width=640, height=480;
 	g_VideoInitialize.pRequestWindowSize(x, y, width, height);

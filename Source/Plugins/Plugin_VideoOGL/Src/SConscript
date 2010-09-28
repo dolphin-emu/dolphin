@@ -10,7 +10,7 @@ files = [
 	'BPFunctions.cpp',
 	'RasterFont.cpp',
 	'Render.cpp',
-	'TextureMngr.cpp',
+	'TextureCache.cpp',
 	'NativeVertexFormat.cpp',
 	'PixelShaderCache.cpp',
 	'VertexShaderCache.cpp',

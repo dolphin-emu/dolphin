@@ -28,7 +28,7 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
-#include "FBManager.h"
+#include "FramebufferManager.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
@@ -59,7 +59,7 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 
 	if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache)
 	{
-		u32* ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
+		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
 		if (ptr && *ptr == hash)
 			*ptr = oldpixel;
 	}
@@ -123,30 +123,6 @@ void TextureCache::Invalidate(bool shutdown)
 	HiresTextures::Shutdown();
 }
 
-void TextureCache::InvalidateRange(u32 start_address, u32 size)
-{
-	TexCache::iterator iter = textures.begin();
-	while (iter != textures.end())
-	{
-		if (iter->second.IntersectsMemoryRange(start_address, size))
-		{
-			iter->second.Destroy(false);
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
-bool TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
-{
-	if (addr + size_in_bytes < range_address) return false;
-	if (addr >= range_address + range_size) return false;
-	return true;
-}
-
 void TextureCache::Shutdown()
 {
 	Invalidate(true);
@@ -178,6 +154,31 @@ void TextureCache::Cleanup()
 	}
 }
 
+void TextureCache::InvalidateRange(u32 start_address, u32 size)
+{
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
+	{
+		if (iter->second.IntersectsMemoryRange(start_address, size))
+		{
+			iter->second.Destroy(false);
+			textures.erase(iter++);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
+bool TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
+{
+	if (addr + size_in_bytes < range_address) return false;
+	if (addr >= range_address + range_size) return false;
+	return true;
+}
+
+
 // returns the exponent of the smallest power of two which is greater than val
 unsigned int GetPow2(unsigned int val)
 {
@@ -188,21 +189,47 @@ unsigned int GetPow2(unsigned int val)
 
 TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, unsigned int width, unsigned int height, unsigned int tex_format, unsigned int tlutaddr, unsigned int tlutfmt, bool UseNativeMips, unsigned int maxlevel)
 {
-	if (address == 0) return NULL;
+	// notes (about "UNsafe texture cache"):
+	//	Have to be removed soon.
+	//	But we keep it until the "safe" way became rock solid
+	//	pros: it has an unique ID held by the texture data itself (@address) once cached.
+	//	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
 
-	u8* ptr = g_VideoInitialize.pGetMemoryPointer(address);
+	// notes (about "safe texture cache"):
+	//	Metroids text issue (character table):
+	//	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
+	//	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
+	//	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
+	//	have to be a real unique ID. 
+	//	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
+
+	//	Pokemon Colosseum text issue (plain text):
+	//	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
+	//	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
+	//	so lot's of remaning old text. 	Thin white chars on black bg too.
+
+	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
+	//			- fix the key index situation with CopyRenderTargetToTexture. 
+	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
+	//			Wonder if we can't use tex width&height to know if EFB might be copied to it...
+	//			raw idea:  TOCHECK if addresses are aligned we have few bits left...
+
+	if (address == 0)
+		return NULL;
+
+	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	unsigned int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
 	unsigned int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
 	unsigned int bsdepth = TexDecoder_GetTexelSizeInNibbles(tex_format);
-	unsigned int expandedWidth  = (width  + bsw) & (~bsw);
+	unsigned int expandedWidth = (width + bsw) & (~bsw);
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
 
-	u64 hash_value;
+	u64 hash_value = 0;
 	u32 texID = address;
-	u64 texHash;
+	u64 texHash = 0;
 	u32 FullFormat = tex_format;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
-		u32 FullFormat = (tex_format | (tlutfmt << 16));
+		FullFormat = (tex_format | (tlutfmt << 16));
 
 	// hires textures and texture dumping not supported, yet
 	if (g_ActiveConfig.bSafeTextureCache/* || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures*/)
@@ -264,7 +291,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		}
 	}
 
-	// make an entry in the table
+	// Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
@@ -306,6 +333,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	{
 		D3D::ReplaceRGBATexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, 0, usage);
 	}
+
 	entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
 	entry.isRenderTarget = false;
@@ -340,7 +368,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	entry.fmt = FullFormat;
 
 	INCSTAT(stats.numTexturesCreated);
-	SETSTAT(stats.numTexturesAlive, (int)textures.size());
+	SETSTAT(stats.numTexturesAlive, textures.size());
 
 	D3D::gfxstate->SetShaderResource(stage, entry.texture->GetSRV());
 
@@ -370,7 +398,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		}
 		else
 		{
-			// remove it and recreate it as a render target
+			// Remove it and recreate it as a render target
 			SAFE_RELEASE(iter->second.texture);
 			textures.erase(iter);
 		}
@@ -557,13 +585,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	D3D::stateman->PushDepthState(efbcopydepthstate);
 	D3D::context->OMSetRenderTargets(1, &tex->GetRTV(), NULL);
 	D3D::drawShadedTexQuad(
-				(bFromZBuffer) ? FBManager.GetEFBDepthTexture()->GetSRV() : FBManager.GetEFBColorTexture()->GetSRV(),
+				(bFromZBuffer) ? g_framebufferManager.GetEFBDepthTexture()->GetSRV() : g_framebufferManager.GetEFBColorTexture()->GetSRV(),
 				&sourcerect,
 				Renderer::GetFullTargetWidth(),
 				Renderer::GetFullTargetHeight(),
 				(bFromZBuffer) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
-	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();

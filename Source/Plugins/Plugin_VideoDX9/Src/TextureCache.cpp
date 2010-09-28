@@ -79,6 +79,30 @@ void TextureCache::Invalidate(bool shutdown)
 	HiresTextures::Shutdown();
 }
 
+void TextureCache::Shutdown()
+{
+	Invalidate(true);
+	FreeMemoryPages(temp, TEMP_SIZE);
+	temp = NULL;
+}
+
+void TextureCache::Cleanup()
+{
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
+	{
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
+		{
+			iter->second.Destroy(false);
+			iter = textures.erase(iter);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
 {
 	TexCache::iterator iter = textures.begin();
@@ -90,9 +114,9 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 			iter->second.Destroy(false);
 			textures.erase(iter++);
 		}
-		else 
+		else
 		{
-			++iter;		
+			++iter;
 		}
 	}
 }
@@ -120,53 +144,54 @@ int TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 rang
 	return 0;
 }
 
-void TextureCache::Shutdown()
-{
-	Invalidate(true);
-	FreeMemoryPages(temp, TEMP_SIZE);
-	temp = NULL;
-}
-
-void TextureCache::Cleanup()
-{
-	TexCache::iterator iter = textures.begin();
-	while (iter != textures.end())
-	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
-		{
-			iter->second.Destroy(false);
-			textures.erase(iter++);			
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
 TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel)
 {
+	// notes (about "UNsafe texture cache"):
+	//	Have to be removed soon.
+	//	But we keep it until the "safe" way became rock solid
+	//	pros: it has an unique ID held by the texture data itself (@address) once cached.
+	//	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
+
+	// notes (about "safe texture cache"):
+	//	Metroids text issue (character table):
+	//	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
+	//	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
+	//	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
+	//	have to be a real unique ID. 
+	//	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
+
+	//	Pokemon Colosseum text issue (plain text):
+	//	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
+	//	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
+	//	so lot's of remaning old text. 	Thin white chars on black bg too.
+
+	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
+	//			- fix the key index situation with CopyRenderTargetToTexture. 
+	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
+	//			Wonder if we can't use tex width&height to know if EFB might be copied to it...
+	//			raw idea:  TOCHECK if addresses are aligned we have few bits left...
+
 	if (address == 0)
 		return NULL;
 
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
-	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
+	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
 	int bsdepth = TexDecoder_GetTexelSizeInNibbles(tex_format);
-	int expandedWidth  = (width + bsw)  & (~bsw);
+	int expandedWidth = (width + bsw) & (~bsw);
 	int expandedHeight = (height + bsh) & (~bsh);
 
-	u64 hash_value;
+	u64 hash_value = 0;
 	u32 texID = address;
-	u64 texHash;
+	u64 texHash = 0;
 	u32 FullFormat = tex_format;
 	bool TextureisDynamic = false;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
-		u32 FullFormat = (tex_format | (tlutfmt << 16));
+		FullFormat = (tex_format | (tlutfmt << 16));
 
 	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
-		texHash =  GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		texHash = GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
@@ -325,7 +350,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	entry.isNonPow2 = false;
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : ((isPow2)? 0 : 1);
+	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2? 0 : 1);
 	if(TexLevels > (maxlevel + 1) && maxlevel > 0)
 		TexLevels = (maxlevel + 1);
 	entry.MipLevels = maxlevel;
@@ -364,14 +389,14 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.Scaledw = width;
 	entry.Scaledh = height;
 	entry.fmt = FullFormat;
-	
+
 	if (g_ActiveConfig.bDumpTextures)
 	{
 		// dump texture to file
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
 		const char* uniqueId = globals->unique_id;
-		bool bCheckedDumpDir = false;
+		static bool bCheckedDumpDir = false;
 
 		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
 
@@ -390,7 +415,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	}
 
 	INCSTAT(stats.numTexturesCreated);
-	SETSTAT(stats.numTexturesAlive, (int)textures.size());
+	SETSTAT(stats.numTexturesAlive, textures.size());
 
 	//Set the texture!
 	D3D::SetTexture(stage, entry.texture);
@@ -434,12 +459,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 			textures.erase(iter);
 		}
 	}
-	if(TextureisDynamic)
+	if (TextureisDynamic)
 	{
 		Scaledtex_w = tex_w;
 		Scaledtex_h = tex_h;
 	}
-	if(!tex)
+	if (!tex)
 	{
 		TCacheEntry entry;
 		entry.addr = address;
@@ -459,7 +484,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	}
 
 	// Make sure to resolve anything we need to read from.
-	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? FBManager.GetEFBDepthTexture(source_rect) : FBManager.GetEFBColorTexture(source_rect);
+	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture(source_rect) : g_framebufferManager.GetEFBColorTexture(source_rect);
 	
 	// We have to run a pixel shader, for color conversion.
 	Renderer::ResetAPIState(); // reset any game specific settings
@@ -625,7 +650,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		}
 		
 
-		D3DFORMAT bformat = FBManager.GetEFBDepthRTSurfaceFormat();
+		D3DFORMAT bformat = g_framebufferManager.GetEFBDepthRTSurfaceFormat();
 		int SSAAMode = g_ActiveConfig.iMultisampleMode;
 		D3D::drawShadedTexQuad(
 			read_texture,
@@ -660,9 +685,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0,NULL);
-	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();
-	
 }
-

@@ -239,14 +239,13 @@ void PixelShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
-	int read_items = g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
 }
 
 // ONLY to be used during shutdown.
 void PixelShaderCache::Clear()
 {
-	PSCache::iterator iter = PixelShaders.begin();
-	for (; iter != PixelShaders.end(); ++iter)
+	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
 	PixelShaders.clear(); 
 
@@ -279,19 +278,16 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	PIXELSHADERUID uid;
 	GetPixelShaderId(&uid, dstAlpha);
 
-	// Is the shader already set?
+	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		PSCache::const_iterator iter = PixelShaders.find(uid);
-		if (iter != PixelShaders.end() && iter->second.shader)
-			return true;   // Sure, we're done.
-		else
-			return false;  // ?? something is wrong.
+		return (iter != PixelShaders.end() && iter->second.shader);
 	}
 
 	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
-	
-	// Is the shader already in the cache?
+
+	// Check if the shader is already in the cache
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
 	if (iter != PixelShaders.end())
@@ -311,14 +307,14 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 			return false;
 	}
 
-	// OK, need to generate and compile it.
+	// Need to compile a new shader
 	const char *code = GeneratePixelShaderCode(dstAlpha, API_D3D9,components);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);
 	SETSTAT(stats.numUniquePixelShaders, unique_shaders.size());
 
-	#if defined(_DEBUG) || defined(DEBUGFAST)
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
@@ -326,7 +322,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 		
 		SaveData(szTemp, code);
 	}
-	#endif
+#endif
 
 	u8 *bytecode = 0;
 	int bytecodelen = 0;
@@ -342,7 +338,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 		return false;
 	}
 
-	// Here we have the UID and the byte code. Insert it into the disk cache.
+	// Insert the bytecode into the caches
 	g_ps_disk_cache.Append((u8 *)&uid, sizeof(uid), bytecode, bytecodelen);
 	g_ps_disk_cache.Sync();
 
@@ -352,7 +348,8 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	return result;
 }
 
-bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate) {
+bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate)
+{
 	LPDIRECT3DPIXELSHADER9 shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 
 	// Make an entry in the table
@@ -368,7 +365,7 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytec
 	}
 
 	INCSTAT(stats.numPixelShadersCreated);
-	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
+	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
 	if (activate)
 	{
 		D3D::SetPixelShader(shader);

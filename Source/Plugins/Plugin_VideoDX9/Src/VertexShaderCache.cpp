@@ -84,16 +84,19 @@ void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const 
 	D3D::dev->SetVertexShaderConstantF(const_number, f, count);
 }
 
+// this class will load the precompiled shaders into our cache
 class VertexShaderCacheInserter : public LinearDiskCacheReader {
 public:
 	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
 	{
 		VERTEXSHADERUID uid;
-		if (key_size != sizeof(uid)) {
+		if (key_size != sizeof(uid))
+		{
 			ERROR_LOG(VIDEO, "Wrong key size in vertex shader cache");
 			return;
 		}
 		memcpy(&uid, key, key_size);
+
 		VertexShaderCache::InsertByteCode(uid, value, value_size, false);
 	}
 };
@@ -179,13 +182,12 @@ void VertexShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
-	int read_items = g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
 }
 
 void VertexShaderCache::Clear()
 {
-	VSCache::iterator iter = vshaders.begin();
-	for (; iter != vshaders.end(); ++iter)
+	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
 
@@ -217,16 +219,11 @@ bool VertexShaderCache::SetShader(u32 components)
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
-	{
-		if (vshaders[uid].shader)
-			return true;
-		else
-			return false;
-	}
+		return (vshaders[uid].shader != NULL);
+
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
-	VSCache::iterator iter;
-	iter = vshaders.find(uid);
+	VSCache::iterator iter = vshaders.find(uid);
 	if (iter != vshaders.end())
 	{
 		iter->second.frameCount = frameCount;

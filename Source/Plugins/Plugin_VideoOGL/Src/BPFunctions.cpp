@@ -21,7 +21,7 @@
 #include "VideoConfig.h"
 #include "VertexManager.h"
 #include "Render.h"
-#include "TextureMngr.h"
+#include "TextureCache.h"
 #include "TextureConverter.h"
 #include "VertexShaderManager.h"
 #include "XFB.h"
@@ -39,6 +39,7 @@ void FlushPipeline()
 {
 	VertexManager::Flush();
 }
+
 void SetGenerationMode(const BPCmd &bp)
 {
 	Renderer::SetGenerationMode();
@@ -46,25 +47,26 @@ void SetGenerationMode(const BPCmd &bp)
 
 void SetScissor(const BPCmd &bp)
 {
-	if (!Renderer::SetScissorRect())
-		if (bp.address == BPMEM_SCISSORBR)
-			ERROR_LOG(VIDEO, "bad scissor!");
+	Renderer::SetScissorRect();
 }
+
 void SetLineWidth(const BPCmd &bp)
 {
 	Renderer::SetLineWidth();
 }
+
 void SetDepthMode(const BPCmd &bp)
 {
 	Renderer::SetDepthMode();
 }
+
 void SetBlendMode(const BPCmd &bp)
 {
 	Renderer::SetBlendMode(false);
 }
 void SetDitherMode(const BPCmd &bp)
 {
-    Renderer::SetDitherMode();
+	Renderer::SetDitherMode();
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
@@ -73,7 +75,7 @@ void SetLogicOpMode(const BPCmd &bp)
 
 void SetColorMask(const BPCmd &bp)
 {
-    Renderer::SetColorMask();
+	Renderer::SetColorMask();
 }
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
@@ -81,12 +83,15 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);		
+		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);		
 	}
 }
 
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
+	// it seems that the GC is able to alpha blend on color-fill
+	// we cant do that so if alpha is != 255 we skip it
+
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
 	bool zEnable = bpmem.zmode.updateenable;

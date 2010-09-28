@@ -42,7 +42,7 @@
 #include "EmuWindow.h"
 #include "AVIDump.h"
 #include "OnScreenDisplay.h"
-#include "FBManager.h"
+#include "FramebufferManager.h"
 #include "Fifo.h"
 #include "DLCache.h"
 
@@ -83,7 +83,7 @@ ID3D11RasterizerState* resetraststate = NULL;
 
 bool reset_called = false;
 
-// state translation lookup tables
+// State translation lookup tables
 static const D3D11_BLEND d3dSrcFactors[8] =
 {
 	D3D11_BLEND_ZERO,
@@ -230,7 +230,7 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
-	FBManager.Create();
+	g_framebufferManager.Create();
 
 	HRESULT hr;
 	float colmat[20]= {0.0f};
@@ -296,9 +296,10 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 }
 
+// Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
-	FBManager.Destroy();
+	g_framebufferManager.Destroy();
 	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);
@@ -342,14 +343,14 @@ bool Renderer::Init()
 		D3D::gfxstate->samplerdesc[stage].MaxAnisotropy = g_ActiveConfig.iMaxAnisotropy;
 
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 0.f };
-	D3D::context->ClearRenderTargetView(FBManager.GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::context->ClearDepthStencilView(FBManager.GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	D3D::context->ClearRenderTargetView(g_framebufferManager.GetEFBColorTexture()->GetRTV(), ClearColor);
+	D3D::context->ClearDepthStencilView(g_framebufferManager.GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)(s_Fulltarget_width - s_target_width) / 2.f,
 						(float)(s_Fulltarget_height - s_target_height) / 2.f,
 						(float)s_target_width, (float)s_target_height);
 	D3D::context->RSSetViewports(1, &vp);
-	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
 	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
 
@@ -372,16 +373,18 @@ int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
 float Renderer::GetTargetScaleX() { return xScale; }
 float Renderer::GetTargetScaleY() { return yScale; }
 
+// Return the framebuffer size
 int Renderer::GetFrameBufferWidth()
 {
 	return s_backbuffer_width;
 }
+
 int Renderer::GetFrameBufferHeight()
 {
 	return s_backbuffer_height;
 }
 
-// create On-Screen-Messages
+// Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
 	// OSD menu messages
@@ -418,31 +421,35 @@ void Renderer::DrawDebugText()
 				g_ActiveConfig.bCrop ? " (crop)" : "";
 			std::string OSDM3 = "Disabled";
 
-			// if there is more text than this we will have a collission
+			// If there is more text than this we will have a collision
 			if (g_ActiveConfig.bShowFPS)
-				{ T1 += "\n\n"; T2 += "\n\n"; }
+			{
+				T1 += "\n\n";
+				T2 += "\n\n";
+			}
 
+			// The rows
 			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
 			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
 			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
 			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
+			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
 
-			// latest changed setting in yellow
+			// The latest changed setting in yellow
 			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
 			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
 			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
 			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
 			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";
 
-			// other settings in cyan
+			// The other settings in cyan
 			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
 			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
 			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
 			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
 			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";
 
-			// render a shadow, and then the text
+			// Render a shadow, and then the text
 			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
 			Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
 			Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
@@ -451,7 +458,7 @@ void Renderer::DrawDebugText()
 	}
 }
 
-void Renderer::RenderText(const char* text, int left, int top, u32 color)
+void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
 	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text, false);
 }
@@ -468,6 +475,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	return result;
 }
 
+
+// With D3D, we have to resize the backbuffer if the window changed
+// size.
 void CheckForResize()
 {
 	while (EmuWindow::IsSizing())
@@ -475,21 +485,22 @@ void CheckForResize()
 
 	if (EmuWindow::GetParentWnd())
 	{
-		// re-stretch window to parent window size again, if it has a parent window.
+		// Re-stretch window to parent window size again, if it has a parent window.
 		RECT rcParentWindow;
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcParentWindow);
 		int width = rcParentWindow.right - rcParentWindow.left;
 		int height = rcParentWindow.bottom - rcParentWindow.top;
 		if (width != s_backbuffer_width || height != s_backbuffer_height)
-			::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
+			MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 	}
 	RECT rcWindow;
 	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
 	int client_width = rcWindow.right - rcWindow.left;
 	int client_height = rcWindow.bottom - rcWindow.top;
 
-	// sanity check
-	if ((client_width != s_backbuffer_width || client_height != s_backbuffer_height) && 
+	// Sanity check
+	if ((client_width != s_backbuffer_width ||
+		client_height != s_backbuffer_height) && 
 		client_width >= 4 && client_height >= 4)
 	{
 		WindowResized = true;
@@ -507,7 +518,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
-		FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	}
 	else
 	{
@@ -559,7 +570,7 @@ bool Renderer::SetScissorRect()
 		rc.bottom = rc.top;
 		rc.top = temp;
 	}
-	
+
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
 		D3D::context->RSSetScissorRects(1, &rc);
@@ -599,7 +610,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		return 0;
 	}
 
-	// get the rectangular target region covered by the EFB pixel
+	// Get the rectangular target region covered by the EFB pixel
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
 	efbPixelRc.top = y;
@@ -624,15 +635,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		if ((RectToLock.right - RectToLock.left) > 4)
 			RectToLock.left++;
 
-		ResetAPIState(); // reset any game specific settings
+		ResetAPIState(); // Reset any game specific settings
 
 		// Stretch picture with increased internal resolution
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 4.f, 4.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
-		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBDepthReadTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBDepthReadTexture()->GetRTV(), NULL);
 		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FBManager.GetEFBDepthTexture()->GetSRV(),
+		D3D::drawShadedTexQuad(g_framebufferManager.GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
 								Renderer::GetFullTargetWidth(),
 								Renderer::GetFullTargetHeight(),
@@ -640,21 +651,21 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
-		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 		RestoreAPIState();
 		RectToLock = CD3D11_RECT(0, 0, 4, 4);
 
 		// copy to system memory
 		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 4, 4, 1);
-		read_tex = FBManager.GetEFBDepthStagingBuffer();
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FBManager.GetEFBDepthReadTexture()->GetTex(), 0, &box);
+		read_tex = g_framebufferManager.GetEFBDepthStagingBuffer();
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBDepthReadTexture()->GetTex(), 0, &box);
 	}
 	else
 	{
 		// we can directly copy to system memory here
-		read_tex = FBManager.GetEFBColorStagingBuffer();
+		read_tex = g_framebufferManager.GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FBManager.GetEFBColorTexture()->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, &box);
 		RectToLock = CD3D11_RECT(0, 0, 1, 1);
 	}
 
@@ -662,21 +673,35 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 
-	switch(type) {
-		case PEEK_Z:
-			val = ((float*)map.pData)[0];
-			z = ((u32)(val * 0xffffff));
-			break;
+	switch(type)
+	{
+	case PEEK_Z:
+		val = ((float*)map.pData)[0];
+		z = ((u32)(val * 0xffffff));
+		break;
 
-		case PEEK_COLOR:
-			z = ((u32*)map.pData)[0];
-			break;
+	case POKE_Z:
+		// TODO: Implement
+		break;
+
+	case PEEK_COLOR:
+		z = ((u32*)map.pData)[0];
+		break;
+
+	case POKE_COLOR:
+		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
+		// the exact location. Note: EFB pokes are susceptible to Z-buffering
+		// and perhaps blending.
+		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
+		break;
 
 		// TODO: Implement POKE_Z and POKE_COLOR
-		default:
-			break;
+	default:
+		break;
 	}
+
 	D3D::context->Unmap(read_tex, 0);
+	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 	return z;
 }
 
@@ -728,7 +753,7 @@ void UpdateViewport()
 	{
 		s_Fulltarget_height -= 2 * Y;
 		Y = 0;
-		sizeChanged=true;
+		sizeChanged = true;
 	}
 
 	float newx = (float)X;
@@ -755,29 +780,30 @@ void UpdateViewport()
 		else
 		{
 			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-			FBManager.Destroy();
-			FBManager.Create();
-			D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+			g_framebufferManager.Destroy();
+			g_framebufferManager.Create();
+			D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 		}
 	}
 
-	// some games set invalids values MinDepth and MaxDepth so fix them to the max an min allowed and let the shaders do this work
+	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
 										0.f,    // (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 										1.f);   //  xfregs.rawViewport[5] / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
+
 // Tino: color is passed in bgra mode so need to convert it to rgba
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
+	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-	// update the view port for clearing the picture
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(),
 										0.f, 
 										1.f); 
 	D3D::context->RSSetViewports(1, &vp);
 
-	// always set the scissor in case it was set by the game and has not been reset
+	// Always set the scissor in case it was set by the game and has not been reset
 	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
 	D3D::context->RSSetScissorRects(1, &sirc);
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
@@ -806,7 +832,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[1]);
 		D3D::gfxstate->SetDestBlend(d3dDestFactors[1]);
 	}
-	else 
+	else
 	{
 		D3D::gfxstate->SetAlphaBlendEnable(bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
 		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
@@ -815,10 +841,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 			D3D::gfxstate->SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
 			D3D::gfxstate->SetDestBlend(d3dDestFactors[bpmem.blendmode.dstfactor]);
 		}
-		
 	}
 }
 
+// This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
@@ -829,10 +855,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// this function is called after the XFB field is changed, not after
 	// EFB is copied to XFB. In this way, flickering is reduced in games
 	// and seems to also give more FPS in ZTP
-	
+
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
-	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
@@ -841,7 +867,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	Renderer::ResetAPIState();
 
-	// prepare copying the XFBs to our backbuffer
+	// Prepare to copy the XFBs to our backbuffer
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_backbuffer_width, (float)s_backbuffer_height);
@@ -876,13 +902,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// draw each xfb source
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			xfbSource = xfbSourceList[i];	
+			xfbSource = xfbSourceList[i];
 			MathUtil::Rectangle<float> sourceRc;
 			
 			sourceRc.left = 0;
 			sourceRc.top = 0;
 			sourceRc.right = xfbSource->texWidth;
-			sourceRc.bottom = xfbSource->texHeight;		
+			sourceRc.bottom = xfbSource->texHeight;
 
 			MathUtil::Rectangle<float> drawRc;
 
@@ -893,11 +919,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				int xfbWidth = xfbSource->srcWidth;
 				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
 
-				drawRc.bottom = 1.0f - 2.0f * ((hOffset) / (float)fbHeight);
-				drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
+				drawRc.bottom = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
+				drawRc.top = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
 				drawRc.left = -(xfbWidth / (float)fbWidth);
 				drawRc.right = (xfbWidth / (float)fbWidth);
-				
 
 				if (!g_ActiveConfig.bAutoScale)
 				{
@@ -918,13 +943,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.left = -1;
 				drawRc.right = 1;
 			}
+
 			D3D::drawShadedTexSubQuad(xfbSource->tex->GetSRV(), &sourceRc, xfbSource->texWidth, xfbSource->texHeight, &drawRc, PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 		}
 	}
 	else
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-		D3DTexture2D* read_texture = FBManager.GetEFBColorTexture();
+		D3DTexture2D* read_texture = g_framebufferManager.GetEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -958,12 +984,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_bScreenshot = false;
 	}
 
-	// finally present some information
+	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
 		char fps[20];
 		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
-		D3D::font.DrawTextScaled(0,30,20,0.0f,0xFF00FFFF,fps,false);
+		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, fps, false);
 	}
 	Renderer::DrawDebugText();
 
@@ -971,13 +997,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		char buf[32768];
 		Statistics::ToString(buf);
-		D3D::font.DrawTextScaled(0,30,20,0.0f,0xFF00FFFF,buf,false);
+		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf, false);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		char buf[32768];
 		Statistics::ToStringProj(buf);
-		D3D::font.DrawTextScaled(0,30,20,0.0f,0xFF00FFFF,buf,false);
+		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf, false);
 	}
 
 	OSD::DrawMessages();
@@ -986,13 +1012,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// enable any configuration changes
+	// Enable any configuration changes
 	UpdateActiveConfig();
 	WindowResized = false;
 	CheckForResize();
 
 	bool xfbchanged = false;
-	
+
 	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
 	{
 		xfbchanged = true;
@@ -1007,18 +1033,21 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// update FPS counter
 	static int fpscount = 0;
 	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000) 
+	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
 	{
 		lasttime = Common::Timer::GetTimeMs();
 		s_fps = fpscount;
 		fpscount = 0;
 	}
-	if (XFBWrited) ++fpscount;
+	if (XFBWrited)
+		++fpscount;
 
-	// set default viewport and scissor, for the clear to work correctly
+	// Begin new frame
+	// Set default viewport and scissor, for the clear to work correctly
+	// New frame
 	stats.ResetFrame();
 
-	// done. Show our work ;)
+	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 
 	// resize the back buffers NOW to avoid flickering when resizing windows
@@ -1038,16 +1067,20 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_target_height = (int)(EFB_HEIGHT * yScale);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		FBManager.Destroy();
-		FBManager.Create();
+		g_framebufferManager.Destroy();
+		g_framebufferManager.Create();
 	}
 
 	// begin next frame
 	Renderer::RestoreAPIState();
 	D3D::BeginFrame();
-	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
+	// For testing zbuffer targets.
+	// Renderer::SetZBufferRender();
+	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
+	// 		GetTargetWidth(), GetTargetHeight());
 	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
 }
@@ -1065,7 +1098,7 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
-	// gets us back into a more game-like state.
+	// Gets us back into a more game-like state.
 	if (reset_called)
 	{
 		D3D::stateman->PopBlendState();
@@ -1094,6 +1127,7 @@ void Renderer::SetDepthMode()
 	}
 	else
 	{
+		// if the test is disabled write is disabled too
 		D3D::gfxstate->depthdesc.DepthEnable = FALSE;
 		D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	}
@@ -1184,7 +1218,7 @@ void Renderer::SetInterlacingMode()
 }
 
 // Save screenshot
-void Renderer::SetScreenshot(const char* filename)
+void Renderer::SetScreenshot(const char *filename)
 {
 	s_criticalScreenshot.Enter();
 	strcpy_s(s_sScreenshotName, filename);

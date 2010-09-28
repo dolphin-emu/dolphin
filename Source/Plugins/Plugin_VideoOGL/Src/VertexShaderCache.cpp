@@ -93,27 +93,25 @@ void VertexShaderCache::Init()
 
 void VertexShaderCache::Shutdown()
 {
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
+	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
 }
 
 
-VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
+VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 {
 	DVSTARTPROFILE();
+
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
-
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
-	{
 		return pShaderLast;
-	}
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
 	VSCache::iterator iter = vshaders.find(uid);
-
-	if (iter != vshaders.end()) {
+	if (iter != vshaders.end())
+	{
 		iter->second.frameCount = frameCount;
 		VSCacheEntry &entry = iter->second;
 		if (&entry.shader != pShaderLast) {
@@ -224,7 +222,7 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
 	if (!ShaderEnabled)
 	{
 		glEnable(GL_VERTEX_PROGRAM_ARB);
-		ShaderEnabled= true;		
+		ShaderEnabled= true;
 	}
 	if (CurrentShader != Shader)
 	{

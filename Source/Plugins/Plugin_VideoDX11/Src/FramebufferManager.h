@@ -130,8 +130,8 @@ private:
 	const XFBSource** getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
 	const XFBSource** getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
 
-	XFBSource m_realXFBSource;           // used in real XFB mode
-	VirtualXFBListType m_virtualXFBList; // used in virtual XFB mode
+	XFBSource m_realXFBSource; // Only used in Real XFB mode
+	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
 
 	const XFBSource* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
 
@@ -146,6 +146,6 @@ private:
 	} m_efb;
 };
 
-extern FramebufferManager FBManager;
+extern FramebufferManager g_framebufferManager;
 
 #endif

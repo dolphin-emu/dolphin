@@ -27,7 +27,6 @@
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
 
-
 class D3DVertexFormat : public NativeVertexFormat
 {
 	LPDIRECT3DVERTEXDECLARATION9 d3d_decl;
@@ -76,12 +75,13 @@ D3DDECLTYPE VarToD3D(VarType t, int size)
 		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UBYTE4N, D3DDECLTYPE_SHORT4N, D3DDECLTYPE_USHORT4N, D3DDECLTYPE_FLOAT4,
 	};
 	D3DDECLTYPE retval = D3DDECLTYPE_UNUSED;
-	switch (size) {
+	switch (size)
+	{
 	case 1: retval = lookup1[t]; break;
 	case 2: retval = lookup2[t]; break;
 	case 3: retval = lookup3[t]; break;
 	case 4: retval = lookup4[t]; break;
-	default: PanicAlert("VarToD3D: size wrong (%i)", size); break;
+	default: break;
 	}
 	if (retval == D3DDECLTYPE_UNUSED) {
 		PanicAlert("VarToD3D: Invalid type/size combo %i , %i", (int)t, size);

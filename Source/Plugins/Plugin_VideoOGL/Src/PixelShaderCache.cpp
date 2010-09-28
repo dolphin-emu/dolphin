@@ -43,6 +43,15 @@ bool PixelShaderCache::ShaderEnabled;
 
 static FRAGMENTSHADER* pShaderLast = NULL;
 
+GLuint PixelShaderCache::GetDepthMatrixProgram()
+{
+	return s_DepthMatrixProgram;
+}
+
+GLuint PixelShaderCache::GetColorMatrixProgram()
+{
+	return s_ColorMatrixProgram;
+}
 
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -174,18 +183,7 @@ void PixelShaderCache::Shutdown()
 	pshaders.clear();
 }
 
-GLuint PixelShaderCache::GetColorMatrixProgram()
-{
-	return s_ColorMatrixProgram;
-}
-
-GLuint PixelShaderCache::GetDepthMatrixProgram()
-{
-	return s_DepthMatrixProgram;
-}
-
-
-FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable,u32 components)
+FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlphaEnable,u32 components)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;

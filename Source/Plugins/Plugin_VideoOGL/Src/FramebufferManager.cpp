@@ -186,22 +186,6 @@ void FramebufferManager::Shutdown()
 	m_virtualXFBList.clear();
 }
 
-void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
-{
-	if (g_ActiveConfig.bUseRealXFB)
-		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	else
-		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-}
-
-const XFBSource** FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
-{
-	if (g_ActiveConfig.bUseRealXFB)
-		return getRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	else
-		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-}
-
 GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) const
 {
 	if (m_msaaSamples <= 1)
@@ -262,6 +246,22 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) cons
 	}
 }
 
+void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+{
+	if (g_ActiveConfig.bUseRealXFB)
+		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	else
+		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+}
+
+const XFBSource** FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
+{
+	if (g_ActiveConfig.bUseRealXFB)
+		return getRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	else
+		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+}
+
 TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) const
 {
 	TargetRectangle result;
@@ -274,8 +274,7 @@ TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) 
 	return result;
 }
 
-FramebufferManager::VirtualXFBListType::iterator
-FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
+FramebufferManager::VirtualXFBListType::iterator FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 {
 	u32 srcLower = xfbAddr;
 	u32 srcUpper = xfbAddr + 2 * width * height;
@@ -296,7 +295,7 @@ FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 
 void FramebufferManager::replaceVirtualXFB()
 {
-	VirtualXFBListType::iterator it = m_virtualXFBList.begin();	
+	VirtualXFBListType::iterator it = m_virtualXFBList.begin();
 
 	s32 srcLower = it->xfbAddr;
 	s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
@@ -311,13 +310,13 @@ void FramebufferManager::replaceVirtualXFB()
 
 		if (dstLower >= srcLower && dstUpper <= srcUpper)
 		{
-			// invalidate the data
+			// Invalidate the data
 			it->xfbAddr = 0;
 			it->xfbHeight = 0;
 			it->xfbWidth = 0;
 		}
 		else if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
-		{		
+		{
 			s32 upperOverlap = (srcUpper - dstLower) / lineSize;
 			s32 lowerOverlap = (dstUpper - srcLower) / lineSize;
 
@@ -338,14 +337,14 @@ void FramebufferManager::replaceVirtualXFB()
 
 void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
-	u8* pXFB = Memory_GetPtr(xfbAddr);
-	if (!pXFB)
+	u8* xfb_in_ram = Memory_GetPtr(xfbAddr);
+	if (!xfb_in_ram)
 	{
 		WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
 		return;
 	}
 
-	XFB_Write(pXFB, sourceRc, fbWidth, fbHeight);
+	XFB_Write(xfb_in_ram, sourceRc, fbWidth, fbHeight);
 }
 
 void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
@@ -356,7 +355,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 	{
-		// replace the last virtual XFB
+		// Replace the last virtual XFB
 		--it;
 	}
 
@@ -432,7 +431,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		m_virtualXFBList.push_front(newVirt);
 	}
 
-	// Copy EFB to XFB texture
+	// Copy EFB data to XFB and restore render target again
 
 #if 0
 	if (m_msaaSamples <= 1)

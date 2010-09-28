@@ -100,7 +100,7 @@ void *DllDebugger(void *_hParent, bool Show)
 			return true;
 		}
 	};
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
@@ -148,18 +148,16 @@ void UpdateFPSDisplay(const char *text)
 	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo)
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST
 	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
-#else
-#ifndef _DEBUG
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
-#else
+#elif defined _DEBUG
 	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
-#endif
+#else
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
 #endif
 }
 
@@ -197,14 +195,15 @@ void Initialize(void *init)
 {
 	frameCount = 0;
 	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
-	g_VideoInitialize = *_pVideoInitialize;
+	// Create a shortcut to _pVideoInitialize that can also update it
+	g_VideoInitialize = *(_pVideoInitialize);
 	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();
-	
+
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
 	if (g_VideoInitialize.pWindowHandle == NULL)
 	{
@@ -222,6 +221,8 @@ void Initialize(void *init)
 
 	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
 	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+
+	// Now the window handle is written
 	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
@@ -234,10 +235,13 @@ void Video_Prepare()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
+
+	// internal interfaces
 	Renderer::Init();
 	TextureCache::Init();
-	BPInit();
 	VertexManager::Init();
+	// VideoCommon
+	BPInit();
 	Fifo_Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
@@ -246,36 +250,45 @@ void Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 	DLCache::Init();
-	// Tell the host the window is ready
+
+	// Notify the core that the video plugin is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
 }
 
 void Shutdown()
 {
+	s_PluginInitialized = false;
+
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
+
+	// VideoCommon
 	DLCache::Shutdown();
 	Fifo_Shutdown();
 	CommandProcessor::Shutdown();
-	VertexManager::Shutdown();
-	VertexLoaderManager::Shutdown();
-	VertexShaderManager::Shutdown();
 	PixelShaderManager::Shutdown();
-	TextureCache::Shutdown();
+	VertexShaderManager::Shutdown();
 	OpcodeDecoder_Shutdown();
+	VertexLoaderManager::Shutdown();
+
+	// internal interfaces
+	PixelShaderCache::Shutdown();
+	VertexShaderCache::Shutdown();
+	VertexManager::Shutdown();
+	TextureCache::Shutdown();
 	Renderer::Shutdown();
 	D3D::Shutdown();
 	EmuWindow::Close();
-	s_PluginInitialized = false;
 }
 
-void DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode)
+{
 	// Clear texture cache because it might have written to RAM
 	CommandProcessor::FifoCriticalEnter();
 	TextureCache::Invalidate(false);
 	CommandProcessor::FifoCriticalLeave();
-	// No need to clear shader caches.
+	// No need to clear shader caches
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
 }
@@ -285,6 +298,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
 }
 
+// Enter and exit the video loop
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -293,11 +307,11 @@ void Video_EnterLoop()
 void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
-
 	s_FifoShuttingDown = TRUE;
 }
 
-void Video_SetRendering(bool bEnabled) {
+void Video_SetRendering(bool bEnabled)
+{
 	Fifo_SetRendering(bEnabled);
 }
 
@@ -315,7 +329,7 @@ void VideoFifo_CheckSwapRequest()
 	}
 }
 
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+static inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
 	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
@@ -335,14 +349,14 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
 				VideoFifo_CheckSwapRequest();
 		}
-	}	
+	}
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
-	{		
+	{
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
@@ -350,7 +364,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();				
+			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -360,30 +374,20 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 }
 
+// Run from the CPU thread (from VideoInterface.cpp)
 void Video_EndField()
 {
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
-	OSD::AddMessage(pstr,milliseconds);
+	OSD::AddMessage(pstr, milliseconds);
 }
 
-HRESULT ScreenShot(const char *File)
-{
-	Renderer::SetScreenshot(File);
-	return S_OK;
-}
-
+// Screenshot
 void Video_Screenshot(const char *_szFilename)
 {
-	if (ScreenShot(_szFilename) != S_OK)
-		PanicAlert("Error while capturing screen");
-	else {
-		std::string message =  "Saved ";
-		message += _szFilename;
-		OSD::AddMessage(message.c_str(), 2000);
-	}
+	Renderer::SetScreenshot(_szFilename);
 }
 
 static struct
@@ -406,7 +410,7 @@ void VideoFifo_CheckEFBAccess()
 	}
 }
 
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y,u32 InputData)
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
 	if (s_PluginInitialized)
 	{

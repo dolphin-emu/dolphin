@@ -71,7 +71,7 @@ public:
 	static void Init();
 	static void Shutdown();
 
-	static FRAGMENTSHADER* GetShader(bool dstAlphaEnable,u32 components);
+	static FRAGMENTSHADER* SetShader(bool dstAlphaEnable,u32 components);
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
 	static GLuint GetColorMatrixProgram();

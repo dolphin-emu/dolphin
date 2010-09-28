@@ -156,7 +156,6 @@ void Init()
 	}
 	CreateRgbToYuyvProgram();
 	CreateYuyvToRgbProgram();
-
 }
 
 void Shutdown()
@@ -242,7 +241,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	
 	if (linearFilter)
 	{
-		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
+		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	}
 	else
 	{
@@ -256,7 +255,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	vp.Height = dstHeight;
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
-	hr = D3D::dev->SetViewport(&vp);	
+	hr = D3D::dev->SetViewport(&vp);
 	RECT SrcRect;
 	SrcRect.top = sourceRc.top;
 	SrcRect.left = sourceRc.left;
@@ -277,40 +276,31 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 	D3DLOCKED_RECT drect;
 	
-	
 	hr = D3D::dev->GetRenderTargetData(Rendersurf,s_texConvReadSurface);
-	if((hr = s_texConvReadSurface->LockRect(&drect, &DstRect, D3DLOCK_READONLY)) != D3D_OK)
+	hr = s_texConvReadSurface->LockRect(&drect, &DstRect, D3DLOCK_READONLY);
+	int writeStride = bpmem.copyMipMapStrideChannels * 32;
+
+	if (writeStride != readStride && toTexture)
 	{
-		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
-											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
-		
+		// writing to a texture of a different size
+
+		int readHeight = readStride / dstWidth;
+
+		int readStart = 0;
+		int readLoops = dstHeight / (readHeight/4); // 4 bytes per pixel
+		u8 *Source = (u8*)drect.pBits;
+		for (int i = 0; i < readLoops; i++)
+		{
+			int readDist = dstWidth*readHeight;
+            memcpy(destAddr,Source,readDist);
+			Source += readDist;
+			destAddr += writeStride;
+		}
 	}
 	else
-	{
-		int writeStride = bpmem.copyMipMapStrideChannels * 32;
-
-		if (writeStride != readStride && toTexture)
-		{
-			// writing to a texture of a different size
-
-			int readHeight = readStride / dstWidth;
-
-			int readStart = 0;
-			int readLoops = dstHeight / (readHeight/4); // 4 bytes per pixel
-			u8 *Source = (u8*)drect.pBits;
-			for (int i = 0; i < readLoops; i++)
-			{
-				int readDist = dstWidth*readHeight;
-                memcpy(destAddr,Source,readDist);
-				Source += readDist;
-				destAddr += writeStride;
-			}
-		}
-		else
-			memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);// 4 bytes per pixel
-		
-		hr = s_texConvReadSurface->UnlockRect();
-	}	
+		memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);// 4 bytes per pixel
+	
+	hr = s_texConvReadSurface->UnlockRect();
 }
 
 void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
@@ -335,7 +325,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FBManager.GetEFBDepthTexture(source) : FBManager.GetEFBColorTexture(source);
+	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture(source) : g_framebufferManager.GetEFBColorTexture(source);
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 
@@ -343,7 +333,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	// Invalidate any existing texture covering this memory range.
 	// TODO - don't delete the texture if it already exists, just replace the contents.
-	TextureCache::InvalidateRange(address, size_in_bytes);	
+	TextureCache::InvalidateRange(address, size_in_bytes);
 	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
@@ -383,9 +373,9 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	Renderer::ResetAPIState();
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
-	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();	
 }
 
@@ -454,8 +444,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
 	return Hashvalue;
 }
 
-
-void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
 {
 	TextureConversionShader::SetShaderParameters(
 		(float)dstWidth, 
@@ -468,9 +457,9 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		(float)Renderer::GetFullTargetHeight());
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
-	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
-	Renderer::RestoreAPIState();	
+	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	Renderer::RestoreAPIState();
 }
 
 
@@ -491,7 +480,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	destTexture->GetSurfaceLevel(0,&Rendersurf);
 	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(0, Rendersurf);		
+	D3D::dev->SetRenderTarget(0, Rendersurf);
     
 	D3DVIEWPORT9 vp;
 
@@ -535,17 +524,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 		srcWidth,
 		srcHeight,
 		s_yuyvToRgbProgram,
-		VertexShaderCache::GetSimpleVertexShader(0));			
+		VertexShaderCache::GetSimpleVertexShader(0));
 	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0,NULL);
-	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());	
+	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();
 	Rendersurf->Release();
-	s_srcTexture->Release();	
+	s_srcTexture->Release();
 }
 
 }  // namespace

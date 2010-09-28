@@ -24,22 +24,24 @@
 namespace D3D
 {
 
-// Bytecode->shader.
+// bytecode->shader.
 LPDIRECT3DVERTEXSHADER9 CreateVertexShaderFromByteCode(const u8 *bytecode, int len)
 {
 	LPDIRECT3DVERTEXSHADER9 v_shader;
 	HRESULT hr = D3D::dev->CreateVertexShader((DWORD *)bytecode, &v_shader);
 	if (FAILED(hr))
-		v_shader = 0;
+	{
+		PanicAlert("CreateVertexShaderFromByteCode failed from %p (size %d) at %s %d\n", bytecode, len, __FILE__, __LINE__);
+		v_shader = NULL;
+	}
 	return v_shader;
 }
 
-// Code->bytecode.
+// code->bytecode.
 bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecodelen)
 {
-	//try to compile
-	LPD3DXBUFFER shaderBuffer = 0;
-	LPD3DXBUFFER errorBuffer = 0;
+	LPD3DXBUFFER shaderBuffer = NULL;
+	LPD3DXBUFFER errorBuffer = NULL;
  	HRESULT hr = PD3DXCompileShader(code, len, 0, 0, "main", D3D::VertexShaderVersionString(),
 						           0, &shaderBuffer, &errorBuffer, 0);
 	if (FAILED(hr))
@@ -69,18 +71,20 @@ bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecode
 	return SUCCEEDED(hr) ? true : false;
 }
 
-
-// Bytecode->shader.
+// bytecode->shader
 LPDIRECT3DPIXELSHADER9 CreatePixelShaderFromByteCode(const u8 *bytecode, int len)
 {
 	LPDIRECT3DPIXELSHADER9 p_shader;
 	HRESULT hr = D3D::dev->CreatePixelShader((DWORD *)bytecode, &p_shader);
 	if (FAILED(hr))
-		p_shader = 0;
+	{
+		PanicAlert("CreatePixelShaderFromByteCode failed at %s %d\n", __FILE__, __LINE__);
+		p_shader = NULL;
+	}
 	return p_shader;
 }
 
-
+// code->bytecode
 bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen)
 {
 	LPD3DXBUFFER shaderBuffer = 0;
@@ -118,28 +122,32 @@ bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodel
 	return SUCCEEDED(hr) ? true : false;
 }
 
-LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len) {
+LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len)
+{
 	u8 *bytecode;
 	int bytecodelen;
-	if (CompileVertexShader(code, len, &bytecode, &bytecodelen)) {
+	if (CompileVertexShader(code, len, &bytecode, &bytecodelen))
+	{
 		LPDIRECT3DVERTEXSHADER9 v_shader = CreateVertexShaderFromByteCode(bytecode, len);
 		delete [] bytecode;
 		return v_shader;
-	} else {
-		return 0;
 	}
+	PanicAlert("Failed to compile and create vertex shader from %p (size %d) at %s %d\n", code, len, __FILE__, __LINE__);
+	return NULL;
 }
 
-LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, int len) {
+LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char* code, unsigned int len)
+{
 	u8 *bytecode;
 	int bytecodelen;
-	if (CompilePixelShader(code, len, &bytecode, &bytecodelen)) {
+	if (CompilePixelShader(code, len, &bytecode, &bytecodelen))
+	{
 		LPDIRECT3DPIXELSHADER9 p_shader = CreatePixelShaderFromByteCode(bytecode, len);
 		delete [] bytecode;
 		return p_shader;
-	} else {
-		return 0;
 	}
+	PanicAlert("Failed to compile and create pixel shader, %s %d\n", __FILE__, __LINE__);
+	return NULL;
 }
 
 }  // namespace

@@ -29,7 +29,7 @@
 #include "Render.h"
 #include "ImageWrite.h"
 #include "BPMemory.h"
-#include "TextureMngr.h"
+#include "TextureCache.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
@@ -90,6 +90,12 @@ bool Init()
 	return true;
 }
 
+void ResetBuffer()
+{
+	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
+	s_pCurBufferPointer = LocalVBuffer;
+}
+
 void Shutdown()
 {
 	delete [] LocalVBuffer;
@@ -100,73 +106,67 @@ void Shutdown()
 	//s_nCurVBOIndex = 0;
 }
 
-void ResetBuffer()
-{
-	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-	s_pCurBufferPointer = LocalVBuffer;
-}
-
 void AddIndices(int primitive, int numVertices)
 {
 	switch (primitive)
 	{
-		case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);break;    
-		case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);break;
-		case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
-		case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
-		case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
-		case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVertices);break;
-		case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
+	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices); break;
+	case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices); break;
+	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
+	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
+	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
+	case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVertices); break;
+	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
 	}
 }
 
 int GetRemainingSize()
 {
-	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
+	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
 int GetRemainingVertices(int primitive)
 {
 	switch (primitive)
 	{
-		case GX_DRAW_QUADS:
-		case GX_DRAW_TRIANGLES:
-		case GX_DRAW_TRIANGLE_STRIP:
-		case GX_DRAW_TRIANGLE_FAN:
-			return (max_Index_size - IndexGenerator::GetTriangleindexLen())/3;
-		case GX_DRAW_LINE_STRIP:
-		case GX_DRAW_LINES:
-			return (max_Index_size - IndexGenerator::GetLineindexLen())/2;
-		case GX_DRAW_POINTS:
-			return (max_Index_size - IndexGenerator::GetPointindexLen());
-		default: return 0;
+	case GX_DRAW_QUADS:
+	case GX_DRAW_TRIANGLES:
+	case GX_DRAW_TRIANGLE_STRIP:
+	case GX_DRAW_TRIANGLE_FAN:
+		return (max_Index_size - IndexGenerator::GetTriangleindexLen())/3;
+	case GX_DRAW_LINE_STRIP:
+	case GX_DRAW_LINES:
+		return (max_Index_size - IndexGenerator::GetLineindexLen())/2;
+	case GX_DRAW_POINTS:
+		return (max_Index_size - IndexGenerator::GetPointindexLen());
+	default: return 0;
 	}
 }
 
-void AddVertices(int primitive, int numvertices)
+void AddVertices(int primitive, int numVertices)
 {
-	if (numvertices <= 0)
+	if (numVertices <= 0)
 		return;
 	(void)GL_REPORT_ERROR();
 	switch (primitive)
 	{
-		case GX_DRAW_QUADS:
-		case GX_DRAW_TRIANGLES:
-		case GX_DRAW_TRIANGLE_STRIP:
-		case GX_DRAW_TRIANGLE_FAN:
-			if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 3 * numvertices)
-				Flush();
-			break;
-		case GX_DRAW_LINE_STRIP:
-		case GX_DRAW_LINES:
-			if(max_Index_size - IndexGenerator::GetLineindexLen() < 2 * numvertices)
-				Flush();
-			break;
-		case GX_DRAW_POINTS:
-			if(max_Index_size - IndexGenerator::GetPointindexLen() < numvertices)
-				Flush();
-			break;
-		default: return;
+	case GX_DRAW_QUADS:
+	case GX_DRAW_TRIANGLES:
+	case GX_DRAW_TRIANGLE_STRIP:
+	case GX_DRAW_TRIANGLE_FAN:
+		if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 3 * numVertices)
+			Flush();
+		break;
+	case GX_DRAW_LINE_STRIP:
+	case GX_DRAW_LINES:
+		if(max_Index_size - IndexGenerator::GetLineindexLen() < 2 * numVertices)
+			Flush();
+		break;
+	case GX_DRAW_POINTS:
+		if(max_Index_size - IndexGenerator::GetPointindexLen() < numVertices)
+			Flush();
+		break;
+	default: return;
 	}
 	if(Flushed)
 	{
@@ -174,11 +174,9 @@ void AddVertices(int primitive, int numvertices)
 		Flushed=false;
 	}
 	lastPrimitive = primitive;
-	ADDSTAT(stats.thisFrame.numPrims, numvertices);
+	ADDSTAT(stats.thisFrame.numPrims, numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numvertices);
-	
-	
+	AddIndices(primitive, numVertices);
 }
 
 inline void Draw()
@@ -203,7 +201,7 @@ inline void Draw()
 void Flush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;
-	if(Flushed) return;
+	if (Flushed) return;
 	Flushed=true;
 	VideoFifo_CheckEFBAccess();
 #if defined(_DEBUG) || defined(DEBUGFAST) 
@@ -257,7 +255,7 @@ void Flush()
 
 	if (bpmem.genMode.numindstages > 0)
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) 
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
 	for (int i = 0; i < 8; i++)
@@ -265,13 +263,14 @@ void Flush()
 		if (usedtextures & (1 << i))
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
-
 			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
+			TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
+				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
+				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+				tex.texTlut[i&3].tlut_format);
 
-			if (tentry) 
+			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
 				PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
@@ -285,12 +284,12 @@ void Flush()
 				}
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading tex\n");
+				ERROR_LOG(VIDEO, "error loading texture");
 		}
 	}
 
-	FRAGMENTSHADER* ps = PixelShaderCache::GetShader(false,g_nativeVertexFmt->m_components);
-	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
+	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components);
+	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 
 	// set global constants
 	VertexShaderManager::SetConstants();
@@ -306,7 +305,7 @@ void Flush()
 	// run through vertex groups again to set alpha
 	if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 	{
-		ps = PixelShaderCache::GetShader(true,g_nativeVertexFmt->m_components);
+		ps = PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components);
 
 		if (ps)PixelShaderCache::SetCurrentShader(ps->glprogid);
 
@@ -357,4 +356,3 @@ void Flush()
 
 }
 }  // namespace
-

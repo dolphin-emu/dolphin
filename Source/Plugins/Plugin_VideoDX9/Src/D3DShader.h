@@ -30,5 +30,5 @@ namespace D3D
 
 	// Utility functions
 	LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len);
-	LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, int len);
+	LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, unsigned int len);
 }

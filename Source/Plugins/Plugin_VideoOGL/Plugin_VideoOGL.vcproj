@@ -766,11 +766,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TextureMngr.cpp"
+				RelativePath=".\Src\TextureCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TextureMngr.h"
+				RelativePath=".\Src\TextureCache.h"
 				>
 			</File>
 			<File
