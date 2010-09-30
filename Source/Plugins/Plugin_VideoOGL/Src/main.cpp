@@ -210,26 +210,32 @@ void Initialize(void *init)
 void Video_Prepare()
 {
 	OpenGL_MakeCurrent();
+	if (!Renderer::Init()) {
+		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
+		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
+		exit(1);
+	}
 
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
 
-	// internal interfaces
-	Renderer::Init();
+	CommandProcessor::Init();
+	PixelEngine::Init();
+
 	TextureCache::Init();
-	VertexManager::Init();
+
 	BPInit();
-	Fifo_Init();
-	VertexLoaderManager::Init();
+	VertexManager::Init();
+	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
 	VertexShaderCache::Init();
 	VertexShaderManager::Init();
 	PixelShaderCache::Init();
 	PixelShaderManager::Init();
-	CommandProcessor::Init();
-	PixelEngine::Init();
 	PostProcessing::Init();
+	GL_REPORT_ERRORD();
+	VertexLoaderManager::Init();
 	TextureConverter::Init();
 	DLCache::Init();
 
@@ -238,6 +244,7 @@ void Video_Prepare()
 
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
+
 }
 
 void Shutdown()
@@ -247,24 +254,23 @@ void Shutdown()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
-
-	// VideoCommon
 	DLCache::Shutdown();
 	Fifo_Shutdown();
 	PostProcessing::Shutdown();
-	CommandProcessor::Shutdown();
-	PixelShaderManager::Shutdown();
-	VertexShaderManager::Shutdown();
-	OpcodeDecoder_Shutdown();
-	VertexLoaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
+
+	// The following calls are NOT Thread Safe
+	// And need to be called from the video thread
 	TextureConverter::Shutdown();
+	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
+	VertexShaderManager::Shutdown();
+	PixelShaderManager::Shutdown();
+	PixelShaderCache::Shutdown();
 	VertexManager::Shutdown();
 	TextureCache::Shutdown();
+	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	OpenGL_Shutdown();
-	EmuWindow::Close();
 }
 
 static volatile struct
