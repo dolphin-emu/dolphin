@@ -59,9 +59,6 @@ public:
 	static void SetLineWidth();
 	static void SetSamplerState(int stage,int texindex);
 	static void SetInterlacingMode();
-	// Live resolution change
-	static bool Allow2x();
-	static bool AllowCustom();
 
 	// Render target management
 	static int GetFrameBufferWidth();

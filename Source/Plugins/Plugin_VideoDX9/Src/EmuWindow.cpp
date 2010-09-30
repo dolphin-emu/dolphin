@@ -145,8 +145,8 @@ void OSDMenu(WPARAM wParam)
 	case '3':
 		OSDChoice = 1;
 		// Toggle native resolution
-		OSDInternalW = D3D::GetBackBufferWidth();
-		OSDInternalH = D3D::GetBackBufferHeight();
+		g_Config.iEFBScale = g_Config.iEFBScale + 1;
+		if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
 		break;
 	case '4':
 		OSDChoice = 2;

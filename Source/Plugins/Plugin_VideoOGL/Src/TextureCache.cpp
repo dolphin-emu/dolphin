@@ -500,7 +500,7 @@ TextureCache::TCacheEntry* TextureCache::Load(int texstage, u32 address, int wid
 	}
 	else
 	{
-		if(skip_texture_create)
+		if (skip_texture_create)
 		{
 			glCompressedTexSubImage2D(target, 0,0,0,width, height, 
 				GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,expandedWidth*expandedHeight/2, temp);

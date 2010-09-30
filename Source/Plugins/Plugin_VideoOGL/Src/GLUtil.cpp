@@ -164,16 +164,8 @@ THREAD_RETURN XEventThread(void *pArg)
 						case XK_3:
 							OSDChoice = 1;
 							// Toggle native resolution
-							if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
-								g_Config.bNativeResolution = true;
-							else if (g_Config.bNativeResolution && Renderer::AllowCustom())
-							{
-								g_Config.bNativeResolution = false;
-								if (Renderer::Allow2x())
-									g_Config.b2xResolution = true;
-							}
-							else if (Renderer::AllowCustom())
-								g_Config.b2xResolution = false;
+							g_Config.iEFBScale = g_Config.iEFBScale + 1;
+							if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
 							break;
 						case XK_4:
 							OSDChoice = 2;

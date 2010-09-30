@@ -39,14 +39,12 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_EFBSCALEMODE, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEREALXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USENATIVEMIPS, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREENHACK, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_ASPECT, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -154,6 +152,13 @@ void GFXConfigDialogOGL::LoadShaders()
 
 void GFXConfigDialogOGL::InitializeGUILists()
 {
+	// EFB Scale
+	arrayStringFor_EFBScale.Add(wxT("Auto (fractional)"));
+	arrayStringFor_EFBScale.Add(wxT("Auto (integral)"));
+	arrayStringFor_EFBScale.Add(wxT("Native"));
+	arrayStringFor_EFBScale.Add(wxT("2x"));
+	arrayStringFor_EFBScale.Add(wxT("3x"));
+
 	// Keep Aspect Ratio
 	arrayStringFor_AspectRatio.Add(wxT("Auto Aspect (recommended)"));
 	arrayStringFor_AspectRatio.Add(wxT("Force 16:9 Widescreen"));
@@ -191,8 +196,7 @@ void GFXConfigDialogOGL::InitializeGUILists()
 void GFXConfigDialogOGL::InitializeGUIValues()
 {
 	// General Display Settings
-	m_NativeResolution->SetValue(g_Config.bNativeResolution);
-	m_2xResolution->SetValue(g_Config.b2xResolution);
+	m_EFBScaleMode->SetSelection(g_Config.iEFBScale);
 	
 	m_KeepAR->SetSelection(g_Config.iAspectRatio);
 	m_Crop->SetValue(g_Config.bCrop);
@@ -202,7 +206,6 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_VSync->SetValue(g_Config.bVSync);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
 	m_UseRealXFB->SetValue(g_Config.bUseRealXFB);
-	m_AutoScale->SetValue(g_Config.bAutoScale);
 	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 	m_UseNativeMips->SetValue(g_Config.bUseNativeMips);
 	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
@@ -260,14 +263,12 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 void GFXConfigDialogOGL::InitializeGUITooltips()
 {
 	// Tool tips
-	m_NativeResolution->SetToolTip(
-		wxT("This will use the game's native resolution and stretch it to fill the")
-		wxT("\nwindow instead of changing the internal display resolution. It")
+	m_EFBScaleMode->SetToolTip(
+		wxT("This will change the game's native resolution and stretch it to fill the")
+		wxT("\nwindow instead of changing the display resolution. It")
 		wxT("\nmay result in a blurrier image, but it may also give a higher")
 		wxT("\nFPS if you have a slow graphics card.")
-		wxT("\n\nApplies instanty during gameplay: <Yes>"));
-	m_2xResolution->SetToolTip(wxT(
-		"Applies instanty during gameplay: <Yes, if allowed>"));
+		wxT("\n\nApplies instantly during gameplay: <Yes>"));
 	m_KeepAR->SetToolTip(
 		wxT("This sets the aspect ratio of the image.")
 		wxT("\nThe Widescreen hack may cause graphical issues in some games !")
@@ -358,9 +359,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// General Display Settings
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
-	wxStaticText *IRText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Internal Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_EFBScaleMode = new wxChoice(m_PageGeneral, ID_EFBSCALEMODE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EFBScale);
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize, arrayStringFor_AspectRatio);
@@ -375,7 +375,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseRealXFB = new wxCheckBox(m_PageGeneral, ID_USEREALXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseNativeMips = new wxCheckBox(m_PageGeneral, ID_USENATIVEMIPS, wxT("Use Native Mips"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EFBScaledCopy = new wxCheckBox(m_PageGeneral, ID_EFBSCALEDCOPY, wxT("EFB Scaled Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -397,8 +396,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic = new wxGridBagSizer(0, 0);
 
 	sBasic->Add(IRText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_NativeResolution, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_2xResolution, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_EFBScaleMode, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 
 	sBasic->Add(KeepARText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -413,7 +411,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced->Add(m_VSync,				wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseRealXFB,			wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseNativeMips,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_EFBScaledCopy,		wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -589,15 +586,9 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_NATIVERESOLUTION:
-		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
-		// Don't allow 1x and 2x at the same time
-		if (g_Config.bNativeResolution) { g_Config.b2xResolution = false; m_2xResolution->SetValue(false); }
-		break;
-	case ID_2X_RESOLUTION:
-		g_Config.b2xResolution = m_2xResolution->IsChecked();
-		// Don't allow 1x and 2x at the same time
-		if (g_Config.b2xResolution) { g_Config.bNativeResolution = false; m_NativeResolution->SetValue(false); }
+	case ID_EFBSCALEMODE:
+		g_Config.iEFBScale = m_EFBScaleMode->GetSelection();
+
 		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();
@@ -613,9 +604,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBSCALEDCOPY:
 		g_Config.bCopyEFBScaled = m_EFBScaledCopy->IsChecked();
-		break;
-	case ID_AUTOSCALE:
-		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
 	case ID_ASPECT:
 		g_Config.iAspectRatio = m_KeepAR->GetSelection();
@@ -775,20 +763,14 @@ void GFXConfigDialogOGL::UpdateGUI()
 		m_UseXFB->SetValue(true);
 
 		// XFB looks much better if the copy comes from native resolution.
-		g_Config.bNativeResolution = true;
-		m_NativeResolution->SetValue(true);
-		//also disable 2x, since it might leave both checked.
-		g_Config.b2xResolution = false; 
-		m_2xResolution->SetValue(false);
+		g_Config.iEFBScale = 2;
+		m_EFBScaleMode->SetSelection(g_Config.iEFBScale);
 	}
-	m_AutoScale->Enable(!g_Config.bUseRealXFB);
 	m_UseXFB->Enable(!g_Config.bUseRealXFB);
 
 	// Resolution settings
-	//disable native/2x choice when real xfb is on. native simply looks best, as ector noted above.
-	//besides, it would look odd if one disabled native, and it came back on again.
-	m_NativeResolution->Enable(!g_Config.bUseRealXFB);
-	m_2xResolution->Enable(!g_Config.bUseRealXFB && (!g_Config.bRunning || Renderer::Allow2x()));
+	m_EFBScaleMode->Enable(!g_Config.bUseRealXFB);
+
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));

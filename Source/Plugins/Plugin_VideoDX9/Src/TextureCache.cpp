@@ -305,36 +305,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	if (pcfmt == PC_TEX_FMT_NONE)
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
-	D3DFORMAT d3d_fmt;
-	bool swap_r_b = false;
-	switch (pcfmt) {
-	case PC_TEX_FMT_BGRA32:
-		d3d_fmt = D3DFMT_A8R8G8B8;
-		break;
-	case PC_TEX_FMT_RGBA32:
-		d3d_fmt = D3DFMT_A8R8G8B8;
-		swap_r_b = true;
-		break;
-	case PC_TEX_FMT_RGB565:
-		d3d_fmt = D3DFMT_R5G6B5;
-		break;
-	case PC_TEX_FMT_IA4_AS_IA8:
-		d3d_fmt = D3DFMT_A8L8;
-		break;
-	case PC_TEX_FMT_I8:
-	case PC_TEX_FMT_I4_AS_I8:
-		d3d_fmt = D3DFMT_A8P8; // A hack which means the format is a packed
-							   // 8-bit intensity texture. It is unpacked
-							   // to A8L8 in D3DTexture.cpp
-		break;
-	case PC_TEX_FMT_IA8:
-		d3d_fmt = D3DFMT_A8L8;
-		break;
-	case PC_TEX_FMT_DXT1:
-		d3d_fmt = D3DFMT_DXT1;
-		break;
-	}
-
 	entry.oldpixel = ((u32 *)ptr)[0];
 	if (g_ActiveConfig.bSafeTextureCache || entry.isDynamic)
 		entry.hash = hash_value;
@@ -354,6 +324,40 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	if(TexLevels > (maxlevel + 1) && maxlevel > 0)
 		TexLevels = (maxlevel + 1);
 	entry.MipLevels = maxlevel;
+
+	D3DFORMAT d3d_fmt;
+	bool swap_r_b = false;
+
+	switch (pcfmt)
+	{
+		case PC_TEX_FMT_BGRA32:
+			d3d_fmt = D3DFMT_A8R8G8B8;
+			break;
+		case PC_TEX_FMT_RGBA32:
+			d3d_fmt = D3DFMT_A8R8G8B8;
+			swap_r_b = true;
+			break;
+		case PC_TEX_FMT_RGB565:
+			d3d_fmt = D3DFMT_R5G6B5;
+			break;
+		case PC_TEX_FMT_IA4_AS_IA8:
+			d3d_fmt = D3DFMT_A8L8;
+			break;
+		case PC_TEX_FMT_I8:
+		case PC_TEX_FMT_I4_AS_I8:
+			// A hack which means the format is a packed
+			// 8-bit intensity texture. It is unpacked
+			// to A8L8 in D3DTexture.cpp
+			d3d_fmt = D3DFMT_A8P8;
+			break;
+		case PC_TEX_FMT_IA8:
+			d3d_fmt = D3DFMT_A8L8;
+			break;
+		case PC_TEX_FMT_DXT1:
+			d3d_fmt = D3DFMT_DXT1;
+			break;
+	}
+
 	if (!skip_texture_create)
 	{
 		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, TexLevels);

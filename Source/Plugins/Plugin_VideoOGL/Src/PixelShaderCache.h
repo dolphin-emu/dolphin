@@ -57,7 +57,7 @@ class PixelShaderCache
 
 	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
 
-	static PSCache pshaders;
+	static PSCache PixelShaders;
 
 	static PIXELSHADERUID s_curuid; // the current pixel shader uid (progressively changed as memory is written)
 

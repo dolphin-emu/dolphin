@@ -59,7 +59,7 @@ void SetLineWidth(const BPCmd &bp)
 
 void SetDepthMode(const BPCmd &bp)
 {
-	Renderer::SetDepthMode();			
+	Renderer::SetDepthMode();
 }
 
 void SetBlendMode(const BPCmd &bp)

@@ -106,8 +106,6 @@ public:
 	// Resolved framebuffer is only used in MSAA mode.
 	GLuint GetResolvedFramebuffer() const { return m_resolvedFramebuffer; }
 
-	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) const;
-
     void SetFramebuffer(GLuint fb);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.

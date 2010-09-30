@@ -276,7 +276,7 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlpha);
+	GetPixelShaderId(&uid, dstAlpha ? 1 : 0);
 
 	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)

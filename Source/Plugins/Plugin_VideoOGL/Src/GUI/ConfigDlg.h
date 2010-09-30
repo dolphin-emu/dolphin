@@ -90,7 +90,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageAdvanced;
 		wxCheckBox *m_VSync;
-		wxCheckBox *m_NativeResolution, *m_2xResolution;
+		wxChoice *m_EFBScaleMode;
 		wxCheckBox *m_WidescreenHack;
 		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_Crop;
@@ -98,7 +98,6 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_UseNativeMips;
 		wxCheckBox *m_EFBScaledCopy;
 		wxCheckBox *m_UseRealXFB;
-		wxCheckBox *m_AutoScale;
 		wxChoice *m_MaxAnisotropyCB;
 		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
 
@@ -136,6 +135,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_ScreenSize;
 
 		wxArrayString arrayStringFor_FullscreenCB;
+		wxArrayString arrayStringFor_EFBScale;
 		wxArrayString arrayStringFor_AspectRatio;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxArrayString arrayStringFor_MSAAModeCB;
@@ -149,14 +149,13 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_PAGEADVANCED,
 
 			ID_VSYNC,
-			ID_NATIVERESOLUTION, ID_2X_RESOLUTION,
+			ID_EFBSCALEMODE,
 			ID_ASPECT, 
 			ID_CROP,
 			ID_USEREALXFB,
 			ID_USEXFB,
 			ID_USENATIVEMIPS,
 			ID_EFBSCALEDCOPY,
-			ID_AUTOSCALE,
 			ID_WIDESCREENHACK,
 
 			ID_FORCEFILTERING,

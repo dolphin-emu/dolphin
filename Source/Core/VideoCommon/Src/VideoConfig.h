@@ -69,13 +69,12 @@ struct VideoConfig
 	// General
 	bool bVSync;
 
-	bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
+	bool bRunning;
 	bool bWidescreenHack;
 	int iAspectRatio;
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
 	bool bUseNativeMips;
 
 	// OpenCL

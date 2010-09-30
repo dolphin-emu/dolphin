@@ -50,9 +50,9 @@ Make AA apply instantly during gameplay if possible
 */
 
 #include "Globals.h"
-#include "LogManager.h"
-#include "Thread.h"
 #include "Atomic.h"
+#include "Thread.h"
+#include "LogManager.h"
 
 #include <cstdarg>
 
@@ -124,7 +124,15 @@ bool IsD3D()
 	return false;
 }
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo)
+// This is used for the functions right below here which use wxwidgets
+#if defined(HAVE_WX) && HAVE_WX
+#ifdef _WIN32
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+	extern HINSTANCE g_hInstance;
+#endif
+#endif
+
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
@@ -142,14 +150,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	globals = _pPluginGlobals;
 	LogManager::SetInstance((LogManager*)globals->logManager);
 }
-
-// This is used for the functions right below here which use wxwidgets
-#if defined(HAVE_WX) && HAVE_WX
-#ifdef _WIN32
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-	extern HINSTANCE g_hInstance;
-#endif
-#endif
 
 void *DllDebugger(void *_hParent, bool Show)
 {
@@ -205,6 +205,68 @@ void Initialize(void *init)
 	s_PluginInitialized = true;
 }
 
+// This is called after Initialize() from the Core
+// Run from the graphics thread
+void Video_Prepare()
+{
+	OpenGL_MakeCurrent();
+
+	s_efbAccessRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
+	s_swapRequested = FALSE;
+
+	// internal interfaces
+	Renderer::Init();
+	TextureCache::Init();
+	VertexManager::Init();
+	BPInit();
+	Fifo_Init();
+	VertexLoaderManager::Init();
+	OpcodeDecoder_Init();
+	VertexShaderCache::Init();
+	VertexShaderManager::Init();
+	PixelShaderCache::Init();
+	PixelShaderManager::Init();
+	CommandProcessor::Init();
+	PixelEngine::Init();
+	PostProcessing::Init();
+	TextureConverter::Init();
+	DLCache::Init();
+
+	// Notify the core that the video plugin is ready
+	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
+
+	s_PluginInitialized = true;
+	INFO_LOG(VIDEO, "Video plugin initialized.");
+}
+
+void Shutdown()
+{
+	s_PluginInitialized = false;
+
+	s_efbAccessRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
+	s_swapRequested = FALSE;
+
+	// VideoCommon
+	DLCache::Shutdown();
+	Fifo_Shutdown();
+	PostProcessing::Shutdown();
+	CommandProcessor::Shutdown();
+	PixelShaderManager::Shutdown();
+	VertexShaderManager::Shutdown();
+	OpcodeDecoder_Shutdown();
+	VertexLoaderManager::Shutdown();
+	PixelShaderCache::Shutdown();
+	TextureConverter::Shutdown();
+	VertexShaderCache::Shutdown();
+	VertexManager::Shutdown();
+	TextureCache::Shutdown();
+	Renderer::Shutdown();
+	OpenGL_Shutdown();
+	EmuWindow::Close();
+}
+
 static volatile struct
 {
 	unsigned char **ptr;
@@ -258,73 +320,6 @@ void DoState(unsigned char **ptr, int mode)
 void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void Video_Prepare(void)
-{
-	OpenGL_MakeCurrent();
-	if (!Renderer::Init()) {
-		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
-		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
-		exit(1);
-	}
-
-	s_efbAccessRequested = FALSE;
-	s_FifoShuttingDown = FALSE;
-	s_swapRequested = FALSE;
-
-	CommandProcessor::Init();
-	PixelEngine::Init();
-
-	TextureCache::Init();
-
-	BPInit();
-	VertexManager::Init();
-	Fifo_Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
-	VertexShaderCache::Init();
-	VertexShaderManager::Init();
-	PixelShaderCache::Init();
-	PixelShaderManager::Init();
-	PostProcessing::Init();
-	GL_REPORT_ERRORD();
-	VertexLoaderManager::Init();
-	TextureConverter::Init();
-	DLCache::Init();
-
-	// Notify the core that the video plugin is ready
-	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
-
-	s_PluginInitialized = true;
-	INFO_LOG(VIDEO, "Video plugin initialized.");
-}
-
-void Shutdown()
-{
-	s_PluginInitialized = false;
-
-	s_efbAccessRequested = FALSE;
-	s_FifoShuttingDown = FALSE;
-	s_swapRequested = FALSE;
-	DLCache::Shutdown();
-	Fifo_Shutdown();
-	PostProcessing::Shutdown();
-
-	// The following calls are NOT Thread Safe
-	// And need to be called from the video thread
-	TextureConverter::Shutdown();
-	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Shutdown();
-	VertexShaderManager::Shutdown();
-	PixelShaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
-	VertexManager::Shutdown();
-	TextureCache::Shutdown();
-	OpcodeDecoder_Shutdown();
-	Renderer::Shutdown();
-	OpenGL_Shutdown();
 }
 
 // Enter and exit the video loop

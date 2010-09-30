@@ -35,7 +35,7 @@
 static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
 static GLuint s_DepthMatrixProgram = 0;
-PixelShaderCache::PSCache PixelShaderCache::pshaders;
+PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 PIXELSHADERUID PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
 GLuint PixelShaderCache::CurrentShader;
@@ -177,27 +177,30 @@ void PixelShaderCache::Shutdown()
 	s_ColorMatrixProgram = 0;
     glDeleteProgramsARB(1, &s_DepthMatrixProgram);
 	s_DepthMatrixProgram = 0;
-	PSCache::iterator iter = pshaders.begin();
-	for (; iter != pshaders.end(); iter++)
+	PSCache::iterator iter = PixelShaders.begin();
+	for (; iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
-	pshaders.clear();
+	PixelShaders.clear();
 }
 
-FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlphaEnable,u32 components)
+FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaEnable ? 1 : 0);
-	if (uid == last_pixel_shader_uid && pshaders[uid].frameCount == frameCount)
+	GetPixelShaderId(&uid, dstAlpha ? 1 : 0);
+
+	// Check if the shader is already set
+	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		return pShaderLast;
 	}
 
 	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
 
-	PSCache::iterator iter = pshaders.find(uid);
+	PSCache::iterator iter = PixelShaders.find(uid);
 
-	if (iter != pshaders.end()) {
+	if (iter != PixelShaders.end())
+	{
 		iter->second.frameCount = frameCount;
 		PSCacheEntry &entry = iter->second;
 		if (&entry.shader != pShaderLast)
@@ -209,10 +212,10 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlphaEnable,u32 components)
 	}
 
 	//Make an entry in the table
-	PSCacheEntry& newentry = pshaders[uid];
+	PSCacheEntry& newentry = PixelShaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-	const char *code = GeneratePixelShaderCode(dstAlphaEnable,API_OPENGL,components);
+	const char *code = GeneratePixelShaderCode(dstAlpha,API_OPENGL,components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
@@ -235,7 +238,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlphaEnable,u32 components)
 	}
 	
 	INCSTAT(stats.numPixelShadersCreated);
-	SETSTAT(stats.numPixelShadersAlive, pshaders.size());
+	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
 	return pShaderLast;
 }
 

@@ -197,7 +197,7 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) cons
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
@@ -227,7 +227,7 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) cons
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
@@ -260,18 +260,6 @@ const XFBSource** FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32
 		return getRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	else
 		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-}
-
-TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) const
-{
-	TargetRectangle result;
-	float XScale = Renderer::GetTargetScaleX();
-	float YScale = Renderer::GetTargetScaleY();
-	result.left = rc.left * XScale;
-	result.top = ((EFB_HEIGHT - rc.top) * YScale);
-	result.right = rc.right * XScale ;
-	result.bottom = ((EFB_HEIGHT - rc.bottom) * YScale);
-	return result;
 }
 
 FramebufferManager::VirtualXFBListType::iterator FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
@@ -373,7 +361,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 		it->xfbSource.texWidth = Renderer::GetTargetWidth();
 		it->xfbSource.texHeight = Renderer::GetTargetHeight();
-		it->xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
+		it->xfbSource.sourceRc = Renderer::ConvertEFBRectangle(sourceRc);
 
 		xfbTexture = it->xfbSource.texture;
 
@@ -417,7 +405,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		newVirt.xfbSource.texture = xfbTexture;
 		newVirt.xfbSource.texWidth = m_targetWidth;
 		newVirt.xfbSource.texHeight = m_targetHeight;
-		newVirt.xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
+		newVirt.xfbSource.sourceRc = Renderer::ConvertEFBRectangle(sourceRc);
 
 		// Add the new Virtual XFB to the list
 

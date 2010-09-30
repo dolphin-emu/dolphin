@@ -924,17 +924,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.left = -(xfbWidth / (float)fbWidth);
 				drawRc.right = (xfbWidth / (float)fbWidth);
 
-				if (!g_ActiveConfig.bAutoScale)
-				{
-					// scale draw area for a 1 to 1 pixel mapping with the draw target
-					float vScale = (float)fbHeight / (float)s_backbuffer_height;
-					float hScale = (float)fbWidth / (float)s_backbuffer_width;
-
-					drawRc.top *= vScale;
-					drawRc.bottom *= vScale;
-					drawRc.left *= hScale;
-					drawRc.right *= hScale;
-				}
+				// The following code disables auto stretch.  Kept for reference.
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				//float vScale = (float)fbHeight / (float)s_backbuffer_height;
+				//float hScale = (float)fbWidth / (float)s_backbuffer_width;
+				//drawRc.top *= vScale;
+				//drawRc.bottom *= vScale;
+				//drawRc.left *= hScale;
+				//drawRc.right *= hScale;
 			}
 			else
 			{

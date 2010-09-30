@@ -210,9 +210,9 @@ void GFXConfigDialogDX::CreateGUIControls()
 		arrayStringFor_MSAAModeCB.Add(wxString::FromAscii(adapter.aa_levels[i].name));
 	}
 	m_MSAAModeCB = new wxChoice( m_PageDirect3D, ID_ANTIALIASMODE, wxPoint( -1,-1 ), wxDefaultSize, arrayStringFor_MSAAModeCB, 0);
-	m_EFBScaleText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("EFB scale:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_EFBScaleText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("Internal Resolution:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EFBScaleText->Wrap( -1 );
-	wxString m_EFBScaleModeChoices[] = { wxT("Auto (fractional)"), wxT("Auto (integral)"), wxT("1x"), wxT("2x"), wxT("3x") };
+	wxString m_EFBScaleModeChoices[] = { wxT("Auto (fractional)"), wxT("Auto (integral)"), wxT("Native"), wxT("2x"), wxT("3x") };
 	int m_EFBScaleModeNChoices = sizeof( m_EFBScaleModeChoices ) / sizeof( wxString );
 	m_EFBScaleMode = new wxChoice( m_PageDirect3D, ID_EFBSCALEMODE, wxDefaultPosition, wxDefaultSize, m_EFBScaleModeNChoices, m_EFBScaleModeChoices, 0 );
 

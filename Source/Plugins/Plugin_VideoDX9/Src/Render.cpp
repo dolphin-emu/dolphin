@@ -308,7 +308,8 @@ bool Renderer::Init()
 
 	if(g_ActiveConfig.bUseRealXFB)
 	{
-		xScale = yScale = 1.0f;
+		xScale = 1.0f;
+		yScale = 1.0f;
 	}
 	else
 	{
@@ -438,21 +439,10 @@ float Renderer::GetXFBScaleY()
 	return yScale;
 }
 
-// Return the framebuffer size
-int Renderer::GetFrameBufferWidth()
-{
-	return s_backbuffer_width;
-}
-
-int Renderer::GetFrameBufferHeight()
-{
-	return s_backbuffer_height;
-}
-
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-	// OSD menu messages
+	// OSD Menu messages
 	if (g_ActiveConfig.bOSDHotKey)
 	{
 		if (OSDChoice > 0)
@@ -465,7 +455,26 @@ void Renderer::DrawDebugText()
 			std::string T1 = "", T2 = "";
 			std::vector<std::string> T0;
 
-			std::string OSDM1 = StringFromFormat("%i x %i", OSDInternalW, OSDInternalH);
+			std::string OSDM1;
+			switch(g_ActiveConfig.iEFBScale)
+			{
+			case 0:
+				OSDM1 = "Auto (fractional)";
+				break;
+			case 1:
+				OSDM1 = "Auto (integral)";
+				break;
+			case 2:
+				OSDM1 = "Native";
+				break;
+			case 3:
+				OSDM1 = "2x";
+				break;
+			case 4:
+				OSDM1 = "3x";
+				break;
+			}
+
 			std::string OSDM21;
 			switch(g_ActiveConfig.iAspectRatio)
 			{
@@ -531,9 +540,9 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
+	TargetRectangle result;
 	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
-	TargetRectangle result;
 	result.left   = (int)(rc.left   * EFBxScale) + Xstride;
 	result.top    = (int)(rc.top    * EFByScale) + Ystride;
 	result.right  = (int)(rc.right  * EFBxScale) + Xstride;
@@ -654,6 +663,7 @@ bool Renderer::SetScissorRect()
 	rc.right  = (int)(rc.right  * EFBxScale) + Xstride;
 	rc.bottom = (int)(rc.bottom * EFByScale) + Ystride;
 
+	// Check that the coordinates are good
 	if (rc.right != rc.left && rc.bottom != rc.top)
 	{
 		D3D::dev->SetScissorRect(&rc);
@@ -727,7 +737,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	efbPixelRc.right = x + 1;
 	efbPixelRc.bottom = y + 1;
 
-	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
+	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 
 	u32 z = 0;
 	float val = 0.0f;
@@ -897,19 +907,16 @@ void UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	float MValueX = Renderer::GetTargetScaleX();
-	float MValueY = Renderer::GetTargetScaleY();
-	
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	D3DVIEWPORT9 vp;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX) + Xstride;
-	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY) + Ystride;
-	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
-	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * EFBxScale) + Xstride;
+	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * EFByScale) + Ystride;
+	int Width = (int)ceil(2.0f * xfregs.rawViewport[0] * EFBxScale);
+	int Height = (int)ceil(-2.0f * xfregs.rawViewport[1] * EFByScale);
 	if (Width < 0)
 	{
 		X += Width;
@@ -988,7 +995,7 @@ void UpdateViewport()
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	// Update the view port for clearing the picture
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+	TargetRectangle targetRc = ConvertEFBRectangle(rc);
 	D3DVIEWPORT9 vp;
 	vp.X = targetRc.left;
 	vp.Y = targetRc.top;
@@ -1062,7 +1069,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		return;
 	}
 
-	Renderer::ResetAPIState();
+	ResetAPIState();
 	if(g_ActiveConfig.bAnaglyphStereo)
 	{
 		if(RightFrame)
@@ -1090,6 +1097,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 	D3DVIEWPORT9 vp;
+
+	// Clear full target screen (edges, borders etc)
 	vp.X = 0;
 	vp.Y = 0;
 	vp.Width  = s_backbuffer_width;
@@ -1104,7 +1113,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	int Y = dst_rect.top;
 	int Width  = dst_rect.right - dst_rect.left;
 	int Height = dst_rect.bottom - dst_rect.top;
-	
+
+	// Sanity check	
 	if (X < 0) X = 0;
 	if (Y < 0) Y = 0;
 	if (X > s_backbuffer_width) X = s_backbuffer_width;
@@ -1113,6 +1123,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (Height < 0) Height = 0;
 	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
+
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
@@ -1125,14 +1136,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
+	const XFBSource* xfbSource = NULL;
+
 	if(g_ActiveConfig.bUseXFB)
 	{
-		const XFBSource* xfbSource;
-
 		// draw each xfb source
+		// Render to the real buffer now.
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
 			xfbSource = xfbSourceList[i];
+
 			MathUtil::Rectangle<float> sourceRc;
 			
 			sourceRc.left = 0;
@@ -1142,7 +1155,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+			if (!g_ActiveConfig.bUseRealXFB)
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -1154,17 +1167,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.left = -(xfbWidth / (float)fbWidth);
 				drawRc.right = (xfbWidth / (float)fbWidth);
 
-				if (!g_ActiveConfig.bAutoScale)
-				{
-					// scale draw area for a 1 to 1 pixel mapping with the draw target
-					float vScale = (float)fbHeight / (float)s_backbuffer_height;
-					float hScale = (float)fbWidth / (float)s_backbuffer_width;
-
-					drawRc.top *= vScale;
-					drawRc.bottom *= vScale;
-					drawRc.left *= hScale;
-					drawRc.right *= hScale;
-				}
+				// The following code disables auto stretch.  Kept for reference.
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
+				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//drawRc.top *= vScale;
+				//drawRc.bottom *= vScale;
+				//drawRc.left *= hScale;
+				//drawRc.right *= hScale;
 			}
 			else
 			{
@@ -1179,17 +1189,19 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 	else
 	{
-		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBColorTexture(rc);
 		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode));
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
+
 	if(g_ActiveConfig.bAnaglyphStereo)
 	{
 		DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA | D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 	}
+
 	vp.X = 0;
 	vp.Y = 0;
 	vp.Width  = s_backbuffer_width;
@@ -1197,6 +1209,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
+
+	// Save screenshot
 	if (s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
@@ -1302,17 +1316,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
-	u32 newEFBScale = g_ActiveConfig.iEFBScale;
-	if (newAA != s_LastAA || newEFBScale != s_LastEFBScale || xfbchanged || WindowResized)
+
+	if (xfbchanged || WindowResized || s_LastEFBScale != g_ActiveConfig.iEFBScale)
 	{
 		s_LastAA = newAA;
-		s_LastEFBScale = newEFBScale;
 
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
 		if(g_ActiveConfig.bUseRealXFB)
 		{
-			xScale = yScale = 1.0f;
+			xScale = 1.0f;
+			yScale = 1.0f;
 		}
 		else
 		{
@@ -1321,6 +1335,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		
 		float SupersampleCoeficient = s_LastAA + 1;
+		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		switch(s_LastEFBScale)
 		{
 			case 0:
@@ -1339,8 +1354,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		
 		EFBxScale *= SupersampleCoeficient;
 		EFByScale *= SupersampleCoeficient;
+
 		s_target_width  = EFB_WIDTH * EFBxScale;
 		s_target_height = EFB_HEIGHT * EFByScale;
+
+		s_Fulltarget_width  = s_target_width;
+		s_Fulltarget_height = s_target_height;
+
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 		if (WindowResized)
@@ -1379,7 +1399,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 	D3D::BeginFrame();
-	Renderer::RestoreAPIState();
+	RestoreAPIState();
+
 	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
 	UpdateViewport();

@@ -48,14 +48,11 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Load(ini_file);
 	
 	iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-	iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
-	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
 	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-	iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
 	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
 	
 	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
@@ -165,14 +162,11 @@ void VideoConfig::Save(const char *ini_file)
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 	iniFile.Set("Hardware", "VSync", bVSync);
-	iniFile.Set("Settings", "StretchToFit", bNativeResolution);
-	iniFile.Set("Settings", "2xResolution", b2xResolution);
 	iniFile.Set("Settings", "AspectRatio", iAspectRatio);
 	iniFile.Set("Settings", "Crop", bCrop);
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
-	iniFile.Set("Settings", "AutoScale", bAutoScale);
 	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
 
 	iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);

@@ -123,7 +123,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		}
 	}
 
-	for (int i = 0; i < 2; i++) 
+	for (int i = 0; i < 2; i++)
 	{
 		if (_vtx_decl.color_offset[i] != -1) 
 		{

@@ -86,7 +86,7 @@ bool Init()
 	g_nativeVertexFmt = NULL;
 	Flushed=false;
 	GL_REPORT_ERRORD();
-	
+
 	return true;
 }
 
@@ -181,17 +181,17 @@ void AddVertices(int primitive, int numVertices)
 
 inline void Draw()
 {
-	if(IndexGenerator::GetNumTriangles() > 0)
+	if (IndexGenerator::GetNumTriangles() > 0)
 	{
 		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT, TIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if(IndexGenerator::GetNumLines() > 0)
+	if (IndexGenerator::GetNumLines() > 0)
 	{
 		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT, LIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if(IndexGenerator::GetNumPoints() > 0)
+	if (IndexGenerator::GetNumPoints() > 0)
 	{
 		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, PIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
@@ -288,26 +288,23 @@ void Flush()
 		}
 	}
 
-	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components);
-	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
-
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
 	// finally bind
-
-	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components);
+	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
+	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
 	Draw();
-	
+
 	// run through vertex groups again to set alpha
-	if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		ps = PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components);
-
-		if (ps)PixelShaderCache::SetCurrentShader(ps->glprogid);
+		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
@@ -353,6 +350,5 @@ void Flush()
 	g_Config.iSaveTargetId++;
 
 	GL_REPORT_ERRORD();
-
 }
 }  // namespace
