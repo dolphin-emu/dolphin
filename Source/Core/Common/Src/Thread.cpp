@@ -318,9 +318,13 @@ namespace Common
 	
 	void CriticalSection::Enter()
 	{
+#ifdef DEBUG
 		int ret = pthread_mutex_lock(&mutex);
 		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_lock(%p) failed: %s\n", 
 						   __FUNCTION__, &mutex, strerror(ret));
+#else
+		pthread_mutex_lock(&mutex);
+#endif
 	}
 	
 	
@@ -332,9 +336,13 @@ namespace Common
 	
 	void CriticalSection::Leave()
 	{
+#ifdef DEBUG
 		int ret = pthread_mutex_unlock(&mutex);
 		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
 						   __FUNCTION__, &mutex, strerror(ret));
+#else
+		pthread_mutex_unlock(&mutex);
+#endif
 	}
 	
 	
