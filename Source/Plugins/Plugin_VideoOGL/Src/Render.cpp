@@ -375,7 +375,7 @@ bool Renderer::Init()
 			EFByScale = ceilf(yScale);
 			break;
 		default:
-			EFBxScale = g_ActiveConfig.iEFBScale - 1;
+			EFBxScale = (float)(g_ActiveConfig.iEFBScale - 1);
 			EFByScale = EFBxScale;
 			break;
 	};
@@ -798,20 +798,14 @@ bool Renderer::SetScissorRect()
 {
 	int xoff = bpmem.scissorOffset.x * 2 - 342;
 	int yoff = bpmem.scissorOffset.y * 2 - 342;
-
 	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
 	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
 	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
 	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
 
-	// TODO: Sanity checks require further testing
 	if (rc_left < 0) rc_left = 0;
-	//if (rc_right < 0) rc_right = 0;
-	//if (rc_left > EFB_WIDTH) rc_left = EFB_WIDTH;
 	if (rc_right > EFB_WIDTH) rc_right = EFB_WIDTH;
 	if (rc_top < 0) rc_top = 0;
-	//if (rc_bottom < 0) rc_bottom = 0;
-	//if (rc_top > EFB_HEIGHT) rc_top = EFB_HEIGHT;
 	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;
 
 	if (rc_left > rc_right)
@@ -827,22 +821,14 @@ bool Renderer::SetScissorRect()
 		rc_top = temp;
 	}
 
-	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
-
-	rc_left   = (int)(rc_left * EFBxScale);// + Xstride;
-	rc_top    = (int)((rc_bottom - rc_top) * EFByScale);// + Ystride;
-	rc_right  = (int)((rc_right - rc_left) * EFBxScale);
-	rc_bottom = (int)((EFB_HEIGHT - rc_bottom) * EFByScale); // -Ystride?
-
 	// Check that the coordinates are good
 	if (rc_right != rc_left && rc_bottom != rc_top)
 	{
 		glScissor(
-			(int)(rc_left), // x = 0 for example
-			(int)(rc_bottom), // y = 0 for example
-			(int)(rc_right), // width = 640 for example
-			(int)(rc_top) // height = 480 for example
+			(int)(rc_left * EFBxScale), // x = 0 for example
+			(int)((EFB_HEIGHT - rc_bottom) * EFByScale), // y = 0 for example
+			(int)((rc_right - rc_left)* EFBxScale), // width = 640 for example
+			(int)((rc_bottom - rc_top) * EFByScale) // height = 480 for example
 			);
 		return true;
 	}
@@ -1421,7 +1407,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				EFByScale = ceilf(yScale);
 				break;
 			default:
-				EFBxScale = g_ActiveConfig.iEFBScale - 1;
+				EFBxScale = (float)(g_ActiveConfig.iEFBScale - 1);
 				EFByScale = EFBxScale;
 				break;
 		};
