@@ -35,7 +35,7 @@ public:
 		, m_numSamples(0)
 		, m_indexW(0)
 		, m_indexR(0)
-		, m_LLEplaying(true)
+		, m_AIplaying(true)
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
@@ -81,7 +81,7 @@ protected:
 	u32 m_indexW;
 	u32 m_indexR;
 
-	bool m_LLEplaying;
+	bool m_AIplaying;
 
 private:
 

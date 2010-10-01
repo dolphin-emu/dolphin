@@ -85,7 +85,12 @@ void DSPEmitter::checkExceptions() {
 	*/
 	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
 	// Check for interrupts and exceptions
+#ifdef _M_IX86 // All32
 	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
+#else
+	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
+	TEST(8, MDisp(RAX,0), Imm8(0xff));
+#endif
 	FixupBranch skipCheck = J_CC(CC_Z);
 	
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
@@ -165,7 +170,12 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 		
 		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
+#ifdef _M_IX86 // All32
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		ADD(16, MDisp(RAX,0), Imm16(1));
+#endif
 
 		EmitInstruction(inst);
 				
@@ -175,11 +185,20 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		// if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END)
 		{
 			// TODO: Change to TEST for some reason (who added this comment?)
+#ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
+#else
+			MOV(64, R(R11), ImmPtr(&g_dsp.r));
+			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST2*2));
+#endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopAddressExit = J_CC(CC_LE);
 		
+#ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST3])));
+#else
+			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST3*2));
+#endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE);
 

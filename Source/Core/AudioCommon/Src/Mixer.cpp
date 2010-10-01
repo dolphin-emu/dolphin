@@ -37,17 +37,17 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	}
 
 	unsigned int numLeft = Common::AtomicLoad(m_numSamples);
-	if (m_LLEplaying) {
+	if (m_AIplaying) {
 		if (numLeft < numSamples)//cannot do much about this
-			m_LLEplaying = false;
+			m_AIplaying = false;
 		if (numLeft < MAX_SAMPLES/4)//low watermark
-			m_LLEplaying = false;
+			m_AIplaying = false;
 	} else {
 		if (numLeft > MAX_SAMPLES/2)//high watermark
-			m_LLEplaying = true;
+			m_AIplaying = true;
 	}
 
-	if (m_LLEplaying) {
+	if (m_AIplaying) {
 		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
 
 		// Do re-sampling if needed

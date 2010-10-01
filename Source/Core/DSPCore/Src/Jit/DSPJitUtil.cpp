@@ -69,17 +69,28 @@ void DSPEmitter::dsp_increment_one(X64Reg ar, X64Reg wr, X64Reg wr_pow, X64Reg t
 void DSPEmitter::increment_addr_reg(int reg)
 {
 	//	s16 tmp = g_dsp.r[reg];
+#ifdef _M_IX86 // All32
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, R(EAX), MDisp(R11,reg*2));
+	MOV(16, R(EDX), MDisp(R11,(DSP_REG_WR0 + reg)*2));
+#endif
 
 	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
 	ToMask(EDI);
 
 	dsp_increment_one(EAX, EDX, EDI);
-	
-	//	g_dsp.r[reg] = tmp;	
+
+	//	g_dsp.r[reg] = tmp;
+#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,reg*2), R(EAX));
+#endif
 }
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
@@ -115,8 +126,14 @@ void DSPEmitter::dsp_decrement_one(X64Reg ar, X64Reg wr, X64Reg wr_pow, X64Reg t
 void DSPEmitter::decrement_addr_reg(int reg)
 {
 	//	s16 ar = g_dsp.r[reg];
+#ifdef _M_IX86 // All32
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, R(EAX), MDisp(R11,reg*2));
+	MOV(16, R(EDX), MDisp(R11,(DSP_REG_WR0 + reg)*2));
+#endif
 
 	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
@@ -125,7 +142,12 @@ void DSPEmitter::decrement_addr_reg(int reg)
 	dsp_decrement_one(EAX, EDX, EDI);
 	
 	//	g_dsp.r[reg] = tmp;	
+#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,reg*2), R(EAX));
+#endif
 }
 
 // Increase addr register according to the correspond ix register
@@ -135,7 +157,12 @@ void DSPEmitter::decrement_addr_reg(int reg)
 // EDI = tomask(EDX)
 void DSPEmitter::increase_addr_reg(int reg)
 {	
+#ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, ECX, MDisp(R11,(DSP_REG_IX0 + reg)*2));
+#endif
 	// IX0 == 0, bail out
 	
 	TEST(16, R(ECX), R(ECX));
@@ -143,8 +170,13 @@ void DSPEmitter::increase_addr_reg(int reg)
 	// TODO: optimize a bit, maybe merge loops?
 	FixupBranch end = J_CC(CC_Z, true);
 
+#ifdef _M_IX86 // All32
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+#else
+	MOV(16, R(EAX), MDisp(R11,reg*2));
+	MOV(16, R(EDX), MDisp(R11,(DSP_REG_WR0 + reg)*2));
+#endif
 
 	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
@@ -162,7 +194,12 @@ void DSPEmitter::increase_addr_reg(int reg)
 	dsp_increment_one(EAX, EDX, EDI);
 
 	SUB(16, R(ECX), Imm16(1)); // value--
+#ifdef _M_IX86 // All32
 	CMP(16, M(&g_dsp.r[DSP_REG_IX0 + reg]), Imm16(127));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	CMP(16, MDisp(R11,(DSP_REG_IX0 + reg)*2), Imm16(127));
+#endif
 	FixupBranch dbg = J_CC(CC_NE);
 	CMP(16, R(ECX), Imm16(1));
 	FixupBranch dbg2 = J_CC(CC_NE);
@@ -187,7 +224,12 @@ void DSPEmitter::increase_addr_reg(int reg)
 	SetJumpTarget(end_pos);
 
 	//	g_dsp.r[reg] = tmp;
+#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,reg*2), R(EAX));
+#endif
 
 	SetJumpTarget(end);
 }
@@ -199,15 +241,25 @@ void DSPEmitter::increase_addr_reg(int reg)
 // EDI = tomask(EDX)
 void DSPEmitter::decrease_addr_reg(int reg)
 {
+#ifdef _M_IX86 // All32
 	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, R(ECX), MDisp(R11,(DSP_REG_IX0 + reg)*2));
+#endif
 	// IX0 == 0, bail out
 	TEST(16, R(ECX), R(ECX));
 	// code too long for a 5-byte jump
 	// TODO: optimize a bit, maybe merge loops?
 	FixupBranch end = J_CC(CC_Z, true);
 
+#ifdef _M_IX86 // All32
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+#else
+	MOV(16, R(EAX), MDisp(R11,reg*2));
+	MOV(16, R(EDX), MDisp(R11,(DSP_REG_WR0 + reg)*2));
+#endif
 
 	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
@@ -243,7 +295,12 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	SetJumpTarget(end_pos);
 
 	//	g_dsp.r[reg] = tmp;
+#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,reg*2), R(EAX));
+#endif
 
 	SetJumpTarget(end);
 }
@@ -253,10 +310,19 @@ void DSPEmitter::decrease_addr_reg(int reg)
 void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 {
 	//	u16 addr = g_dsp.r[dest];
+#ifdef _M_IX86 // All32
 	MOVZX(32, 16, EAX, M(&g_dsp.r[dest]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EAX, MDisp(R11,dest*2));
+#endif
 
 	//	u16 val = g_dsp.r[src];
+#ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r[src]));
+#else
+	MOVZX(32, 16, ECX, MDisp(R11,src*2));
+#endif
 
 	//	u16 saddr = addr >> 12; 
 	MOV(32, R(ESI), R(EAX));
@@ -269,9 +335,9 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
 #ifdef _M_X64
-	MOV(64, R(ESI), M(&g_dsp.dram));
+	MOV(64, R(ESI), ImmPtr(g_dsp.dram));
 #else
-	MOV(32, R(ESI), M(&g_dsp.dram));
+	MOV(32, R(ESI), ImmPtr(g_dsp.dram));
 #endif
 	MOV(16, MComplex(ESI, EAX, 2, 0), R(ECX));
 
@@ -289,9 +355,14 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 void DSPEmitter::ext_dmem_read(u16 addr)
 {
 	//	u16 addr = g_dsp.r[addr];
+#ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r[addr]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, ECX, MDisp(R11,addr*2));
+#endif
 
-	//	u16 saddr = addr >> 12; 
+	//	u16 saddr = addr >> 12;
 	MOV(32, R(ESI), R(ECX));
 	SHR(16, R(ESI), Imm8(12));
 
@@ -301,9 +372,9 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
 #ifdef _M_X64
-	MOV(64, R(ESI), M(&g_dsp.dram));
+	MOV(64, R(ESI), ImmPtr(g_dsp.dram));
 #else
-	MOV(32, R(ESI), M(&g_dsp.dram));
+	MOV(32, R(ESI), ImmPtr(g_dsp.dram));
 #endif
 	MOV(16, R(EAX), MComplex(ESI, ECX, 2, 0));
 
@@ -314,14 +385,12 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	FixupBranch ifx = J_CC(CC_NZ);
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
 	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
-	SHL(16, R(ECX), Imm8(1)); // * sizeof(u16)
 #ifdef _M_X64
-	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
-	ADD(64, R(ECX), R(R11));
+	MOV(64, R(ESI), ImmPtr(g_dsp.dram));
 #else
-	ADD(32, R(ECX), Imm32((u32)g_dsp.dram));
+	MOV(32, R(ESI), ImmPtr(g_dsp.dram));
 #endif
-	MOV(16, R(EAX), MDisp(ECX,0));
+	MOV(16, R(EAX), MComplex(ESI,ECX,2,0));
 
 	FixupBranch end2 = J();
 	SetJumpTarget(ifx);

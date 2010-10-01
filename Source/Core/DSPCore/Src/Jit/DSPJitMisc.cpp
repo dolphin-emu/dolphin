@@ -132,7 +132,12 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 void DSPEmitter::setCompileSR(u16 bit) {
 	
 	//	g_dsp.r[DSP_REG_SR] |= bit
+#ifdef _M_IX86 // All32
 	OR(16, M(&g_dsp.r[DSP_REG_SR]), Imm16(bit));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	OR(16, MDisp(R11,DSP_REG_SR*2), Imm16(bit));
+#endif
 
 	compileSR |= bit;
 }
@@ -140,7 +145,12 @@ void DSPEmitter::setCompileSR(u16 bit) {
 void DSPEmitter::clrCompileSR(u16 bit) {
 	
 	//	g_dsp.r[DSP_REG_SR] &= bit
+#ifdef _M_IX86 // All32
 	AND(16, M(&g_dsp.r[DSP_REG_SR]), Imm16(~bit));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	AND(16, MDisp(R11,DSP_REG_SR*2), Imm16(~bit));
+#endif
 
 	compileSR  &= ~bit;
 }
