@@ -94,7 +94,7 @@ static int s_MSAACoverageSamples = 0;
 bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
-static u32 s_LastEFBScale;
+static int s_LastEFBScale;
 
 static volatile bool s_bScreenshot = false;
 #if defined(HAVE_WX) && HAVE_WX
@@ -951,8 +951,8 @@ void UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
+	// int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
+	// int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	// Stretch picture with increased internal resolution
 	int X = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - float(scissorXOff)) * EFBxScale);
@@ -1382,7 +1382,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (xfbchanged || WindowResized)
 	{
-		TargetRectangle dst_rect;
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
 		if(g_ActiveConfig.bUseRealXFB)

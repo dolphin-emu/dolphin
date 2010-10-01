@@ -361,10 +361,10 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			if (it != inserted_asm_codes.end())
 			{
 				const std::vector<u32>& codes = it->second;
-				for (std::vector<u32>::const_iterator it = codes.begin(),
-					itEnd = codes.end(); it != itEnd; ++it)
+				for (std::vector<u32>::const_iterator itCur = codes.begin(),
+					itEnd = codes.end(); itCur != itEnd; ++itCur)
 				{
-					cst1_instructions.push(*it);
+					cst1_instructions.push(*itCur);
 				}
 				inst = UGeckoInstruction(cst1_instructions.front());
 				cst1_instructions.pop();

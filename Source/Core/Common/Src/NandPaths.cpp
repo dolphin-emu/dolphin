@@ -21,6 +21,7 @@
 
 namespace Common
 {
+
 std::string CreateTicketFileName(u64 _titleID)
 {
 	char TicketFilename[1024];
@@ -85,4 +86,5 @@ bool CheckTitleTIK(u64 _titleID)
 	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
 	return false;
 }
+
 };
