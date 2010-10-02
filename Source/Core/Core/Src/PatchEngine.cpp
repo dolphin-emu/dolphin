@@ -140,7 +140,7 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 	}
 }
 
-int GetSpeedhackCycles(u32 addr)
+int GetSpeedhackCycles(const u32 addr)
 {
 	std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
 	if (iter == speedHacks.end())

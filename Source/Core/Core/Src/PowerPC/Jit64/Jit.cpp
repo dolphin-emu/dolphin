@@ -434,12 +434,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.block_flags = 0;
 	js.cancel = false;
 
-	//Analyze the block, collect all instructions it is made of (including inlining,
-	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	u32 nextPC = em_address;
 	u32 merged_addresses[32];
 	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses;
+	int size_of_merged_addresses = 0;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
@@ -448,7 +448,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -466,7 +466,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (js.fpa.any)
 	{
-		//This block uses FPU - needs to add FP exception bailout
+		// This block uses FPU - needs to add FP exception bailout
 		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 		FixupBranch b1 = J_CC(CC_NZ);
 		MOV(32, M(&PC), Imm32(js.blockStart));
@@ -492,8 +492,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	MOV(32, M(&PC), Imm32(js.blockStart));
 #endif
 
-	//Start up the register allocators
-	//They use the information in gpa/fpa to preload commonly used registers.
+	// Start up the register allocators
+	// They use the information in gpa/fpa to preload commonly used registers.
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 

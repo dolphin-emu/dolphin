@@ -48,7 +48,7 @@ struct Patch
 	bool active;
 };
 
-int GetSpeedhackCycles(u32 addr);
+int GetSpeedhackCycles(const u32 addr);
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini);
 void LoadPatches(const char *gameID);
 void ApplyFramePatches();

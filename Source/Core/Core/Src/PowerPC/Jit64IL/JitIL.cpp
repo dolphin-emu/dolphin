@@ -426,12 +426,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.curBlock = b;
 	js.cancel = false;
 
-	//Analyze the block, collect all instructions it is made of (including inlining,
-	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	b->exitAddress[0] = em_address;
 	u32 merged_addresses[32];
 	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses;
+	int size_of_merged_addresses = 0;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
@@ -439,7 +439,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -453,11 +453,11 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	b->normalEntry = normalEntry;
 	
 	if (ImHereDebug)
-		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		ABI_CallFunction((void *)&ImHere); // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
 	if (js.fpa.any)
 	{
-		//This block uses FPU - needs to add FP exception bailout
+		// This block uses FPU - needs to add FP exception bailout
 		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 		FixupBranch b1 = J_CC(CC_NZ);
 		MOV(32, M(&PC), Imm32(js.blockStart));
