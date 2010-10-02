@@ -597,6 +597,7 @@ void Renderer::SetColorMask()
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
 	ID3D11Texture2D* read_tex;
+	u32 ret = 0;
 
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
@@ -610,35 +611,26 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		return 0;
 	}
 
-	// Get the rectangular target region covered by the EFB pixel
+	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
 	efbPixelRc.top = y;
 	efbPixelRc.right = x + 1;
 	efbPixelRc.bottom = y + 1;
-
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
-	u32 z = 0;
-	float val = 0.0f;
-	D3D11_RECT RectToLock = CD3D11_RECT(targetPixelRc.left, targetPixelRc.top, targetPixelRc.right, targetPixelRc.bottom);
+	// Take the mean of the resulting dimensions; TODO: check whether this causes any bugs compared to taking the average color of the target area
+	D3D11_RECT RectToLock;
+	RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
+	RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+	RectToLock.right = RectToLock.left + 1;
+	RectToLock.bottom = RectToLock.top + 1;
 	if (type == PEEK_Z)
 	{
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
-
-		RectToLock.bottom+=2;
-		RectToLock.right+=1;
-		RectToLock.top-=1;
-		RectToLock.left-=2;
-		if ((RectToLock.bottom - RectToLock.top) > 4)
-			RectToLock.bottom--;
-		if ((RectToLock.right - RectToLock.left) > 4)
-			RectToLock.left++;
-
 		ResetAPIState(); // Reset any game specific settings
 
-		// Stretch picture with increased internal resolution
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 4.f, 4.f);
+		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBDepthReadTexture()->GetRTV(), NULL);
@@ -652,13 +644,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 								VertexShaderCache::GetSimpleInputLayout());
 
 		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
-		RestoreAPIState();
-		RectToLock = CD3D11_RECT(0, 0, 4, 4);
 
 		// copy to system memory
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 4, 4, 1);
+		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
 		read_tex = g_framebufferManager.GetEFBDepthStagingBuffer();
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBDepthReadTexture()->GetTex(), 0, &box);
+
+		RestoreAPIState(); // restore game state
 	}
 	else
 	{
@@ -666,7 +658,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		read_tex = g_framebufferManager.GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, &box);
-		RectToLock = CD3D11_RECT(0, 0, 1, 1);
 	}
 
 	// read the data from system memory
@@ -676,33 +667,24 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	switch(type)
 	{
 	case PEEK_Z:
-		val = ((float*)map.pData)[0];
-		z = ((u32)(val * 0xffffff));
-		break;
-
-	case POKE_Z:
-		// TODO: Implement
-		break;
+		{
+			float val = *(float*)map.pData;
+			ret = ((u32)(val * 0xffffff));
+			break;
+		}
 
 	case PEEK_COLOR:
-		z = ((u32*)map.pData)[0];
+		ret = *(u32*)map.pData;
 		break;
 
-	case POKE_COLOR:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
-		break;
-
-		// TODO: Implement POKE_Z and POKE_COLOR
 	default:
+		// TODO: Implement POKE_Z and POKE_COLOR
 		break;
 	}
 
 	D3D::context->Unmap(read_tex, 0);
-	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-	return z;
+	// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
+	return ret;
 }
 
 // Called from VertexShaderManager

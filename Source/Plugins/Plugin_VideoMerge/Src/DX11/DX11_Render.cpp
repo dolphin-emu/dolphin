@@ -411,6 +411,7 @@ void Renderer::SetColorMask()
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
 	ID3D11Texture2D* read_tex;
+	u32 ret;
 
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
@@ -425,35 +426,25 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		return 0;
 	}
 
-	// get the rectangular target region covered by the EFB pixel
+	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
 	efbPixelRc.top = y;
 	efbPixelRc.right = x + 1;
 	efbPixelRc.bottom = y + 1;
-
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 
-	u32 z = 0;
-	float val = 0.0f;
-	D3D11_RECT RectToLock = CD3D11_RECT(targetPixelRc.left,
-		targetPixelRc.top, targetPixelRc.right, targetPixelRc.bottom);
+	// Take the mean of the resulting dimensions; TODO: check whether this causes any bugs compared to taking the average color of the target area
+	D3D11_RECT RectToLock;
+	RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
+	RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+	RectToLock.right = RectToLock.left + 1;
+	RectToLock.bottom = RectToLock.top + 1;
 	if (type == PEEK_Z)
 	{
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
-
-		RectToLock.bottom+=2;
-		RectToLock.right+=1;
-		RectToLock.top-=1;
-		RectToLock.left-=2;
-		if ((RectToLock.bottom - RectToLock.top) > 4)
-			RectToLock.bottom--;
-		if ((RectToLock.right - RectToLock.left) > 4)
-			RectToLock.left++;
-
 		ResetAPIState(); // reset any game specific settings
 
-		// Stretch picture with increased internal resolution
+		// depth buffers can only be read as a whole using CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 4.f, 4.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
@@ -468,13 +459,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			VertexShaderCache::GetSimpleInputLayout());
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-		RestoreAPIState();
-		RectToLock = CD3D11_RECT(0, 0, 4, 4);
 
 		// copy to system memory
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 4, 4, 1);
+		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
 		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
+
+		RestoreAPIState(); // restore game state
 	}
 	else
 	{
@@ -482,7 +473,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
-		RectToLock = CD3D11_RECT(0, 0, 1, 1);
 	}
 
 	// read the data from system memory
@@ -492,12 +482,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	switch(type)
 	{
 	case PEEK_Z:
-		val = *(float*)map.pData;
-		z = (u32)(val * 0xffffff);
-		break;
+		{
+			// TODO: Implement this better? Maybe we're losing precision or sth..
+			float val = *(float*)map.pData;
+			ret = (u32)(val * 0xffffff);
+			break;
+		}
 
 	case PEEK_COLOR:
-		z = *(u32*)map.pData;
+		ret = *(u32*)map.pData;
 		break;
 
 	// TODO: Implement POKE_Z and POKE_COLOR
@@ -505,7 +498,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		break;
 	}
 	D3D::context->Unmap(read_tex, 0);
-	return z;
+	return ret;
 }
 
 // Called from VertexShaderManager
@@ -514,10 +507,10 @@ void Renderer::UpdateViewport()
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
 	// [1] = height/2
-	// [2] = 16777215 * (farz - nearz)
+	// [2] = 0xFFFFFF * (farz - nearz)
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
-	// [5] = 16777215 * farz
+	// [5] = 0xFFFFFF * farz
 	const int old_fulltarget_w = s_Fulltarget_width;
 	const int old_fulltarget_h = s_Fulltarget_height;
 
@@ -569,7 +562,7 @@ void Renderer::UpdateViewport()
 		if (s_Fulltarget_width > (int)D3D::GetMaxTextureSize() || s_Fulltarget_height > (int)D3D::GetMaxTextureSize())
 		{
 			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
+			WARNING_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
 
 			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
 			newx *= (float)old_fulltarget_w / (float)s_Fulltarget_width;
@@ -598,7 +591,7 @@ void Renderer::UpdateViewport()
 	D3D::context->RSSetViewports(1, &vp);
 }
 
-// Tino: color is passed in bgra mode so need to convert it to rgba
+// color is passed in bgra order so we need to convert it to rgba
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	const TargetRectangle targetRc = ConvertEFBRectangle(rc);
