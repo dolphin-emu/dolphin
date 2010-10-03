@@ -21,17 +21,22 @@
 #include "CPMemory.h"
 #include "VertexLoader.h"
 
-namespace VertexManager
+#include "VertexManagerBase.h"
+
+namespace DX11
 {
 
-bool Init();
-void Shutdown();
+class VertexManager : public ::VertexManager
+{
+public:
+	VertexManager();
+	~VertexManager();
 
-void AddVertices(int _primitive, int _numVertices);
-void Flush();
-
-void CreateDeviceObjects();
-void DestroyDeviceObjects();
+private:
+	void Draw(u32 stride, bool alphapass);
+	// temp
+	void vFlush();
+};
 
 }  // namespace
 

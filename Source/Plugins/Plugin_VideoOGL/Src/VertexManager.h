@@ -19,18 +19,25 @@
 #define _VERTEXMANAGER_H_
 
 #include "CPMemory.h"
-#include "NativeVertexWriter.h"
+
+#include "VertexManagerBase.h"
+
+namespace OGL
+{
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
-namespace VertexManager
+class VertexManager : public ::VertexManager
 {
+public:
+	VertexManager();
 
-bool Init();
-void Shutdown();
-void AddIndices(int primitive, int numVertices);
-void ResetBuffer();
-
+private:
+	void Draw();
+	// temp
+	void vFlush();
 };
+
+}
 
 #endif  // _VERTEXMANAGER_H_

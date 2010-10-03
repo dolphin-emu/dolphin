@@ -19,7 +19,7 @@
 #include "VideoCommon.h"
 #include "XFMemory.h"
 #include "CPMemory.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
 

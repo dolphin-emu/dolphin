@@ -29,7 +29,7 @@
 #include "TransformUnit.h"
 #include "SetupUnit.h"
 #include "Statistics.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 #include "VertexFormatConverter.h"
 #include "../../../Core/VideoCommon/Src/DataReader.h"
 

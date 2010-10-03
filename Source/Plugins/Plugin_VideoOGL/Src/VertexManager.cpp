@@ -46,140 +46,30 @@
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
 
-namespace VertexManager
+namespace OGL
 {
 
-static int lastPrimitive;
-
-static u8 *LocalVBuffer;
-static u16 *TIBuffer;
-static u16 *LIBuffer;
-static u16 *PIBuffer;
-static GLint max_Index_size = 0;
-#define MAXVBUFFERSIZE 0x1FFFF
-#define MAXIBUFFERSIZE 0xFFFF
-#define MAXVBOBUFFERCOUNT 0x8
+//static GLint max_Index_size = 0;
 
 //static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
 //static int s_nCurVBOIndex = 0; // current free buffer
-static bool Flushed=false;
 
-
-bool Init()
+VertexManager::VertexManager()
 {
-	lastPrimitive = GX_DRAW_NONE;
-	glGetIntegerv(GL_MAX_ELEMENTS_INDICES, (GLint *)&max_Index_size);
-	
-	if(max_Index_size>MAXIBUFFERSIZE)
-		max_Index_size = MAXIBUFFERSIZE;
-	
-	LocalVBuffer = new u8[MAXVBUFFERSIZE];
-	TIBuffer = new u16[max_Index_size];
-	LIBuffer = new u16[max_Index_size];
-	PIBuffer = new u16[max_Index_size];
-	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
-	s_pCurBufferPointer = LocalVBuffer;
-	s_pBaseBufferPointer = LocalVBuffer;
-	//s_nCurVBOIndex = 0;
-	//glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
+	// TODO: doesn't seem to be used anywhere
+
+	//glGetIntegerv(GL_MAX_ELEMENTS_INDICES, (GLint*)&max_Index_size);
+	//
+	//if (max_Index_size > MAXIBUFFERSIZE)
+	//	max_Index_size = MAXIBUFFERSIZE;
+	//
+	//GL_REPORT_ERRORD();
+
 	glEnableClientState(GL_VERTEX_ARRAY);
-	g_nativeVertexFmt = NULL;
-	Flushed=false;
 	GL_REPORT_ERRORD();
-
-	return true;
 }
 
-void ResetBuffer()
-{
-	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-	s_pCurBufferPointer = LocalVBuffer;
-}
-
-void Shutdown()
-{
-	delete [] LocalVBuffer;
-	delete [] TIBuffer;
-	delete [] LIBuffer;
-	delete [] PIBuffer;
-	//glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-	//s_nCurVBOIndex = 0;
-}
-
-void AddIndices(int primitive, int numVertices)
-{
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices); break;
-	case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices); break;
-	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
-	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
-	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
-	case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVertices); break;
-	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
-	}
-}
-
-int GetRemainingSize()
-{
-	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
-}
-
-int GetRemainingVertices(int primitive)
-{
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		return (max_Index_size - IndexGenerator::GetTriangleindexLen())/3;
-	case GX_DRAW_LINE_STRIP:
-	case GX_DRAW_LINES:
-		return (max_Index_size - IndexGenerator::GetLineindexLen())/2;
-	case GX_DRAW_POINTS:
-		return (max_Index_size - IndexGenerator::GetPointindexLen());
-	default: return 0;
-	}
-}
-
-void AddVertices(int primitive, int numVertices)
-{
-	if (numVertices <= 0)
-		return;
-	(void)GL_REPORT_ERROR();
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 3 * numVertices)
-			Flush();
-		break;
-	case GX_DRAW_LINE_STRIP:
-	case GX_DRAW_LINES:
-		if(max_Index_size - IndexGenerator::GetLineindexLen() < 2 * numVertices)
-			Flush();
-		break;
-	case GX_DRAW_POINTS:
-		if(max_Index_size - IndexGenerator::GetPointindexLen() < numVertices)
-			Flush();
-		break;
-	default: return;
-	}
-	if(Flushed)
-	{
-		IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
-		Flushed=false;
-	}
-	lastPrimitive = primitive;
-	ADDSTAT(stats.thisFrame.numPrims, numVertices);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numVertices);
-}
-
-inline void Draw()
+void VertexManager::Draw()
 {
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
@@ -198,7 +88,7 @@ inline void Draw()
 	}
 }
 
-void Flush()
+void VertexManager::vFlush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;
 	if (Flushed) return;
@@ -351,4 +241,5 @@ void Flush()
 
 	GL_REPORT_ERRORD();
 }
+
 }  // namespace

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="VideoCommon"
 	ProjectGUID="{E5D1F0C0-AA07-4841-A4EB-4CF4DAA6B0FA}"
 	RootNamespace="VideoCommon"
@@ -563,14 +563,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\NativeVertexWriter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\NativeVertexWriter.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\OnScreenDisplay.cpp"
 				>
 			</File>
@@ -734,6 +726,18 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="Base"
+			>
+			<File
+				RelativePath=".\Src\VertexManagerBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexManagerBase.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\CommandProcessor.cpp"

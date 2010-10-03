@@ -32,7 +32,7 @@
 #include "BPMemory.h"
 
 #include "VertexLoaderManager.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 

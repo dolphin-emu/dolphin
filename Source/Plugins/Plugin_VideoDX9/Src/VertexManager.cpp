@@ -30,7 +30,6 @@
 #include "PixelShaderManager.h"
 #include "PixelShaderCache.h"
 #include "NativeVertexFormat.h"
-#include "NativeVertexWriter.h"
 #include "TextureCache.h"
 #include "main.h"
 
@@ -39,124 +38,11 @@
 
 #include "debugger/debugger.h"
 
-
-using namespace D3D;
-
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
 
-namespace VertexManager
+namespace DX9
 {
-
-static int lastPrimitive;
-
-static u8 *LocalVBuffer;
-static u16 *TIBuffer;
-static u16 *LIBuffer;
-static u16 *PIBuffer;
-#define MAXVBUFFERSIZE 0x50000
-#define MAXIBUFFERSIZE 0xFFFF
-static bool Flushed=false;
-
-bool Init()
-{
-	LocalVBuffer = new u8[MAXVBUFFERSIZE];
-	TIBuffer = new u16[MAXIBUFFERSIZE];
-	LIBuffer = new u16[MAXIBUFFERSIZE];
-	PIBuffer = new u16[MAXIBUFFERSIZE];
-	s_pCurBufferPointer = LocalVBuffer;
-	s_pBaseBufferPointer = LocalVBuffer;
-	Flushed=false;
-	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
-	return true;
-}
-
-void ResetBuffer()
-{
-	s_pCurBufferPointer = LocalVBuffer;
-}
-
-void Shutdown()
-{
-	delete [] LocalVBuffer;
-	delete [] TIBuffer;
-	delete [] LIBuffer;
-	delete [] PIBuffer;
-	ResetBuffer();
-}
-
-void AddIndices(int primitive, int numVertices)
-{
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices); break;
-	case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices); break;
-	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
-	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
-	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
-	case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVertices); break;
-	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
-	}
-}
-
-int GetRemainingSize()
-{
-	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
-}
-
-int GetRemainingVertices(int primitive)
-{
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen())/3;
-	case GX_DRAW_LINE_STRIP:
-	case GX_DRAW_LINES:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen())/2;
-	case GX_DRAW_POINTS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
-	default: return 0;
-	}
-}
-
-void AddVertices(int primitive, int numVertices)
-{
-	if (numVertices <= 0)
-		return;
-
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 3 * numVertices)
-			Flush();
-		break;
-	case GX_DRAW_LINE_STRIP:
-	case GX_DRAW_LINES:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen() < 2 * numVertices)
-			Flush();
-		break;
-	case GX_DRAW_POINTS:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen() < numVertices)
-			Flush();
-		break;
-	default: return;
-	}
-	if (Flushed)
-	{
-		IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
-		Flushed=false;
-	}
-	lastPrimitive = primitive;
-	ADDSTAT(stats.thisFrame.numPrims, numVertices);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numVertices);
-}
 
 inline void DumpBadShaders()
 {
@@ -176,7 +62,7 @@ inline void DumpBadShaders()
 #endif
 }
 
-inline void Draw(int stride)
+void VertexManager::Draw(int stride)
 {
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
@@ -222,11 +108,11 @@ inline void Draw(int stride)
 	}
 }
 
-void Flush()
+void VertexManager::vFlush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;
 	if (Flushed) return;
-	Flushed=true;
+	Flushed = true;
 	VideoFifo_CheckEFBAccess();
 
 	DVSTARTPROFILE();
@@ -289,7 +175,7 @@ void Flush()
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components))
+		if (!PixelShaderCache::SetShader(true, g_nativeVertexFmt->m_components))
 		{
 			DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
@@ -297,8 +183,9 @@ void Flush()
 		// update alpha only
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
-		
+
 		Draw(stride);
+
 		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 	}
@@ -307,4 +194,5 @@ void Flush()
 shader_fail:
 	ResetBuffer();
 }
-}  // namespace
+
+}

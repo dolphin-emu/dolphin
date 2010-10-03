@@ -24,7 +24,7 @@
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 
 #define COMPILED_CODE_SIZE 4096
 

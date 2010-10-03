@@ -21,15 +21,19 @@
 #include "CPMemory.h"
 #include "VertexLoader.h"
 
-namespace VertexManager
+#include "VertexManagerBase.h"
+
+namespace DX9
 {
 
-bool Init();
-void Shutdown();
+class VertexManager : public ::VertexManager
+{
+private:
+	void Draw(int stride);
+	// temp
+	void vFlush();
+};
 
-void AddVertices(int _primitive, int _numVertices);
-void Flush();
-
-}  // namespace
+}
 
 #endif

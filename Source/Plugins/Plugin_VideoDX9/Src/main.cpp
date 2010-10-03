@@ -239,7 +239,7 @@ void Video_Prepare()
 	// internal interfaces
 	Renderer::Init();
 	TextureCache::Init();
-	VertexManager::Init();
+	g_vertex_manager = new DX9::VertexManager;
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -275,7 +275,7 @@ void Shutdown()
 	// internal interfaces
 	PixelShaderCache::Shutdown();
 	VertexShaderCache::Shutdown();
-	VertexManager::Shutdown();
+	delete g_vertex_manager;
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
 	D3D::Shutdown();

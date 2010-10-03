@@ -23,7 +23,7 @@
 #include "LookUpTables.h"
 #include "VertexLoader.h"
 #include "VertexLoader_Color.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 
 #define RSHIFT 0
 #define GSHIFT 8

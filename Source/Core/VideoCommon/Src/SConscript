@@ -29,7 +29,7 @@ files = [
 	'VertexLoader_TextCoord.cpp',
 	'TextureConversionShader.cpp',
 	'ImageWrite.cpp',
-	'NativeVertexWriter.cpp',
+	'VertexManagerBase.cpp',
 	'Statistics.cpp',
 	'Fifo.cpp',
 	'VideoState.cpp',

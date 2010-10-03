@@ -33,7 +33,7 @@
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "DataReader.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 
 #include "VertexLoader_Position.h"
 #include "VertexLoader_Normal.h"

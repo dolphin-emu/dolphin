@@ -383,14 +383,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Core\VideoCommon\Src\NativeVertexWriter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\NativeVertexWriter.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Core\VideoCommon\Src\OpenCL\OCLTextureDecoder.cpp"
 				>
 			</File>

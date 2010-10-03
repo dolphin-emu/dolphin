@@ -226,7 +226,7 @@ void Video_Prepare()
 	TextureCache::Init();
 
 	BPInit();
-	VertexManager::Init();
+	g_vertex_manager = new OGL::VertexManager;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
 	VertexShaderCache::Init();
@@ -266,7 +266,7 @@ void Shutdown()
 	VertexShaderManager::Shutdown();
 	PixelShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
-	VertexManager::Shutdown();
+	delete g_vertex_manager;
 	TextureCache::Shutdown();
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();

@@ -19,7 +19,7 @@
 #include "VideoCommon.h"
 #include "VertexLoader.h"
 #include "VertexLoader_Position.h"
-#include "NativeVertexWriter.h"
+#include "VertexManagerBase.h"
 #include "CPUDetect.h"
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)

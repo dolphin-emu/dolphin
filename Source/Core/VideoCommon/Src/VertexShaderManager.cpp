@@ -30,12 +30,7 @@
 #include "CPMemory.h"
 #include "XFMemory.h"
 #include "VideoCommon.h"
-
-// Temporary ugly declaration.
-namespace VertexManager
-{
-	void Flush();
-}
+#include "VertexManagerBase.h"
 
 static float GC_ALIGNED16(s_fMaterials[16]);
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
