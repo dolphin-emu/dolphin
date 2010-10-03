@@ -206,9 +206,6 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	, m_index(index)
 	//, m_name(TStringToString(lpddi->tszInstanceName))
 {
-	// this needs to be done before GetCapabilities() maybe?
-	m_device->Acquire();
-
 	// get joystick caps
 	DIDEVCAPS js_caps;
 	js_caps.dwSize = sizeof(js_caps);
@@ -269,6 +266,9 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			AddInput(new Axis(offset, base, range.lMax-base));
 		}
 	}
+
+	// it seems this needs to be done after SetProperty...
+	m_device->Acquire();
 
 	// TODO: check for DIDC_FORCEFEEDBACK in devcaps?
 
@@ -395,8 +395,6 @@ bool Joystick::UpdateInput()
 	// msdn says if this isn't needed it doesnt do anything
 	m_device->Poll();
 
-	bool need_ = true;
-
 	if (m_buffered)
 	{
 		DIDEVICEOBJECTDATA evtbuf[DATA_BUFFER_SIZE];
@@ -415,9 +413,7 @@ bool Joystick::UpdateInput()
 					((BYTE*)&m_state_in)[evt->dwOfs] = (BYTE)evt->dwData;
 			}
 
-			// we lost some data, attempt to use GetDeviceState
-			// maybe this isn't the best thing to do
-			// maybe I should clear the input state?
+			// seems like this needs to be done maybe...
 			if (DI_BUFFEROVERFLOW == hr)
 				hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
 		}

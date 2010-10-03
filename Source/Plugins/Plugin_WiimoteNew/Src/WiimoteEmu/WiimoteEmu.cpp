@@ -3,6 +3,7 @@
 #include "Attachment/Nunchuk.h"
 #include "Attachment/Guitar.h"
 #include "Attachment/Drums.h"
+#include "Attachment/Turntable.h"
 
 #include "WiimoteEmu.h"
 #include "WiimoteHid.h"
@@ -60,10 +61,11 @@ const ReportFeatures reporting_mode_features[] =
 	{ 2, 0, 4, 14, 23 },
     //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
 	{ 2, 4, 7, 17, 23 },
+
+	// UNSUPPORTED:
     //0x3d: 21 Extension Bytes
 	{ 0, 0, 0, 2, 23 },
     //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
-	// UNSUPPORTED
 	{ 0, 0, 0, 0, 23 },
 };
 
@@ -125,7 +127,7 @@ void EmulateSwing(AccelData* const accel
 	, const bool sideways, const bool upright)
 {
 	float swing[3];
-	swing_group->GetState(swing, 0, 2 * PI);
+	swing_group->GetState(swing, 0, SWING_INTENSITY);
 
 	s8 g_dir[3] = {-1, -1, -1};
 	u8 axis_map[3];
@@ -143,13 +145,7 @@ void EmulateSwing(AccelData* const accel
 		g_dir[axis_map[0]] *= -1;
 
 	for (unsigned int i=0; i<3; ++i)
-	{
-		if (swing[i])
-		{
-			// sin() should create a nice curve for the swing data
-			(&accel->x)[axis_map[i]] += sin(swing[i]) * SWING_INTENSITY * g_dir[i];
-		}
-	}
+		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i];
 }
 
 const u16 button_bitmasks[] =
@@ -270,6 +266,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_extension->attachments.push_back(new WiimoteEmu::Classic());
 	m_extension->attachments.push_back(new WiimoteEmu::Guitar());
 	m_extension->attachments.push_back(new WiimoteEmu::Drums());
+	m_extension->attachments.push_back(new WiimoteEmu::Turntable());
 
 	// rumble
 	groups.push_back(m_rumble = new ControlGroup("Rumble"));

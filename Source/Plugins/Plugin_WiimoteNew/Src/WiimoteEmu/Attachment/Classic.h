@@ -31,7 +31,6 @@ public:
 
 private:
 	Buttons*		m_buttons;
-	Buttons*		m_shake;
 	MixedTriggers*	m_triggers;
 	Buttons*		m_dpad;
 	AnalogStick*	m_left_stick;

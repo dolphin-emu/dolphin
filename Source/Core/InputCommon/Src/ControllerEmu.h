@@ -262,22 +262,10 @@ public:
 				const float state = controls[i+1]->control_ref->State() - controls[i]->control_ref->State();
 				if (fabsf(state) > deadzone)
 					tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
-				else
-					tmpf = 0;
 
 				float &ax = m_swing[i >> 1];
-
-				if (fabs(tmpf) > fabsf(ax))
-				{
-					if (tmpf > ax)
-						ax = std::min(ax + 0.15f, tmpf);
-					else if (tmpf < ax)
-						ax = std::max(ax - 0.15f, tmpf);
-				}
-				else
-					ax = tmpf;
-
-				*axis++	= (C)(ax * range + base);
+				*axis++	= (C)((tmpf - ax) * range + base);
+				ax = tmpf;
 			}
 		}
 	private:

@@ -136,6 +136,29 @@ struct wm_drums_extension
 	u16 bt; // buttons
 };
 
+struct wm_turntable_extension
+{
+	u8 sx   : 6;
+	u8 rtable3 : 2;
+
+	u8 sy   : 6;
+	u8 rtable2 : 2;
+
+	u8 rtable4 : 1;
+	u8 slider : 4;
+	u8 dial2 : 2;
+	u8 rtable1 : 1;
+
+	u8 ltable1 : 5;
+	u8 dial1 : 3;
+
+	union
+	{
+		u16 ltable2 : 1;
+		u16 bt; // buttons
+	};
+};
+
 struct wm_report
 {
 	u8 wm;

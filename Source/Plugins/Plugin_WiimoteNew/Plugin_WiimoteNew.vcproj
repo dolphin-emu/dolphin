@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_WiimoteNew"
 	ProjectGUID="{BB6CE47B-C676-44BB-AE93-2CF59B8C8BD4}"
 	RootNamespace="Plugin_WiimoteNew"
@@ -606,6 +606,14 @@
 				</File>
 				<File
 					RelativePath=".\Src\WiimoteEmu\Attachment\Nunchuk.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Turntable.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Turntable.h"
 					>
 				</File>
 			</Filter>
