@@ -44,6 +44,10 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'I':
 			return IVolume::COUNTRY_ITALY;
 			break;
+			
+		case 'R':
+			return IVolume::COUNTRY_RUSSIA;
+			break;
 
 		// NTSC
 		case 'E':

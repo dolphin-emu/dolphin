@@ -171,6 +171,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
+				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
 					Region = EUR_DIR; 
 					break;

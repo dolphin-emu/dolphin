@@ -146,6 +146,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(wxT("ITALY"));
 		break;
+	case DiscIO::IVolume::COUNTRY_RUSSIA:
+		m_Country->SetValue(wxT("RUSSIA"));
+		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(wxT("USA"));
 		m_Lang->SetSelection(0);
