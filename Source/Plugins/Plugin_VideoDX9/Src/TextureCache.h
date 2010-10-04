@@ -39,8 +39,7 @@ public:
 		u32 oldpixel;
 		
 		int frameCount;
-		int w, h, fmt,MipLevels;
-		int Scaledw, Scaledh;
+		int w, h, fmt,MipLevels, Realw, Realh, Scaledw, Scaledh;
 
 		bool isRenderTarget;
 		bool isDynamic;// mofified from cpu
@@ -59,6 +58,8 @@ public:
 			isNonPow2 = true;
 			w = 0;
 			h = 0;
+			Realw = 0;
+			Realh = 0;
 			Scaledw = 0;
 			Scaledh = 0;
 		}

@@ -48,7 +48,7 @@ TextureCache::TexCache TextureCache::textures;
 
 extern int frameCount;
 
-#define TEMP_SIZE (1024*1024*4)
+#define TEMP_SIZE (2048*2048*4)
 #define TEXTURE_KILL_THRESHOLD 200
 
 void TextureCache::TCacheEntry::Destroy(bool shutdown)
@@ -283,6 +283,8 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	// Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 	entry.isDynamic = TextureisDynamic;
+	entry.Realw = width;
+	entry.Realh = height;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -299,6 +301,8 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		{
 			expandedWidth = width;
 			expandedHeight = height;
+			entry.Realw = oldWidth;
+			entry.Realh = oldHeight;
 		}
 	}
 
@@ -390,8 +394,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.frameCount = frameCount;
 	entry.w = width;
 	entry.h = height;
-	entry.Scaledw = width;
-	entry.Scaledh = height;
 	entry.fmt = FullFormat;
 
 	if (g_ActiveConfig.bDumpTextures)
@@ -475,8 +477,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.isRenderTarget = true;
 		entry.hash = 0;
 		entry.frameCount = frameCount;
-		entry.w = tex_w;
-		entry.h = tex_h;
+		entry.w = entry.Realw = tex_w;
+		entry.h = entry.Realh = tex_h;
 		entry.Scaledw = Scaledtex_w;
 		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;

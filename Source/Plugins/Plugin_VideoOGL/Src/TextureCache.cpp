@@ -59,7 +59,7 @@ TextureCache::TexCache TextureCache::textures;
 extern int frameCount;
 static u32 s_TempFramebuffer = 0;
 
-#define TEMP_SIZE (1024*1024*4)
+#define TEMP_SIZE (2048*2048*4)
 #define TEXTURE_KILL_THRESHOLD 200
 
 static const GLint c_MinLinearFilter[8] = {
@@ -373,6 +373,8 @@ TextureCache::TCacheEntry* TextureCache::Load(int texstage, u32 address, int wid
 	TCacheEntry& entry = textures[texID];
 	entry.isDynamic = TextureisDynamic;
 	entry.isRenderTarget = false;
+	entry.Realw = width;
+	entry.Realh = height;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -380,6 +382,9 @@ TextureCache::TCacheEntry* TextureCache::Load(int texstage, u32 address, int wid
 		// Load Custom textures
 		char texPathTemp[MAX_PATH];
 
+		int oldWidth = width;
+		int oldHeight = height;
+		
 		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, (unsigned int) texHash, tex_format);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);
 
@@ -387,6 +392,8 @@ TextureCache::TCacheEntry* TextureCache::Load(int texstage, u32 address, int wid
 		{
 			expandedWidth = width;
 			expandedHeight = height;
+			entry.Realw = oldWidth;
+			entry.Realh = oldHeight;
 		}
 	}
 
@@ -768,8 +775,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	}
 
 	entry.addr = address;
-	entry.w = w;
-	entry.h = h;
+	entry.w = entry.Realw = w;
+	entry.h = entry.Realh = h;
 	entry.Scaledw = Scaledtex_w;
 	entry.Scaledh = Scaledtex_h;
 	entry.fmt = copyfmt;	

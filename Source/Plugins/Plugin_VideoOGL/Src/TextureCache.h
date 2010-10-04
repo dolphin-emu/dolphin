@@ -44,7 +44,7 @@ public:
 		TexMode1 mode1; // current filter and clamp modes that texture is set to
 		
         int frameCount;
-        int w, h, fmt,MipLevels;
+        int w, h, fmt,MipLevels, Realw, Realh;
 		int Scaledw, Scaledh;
 
         bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target

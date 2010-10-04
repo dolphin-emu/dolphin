@@ -115,9 +115,9 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int te
 		return PC_TEX_FMT_NONE;
 	}
 
-	if (width > 1024 || height > 1024)
+	if (width > 2048 || height > 2048)
 	{
-		ERROR_LOG(VIDEO, "Custom texture %s is too large (%ix%i); textures can only be 1024 pixels tall and wide", textureMap[key].c_str(), width, height);
+		ERROR_LOG(VIDEO, "Custom texture %s is too large (%ix%i); textures can only be 2048 pixels tall and wide", textureMap[key].c_str(), width, height);
 		SOIL_free_image_data(temp);
 		return PC_TEX_FMT_NONE;
 	}
