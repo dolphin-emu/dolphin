@@ -50,7 +50,7 @@ TextureCache::TexCache TextureCache::textures;
 
 extern int frameCount;
 
-#define TEMP_SIZE (1024*1024*4)
+#define TEMP_SIZE (2048*2048*4)
 #define TEXTURE_KILL_THRESHOLD 200
 
 void TextureCache::TCacheEntry::Destroy(bool shutdown)
@@ -231,8 +231,8 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		FullFormat = (tex_format | (tlutfmt << 16));
 
-	// hires textures and texture dumping not supported, yet
-	if (g_ActiveConfig.bSafeTextureCache/* || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures*/)
+	// hires texture loading and texture dumping require accurate hashes
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
@@ -293,9 +293,29 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 
 	// Make an entry in the table
 	TCacheEntry& entry = textures[texID];
+	entry.Realw = width;
+	entry.Realh = height;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt, true);
+	if (g_ActiveConfig.bHiresTextures)
+	{
+		// Load Custom textures
+		char texPathTemp[MAX_PATH];
+		int newWidth = width;
+		int newHeight = height;
+ 
+		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, texHash, tex_format);
+		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, GX_TF_RGBA8, temp);
+		if (pcfmt != PC_TEX_FMT_NONE)
+		{
+			expandedWidth = width = newWidth;
+			expandedHeight = height = newHeight;
+		}
+	}
+
+	if (pcfmt == PC_TEX_FMT_NONE)
+		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt, true);
 
 	entry.oldpixel = ((u32*)ptr)[0];
 	if (g_ActiveConfig.bSafeTextureCache) entry.hash = hash_value;
@@ -327,6 +347,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a texture of the TextureCache");
 		SAFE_RELEASE(pTexture);
 
+		// if (TexLevels == 1), we already loaded the data into our texture upon creation
 		if (TexLevels != 1) D3D::ReplaceRGBATexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, 0, usage);
 	}
 	else
@@ -365,7 +386,25 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	entry.frameCount = frameCount;
 	entry.w = width;
 	entry.h = height;
+	entry.Scaledw = width;
+	entry.Scaledh = height;
 	entry.fmt = FullFormat;
+
+	// dump texture to file
+	if (g_ActiveConfig.bDumpTextures)
+	{
+		char szTemp[MAX_PATH];
+		char szDir[MAX_PATH];
+
+		// make sure that the directory exists
+		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), globals->unique_id);
+		if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+			File::CreateDir(szDir);
+
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, globals->unique_id, texHash, tex_format);
+		if (!File::Exists(szTemp))
+			if(FAILED(PD3DX11SaveTextureToFileA(D3D::context, entry.texture->GetTex(), D3DX11_IFF_PNG, szTemp))) PanicAlert("!!!");
+	}
 
 	INCSTAT(stats.numTexturesCreated);
 	SETSTAT(stats.numTexturesAlive, textures.size());
@@ -410,8 +449,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.isRenderTarget = true;
 		entry.hash = 0;
 		entry.frameCount = frameCount;
-		entry.w = tex_w;
-		entry.h = tex_h;
+		entry.w = entry.Realw = tex_w;
+		entry.h = entry.Realh = tex_h;
 		entry.Scaledw = Scaledtex_w;
 		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;

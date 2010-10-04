@@ -24,14 +24,14 @@
 #define IDC_FORCEANISOTROPY             1027
 #define IDC_EFBSCALEDCOPY               1029
 #define IDC_OSDHOTKEY                   1030
-#define IDC_COMBO2                      1040
 #define IDC_ASPECTRATIO                 1040
 #define IDC_SAFE_TEXTURE_CACHE_SAFE     1041
 #define IDC_SAFE_TEXTURE_CACHE_NORMAL   1042
-#define IDC_RADIO3                      1043
 #define IDC_SAFE_TEXTURE_CACHE_FAST     1043
 #define IDC_DLIST_CACHING               1044
 #define IDC_ENABLEPIXELLIGHTING         1045
+#define IDC_LOADHIRESTEXTURE            1046
+#define IDC_DUMPTEXTURES                1047
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

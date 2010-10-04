@@ -39,13 +39,13 @@ public:
 		
 		int frameCount;
 		unsigned int w, h, fmt, MipLevels;
-		int Scaledw, Scaledh;
+		int Realw, Realh, Scaledw, Scaledh;
 
 		bool isRenderTarget;
 		bool isNonPow2;
 
 		TCacheEntry() : texture(NULL), addr(0), size_in_bytes(0), hash(0), paletteHash(0), oldpixel(0),
-						frameCount(0), w(0), h(0), fmt(0), MipLevels(0), Scaledw(0), Scaledh(0),
+						frameCount(0), w(0), h(0), fmt(0), MipLevels(0), Realw(0), Realh(0), Scaledw(0), Scaledh(0),
 						isRenderTarget(false), isNonPow2(true) {}
 
 		void Destroy(bool shutdown);

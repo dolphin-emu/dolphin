@@ -200,6 +200,9 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY),g_Config.iMaxAnisotropy > 1);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY), g_Config.bCopyEFBScaled);
 
+		Button_SetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE),g_Config.bHiresTextures);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_DUMPTEXTURES),g_Config.bDumpTextures);
+
 		if (Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEEFBCOPY))) Button_Enable(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY), true);
 		else Button_Enable(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY), false);
 	}
@@ -232,14 +235,14 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bDisableFog = Button_GetCheck(GetDlgItem(hDlg, IDC_DISABLEFOG)) ? true : false;
 		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEEFBCOPY)) ? false : true;
 		g_Config.bCopyEFBToTexture = !g_Config.bEFBCopyDisable;
-		g_Config.bDumpTextures = false;
 		g_Config.bDumpFrames = false;
 		g_Config.bShowShaderErrors = true;
 		g_Config.bUseNativeMips = true;
 
 		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 16 : 1;
 		g_Config.bForceFiltering = false;
-		g_Config.bHiresTextures = false;
+		g_Config.bHiresTextures = Button_GetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE)) ? true : false;
+		g_Config.bDumpTextures = Button_GetCheck(GetDlgItem(hDlg, IDC_DUMPTEXTURES)) ? true : false;
 		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY)) ? true : false;
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 	}
