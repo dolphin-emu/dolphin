@@ -99,7 +99,9 @@ void Step()
 
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
-	HandleLoop();
+	
+	if (DSPAnalyzer::code_flags[g_dsp.pc - 1] & DSPAnalyzer::CODE_LOOP_END)
+		HandleLoop();
 }
 
 // Used by thread mode.
