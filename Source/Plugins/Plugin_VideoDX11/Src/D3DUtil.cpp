@@ -391,15 +391,29 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	return S_OK;
 }
 
-ID3D11Buffer* CreateQuadVertexBuffer(unsigned int size, void* data)
+ID3D11Buffer* CreateQuadVertexBuffer(unsigned int size, void* data, D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
 {
 	ID3D11Buffer* vb;
 	D3D11_BUFFER_DESC vbdesc;
 	vbdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbdesc.ByteWidth = size;
-	vbdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	vbdesc.MiscFlags = 0;
-	vbdesc.Usage = D3D11_USAGE_DYNAMIC;
+	vbdesc.Usage = usage;
+	switch (usage)
+	{
+		case D3D11_USAGE_DEFAULT:
+		case D3D11_USAGE_IMMUTABLE:
+			vbdesc.CPUAccessFlags = 0;
+			break;
+
+		case D3D11_USAGE_DYNAMIC:
+			vbdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			break;
+
+		case D3D11_USAGE_STAGING:
+			vbdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ;
+			break;
+	}
 	if (data)
 	{
 		D3D11_SUBRESOURCE_DATA bufdata;

@@ -218,6 +218,12 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 			}
 			break;
+
+		case WM_CLOSE:
+			// Let Core finish initializing before accepting any WM_CLOSE messages
+			if (Core::GetState() == Core::CORE_UNINITIALIZED) break;
+			// Use default action otherwise
+
 		default:
 			// By default let wxWidgets do what it normally does with this event
 			return wxFrame::MSWWindowProc(nMsg, wParam, lParam);

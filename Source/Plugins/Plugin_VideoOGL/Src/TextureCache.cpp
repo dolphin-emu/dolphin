@@ -382,18 +382,16 @@ TextureCache::TCacheEntry* TextureCache::Load(int texstage, u32 address, int wid
 		// Load Custom textures
 		char texPathTemp[MAX_PATH];
 
-		int oldWidth = width;
-		int oldHeight = height;
-		
+		int newWidth = width;
+		int newHeight = height;
+
 		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, (unsigned int) texHash, tex_format);
-		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);
+		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, tex_format, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
-			expandedWidth = width;
-			expandedHeight = height;
-			entry.Realw = oldWidth;
-			entry.Realh = oldHeight;
+			expandedWidth = width = newWidth;
+			expandedHeight = height = newHeight;
 		}
 	}
 
