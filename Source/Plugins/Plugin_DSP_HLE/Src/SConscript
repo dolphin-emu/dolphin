@@ -31,4 +31,4 @@ if env['HAVE_WX']:
 
 libs = [ 'common', 'audiocommon' ]
 
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = libs + env['LIBS'])

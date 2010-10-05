@@ -14,6 +14,7 @@ files = [
 	'WiimoteEmu/Attachment/Drums.cpp',
 	'WiimoteEmu/Attachment/Guitar.cpp',
 	'WiimoteEmu/Attachment/Turntable.cpp',
+	'WiimoteEmu/Attachment/Turntable.cpp',
 	'WiimoteEmu/EmuSubroutines.cpp',
 	'WiimoteEmu/Encryption.cpp',
 	'WiimoteEmu/Speaker.cpp',
@@ -33,4 +34,4 @@ if env['HAVE_WIIUSE']:
 	files += [ 'WiimoteReal/WiimoteReal.cpp' ]
 	libs += [ 'wiiuse' ]
 
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = libs + env['LIBS'])

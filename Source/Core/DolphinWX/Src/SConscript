@@ -105,6 +105,6 @@ else:
 
 if env['HAVE_WX']:
 	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
-	env.Program(exeGUI, files, LIBS = env['LIBS'] + wxlibs + libs)
+	env.Program(exeGUI, files, LIBS = wxlibs + libs + env['LIBS'])
 else:
-	env.Program(exeNoGUI, files, LIBS = env['LIBS'] + libs)
+	env.Program(exeNoGUI, files, LIBS = libs + env['LIBS'])

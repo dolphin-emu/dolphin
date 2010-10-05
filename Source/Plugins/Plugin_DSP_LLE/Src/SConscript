@@ -27,4 +27,4 @@ libs = [ 'dspcore', 'audiocommon', 'common' ]
 if env['HAVE_WX']:
 	libs += [ 'debugger_ui_util' ]
 
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = libs + env['LIBS'])
