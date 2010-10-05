@@ -39,22 +39,22 @@ Guitar::Guitar() : Attachment( "Guitar" )
 	for ( unsigned int i = 0; i < sizeof(guitar_fret_names)/sizeof(*guitar_fret_names); ++i )
 		m_frets->controls.push_back( new ControlGroup::Input( guitar_fret_names[i] ) );
 
-	// stick
-	groups.push_back( m_stick = new AnalogStick( "Stick" ) );
-
 	// strum
 	groups.push_back( m_strum = new Buttons( "Strum" ) );
 	m_strum->controls.push_back( new ControlGroup::Input("Up") );
 	m_strum->controls.push_back( new ControlGroup::Input("Down") );
 
-	// whammy
-	groups.push_back( m_whammy = new Triggers( "Whammy" ) );
-	m_whammy->controls.push_back( new ControlGroup::Input("Bar") );
-
 	// buttons
 	groups.push_back( m_buttons = new Buttons( "Buttons" ) );
 	m_buttons->controls.push_back( new ControlGroup::Input("-") );
 	m_buttons->controls.push_back( new ControlGroup::Input("+") );
+
+	// stick
+	groups.push_back( m_stick = new AnalogStick( "Stick" ) );
+
+	// whammy
+	groups.push_back( m_whammy = new Triggers( "Whammy" ) );
+	m_whammy->controls.push_back( new ControlGroup::Input("Bar") );
 
 	// set up register
 	// id

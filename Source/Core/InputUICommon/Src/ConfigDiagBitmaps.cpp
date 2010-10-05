@@ -308,6 +308,29 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 				}
 				break;
+			case GROUP_TYPE_SLIDER:
+				{
+					const ControlState deadzone =  (*g)->control_group->settings[0]->value;
+
+					ControlState state = (*g)->control_group->controls[1]->control_ref->State() - (*g)->control_group->controls[0]->control_ref->State();
+					dc.SetPen(*wxGREY_PEN);
+					dc.SetBrush(*wxGREY_BRUSH);
+					dc.DrawRectangle(31 + state * 30, 0, 2, 14);
+
+					((ControllerEmu::Slider*)(*g)->control_group)->GetState(&state, 1);
+					if (state)
+					{
+						dc.SetPen(*wxRED_PEN);
+						dc.SetBrush(*wxRED_BRUSH);
+						dc.DrawRectangle(31 + state * 30, 0, 2, 14);
+					}
+
+					// deadzone box
+					dc.SetPen(*wxLIGHT_GREY_PEN);
+					dc.SetBrush(*wxTRANSPARENT_BRUSH);
+					dc.DrawRectangle(32 - deadzone * 32, 0, deadzone * 64, 14);
+				}
+				break;
 			default :
 				break;
 			}

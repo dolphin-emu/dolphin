@@ -788,14 +788,17 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 		break;
 	case GROUP_TYPE_MIXED_TRIGGERS:
 	case GROUP_TYPE_TRIGGERS:
+	case GROUP_TYPE_SLIDER:
 		{
-			int height = (int)(6 * group->controls.size());
-			int width = 64+12+1;
-			if (GROUP_TYPE_TRIGGERS == group->type)
-			{
-				height *= 2;
-				width = 64;
-			}
+			int height = (int)(12 * group->controls.size());
+			int width = 64;
+
+			if (GROUP_TYPE_MIXED_TRIGGERS == group->type)
+				width = 64+12+1;
+			
+			if (GROUP_TYPE_TRIGGERS != group->type)
+				height /= 2;
+
 			wxBitmap bitmap(width, height+1);
 			dc.SelectObject(bitmap);
 			dc.Clear();
@@ -867,19 +870,24 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 ControlGroupsSizer::ControlGroupsSizer( ControllerEmu* const controller, wxWindow* const parent, wxWindow* const eventsink, std::vector<ControlGroupBox*>* groups )
 	: wxBoxSizer( wxHORIZONTAL )
 {
+	size_t col_size = 0;
 
 	wxBoxSizer* stacked_groups = NULL;
 	for ( unsigned int i = 0; i < controller->groups.size(); ++i )
 	{
 		ControlGroupBox* control_group = new ControlGroupBox( controller->groups[i], parent, eventsink );
 
-		if ( control_group->control_buttons.size() > 1 )
+		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
+		col_size += grp_size;
+		if (col_size > 8 || NULL == stacked_groups)
 		{
 			if ( stacked_groups )
 				Add( stacked_groups, 0, /*wxEXPAND|*/wxBOTTOM|wxRIGHT, 5 );
 
 			stacked_groups = new wxBoxSizer( wxVERTICAL );
 			stacked_groups->Add( control_group, 0, wxEXPAND );
+
+			col_size = grp_size;
 		}
 		else
 			stacked_groups->Add( control_group, 0, wxEXPAND );
@@ -890,7 +898,6 @@ ControlGroupsSizer::ControlGroupsSizer( ControllerEmu* const controller, wxWindo
 
 	if ( stacked_groups )
 		Add( stacked_groups, 0, /*wxEXPAND|*/wxBOTTOM|wxRIGHT, 5 );
-
 }
 
 GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog )

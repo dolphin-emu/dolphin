@@ -29,21 +29,23 @@ static const char* const turntable_button_names[] =
 Turntable::Turntable() : Attachment("Turntable")
 {
 	// buttons
-	// TODO: separate buttons into Left and Right
 	groups.push_back(m_buttons = new Buttons("Buttons"));
 	for (unsigned int i = 0; i < sizeof(turntable_button_names)/sizeof(*turntable_button_names); ++i)
 		m_buttons->controls.push_back(new ControlGroup::Input( turntable_button_names[i]));
 
+	// turntables
+	groups.push_back(m_left_table = new Slider("Table Left"));
+	groups.push_back(m_right_table = new Slider("Table Right"));
+
 	// stick
 	groups.push_back(m_stick = new AnalogStick("Stick"));
 
-	// TODO: 
+	// effect dial
 	groups.push_back(m_effect_dial = new Triggers("Effect"));
 	m_effect_dial->controls.push_back(new ControlGroup::Input("Dial"));
 
-	//m_left_turntable
-	//m_right_turntable
-	//m_crossfade_slider
+	// crossfade
+	groups.push_back(m_crossfade = new Slider("Crossfade"));
 
 	// set up register
 	// id
@@ -65,20 +67,18 @@ void Turntable::GetState(u8* const data, const bool focus)
 	}
 
 	// left table
-	// TODO:
 	{
 	s8 tt = 0;
-	//m_left_turntable->GetState(&tt .....);
+	m_left_table->GetState(&tt, focus ? 0x1F : 0);
 
 	ttdata->ltable1 = tt;
 	ttdata->ltable2 = tt << 5;
 	}
 
 	// right table
-	// TODO:
 	{
 	s8 tt = 0;
-	//m_right_turntable->GetState(&tt .....);
+	m_right_table->GetState(&tt, focus ? 0x1F : 0);
 
 	ttdata->rtable1 = tt;
 	ttdata->rtable2 = tt << 1;
@@ -96,10 +96,9 @@ void Turntable::GetState(u8* const data, const bool focus)
 	}
 
 	// crossfade slider
-	// TODO:
 	{
 	u8 cfs = 0;
-	//m_crossfade_slider->GetState(&cfs .....);
+	m_crossfade->GetState(&cfs, 8, 7);
 
 	ttdata->slider = cfs;
 	}

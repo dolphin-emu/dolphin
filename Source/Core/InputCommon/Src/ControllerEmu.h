@@ -45,7 +45,8 @@ enum
 	GROUP_TYPE_TILT,
 	GROUP_TYPE_CURSOR,
 	GROUP_TYPE_TRIGGERS,
-	GROUP_TYPE_UDPWII
+	GROUP_TYPE_UDPWII,
+	GROUP_TYPE_SLIDER,
 };
 
 const char * const named_directions[] = 
@@ -244,6 +245,26 @@ public:
 		}
 
 		Triggers( const char* const _name );
+
+	};
+
+	class Slider : public ControlGroup
+	{
+	public:
+
+		template <typename S>
+		void GetState(S* const slider, const unsigned int range, const unsigned int base = 0)
+		{
+			const float deadzone = settings[0]->value;
+			const float state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
+
+			if (fabsf(state) > deadzone)
+				*slider = (S)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
+			else
+				*slider = 0;
+		}
+
+		Slider(const char* const _name);
 
 	};
 

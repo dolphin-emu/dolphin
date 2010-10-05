@@ -29,13 +29,8 @@ private:
 	Buttons*		m_buttons;
 	MixedTriggers*	m_triggers;
 	AnalogStick*	m_stick;
-
 	Triggers	*m_effect_dial;
-
-	// TODO:
-	//m_left_turntable
-	//m_right_turntable
-	//m_crossfade_slider
+	Slider		*m_left_table, *m_right_table, *m_crossfade;
 };
 
 
