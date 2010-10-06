@@ -420,16 +420,19 @@ bool Renderer::Init()
 
 	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
 	g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
+	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") == NULL)
+	{
 #if CG_VERSION_NUM == 2100
 	// A bug was introduced in Cg2.1's handling of very large profile option values
 	// so this will not work on ATI. ATI returns MAXINT = 2147483647 (0x7fffffff)
 	// which is correct in OpenGL but Cg fails to handle it properly. As a result
 	// -1 is used by Cg resulting (signedness incorrect) and compilation fails.
-	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL)
+		if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL)
 #endif
-	{
-		cgGLSetOptimalOptions(g_cgvProf);
-		cgGLSetOptimalOptions(g_cgfProf);
+		{
+			cgGLSetOptimalOptions(g_cgvProf);
+			cgGLSetOptimalOptions(g_cgfProf);
+		}
 	}
 #endif	// HAVE_CG
 
