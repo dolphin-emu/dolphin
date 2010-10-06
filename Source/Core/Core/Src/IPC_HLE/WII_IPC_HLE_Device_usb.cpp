@@ -572,9 +572,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdad
 // This is called from Update() after ScanEnable has been enabled.
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
-	// We have to disable scan now to avoid running this function over and over again
-	m_ScanEnable = 0;
-
 	SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
 
 	SHCIEventRequestConnection* pEventRequestConnection = (SHCIEventRequestConnection*)Event.m_buffer;
