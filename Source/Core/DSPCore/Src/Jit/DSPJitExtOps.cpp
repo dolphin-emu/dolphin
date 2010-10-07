@@ -110,7 +110,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 #else
 		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(RDX,dreg*2), R(EAX));
+		MOV(16, MDisp(R11,dreg*2), R(EAX));
 #endif
 		increment_addr_reg(sreg);
 	}
@@ -142,7 +142,7 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 #else
 		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(RDX,dreg*2), R(EAX));
+		MOV(16, MDisp(R11,dreg*2), R(EAX));
 #endif
 		increase_addr_reg(sreg);
 	}
@@ -329,11 +329,10 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -372,11 +371,10 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -427,11 +425,10 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -468,11 +465,10 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -522,11 +518,10 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -564,11 +559,10 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -618,11 +612,10 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -659,11 +652,10 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
-		MOV(16, R(EDI), M(&g_dsp.r[g_dsp.r[DSP_REG_AR3]]));
+		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
-		MOVZX(64, 16, RDI, MDisp(R11,DSP_REG_AR3*2));
-		MOV(16, R(EDI), MComplex(R11,RDI,2,0));
+		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
