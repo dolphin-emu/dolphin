@@ -206,6 +206,21 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	, m_index(index)
 	//, m_name(TStringToString(lpddi->tszInstanceName))
 {
+	// seems this needs to be done before GetCapabilities
+	// polled or buffered data
+	DIPROPDWORD dipdw;
+	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
+	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	dipdw.diph.dwObj = 0;
+	dipdw.diph.dwHow = DIPH_DEVICE;
+	dipdw.dwData = DATA_BUFFER_SIZE;
+	// set the buffer size,
+	// if we can't set the property, we can't use buffered data
+	m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+
+	// seems this needs to be done after SetProperty of buffer size
+	m_device->Acquire();
+
 	// get joystick caps
 	DIDEVCAPS js_caps;
 	js_caps.dwSize = sizeof(js_caps);
@@ -217,17 +232,6 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
 	//m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
-
-	// polled or buffered data
-	DIPROPDWORD dipdw;
-	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
-	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-	dipdw.diph.dwObj = 0;
-	dipdw.diph.dwHow = DIPH_DEVICE;
-	dipdw.dwData = DATA_BUFFER_SIZE;
-	// set the buffer size,
-	// if we can't set the property, we can't use buffered data
-	m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
 
 	// buttons
 	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
@@ -266,9 +270,6 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			AddInput(new Axis(offset, base, range.lMax-base));
 		}
 	}
-
-	// it seems this needs to be done after SetProperty...
-	m_device->Acquire();
 
 	// TODO: check for DIDC_FORCEFEEDBACK in devcaps?
 

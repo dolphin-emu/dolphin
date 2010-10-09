@@ -19,9 +19,14 @@
 
 void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
-	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage( m_pad_notebook->GetSelection() );
-
 	wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+
+	m_plugin.controller_interface.UpdateInput();
+	// don't want game thread updating input when we are using it here
+	if (false == m_plugin.controller_interface.update_lock.TryEnter())
+		return;
+
+	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage(m_pad_notebook->GetSelection());
 
 	std::vector< ControlGroupBox* >::iterator
 		g = current_page->control_groups.begin(),
@@ -31,12 +36,6 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 		// if this control group has a bitmap
 		if ( (*g)->static_bitmap )
 		{
-
-			m_plugin.controller_interface.UpdateInput();
-			// don't want game thread updating input when we are using it here
-			if (false == m_plugin.controller_interface.update_lock.TryEnter())
-				return;
-
 			wxMemoryDC dc;
 			wxBitmap bitmap((*g)->static_bitmap->GetBitmap());
 			dc.SelectObject(bitmap);
@@ -343,9 +342,8 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 			dc.SelectObject(wxNullBitmap);
 			(*g)->static_bitmap->SetBitmap(bitmap);
-
-			m_plugin.controller_interface.update_lock.Leave();
 		}
 	}
 
+	m_plugin.controller_interface.update_lock.Leave();
 }
