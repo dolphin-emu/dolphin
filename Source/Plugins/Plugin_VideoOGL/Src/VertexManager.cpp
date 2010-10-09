@@ -191,7 +191,7 @@ void VertexManager::vFlush()
 	Draw();
 
 	// run through vertex groups again to set alpha
-	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
+	if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		ps = PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
