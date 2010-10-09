@@ -25,7 +25,7 @@
 
 #define MAX_BLOCKS 0x10000
 
-typedef void (*CompiledCode)();
+typedef u32 (*CompiledCode)();
 
 class DSPEmitter : public Gen::XCodeBlock
 {
@@ -49,7 +49,7 @@ public:
 	// Register helpers
 	void setCompileSR(u16 bit);
 	void clrCompileSR(u16 bit);
-	void checkExceptions();
+	void checkExceptions(u32 retval);
 
 	// Memory helper functions
 	void increment_addr_reg(int reg);

@@ -65,7 +65,7 @@ void DSPEmitter::ClearIRAM() {
 
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions() {
+void DSPEmitter::checkExceptions(u32 retval) {
 	/*
 	// check if there is an external interrupt
 	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
@@ -97,6 +97,7 @@ void DSPEmitter::checkExceptions() {
 	
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	MOV(32,R(EAX),Imm32(retval));
 	RET();
 	
 	SetJumpTarget(skipCheck);
@@ -162,14 +163,15 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	//	ABI_AlignStack(0);
 
 	int addr = start_addr;
-	checkExceptions();
 	blockSize[start_addr] = 0;
+	checkExceptions(blockSize[start_addr]);
 	while (addr < start_addr + MAX_BLOCK_SIZE)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
-		
+
 		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
+		// fallbacks to interpreter need this for fetching immedate values
 #ifdef _M_IX86 // All32
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
 #else
@@ -178,9 +180,12 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 #endif
 
 		EmitInstruction(inst);
-				
+
+		blockSize[start_addr]++;
+
 		// Handle loop condition, only if current instruction was flagged as a loop destination
 		// by the analyzer.  COMMENTED OUT - this breaks Zelda TP. Bah.
+		//probably just misses a +opcode->size-1
 
 		// if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END)
 		{
@@ -207,13 +212,12 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 			ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
 			//		ABI_RestoreStack(0);
 			ABI_PopAllCalleeSavedRegsAndAdjustStack();
+			MOV(32,R(EAX),Imm32(blockSize[start_addr]));
 			RET();
 
 			SetJumpTarget(rLoopAddressExit);
 			SetJumpTarget(rLoopCounterExit);
 		}
-
-		blockSize[start_addr]++;
 
 		// End the block if we're at a loop end.
 		if (opcode->branch ||
@@ -224,10 +228,6 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		addr += opcode->size;
 	}
 
-	//	ABI_RestoreStack(0);
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
-
 	blocks[start_addr] = (CompiledCode)entryPoint;
 	if (blockSize[start_addr] == 0) 
 	{
@@ -236,6 +236,11 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		ERROR_LOG(DSPLLE, "Block at 0x%04x has zero size", start_addr);
 		blockSize[start_addr] = 1;
 	}
+
+	//	ABI_RestoreStack(0);
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+	RET();
 
 	return entryPoint;
 }
@@ -273,14 +278,14 @@ int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 		// Execute the block if we have enough cycles
 		if (cycles > block_size)
 		{
-			blocks[block_addr]();
+			int c = blocks[block_addr]();
 			if (DSPAnalyzer::code_flags[block_addr] & DSPAnalyzer::CODE_IDLE_SKIP) {
 				if (cycles > idle_cycles)
 					cycles -= idle_cycles;
 				else
 					cycles = 0;
 			} else {
-				cycles -= block_size;
+				cycles -= c;
 			}
 		}
 		else {
