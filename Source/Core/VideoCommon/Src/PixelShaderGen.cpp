@@ -166,6 +166,7 @@ static void SampleTexture(char *&p, const char *destination, const char *texcoor
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
 static void WriteFog(char *&p);
+static int AlphaPreTest();
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -541,8 +542,27 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 	}
 	WRITE(p, "        ) {\n");
 
-	char* pmainstart = p;	
-	
+	char* pmainstart = p;
+	int Pretest = AlphaPreTest();
+	if (dstAlphaEnable && !DepthTextureEnable && Pretest >= 0)
+	{
+		if (!Pretest)
+		{
+			// alpha test will always fail, so restart the shader and just make it an empty function
+			WRITE(p, "ocol0 = 0;\n");
+			if(DepthTextureEnable)
+				WRITE(p, "depth = 1.f;\n");
+			WRITE(p, "discard;\n");
+			if(ApiType != API_D3D11)
+				WRITE(p, "return;\n");
+		}
+		else
+		{
+			WRITE(p, "  ocol0 = "I_ALPHA"[0].aaaa;\n");
+		}
+		WRITE(p, "}\n");
+		return text;
+	}
 
 	WRITE(p, "  float4 c0 = "I_COLORS"[1], c1 = "I_COLORS"[2], c2 = "I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
@@ -970,7 +990,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (bCKonst || bAKonst )
 	{
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		if(kc > 12 || ka > 15)
+		if(kc > 7 || ka > 7)
 		{
 			WRITE(p, "ckonsttemp = frac(4.0f + konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 		}
@@ -1196,8 +1216,7 @@ static const char *tevAlphaFunclogicTable[] =
 	" != ", // xor
 	" == "  // xnor
 };
-
-static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
+static int AlphaPreTest()
 {
 	u32 op = bpmem.alphaFunc.logic;
 	u32 comp[2] = {bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1};
@@ -1227,7 +1246,18 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 		break;
 	default: PanicAlert("bad logic for alpha test? %08x", op);
 	}
+	return -1;
+}
 
+
+static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
+{
+	
+	int Pretest = AlphaPreTest();
+	if(Pretest >= 0)
+	{
+		return Pretest;
+	}
 
 	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "if(!( ");
