@@ -19,6 +19,7 @@
 #include "ChunkFile.h"
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
+#include "../HW/SystemTimers.h"
 
 #include "StreamADPCM.h" // Core
 #include "DVDInterface.h"
@@ -27,6 +28,9 @@
 #include "Thread.h"
 #include "Memmap.h"
 #include "../VolumeHandler.h"
+
+// Disc transfer rate measured in bytes per second
+#define DISC_TRANSFER_RATE (3125 * 1024)
 
 namespace DVDInterface
 {
@@ -151,7 +155,7 @@ union UDICR
 	{
 		u32 TSTART		:	1;	// w:1 start   r:0 ready
 		u32 DMA			:	1;	// 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
-		u32 RW			:	1;	// 0: Read Command (DVD to Memory)  1: Write COmmand (Memory to DVD)
+		u32 RW			:	1;	// 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
 		u32				:  29;
 	};
 };
@@ -200,6 +204,7 @@ static u32			AudioLength;
 u32	 g_ErrorCode = 0;
 bool g_bDiscInside = false;
 bool g_bStream = false;
+int  tc = 0;
 
 // GC-AM only
 static unsigned char media_buffer[0x40];
@@ -209,8 +214,10 @@ static unsigned char media_buffer[0x40];
 Common::CriticalSection dvdread_section;
 
 static int ejectDisc;
-void EjectDiscCallback(u64 userdata, int cyclesLate);
 static int insertDisc;
+static int executeDVD;
+
+void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
@@ -237,6 +244,12 @@ void DoState(PointerWrap &p)
 	p.Do(g_bDiscInside);
 }
 
+void TransferComplete(u64 userdata, int cyclesLate)
+{
+	if (m_DICR.TSTART)
+		ExecuteCommand(m_DICR);
+}
+
 void Init()
 {
 	m_DISR.Hex		= 0;
@@ -257,6 +270,8 @@ void Init()
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
+
+	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
 }
 
 void Shutdown()
@@ -445,7 +460,17 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		{
 			m_DICR.Hex = _iValue & 7;
 			if (m_DICR.TSTART)
-				ExecuteCommand(m_DICR);
+			{
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEmulateDiscSpeed)
+				{
+					u64 ticksUntilTC = m_DILENGTH.Length * (SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE);
+					CoreTiming::ScheduleEvent(ticksUntilTC, tc);
+				}
+				else
+				{
+					ExecuteCommand(m_DICR);
+				}
+			}
 		}
 		break;
 

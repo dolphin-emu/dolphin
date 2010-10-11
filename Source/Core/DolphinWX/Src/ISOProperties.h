@@ -85,7 +85,7 @@ class CISOProperties : public wxDialog
 		wxStaticText *OverrideText;
 		// Core
 		wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
-		wxCheckBox *AlternateRFI, *BlockMerging;
+		wxCheckBox *AlternateRFI, *EmulateDiscSpeed, *BlockMerging;
 		// Wii
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
 		// Video
@@ -170,6 +170,7 @@ class CISOProperties : public wxDialog
 			ID_MMUBAT,
 			ID_TLBHACK,
 			ID_RFI,
+			ID_DISCSPEED,
 			ID_MERGEBLOCKS,
 			ID_FORCEFILTERING,
 			ID_EFBCOPYDISABLE,
