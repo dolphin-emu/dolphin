@@ -142,7 +142,7 @@ LCleanup:
 }
 #endif
 
-void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ )
+void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
 {
 	std::list<DIDEVICEINSTANCE> joysticks;
 	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY );
@@ -171,8 +171,7 @@ void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::D
 		{
 			if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
 			{
-				// using foregroundwindow seems like a hack
-				if (FAILED(js_device->SetCooperativeLevel(GetForegroundWindow(), DISCL_BACKGROUND | DISCL_EXCLUSIVE)))
+				if (FAILED(js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT), DISCL_BACKGROUND | DISCL_EXCLUSIVE)))
 				{
 					//PanicAlert("SetCooperativeLevel(DISCL_EXCLUSIVE) failed!");
 					// fall back to non-exclusive mode, with no rumble

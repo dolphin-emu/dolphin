@@ -21,7 +21,7 @@ namespace ciface
 namespace DInput
 {
 
-void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ );
+void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND hwnd);
 
 class Joystick : public ControllerInterface::Device
 {

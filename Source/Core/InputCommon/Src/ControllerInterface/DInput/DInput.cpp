@@ -71,7 +71,7 @@ void Init(std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
 	InitKeyboardMouse(idi8, devices, hwnd);
 #endif
 #ifdef CIFACE_USE_DINPUT_JOYSTICK
-	InitJoystick(idi8, devices/*, hwnd*/);
+	InitJoystick(idi8, devices, hwnd);
 #endif
 
 	idi8->Release();

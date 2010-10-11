@@ -434,6 +434,10 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			// motion plus
 			case 0xa6 :
 				{
+					// emulated motion plus is not yet supported
+					// return read error
+					size = 0;
+
 					// motion plus crap copied from old wiimote plugin
 					//block[0xFC] = 0xA6;
 					//block[0xFD] = 0x20;
