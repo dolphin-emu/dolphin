@@ -59,7 +59,7 @@ files = [
 	"HW/WiimoteEmu/Attachment/Turntable.cpp",
 	"HW/WiimoteEmu/EmuSubroutines.cpp",
 	"HW/WiimoteEmu/Encryption.cpp",
-	"HW/WiimoteEmu/Speaker.cpp",
+	#"HW/WiimoteEmu/Speaker.cpp",
 	"HW/GCPadEmu.cpp",
 	"HW/HW.cpp",
 	"HW/Memmap.cpp",

@@ -6,8 +6,8 @@ files = [
 	'ControllerEmu.cpp',
 	'InputConfig.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
-	'UDPWiimote.cpp',
-	'UDPWrapper.cpp',
+	#'UDPWiimote.cpp',
+	#'UDPWrapper.cpp',
 	]
 
 if sys.platform == 'win32':
@@ -23,6 +23,7 @@ elif sys.platform == 'darwin':
 		'ControllerInterface/OSX/OSX.mm',
 		'ControllerInterface/OSX/OSXKeyboard.mm',
 		'ControllerInterface/OSX/OSXMouse.mm',
+		'ControllerInterface/SDL/SDL.cpp',
 		]
 elif env['HAVE_X11']:
 	files += [

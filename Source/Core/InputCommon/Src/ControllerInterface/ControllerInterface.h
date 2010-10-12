@@ -28,6 +28,7 @@
 #endif
 #if defined(__APPLE__)
 	#define CIFACE_USE_OSX
+	#define CIFACE_USE_SDL
 #endif
 
 // idk in case i wanted to change it to double or somethin, idk what's best

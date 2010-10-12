@@ -133,7 +133,7 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LIBPATH'] += ['/Developer/SDKs/MacOSX10.5.sdk/usr/lib']
-    env['LIBS'] = ['gcc_s.10.5', 'iconv']
+    env['LIBS'] = ['gcc_s.10.5', 'iconv', 'SDL']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
     env['LINKFLAGS'] += [
@@ -371,6 +371,7 @@ dirs = [
     'Source/Plugins/Plugin_DSP_LLE/Src',
     #'Source/Plugins/Plugin_VideoDX11/Src',
     #'Source/Plugins/Plugin_VideoDX9/Src',
+    #'Source/Plugins/Plugin_VideoMerge/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/UnitTests',
