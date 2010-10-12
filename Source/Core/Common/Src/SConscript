@@ -30,7 +30,6 @@ files = [
 	"OpenCL.cpp",
 	"Plugin.cpp",
 	"PluginDSP.cpp",
-	"PluginWiimote.cpp",
 	"PluginVideo.cpp",
 	"SDCardUtil.cpp",
 	"StringUtil.cpp",

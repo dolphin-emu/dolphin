@@ -104,6 +104,9 @@ else:
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
+if env['HAVE_WIIUSE']:
+	libs += [ 'wiiuse' ]   
+
 if env['HAVE_WX']:
 	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
 	env.Program(exeGUI, files, LIBS = wxlibs + libs + env['LIBS'])

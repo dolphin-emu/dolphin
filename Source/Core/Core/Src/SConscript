@@ -136,6 +136,13 @@ files = [
 	"PowerPC/Jit64/Jit64_Tables.cpp",
 	]
 
+libs = [
+	'bdisasm',
+	'inputcommon',
+	'lua',
+	'sfml-network',
+	]
+
 if sys.platform == 'win32':
 	files += [ "HW/BBA-TAP/TAP_Win32.cpp", "stdafx.cpp" ]
 elif sys.platform == 'darwin':
@@ -145,13 +152,5 @@ else:
 
 if env['HAVE_WIIUSE']:
 	files += [ 'HW/WiimoteReal/WiimoteReal.cpp' ]
-	libs += [ 'wiiuse' ]
-	
-libs = [
-	'bdisasm',
-	'inputcommon',
-	'lua',
-	'sfml-network',
-	]
 
 env.StaticLibrary(env['local_libs'] + 'core', files, LIBS = libs)

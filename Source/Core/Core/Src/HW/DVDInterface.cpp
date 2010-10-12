@@ -215,7 +215,6 @@ Common::CriticalSection dvdread_section;
 
 static int ejectDisc;
 static int insertDisc;
-static int executeDVD;
 
 void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
