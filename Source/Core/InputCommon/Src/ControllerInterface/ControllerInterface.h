@@ -210,9 +210,9 @@ public:
 	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}
 	
 	void SetHwnd(void* const hwnd);
-	void Init();
+	void Initialize();
 	// TODO: remove this hack param
-	void DeInit(const bool hacks_no_sdl_quit = false);
+	void Shutdown();
 	bool IsInit() const { return m_is_init; }
 
 	void UpdateReference(ControlReference* control, const DeviceQualifier& default_device) const;
@@ -229,5 +229,7 @@ private:
 	std::vector<Device*>	m_devices;
 	void*					m_hwnd;
 };
+
+extern ControllerInterface g_controller_interface;
 
 #endif

@@ -1,4 +1,7 @@
-#ifndef UDPWIIMOTE_H
+
+//#define USE_UDP_WIIMOTE
+
+#if (!defined(UDPWIIMOTE_H) && defined(USE_UDP_WIIMOTE))
 #define UDPWIIMOTE_H
 
 #include "Common.h"

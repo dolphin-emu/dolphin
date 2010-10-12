@@ -131,7 +131,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
-	PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	u32 netValues[2] = {0};
 	int NetPlay = 2;
@@ -281,7 +281,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 #endif
 
 			if (numPAD < 4)
-				PAD_Rumble(numPAD, uType, uStrength);
+				Pad::Rumble(numPAD, uType, uStrength);
 
 			if (!_Poll)
 			{

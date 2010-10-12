@@ -33,6 +33,8 @@ if env['HAVE_WX']:
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',
 		'HotkeyDlg.cpp',
+		'InputConfigDiag.cpp',
+		'InputConfigDiagBitmaps.cpp',
 		'ISOFile.cpp',
 		'ISOProperties.cpp',
 		'PatchAddEdit.cpp',
@@ -43,6 +45,7 @@ if env['HAVE_WX']:
 		'NetPlayClient.cpp',
 		'NetPlayServer.cpp',
 		'NetWindow.cpp',
+		'WiimoteConfigDiag.cpp',
 		]
 
 	wxlibs = [ 'debwx', 'debugger_ui_util', 'inputuicommon', 'memcard' ]
@@ -96,8 +99,6 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	env.Depends(exeGUIdist, env['plugin_dir'])
 	env.Fixup(exeGUIdist, exeGUI)
 else:
-	files += [ 'X11Utils.cpp' ]
-	libs += [ 'SDL' ]
 	exeGUI = env['binary_dir'] + '/dolphin-emu'
 	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')

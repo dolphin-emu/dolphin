@@ -373,8 +373,6 @@ dirs = [
     #'Source/Plugins/Plugin_VideoDX9/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/Plugins/Plugin_Wiimote/Src',
-    'Source/Plugins/Plugin_WiimoteNew/Src',
     'Source/UnitTests',
     ]
 

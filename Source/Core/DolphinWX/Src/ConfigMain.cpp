@@ -130,9 +130,6 @@ EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_DSP_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_DSP_CONFIG, CConfigMain::OnConfig)
 
-EVT_CHOICE(ID_WIIMOTE_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_WIIMOTE_CONFIG, CConfigMain::OnConfig)
-
 END_EVENT_TABLE()
 
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -199,7 +196,6 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on PluginsPage
 		GraphicSelection->Disable();
 		DSPSelection->Disable();
-		WiimoteSelection->Disable();
 	}
 }
 
@@ -329,7 +325,6 @@ void CConfigMain::InitializeGUIValues()
 	// Plugins
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 }
 
 void CConfigMain::InitializeGUITooltips()
@@ -743,10 +738,6 @@ void CConfigMain::CreateGUIControls()
 	DSPSelection = new wxChoice(PluginsPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	DSPConfig = new wxButton(PluginsPage, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	sbWiimotePlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("Wiimote"));
-	WiimoteSelection = new wxChoice(PluginsPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
-	WiimoteConfig = new wxButton(PluginsPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	// Populate the settings
 	sbGraphicsPlugin->Add(GraphicSelection, 1, wxEXPAND|wxALL, 5);
 	sbGraphicsPlugin->Add(GraphicConfig, 0, wxALL, 5);
@@ -754,14 +745,10 @@ void CConfigMain::CreateGUIControls()
 	sbDSPPlugin->Add(DSPSelection, 1, wxEXPAND|wxALL, 5);
 	sbDSPPlugin->Add(DSPConfig, 0, wxALL, 5);
 
-	sbWiimotePlugin->Add(WiimoteSelection, 1, wxEXPAND|wxALL, 5);
-	sbWiimotePlugin->Add(WiimoteConfig, 0, wxALL, 5);
-
 	// Populate the Plugins page
 	sPluginsPage = new wxBoxSizer(wxVERTICAL);
 	sPluginsPage->Add(sbGraphicsPlugin, 0, wxEXPAND|wxALL, 5);
 	sPluginsPage->Add(sbDSPPlugin, 0, wxEXPAND|wxALL, 5);
-	sPluginsPage->Add(sbWiimotePlugin, 0, wxEXPAND|wxALL, 5);
 
 	PluginsPage->SetSizer(sPluginsPage);
 	sPluginsPage->Layout();
@@ -1155,8 +1142,6 @@ void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 		CPluginManager::GetInstance().FreeVideo();
 	if (GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin))
 		CPluginManager::GetInstance().FreeDSP();
-	if (GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin))
-		CPluginManager::GetInstance().FreeWiimote();
 }
 
 void CConfigMain::OnConfig(wxCommandEvent& event)
@@ -1168,9 +1153,6 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 			break;
 		case ID_DSP_CONFIG:
 			CallConfig(DSPSelection);
-			break;
-		case ID_WIIMOTE_CONFIG:
-			CallConfig(WiimoteSelection);
 			break;
 	}
 }

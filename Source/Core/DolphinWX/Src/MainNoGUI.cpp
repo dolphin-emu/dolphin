@@ -392,6 +392,7 @@ int main(int argc, char* argv[])
 	}
 	updateMainFrameEvent.Shutdown();
 
+	WiimoteReal::Shutdown();
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
 	LogManager::Shutdown();

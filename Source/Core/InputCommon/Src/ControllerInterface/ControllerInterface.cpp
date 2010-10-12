@@ -20,14 +20,16 @@
 
 #define INPUT_DETECT_THRESHOLD			0.85
 
+ControllerInterface g_controller_interface;
+
 //
 //		Init
 //
 // detect devices and inputs outputs / will make refresh function later
 //
-void ControllerInterface::Init()
+void ControllerInterface::Initialize()
 {
-	if ( m_is_init )
+	if (m_is_init)
 		return;
 
 #ifdef CIFACE_USE_DINPUT
@@ -54,9 +56,9 @@ void ControllerInterface::Init()
 //
 // remove all devices/ call library cleanup functions
 //
-void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
+void ControllerInterface::Shutdown()
 {
-	if ( false == m_is_init )
+	if (false == m_is_init)
 		return;
 
 	std::vector<Device*>::const_iterator
@@ -72,12 +74,6 @@ void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
 			(*d)->SetOutputState(*o, 0);
 		// update output
 		(*d)->UpdateOutput();
-
-		// TODO: remove this
-		// major hacks/memleaks to prevent gcpad/wiimote new from crashing eachother
-		if (hacks_no_sdl_quit)
-			if ((*d)->GetSource() == "SDL")
-				continue;
 
 		//delete device
 		delete *d;
@@ -99,8 +95,7 @@ void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
 #endif
 #ifdef CIFACE_USE_SDL
 	// TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-	if (false == hacks_no_sdl_quit)
-		SDL_Quit();
+	SDL_Quit();
 #endif
 
 	m_is_init = false;

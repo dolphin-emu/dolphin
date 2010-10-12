@@ -298,9 +298,8 @@ ControllerEmu::Tilt::Tilt( const char* const _name )
 	settings.push_back( new Setting("Circle Stick", 0 ) );
 }
 
-ControllerEmu::Cursor::Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize )
-	: ControlGroup( _name, GROUP_TYPE_CURSOR )
-	, wiimote_initialize(_wiimote_initialize)
+ControllerEmu::Cursor::Cursor(const char* const _name)
+	: ControlGroup(_name, GROUP_TYPE_CURSOR)
 	, m_z(0)
 {
 	for ( unsigned int i = 0; i < 4; ++i )

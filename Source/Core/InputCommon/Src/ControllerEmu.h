@@ -27,7 +27,6 @@
 #include <algorithm>
 
 #include "GCPadStatus.h"
-#include "pluginspecs_wiimote.h"
 
 #include "ControllerInterface/ControllerInterface.h"
 #include "IniFile.h"
@@ -374,7 +373,7 @@ public:
 	class Cursor : public ControlGroup
 	{
 	public:
-		Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize );
+		Cursor(const char* const _name);
 
 		template <typename C>
 		void GetState( C* const x, C* const y, C* const z, const bool adjusted = false )
@@ -411,9 +410,6 @@ public:
 				*y = yy;
 			}
 		}
-
-	private:
-		const SWiimoteInitialize* const wiimote_initialize;
 
 		float	m_z;
 	};

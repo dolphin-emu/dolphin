@@ -405,18 +405,6 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\Src\ConfigDiag.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ConfigDiag.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ConfigDiagBitmaps.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>

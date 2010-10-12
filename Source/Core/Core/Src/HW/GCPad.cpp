@@ -23,47 +23,42 @@
 
 #include "../../InputCommon/Src/InputConfig.h"
 
-static InputPlugin g_plugin("GCPadNew", "Pad", "GCPad");
+namespace Pad
+{
 
-InputPlugin *PAD_GetPlugin() {
+static InputPlugin g_plugin("GCPadNew", "Pad", "GCPad");
+InputPlugin *GetPlugin()
+{
 	return &g_plugin;
 }
 
-void GCPad_Deinit()
+void Shutdown()
 {
-	if ( g_plugin.controller_interface.IsInit() )
-	{
-		std::vector<ControllerEmu*>::const_iterator
-			i = g_plugin.controllers.begin(),
-			e = g_plugin.controllers.end();
-		for ( ; i!=e; ++i )
-			delete *i;
-		g_plugin.controllers.clear();
+	std::vector<ControllerEmu*>::const_iterator
+		i = g_plugin.controllers.begin(),
+		e = g_plugin.controllers.end();
+	for ( ; i!=e; ++i )
+		delete *i;
+	g_plugin.controllers.clear();
 
-		g_plugin.controller_interface.DeInit();
-	}
+	g_controller_interface.Shutdown();
 }
 
 // if plugin isn't initialized, init and load config
-void GCPad_Init( void* const hwnd )
+void Initialize(void* const hwnd)
 {
-	// i realize i am checking IsInit() twice, just too lazy to change it
-	if ( false == g_plugin.controller_interface.IsInit() )
-	{
-		// add 4 gcpads
-		for (unsigned int i=0; i<4; ++i)
-			g_plugin.controllers.push_back(new GCPad(i));
-		
-		// needed for Xlib
-		g_plugin.controller_interface.SetHwnd(hwnd);
-		g_plugin.controller_interface.Init();
+	// add 4 gcpads
+	for (unsigned int i=0; i<4; ++i)
+		g_plugin.controllers.push_back(new GCPad(i));
 
-		// load the saved controller config
-		g_plugin.LoadConfig();
-	}
+	g_controller_interface.SetHwnd(hwnd);
+	g_controller_interface.Initialize();
+
+	// load the saved controller config
+	g_plugin.LoadConfig();
 }
 
-void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
@@ -84,8 +79,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	static int _last_numPAD = 4;
 	if (_numPAD <= _last_numPAD)
 	{
-		g_plugin.controller_interface.UpdateOutput();
-		g_plugin.controller_interface.UpdateInput();
+		g_controller_interface.UpdateOutput();
+		g_controller_interface.UpdateInput();
 	}
 	_last_numPAD = _numPAD;
 	
@@ -102,7 +97,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 // input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
 // output:   none
 //
-void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	// enter
 	if ( g_plugin.controls_crit.TryEnter() )
@@ -114,4 +109,6 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		// leave
 		g_plugin.controls_crit.Leave();
 	}
+}
+
 }

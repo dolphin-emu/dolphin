@@ -71,7 +71,6 @@ CPluginManager::CPluginManager()
 	// Set initial values to NULL.
 	m_video = NULL;
 	m_dsp = NULL;
-	m_wiimote = NULL;
 }
 
 // This will call FreeLibrary() for all plugins
@@ -81,14 +80,6 @@ CPluginManager::~CPluginManager()
 
 	delete m_PluginGlobals;
 	delete m_dsp;
-
-	if (m_wiimote)
-	{
-		m_wiimote->Shutdown();
-		delete m_wiimote;
-		m_wiimote = NULL;
-	}
-
 	delete m_video;
 }
 
@@ -118,18 +109,6 @@ bool CPluginManager::InitPlugins()
 		return false;
 	}
 
-	// Init wiimote
-	if (m_params->bWii)
-	{
-		if (!m_params->m_strWiimotePlugin.empty())
-			GetWiimote();
-		if (!m_wiimote)
-		{
-			PanicAlert("Can't init Wiimote Plugin");
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -138,12 +117,6 @@ bool CPluginManager::InitPlugins()
 // for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
-	if (m_wiimote)
-	{
-		m_wiimote->Shutdown();
-		FreeWiimote();
-	}
-
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
@@ -247,10 +220,6 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		plugin = new Common::PluginDSP(_rFilename);
 		break;
 	
-	case PLUGIN_TYPE_WIIMOTE:
-		plugin = new Common::PluginWiimote(_rFilename);
-		break;
-	
 	default:
 		PanicAlert("Trying to load unsupported type %d", type);
 		return NULL;
@@ -319,26 +288,11 @@ void CPluginManager::ScanForPlugins()
 
 
 /* Create or return the already created plugin pointers. This will be called
-   often for Wiimote. And often for the DSP from the DSP files.
+   often for the DSP from the DSP files.
    
    We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
    if it's not valid.
    */
-
-Common::PluginWiimote *CPluginManager::GetWiimote()
-{
-	if (m_wiimote != NULL)
-	{
-		if (m_wiimote->GetFilename() == m_params->m_strWiimotePlugin)
-			return m_wiimote;
-		else
-			FreeWiimote();
-	}
-	
-	// Else load a new plugin
-	m_wiimote = (Common::PluginWiimote*)LoadPlugin(m_params->m_strWiimotePlugin.c_str());
-	return m_wiimote;
-}
 
 Common::PluginDSP *CPluginManager::GetDSP()
 {
@@ -384,17 +338,10 @@ void CPluginManager::FreeDSP()
 	m_dsp = NULL;
 }
 
-void CPluginManager::FreeWiimote()
-{
-	delete m_wiimote;
-	m_wiimote = NULL;
-}
-
 void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	GetVideo()->EmuStateChange(newState);
 	GetDSP()->EmuStateChange(newState);
-	GetWiimote()->EmuStateChange(newState);
 }
 
 
@@ -417,16 +364,15 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		if (GetVideo() != NULL)
 			GetVideo()->Config(_Parent);
 		break;
+
 	case PLUGIN_TYPE_DSP:
 		if (GetDSP() != NULL)
 			GetDSP()->Config(_Parent);
 		break;
-	case PLUGIN_TYPE_WIIMOTE:
-		if (GetWiimote() != NULL)
-			GetWiimote()->Config(_Parent);
-		break;
+
 	default:
 		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename);
+		break;
 	}
 }
 
@@ -444,11 +390,14 @@ void *CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TY
 	case PLUGIN_TYPE_VIDEO:
 		return GetVideo()->Debug(_Parent, Show);
 		break;
+
 	case PLUGIN_TYPE_DSP:
 		return GetDSP()->Debug(_Parent, Show);
 		break;
+
 	default:
 		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename);
 		return NULL;
+		break;
 	}
 }

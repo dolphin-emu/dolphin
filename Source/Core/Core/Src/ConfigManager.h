@@ -50,7 +50,6 @@ struct SConfig
 	// hard coded default plugins ...
 	std::string m_DefaultGFXPlugin;
 	std::string m_DefaultDSPPlugin;
-	std::string m_DefaultWiiMotePlugin;
 
 	// name of the last used filename
 	std::string m_LastFilename;

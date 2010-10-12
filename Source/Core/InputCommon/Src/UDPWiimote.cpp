@@ -1,4 +1,7 @@
+
 #include "UDPWiimote.h"
+
+#ifdef USE_UDP_WIIMOTE
 
 #ifdef _WIN32
 
@@ -418,3 +421,5 @@ void UDPWiimote::changeName(const char * name)
 	displayName=name;
 	d->nameMutex.Leave();
 }
+
+#endif

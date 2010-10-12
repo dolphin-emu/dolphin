@@ -3,13 +3,11 @@ import sys
 Import('env')
 
 files = [
-	'Configuration.cpp',
 	'ControllerEmu.cpp',
 	'InputConfig.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
 	'UDPWiimote.cpp',
 	'UDPWrapper.cpp',
-	'SDL_Util.cpp',		# XXX needed by old Wiimote plugin
 	]
 
 if sys.platform == 'win32':
@@ -30,7 +28,6 @@ elif env['HAVE_X11']:
 	files += [
 		'ControllerInterface/SDL/SDL.cpp',
 		'ControllerInterface/Xlib/Xlib.cpp',
-		'X11InputBase.cpp'
 		]
 
 env.StaticLibrary(env['local_libs'] + "inputcommon", files)

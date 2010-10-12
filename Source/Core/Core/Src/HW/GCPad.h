@@ -19,10 +19,20 @@
 #include "GCPadStatus.h"
 #include "../../InputCommon/Src/InputConfig.h"
 
-void GCPad_Init( void* const hwnd );
-void GCPad_Deinit();
+#ifndef _GCPAD_H_
+#define _GCPAD_H_
 
-void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
-void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
+namespace Pad
+{
 
-InputPlugin *PAD_GetPlugin();
+void Shutdown();
+void Initialize(void* const hwnd);
+
+InputPlugin *GetPlugin();
+
+void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
+void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
+
+}
+
+#endif

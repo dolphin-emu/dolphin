@@ -1,4 +1,8 @@
+
 #include "UDPWrapper.h"
+
+#ifdef USE_UDP_WIIMOTE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -196,4 +200,6 @@ void UDPWrapper::Configure(wxWindow * parent)
 	diag->ShowModal();
 	diag->Destroy();
 }
+#endif
+
 #endif

@@ -66,6 +66,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -131,6 +133,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -197,6 +201,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -264,7 +270,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
 				OutputFile="$(OutDir)\$(ProjectName).lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -326,6 +334,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -388,6 +398,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="xinput.lib"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -478,10 +490,6 @@
 			</Filter>
 		</Filter>
 		<File
-			RelativePath=".\Src\Configuration.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\ControllerEmu.cpp"
 			>
 		</File>
@@ -490,19 +498,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DirectInputBase.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DirectInputBase.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\GCPadStatus.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\InputCommon.h"
 			>
 		</File>
 		<File
@@ -515,14 +511,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SDL_Util.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SDL_Util.h"
 			>
 		</File>
 		<File
@@ -539,14 +527,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\UDPWrapper.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XInput_Util.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XInput_Util.h"
 			>
 		</File>
 	</Files>

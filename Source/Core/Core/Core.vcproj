@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -69,8 +69,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="wiiuse.lib"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -115,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -140,7 +141,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -189,7 +190,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -213,8 +214,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="wiiuse.lib"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -266,7 +268,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -290,8 +292,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="wiiuse.lib"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\Lua\$(OutDir)\Lua.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\Lua\$(OutDir)\Lua.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -340,7 +343,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="true"
@@ -363,8 +366,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="wiiuse.lib"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -414,7 +418,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include;..\..\..\Externals\WiiUse\Src"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -437,7 +441,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				OutputFile="$(OutDir)/Core.lib"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -793,6 +797,122 @@
 					RelativePath=".\Src\HW\GCPadEmu.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="Wiimote"
+				>
+				<File
+					RelativePath=".\Src\HW\Wiimote.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\Wiimote.h"
+					>
+				</File>
+				<Filter
+					Name="Emu"
+					>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\EmuSubroutines.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\Encryption.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\Encryption.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\MatrixMath.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\Speaker.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\UDPTLayer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\WiimoteEmu.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\WiimoteEmu.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteEmu\WiimoteHid.h"
+						>
+					</File>
+					<Filter
+						Name="Attachment"
+						>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Attachment.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Attachment.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Classic.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Classic.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Drums.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Drums.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Guitar.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Guitar.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Nunchuk.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Nunchuk.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Turntable.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\WiimoteEmu\Attachment\Turntable.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
+				<Filter
+					Name="Real"
+					>
+					<File
+						RelativePath=".\Src\HW\WiimoteReal\WiimoteReal.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\WiimoteReal\WiimoteReal.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

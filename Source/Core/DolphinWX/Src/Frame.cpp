@@ -817,9 +817,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				&& event.GetModifiers() == wxMOD_SHIFT)
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 #endif
-
-		// Send the keyboard status to the Input plugins
-		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
 	else
 		event.Skip();
@@ -828,10 +825,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
 	event.Skip();
-
-	if(Core::GetState() != Core::CORE_UNINITIALIZED) {
-		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
-	}
 }
 
 void CFrame::DoFullscreen(bool bF)

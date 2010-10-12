@@ -21,7 +21,6 @@
 #include "Plugin.h"
 #include "PluginDSP.h"
 #include "PluginVideo.h"
-#include "PluginWiimote.h"
 #include "CoreParameter.h"
 
 class CPluginInfo
@@ -51,11 +50,9 @@ public:
 
 	Common::PluginVideo *GetVideo();
 	Common::PluginDSP *GetDSP();
-	Common::PluginWiimote *GetWiimote();
 
 	void FreeVideo();
 	void FreeDSP();
-	void FreeWiimote();
 
 	void EmuStateChange(PLUGIN_EMUSTATE newState);
 
@@ -75,7 +72,6 @@ private:
 	PLUGIN_GLOBALS *m_PluginGlobals;
 	Common::PluginVideo *m_video;
 	Common::PluginDSP *m_dsp;
-	Common::PluginWiimote *m_wiimote;
 
 	SCoreStartupParameter * m_params;
 	CPluginManager();

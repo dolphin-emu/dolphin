@@ -45,6 +45,7 @@
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
 #include "HW/GCPad.h"
+#include "HW/Wiimote.h"
 #include "HW/HW.h"
 #include "HW/DSP.h"
 #include "HW/GPFifo.h"
@@ -382,20 +383,11 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 	
-	GCPad_Init(g_pWindowHandle);
+	Pad::Initialize(g_pWindowHandle);
 
-	// Load and Init WiimotePlugin - only if we are booting in wii mode	
+	// Load and Init Wiimotes - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
-	{
-		SWiimoteInitialize WiimoteInitialize;
-		WiimoteInitialize.hWnd			= g_pWindowHandle;
-		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
-		WiimoteInitialize.pLog			= Callback_WiimoteLog;
-		WiimoteInitialize.pWiimoteInterruptChannel = Callback_WiimoteInterruptChannel;
-		WiimoteInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
-		// Wait for Wiiuse to find the number of connected Wiimotes
-		Plugins.GetWiimote()->Initialize((void *)&WiimoteInitialize);
-	}
+		Wiimote::Initialize(g_pWindowHandle);
 
 	// The hardware is initialized.
 	g_bHwInit = true;
@@ -508,7 +500,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bCPUThread)
 		Plugins.ShutdownVideoPlugin();
 
-	GCPad_Deinit();
+	Pad::Shutdown();
+	Wiimote::Shutdown();
 	Plugins.ShutdownPlugins();
 
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());

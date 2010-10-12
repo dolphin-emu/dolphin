@@ -57,12 +57,14 @@ Core::GetWindowHandle().
 #include "HW/DVDInterface.h"
 #include "HW/ProcessorInterface.h"
 #include "HW/GCPad.h"
+#include "HW/Wiimote.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
 #include "WXInputBase.h"
-#include "../../InputUICommon/Src/ConfigDiag.h"
+#include "WiimoteConfigDiag.h"
+#include "InputConfigDiag.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -1024,42 +1026,50 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
-	InputPlugin *pad_plugin = PAD_GetPlugin();
+	InputPlugin *const pad_plugin = Pad::GetPlugin();
 	bool was_init = false;
-	if ( pad_plugin->controller_interface.IsInit() )	// check if game is running
+	if (g_controller_interface.IsInit())	// check if game is running
 		was_init = true;
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		GCPad_Init((void *)win);
+		Pad::Initialize((void *)win);
 #else
-		GCPad_Init(GetHandle());
+		Pad::Initialize(GetHandle());
 #endif
 	}
-	InputConfigDialog* m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, "Dolphin GCPad Configuration");
+	InputConfigDialog *const m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, "Dolphin GCPad Configuration");
 	m_ConfigFrame->ShowModal();
 	m_ConfigFrame->Destroy();
 	if (!was_init)				// if game isn't running
 	{
-		GCPad_Deinit();
+		Pad::Shutdown();
 	}
 }
 
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
-	#ifdef _WIN32
-	Disable(); // Fake a modal dialog
-	#endif
-	CPluginManager::GetInstance().OpenConfig(
-			this,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin.c_str(),
-			PLUGIN_TYPE_WIIMOTE
-			);
-	#ifdef _WIN32
-	Enable();
-	Raise();
-	#endif
+	InputPlugin *const wiimote_plugin = Wiimote::GetPlugin();
+	bool was_init = false;
+	if (g_controller_interface.IsInit())	// check if game is running
+		was_init = true;
+	else
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		Wiimote::Initialize((void *)win);
+#else
+		Wiimote::Initialize(GetHandle());
+#endif
+	}
+	WiimoteConfigDiag *const m_ConfigFrame = new WiimoteConfigDiag(this, *wiimote_plugin);
+	m_ConfigFrame->ShowModal();
+	m_ConfigFrame->Destroy();
+	if (!was_init)				// if game isn't running
+	{
+		Wiimote::Shutdown();
+	}
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)

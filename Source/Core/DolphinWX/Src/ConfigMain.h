@@ -140,7 +140,7 @@ private:
 
 
 	wxBoxSizer* sPluginsPage; // Plugins settings
-	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin, *sbWiimotePlugin;  // Graphics, DSP, Wiimote sections
+	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin;  // Graphics, DSP sections
 
 	// Graphics
 	wxChoice* GraphicSelection;
@@ -149,10 +149,6 @@ private:
 	// DSP
 	wxChoice* DSPSelection;
 	wxButton* DSPConfig;
-
-	// Wiimote
-	wxChoice* WiimoteSelection;
-	wxButton* WiimoteConfig;
 
 	wxButton* m_Ok;
 
@@ -262,11 +258,6 @@ private:
 		ID_DSP_CB,
 		ID_DSP_CONFIG,
 		ID_DSP_ABOUT,
-
-		ID_WIIMOTE_TEXT,
-		ID_WIIMOTE_CB,
-		ID_WIIMOTE_CONFIG,
-		ID_WIIMOTE_ABOUT
 	};
 
 	void InitializeGUILists();

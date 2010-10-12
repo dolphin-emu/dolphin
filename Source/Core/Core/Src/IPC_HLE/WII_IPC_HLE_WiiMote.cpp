@@ -24,6 +24,7 @@
 #include "../ConfigManager.h"
 #include "../Host.h"
 #include "../Core.h"
+#include "../HW/Wiimote.h"
 #include "l2cap.h" // Local
 #include "WiiMote_HID_Attr.h"
 
@@ -183,7 +184,7 @@ void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	// Send disconnect message to plugin
 	u8 Message = WIIMOTE_DISCONNECT;
-	CPluginManager::GetInstance().GetWiimote()->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
 
 	m_ConnectionState = CONN_INACTIVE;
 	// Clear channel flags
@@ -256,7 +257,6 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			const int number = 0;
 			#endif
 
-			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote();
 			if (itr != m_Channel.end())
 			{
 				SChannel& rChannel = itr->second;
@@ -268,7 +268,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 
 				case L2CAP_PSM_HID_CNTL:
 					if (number < 4)
-						mote->Wiimote_ControlChannel(number, pHeader->dcid, pData, DataSize);
+						Wiimote::ControlChannel(number, pHeader->dcid, pData, DataSize);
 					break;
 
 				case L2CAP_PSM_HID_INTR:
@@ -280,7 +280,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 							std::string Temp = ArrayToString((const u8*)pData, DataSize);
 							DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 
-							mote->Wiimote_InterruptChannel(number, pHeader->dcid, pData, DataSize);
+							Wiimote::InterruptChannel(number, pHeader->dcid, pData, DataSize);
 						}
 					}
 					break;

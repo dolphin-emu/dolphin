@@ -32,6 +32,7 @@
 
 #include "Host.h" // Core
 #include "PluginManager.h"
+#include "HW/Wiimote.h"
 
 #include "Globals.h" // Local
 #include "Main.h"
@@ -336,6 +337,7 @@ bool DolphinApp::OnInit()
 	LogManager::Init();
 	SConfig::Init();
 	CPluginManager::Init();
+	WiimoteReal::LoadSettings();
 
 	if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin =
@@ -344,10 +346,6 @@ bool DolphinApp::OnInit()
 	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
 			std::string(audioPluginFilename.mb_str());
-
-	if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin =
-			std::string(wiimotePluginFilename.mb_str());
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
@@ -432,12 +430,10 @@ void DolphinApp::OnEndSession()
 
 int DolphinApp::OnExit()
 {
+	WiimoteReal::Shutdown();
 #ifdef _WIN32
 	if (SConfig::GetInstance().m_WiiAutoUnpair)
-	{
-		if (CPluginManager::GetInstance().GetWiimote())
-			CPluginManager::GetInstance().GetWiimote()->Wiimote_UnPairWiimotes();
-	}
+		WiimoteReal::UnPair();
 #endif
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();

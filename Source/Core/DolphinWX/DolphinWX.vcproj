@@ -90,11 +90,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
-				OutputFile="../../../Binary/Win32/Dolphin.exe"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32;../../../Externals/OpenAL/Win32/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -208,11 +208,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
-				OutputFile="../../../Binary/x64/Dolphin.exe"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64;../../../Externals/OpenAL/Win64/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -321,11 +321,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
 				OutputFile="../../../Binary/Win32/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32;../../../Externals/OpenAL/Win32/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -432,11 +432,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
 				OutputFile="../../../Binary/x64/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64;../../../Externals/OpenAL/Win64/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -546,11 +546,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib&#x0D;&#x0A;/NODEFAULTLIB:libcmtd.lib"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/Win32/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32;../../../Externals/OpenAL/Win32/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -659,11 +659,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/x64/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64;../../../Externals/OpenAL/Win64/"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -924,6 +924,14 @@
 				RelativePath=".\Src\PatchAddEdit.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\WiimoteConfigDiag.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\WiimoteConfigDiag.h"
+				>
+			</File>
 			<Filter
 				Name="NetPlay"
 				>
@@ -1051,6 +1059,22 @@
 				</File>
 				<File
 					RelativePath=".\Src\MemoryCards\WiiSaveCrypted.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="InputConfig"
+				>
+				<File
+					RelativePath=".\Src\InputConfigDiag.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\InputConfigDiag.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\InputConfigDiagBitmaps.cpp"
 					>
 				</File>
 			</Filter>

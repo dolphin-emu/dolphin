@@ -24,6 +24,7 @@
 #include "Thread.h"
 #include "CoreTiming.h"
 #include "OnFrame.h"
+#include "HW/Wiimote.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
@@ -90,7 +91,7 @@ void DoState(PointerWrap &p)
 	pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
 	pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
 	if (Core::g_CoreStartupParameter.bWii)
-		pm.GetWiimote()->DoState(p.GetPPtr(), p.GetMode());
+		Wiimote::DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);

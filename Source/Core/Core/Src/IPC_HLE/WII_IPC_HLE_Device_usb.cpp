@@ -18,7 +18,7 @@
 #include "../Core.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Host.h"
-#include "../PluginManager.h"
+#include "../HW/Wiimote.h"
 #include "../HW/WII_IPC.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_usb.h"
@@ -439,7 +439,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 				#if defined(HAVE_WX) && HAVE_WX
 				NetPlay_WiimoteUpdate(i);
 				#endif
-				CPluginManager::GetInstance().GetWiimote()->Wiimote_Update(i);
+				Wiimote::Update(i);
 				//return true;
 			}
 		}

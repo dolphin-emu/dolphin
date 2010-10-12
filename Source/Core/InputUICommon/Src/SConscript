@@ -6,8 +6,6 @@ if not env['HAVE_WX']:
 	Return()
 
 files = [
-	'ConfigDiag.cpp',
-	'ConfigDiagBitmaps.cpp',
 	'WXInputBase.cpp',
 	]
 

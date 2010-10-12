@@ -1,4 +1,7 @@
-#ifndef UDPWRAPPER_H
+
+#include "UDPWiimote.h"
+
+#if (defined(USE_UDP_WIIMOTE) && !defined(UDPWRAPPER_H))
 #define UDPWRAPPER_H
 
 #include "Common.h"
@@ -18,8 +21,6 @@
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
 #endif
-
-#include "UDPWiimote.h"
 
 class UDPWrapper : public ControllerEmu::ControlGroup
 {

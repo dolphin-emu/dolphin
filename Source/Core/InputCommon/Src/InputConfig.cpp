@@ -17,19 +17,6 @@
 
 #include "InputConfig.h"
 
-InputPlugin::InputPlugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  )
-	: ini_name(_ini_name)
-	, gui_name(_gui_name)
-	, profile_name(_profile_name)
-{
-	// GCPads
-	//for ( unsigned int i = 0; i<4; ++i )
-		//controllers.push_back( new GCPad( i ) );
-	// Wiimotes / disabled, cause it only the GUI half is done
-	//for ( unsigned int i = 0; i<4; ++i )
-	//	controllers.push_back( new Wiimote( i ) );
-};
-
 InputPlugin::~InputPlugin()
 {
 	// delete pads
@@ -52,14 +39,14 @@ bool InputPlugin::LoadConfig()
 			// load settings from ini
 			(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
 			// update refs
-			(*i)->UpdateReferences(controller_interface);
+			(*i)->UpdateReferences(g_controller_interface);
 		}
 		return true;
 	}
 	else
 	{
-		controllers[0]->LoadDefaults(controller_interface);
-		controllers[0]->UpdateReferences(controller_interface);
+		controllers[0]->LoadDefaults(g_controller_interface);
+		controllers[0]->UpdateReferences(g_controller_interface);
 		return false;
 	}
 }
