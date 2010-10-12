@@ -60,6 +60,7 @@ files = [
 	"HW/WiimoteEmu/EmuSubroutines.cpp",
 	"HW/WiimoteEmu/Encryption.cpp",
 	#"HW/WiimoteEmu/Speaker.cpp",
+	"HW/WiimoteReal/WiimoteReal.cpp",
 	"HW/GCPadEmu.cpp",
 	"HW/HW.cpp",
 	"HW/Memmap.cpp",
@@ -149,8 +150,5 @@ elif sys.platform == 'darwin':
 	files += [ "HW/BBA-TAP/TAP_Apple.cpp" ]
 else:
 	files += [ "HW/BBA-TAP/TAP_Unix.cpp" ]
-
-if env['HAVE_WIIUSE']:
-	files += [ 'HW/WiimoteReal/WiimoteReal.cpp' ]
 
 env.StaticLibrary(env['local_libs'] + 'core', files, LIBS = libs)

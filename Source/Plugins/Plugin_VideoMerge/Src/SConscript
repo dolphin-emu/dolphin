@@ -8,7 +8,6 @@ name = os.sep + "Plugin_VideoMerge"
 
 files = [
 	'BPFunctions.cpp',
-	'EmuWindow.cpp',
 	'FramebufferManager.cpp',
 	'Main.cpp',
 	'PixelShaderCache.cpp',
@@ -32,6 +31,7 @@ files = [
 	]
 
 if sys.platform == 'win32': files += [
+	'EmuWindow.cpp',
 	'DX11/DX11_D3DBase.cpp',
 	'DX11/DX11_D3DBlob.cpp',
 	'DX11/DX11_D3DShader.cpp',

@@ -11,7 +11,7 @@ files = [
 
 libs = [
 	'core', 'lzo2', 'discio', 'bdisasm',
-	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
+	'inputcommon', 'common', 'lua', 'z', 'sfml-network', 'wiiuse',
 	]
 
 if env['HAVE_WX']:
@@ -99,13 +99,12 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	env.Depends(exeGUIdist, env['plugin_dir'])
 	env.Fixup(exeGUIdist, exeGUI)
 else:
+	files += [ 'X11Utils.cpp' ]
+	libs += [ 'SDL' ]
 	exeGUI = env['binary_dir'] + '/dolphin-emu'
 	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
-
-if env['HAVE_WIIUSE']:
-	libs += [ 'wiiuse' ]   
 
 if env['HAVE_WX']:
 	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
