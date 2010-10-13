@@ -38,7 +38,12 @@ DSPEmitter::DSPEmitter() : storeIndex(-1)
 	blocks = new CompiledCode[MAX_BLOCKS];
 	blockSize = new u16[0x10000];
 	
-	ClearIRAM();
+	//clear all of the block references
+	for(int i = 0x0000; i < MAX_BLOCKS; i++)
+	{
+		blocks[i] = NULL;
+		blockSize[i] = 0;
+	}
 
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;
