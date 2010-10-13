@@ -27,7 +27,6 @@ Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-V <str>] [-A <str>] [-P <str>] [-W <s
   -e, --exec=<str>          	Loads the specified file (DOL, ELF, WAD, GCM, ISO)
   -V, --video_plugin=<str>  	Specify a video plugin
   -A, --audio_plugin=<str>  	Specify an audio plugin
-  -W, --wiimote_plugin=<str>	Specify a wiimote plugin
 
 [Libraries]
 Cg: Cg Shading API (http://developer.nvidia.com/object/cg_toolkit.html)
@@ -43,10 +42,6 @@ Plugin_DSP_LLE: Low Level DSP Emulation
 Plugin_VideoDX9: Render with Direct3D 9
 Plugin_VideoDX11: Render with Direct3D 11
 Plugin_VideoOGL: Render with OpenGL + Cg Shader Language
-
-[Wiimote Plugins]
-Plugin_Wiimote: Use native wiimote or keyboard (legacy)
-Plugin_WiimoteNew: Use native wiimote or keyboard (incomplete)
 
 [Sys Files]
 totaldb.dsy: Database of symbols (for devs only)

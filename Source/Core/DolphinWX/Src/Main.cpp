@@ -131,10 +131,6 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, "W", "wiimote_plugin","Specify a wiimote plugin",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
 			wxCMD_LINE_NONE
 		}
 	};
@@ -165,10 +161,6 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, _("W"), _("wiimote_plugin"), wxT("Specify a wiimote plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
