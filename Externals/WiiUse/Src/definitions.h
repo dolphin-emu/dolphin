@@ -35,6 +35,7 @@
 #define DEFINITIONS_H_INCLUDED
 
 #ifndef _WIN32
+#include <arpa/inet.h>					/* htons() */
 #include "Log.h"
 
 // NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
@@ -68,7 +69,7 @@ char* file = __FILE__;																			\
 #define WIIUSE_DEBUG(fmt, ...)			
 #endif
 
-#endif
+#endif // _WIN32
 
 /* Convert to big endian */
 #define BIG_ENDIAN_LONG(i)				(htonl(i))

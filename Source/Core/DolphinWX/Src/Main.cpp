@@ -95,11 +95,9 @@ bool DolphinApp::OnInit()
 	bool UseLogger = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
-	bool selectWiimotePlugin = false;
 
 	wxString videoPluginFilename;
 	wxString audioPluginFilename;
-	wxString wiimotePluginFilename;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
 #if wxCHECK_VERSION(2, 9, 0)
@@ -190,11 +188,9 @@ bool DolphinApp::OnInit()
 #if wxCHECK_VERSION(2, 9, 0)
 	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
 	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
 #else
 	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
 	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
-	selectWiimotePlugin = parser.Found(wxT("wiimote_plugin"), &wiimotePluginFilename);
 #endif
 #endif // wxUSE_CMDLINE_PARSER
 
