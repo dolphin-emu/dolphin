@@ -39,6 +39,7 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
 
+#include "definitions.h"
 #include "wiiuse_internal.h"
 
 static int wiiuse_connect_single(struct wiimote_t* wm, char* address);

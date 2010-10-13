@@ -48,7 +48,10 @@
 	#include <IOBluetooth/IOBluetoothUserLib.h>
 	#include <string.h>
 #elif defined(__linux__)
+	#include "config.h"
+	#if HAVE_BLUEZ
 	#include <bluetooth/bluetooth.h>
+	#endif
 #endif
 
 #ifdef WIIUSE_INTERNAL_H_INCLUDED
@@ -153,7 +156,7 @@ typedef struct wiimote_t {
 	#if defined(__APPLE__)
 		WCONST IOBluetoothDeviceRef *device;
 		WCONST char bdaddr_str[18];
-	#elif defined(__linux__)
+	#elif defined(__linux__) && HAVE_BLUEZ
 		WCONST bdaddr_t bdaddr;			/**< bt address	(linux)				*/
 		WCONST char bdaddr_str[18];		/**< readable bt address			*/
 		WCONST int out_sock;			/**< output socket				*/

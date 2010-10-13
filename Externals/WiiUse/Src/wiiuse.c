@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef _WIN32
 	#include <unistd.h>
@@ -122,7 +123,7 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 
 		wm[i]->unid = i+1;
 
-		#ifdef __linux__
+		#if defined __linux__ && HAVE_BLUEZ
 			wm[i]->bdaddr = *BDADDR_ANY;
 			wm[i]->out_sock = -1;
 			wm[i]->in_sock = -1;
@@ -159,7 +160,7 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	wm->state = WIIMOTE_INIT_STATES;
 	memset(wm->event_buf, 0, sizeof(wm->event_buf));
 
-	#ifdef __linux__
+	#if defined __linux__ && HAVE_BLUEZ
 		wm->out_sock = -1;
 		wm->in_sock = -1;
 	#elif defined(_WIN32)

@@ -46,10 +46,7 @@
 
 #ifdef __linux__
 	#include <arpa/inet.h>				/* htons() */
-	#include <bluetooth/bluetooth.h>
 #endif
-
-#include "definitions.h"
 
 /* wiiuse version */
 #define WIIUSE_VERSION					"0.12"
