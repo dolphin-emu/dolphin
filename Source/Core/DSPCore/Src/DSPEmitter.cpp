@@ -71,24 +71,6 @@ void DSPEmitter::ClearIRAM() {
 
 // Must go out of block if exception is detected
 void DSPEmitter::checkExceptions(u32 retval) {
-	/*
-	// check if there is an external interrupt
-	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
-		return;
-
-	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
-		return;
-
-	g_dsp.cr &= ~CR_EXTERNAL_INT;
-
-	// Check for other exceptions
-	if (dsp_SR_is_flag_set(SR_INT_ENABLE))
-		return;
-
-	if (g_dsp.exceptions == 0)
-		return;	
-	*/
-	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
 	// Check for interrupts and exceptions
 #ifdef _M_IX86 // All32
 	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
@@ -167,11 +149,31 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	//	ABI_AlignStack(0);
 
+	/*
+	// check if there is an external interrupt
+	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
+		return;
+
+	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
+		return;
+
+	g_dsp.cr &= ~CR_EXTERNAL_INT;
+
+	// Check for other exceptions
+	if (dsp_SR_is_flag_set(SR_INT_ENABLE))
+		return;
+
+	if (g_dsp.exceptions == 0)
+		return;	
+	*/
+	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
+
 	int addr = start_addr;
 	blockSize[start_addr] = 0;
-	checkExceptions(blockSize[start_addr]);
 	while (addr < start_addr + MAX_BLOCK_SIZE)
 	{
+		checkExceptions(blockSize[start_addr]);
+
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 
@@ -187,12 +189,11 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		EmitInstruction(inst);
 
 		blockSize[start_addr]++;
+		addr += opcode->size;
 
 		// Handle loop condition, only if current instruction was flagged as a loop destination
-		// by the analyzer.  COMMENTED OUT - this breaks Zelda TP. Bah.
-		//probably just misses a +opcode->size-1
-
-		// if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END)
+		// by the analyzer.
+		if (DSPAnalyzer::code_flags[addr-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
 			// TODO: Change to TEST for some reason (who added this comment?)
 #ifdef _M_IX86 // All32
@@ -226,11 +227,10 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 
 		// End the block if we're at a loop end.
 		if (opcode->branch ||
-			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END) ||
+			(DSPAnalyzer::code_flags[addr-1] & DSPAnalyzer::CODE_LOOP_END) ||
 			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)) {
 			break;
 		}
-		addr += opcode->size;
 	}
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
