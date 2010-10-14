@@ -32,6 +32,7 @@
 #include "PowerPC/PPCSymbolDB.h"
 
 #include "Core.h"
+#include "ConfigManager.h"
 #include "LogManager.h"
 
 #include "HW/Memmap.h"
@@ -45,6 +46,7 @@ enum
 	IDM_SYMBOLLIST,
 	IDM_SETVALBUTTON,
 	IDM_DUMP_MEMORY,
+	IDM_DUMP_MEM2,
 	IDM_VALBOX,
 	IDM_U8,
 	IDM_U16,
@@ -60,6 +62,7 @@ BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
 	EVT_HOST_COMMAND(wxID_ANY,		CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,	CMemoryWindow::SetMemoryValue)
 	EVT_BUTTON(IDM_DUMP_MEMORY,		CMemoryWindow::OnDumpMemory)
+	EVT_BUTTON(IDM_DUMP_MEM2,		CMemoryWindow::OnDumpMem2)
 	EVT_CHECKBOX(IDM_U8,			CMemoryWindow::U8)
 	EVT_CHECKBOX(IDM_U16,			CMemoryWindow::U16)
 	EVT_CHECKBOX(IDM_U32,			CMemoryWindow::U32)
@@ -92,7 +95,8 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
 
 	sizerRight->AddSpacer(5);
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _T("&Dump Memory")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _T("&Dump MRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _T("&Dump EXRAM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Search"));
 
@@ -229,40 +233,40 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-// So we can view memory in a tile/hex viewer for data analysis
+// Write mram to file
 void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 {
-	switch (memview->GetMemoryType())
+	FILE* f = fopen(File::GetUserPath(F_RAMDUMP_IDX), "wb");
+	if (f && Memory::m_pRAM)
 	{
-	case 0:
-	default:
-		{
-			FILE* pDumpFile = fopen(File::GetUserPath(F_RAMDUMP_IDX), "wb");
-			if (pDumpFile)
-			{
-				if (Memory::m_pRAM)
-				{
-					fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, pDumpFile);
-				}
-				fclose(pDumpFile);
-			}
-		}
-		break;
+		fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, f);
+		fclose(f);
+	}
+}
 
-	case 1:
+// Write exram (aram or mem2) to file
+void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
+{
+	FILE* f = NULL;
+	
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
+		if (f && Memory::m_pEXRAM)
 		{
-			FILE* pDumpFile = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
-			if (pDumpFile)
-			{
-				u8* aram = DSP::GetARAMPtr();
-				if (aram)
-				{
-					fwrite(aram, DSP::ARAM_SIZE, 1, pDumpFile);
-				}
-				fclose(pDumpFile);
-			}
+			fwrite(Memory::m_pEXRAM, Memory::EXRAM_SIZE, 1, f);
+			fclose(f);
 		}
-		break;
+	}
+	else
+	{
+		u8* aram = DSP::GetARAMPtr();
+		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
+		if (f && aram)
+		{
+			fwrite(aram, DSP::ARAM_SIZE, 1, f);
+			fclose(f);
+		}
 	}
 }
 

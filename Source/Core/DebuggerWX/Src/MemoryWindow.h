@@ -79,6 +79,7 @@ class CMemoryWindow
 		void OnHostMessage(wxCommandEvent& event);
 		void SetMemoryValue(wxCommandEvent& event);
 		void OnDumpMemory(wxCommandEvent& event);
+		void OnDumpMem2(wxCommandEvent& event);
 };
 
 #endif /*MEMORYWINDOW_*/
