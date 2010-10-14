@@ -225,10 +225,31 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 			SetJumpTarget(rLoopCounterExit);
 		}
 
-		// End the block if we're at a loop end.
-		if (opcode->branch ||
-			(DSPAnalyzer::code_flags[addr-1] & DSPAnalyzer::CODE_LOOP_END) ||
-			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)) {
+		if (opcode->branch) {
+			if (opcode->uncond_branch) {
+				break;
+			} else {
+				//look at g_dsp.pc if we actually branched
+#ifdef _M_IX86 // All32
+				MOV(16, R(AX), M(&(g_dsp.pc)));
+#else
+				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+				MOV(16, R(AX), MDisp(RAX,0));
+#endif
+				CMP(16, R(AX), Imm16(addr));
+				FixupBranch rNoBranch = J_CC(CC_Z);
+
+				//		ABI_RestoreStack(0);
+				ABI_PopAllCalleeSavedRegsAndAdjustStack();
+				MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+				RET();
+
+				SetJumpTarget(rNoBranch);
+			}
+		}
+
+		// End the block if we're before an idle skip address
+		if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP) {
 			break;
 		}
 	}

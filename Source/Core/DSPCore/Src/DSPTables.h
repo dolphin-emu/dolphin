@@ -95,6 +95,7 @@ typedef struct
 	param2_t params[8];
 	bool extended;
 	bool branch;
+	bool uncond_branch;
 } DSPOPCTemplate;
 
 typedef DSPOPCTemplate opc_t;
