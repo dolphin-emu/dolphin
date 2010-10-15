@@ -292,7 +292,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "AlternateRFI",		&m_LocalCoreStartupParameter.bAlternateRFI,		false);
-		ini.Get("Core", "EmulateDiscSpeed",	&m_LocalCoreStartupParameter.bEmulateDiscSpeed,	false);
+		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "BAT",				&m_LocalCoreStartupParameter.bMMUBAT,			false);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
 		ini.Get("Core", "UseFPS",			&b_UseFPS,										false); // use vps as default

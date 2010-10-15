@@ -30,7 +30,11 @@
 #include "../VolumeHandler.h"
 
 // Disc transfer rate measured in bytes per second
-#define DISC_TRANSFER_RATE (3125 * 1024)
+#define DISC_TRANSFER_RATE_GC (3125 * 1024)
+#define DISC_TRANSFER_RATE_WII (7926 * 1024)
+
+// Disc access time measured in seconds
+#define DISC_ACCESS_TIME (128 / 1000)
 
 namespace DVDInterface
 {
@@ -222,7 +226,6 @@ void InsertDiscCallback(u64 userdata, int cyclesLate);
 void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
 void ExecuteCommand(UDICR& _DICR);
-
 
 void DoState(PointerWrap &p)
 {
@@ -460,10 +463,12 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			m_DICR.Hex = _iValue & 7;
 			if (m_DICR.TSTART)
 			{
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEmulateDiscSpeed)
+				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 				{
-					u64 ticksUntilTC = m_DILENGTH.Length * (SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE);
-					CoreTiming::ScheduleEvent(ticksUntilTC, tc);
+					u64 ticksUntilTC = m_DILENGTH.Length * 
+						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii?DISC_TRANSFER_RATE_WII:DISC_TRANSFER_RATE_GC)) + 
+						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME);
+					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
 				}
 				else
 				{
@@ -589,29 +594,29 @@ void ExecuteCommand(UDICR& _DICR)
 							{
 							case 0x80000000:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (80000000)");
-								for (int i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
 									Memory::Write_U32(0, m_DIMAR.Address + i * 4);
 								break;
 							case 0x80000040:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (2) (80000040)");
-								for (int i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
 									Memory::Write_U32(~0, m_DIMAR.Address + i * 4);
 								Memory::Write_U32(0x00000020, m_DIMAR.Address); // DIMM SIZE, LE
 								Memory::Write_U32(0x4743414D, m_DIMAR.Address + 4); // GCAM signature
 								break;
 							case 0x80000120:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000120)");
-								for (int i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
 									Memory::Write_U32(0x01010101, m_DIMAR.Address + i * 4);
 								break;
 							case 0x80000140:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000140)");
-								for (int i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
 									Memory::Write_U32(0x01010101, m_DIMAR.Address + i * 4);
 								break;
 							case 0x84000020:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (1) (84000020)");
-								for (int i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
 									Memory::Write_U32(0x00000000, m_DIMAR.Address + i * 4);
 								break;
 							default:
@@ -624,8 +629,7 @@ void ExecuteCommand(UDICR& _DICR)
 						{
 							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD COMM AREA (1f900020)");
 							memcpy(Memory::GetPointer(m_DIMAR.Address), media_buffer + iDVDOffset - 0x1f900000, m_DILENGTH.Length);
-							unsigned int i;
-							for (i = 0; i < m_DILENGTH.Length; i += 4)
+							for (u32 i = 0; i < m_DILENGTH.Length; i += 4)
 								ERROR_LOG(DVDINTERFACE, "GC-AM: %08x", Memory::Read_U32(m_DIMAR.Address + i));
 							break;
 						}

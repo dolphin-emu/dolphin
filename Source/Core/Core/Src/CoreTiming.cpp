@@ -24,7 +24,7 @@
 #include "StringUtil.h"
 #include "PluginManager.h"
 
-#define MAX_SLICE_LENGTH 32000
+#define MAX_SLICE_LENGTH 20000
 
 namespace CoreTiming
 {

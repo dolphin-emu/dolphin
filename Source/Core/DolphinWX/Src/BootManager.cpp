@@ -110,7 +110,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "BAT",					&StartUp.bMMUBAT, StartUp.bMMUBAT);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		game_ini.Get("Core", "AlternateRFI",		&StartUp.bAlternateRFI, StartUp.bAlternateRFI);
-		game_ini.Get("Core", "EmulateDiscSpeed",	&StartUp.bEmulateDiscSpeed, StartUp.bEmulateDiscSpeed);
+		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		// Wii settings
 		if (StartUp.bWii)

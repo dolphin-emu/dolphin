@@ -301,8 +301,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	TLBHack->SetToolTip(wxT("Fast version of the MMU.  Does not work for every game."));
 	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	AlternateRFI->SetToolTip(wxT("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
-	EmulateDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Emulate Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EmulateDiscSpeed->SetToolTip(wxT("Emulate the speed of the disc drive.  Needed for some games. (ON = Compatible, OFF = Fast)"));
+	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	FastDiscSpeed->SetToolTip(wxT("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
@@ -367,7 +367,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(MMUBAT, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(AlternateRFI, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(EmulateDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
+	sbCoreOverrides->Add(FastDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
 	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
@@ -853,10 +853,10 @@ void CISOProperties::LoadGameConfig()
 	else
 		AlternateRFI->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "EmulateDiscSpeed", &bTemp))
-		EmulateDiscSpeed->Set3StateValue((wxCheckBoxState)bTemp);
+	if (GameIni.Get("Core", "FastDiscSpeed", &bTemp))
+		FastDiscSpeed->Set3StateValue((wxCheckBoxState)bTemp);
 	else
-		EmulateDiscSpeed->Set3StateValue(wxCHK_UNDETERMINED);
+		FastDiscSpeed->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Core", "BlockMerging", &bTemp))
 		BlockMerging->Set3StateValue((wxCheckBoxState)bTemp);
@@ -969,10 +969,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "AlternateRFI", AlternateRFI->Get3StateValue());
 
-	if (EmulateDiscSpeed->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "EmulateDiscSpeed");
+	if (FastDiscSpeed->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "FastDiscSpeed");
 	else
-		GameIni.Set("Core", "EmulateDiscSpeed", EmulateDiscSpeed->Get3StateValue());
+		GameIni.Set("Core", "FastDiscSpeed", FastDiscSpeed->Get3StateValue());
 
 	if (BlockMerging->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "BlockMerging");
