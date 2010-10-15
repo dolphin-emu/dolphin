@@ -549,7 +549,7 @@ InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2) {
 
 // Fold Mul opcode. Some rules are ported from LLVM
 InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
-	simplifyCommutative(Or, Op1, Op2);
+	simplifyCommutative(Mul, Op1, Op2);
 
 	// i0 * i1 => (i0 * i1)
 	if (isImm(*Op1) && isImm(*Op2)) {
@@ -774,7 +774,7 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
-	simplifyCommutative(Or, Op1, Op2);
+	simplifyCommutative(Xor, Op1, Op2);
 
 	if (isImm(*Op1) && isImm(*Op2)) {
 		return EmitIntConst(GetImmValue(Op1) ^ GetImmValue(Op2));
