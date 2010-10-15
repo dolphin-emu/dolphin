@@ -768,6 +768,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case BSwap32:
 		case BSwap16:
 		case Cntlzw:
+		case Not:
 		case DupSingleToMReg:
 		case DoubleToSingle:
 		case ExpandPackedToMReg:
@@ -1068,6 +1069,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->BSR(32, reg, regLocForInst(RI, getOp1(I)));
 			Jit->CMOVcc(32, reg, R(ECX), CC_Z);
 			Jit->XOR(32, R(reg), Imm8(31));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case Not: {
+			if (!thisUsed) break;
+			X64Reg reg = regBinLHSReg(RI, I);
+			Jit->NOT(32, R(reg));
 			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;

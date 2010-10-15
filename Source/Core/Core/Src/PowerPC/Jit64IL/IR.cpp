@@ -346,6 +346,11 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 			}
 		}
 	}
+	if (Opcode == Not) {
+		if (getOpcode(*Op1) == Not) {
+			return getOp1(Op1);
+		}
+	}
 
 	return EmitUOp(Opcode, Op1, extra);
 }
@@ -759,10 +764,8 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 	}
 
 	// (~A | ~B) == (~(A & B)) - De Morgan's Law
-	if (InstLoc notOp1 = isNot(Op1)) {
-		if (InstLoc notOp2 = isNot(Op2)) {
-			return FoldXor(EmitIntConst(-1U), FoldAnd(notOp1, notOp2));
-		}
+	if (getOpcode(*Op1) == Not && getOpcode(*Op2) == Not) {
+		return EmitNot(FoldAnd(getOp1(Op1), getOp1(Op2)));
 	}
 
 	if (Op1 == Op2) return Op1;
@@ -778,17 +781,13 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 	}
 	if (isImm(*Op2)) {
 		if (!GetImmValue(Op2)) return Op1;
+		if (GetImmValue(Op2) == 0xFFFFFFFFU) {
+			return EmitNot(Op1);
+		}
 		if (getOpcode(*Op1) == Xor && isImm(*getOp2(Op1))) {
 			unsigned RHS = GetImmValue(Op2) ^
 				       GetImmValue(getOp2(Op1));
 			return FoldXor(getOp1(Op1), EmitIntConst(RHS));
-		}
-
-		// ~(~X) => X
-		if (GetImmValue(Op2) == -1U) {
-			if (InstLoc notOp1 = isNot(Op1)) {
-				return notOp1;
-			}
 		}
 	}
 
@@ -1115,7 +1114,7 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 		numberOfOperands[CInt32] = 0;
 
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
-		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
+		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
 		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
 		for (size_t i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
 			numberOfOperands[ZeroOp[i]] = 0;
@@ -1190,26 +1189,6 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 
 bool IRBuilder::maskedValueIsZero(InstLoc Op1, InstLoc Op2) const {
 	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op1)) == 0;
-}
-
-// Returns I' if I == ~I'.
-InstLoc IRBuilder::isNot(InstLoc I) const {
-	if (getOpcode(*I) == Xor) {
-		const InstLoc Op1 = getOp1(I);
-		const InstLoc Op2 = getOp2(I);
-
-		// if (-1 ^ x) return x
-		if (isImm(*Op1) && GetImmValue(Op1) == -1U) {
-			return Op2;
-		}
-
-		// if (x ^ -1) return x
-		if (isImm(*Op2) && GetImmValue(Op2) == -1U) {
-			return Op1;
-		}
-	}
-
-	return NULL;
 }
 
 // Returns I' if I == (0 - I')

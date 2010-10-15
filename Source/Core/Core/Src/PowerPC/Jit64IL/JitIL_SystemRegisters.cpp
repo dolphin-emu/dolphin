@@ -198,23 +198,23 @@ void JitIL::crXX(UGeckoInstruction inst)
 			break;
 		case 129:
 			// crandc
-			ecx = ibuild.EmitXor(ecx, ibuild.EmitIntConst(0xFFFFFFFFU));
+			ecx = ibuild.EmitNot(ecx);
 			eax = ibuild.EmitAnd(eax, ecx);	
 			break;
 		case 289:
 			// creqv
 			eax = ibuild.EmitXor(eax, ecx);
-			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(0xFFFFFFFFU));
+			eax = ibuild.EmitNot(eax);
 			break;
 		case 225:
 			// crnand
 			eax = ibuild.EmitAnd(eax, ecx);
-			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(0xFFFFFFFFU));
+			eax = ibuild.EmitNot(eax);
 			break;
 		case 33:
 			// crnor
 			eax = ibuild.EmitOr(eax, ecx);
-			eax = ibuild.EmitXor(eax, ibuild.EmitIntConst(0xFFFFFFFFU));
+			eax = ibuild.EmitNot(eax);
 			break;
 		case 449:
 			// cror
@@ -222,7 +222,7 @@ void JitIL::crXX(UGeckoInstruction inst)
 			break;
 		case 417:
 			// crorc
-			ecx = ibuild.EmitXor(ecx, ibuild.EmitIntConst(0xFFFFFFFFU));
+			ecx = ibuild.EmitNot(ecx);
 			eax = ibuild.EmitOr(eax, ecx);
 			break;
 		case 193:

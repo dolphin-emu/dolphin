@@ -42,6 +42,7 @@ enum Opcode {
 	BSwap32,
 	BSwap16,
 	Cntlzw, // Count leading zeros
+	Not,
 	Load8,  // These loads zext
 	Load16,
 	Load32,
@@ -288,7 +289,7 @@ public:
 		return FoldUOp(StoreGReg, value, reg);
 	}
 	InstLoc EmitNot(InstLoc op1) {
-		return EmitXor(op1, EmitIntConst(0xFFFFFFFFU));
+		return FoldUOp(Not, op1);
 	}
 	InstLoc EmitAnd(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(And, op1, op2);
@@ -573,7 +574,6 @@ private:
 	unsigned getComplexity(InstLoc I) const;
 	void simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2);
 	bool maskedValueIsZero(InstLoc Op1, InstLoc Op2) const;
-	InstLoc isNot(InstLoc I) const;
 	InstLoc isNeg(InstLoc I) const;
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is 
