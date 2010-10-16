@@ -81,7 +81,7 @@ void STACKALIGN CheckGatherPipe()
 			m_gatherPipeCount -= GATHER_PIPE_SIZE;
 
 			// increase the CPUWritePointer
-			if (ProcessorInterface::Fifo_CPUWritePointer >= ProcessorInterface::Fifo_CPUEnd)
+			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
 			{
 				curMem -= ProcessorInterface::Fifo_CPUWritePointer - ProcessorInterface::Fifo_CPUBase;
 				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
