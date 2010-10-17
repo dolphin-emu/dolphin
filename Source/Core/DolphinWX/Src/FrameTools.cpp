@@ -703,7 +703,7 @@ void CFrame::OnRenderParentClose(wxCloseEvent& event)
 void CFrame::OnRenderParentMove(wxMoveEvent& event)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
-			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+		!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = m_RenderFrame->GetPosition().x;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = m_RenderFrame->GetPosition().y;
@@ -717,7 +717,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 	{
 		int width, height;
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-				!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+		    !RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 		{
 			m_RenderFrame->GetSize(&width, &height);
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
@@ -736,7 +736,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 	event.Skip();
 }
 
-void CFrame::ToggleDisplayMode (bool bFullscreen)
+void CFrame::ToggleDisplayMode(bool bFullscreen)
 {
 #ifdef _WIN32
 	if (bFullscreen)

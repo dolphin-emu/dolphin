@@ -579,7 +579,7 @@ void CFrame::OnMove(wxMoveEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-			!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
@@ -589,8 +589,9 @@ void CFrame::OnMove(wxMoveEvent& event)
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
+
 	if (!IsMaximized() &&
-			!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
