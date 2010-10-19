@@ -30,6 +30,7 @@ files = [
 	'TextureConversionShader.cpp',
 	'ImageWrite.cpp',
 	'VertexManagerBase.cpp',
+	'TextureCacheBase.cpp',
 	'Statistics.cpp',
 	'Fifo.cpp',
 	'VideoState.cpp',

@@ -95,7 +95,7 @@ void Shutdown()
 	textureMap.clear();
 }
 
-PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int texformat, u8 *data)
+PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, int texformat, u8 *data)
 {
 	std::string key(fileName);
 

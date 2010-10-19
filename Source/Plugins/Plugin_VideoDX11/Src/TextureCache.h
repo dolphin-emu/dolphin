@@ -24,45 +24,42 @@
 #include "VideoCommon.h"
 #include "BPMemory.h"
 
-class TextureCache
+#include "TextureCacheBase.h"
+
+namespace DX11
+{
+
+class TextureCache : public ::TextureCache
 {
 public:
-	struct TCacheEntry
-	{
-		D3DTexture2D* texture;
-
-		u32 addr;
-		u32 size_in_bytes;
-		u64 hash;
-		u32 paletteHash;
-		u32 oldpixel;
-		
-		int frameCount;
-		unsigned int w, h, fmt, MipLevels;
-		int Realw, Realh, Scaledw, Scaledh;
-
-		bool isRenderTarget;
-		bool isNonPow2;
-
-		TCacheEntry() : texture(NULL), addr(0), size_in_bytes(0), hash(0), paletteHash(0), oldpixel(0),
-						frameCount(0), w(0), h(0), fmt(0), MipLevels(0), Realw(0), Realh(0), Scaledw(0), Scaledh(0),
-						isRenderTarget(false), isNonPow2(true) {}
-
-		void Destroy(bool shutdown);
-		bool IntersectsMemoryRange(u32 range_address, u32 range_size);
-	};
-
-	static void Init();
-	static void Cleanup();
-	static void Shutdown();
-	static void Invalidate(bool shutdown);
-	static void InvalidateRange(u32 start_address, u32 size);
-	static TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, unsigned int width, unsigned int height, unsigned int tex_format, unsigned int tlutaddr, unsigned int tlutfmt, bool UseNativeMips, unsigned int maxlevel);
-	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, unsigned int bScaleByHalf, const EFBRectangle &source_rect);
+	TextureCache();
+	~TextureCache();
 
 private:
-	typedef std::map<u32,TCacheEntry> TexCache;
+	struct TCacheEntry : TCacheEntryBase
+	{
+		D3DTexture2D *const texture;
 
-	static u8* temp;
-	static TexCache textures;
+		D3D11_USAGE usage;
+
+		TCacheEntry(D3DTexture2D *_tex) : texture(_tex) {}
+		~TCacheEntry();
+
+		void Load(unsigned int width, unsigned int height,
+			unsigned int expanded_width, unsigned int levels);
+
+		void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
+			unsigned int cbufid, const float* colmat, const EFBRectangle &source_rect,
+			bool bIsIntensityFmt, u32 copyfmt);
+
+		void Bind(unsigned int stage);
+		bool Save(const char filename[]);
+	};
+
+	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
+		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
+
+	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
 };
+
+}

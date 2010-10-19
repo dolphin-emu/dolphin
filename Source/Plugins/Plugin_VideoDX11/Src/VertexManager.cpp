@@ -214,7 +214,7 @@ void VertexManager::vFlush()
 		{
 			Renderer::SetSamplerState(i & 3, i >> 2);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
+			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
@@ -225,7 +225,7 @@ void VertexManager::vFlush()
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->Realw, tentry->Realh, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");

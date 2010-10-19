@@ -48,8 +48,10 @@ protected:
 
 private:
 	static void AddIndices(int primitive, int numVertices);
-	// temporary
+	//virtual void Draw(u32 stride, bool alphapass) = 0;
+	// temp
 	virtual void vFlush() = 0;
+
 };
 
 extern VertexManager *g_vertex_manager;

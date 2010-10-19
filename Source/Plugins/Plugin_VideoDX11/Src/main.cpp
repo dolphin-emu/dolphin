@@ -215,7 +215,7 @@ void Video_Prepare()
 
 	// internal interfaces
 	Renderer::Init();
-	TextureCache::Init();
+	g_texture_cache = new DX11::TextureCache;
 	g_vertex_manager = new DX11::VertexManager;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
@@ -258,7 +258,7 @@ void Shutdown()
 	PixelShaderCache::Shutdown();
 	VertexShaderCache::Shutdown();
 	delete g_vertex_manager;
-	TextureCache::Shutdown();
+	delete g_texture_cache;
 	Renderer::Shutdown();
 	EmuWindow::Close();
 

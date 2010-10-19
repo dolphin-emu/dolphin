@@ -223,7 +223,7 @@ void Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	TextureCache::Init();
+	g_texture_cache = new OGL::TextureCache;
 
 	BPInit();
 	g_vertex_manager = new OGL::VertexManager;
@@ -267,7 +267,7 @@ void Shutdown()
 	PixelShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
 	delete g_vertex_manager;
-	TextureCache::Shutdown();
+	delete g_texture_cache;
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	OpenGL_Shutdown();

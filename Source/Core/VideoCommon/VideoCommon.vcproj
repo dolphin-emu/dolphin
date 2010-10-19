@@ -731,6 +731,14 @@
 			Name="Base"
 			>
 			<File
+				RelativePath=".\Src\TextureCacheBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureCacheBase.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\VertexManagerBase.cpp"
 				>
 			</File>

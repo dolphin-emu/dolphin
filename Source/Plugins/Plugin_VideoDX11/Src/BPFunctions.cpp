@@ -80,7 +80,7 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);		
+		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, !!scaleByHalf, rc);
 	}
 }
 

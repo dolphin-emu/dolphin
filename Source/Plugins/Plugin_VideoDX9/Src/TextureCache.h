@@ -25,64 +25,41 @@
 #include "VideoCommon.h"
 #include "BPMemory.h"
 
-class TextureCache
+#include "TextureCacheBase.h"
+
+namespace DX9
 {
-public:
-	struct TCacheEntry
+
+class TextureCache : public ::TextureCache
+{
+private:
+	struct TCacheEntry : TCacheEntryBase
 	{
-		LPDIRECT3DTEXTURE9 texture;
+		const LPDIRECT3DTEXTURE9 texture;
 
-		u32 addr;
-		u32 size_in_bytes;
-		u64 hash;
-		u32 paletteHash;
-		u32 oldpixel;
-		
-		int frameCount;
-		int w, h, fmt,MipLevels, Realw, Realh, Scaledw, Scaledh;
+		D3DFORMAT d3d_fmt;
+		bool swap_r_b;
 
-		bool isRenderTarget;
-		bool isDynamic;// mofified from cpu
-		bool isNonPow2;
+		TCacheEntry(LPDIRECT3DTEXTURE9 _tex) : texture(_tex) {}
+		~TCacheEntry();
 
-		TCacheEntry()
-		{
-			texture = 0;
-			isRenderTarget = 0;
-			hash = 0;
-			paletteHash = 0;
-			oldpixel = 0;
-			addr = 0;
-			size_in_bytes = 0;
-			frameCount = 0;
-			isNonPow2 = true;
-			w = 0;
-			h = 0;
-			Realw = 0;
-			Realh = 0;
-			Scaledw = 0;
-			Scaledh = 0;
-		}
-		void Destroy(bool shutdown);
-		int IntersectsMemoryRange(u32 range_address, u32 range_size);
+		void Load(unsigned int width, unsigned int height,
+			unsigned int expanded_width, unsigned int levels);
+
+		void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
+			unsigned int cbufid, const float* colmat, const EFBRectangle &source_rect,
+			bool bIsIntensityFmt, u32 copyfmt);
+
+		void Bind(unsigned int stage);
+		bool Save(const char filename[]);
 	};
 
-private:
+	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
+		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
 
-	typedef std::map<u32,TCacheEntry> TexCache;
-
-	static u8 *temp;
-	static TexCache textures;
-
-public:
-	static void Init();
-	static void Cleanup();
-	static void Shutdown();
-	static void Invalidate(bool shutdown);
-	static void InvalidateRange(u32 start_address, u32 size);
-	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel);
-	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect);
+	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
 };
+
+}
 
 #endif

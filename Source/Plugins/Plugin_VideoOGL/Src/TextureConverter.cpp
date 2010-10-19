@@ -34,6 +34,8 @@
 namespace TextureConverter
 {
 
+using OGL::TextureCache;
+
 static GLuint s_texConvFrameBuffer = 0;
 static GLuint s_srcTexture = 0;			// for decoding from RAM
 static GLuint s_srcTextureWidth = 0;

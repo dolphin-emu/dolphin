@@ -24,61 +24,62 @@
 #include "GLUtil.h"
 #include "BPStructs.h"
 
-class TextureCache
+#include "TextureCacheBase.h"
+
+namespace OGL
+{
+
+class TextureCache : public ::TextureCache
 {
 public:
-    struct TCacheEntry
-    {
-		TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0),
-			w(0), h(0), MipLevels(0),Scaledw(0), Scaledh(0),
-			isRenderTarget(false), isDynamic(false), bHaveMipMaps(false)
-		{ mode.hex = 0xFCFCFCFC; }
-
-        GLuint texture;
-        u32 addr;
-        u32 size_in_bytes;
-        u64 hash;
-        u32 paletteHash;
-        u32 oldpixel; // used for simple cleanup
-        TexMode0 mode; // current filter and clamp modes that texture is set to
-		TexMode1 mode1; // current filter and clamp modes that texture is set to
-		
-        int frameCount;
-        int w, h, fmt,MipLevels, Realw, Realh;
-		int Scaledw, Scaledh;
-
-        bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target
-                             // later conversions would have to convert properly from rendertexfmt to texfmt
-        bool isDynamic; // modified from cpu
-        bool bHaveMipMaps;
-
-        void SetTextureParameters(TexMode0& newmode,TexMode1 &newmode1);
-        void Destroy(bool shutdown);
-        void ConvertFromRenderTarget(u32 taddr, int twidth, int theight, int tformat, int tlutaddr, int tlutfmt);
-		int IntersectsMemoryRange(u32 range_address, u32 range_size);
-    };
+	static void DisableStage(unsigned int stage);
 
 private:
-    typedef std::map<u32, TCacheEntry> TexCache;
+	struct TCacheEntry : TCacheEntryBase
+    {
+	    GLuint texture;
 
-    static u8 *temp;
-    static TexCache textures;
+		PC_TexFormat pcfmt;
 
-public:
-    static void Init();
-    static void Cleanup();
-    static void Shutdown();
-    static void Invalidate(bool shutdown);
-	static void InvalidateRange(u32 start_address, u32 size);
-	static void MakeRangeDynamic(u32 start_address, u32 size);
-    static TCacheEntry* Load(int texstage, u32 address, int width, int height, u32 format, int tlutaddr, int tlutfmt);
-    static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source);
+		int gl_format;
+		int gl_iformat;
+		int gl_type;
 
-    static void DisableStage(int stage); // sets active texture
+		bool bHaveMipMaps;
 
-	static void ClearRenderTargets(); // sets render target value of all textures to false
+		//TexMode0 mode; // current filter and clamp modes that texture is set to
+		//TexMode1 mode1; // current filter and clamp modes that texture is set to
+
+		TCacheEntry();
+		~TCacheEntry();
+
+		void Load(unsigned int width, unsigned int height,
+			unsigned int expanded_width, unsigned int level);
+
+		void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
+			unsigned int cbufid, const float colmat[], const EFBRectangle &source_rect,
+			bool bIsIntensityFmt, u32 copyfmt);
+
+		void Bind(unsigned int stage);
+		bool Save(const char filename[]);
+
+	private:
+		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
+    };
+
+	~TextureCache();
+
+	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
+		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
+
+	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
+
+private:
+	bool isOGL() { return true; }
 };
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+
+}
 
 #endif // _TEXTUREMNGR_H_

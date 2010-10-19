@@ -43,570 +43,44 @@
 
 #include "debugger/debugger.h"
 
-u8 *TextureCache::temp = NULL;
-TextureCache::TexCache TextureCache::textures;
-
 extern int frameCount;
 
-#define TEMP_SIZE (2048*2048*4)
-#define TEXTURE_KILL_THRESHOLD 200
-
-void TextureCache::TCacheEntry::Destroy(bool shutdown)
+namespace DX9
 {
-	if (texture)
-		texture->Release();
-	texture = 0;
-	if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache)
-	{
-		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
-		if (ptr && *ptr == hash)
-			*ptr = oldpixel;
-	}
+
+TextureCache::TCacheEntry::~TCacheEntry()
+{
+	texture->Release();
 }
 
-void TextureCache::Init()
+void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
-	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-	HiresTextures::Init(globals->unique_id);
+	D3D::SetTexture(stage, texture);
 }
 
-void TextureCache::Invalidate(bool shutdown)
+bool TextureCache::TCacheEntry::Save(const char filename[])
 {
-	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
-		iter->second.Destroy(shutdown);
-	textures.clear();
-	HiresTextures::Shutdown();
+	return SUCCEEDED(PD3DXSaveTextureToFileA(filename, D3DXIFF_PNG, texture, 0));
 }
 
-void TextureCache::Shutdown()
+void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
+	unsigned int expanded_width, unsigned int level)
 {
-	Invalidate(true);
-	FreeMemoryPages(temp, TEMP_SIZE);
-	temp = NULL;
+	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
 }
 
-void TextureCache::Cleanup()
+void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
+	unsigned int cbufid, const float *colmat, const EFBRectangle &source_rect,
+	bool bIsIntensityFmt, u32 copyfmt)
 {
-	TexCache::iterator iter = textures.begin();
-	while (iter != textures.end())
+	const LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ?
+		g_framebufferManager.GetEFBDepthTexture(source_rect) :
+		g_framebufferManager.GetEFBColorTexture(source_rect);
+
+	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
-		{
-			iter->second.Destroy(false);
-			iter = textures.erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
-void TextureCache::InvalidateRange(u32 start_address, u32 size)
-{
-	TexCache::iterator iter = textures.begin();
-	while (iter != textures.end())
-	{
-		int rangePosition = iter->second.IntersectsMemoryRange(start_address, size);
-		if (rangePosition == 0)
-		{
-			iter->second.Destroy(false);
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
-void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
-{
-	TexCache::iterator iter = textures.begin();
-	while (iter != textures.end())
-	{
-		int rangePosition = iter->second.IntersectsMemoryRange(start_address, size);
-		if ( rangePosition == 0)
-		{
-			iter->second.hash = 0;
-		}
-		++iter;
-	}
-}
-
-int TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
-{
-	if (addr + size_in_bytes < range_address)
-		return -1;
-	if (addr >= range_address + range_size)
-		return 1;
-	return 0;
-}
-
-TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel)
-{
-	// notes (about "UNsafe texture cache"):
-	//	Have to be removed soon.
-	//	But we keep it until the "safe" way became rock solid
-	//	pros: it has an unique ID held by the texture data itself (@address) once cached.
-	//	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
-
-	// notes (about "safe texture cache"):
-	//	Metroids text issue (character table):
-	//	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
-	//	That's why we have to hash the TLUT too for TLUT tex_format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
-	//	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
-	//	have to be a real unique ID. 
-	//	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
-
-	//	Pokemon Colosseum text issue (plain text):
-	//	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
-	//	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
-	//	so lot's of remaning old text. 	Thin white chars on black bg too.
-
-	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
-	//			- fix the key index situation with CopyRenderTargetToTexture. 
-	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
-	//			Wonder if we can't use tex width&height to know if EFB might be copied to it...
-	//			raw idea:  TOCHECK if addresses are aligned we have few bits left...
-
-	if (address == 0)
-		return NULL;
-
-	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
-	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; // TexelSizeInNibbles(format)*width*height/16;
-	int bsdepth = TexDecoder_GetTexelSizeInNibbles(tex_format);
-	int expandedWidth = (width + bsw) & (~bsw);
-	int expandedHeight = (height + bsh) & (~bsh);
-
-	u64 hash_value = 0;
-	u32 texID = address;
-	u64 texHash = 0;
-	u32 FullFormat = tex_format;
-	bool TextureisDynamic = false;
-	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
-		FullFormat = (tex_format | (tlutfmt << 16));
-
-	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
-	{
-		texHash = GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
-		{
-			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
-			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
-			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
-			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
-			// each other stored in a single texture, and uses the palette to make different characters
-			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-			// we must make sure that texture with different tluts get different IDs.
-			u64 tlutHash = GetHash64(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
-			texHash ^= tlutHash;
-			if (g_ActiveConfig.bSafeTextureCache)
-			{
-				texID = texID ^ ((u32)(tlutHash & 0xFFFFFFFF)) ^ ((u32)((tlutHash >> 32) & 0xFFFFFFFF));
-			}
-		}
-		if (g_ActiveConfig.bSafeTextureCache)
-			hash_value = texHash;
-	}
-
-	bool skip_texture_create = false;
-	TexCache::iterator iter = textures.find(texID);
-
-	if (iter != textures.end())
-	{
-		TCacheEntry &entry = iter->second;
-
-		if (!g_ActiveConfig.bSafeTextureCache)
-		{
-			if(entry.isRenderTarget || entry.isDynamic)
-			{
-				if(!g_ActiveConfig.bCopyEFBToTexture)
-				{
-					hash_value =  GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
-					if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
-					{
-						hash_value ^= GetHash64(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
-					}
-				}
-				else
-				{
-					hash_value = 0;
-				}
-			}
-			else
-			{
-				hash_value = ((u32 *)ptr)[0];
-			}
-		}
-		else
-		{
-			if(entry.isRenderTarget || entry.isDynamic)
-			{
-				if(g_ActiveConfig.bCopyEFBToTexture)
-				{
-					hash_value = 0;
-				}
-			}
-		}
-		if (((entry.isRenderTarget || entry.isDynamic) && hash_value == entry.hash && address == entry.addr) 
-			|| ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
-		{
-			entry.frameCount = frameCount;
-			entry.isDynamic = false;
-			D3D::SetTexture(stage, entry.texture);
-			return &entry;
-		}
-		else
-		{
-			// Let's reload the new texture data into the same texture,
-			// instead of destroying it and having to create a new one.
-			// Might speed up movie playback very, very slightly.
-			TextureisDynamic = (entry.isRenderTarget || entry.isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
-			
-			if (!entry.isRenderTarget &&
-				((!entry.isDynamic && width == entry.w && height==entry.h && FullFormat == entry.fmt /* && entry.MipLevels < maxlevel*/) 
-				|| (entry.isDynamic && entry.w == width && entry.h == height)))
-			{
-				skip_texture_create = true;
-			}
-			else
-			{
-				entry.Destroy(false);
-				textures.erase(iter);
-			}
-		}
-	}
-
-	// Make an entry in the table
-	TCacheEntry& entry = textures[texID];
-	entry.isDynamic = TextureisDynamic;
-	entry.Realw = width;
-	entry.Realh = height;
-	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
-
-	if (g_ActiveConfig.bHiresTextures)
-	{
-		// Load Custom textures
-		char texPathTemp[MAX_PATH];
-		int newWidth = width;
-		int newHeight = height;
-
-		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, texHash, tex_format);
-		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, tex_format, temp);
-
-		if (pcfmt != PC_TEX_FMT_NONE)
-		{
-			expandedWidth = width = newWidth;
-			expandedHeight = height = newHeight;
-		}
-	}
-
-	if (pcfmt == PC_TEX_FMT_NONE)
-		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
-
-	entry.oldpixel = ((u32 *)ptr)[0];
-	if (g_ActiveConfig.bSafeTextureCache || entry.isDynamic)
-		entry.hash = hash_value;
-	else
-	{
-		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
-		((u32 *)ptr)[0] = entry.hash;		
-	}
-
-	entry.addr = address;
-	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
-	entry.isRenderTarget = false;
-	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
-	entry.isNonPow2 = false;
-	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2? 0 : 1);
-	if(TexLevels > (maxlevel + 1) && maxlevel > 0)
-		TexLevels = (maxlevel + 1);
-	entry.MipLevels = maxlevel;
-
-	D3DFORMAT d3d_fmt;
-	bool swap_r_b = false;
-
-	switch (pcfmt)
-	{
-		case PC_TEX_FMT_BGRA32:
-			d3d_fmt = D3DFMT_A8R8G8B8;
-			break;
-		case PC_TEX_FMT_RGBA32:
-			d3d_fmt = D3DFMT_A8R8G8B8;
-			swap_r_b = true;
-			break;
-		case PC_TEX_FMT_RGB565:
-			d3d_fmt = D3DFMT_R5G6B5;
-			break;
-		case PC_TEX_FMT_IA4_AS_IA8:
-			d3d_fmt = D3DFMT_A8L8;
-			break;
-		case PC_TEX_FMT_I8:
-		case PC_TEX_FMT_I4_AS_I8:
-			// A hack which means the format is a packed
-			// 8-bit intensity texture. It is unpacked
-			// to A8L8 in D3DTexture.cpp
-			d3d_fmt = D3DFMT_A8P8;
-			break;
-		case PC_TEX_FMT_IA8:
-			d3d_fmt = D3DFMT_A8L8;
-			break;
-		case PC_TEX_FMT_DXT1:
-			d3d_fmt = D3DFMT_DXT1;
-			break;
-	}
-
-	if (!skip_texture_create)
-	{
-		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, TexLevels);
-	}
-	else
-	{
-		D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, 0);
-	}
-	if(TexLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
-	{
-		int level = 1;
-		int mipWidth = (width + 1) >> 1;
-		int mipHeight = (height + 1) >> 1;
-		ptr +=  entry.size_in_bytes;
-		while((mipHeight || mipWidth) && (level < TexLevels))
-		{
-			u32 currentWidth = (mipWidth > 0)? mipWidth : 1;
-			u32 currentHeight = (mipHeight > 0)? mipHeight : 1;
-			expandedWidth  = (currentWidth + bsw)  & (~bsw);
-			expandedHeight = (currentHeight + bsh) & (~bsh);
-			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
-			D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, currentWidth, currentHeight, expandedWidth, d3d_fmt, swap_r_b,level);
-			u32 size = (max(mipWidth, bsw) * max(mipHeight, bsh) * bsdepth) >> 1;
-			ptr +=  size;
-			mipWidth >>= 1;
-			mipHeight >>= 1;
-			level++;
-		}
-	}
-	entry.frameCount = frameCount;
-	entry.w = width;
-	entry.h = height;
-	entry.Scaledw = width;
-	entry.Scaledh = height;
-	entry.fmt = FullFormat;
-
-	if (g_ActiveConfig.bDumpTextures)
-	{
-		// dump texture to file
-		char szTemp[MAX_PATH];
-		char szDir[MAX_PATH];
-		const char* uniqueId = globals->unique_id;
-		static bool bCheckedDumpDir = false;
-
-		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
-
-		if (!bCheckedDumpDir)
-		{
-			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
-				File::CreateDir(szDir);
-
-			bCheckedDumpDir = true;
-		}
-
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, texHash, tex_format);
-
-		if (!File::Exists(szTemp))
-			PD3DXSaveTextureToFileA(szTemp,D3DXIFF_PNG,entry.texture,0);
-	}
-
-	INCSTAT(stats.numTexturesCreated);
-	SETSTAT(stats.numTexturesAlive, textures.size());
-
-	//Set the texture!
-	D3D::SetTexture(stage, entry.texture);
-
-	DEBUGGER_PAUSE_LOG_AT(NEXT_NEW_TEXTURE,true,{printf("A new texture (%d x %d) is loaded", width, height);});
-	return &entry;
-}
-
-void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
-{
-	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
-	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
-	//compensate the texture grow if supersampling is enabled to conserve memory usage
-	float SuperSampleCompensation = g_ActiveConfig.iMultisampleMode + 1;
-	SuperSampleCompensation = 1.0f / SuperSampleCompensation;
-	float xScale = Renderer::GetTargetScaleX();
-	float yScale = Renderer::GetTargetScaleY();
-	
-	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(xScale * SuperSampleCompensation *  tex_w)):tex_w;
-	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(yScale * SuperSampleCompensation * tex_h)):tex_h;
-	
-	TexCache::iterator iter;	
-	LPDIRECT3DTEXTURE9 tex = NULL;
-	iter = textures.find(address);
-	bool TextureisDynamic = false;
-	if (iter != textures.end())
-	{
-		if ((iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h) 
-			|| (iter->second.isDynamic && iter->second.w == tex_w && iter->second.h == tex_h))
-		{
-			tex = iter->second.texture;
-			TextureisDynamic = iter->second.isDynamic;
-			iter->second.frameCount = frameCount;
-		}
-		else
-		{
-			// Remove it and recreate it as a render target
-			if(iter->second.texture)
-				iter->second.texture->Release();
-			iter->second.texture = 0;
-			textures.erase(iter);
-		}
-	}
-	if (TextureisDynamic)
-	{
-		Scaledtex_w = tex_w;
-		Scaledtex_h = tex_h;
-	}
-	if (!tex)
-	{
-		TCacheEntry entry;
-		entry.addr = address;
-		entry.isRenderTarget = true;
-		entry.hash = 0;
-		entry.frameCount = frameCount;
-		entry.w = entry.Realw = tex_w;
-		entry.h = entry.Realh = tex_h;
-		entry.Scaledw = Scaledtex_w;
-		entry.Scaledh = Scaledtex_h;
-		entry.fmt = copyfmt;
-		entry.isNonPow2 = true;
-		entry.isDynamic = false;
-		D3D::dev->CreateTexture(Scaledtex_w, Scaledtex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
-		textures[address] = entry;
-		tex = entry.texture;
-	}
-
-	// Make sure to resolve anything we need to read from.
-	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture(source_rect) : g_framebufferManager.GetEFBColorTexture(source_rect);
-	
-	// We have to run a pixel shader, for color conversion.
-	Renderer::ResetAPIState(); // reset any game specific settings
-	if(!TextureisDynamic || g_ActiveConfig.bCopyEFBToTexture)
-	{
-	
-		float colmat[16]= {0.0f};
-		float fConstAdd[4] = {0.0f};
-
-		if (bFromZBuffer)
-		{
-			switch(copyfmt)
-			{
-				case 0: // Z4
-				case 1: // Z8
-					colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
-					break;
-				case 3: // Z16 //?
-					colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
-					break;
-				case 11: // Z16 (reverse order)
-					colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-					break;
-				case 6: // Z24X8
-					colmat[0] = colmat[5] = colmat[10] = 1.0f;
-					break;
-				case 9: // Z8M
-					colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-					break;
-				case 10: // Z8L
-					colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-					break;
-				case 12: // Z16L
-					colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
-					break;
-				default:
-					ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-					colmat[2] = colmat[5] = colmat[8] = 1.0f;
-					break;
-			}
-		}
-		else if (bIsIntensityFmt)
-		{
-			fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-			switch (copyfmt)
-			{
-				case 0: // I4
-				case 1: // I8
-				case 2: // IA4
-				case 3: // IA8
-					colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
-					colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
-					colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
-
-					if (copyfmt < 2)
-					{
-						fConstAdd[3] = 16.0f / 255.0f;
-						colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
-					}
-					else// alpha
-						colmat[15] = 1;
-
-					break;
-				default:
-					ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
-					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-					break;
-			}
-		}
-		else
-		{
-			switch (copyfmt)
-			{
-				case 0: // R4
-				case 8: // R8
-					colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-					break;
-				case 2: // RA4
-				case 3: // RA8
-					colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
-					break;
-
-				case 7: // A8
-					colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
-					break;
-				case 9: // G8
-					colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
-					break;
-				case 10: // B8
-					colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
-					break;
-				case 11: // RG8
-					colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
-					break;
-				case 12: // GB8
-					colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
-					break;
-
-				case 4: // RGB565
-					colmat[0] = colmat[5] = colmat[10] = 1;
-					fConstAdd[3] = 1; // set alpha to 1
-					break;
-				case 5: // RGB5A3
-				case 6: // RGBA8
-					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-					break;
-
-				default:
-					ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
-					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-					break;
-			}
-		}
-		
 		LPDIRECT3DSURFACE9 Rendersurf = NULL;
-		tex->GetSurfaceLevel(0,&Rendersurf);
+		texture->GetSurfaceLevel(0, &Rendersurf);
 		D3D::dev->SetDepthStencilSurface(NULL);
 		D3D::dev->SetRenderTarget(0, Rendersurf);
 		
@@ -615,18 +89,18 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		// Stretch picture with increased internal resolution
 		vp.X = 0;
 		vp.Y = 0;
-		vp.Width  = Scaledtex_w;
-		vp.Height = Scaledtex_h;
+		vp.Width  = scaledW;
+		vp.Height = scaledH;
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
 		RECT destrect;
-		destrect.bottom = Scaledtex_h;
+		destrect.bottom = scaledH;
 		destrect.left = 0;
-		destrect.right = Scaledtex_w;
+		destrect.right = scaledW;
 		destrect.top = 0;
-		
 
+		const float* const fConstAdd = colmat + 16;		// fConstAdd is the last 4 floats of colmat
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
 		TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
 		RECT sourcerect;
@@ -635,10 +109,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		sourcerect.right = targetSource.right;
 		sourcerect.top = targetSource.top;
 
-
-		if(bFromZBuffer)
+		if (bFromZBuffer)
 		{
-			if(bScaleByHalf || g_ActiveConfig.iMultisampleMode)
+			if (bScaleByHalf || g_ActiveConfig.iMultisampleMode)
 			{
 				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
@@ -654,31 +127,30 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 		}
-		
 
 		D3DFORMAT bformat = g_framebufferManager.GetEFBDepthRTSurfaceFormat();
 		int SSAAMode = g_ActiveConfig.iMultisampleMode;
-		D3D::drawShadedTexQuad(
-			read_texture,
-			&sourcerect, 
-			Renderer::GetFullTargetWidth() , 
-			Renderer::GetFullTargetHeight(),
-			Scaledtex_w,
-			Scaledtex_h,
-			((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(SSAAMode): PixelShaderCache::GetColorMatrixProgram(SSAAMode),
+
+		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
+			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
+			scaledW, scaledH,
+			((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer) ?
+				PixelShaderCache::GetDepthMatrixProgram(SSAAMode) :
+				PixelShaderCache::GetColorMatrixProgram(SSAAMode),
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
-		Rendersurf->Release();	
+
+		Rendersurf->Release();
 	}
-	
-	if(!g_ActiveConfig.bCopyEFBToTexture)
+
+	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		textures[address].hash = TextureConverter::EncodeToRamFromTexture(
-			address,
+		hash = TextureConverter::EncodeToRamFromTexture(
+			addr,
 			read_texture,
 			Renderer::GetFullTargetWidth(), 
 			Renderer::GetFullTargetHeight(),
-			xScale,
-			yScale,
+			Renderer::GetTargetScaleX(),
+			Renderer::GetTargetScaleY(),
 			(float)((Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2), 
 			(float)((Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2) , 
 			bFromZBuffer, 
@@ -690,8 +162,68 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-	D3D::SetTexture(0,NULL);
+	D3D::SetTexture(0, NULL);
 	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
-	Renderer::RestoreAPIState();
+}
+
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
+	unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt)
+{
+	D3DFORMAT d3d_fmt;
+	bool swap_r_b = false;
+
+	switch (pcfmt)
+	{
+	case PC_TEX_FMT_BGRA32:
+		d3d_fmt = D3DFMT_A8R8G8B8;
+		break;
+
+	case PC_TEX_FMT_RGBA32:
+		d3d_fmt = D3DFMT_A8R8G8B8;
+		swap_r_b = true;
+		break;
+
+	case PC_TEX_FMT_RGB565:
+		d3d_fmt = D3DFMT_R5G6B5;
+		break;
+
+	case PC_TEX_FMT_IA4_AS_IA8:
+		d3d_fmt = D3DFMT_A8L8;
+		break;
+
+	case PC_TEX_FMT_I8:
+	case PC_TEX_FMT_I4_AS_I8:
+		// A hack which means the format is a packed
+		// 8-bit intensity texture. It is unpacked
+		// to A8L8 in D3DTexture.cpp
+		d3d_fmt = D3DFMT_A8P8;
+		break;
+
+	case PC_TEX_FMT_IA8:
+		d3d_fmt = D3DFMT_A8L8;
+		break;
+
+	case PC_TEX_FMT_DXT1:
+		d3d_fmt = D3DFMT_DXT1;
+		break;
+	}
+
+	TCacheEntry* entry = new TCacheEntry(D3D::CreateTexture2D(temp, width, height, expanded_width, d3d_fmt, swap_r_b, tex_levels));
+	entry->swap_r_b = swap_r_b;
+	entry->d3d_fmt = d3d_fmt;
+	
+	return entry;
+}
+
+TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
+	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
+{
+	LPDIRECT3DTEXTURE9 texture;
+	D3D::dev->CreateTexture(scaled_tex_w, scaled_tex_h, 1, D3DUSAGE_RENDERTARGET,
+		D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture, 0);
+	
+	return new TCacheEntry(texture);
+}
+
 }

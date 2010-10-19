@@ -1082,7 +1082,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Disable all other stages
 	for (int i = 1; i < 8; ++i)
-		TextureCache::DisableStage(i);
+		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
 	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
@@ -1246,7 +1246,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	TextureCache::DisableStage(0);
+	OGL::TextureCache::DisableStage(0);
 
 	// Wireframe
 	if (g_ActiveConfig.bWireFrame)

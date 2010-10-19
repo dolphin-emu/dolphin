@@ -238,7 +238,7 @@ void Video_Prepare()
 
 	// internal interfaces
 	Renderer::Init();
-	TextureCache::Init();
+	g_texture_cache = new DX9::TextureCache;
 	g_vertex_manager = new DX9::VertexManager;
 	// VideoCommon
 	BPInit();
@@ -276,7 +276,7 @@ void Shutdown()
 	PixelShaderCache::Shutdown();
 	VertexShaderCache::Shutdown();
 	delete g_vertex_manager;
-	TextureCache::Shutdown();
+	delete g_texture_cache;
 	Renderer::Shutdown();
 	D3D::Shutdown();
 	EmuWindow::Close();
