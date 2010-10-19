@@ -115,7 +115,7 @@ Mouse::Button::Button(IOHIDElementRef element)
 {
 	std::ostringstream s;
 	s << IOHIDElementGetUsage(m_element);
-	m_name = std::string("Button ") + s.str();
+	m_name = std::string("Click ") + s.str();
 }
 
 ControlState Mouse::Button::GetState(IOHIDDeviceRef device) const

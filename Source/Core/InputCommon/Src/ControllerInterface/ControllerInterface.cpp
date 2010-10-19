@@ -419,6 +419,29 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 							devc.control = *i;
 							ref->m_controls.push_back(devc);
 						}
+						else
+						{
+							// the input wasn't found, look through all the other devices
+
+							std::vector<Device*>::const_iterator
+								deviter = m_devices.begin(),
+								devend = m_devices.end();
+
+							for(; deviter != devend; ++deviter)
+							{
+								for(i = (*deviter)->Inputs().begin(); i < (*deviter)->Inputs().end(); ++i)
+									if(*(*i) == ctrl_str)
+										break;
+
+								if ((*deviter)->Inputs().end() != i)
+								{
+									devc.device = *deviter;
+									devc.control = *i;
+									ref->m_controls.push_back(devc);
+									break;
+								}
+							}
+						}
 					}
 					else
 					{

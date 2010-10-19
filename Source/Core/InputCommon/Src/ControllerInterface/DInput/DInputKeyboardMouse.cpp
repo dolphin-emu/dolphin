@@ -262,7 +262,7 @@ std::string KeyboardMouse::Key::GetName() const
 
 std::string KeyboardMouse::Button::GetName() const
 {
-	return std::string("Button ") + char('0' + m_index);
+	return std::string("Click ") + char('0' + m_index);
 }
 
 std::string KeyboardMouse::Axis::GetName() const

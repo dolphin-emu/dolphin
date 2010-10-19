@@ -863,10 +863,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	// TODO: finish this
 
 	// Buttons
-	// these alright for OSX/Linux?
-
-	set_control(m_buttons, 0, "Button 0");		// A
-	set_control(m_buttons, 1, "Button 1");		// B
+	set_control(m_buttons, 0, "Click 0");		// A
+	set_control(m_buttons, 1, "Click 1");		// B
 	//set_control(m_buttons, 2, "");		// 1
 	//set_control(m_buttons, 3, "");		// 2
 	//set_control(m_buttons, 4, "");		// -
@@ -875,7 +873,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// Shake
 	for (unsigned int i=0; i<3; ++i)
-		set_control(m_shake, i, "Button 2");
+		set_control(m_shake, i, "Click 2");
 
 	// IR
 #ifndef __APPLE__

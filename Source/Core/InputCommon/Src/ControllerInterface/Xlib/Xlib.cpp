@@ -162,7 +162,7 @@ std::string KeyboardMouse::Button::GetName() const
 		case Button5Mask: button = '5'; break;
 	}
 
-	static char tmpstr[] = "Button .";
+	static char tmpstr[] = "Click .";
 	tmpstr[7] = button;
 	return tmpstr;
 }
