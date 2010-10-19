@@ -64,7 +64,7 @@ public:
 private:
 	u32 m_CachedRegs[32];
 	u32 m_CachedSpecialRegs[NUM_SPECIALS];
-	double m_CachedFRegs[32][2];
+	u64 m_CachedFRegs[32][2];
 	bool m_CachedRegHasChanged[32];
 	bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
 	bool m_CachedFRegHasChanged[32][2];

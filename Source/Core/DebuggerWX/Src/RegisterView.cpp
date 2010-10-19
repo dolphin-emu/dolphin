@@ -51,17 +51,17 @@ wxString CRegTable::GetValue(int row, int col)
 	if (row < 32) {
 		switch (col) {
 		case 0: return wxString::FromAscii(GetGPRName(row));
-		case 1: return wxString::Format(wxT("0x%08x"), GPR(row));
+		case 1: return wxString::Format(wxT("%08x"), GPR(row));
 		case 2: return wxString::FromAscii(GetFPRName(row));
-		case 3: return wxString::Format(wxT("%f"), rPS0(row));
-		case 4: return wxString::Format(wxT("%f"), rPS1(row));
+		case 3: return wxString::Format(wxT("%016llx"), riPS0(row));
+		case 4: return wxString::Format(wxT("%016llx"), riPS1(row));
 		default: return wxString::FromAscii("");
 		}
 	} else {
 		if (row - 32 < NUM_SPECIALS) {
 			switch (col) {
 			case 0:	return wxString::FromAscii(special_reg_names[row - 32]);
-			case 1: return wxString::Format(wxT("0x%08x"), GetSpecialRegValue(row - 32));
+			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
 			default: return wxString::FromAscii("");
 		    }
 		}
@@ -90,18 +90,15 @@ static void SetSpecialRegValue(int reg, u32 value) {
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
 	u32 newVal = 0;
-	double newValFP = 0.0;
 	if (TryParseUInt(std::string(strNewVal.mb_str()), &newVal))
 	{
 		if (row < 32) {
 			if (col == 1)
 				GPR(row) = newVal;
-			else if (strNewVal.ToDouble(&newValFP)) {
-				if (col == 3)
-					rPS0(row) = newValFP;
-				else if (col == 4)
-					rPS1(row) = newValFP;
-			}
+			else if (col == 3)
+				riPS0(row) = newVal;
+			else if (col == 4)
+				riPS1(row) = newVal;
 		} else {
 			if ((row - 32 < NUM_SPECIALS) && (col == 1)) {
 				SetSpecialRegValue(row - 32, newVal);
@@ -117,10 +114,10 @@ void CRegTable::UpdateCachedRegs()
 		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != GPR(i));
 		m_CachedRegs[i] = GPR(i);
 
-		m_CachedFRegHasChanged[i][0] = (m_CachedFRegs[i][0] != rPS0(i));
-		m_CachedFRegs[i][0] = rPS0(i);
-		m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != rPS1(i));
-		m_CachedFRegs[i][1] = rPS1(i);
+		m_CachedFRegHasChanged[i][0] = (m_CachedFRegs[i][0] != riPS0(i));
+		m_CachedFRegs[i][0] = riPS0(i);
+		m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != riPS1(i));
+		m_CachedFRegs[i][1] = riPS1(i);
 	}
 	for (int i = 0; i < NUM_SPECIALS; ++i)
 	{
