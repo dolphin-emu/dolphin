@@ -192,7 +192,7 @@ else:
     if sys.platform == 'linux2':
         env['CPPDEFINES'] += [('_FILE_OFFSET_BITS', 64), '_LARGEFILE_SOURCE']
         env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
-    env['LINKFLAGS'] += ['-pthread']
+    env['LINKFLAGS'] += ['-pthread', '-ldl']
     env['RPATH'] = []
 
     conf = env.Configure(config_h = "#config.h", custom_tests = {
