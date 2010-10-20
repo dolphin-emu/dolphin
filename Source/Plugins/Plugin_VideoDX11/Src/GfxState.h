@@ -39,7 +39,6 @@ public:
 	void SetShaderResource(unsigned int stage, ID3D11ShaderResourceView* srv);
 
 	void ApplyState();            // apply current state
-	void AlphaPass();             // only modify the current state to enable the alpha pass
 	void Reset();
 
 	// blend state
@@ -48,6 +47,8 @@ public:
 	void SetSrcBlend(D3D11_BLEND val);
 	void SetDestBlend(D3D11_BLEND val);
 	void SetBlendOp(D3D11_BLEND_OP val);
+
+	void SetDstAlpha(bool enable);
 
 	// sampler states
 	void SetSamplerFilter(DWORD stage, D3D11_FILTER filter);
@@ -79,6 +80,8 @@ private:
 
 	ID3D11ShaderResourceView* shader_resources[8];
 	D3D11_BLEND_DESC blenddesc;
+
+	bool m_useDstAlpha;
 
 	bool apply_called;
 };

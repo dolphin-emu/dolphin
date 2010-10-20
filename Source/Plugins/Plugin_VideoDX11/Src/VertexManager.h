@@ -37,7 +37,7 @@ private:
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
 	void LoadBuffers();
-	void Draw(UINT stride, bool alphapass);
+	void Draw(UINT stride);
 	// temp
 	void vFlush();
 

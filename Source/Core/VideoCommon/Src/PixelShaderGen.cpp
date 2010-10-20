@@ -521,7 +521,7 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 	if(ApiType != API_D3D11)
 		WRITE(p, "  out float4 ocol0 : COLOR0,%s\n  in float4 rawpos : %s,\n",DepthTextureEnable ? "\n  out float depth : DEPTH," : "", ApiType == API_OPENGL ? "WPOS" : "POSITION");
 	else
-		WRITE(p, "  out float4 ocol0 : SV_Target,%s\n  in float4 rawpos : SV_Position,\n",DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+		WRITE(p, "  out float4 ocol0 : SV_Target0,\n  out float4 ocol1 : SV_Target1,%s\n  in float4 rawpos : SV_Position,\n",DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
 	
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
 	WRITE(p, "  in float4 colors_1 : COLOR1");
@@ -544,7 +544,8 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 
 	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
-	if (dstAlphaEnable && !DepthTextureEnable && Pretest >= 0)
+	// TODO: Re-enable the early discard on D3D11
+	if (dstAlphaEnable && !DepthTextureEnable && Pretest >= 0 && ApiType != API_D3D11)
 	{
 		if (!Pretest)
 		{
@@ -806,13 +807,24 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 			WRITE(p, "depth = zCoord;\n");
 		}
 
-		if (dstAlphaEnable)
+		if (dstAlphaEnable && ApiType != API_D3D11)
 			WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
 		else
 		{
 			WriteFog(p);
 			WRITE(p, "  ocol0 = prev;\n");
-		}		
+		}
+
+		// On D3D11, use dual-source color blending to perform dst alpha in a
+		// single pass
+		if (ApiType == API_D3D11)
+		{
+			// Colors will be blended against the alpha from ocol1...
+			WRITE(p, "  ocol1 = ocol0;\n");
+			// ...and the alpha from ocol0 will be written to the framebuffer.
+			if (dstAlphaEnable)
+				WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
+		}
 	}
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -1256,7 +1268,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0)
 	{
-		return Pretest;
+		return Pretest != 0;
 	}
 
 	// using discard then return works the same in cg and dx9 but not in dx11

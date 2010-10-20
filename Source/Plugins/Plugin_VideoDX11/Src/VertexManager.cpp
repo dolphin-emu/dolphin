@@ -144,12 +144,9 @@ void VertexManager::LoadBuffers()
 	m_indexBufferCursor += iCount;
 }
 
-void VertexManager::Draw(UINT stride, bool alphapass)
+void VertexManager::Draw(UINT stride)
 {
-	if (!alphapass)
-		D3D::gfxstate->ApplyState();
-	else
-		D3D::gfxstate->AlphaPass();
+	D3D::gfxstate->ApplyState();
 
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
 	D3D::context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -221,7 +218,12 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components))
+	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+
+	D3D::gfxstate->SetDstAlpha(useDstAlpha);
+
+	if (!PixelShaderCache::SetShader(useDstAlpha,g_nativeVertexFmt->m_components))
 		goto shader_fail;
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 		goto shader_fail;
@@ -230,18 +232,8 @@ void VertexManager::vFlush()
 	g_nativeVertexFmt->SetupVertexPointers();
 
 	LoadBuffers();
+	Draw(stride);
 
-	Draw(stride, false);
-
-	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
-	{
-		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components))
-			goto shader_fail;
-
-		// update alpha only
-		Draw(stride, true);
-	}
 	D3D::gfxstate->Reset();
 
 shader_fail:
