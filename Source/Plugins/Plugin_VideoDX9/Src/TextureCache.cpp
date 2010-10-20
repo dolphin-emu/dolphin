@@ -89,15 +89,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 		// Stretch picture with increased internal resolution
 		vp.X = 0;
 		vp.Y = 0;
-		vp.Width  = scaledW;
-		vp.Height = scaledH;
+		vp.Width  = virtualW;
+		vp.Height = virtualH;
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
 		RECT destrect;
-		destrect.bottom = scaledH;
+		destrect.bottom = virtualH;
 		destrect.left = 0;
-		destrect.right = scaledW;
+		destrect.right = virtualW;
 		destrect.top = 0;
 
 		const float* const fConstAdd = colmat + 16;		// fConstAdd is the last 4 floats of colmat
@@ -133,7 +133,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
 			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
-			scaledW, scaledH,
+			virtualW, virtualH,
 			((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer) ?
 				PixelShaderCache::GetDepthMatrixProgram(SSAAMode) :
 				PixelShaderCache::GetColorMatrixProgram(SSAAMode),

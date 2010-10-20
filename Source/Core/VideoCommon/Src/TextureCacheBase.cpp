@@ -263,8 +263,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 			// TODO: Is the mipLevels check needed?
 			if (!entry->isRenderTarget &&
-				((!entry->isDynamic && width == entry->w && height == entry->h && full_format == entry->format && entry->mipLevels == maxlevel) 
-				|| (entry->isDynamic && entry->w == width && entry->h == height)))
+				((!entry->isDynamic && width == entry->realW && height == entry->realH && full_format == entry->format && entry->mipLevels == maxlevel) 
+				|| (entry->isDynamic && entry->realW == width && entry->realH == height)))
 			{
 				// reuse the texture
 			}
@@ -319,11 +319,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		entry->mipLevels = maxlevel;
 		entry->size_in_bytes = texture_size;
 
-		entry->scaledW = entry->w = width;
-		entry->scaledH = entry->h = height;
+		entry->virtualW = width;
+		entry->virtualH = height;
 
-		entry->nativeH = nativeH;
-		entry->nativeW = nativeW;
+		entry->realW = nativeW;
+		entry->realH = nativeH;
 		
 		entry->isRenderTarget = false;
 		entry->isNonPow2 = false;
@@ -608,8 +608,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	TCacheEntryBase *entry = textures[address];
 	if (entry)
 	{
-		if ((entry->isRenderTarget && entry->scaledW == scaled_tex_w && entry->scaledH == scaled_tex_h) 
-			|| (entry->isDynamic && entry->w == tex_w && entry->h == tex_h))
+		if ((entry->isRenderTarget && entry->virtualW == scaled_tex_w && entry->virtualH == scaled_tex_h) 
+			|| (entry->isDynamic && entry->realW == tex_w && entry->realH == tex_h))
 		{
 			texture_is_dynamic = entry->isDynamic;
 		}
@@ -635,11 +635,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		entry->addr = address;
 		entry->hash = 0;
 
-		entry->w = entry->nativeW = tex_w;
-		entry->h = entry->nativeH = tex_h;
+		entry->realW = tex_w;
+		entry->realH = tex_h;
 
-		entry->scaledW = scaled_tex_w;
-		entry->scaledH = scaled_tex_h;
+		entry->virtualW = scaled_tex_w;
+		entry->virtualH = scaled_tex_h;
 
 		entry->format = copyfmt;
 		entry->mipLevels = 0;

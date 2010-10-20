@@ -165,7 +165,7 @@ void VertexManager::vFlush()
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
 
 				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
 				{

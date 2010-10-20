@@ -121,7 +121,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 	bool bIsIntensityFmt, u32 copyfmt)
 {
 	// stretch picture with increased internal resolution
-	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)scaledW, (float)scaledH);
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
 	D3D::context->RSSetViewports(1, &vp);
 
 	// set transformation

@@ -24,9 +24,15 @@ public:
 		u32 format;
 		
 		int frameCount;
-		unsigned int w, h, mipLevels;
-		// TODO: it looks like scaledW/H can be removed and w/h can be used in their place
-		unsigned int scaledW, scaledH, nativeW, nativeH;
+
+		unsigned int realW, realH; // Texture dimensions from the GameCube's point of view
+		unsigned int virtualW, virtualH; // Texture dimensions from OUR point of view
+		// Real and virtual dimensions are usually the same, but may be
+		// different if e.g. we use high-res textures. Then, realW,realH will
+		// be the dimensions of the original GameCube texture and
+		// virtualW,virtualH will be the dimensions of the high-res texture.
+
+		unsigned int mipLevels;
 
 		bool isRenderTarget;
 		bool isDynamic; // mofified from cpu
