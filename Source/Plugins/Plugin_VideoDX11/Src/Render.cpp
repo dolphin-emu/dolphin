@@ -789,15 +789,21 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
 	D3D::context->RSSetScissorRects(1, &sirc);
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
+
 	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
 	D3D::stateman->PushRasterizerState(clearraststate);
-	//D3D::stateman->PushBlendState(resetblendstate); temporarily commented until I find the cause of the blending issue in mkwii (see next line)
-	D3D::gfxstate->ApplyState();  // TODO (neobrain): find out whether this breaks/fixes anything or can just be dropped. Might obsolete the comment above this line
+	D3D::stateman->PushBlendState(resetblendstate);
+	D3D::stateman->Apply();
+
 	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
-	D3D::gfxstate->Reset();
-	D3D::stateman->PopDepthState();
+
+	D3D::stateman->PopBlendState();
 	D3D::stateman->PopRasterizerState();
-//	D3D::stateman->PopBlendState();
+	D3D::stateman->PopDepthState();
+	D3D::stateman->Apply();
+
+	D3D::gfxstate->Reset();
+
 	UpdateViewport();
 	SetScissorRect();
 }
