@@ -22,6 +22,7 @@
 #include "VertexLoader.h"
 
 #include "VertexManagerBase.h"
+#include "D3DBase.h"
 
 namespace DX11
 {
@@ -33,9 +34,21 @@ public:
 	~VertexManager();
 
 private:
-	void Draw(u32 stride, bool alphapass);
+	void CreateDeviceObjects();
+	void DestroyDeviceObjects();
+	void LoadBuffers();
+	void Draw(UINT stride, bool alphapass);
 	// temp
 	void vFlush();
+
+	UINT m_indexBufferCursor;
+	UINT m_vertexBufferCursor;
+	UINT m_vertexDrawOffset;
+	UINT m_triangleDrawIndex;
+	UINT m_lineDrawIndex;
+	UINT m_pointDrawIndex;
+	ID3D11Buffer* m_indexBuffer;
+	ID3D11Buffer* m_vertexBuffer;
 };
 
 }  // namespace
