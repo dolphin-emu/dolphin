@@ -590,33 +590,34 @@ void ExecuteCommand(UDICR& _DICR)
 					{
 						if (iDVDOffset & 0x80000000) // read request to hardware buffer
 						{
+							u32 len = m_DILENGTH.Length / 4;
 							switch (iDVDOffset)
 							{
 							case 0x80000000:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (80000000)");
-								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < len; i++)
 									Memory::Write_U32(0, m_DIMAR.Address + i * 4);
 								break;
 							case 0x80000040:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (2) (80000040)");
-								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < len; i++)
 									Memory::Write_U32(~0, m_DIMAR.Address + i * 4);
 								Memory::Write_U32(0x00000020, m_DIMAR.Address); // DIMM SIZE, LE
 								Memory::Write_U32(0x4743414D, m_DIMAR.Address + 4); // GCAM signature
 								break;
 							case 0x80000120:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000120)");
-								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < len; i++)
 									Memory::Write_U32(0x01010101, m_DIMAR.Address + i * 4);
 								break;
 							case 0x80000140:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000140)");
-								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < len; i++)
 									Memory::Write_U32(0x01010101, m_DIMAR.Address + i * 4);
 								break;
 							case 0x84000020:
 								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (1) (84000020)");
-								for (u32 i = 0; i < m_DILENGTH.Length / 4; i++)
+								for (u32 i = 0; i < len; i++)
 									Memory::Write_U32(0x00000000, m_DIMAR.Address + i * 4);
 								break;
 							default:

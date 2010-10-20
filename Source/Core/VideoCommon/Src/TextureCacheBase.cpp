@@ -148,7 +148,7 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter!=tcend; ++iter)
-        iter->second->isRenderTarget = false;
+	iter->second->isRenderTarget = false;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -167,6 +167,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	unsigned int expandedWidth  = (width  + bsw) & (~bsw);
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
+	const unsigned int nativeW = width;
+	const unsigned int nativeH = height;
+	bool isPow2;
 
 	u64 hash_value = 0;
 	u64 texHash = 0;
@@ -175,6 +178,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
 	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 	bool texture_is_dynamic = false;
+	unsigned int texLevels;
+	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	// someone who understands this var could rename it :p
 	const bool isC4_C8_C14X2 = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
@@ -182,8 +187,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (isC4_C8_C14X2)
 		full_format = texformat | (tlutfmt << 16);
 
-    // hires texture loading and texture dumping require accurate hashes
-    if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
+	// hires texture loading and texture dumping require accurate hashes
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		
@@ -219,7 +224,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			{
 				if (false == g_ActiveConfig.bCopyEFBToTexture)
 				{
-					hash_value =  GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 					if (isC4_C8_C14X2)
 					{
@@ -271,21 +276,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			}
 		}
 	}
-
-	const unsigned int nativeW = width;
-	const unsigned int nativeH = height;
 	
-	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
-
 	if (g_ActiveConfig.bHiresTextures)
 	{
 		// Load Custom textures
 		char texPathTemp[MAX_PATH];
 
 		unsigned int newWidth = width;
-        unsigned int newHeight = height;
+		unsigned int newHeight = height;
 
-		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, texHash, texformat);
+		sprintf(texPathTemp, "%s_%08llx_%i", globals->unique_id, texHash, texformat);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
@@ -302,8 +302,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth,
 			expandedHeight, texformat, tlutaddr, tlutfmt, !g_texture_cache->isOGL());
 
-	const bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
-	unsigned int texLevels = (isPow2 && UseNativeMips && maxlevel) ?
+	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
+	texLevels = (isPow2 && UseNativeMips && maxlevel) ?
 		GetPow2(std::max(width, height)) : !isPow2;
 
 	if ((texLevels > (maxlevel + 1)) && maxlevel)
@@ -370,7 +370,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	}
 
 	// TODO: won't this cause loaded hires textures to be dumped as well?
-        // dump texture to file
+	// dump texture to file
 	if (g_ActiveConfig.bDumpTextures)
 	{
 		char szTemp[MAX_PATH];
@@ -381,7 +381,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 			File::CreateDir(szDir);
 
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, globals->unique_id, texHash, texformat);
+		sprintf(szTemp, "%s/%s_%08llx_%i.png", szDir, globals->unique_id, texHash, texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);
@@ -621,11 +621,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		}
 	}
 
-    if (texture_is_dynamic)
-    {
+	if (texture_is_dynamic)
+	{
 		scaled_tex_w = tex_w;
 		scaled_tex_h = tex_h;
-    }
+	}
 
 	if (NULL == entry)
 	{
