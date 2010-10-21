@@ -863,7 +863,7 @@ void CISOProperties::LoadGameConfig()
 	else
 		BlockMerging->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
+	if (GameIni.Get("Display", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
@@ -980,9 +980,9 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Core", "BlockMerging", BlockMerging->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "ProgressiveScan");
+		GameIni.DeleteKey("Display", "ProgressiveScan");
 	else
-		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
+		GameIni.Set("Display", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
 
 	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "Widescreen");

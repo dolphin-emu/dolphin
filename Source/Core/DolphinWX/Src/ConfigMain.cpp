@@ -1039,6 +1039,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WII_IPL_PGS:
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", WiiProgressiveScan->IsChecked());
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = WiiProgressiveScan->IsChecked();
 		break;
 	case ID_WII_IPL_E60:
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", WiiEuRGB60->IsChecked());

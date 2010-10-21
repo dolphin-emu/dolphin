@@ -121,6 +121,7 @@ void SConfig::SaveSettings()
 	ini.Set("Display", "RenderWindowYPos",		m_LocalCoreStartupParameter.iRenderWindowYPos);
 	ini.Set("Display", "RenderWindowWidth",		m_LocalCoreStartupParameter.iRenderWindowWidth);
 	ini.Set("Display", "RenderWindowHeight",	m_LocalCoreStartupParameter.iRenderWindowHeight);
+	ini.Set("Display", "ProgressiveScan",		m_LocalCoreStartupParameter.bProgressive);
 
 	// Game List Control
 	ini.Set("GameList", "ListDrives",	m_ListDrives);
@@ -243,6 +244,7 @@ void SConfig::LoadSettings()
 		ini.Get("Display", "RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	0);
 		ini.Get("Display", "RenderWindowWidth",		&m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
 		ini.Get("Display", "RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
+		ini.Get("Display", "ProgressiveScan",		&m_LocalCoreStartupParameter.bProgressive, false);
 
 		// Game List Control
 		ini.Get("GameList", "ListDrives",	&m_ListDrives,	false);

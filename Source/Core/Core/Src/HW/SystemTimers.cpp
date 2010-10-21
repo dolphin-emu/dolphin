@@ -182,7 +182,7 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
 }
 
 void SICallback(u64 userdata, int cyclesLate)
@@ -278,7 +278,7 @@ void Init()
 	// This is the biggest question mark.
 	AI_PERIOD = GetTicksPerSecond() / 80;
 
-	// System internal sample rate is fixed at 32KHz
+	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (32000 * 4 / 32);
 
 	Common::Timer::IncreaseResolution();
@@ -301,7 +301,7 @@ void Init()
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);

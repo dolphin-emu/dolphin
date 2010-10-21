@@ -145,17 +145,18 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 1;
 
 	// 54MHz, capable of progressive scan
-	m_Clock = 1;
+	m_Clock = Core::g_CoreStartupParameter.bProgressive?1:0;
 
 	// Say component cable is plugged
-	m_DTVStatus = 1;
+	m_DTVStatus = Core::g_CoreStartupParameter.bProgressive?1:0;
 
 	UpdateParameters();
 }
 
 void SetRegionReg(char _region)
 {
-	m_DTVStatus = _region | (m_DTVStatus & 1);
+	if (Core::g_CoreStartupParameter.bProgressive)
+		m_DTVStatus = _region | (m_DTVStatus & 1);
 }
 
 void Init()
@@ -280,6 +281,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	// RETRACE STUFF ...
 	case VI_PRERETRACE_HI:
 		_uReturnValue =	m_InterruptRegister[0].Hi;
+		m_InterruptRegister[0].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_PRERETRACE_LO:
 		_uReturnValue =	m_InterruptRegister[0].Lo;
@@ -287,6 +290,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_POSTRETRACE_HI:
 		_uReturnValue =	m_InterruptRegister[1].Hi;
+		m_InterruptRegister[1].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_POSTRETRACE_LO:
 		_uReturnValue =	m_InterruptRegister[1].Lo;
@@ -294,6 +299,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_2_HI:
 		_uReturnValue =	m_InterruptRegister[2].Hi;
+		m_InterruptRegister[2].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_DISPLAY_INTERRUPT_2_LO:
 		_uReturnValue =	m_InterruptRegister[2].Lo;
@@ -301,6 +308,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_3_HI:
 		_uReturnValue =	m_InterruptRegister[3].Hi;
+		m_InterruptRegister[3].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_DISPLAY_INTERRUPT_3_LO:
 		_uReturnValue =	m_InterruptRegister[3].Lo;
@@ -528,7 +537,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		// RETRACE STUFF ...
 	case VI_PRERETRACE_HI:
 		m_InterruptRegister[0].Hi = _iValue;
-		UpdateInterrupts();
 		break;
 	case VI_PRERETRACE_LO:
 		m_InterruptRegister[0].Lo = _iValue;
@@ -536,7 +544,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_POSTRETRACE_HI:
 		m_InterruptRegister[1].Hi = _iValue;
-		UpdateInterrupts();
 		break;
 	case VI_POSTRETRACE_LO:
 		m_InterruptRegister[1].Lo = _iValue;
@@ -544,7 +551,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_2_HI:
 		m_InterruptRegister[2].Hi = _iValue;
-		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_2_LO:
 		m_InterruptRegister[2].Lo = _iValue;
@@ -552,7 +558,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_3_HI:
 		m_InterruptRegister[3].Hi = _iValue;
-		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_3_LO:
 		m_InterruptRegister[3].Lo = _iValue;
@@ -717,23 +722,19 @@ void UpdateParameters()
     case 0: // NTSC
     case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		// AyuanX: Some games are pretty sensitive to this value
-		// So we have to make it run a little faster to prevent potential time out
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE + 1);
-		s_lineCount = m_DisplayControlRegister.NIN ? NTSC_LINE_COUNT : (NTSC_LINE_COUNT+1)/2;
-		//s_upperFieldBegin = NTSC_UPPER_BEGIN;
-		//s_lowerFieldBegin = NTSC_LOWER_BEGIN;
-		break;
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2);
+		s_lineCount = NTSC_LINE_COUNT;
+		s_upperFieldBegin = NTSC_UPPER_BEGIN;
+		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
+        break;
 
     case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-		// AyuanX: Some games are pretty sensitive to this value
-		// So we have to make it run a little faster to prevent potential time out
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE  + 1);
-		s_lineCount = m_DisplayControlRegister.NIN ? PAL_LINE_COUNT : (PAL_LINE_COUNT+1)/2;
-		//s_upperFieldBegin = PAL_UPPER_BEGIN;
-		//s_lowerFieldBegin = PAL_LOWER_BEGIN;
-		break;
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2);
+		s_lineCount = PAL_LINE_COUNT;
+		s_upperFieldBegin = PAL_UPPER_BEGIN;
+		s_lowerFieldBegin = PAL_LOWER_BEGIN;
+        break;
 
 	case 3: // Debug
 		PanicAlert("Debug video mode not implemented");
@@ -748,9 +749,13 @@ void UpdateParameters()
 int GetTicksPerLine()
 {
 	if (s_lineCount == 0)
-		return 100000;
+	{
+		return 1;
+	}
 	else
-		return TicksPerFrame / s_lineCount;
+	{
+		return TicksPerFrame / (s_lineCount * 2);
+	}
 }
 
 int GetTicksPerFrame()
@@ -781,35 +786,56 @@ static void BeginField(FieldType field)
 		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
 }
 
-/*
 static void EndField()
 {
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (video->IsValid())
+	{
 		video->Video_EndField();
+		Core::VideoThrottle();
+	}
 }
-*/
 
-// AyuanX: No need to update per scan line, update per frame is good enough, and faster 
 // Purpose: Send VI interrupt when triggered
-// Run when: When a frame is scaned (progressive/interlace)
+// Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
-	u16 NewVBeamPos;
+	u16 NewVBeamPos = 0;
+
 	if (m_DisplayControlRegister.NIN)
 	{
 		// Progressive
 		NewVBeamPos = s_lineCount + 1;
+		BeginField(FIELD_PROGRESSIVE);
 	}
-	else if (m_VBeamPos == s_lineCount)
+	else if (m_VBeamPos == s_upperFieldBegin)
 	{
 		// Interlace Upper
 		NewVBeamPos = s_lineCount * 2;
+		BeginField(FIELD_UPPER);
 	}
-	else
+	else if (m_VBeamPos == s_lowerFieldBegin)
 	{
 		// Interlace Lower
 		NewVBeamPos = s_lineCount;
+		BeginField(FIELD_LOWER);
+	}
+
+	if (m_DisplayControlRegister.NIN)
+	{
+		// Progressive
+		if (m_VBeamPos == s_lineCount)
+			EndField();
+	}
+	else if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
+	{
+		// Interlace Upper.  Do not EndField (swapBuffer) at the end of the upper field.
+		//EndField();
+	}
+	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
+	{
+		// Interlace Lower
+		EndField();
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -818,63 +844,11 @@ void Update()
 			m_InterruptRegister[i].IR_INT = 1;
 	}
 	UpdateInterrupts();
-	
-	if (m_DisplayControlRegister.NIN)
-	{
-		// Progressive	
-		BeginField(FIELD_PROGRESSIVE);
-	}
-	else if (m_VBeamPos == s_lineCount)
-	{
-		// Interlace Upper
-		BeginField(FIELD_UPPER);
-	}
-	else
-	{
-		// Interlace Lower
-		BeginField(FIELD_LOWER);
-	}
 
-	m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
-	
-
-	Core::VideoThrottle();
+	if (++m_VBeamPos > s_lineCount)
+	{
+		m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
+	}
 }
-
-/*
-// Purpose: Send VI interrupt when triggered
-// Run when: When a line is scaned
-void Update()
-{
-
-	// TODO: What's the correct behavior for progressive mode?
-	if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
-		EndField();
-	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
-		EndField();
-
-
-    if (++m_VBeamPos > s_lineCount)
-	{
-        m_VBeamPos = 1;
-		// Apply video throttle whenever a full screen scan finishes
-		Core::VideoThrottle();
-	}
-
-	for (int i = 0; i < 4; ++i)
-	{
-		if (m_InterruptRegister[i].VCT == m_VBeamPos)
-			m_InterruptRegister[i].IR_INT = 1;
-	}
-	UpdateInterrupts();
-
-
-	if (m_VBeamPos == s_upperFieldBegin)
-		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
-	else if (m_VBeamPos == s_lowerFieldBegin)
-		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
-
-}
-*/
 
 } // namespace

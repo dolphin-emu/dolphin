@@ -56,6 +56,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   iRenderWindowXPos(0), iRenderWindowYPos(0),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bFullscreen(false), bRenderToMain(false),
+  bProgressive(false),
   iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
