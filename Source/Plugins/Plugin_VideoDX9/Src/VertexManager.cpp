@@ -155,7 +155,7 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components))
+	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
 	{
 		DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
@@ -175,7 +175,7 @@ void VertexManager::vFlush()
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(true, g_nativeVertexFmt->m_components))
+		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{
 			DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;

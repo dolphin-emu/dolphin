@@ -273,10 +273,10 @@ void PixelShaderCache::Shutdown()
 	unique_shaders.clear();
 }
 
-bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
+bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlpha ? 1 : 0);
+	GetPixelShaderId(&uid, dstAlphaMode);
 
 	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
@@ -308,7 +308,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	}
 
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(dstAlpha, API_D3D9,components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);

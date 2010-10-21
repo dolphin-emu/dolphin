@@ -223,7 +223,9 @@ void VertexManager::vFlush()
 
 	D3D::gfxstate->SetDstAlpha(useDstAlpha);
 
-	if (!PixelShaderCache::SetShader(useDstAlpha,g_nativeVertexFmt->m_components))
+	if (!PixelShaderCache::SetShader(
+		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
+		g_nativeVertexFmt->m_components))
 		goto shader_fail;
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 		goto shader_fail;

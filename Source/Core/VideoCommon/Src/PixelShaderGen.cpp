@@ -33,7 +33,7 @@ PIXELSHADERUID last_pixel_shader_uid;
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID *uid, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 {
 	u32 numstages = bpmem.genMode.numtevstages + 1;
 	u32 projtexcoords = 0;
@@ -49,12 +49,11 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 dstAlphaEnable)
 	uid->values[0] = (u32)bpmem.genMode.numtevstages |
 				   ((u32)bpmem.genMode.numindstages << 4) |
 				   ((u32)bpmem.genMode.numtexgens << 7) |
-				   ((u32)dstAlphaEnable << 11) |
-				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
-				   (projtexcoords << 20) |
-				   ((u32)bpmem.ztex2.op << 28);
+				   ((u32)dstAlphaMode << 11) |
+				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 13) |
+				   (projtexcoords << 21) |
+				   ((u32)bpmem.ztex2.op << 29);
 
-	uid->values[0] = (uid->values[0] & ~0x0ff00000) | (projtexcoords << 20);
 	// swap table
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
@@ -443,7 +442,7 @@ char *GeneratePixelLightShader(char *p, int index, const LitChannel& chan, const
 
 
 
-const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 components)
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,u32 components)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -519,9 +518,18 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 
 	WRITE(p, "void main(\n");
 	if(ApiType != API_D3D11)
-		WRITE(p, "  out float4 ocol0 : COLOR0,%s\n  in float4 rawpos : %s,\n",DepthTextureEnable ? "\n  out float depth : DEPTH," : "", ApiType == API_OPENGL ? "WPOS" : "POSITION");
+	{
+		// TODO: Support DSTALPHA_DUAL_SOURCE_BLEND for non-D3D11 shaders
+		WRITE(p, "  out float4 ocol0 : COLOR0,%s\n  in float4 rawpos : %s,\n",
+			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
+			ApiType == API_OPENGL ? "WPOS" : "POSITION");
+	}
 	else
-		WRITE(p, "  out float4 ocol0 : SV_Target0,\n  out float4 ocol1 : SV_Target1,%s\n  in float4 rawpos : SV_Position,\n",DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+	{
+		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
+			DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+	}
 	
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
 	WRITE(p, "  in float4 colors_1 : COLOR1");
@@ -544,8 +552,7 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 
 	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
-	// TODO: Re-enable the early discard on D3D11
-	if (dstAlphaEnable && !DepthTextureEnable && Pretest >= 0 && ApiType != API_D3D11)
+	if (dstAlphaMode == DSTALPHA_ALPHA_PASS && !DepthTextureEnable && Pretest >= 0)
 	{
 		if (!Pretest)
 		{
@@ -807,7 +814,7 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 			WRITE(p, "depth = zCoord;\n");
 		}
 
-		if (dstAlphaEnable && ApiType != API_D3D11)
+		if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 			WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
 		else
 		{
@@ -817,13 +824,12 @@ const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 co
 
 		// On D3D11, use dual-source color blending to perform dst alpha in a
 		// single pass
-		if (ApiType == API_D3D11)
+		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		{
 			// Colors will be blended against the alpha from ocol1...
 			WRITE(p, "  ocol1 = ocol0;\n");
 			// ...and the alpha from ocol0 will be written to the framebuffer.
-			if (dstAlphaEnable)
-				WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
+			WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
 		}
 	}
 	WRITE(p, "}\n");

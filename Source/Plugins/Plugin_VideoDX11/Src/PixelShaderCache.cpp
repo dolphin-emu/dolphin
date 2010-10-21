@@ -228,10 +228,10 @@ void PixelShaderCache::Shutdown()
 	g_ps_disk_cache.Close();
 }
 
-bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
+bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlpha);
+	GetPixelShaderId(&uid, dstAlphaMode);
 
 	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
@@ -256,7 +256,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	}
 
 	// Need to compile a new shader
-	const char* code = GeneratePixelShaderCode(dstAlpha, API_D3D11,components);
+	const char* code = GeneratePixelShaderCode(dstAlphaMode, API_D3D11, components);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))

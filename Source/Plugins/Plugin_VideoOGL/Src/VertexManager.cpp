@@ -185,7 +185,7 @@ void VertexManager::vFlush()
 	PixelShaderManager::SetConstants();
 
 	// finally bind
-	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(false,g_nativeVertexFmt->m_components);
+	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
@@ -195,7 +195,9 @@ void VertexManager::vFlush()
 	// run through vertex groups again to set alpha
 	if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
-		ps = PixelShaderCache::SetShader(true,g_nativeVertexFmt->m_components);
+		// TODO: If host supports GL_ARB_blend_func_extended, use
+		// DSTALPHA_DUAL_SOURCE_BLEND and set blend modes accordingly.
+		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
 		// only update alpha

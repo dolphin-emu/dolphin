@@ -60,7 +60,7 @@ private:
 public:
 	static void Init();
 	static void Shutdown();
-	static bool SetShader(bool dstAlpha, u32 componets);
+	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 componets);
 	static bool InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
 	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram(int SSAAMode);
 	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram(int SSAAMode);

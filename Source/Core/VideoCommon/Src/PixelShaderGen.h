@@ -104,8 +104,16 @@ public:
 	}
 };
 
-const char *GeneratePixelShaderCode(bool dstAlphaEnable, API_TYPE ApiType,u32 components);
-void GetPixelShaderId(PIXELSHADERUID *uid, u32 dstAlphaEnable);
+// Different ways to achieve rendering with destination alpha
+enum DSTALPHA_MODE
+{
+	DSTALPHA_NONE, // Render normally, without destination alpha
+	DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
+	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
+};
+
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,u32 components);
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
 
 extern PIXELSHADERUID last_pixel_shader_uid;
 

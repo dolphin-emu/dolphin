@@ -184,11 +184,11 @@ void PixelShaderCache::Shutdown()
 	PixelShaders.clear();
 }
 
-FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlpha,u32 components)
+FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlpha ? 1 : 0);
+	GetPixelShaderId(&uid, dstAlphaMode);
 
 	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
@@ -216,7 +216,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(bool dstAlpha,u32 components)
 	PSCacheEntry& newentry = PixelShaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-	const char *code = GeneratePixelShaderCode(dstAlpha,API_OPENGL,components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
