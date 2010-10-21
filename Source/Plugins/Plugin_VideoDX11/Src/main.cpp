@@ -335,26 +335,22 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
 	{
-		if (g_VideoInitialize.bOnThread)
-		{
-			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
-				//Common::SleepCurrentThread(1);
-				Common::YieldCPU();
-		}
-		else
+		if (!g_VideoInitialize.bOnThread)
 			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
 		s_beginFieldArgs.fbHeight = fbHeight;
-
-		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 	}
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_EndField()
 {
+	if (s_PluginInitialized)
+	{
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
+	}
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
