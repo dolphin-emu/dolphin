@@ -34,7 +34,7 @@ namespace D3D
 class UtilVertexBuffer
 {
 public:
-	UtilVertexBuffer(int max_size) : buf(NULL), offset(0)
+	UtilVertexBuffer(int size) : buf(NULL), offset(0), max_size(size)
 	{
 		D3D11_BUFFER_DESC desc = CD3D11_BUFFER_DESC(max_size, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		device->CreateBuffer(&desc, NULL, &buf);
@@ -479,7 +479,7 @@ int clearq_offset;
 
 void InitUtils()
 {
-	util_vbuf = new UtilVertexBuffer(0x400);
+	util_vbuf = new UtilVertexBuffer(0x600);
 
 	float border[4] = { 0.f, 0.f, 0.f, 0.f };
 	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
