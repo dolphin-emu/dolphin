@@ -40,6 +40,7 @@
 #include "VideoConfig.h"
 
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
+#define DL_CODE_CLEAR_THRESHOLD (256 * 1024)
 extern int frameCount;
 
 using namespace Gen;
@@ -605,6 +606,11 @@ void ProgressiveCleanup()
 	}
 }
 
+static size_t GetSpaceLeft()
+{
+	return DL_CODE_CACHE_SIZE - (emitter.GetCodePtr() - dlcode_cache);
+}
+
 }  // namespace
 
 // NOTE - outside the namespace on purpose.
@@ -614,6 +620,12 @@ bool HandleDisplayList(u32 address, u32 size)
 	if(!g_ActiveConfig.bDlistCachingEnable)
 		return false;
 	if(size == 0) return false;
+
+	// Is this thread safe?
+	if (DLCache::GetSpaceLeft() < DL_CODE_CLEAR_THRESHOLD) {
+		DLCache::Clear();
+	}
+
 	u64 dl_id = DLCache::CreateMapId(address, size);
 	DLCache::DLMap::iterator iter = DLCache::dl_map.find(dl_id);
 
