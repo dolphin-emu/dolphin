@@ -691,46 +691,45 @@ void Renderer::SetColorMask()
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
-u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
+u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
-	if (type == POKE_Z || type == POKE_COLOR)
+	if (type == POKE_Z)
 	{
 		static bool alert_only_once = true;
 		if (!alert_only_once) return 0;
-		PanicAlert("Poke EFB not implemented");
+		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
 		alert_only_once = false;
 		return 0;
 	}
 
-	// Get the working buffer
-	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		g_framebufferManager.GetEFBDepthRTSurface() : g_framebufferManager.GetEFBColorRTSurface();
-	// Get the temporal buffer to move 1pixel data
-	LPDIRECT3DSURFACE9 RBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		g_framebufferManager.GetEFBDepthReadSurface() : g_framebufferManager.GetEFBColorReadSurface();
-	// Get the memory buffer that can be locked
-	LPDIRECT3DSURFACE9 pOffScreenBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		g_framebufferManager.GetEFBDepthOffScreenRTSurface() : g_framebufferManager.GetEFBColorOffScreenRTSurface();
-	// Get the buffer format
-	D3DFORMAT BufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
-		g_framebufferManager.GetEFBDepthRTSurfaceFormat() : g_framebufferManager.GetEFBColorRTSurfaceFormat();
-	D3DFORMAT ReadBufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
-		g_framebufferManager.GetEFBDepthReadSurfaceFormat() : BufferFormat;
-	
-	if (BufferFormat == D3DFMT_D24X8)
-		return 0;
+	// We're using three surfaces here:
+	// - pEFBSurf: EFB Surface. Source surface when peeking, destination surface when poking.
+	// - pBufferRT: A render target surface. When peeking, we render a textured quad to this surface.
+	// - pSystemBuf: An offscreen surface. Used to retrieve the pixel data from pBufferRT.
+	LPDIRECT3DSURFACE9 pEFBSurf, pBufferRT, pSystemBuf;
+	if(type == PEEK_Z || type == POKE_Z)
+	{
+		pEFBSurf = g_framebufferManager.GetEFBDepthRTSurface();
+		pBufferRT = g_framebufferManager.GetEFBDepthReadSurface();
+		pSystemBuf = g_framebufferManager.GetEFBDepthOffScreenRTSurface();
+	}
+	else //if(type == PEEK_COLOR || type == POKE_COLOR)
+	{
+		pEFBSurf = g_framebufferManager.GetEFBColorRTSurface();
+		pBufferRT = g_framebufferManager.GetEFBColorReadSurface();
+		pSystemBuf = g_framebufferManager.GetEFBColorOffScreenRTSurface();
+	}
 
-	D3DLOCKED_RECT drect;
-	
 	// Buffer not found alert
-	if (!pBuffer) {
+	if (!pEFBSurf) {
 		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
 		return 0;
 	}
-	// Get the rectangular target region covered by the EFB pixel
+
+	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
 	efbPixelRc.top = y;
@@ -740,7 +739,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 
 	u32 z = 0;
-	float val = 0.0f;
 	HRESULT hr;
 	RECT RectToLock;
 	RectToLock.bottom = targetPixelRc.bottom;
@@ -749,6 +747,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	RectToLock.top = targetPixelRc.top;	
 	if (type == PEEK_Z)
 	{
+		if (g_framebufferManager.GetEFBDepthRTSurfaceFormat() == D3DFMT_D24X8)
+			return 0;
+
 		RECT PixelRect;
 		PixelRect.bottom = 4;
 		PixelRect.left = 0;
@@ -764,131 +765,105 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			RectToLock.left++;
 
 		ResetAPIState(); // Reset any game specific settings
-		hr = D3D::dev->SetDepthStencilSurface(NULL);
-		hr = D3D::dev->SetRenderTarget(0, RBuffer);
-		if (FAILED(hr))
-		{
-			PanicAlert("unable to set pixel render buffer");
-			return 0;
-		}
-		D3DVIEWPORT9 vp;
+		D3D::dev->SetDepthStencilSurface(NULL);
+		D3D::dev->SetRenderTarget(0, pBufferRT);
+
 		// Stretch picture with increased internal resolution
+		D3DVIEWPORT9 vp;
 		vp.X = 0;
 		vp.Y = 0;
 		vp.Width  = 4;
 		vp.Height = 4;
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
-		hr = D3D::dev->SetViewport(&vp);
-		if (FAILED(hr))
-		{
-			PanicAlert("unable to set pixel viewport");
-			return 0;
-		}
+		D3D::dev->SetViewport(&vp);
+
 		float colmat[16] = {0.0f};
 		float fConstAdd[4] = {0.0f};
 		colmat[0] = colmat[5] = colmat[10] = 1.0f;
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
-		EFBRectangle source_rect;
-		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBDepthTexture(source_rect);
+		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBDepthTexture();
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
 		D3D::drawShadedTexQuad(
-			read_texture, 
-			&RectToLock, 
-			Renderer::GetFullTargetWidth(), 
-			Renderer::GetFullTargetHeight(), 
-			4, 4, 
-			(BufferFormat == FOURCC_RAWZ) ? PixelShaderCache::GetColorMatrixProgram(0) : PixelShaderCache::GetDepthMatrixProgram(0), 
+			read_texture,
+			&RectToLock,
+			Renderer::GetFullTargetWidth(),
+			Renderer::GetFullTargetHeight(),
+			4, 4,
+			(g_framebufferManager.GetEFBDepthRTSurfaceFormat() == FOURCC_RAWZ) ? PixelShaderCache::GetColorMatrixProgram(0) : PixelShaderCache::GetDepthMatrixProgram(0),
 			VertexShaderCache::GetSimpleVertexShader(0));
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
-		hr = D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-		hr = D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+		D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
 		RestoreAPIState();
+
+		// Retrieve the pixel data to the local memory buffer
 		RectToLock.bottom = 4;
 		RectToLock.left = 0;
 		RectToLock.right = 4;
 		RectToLock.top = 0;
+		D3D::dev->GetRenderTargetData(pBufferRT, pSystemBuf);
+
+		// EFB data successfully retrieved, now get the pixel data
+		D3DLOCKED_RECT drect;
+		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
+
+		float val = 0.0f;
+
+		switch (g_framebufferManager.GetEFBDepthReadSurfaceFormat())
+		{
+		case D3DFMT_R32F:
+			val = ((float*)drect.pBits)[6];
+			break;
+		default:
+			float ffrac = 1.0f/255.0f;
+			z = ((u32*)drect.pBits)[6];
+			val =	((float)((z>>16) & 0xFF)) * ffrac;
+			ffrac*= 1 / 255.0f;
+			val +=	((float)((z>>8) & 0xFF)) * ffrac;
+			ffrac*= 1 / 255.0f;
+			val +=	((float)(z & 0xFF)) * ffrac;
+			break;
+		};
+		z = ((u32)(val * 0xffffff));
+
+		pSystemBuf->UnlockRect();
+		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+		return z;
 	}
-	else
+	else if(type == PEEK_COLOR)
 	{
-		hr = D3D::dev->StretchRect(pBuffer, &RectToLock, RBuffer, NULL, D3DTEXF_NONE);
-		//change the rect to lock the entire one pixel buffer
+		// TODO: Can't we directly StretchRect to System buf?
+		hr = D3D::dev->StretchRect(pEFBSurf, &RectToLock, pBufferRT, NULL, D3DTEXF_NONE);
+		D3D::dev->GetRenderTargetData(pBufferRT, pSystemBuf);
+
+		// EFB data successfully retrieved, now get the pixel data
 		RectToLock.bottom = 1;
 		RectToLock.left = 0;
 		RectToLock.right = 1;
 		RectToLock.top = 0;
-	}
-	if (FAILED(hr))
-	{
-		PanicAlert("Unable to stretch data to buffer");
-		return 0;
-	}
-	// Retrieve the pixel data to the local memory buffer
-	D3D::dev->GetRenderTargetData(RBuffer, pOffScreenBuffer);
-	if (FAILED(hr))
-	{
-		PanicAlert("Unable to copy data to mem buffer");
-		return 0;
-	}
+		D3DLOCKED_RECT drect;
+		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
 
-	
-	// The surface is good.. lock it
-	if ((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
-	{
-		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" : hr == D3DERR_INVALIDCALL ? "Invalid call" : "w00t");
-		return 0;
-	}
-
-	switch (type)
-	{
-	case PEEK_Z:
-		{
-			switch (ReadBufferFormat)
-			{
-			case D3DFMT_R32F:
-				val = ((float*)drect.pBits)[6];
-				break;
-			default:
-				float ffrac = 1.0f/255.0f;
-				z = ((u32*)drect.pBits)[6];
-				val =	((float)((z>>16) & 0xFF)) * ffrac;
-				ffrac*= 1 / 255.0f;
-				val +=	((float)((z>>8) & 0xFF)) * ffrac;
-				ffrac*= 1 / 255.0f;
-				val +=	((float)(z & 0xFF)) * ffrac;
-				break;
-			};
-			z = ((u32)(val * 0xffffff));
-		}
-		break;
-
-	case POKE_Z:
-		// TODO: Implement
-		break;
-
-	case PEEK_COLOR:
 		z = ((u32*)drect.pBits)[0];
-		break;
-
-	case POKE_COLOR:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
-		break;
-
-		// TODO: Implement POKE_Z and POKE_COLOR
-	default:
-		break;
+		pSystemBuf->UnlockRect();
+		return z;
 	}
-
-	pOffScreenBuffer->UnlockRect();
-	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-	return z;
+	else //if(type == POKE_COLOR)
+	{
+		// TODO: Speed this up by batching pokes?
+		ResetAPIState();
+		D3D::drawColorQuad(poke_data, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+									- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
+									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
+		RestoreAPIState();
+		return 0;
+	}
 }
 
 // Called from VertexShaderManager
@@ -1190,7 +1165,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
-		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBColorTexture(rc);
+		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode));
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

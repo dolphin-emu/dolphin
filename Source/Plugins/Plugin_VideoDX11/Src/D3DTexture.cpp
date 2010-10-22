@@ -24,7 +24,7 @@ namespace D3D
 
 void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, unsigned int level, D3D11_USAGE usage)
 {
-	if (usage == D3D11_USAGE_DYNAMIC)
+	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pTexture, level, D3D11_MAP_WRITE_DISCARD, 0, &map);
@@ -35,7 +35,7 @@ void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned 
 		else
 		{
 			for (unsigned int y = 0; y < height; ++y)
-				memcpy((u8*)map.pData + y * map.RowPitch, (u32*)buffer + y * pitch, map.RowPitch);
+				memcpy((u8*)map.pData + y * map.RowPitch, (u32*)buffer + y * pitch, 4 * pitch);
 		}
 		D3D::context->Unmap(pTexture, level);
 	}

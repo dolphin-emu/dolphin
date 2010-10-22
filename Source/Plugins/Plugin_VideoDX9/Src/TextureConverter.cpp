@@ -325,7 +325,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture(source) : g_framebufferManager.GetEFBColorTexture(source);
+	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture() : g_framebufferManager.GetEFBColorTexture();
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 

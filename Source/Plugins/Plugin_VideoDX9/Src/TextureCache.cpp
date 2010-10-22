@@ -74,8 +74,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 	bool bIsIntensityFmt, u32 copyfmt)
 {
 	const LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ?
-		g_framebufferManager.GetEFBDepthTexture(source_rect) :
-		g_framebufferManager.GetEFBColorTexture(source_rect);
+		g_framebufferManager.GetEFBDepthTexture() :
+		g_framebufferManager.GetEFBColorTexture();
 
 	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{

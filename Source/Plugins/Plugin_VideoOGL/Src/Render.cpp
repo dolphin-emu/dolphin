@@ -854,7 +854,7 @@ void Renderer::SetColorMask()
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 
-u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
+u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;

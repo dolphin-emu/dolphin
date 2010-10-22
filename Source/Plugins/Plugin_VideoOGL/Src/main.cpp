@@ -430,7 +430,7 @@ void VideoFifo_CheckEFBAccess()
 {
 	if (Common::AtomicLoadAcquire(s_efbAccessRequested))
 	{
-		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y);
+		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y, s_accessEFBArgs.Data);
 
 		Common::AtomicStoreRelease(s_efbAccessRequested, FALSE);
 	}

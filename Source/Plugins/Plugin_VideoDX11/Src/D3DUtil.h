@@ -80,6 +80,5 @@ namespace D3D
 							ID3D11VertexShader* Vshader,
 							ID3D11InputLayout* layout);
 	void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout);
-	void SaveRenderStates();
-	void RestoreRenderStates();
+	void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2);
 }

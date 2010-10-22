@@ -594,19 +594,19 @@ void Renderer::SetColorMask()
 	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
 }
 
-u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
+u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
+	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
-	u32 ret = 0;
 
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
-	if (type == POKE_Z || type == POKE_COLOR)
+	if (type == POKE_Z)
 	{
 		static bool alert_only_once = true;
 		if (!alert_only_once) return 0;
-		PanicAlert("Poke EFB not implemented");
+		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
 		alert_only_once = false;
 		return 0;
 	}
@@ -619,12 +619,23 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	efbPixelRc.bottom = y + 1;
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
-	// Take the mean of the resulting dimensions; TODO: check whether this causes any bugs compared to taking the average color of the target area
+	// Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the average color instead
 	D3D11_RECT RectToLock;
-	RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
-	RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
-	RectToLock.right = RectToLock.left + 1;
-	RectToLock.bottom = RectToLock.top + 1;
+	if(type == PEEK_COLOR || type == PEEK_Z)
+	{
+		RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
+		RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+		RectToLock.right = RectToLock.left + 1;
+		RectToLock.bottom = RectToLock.top + 1;
+	}
+	else
+	{
+		RectToLock.left = targetPixelRc.left;
+		RectToLock.right = targetPixelRc.right;
+		RectToLock.top = targetPixelRc.top;
+		RectToLock.bottom = targetPixelRc.bottom;
+	}
+
 	if (type == PEEK_Z)
 	{
 		ResetAPIState(); // Reset any game specific settings
@@ -651,40 +662,59 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBDepthReadTexture()->GetTex(), 0, &box);
 
 		RestoreAPIState(); // restore game state
+
+		// read the data from system memory
+		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
+
+		float val = *(float*)map.pData;
+		u32 ret = ((u32)(val * 0xffffff));
+		D3D::context->Unmap(read_tex, 0);
+
+		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
+		return ret;
 	}
-	else
+	else if (type == PEEK_COLOR)
 	{
 		// we can directly copy to system memory here
 		read_tex = g_framebufferManager.GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, &box);
+
+		// read the data from system memory
+		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
+		u32 ret = *(u32*)map.pData;
+		D3D::context->Unmap(read_tex, 0);
+		return ret;
 	}
-
-	// read the data from system memory
-	D3D11_MAPPED_SUBRESOURCE map;
-	D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-
-	switch(type)
+	else //if(type == POKE_COLOR)
 	{
-	case PEEK_Z:
+		// TODO: Speed this up by batching pokes?
+		// If we're only writing one pixel (native resolution), we can directly copy the data into the target. TODO: Check if this is faster than drawing quads
+		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
+		if(RectToLock.right <= RectToLock.left + 1 && RectToLock.bottom <= RectToLock.top + 1)
 		{
-			float val = *(float*)map.pData;
-			ret = ((u32)(val * 0xffffff));
-			break;
+			D3D::context->Map(g_framebufferManager.GetEFBColorStagingBuffer(), 0, D3D11_MAP_WRITE, 0, &map);
+			*(u32*)map.pData = rgbaColor;
+			D3D::context->Unmap(g_framebufferManager.GetEFBColorStagingBuffer(), 0);
+
+			D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
+			D3D::context->CopySubresourceRegion(g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, RectToLock.left, RectToLock.top, 0, g_framebufferManager.GetEFBColorStagingBuffer(), 0, &box);
+			return 0;
 		}
+		else
+		{
+			ResetAPIState(); // Reset any game specific settings
 
-	case PEEK_COLOR:
-		ret = *(u32*)map.pData;
-		break;
+			D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), NULL);
+			D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+										- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
+										  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+										- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
 
-	default:
-		// TODO: Implement POKE_Z and POKE_COLOR
-		break;
+			RestoreAPIState();
+			return 0;
+		}
 	}
-
-	D3D::context->Unmap(read_tex, 0);
-	// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
-	return ret;
 }
 
 // Called from VertexShaderManager

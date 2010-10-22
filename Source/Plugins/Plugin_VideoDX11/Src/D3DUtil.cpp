@@ -429,11 +429,13 @@ ID3D11SamplerState* linear_copy_sampler = NULL;
 ID3D11SamplerState* point_copy_sampler = NULL;
 ID3D11Buffer* stqvb = NULL;
 ID3D11Buffer* stsqvb = NULL;
+ID3D11Buffer* quadvb = NULL;
 ID3D11Buffer* clearvb = NULL;
 
 typedef struct { float x,y,z,u,v; } STQVertex;
 typedef struct { float x,y,z,u,v; } STSQVertex;
 typedef struct { float x,y,z; u32 col; } ClearVertex;
+typedef struct { float x,y,z; u32 col; } ColVertex;
 
 struct
 {
@@ -445,6 +447,12 @@ struct
 	MathUtil::Rectangle<float> rdest;
 	float u1, v1, u2, v2;
 } tex_sub_quad_data;
+
+struct
+{
+	float x1, y1, x2, y2;
+	u32 col;
+} draw_quad_data;
 
 struct
 {
@@ -468,6 +476,7 @@ void InitUtils()
 	// cached data used to avoid unnecessarily reloading the vertex buffers
 	memset(&tex_quad_data, 0, sizeof(tex_quad_data));
 	memset(&tex_sub_quad_data, 0, sizeof(tex_sub_quad_data));
+	memset(&draw_quad_data, 0, sizeof(draw_quad_data));
 	memset(&clear_quad_data, 0, sizeof(clear_quad_data));
 
 	STQVertex stqcoords[4] = {
@@ -479,6 +488,9 @@ void InitUtils()
 
 	STSQVertex stsqcoords[4];
 	memset(stsqcoords, 0, sizeof(stsqcoords));
+
+	ColVertex colcoords[4];
+	memset(colcoords, 0, sizeof(colcoords));
 
 	ClearVertex cqcoords[4] = {
 		{-1.0f,  1.0f, 0, 0},
@@ -495,6 +507,10 @@ void InitUtils()
 	CHECK(stsqvb!=NULL, "Create vertex buffer of drawShadedTexSubQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)stsqvb, "vertex buffer of drawShadedTexSubQuad");
 
+	quadvb = CreateQuadVertexBuffer(4*sizeof(ColVertex), colcoords);
+	CHECK(quadvb!=NULL, "Create vertex buffer of drawColorQuad");
+	SetDebugObjectName((ID3D11DeviceChild*)quadvb, "vertex buffer of drawColorQuad");
+
 	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), cqcoords);
 	CHECK(clearvb!=NULL, "Create vertex buffer of drawClearQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)clearvb, "vertex buffer of drawClearQuad");
@@ -509,6 +525,7 @@ void ShutdownUtils()
 	SAFE_RELEASE(linear_copy_sampler);
 	SAFE_RELEASE(stqvb);
 	SAFE_RELEASE(stsqvb);
+	SAFE_RELEASE(quadvb);
 	SAFE_RELEASE(clearvb);
 }
 
@@ -627,6 +644,45 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
 }
 
+// Fills a certain area of the current render target with the specified color
+// destination coordinates normalized to (-1;1)
+void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
+{
+	if(draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
+		draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
+		draw_quad_data.col != Color)
+	{
+		ColVertex coords[4] = {
+			{ x1, y2, 0.f, Color },
+			{ x2, y2, 0.f, Color },
+			{ x1, y1, 0.f, Color },
+			{ x2, y1, 0.f, Color },
+		};
+
+		D3D11_MAPPED_SUBRESOURCE map;
+		context->Map(quadvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, coords, sizeof(coords));
+		context->Unmap(quadvb, 0);
+
+		draw_quad_data.x1 = x1;
+		draw_quad_data.y1 = y1;
+		draw_quad_data.x2 = x2;
+		draw_quad_data.y2 = y2;
+		draw_quad_data.col = Color;
+	}
+
+	context->VSSetShader(VertexShaderCache::GetClearVertexShader(), NULL, 0);
+	context->PSSetShader(PixelShaderCache::GetClearProgram(), NULL, 0);
+	context->IASetInputLayout(VertexShaderCache::GetClearInputLayout());
+
+	UINT stride = sizeof(ColVertex);
+	UINT offset = 0;
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	context->IASetVertexBuffers(0, 1, &quadvb, &stride, &offset);
+
+	context->Draw(4, 0);
+}
+
 void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
 {
 	if (clear_quad_data.col != Color || clear_quad_data.z != z)
@@ -656,6 +712,5 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 	stateman->Apply();
 	context->Draw(4, 0);
 }
-
 
 }  // namespace

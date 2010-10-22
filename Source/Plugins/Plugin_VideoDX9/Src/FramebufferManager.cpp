@@ -73,12 +73,12 @@ D3DFORMAT FramebufferManager::GetEFBColorRTSurfaceFormat()
 	return s_efb_color_surface_Format;
 }
 
-LPDIRECT3DTEXTURE9 FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
+LPDIRECT3DTEXTURE9 FramebufferManager::GetEFBColorTexture()
 {
 	return s_efb_color_texture;
 }
 
-LPDIRECT3DTEXTURE9 FramebufferManager::GetEFBDepthTexture(const EFBRectangle &sourceRc)
+LPDIRECT3DTEXTURE9 FramebufferManager::GetEFBDepthTexture()
 {
 	return s_efb_depth_texture;
 }
@@ -305,7 +305,7 @@ void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 	}
 
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
-	TextureConverter::EncodeToRamYUYV(GetEFBColorTexture(sourceRc), targetRc, xfb_in_ram, fbWidth, fbHeight);
+	TextureConverter::EncodeToRamYUYV(GetEFBColorTexture(), targetRc, xfb_in_ram, fbWidth, fbHeight);
 }
 
 void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
@@ -395,7 +395,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	// Copy EFB data to XFB and restore render target again
 	if(!xfbTexture)
 		return;
-	LPDIRECT3DTEXTURE9 read_texture = GetEFBColorTexture(sourceRc);
+	LPDIRECT3DTEXTURE9 read_texture = GetEFBColorTexture();
 	
 	Renderer::ResetAPIState(); // Reset any game specific settings
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;

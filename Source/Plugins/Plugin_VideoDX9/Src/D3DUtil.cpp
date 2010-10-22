@@ -21,6 +21,8 @@
 #include "D3DBase.h"
 #include "D3DUtil.h"
 #include "Render.h"
+#include "PixelShaderCache.h"
+#include "VertexShaderCache.h"
 
 namespace D3D
 {
@@ -420,6 +422,23 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 	D3D::SetTexture(0, texture);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3 | D3DFVF_TEXCOORDSIZE4(2));
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));
+	RestoreShaders();
+}
+
+// Fills a certain area of the current render target with the specified color
+// Z buffer disabled; destination coordinates normalized to (-1;1)
+void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
+{
+	struct CQVertex { float x, y, z, rhw; u32 col; } coords[4] = {
+		{ x1, y2, 0.f, 1.f, Color },
+		{ x2, y2, 0.f, 1.f, Color },
+		{ x1, y1, 0.f, 1.f, Color },
+		{ x2, y1, 0.f, 1.f, Color },
+	};
+	dev->SetVertexShader(VertexShaderCache::GetClearVertexShader());
+	dev->SetPixelShader(PixelShaderCache::GetClearProgram());
+	dev->SetFVF(D3DFVF_XYZW | D3DFVF_DIFFUSE);
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(CQVertex));
 	RestoreShaders();
 }
 

@@ -77,7 +77,9 @@ namespace D3D
 							int DestHeight,
 							IDirect3DPixelShader9 *PShader,
 							IDirect3DVertexShader9 *Vshader);
-	void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader);
+	void drawClearQuad(u32 Color, float z, IDirect3DPixelShader9 *PShader, IDirect3DVertexShader9 *Vshader);
+	void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2);
+
 	void SaveRenderStates();
 	void RestoreRenderStates();
 }
