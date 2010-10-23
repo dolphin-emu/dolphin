@@ -61,15 +61,7 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 
 struct XFBSource
 {
-	XFBSource()
-	{
-		this->srcAddr = 0;
-		this->srcWidth = 0;
-		this->srcHeight = 0;
-		this->tex = NULL;
-		this->texWidth = 0;
-		this->texHeight = 0;
-	}
+	XFBSource() : srcAddr(0), srcWidth(0), srcHeight(0), tex(NULL), texWidth(0), texHeight(0) {}
 
 	u32 srcAddr;
 	u32 srcWidth;

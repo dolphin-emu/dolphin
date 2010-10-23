@@ -181,8 +181,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 	{
-		PanicAlert("Requested creating a new virtual XFB although the maximum number has already been reached! Report this to the devs");
-		return;
+		// Replace the last virtual XFB (might cause glitches, but better than allocating 50 XFBs...)
+		--it;
 	}
 
 	float scaleX = Renderer::GetTargetScaleX();
@@ -243,12 +243,10 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		// Add the new Virtual XFB to the list
 		if (m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 		{
-			PanicAlert("Requested creating a new virtual XFB although the maximum number has already been reached! Report this to the devs");
-			SAFE_RELEASE(newVirt.xfbSource.tex);
-			return;
-			// TODO, possible alternative to failing: just delete the oldest virtual XFB:
-			// m_virtualXFBList.back().xfbSource.tex->Release();
-			// m_virtualXFBList.pop_back();
+			// List overflowed; delete the oldest.
+			m_virtualXFBList.back().xfbSource.tex->Release();
+			m_virtualXFBList.pop_back();
+			WARN_LOG(VIDEO, "Virtual XFB list overflown, releasing oldest virtual XFB");
 		}
 		m_virtualXFBList.push_front(newVirt);
 	}
