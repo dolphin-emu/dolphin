@@ -519,8 +519,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "void main(\n");
 	if(ApiType != API_D3D11)
 	{
-		// TODO: Support DSTALPHA_DUAL_SOURCE_BLEND for non-D3D11 shaders
-		WRITE(p, "  out float4 ocol0 : COLOR0,%s\n  in float4 rawpos : %s,\n",
+		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
 			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
 			ApiType == API_OPENGL ? "WPOS" : "POSITION");
 	}

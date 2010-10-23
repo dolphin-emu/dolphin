@@ -151,7 +151,7 @@ static const GLenum glSrcFactors[8] =
 	GL_DST_COLOR,
 	GL_ONE_MINUS_DST_COLOR,
 	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
 	GL_DST_ALPHA,
 	GL_ONE_MINUS_DST_ALPHA
 };
@@ -162,7 +162,7 @@ static const GLenum glDestFactors[8] = {
 	GL_SRC_COLOR,
 	GL_ONE_MINUS_SRC_COLOR,
 	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
 	GL_DST_ALPHA,
 	GL_ONE_MINUS_DST_ALPHA
 };
@@ -1034,17 +1034,47 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
+		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDualSource = USE_DUAL_SOURCE_BLEND && useDstAlpha && GLEW_ARB_blend_func_extended;
+
 	if (changes & 1)
 		// blend enable change
 		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 
 	if (changes & 4)
+	{
 		// subtract enable change
-		glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+		GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+		GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
+		glBlendEquationSeparate(equation, equationAlpha);
+	}
 
 	if (changes & 0x1F8)
+	{
+		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
+		GLenum srcFactorAlpha = srcFactor;
+		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+		GLenum dstFactorAlpha = dstFactor;
+		if (useDualSource)
+		{
+			srcFactorAlpha = GL_ONE;
+			dstFactorAlpha = GL_ZERO;
+
+			if (srcFactor == GL_SRC_ALPHA)
+				srcFactor = GL_SRC1_ALPHA;
+			else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
+				srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
+
+			if (dstFactor == GL_SRC_ALPHA)
+				dstFactor = GL_SRC1_ALPHA;
+			else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
+				dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
+		}
+
 		// blend RGB change
-		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
+	}
 
 	s_blendMode = newval;
 }
