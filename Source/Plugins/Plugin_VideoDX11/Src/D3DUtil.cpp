@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <list>
 #include "Common.h"
 
 #include "D3DBase.h"
@@ -27,8 +28,6 @@
 
 namespace D3D
 {
-
-// TODO: Optimize the structures used by the Utils for size
 
 // Ring buffer class, shared between the draw* functions
 class UtilVertexBuffer
@@ -50,14 +49,18 @@ public:
 		D3D11_MAPPED_SUBRESOURCE map;
 		if(offset + size >= max_size)
 		{
-			context->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			// wrap buffer around and notify observers
 			offset = 0;
+			context->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+
+			for(std::list<bool*>::iterator it = observers.begin(); it != observers.end(); ++it)
+				**it = true;
 		}
 		else
 		{
 			context->Map(buf, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
 		}
-		offset += vertex_size - (offset % vertex_size);
+		offset = ((offset+vertex_size-1)/vertex_size)*vertex_size; // align offset to vertex_size bytes
 		memcpy((u8*)map.pData + offset, data, size);
 		context->Unmap(buf, 0);
 
@@ -65,16 +68,19 @@ public:
 		return (offset - size) / vertex_size;
 	}
 
-	// Used to make sure we aren't using any invalid data
-	inline bool IsValidOffset(int off) { return (offset > off); }
+	void AddWrapObserver(bool* observer)
+	{
+		observers.push_back(observer);
+	}
 
 	inline ID3D11Buffer* &GetBuffer() { return buf; }
-	inline int GetSize() { return max_size; }
 
 private:
 	ID3D11Buffer* buf;
 	int offset;
 	int max_size;
+
+	std::list<bool*> observers;
 };
 
 CD3DFont font;
@@ -472,14 +478,15 @@ struct
 	float z;
 } clear_quad_data;
 
-int stq_offset;
-int stsq_offset;
-int cq_offset;
-int clearq_offset;
+// ring buffer offsets
+int stq_offset, stsq_offset, cq_offset, clearq_offset;
+
+// observer variables for ring buffer wraps
+bool stq_observer, stsq_observer, cq_observer, clearq_observer;
 
 void InitUtils()
 {
-	util_vbuf = new UtilVertexBuffer(0x600);
+	util_vbuf = new UtilVertexBuffer(0x4000);
 
 	float border[4] = { 0.f, 0.f, 0.f, 0.f };
 	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
@@ -498,11 +505,12 @@ void InitUtils()
 	memset(&draw_quad_data, 0, sizeof(draw_quad_data));
 	memset(&clear_quad_data, 0, sizeof(clear_quad_data));
 
-	// make sure these always point to invalid regions at the first call
-	stq_offset = util_vbuf->GetSize();
-	stsq_offset = util_vbuf->GetSize();
-	cq_offset = util_vbuf->GetSize();
-	clearq_offset = util_vbuf->GetSize();
+	// make sure to properly load the vertex data whenever the corresponding functions get called the first time
+	stq_observer = stsq_observer = cq_observer = clearq_observer = true;
+	util_vbuf->AddWrapObserver(&stq_observer);
+	util_vbuf->AddWrapObserver(&stsq_observer);
+	util_vbuf->AddWrapObserver(&cq_observer);
+	util_vbuf->AddWrapObserver(&clearq_observer);
 
 	font.Init();
 }
@@ -548,11 +556,12 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	};
 
 	// only upload the data to VRAM if it changed
-	if (!util_vbuf->IsValidOffset(stq_offset) ||
+	if (stq_observer ||
 		tex_quad_data.u1 != u1 || tex_quad_data.v1 != v1 ||
 		tex_quad_data.u2 != u2 || tex_quad_data.v2 != v2)
 	{
 		stq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(STQVertex));
+		stq_observer = false;
 
 		tex_quad_data.u1 = u1;
 		tex_quad_data.v1 = v1;
@@ -599,12 +608,13 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	};
 
 	// only upload the data to VRAM if it changed
-	if (!util_vbuf->IsValidOffset(stsq_offset) ||
+	if (stsq_observer ||
 		memcmp(rDest, &tex_sub_quad_data.rdest, sizeof(rDest)) != 0 ||
 		tex_sub_quad_data.u1 != u1 || tex_sub_quad_data.v1 != v1 ||
 		tex_sub_quad_data.u2 != u2 || tex_sub_quad_data.v2 != v2)
 	{
 		stsq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(STSQVertex));
+		stsq_observer = false;
 
 		tex_sub_quad_data.u1 = u1;
 		tex_sub_quad_data.v1 = v1;
@@ -639,12 +649,13 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		{ x2, y1, 0.f, Color },
 	};
 
-	if(!util_vbuf->IsValidOffset(cq_offset) ||
+	if(cq_observer ||
 		draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
 		draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
 		draw_quad_data.col != Color)
 	{
 		cq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ColVertex));
+		cq_observer = false;
 
 		draw_quad_data.x1 = x1;
 		draw_quad_data.y1 = y1;
@@ -674,10 +685,10 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 		{ 1.0f, -1.0f, z, Color},
 	};
 
-	if (!util_vbuf->IsValidOffset(clearq_offset) ||
-		clear_quad_data.col != Color || clear_quad_data.z != z)
+	if (clearq_observer || clear_quad_data.col != Color || clear_quad_data.z != z)
 	{
 		clearq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ClearVertex));
+		clearq_observer = false;
 
 		clear_quad_data.col = Color;
 		clear_quad_data.z = z;
