@@ -489,7 +489,7 @@ Ftp::Response Ftp::GetResponse()
             if (In >> Code)
             {
                 // Extract the separator
-                char Sep;
+                char Sep = 0;
                 In.get(Sep);
 
                 // The '-' character means a multiline response

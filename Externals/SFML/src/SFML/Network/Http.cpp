@@ -260,7 +260,7 @@ void Http::Response::FromString(const std::string& Data)
     }
 
     // Extract the status code from the first line
-    int StatusCode;
+    int StatusCode = 0;
     if (In >> StatusCode)
     {
         myStatus = static_cast<Status>(StatusCode);

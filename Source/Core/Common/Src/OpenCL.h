@@ -26,20 +26,12 @@
 #define HAVE_OPENCL 1
 #endif
 
-// The latest (last?) release of Xcode for Leopard does not include the 10.6
-// SDK, so we can only build with OpenCL on a Snow Leopard system where we link
-// the OpenCL framework weakly so that the application will also run on 10.5.
-#ifdef __APPLE__
-#import <Foundation/NSObjCRuntime.h>
-#ifdef NSFoundationVersionNumber10_5	// First defined in the 10.6 SDK
-#include <OpenCL/opencl.h>
-#define HAVE_OPENCL 1
-#endif
-#endif
-
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 
-#ifndef __APPLE__
+#ifdef __APPLE__
+#define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
+#include <OpenCL/cl.h>
+#else
 #include <CL/cl.h>
 #endif
 

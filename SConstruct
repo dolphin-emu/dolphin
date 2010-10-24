@@ -122,28 +122,27 @@ rev = utils.GenerateRevFile(env['flavor'], '.', None)
 # OS X specifics
 if sys.platform == 'darwin':
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
+    ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
     env['CCFLAGS'] += ccld
     env['CCFLAGS'] += ['-msse3']
     env['CC'] = "gcc-4.2 -ObjC"
     env['CXX'] = "g++-4.2 -ObjC++"
-    #env['FRAMEWORKPATH'] += [
-    #    '/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks',
-    #    '/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks']
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['LIBPATH'] += ['/Developer/SDKs/MacOSX10.5.sdk/usr/lib']
-    env['LIBS'] = ['gcc_s.10.5', 'iconv', 'SDL']
+    env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
-    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
-    env['LINKFLAGS'] += [
-        '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
-        '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
+    env['LINKFLAGS'] += ['-Wl,-search_paths_first']
 
     if platform.mac_ver()[0] < '10.6.0':
         env['HAVE_OPENCL'] = 0
     else:
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
+        env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' +
+            '/System/Library/Frameworks']
+        env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' +
+            '/System/Library/Frameworks']
+        env['CPPDEFINES'] += [('HAVE_OPENCL', 1)]
         env['HAVE_OPENCL'] = 1
         env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
 
