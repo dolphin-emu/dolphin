@@ -191,7 +191,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		
+
 		if (isC4_C8_C14X2)
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
@@ -208,7 +208,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			texHash ^= tlutHash;
 
 			if (g_ActiveConfig.bSafeTextureCache)
-				texID ^= ((u32)tlutHash) ^ (tlutHash >> 32);
+				texID ^= ((u32)tlutHash) ^ (u32)(tlutHash >> 32);
 		}
 
 		if (g_ActiveConfig.bSafeTextureCache)
@@ -218,11 +218,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
-		if (false == g_ActiveConfig.bSafeTextureCache)
+		if (!g_ActiveConfig.bSafeTextureCache)
 		{
 			if (entry->isRenderTarget || entry->isDynamic)
 			{
-				if (false == g_ActiveConfig.bCopyEFBToTexture)
+				if (!g_ActiveConfig.bCopyEFBToTexture)
 				{
 					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
@@ -263,7 +263,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 			// TODO: Is the mipLevels check needed?
 			if (!entry->isRenderTarget &&
-				((!entry->isDynamic && width == entry->realW && height == entry->realH && full_format == entry->format && entry->mipLevels == maxlevel) 
+				((!entry->isDynamic && width == entry->realW && height == entry->realH && full_format == entry->format && entry->mipLevels == maxlevel)
 				|| (entry->isDynamic && entry->realW == width && entry->realH == height)))
 			{
 				// reuse the texture
@@ -310,33 +310,36 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		texLevels = maxlevel + 1;
 
 	// create the entry/texture
-	if (NULL == entry)
-	{
+	if (NULL == entry) {
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
-		entry->addr = address;
-		entry->format = full_format;
+		// Sometimes, we can get around recreating a texture if only the number of mip levels gets changes
+		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
+		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
 		entry->mipLevels = maxlevel;
-		entry->size_in_bytes = texture_size;
-
-		entry->virtualW = width;
-		entry->virtualH = height;
-
-		entry->realW = nativeW;
-		entry->realH = nativeH;
-		
-		entry->isRenderTarget = false;
-		entry->isNonPow2 = false;
-		entry->isDynamic = texture_is_dynamic;
-
-		entry->oldpixel = *(u32*)ptr;
-
-		if (g_ActiveConfig.bSafeTextureCache || entry->isDynamic)
-			entry->hash = hash_value;
-		else
-			// don't like rand() here
-			entry->hash = *(u32*)ptr = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	}
+
+	entry->addr = address;
+	entry->format = full_format;
+	entry->size_in_bytes = texture_size;
+
+	entry->virtualW = width;
+	entry->virtualH = height;
+
+	entry->realW = nativeW;
+	entry->realH = nativeH;
+		
+	entry->isRenderTarget = false;
+	entry->isNonPow2 = false;
+	entry->isDynamic = texture_is_dynamic;
+
+	entry->oldpixel = *(u32*)ptr;
+
+	if (g_ActiveConfig.bSafeTextureCache || entry->isDynamic)
+		entry->hash = hash_value;
+	else
+		// don't like rand() here
+		entry->hash = *(u32*)ptr = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0);

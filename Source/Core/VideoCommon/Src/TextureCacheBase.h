@@ -34,8 +34,8 @@ public:
 
 		unsigned int mipLevels;
 
-		bool isRenderTarget;
-		bool isDynamic; // mofified from cpu
+		bool isRenderTarget; // copied from EFB
+		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications
 		bool isNonPow2;	// doesn't seem to be used anywhere
 
 		//TCacheEntryBase()
