@@ -143,4 +143,8 @@ extern const char *netplay_dolphin_ver;
 #define _M_SSE 0x301
 #endif
 
+#if _MSC_VER >= 1500 // Visual Studio 2008
+#define _M_SSE 0x401
+#endif
+
 #endif // _COMMON_H_
