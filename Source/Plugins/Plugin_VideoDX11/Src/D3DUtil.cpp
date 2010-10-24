@@ -673,6 +673,7 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	context->IASetVertexBuffers(0, 1, &util_vbuf->GetBuffer(), &stride, &offset);
 
+	stateman->Apply();
 	context->Draw(4, cq_offset);
 }
 

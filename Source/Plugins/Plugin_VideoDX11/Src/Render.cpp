@@ -75,6 +75,7 @@ static Common::CriticalSection s_criticalScreenshot;
 static char s_sScreenshotName[1024];
 
 ID3D11Buffer* access_efb_cbuf = NULL;
+ID3D11BlendState* clearblendstates[4] = {NULL};
 ID3D11DepthStencilState* cleardepthstates[2] = {NULL};
 ID3D11RasterizerState* clearraststate = NULL;
 ID3D11BlendState* resetblendstate = NULL;
@@ -279,6 +280,21 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
 
+	clearblendstates[0] = resetblendstate;
+	resetblendstate->AddRef();
+
+	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[1]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
+
+	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[2]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
+
+	blenddesc.RenderTarget[0].RenderTargetWriteMask = 0;
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
+
 	ddesc.DepthEnable       = FALSE;
 	ddesc.DepthWriteMask    = D3D11_DEPTH_WRITE_MASK_ZERO;
 	ddesc.DepthFunc         = D3D11_COMPARISON_LESS;
@@ -301,6 +317,11 @@ void TeardownDeviceObjects()
 {
 	g_framebufferManager.Destroy();
 	SAFE_RELEASE(access_efb_cbuf);
+	SAFE_RELEASE(clearblendstates[0]);
+	SAFE_RELEASE(clearblendstates[1]);
+	SAFE_RELEASE(clearblendstates[2]);
+	SAFE_RELEASE(clearblendstates[3]);
+	SAFE_RELEASE(clearblendstates[4]);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);
 	SAFE_RELEASE(clearraststate);
@@ -808,6 +829,8 @@ void UpdateViewport()
 // Tino: color is passed in bgra mode so need to convert it to rgba
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
+	ResetAPIState();
+
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(),
@@ -822,20 +845,18 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
 	D3D::stateman->PushRasterizerState(clearraststate);
-	D3D::stateman->PushBlendState(resetblendstate);
-	D3D::stateman->Apply();
+	if (colorEnable && alphaEnable) D3D::stateman->PushBlendState(clearblendstates[0]);
+	else if (colorEnable) D3D::stateman->PushBlendState(clearblendstates[1]);
+	else if (alphaEnable) D3D::stateman->PushBlendState(clearblendstates[2]);
+	else D3D::stateman->PushBlendState(clearblendstates[3]);
 
 	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
 
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopRasterizerState();
 	D3D::stateman->PopDepthState();
-	D3D::stateman->Apply();
 
-	D3D::gfxstate->Reset();
-
-	UpdateViewport();
-	SetScissorRect();
+	RestoreAPIState();
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -1103,11 +1124,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {
-	D3D::gfxstate->Reset();
 	D3D::stateman->PushBlendState(resetblendstate);
 	D3D::stateman->PushDepthState(resetdepthstate);
 	D3D::stateman->PushRasterizerState(resetraststate);
-	D3D::stateman->Apply();
 	reset_called = true;
 }
 
@@ -1122,7 +1141,6 @@ void Renderer::RestoreAPIState()
 	}
 	UpdateViewport();
 	SetScissorRect();
-	D3D::gfxstate->ApplyState();
 	reset_called = false;
 }
 
