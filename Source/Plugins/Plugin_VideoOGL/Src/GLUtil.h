@@ -139,6 +139,6 @@ extern CGprofile g_cgvProf, g_cgfProf;
 // XXX: Dual-source blending in OpenGL does not work correctly yet. To make it
 // work, we may need to use glBindFragDataLocation. To use that, we need to
 // use GLSL shaders across the whole pipeline. Yikes!
-const bool USE_DUAL_SOURCE_BLEND = false;
+//#define USE_DUAL_SOURCE_BLEND
 
 #endif  // _GLINIT_H_

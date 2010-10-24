@@ -186,7 +186,9 @@ void VertexManager::vFlush()
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool dualSourcePossible = USE_DUAL_SOURCE_BLEND && GLEW_ARB_blend_func_extended;
+
+#ifdef USE_DUAL_SOURCE_BLEND
+	bool dualSourcePossible = GLEW_ARB_blend_func_extended;
 
 	// finally bind
 	FRAGMENTSHADER* ps;
@@ -209,6 +211,10 @@ void VertexManager::vFlush()
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 	}
+#else
+	bool dualSourcePossible = false;
+	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+#endif
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
