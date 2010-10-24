@@ -188,13 +188,16 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 void Destroy()
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	if(!g_context)
-		return;
-	clReleaseCommandQueue(g_cmdq);
-	clReleaseContext(g_context);
-	g_context = NULL;
-	g_cmdq = NULL;
-	
+	if (g_cmdq)
+	{
+		clReleaseCommandQueue(g_cmdq);
+		g_cmdq = NULL;
+	}
+	if (g_context)
+	{
+		clReleaseContext(g_context);
+		g_context = NULL;
+	}		
 	g_bInitialized = false;
 #endif
 }
