@@ -30,6 +30,7 @@
 #include "VideoConfig.h"
 #include "main.h"
 #include "VertexManager.h"
+#include "PixelEngine.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
@@ -691,6 +692,20 @@ void Renderer::SetColorMask()
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
+// This function allows the CPU to directly access the EFB.
+// There are EFB peeks (which will read the color or depth of a pixel)
+// and EFB pokes (which will change the color or depth of a pixel).
+//
+// The behavior of EFB peeks can only be modified by:
+//	- GX_PokeAlphaRead
+// The behavior of EFB pokes can be modified by:
+//	- GX_PokeAlphaMode (TODO)
+//	- GX_PokeAlphaUpdate (TODO)
+//	- GX_PokeBlendMode (TODO)
+//	- GX_PokeColorUpdate (TODO)
+//	- GX_PokeDither (TODO)
+//	- GX_PokeDstAlpha (TODO)
+//	- GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	if (!g_ActiveConfig.bEFBAccessEnable)
@@ -738,7 +753,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 
-	u32 z = 0;
 	HRESULT hr;
 	RECT RectToLock;
 	RectToLock.bottom = targetPixelRc.bottom;
@@ -813,6 +827,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
 
 		float val = 0.0f;
+		u32 z = 0;
 
 		switch (g_framebufferManager.GetEFBDepthReadSurfaceFormat())
 		{
@@ -849,9 +864,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3DLOCKED_RECT drect;
 		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
 
-		z = ((u32*)drect.pBits)[0];
+		u32 ret = ((u32*)drect.pBits)[0];
 		pSystemBuf->UnlockRect();
-		return z;
+
+		// check what to do with the alpha channel (GX_PokeAlphaRead)
+		PixelEngine::UPEAlphaReadReg alpha_read_mode;
+		PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
+		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
+		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
 	else //if(type == POKE_COLOR)
 	{

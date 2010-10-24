@@ -54,6 +54,17 @@ enum
 namespace PixelEngine
 {
 
+// ReadMode specifies the returned alpha channel for EFB peeks
+union UPEAlphaReadReg
+{
+	u16 Hex;
+	struct
+	{
+		u16 ReadMode		: 3;
+		u16					: 13;
+	};
+};
+
 void Init();
 void DoState(PointerWrap &p);
 

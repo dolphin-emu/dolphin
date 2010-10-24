@@ -81,17 +81,6 @@ union UPEAlphaModeConfReg
 	};
 };
 
-// Not sure about this reg...
-union UPEAlphaReadReg
-{
-	u16 Hex;
-	struct 
-	{
-		u16 ReadMode		: 3;
-		u16					: 13;
-	};
-};
-
 // fifo Control Register
 union UPECtrlReg
 {

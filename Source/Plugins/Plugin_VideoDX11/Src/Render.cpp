@@ -28,6 +28,7 @@
 #include "VideoConfig.h"
 #include "main.h"
 #include "VertexManager.h"
+#include "PixelEngine.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
@@ -614,6 +615,20 @@ void Renderer::SetColorMask()
 	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
 }
 
+// This function allows the CPU to directly access the EFB.
+// There are EFB peeks (which will read the color or depth of a pixel)
+// and EFB pokes (which will change the color or depth of a pixel).
+//
+// The behavior of EFB peeks can only be modified by:
+//	- GX_PokeAlphaRead
+// The behavior of EFB pokes can be modified by:
+//	- GX_PokeAlphaMode (TODO)
+//	- GX_PokeAlphaUpdate (TODO)
+//	- GX_PokeBlendMode (TODO)
+//	- GX_PokeColorUpdate (TODO)
+//	- GX_PokeDither (TODO)
+//	- GX_PokeDstAlpha (TODO)
+//	- GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	D3D11_MAPPED_SUBRESOURCE map;
@@ -704,36 +719,29 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 		u32 ret = *(u32*)map.pData;
 		D3D::context->Unmap(read_tex, 0);
-		return ret;
+
+		// check what to do with the alpha channel (GX_PokeAlphaRead)
+		PixelEngine::UPEAlphaReadReg alpha_read_mode;
+		PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
+		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
+		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
 	else //if(type == POKE_COLOR)
 	{
-		// TODO: Speed this up by batching pokes?
-		// If we're only writing one pixel (native resolution), we can directly copy the data into the target. TODO: Check if this is faster than drawing quads
 		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
-		if(RectToLock.right <= RectToLock.left + 1 && RectToLock.bottom <= RectToLock.top + 1)
-		{
-			D3D::context->Map(g_framebufferManager.GetEFBColorStagingBuffer(), 0, D3D11_MAP_WRITE, 0, &map);
-			*(u32*)map.pData = rgbaColor;
-			D3D::context->Unmap(g_framebufferManager.GetEFBColorStagingBuffer(), 0);
 
-			D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-			D3D::context->CopySubresourceRegion(g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, RectToLock.left, RectToLock.top, 0, g_framebufferManager.GetEFBColorStagingBuffer(), 0, &box);
-			return 0;
-		}
-		else
-		{
-			ResetAPIState(); // Reset any game specific settings
+		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
+		ResetAPIState();
 
-			D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), NULL);
-			D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-										- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
-										  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-										- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
+		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), NULL);
+		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+									- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
+									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
 
-			RestoreAPIState();
-			return 0;
-		}
+		RestoreAPIState();
+		return 0;
 	}
 }
 
