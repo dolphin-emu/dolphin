@@ -321,7 +321,6 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(clearblendstates[1]);
 	SAFE_RELEASE(clearblendstates[2]);
 	SAFE_RELEASE(clearblendstates[3]);
-	SAFE_RELEASE(clearblendstates[4]);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);
 	SAFE_RELEASE(clearraststate);
