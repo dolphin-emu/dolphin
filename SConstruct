@@ -138,10 +138,10 @@ if sys.platform == 'darwin':
         env['HAVE_OPENCL'] = 0
     else:
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-        env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' +
-            '/System/Library/Frameworks']
-        env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' +
-            '/System/Library/Frameworks']
+        env['CCFLAGS'] += ['-iframework' +
+            '/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks']
+        env['CCFLAGS'] += ['-iframework' +
+            '/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
         env['CPPDEFINES'] += [('HAVE_OPENCL', 1)]
         env['HAVE_OPENCL'] = 1
         env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
@@ -191,8 +191,8 @@ else:
     if sys.platform == 'linux2':
         env['CPPDEFINES'] += [('_FILE_OFFSET_BITS', 64), '_LARGEFILE_SOURCE']
         env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
-    env['LINKFLAGS'] += ['-pthread', '-ldl']
-    env['RPATH'] = []
+        env['LINKFLAGS'] += ['-pthread', '-ldl']
+        env['RPATH'] = []
 
     conf = env.Configure(config_h = "#config.h", custom_tests = {
         'CheckPKG'       : utils.CheckPKG,
