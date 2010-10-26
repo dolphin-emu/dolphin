@@ -601,7 +601,7 @@ void CGameListCtrl::ScanForISOs()
 			msg = wxString(tempstring, *wxConvCurrent);
 
 // With wxWidgets 2.9.1, each Update() sleeps for several seconds
-#ifndef __APPLE__
+#if !wxCHECK_VERSION(2, 9, 1) || wxCHECK_VERSION(2, 9, 2) 
 			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
 			if (!Cont)
