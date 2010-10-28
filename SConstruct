@@ -130,9 +130,10 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['LIBPATH'] += ['/usr/lib']
     env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
-    env['LINKFLAGS'] += ['-Wl,-search_paths_first']
+    env['LINKFLAGS'] += ['-Wl,-Z', '-F/System/Library/Frameworks']
 
     if platform.mac_ver()[0] < '10.6.0':
         env['HAVE_OPENCL'] = 0
