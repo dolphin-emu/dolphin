@@ -133,7 +133,8 @@ if sys.platform == 'darwin':
     env['LIBPATH'] += ['/usr/lib']
     env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
-    env['LINKFLAGS'] += ['-Wl,-Z', '-F/System/Library/Frameworks']
+    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
+    env['LINKFLAGS'] += ['-F/System/Library/Frameworks']
 
     if platform.mac_ver()[0] < '10.6.0':
         env['HAVE_OPENCL'] = 0
