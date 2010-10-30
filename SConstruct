@@ -346,7 +346,6 @@ dirs = [
     'Externals/Bochs_disasm',
     #'Externals/CLRun',
     'Externals/Lua',
-    'Externals/MemcardManager',
     'Externals/WiiUse/Src',
     'Externals/GLew',
     'Externals/LZO',
