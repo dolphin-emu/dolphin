@@ -159,19 +159,19 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	// some hax, since we just send the last data report to Dolphin on each Update() call
 	// , make the wiimote only send updated data reports when data changes
 	// == less bt traffic, eliminates some unneeded packets
-	if (WM_REPORT_MODE == ((u8*)data)[1])
-	{
-		// also delete the last data report
-		if (m_last_data_report)
-		{
-			delete[] m_last_data_report;
-			m_last_data_report = NULL;
-		}
+	//if (WM_REPORT_MODE == ((u8*)data)[1])
+	//{
+	//	// also delete the last data report
+	//	if (m_last_data_report)
+	//	{
+	//		delete[] m_last_data_report;
+	//		m_last_data_report = NULL;
+	//	}
 
-		// nice var names :p, this seems to be this one
-		((wm_report_mode*)(rpt.first + 2))->all_the_time = false;
-		//((wm_report_mode*)(data + 2))->continuous = false;
-	}
+	//	// nice var names :p, this seems to be this one
+	//	((wm_report_mode*)(rpt.first + 2))->all_the_time = false;
+	//	//((wm_report_mode*)(data + 2))->continuous = false;
+	//}
 
 	m_write_reports.Push(rpt);
 }
