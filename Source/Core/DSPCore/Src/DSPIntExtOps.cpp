@@ -28,6 +28,13 @@
 // registers will wrap in odd ways, dictated by the corresponding wrapping
 // register, WR0-3.
 
+// Needs comments.
+inline static void writeToBackLog(int i, int idx, u16 value)
+{
+	writeBackLog[i] = value;
+	writeBackLogIdx[i] = idx;
+}
+
 namespace DSPInterpreter
 {
 

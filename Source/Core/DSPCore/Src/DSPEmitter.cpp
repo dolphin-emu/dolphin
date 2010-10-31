@@ -93,6 +93,7 @@ void DSPEmitter::checkExceptions(u32 retval) {
 void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 {
 	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
+	bool ext_is_jit = false;
 
 	// Call extended
 	if (tinst->extended) {
@@ -100,15 +101,19 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 			if (! extOpTable[inst & 0x7F]->jitFunc) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
+				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
+				ext_is_jit = true;
 			}
 		} else {
 			if (!extOpTable[inst & 0xFF]->jitFunc) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
+				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
+				ext_is_jit = true;
 			}
 		}
 	}
@@ -125,8 +130,10 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 
 	// Backlog
 	if (tinst->extended) {
-		if (! extOpTable[inst & 0x7F]->jitFunc) {
-			ABI_CallFunction((void*)applyWriteBackLog);
+		if (!ext_is_jit) {
+			//need to call the online cleanup function because
+			//the writeBackLog gets populated at runtime
+			ABI_CallFunction((void*)::applyWriteBackLog);
 		} else {
 			popExtValueToReg();
 		}

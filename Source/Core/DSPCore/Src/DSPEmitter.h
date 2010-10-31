@@ -64,6 +64,7 @@ public:
 	void popExtValueToReg();
 	void pushExtValueFromMem(u16 dreg, u16 sreg);
 	
+	void zeroWriteBackLog(const UDSPInstruction opc);
 	// Ext commands
 	void l(const UDSPInstruction opc);
 	void ln(const UDSPInstruction opc);

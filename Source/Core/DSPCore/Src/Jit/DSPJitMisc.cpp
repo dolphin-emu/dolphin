@@ -88,6 +88,7 @@ void DSPEmitter::nx(const UDSPInstruction opc)
 void DSPEmitter::dar(const UDSPInstruction opc)
 {
 	//	g_dsp.r[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
+	zeroWriteBackLog(opc);
 	decrement_addr_reg(opc & 0x3);
 
 }
@@ -98,6 +99,7 @@ void DSPEmitter::dar(const UDSPInstruction opc)
 void DSPEmitter::iar(const UDSPInstruction opc)
 {
 	//	g_dsp.r[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
+	zeroWriteBackLog(opc);
 	increment_addr_reg(opc & 0x3);
 }
 
@@ -109,6 +111,7 @@ void DSPEmitter::subarn(const UDSPInstruction opc)
 {
 	//	u8 dreg = opc & 0x3;
 	//	g_dsp.r[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
+	zeroWriteBackLog(opc);
 	decrease_addr_reg(opc & 0x3);
 }
 
@@ -123,6 +126,7 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 	//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 	
 	// From looking around it is always called with the matching index register
+	zeroWriteBackLog(opc);
 	increase_addr_reg(opc & 0x3);
 }
 
@@ -180,7 +184,7 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 // but it's harder to know exactly what effect they have.
 void DSPEmitter::srbith(const UDSPInstruction opc)
 {
-	ABI_CallFunction((void *)zeroWriteBackLog);
+	zeroWriteBackLog(opc);
 	switch ((opc >> 8) & 0xf)
 	{
 	// M0/M2 change the multiplier mode (it can multiply by 2 for free).

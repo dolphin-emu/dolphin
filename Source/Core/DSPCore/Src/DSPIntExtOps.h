@@ -61,11 +61,4 @@ void nop(const UDSPInstruction opc);
 } // end namespace Ext
 } // end namespace DSPinterpeter
 
-// Needs comments.
-inline void writeToBackLog(int i, int idx, u16 value)
-{
-	writeBackLog[i] = value;
-	writeBackLogIdx[i] = idx;
-}
-
 #endif

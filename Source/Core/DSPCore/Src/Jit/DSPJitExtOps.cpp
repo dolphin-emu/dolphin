@@ -19,8 +19,6 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#include "../DSPIntExtOps.h" // remove when getting rid of writebacklog
-// See docs in the interpeter
 using namespace Gen;
 
 // DR $arR
@@ -94,6 +92,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 	
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
+/*
 		u16 val;
 		ext_dmem_read(sreg);
 		MOV(16, M(&val), R(EAX));
@@ -102,6 +101,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
 		increment_addr_reg(sreg);
+*/
 	}
 	else
 	{
@@ -127,6 +127,7 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
+/*
 		u16 val;
 		ext_dmem_read(sreg);
 		MOV(16, M(&val), R(EAX));
@@ -134,6 +135,7 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
 		increase_addr_reg(sreg);
+*/
 	}
 	else
 	{
@@ -700,8 +702,8 @@ void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
 
 void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 	ext_dmem_read(sreg);
-	MOV(16, R(EBX), R(EAX));
-	
+	MOVZX(32, 16, EBX, R(EAX));
+
 	storeIndex = dreg;
 }
 
@@ -726,3 +728,26 @@ void DSPEmitter::popExtValueToReg() {
 	// TODO handle commands such as 'l
 }
 
+// This function is being called in the main op after all input regs were read
+// and before it writes into any regs. This way we can always use bitwise or to
+// apply the ext command output, because if the main op didn't change the value
+// then 0 | ext output = ext output and if it did then bitwise or is still the
+// right thing to do
+//this is only needed as long as we do fallback for ext ops
+void DSPEmitter::zeroWriteBackLog(const UDSPInstruction opc)
+{
+	const DSPOPCTemplate *tinst = GetOpTemplate(opc);
+
+	// Call extended
+	if (!tinst->extended)
+	    return;
+
+	if ((opc >> 12) == 0x3) {
+		if (! extOpTable[opc & 0x7F]->jitFunc)
+			ABI_CallFunction((void*)::zeroWriteBackLog);
+	} else {
+		if (! extOpTable[opc & 0xFF]->jitFunc)
+			ABI_CallFunction((void*)::zeroWriteBackLog);
+	}
+	return;
+}

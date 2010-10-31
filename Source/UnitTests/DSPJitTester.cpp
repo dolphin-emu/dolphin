@@ -41,7 +41,9 @@ SDSP DSPJitTester::RunJit(SDSP dsp_settings)
 	ResetJit();
 	memcpy(&g_dsp, &dsp_settings, sizeof(SDSP));
 	const u8* code = jit.GetCodePtr();
+	jit.ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	jit.EmitInstruction(instruction);
+	jit.ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	jit.RET();
 	((void(*)())code)();
 
