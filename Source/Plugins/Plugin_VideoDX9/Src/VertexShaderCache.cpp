@@ -230,6 +230,12 @@ bool VertexShaderCache::SetShader(u32 components)
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		if(iter->second.code.empty()) {
+			iter->second.code = std::string(GenerateVertexShaderCode(components, API_D3D9));
+		}
+#endif
+
 		DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
 		if (entry.shader)
 		{
@@ -255,6 +261,12 @@ bool VertexShaderCache::SetShader(u32 components)
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	iter = vshaders.find(uid);
+	if(iter->second.code.empty()) {
+		iter->second.code = std::string(code);
+	}
+#endif
 	delete [] bytecode;
 	return result;
 }
@@ -285,6 +297,9 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 #if defined(_DEBUG) || defined(DEBUGFAST)
 std::string VertexShaderCache::GetCurrentShaderCode()
 {
-	return "(N/A)\n";
+	if (last_entry)
+		return last_entry->code;
+	else
+		return "(no shader)\n";
 }
 #endif

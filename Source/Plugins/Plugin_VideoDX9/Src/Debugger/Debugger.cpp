@@ -214,7 +214,7 @@ void GFXDebuggerDX9::CreateGUIControls()
 	m_pDumpList->Append(wxT("Texture 4"));
 	m_pDumpList->Append(wxT("Texture 5"));
 	m_pDumpList->Append(wxT("Texture 6"));
-	m_pDumpList->Append(wxT("Texture 8"));
+	m_pDumpList->Append(wxT("Texture 7"));
 	m_pDumpList->Append(wxT("Frame Buffer"));
 	m_pDumpList->Append(wxT("Vertices"));
 	m_pDumpList->Append(wxT("Vertex Description"));
@@ -313,6 +313,150 @@ void GFXDebuggerDX9::OnPauseAtNextFrameButton(wxCommandEvent& event)
 
 void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 {
+	switch (m_pDumpList->GetSelection())
+	{
+		case 0: // Pixel Shader
+		{
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/Debug/%s/dump_ps.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			File::CreateEmptyFile(filename);
+			File::WriteStringToFile(true, PixelShaderCache::GetCurrentShaderCode(), filename);
+			break;
+		}
+
+		case 1: // Vertex Shader
+		{
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/Debug/%s/dump_vs.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			File::CreateEmptyFile(filename);
+			File::WriteStringToFile(true, VertexShaderCache::GetCurrentShaderCode(), filename);
+			break;
+		}
+
+		case 2: // Pixel Shader Constants
+		{
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/Debug/%s/dump_ps_consts.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+
+			FILE* file = fopen(filename, "w");
+
+			float constants[4*C_PENVCONST_END];
+			D3D::dev->GetVertexShaderConstantF(0, constants, C_PENVCONST_END);
+
+			for(unsigned int i = C_COLORS;i < C_KCOLORS; i++)
+				fprintf(file, "Constant POSNORMALMATRIX %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_KCOLORS;i < C_ALPHA; i++)
+				fprintf(file, "Constant KCOLORS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_ALPHA;i < C_TEXDIMS; i++)
+				fprintf(file, "Constant ALPHA %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_TEXDIMS;i < C_ZBIAS; i++)
+				fprintf(file, "Constant TEXDIMS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_ZBIAS;i < C_INDTEXSCALE; i++)
+				fprintf(file, "Constant ZBIAS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_INDTEXSCALE;i < C_INDTEXMTX; i++)
+				fprintf(file, "Constant INDTEXSCALE %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_INDTEXMTX;i < C_FOG; i++)
+				fprintf(file, "Constant INDTEXMTX %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_FOG;i < C_COLORMATRIX; i++)
+				fprintf(file, "Constant FOG %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_COLORMATRIX;i < C_PENVCONST_END; i++)
+				fprintf(file, "Constant COLORMATRIX %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			fclose(file);
+
+			break;
+		}
+
+		case 3: // Vertex Shader Constants
+		{
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/Debug/%s/dump_vs_consts.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			FILE* file = fopen(filename, "w");
+
+			float constants[4*C_VENVCONST_END];
+			D3D::dev->GetVertexShaderConstantF(0, constants, C_VENVCONST_END);
+
+			for(unsigned int i = C_POSNORMALMATRIX;i < C_PROJECTION; i++)
+				fprintf(file, "Constant POSNORMALMATRIX %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_PROJECTION;i < C_MATERIALS; i++)
+				fprintf(file, "Constant PROJECTION %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_MATERIALS;i < C_LIGHTS; i++)
+				fprintf(file, "Constant MATERIALS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_LIGHTS;i < C_TEXMATRICES; i++)
+				fprintf(file, "Constant LIGHTS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_TEXMATRICES;i < C_TRANSFORMMATRICES; i++)
+				fprintf(file, "Constant TEXMATRICES %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_TRANSFORMMATRICES;i < C_NORMALMATRICES; i++)
+				fprintf(file, "Constant TRANSFORMMATRICES %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_NORMALMATRICES;i < C_POSTTRANSFORMMATRICES; i++)
+				fprintf(file, "Constant NORMALMATRICES %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_POSTTRANSFORMMATRICES;i < C_DEPTHPARAMS; i++)
+				fprintf(file, "Constant POSTTRANSFORMMATRICES %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			for(unsigned int i = C_DEPTHPARAMS;i < C_VENVCONST_END; i++)
+				fprintf(file, "Constant DEPTHPARAMS %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
+
+			fclose(file);
+			break;
+		}
+
+		case 4: // Texture 0
+		case 5: // Texture 1
+		case 6: // Texture 2
+		case 7: // Texture 3
+		case 8: // Texture 4
+		case 9: // Texture 5
+		case 10: // Texture 6
+		case 11: // Texture 7
+		{
+			int stage = m_pDumpList->GetSelection() - 4;
+			IDirect3DTexture9* texture;
+			D3D::dev->GetTexture(stage, (IDirect3DBaseTexture9**)&texture);
+			if(!texture) break;
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/Debug/%s/dump_tex%d.png", File::GetUserPath(D_DUMP_IDX), globals->unique_id, stage);
+			IDirect3DSurface9* surface;
+			texture->GetSurfaceLevel(0, &surface);
+			HRESULT hr = PD3DXSaveSurfaceToFileA(filename, D3DXIFF_PNG, surface, NULL, NULL);
+			if (FAILED(hr)) {
+				MessageBoxA(NULL, "Failed to dump texture...", "Error", MB_OK);
+			}
+			surface->Release();
+			texture->Release();
+			break;
+		}
+
+		case 12: // Frame Buffer
+			break;
+
+		case 13: // Vertices
+			break;
+
+		case 14: // Vertex Description
+			break;
+
+		case 15: // Vertex Matrices
+			break;
+
+		case 16: // Statistics
+			break;
+
+	}
 }
 
 void GFXDebuggerDX9::OnGoButton(wxCommandEvent& event)

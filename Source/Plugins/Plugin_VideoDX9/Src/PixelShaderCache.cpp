@@ -296,6 +296,12 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 		
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		if(iter->second.code.empty()) {
+			iter->second.code = std::string(GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components));
+		}
+#endif
+
 		DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
 
 		if (entry.shader)
@@ -344,6 +350,12 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 
 	// And insert it into the shader cache.
 	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	iter = PixelShaders.find(uid);
+	if(iter->second.code.empty()) {
+		iter->second.code = std::string(code);
+	}
+#endif
 	delete [] bytecode;
 	return result;
 }
