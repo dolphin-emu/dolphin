@@ -317,19 +317,27 @@ void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 	{
 		case 0: // Pixel Shader
 		{
+#if defined(_DEBUG) || defined(DEBUGFAST)
 			char filename[MAX_PATH];
 			sprintf(filename, "%s/Debug/%s/dump_ps.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
 			File::CreateEmptyFile(filename);
 			File::WriteStringToFile(true, PixelShaderCache::GetCurrentShaderCode(), filename);
+#else
+			MessageBox(NULL, L"Dumping pixel shaders not supported in Release builds!", L"Error", MB_OK);
+#endif
 			break;
 		}
 
 		case 1: // Vertex Shader
 		{
+#if defined(_DEBUG) || defined(DEBUGFAST)
 			char filename[MAX_PATH];
 			sprintf(filename, "%s/Debug/%s/dump_vs.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
 			File::CreateEmptyFile(filename);
 			File::WriteStringToFile(true, VertexShaderCache::GetCurrentShaderCode(), filename);
+#else
+			MessageBox(NULL, L"Dumping vertex shaders not supported in Release builds!", L"Error", MB_OK);
+#endif
 			break;
 		}
 
