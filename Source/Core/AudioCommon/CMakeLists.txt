@@ -1,0 +1,31 @@
+set(SRCS	Src/AudioCommon.cpp
+			Src/AudioCommonConfig.cpp
+			Src/Mixer.cpp
+			Src/WaveFile.cpp)
+
+
+if(APPLE)
+	set(SRCS ${SRCS} Src/CoreAudioSoundStream.cpp)
+else()
+    if(ALSA_FOUND)
+		set(SRCS ${SRCS} Src/AlsaSoundStream.cpp)
+	endif(ALSA_FOUND)
+
+	if(AO_FOUND)
+		set(SRCS ${SRCS} Src/AOSoundStream.cpp)
+	endif(AO_FOUND)
+
+    if(OPENAL_FOUND OR WIN32)
+		set(SRCS ${SRCS} Src/OpenALSoundStream.cpp)
+	endif(OPENAL_FOUND OR WIN32)
+
+	if(PULSEAUDIO_FOUND)
+		set(SRCS ${SRCS} Src/PulseAudioStream.cpp)
+	endif(PULSEAUDIO_FOUND)
+
+    if(WIN32)
+		set(SRCS ${SRCS} Src/DSoundStream.cpp)
+	endif(WIN32)
+endif()
+
+add_library(audiocommon STATIC ${SRCS})
