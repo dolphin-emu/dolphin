@@ -77,8 +77,7 @@ static char s_sScreenshotName[1024];
 
 ID3D11Buffer* access_efb_cbuf = NULL;
 ID3D11BlendState* clearblendstates[4] = {NULL};
-ID3D11DepthStencilState* cleardepthstates[2] = {NULL};
-ID3D11RasterizerState* clearraststate = NULL;
+ID3D11DepthStencilState* cleardepthstates[3] = {NULL};
 ID3D11BlendState* resetblendstate = NULL;
 ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
@@ -257,14 +256,12 @@ void SetupDeviceObjects()
 	ddesc.DepthEnable      = TRUE;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
+	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[2]);
+	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled)");
-
-	// TODO: once multisampling gets implemented, this might need to be changed
-	D3D11_RASTERIZER_DESC rdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, true, false, false);
-	hr = D3D::device->CreateRasterizerState(&rdesc, &clearraststate);
-	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ClearScreen");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)clearraststate, "rasterizer state for Renderer::ClearScreen");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
 	D3D11_BLEND_DESC blenddesc;
 	blenddesc.AlphaToCoverageEnable = FALSE;
@@ -309,7 +306,7 @@ void SetupDeviceObjects()
 	// this might need to be changed once multisampling support gets added
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
 	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
-	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ClearScreen");
+	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 }
 
@@ -324,7 +321,7 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(clearblendstates[3]);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);
-	SAFE_RELEASE(clearraststate);
+	SAFE_RELEASE(cleardepthstates[2]);
 	SAFE_RELEASE(resetblendstate);
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
@@ -833,35 +830,30 @@ void UpdateViewport()
 	D3D::context->RSSetViewports(1, &vp);
 }
 
-// Tino: color is passed in bgra mode so need to convert it to rgba
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	ResetAPIState();
 
-	// Update the view port for clearing the picture
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(),
-										0.f, 
-										1.f); 
-	D3D::context->RSSetViewports(1, &vp);
-
-	// Always set the scissor in case it was set by the game and has not been reset
-	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
-	D3D::context->RSSetScissorRects(1, &sirc);
-	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-
-	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
-	D3D::stateman->PushRasterizerState(clearraststate);
-	if (colorEnable && alphaEnable) D3D::stateman->PushBlendState(clearblendstates[0]);
-	else if (colorEnable) D3D::stateman->PushBlendState(clearblendstates[1]);
-	else if (alphaEnable) D3D::stateman->PushBlendState(clearblendstates[2]);
+	if (bpmem.blendmode.colorupdate && bpmem.blendmode.alphaupdate) D3D::stateman->PushBlendState(clearblendstates[0]);
+	else if (bpmem.blendmode.colorupdate) D3D::stateman->PushBlendState(clearblendstates[1]);
+	else if (bpmem.blendmode.alphaupdate) D3D::stateman->PushBlendState(clearblendstates[2]);
 	else D3D::stateman->PushBlendState(clearblendstates[3]);
 
+	if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
+	else if (bpmem.zmode.updateenable) D3D::stateman->PushDepthState(cleardepthstates[1]);
+	else /*if (!bpmem.zmode.updateenable)*/ D3D::stateman->PushDepthState(cleardepthstates[2]);
+
+	// Update the view port for clearing the picture
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(), 0.f, 1.f); 
+	D3D::context->RSSetViewports(1, &vp);
+
+	// Color is passed in bgra mode so we need to convert it to rgba
+	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
 	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
 
-	D3D::stateman->PopBlendState();
-	D3D::stateman->PopRasterizerState();
 	D3D::stateman->PopDepthState();
+	D3D::stateman->PopBlendState();
 
 	RestoreAPIState();
 }

@@ -990,7 +990,15 @@ void UpdateViewport()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	// Update the view port for clearing the picture
+	// Reset rendering pipeline while keeping color masks and depth buffer settings
+	ResetAPIState();
+	SetDepthMode();
+	SetColorMask();
+
+	if (zEnable) // other depth functions don't make sense here
+		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+
+	// Update the view port for clearing the whole EFB texture
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);
 	D3DVIEWPORT9 vp;
 	vp.X = targetRc.left;
@@ -1000,23 +1008,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-
-	// Always set the scissor in case it was set by the game and has not been reset
-	RECT sicr;
-	sicr.left   = targetRc.left;
-	sicr.top    = targetRc.top;
-	sicr.right  = targetRc.right;
-	sicr.bottom = targetRc.bottom;
-	D3D::dev->SetScissorRect(&sicr);
-	D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
-	if (zEnable)
-		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
 	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
-	if (zEnable)
-		D3D::RefreshRenderState(D3DRS_ZFUNC);
-	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
-	UpdateViewport();
-	SetScissorRect();
+	RestoreAPIState();
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)

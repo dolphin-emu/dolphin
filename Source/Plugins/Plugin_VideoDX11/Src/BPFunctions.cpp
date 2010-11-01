@@ -86,9 +86,6 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
-	// it seems that the GC is able to alpha blend on color-fill
-	// we cant do that so if alpha is != 255 we skip it
-
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
 	bool zEnable = bpmem.zmode.updateenable;
