@@ -393,6 +393,11 @@ void IncreaseSampleCount(const u32 _iAmount)
 	}
 }
 
+unsigned int GetDSPSampleRate()
+{
+	return g_DACSampleRate;
+}
+
 void Update()
 {
     // update timer

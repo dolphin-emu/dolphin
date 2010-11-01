@@ -166,8 +166,9 @@ void DSPCallback(u64 userdata, int cyclesLate)
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
+	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
-	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD - cyclesLate, et_AudioDMA);
+	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
@@ -279,7 +280,7 @@ void Init()
 	AI_PERIOD = GetTicksPerSecond() / 80;
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (32000 * 4 / 32);
+	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 
 	Common::Timer::IncreaseResolution();
 	// store and convert localtime at boot to timebase ticks
