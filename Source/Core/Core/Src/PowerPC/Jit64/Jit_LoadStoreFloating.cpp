@@ -54,6 +54,8 @@ void Jit64::lfs(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
 
+	Default(inst); return;
+
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -64,7 +66,10 @@ void Jit64::lfs(UGeckoInstruction inst)
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	if (jo.assumeFPLoadFromMem)
 	{
-		UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
+		gpr.FlushLockX(ABI_PARAM1);
+		MOV(32, R(ABI_PARAM1), gpr.R(a));
+		UnsafeLoadRegToReg(ABI_PARAM1, EAX, 32, offset, false);
+		gpr.UnlockAllX();
 	}
 	else
 	{
