@@ -414,6 +414,14 @@
 			Name="SoundStreams"
 			>
 			<File
+				RelativePath=".\Src\NullSoundStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NullSoundStream.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\AOSoundStream.cpp"
 				>
 			</File>

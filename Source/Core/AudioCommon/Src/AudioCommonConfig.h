@@ -22,6 +22,7 @@
 #include "IniFile.h"
 
 // Backend Types
+#define BACKEND_NULLSOUND	"No audio output"
 #define BACKEND_COREAUDIO   "CoreAudio"
 #define BACKEND_DIRECTSOUND "DSound"
 #define BACKEND_AOSOUND     "AOSound"

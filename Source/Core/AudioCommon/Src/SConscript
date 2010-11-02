@@ -8,6 +8,7 @@ files = [
 	'WaveFile.cpp',
 	'Mixer.cpp',
 	'AudioCommon.cpp',
+	'NullSoundStream.cpp',
 	]
 
 if sys.platform == 'darwin':

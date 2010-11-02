@@ -17,6 +17,7 @@
 
 #include "AudioCommon.h"
 #include "Mixer.h"
+#include "NullSoundStream.h"
 #include "DSoundStream.h"
 #include "AOSoundStream.h"
 #include "AlsaSoundStream.h"
@@ -37,6 +38,8 @@ namespace AudioCommon
 		std::string backend = ac_Config.sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
+		else if (backend == BACKEND_NULLSOUND && NullSound::isValid()) 
+			soundStream = new NullSound(mixer, g_dspInitialize.hWnd);
 		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
 			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
 		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
@@ -91,6 +94,8 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
+		if (NullSound::isValid())  
+			backends.push_back(BACKEND_NULLSOUND);
 		if (DSound::isValid())  
 			backends.push_back(BACKEND_DIRECTSOUND);
 		if (OpenALStream::isValid())
