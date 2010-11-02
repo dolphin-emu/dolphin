@@ -2,7 +2,7 @@ set(SRCS	Src/AudioCommon.cpp
 			Src/AudioCommonConfig.cpp
 			Src/Mixer.cpp
 			Src/WaveFile.cpp
-			Src/DSoundStream.cpp)
+			Src/NullSoundStream.cpp)
 
 
 if(APPLE)
