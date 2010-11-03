@@ -188,8 +188,6 @@ bool CBoot::BootUp()
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
-		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
-
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
 		u32 _TMDsz = 0x208;

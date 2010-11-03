@@ -54,7 +54,7 @@ static UVIHorizontalScaling			m_HorizontalScaling;
 static SVIFilterCoefTables			m_FilterCoefTables;
 static u32							m_UnkAARegister = 0;// ??? 0x00FF0000
 static u16							m_Clock = 0;		// 0: 27MHz, 1: 54MHz
-static u16							m_DTVStatus = 0;	// Region char and component cable bit
+static UVIDTVStatus					m_DTVStatus;
 static u16							m_FBWidth = 0;		// Only correct when scaling is enabled?
 static UVIBorderBlankRegister		m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
@@ -145,21 +145,18 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 1;
 
 	// 54MHz, capable of progressive scan
-	m_Clock = Core::g_CoreStartupParameter.bProgressive?1:0;
+	m_Clock = Core::g_CoreStartupParameter.bProgressive;
 
 	// Say component cable is plugged
-	m_DTVStatus = Core::g_CoreStartupParameter.bProgressive?1:0;
+	m_DTVStatus.component_plugged = Core::g_CoreStartupParameter.bProgressive;
 
 	UpdateParameters();
 }
 
-void SetRegionReg(char _region)
-{
-	m_DTVStatus = _region | (m_DTVStatus & 1);
-}
-
 void Init()
 {
+	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bNTSCJ;
+
 	for (int i = 0; i < 4; i++)
 		m_InterruptRegister[i].Hex = 0;
 
@@ -385,7 +382,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case VI_DTV_STATUS:
-		_uReturnValue = m_DTVStatus;
+		_uReturnValue = m_DTVStatus.Hex;
 		break;
 
 	case VI_FBWIDTH:
@@ -637,7 +634,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case VI_DTV_STATUS:
-		m_DTVStatus = _iValue;
+		m_DTVStatus.Hex = _iValue;
 		break;
 
 	case VI_FBWIDTH:

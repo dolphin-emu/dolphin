@@ -82,6 +82,8 @@ private:
 	wxCheckBox* Fullscreen;
 	wxCheckBox* HideCursor;
 	wxCheckBox* RenderToMain;
+	wxCheckBox* ProgressiveScan;
+	wxCheckBox* NTSCJ;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
@@ -113,7 +115,6 @@ private:
 
 	// Misc
 	wxCheckBox* WiiScreenSaver;
-	wxCheckBox* WiiProgressiveScan;
 	wxCheckBox* WiiEuRGB60;
 	wxChoice* WiiAspectRatio;
 	wxChoice* WiiSystemLang;
@@ -194,6 +195,8 @@ private:
 		ID_DISPLAY_FULLSCREEN,
 		ID_DISPLAY_HIDECURSOR,
 		ID_DISPLAY_RENDERTOMAIN,
+		ID_DISPLAY_PROGSCAN,
+		ID_DISPLAY_NTSCJ,
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
@@ -225,7 +228,6 @@ private:
 		ID_WII_BT_BAR,
 
 		ID_WII_IPL_SSV,
-		ID_WII_IPL_PGS,
 		ID_WII_IPL_E60,
 		ID_WII_IPL_AR_TEXT,
 		ID_WII_IPL_AR,

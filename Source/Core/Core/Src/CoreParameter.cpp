@@ -42,7 +42,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITBranchOff(false), bJITProfiledReJIT(false),
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false),
-  bSkipIdle(true), bNTSC(false),
+  bSkipIdle(true), bNTSC(false), bNTSCJ(false),
   bHLE_BS2(true), bUseFastMem(false),
   bLockThreads(false),
   bEnableCheats(false),

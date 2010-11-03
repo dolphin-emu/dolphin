@@ -81,6 +81,8 @@ EVT_TEXT(ID_DISPLAY_WINDOWHEIGHT, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_FULLSCREEN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_PROGSCAN, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_NTSCJ, CConfigMain::DisplaySettingsChanged)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
@@ -105,7 +107,6 @@ EVT_CHOICE(ID_GC_SIDEVICE3, CConfigMain::GCSettingsChanged)
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
-EVT_CHECKBOX(ID_WII_IPL_PGS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_AR, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
@@ -183,7 +184,7 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on WiiPage
 		WiiSensBarPos->Disable();
 		WiiScreenSaver->Disable();
-		WiiProgressiveScan->Disable();
+		ProgressiveScan->Disable();
 		WiiEuRGB60->Disable();
 		WiiAspectRatio->Disable();
 		WiiSystemLang->Disable();
@@ -259,41 +260,48 @@ void CConfigMain::InitializeGUILists()
 
 void CConfigMain::InitializeGUIValues()
 {
+	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	// General - Basic
-	CPUThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread);
-	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
-	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+	CPUThread->SetValue(startup_params.bCPUThread);
+	SkipIdle->SetValue(startup_params.bSkipIdle);
+	EnableCheats->SetValue(startup_params.bEnableCheats);
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 	UseFPSForLimiting->SetValue(SConfig::GetInstance().b_UseFPS);
 
 	// General - Advanced
-	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
+	AlwaysHLE_BS2->SetValue(startup_params.bHLE_BS2);
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	EnableOpenCL->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableOpenCL);
+	EnableOpenCL->SetValue(startup_params.bEnableOpenCL);
 #endif
-	CPUEngine->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
-	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
+	CPUEngine->SetSelection(startup_params.iCPUCore);
+	LockThreads->SetValue(startup_params.bLockThreads);
+	DSPThread->SetValue(startup_params.bDSPThread);
 
 
 	// Display - Display
-	FullscreenResolution->SetStringSelection(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
-	WindowWidth->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth);
-	WindowHeight->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-	Fullscreen->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
-	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
-	RenderToMain->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain);
+	FullscreenResolution->SetStringSelection(wxString::FromAscii(startup_params.strFullscreenResolution.c_str()));
+	WindowWidth->SetValue(startup_params.iRenderWindowWidth);
+	WindowHeight->SetValue(startup_params.iRenderWindowHeight);
+	Fullscreen->SetValue(startup_params.bFullscreen);
+	HideCursor->SetValue(startup_params.bHideCursor);
+	RenderToMain->SetValue(startup_params.bRenderToMain);
+	ProgressiveScan->SetValue(startup_params.bProgressive);
+	// A bit strange behavior, but this needs to stay in sync with the main progressive boolean
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", startup_params.bProgressive);
+	NTSCJ->SetValue(startup_params.bNTSCJ);
+
 
 	// Display - Interface
-	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
-	UsePanicHandlers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
-	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
+	ConfirmStop->SetValue(startup_params.bConfirmStop);
+	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
+	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
 
 
 	// Gamecube - IPL
-	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
 
 	// Gamecube - Devices
 	// Not here. They use some locals over in CreateGUIControls for initialization,
@@ -305,7 +313,6 @@ void CConfigMain::InitializeGUIValues()
 	
 	// Wii - Misc
 	WiiScreenSaver->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
-	WiiProgressiveScan->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.PGS"));
 	WiiEuRGB60->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"));
 	WiiAspectRatio->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	WiiSystemLang->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
@@ -317,14 +324,14 @@ void CConfigMain::InitializeGUIValues()
 
 	// Paths
 	RecursiveISOPath->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
-	DefaultISO->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), *wxConvCurrent));
-	DVDRoot->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str(), *wxConvCurrent));
-	ApploaderPath->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader.c_str(), *wxConvCurrent));
+	DefaultISO->SetPath(wxString(startup_params.m_strDefaultGCM.c_str(), *wxConvCurrent));
+	DVDRoot->SetPath(wxString(startup_params.m_strDVDRoot.c_str(), *wxConvCurrent));
+	ApploaderPath->SetPath(wxString(startup_params.m_strApploader.c_str(), *wxConvCurrent));
 
 
 	// Plugins
-	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
-	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
+	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, startup_params.m_strVideoPlugin);
+	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, startup_params.m_strDSPPlugin);
 }
 
 void CConfigMain::InitializeGUITooltips()
@@ -349,6 +356,8 @@ void CConfigMain::InitializeGUITooltips()
 	HideCursor->SetToolTip(wxT("Hide the cursor when it is over the rendering window")
 		wxT("\n and the rendering window has focus."));
 	RenderToMain->SetToolTip(wxT("Render to main window."));
+	ProgressiveScan->SetToolTip(wxT("Will enable progressive scan option if supported by software."));
+	NTSCJ->SetToolTip(wxT("Required for using the Japanese ROM font."));
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
@@ -457,6 +466,8 @@ void CConfigMain::CreateGUIControls()
 	Fullscreen = new wxCheckBox(DisplayPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	HideCursor = new wxCheckBox(DisplayPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
 	RenderToMain = new wxCheckBox(DisplayPage, ID_DISPLAY_RENDERTOMAIN, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	ProgressiveScan = new wxCheckBox(DisplayPage, ID_DISPLAY_PROGSCAN, wxT("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	NTSCJ = new wxCheckBox(DisplayPage, ID_DISPLAY_NTSCJ, wxT("Set Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Interface settings
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, wxT("Interface Settings"));
@@ -489,6 +500,8 @@ void CConfigMain::CreateGUIControls()
 	sbDisplay->Add(Fullscreen, 0, wxEXPAND | wxALL, 5);
 	sbDisplay->Add(HideCursor, 0, wxALL, 5);
 	sbDisplay->Add(RenderToMain, 0, wxEXPAND | wxALL, 5);
+	sbDisplay->Add(ProgressiveScan, 0, wxEXPAND | wxALL, 5);
+	sbDisplay->Add(NTSCJ, 0, wxEXPAND | wxALL, 5);
 
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
@@ -640,7 +653,6 @@ void CConfigMain::CreateGUIControls()
 	// Misc Settings
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Misc Settings"));
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiProgressiveScan = new wxCheckBox(WiiPage, ID_WII_IPL_PGS, wxT("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiiEuRGB60 = new wxCheckBox(WiiPage, ID_WII_IPL_E60, wxT("Use EuRGB60 Mode (PAL60)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText* WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
@@ -660,12 +672,11 @@ void CConfigMain::CreateGUIControls()
 
 	sWiiIPLSettings = new wxGridBagSizer();
 	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiiIPLSettings->Add(WiiProgressiveScan, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiiIPLSettings->Add(WiiEuRGB60, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiiIPLSettings->Add(WiiAspectRatioText, wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
-	sWiiIPLSettings->Add(WiiSystemLangText, wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
+	sWiiIPLSettings->Add(WiiEuRGB60, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiiIPLSettings->Add(WiiAspectRatioText, wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	sWiiIPLSettings->Add(WiiSystemLangText, wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
 
 	sbWiiDeviceSettings->Add(WiiSDCard, 0, wxALL, 5);
@@ -863,6 +874,13 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 	case ID_DISPLAY_RENDERTOMAIN:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain = RenderToMain->IsChecked();
 		break;
+	case ID_DISPLAY_PROGSCAN:
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ProgressiveScan->IsChecked());
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ProgressiveScan->IsChecked();
+		break;
+	case ID_DISPLAY_NTSCJ:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSCJ = NTSCJ->IsChecked();
+		break;
 	// Display - Interface
 	case ID_INTERFACE_CONFIRMSTOP:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
@@ -1036,10 +1054,6 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	// SYSCONF settings
 	case ID_WII_IPL_SSV:
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.SSV", WiiScreenSaver->IsChecked());
-		break;
-	case ID_WII_IPL_PGS:
-		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", WiiProgressiveScan->IsChecked());
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = WiiProgressiveScan->IsChecked();
 		break;
 	case ID_WII_IPL_E60:
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", WiiEuRGB60->IsChecked());

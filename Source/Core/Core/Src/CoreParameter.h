@@ -69,6 +69,7 @@ struct SCoreStartupParameter
 	bool bDSPThread;
 	bool bSkipIdle;
 	bool bNTSC;
+	bool bNTSCJ;
 	bool bHLE_BS2;
 	bool bEnableOpenCL;
 	bool bUseFastMem;

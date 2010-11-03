@@ -315,12 +315,23 @@ union UVIBorderBlankRegister
 	};
 };
 
+// ntsc-j and component cable bits
+union UVIDTVStatus
+{
+	u16 Hex;
+	struct 
+	{
+		u16 component_plugged	: 1;
+		u16 ntsc_j				: 1;
+		u16						:14;
+	};
+};
+
 	// urgh, ugly externs.
 	extern u32 TargetRefreshRate;
 
 	// For BS2 HLE
 	void Preset(bool _bNTSC);
-	void SetRegionReg(char _region);
 
 	void Init();	
 	void DoState(PointerWrap &p);
