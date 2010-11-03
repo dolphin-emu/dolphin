@@ -13,7 +13,7 @@ set(DOLPHIN_LICENSE_DIR	${DOLPHIN_BIN_DIR})
 
 include(FindSubversion OPTIONAL) # for revision info
 if(Subversion_FOUND)
-	Subversion_WC_INFO(. DOLPHIN) # defines DOLPHIN_WC_REVISION
+	Subversion_WC_INFO(${PROJECT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
 endif()
 
 include(FindPkgConfig REQUIRED) # TODO: Make this optional or even implement our own package detection
@@ -63,11 +63,13 @@ endif(UNIX)
 include(FindOpenGL REQUIRED)
 
 include(FindALSA OPTIONAL)
-include(FindGTK2 OPTIONAL) # TODO: Or REQUIRED?
 include(FindOpenAL OPTIONAL)
 include(FindwxWidgets OPTIONAL)
-include(FindX11 OPTIONAL) # TODO: Or REQUIRED on UNIX?
+if(UNIX)
+	include(FindX11 REQUIRED)
+endif(UNIX)
 
+pkg_search_module(PULSEAUDIO libpulse)
 pkg_search_module(AO ao)
 pkg_search_module(BLUEZ bluez)
 
@@ -100,12 +102,14 @@ endif(BLUEZ_FOUND)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 
-if(GTK2_FOUND)
-	include_directories(${GTK2_INCLUDE_DIRS})
-	message("GTK 2 found") # TODO: What is this needed for actually?
+if(PULSEAUDIO_FOUND)
+	add_definitions(-DHAVE_PULSEAUDIO=1)
+	include_directories(${PULSEAUDIO_INCLUDE_DIR})
+	message("PulseAudio found, enabling PulseAudio sound backend")
 else()
-	message("GTK 2 NOT found")
-endif(GTK2_FOUND)
+	add_definitions(-DHAVE_PULSEAUDIO=0)
+	message("PulseAudio NOT found, disabling PulseAudio sound backend")
+endif(PULSEAUDIO_FOUND)
 
 if(OPENAL_FOUND)
 	add_definitions(-DHAVE_OPENAL=1)
@@ -119,6 +123,17 @@ endif(OPENAL_FOUND)
 if(wxWidgets_FOUND)
 	add_definitions(-DHAVE_WX=1)
 	include(${wxWidgets_USE_FILE})
+
+	if(UNIX)
+		pkg_search_module(GTK2 REQUIRED gtk+-2.0)
+		if(GTK2_FOUND)
+			include_directories(${GTK2_INCLUDE_DIRS})
+			message("GTK 2 found")
+		else(GTK2_FOUND)
+			message("GTK 2 NOT found")
+		endif(GTK2_FOUND)
+	endif(UNIX)
+
 	message("wxWidgets found, enabling GUI build")
 else(wxWidgets_FOUND)
 	add_definitions(-DHAVE_WX=0)
@@ -128,7 +143,7 @@ endif(wxWidgets_FOUND)
 if(X11_FOUND)
 	add_definitions(-DHAVE_X11=1)
 	include_directories(${X11_INCLUDE_DIR})
-	message("X11 found") # TODO: What is this needed for actually?
+	message("X11 found")
 else()
 	add_definitions(-DHAVE_X11=0)
 	message("X11 NOT found")
@@ -176,7 +191,7 @@ include_directories(Externals/LZO)
 
 include(FindSDL OPTIONAL)
 if(SDL_FOUND)
-	include_directories(SLD_INCLUDE_DIR)
+	include_directories(SDL_INCLUDE_DIR)
 else(SDL_FOUND)
 	# TODO: No CMakeLists.txt there, yet...
 	add_subdirectory(Externals/SDL)
@@ -220,16 +235,16 @@ add_subdirectory(Source)
 ########################################
 # copy over the Data folder ... TODO: Don't copy .svn dirs!
 #
-file(COPY Data/user DESTINATION ${DOLPHIN_USER_DIR})
-file(COPY Data/sys DESTINATION ${DOLPHIN_SYS_DIR})
+file(COPY Data/User DESTINATION ${DOLPHIN_USER_DIR})
+file(COPY Data/Sys DESTINATION ${DOLPHIN_SYS_DIR})
 file(COPY Data/license.txt DESTINATION ${DOLPHIN_LICENSE_DIR})
 
 
 ########################################
 # Install and CPack information
 #
-install(DIRECTORY Data/user DESTINATION share/dolphin-emu)
-install(DIRECTORY Data/sys DESTINATION share/dolphin-emu)
+install(DIRECTORY Data/User DESTINATION share/dolphin-emu)
+install(DIRECTORY Data/Sys DESTINATION share/dolphin-emu)
 install(FILES Data/license.txt DESTINATION share/dolphin-emu)
 # TODO: Move childrens's install commands here?
 

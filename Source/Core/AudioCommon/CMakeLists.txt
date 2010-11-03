@@ -4,24 +4,29 @@ set(SRCS	Src/AudioCommon.cpp
 			Src/WaveFile.cpp
 			Src/NullSoundStream.cpp)
 
+set(LIBS "")
 
 if(APPLE)
 	set(SRCS ${SRCS} Src/CoreAudioSoundStream.cpp)
 else()
     if(ALSA_FOUND)
 		set(SRCS ${SRCS} Src/AlsaSoundStream.cpp)
+		set(LIBS ${LIBS} ${ALSA_LIBRARIES})
 	endif(ALSA_FOUND)
 
 	if(AO_FOUND)
 		set(SRCS ${SRCS} Src/AOSoundStream.cpp)
+		set(LIBS ${LIBS} ${AO_LIBRARIES})
 	endif(AO_FOUND)
 
     if(OPENAL_FOUND OR WIN32)
-		set(SRCS ${SRCS} Src/OpenALSoundStream.cpp)
+		set(SRCS ${SRCS} Src/OpenALStream.cpp)
+		set(LIBS ${LIBS} ${OPENAL_LIBRARIES})
 	endif(OPENAL_FOUND OR WIN32)
 
 	if(PULSEAUDIO_FOUND)
 		set(SRCS ${SRCS} Src/PulseAudioStream.cpp)
+		set(LIBS ${LIBS} ${PULSEAUDIO_LIBRARIES})
 	endif(PULSEAUDIO_FOUND)
 
     if(WIN32)
@@ -30,3 +35,4 @@ else()
 endif()
 
 add_library(audiocommon STATIC ${SRCS})
+target_link_libraries(audiocommon ${LIBS})
