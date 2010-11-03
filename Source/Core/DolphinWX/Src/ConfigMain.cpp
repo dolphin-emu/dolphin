@@ -175,7 +175,9 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on DisplayPage
 		FullscreenResolution->Disable();
 		RenderToMain->Disable();
-		
+		ProgressiveScan->Disable();
+		NTSCJ->Disable();
+
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -184,7 +186,6 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on WiiPage
 		WiiSensBarPos->Disable();
 		WiiScreenSaver->Disable();
-		ProgressiveScan->Disable();
 		WiiEuRGB60->Disable();
 		WiiAspectRatio->Disable();
 		WiiSystemLang->Disable();
