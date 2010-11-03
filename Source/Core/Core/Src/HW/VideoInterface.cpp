@@ -155,8 +155,7 @@ void Preset(bool _bNTSC)
 
 void SetRegionReg(char _region)
 {
-	if (Core::g_CoreStartupParameter.bProgressive)
-		m_DTVStatus = _region | (m_DTVStatus & 1);
+	m_DTVStatus = _region | (m_DTVStatus & 1);
 }
 
 void Init()
