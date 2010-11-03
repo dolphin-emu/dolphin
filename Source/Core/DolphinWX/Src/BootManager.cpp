@@ -63,6 +63,16 @@ namespace BootManager
 	extern "C" HINSTANCE wxGetInstance();
 #endif
 
+// TODO this is an ugly hack which allows us to restore values trampled by per-game settings
+// Apply fire liberally
+struct ConfigCache
+{
+	bool bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
+		bAlternateRFI, bFastDiscSpeed, bMergeBlocks;
+	int iTLBHack;
+};
+static ConfigCache config_cache;
+
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
@@ -102,6 +112,15 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.m_strGameIni = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + unique_id + ".ini";
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
+		config_cache.bCPUThread = StartUp.bCPUThread;
+		config_cache.bSkipIdle = StartUp.bSkipIdle;
+		config_cache.bEnableFPRF = StartUp.bEnableFPRF;
+		config_cache.bMMU = StartUp.bMMU;
+		config_cache.bMMUBAT = StartUp.bMMUBAT;
+		config_cache.iTLBHack = StartUp.iTLBHack;
+		config_cache.bAlternateRFI = StartUp.bAlternateRFI;
+		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
+		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
 		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
@@ -148,6 +167,18 @@ bool BootCore(const std::string& _rFilename)
 void Stop()
 {
 	Core::Stop();
+
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	StartUp.bCPUThread = config_cache.bCPUThread;
+	StartUp.bSkipIdle = config_cache.bSkipIdle;
+	StartUp.bEnableFPRF = config_cache.bEnableFPRF;
+	StartUp.bMMU = config_cache.bMMU;
+	StartUp.bMMUBAT = config_cache.bMMUBAT;
+	StartUp.iTLBHack = config_cache.iTLBHack;
+	StartUp.bAlternateRFI = config_cache.bAlternateRFI;
+	StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
+	StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 }
 
 } // namespace

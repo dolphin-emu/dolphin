@@ -913,7 +913,7 @@ void CFrame::DoStop()
 			g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, false);
 		}
 
-		Core::Stop();
+		BootManager::Stop();
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderParent->Disconnect(wxID_ANY, wxEVT_SIZE,
