@@ -94,7 +94,7 @@ if env['CCVERSION'] < '4.2.0':
 if env['CCVERSION'] >= '4.3.0':
     env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
 
-env['CPPDEFINES'] = []
+env['CPPDEFINES'] = ['HAVE_CONFIG_H']
 if env['flavor'] == 'debug':
     env['CPPDEFINES'] += ['_DEBUG']
 elif env['flavor'] == 'fastlog':

@@ -48,7 +48,9 @@
 	#include <IOBluetooth/IOBluetoothUserLib.h>
 	#include <string.h>
 #elif defined(__linux__)
-	#include "config.h"
+	#ifdef HAVE_CONFIG_H
+		#include "config.h"
+	#endif
 	#if HAVE_BLUEZ
 	#include <bluetooth/bluetooth.h>
 	#endif
