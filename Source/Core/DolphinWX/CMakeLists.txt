@@ -53,6 +53,10 @@ else(wxWidgets_FOUND)
 				Src/cmdline.c)
 endif()
 
+if(XRANDR_FOUND)
+	set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
+endif(XRANDR_FOUND)
+
 if(WIN32)
 	set(SRCS ${SRCS} Src/stdafx.cpp)
 elseif(APPLE AND NOT wxWidgets_FOUND)

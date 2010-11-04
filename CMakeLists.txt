@@ -13,7 +13,7 @@ set(DOLPHIN_LICENSE_DIR	${DOLPHIN_BIN_DIR})
 
 include(FindSubversion OPTIONAL) # for revision info
 if(Subversion_FOUND)
-	Subversion_WC_INFO(${PROJECT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
+	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
 endif()
 
 include(FindPkgConfig REQUIRED) # TODO: Make this optional or even implement our own package detection
@@ -40,7 +40,6 @@ if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(UNIX)
-
 
 ########################################
 # Dependency checking
@@ -72,6 +71,7 @@ endif(UNIX)
 pkg_search_module(PULSEAUDIO libpulse)
 pkg_search_module(AO ao)
 pkg_search_module(BLUEZ bluez)
+pkg_search_module(XRANDR xrandr)
 
 # TODO: Make some of these optional like explained above
 if(ALSA_FOUND)
@@ -149,6 +149,14 @@ else()
 	message("X11 NOT found")
 endif(X11_FOUND)
 
+if(XRANDR_FOUND)
+	add_definitions(-DHAVE_XRANDR=1)
+	message("Xrandr found")
+else()
+	add_definitions(-DHAVE_XRANDR=0)
+	message("Xrandr NOT found")
+endif(XRANDR_FOUND)
+
 
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
@@ -182,29 +190,54 @@ add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
 # TODO: Try using the native lib first
+# To use the native lib for Lua the dolphin code will need to be changed.
+# Currently the file lstate.h is improperly included.
 add_subdirectory(Externals/Lua)
 include_directories(Externals/Lua)
 
-# TODO: Try using the native lib first
-add_subdirectory(Externals/LZO)
-include_directories(Externals/LZO)
+find_library(LZO lzo2)
+find_file(LZO_INCLUDE lzo/lzo1x.h)
+if(LZO AND LZO_INCLUDE)
+	message("Using shared lzo")
+	include_directories(LZO_INCLUDE)
+else()
+	message("Shared lzo not found, falling back to the static library")
+	add_subdirectory(Externals/LZO)
+	include_directories(Externals/LZO)
+endif(LZO AND LZO_INCLUDE)
 
 include(FindSDL OPTIONAL)
 if(SDL_FOUND)
+	message("Using shared SDL")
 	include_directories(SDL_INCLUDE_DIR)
 else(SDL_FOUND)
 	# TODO: No CMakeLists.txt there, yet...
+	message("Shared SDL not found, falling back to the static library")
 	add_subdirectory(Externals/SDL)
 	include_directories(Externals/SDL/include)
 endif(SDL_FOUND)
 
-# TODO: Try using the native lib first
-add_subdirectory(Externals/SFML)
-include_directories(Externals/SFML/include)
+find_library(SFML_NETWORK sfml-network)
+find_file(SFML_INCLUDE SFML/Network/Ftp.hpp)
+if(SFML_NETWORK AND SFML_INCLUDE)
+	message("Using shared sfml-network")
+	include_directories(SFML_INCLUDE)
+else()
+	message("Shared sfml-network not found, falling back to the static library")
+	add_subdirectory(Externals/SFML)
+	include_directories(Externals/SFML/include)
+endif(SFML_NETWORK AND SFML_INCLUDE)
 
-# TODO: Try using the native lib first
-add_subdirectory(Externals/SOIL)
-include_directories(Externals/SOIL) # TODO: Or Externals/SOIL/SOIL?
+find_library(SOIL SOIL)
+find_file(SOIL_INCLUDE SOIL/SOIL.h)
+if(SOIL AND SOIL_INCLUDE)
+	message("Using shared SOIL")
+	include_directories(SOIL_INCLUDE)
+else()
+	message("Shared SOIL not found, falling back to the static library")
+	add_subdirectory(Externals/SOIL)
+	include_directories(Externals/SOIL)
+endif(SOIL AND SOIL_INCLUDE)
 
 include(FindZLIB OPTIONAL) # TODO: Move to top
 if(ZLIB_FOUND)
@@ -233,18 +266,17 @@ add_subdirectory(Source)
 
 
 ########################################
-# copy over the Data folder ... TODO: Don't copy .svn dirs!
+# copy over the Data folder
 #
-file(COPY Data/User DESTINATION ${DOLPHIN_USER_DIR})
-file(COPY Data/Sys DESTINATION ${DOLPHIN_SYS_DIR})
+file(COPY Data/User/ DESTINATION ${DOLPHIN_USER_DIR}/user PATTERN .svn EXCLUDE)
+file(COPY Data/Sys/ DESTINATION ${DOLPHIN_SYS_DIR}/sys PATTERN .svn EXCLUDE)
 file(COPY Data/license.txt DESTINATION ${DOLPHIN_LICENSE_DIR})
-
 
 ########################################
 # Install and CPack information
 #
-install(DIRECTORY Data/User DESTINATION share/dolphin-emu)
-install(DIRECTORY Data/Sys DESTINATION share/dolphin-emu)
+install(DIRECTORY Data/User/ DESTINATION share/dolphin-emu/user PATTERN .svn EXCLUDE)
+install(DIRECTORY Data/Sys/ DESTINATION share/dolphin-emu/sys PATTERN .svn EXCLUDE)
 install(FILES Data/license.txt DESTINATION share/dolphin-emu)
 # TODO: Move childrens's install commands here?
 

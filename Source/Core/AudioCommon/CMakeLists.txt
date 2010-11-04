@@ -20,8 +20,8 @@ else()
 	endif(AO_FOUND)
 
     if(OPENAL_FOUND OR WIN32)
-		set(SRCS ${SRCS} Src/OpenALStream.cpp)
-		set(LIBS ${LIBS} ${OPENAL_LIBRARIES})
+		set(SRCS ${SRCS} Src/OpenALStream.cpp Src/aldlist.cpp)
+		set(LIBS ${LIBS} openal)
 	endif(OPENAL_FOUND OR WIN32)
 
 	if(PULSEAUDIO_FOUND)
