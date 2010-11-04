@@ -78,10 +78,6 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 	{
 		MOVZX(32, accessSize, EAX, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
 	}
-	else if (opAddress.IsImm() && (((u32)opAddress.offset + offset) < 0x80000000)) // MDisp can only be used with s32 offsets
-	{
-		MOVZX(32, accessSize, EAX, MDisp(RBX, (u32)opAddress.offset + offset));
-	}
 	else
 	{
 		MOV(32, R(EAX), opAddress);
