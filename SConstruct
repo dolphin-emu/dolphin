@@ -314,7 +314,7 @@ else:
         env['data_dir'] = env['prefix'] + "/share/dolphin-emu"
         env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu'
         conf.Define('DATA_DIR', "\"" + env['data_dir'] + "/\"")
-        conf.Define('LIBS_DIR', "\"" + env['prefix'] + '/lib/' + "\"")
+        conf.Define('LIBS_DIR', "\"" + env['prefix'] + '/lib/dolphin-emu/' + "\"")
         # Setup destdir for package building
         # Warning: The program will not run from this location.
         # It is assumed the package will later install it to the prefix.

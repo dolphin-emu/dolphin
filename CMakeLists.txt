@@ -5,11 +5,23 @@ cmake_minimum_required (VERSION 2.6)
 project (dolphin-emu)
 
 set(DOLPHIN_IS_STABLE FALSE)
-set(DOLPHIN_BIN_DIR		${CMAKE_CURRENT_SOURCE_DIR}/Binary/${CMAKE_HOST_SYSTEM_NAME})
-set(DOLPHIN_PLUGINS_DIR	${DOLPHIN_BIN_DIR}/plugins)
-set(DOLPHIN_USER_DIR	${DOLPHIN_BIN_DIR})
-set(DOLPHIN_SYS_DIR		${DOLPHIN_BIN_DIR})
-set(DOLPHIN_LICENSE_DIR	${DOLPHIN_BIN_DIR})
+set(prefix		${CMAKE_INSTALL_PREFIX}						CACHE PATH "prefix")
+set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
+set(libdir		${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}	CACHE PATH "libdir")
+set(plugindir	${libdir}/dolphin-emu						CACHE PATH "plugindir")
+set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
+
+# Set up paths
+set(userdir ".dolphin-emu" CACHE STRING "User directory")
+add_definitions(-DUSER_DIR="${userdir}")
+add_definitions(-DDATA_DIR="${datadir}/")
+add_definitions(-DLIBS_DIR="${plugindir}/")
+
+# These just set where the binary files will be built.  The program will not
+# execute from here.  You must run "make install" to install these to the
+# proper location as defined above.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries/plugins)
 
 include(FindSubversion OPTIONAL) # for revision info
 if(Subversion_FOUND)
@@ -17,10 +29,6 @@ if(Subversion_FOUND)
 endif()
 
 include(FindPkgConfig REQUIRED) # TODO: Make this optional or even implement our own package detection
-
-# setup paths
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${DOLPHIN_BIN_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${DOLPHIN_PLUGINS_DIR})
 
 # Various compile flags - TODO: Can these be simplified with a more general CMake variable?
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
@@ -196,7 +204,7 @@ add_subdirectory(Externals/Lua)
 include_directories(Externals/Lua)
 
 find_library(LZO lzo2)
-find_file(LZO_INCLUDE lzo/lzo1x.h)
+find_path(LZO_INCLUDE lzo/lzo1x.h)
 if(LZO AND LZO_INCLUDE)
 	message("Using shared lzo")
 	include_directories(LZO_INCLUDE)
@@ -218,7 +226,7 @@ else(SDL_FOUND)
 endif(SDL_FOUND)
 
 find_library(SFML_NETWORK sfml-network)
-find_file(SFML_INCLUDE SFML/Network/Ftp.hpp)
+find_path(SFML_INCLUDE SFML/Network/Ftp.hpp)
 if(SFML_NETWORK AND SFML_INCLUDE)
 	message("Using shared sfml-network")
 	include_directories(SFML_INCLUDE)
@@ -229,7 +237,7 @@ else()
 endif(SFML_NETWORK AND SFML_INCLUDE)
 
 find_library(SOIL SOIL)
-find_file(SOIL_INCLUDE SOIL/SOIL.h)
+find_path(SOIL_INCLUDE SOIL/SOIL.h)
 if(SOIL AND SOIL_INCLUDE)
 	message("Using shared SOIL")
 	include_directories(SOIL_INCLUDE)
@@ -266,19 +274,11 @@ add_subdirectory(Source)
 
 
 ########################################
-# copy over the Data folder
+# Install shared data files
 #
-file(COPY Data/User/ DESTINATION ${DOLPHIN_USER_DIR}/user PATTERN .svn EXCLUDE)
-file(COPY Data/Sys/ DESTINATION ${DOLPHIN_SYS_DIR}/sys PATTERN .svn EXCLUDE)
-file(COPY Data/license.txt DESTINATION ${DOLPHIN_LICENSE_DIR})
-
-########################################
-# Install and CPack information
-#
-install(DIRECTORY Data/User/ DESTINATION share/dolphin-emu/user PATTERN .svn EXCLUDE)
-install(DIRECTORY Data/Sys/ DESTINATION share/dolphin-emu/sys PATTERN .svn EXCLUDE)
-install(FILES Data/license.txt DESTINATION share/dolphin-emu)
-# TODO: Move childrens's install commands here?
+install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN .svn EXCLUDE)
+install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN .svn EXCLUDE)
+install(FILES Data/license.txt DESTINATION ${datadir})
 
 # packaging information
 include(CPack)

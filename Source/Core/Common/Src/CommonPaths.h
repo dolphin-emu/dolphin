@@ -44,7 +44,7 @@
 	#define PLUGINS_DIR "Contents/PlugIns"
 #else
 	#ifdef LIBS_DIR
-		#define PLUGINS_DIR LIBS_DIR "dolphin-emu"
+		#define PLUGINS_DIR LIBS_DIR
 	#else
 		#define PLUGINS_DIR "plugins"
 	#endif

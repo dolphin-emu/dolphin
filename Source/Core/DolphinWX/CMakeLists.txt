@@ -75,9 +75,9 @@ if(wxWidgets_FOUND)
 	add_library(memcard STATIC ${MEMCARDSRCS})
 	add_executable(${EXEGUI} ${SRCS})
 	target_link_libraries(${EXEGUI} ${LIBS} ${WXLIBS})
-	install(TARGETS ${EXEGUI} RUNTIME DESTINATION bin) # TODO: Move to root dir?
+	install(TARGETS ${EXEGUI} RUNTIME DESTINATION ${bindir})
 else()
 	add_executable(${EXENOGUI} ${SRCS})
 	target_link_libraries(${EXENOGUI} ${LIBS})
-	install(TARGETS ${EXENOGUI} RUNTIME DESTINATION bin) # TODO: Move to root dir?
+	install(TARGETS ${EXENOGUI} RUNTIME DESTINATION ${bindir})
 endif()
