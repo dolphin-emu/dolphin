@@ -94,7 +94,7 @@ if env['CCVERSION'] < '4.2.0':
 if env['CCVERSION'] >= '4.3.0':
     env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
 
-env['CPPDEFINES'] = ['HAVE_CONFIG_H']
+env['CPPDEFINES'] = []
 if env['flavor'] == 'debug':
     env['CPPDEFINES'] += ['_DEBUG']
 elif env['flavor'] == 'fastlog':
@@ -189,6 +189,7 @@ elif sys.platform == 'win32':
 
 else:
     env['CCFLAGS'] += ['-fPIC', '-msse2']
+    env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
     if sys.platform == 'linux2':
         env['CPPDEFINES'] += [('_FILE_OFFSET_BITS', 64), '_LARGEFILE_SOURCE']
