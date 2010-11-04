@@ -67,7 +67,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
 		bAlternateRFI, bFastDiscSpeed, bMergeBlocks;
 	int iTLBHack;
 };
@@ -112,6 +112,7 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.m_strGameIni = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + unique_id + ".ini";
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
+		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
 		config_cache.bEnableFPRF = StartUp.bEnableFPRF;
@@ -170,15 +171,19 @@ void Stop()
 
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	StartUp.bCPUThread = config_cache.bCPUThread;
-	StartUp.bSkipIdle = config_cache.bSkipIdle;
-	StartUp.bEnableFPRF = config_cache.bEnableFPRF;
-	StartUp.bMMU = config_cache.bMMU;
-	StartUp.bMMUBAT = config_cache.bMMUBAT;
-	StartUp.iTLBHack = config_cache.iTLBHack;
-	StartUp.bAlternateRFI = config_cache.bAlternateRFI;
-	StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
-	StartUp.bMergeBlocks = config_cache.bMergeBlocks;
+	if (config_cache.valid)
+	{
+		config_cache.valid = false;
+		StartUp.bCPUThread = config_cache.bCPUThread;
+		StartUp.bSkipIdle = config_cache.bSkipIdle;
+		StartUp.bEnableFPRF = config_cache.bEnableFPRF;
+		StartUp.bMMU = config_cache.bMMU;
+		StartUp.bMMUBAT = config_cache.bMMUBAT;
+		StartUp.iTLBHack = config_cache.iTLBHack;
+		StartUp.bAlternateRFI = config_cache.bAlternateRFI;
+		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
+		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
+	}
 }
 
 } // namespace
