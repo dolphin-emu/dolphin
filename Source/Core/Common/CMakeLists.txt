@@ -40,3 +40,6 @@ if(WIN32)
 endif(WIN32)
 
 add_library(common STATIC ${SRCS})
+if(UNIX)
+	add_definitions(-fPIC)
+endif(UNIX)

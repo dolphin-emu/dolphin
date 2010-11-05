@@ -30,24 +30,33 @@ endif()
 
 include(FindPkgConfig REQUIRED) # TODO: Make this optional or even implement our own package detection
 
-# Various compile flags - TODO: Can these be simplified with a more general CMake variable?
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+# Various compile flags
+add_definitions(-msse2 -Wall)
 
 # gcc uses some optimizations which might break stuff without this flag
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
+add_definitions(-fno-strict-aliasing)
 
-add_definitions(-DFILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG(-fvisibility-inlines-hidden VISIBILITY_INLINES_HIDDEN)
+if(VISIBILITY_INLINES_HIDDEN)
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden)
+endif(VISIBILITY_INLINES_HIDDEN)
 
-if(UNIX)
-    # UNIX needs -fPIC for shared libraries, TODO: Would -fpic be enough as well?
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif(UNIX)
+CHECK_CXX_COMPILER_FLAG(-fvisibility=hidden VISIBILITY_HIDDEN)
+if(VISIBILITY_HIDDEN)
+	add_definitions(-fvisibility=hidden)
+endif(VISIBILITY_HIDDEN)
+
+add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+	add_definitions(-D_DEBUG -ggdb)
+	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
+endif(CMAKE_BUILD_TYPE STREQUAL Debug)
+
+if(CMAKE_BUILD_TYPE STREQUAL Release)
+	add_definitions(-fomit-frame-pointer)
+endif(CMAKE_BUILD_TYPE STREQUAL Release)
 
 ########################################
 # Dependency checking
@@ -171,7 +180,6 @@ endif(XRANDR_FOUND)
 #
 include_directories(Source/PluginSpecs)
 include_directories(Externals)
-include_directories(.)  # config.h, TODO: Move to Source? Or just add the corresponding definitions to the compiler flags?
 include_directories(Source/Core/AudioCommon/Src)
 include_directories(Source/Core/Common/Src)
 include_directories(Source/Core/Core/Src)

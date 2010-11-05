@@ -36,3 +36,6 @@ endif()
 
 add_library(audiocommon STATIC ${SRCS})
 target_link_libraries(audiocommon ${LIBS})
+if(UNIX)
+	add_definitions(-fPIC)
+endif(UNIX)

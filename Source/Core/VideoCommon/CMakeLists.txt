@@ -39,3 +39,6 @@ if(OPENCL_FOUND)
 endif(OPENCL_FOUND)
 
 add_library(videocommon STATIC ${SRCS})
+if(UNIX)
+	add_definitions(-fPIC)
+endif(UNIX)

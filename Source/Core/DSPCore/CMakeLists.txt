@@ -23,3 +23,6 @@ set(SRCS	Src/assemble.cpp
 			Src/Jit/DSPJitMisc.cpp)
 
 add_library(dspcore STATIC ${SRCS})
+if(UNIX)
+	add_definitions(-fPIC)
+endif(UNIX)
