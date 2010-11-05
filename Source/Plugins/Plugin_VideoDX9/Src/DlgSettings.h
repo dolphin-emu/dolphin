@@ -130,6 +130,7 @@ class GFXConfigDialogDX : public wxDialog
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_TexfmtOverlay;
 		wxCheckBox *m_TexfmtCenter;
+		wxCheckBox *m_Enable3dVision;
 
 		enum
 		{
@@ -183,6 +184,7 @@ class GFXConfigDialogDX : public wxDialog
 			ID_ANAGLYPH,
 			ID_ANAGLYPHSEPARATION,
 			ID_ANAGLYPHFOCALANGLE,
+			ID_ENABLE_3DVISION,
 		};
 		void InitializeAdapters();
 		void OnClose(wxCloseEvent& event);

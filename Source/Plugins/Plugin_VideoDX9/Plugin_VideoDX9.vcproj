@@ -711,6 +711,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Render3dVision.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Render3dVision.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\TextureCache.cpp"
 				>
 			</File>

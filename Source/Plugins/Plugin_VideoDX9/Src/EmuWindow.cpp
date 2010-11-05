@@ -22,6 +22,7 @@
 #include "EmuWindow.h"
 #include "D3DBase.h"
 #include "Fifo.h"
+#include "Render3dVision.h"
 
 
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
@@ -197,7 +198,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 	m_hParent = parent;
 
-	m_hWnd = CreateWindow(m_szClassName, title, WS_CHILD,
+	m_hWnd = CreateWindow(m_szClassName, title, Render3dVision::isEnable3dVision() ? WS_EX_TOPMOST | WS_POPUP : WS_CHILD,
 		0, 0, width, height, m_hParent, NULL, hInstance, NULL);
 
 	return m_hWnd;

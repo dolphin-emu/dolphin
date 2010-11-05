@@ -52,6 +52,8 @@
 
 #include "debugger/debugger.h"
 
+#include "Render3dVision.h"
+
 static int s_fps = 0;
 
 static bool WindowResized;
@@ -1319,8 +1321,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		else
 		{
-			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+			if(Render3dVision::isEnable3dVision())
+			{
+				// This works, yet the version in the else doesn't. No idea why.
+				xScale = (float)s_backbuffer_width / (float)s_XFB_width;
+				yScale = (float)s_backbuffer_height / (float)s_XFB_height;
+			}
+			else
+			{
+				xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+				yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+			}
 		}
 		
 		float SupersampleCoeficient = s_LastAA + 1;

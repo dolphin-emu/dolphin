@@ -31,6 +31,7 @@
 #include "VideoConfig.h"
 
 #include "TextureCache.h"
+#include "Render3dVision.h"
 
 BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 
@@ -56,10 +57,10 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHECKBOX(ID_LOADHIRESTEXTURES, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_PIXELLIGHTING, GFXConfigDialogDX::EnhancementsSettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_3DVISION, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_ANAGLYPH, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_SLIDER(ID_ANAGLYPHSEPARATION, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_SLIDER(ID_ANAGLYPHFOCALANGLE, GFXConfigDialogDX::EnhancementsSettingsChanged)
-	
 
 	//Advanced Tab
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogDX::AdvancedSettingsChanged)
@@ -153,6 +154,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_EnableXFB->SetValue(g_Config.bUseXFB);
 	m_EnableRealXFB->SetValue(g_Config.bUseRealXFB);
 	m_UseNativeMips->SetValue(g_Config.bUseNativeMips);
+	m_Enable3dVision->SetValue(Render3dVision::isEnable3dVision());
 
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_DumpFrames->SetValue(g_Config.bDumpFrames);
@@ -269,14 +271,15 @@ void GFXConfigDialogDX::CreateGUIControls()
 	wxStaticBoxSizer* sbTextureFilter;
 	sbTextureFilter = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("Texture filtering") ), wxVERTICAL );
 	m_ForceFiltering = new wxCheckBox( m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering  (breaks video in several Wii games)"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_MaxAnisotropy = new wxCheckBox( m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Enable 16x anisotropic filtering"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_HiresTextures = new wxCheckBox( m_PageEnhancements, ID_LOADHIRESTEXTURES, wxT("Enable hires texture loading"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_MaxAnisotropy = new wxCheckBox( m_PageEnhancements, ID_FORCEANISOTROPY, wxT("16x anisotropic filtering"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_HiresTextures = new wxCheckBox( m_PageEnhancements, ID_LOADHIRESTEXTURES, wxT("Hires texture loading"), wxDefaultPosition, wxDefaultSize, 0 );
 
 	wxStaticBoxSizer* sbEFBHacks;
 	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB hacks") ), wxVERTICAL );
 	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB scaled copy"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Anaglyph = new wxCheckBox( m_PageEnhancements, ID_ANAGLYPH, wxT("Enable Anaglyph Stereo"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_PixelLighting = new wxCheckBox( m_PageEnhancements, ID_PIXELLIGHTING, wxT("Enable Pixel Lighting"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Enable3dVision = new wxCheckBox( m_PageEnhancements, ID_ENABLE_3DVISION, wxT("NVIDIA 3D Vision support (Note: fullscreen must be enabled)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_PixelLighting = new wxCheckBox( m_PageEnhancements, ID_PIXELLIGHTING, wxT("Pixel Lighting"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Anaglyph = new wxCheckBox( m_PageEnhancements, ID_ANAGLYPH, wxT("Anaglyph Stereo"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_AnaglyphSeparation  = new wxSlider( m_PageEnhancements, ID_ANAGLYPHSEPARATION,2000,1,10000, wxDefaultPosition, wxDefaultSize, wxHORIZONTAL,wxDefaultValidator, wxT("Stereo separation") );
 	m_AnaglyphFocalAngle = new wxSlider( m_PageEnhancements, ID_ANAGLYPHFOCALANGLE,0,-1000,1000, wxDefaultPosition, wxDefaultSize, wxHORIZONTAL,wxDefaultValidator, wxT("Stereo Focal Angle") );
 	m_AnaglyphSeparationText = new wxStaticText( m_PageEnhancements, wxID_ANY, wxT("Stereo Separation:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -309,12 +312,13 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sImprovements = new wxGridBagSizer(  0, 0  );
 	sImprovements->SetFlexibleDirection( wxBOTH );
 	sImprovements->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-	sImprovements->Add( m_Anaglyph, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sImprovements->Add( m_AnaglyphSeparationText, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sImprovements->Add( m_AnaglyphFocalAngleText, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sImprovements->Add( m_AnaglyphSeparation, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sImprovements->Add( m_AnaglyphFocalAngle, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sImprovements->Add( m_PixelLighting, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_Enable3dVision, wxGBPosition( 0, 0 ), wxGBSpan( 1, 2 ), wxALL, 5 );
+	sImprovements->Add( m_Anaglyph, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphSeparationText, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphFocalAngleText, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphSeparation, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_AnaglyphFocalAngle, wxGBPosition( 3, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sImprovements->Add( m_PixelLighting, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sbImprovements->Add( sImprovements, 1, wxEXPAND, 5 );
 	sEnhancements->Add( sbImprovements, 0, wxEXPAND|wxALL, 5 );
 
@@ -549,6 +553,9 @@ void GFXConfigDialogDX::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_TEXFMT_CENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexfmtCenter->IsChecked();
 		break;
+	case ID_ENABLE_3DVISION:
+		Render3dVision::setEnable3dVision(m_Enable3dVision->IsChecked());
+	break;
 	}
 	UpdateGUI();
 }
@@ -557,6 +564,7 @@ void GFXConfigDialogDX::CloseWindow()
 {
 	// Save the config to INI
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
+	Render3dVision::saveConfig((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	EndModal(1);
 }
 
