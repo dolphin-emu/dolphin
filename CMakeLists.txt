@@ -28,7 +28,8 @@ if(Subversion_FOUND)
 	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
 endif()
 
-include(FindPkgConfig REQUIRED) # TODO: Make this optional or even implement our own package detection
+# TODO: Make this optional or even implement our own package detection
+include(FindPkgConfig REQUIRED)
 
 # Various compile flags
 add_definitions(-msse2 -Wall)
@@ -49,6 +50,11 @@ endif(VISIBILITY_HIDDEN)
 
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
+if(NOT CMAKE_BUILD_TYPE)
+	set (CMAKE_BUILD_TYPE "Release" CACHE STRING
+		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
+endif (NOT CMAKE_BUILD_TYPE)
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
@@ -61,20 +67,21 @@ endif(CMAKE_BUILD_TYPE STREQUAL Release)
 ########################################
 # Dependency checking
 #
-# TODO: Use find_library for other stuff?
-#
 # NOTES:
-# there are numerous possible cases:
+# There are numerous possible cases:
 # - dependency may be required or optional
 # - dependency may be already installed (but optionally the bundled one may be used)
 # 
-# TODO: We should have a number of options for optional dependencies (disable, force bundled, bundled or native, force native)
-# e.g. the OpenGL plugin defaults to force native, so we error out if no GL libs are found. The user is free to explicitely disable it though.
-# Stuff which is likely to be needed by users is made an option with default ON, other stuff (like e.g. sound backends) is made completely optionally.
+# TODO: We should have a number of options for optional dependencies (disable,
+# force bundled, bundled or native, force native).  For example the OpenGL
+# plugin defaults to force native, so we error out if no GL libs are found.
+# The user is free to explicitely disable it though.  Stuff which is likely to
+# be needed by users is made an option with default ON, other stuff (like e.g.
+# sound backends) is made completely optionally.
 
-# TODO: wxWidgets: Since _DEBUG gets defined in Debug builds, wxWidgets will enable some debugging functionality as well.
-#       However, because we still link against release wx libs, which makes compilation fail because of undefined references.
-#       When building the Debug configuration, we should probably check if the debug wx libs are available and fall back to the bundled ones otherwise.
+# TODO: wxWidgets: When building the Debug configuration, we should probably
+# check if the debug wx libs are available and fall back to the bundled ones
+# otherwise.
 
 include(FindOpenGL REQUIRED)
 
@@ -197,10 +204,11 @@ include_directories(Source/Core/VideoCommon/Src)
 # Process externals and setup their include directories
 #
 # NOTES about adding Externals:
-#	- add the include directory here
-#	- make sure to tell cmake to link them statically or dynamically (most should be linked statically)
-#	- ideally, the nested CMakeLists.txt should only contain a list of sources and an add_library()+target_link_libraries() call pair
-#	- place the CMakeLists.txt in the first-level subdirectory, e.g. Externals/WiiUse/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
+#   - add the include directory here
+#   - make sure to tell cmake to link them statically or dynamically (most
+#     should be linked statically)
+#   - place the CMakeLists.txt in the first-level subdirectory, e.g.
+#     Externals/WiiUse/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
@@ -271,8 +279,8 @@ include_directories(Externals/WiiUse/Src)
 ########################################
 # Pre-build events: Define configuration variables and write svnrev header
 #
-file(WRITE ./Source/Core/Common/Src/svnrev.h "#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"")
-# TODO: Write config.h here or add the corresponding compile definitions using add_definitions
+file(WRITE ./Source/Core/Common/Src/svnrev.h
+	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"")
 
 
 ########################################
