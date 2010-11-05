@@ -51,9 +51,9 @@ endif(VISIBILITY_HIDDEN)
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 if(NOT CMAKE_BUILD_TYPE)
-	set (CMAKE_BUILD_TYPE "Release" CACHE STRING
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
-endif (NOT CMAKE_BUILD_TYPE)
+endif(NOT CMAKE_BUILD_TYPE)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)

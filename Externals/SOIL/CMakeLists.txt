@@ -4,3 +4,6 @@ set(SRCS	image_DXT.c
 			stb_image_aug.c)
 
 add_library(SOIL STATIC ${SRCS})
+if(UNIX)
+	add_definitions(-fPIC)
+endif(UNIX)
