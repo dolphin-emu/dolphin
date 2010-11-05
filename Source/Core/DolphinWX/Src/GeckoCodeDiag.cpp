@@ -138,8 +138,14 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 	if (m_gameid.empty())
 		return;
 
+	std::string gameid = m_gameid;
+
+	// WiiWare are identified by their first four characters
+	if (m_gameid[0] == 'W')
+		gameid = m_gameid.substr(0, 4);
+
 	sf::Http::Request req;
-	req.SetURI("/txt.php?txt=" + m_gameid);
+	req.SetURI("/txt.php?txt=" + gameid);
 
 	sf::Http http;
 	http.SetHost("geckocodes.org");
