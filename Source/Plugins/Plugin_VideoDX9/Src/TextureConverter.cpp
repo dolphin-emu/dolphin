@@ -406,6 +406,12 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
 
 	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 
+	u64 hash = GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+	// If the texture in RAM is already in the texture cache, do not copy it again as it has not changed.
+	if (TextureCache::Find(address, hash))
+		return hash;
+	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
@@ -439,7 +445,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
 	TextureCache::MakeRangeDynamic(address,size_in_bytes);
-	return GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	return hash;
 }
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)

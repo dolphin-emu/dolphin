@@ -119,8 +119,12 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 {
 	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
+		iter = textures.lower_bound(start_address),
+		tcend = textures.upper_bound(start_address + size);
+
+	if (iter != textures.begin())
+		iter--;
+
 	for (; iter != tcend; ++iter)
 	{
 		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
@@ -129,6 +133,18 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 			iter->second->hash = 0;
 		}
 	}
+}
+
+bool TextureCache::Find(u32 start_address, u64 hash)
+{
+	TexCache::iterator
+		iter = textures.lower_bound(start_address),
+		tcend = textures.upper_bound(start_address);
+
+	if (iter->second->hash == hash)
+		return true;
+
+	return false;
 }
 
 int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
