@@ -28,10 +28,10 @@ endif(wxWidgets_FOUND)
 
 if(APPLE AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} cocoaGL.m)
-elif(WIN32)
+elseif(WIN32)
 	set(SRCS ${SRCS} OS/Win32.cpp)
-#elif(NOT APPLE AND OPENCL_FOUND) # TODO: Add OpenCL support
-#	set(LIBS	${LIBS} OpenCL)
+elseif(NOT APPLE AND OPENCL_FOUND)
+	set(LIBS	${LIBS} OpenCL)
 endif()
 
 add_library(Plugin_VideoOGL SHARED ${SRCS})

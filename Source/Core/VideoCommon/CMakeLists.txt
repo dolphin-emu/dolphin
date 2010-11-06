@@ -33,7 +33,6 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFMemory.cpp
 			Src/XFStructs.cpp)
 
-# TODO?
 if(OPENCL_FOUND)
 	set(SRCS ${SRCS} Src/OpenCL/OCLTextureDecoder.cpp)
 endif(OPENCL_FOUND)

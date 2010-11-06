@@ -139,6 +139,12 @@ elseif(UNIX)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Unix.cpp)
 endif()
 
+set(LIBS bdisasm inputcommon lua sfml-network wiiuse)
+
+if(PORTAUDIO_FOUND)
+	set(LIBS ${LIBS} portaudio)
+endif(PORTAUDIO_FOUND)
+
 add_library(core STATIC ${SRCS})
-target_link_libraries(core bdisasm inputcommon lua sfml-network wiiuse)
+target_link_libraries(core ${LIBS})
 

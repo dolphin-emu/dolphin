@@ -27,7 +27,7 @@
 bool MicButton = false;
 bool IsOpen;
 
-// Unfortunately this must be enabled in Common.h for windows users. Scons should enable it otherwise7
+// Unfortunately this must be enabled in Common.h for windows users. Scons should enable it otherwise
 #if !HAVE_PORTAUDIO
 
 void SetMic(bool Value){}
