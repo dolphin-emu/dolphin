@@ -21,6 +21,22 @@
 
 using namespace Gen;
 
+/* It is safe to directly write to the address registers as they are
+   neither read not written by any extendable opcode. The same is true
+   for memory accesses.
+   It probably even is safe to write to all registers except for
+   SR, ACx.x, AXx.x and PROD, which may be modified by the main op.
+
+   This code uses EBX to keep the values of the registers written by
+   the extended op so the main op can still access the old values.
+   storeIndex and storeIndex2 control where the lower and upper 16bits
+   of EBX are written to. Additionally, the upper 16bits can contain the
+   original SR so we can do sign extension in 40bit mode. There is only
+   the 'ld family of opcodes writing to two registers at the same time,
+   and those always are AXx.x, thus no need to leave space for SR for
+   sign extension.
+ */
+
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
@@ -88,32 +104,26 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 void DSPEmitter::l(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
-	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
-	
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
-	{
-/*
-		u16 val;
-		ext_dmem_read(sreg);
-		MOV(16, M(&val), R(EAX));
-		
-		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
-		writeToBackLog(1, dreg,	val);
-		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
-		increment_addr_reg(sreg);
-*/
-	}
-	else
-	{
-		ext_dmem_read(sreg);
+	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0; //AX?.?, AC?.[LM]
+
+	pushExtValueFromMem(dreg, sreg);
+
+	if (dreg  >= DSP_REG_ACM0) {
+		//save SR too, so we can decide later.
+		//even if only for one bit, can only
+		//store (up to) two registers in EBX,
+		//so store all of SR
 #ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+		MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
 #else
 		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,dreg*2), R(EAX));
+		MOV(16, R(EAX), MDisp(R11,DSP_REG_SR*2));
 #endif
-		increment_addr_reg(sreg);
+		SHL(32, R(EAX), Imm8(16));
+		OR(32, R(EBX), R(EAX));
 	}
+
+	increment_addr_reg(sreg);
 }
 
 // LN $axD.D, @$arS
@@ -125,29 +135,24 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
-	{
-/*
-		u16 val;
-		ext_dmem_read(sreg);
-		MOV(16, M(&val), R(EAX));
-		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
-		writeToBackLog(1, dreg,	val);
-		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
-		increase_addr_reg(sreg);
-*/
-	}
-	else
-	{
-		ext_dmem_read(sreg);
+	pushExtValueFromMem(dreg, sreg);
+
+	if (dreg  >= DSP_REG_ACM0) {
+		//save SR too, so we can decide later.
+		//even if only for one bit, can only
+		//store (up to) two registers in EBX,
+		//so store all of SR
 #ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+		MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
 #else
 		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,dreg*2), R(EAX));
+		MOV(16, R(EAX), MDisp(R11,DSP_REG_SR*2));
 #endif
-		increase_addr_reg(sreg);
+		SHL(32, R(EAX), Imm8(16));
+		OR(32, R(EBX), R(EAX));
 	}
+
+	increase_addr_reg(sreg);
 }
 
 // LS $axD.D, $acS.m
@@ -317,22 +322,16 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-	
+
 	if (sreg != DSP_REG_AR3) {
-		
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(dreg << 1) + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((dreg << 1) + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
@@ -340,69 +339,39 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
 		FixupBranch not_equal = J_CC(CC_NE);
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
 		FixupBranch after = J();
 		SetJumpTarget(not_equal); // else
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increment_addr_reg(sreg);
-		
+
 	} else {
-		
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXH0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXH0)*2), R(EAX));
-#endif
+		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
 
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
-		FixupBranch not_equal = J_CC(CC_NE); 
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		FixupBranch not_equal = J_CC(CC_NE);
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
 		FixupBranch after = J(); // else
 		SetJumpTarget(not_equal);
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increment_addr_reg(dreg);
 	}
-	
+
 	increment_addr_reg(DSP_REG_AR3);
 }
 
@@ -414,21 +383,15 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
 
-		
 	if (sreg != DSP_REG_AR3) {
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(dreg << 1) + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,((dreg << 1) + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
@@ -436,64 +399,35 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
 		FixupBranch not_equal = J_CC(CC_NE);
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
 		FixupBranch after = J();
 		SetJumpTarget(not_equal); // else
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increase_addr_reg(sreg);
 	} else {
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXH0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXH0)*2), R(EAX));
-#endif
+		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
 
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
-		FixupBranch not_equal = J_CC(CC_NE); 
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		FixupBranch not_equal = J_CC(CC_NE);
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
 		FixupBranch after = J(); // else
 		SetJumpTarget(not_equal);
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increase_addr_reg(dreg);
 	}
 
@@ -507,21 +441,16 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-	
+
 	if (sreg != DSP_REG_AR3) {
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(dreg << 1) + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,((dreg << 1) + DSP_REG_AXL0)*2), R(EAX));
-#endif
-		
+		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
@@ -529,63 +458,33 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
 		FixupBranch not_equal = J_CC(CC_NE);
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
-		FixupBranch after = J(); 
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+		FixupBranch after = J();
 		SetJumpTarget(not_equal); // else
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
 		SetJumpTarget(after);
-	
 
 		increment_addr_reg(sreg);
 	} else {
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXH0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXH0)*2), R(EAX));
-#endif
-		
+		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
+
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
-		FixupBranch not_equal = J_CC(CC_NE); 
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		FixupBranch not_equal = J_CC(CC_NE);
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
 		FixupBranch after = J(); // else
 		SetJumpTarget(not_equal);
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
 		SetJumpTarget(after);
 
 		increment_addr_reg(dreg);
@@ -603,19 +502,14 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(dreg << 1) + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((dreg << 1) + DSP_REG_AXL0)*2), R(EAX));
-#endif
-		
+		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+
 		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,sreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
@@ -623,64 +517,35 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
 		FixupBranch not_equal = J_CC(CC_NE);
-		ext_dmem_read(sreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
-		FixupBranch after = J(); 
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+		FixupBranch after = J();
 		SetJumpTarget(not_equal); // else
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[(rreg << 1) + DSP_REG_AXL1]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,((rreg << 1) + DSP_REG_AXL1)*2), R(EAX));
-#endif
+		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increase_addr_reg(sreg);
 	} else {
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXH0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXH0)*2), R(EAX));
-#endif
+		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
 
 		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
 #ifdef _M_IX86 // All32
 		MOV(16, R(ESI), M(&g_dsp.r[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r[DSP_REG_AR3]));
 #else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, R(ESI), MDisp(R11,dreg*2));
 		MOV(16, R(EDI), MDisp(R11,DSP_REG_AR3*2));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
-		FixupBranch not_equal = J_CC(CC_NE); 
-		ext_dmem_read(dreg);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		FixupBranch not_equal = J_CC(CC_NE);
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
 		FixupBranch after = J(); // else
 		SetJumpTarget(not_equal);
-		ext_dmem_read(DSP_REG_AR3);
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.r[rreg + DSP_REG_AXL0]), R(EAX));
-#else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,(rreg + DSP_REG_AXL0)*2), R(EAX));
-#endif
+		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
 		SetJumpTarget(after);
-		
+
 		increase_addr_reg(dreg);
 	}
 
@@ -707,6 +572,14 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 	storeIndex = dreg;
 }
 
+void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
+	ext_dmem_read(sreg);
+	SHL(32,R(EAX),Imm8(16));
+	OR(32, R(EBX), R(EAX));
+
+	storeIndex2 = dreg;
+}
+
 void DSPEmitter::popExtValueToReg() {
 	// in practise, we rarely ever have a non-NX main op
 	// with an extended op, so the OR here is either
@@ -722,10 +595,43 @@ void DSPEmitter::popExtValueToReg() {
 		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		MOV(16, MDisp(R11,storeIndex*2), R(EBX));
 #endif
+		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1) {
+			TEST(32, R(EBX), Imm32(SR_40_MODE_BIT << 16));
+			FixupBranch not_40bit = J_CC(CC_Z);
+			//if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
+			//{
+			// Sign extend into whole accum.
+			//u16 val = g_dsp.r[reg];
+			MOVSX(32, 16, EAX, R(EBX));
+			SHR(32,R(EAX),Imm8(16));
+			//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
+			//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
+#ifdef _M_IX86 // All32
+			MOV(16,M(&g_dsp.r[storeIndex - DSP_REG_ACM0 + DSP_REG_ACH0]),
+			    R(EAX));
+			MOV(16,M(&g_dsp.r[storeIndex - DSP_REG_ACM0 + DSP_REG_ACL0]),
+			    Imm16(0));
+#else
+			MOV(16, MDisp(R11,(storeIndex - DSP_REG_ACM0 + DSP_REG_ACH0)*2), R(EAX));
+			MOV(16, MDisp(R11,(storeIndex - DSP_REG_ACM0 + DSP_REG_ACL0)*2), Imm16(0));
+#endif
+			//}
+			SetJumpTarget(not_40bit);
+		}
 	}
 
 	storeIndex = -1;
-	// TODO handle commands such as 'l
+
+	if (storeIndex2 != -1) {
+		SHR(32,R(EBX),Imm8(16));
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.r[storeIndex2]), R(EBX));
+#else
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, MDisp(R11,storeIndex2*2), R(EBX));
+#endif
+	}
+	storeIndex2 = -1;
 }
 
 // This function is being called in the main op after all input regs were read

@@ -63,8 +63,9 @@ public:
 	void pushExtValueFromReg(u16 dreg, u16 sreg);
 	void popExtValueToReg();
 	void pushExtValueFromMem(u16 dreg, u16 sreg);
-	
+	void pushExtValueFromMem2(u16 dreg, u16 sreg);
 	void zeroWriteBackLog(const UDSPInstruction opc);
+
 	// Ext commands
 	void l(const UDSPInstruction opc);
 	void ln(const UDSPInstruction opc);
@@ -111,6 +112,7 @@ private:
 
 	// The index of the last stored ext value (compile time).
 	int storeIndex;
+	int storeIndex2;
 	
 	// Counts down.
 	// int cycles;

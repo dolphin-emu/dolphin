@@ -29,7 +29,7 @@
 
 using namespace Gen;
 
-DSPEmitter::DSPEmitter() : storeIndex(-1)
+DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
 	m_compiledCode = NULL;
 
