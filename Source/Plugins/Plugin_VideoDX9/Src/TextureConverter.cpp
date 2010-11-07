@@ -271,7 +271,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	// Draw...
 	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0));	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-	// .. and then readback the results.
+	// .. and then read back the results.
 	// TODO: make this less slow.
 
 	D3DLOCKED_RECT drect;
@@ -406,12 +406,6 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
 
 	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 
-	u64 hash = GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-	// If the texture in RAM is already in the texture cache, do not copy it again as it has not changed.
-	if (TextureCache::Find(address, hash))
-		return hash;
-	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
@@ -444,6 +438,12 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	u64 hash = GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+	// If the texture in RAM is already in the texture cache, do not copy it again as it has not changed.
+	if (TextureCache::Find(address, hash))
+		return hash;
+
 	TextureCache::MakeRangeDynamic(address,size_in_bytes);
 	return hash;
 }

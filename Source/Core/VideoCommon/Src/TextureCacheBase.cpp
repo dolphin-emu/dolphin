@@ -137,9 +137,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 
 bool TextureCache::Find(u32 start_address, u64 hash)
 {
-	TexCache::iterator
-		iter = textures.lower_bound(start_address),
-		tcend = textures.upper_bound(start_address);
+	TexCache::iterator iter = textures.lower_bound(start_address);
 
 	if (iter->second->hash == hash)
 		return true;
