@@ -166,6 +166,7 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
 
+	zeroWriteBackLog(opc);
 	clrCompileSR(1 << bit);
 }
 
@@ -177,6 +178,7 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
 
+	zeroWriteBackLog(opc);
 	setCompileSR(1 << bit);
 }
 

@@ -286,6 +286,27 @@ void nx_slnm()
 	tester2.Report();
 }
 
+void nx_ld() 
+{
+	DSPJitTester tester1(0x8000, 0x00c0);
+	tester1.AddTestData(DSP_REG_AXL0,0xdead);
+	tester1.AddTestData(DSP_REG_AXL1,0xbeef);
+	tester1.AddTestData(DSP_REG_AR0);
+	tester1.AddTestData(DSP_REG_WR0);
+	tester1.AddTestData(DSP_REG_IX0);
+	tester1.TestAll(true);
+	tester1.Report();
+
+	DSPJitTester tester2(0x8000, 0x00c0);
+	tester2.AddTestData(DSP_REG_AXL0,0xdead);
+	tester2.AddTestData(DSP_REG_AXL1,0xbeef);
+	tester2.AddTestData(DSP_REG_AR3);
+	tester2.AddTestData(DSP_REG_WR3);
+	tester2.AddTestData(DSP_REG_IX3);
+	tester2.TestAll(true);
+	tester2.Report();
+}
+
 void AudioJitTests()
 {
 	DSPJitTester::Initialize();
@@ -315,6 +336,7 @@ void AudioJitTests()
 	nx_sln();
 	nx_slm();
 	nx_slnm();
+	nx_ld();
 }
 
 //required to be able to link against DSPCore

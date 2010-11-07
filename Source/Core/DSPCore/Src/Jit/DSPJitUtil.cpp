@@ -386,9 +386,9 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
 	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
 #ifdef _M_X64
-	MOV(64, R(ESI), ImmPtr(g_dsp.dram));
+	MOV(64, R(ESI), ImmPtr(g_dsp.coef));
 #else
-	MOV(32, R(ESI), ImmPtr(g_dsp.dram));
+	MOV(32, R(ESI), ImmPtr(g_dsp.coef));
 #endif
 	MOV(16, R(EAX), MComplex(ESI,ECX,2,0));
 

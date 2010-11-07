@@ -168,10 +168,13 @@ int DSPJitTester::TestAll(bool verbose_fail)
 	dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
 	dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
 
-	// Fill roms with zeros. 
-	memset(dsp.irom, 0, DSP_IROM_BYTE_SIZE);
-	memset(dsp.coef, 0, DSP_COEF_BYTE_SIZE);
-	memset(dsp.dram, 0, DSP_DRAM_BYTE_SIZE);
+	// Fill roms with distinct patterns.
+	for (int i = 0; i < DSP_IROM_SIZE; i++)
+	    dsp.irom[i] = (i & 0x3fff) | 0x4000;
+	for (int i = 0; i < DSP_COEF_SIZE; i++)
+	    dsp.coef[i] = (i & 0x3fff) | 0x8000;
+	for (int i = 0; i < DSP_DRAM_SIZE; i++)
+	    dsp.dram[i] = (i & 0x3fff) | 0xc000;
 	// Fill IRAM with HALT opcodes.
 	for (int i = 0; i < DSP_IRAM_SIZE; i++)
 		dsp.iram[i] = 0x0021; // HALT opcode
