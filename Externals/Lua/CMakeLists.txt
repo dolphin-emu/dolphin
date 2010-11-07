@@ -1,8 +1,6 @@
-# TODO?
-#luaenv = env.Clone()
-#
-#if not sys.platform == 'win32':
-#    luaenv['CPPDEFINES'].append('LUA_USE_LINUX')    # Also works for OS X
+if(UNIX)
+	add_definitions(-DLUA_USE_LINUX)
+endif(UNIX)
 
 set(SRCS	lapi.c
 			lauxlib.c

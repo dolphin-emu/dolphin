@@ -8,7 +8,8 @@ set(LIBS	core
 			common
 			lua
 			z
-			sfml-network)
+			sfml-network
+			wiiuse)
 
 if(wxWidgets_FOUND)
 	set(MEMCARDSRCS	Src/MemcardManager.cpp

@@ -36,7 +36,6 @@ if env['PLATFORM'] == 'posix': vars.AddVariables(
                  '/usr', PathVariable.PathAccept),
     PathVariable('userdir', 'Set the name of the user data directory in home',
                  '.dolphin-emu', PathVariable.PathAccept),
-    BoolVariable('opencl', 'Build with OpenCL', False),
     EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
                  allowed_values = ('none', 'generate', 'use'), ignorecase = 2),
     BoolVariable('shared_glew', 'Use system shared libGLEW', True),
@@ -275,11 +274,9 @@ else:
         print "Must have CgGL to build"
         Exit(1)
 
-    if env['opencl']:
-        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
-        conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
-    else:
-        env['HAVE_OPENCL'] = 0
+    env['HAVE_OPENCL'] = int(conf.CheckPKG('OpenCL') and \
+                         conf.CheckCXXHeader("CL/cl.h"))
+    conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
     # PGO - Profile Guided Optimization
     if env['pgo'] == 'generate':

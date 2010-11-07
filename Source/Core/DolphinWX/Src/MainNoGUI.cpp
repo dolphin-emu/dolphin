@@ -42,6 +42,7 @@
 #include "cmdline.h"
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
+#include "HW/Wiimote.h"
 
 #include "PluginManager.h"
 #include "ConfigManager.h"

@@ -33,10 +33,10 @@ endif()
 include(FindPkgConfig REQUIRED)
 
 # Various compile flags
-add_definitions(-msse2 -Wall)
+add_definitions(-msse2 -Wall -Wno-unused-result)
 
 # gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing)
+add_definitions(-fno-strict-aliasing -fno-exceptions)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-fvisibility-inlines-hidden VISIBILITY_INLINES_HIDDEN)
@@ -88,7 +88,10 @@ include(FindOpenGL REQUIRED)
 
 include(FindALSA OPTIONAL)
 include(FindOpenAL OPTIONAL)
-include(FindwxWidgets OPTIONAL)
+set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")
+if(NOT DISABLE_WX)
+	include(FindwxWidgets OPTIONAL)
+endif(NOT DISABLE_WX)
 if(UNIX)
 	include(FindX11 REQUIRED)
 endif(UNIX)
