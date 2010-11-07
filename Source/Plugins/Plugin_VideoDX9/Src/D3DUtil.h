@@ -50,7 +50,7 @@ namespace D3D
 		int DrawTextScaled( float x, float y,
 							float fXScale, float fYScale, 
 							float spacing, u32 dwColor,
-							const char* strText, bool center=true );
+							const char* strText);
 		  
 		  
 		// Constructor / destructor

@@ -329,7 +329,7 @@ int CD3DFont::Shutdown()
 	return S_OK;
 }
 
-int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText, bool center)
+int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText)
 {
 	if (!m_pVB)
 		return 0;
@@ -355,25 +355,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 	pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 
-	// if center was requested, set current position as centre
-	// this is currently never used
-	if (center)
-	{
-		const char *oldText = strText;
-		float mx=0;
-		float maxx=0;
-
-		while (c = *strText++)
-		{
-			if (c == ('\n')) mx = 0;
-			if (c <  (' ') ) continue;
-			c -= 32;
-			mx += (m_fTexCoords[c][2]-m_fTexCoords[c][0])/(m_fTexCoords[0][3] - m_fTexCoords[0][1]) + spacing;
-			if (mx > maxx) maxx = mx;
-		}
-		sx -= scalex*maxx*size;
-		strText = oldText;
-	}
 	// set general pipeline state
 	D3D::stateman->PushBlendState(m_blendstate);
 	D3D::stateman->PushRasterizerState(m_raststate);

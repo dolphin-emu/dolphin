@@ -164,11 +164,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager*)globals->logManager);
 }
 
-void DllAbout(HWND _hParent)
-{
-	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
-}
-
 void DllConfig(void *_hParent)
 {
 	DlgSettings_Show(g_hInstance, (HWND)((wxWindow *)_hParent)->GetHandle());

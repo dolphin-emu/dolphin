@@ -230,7 +230,7 @@ void CD3DFont::SetRenderStates()
 }
 
 
-int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, float spacing, u32 dwColor, const char* strText, bool center)
+int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, float spacing, u32 dwColor, const char* strText)
 {
 	if (!m_pVB)
 		return 0;
@@ -278,16 +278,11 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 
 	float offset = -maxx/2;
 	strText = oldstrText;
-	//Then let's draw it
-	if (center)
-	{
-		sx+=offset;
-		fStartX+=offset;
-	}
 
 	float wScale = (fXScale*vpHeight)*invLineHeight;
 	float hScale = (fYScale*vpHeight)*invLineHeight;
 
+	// Let's draw it
 	while (*strText)
 	{
 		char c = *strText++;

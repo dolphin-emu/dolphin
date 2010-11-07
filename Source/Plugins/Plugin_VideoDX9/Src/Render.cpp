@@ -538,7 +538,7 @@ void Renderer::DrawDebugText()
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text, false);
+	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1267,19 +1267,19 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		char fps[20];
 		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, fps, false);
+		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st, false);
+		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st, false);
+		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 
 	OSD::DrawMessages();

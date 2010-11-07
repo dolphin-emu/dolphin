@@ -280,7 +280,7 @@ void BPWritten(const BPCmd& bp)
 				ClearScreen(bp, rc);
 			}
 
-			RestoreRenderState(bp);
+			RestoreRenderState(bp); // TODO: Remove this call, handle this in the plugins instead
 			
 			break;
 		}
