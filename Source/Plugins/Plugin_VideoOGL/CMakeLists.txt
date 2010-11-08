@@ -36,5 +36,6 @@ endif()
 
 add_library(Plugin_VideoOGL SHARED ${SRCS})
 target_link_libraries(Plugin_VideoOGL ${LIBS})
-install(TARGETS Plugin_VideoOGL LIBRARY DESTINATION ${plugindir})
-
+install(TARGETS Plugin_VideoOGL
+		LIBRARY DESTINATION ${plugindir}
+		RUNTIME DESTINATION ${plugindir})

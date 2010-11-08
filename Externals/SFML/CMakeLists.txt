@@ -6,7 +6,12 @@ set(SRCS	src/SFML/Network/Ftp.cpp
 			src/SFML/Network/Packet.cpp
 			src/SFML/Network/SelectorBase.cpp
 			src/SFML/Network/SocketTCP.cpp
-			src/SFML/Network/SocketUDP.cpp
-			src/SFML/Network/Unix/SocketHelper.cpp)
+			src/SFML/Network/SocketUDP.cpp)
+
+if(UNIX OR APPLE)
+	set(SRCS ${SRCS} src/SFML/Network/Unix/SocketHelper.cpp)
+elseif(WIN32)
+	set(SRCS ${SRCS} src/SFML/Network/Win32/SocketHelper.cpp)
+endif()
 
 add_library(sfml-network ${SRCS})

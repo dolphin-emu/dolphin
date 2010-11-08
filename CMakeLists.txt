@@ -49,6 +49,12 @@ if(VISIBILITY_HIDDEN)
 	add_definitions(-fvisibility=hidden)
 endif(VISIBILITY_HIDDEN)
 
+if(WIN32)
+	add_definitions(-D_SECURE_SCL=0)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+endif(WIN32)
+
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -89,9 +95,7 @@ include(FindOpenGL REQUIRED)
 include(FindALSA OPTIONAL)
 include(FindOpenAL OPTIONAL)
 set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")
-if(NOT DISABLE_WX)
-	include(FindwxWidgets OPTIONAL)
-endif(NOT DISABLE_WX)
+
 if(UNIX)
 	include(FindX11 REQUIRED)
 endif(UNIX)
@@ -148,26 +152,6 @@ else()
 	message("OpenAL NOT found, disabling OpenAL sound backend")
 endif(OPENAL_FOUND)
 
-if(wxWidgets_FOUND)
-	add_definitions(-DHAVE_WX=1)
-	include(${wxWidgets_USE_FILE})
-
-	if(UNIX)
-		pkg_search_module(GTK2 REQUIRED gtk+-2.0)
-		if(GTK2_FOUND)
-			include_directories(${GTK2_INCLUDE_DIRS})
-			message("GTK 2 found")
-		else(GTK2_FOUND)
-			message("GTK 2 NOT found")
-		endif(GTK2_FOUND)
-	endif(UNIX)
-
-	message("wxWidgets found, enabling GUI build")
-else(wxWidgets_FOUND)
-	add_definitions(-DHAVE_WX=0)
-	message("wxWidgets NOT found, disabling GUI build (using CLI interface)")
-endif(wxWidgets_FOUND)
-
 if(X11_FOUND)
 	add_definitions(-DHAVE_X11=1)
 	include_directories(${X11_INCLUDE_DIR})
@@ -201,19 +185,6 @@ else()
 	add_definitions(-DHAVE_PORTAUDIO=0)
 	set(PORTAUDIO_FOUND FALSE)
 endif(PORTAUDIO)
-
-find_library(OPENCL OpenCL)
-find_path(OPENCL_INCLUDE CL/cl.h)
-if(OPENCL AND OPENCL_INCLUDE)
-	message("OpenCL found")
-	add_definitions(-DHAVE_OPENCL=1)
-	include_directories(${OPENCL_INCLUDE})
-	set(OPENCL_FOUND TRUE)
-else()
-	message("OpenCL not found")
-	add_definitions(-DHAVE_OPENCL=0)
-	set(OPENCL_FOUND FALSE)
-endif(OPENCL AND OPENCL_INCLUDE)
 
 
 ########################################
@@ -269,10 +240,10 @@ if(SDL_FOUND)
 	message("Using shared SDL")
 	include_directories(${SDL_INCLUDE_DIR})
 else(SDL_FOUND)
-	# TODO: No CMakeLists.txt there, yet...
+	# TODO: Use the prebuild one on Windows
 	message("Shared SDL not found, falling back to the static library")
-	add_subdirectory(Externals/SDL)
 	include_directories(Externals/SDL/include)
+	add_subdirectory(Externals/SDL)
 endif(SDL_FOUND)
 
 find_library(SFML_NETWORK sfml-network)
@@ -297,17 +268,71 @@ else()
 	include_directories(Externals/SOIL)
 endif(SOIL AND SOIL_INCLUDE)
 
-include(FindZLIB OPTIONAL) # TODO: Move to top
+include(FindZLIB OPTIONAL) # TODO: Move to top, TODO: Module prints out an error?
 if(ZLIB_FOUND)
+	message("Using shared zlib")
 	include_directories(${ZLIB_INCLUDE_DIRS})
 else(ZLIB_FOUND)
-	# TODO: No CMakeLists.txt there, yet...
+	message("Shared zlib not found, falling back to the static library")
 	add_subdirectory(Externals/zlib)
 	include_directories(Externals/zlib)
 endif(ZLIB_FOUND)
 
-add_subdirectory(Externals/WiiUse)
-include_directories(Externals/WiiUse/Src)
+if(UNIX OR APPLE)
+	add_subdirectory(Externals/WiiUse)
+	include_directories(Externals/WiiUse/Src)
+elseif(WIN32)
+	# use the precompiled ones
+	# TODO: Use the 64 bit lib on 64 bit systems...
+	# TODO: If WDK is installed, we can compile this from source as well
+	find_library(WIIUSE wiiuse PATHS Externals/WiiUse/Win32 NO_DEFAULT_PATH)
+	include_directories(Externals/WiiUse/Src)
+endif()
+
+if(WIN32)
+	find_library(GLEW glew32s PATHS Externals/GLew)
+	include_directories(Externals/GLew/include)
+endif()
+
+
+find_library(OPENCL OpenCL)
+find_path(OPENCL_INCLUDE CL/cl.h)
+if(OPENCL AND OPENCL_INCLUDE)
+	message("OpenCL found")
+	add_definitions(-DHAVE_OPENCL=1)
+	include_directories(${OPENCL_INCLUDE})
+	set(OPENCL_FOUND TRUE)
+else()
+	message("OpenCL not found, using CLRun instead")
+	include_directories(Externals/CLRun/include)
+	add_subdirectory(Externals/CLRun)
+endif(OPENCL AND OPENCL_INCLUDE)
+
+if(NOT DISABLE_WX)
+	include(FindwxWidgets OPTIONAL)
+
+	if(wxWidgets_FOUND)
+		add_definitions(-DHAVE_WX=1)
+		include(${wxWidgets_USE_FILE})
+
+		if(UNIX)
+			pkg_search_module(GTK2 REQUIRED gtk+-2.0)
+			if(GTK2_FOUND)
+				include_directories(${GTK2_INCLUDE_DIRS})
+				message("GTK 2 found")
+			else(GTK2_FOUND)
+				message("GTK 2 NOT found")
+			endif(GTK2_FOUND)
+		endif(UNIX)
+
+		message("wxWidgets found, enabling GUI build")
+	else(wxWidgets_FOUND)
+		message("Shared wxWidgets not found, falling back to the static library")
+		add_definitions(-DHAVE_WX=1)
+		include_directories(Externals/wxWidgets/include)
+		add_subdirectory(Externals/wxWidgets)
+	endif(wxWidgets_FOUND)
+endif(NOT DISABLE_WX)
 
 
 ########################################
