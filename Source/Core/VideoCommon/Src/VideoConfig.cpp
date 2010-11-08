@@ -90,6 +90,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
+	iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false);
 	
 	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
 	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
@@ -203,6 +204,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
+	iniFile.Set("Enhancements", "Enable3dVision", b3DVision);
 	
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);

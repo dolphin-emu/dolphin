@@ -53,7 +53,6 @@ GFXConfigDialogDX *m_ConfigFrame = NULL;
 #include "XFBConvert.h"
 #include "render.h"
 #include "DLCache.h"
-#include "Render3dVision.h"
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
@@ -181,7 +180,6 @@ void DllConfig(void *_hParent)
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateActiveConfig();
-	Render3dVision::loadConfig((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 #if defined(HAVE_WX) && HAVE_WX
 	m_ConfigFrame = new GFXConfigDialogDX((wxWindow *)_hParent);
 
@@ -205,8 +203,6 @@ void Initialize(void *init)
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();
-
-	Render3dVision::loadConfig((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
 	if (g_VideoInitialize.pWindowHandle == NULL)

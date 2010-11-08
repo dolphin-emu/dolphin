@@ -31,7 +31,6 @@
 #include "VideoConfig.h"
 
 #include "TextureCache.h"
-#include "Render3dVision.h"
 
 BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 
@@ -154,7 +153,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_EnableXFB->SetValue(g_Config.bUseXFB);
 	m_EnableRealXFB->SetValue(g_Config.bUseRealXFB);
 	m_UseNativeMips->SetValue(g_Config.bUseNativeMips);
-	m_Enable3dVision->SetValue(Render3dVision::isEnable3dVision());
+	m_Enable3dVision->SetValue(g_Config.b3DVision);
 
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_DumpFrames->SetValue(g_Config.bDumpFrames);
@@ -554,7 +553,7 @@ void GFXConfigDialogDX::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bTexFmtOverlayCenter = m_TexfmtCenter->IsChecked();
 		break;
 	case ID_ENABLE_3DVISION:
-		Render3dVision::setEnable3dVision(m_Enable3dVision->IsChecked());
+		g_Config.b3DVision = m_Enable3dVision->IsChecked();
 	break;
 	}
 	UpdateGUI();
@@ -564,7 +563,6 @@ void GFXConfigDialogDX::CloseWindow()
 {
 	// Save the config to INI
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-	Render3dVision::saveConfig((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	EndModal(1);
 }
 

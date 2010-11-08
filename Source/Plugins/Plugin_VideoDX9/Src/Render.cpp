@@ -52,8 +52,6 @@
 
 #include "debugger/debugger.h"
 
-#include "Render3dVision.h"
-
 static int s_fps = 0;
 
 static bool WindowResized;
@@ -1321,7 +1319,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		else
 		{
-			if(Render3dVision::isEnable3dVision())
+			if(g_ActiveConfig.b3DVision)
 			{
 				// This works, yet the version in the else doesn't. No idea why.
 				xScale = (float)s_backbuffer_width / (float)s_XFB_width;

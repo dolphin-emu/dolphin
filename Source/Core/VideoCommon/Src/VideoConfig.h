@@ -111,6 +111,7 @@ struct VideoConfig
 	bool bAnaglyphStereo;
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
+	bool b3DVision;
 	
 	// Hacks
 	bool bEFBAccessEnable;
