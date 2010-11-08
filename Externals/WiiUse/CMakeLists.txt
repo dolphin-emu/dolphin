@@ -3,11 +3,13 @@ set(SRCS	Src/ir.c
 
 if(APPLE)
 	set(SRCS ${SRCS} Src/io_osx.m)
-elseif(UNIX)
+elseif(UNIX AND BLUEZ_FOUND)
 	set(SRCS ${SRCS} Src/io_nix.c)
 	set(LIBS ${LIBS} bluetooth)
 elseif(WIN32)
 	set(SRCS ${SRCS} Src/io_win.c)
+else()
+	set(SRCS ${SRCS} Src/io_dummy.c)
 endif()
 
 add_library(wiiuse STATIC ${SRCS})
