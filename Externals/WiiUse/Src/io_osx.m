@@ -330,7 +330,12 @@ int wiiuse_io_read(struct wiimote_t *wm)
 
 int wiiuse_io_write(struct wiimote_t *wm, byte *buf, int len)
 {
-	[cchan writeSync: buf length: len];
+	IOReturn ret;
 
-	return len;
+	ret = [cchan writeAsync: buf length: len refcon: nil];
+
+	if (ret == kIOReturnSuccess)
+		return len;
+	else
+		return 0;
 }
