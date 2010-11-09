@@ -30,7 +30,7 @@ if(APPLE AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
 elseif(WIN32)
 	set(SRCS ${SRCS} Src/OS/Win32.cpp)
-elseif(NOT APPLE AND OPENCL_FOUND)
+elseif(NOT APPLE)
 	set(LIBS	${LIBS} OpenCL)
 endif()
 

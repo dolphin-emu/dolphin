@@ -82,30 +82,18 @@ endif(CMAKE_BUILD_TYPE STREQUAL Release)
 # TODO: We should have a number of options for optional dependencies (disable,
 # force bundled, bundled or native, force native).  For example the OpenGL
 # plugin defaults to force native, so we error out if no GL libs are found.
-# The user is free to explicitely disable it though.  Stuff which is likely to
-# be needed by users is made an option with default ON, other stuff (like e.g.
-# sound backends) is made completely optionally.
+# The user is free to explicitly disable it though.  Stuff which is likely to
+# be needed by users is optional defaulting to ON, other stuff (like e.g.
+# sound backends) is completely optional.
 
 # TODO: wxWidgets: When building the Debug configuration, we should probably
 # check if the debug wx libs are available and fall back to the bundled ones
 # otherwise.
 
 include(FindOpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
 
 include(FindALSA OPTIONAL)
-include(FindOpenAL OPTIONAL)
-set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")
-
-if(UNIX)
-	include(FindX11 REQUIRED)
-endif(UNIX)
-
-pkg_search_module(PULSEAUDIO libpulse)
-pkg_search_module(AO ao)
-pkg_search_module(BLUEZ bluez)
-pkg_search_module(XRANDR xrandr)
-
-# TODO: Make some of these optional like explained above
 if(ALSA_FOUND)
 	add_definitions(-DHAVE_ALSA=1)
 	message("ALSA found, enabling ALSA sound backend")
@@ -114,6 +102,7 @@ else()
 	message("ALSA NOT found, disabling ALSA sound backend")
 endif(ALSA_FOUND)
 
+pkg_search_module(AO ao)
 if(AO_FOUND)
 	add_definitions(-DHAVE_AO=1)
 	include_directories(${AO_INCLUDE_DIRS})
@@ -123,6 +112,7 @@ else()
 	message("ao NOT found, disabling ao sound backend")
 endif(AO_FOUND)
 
+pkg_search_module(BLUEZ bluez)
 if(BLUEZ_FOUND)
 	add_definitions(-DHAVE_BLUEZ=1)
 	include_directories(${BLUEZ_INCLUDE_DIRS})
@@ -132,8 +122,7 @@ else()
 	message("bluez NOT found, disabling bluetooth support")
 endif(BLUEZ_FOUND)
 
-include_directories(${OPENGL_INCLUDE_DIR})
-
+pkg_search_module(PULSEAUDIO libpulse)
 if(PULSEAUDIO_FOUND)
 	add_definitions(-DHAVE_PULSEAUDIO=1)
 	include_directories(${PULSEAUDIO_INCLUDE_DIR})
@@ -143,6 +132,7 @@ else()
 	message("PulseAudio NOT found, disabling PulseAudio sound backend")
 endif(PULSEAUDIO_FOUND)
 
+include(FindOpenAL OPTIONAL)
 if(OPENAL_FOUND)
 	add_definitions(-DHAVE_OPENAL=1)
 	include_directories(${OPENAL_INCLUDE_DIR})
@@ -152,15 +142,21 @@ else()
 	message("OpenAL NOT found, disabling OpenAL sound backend")
 endif(OPENAL_FOUND)
 
-if(X11_FOUND)
-	add_definitions(-DHAVE_X11=1)
-	include_directories(${X11_INCLUDE_DIR})
-	message("X11 found")
+# Note: We do not need to explicitly check for X11 as it is done in the cmake
+# FindOpenGL module on linux.
+if(UNIX)
+	if(X11_FOUND)
+		add_definitions(-DHAVE_X11=1)
+		include_directories(${X11_INCLUDE_DIR})
+		message("X11 found")
+	else()
+		message(FATAL_ERROR "X11 is required but not found")
+	endif(X11_FOUND)
 else()
 	add_definitions(-DHAVE_X11=0)
-	message("X11 NOT found")
-endif(X11_FOUND)
+endif(UNIX)
 
+pkg_search_module(XRANDR xrandr)
 if(XRANDR_FOUND)
 	add_definitions(-DHAVE_XRANDR=1)
 	message("Xrandr found")
@@ -191,7 +187,6 @@ endif(PORTAUDIO)
 # Setup include directories (and make sure they are preferred over the Externals)
 #
 include_directories(Source/PluginSpecs)
-include_directories(Externals)
 include_directories(Source/Core/AudioCommon/Src)
 include_directories(Source/Core/Common/Src)
 include_directories(Source/Core/Core/Src)
@@ -240,7 +235,7 @@ if(SDL_FOUND)
 	message("Using shared SDL")
 	include_directories(${SDL_INCLUDE_DIR})
 else(SDL_FOUND)
-	# TODO: Use the prebuild one on Windows
+	# TODO: Use the prebuilt one on Windows
 	message("Shared SDL not found, falling back to the static library")
 	include_directories(Externals/SDL/include)
 	add_subdirectory(Externals/SDL)
@@ -268,7 +263,7 @@ else()
 	include_directories(Externals/SOIL)
 endif(SOIL AND SOIL_INCLUDE)
 
-include(FindZLIB OPTIONAL) # TODO: Move to top, TODO: Module prints out an error?
+include(FindZLIB OPTIONAL)
 if(ZLIB_FOUND)
 	message("Using shared zlib")
 	include_directories(${ZLIB_INCLUDE_DIRS})
@@ -294,20 +289,21 @@ if(WIN32)
 	include_directories(Externals/GLew/include)
 endif()
 
-
 find_library(OPENCL OpenCL)
 find_path(OPENCL_INCLUDE CL/cl.h)
 if(OPENCL AND OPENCL_INCLUDE)
 	message("OpenCL found")
-	add_definitions(-DHAVE_OPENCL=1)
 	include_directories(${OPENCL_INCLUDE})
-	set(OPENCL_FOUND TRUE)
 else()
 	message("OpenCL not found, using CLRun instead")
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
 endif(OPENCL AND OPENCL_INCLUDE)
+if(NOT APPLE)
+	add_definitions(-DHAVE_OPENCL=1)
+endif()
 
+set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
 
