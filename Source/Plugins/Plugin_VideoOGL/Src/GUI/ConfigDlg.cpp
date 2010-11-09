@@ -411,9 +411,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced->Add(m_VSync,				wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseRealXFB,			wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_UseNativeMips,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_EFBScaledCopy,		wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_UseNativeMips,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_EFBScaledCopy,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);

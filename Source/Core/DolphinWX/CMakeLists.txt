@@ -9,7 +9,9 @@ set(LIBS	core
 			lua
 			z
 			sfml-network
-			wiiuse)
+			wiiuse
+			SDL
+			GL)
 
 if(wxWidgets_FOUND)
 	set(MEMCARDSRCS	Src/MemcardManager.cpp
@@ -68,7 +70,6 @@ else()
 	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
 
-set(LIBS ${LIBS} SDL)
 set(EXEGUI dolphin-emu)
 set(EXENOGUI dolphin-emu-nogui)
 
