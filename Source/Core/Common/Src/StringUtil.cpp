@@ -69,8 +69,11 @@ std::string StringFromFormat(const char* format, ...)
 #ifndef _WIN32
 		// vsnprintf does not return -1 on truncation in linux!
 		// Instead it returns the size of the string we need.
-		if (writtenCount >= (int)newSize)
+		if (writtenCount > (int)newSize)
+		{
 			newSize = writtenCount;
+			writtenCount = -1;
+		}
 #else
 		newSize *= 2;
 #endif
