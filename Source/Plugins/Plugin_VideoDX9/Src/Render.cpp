@@ -67,9 +67,11 @@ static int s_backbuffer_height;
 static int s_XFB_width;
 static int s_XFB_height;
 
+// ratio of backbuffer size and render area size
 static float xScale;
 static float yScale;
 
+// Internal resolution scale (related to xScale/yScale for "Auto" scaling)
 static float EFBxScale;
 static float EFByScale;
 
@@ -1036,7 +1038,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-static bool RightFrame = false;
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
@@ -1061,6 +1062,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	ResetAPIState();
 	if(g_ActiveConfig.bAnaglyphStereo)
 	{
+		static bool RightFrame = false;
 		if(RightFrame)
 		{
 			D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_GREEN);
@@ -1088,15 +1090,21 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3DVIEWPORT9 vp;
 
 	// Clear full target screen (edges, borders etc)
-	vp.X = 0;
-	vp.Y = 0;
-	vp.Width  = s_backbuffer_width;
-	vp.Height = s_backbuffer_height;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-	D3D::dev->SetViewport(&vp);
-	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-	D3D::drawClearQuad(0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	if(g_ActiveConfig.bAnaglyphStereo) {
+		// use a clear quad to keep old red or blue/green data
+		vp.X = 0;
+		vp.Y = 0;
+		vp.Width  = s_backbuffer_width;
+		vp.Height = s_backbuffer_height;
+		vp.MinZ = 0.0f;
+		vp.MaxZ = 1.0f;
+		D3D::dev->SetViewport(&vp);
+		D3D::drawClearQuad(0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	}
+	else
+	{
+		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	}
 
 	int X = dst_rect.left;
 	int Y = dst_rect.top;
@@ -1349,7 +1357,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				EFByScale = EFBxScale;
 				break;
 		};
-		
+
 		EFBxScale *= SupersampleCoeficient;
 		EFByScale *= SupersampleCoeficient;
 

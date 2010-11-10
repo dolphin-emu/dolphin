@@ -88,12 +88,26 @@ struct TabDirect3D : public W32Util::Tab
 		}
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ASPECTRATIO), g_Config.iAspectRatio);
 
+		for (unsigned int i = 0; i < 5; i++)
+		{
+			const char* options[] = {
+					"Auto (quality)",
+					"Auto (compatibility)",
+					"Native (640x528)",
+					"2x (1280x1056)",
+					"3x (1920x1584)"
+				};
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, options[i], -1, tempwstr, 2000);
+			ComboBox_AddString(GetDlgItem(hDlg, IDC_INTERNALRESOLUTION), tempwstr);
+		}
+		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_INTERNALRESOLUTION), g_Config.iEFBScale);
+
+
 		Button_SetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK), g_Config.bWidescreenHack);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_VSYNC), g_Config.bVSync);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_DLIST_CACHING), g_Config.bDlistCachingEnable);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_ENABLEPIXELLIGHTING), g_Config.bEnablePixelLigting);
-
 
 
 		if (g_Config.iSafeTextureCache_ColorSamples == 0)
@@ -127,6 +141,9 @@ struct TabDirect3D : public W32Util::Tab
 			break;
 		case IDC_ADAPTER:
 			g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
+			break;
+		case IDC_INTERNALRESOLUTION:
+			g_Config.iEFBScale = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_INTERNALRESOLUTION));
 			break;
 		case IDC_VSYNC:
 			g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;

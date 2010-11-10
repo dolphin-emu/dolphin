@@ -32,6 +32,7 @@
 #define IDC_ENABLEPIXELLIGHTING         1045
 #define IDC_LOADHIRESTEXTURE            1046
 #define IDC_DUMPTEXTURES                1047
+#define IDC_INTERNALRESOLUTION			1048
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

@@ -65,10 +65,16 @@ static int s_backbuffer_height;
 static int s_XFB_width;
 static int s_XFB_height;
 
+// ratio of backbuffer size and render area size
 static float xScale;
 static float yScale;
 
+// Internal resolution scale (related to xScale/yScale for "Auto" scaling)
+static float EFBxScale;
+static float EFByScale;
+
 static u32 s_blendMode;
+static u32 s_LastEFBScale;
 static bool XFBWrited;
 
 static bool s_bScreenshot = false;
@@ -349,8 +355,24 @@ bool Renderer::Init()
 	xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
 	yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 
-	s_target_width  = (int)(EFB_WIDTH * xScale);
-	s_target_height = (int)(EFB_HEIGHT * yScale);
+	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	switch(s_LastEFBScale)
+	{
+		case 0:
+			EFBxScale = xScale;
+			EFByScale = yScale;
+			break;
+		case 1:
+			EFBxScale = ceilf(xScale);
+			EFByScale = ceilf(yScale);
+			break;
+		default:
+			EFBxScale = EFByScale = (float)(g_ActiveConfig.iEFBScale - 1);
+			break;
+	};
+
+	s_target_width  = (int)(EFB_WIDTH * EFBxScale);
+	s_target_height = (int)(EFB_HEIGHT * EFByScale);
 
 	s_Fulltarget_width  = s_target_width;
 	s_Fulltarget_height = s_target_height;
@@ -388,8 +410,10 @@ int Renderer::GetTargetWidth() { return s_target_width; }
 int Renderer::GetTargetHeight() { return s_target_height; }
 int Renderer::GetFullTargetWidth() { return s_Fulltarget_width; }
 int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
-float Renderer::GetTargetScaleX() { return xScale; }
-float Renderer::GetTargetScaleY() { return yScale; }
+float Renderer::GetTargetScaleX() { return EFBxScale; }
+float Renderer::GetTargetScaleY() { return EFByScale; }
+float Renderer::GetXFBScaleX() { return xScale; }
+float Renderer::GetXFBScaleY() { return yScale; }
 
 // Return the framebuffer size
 int Renderer::GetFrameBufferWidth()
@@ -486,10 +510,10 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)(rc.left   * xScale) + Xstride;
-	result.top    = (int)(rc.top    * yScale) + Ystride;
-	result.right  = (int)(rc.right  * xScale) + Xstride;
-	result.bottom = (int)(rc.bottom * yScale) + Ystride;
+	result.left   = (int)(rc.left   * EFBxScale) + Xstride;
+	result.top    = (int)(rc.top    * EFByScale) + Ystride;
+	result.right  = (int)(rc.right  * EFBxScale) + Xstride;
+	result.bottom = (int)(rc.bottom * EFByScale) + Ystride;
 	return result;
 }
 
@@ -557,10 +581,10 @@ bool Renderer::SetScissorRect()
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
-	rc.left   = (int)(rc.left   * xScale);
-	rc.top    = (int)(rc.top    * yScale);
-	rc.right  = (int)(rc.right  * xScale);
-	rc.bottom = (int)(rc.bottom * yScale);
+	rc.left   = (int)(rc.left   * EFBxScale);
+	rc.top    = (int)(rc.top    * EFByScale);
+	rc.right  = (int)(rc.right  * EFBxScale);
+	rc.bottom = (int)(rc.bottom * EFByScale);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
@@ -758,17 +782,14 @@ void UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	float MValueX = Renderer::GetTargetScaleX();
-	float MValueY = Renderer::GetTargetScaleY();
-	
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX) + Xstride;
-	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY) + Ystride;
-	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
-	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * EFBxScale) + Xstride;
+	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * EFByScale) + Ystride;
+	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * EFBxScale);
+	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * EFByScale);
 	if (Width < 0)
 	{
 		X += Width;
@@ -1085,8 +1106,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 
-	// resize the back buffers NOW to avoid flickering when resizing windows
-	if (xfbchanged || WindowResized)
+	// resize the back buffers NOW to avoid flickering
+	if (xfbchanged || WindowResized ||
+		s_LastEFBScale != g_ActiveConfig.iEFBScale)
 	{
 		// TODO: Aren't we still holding a reference to the back buffer right now?
 		D3D::Reset();
@@ -1098,8 +1120,24 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
 		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 
-		s_target_width  = (int)(EFB_WIDTH * xScale);
-		s_target_height = (int)(EFB_HEIGHT * yScale);
+		s_LastEFBScale = g_ActiveConfig.iEFBScale;
+		switch(s_LastEFBScale)
+		{
+			case 0:
+				EFBxScale = xScale;
+				EFByScale = yScale;
+				break;
+			case 1:
+				EFBxScale = ceilf(xScale);
+				EFByScale = ceilf(yScale);
+				break;
+			default:
+				EFBxScale = EFByScale = (float)(g_ActiveConfig.iEFBScale - 1);
+				break;
+		};
+
+		s_target_width  = (int)(EFB_WIDTH * EFBxScale);
+		s_target_height = (int)(EFB_HEIGHT * EFByScale);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 		g_framebufferManager.Destroy();
@@ -1112,10 +1150,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	// For testing zbuffer targets.
-	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
-	// 		GetTargetWidth(), GetTargetHeight());
+
 	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
 }

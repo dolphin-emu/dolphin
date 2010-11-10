@@ -182,11 +182,12 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 	{
 		// Replace the last virtual XFB (might cause glitches, but better than allocating 50 XFBs...)
+		// TODO: Reencode last virtual XFB to RAM to avoid glitches?
 		--it;
 	}
 
-	float scaleX = Renderer::GetTargetScaleX();
-	float scaleY = Renderer::GetTargetScaleY();
+	float scaleX = Renderer::GetXFBScaleX();
+	float scaleY = Renderer::GetXFBScaleY();
 	TargetRectangle targetSource,efbSource;
 	efbSource = Renderer::ConvertEFBRectangle(sourceRc);
 	targetSource.top = (int)(sourceRc.top * scaleY);
