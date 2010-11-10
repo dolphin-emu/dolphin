@@ -66,15 +66,14 @@ std::string StringFromFormat(const char* format, ...)
 		writtenCount = vsnprintf(buf, newSize, format, args);
 		va_end(args);
 
+#ifndef _WIN32
+		// vsnprintf does not return -1 on truncation in linux!
+		// Instead it returns the size of the string we need.
 		if (writtenCount >= (int)newSize)
-			writtenCount = -1;
-
-		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
-		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
-		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(
-//		if (writtenCount >= (int)newSize)
-//			writtenCount = -1;
+			newSize = writtenCount;
+#else
 		newSize *= 2;
+#endif
 	}
 
 	buf[writtenCount] = '\0';
@@ -152,9 +151,9 @@ bool TryParse(const std::string &str, u32 *const output)
 
 bool TryParse(const std::string &str, bool *const output)
 {
-	if ('1' == str[0] || !stricmp("true", str.c_str()))
+	if ('1' == str[0] || !strcasecmp("true", str.c_str()))
 		*output = true;
-	else if ('0' == str[0] || !stricmp("false", str.c_str()))
+	else if ('0' == str[0] || !strcasecmp("false", str.c_str()))
 		*output = false;
 	else
 		return false;
