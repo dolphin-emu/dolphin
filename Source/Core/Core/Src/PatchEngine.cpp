@@ -30,6 +30,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
+
 #include "StringUtil.h"
 #include "PatchEngine.h"
 #include "HW/Memmap.h"
@@ -48,7 +50,6 @@ const char *PatchTypeStrings[] =
 	"byte",
 	"word",
 	"dword",
-	0
 };
 
 std::vector<Patch> onFrame;
@@ -88,14 +89,15 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 				line.at(loc) = ':';
 
 			std::vector<std::string> items;
-			SplitString(line, ":", items);
+			SplitString(line, ':', items);
 			if (items.size() >= 3) {
 				PatchEntry pE;
 				bool success = true;
-				success = success && TryParseUInt(items[0], &pE.address);
-				success = success && TryParseUInt(items[2], &pE.value);
-				pE.type = (PatchType)ChooseStringFrom(items[1].c_str(), PatchTypeStrings);
-				success = success && (pE.type != (PatchType)-1);
+				success &= TryParse(items[0], &pE.address);
+				success &= TryParse(items[2], &pE.value);
+
+				pE.type = PatchType(std::find(PatchTypeStrings, PatchTypeStrings + 3, items[1]) - PatchTypeStrings);
+				success &= (pE.type != (PatchType)3);
 				if (success)
 					currentPatch.entries.push_back(pE);
 			}
@@ -131,8 +133,8 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 			u32 address;
 			u32 cycles;
 			bool success = true;
-			success = success && TryParseUInt(std::string(key.c_str()), &address);
-			success = success && TryParseUInt(value, &cycles);
+			success &= TryParse(key, &address);
+			success &= TryParse(value, &cycles);
 			if (success) {
 				speedHacks[address] = (int)cycles;
 			}

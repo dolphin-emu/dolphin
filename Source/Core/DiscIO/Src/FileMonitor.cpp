@@ -103,7 +103,7 @@ void CheckFile(std::string File, u64 Size)
 	if (CurrentFile == File) return;
 
 	if (Size > 0) Size = (Size / 1000);
-	std::string Str = StringFromFormat("%s kB %s", ThS(Size, true, 7).c_str(), File.c_str());
+	std::string Str = StringFromFormat("%s kB %s", ThousandSeparate(Size, 7).c_str(), File.c_str());
 	if (ShowSound(File))
 	{
 		NOTICE_LOG(FILEMON, Str.c_str());

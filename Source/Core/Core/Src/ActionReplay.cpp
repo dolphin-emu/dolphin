@@ -184,14 +184,14 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 			continue;
 		}
 
-		SplitString(line, " ", pieces);
+		SplitString(line, ' ', pieces);
 
 		// Check if the AR code is decrypted
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
 			AREntry op;
-			bool success_addr = TryParseUInt(std::string("0x") + pieces[0], &op.cmd_addr);
-   			bool success_val = TryParseUInt(std::string("0x") + pieces[1], &op.value);
+			bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
+   			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
 			if (!(success_addr | success_val)) {
 				PanicAlert("Action Replay Error: invalid AR code line: %s", line.c_str());
 				if (!success_addr) PanicAlert("The address is invalid");
@@ -202,7 +202,7 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 		}
 		else
 		{
-			SplitString(line, "-", pieces);
+			SplitString(line, '-', pieces);
 			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
 			{
 				// Encrypted AR code

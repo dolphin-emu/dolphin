@@ -811,7 +811,7 @@ void CFrame::LoadIniPerspectives()
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	ini.Get("Perspectives", "Perspectives", &_Perspectives, "Perspective 1");
 	ini.Get("Perspectives", "Active", &ActivePerspective, 0);
-	SplitString(_Perspectives, ",", VPerspectives);
+	SplitString(_Perspectives, ',', VPerspectives);
 
 	for (u32 i = 0; i < VPerspectives.size(); i++)
 	{
@@ -833,17 +833,17 @@ void CFrame::LoadIniPerspectives()
 
 		Tmp.Perspective = wxString::FromAscii(_Perspective.c_str());
 
-		SplitString(_Width, ",", _SWidth);
-		SplitString(_Height, ",", _SHeight);
+		SplitString(_Width, ',', _SWidth);
+		SplitString(_Height, ',', _SHeight);
 		for (u32 j = 0; j < _SWidth.size(); j++)
 		{
 			int _Tmp;
-			if (TryParseInt(_SWidth[j].c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
+			if (TryParse(_SWidth[j].c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
 		}
 		for (u32 j = 0; j < _SHeight.size(); j++)
 		{
 			int _Tmp;
-			if (TryParseInt(_SHeight[j].c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			if (TryParse(_SHeight[j].c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
 		}
 		Perspectives.push_back(Tmp);
 	}

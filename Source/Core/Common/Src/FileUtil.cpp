@@ -180,7 +180,6 @@ bool CreateFullPath(const char *fullPath)
 
 	// safety check to ensure we have good dir seperators
 	std::string strFullPath(fullPath);
-	NormalizeDirSep(&strFullPath);
 
 	const char *position = strFullPath.c_str();
 	while (true) {

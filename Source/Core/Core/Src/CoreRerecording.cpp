@@ -213,7 +213,7 @@ void FrameStepOnOff()
 void WriteStatus()
 {
 	std::string TmpStr = "Time: " + ReRecTimer.GetTimeElapsedFormatted();
-	TmpStr += StringFromFormat("  Frame: %s", ThS(g_FrameCounter).c_str());
+	TmpStr += StringFromFormat("  Frame: %s", ThousandSeparate(g_FrameCounter).c_str());
 	// The FPS is the total average since the game was booted
 	TmpStr += StringFromFormat("  FPS: %i", (g_FrameCounter * 1000) / ReRecTimer.GetTimeElapsed());
 	TmpStr += StringFromFormat("  FrameStep: %s", g_FrameStep ? "On" : "Off");

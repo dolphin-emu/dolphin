@@ -181,7 +181,7 @@ bool IniFile::Section::Get(const char* key, int* value, int defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParseInt(temp.c_str(), value))
+	if (retval && TryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -191,7 +191,7 @@ bool IniFile::Section::Get(const char* key, u32* value, u32 defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParseUInt(temp.c_str(), value))
+	if (retval && TryParse(temp, value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -201,7 +201,7 @@ bool IniFile::Section::Get(const char* key, bool* value, bool defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParseBool(temp.c_str(), value))
+	if (retval && TryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -211,7 +211,7 @@ bool IniFile::Section::Get(const char* key, float* value, float defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParseFloat(temp.c_str(), value))
+	if (retval && TryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;
@@ -221,7 +221,7 @@ bool IniFile::Section::Get(const char* key, double* value, double defaultValue)
 {
 	std::string temp;
 	bool retval = Get(key, &temp, 0);
-	if (retval && TryParseDouble(temp.c_str(), value))
+	if (retval && TryParse(temp.c_str(), value))
 		return true;
 	*value = defaultValue;
 	return false;

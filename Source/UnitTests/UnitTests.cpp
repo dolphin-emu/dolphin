@@ -93,11 +93,43 @@ void MathTests()
 void StringTests()
 {
 	EXPECT_EQ(StripSpaces(" abc   "), "abc");
+
 	EXPECT_EQ(StripNewline(" abc \n"), " abc ");
 	EXPECT_EQ(StripNewline(" abc \n "), " abc \n ");
+
 	EXPECT_EQ(StripQuotes("\"abc\""), "abc");
 	EXPECT_EQ(StripQuotes("\"abc\" "), "\"abc\" ");
+
 	EXPECT_EQ(TabsToSpaces(4, "a\tb"), "a    b");
+	EXPECT_EQ(ThousandSeparate(1234567, 15), "      1,234,567");
+
+	int i = 7;
+	EXPECT_EQ(false, TryParse("FF", &i));
+	EXPECT_EQ(7, i);
+	EXPECT_EQ(true, TryParse("22", &i));
+	EXPECT_EQ(22, i);
+
+	std::vector<std::string> strs;
+	SplitString("blah,foo,bar", ',', strs);
+
+	EXPECT_EQ(3, strs.size());
+	EXPECT_EQ("bar", strs[2]);
+
+	std::string path, fname, ext;
+	SplitPath("C:/some/path/test.jpg", &path, &fname, &ext);
+	EXPECT_EQ("C:/some/path/", path);
+	EXPECT_EQ("test", fname);
+	EXPECT_EQ(".jpg", ext);
+
+	SplitPath("C:/so.me/path/", &path, &fname, &ext);
+	EXPECT_EQ("C:/so.me/path/", path);
+	EXPECT_EQ("", fname);
+	EXPECT_EQ("", ext);
+
+	SplitPath("test.file.jpg", &path, &fname, &ext);
+	EXPECT_EQ("", path);
+	EXPECT_EQ("test.file", fname);
+	EXPECT_EQ(".jpg", ext);
 }
 
 

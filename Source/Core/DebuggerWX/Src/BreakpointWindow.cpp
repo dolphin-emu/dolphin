@@ -195,7 +195,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 		{
 			std::string line = StripSpaces(*iter);
 			std::vector<std::string> pieces;
-			SplitString(line, " ", pieces); // split string
+			SplitString(line, ' ', pieces); // split string
 
 			TMemCheck MemCheck;
 			u32 sAddress = 0;

@@ -197,7 +197,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
 
 			INFO_LOG(WII_IPC_DVD, "DVDLowReadDiskID %s",
-				ArrayToString(Memory::GetPointer(_BufferOut), _BufferOutSize, 0, _BufferOutSize).c_str());
+				ArrayToString(Memory::GetPointer(_BufferOut), _BufferOutSize, _BufferOutSize).c_str());
 		}
 		break;
 

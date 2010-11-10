@@ -22,21 +22,14 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 #include "Common.h"
 
-std::wstring StringFromFormat(const wchar_t* format, ...);
 std::string StringFromFormat(const char* format, ...);
-void ToStringFromFormat(std::string* out, const char* format, ...);
-
-// WARNING - only call once with a set of args!
-void StringFromFormatV(std::string* out, const char* format, va_list args);
 // Cheap!
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
-
-// Good
-std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20, bool Spaces = true);
-
 
 template<size_t Count>
 inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
@@ -47,49 +40,57 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 	va_end(args);
 }
 
-std::wstring StripSpaces(const std::wstring &s);
-std::wstring StripQuotes(const std::wstring &s);
-//std::wstring StripNewline(const std::string &s);
-// Thousand separator. Turns 12345678 into 12,345,678
-//std::wstring ThS(int a, bool b = true, int Spaces = 0);
+// Good
+std::string ArrayToString(const u8 *data, u32 size, int line_len = 20, bool spaces = true);
+
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
 std::string StripNewline(const std::string &s);
-// Thousand separator. Turns 12345678 into 12,345,678
-std::string ThS(int a, bool b = true, int Spaces = 0);
 
-std::wstring StringFromIntW(int value);
-std::wstring StringFromBoolW(bool value);
+// Thousand separator. Turns 12345678 into 12,345,678
+template <typename I>
+std::string ThousandSeparate(I value, int spaces = 0)
+{
+	std::ostringstream oss;
+	oss.imbue(std::locale(""));
+	oss << std::setw(spaces) << value;
+
+	return oss.str();
+}
+
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
-bool TryParseInt(const wchar_t* str, int* outVal);
-bool TryParseBool(const wchar_t* str, bool* output);
-bool TryParseUInt(const std::wstring& str, u32* output);
-bool TryParseInt(const char* str, int* outVal);
-bool TryParseBool(const char* str, bool* output);
-bool TryParseUInt(const std::string& str, u32* output);
-bool TryParseFloat(const char* str, float *output);
-bool TryParseDouble(const char* str, double *output);
+bool TryParse(const std::string &str, bool *output);
+bool TryParse(const std::string &str, u32 *output);
 
+template <typename N>
+bool TryParse(const std::string &str, N *const output)
+{
+	std::istringstream iss(str);
+	
+	N tmp = 0;
+	if (iss >> tmp)
+	{
+		*output = tmp;
+		return true;
+	}
+	else
+		return false;
+}
 
 // TODO: kill this
 bool AsciiToHex(const char* _szValue, u32& result);
-u32 Ascii2Hex(std::string _Text);
-std::string Hex2Ascii(u32 _Text);
 
 std::string TabsToSpaces(int tab_size, const std::string &in);
 
-void SplitString(const std::string& str, const std::string& delim, std::vector<std::string>& output);
-int ChooseStringFrom(const char* str, const char* * items);
+void SplitString(const std::string& str, char delim, std::vector<std::string>& output);
 
-
-// "C:\Windows\winhelp.exe" to "C:\Windows\", "winhelp", "exe"
+// "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
-// "C:\Windows\winhelp.exe" to "winhelp.exe"
-std::string PathToFilename(std::string Path);
+// "C:/Windows/winhelp.exe" to "winhelp.exe"
+std::string PathToFilename(const std::string &Path);
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
-void NormalizeDirSep(std::string* str);
 
 #endif // _STRINGUTIL_H_

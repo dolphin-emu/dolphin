@@ -112,7 +112,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		std::vector<std::string> pieces;
 		std::string line_str = cheatValues.substr(line, cheatValues.find('\n', line) - line);
 
-		SplitString(line_str, " ", pieces);
+		SplitString(line_str, ' ', pieces);
 		
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
@@ -123,7 +123,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		}
 		else
 		{
-			SplitString(line_str, "-", pieces);
+			SplitString(line_str, '-', pieces);
 			
 			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
 			{

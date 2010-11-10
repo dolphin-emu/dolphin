@@ -542,10 +542,8 @@ void CGameListCtrl::ScanForISOs()
 				if (FST_Temp.children.at(j).isDirectory)
 				{
 					bool duplicate = false;
-					NormalizeDirSep(&(FST_Temp.children.at(j).physicalName));
 					for (u32 k = 0; k < Directories.size(); k++)
 					{
-						NormalizeDirSep(&Directories.at(k));
 						if (strcmp(Directories.at(k).c_str(),
 									FST_Temp.children.at(j).physicalName.c_str()) == 0)
 						{
