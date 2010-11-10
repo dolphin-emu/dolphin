@@ -11,6 +11,7 @@ set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
 set(libdir		${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}	CACHE PATH "libdir")
 set(plugindir	${libdir}/dolphin-emu						CACHE PATH "plugindir")
 set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
+set(DESTDIR		${DESTDIR}									CACHE STRING "Leave blank unless building packages")
 
 # Set up paths
 set(userdir ".dolphin-emu" CACHE STRING "User directory")
@@ -289,19 +290,12 @@ if(WIN32)
 	include_directories(Externals/GLew/include)
 endif()
 
-find_library(OPENCL OpenCL)
-find_path(OPENCL_INCLUDE CL/cl.h)
-if(OPENCL AND OPENCL_INCLUDE)
-	message("OpenCL found")
-	include_directories(${OPENCL_INCLUDE})
-else()
-	message("OpenCL not found, using CLRun instead")
+if(NOT APPLE)
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
-endif(OPENCL AND OPENCL_INCLUDE)
-if(NOT APPLE)
+	add_definitions(-DUSE_CLRUN)
 	add_definitions(-DHAVE_OPENCL=1)
-endif()
+endif(NOT APPLE)
 
 set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")
 if(NOT DISABLE_WX)
@@ -347,9 +341,9 @@ add_subdirectory(Source)
 ########################################
 # Install shared data files
 #
-install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN .svn EXCLUDE)
-install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN .svn EXCLUDE)
-install(FILES Data/license.txt DESTINATION ${datadir})
+install(DIRECTORY Data/User/ DESTINATION ${DESTDIR}${datadir}/user PATTERN .svn EXCLUDE)
+install(DIRECTORY Data/Sys/ DESTINATION ${DESTDIR}${datadir}/sys PATTERN .svn EXCLUDE)
+install(FILES Data/license.txt DESTINATION ${DESTDIR}${datadir})
 
 # packaging information
 include(CPack)
@@ -361,7 +355,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "0")
 if(DOLPHIN_IS_STABLE)
 	set(CPACK_PACKAGE_VERSION_PATCH "0")
 else()
-	set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_WC_REV})
+	set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_WC_REVISION})
 endif()
 
 # TODO: CPACK_PACKAGE_DESCRIPTION_FILE

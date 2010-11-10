@@ -21,7 +21,7 @@
 #include "Common.h"
 #include "Timer.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(USE_CLRUN)
 #include "clrun.h"
 #endif
 
@@ -46,7 +46,7 @@ bool Initialize()
 		return false;
 	int err;			// error code returned from api calls
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(USE_CLRUN)
 	clrInit();
 	if(!clrHasOpenCL())
 		return false;

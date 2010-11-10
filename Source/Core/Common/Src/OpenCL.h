@@ -22,7 +22,7 @@
 
 // OpenCL on Windows is linked through the CLRun library
 // It provides the headers and all the imports
-#ifdef _WIN32
+#if defined(_WIN32) || defined(USE_CLRUN)
 #define HAVE_OPENCL 1
 #endif
 

@@ -31,11 +31,11 @@ if(APPLE AND NOT wxWidgets_FOUND)
 elseif(WIN32)
 	set(SRCS ${SRCS} Src/OS/Win32.cpp)
 elseif(NOT APPLE)
-	set(LIBS	${LIBS} OpenCL)
+	set(LIBS	${LIBS} clrun)
 endif()
 
 add_library(Plugin_VideoOGL SHARED ${SRCS})
 target_link_libraries(Plugin_VideoOGL ${LIBS})
 install(TARGETS Plugin_VideoOGL
-		LIBRARY DESTINATION ${plugindir}
-		RUNTIME DESTINATION ${plugindir})
+		LIBRARY DESTINATION ${DESTDIR}${plugindir}
+		RUNTIME DESTINATION ${DESTDIR}${plugindir})
