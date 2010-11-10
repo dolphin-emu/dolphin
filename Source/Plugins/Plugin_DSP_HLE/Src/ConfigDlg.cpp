@@ -155,6 +155,7 @@ bool DSPConfigDialogHLE::SupportsVolumeChanges(std::string backend)
 	//       too much just to enable/disable a stupid slider...
 	return (backend == BACKEND_DIRECTSOUND ||
 			backend == BACKEND_OPENAL ||
+			backend == BACKEND_XAUDIO2 ||
 			backend == BACKEND_PULSEAUDIO);
 }
 

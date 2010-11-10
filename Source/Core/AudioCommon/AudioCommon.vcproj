@@ -414,14 +414,6 @@
 			Name="SoundStreams"
 			>
 			<File
-				RelativePath=".\Src\NullSoundStream.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\NullSoundStream.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\AOSoundStream.cpp"
 				>
 			</File>
@@ -438,6 +430,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\NullSoundStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NullSoundStream.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\OpenALStream.cpp"
 				>
 			</File>
@@ -447,6 +447,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\SoundStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XAudio2Stream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XAudio2Stream.h"
 				>
 			</File>
 		</Filter>

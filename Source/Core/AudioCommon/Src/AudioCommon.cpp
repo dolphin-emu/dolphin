@@ -19,6 +19,7 @@
 #include "Mixer.h"
 #include "NullSoundStream.h"
 #include "DSoundStream.h"
+#include "XAudio2Stream.h"
 #include "AOSoundStream.h"
 #include "AlsaSoundStream.h"
 #ifdef __APPLE__
@@ -42,6 +43,8 @@ namespace AudioCommon
 			soundStream = new NullSound(mixer, g_dspInitialize.hWnd);
 		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
 			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+		else if (backend == BACKEND_XAUDIO2 && XAudio2::isValid()) 
+			soundStream = new XAudio2(mixer);
 		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
 			soundStream = new AOSound(mixer);
 		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
@@ -98,6 +101,8 @@ namespace AudioCommon
 			backends.push_back(BACKEND_NULLSOUND);
 		if (DSound::isValid())  
 			backends.push_back(BACKEND_DIRECTSOUND);
+		if (XAudio2::isValid())  
+			backends.push_back(BACKEND_XAUDIO2);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
 		if (AOSound::isValid())   
