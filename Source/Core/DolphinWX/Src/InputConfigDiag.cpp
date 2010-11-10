@@ -452,7 +452,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		btn->SetLabel(wxT("[ waiting ]"));
 
 		// apparently, this makes the "waiting" text work on Linux
-		wxYield();
+		wxTheApp->Yield();
 
 		m_plugin.controls_crit.Enter();		// enter
 		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
@@ -477,7 +477,7 @@ void GamepadPage::DetectControl( wxCommandEvent& event )
 		btn->SetLabel(wxT("[ waiting ]"));
 
 		// apparently, this makes the "waiting" text work on Linux
-		wxYield();
+		wxTheApp->Yield();
 
 		m_plugin.controls_crit.Enter();		// enter
 		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);

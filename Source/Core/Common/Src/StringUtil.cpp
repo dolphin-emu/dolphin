@@ -54,13 +54,13 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	int writtenCount = -1;
-	size_t newSize = strlen(format) + 4;
+	size_t newSize = strlen(format) + 5;
 	char *buf = NULL;
 	va_list args;
 	while (writtenCount < 0)
 	{
 		delete[] buf;
-		buf = new char[newSize + 1];
+		buf = new char[newSize];
 	
 		va_start(args, format);
 		writtenCount = vsnprintf(buf, newSize, format, args);
@@ -71,7 +71,7 @@ std::string StringFromFormat(const char* format, ...)
 		// Instead it returns the size of the string we need.
 		if (writtenCount > (int)newSize)
 		{
-			newSize = writtenCount;
+			newSize = writtenCount + 1;
 			writtenCount = -1;
 		}
 #else
