@@ -918,10 +918,10 @@ void CISOProperties::LoadGameConfig()
 	else
 		WMTightness->SetValue(wxT("50"));
 
-	GameIni.Get("Video", "ProjectionHack", &iTemp, -1);
+	GameIni.Get("Video", "ProjectionHack", &iTemp, 0/*None*/);
 	Hack->SetSelection(iTemp);
 
-	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
+	GameIni.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
 
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
@@ -1029,10 +1029,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Video", "DlistCachingEnable", DListCache->Get3StateValue());
 
-	if (Hack->GetSelection() == -1)
-		GameIni.DeleteKey("Video", "ProjectionHack");
-	else
-		GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
+	GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
 
 	if (WMTightness->GetValue().size() == 0)
 		GameIni.DeleteKey("Video", "FIFOWatermarkTightness");
@@ -1043,10 +1040,7 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Video", "FIFOWatermarkTightness", (int)val);
 	}
 
-	if (EmuState->GetSelection() == -1)
-		GameIni.DeleteKey("EmuState", "EmulationStateId");
-	else
-		GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 
 	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
