@@ -21,6 +21,6 @@ endif(wxWidgets_FOUND)
 add_library(Plugin_DSP_LLE SHARED ${SRCS})
 target_link_libraries(Plugin_DSP_LLE ${LIBS})
 install(TARGETS Plugin_DSP_LLE
-		LIBRARY DESTINATION ${DESTDIR}${plugindir}
-		RUNTIME DESTINATION ${DESTDIR}${plugindir})
+		LIBRARY DESTINATION ${plugindir}
+		RUNTIME DESTINATION ${plugindir})
 

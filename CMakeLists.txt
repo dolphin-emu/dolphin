@@ -11,7 +11,6 @@ set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
 set(libdir		${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}	CACHE PATH "libdir")
 set(plugindir	${libdir}/dolphin-emu						CACHE PATH "plugindir")
 set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
-set(DESTDIR		${DESTDIR}									CACHE STRING "Leave blank unless building packages")
 
 # Set up paths
 set(userdir ".dolphin-emu" CACHE STRING "User directory")
@@ -341,12 +340,11 @@ add_subdirectory(Source)
 ########################################
 # Install shared data files
 #
-install(DIRECTORY Data/User/ DESTINATION ${DESTDIR}${datadir}/user PATTERN .svn EXCLUDE)
-install(DIRECTORY Data/Sys/ DESTINATION ${DESTDIR}${datadir}/sys PATTERN .svn EXCLUDE)
-install(FILES Data/license.txt DESTINATION ${DESTDIR}${datadir})
+install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN .svn EXCLUDE)
+install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN .svn EXCLUDE)
+install(FILES Data/license.txt DESTINATION ${datadir})
 
 # packaging information
-include(CPack)
 set(CPACK_PACKAGE_NAME "dolphin-emu")
 set(CPACK_PACKAGE_VENDOR "Dolphin Team")
 set(CPACK_PACKAGE_VERSION_MAJOR "2")
@@ -366,3 +364,7 @@ endif()
 # TODO: CPACK_PACKAGE_ICON
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
+
+# CPack must be included after the CPACK_* variables are set in order for those
+# variables to take effect.
+include(CPack)
