@@ -351,7 +351,9 @@ CFrame::CFrame(wxFrame* parent,
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
 
+#ifdef __WXGTK__
 	panic_event.Init();
+#endif
 
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
@@ -492,7 +494,9 @@ CFrame::~CFrame()
 
 	ClosePages();
 
+#ifdef __WXGTK__
 	panic_event.Shutdown();
+#endif
 
 	delete m_Mgr;
 }
