@@ -53,35 +53,28 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 
 std::string StringFromFormat(const char* format, ...)
 {
-	int writtenCount = -1;
-	size_t newSize = strlen(format) + 5;
-	char *buf = NULL;
 	va_list args;
-	while (writtenCount < 0)
-	{
-		delete[] buf;
-		buf = new char[newSize];
-	
-		va_start(args, format);
-		writtenCount = vsnprintf(buf, newSize, format, args);
-		va_end(args);
+	char *buf = NULL;
+#ifdef _WIN32
+	int required = 0;
 
-#ifndef _WIN32
-		// vsnprintf does not return -1 on truncation in linux!
-		// Instead it returns the size of the string we need.
-		if (writtenCount > (int)newSize)
-		{
-			newSize = writtenCount + 1;
-			writtenCount = -1;
-		}
-#else
-		newSize *= 2;
-#endif
-	}
+	va_start(args, format);
+	required = _vscprintf(format, args);
+	buf = new char[required + 1];
+	vsnprintf(buf, required, format, args);
+	va_end(args);
 
-	buf[writtenCount] = '\0';
+	buf[required] = '\0';
 	std::string temp = buf;
 	delete[] buf;
+#else
+	va_start(args, format);
+	vasprintf(&buf, format, args);
+	va_end(args);
+
+	std::string temp = buf;
+	free(buf);
+#endif
 	return temp;
 }
 
