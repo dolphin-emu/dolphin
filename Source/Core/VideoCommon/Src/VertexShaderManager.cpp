@@ -56,11 +56,12 @@ namespace
 static bool g_ProjHack0;
 static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
+static ProjectionHack g_ProjHack3;
 } // Namespace
 
 void UpdateProjectionHack(int iPhackvalue)
 {
-	bool bProjHack1 = 0, bPhackvalue1 = 0, bPhackvalue2 = 0;
+	bool bProjHack1 = 0, bPhackvalue1 = 0, bPhackvalue2 = 0, bPhackvalue3 = 0;
 	float fhackvalue1 = 0, fhackvalue2 = 0;
 	switch(iPhackvalue)
 	{
@@ -68,6 +69,7 @@ void UpdateProjectionHack(int iPhackvalue)
 		bProjHack1 = 0;
 		bPhackvalue1 = 0;
 		bPhackvalue2 = 0;
+		bPhackvalue3 = 0;
 		break;
 	case PROJECTION_HACK_ZELDA_TP_BLOOM_HACK:
 		bPhackvalue1 = 1;
@@ -90,6 +92,9 @@ void UpdateProjectionHack(int iPhackvalue)
 		fhackvalue1 = 0.04f;
 		bPhackvalue2 = 0;
 		bProjHack1 = 0;
+		break;
+	case PROJECTION_HACK_METROID_OTHER_M:  //temp fix for black screens during cut scenes
+		bPhackvalue3 = 1;
 		break;
 /*	// Unused - kept for reference
 	case PROJECTION_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
@@ -126,6 +131,7 @@ void UpdateProjectionHack(int iPhackvalue)
 	g_ProjHack0 = bProjHack1;
 	g_ProjHack1 = ProjectionHack(bPhackvalue1 == 0 ? false : true, fhackvalue1);
 	g_ProjHack2 = ProjectionHack(bPhackvalue2 == 0 ? false : true, fhackvalue2);
+	g_ProjHack3 = ProjectionHack(bPhackvalue3,0);
 }
 
 void VertexShaderManager::Init()
@@ -344,9 +350,17 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = 1.0f;
 
+			/*
+			projection hack for metroid other m...attempt to remove black projection layer from cut scenes.
+			g_fProjectionMatrix[15] = 1.0f was the default setting before
+			this hack was added...setting g_fProjectionMatrix[14] to -1 might make the hack more stable, needs more testing.
+			Only works for OGL and DX9...this is not helping DX11
+			*/
+			
+			g_fProjectionMatrix[14] = 0.0f;
+			g_fProjectionMatrix[15] = (g_ProjHack3.enabled && xfregs.rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
+		
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
 			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);

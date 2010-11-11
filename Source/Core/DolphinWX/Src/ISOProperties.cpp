@@ -340,6 +340,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
 	arrayStringFor_Hack.Add(_("Skies of Arcadia"));
+	arrayStringFor_Hack.Add(_("Metroid Other M"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
 	WMTightnessText = new wxStaticText(m_GameConfig, ID_WMTIGHTNESS_TEXT, wxT("Watermark tightness: "), wxDefaultPosition, wxDefaultSize);

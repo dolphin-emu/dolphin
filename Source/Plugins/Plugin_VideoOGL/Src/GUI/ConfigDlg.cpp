@@ -191,6 +191,7 @@ void GFXConfigDialogOGL::InitializeGUILists()
 	arrayStringFor_PhackvalueCB.Add(wxT("Sonic and the Black Knight"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Bleach Versus Crusade"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Skies of Arcadia"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Metroid Other M"));
 }
 
 void GFXConfigDialogOGL::InitializeGUIValues()
