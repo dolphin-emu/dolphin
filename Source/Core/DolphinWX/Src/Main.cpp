@@ -452,9 +452,23 @@ void Host_SysMessage(const char *fmt, ...)
 
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
-	return wxYES == wxMessageBox(wxString::FromAscii(text), 
-				 wxString::FromAscii(caption),
-				 (yes_no)?wxYES_NO:wxOK);
+#ifdef __WXGTK__
+	if (wxIsMainThread())
+#endif
+		return wxYES == wxMessageBox(wxString::FromAscii(text), 
+				wxString::FromAscii(caption),
+				(yes_no) ? wxYES_NO : wxOK);
+#ifdef __WXGTK__
+	else
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
+		event.SetString(wxString::FromAscii(text));
+		event.SetInt(yes_no);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+		main_frame->panic_event.Wait();
+		return main_frame->bPanicResult;
+	}
+#endif
 }
 
 // Accessor for the main window class

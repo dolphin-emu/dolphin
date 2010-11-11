@@ -135,6 +135,11 @@ class CFrame : public CRenderFrame
 		void DoFullscreen(bool bF);
 		void ToggleDisplayMode (bool bFullscreen);
 
+		#ifdef __WXGTK__
+		Common::Event panic_event;
+		bool bPanicResult;
+		#endif
+
 		#if defined(HAVE_XRANDR) && HAVE_XRANDR
 		X11Utils::XRRConfiguration *m_XRRConfig;
 		#endif
