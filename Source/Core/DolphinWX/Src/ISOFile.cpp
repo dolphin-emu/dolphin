@@ -26,6 +26,7 @@
 #include "FileUtil.h"
 #include "ISOFile.h"
 #include "StringUtil.h"
+#include "Hash.h"
 
 #include "Filesystem.h"
 #include "BannerLoader.h"
@@ -178,10 +179,15 @@ void GameListItem::DoState(PointerWrap &p)
 
 std::string GameListItem::CreateCacheFilename()
 {
-	std::string Filename;
-	SplitPath(m_FileName, NULL, &Filename, NULL);
+	std::string Filename, LegalPathname;
+	SplitPath(m_FileName, &LegalPathname, &Filename, NULL);
 
 	if (Filename.empty()) return Filename; // Disc Drive
+
+	// Append hash to prevent ISO name-clashing in different folders.
+	Filename.append(StringFromFormat("%x", 
+		HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size())));
+
 	// We add gcz to the cache file if the file is compressed to avoid it reading
 	// the uncompressed file's cache if it has the same name, but not the same ext.
 	if (DiscIO::IsCompressedBlob(m_FileName.c_str()))
