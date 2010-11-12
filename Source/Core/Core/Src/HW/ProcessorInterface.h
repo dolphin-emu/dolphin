@@ -57,6 +57,8 @@ extern u32 Fifo_CPUWritePointer;
 void Init();
 void DoState(PointerWrap &p);
 
+void Read16(u16& _uReturnValue, const u32 _iAddress);
+
 void Read32(u32& _uReturnValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);
 

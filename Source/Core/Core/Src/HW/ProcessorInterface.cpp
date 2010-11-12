@@ -102,6 +102,13 @@ void Init()
 	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", &ToggleResetButtonCallback);
 }
 
+void Read16(u16& _uReturnValue, const u32 _iAddress)
+{
+	u32 word;
+	Read32(word, _iAddress & ~3);
+	_uReturnValue = word >> (_iAddress & 3) ? 16 : 0;
+}
+
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
 	//INFO_LOG(PROCESSORINTERFACE, "(r32) 0x%08x", _iAddress);

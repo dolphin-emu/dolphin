@@ -193,6 +193,7 @@ void InitHWMemFuncs()
 		hwWrite16[VI_START+i] = VideoInterface::Write16;
 		hwWrite32[VI_START+i] = VideoInterface::Write32;
 
+		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
 		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
 		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
 
@@ -259,6 +260,7 @@ void InitHWMemFuncsWii()
 		hwWrite16[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite16;
 		hwWrite32[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite32;
 
+		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
 		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
 		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
 
