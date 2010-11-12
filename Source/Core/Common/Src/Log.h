@@ -95,7 +95,9 @@ extern "C" {
 #endif
 void GenericLogC(int level, int type,
 		const char *file, int line, const char *fmt, ...);
+#ifndef __cplusplus
 #define GenericLog GenericLogC
+#endif
 #ifdef __cplusplus
 };
 #endif

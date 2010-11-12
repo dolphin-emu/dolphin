@@ -74,12 +74,12 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				
 				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
 				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
-				int sampleL = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;	
+				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;	
 				samples[i]   = sampleL;			
 				
 				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
 				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
-				int sampleR = (r1 << 16) + (r2 - r1) * (u16)frac  >> 16;
+				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
 				samples[i+1] = sampleR;
 
 				frac += ratio;

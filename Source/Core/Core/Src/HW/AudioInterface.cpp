@@ -335,8 +335,8 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 					r2 = pcm[pos * 2 + 1]; //next
 				}
 
-				pcm_l = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;
-				pcm_r = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;
+				pcm_l = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+				pcm_r = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
 
 
 				pcm_l = (pcm_l * lvolume >> 8) + (int)(*_pDestBuffer);

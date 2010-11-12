@@ -86,10 +86,6 @@ endif(CMAKE_BUILD_TYPE STREQUAL Release)
 # be needed by users is optional defaulting to ON, other stuff (like e.g.
 # sound backends) is completely optional.
 
-# TODO: wxWidgets: When building the Debug configuration, we should probably
-# check if the debug wx libs are available and fall back to the bundled ones
-# otherwise.
-
 include(FindOpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
@@ -287,6 +283,12 @@ endif()
 if(WIN32)
 	find_library(GLEW glew32s PATHS Externals/GLew)
 	include_directories(Externals/GLew/include)
+else()
+	include(CheckLib)
+	check_lib(GLEW glew TRUE)
+	check_lib(GLU glu TRUE)
+	check_lib(CG Cg TRUE)
+	check_lib(CGGL CgGL TRUE)
 endif()
 
 if(NOT APPLE)
@@ -305,12 +307,9 @@ if(NOT DISABLE_WX)
 		include(${wxWidgets_USE_FILE})
 
 		if(UNIX)
-			pkg_search_module(GTK2 REQUIRED gtk+-2.0)
+			check_lib(GTK2 gtk+-2.0 TRUE)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
-				message("GTK 2 found")
-			else(GTK2_FOUND)
-				message("GTK 2 NOT found")
 			endif(GTK2_FOUND)
 		endif(UNIX)
 
