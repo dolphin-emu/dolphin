@@ -39,8 +39,6 @@
 #ifndef WIIUSE_H_INCLUDED
 #define WIIUSE_H_INCLUDED
 
-//#define WITH_WIIUSE_DEBUG
-
 #ifdef _WIN32
 	#include <windows.h>
 #elif defined(__APPLE__)
@@ -186,6 +184,8 @@ typedef struct wiimote_t {
  *	Include API specific stuff
  *
  *****************************************/
+
+#define WIIUSE_COMPILE_LIB
 
 #ifdef _WIN32
 	#define WIIUSE_EXPORT_DECL __declspec(dllexport)

@@ -160,17 +160,6 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	return wiimotes;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 int wiiuse_connect(struct wiimote_t** wm, int wiimotes) {
 	int i,connected=0;
 	for (i = 0; i < wiimotes; ++i) {
@@ -180,7 +169,6 @@ int wiiuse_connect(struct wiimote_t** wm, int wiimotes) {
 
 	return connected;
 }
-
 
 void wiiuse_disconnect(struct wiimote_t* wm) {
 	if (!wm || WIIMOTE_IS_CONNECTED(wm))
@@ -196,7 +184,6 @@ void wiiuse_disconnect(struct wiimote_t* wm) {
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 }
-
 
 int wiiuse_io_read(struct wiimote_t* wm) {
 	DWORD b, r;
@@ -242,7 +229,6 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 	ResetEvent(wm->hid_overlap.hEvent);
 	return 1;
 }
-
 
 int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 	DWORD bytes, dw;
@@ -374,9 +360,6 @@ int wiiuse_register_system_notification(HWND hwnd) {
     return RegisterDeviceNotification(hwnd,&Filter, DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
 }
 
-
-
-
 int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes) {
 	int i = 0;
 	WIIUSE_INFO("Remove Wiimotes, WM: %i MAX_WM: %i",wiimotes, max_wiimotes);
@@ -398,6 +381,5 @@ int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes) {
 	return i;
 
 }
-
 
 #endif /* ifdef _WIN32 */
