@@ -23,6 +23,7 @@ BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
 	EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
+	EVT_CHOICE(ID_FREQUENCY, DSPConfigDialogHLE::SettingsChanged)
 	EVT_CHOICE(ID_BACKEND, DSPConfigDialogHLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
@@ -44,6 +45,12 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"),
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	wxStaticText *FrequencyText = new wxStaticText(this, wxID_ANY, wxT("Sample Rate"),
+		   	wxDefaultPosition, wxDefaultSize, 0);
+	m_FrequencySelection = new wxChoice(this, ID_FREQUENCY, wxDefaultPosition, wxSize(110, 20),
+			wxArrayRates, 0, wxDefaultValidator, wxEmptyString);
+
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"),
 		   	wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20),
@@ -67,22 +74,41 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
 		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
 		wxT("But sometimes enabling this could cause constant noise.\n")
 		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
+	m_FrequencySelection->
+		SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 	m_BackendSelection->
 		SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
-	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound, OpenAL, and PulseAudio."));
+	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound, OpenAL, XAudio2, and PulseAudio."));
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *sSettings = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *sBackend = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *sFrequency = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *sButtons = new wxBoxSizer(wxHORIZONTAL);
 
 	sbSettings->Add(m_buttonEnableHLEAudio, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
-	sBackend->Add(BackendText, 0, wxALIGN_CENTER|wxALL, 5);
+
+	sFrequency->Add(FrequencyText, 0, wxALIGN_LEFT|wxALL, 1);
+	sFrequency->Add(m_FrequencySelection, 0, wxALL, 1);
+
+	m_FrequencySelection->Append(wxString::FromAscii("48,000 Hz"));
+	m_FrequencySelection->Append(wxString::FromAscii("32,000 Hz"));
+	#ifdef __APPLE__
+	int num = m_FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency));
+	#else
+	int num = m_FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency.c_str()));
+	#endif
+	m_FrequencySelection->SetSelection(num);
+
+	sbSettings->Add(sFrequency, 0, wxALL, 7);
+
+
+	sBackend->Add(BackendText, 0, wxALIGN_LEFT|wxALL, 1);
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
-	sbSettings->Add(sBackend, 0, wxALL, 2);
+	sbSettings->Add(sBackend, 0, wxALL, 7);
 
 	sbSettingsV->Add(m_volumeSlider, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
 	sbSettingsV->Add(m_volumeText, 0, wxALL|wxALIGN_LEFT, 4);
@@ -138,8 +164,10 @@ void DSPConfigDialogHLE::SettingsChanged(wxCommandEvent& event)
 
 #ifdef __APPLE__
 	strncpy(ac_Config.sBackend, m_BackendSelection->GetStringSelection().mb_str(), 128);
+	strncpy(ac_Config.sFrequency, m_FrequencySelection->GetStringSelection().mb_str(), 128);
 #else
 	ac_Config.sBackend = m_BackendSelection->GetStringSelection().mb_str();
+	ac_Config.sFrequency = m_FrequencySelection->GetStringSelection().mb_str();
 #endif
 	ac_Config.Update();
 	g_Config.Save();

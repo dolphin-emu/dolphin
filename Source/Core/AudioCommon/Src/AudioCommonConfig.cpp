@@ -26,14 +26,19 @@ void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "Volume", &m_Volume, 75);
 #ifdef _WIN32
 	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	file.Get("Config", "Frequency", &sFrequency, "32,000 Hz");
 #elif defined __APPLE__
 	std::string temp;
 	file.Get("Config", "Backend", &temp, BACKEND_COREAUDIO);
 	strncpy(sBackend, temp.c_str(), 128);
+	file.Get("Config", "Frequency", &temp, "32,000 Hz");
+	strncpy(sFrequency, temp.c_str(), 128);
 #elif defined __linux__
 	file.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
+	file.Get("Config", "Frequency", &sFrequency, "32,000 Hz");
 #else
 	file.Get("Config", "Backend", &sBackend, BACKEND_OPENAL);
+	file.Get("Config", "Frequency", &sFrequency, "32,000 Hz");
 #endif
 }
 
@@ -43,6 +48,7 @@ void AudioCommonConfig::Set(IniFile &file) {
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
 	file.Set("Config", "EnableJIT", m_EnableJIT);
 	file.Set("Config", "Backend", sBackend);
+	file.Set("Config", "Frequency", sFrequency);
 	file.Set("Config", "Volume", m_Volume);
 }
 

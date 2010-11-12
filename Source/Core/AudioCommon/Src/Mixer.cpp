@@ -57,73 +57,38 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
 			m_indexR += numLeft * 2;
 		}
-		else
+		else //linear interpolation
 		{
-			// AyuanX: Up-sampling is not implemented yet
-			PanicAlert("Mixer: Up-sampling is not implemented yet!");
-/*
-	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
-	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
-	static int acc=0;
+			//render numleft sample pairs to samples[]
+			//advance m_indexR with sample position
+			//remember fractional offset
 
-	while (num_stereo_samples) {
-		acc += core_sample_rate;
-		while (num_stereo_samples && (acc >= 48000)) {
-			PV4l=PV3l;
-			PV3l=PV2l;
-			PV2l=PV1l;
-			PV1l=*(samples++); //32bit processing
-			PV4r=PV3r;
-			PV3r=PV2r;
-			PV2r=PV1r;
-			PV1r=*(samples++); //32bit processing
-			num_stereo_samples--;
-			acc-=48000;
+			static u32 frac = 0;
+			const u32 ratio = (u32)( 65536.0f * 32000.0f / (float)m_sampleRate );
+
+			for (u32 i = 0; i < numLeft * 2; i+=2) {
+				u32 m_indexR2 = m_indexR + 2; //next sample
+				if ((m_indexR2 & INDEX_MASK) == (m_indexW & INDEX_MASK)) //..if it exists
+					m_indexR2 = m_indexR;
+
+				
+				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
+				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
+				int sampleL = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;	
+				samples[i]   = sampleL;			
+				
+				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
+				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
+				int sampleR = (r1 << 16) + (r2 - r1) * (u16)frac  >> 16;
+				samples[i+1] = sampleR;
+
+				frac += ratio;
+				m_indexR += 2 * (u16)(frac >> 16);
+				frac &= 0xffff;
+			}
 		}
-		
-		// defaults to nearest
-		s32 DataL = PV1l;
-		s32 DataR = PV1r;
-		
-		if (m_mode == 1) { //linear
-        
-			DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
-			DataR = PV1r + ((PV2r - PV1r)*acc)/48000;
-		}
-		else if (m_mode == 2) {//cubic
-			s32 a0l = PV1l - PV2l - PV4l + PV3l;
-			s32 a0r = PV1r - PV2r - PV4r + PV3r;
-			s32 a1l = PV4l - PV3l - a0l;
-			s32 a1r = PV4r - PV3r - a0r;
-			s32 a2l = PV1l - PV4l;
-			s32 a2r = PV1r - PV4r;
-			s32 a3l = PV2l;
-			s32 a3r = PV2r;
-			
-			s32 t0l = ((a0l    )*acc)/48000;
-			s32 t0r = ((a0r    )*acc)/48000;
-			s32 t1l = ((t0l+a1l)*acc)/48000;
-			s32 t1r = ((t0r+a1r)*acc)/48000;
-			s32 t2l = ((t1l+a2l)*acc)/48000;
-			s32 t2r = ((t1r+a2r)*acc)/48000;
-			s32 t3l = ((t2l+a3l));
-			s32 t3r = ((t2r+a3r));
-			
-			DataL = t3l;
-			DataR = t3r;
-		}
-		
-		int l = DataL, r = DataR;
-		if (l < -32767) l = -32767;
-		if (r < -32767) r = -32767;
-		if (l > 32767) l = 32767;
-		if (r > 32767) r = 32767;
-		sample_queue.push(l);
-		sample_queue.push(r);
-		m_queueSize += 2;
-	}
-*/
-		}
+
+
 
 	} else {
 		numLeft = 0;
@@ -154,7 +119,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 	if (m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-		while (Common::AtomicLoad(m_numSamples) >= MAX_SAMPLES - RESERVED_SAMPLES)
+		while (Common::AtomicLoad(m_numSamples) + RESERVED_SAMPLES >= MAX_SAMPLES)
 		{
 			if (g_dspInitialize.pEmulatorState)
 			{
@@ -171,7 +136,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 	}
 
 	// Check if we have enough free space
-	if (num_samples > MAX_SAMPLES - Common::AtomicLoad(m_numSamples))
+	if (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
 		return;
 
 	// AyuanX: Actual re-sampling work has been moved to sound thread
@@ -190,12 +155,12 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 
 	m_indexW += num_samples * 2;
 
-	 if (m_sampleRate != 32000)
-	{
-		PanicAlert("Mixer: Up-sampling is not implemented yet!");
-	}
-
-	Common::AtomicAdd(m_numSamples, num_samples);
+	if (m_sampleRate == 32000)
+		Common::AtomicAdd(m_numSamples, num_samples);
+	else if (m_sampleRate == 48000)
+		Common::AtomicAdd(m_numSamples, num_samples * 1.5);
+	else
+		PanicAlert("Mixer: Unsupported sample rate.");
 
 	return;
 }

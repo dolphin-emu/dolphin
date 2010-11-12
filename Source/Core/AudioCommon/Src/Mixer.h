@@ -26,7 +26,7 @@
 class CMixer {
 	
 public:
-	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000)
+	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000)
 		: m_aiSampleRate(AISampleRate)
 		, m_dacSampleRate(DACSampleRate)
 		, m_bits(16)
@@ -39,9 +39,8 @@ public:
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
-		// I prefer speed so let's do down-sampling instead of up-sampling
-		// If you like better sound than speed, feel free to implement the up-sampling code
-		m_sampleRate = 32000;
+		m_sampleRate = BackendSampleRate;
+
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
 

@@ -46,13 +46,16 @@ private:
 	wxCheckBox* m_buttonEnableDTKMusic;
 	wxCheckBox* m_buttonEnableThrottle;
 	wxArrayString wxArrayBackends;
+	wxArrayString wxArrayRates;
 	wxChoice* m_BackendSelection;
+	wxChoice* m_FrequencySelection;
 
 	enum
 	{
 		ID_ENABLE_HLE_AUDIO,
 		ID_ENABLE_DTK_MUSIC,
 		ID_ENABLE_THROTTLE,
+		ID_FREQUENCY,
 		ID_BACKEND,
 		ID_VOLUME
 	};

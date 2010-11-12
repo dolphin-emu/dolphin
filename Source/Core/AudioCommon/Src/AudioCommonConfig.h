@@ -39,8 +39,10 @@ struct AudioCommonConfig
 	int m_Volume;
 #ifdef __APPLE__
 	char sBackend[128];
+	char sFrequency[128];
 #else
 	std::string sBackend;
+	std::string sFrequency;
 #endif
 	
 	// Load from given file

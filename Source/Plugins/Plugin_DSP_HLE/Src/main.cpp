@@ -250,9 +250,15 @@ unsigned short DSP_WriteControlRegister(unsigned short _Value)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
-			unsigned int AISampleRate, DACSampleRate;
+			unsigned int AISampleRate, DACSampleRate, BackendSampleRate;
 			g_dspInitialize.pGetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DACSampleRate));
+			std::string frequency = ac_Config.sFrequency;
+			if (frequency == "48,000 Hz")
+				BackendSampleRate = 48000;
+			else
+				BackendSampleRate = 32000;
+
+			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DACSampleRate, BackendSampleRate));
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			g_InitMixer = true;

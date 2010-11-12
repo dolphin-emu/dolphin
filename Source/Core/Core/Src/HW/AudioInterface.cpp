@@ -281,16 +281,10 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 		const int lvolume = g_AudioRegister.m_Volume.leftVolume;
 		const int rvolume = g_AudioRegister.m_Volume.rightVolume;
 
-
 		if (g_AISampleRate == 48000 && _sampleRate == 32000)
 		{
 			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples & 1), "Number of Samples: %i must be even!", _numSamples);
 			_numSamples = _numSamples * 3 / 2;
-		}
-		else if (g_AISampleRate == 32000 && _sampleRate == 48000)
-		{
-			// AyuanX: Up-sampling is not implemented yet
-			PanicAlert("AUDIO_INTERFACE: Up-sampling is not implemented yet!");
 		}
 
 		int pcm_l = 0, pcm_r = 0;
@@ -299,45 +293,82 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			if (pos == 0)
 				ReadStreamBlock(pcm);
 
-			if (g_AISampleRate == 48000 && _sampleRate == 32000)
+			if (g_AISampleRate == 48000 && _sampleRate == 32000) //downsample 48>32
 			{
 				if (i % 3)
 				{
 					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*_pDestBuffer);
-					if (pcm_l > 32767)
-						pcm_l = 32767;
-					else if (pcm_l < -32767)
-						pcm_l = -32767;
+					if (pcm_l > 32767)			pcm_l = 32767;
+					else if (pcm_l < -32767)	pcm_l = -32767;
 					*_pDestBuffer++ = pcm_l;
 
 					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*_pDestBuffer);
- 					if (pcm_r > 32767)
-						pcm_r = 32767;
-					else if (pcm_r < -32767)
-						pcm_r = -32767;
+ 					if (pcm_r > 32767)			pcm_r = 32767;
+					else if (pcm_r < -32767)	pcm_r = -32767;
 					*_pDestBuffer++ = pcm_r;
 				}
 				pcm_l = pcm[pos*2];
 				pcm_r = pcm[pos*2+1];
+
+				pos++;
 			}
-			else
+			else if (g_AISampleRate == 32000 && _sampleRate == 48000) //upsample 32>48
 			{
+				//starts with one sample of 0
+				const u32 ratio = (u32)( 65536.0f * 32000.0f / (float)_sampleRate );
+				static u32 frac = 0;
+
+				static s16 l1 = 0;
+				static s16 l2 = 0;
+				static s16 r1 = 0;
+				static s16 r2 = 0;
+
+				
+				if ( frac >= 0x10000 || frac == 0)
+				{
+					frac &= 0xffff;
+
+					l1 = l2;		   //current
+					l2 = pcm[pos * 2]; //next
+
+					r1 = r2;			   //current
+					r2 = pcm[pos * 2 + 1]; //next
+				}
+
+				pcm_l = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;
+				pcm_r = (l1 << 16) + (l2 - l1) * (u16)frac  >> 16;
+
+
+				pcm_l = (pcm_l * lvolume >> 8) + (int)(*_pDestBuffer);
+				if (pcm_l > 32767)			pcm_l = 32767;
+				else if (pcm_l < -32767)	pcm_l = -32767;
+				*_pDestBuffer++ = pcm_l;
+
+				pcm_r = (pcm_r * lvolume >> 8) + (int)(*_pDestBuffer);
+				if (pcm_r > 32767)			pcm_r = 32767;
+				else if (pcm_r < -32767)	pcm_r = -32767;
+				*_pDestBuffer++ = pcm_r;
+
+				frac += ratio;
+				pos += frac >> 16;
+
+			}
+			else //1:1 no resampling
+			{ 
 				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_l > 32767)
-					pcm_l = 32767;
-				else if (pcm_l < -32767)
-					pcm_l = -32767;
+				if (pcm_l > 32767)			pcm_l = 32767;
+				else if (pcm_l < -32767)	pcm_l = -32767;
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_r > 32767)
-					pcm_r = 32767;
-				else if (pcm_r < -32767)
-					pcm_r = -32767;
+				if (pcm_r > 32767)			pcm_r = 32767;
+				else if (pcm_r < -32767)	pcm_r = -32767;
 				*_pDestBuffer++ = pcm_r;
+				
+				pos++;
 			}
 
-			if (++pos == 28) 
+			if (pos == 28) 
 				pos = 0;
 		}
 	}
