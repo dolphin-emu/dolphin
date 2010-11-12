@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wiiuse.lib"
+				AdditionalDependencies="wiiused.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wiiuse.lib"
+				AdditionalDependencies="wiiused.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;;&quot;..\..\..\Externals\WiiUse\$(PlatformName)&quot;"
 			/>

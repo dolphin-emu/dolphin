@@ -46,7 +46,7 @@
 				AdditionalIncludeDirectories="..\..\Source\Core\Common\Src"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="0"
+				RuntimeLibrary="1"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -63,7 +63,7 @@
 				Name="VCLibrarianTool"
 				AdditionalDependencies="hid.lib setupapi.lib Common.lib"
 				OutputFile="$(PlatformName)\$(ProjectName)d.lib"
-				AdditionalLibraryDirectories="&quot;..\..\Source\Core\Common\$(PlatformName)\DebugFast&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\Source\Core\Common\$(OutDir)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -110,7 +110,7 @@
 				AdditionalIncludeDirectories="..\..\Source\Core\Common\Src"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="0"
+				RuntimeLibrary="1"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -127,7 +127,7 @@
 				Name="VCLibrarianTool"
 				AdditionalDependencies="hid.lib setupapi.lib Common.lib"
 				OutputFile="$(PlatformName)\$(ProjectName)d.lib"
-				AdditionalLibraryDirectories="&quot;..\..\Source\Core\Common\$(PlatformName)\DebugFast&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\Source\Core\Common\$(OutDir)&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
