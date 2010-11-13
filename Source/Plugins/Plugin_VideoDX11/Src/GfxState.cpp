@@ -158,6 +158,7 @@ void EmuGfxState::ApplyState()
 		context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, vsconstants, sizeof(vsconstants));
 		context->Unmap(vscbuf, 0);
+		vscbufchanged = false;
 	}
 	D3D::context->VSSetConstantBuffers(0, 1, &vscbuf);
 
