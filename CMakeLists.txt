@@ -194,6 +194,7 @@ include_directories(Source/Core/DSPCore/Src)
 include_directories(Source/Core/InputCommon/Src)
 include_directories(Source/Core/InputUICommon/Src)
 include_directories(Source/Core/VideoCommon/Src)
+include_directories(Source/Core/wiiuse/Src)
 
 
 ########################################
@@ -268,17 +269,6 @@ else(ZLIB_FOUND)
 	add_subdirectory(Externals/zlib)
 	include_directories(Externals/zlib)
 endif(ZLIB_FOUND)
-
-if(UNIX OR APPLE)
-	add_subdirectory(Externals/WiiUse)
-	include_directories(Externals/WiiUse/Src)
-elseif(WIN32)
-	# use the precompiled ones
-	# TODO: Use the 64 bit lib on 64 bit systems...
-	# TODO: If WDK is installed, we can compile this from source as well
-	find_library(WIIUSE wiiuse PATHS Externals/WiiUse/Win32 NO_DEFAULT_PATH)
-	include_directories(Externals/WiiUse/Src)
-endif()
 
 if(WIN32)
 	find_library(GLEW glew32s PATHS Externals/GLew)
