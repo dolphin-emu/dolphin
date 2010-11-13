@@ -123,7 +123,7 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 		wm[i]->unid = i+1;
 
 		#if defined __linux__ && HAVE_BLUEZ
-			wm[i]->bdaddr = *BDADDR_ANY;
+			wm[i]->bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 			wm[i]->out_sock = -1;
 			wm[i]->in_sock = -1;
 		#elif defined(_WIN32)

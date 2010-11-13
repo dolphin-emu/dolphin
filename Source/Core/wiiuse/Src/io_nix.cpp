@@ -183,7 +183,8 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address)
 		str2ba(address, &addr.l2_bdaddr);
 	else
 	{
-		if (bacmp(bdaddr, BDADDR_ANY) == 0)
+		bdaddr_t bdaddr_any = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
+		if (bacmp(bdaddr, &bdaddr_any) == 0)
 			return 0;
 		// use address of device discovered
 		addr.l2_bdaddr = *bdaddr;

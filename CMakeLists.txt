@@ -33,12 +33,20 @@ endif()
 include(FindPkgConfig REQUIRED)
 
 # Various compile flags
-add_definitions(-msse2 -Wall -Wno-unused-result)
+add_definitions(-msse2 -Wall)
 
 # gcc uses some optimizations which might break stuff without this flag
 add_definitions(-fno-strict-aliasing -fno-exceptions)
 
 include(CheckCXXCompilerFlag)
+
+# We call fread numerous times without checking return values.  Hide the
+# corresponding compiler warnings if the compiler supports doing so.
+CHECK_CXX_COMPILER_FLAG(-Wno-unused-result NO_UNUSED_RESULT)
+if(NO_UNUSED_RESULT)
+	add_definitions(-Wno-unused-result)
+endif(NO_UNUSED_RESULT)
+
 CHECK_CXX_COMPILER_FLAG(-fvisibility-inlines-hidden VISIBILITY_INLINES_HIDDEN)
 if(VISIBILITY_INLINES_HIDDEN)
 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden)
@@ -275,10 +283,10 @@ if(WIN32)
 	include_directories(Externals/GLew/include)
 else()
 	include(CheckLib)
-	check_lib(GLEW glew TRUE)
-	check_lib(GLU glu TRUE)
-	check_lib(CG Cg TRUE)
-	check_lib(CGGL CgGL TRUE)
+	check_lib(GLEW glew REQUIRED)
+	check_lib(GLU glu REQUIRED)
+	check_lib(CG Cg REQUIRED)
+	check_lib(CGGL CgGL REQUIRED)
 endif()
 
 if(NOT APPLE)
@@ -296,7 +304,7 @@ if(NOT DISABLE_WX)
 		include(${wxWidgets_USE_FILE})
 
 		if(UNIX)
-			check_lib(GTK2 gtk+-2.0 TRUE)
+			check_lib(GTK2 gtk+-2.0 REQUIRED)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
 			endif(GTK2_FOUND)
