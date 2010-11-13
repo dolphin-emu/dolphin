@@ -87,17 +87,20 @@ enum LOG_LEVELS {
 };
 
 #ifdef __cplusplus
+#define LOGTYPES_LEVELS LogTypes::LOG_LEVELS
+#define LOGTYPES_TYPE LogTypes::LOG_TYPE
+#else
+#define LOGTYPES_LEVELS enum LOG_LEVELS
+#define LOGTYPES_TYPE enum LOG_TYPE
+#endif
+
+#ifdef __cplusplus
 }  // namespace
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-		const char *file, int line, const char *fmt, ...);
 extern "C" {
 #endif
-void GenericLogC(int level, int type,
+void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 		const char *file, int line, const char *fmt, ...);
-#ifndef __cplusplus
-#define GenericLog GenericLogC
-#endif
 #ifdef __cplusplus
 };
 #endif
