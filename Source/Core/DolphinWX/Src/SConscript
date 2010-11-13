@@ -97,12 +97,11 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	env.Fixup(exeGUIdist, exeGUI)
 else:
 	files += [ 'X11Utils.cpp' ]
-
-libs += [ 'SDL' ]
-exeGUI = env['binary_dir'] + '/dolphin-emu'
-exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
-env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
-env.InstallAs(env['data_dir'] + '/user', '#Data/User')
+	libs += [ 'SDL' ]
+	exeGUI = env['binary_dir'] + '/dolphin-emu'
+	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
+	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
+	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
 if env['HAVE_WX']:
 	env.Program(exeGUI, files, LIBS = wxlibs + libs + env['LIBS'])
