@@ -211,7 +211,7 @@ void Init(std::vector<ControllerInterface::Device*>& devices)
 
 	// Wait while current devices are initialized
 	while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) ==
-		kCFRunLoopRunHandledSource);
+		kCFRunLoopRunHandledSource) {};
 
 	// Things should be configured now
 	// Disable hotplugging and other scheduling

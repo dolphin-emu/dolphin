@@ -122,8 +122,11 @@ rev = utils.GenerateRevFile(env['flavor'], '.', None)
 if sys.platform == 'darwin':
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
     ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
+    system = '/System/Library/Frameworks'
     env['CCFLAGS'] += ccld
     env['CCFLAGS'] += ['-msse3']
+    env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
+    env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
     env['CC'] = "gcc-4.2 -ObjC"
     env['CXX'] = "g++-4.2 -ObjC++"
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
@@ -132,19 +135,10 @@ if sys.platform == 'darwin':
     env['LIBPATH'] += ['/usr/lib']
     env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
-    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z']
-    env['LINKFLAGS'] += ['-F/System/Library/Frameworks']
+    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
 
-    if platform.mac_ver()[0] < '10.6.0':
-        env['HAVE_OPENCL'] = 0
-    else:
+    if platform.mac_ver()[0] >= '10.6.0':
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-        env['CCFLAGS'] += ['-iframework' +
-            '/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks']
-        env['CCFLAGS'] += ['-iframework' +
-            '/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
-        env['CPPDEFINES'] += [('HAVE_OPENCL', 1)]
-        env['HAVE_OPENCL'] = 1
         env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
 
     if env['nowx']:
@@ -187,14 +181,15 @@ elif sys.platform == 'win32':
     pass
 
 else:
-    env['CCFLAGS'] += ['-fPIC', '-msse2']
+    env['CCFLAGS'] += ['-fPIC', '-msse2', '-pthread']
     env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
+    env['LINKFLAGS'] += ['-pthread']
+    env['RPATH'] = []
     if sys.platform == 'linux2':
         env['CPPDEFINES'] += [('_FILE_OFFSET_BITS', 64), '_LARGEFILE_SOURCE']
         env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
-        env['LINKFLAGS'] += ['-pthread', '-ldl']
-        env['RPATH'] = []
+        env['LIBS'] += ['dl']
 
     conf = env.Configure(config_h = "#config.h", custom_tests = {
         'CheckPKG'       : utils.CheckPKG,

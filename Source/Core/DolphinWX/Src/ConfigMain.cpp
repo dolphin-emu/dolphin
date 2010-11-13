@@ -33,7 +33,7 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 
-#include "../../Common/Src/OpenCL.h"
+#include "OpenCL.h"
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>

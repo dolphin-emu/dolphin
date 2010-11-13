@@ -26,10 +26,17 @@
 #define HAVE_OPENCL 1
 #endif
 
+// We detect the presence of the 10.6 SDK, which has the OpenCL headers,
+// by looking for the new blocks feature in the 10.6 version of gcc.
+// This allows us to have the 10.5 SDK first in the search path.
+#if defined __APPLE__ && defined __BLOCKS__
+#define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER WEAK_IMPORT_ATTRIBUTE
+#define HAVE_OPENCL 1
+#endif
+
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 
 #ifdef __APPLE__
-#define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
 #include <OpenCL/cl.h>
 #else
 #include <CL/cl.h>

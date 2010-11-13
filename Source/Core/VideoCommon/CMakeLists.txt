@@ -31,11 +31,8 @@ set(SRCS	Src/BPMemory.cpp
 			Src/VideoState.cpp
 			Src/XFBConvert.cpp
 			Src/XFMemory.cpp
-			Src/XFStructs.cpp)
-
-if(NOT APPLE)
-	set(SRCS ${SRCS} Src/OpenCL/OCLTextureDecoder.cpp)
-endif(NOT APPLE)
+			Src/XFStructs.cpp
+			Src/OpenCL/OCLTextureDecoder.cpp)
 
 add_library(videocommon STATIC ${SRCS})
 if(UNIX)

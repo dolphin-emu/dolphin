@@ -40,10 +40,8 @@
 #include <dbt.h>
 #include <setupapi.h>
 
-#include "definitions.h"
+#include "Common.h"
 #include "wiiuse_internal.h"
-
-#include <Common.h>
 
 typedef struct _HIDD_ATTRIBUTES {
 	ULONG   Size;

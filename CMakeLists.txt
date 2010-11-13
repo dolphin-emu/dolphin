@@ -285,7 +285,6 @@ if(NOT APPLE)
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
 	add_definitions(-DUSE_CLRUN)
-	add_definitions(-DHAVE_OPENCL=1)
 endif(NOT APPLE)
 
 set(DISABLE_WX FALSE CACHE BOOL "Disable wxWidgets (use CLI interface)")

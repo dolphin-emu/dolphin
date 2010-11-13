@@ -45,9 +45,8 @@
 	#include <Winsock2.h>
 #endif
 
-#include "definitions.h"
+#include "Common.h"
 #include "wiiuse_internal.h"
-
 
 static int g_banner = 1;
 
@@ -301,7 +300,7 @@ int wiiuse_write_data(struct wiimote_t* wm, unsigned int addr, byte* data, byte 
 	#endif
 
 	/* the offset is in big endian */
-	*(int*)(buf) = BIG_ENDIAN_LONG(addr);
+	*(int*)(buf) = Common::swap32(addr); /* XXX only if little-endian */
 
 	/* length */
 	*(byte*)(buf + 4) = len;

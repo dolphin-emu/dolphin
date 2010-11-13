@@ -32,14 +32,14 @@
  */
 
 #import <CoreServices/CoreServices.h>
-extern OSErr UpdateSystemActivity(UInt8 activity);
+extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 #define BLUETOOTH_VERSION_USE_CURRENT
 #import <IOBluetooth/objc/IOBluetoothDevice.h>
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
 #import <IOBluetooth/objc/IOBluetoothHostController.h>
 #import <IOBluetooth/objc/IOBluetoothL2CAPChannel.h>
 
-#include "definitions.h"
+#include "Common.h"
 #include "wiiuse_internal.h"
 
 static int wiiuse_connect_single(struct wiimote_t *wm, char *address);
@@ -49,7 +49,7 @@ IOBluetoothL2CAPChannel *ichan;
 IOBluetoothL2CAPChannel *cchan;
 
 #define QUEUE_SIZE 64
-volatile struct buffer {
+struct buffer {
 	char data[MAX_PAYLOAD];
 	int len;
 } queue[QUEUE_SIZE];

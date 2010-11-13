@@ -9,7 +9,7 @@ files = [
 	]
 
 if sys.platform == 'darwin':
-	files += [ "io_osx.m" ]
+	files += [ "io_osx.mm" ]
 elif sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 	files += [ "io_nix.cpp" ]
 elif sys.platform == 'win32':
@@ -18,4 +18,3 @@ else:
 	files += [ "io_dummy.cpp" ]
 
 env.StaticLibrary(env['local_libs'] + "wiiuse", files)
-env['CPPPATH'] += ['#Source/Core/wiiuse/Src']

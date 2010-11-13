@@ -38,7 +38,7 @@
 	#include <unistd.h>
 #endif
 
-#include "definitions.h"
+#include "Common.h"
 #include "wiiuse_internal.h"
 
 static int get_ir_sens(struct wiimote_t* wm, const char** block1, const char** block2);

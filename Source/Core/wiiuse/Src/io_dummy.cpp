@@ -1,4 +1,4 @@
-#include "definitions.h"
+#include "Common.h"
 #include "wiiuse_internal.h"
 
 int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
