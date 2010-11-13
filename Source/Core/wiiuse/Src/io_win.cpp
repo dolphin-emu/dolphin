@@ -1,0 +1,454 @@
+/*
+ *	wiiuse
+ *
+ *	Written By:
+ *		Michael Laforest	< para >
+ *		Email: < thepara (--AT--) g m a i l [--DOT--] com >
+ *
+ *	Copyright 2006-2007
+ *
+ *	This file is part of wiiuse.
+ *
+ *	This program is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 3 of the License, or
+ *	(at your option) any later version.
+ *
+ *	This program is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *	$Header$
+ *
+ */
+
+/**
+ *	@file
+ *	@brief Handles device I/O for Windows.
+ */
+
+#ifdef _WIN32
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <windows.h>
+#include <dbt.h>
+#include <setupapi.h>
+
+#include "definitions.h"
+#include "wiiuse_internal.h"
+
+#include <Common.h>
+
+typedef struct _HIDD_ATTRIBUTES {
+	ULONG   Size;
+	USHORT  VendorID;
+	USHORT  ProductID;
+	USHORT  VersionNumber;
+} HIDD_ATTRIBUTES, *PHIDD_ATTRIBUTES;
+
+typedef VOID (__stdcall *PHidD_GetHidGuid)(LPGUID);
+typedef BOOLEAN (__stdcall *PHidD_GetAttributes)(HANDLE, PHIDD_ATTRIBUTES);
+typedef BOOLEAN (__stdcall *PHidD_SetOutputReport)(HANDLE, PVOID, ULONG);
+
+PHidD_GetHidGuid HidD_GetHidGuid = NULL;
+PHidD_GetAttributes HidD_GetAttributes = NULL;
+PHidD_SetOutputReport HidD_SetOutputReport = NULL;
+
+HINSTANCE hid_lib = NULL;
+
+static int initialized = 0;
+
+inline void init_lib()
+{
+	if (!initialized)
+	{
+		hid_lib = LoadLibrary(L"hid.dll");
+		if (!hid_lib)
+		{
+			PanicAlert("Failed to load hid.dll");
+			exit(EXIT_FAILURE);
+		}
+
+		HidD_GetHidGuid = (PHidD_GetHidGuid)GetProcAddress(hid_lib, "HidD_GetHidGuid");
+		HidD_GetAttributes = (PHidD_GetAttributes)GetProcAddress(hid_lib, "HidD_GetAttributes");
+		HidD_SetOutputReport = (PHidD_SetOutputReport)GetProcAddress(hid_lib, "HidD_SetOutputReport");
+		if (!HidD_GetHidGuid || !HidD_GetAttributes || !HidD_SetOutputReport)
+		{
+			PanicAlert("Failed to load hid.dll");
+			exit(EXIT_FAILURE);
+		}
+
+		initialized = true;
+	}
+}
+
+int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes);
+
+int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
+	GUID device_id;
+	HANDLE dev;
+	HDEVINFO device_info;
+	int i, x, found, index, udisc = 0;
+	DWORD len;
+	SP_DEVICE_INTERFACE_DATA device_data;
+	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
+	HIDD_ATTRIBUTES	attr;
+
+	init_lib();
+
+	// todo: handle/remove (unexpected and forced) disconnected wiimotes here
+
+	// removal of unneeded wiimotes and exiting when we got enough wiimotes connected
+	if (wiiuse_remove(wm, wiimotes, max_wiimotes))
+		return max_wiimotes;
+
+	device_data.cbSize = sizeof(device_data);
+
+	// get the device id
+	HidD_GetHidGuid(&device_id);
+
+	// get all hid devices connected
+	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
+
+	for (index = 0; wiimotes < max_wiimotes; ++index) {
+
+		if (detail_data) {
+			free(detail_data);
+			detail_data = NULL;
+		}
+		found = 0;
+
+		// query the next hid device info
+		if (!SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data))
+			break;
+
+		// get the size of the data block required
+		i = SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &len, NULL);
+		detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
+		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+
+		// query the data for this device
+		if (!SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
+			continue;
+		
+		// Wiimote already added
+		for(x = 0; x < wiimotes; x++)
+		{
+			if(memcmp(wm[x]->devicepath,detail_data->DevicePath,197) == 0) {
+				found = 1;
+				break;
+			}
+		}
+		if (found)
+			continue;
+
+		// open new device
+		dev = CreateFile(detail_data->DevicePath,
+						(GENERIC_READ | GENERIC_WRITE),
+						(FILE_SHARE_READ | FILE_SHARE_WRITE),
+						NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+		if (dev == INVALID_HANDLE_VALUE)
+			continue;
+
+
+
+		// get device attributes 
+		attr.Size = sizeof(attr);
+		i = HidD_GetAttributes(dev, &attr);
+
+		if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
+
+
+			//this is a wiimote
+			wm[wiimotes]->dev_handle = dev;
+
+			wm[wiimotes]->hid_overlap.hEvent = CreateEvent(NULL, 1, 1, L"");
+			wm[wiimotes]->hid_overlap.Offset = 0;
+			wm[wiimotes]->hid_overlap.OffsetHigh = 0;
+
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIMOTE_STATE_DEV_FOUND);
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIMOTE_STATE_CONNECTED);
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIUSE_CONTINUOUS);
+			// try to set the output report to see if the device is actually connected
+
+			if (!wiiuse_set_report_type(wm[wiimotes])) {
+				WIIMOTE_DISABLE_STATE(wm[wiimotes], WIIMOTE_STATE_CONNECTED);
+				if (wm[wiimotes]->event == WIIUSE_UNEXPECTED_DISCONNECT)
+				{
+					wiiuse_disconnect(wm[wiimotes]);
+					memset(wm[wiimotes],0,sizeof(wm[wiimotes]));
+				}
+				continue;
+			} 
+
+			memcpy(wm[wiimotes]->devicepath,detail_data->DevicePath,197);
+			NOTICE_LOG(WIIMOTE, "Connected to wiimote [id %i].", wm[wiimotes]->unid);
+			++wiimotes;
+
+		} else {
+			// not a wiimote 
+			CloseHandle(dev);
+		}
+	}
+
+	if (detail_data)
+		free(detail_data);
+
+	SetupDiDestroyDeviceInfoList(device_info);
+
+	return wiimotes;
+}
+
+int wiiuse_connect(struct wiimote_t** wm, int wiimotes)
+{
+	int i, connected = 0;
+	
+	init_lib();
+
+	for (i = 0; i < wiimotes; ++i)
+	{
+		if (WIIMOTE_IS_SET(wm[i], WIIMOTE_STATE_CONNECTED))
+			++connected;
+	}
+
+	return connected;
+}
+
+void wiiuse_disconnect(struct wiimote_t* wm)
+{
+	init_lib();
+
+	if (!wm || WIIMOTE_IS_CONNECTED(wm))
+		return;
+
+	CloseHandle(wm->dev_handle);
+	wm->dev_handle = 0;
+
+	ResetEvent(&wm->hid_overlap);
+
+	wm->event = WIIUSE_NONE;
+
+	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
+	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
+}
+
+int wiiuse_io_read(struct wiimote_t* wm)
+{
+	DWORD b, r;
+
+	init_lib();
+
+	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
+		return 0;
+
+	if (!ReadFile(wm->dev_handle, wm->event_buf, sizeof(wm->event_buf), &b, &wm->hid_overlap)) {
+		/* partial read */
+		b = GetLastError();
+
+		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED)) {
+			/* remote disconnect */
+			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+			return 0;
+		}
+
+		r = WaitForSingleObject(wm->hid_overlap.hEvent, wm->timeout);
+		if (r == WAIT_TIMEOUT) {
+			/* timeout - cancel and continue */
+
+			if (*wm->event_buf)
+				WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).", wm->timeout);
+
+			CancelIo(wm->dev_handle);
+			ResetEvent(wm->hid_overlap.hEvent);
+			return 0;
+		} else if (r == WAIT_FAILED) {
+			WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", wm->unid);
+			return 0;
+		}
+
+		if (!GetOverlappedResult(wm->dev_handle, &wm->hid_overlap, &b, 0))
+			return 0;
+	}
+
+	// This needs to be done even if ReadFile fails, essential during init
+	// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
+	memmove(wm->event_buf + 1, wm->event_buf, sizeof(wm->event_buf) - 1);
+	wm->event_buf[0] = 0xa1;
+
+	ResetEvent(wm->hid_overlap.hEvent);
+	return 1;
+}
+
+int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len)
+{
+	DWORD bytes, dw;
+	int i;
+
+	init_lib();
+
+	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
+		return 0;
+
+	switch (wm->stack) {
+		case WIIUSE_STACK_UNKNOWN:
+		{
+			/* try to auto-detect the stack type */
+			if (i = WriteFile(wm->dev_handle, buf + 1, 22, &bytes, &wm->hid_overlap)) {
+				/* bluesoleil will always return 1 here, even if it's not connected */
+				wm->stack = WIIUSE_STACK_BLUESOLEIL;
+				return i;
+			}
+
+			if (i = HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1)) {
+				wm->stack = WIIUSE_STACK_MS;
+				return i;
+			}
+
+			/*--------------------------------------------------------------
+			dw = GetLastError(); 	//checking for 121 = timeout on semaphore/device off/disconnected to avoid trouble with other stacks toshiba/widcomm 
+			//995 = The I/O operation has been aborted because of either a thread exit or an application request.
+
+			if ( (dw == 121) || (dw == 995) ) {
+			NOTICE_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT");
+			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+			}
+			else ERROR_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT ERROR: %08x", dw); 
+			--------------------------------------------------------------*/
+
+			//If the part below causes trouble on WIDCOMM/TOSHIBA stack uncomment the lines above, and comment out the 3 lines below instead.
+
+			NOTICE_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT - time out");
+			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+
+			//ERROR_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: Unable to determine bluetooth stack type || Wiimote timed out.");
+			return 0;
+		}
+
+		case WIIUSE_STACK_MS:
+			i = HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1);
+			dw = GetLastError();
+
+			if (dw == 121) { // semaphore timeout
+				NOTICE_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_MS]: WIIUSE_UNEXPECTED_DISCONNECT");
+				wiiuse_disconnected(wm);
+				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+				return 0;
+			}/* else if (dw)
+				ERROR_LOG(WIIMOTE, "wiiuse_io_write[WIIUSE_STACK_MS]: WIIUSE_UNEXPECTED_DISCONNECT ERROR: %08x", dw);
+			*/
+			// it is not important to catch all errors here at this place, rest will be covered by io_reads.
+			return i;
+
+		case WIIUSE_STACK_BLUESOLEIL:
+			return WriteFile(wm->dev_handle, buf + 1, 22, &bytes, &wm->hid_overlap);
+	}
+
+	return 0;
+}
+
+//Checks if the corresponding device to a system notification is a wiimote
+//I placed the code here to avoid ddk/wdk dependencies @wiimote plugin
+int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lParam)
+{
+	PDEV_BROADCAST_HDR pDevice = (PDEV_BROADCAST_HDR)lParam;
+
+	init_lib();
+
+	switch(pDevice->dbch_devicetype)
+	{
+	case DBT_DEVTYP_DEVICEINTERFACE:
+		{
+			PDEV_BROADCAST_DEVICEINTERFACE pDeviceInfo = (PDEV_BROADCAST_DEVICEINTERFACE)pDevice;
+			HIDD_ATTRIBUTES	attr;
+			char stringbuf[255];
+
+			HANDLE dev = CreateFile(pDeviceInfo->dbcc_name,
+				0,(FILE_SHARE_READ | FILE_SHARE_WRITE),
+				NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+
+			if (dev != INVALID_HANDLE_VALUE)
+			{
+				attr.Size = sizeof(attr);
+				HidD_GetAttributes(dev, &attr);
+
+				//Checking PID&VID
+				if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
+					CloseHandle(dev);
+					return 1;
+				}
+
+				CloseHandle(dev);
+			}
+			else
+			{
+				// different method to acquire the "wiimote vid/pid" for a
+				// comparison when the device is already unavailable @CreateFile()
+				wcstombs(stringbuf, pDeviceInfo->dbcc_name, 255);
+				//ms bt stack + bluesoleil vid/pid dbccname format 
+				if ( (strstr(stringbuf, "VID&0002057e_PID&0306") != NULL) ||
+					(strstr(stringbuf, "VID_057e&PID_0306") != NULL) )
+				{
+					return 1;
+				}
+			}
+
+			return 0;
+		}
+
+	default: 
+		return 0;
+
+	}
+	return 0;
+}
+
+//register a handle for device notifications
+int wiiuse_register_system_notification(HWND hwnd)
+{
+	DEV_BROADCAST_DEVICEINTERFACE Filter;
+	ZeroMemory(&Filter, sizeof(Filter));
+
+	init_lib();
+
+	//GUID wiimoteguid;
+	//CLSIDFromString(_T("745a17a0-74d3-11d0-b6fe-00a0c90f57da"),&wiimoteguid);
+    Filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+    Filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+	//Filter.dbcc_classguid = wiimoteguid;
+
+    return (int)RegisterDeviceNotification(hwnd, &Filter, DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+}
+
+int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes)
+{
+	int i = 0;
+	NOTICE_LOG(WIIMOTE, "Remove Wiimotes, WM: %i MAX_WM: %i",wiimotes, max_wiimotes);
+
+	//No cleanup needed, less wiimotes available than needed
+	if (wiimotes <= max_wiimotes)
+		return 0;
+	else if (!wm)
+		return 0;
+
+	for (i = max_wiimotes; i < wiimotes; i++) {
+		if(wm[i]) {
+			wiiuse_disconnect(wm[i]);
+			wm[i]->state = WIIMOTE_INIT_STATES;
+			wm[i]->flags = WIIUSE_INIT_FLAGS;
+			wm[i]->event = WIIUSE_NONE;
+		}
+	}
+	return i;
+
+}
+
+#endif /* ifdef _WIN32 */
