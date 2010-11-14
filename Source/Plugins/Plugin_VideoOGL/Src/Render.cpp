@@ -62,6 +62,8 @@
 #include "main.h" // Local
 #ifdef _WIN32
 #include "OS/Win32.h"
+#endif
+#if defined _WIN32 || defined HAVE_AVCODEC
 #include "AVIDump.h"
 #endif
 
@@ -82,7 +84,7 @@ CGprofile g_cgfProf;
 RasterFont* s_pfont = NULL;
 
 static bool s_bLastFrameDumped = false;
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_AVCODEC
 static bool s_bAVIDumping = false;
 #else
 static FILE* f_pFrameDump;
@@ -529,7 +531,7 @@ void Renderer::Shutdown()
 
 	g_framebufferManager.Shutdown();
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_AVCODEC
 	if(s_bAVIDumping)
 		AVIDump::Stop();
 #else
@@ -1325,38 +1327,53 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// Frame dumps are handled a little differently in Windows
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_AVCODEC
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		s_criticalScreenshot.Enter();
 		int w = dst_rect.GetWidth();
 		int h = dst_rect.GetHeight();
-		u8 *data = (u8 *) malloc(3 * w * h);
+		uint8_t *data = new uint8_t[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!s_bLastFrameDumped)
 			{
-				s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+				#ifdef _WIN32
+					s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+				#else
+					s_bAVIDumping = AVIDump::Start(w, h);
+				#endif
 				if (!s_bAVIDumping)
 					OSD::AddMessage("AVIDump Start failed", 2000);
 				else
 				{
 					OSD::AddMessage(StringFromFormat(
+					#ifdef _WIN32
 						"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+					#else
+						"Dumping Frames to \"%sframedump.mpg\" (%dx%d RGB24)",
+					#endif
 						File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
 				}
 			}
 			if (s_bAVIDumping)
-				AVIDump::AddFrame((char *) data);
+			{
+				#ifdef _WIN32
+					AVIDump::AddFrame((char *) data);
+				#else
+					FlipImageData(data, w, h);
+					AVIDump::AddFrame(data);
+				#endif
+			}
 
 			s_bLastFrameDumped = true;
 		}
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 
-		free(data);
+		delete[] data;
 		s_criticalScreenshot.Leave();
 	}
 	else
@@ -1365,7 +1382,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		{
 			AVIDump::Stop();
 			s_bAVIDumping = false;
-			OSD::AddMessage("Stop dumping frames to AVI", 2000);
+			OSD::AddMessage("Stop dumping frames", 2000);
 		}
 		s_bLastFrameDumped = false;
 	}
@@ -1376,7 +1393,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		char movie_file_name[255];
 		int w = dst_rect.GetWidth();
 		int h = dst_rect.GetHeight();
-		u8 *data = (u8 *) malloc(3 * w * h);
+		u8 *data = new u8[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
@@ -1403,7 +1420,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_bLastFrameDumped = true;
 		}
 
-		free(data);
+		delete[] data;
 		s_criticalScreenshot.Leave();
 	}
 	else
@@ -1763,7 +1780,7 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = (u8 *)malloc(3 * W * H);
+	u8 *data = new u8[3 * W * H];
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -1803,7 +1820,7 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 
 #else
 	bool result = SaveTGA(filename, W, H, data);
-	free(data);
+	delete[] data;
 #endif
 
 	return result;

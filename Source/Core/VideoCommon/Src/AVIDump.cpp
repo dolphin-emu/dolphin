@@ -16,6 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "AVIDump.h"
+
+#ifdef _WIN32
+
 #include "tchar.h"
 
 #include <cstdio>
@@ -27,20 +30,20 @@
 #include "CommonPaths.h"
 #include "Log.h"
 
-static HWND m_emuWnd;
-static int m_width;
-static int m_height;
-static LONG m_byteBuffer;
-static LONG m_frameCount;
-static LONG m_totalBytes;
-static PAVIFILE m_file;
-static int m_fileCount;
-static PAVISTREAM m_stream;
-static PAVISTREAM m_streamCompressed;
-static AVISTREAMINFO m_header;
-static AVICOMPRESSOPTIONS m_options;
-static AVICOMPRESSOPTIONS *m_arrayOptions[1];
-static BITMAPINFOHEADER m_bitmap;
+HWND m_emuWnd;
+LONG m_byteBuffer;
+LONG m_frameCount;
+LONG m_totalBytes;
+PAVIFILE m_file;
+int m_width;
+int m_height;
+int m_fileCount;
+PAVISTREAM m_stream;
+PAVISTREAM m_streamCompressed;
+AVISTREAMINFO m_header;
+AVICOMPRESSOPTIONS m_options;
+AVICOMPRESSOPTIONS *m_arrayOptions[1];
+BITMAPINFOHEADER m_bitmap;
 
 bool AVIDump::Start(HWND hWnd, int w, int h)
 {
@@ -192,3 +195,158 @@ bool AVIDump::SetVideoFormat()
 
 	return SUCCEEDED(AVIFileCreateStream(m_file, &m_stream, &m_header));
 }
+
+#else
+
+#include "FileUtil.h"
+#include "StringUtil.h"
+#include "Log.h"
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+}
+
+FILE* f_pFrameDump = NULL;
+AVCodec *s_Codec = NULL;
+AVCodecContext *s_CodecContext = NULL;
+AVFrame *s_BGRFrame = NULL, *s_YUVFrame = NULL;
+uint8_t *s_YUVBuffer = NULL;
+uint8_t *s_OutBuffer = NULL;
+struct SwsContext *s_SwsContext = NULL;
+int s_width;
+int s_height;
+int s_size;
+
+static void InitAVCodec()
+{
+	static bool first_run = true;
+	if (first_run)
+	{
+		avcodec_init();
+		avcodec_register_all();
+		first_run = false;
+	}
+}
+
+bool AVIDump::Start(int w, int h)
+{
+	s_width = w;
+	s_height = h;
+
+	InitAVCodec();
+	return CreateFile();
+}
+
+bool AVIDump::CreateFile()
+{
+	s_Codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
+	if (!s_Codec)
+		return false;
+
+	s_CodecContext = avcodec_alloc_context();
+
+	s_CodecContext->bit_rate = 400000;
+	s_CodecContext->width = s_width;
+	s_CodecContext->height = s_height;
+	s_CodecContext->time_base = (AVRational){1, 60};
+	s_CodecContext->gop_size = 10;
+	s_CodecContext->max_b_frames = 1;
+	s_CodecContext->pix_fmt = PIX_FMT_YUV420P;
+
+	NOTICE_LOG(VIDEO, "Opening MPG file framedump.mpg for dumping");
+	if ((avcodec_open(s_CodecContext, s_Codec) < 0) ||
+			!(f_pFrameDump = fopen(StringFromFormat("%sframedump.mpg",
+						File::GetUserPath(D_DUMPFRAMES_IDX)).c_str(), "wb")) ||
+			!(s_SwsContext = sws_getContext(s_width, s_height, PIX_FMT_BGR24, s_width, s_height,
+					PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL)))
+	{
+		WARN_LOG(VIDEO, "Unable to initialize mpg dump file");
+		CloseFile();
+		return false;
+	}
+
+	s_BGRFrame = avcodec_alloc_frame();
+	s_YUVFrame = avcodec_alloc_frame();
+
+	s_size = avpicture_get_size(PIX_FMT_YUV420P, s_width, s_height);
+
+	s_YUVBuffer = new uint8_t[s_size];
+	avpicture_fill((AVPicture *)s_YUVFrame, s_YUVBuffer, PIX_FMT_YUV420P, s_width, s_height);
+
+	s_OutBuffer = new uint8_t[s_size];
+
+	return true;
+}
+
+void AVIDump::AddFrame(uint8_t *data)
+{
+	avpicture_fill((AVPicture *)s_BGRFrame, data, PIX_FMT_BGR24, s_width, s_height);
+
+	// Convert image from BGR24 to YUV420P
+	sws_scale(s_SwsContext, s_BGRFrame->data, s_BGRFrame->linesize, 0,
+			s_height, s_YUVFrame->data, s_YUVFrame->linesize);
+
+	// Encode and write the image
+	int s_iOutSize = avcodec_encode_video(s_CodecContext, s_OutBuffer, s_size, s_YUVFrame);
+	fwrite(s_OutBuffer, 1, s_iOutSize, f_pFrameDump);
+	fflush(f_pFrameDump);
+
+	// Encode and write delayed frames
+	do
+	{
+		s_iOutSize = avcodec_encode_video(s_CodecContext, s_OutBuffer, s_size, NULL);
+		fwrite(s_OutBuffer, 1, s_iOutSize, f_pFrameDump);
+		fflush(f_pFrameDump);
+	} while (s_iOutSize);
+}
+
+void AVIDump::Stop()
+{
+	// Write MPG footer
+	s_OutBuffer[0] = 0x00;
+	s_OutBuffer[1] = 0x00;
+	s_OutBuffer[2] = 0x01;
+	s_OutBuffer[3] = 0xb7;
+	fwrite(s_OutBuffer, 1, 4, f_pFrameDump);
+	fflush(f_pFrameDump);
+
+	CloseFile();
+	NOTICE_LOG(VIDEO, "Stopping frame dump");
+}
+
+void AVIDump::CloseFile()
+{
+	if (f_pFrameDump)
+		fclose(f_pFrameDump);
+	f_pFrameDump = NULL;
+
+	if (s_YUVBuffer)
+		delete[] s_YUVBuffer;
+	s_YUVBuffer = NULL;
+
+	if (s_OutBuffer)
+		delete[] s_OutBuffer;
+	s_OutBuffer = NULL;
+
+	if (s_CodecContext)
+	{
+		avcodec_close(s_CodecContext);
+		av_free(s_CodecContext);
+	}
+	s_CodecContext = NULL;
+
+	if (s_BGRFrame)
+		av_free(s_BGRFrame);
+	s_BGRFrame = NULL;
+
+	if (s_YUVFrame)
+		av_free(s_YUVFrame);
+	s_YUVFrame = NULL;
+
+	if (s_SwsContext)
+		sws_freeContext(s_SwsContext);
+	s_SwsContext = NULL;
+}
+
+#endif

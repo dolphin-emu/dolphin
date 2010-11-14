@@ -171,6 +171,14 @@ else()
 	message("Xrandr NOT found")
 endif(XRANDR_FOUND)
 
+pkg_search_module(AVCODEC "libavcodec libswscale")
+if(AVCODEC_FOUND)
+	message("avcodec found, enabling MPG frame dumps")
+	add_definitions(-DHAVE_AVCODEC)
+else()
+	message("avcodec not found, disabling MPG frame dumps")
+endif()
+
 include(CheckCXXSourceRuns)
 set(CMAKE_REQUIRED_LIBRARIES portaudio)
 CHECK_CXX_SOURCE_RUNS(

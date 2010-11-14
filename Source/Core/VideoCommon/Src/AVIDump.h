@@ -18,20 +18,30 @@
 #ifndef _AVIDUMP_H
 #define _AVIDUMP_H
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <stdint.h>
+#endif
 
 class AVIDump
 {
-private:
-	static bool CreateFile();
-	static void CloseFile();
-	static void SetBitmapFormat();
-	static bool SetCompressionOptions();
-	static bool SetVideoFormat();
-public:
-	static bool Start(HWND hWnd, int w, int h);
-	static void Stop();
-	static void AddFrame(char *data);
+	private:
+		static bool CreateFile();
+		static void CloseFile();
+		static void SetBitmapFormat();
+		static bool SetCompressionOptions();
+		static bool SetVideoFormat();
+
+	public:
+#ifdef _WIN32
+		static bool Start(HWND hWnd, int w, int h);
+		static void AddFrame(char *data);
+#else
+		static bool Start(int w, int h);
+		static void AddFrame(uint8_t *data);
+#endif
+		static void Stop();
 };
 
 #endif // _AVIDUMP_H
