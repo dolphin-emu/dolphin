@@ -79,9 +79,6 @@ if env['flavor'] == 'release':
 elif not env['flavor'] == 'fastlog':
     env['CCFLAGS'] += ['-ggdb']
 env['CCFLAGS'] += ['-fno-exceptions', '-fno-strict-aliasing']
-if env['CCVERSION'] >= '4.2.0':
-    env['CCFLAGS'] += ['-fvisibility=hidden']
-    env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
 
 if env['lint']:
     env['CCFLAGS'] += ['-Werror']
@@ -136,6 +133,7 @@ if sys.platform == 'darwin':
     env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
+    env['SHLINKFLAGS'] += ['-Wl,-undefined,dynamic_lookup']
 
     if platform.mac_ver()[0] >= '10.6.0':
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
@@ -160,7 +158,7 @@ if sys.platform == 'darwin':
         if not wxenv['CPPDEFINES'].count('WXUSINGDLL'):
             env['FRAMEWORKS'] = wxenv['FRAMEWORKS']
         env['LIBPATH'] += wxenv['LIBPATH']
-        env['LIBS'] = wxenv['LIBS']
+        env['wxconfiglibs'] = wxenv['LIBS']
 
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKPATH'] += ['Externals/Cg']

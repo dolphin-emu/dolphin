@@ -47,7 +47,7 @@ if env['HAVE_WX']:
 
 	wxlibs = [ 'debwx', 'debugger_ui_util', 'inputuicommon' ]
 else:
-	files+= [
+	files += [
 		'MainNoGUI.cpp',
 		'cmdline.c',
 		]
@@ -60,6 +60,8 @@ elif sys.platform == 'darwin' and not env['HAVE_WX']:
 elif sys.platform == 'darwin' and env['HAVE_WX']:
 	exeGUI = 'Dolphin'
 	exeGUIdist = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
+
+	wxlibs += env['wxconfiglibs']
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
