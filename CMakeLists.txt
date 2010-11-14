@@ -52,6 +52,13 @@ if(VISIBILITY_INLINES_HIDDEN)
 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden)
 endif(VISIBILITY_INLINES_HIDDEN)
 
+if(UNIX AND NOT APPLE)
+	CHECK_CXX_COMPILER_FLAG(-fvisibility=hidden VISIBILITY_HIDDEN)
+	if(VISIBILITY_HIDDEN)
+		add_definitions(-fvisibility=hidden)
+	endif(VISIBILITY_HIDDEN)
+endif(UNIX AND NOT APPLE)
+
 if(WIN32)
 	add_definitions(-D_SECURE_SCL=0)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
