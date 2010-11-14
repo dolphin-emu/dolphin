@@ -10,8 +10,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp
 			Src/VertexShaderCache.cpp
-			Src/VertexManager.cpp
-			Src/XFB.cpp)
+			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
 			GLEW

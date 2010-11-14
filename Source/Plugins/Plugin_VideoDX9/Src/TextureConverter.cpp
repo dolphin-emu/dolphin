@@ -325,7 +325,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? g_framebufferManager.GetEFBDepthTexture() : g_framebufferManager.GetEFBColorTexture();
+	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture();
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 
@@ -374,8 +374,8 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();
 }
 
@@ -461,8 +461,8 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		(float)Renderer::GetFullTargetHeight());
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();
 }
 
@@ -534,8 +534,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0,NULL);
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());	
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();
 	Rendersurf->Release();
 	s_srcTexture->Release();

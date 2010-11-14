@@ -4,6 +4,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/CPMemory.cpp
 			Src/DLCache.cpp
 			Src/Fifo.cpp
+			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
 			Src/IndexGenerator.cpp

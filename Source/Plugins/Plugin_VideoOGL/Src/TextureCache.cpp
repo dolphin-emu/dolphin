@@ -273,8 +273,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 
 	// Make sure to resolve anything we need to read from.
 	const GLuint read_texture = bFromZBuffer ?
-		g_framebufferManager.ResolveAndGetDepthTarget(source_rect) :
-		g_framebufferManager.ResolveAndGetRenderTarget(source_rect);
+		FramebufferManager::ResolveAndGetDepthTarget(source_rect) :
+		FramebufferManager::ResolveAndGetRenderTarget(source_rect);
 
 	// TODO: move
 	const float xScale = Renderer::GetTargetScaleX();
@@ -287,7 +287,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		if (s_TempFramebuffer == 0)
 			glGenFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
 
-		g_framebufferManager.SetFramebuffer(s_TempFramebuffer);
+		FramebufferManager::SetFramebuffer(s_TempFramebuffer);
 		// Bind texture to temporary framebuffer
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture, 0);
 		GL_REPORT_FBO_ERROR();
@@ -334,7 +334,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 			source_rect);
 	}
 
-    g_framebufferManager.SetFramebuffer(0);
+    FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
     DisableStage(0);
 

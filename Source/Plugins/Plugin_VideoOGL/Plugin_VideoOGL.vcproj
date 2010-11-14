@@ -781,14 +781,6 @@
 				RelativePath=".\Src\VertexShaderCache.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\XFB.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\XFB.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="GUI"

@@ -19,17 +19,39 @@
 #include "FramebufferManager.h"
 
 #include "TextureConverter.h"
-#include "XFB.h"
 #include "Render.h"
 
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp
 
-FramebufferManager g_framebufferManager;
+int FramebufferManager::m_targetWidth;
+int FramebufferManager::m_targetHeight;
+int FramebufferManager::m_msaaSamples;
+int FramebufferManager::m_msaaCoverageSamples;
 
-void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
+GLuint FramebufferManager::m_efbFramebuffer;
+GLuint FramebufferManager::m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
+GLuint FramebufferManager::m_efbDepth; // Renderbuffer in MSAA mode; Texture otherwise
+
+// Only used in MSAA mode.
+GLuint FramebufferManager::m_resolvedFramebuffer;
+GLuint FramebufferManager::m_resolvedColorTexture;
+GLuint FramebufferManager::m_resolvedDepthTexture;
+
+GLuint FramebufferManager::m_xfbFramebuffer; // Only used in MSAA mode
+
+FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
 {
+    m_efbFramebuffer = 0;
+    m_efbColor = 0;
+    m_efbDepth = 0;
+    m_resolvedFramebuffer = 0;
+    m_resolvedColorTexture = 0;
+    m_resolvedDepthTexture = 0;
+    m_xfbFramebuffer = 0;
+
 	m_targetWidth = targetWidth;
 	m_targetHeight = targetHeight;
+
 	m_msaaSamples = msaaSamples;
 	m_msaaCoverageSamples = msaaCoverageSamples;
 
@@ -147,7 +169,7 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 	// EFB framebuffer is currently bound.
 }
 
-void FramebufferManager::Shutdown()
+FramebufferManager::~FramebufferManager()
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
@@ -164,11 +186,9 @@ void FramebufferManager::Shutdown()
 
 	glObj[0] = m_resolvedColorTexture;
 	glObj[1] = m_resolvedDepthTexture;
-	glObj[2] = m_realXFBSource.texture;
-	glDeleteTextures(3, glObj);
+	glDeleteTextures(2, glObj);
 	m_resolvedColorTexture = 0;
 	m_resolvedDepthTexture = 0;
-	m_realXFBSource.texture = 0;
 
 	glObj[0] = m_efbColor;
 	glObj[1] = m_efbDepth;
@@ -178,15 +198,9 @@ void FramebufferManager::Shutdown()
 		glDeleteRenderbuffersEXT(2, glObj);
 	m_efbColor = 0;
 	m_efbDepth = 0;
-
-	for (VirtualXFBListType::iterator it = m_virtualXFBList.begin(); it != m_virtualXFBList.end(); ++it)
-	{
-		glDeleteTextures(1, &it->xfbSource.texture);
-	}
-	m_virtualXFBList.clear();
 }
 
-GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) const
+GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
 {
 	if (m_msaaSamples <= 1)
 	{
@@ -216,7 +230,7 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) cons
 	}
 }
 
-GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) const
+GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 {
 	if (m_msaaSamples <= 1)
 	{
@@ -246,84 +260,7 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) cons
 	}
 }
 
-void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
-{
-	if (g_ActiveConfig.bUseRealXFB)
-		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	else
-		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-}
-
-const XFBSource** FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
-{
-	if (g_ActiveConfig.bUseRealXFB)
-		return getRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	else
-		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-}
-
-FramebufferManager::VirtualXFBListType::iterator FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
-{
-	u32 srcLower = xfbAddr;
-	u32 srcUpper = xfbAddr + 2 * width * height;
-
-	VirtualXFBListType::iterator it;
-	for (it = m_virtualXFBList.begin(); it != m_virtualXFBList.end(); ++it)
-	{
-		u32 dstLower = it->xfbAddr;
-		u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
-
-		if (dstLower >= srcLower && dstUpper <= srcUpper)
-			return it;
-	}
-
-	// That address is not in the Virtual XFB list.
-	return m_virtualXFBList.end();
-}
-
-void FramebufferManager::replaceVirtualXFB()
-{
-	VirtualXFBListType::iterator it = m_virtualXFBList.begin();
-
-	s32 srcLower = it->xfbAddr;
-	s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
-	s32 lineSize = 2 * it->xfbWidth;
-
-	++it;
-
-	while (it != m_virtualXFBList.end())
-	{
-		s32 dstLower = it->xfbAddr;
-		s32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
-
-		if (dstLower >= srcLower && dstUpper <= srcUpper)
-		{
-			// Invalidate the data
-			it->xfbAddr = 0;
-			it->xfbHeight = 0;
-			it->xfbWidth = 0;
-		}
-		else if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
-		{
-			s32 upperOverlap = (srcUpper - dstLower) / lineSize;
-			s32 lowerOverlap = (dstUpper - srcLower) / lineSize;
-
-			if (upperOverlap > 0 && lowerOverlap < 0)
-			{
-				it->xfbAddr += lineSize * upperOverlap;
-				it->xfbHeight -= upperOverlap;
-			}
-			else if (lowerOverlap > 0)
-			{
-				it->xfbHeight -= lowerOverlap;
-			}
-		}
-
-		++it;
-	}
-}
-
-void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	u8* xfb_in_ram = Memory_GetPtr(xfbAddr);
 	if (!xfb_in_ram)
@@ -332,199 +269,8 @@ void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 		return;
 	}
 
-	XFB_Write(xfb_in_ram, sourceRc, fbWidth, fbHeight);
-}
-
-void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
-{
-	GLuint xfbTexture;
-
-	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
-
-	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
-	{
-		// Replace the last virtual XFB
-		--it;
-	}
-
-	if (it != m_virtualXFBList.end())
-	{
-		// Overwrite an existing Virtual XFB.
-
-		it->xfbAddr = xfbAddr;
-		it->xfbWidth = fbWidth;
-		it->xfbHeight = fbHeight;
-
-		it->xfbSource.srcAddr = xfbAddr;
-		it->xfbSource.srcWidth = fbWidth;
-		it->xfbSource.srcHeight = fbHeight;
-
-		it->xfbSource.texWidth = Renderer::GetTargetWidth();
-		it->xfbSource.texHeight = Renderer::GetTargetHeight();
-		it->xfbSource.sourceRc = Renderer::ConvertEFBRectangle(sourceRc);
-
-		xfbTexture = it->xfbSource.texture;
-
-		// Move this Virtual XFB to the front of the list.
-		m_virtualXFBList.splice(m_virtualXFBList.begin(), m_virtualXFBList, it);
-
-		// Keep stale XFB data from being used
-		replaceVirtualXFB();
-	}
-	else
-	{
-		// Create a new Virtual XFB and place it at the front of the list.
-
-		glGenTextures(1, &xfbTexture);
-
-#if 0// XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
-		if (m_msaaSamples > 1)
-#else
-		if (s_bHaveFramebufferBlit)
-#endif
-		{
-			// In MSAA mode, allocate the texture image here. In non-MSAA mode,
-			// the image will be allocated by glCopyTexImage2D (later).
-
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbTexture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, m_targetWidth, m_targetHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-		}
-
-		VirtualXFB newVirt;
-
-		newVirt.xfbAddr = xfbAddr;
-		newVirt.xfbWidth = fbWidth;
-		newVirt.xfbHeight = fbHeight;
-
-		newVirt.xfbSource.srcAddr = xfbAddr;
-		newVirt.xfbSource.srcWidth = fbWidth;
-		newVirt.xfbSource.srcHeight = fbHeight;
-
-		newVirt.xfbSource.texture = xfbTexture;
-		newVirt.xfbSource.texWidth = m_targetWidth;
-		newVirt.xfbSource.texHeight = m_targetHeight;
-		newVirt.xfbSource.sourceRc = Renderer::ConvertEFBRectangle(sourceRc);
-
-		// Add the new Virtual XFB to the list
-
-		if ((int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
-		{
-			// List overflowed; delete the oldest.
-			glDeleteTextures(1, &m_virtualXFBList.back().xfbSource.texture);
-			m_virtualXFBList.pop_back();
-		}
-
-		m_virtualXFBList.push_front(newVirt);
-	}
-
-	// Copy EFB data to XFB and restore render target again
-
-#if 0
-	if (m_msaaSamples <= 1)
-#else
-	if (!s_bHaveFramebufferBlit)
-#endif
-	{
-		// Just copy the EFB directly.
-
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_efbFramebuffer);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbTexture);
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, 0, 0, m_targetWidth, m_targetHeight, 0);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	}
-	else
-	{
-		// OpenGL cannot copy directly from a multisampled framebuffer, so use
-		// EXT_framebuffer_blit.
-
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, m_efbFramebuffer);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_xfbFramebuffer);
-
-		// Bind texture.
-		glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, xfbTexture, 0);
-		GL_REPORT_FBO_ERROR();
-
-		glBlitFramebufferEXT(
-			0, 0, m_targetWidth, m_targetHeight,
-			0, 0, m_targetWidth, m_targetHeight,
-			GL_COLOR_BUFFER_BIT, GL_NEAREST
-			);
-
-		// Unbind texture.
-		glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-
-		// Return to EFB.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_efbFramebuffer);
-	}
-}
-
-const XFBSource** FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
-{
-	xfbCount = 1;
-
-	m_realXFBSource.texWidth = MAX_XFB_WIDTH;
-	m_realXFBSource.texHeight = MAX_XFB_HEIGHT;
-
-	m_realXFBSource.srcAddr = xfbAddr;
-	m_realXFBSource.srcWidth = fbWidth;
-	m_realXFBSource.srcHeight = fbHeight;
-
-	// OpenGL texture coordinates originate at the lower left, which is why
-	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
-	m_realXFBSource.sourceRc.left = 0;
-	m_realXFBSource.sourceRc.top = fbHeight;
-	m_realXFBSource.sourceRc.right = fbWidth;
-	m_realXFBSource.sourceRc.bottom = 0;
-
-	if (!m_realXFBSource.texture)
-	{
-		glGenTextures(1, &m_realXFBSource.texture);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_realXFBSource.texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	}
-
-	// Decode YUYV data from GameCube RAM
-	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, m_realXFBSource.texture);
-
-	m_overlappingXFBArray[0] = &m_realXFBSource;
-
-	return &m_overlappingXFBArray[0];
-}
-
-const XFBSource** FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
-{
-	xfbCount = 0;
-
-	if (m_virtualXFBList.size() == 0)
-	{
-		// No Virtual XFBs available.
-		return NULL;
-	}
-
-	u32 srcLower = xfbAddr;
-	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
-
-	VirtualXFBListType::reverse_iterator it;
-	for (it = m_virtualXFBList.rbegin(); it != m_virtualXFBList.rend(); ++it)
-	{
-		u32 dstLower = it->xfbAddr;
-		u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
-
-		if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
-		{
-			m_overlappingXFBArray[xfbCount] = &(it->xfbSource);
-			xfbCount++;
-		}
-	}
-
-	return &m_overlappingXFBArray[0];
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+	TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, fbWidth, fbHeight);
 }
 
 void FramebufferManager::SetFramebuffer(GLuint fb)
@@ -543,4 +289,110 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 	return GetEFBDepthTexture(source_rect);
 }
 
+void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const
+{
+	// Texture map xfbSource->texture onto the main buffer
 
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(sourcerc.left, sourcerc.bottom);
+	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
+	glVertex2f(drawrc.left, drawrc.bottom);
+
+	glTexCoord2f(sourcerc.left, sourcerc.top);
+	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
+	glVertex2f(drawrc.left, drawrc.top);
+
+	glTexCoord2f(sourcerc.right, sourcerc.top);
+	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
+	glVertex2f(drawrc.right, drawrc.top);
+
+	glTexCoord2f(sourcerc.right, sourcerc.bottom);
+	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
+	glVertex2f(drawrc.right, drawrc.bottom);
+	glEnd();
+
+	GL_REPORT_ERRORD();
+}
+
+void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+{
+	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
+}
+
+void XFBSource::CopyEFB()
+{
+	// Copy EFB data to XFB and restore render target again
+
+#if 0
+	if (m_msaaSamples <= 1)
+#else
+	if (!s_bHaveFramebufferBlit)
+#endif
+	{
+		// Just copy the EFB directly.
+
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FramebufferManager::GetEFBFramebuffer());
+
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, 0, 0, texWidth, texHeight, 0);
+
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	}
+	else
+	{
+		// OpenGL cannot copy directly from a multisampled framebuffer, so use
+		// EXT_framebuffer_blit.
+
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetEFBFramebuffer());
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, FramebufferManager::GetXFBFramebuffer());
+
+		// Bind texture.
+		glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, texture, 0);
+		GL_REPORT_FBO_ERROR();
+
+		glBlitFramebufferEXT(
+			0, 0, texWidth, texHeight,
+			0, 0, texWidth, texHeight,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST
+			);
+
+		// Unbind texture.
+		glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+
+		// Return to EFB.
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FramebufferManager::GetEFBFramebuffer());
+	}
+}
+
+XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)
+{
+	GLuint texture;
+
+	glGenTextures(1, &texture);
+
+#if 0// XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
+	if (m_msaaSamples > 1)
+#else
+	if (s_bHaveFramebufferBlit)
+#endif
+	{
+		// In MSAA mode, allocate the texture image here. In non-MSAA mode,
+		// the image will be allocated by glCopyTexImage2D (later).
+
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	}
+
+	return new XFBSource(texture);
+}
+
+void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
+{
+	*width = m_targetWidth;
+	*height = m_targetHeight;
+}

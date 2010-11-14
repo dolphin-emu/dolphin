@@ -18,8 +18,8 @@
 #ifndef _FRAMEBUFFERMANAGER_D3D_H_
 #define _FRAMEBUFFERMANAGER_D3D_H_
 
-#include <list>
 #include "D3DBase.h"
+#include "FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -50,124 +50,65 @@
 // Disadvantages: If the GameCube CPU writes directly to the XFB (which is
 // possible but uncommon), the Virtual XFB will not capture this information.
 
-// There may be multiple XFBs in GameCube RAM. This is the maximum number to
-// virtualize.
-const int MAX_VIRTUAL_XFB = 8;
-
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+struct XFBSource : public XFBSourceBase
 {
-	return !((aLower >= bUpper) || (bLower >= aUpper));
-}
+	XFBSource(LPDIRECT3DTEXTURE9 tex) : texture(tex) {}
+	~XFBSource() { texture->Release(); }
 
-struct XFBSource
-{
-	XFBSource()
-	{
-		this->srcAddr = 0;
-		this->srcWidth = 0;
-		this->srcHeight = 0;
-		this->texture = 0;
-		this->texWidth = 0;
-		this->texHeight = 0;
-	}
+	void Draw(const MathUtil::Rectangle<float> &sourcerc,
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	void CopyEFB();
 
-	u32 srcAddr;
-	u32 srcWidth;
-	u32 srcHeight;
-
-	LPDIRECT3DTEXTURE9 texture;
-	int texWidth;
-	int texHeight;
+	LPDIRECT3DTEXTURE9 const texture;
 };
 
-class FramebufferManager
+class FramebufferManager : public FramebufferManagerBase
 {
-private:
-
-	struct VirtualXFB
-	{
-		// Address and size in GameCube RAM
-		u32 xfbAddr;
-		u32 xfbWidth;
-		u32 xfbHeight;
-
-		XFBSource xfbSource;
-	};
-
-	typedef std::list<VirtualXFB> VirtualXFBListType;
-
-	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
-
-	void replaceVirtualXFB();
-
-	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-	const XFBSource** getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	XFBSource m_realXFBSource; // Only used in Real XFB mode
-	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
-
-	const XFBSource* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
-
-	LPDIRECT3DTEXTURE9 s_efb_color_texture;//Texture thats contains the color data of the render target
-	LPDIRECT3DTEXTURE9 s_efb_colorRead_texture;//1 pixel texture for temporal data store
-	LPDIRECT3DTEXTURE9 s_efb_depth_texture;//Texture thats contains the depth data of the render target
-	LPDIRECT3DTEXTURE9 s_efb_depthRead_texture;//4 pixel texture for temporal data store
-
-	LPDIRECT3DSURFACE9 s_efb_depth_surface;//Depth Surface	
-	LPDIRECT3DSURFACE9 s_efb_color_surface;//Color Surface
-	LPDIRECT3DSURFACE9 s_efb_color_ReadBuffer;//Surface 0 of s_efb_colorRead_texture
-	LPDIRECT3DSURFACE9 s_efb_depth_ReadBuffer;//Surface 0 of s_efb_depthRead_texture
-	LPDIRECT3DSURFACE9 s_efb_color_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
-	LPDIRECT3DSURFACE9 s_efb_depth_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
-
-	D3DFORMAT s_efb_color_surface_Format;//Format of the color Surface
-	D3DFORMAT s_efb_depth_surface_Format;//Format of the Depth Surface
-	D3DFORMAT s_efb_depth_ReadBuffer_Format;//Format of the Depth color Read Surface
 public:
-	FramebufferManager()
+	FramebufferManager();
+	~FramebufferManager();
+
+	static LPDIRECT3DTEXTURE9 GetEFBColorTexture() { return s_efb.color_texture; }
+	static LPDIRECT3DTEXTURE9 GetEFBDepthTexture() { return s_efb.depth_texture; }
+
+	static LPDIRECT3DSURFACE9 GetEFBColorRTSurface() { return s_efb.color_surface; }
+	static LPDIRECT3DSURFACE9 GetEFBDepthRTSurface() { return s_efb.depth_surface; }
+
+	static LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface() { return s_efb.color_OffScreenReadBuffer; }
+	static LPDIRECT3DSURFACE9 GetEFBDepthOffScreenRTSurface() { return s_efb.depth_OffScreenReadBuffer; }
+
+	static D3DFORMAT GetEFBDepthRTSurfaceFormat() { return s_efb.depth_surface_Format; }
+	static D3DFORMAT GetEFBColorRTSurfaceFormat() { return s_efb.color_surface_Format; }
+	static D3DFORMAT GetEFBDepthReadSurfaceFormat() { return s_efb.depth_ReadBuffer_Format; }
+
+	static LPDIRECT3DSURFACE9 GetEFBColorReadSurface() { return s_efb.color_ReadBuffer; }
+	static LPDIRECT3DSURFACE9 GetEFBDepthReadSurface() { return s_efb.depth_ReadBuffer; }
+
+private:
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
+
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
+
+	static struct Efb
 	{
-		s_efb_color_texture = NULL;
-		s_efb_colorRead_texture = NULL;
-		s_efb_depth_texture = NULL;
-		s_efb_depthRead_texture = NULL;
+		LPDIRECT3DTEXTURE9 color_texture;//Texture thats contains the color data of the render target
+		LPDIRECT3DTEXTURE9 colorRead_texture;//1 pixel texture for temporal data store
+		LPDIRECT3DTEXTURE9 depth_texture;//Texture thats contains the depth data of the render target
+		LPDIRECT3DTEXTURE9 depthRead_texture;//4 pixel texture for temporal data store
 
-		s_efb_depth_surface = NULL;
-		s_efb_color_surface = NULL;
-		s_efb_color_ReadBuffer = NULL;
-		s_efb_depth_ReadBuffer = NULL;
-		s_efb_color_OffScreenReadBuffer = NULL;
-		s_efb_depth_OffScreenReadBuffer = NULL;
+		LPDIRECT3DSURFACE9 depth_surface;//Depth Surface
+		LPDIRECT3DSURFACE9 color_surface;//Color Surface
+		LPDIRECT3DSURFACE9 color_ReadBuffer;//Surface 0 of colorRead_texture
+		LPDIRECT3DSURFACE9 depth_ReadBuffer;//Surface 0 of depthRead_texture
+		LPDIRECT3DSURFACE9 color_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
+		LPDIRECT3DSURFACE9 depth_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
 
-		s_efb_color_surface_Format = D3DFMT_FORCE_DWORD;
-		s_efb_depth_surface_Format = D3DFMT_FORCE_DWORD;
-		s_efb_depth_ReadBuffer_Format = D3DFMT_FORCE_DWORD;
-		m_realXFBSource.texture = NULL;
-	}
-
-	void Create();
-	void Destroy();
-
-	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	LPDIRECT3DTEXTURE9 GetEFBColorTexture();
-	LPDIRECT3DTEXTURE9 GetEFBDepthTexture();
-
-	LPDIRECT3DSURFACE9 GetEFBColorRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthOffScreenRTSurface();
-	D3DFORMAT GetEFBDepthRTSurfaceFormat();
-	D3DFORMAT GetEFBColorRTSurfaceFormat();
-	D3DFORMAT GetEFBDepthReadSurfaceFormat();
-	LPDIRECT3DSURFACE9 GetEFBColorReadSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();
-
-
+		D3DFORMAT color_surface_Format;//Format of the color Surface
+		D3DFORMAT depth_surface_Format;//Format of the Depth Surface
+		D3DFORMAT depth_ReadBuffer_Format;//Format of the Depth color Read Surface
+	} s_efb;
 };
-
-extern FramebufferManager g_framebufferManager;
 
 #endif

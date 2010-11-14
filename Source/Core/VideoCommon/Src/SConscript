@@ -29,6 +29,7 @@ files = [
 	'VertexLoader_TextCoord.cpp',
 	'TextureConversionShader.cpp',
 	'ImageWrite.cpp',
+	'FramebufferManagerBase.cpp',
 	'VertexManagerBase.cpp',
 	'TextureCacheBase.cpp',
 	'Statistics.cpp',

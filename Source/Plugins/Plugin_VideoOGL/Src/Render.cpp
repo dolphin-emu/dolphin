@@ -52,7 +52,6 @@
 #include "VertexLoader.h"
 #include "PostProcessing.h"
 #include "TextureConverter.h"
-#include "XFB.h"
 #include "OnScreenDisplay.h"
 #include "Timer.h"
 #include "StringUtil.h"
@@ -397,7 +396,7 @@ bool Renderer::Init()
 		bSuccess = false;
 
 	// Initialize the FramebufferManager
-	g_framebufferManager.Init(s_target_width, s_target_height,
+	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 			s_MSAASamples, s_MSAACoverageSamples);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -529,7 +528,7 @@ void Renderer::Shutdown()
 		delete scrshotThread;
 #endif
 
-	g_framebufferManager.Shutdown();
+	delete g_framebuffer_manager;
 
 #if defined _WIN32 || defined HAVE_AVCODEC
 	if(s_bAVIDumping)
@@ -781,7 +780,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
-		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		FramebufferManager::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	}
 	else
 	{
@@ -893,8 +892,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			if (s_MSAASamples > 1)
 			{
 				// Resolve our rectangle.
-				g_framebufferManager.GetEFBDepthTexture(efbPixelRc);
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
+				FramebufferManager::GetEFBDepthTexture(efbPixelRc);
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
 			}
 
 			// Sample from the center of the target region.
@@ -926,8 +925,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			if (s_MSAASamples > 1)
 			{
 				// Resolve our rectangle.
-				g_framebufferManager.GetEFBColorTexture(efbPixelRc);
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
+				FramebufferManager::GetEFBColorTexture(efbPixelRc);
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
 			}
 
 			// Sample from the center of the target region.
@@ -1125,7 +1124,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
-	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
@@ -1164,7 +1163,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// care of disabling it in that case. It returns false in case of no post processing.
 	bool applyShader = PostProcessing::ApplyShader();
 
-	const XFBSource* xfbSource = NULL;
+	const XFBSourceBase* xfbSource = NULL;
 
 	if(g_ActiveConfig.bUseXFB)
 	{
@@ -1175,10 +1174,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
 			xfbSource = xfbSourceList[i];
-
-			TargetRectangle sourceRc;
-
-			sourceRc = xfbSource->sourceRc;
 
 			MathUtil::Rectangle<float> drawRc;
 
@@ -1214,57 +1209,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
-			// Texture map xfbSource->texture onto the main buffer
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
+			MathUtil::Rectangle<float> sourceRc;
+			sourceRc.left = xfbSource->sourceRc.left;
+			sourceRc.right = xfbSource->sourceRc.right;
+			sourceRc.top = xfbSource->sourceRc.top;
+			sourceRc.bottom = xfbSource->sourceRc.bottom;
+
+			xfbSource->Draw(sourceRc, drawRc, 0, 0);
 
 			// We must call ApplyShader here even if no post proc is selected.
 			// It takes care of disabling it in that case. It returns false in
 			// case of no post processing.
 			if (applyShader)
-			{
-				glBegin(GL_QUADS);
-				glTexCoord2f(sourceRc.left, sourceRc.bottom);
-				glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-				glVertex2f(drawRc.left, drawRc.bottom);
-
-				glTexCoord2f(sourceRc.left, sourceRc.top);
-				glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-				glVertex2f(drawRc.left, drawRc.top);
-
-				glTexCoord2f(sourceRc.right, sourceRc.top);
-				glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-				glVertex2f(drawRc.right, drawRc.top);
-
-				glTexCoord2f(sourceRc.right, sourceRc.bottom);
-				glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
-				glVertex2f(drawRc.right, drawRc.bottom);
-				glEnd();
 				PixelShaderCache::DisableShader();
-			}
-			else
-			{
-				glBegin(GL_QUADS);
-				glTexCoord2f(sourceRc.left, sourceRc.bottom);
-				glVertex2f(drawRc.left, drawRc.bottom);
-
-				glTexCoord2f(sourceRc.left, sourceRc.top);
-				glVertex2f(drawRc.left, drawRc.top);
-
-				glTexCoord2f(sourceRc.right, sourceRc.top);
-				glVertex2f(drawRc.right, drawRc.top);
-
-				glTexCoord2f(sourceRc.right, sourceRc.bottom);
-				glVertex2f(drawRc.right, drawRc.bottom);
-				glEnd();
-			}
-
-			GL_REPORT_ERRORD();
 		}
 	}
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
-		GLuint read_texture = g_framebufferManager.ResolveAndGetRenderTarget(rc);
+		GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
@@ -1502,8 +1465,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_Fulltarget_width  = s_target_width;
 			s_Fulltarget_height = s_target_height;
 
-			g_framebufferManager.Shutdown();
-			g_framebufferManager.Init(s_target_width, s_target_height,
+			delete g_framebuffer_manager;
+			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		}
@@ -1579,7 +1542,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	stats.ResetFrame();
 
 	// Render to the framebuffer.
-	g_framebufferManager.SetFramebuffer(0);
+	FramebufferManager::SetFramebuffer(0);
 
 	GL_REPORT_ERRORD();
 

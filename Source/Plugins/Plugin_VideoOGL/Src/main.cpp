@@ -82,7 +82,6 @@ GFXConfigDialogOGL *m_ConfigFrame = NULL;
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
-#include "XFB.h"
 #include "XFBConvert.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"

@@ -147,12 +147,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
 	
 	D3D::drawShadedTexQuad(
-		(bFromZBuffer) ? g_framebufferManager.GetEFBDepthTexture()->GetSRV() : g_framebufferManager.GetEFBColorTexture()->GetSRV(),
+		(bFromZBuffer) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
 		&sourcerect, Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
 		(bFromZBuffer) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(),
 		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
-	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	
 	Renderer::RestoreAPIState();
 }

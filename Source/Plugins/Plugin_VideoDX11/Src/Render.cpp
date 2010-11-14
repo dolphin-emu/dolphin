@@ -237,7 +237,7 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
-	g_framebufferManager.Create();
+	g_framebuffer_manager = new FramebufferManager;
 
 	HRESULT hr;
 	float colmat[20]= {0.0f};
@@ -319,7 +319,8 @@ void SetupDeviceObjects()
 // Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
-	g_framebufferManager.Destroy();
+	delete g_framebuffer_manager;
+
 	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(clearblendstates[0]);
 	SAFE_RELEASE(clearblendstates[1]);
@@ -383,14 +384,14 @@ bool Renderer::Init()
 		D3D::gfxstate->samplerdesc[stage].MaxAnisotropy = g_ActiveConfig.iMaxAnisotropy;
 
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 0.f };
-	D3D::context->ClearRenderTargetView(g_framebufferManager.GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::context->ClearDepthStencilView(g_framebufferManager.GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
+	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)(s_Fulltarget_width - s_target_width) / 2.f,
 						(float)(s_Fulltarget_height - s_target_height) / 2.f,
 						(float)s_target_width, (float)s_target_height);
 	D3D::context->RSSetViewports(1, &vp);
-	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
 	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
 
@@ -560,7 +561,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
-		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		FramebufferManager::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	}
 	else
 	{
@@ -700,9 +701,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
-		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBDepthReadTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
 		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(g_framebufferManager.GetEFBDepthTexture()->GetSRV(),
+		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
 								Renderer::GetFullTargetWidth(),
 								Renderer::GetFullTargetHeight(),
@@ -710,12 +711,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
-		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 		// copy to system memory
 		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-		read_tex = g_framebufferManager.GetEFBDepthStagingBuffer();
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBDepthReadTexture()->GetTex(), 0, &box);
+		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
 
 		RestoreAPIState(); // restore game state
 
@@ -732,9 +733,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	else if (type == PEEK_COLOR)
 	{
 		// we can directly copy to system memory here
-		read_tex = g_framebufferManager.GetEFBColorStagingBuffer();
+		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, g_framebufferManager.GetEFBColorTexture()->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
 
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
@@ -755,7 +756,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
-		D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
 		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
 									- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
 									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
@@ -838,9 +839,11 @@ void UpdateViewport()
 		else
 		{
 			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-			g_framebufferManager.Destroy();
-			g_framebufferManager.Create();
-			D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
+			
+			delete g_framebuffer_manager;
+			g_framebuffer_manager = new FramebufferManager;
+
+			D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 		}
 	}
 
@@ -917,7 +920,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
-	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
@@ -956,7 +959,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if(g_ActiveConfig.bUseXFB)
 	{
-		const XFBSource* xfbSource;
+		const XFBSourceBase* xfbSource;
 
 		// draw each xfb source
 		for (u32 i = 0; i < xfbCount; ++i)
@@ -1000,13 +1003,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.right = 1;
 			}
 
-			D3D::drawShadedTexSubQuad(xfbSource->tex->GetSRV(), &sourceRc, xfbSource->texWidth, xfbSource->texHeight, &drawRc, PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+			xfbSource->Draw(sourceRc, drawRc, 0, 0);
 		}
 	}
 	else
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-		D3DTexture2D* read_texture = g_framebufferManager.GetEFBColorTexture();
+		D3DTexture2D* read_texture = FramebufferManager::GetEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -1140,14 +1143,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_target_height = (int)(EFB_HEIGHT * EFByScale);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		g_framebufferManager.Destroy();
-		g_framebufferManager.Create();
+		
+		delete g_framebuffer_manager;
+		g_framebuffer_manager = new FramebufferManager;
 	}
 
 	// begin next frame
 	Renderer::RestoreAPIState();
 	D3D::BeginFrame();
-	D3D::context->OMSetRenderTargets(1, &g_framebufferManager.GetEFBColorTexture()->GetRTV(), g_framebufferManager.GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
 

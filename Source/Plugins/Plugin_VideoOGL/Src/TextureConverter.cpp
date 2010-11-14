@@ -174,7 +174,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
-	g_framebufferManager.SetFramebuffer(s_texConvFrameBuffer);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);	
@@ -264,7 +264,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	GLuint source_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source) : g_framebufferManager.ResolveAndGetRenderTarget(source);
+	GLuint source_texture = bFromZBuffer ? FramebufferManager::ResolveAndGetDepthTarget(source) : FramebufferManager::ResolveAndGetRenderTarget(source);
 
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
@@ -310,7 +310,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
-	g_framebufferManager.SetFramebuffer(0);
+	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
@@ -388,7 +388,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 {
 	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
-	g_framebufferManager.SetFramebuffer(0);
+	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
@@ -413,7 +413,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
-	g_framebufferManager.SetFramebuffer(s_texConvFrameBuffer);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
 
@@ -460,7 +460,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	VertexShaderManager::SetViewportChanged();
 
-	g_framebufferManager.SetFramebuffer(0);
+	FramebufferManager::SetFramebuffer(0);
 
 	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();

@@ -74,8 +74,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 	bool bIsIntensityFmt, u32 copyfmt)
 {
 	const LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ?
-		g_framebufferManager.GetEFBDepthTexture() :
-		g_framebufferManager.GetEFBColorTexture();
+		FramebufferManager::GetEFBDepthTexture() :
+		FramebufferManager::GetEFBColorTexture();
 
 	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
@@ -128,7 +128,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 		}
 
-		D3DFORMAT bformat = g_framebufferManager.GetEFBDepthRTSurfaceFormat();
+		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
 		int SSAAMode = g_ActiveConfig.iMultisampleMode;
 
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
@@ -163,8 +163,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0, NULL);
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,

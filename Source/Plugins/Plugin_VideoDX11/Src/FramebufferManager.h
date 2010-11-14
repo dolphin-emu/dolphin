@@ -18,8 +18,9 @@
 #ifndef _FBMANAGER_D3D_H_
 #define _FBMANAGER_D3D_H_
 
-#include <list>
 #include "D3DBase.h"
+#include "D3DTexture.h"
+#include "FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -52,82 +53,40 @@
 
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
-const int MAX_VIRTUAL_XFB = 8;
 
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+struct XFBSource : public XFBSourceBase
 {
-	return !((aLower >= bUpper) || (bLower >= aUpper));
-}
+	XFBSource(D3DTexture2D *_tex) : tex(_tex) {}
+	~XFBSource() { tex->Release(); }
 
-struct XFBSource
-{
-	XFBSource() : srcAddr(0), srcWidth(0), srcHeight(0), tex(NULL), texWidth(0), texHeight(0) {}
+	void Draw(const MathUtil::Rectangle<float> &sourcerc,
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	void CopyEFB();
 
-	u32 srcAddr;
-	u32 srcWidth;
-	u32 srcHeight;
-
-	D3DTexture2D* tex;
-	unsigned int texWidth;
-	unsigned int texHeight;
+	D3DTexture2D* const tex;
 };
 
-class FramebufferManager
+class FramebufferManager : public FramebufferManagerBase
 {
 public:
-	FramebufferManager()
-	{
-		m_efb.color_tex = NULL;
-		m_efb.color_staging_buf = NULL;
-		m_efb.depth_tex = NULL;
-		m_efb.depth_staging_buf = NULL;
-		m_efb.depth_read_texture = NULL;
+	FramebufferManager();
+	~FramebufferManager();
 
-		m_realXFBSource.tex = NULL;
-	}
+	static D3DTexture2D* &GetEFBColorTexture();
+	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
 
-	void Create();
-	void Destroy();
-
-	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	D3DTexture2D* &GetEFBColorTexture();
-	ID3D11Texture2D* &GetEFBColorStagingBuffer();
-
-	D3DTexture2D* &GetEFBDepthTexture();
-	D3DTexture2D* &GetEFBDepthReadTexture();
-	ID3D11Texture2D* &GetEFBDepthStagingBuffer();
+	static D3DTexture2D* &GetEFBDepthTexture();
+	static D3DTexture2D* &GetEFBDepthReadTexture();
+	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
 
 private:
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
 
-	struct VirtualXFB
-	{
-		// Address and size in GameCube RAM
-		u32 xfbAddr;
-		u32 xfbWidth;
-		u32 xfbHeight;
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
-		XFBSource xfbSource;
-	};
-
-	typedef std::list<VirtualXFB> VirtualXFBListType;
-
-	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
-
-	void replaceVirtualXFB();
-
-	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-	const XFBSource** getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	XFBSource m_realXFBSource; // Only used in Real XFB mode
-	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
-
-	const XFBSource* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
-
-	struct
+	static struct Efb
 	{
 		D3DTexture2D* color_tex;
 		ID3D11Texture2D* color_staging_buf;
@@ -137,7 +96,5 @@ private:
 		D3DTexture2D* depth_read_texture;
 	} m_efb;
 };
-
-extern FramebufferManager g_framebufferManager;
 
 #endif

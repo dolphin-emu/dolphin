@@ -24,7 +24,6 @@
 #include "TextureCache.h"
 #include "TextureConverter.h"
 #include "VertexShaderManager.h"
-#include "XFB.h"
 #include "main.h"
 
 namespace BPFunctions

@@ -244,7 +244,7 @@ void SetupDeviceObjects()
 {
 	D3D::font.Init();
 	VertexLoaderManager::Init();
-	g_framebufferManager.Create();
+	g_framebuffer_manager = new FramebufferManager;
 
 	VertexShaderManager::Dirty();
 	PixelShaderManager::Dirty();
@@ -264,7 +264,7 @@ void TeardownDeviceObjects()
 	ScreenShootMEMSurface = NULL;
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-	g_framebufferManager.Destroy();
+	delete g_framebuffer_manager;
 	D3D::font.Shutdown();
 	TextureCache::Invalidate(false);
 	VertexLoaderManager::Shutdown();
@@ -373,8 +373,8 @@ bool Renderer::Init()
 	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 	
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	vp.X = (s_Fulltarget_width - s_target_width) / 2;
 	vp.Y = (s_Fulltarget_height - s_target_height) / 2;
 	vp.Width  = s_target_width;
@@ -617,7 +617,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
-		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		FramebufferManager::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	}
 	else
 	{
@@ -729,15 +729,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	LPDIRECT3DSURFACE9 pEFBSurf, pBufferRT, pSystemBuf;
 	if(type == PEEK_Z || type == POKE_Z)
 	{
-		pEFBSurf = g_framebufferManager.GetEFBDepthRTSurface();
-		pBufferRT = g_framebufferManager.GetEFBDepthReadSurface();
-		pSystemBuf = g_framebufferManager.GetEFBDepthOffScreenRTSurface();
+		pEFBSurf = FramebufferManager::GetEFBDepthRTSurface();
+		pBufferRT = FramebufferManager::GetEFBDepthReadSurface();
+		pSystemBuf = FramebufferManager::GetEFBDepthOffScreenRTSurface();
 	}
 	else //if(type == PEEK_COLOR || type == POKE_COLOR)
 	{
-		pEFBSurf = g_framebufferManager.GetEFBColorRTSurface();
-		pBufferRT = g_framebufferManager.GetEFBColorReadSurface();
-		pSystemBuf = g_framebufferManager.GetEFBColorOffScreenRTSurface();
+		pEFBSurf = FramebufferManager::GetEFBColorRTSurface();
+		pBufferRT = FramebufferManager::GetEFBColorReadSurface();
+		pSystemBuf = FramebufferManager::GetEFBColorOffScreenRTSurface();
 	}
 
 	// Buffer not found alert
@@ -763,7 +763,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	RectToLock.top = targetPixelRc.top;	
 	if (type == PEEK_Z)
 	{
-		if (g_framebufferManager.GetEFBDepthRTSurfaceFormat() == D3DFMT_D24X8)
+		if (FramebufferManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_D24X8)
 			return 0;
 
 		RECT PixelRect;
@@ -798,7 +798,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		float fConstAdd[4] = {0.0f};
 		colmat[0] = colmat[5] = colmat[10] = 1.0f;
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
-		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBDepthTexture();
+		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBDepthTexture();
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
@@ -808,13 +808,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			Renderer::GetFullTargetWidth(),
 			Renderer::GetFullTargetHeight(),
 			4, 4,
-			(g_framebufferManager.GetEFBDepthRTSurfaceFormat() == FOURCC_RAWZ) ? PixelShaderCache::GetColorMatrixProgram(0) : PixelShaderCache::GetDepthMatrixProgram(0),
+			(FramebufferManager::GetEFBDepthRTSurfaceFormat() == FOURCC_RAWZ) ? PixelShaderCache::GetColorMatrixProgram(0) : PixelShaderCache::GetDepthMatrixProgram(0),
 			VertexShaderCache::GetSimpleVertexShader(0));
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
-		D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 		RestoreAPIState();
 
 		// Retrieve the pixel data to the local memory buffer
@@ -831,7 +831,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		float val = 0.0f;
 		u32 z = 0;
 
-		switch (g_framebufferManager.GetEFBDepthReadSurfaceFormat())
+		switch (FramebufferManager::GetEFBDepthReadSurfaceFormat())
 		{
 		case D3DFMT_R32F:
 			val = ((float*)drect.pBits)[6];
@@ -973,10 +973,12 @@ void UpdateViewport()
 		{
 			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-			g_framebufferManager.Destroy();
-			g_framebufferManager.Create();
-			D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-			D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+			
+			delete g_framebuffer_manager;
+			g_framebuffer_manager = new FramebufferManager;
+
+			D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+			D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 		}
 	}
 	vp.X = X;
@@ -1052,7 +1054,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
-	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	const XFBSourceBase *const *xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
@@ -1133,7 +1135,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
-	const XFBSource* xfbSource = NULL;
+	const XFBSourceBase* xfbSource = NULL;
 
 	if(g_ActiveConfig.bUseXFB)
 	{
@@ -1181,13 +1183,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				drawRc.right = 1;
 			}
 
-			D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,Width,Height,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader(0));
+			xfbSource->Draw(sourceRc, drawRc, Width, Height);
 		}
 	}
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
-		LPDIRECT3DTEXTURE9 read_texture = g_framebufferManager.GetEFBColorTexture();
+		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode));
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
@@ -1375,11 +1377,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		else
 		{
-			g_framebufferManager.Destroy();
-			g_framebufferManager.Create();
+			delete g_framebuffer_manager;
+			g_framebuffer_manager = new FramebufferManager;
 		}
-		D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	}
 
 	// Place messages on the picture, then copy it to the screen
@@ -1407,8 +1409,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::BeginFrame();
 	RestoreAPIState();
 
-	D3D::dev->SetRenderTarget(0, g_framebufferManager.GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(g_framebufferManager.GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
 	// For testing zbuffer targets.

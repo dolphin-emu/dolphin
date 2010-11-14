@@ -731,6 +731,14 @@
 			Name="Base"
 			>
 			<File
+				RelativePath=".\Src\FramebufferManagerBase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FramebufferManagerBase.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\TextureCacheBase.cpp"
 				>
 			</File>

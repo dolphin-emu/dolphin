@@ -18,8 +18,8 @@
 #ifndef _FRAMEBUFFERMANAGER_H_
 #define _FRAMEBUFFERMANAGER_H_
 
-#include <list>
 #include "GLUtil.h"
+#include "FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -52,116 +52,70 @@
 
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
-const int MAX_VIRTUAL_XFB = 8;
 
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+struct XFBSource : public XFBSourceBase
 {
-	return !((aLower >= bUpper) || (bLower >= aUpper));
-}
+	XFBSource(GLuint tex) : texture(tex) {}
+	~XFBSource() { glDeleteTextures(1, &texture); }
 
-struct XFBSource
-{
-	XFBSource() :
-		texture(0)
-	{}
+	void CopyEFB();
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	void Draw(const MathUtil::Rectangle<float> &sourcerc,
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 
-	u32 srcAddr;
-	u32 srcWidth;
-	u32 srcHeight;
-
-	GLuint texture;
-	int texWidth;
-	int texHeight;
-
-	TargetRectangle sourceRc;
+	const GLuint texture;
 };
 
-class FramebufferManager
+class FramebufferManager : public FramebufferManagerBase
 {
 public:
-	FramebufferManager() :
-		m_efbFramebuffer(0),
-		m_efbColor(0),
-		m_efbDepth(0),
-		m_resolvedFramebuffer(0),
-		m_resolvedColorTexture(0),
-		m_resolvedDepthTexture(0),
-		m_xfbFramebuffer(0)
-	{}
-
-	void Init(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
-	void Shutdown();
-
-	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-
-	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
+	FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
+	~FramebufferManager();
 
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
-	GLuint GetEFBColorTexture(const EFBRectangle& sourceRc) const;
-	GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc) const;
+	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
+	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
-	GLuint GetEFBFramebuffer() const { return m_efbFramebuffer; }
+	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer; }
+	static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
 
 	// Resolved framebuffer is only used in MSAA mode.
-	GLuint GetResolvedFramebuffer() const { return m_resolvedFramebuffer; }
+	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer; }
 
-    void SetFramebuffer(GLuint fb);
+	static void SetFramebuffer(GLuint fb);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
 	// If not in MSAA mode, will just return the render target texture ID.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-	GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
+	static GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
 
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-    GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
+    static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 private:
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
 
-	struct VirtualXFB
-	{
-		// Address and size in GameCube RAM
-		u32 xfbAddr;
-		u32 xfbWidth;
-		u32 xfbHeight;
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
-		XFBSource xfbSource;
-	};
+	static int m_targetWidth;
+	static int m_targetHeight;
+	static int m_msaaSamples;
+	static int m_msaaCoverageSamples;
 
-	typedef std::list<VirtualXFB> VirtualXFBListType;
-
-	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
-
-	void replaceVirtualXFB();
-
-	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-	const XFBSource** getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	int m_targetWidth;
-	int m_targetHeight;
-	int m_msaaSamples;
-	int m_msaaCoverageSamples;
-
-	GLuint m_efbFramebuffer;
-	GLuint m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
-	GLuint m_efbDepth; // Renderbuffer in MSAA mode; Texture otherwise
+	static GLuint m_efbFramebuffer;
+	static GLuint m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
+	static GLuint m_efbDepth; // Renderbuffer in MSAA mode; Texture otherwise
 
 	// Only used in MSAA mode.
-	GLuint m_resolvedFramebuffer;
-	GLuint m_resolvedColorTexture;
-	GLuint m_resolvedDepthTexture;
+	static GLuint m_resolvedFramebuffer;
+	static GLuint m_resolvedColorTexture;
+	static GLuint m_resolvedDepthTexture;
 
-	GLuint m_xfbFramebuffer; // Only used in MSAA mode
-	XFBSource m_realXFBSource; // Only used in Real XFB mode
-	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
-
-	const XFBSource* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
+	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
 };
-
-extern FramebufferManager g_framebufferManager;
 
 #endif
