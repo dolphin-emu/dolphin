@@ -1314,7 +1314,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
 
-	if (xfbchanged || WindowResized || s_LastEFBScale != g_ActiveConfig.iEFBScale)
+	if (xfbchanged || WindowResized || s_LastEFBScale != g_ActiveConfig.iEFBScale || s_LastAA != newAA)
 	{
 		s_LastAA = newAA;
 

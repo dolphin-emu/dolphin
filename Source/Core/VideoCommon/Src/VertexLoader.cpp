@@ -308,27 +308,27 @@ void VertexLoader::CompileVertexTranslator()
 		case FORMAT_UBYTE:	
 		case FORMAT_BYTE:
 			{
-			vtx_decl.normal_gl_type = VAR_BYTE;
-			int native_size = 4;
-			if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.bAllowSignedBytes)
-			{
-				vtx_decl.normal_gl_type = VAR_SHORT;
-				native_size = 8;
-			}
-			vtx_decl.normal_gl_size = 4;
-			vtx_decl.normal_offset[0] = nat_offset;
-			nat_offset += native_size;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = nat_offset;
+				vtx_decl.normal_gl_type = (vtx_attr.NormalFormat == FORMAT_BYTE)? VAR_BYTE : VAR_UNSIGNED_BYTE;
+				int native_size = 4;
+				if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.bAllowSignedBytes)
+				{
+					vtx_decl.normal_gl_type = VAR_SHORT;
+					native_size = 8;
+				}
+				vtx_decl.normal_gl_size = 4;
+				vtx_decl.normal_offset[0] = nat_offset;
 				nat_offset += native_size;
-				vtx_decl.normal_offset[2] = nat_offset;
-				nat_offset += native_size;
-			}
-			break;
+				if (vtx_attr.NormalElements) {
+					vtx_decl.normal_offset[1] = nat_offset;
+					nat_offset += native_size;
+					vtx_decl.normal_offset[2] = nat_offset;
+					nat_offset += native_size;
+				}
+				break;
 			}
 		case FORMAT_USHORT:
 		case FORMAT_SHORT:
-			vtx_decl.normal_gl_type = VAR_SHORT;
+			vtx_decl.normal_gl_type = (vtx_attr.NormalFormat == FORMAT_SHORT)? VAR_SHORT : VAR_UNSIGNED_SHORT;
 			vtx_decl.normal_gl_size = 4;
 			vtx_decl.normal_offset[0] = nat_offset;
 			nat_offset += 8;

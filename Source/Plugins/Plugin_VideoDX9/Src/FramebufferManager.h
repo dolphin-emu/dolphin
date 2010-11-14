@@ -82,46 +82,6 @@ struct XFBSource
 
 class FramebufferManager
 {
-public:
-	FramebufferManager()
-	{
-		s_efb_color_texture = NULL;
-		LPDIRECT3DTEXTURE9 s_efb_colorRead_texture = NULL;
-		LPDIRECT3DTEXTURE9 s_efb_depth_texture = NULL;
-		LPDIRECT3DTEXTURE9 s_efb_depthRead_texture = NULL;
-
-		LPDIRECT3DSURFACE9 s_efb_depth_surface = NULL;
-		LPDIRECT3DSURFACE9 s_efb_color_surface = NULL;
-		LPDIRECT3DSURFACE9 s_efb_color_ReadBuffer = NULL;
-		LPDIRECT3DSURFACE9 s_efb_depth_ReadBuffer = NULL;
-		LPDIRECT3DSURFACE9 s_efb_color_OffScreenReadBuffer = NULL;
-		LPDIRECT3DSURFACE9 s_efb_depth_OffScreenReadBuffer = NULL;
-
-		D3DFORMAT s_efb_color_surface_Format = D3DFMT_FORCE_DWORD;
-		D3DFORMAT s_efb_depth_surface_Format = D3DFMT_FORCE_DWORD;
-		D3DFORMAT s_efb_depth_ReadBuffer_Format = D3DFMT_FORCE_DWORD;
-		m_realXFBSource.texture = NULL;
-	}
-
-	void Create();
-	void Destroy();
-
-	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
-
-	LPDIRECT3DTEXTURE9 GetEFBColorTexture();
-	LPDIRECT3DTEXTURE9 GetEFBDepthTexture();
-
-	LPDIRECT3DSURFACE9 GetEFBColorRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthOffScreenRTSurface();
-	D3DFORMAT GetEFBDepthRTSurfaceFormat();
-	D3DFORMAT GetEFBColorRTSurfaceFormat();
-	D3DFORMAT GetEFBDepthReadSurfaceFormat();
-	LPDIRECT3DSURFACE9 GetEFBColorReadSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();
-
 private:
 
 	struct VirtualXFB
@@ -155,7 +115,7 @@ private:
 	LPDIRECT3DTEXTURE9 s_efb_depth_texture;//Texture thats contains the depth data of the render target
 	LPDIRECT3DTEXTURE9 s_efb_depthRead_texture;//4 pixel texture for temporal data store
 
-	LPDIRECT3DSURFACE9 s_efb_depth_surface;//Depth Surface
+	LPDIRECT3DSURFACE9 s_efb_depth_surface;//Depth Surface	
 	LPDIRECT3DSURFACE9 s_efb_color_surface;//Color Surface
 	LPDIRECT3DSURFACE9 s_efb_color_ReadBuffer;//Surface 0 of s_efb_colorRead_texture
 	LPDIRECT3DSURFACE9 s_efb_depth_ReadBuffer;//Surface 0 of s_efb_depthRead_texture
@@ -165,6 +125,47 @@ private:
 	D3DFORMAT s_efb_color_surface_Format;//Format of the color Surface
 	D3DFORMAT s_efb_depth_surface_Format;//Format of the Depth Surface
 	D3DFORMAT s_efb_depth_ReadBuffer_Format;//Format of the Depth color Read Surface
+public:
+	FramebufferManager()
+	{
+		s_efb_color_texture = NULL;
+		s_efb_colorRead_texture = NULL;
+		s_efb_depth_texture = NULL;
+		s_efb_depthRead_texture = NULL;
+
+		s_efb_depth_surface = NULL;
+		s_efb_color_surface = NULL;
+		s_efb_color_ReadBuffer = NULL;
+		s_efb_depth_ReadBuffer = NULL;
+		s_efb_color_OffScreenReadBuffer = NULL;
+		s_efb_depth_OffScreenReadBuffer = NULL;
+
+		s_efb_color_surface_Format = D3DFMT_FORCE_DWORD;
+		s_efb_depth_surface_Format = D3DFMT_FORCE_DWORD;
+		s_efb_depth_ReadBuffer_Format = D3DFMT_FORCE_DWORD;
+		m_realXFBSource.texture = NULL;
+	}
+
+	void Create();
+	void Destroy();
+
+	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
+	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
+
+	LPDIRECT3DTEXTURE9 GetEFBColorTexture();
+	LPDIRECT3DTEXTURE9 GetEFBDepthTexture();
+
+	LPDIRECT3DSURFACE9 GetEFBColorRTSurface();
+	LPDIRECT3DSURFACE9 GetEFBDepthRTSurface();
+	LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface();
+	LPDIRECT3DSURFACE9 GetEFBDepthOffScreenRTSurface();
+	D3DFORMAT GetEFBDepthRTSurfaceFormat();
+	D3DFORMAT GetEFBColorRTSurfaceFormat();
+	D3DFORMAT GetEFBDepthReadSurfaceFormat();
+	LPDIRECT3DSURFACE9 GetEFBColorReadSurface();
+	LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();
+
+
 };
 
 extern FramebufferManager g_framebufferManager;
