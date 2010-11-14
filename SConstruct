@@ -126,9 +126,10 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
     env['CC'] = "gcc-4.2 -ObjC"
     env['CXX'] = "g++-4.2 -ObjC++"
-    env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
-    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
+    env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
+    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['FRAMEWORKSFLAGS'] = ['-Xarch_i386', '-Wl,-framework,QuickTime']
     env['LIBPATH'] += ['/usr/lib']
     env['LIBS'] = ['iconv', 'SDL']
     env['LINKFLAGS'] += ccld
@@ -137,12 +138,12 @@ if sys.platform == 'darwin':
 
     if platform.mac_ver()[0] >= '10.6.0':
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-        env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
+        env['FRAMEWORKSFLAGS'] += ['-weak_framework', 'OpenCL']
 
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
-        wxenv = env.Clone(LIBPATH = '')
+        wxenv = env.Clone(CPPPATH = '', LIBPATH = '', LIBS = '')
         conf = wxenv.Configure(conf_dir = None, log_file = None,
             custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
         env['HAVE_WX'] = \
@@ -154,9 +155,7 @@ if sys.platform == 'darwin':
             Exit(1)
         wxconfig.ParseWXConfig(wxenv)
         env['CPPDEFINES'] += ['__WXOSX_COCOA__']
-        env['CPPPATH'] = wxenv['CPPPATH']
-        if not wxenv['CPPDEFINES'].count('WXUSINGDLL'):
-            env['FRAMEWORKS'] = wxenv['FRAMEWORKS']
+        env['CPPPATH'] += wxenv['CPPPATH']
         env['LIBPATH'] += wxenv['LIBPATH']
         env['wxconfiglibs'] = wxenv['LIBS']
 
@@ -180,6 +179,8 @@ elif sys.platform == 'win32':
 
 else:
     env['CCFLAGS'] += ['-fPIC', '-msse2', '-pthread']
+    if env['CCVERSION'] >= '4.2.0':
+        env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
     env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
     env['LINKFLAGS'] += ['-pthread']

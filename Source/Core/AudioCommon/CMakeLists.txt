@@ -31,6 +31,7 @@ else()
 
     if(WIN32)
 		set(SRCS ${SRCS} Src/DSoundStream.cpp)
+		set(SRCS ${SRCS} Src/XAudio2Stream.cpp)
 	endif(WIN32)
 endif()
 

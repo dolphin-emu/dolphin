@@ -24,7 +24,6 @@ else:
 		files += [ 'PulseAudioStream.cpp' ]
 	if sys.platform == 'win32':
 		files += [ 'DSoundStream.cpp' ]
-	if sys.platform == 'win32':
 		files += [ 'XAudio2Stream.cpp' ]
 
 env.StaticLibrary(env['local_libs'] + 'audiocommon', files)

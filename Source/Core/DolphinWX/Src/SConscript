@@ -58,10 +58,8 @@ elif sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
 	exeNoGUI = '#' + env['prefix'] + '/DolphinNoGUI'
 elif sys.platform == 'darwin' and env['HAVE_WX']:
-	exeGUI = 'Dolphin'
-	exeGUIdist = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
-
 	wxlibs += env['wxconfiglibs']
+	exeGUI = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
@@ -89,14 +87,6 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		LSMinimumSystemVersion = '10.5.0',
 		LSRequiresCarbon = True,
 		)))
-
-	def Fixup(target, source, env):
-		if env['CPPDEFINES'].count('WXUSINGDLL'):
-			pass
-		os.link(str(source[0]), str(target[0]))
-	env.Append(BUILDERS = {'Fixup' : Builder(action = Fixup)})
-	env.Depends(exeGUIdist, env['plugin_dir'])
-	env.Fixup(exeGUIdist, exeGUI)
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]
