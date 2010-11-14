@@ -27,11 +27,7 @@ static const u8 nunchuk_button_bitmasks[] =
 	Nunchuk::BUTTON_Z,
 };
 
-#ifdef USE_UDP_WIIMOTE
 Nunchuk::Nunchuk(UDPWrapper *wrp) : Attachment("Nunchuk") , m_udpWrap(wrp)
-#else
-Nunchuk::Nunchuk() : Attachment("Nunchuk")
-#endif
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
@@ -89,7 +85,6 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	// flip the button bits :/
 	ncdata->bt ^= 0x03;
 	
-#ifdef USE_UDP_WIIMOTE
 	if (m_udpWrap->inst)
 	{
 		if (m_udpWrap->updNun)
@@ -111,21 +106,19 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		}
 		if (m_udpWrap->updNunAccel)
 		{
-			float x,y,z;
-			m_udpWrap->inst->getNunchuckAccel(x,y,z);
-			accel.x=x;
-			accel.y=y;
-			accel.z=z;
+			float x, y, z;
+			m_udpWrap->inst->getNunchuckAccel(x, y, z);
+			accel.x = x;
+			accel.y = y;
+			accel.z = z;
 		}	
 	}
-#endif
 
 	wm_accel* dt = (wm_accel*)&ncdata->ax;
 	accel_cal* calib = (accel_cal*)&reg[0x20];
-	dt->x=u8(trim(accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x));
-	dt->y=u8(trim(accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y));
-	dt->z=u8(trim(accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z));
+	dt->x = u8(trim(accel.x * (calib->one_g.x - calib->zero_g.x) + calib->zero_g.x));
+	dt->y = u8(trim(accel.y * (calib->one_g.y - calib->zero_g.y) + calib->zero_g.y));
+	dt->z = u8(trim(accel.z * (calib->one_g.z - calib->zero_g.z) + calib->zero_g.z));
 }
-
 
 }

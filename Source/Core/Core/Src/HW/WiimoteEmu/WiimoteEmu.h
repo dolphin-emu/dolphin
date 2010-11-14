@@ -146,9 +146,7 @@ private:
 
 	double					ir_sin,ir_cos; //for the low pass filter
 	
-#ifdef USE_UDP_WIIMOTE
 	UDPWrapper* m_udp;
-#endif
 
 	bool		m_rumble_on;
 	bool		m_speaker_mute;

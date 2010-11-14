@@ -11,12 +11,7 @@ namespace WiimoteEmu
 class Nunchuk : public Attachment
 {
 public:
-
-#ifdef USE_UDP_WIIMOTE
 	Nunchuk(UDPWrapper * wrp);
-#else
-	Nunchuk();
-#endif
 
 	virtual void GetState( u8* const data, const bool focus );
 
@@ -37,9 +32,7 @@ private:
 
 	unsigned int	m_shake_step[3];
 	
-#ifdef USE_UDP_WIIMOTE
 	UDPWrapper* const m_udpWrap;
-#endif
 };
 
 }

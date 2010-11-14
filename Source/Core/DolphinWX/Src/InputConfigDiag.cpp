@@ -16,19 +16,21 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "InputConfigDiag.h"
+#include "UDPConfigDiag.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 #define WXSTR_FROM_STR(s)	(wxString::From8BitData((s).c_str()))
 // ToAscii was causing probs with some extended ascii characters, To8BitData seems to work
 #define STR_FROM_WXSTR(w)	(std::string((w).To8BitData()))
 
-#ifdef USE_UDP_WIIMOTE
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {
 	UDPWrapper* const wrp = ((UDPConfigButton*)event.GetEventObject())->wrapper;
-	wrp->Configure(this);
+	wxDialog * diag = new UDPConfigDiag(this, wrp);
+	diag->Center();
+	diag->ShowModal();
+	diag->Destroy();
 }
-#endif
 
 void GamepadPage::ConfigExtension( wxCommandEvent& event )
 {
@@ -836,7 +838,6 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3 );
 		}
 		break;
-#ifdef USE_UDP_WIIMOTE
 	case GROUP_TYPE_UDPWII:
 		{
 			wxButton* const btn = new UDPConfigButton( parent, (UDPWrapper*)group );
@@ -844,7 +845,6 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add(btn, 0, wxALL|wxEXPAND, 3);
 		}
 		break;
-#endif
 	default:
 		{
 			//options

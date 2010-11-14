@@ -1,8 +1,6 @@
 
 #include "UDPWiimote.h"
 
-#ifdef USE_UDP_WIIMOTE
-
 #ifdef _WIN32
 
 #include <winsock2.h>
@@ -78,7 +76,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	static bool sranded=false;
 	if (!sranded)
 	{
-		srand(time(0));
+		srand((unsigned int)time(0));
 		sranded=true;
 	}
 	bcastMagic=rand() & 0xFFFF;
@@ -125,7 +123,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK) {
 			continue;
 		}
-		if (bind(sock, p->ai_addr, p->ai_addrlen) == -1) {
+		if (bind(sock, p->ai_addr, (int)p->ai_addrlen) == -1) {
 			close(sock);
 			continue;
 		}
@@ -181,7 +179,7 @@ void UDPWiimote::mainThread()
 			broadcastPresence();
 		} else {
 			tleft-=telapsed;
-			timeout.tv_sec=tleft/1000;
+			timeout.tv_sec=(long)(tleft/1000);
 			timeout.tv_usec=(tleft%1000)*1000;
 		}
 		
@@ -328,7 +326,7 @@ void UDPWiimote::broadcastIPv4(const void * data, size_t size)
     memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	
 	int num;
-	if ((num=sendto(d->bipv4_fd,(const dataz)data,size,0,(struct sockaddr *) &their_addr, sizeof their_addr)) == -1)
+	if ((num=sendto(d->bipv4_fd,(const dataz)data,(int)size,0,(struct sockaddr *) &their_addr, sizeof their_addr)) == -1)
 	{
 		WARN_LOG(WIIMOTE,"sendto() failed");
 		return;
@@ -421,5 +419,3 @@ void UDPWiimote::changeName(const char * name)
 	displayName=name;
 	d->nameMutex.Leave();
 }
-
-#endif

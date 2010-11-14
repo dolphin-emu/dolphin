@@ -146,8 +146,6 @@ public:
 	ControllerInterface::ControlReference* const		control_reference;
 };
 
-#ifdef USE_UDP_WIIMOTE
-
 class UDPConfigButton : public wxButton
 {
 public:
@@ -157,8 +155,6 @@ public:
 		, wrapper(udp)
 	{}
 };
-
-#endif
 
 class ControlGroupBox : public wxStaticBoxSizer
 {
@@ -177,8 +173,6 @@ class ControlGroupsSizer : public wxBoxSizer
 {
 public:
 	ControlGroupsSizer( ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL );
-
-	
 };
 
 class InputConfigDialog;
