@@ -224,23 +224,23 @@ inline u64 CreateMapId(u32 address, u32 size)
 
 inline u64 CreateVMapId(u8 VATUSED)
 {
-	u64 vmat_id = 0;
+	u64 vmap_id = 0;
 	for(int i = 0; i < 8 ; i++)
 	{
 		if(VATUSED & (1 << i))
 		{
-			//vmat_id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
-			if(vmat_id != 0)
+			//vmap_id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
+			if(vmap_id != 0)
 			{
-				vmat_id ^= (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16); 
+				vmap_id ^= (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16); 
 			}
 			else
 			{
-				vmat_id = (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16);
+				vmap_id = (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16);
 			}
 		}
 	}
-	return vmat_id;
+	return vmap_id;
 }
 
 typedef std::map<u64, CachedDisplayList> DLMap;
@@ -689,7 +689,6 @@ bool HandleDisplayList(u32 address, u32 size)
 	if (Parentiter != DLCache::dl_map.end())
 	{
 		vhash = DLCache::CreateVMapId(Parentiter->second.VATUsed);
-		DLCache::VDlist &tvdl = Parentiter->second;			
 		iter = 	Parentiter->second.dl_map.find(vhash);
 		childexist = iter != Parentiter->second.dl_map.end();		
 	}
