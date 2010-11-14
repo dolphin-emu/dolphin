@@ -224,23 +224,23 @@ inline u64 CreateMapId(u32 address, u32 size)
 
 inline u64 CreateVMapId(u8 VATUSED)
 {
-	u64 id = 0;
+	u64 vmat_id = 0;
 	for(int i = 0; i < 8 ; i++)
 	{
 		if(VATUSED & (1 << i))
 		{
-			//id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
-			if(id != 0)
+			//vmat_id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
+			if(vmat_id != 0)
 			{
-				id ^= (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16); 
+				vmat_id ^= (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16); 
 			}
 			else
 			{
-				id = (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16);
+				vmat_id = (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16);
 			}
 		}
 	}
-	return id;
+	return vmat_id;
 }
 
 typedef std::map<u64, CachedDisplayList> DLMap;
