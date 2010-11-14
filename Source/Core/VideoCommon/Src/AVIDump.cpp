@@ -249,7 +249,7 @@ bool AVIDump::CreateFile()
 	s_CodecContext->bit_rate = 400000;
 	s_CodecContext->width = s_width;
 	s_CodecContext->height = s_height;
-	s_CodecContext->time_base = (AVRational){1, 60};
+	s_CodecContext->time_base = (AVRational){1, 30};
 	s_CodecContext->gop_size = 10;
 	s_CodecContext->max_b_frames = 1;
 	s_CodecContext->pix_fmt = PIX_FMT_YUV420P;
