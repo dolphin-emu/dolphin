@@ -41,6 +41,7 @@ if(wxWidgets_FOUND)
 				Src/NetPlayServer.cpp
 				Src/NetWindow.cpp
 				Src/PatchAddEdit.cpp
+				Src/UDPConfigDiag.cpp
 				Src/WiimoteConfigDiag.cpp
 				Src/MemoryCards/WiiSaveCrypted.cpp)
 
