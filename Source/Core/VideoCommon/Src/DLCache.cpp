@@ -232,11 +232,11 @@ inline u64 CreateVMapId(u8 VATUSED)
 			//vmat_id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
 			if(vmat_id != 0)
 			{
-				vmat_id ^= (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16); 
+				vmat_id ^= (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16); 
 			}
 			else
 			{
-				vmat_id = (g_VtxAttr[i].g0.Hex | (g_VtxAttr[i].g1.Hex << 32)) ^ (g_VtxAttr[i].g2.Hex << 16);
+				vmat_id = (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16);
 			}
 		}
 	}
