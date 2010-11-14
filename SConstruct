@@ -180,7 +180,7 @@ elif sys.platform == 'win32':
 else:
     env['CCFLAGS'] += ['-fPIC', '-msse2', '-pthread']
     if env['CCVERSION'] >= '4.2.0':
-		env['CCFLAGS'] += ['-fvisibility=hidden']
+        env['CCFLAGS'] += ['-fvisibility=hidden']
         env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
     env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
