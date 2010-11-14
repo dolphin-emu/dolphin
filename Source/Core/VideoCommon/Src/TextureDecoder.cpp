@@ -673,10 +673,6 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
     return PC_TEX_FMT_NONE;
 }
 
-#if _M_SSE >= 0x301
-static const __m128i kMaskSwap32 = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
-#endif
-
 //switch endianness, unswizzle
 //TODO: to save memory, don't blindly convert everything to argb8888
 //also ARGB order needs to be swapped later, to accommodate modern hardware better
@@ -819,46 +815,6 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
     case GX_TF_RGBA8:  // speed critical
         {
 
-			// FIXME(nodchip): the following code is too complicated.
-
-#if _M_SSE >= 0x401
-
-			if (cpu_info.bSSE4_1) {
-				for (int y = 0; y < height; y += 4) {
-					__m128i* p = (__m128i*)(src + y * width * 4);
-					for (int x = 0; x < width; x += 4) {
-
-						// Load 64-bytes at once.
-						const __m128i a0 = _mm_stream_load_si128(p++);
-						const __m128i a1 = _mm_stream_load_si128(p++);
-						const __m128i a2 = _mm_stream_load_si128(p++);
-						const __m128i a3 = _mm_stream_load_si128(p++);
-
-						// Shuffle 16-bit integeres by _mm_unpacklo_epi16()/_mm_unpackhi_epi16(),
-						// apply Common::swap32() by _mm_shuffle_epi8() and
-						// store them by _mm_stream_si128().
-						// See decodebytesARGB8_4() about the idea.
-						const __m128i b0 = _mm_unpacklo_epi16(a0, a2);
-						const __m128i c0 = _mm_shuffle_epi8(b0, kMaskSwap32);
-						_mm_stream_si128((__m128i*)((u32*)dst + (y + 0) * width + x), c0);
-
-						const __m128i b1 = _mm_unpackhi_epi16(a0, a2);
-						const __m128i c1 = _mm_shuffle_epi8(b1, kMaskSwap32);
-						_mm_stream_si128((__m128i*)((u32*)dst + (y + 1) * width + x), c1);
-
-						const __m128i b2 = _mm_unpacklo_epi16(a1, a3);
-						const __m128i c2 = _mm_shuffle_epi8(b2, kMaskSwap32);
-						_mm_stream_si128((__m128i*)((u32*)dst + (y + 2) * width + x), c2);
-
-						const __m128i b3 = _mm_unpackhi_epi16(a1, a3);
-						const __m128i c3 = _mm_shuffle_epi8(b3, kMaskSwap32);
-						_mm_stream_si128((__m128i*)((u32*)dst + (y + 3) * width + x), c3);
-					}
-				}
-			} else
-
-#endif
-
 #if _M_SSE >= 0x301
 
 			if (cpu_info.bSSSE3) {
@@ -866,15 +822,21 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					__m128i* p = (__m128i*)(src + y * width * 4);
 					for (int x = 0; x < width; x += 4) {
 
-						const __m128i a0 = _mm_load_si128(p++);
-						const __m128i a1 = _mm_load_si128(p++);
-						const __m128i a2 = _mm_load_si128(p++);
-						const __m128i a3 = _mm_load_si128(p++);
+						// We use _mm_loadu_si128 instead of _mm_load_si128
+						// because "p" may not be aligned in 16-bytes alignment.
+						// See Issue 3493.
+						const __m128i a0 = _mm_loadu_si128(p++);
+						const __m128i a1 = _mm_loadu_si128(p++);
+						const __m128i a2 = _mm_loadu_si128(p++);
+						const __m128i a3 = _mm_loadu_si128(p++);
 
 						// Shuffle 16-bit integeres by _mm_unpacklo_epi16()/_mm_unpackhi_epi16(),
 						// apply Common::swap32() by _mm_shuffle_epi8() and
 						// store them by _mm_stream_si128().
 						// See decodebytesARGB8_4() about the idea.
+
+						static const __m128i kMaskSwap32 = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
+
 						const __m128i b0 = _mm_unpacklo_epi16(a0, a2);
 						const __m128i c0 = _mm_shuffle_epi8(b0, kMaskSwap32);
 						_mm_stream_si128((__m128i*)((u32*)dst + (y + 0) * width + x), c0);
