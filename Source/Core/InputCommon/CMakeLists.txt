@@ -1,7 +1,7 @@
 set(SRCS	Src/ControllerEmu.cpp
 			Src/InputConfig.cpp
-			#Src/UDPWiimote.cpp
-			#Src/UDPWrapper.cpp
+			Src/UDPWiimote.cpp
+			Src/UDPWrapper.cpp
 			Src/ControllerInterface/ControllerInterface.cpp)
 
 if(WIN32)

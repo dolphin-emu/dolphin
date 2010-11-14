@@ -6,8 +6,8 @@ files = [
 	'ControllerEmu.cpp',
 	'InputConfig.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
-	#'UDPWiimote.cpp',
-	#'UDPWrapper.cpp',
+	'UDPWiimote.cpp',
+	'UDPWrapper.cpp',
 	]
 
 if sys.platform == 'win32':
