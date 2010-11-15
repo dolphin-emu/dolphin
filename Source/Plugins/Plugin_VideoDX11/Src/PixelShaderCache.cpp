@@ -38,7 +38,7 @@ extern int frameCount;
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
 
-LinearDiskCache g_ps_disk_cache;
+LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram = NULL;
 ID3D11PixelShader* s_ColorCopyProgram = NULL;
@@ -158,17 +158,12 @@ void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const 
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader {
+class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+{
 public:
-	void Read(const u8* key, int key_size, const u8* value, int value_size)
+	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
 	{
-		PIXELSHADERUID uid;
-		if (key_size != sizeof(uid)) {
-			ERROR_LOG(VIDEO, "Wrong key size in pixel shader cache");
-			return;
-		}
-		memcpy(&uid, key, key_size);
-		PixelShaderCache::InsertByteCode(uid, (void*)value, value_size);
+		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}
 };
 
@@ -205,7 +200,7 @@ void PixelShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 }
 
 // ONLY to be used during shutdown.
@@ -266,7 +261,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	}
 
 	// Insert the bytecode into the caches
-	g_ps_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->Data(), pbytecode->Size());
+	g_ps_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
 	g_ps_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
@@ -275,7 +270,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	return result;
 }
 
-bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, void* bytecode, unsigned int bytecodelen)
+bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen)
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == NULL)

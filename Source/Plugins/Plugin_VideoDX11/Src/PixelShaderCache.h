@@ -33,7 +33,7 @@ public:
 	static void Clear();
 	static void Shutdown();
 	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
-	static bool InsertByteCode(const PIXELSHADERUID &uid, void* bytecode, unsigned int bytecodelen);
+	static bool InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen);
 
 	static ID3D11PixelShader* GetColorMatrixProgram();
 	static ID3D11PixelShader* GetColorCopyProgram();

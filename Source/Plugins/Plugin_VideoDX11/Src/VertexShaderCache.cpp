@@ -40,7 +40,7 @@ static ID3D11VertexShader* ClearVertexShader = NULL;
 static ID3D11InputLayout* SimpleLayout = NULL;
 static ID3D11InputLayout* ClearLayout = NULL;
 
-LinearDiskCache g_vs_disk_cache;
+LinearDiskCache<VERTEXSHADERUID, u8> g_vs_disk_cache;
 
 ID3D11VertexShader* VertexShaderCache::GetSimpleVertexShader() { return SimpleVertexShader; }
 ID3D11VertexShader* VertexShaderCache::GetClearVertexShader() { return ClearVertexShader; }
@@ -81,21 +81,15 @@ void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const 
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader {
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+{
 public:
-	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
+	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
 	{
-		VERTEXSHADERUID uid;
-		if (key_size != sizeof(uid))
-		{
-			ERROR_LOG(VIDEO, "Wrong key size in vertex shader cache");
-			return;
-		}
-		memcpy(&uid, key, key_size);
-
 		D3DBlob* blob = new D3DBlob(value_size, value);
-		VertexShaderCache::InsertByteCode(uid, blob);
+		VertexShaderCache::InsertByteCode(key, blob);
 		blob->Release();
+
 	}
 };
 
@@ -183,7 +177,7 @@ void VertexShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
-	g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 }
 
 void VertexShaderCache::Clear()
@@ -238,7 +232,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		PanicAlert("Failed to compile Vertex Shader %s %d:\n\n%s", __FILE__, __LINE__, code);
 		return false;
 	}
-	g_vs_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->Data(), pbytecode->Size());
+	g_vs_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, pbytecode);

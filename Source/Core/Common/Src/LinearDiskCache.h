@@ -19,21 +19,35 @@
 #define _LINEAR_DISKCACHE
 
 #include "Common.h"
+#include <fstream>
 
-#include <stdlib.h>
-#include <stdio.h>
+// Update this to the current SVN revision every time you change shader generation code.
+// We don't automatically get this from SVN_REV because that would mean regenerating the
+// shader cache for every revision, graphics-related or not, which is simply annoying.
+enum
+{
+	LINEAR_DISKCACHE_VER = 6420
+};
 
 // On disk format:
-// uint32 'DCAC'
-// uint32 version;  // svn_rev
-// uint32 key_length;
-// uint32 value_length;
-// ....   key;
-// ....   value;
+//header{
+// u32 'DCAC';
+// u32 version;  // svn_rev
+// u16 sizeof(key_type);
+// u16 sizeof(value_type);
+//}
 
-class LinearDiskCacheReader {
+//key_value_pair{
+// u32 value_size;
+// key_type   key;
+// value_type[value_size]   value;
+//}
+
+template <typename K, typename V>
+class LinearDiskCacheReader
+{
 public:
-	virtual void Read(const u8 *key, int key_size, const u8 *value, int value_size) = 0;
+	virtual void Read(const K &key, const V *value, u32 value_size) = 0;
 };
 
 // Dead simple unsorted key-value store with append functionality.
@@ -44,24 +58,123 @@ public:
 // Not tuned for extreme performance but should be reasonably fast.
 // Does not support keys or values larger than 2GB, which should be reasonable.
 // Keys must have non-zero length; values can have zero length.
-class LinearDiskCache {
-public:
-	LinearDiskCache();
 
-	// Returns the number of items read from the cache.
-	int OpenAndRead(const char *filename, LinearDiskCacheReader *reader);
-	void Close();
-	void Sync();
+// K and V are some POD type
+// K : the key type
+// V : value array type
+template <typename K, typename V>
+class LinearDiskCache
+{
+public:
+	// return number of read entries
+	u32 OpenAndRead(const char *filename, LinearDiskCacheReader<K, V> &reader)
+	{
+		using std::ios_base;
+
+		// close any currently opened file
+		Close();
+
+		// try opening for reading/writing
+		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary);
+		
+		if (m_file.is_open() && ValidateHeader())
+		{
+			// good header, read some key/value pairs
+			u32 num_entries = 0;
+			K key;
+
+			V *value = NULL;
+			u32 value_size;
+
+			while (Read(&value_size))
+			{
+				delete[] value;
+				value = new V[value_size];
+
+				// read key/value and pass to reader
+				if (Read(&key) && Read(value, value_size))
+					reader.Read(key, value, value_size);
+				else
+					break;
+
+				++num_entries;
+			}
+
+			delete[] value;
+			return num_entries;
+		}
+
+		// failed to open file for reading or bad header
+		// close and recreate file
+		Close();
+		m_file.open(filename, ios_base::out | ios_base::trunc | ios_base::binary);
+		WriteHeader();
+		return 0;
+	}
+	
+	void Sync()
+	{
+		m_file.flush();
+	}
+
+	void Close()
+	{
+		if (m_file.is_open())
+			m_file.close();
+		// clear any error flags
+		m_file.clear();
+	}
 
 	// Appends a key-value pair to the store.
-	void Append(const u8 *key, int key_size, const u8 *value, int value_size);
+	void Append(const K &key, const V *value, u32 value_size)
+	{
+		// TODO: Should do a check that we don't already have "key"?
+		Write(&value_size);
+		Write(&key);
+		Write(value, value_size);
+	}
 
 private:
-	void WriteHeader();
-	bool ValidateHeader();
+	void WriteHeader()
+	{
+		Write(&m_header);
+	}
 
-	FILE *file_;
-	int num_entries_;
+	bool ValidateHeader()
+	{
+		char file_header[sizeof(Header)];
+
+		return (Read(file_header, sizeof(Header))
+			&& !memcmp((const char*)&m_header, file_header, sizeof(Header)));
+	}
+
+	template <typename D>
+	bool Write(const D *data, u32 count = 1)
+	{
+		return m_file.write((const char*)data, count * sizeof(D)).good();
+	}
+
+	template <typename D>
+	bool Read(const D *data, u32 count = 1)
+	{
+		return m_file.read((char*)data, count * sizeof(D)).good();
+	}
+
+	struct Header
+	{
+		Header()
+			: id(*(u32*)"DCAC")
+			, ver(LINEAR_DISKCACHE_VER)
+			, key_t_size(sizeof(K))
+			, value_t_size(sizeof(V))
+		{}
+
+		const u32 id, ver;
+		const u16 key_t_size, value_t_size;
+
+	} m_header;
+
+	std::fstream m_file;
 };
 
 #endif  // _LINEAR_DISKCACHE

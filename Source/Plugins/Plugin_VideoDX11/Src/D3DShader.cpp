@@ -26,7 +26,7 @@ namespace D3D
 {
 
 // bytecode->shader
-ID3D11VertexShader* CreateVertexShaderFromByteCode(void* bytecode, unsigned int len)
+ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11VertexShader* v_shader;
 	HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, NULL, &v_shader);
@@ -71,7 +71,7 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 }
 
 // bytecode->shader
-ID3D11PixelShader* CreatePixelShaderFromByteCode(void* bytecode, unsigned int len)
+ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11PixelShader* p_shader;
 	HRESULT hr = D3D::device->CreatePixelShader(bytecode, len, NULL, &p_shader);

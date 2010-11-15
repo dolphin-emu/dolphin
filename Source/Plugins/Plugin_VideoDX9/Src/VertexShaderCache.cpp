@@ -42,7 +42,7 @@ const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[MAX_SSAA_SHADERS];
 static LPDIRECT3DVERTEXSHADER9 ClearVertexShader;
 
-LinearDiskCache g_vs_disk_cache;
+LinearDiskCache<VERTEXSHADERUID, u8> g_vs_disk_cache;
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexShader(int level)
 {
@@ -53,7 +53,6 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
 {
 	return ClearVertexShader;
 }
-
 
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -85,19 +84,12 @@ void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const 
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader {
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+{
 public:
-	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
+	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
 	{
-		VERTEXSHADERUID uid;
-		if (key_size != sizeof(uid))
-		{
-			ERROR_LOG(VIDEO, "Wrong key size in vertex shader cache");
-			return;
-		}
-		memcpy(&uid, key, key_size);
-
-		VertexShaderCache::InsertByteCode(uid, value, value_size, false);
+		VertexShaderCache::InsertByteCode(key, value, value_size, false);
 	}
 };
 
@@ -182,7 +174,7 @@ void VertexShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
-	g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 }
 
 void VertexShaderCache::Clear()
@@ -257,7 +249,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		}
 		return false;
 	}
-	g_vs_disk_cache.Append((u8 *)&uid, sizeof(uid), bytecode, bytecodelen);
+	g_vs_disk_cache.Append(uid, bytecode, bytecodelen);
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);

@@ -41,7 +41,7 @@
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
-static LinearDiskCache g_ps_disk_cache;
+static LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
 static std::set<u32> unique_shaders;
 
 #define MAX_SSAA_SHADERS 3
@@ -87,17 +87,12 @@ void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const 
 	D3D::dev->SetPixelShaderConstantF(const_number, f, count);
 }
 
-class PixelShaderCacheInserter : public LinearDiskCacheReader {
+class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+{
 public:
-	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
+	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
 	{
-		PIXELSHADERUID uid;
-		if (key_size != sizeof(uid)) {
-			ERROR_LOG(VIDEO, "Wrong key size in pixel shader cache");
-			return;
-		}
-		memcpy(&uid, key, key_size);
-		PixelShaderCache::InsertByteCode(uid, value, value_size, false);
+		PixelShaderCache::InsertByteCode(key, value, value_size, false);
 	}
 };
 
@@ -239,7 +234,7 @@ void PixelShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
+	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 }
 
 // ONLY to be used during shutdown.
@@ -345,7 +340,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	}
 
 	// Insert the bytecode into the caches
-	g_ps_disk_cache.Append((u8 *)&uid, sizeof(uid), bytecode, bytecodelen);
+	g_ps_disk_cache.Append(uid, bytecode, bytecodelen);
 	g_ps_disk_cache.Sync();
 
 	// And insert it into the shader cache.
