@@ -38,11 +38,15 @@ extern const char *netplay_dolphin_ver;
 
 #define STACKALIGN
 
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-	TypeName(const TypeName&); \
-	void operator=(const TypeName&)
+// An inheritable class to disallow the copy constructor and operator= functions
+class NonCopyable
+{
+protected:
+	NonCopyable() {}
+private:
+	NonCopyable(const NonCopyable&);
+	void operator=(const NonCopyable&);
+};
 
 #include "Log.h"
 #include "CommonTypes.h"

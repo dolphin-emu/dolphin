@@ -27,7 +27,7 @@
 
 typedef u32 (*CompiledCode)();
 
-class DSPEmitter : public Gen::XCodeBlock
+class DSPEmitter : public Gen::XCodeBlock, NonCopyable
 {
 public:
 	DSPEmitter();
@@ -116,8 +116,6 @@ private:
 	
 	// Counts down.
 	// int cycles;
-
-	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_increment_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);

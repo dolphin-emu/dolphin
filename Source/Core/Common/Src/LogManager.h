@@ -106,7 +106,7 @@ namespace Common {
 	class CriticalSection;
 }
 
-class LogManager 
+class LogManager : NonCopyable
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
@@ -117,7 +117,6 @@ private:
 
 	LogManager();
 	~LogManager();
-	DISALLOW_COPY_AND_ASSIGN(LogManager);
 public:
 
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}

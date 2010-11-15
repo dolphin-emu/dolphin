@@ -23,7 +23,7 @@
 #define STATISTICS 1
 
 // NEVER inherit from this class.
-struct Config
+struct Config : NonCopyable
 {
     Config();
     void Load();
@@ -44,9 +44,6 @@ struct Config
 
     u32 drawStart;
     u32 drawEnd;
-
-private:
-	DISALLOW_COPY_AND_ASSIGN(Config);
 };
 
 extern Config g_Config;

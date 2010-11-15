@@ -23,7 +23,7 @@
 #include "MailHandler.h"
 #include "UCodes/UCodes.h"
 
-class CDSPHandler
+class CDSPHandler : NonCopyable
 {
 public:
 	void Update(int cycles);
@@ -58,7 +58,6 @@ public:
 private:
 	CDSPHandler();
 	~CDSPHandler();
-	DISALLOW_COPY_AND_ASSIGN(CDSPHandler);
 
 	// singleton instance
 	static CDSPHandler* m_pInstance;

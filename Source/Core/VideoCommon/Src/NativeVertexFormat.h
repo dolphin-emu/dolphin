@@ -88,7 +88,7 @@ struct PortableVertexDeclaration
 
 // Note that this class can't just invent arbitrary vertex formats out of its input - 
 // all the data loading code must always be made compatible.
-class NativeVertexFormat
+class NativeVertexFormat : NonCopyable
 {
 public:
 	virtual ~NativeVertexFormat() {}
@@ -108,9 +108,6 @@ public:
 protected:
 	// Let subclasses construct.
 	NativeVertexFormat() {}
-
-private:
-	DISALLOW_COPY_AND_ASSIGN(NativeVertexFormat);
 };
 
 #endif  // _NATIVEVERTEXFORMAT_H

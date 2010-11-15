@@ -40,7 +40,7 @@ private:
 typedef std::vector<CPluginInfo>CPluginInfos;
 
 
-class CPluginManager
+class CPluginManager : NonCopyable
 {
 public:
 	static CPluginManager& GetInstance() {return(*m_Instance);}
@@ -78,8 +78,6 @@ private:
 	~CPluginManager();
 	void GetPluginInfo(CPluginInfo *&info, std::string Filename);
 	void *LoadPlugin(const char *_rFilename);
-
-	DISALLOW_COPY_AND_ASSIGN(CPluginManager);
 };
 
 

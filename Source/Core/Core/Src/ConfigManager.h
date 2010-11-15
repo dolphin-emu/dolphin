@@ -39,7 +39,7 @@ enum INTERFACE_LANGUAGE
 	INTERFACE_OTHER,
 };
 
-struct SConfig
+struct SConfig : NonCopyable
 {
 	// Wii Devices
 	bool m_WiiSDCard;
@@ -111,8 +111,6 @@ private:
 	~SConfig();
 
 	static SConfig* m_Instance;
-
-	DISALLOW_COPY_AND_ASSIGN(SConfig);
 };
 
 #endif // endif config manager

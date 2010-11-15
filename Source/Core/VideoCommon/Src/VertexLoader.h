@@ -76,7 +76,7 @@ private:
 	}
 };
 
-class VertexLoader : public Gen::XCodeBlock
+class VertexLoader : public Gen::XCodeBlock, NonCopyable
 {
 public:
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
@@ -124,8 +124,6 @@ private:
 
 	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
-
-	DISALLOW_COPY_AND_ASSIGN(VertexLoader);
 };									  
 
 #endif
