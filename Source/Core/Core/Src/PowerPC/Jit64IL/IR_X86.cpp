@@ -56,14 +56,16 @@ static ThunkManager thunks;
 using namespace IREmitter;
 using namespace Gen;
 
+static const int MAX_NUMBER_OF_REGS = 16;
+
 struct RegInfo {
 	JitIL *Jit;
 	IRBuilder* Build;
 	InstLoc FirstI;
 	std::vector<unsigned> IInfo;
 	std::vector<InstLoc> lastUsed;
-	InstLoc regs[16];
-	InstLoc fregs[16];
+	InstLoc regs[MAX_NUMBER_OF_REGS];
+	InstLoc fregs[MAX_NUMBER_OF_REGS];
 	unsigned numSpills;
 	unsigned numFSpills;
 	bool MakeProfile;
@@ -72,7 +74,7 @@ struct RegInfo {
 	unsigned exitNumber;
 
 	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {
-		for (unsigned i = 0; i < 16; i++) {
+		for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++) {
 			regs[i] = 0;
 			fregs[i] = 0;
 		}
@@ -1914,7 +1916,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		}
 	}
 
-	for (unsigned i = 0; i < 8; i++) {
+	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++) {
 		if (RI.regs[i]) {
 			// Start a game in Burnout 2 to get this. Or animal crossing.
 			PanicAlert("Incomplete cleanup! (regs)");
