@@ -26,7 +26,6 @@ libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
 
 if env['HAVE_WX']:
 	files += [
-		'GUI/ConfigDlg.cpp',
 		'Debugger/Debugger.cpp',
 		]
 

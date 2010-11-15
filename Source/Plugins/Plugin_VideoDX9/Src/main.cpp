@@ -22,8 +22,7 @@
 #include "debugger/debugger.h"
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "DlgSettings.h"
-GFXConfigDialogDX *m_ConfigFrame = NULL;
+#include "VideoConfigDiag.h"
 #endif // HAVE_WX
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -45,7 +44,6 @@ GFXConfigDialogDX *m_ConfigFrame = NULL;
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
 #include "OnScreenDisplay.h"
-#include "DlgSettings.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
 #include "EmuWindow.h"
@@ -181,12 +179,28 @@ void DllConfig(void *_hParent)
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-	m_ConfigFrame = new GFXConfigDialogDX((wxWindow *)_hParent);
 
-	m_ConfigFrame->CreateGUIControls();
-	m_ConfigFrame->ShowModal();
-	m_ConfigFrame->Destroy();
+	// adapters
+	std::vector<std::string> adapters;
+	for (int i = 0; i < D3D::GetNumAdapters(); ++i)
+		adapters.push_back(D3D::GetAdapter(i).ident.Description);
+
+	// aamodes
+	std::vector<std::string> aamodes;
+	if (g_Config.iAdapter < D3D::GetNumAdapters())
+	{
+		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
+
+		for (int i = 0; i < adapter.aa_levels.size(); ++i)
+			aamodes.push_back(adapter.aa_levels[i].name);
+	}
+
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9", adapters, aamodes);
+	diag->ShowModal();
+	diag->Destroy();
 #endif
+	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
+
 	if (!s_PluginInitialized)
 		D3D::Shutdown();
 }

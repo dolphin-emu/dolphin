@@ -61,8 +61,7 @@ Make AA apply instantly during gameplay if possible
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "GUI/ConfigDlg.h"
-GFXConfigDialogOGL *m_ConfigFrame = NULL;
+#include "VideoConfigDiag.h"
 #include "Debugger/Debugger.h"
 #endif // HAVE_WX
 
@@ -159,6 +158,27 @@ void *DllDebugger(void *_hParent, bool Show)
 #endif
 }
 
+void GetShaders(std::vector<std::string> &shaders)
+{
+        shaders.clear();
+        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
+        {
+                File::FSTEntry entry;
+                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
+                for (u32 i = 0; i < entry.children.size(); i++) 
+                {
+                        std::string name = entry.children[i].virtualName.c_str();
+                        if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
+                                name = name.substr(0, name.size() - 4);
+                        shaders.push_back(name);
+                }
+        }
+        else
+        {
+                File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
+        }
+}
+
 void DllConfig(void *_hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
@@ -166,12 +186,19 @@ void DllConfig(void *_hParent)
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-	m_ConfigFrame = new GFXConfigDialogOGL((wxWindow *)_hParent);
+	std::vector<std::string> adapters;
 
-	m_ConfigFrame->CreateGUIControls();
-	m_ConfigFrame->ShowModal();
-	m_ConfigFrame->Destroy();
+	std::string caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA"};
+	std::vector<std::string> aamodes(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
+
+	std::vector<std::string> shaders;
+	GetShaders(shaders);
+
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "OpenGL", adapters, aamodes, shaders);
+	diag->ShowModal();
+	diag->Destroy();
 #endif
+	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 }
 
 void Initialize(void *init)

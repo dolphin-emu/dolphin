@@ -21,7 +21,6 @@ set(LIBS	videocommon
 
 if(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
-				Src/GUI/ConfigDlg.cpp
 				Src/Debugger/Debugger.cpp)
 endif(wxWidgets_FOUND)
 

@@ -43,7 +43,7 @@
 
 #include "main.h"
 #include "resource.h"
-#include "DlgSettings.h"
+#include "VideoConfigDiag.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
 #include "VertexShaderCache.h"
@@ -166,7 +166,29 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 void DllConfig(void *_hParent)
 {
-	DlgSettings_Show(g_hInstance, (HWND)((wxWindow *)_hParent)->GetHandle());
+	std::vector<std::string> adapters;
+	
+	IDXGIFactory* factory;
+	IDXGIAdapter* ad;
+	const HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	if (FAILED(hr))
+		PanicAlert("Failed to create IDXGIFactory object");
+
+	char tmpstr[512] = {};
+
+	DXGI_ADAPTER_DESC desc;
+	while (factory->EnumAdapters((UINT)adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
+	{
+		ad->GetDesc(&desc);
+		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
+		adapters.push_back(tmpstr);
+	}
+
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D11", adapters);
+	diag->ShowModal();
+	diag->Destroy();
+
+	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 }
 
 void Initialize(void *init)
