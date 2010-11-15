@@ -798,7 +798,8 @@ void Update()
 	{
 		// Progressive
 		NewVBeamPos = s_lineCount + 1;
-		BeginField(FIELD_PROGRESSIVE);
+		if (m_VBeamPos == 1)
+			BeginField(FIELD_PROGRESSIVE);
 	}
 	else if (m_VBeamPos == s_upperFieldBegin)
 	{
@@ -830,17 +831,15 @@ void Update()
 		EndField();
 	}
 
+	if (++m_VBeamPos > s_lineCount)
+		m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
+
 	for (int i = 0; i < 4; i++)
 	{
-		if (m_VBeamPos <= m_InterruptRegister[i].VCT && m_InterruptRegister[i].VCT < NewVBeamPos)
+		if (m_VBeamPos == m_InterruptRegister[i].VCT)
 			m_InterruptRegister[i].IR_INT = 1;
 	}
 	UpdateInterrupts();
-
-	if (++m_VBeamPos > s_lineCount)
-	{
-		m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
-	}
 }
 
 } // namespace
