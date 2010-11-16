@@ -8,8 +8,14 @@
 class NGCADPCM
 {
 public:
+	enum
+	{
+		ONE_BLOCK_SIZE = 32,
+		SAMPLES_PER_BLOCK = 28
+	};
+
 	static void InitFilter();
-	static void DecodeBlock(short *pcm, const u8 *adpcm);
+	static void DecodeBlock(s16 *pcm, const u8 *adpcm);
 };
 
 #endif

@@ -41,7 +41,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);
 
 // Get the audio rates (48000 or 32000 only)
-unsigned int GetDSPSampleRate();
+unsigned int GetAIDSampleRate();
 
 }  // namespace
 

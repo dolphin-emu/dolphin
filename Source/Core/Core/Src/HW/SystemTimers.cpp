@@ -151,8 +151,6 @@ u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
 
 void AICallback(u64 userdata, int cyclesLate)
 {
-	// Update disk streaming. All that code really needs a revamp, including replacing the codec with the one
-	// from in_cube.
 	AudioInterface::Update();
 	CoreTiming::ScheduleEvent(AI_PERIOD - cyclesLate, et_AI);
 }
@@ -166,7 +164,7 @@ void DSPCallback(u64 userdata, int cyclesLate)
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
+	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
@@ -280,7 +278,7 @@ void Init()
 	AI_PERIOD = GetTicksPerSecond() / 80;
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
+	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 
 	Common::Timer::IncreaseResolution();
 	// store and convert localtime at boot to timebase ticks

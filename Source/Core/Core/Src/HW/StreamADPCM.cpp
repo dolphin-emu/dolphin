@@ -2,21 +2,15 @@
 
 #include "StreamADPCM.h"
 
-#define ONE_BLOCK_SIZE		32
-#define SAMPLES_PER_BLOCK	28
-
 // STATE_TO_SAVE (not saved yet!)
-static int histl1;
-static int histl2;
-static int histr1;
-static int histr2;
+static s32 histl1;
+static s32 histl2;
+static s32 histr1;
+static s32 histr2;
 
-short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p)
+s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 {
-	const int hist1 = *hist1p;
-	const int hist2 = *hist2p;
-	
-	int hist = 0;
+	s32 hist = 0;
 	switch (q >> 4)
 	{
 	case 0:
@@ -36,17 +30,17 @@ short ADPDecodeSample(int bits, int q, int *hist1p, int *hist2p)
 	if (hist >  0x1fffff) hist =  0x1fffff;
 	if (hist < -0x200000) hist = -0x200000;
 
-	int cur = (((short)(bits << 12) >> (q & 0xf)) << 6) + hist;
+	s32 cur = (((s16)(bits << 12) >> (q & 0xf)) << 6) + hist;
 	
-	*hist2p = *hist1p;
-	*hist1p = cur;
+	hist2 = hist1;
+	hist1 = cur;
 
 	cur >>= 6;
 
 	if (cur < -0x8000) return -0x8000;
 	if (cur >  0x7fff) return  0x7fff;
 
-	return (short)cur;
+	return (s16)cur;
 }
 
 void NGCADPCM::InitFilter()
@@ -57,11 +51,11 @@ void NGCADPCM::InitFilter()
 	histr2 = 0;
 }
 
-void NGCADPCM::DecodeBlock(short *pcm, const u8 *adpcm)
+void NGCADPCM::DecodeBlock(s16 *pcm, const u8 *adpcm)
 {
 	for (int i = 0; i < SAMPLES_PER_BLOCK; i++)
 	{
-		pcm[i * 2]     = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0], &histl1, &histl2);
-		pcm[i * 2 + 1] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] >> 4,  adpcm[1], &histr1, &histr2);
+		pcm[i * 2]     = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0], histl1, histl2);
+		pcm[i * 2 + 1] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] >> 4,  adpcm[1], histr1, histr2);
 	}
 }
