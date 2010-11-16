@@ -133,22 +133,15 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
-	u32 netValues[2] = {0};
-	int NetPlay = 2;
 #if defined(HAVE_WX) && HAVE_WX
-	NetPlay = NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
-#endif
-
-	if (NetPlay != 2)
+	u32 netValues[2];
+	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))
 	{
-		if (NetPlay == 1)
-		{
-			_Hi  = netValues[0];	// first 4 bytes
-			_Low = netValues[1];	// last  4 bytes
-		}
-
+		_Hi  = netValues[0];	// first 4 bytes
+		_Low = netValues[1];	// last  4 bytes
 		return true;
 	}
+#endif
 
 	Frame::SetPolledDevice();
 

@@ -133,13 +133,15 @@ NetPad::NetPad(const SPADStatus* const pad_status)
 // called from ---NETPLAY--- thread
 void NetPlay::ClearBuffers()
 {
-	// clear pad buffers, no clear method ?
+	// clear pad buffers, Clear method isn't thread safe
 	for (unsigned int i=0; i<4; ++i)
 	{
-		while (m_pad_buffer[i].size())
-			m_pad_buffer[i].pop();
-		while (m_wiimote_buffer[i].size())
-			m_wiimote_buffer[i].pop();
+		while (m_pad_buffer[i].Size())
+			m_pad_buffer[i].Pop();
+
+		while (m_wiimote_buffer[i].Size())
+			m_wiimote_buffer[i].Pop();
+
 		m_wiimote_input[i].clear();
 	}
 }
@@ -157,17 +159,16 @@ bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, Ne
 	{
 		NetPad np(pad_status);
 
-		m_crit.buffer.Enter();	// lock buffer
 		// adjust the buffer either up or down
-		while (m_pad_buffer[in_game_num].size() <= m_target_buffer_size)
+		// inserting multiple padstates or dropping states
+		while (m_pad_buffer[in_game_num].Size() <= m_target_buffer_size)
 		{
 			// add to buffer
-			m_pad_buffer[in_game_num].push(np);
+			m_pad_buffer[in_game_num].Push(np);
 
 			// send
 			SendPadState(pad_nb, np);
 		}
-		m_crit.buffer.Leave();
 	}
 
 	m_crit.players.Leave();
@@ -176,23 +177,18 @@ bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, Ne
 	//bufftimer.Start();
 
 	// get padstate from buffer and send to game
-	m_crit.buffer.Enter();	// lock buffer
-	while (0 == m_pad_buffer[pad_nb].size())
+	while (!m_pad_buffer[pad_nb].Pop(*netvalues))
 	{
-		m_crit.buffer.Leave();
 		// wait for receiving thread to push some data
 		Common::SleepCurrentThread(1);
+
 		if (false == m_is_running)
 			return false;
-		m_crit.buffer.Enter();
 
 		// TODO: check the time of bufftimer here,
 		// if it gets pretty high, ask the user if they want to disconnect
 
 	}
-	*netvalues = m_pad_buffer[pad_nb].front();
-	m_pad_buffer[pad_nb].pop();
-	m_crit.buffer.Leave();
 
 	//u64 hangtime = bufftimer.GetTimeElapsed();
 	//if (hangtime > 10)
@@ -213,14 +209,10 @@ void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 
 
 	// does this local pad map in game?
 	if (in_game_num < 4)
-	{
-		m_crit.buffer.Enter();
-		
+	{		
 		m_wiimote_input[_number].resize(m_wiimote_input[_number].size() + 1);
 		m_wiimote_input[_number].back().assign((char*)_pData, (char*)_pData + _Size);
 		m_wiimote_input[_number].back().channel = _channelID;
-
-		m_crit.buffer.Leave();
 	}
 
 	m_crit.players.Leave();
@@ -237,41 +229,33 @@ void NetPlay::WiimoteUpdate(int _number)
 	// does this local pad map in game?
 	if (in_game_num < 4)
 	{
-		m_crit.buffer.Enter();
-		m_wiimote_buffer[in_game_num].push(m_wiimote_input[_number]);
+		m_wiimote_buffer[in_game_num].Push(m_wiimote_input[_number]);
 
 		// TODO: send it
 
 		m_wiimote_input[_number].clear();
-		m_crit.buffer.Leave();
 	}
 
 	m_crit.players.Leave();
 
-	m_crit.buffer.Enter();
-
-	if (0 == m_wiimote_buffer[_number].size())
+	if (0 == m_wiimote_buffer[_number].Size())
 	{
 		//PanicAlert("PANIC");
 		return;
 	}
 
-	NetWiimote& nw = m_wiimote_buffer[_number].front();
+	NetWiimote nw;
+	m_wiimote_buffer[_number].Pop(nw);
 
 	NetWiimote::const_iterator
 		i = nw.begin(), e = nw.end();
 	for ( ; i!=e; ++i)
 		Core::Callback_WiimoteInterruptChannel(_number, i->channel, &(*i)[0], (u32)i->size() + RPT_SIZE_HACK);
-
-	m_wiimote_buffer[_number].pop();
-	m_crit.buffer.Leave();
 }
 
 // called from ---GUI--- thread
 bool NetPlay::StartGame(const std::string &path)
 {
-	CritLocker game_lock(m_crit.game);	// lock game state
-
 	if (m_is_running)
 	{
 		PanicAlert("Game is already running!");
@@ -283,17 +267,16 @@ bool NetPlay::StartGame(const std::string &path)
 	m_is_running = true;
 	NetPlay_Enable(this);
 
+	ClearBuffers();
+
 	// boot game
 	::main_frame->BootGame(path);
-	//BootManager::BootCore(path);
 
-	// TODO: i dont know if i like this here
-	ClearBuffers();
 	// temporary
 	NetWiimote nw;
 	for (unsigned int i = 0; i<4; ++i)
 		for (unsigned int f = 0; f<2; ++f)
-			m_wiimote_buffer[i].push(nw);
+			m_wiimote_buffer[i].Push(nw);
 
 	return true;
 }
@@ -336,14 +319,14 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-int CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
 {
 	CritLocker crit(::crit_netplay_ptr);
 
 	if (::netplay_ptr)
-		return netplay_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus) ? 1 : 0;
+		return netplay_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus);
 	else
-		return 2;
+		return false;
 }
 
 // called from ---CPU--- thread

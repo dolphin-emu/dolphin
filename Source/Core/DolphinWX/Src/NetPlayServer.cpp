@@ -257,7 +257,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 {
 	if (m_is_running)
 	{
-		PanicAlert("Client disconnect while game is running!! NetPlay is disabled. You manually stop the game.");
+		PanicAlert("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
 		CritLocker game_lock(m_crit.game);	// lock game state
 		m_is_running = false;
 		NetPlay_Disable();
@@ -397,9 +397,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
 	CritLocker game_lock(m_crit.game);	// lock game state
 
-	m_crit.buffer.Enter();	// lock buffer
 	m_target_buffer_size = size;
-	m_crit.buffer.Leave();
 
 	// tell clients to change buffer size
 	sf::Packet spac;
@@ -448,10 +446,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 	case NP_MSG_PAD_DATA :
 		{
-			m_crit.buffer.Enter();	// lock buffer
-
 			// if this is pad data from the last game still being received, ignore it
-			if (player.on_game != m_on_game)
+			if (player.current_game != m_current_game)
 				break;
 
 			PadMapping map = 0;
@@ -470,8 +466,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				return 1;
 				
 			// add to pad buffer
-			m_pad_buffer[(unsigned)map].push(np);
-			m_crit.buffer.Leave();
+			m_pad_buffer[(unsigned)map].Push(np);
 
 			// relay to clients
 			sf::Packet spac;
@@ -501,7 +496,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 	case NP_MSG_START_GAME :
 		{
-			packet >> player.on_game;
+			packet >> player.current_game;
 		}
 		break;
 
@@ -542,6 +537,7 @@ void NetPlayServer::SendChatMessage(const std::string& msg)
 	spac << (PlayerId)0;	// server id always 0
 	spac << msg;
 
+	CritLocker	player_lock(m_crit.players);	// lock players
 	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
 }
@@ -581,14 +577,13 @@ void NetPlayServer::SendPadState(const PadMapping local_nb, const NetPad& np)
 // called from ---GUI--- thread
 bool NetPlayServer::StartGame(const std::string &path)
 {
-	m_crit.buffer.Enter();	// lock buffer
+	CritLocker game_lock(m_crit.game);	// lock game state
 
 	if (false == NetPlay::StartGame(path))
 		return false;
 
 	// TODO: i dont like this here
-	m_on_game = Common::Timer::GetTimeMs();
-	m_crit.buffer.Leave();
+	m_current_game = Common::Timer::GetTimeMs();
 
 	// no change, just update with clients
 	AdjustPadBufferSize(m_target_buffer_size);
@@ -596,7 +591,7 @@ bool NetPlayServer::StartGame(const std::string &path)
 	// tell clients to start game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
-	spac << m_on_game;
+	spac << m_current_game;
 
 	CritLocker	player_lock(m_crit.players);	// lock players
 	CritLocker	send_lock(m_crit.send);	// lock send

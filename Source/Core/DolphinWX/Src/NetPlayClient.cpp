@@ -159,9 +159,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 			// trusting server for good map value (>=0 && <4)
 			// add to pad buffer
-			m_crit.buffer.Enter();	// lock buffer
-			m_pad_buffer[(unsigned)map].push(np);
-			m_crit.buffer.Leave();
+			m_pad_buffer[(unsigned)map].Push(np);
 		}
 		break;
 
@@ -170,9 +168,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			u32 size = 0;
 			packet >> size;
 
-			m_crit.buffer.Enter();	// lock buffer
 			m_target_buffer_size = size;
-			m_crit.buffer.Leave();
 		}
 		break;
 
@@ -193,9 +189,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_START_GAME :
 		{
-			m_crit.buffer.Enter();	// lock buffer
-			packet >> m_on_game;
-			m_crit.buffer.Leave();
+			m_crit.game.Enter();	// lock buffer
+			packet >> m_current_game;
+			m_crit.game.Leave();
 
 			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 			m_dialog->GetEventHandler()->AddPendingEvent(evt);
@@ -299,7 +295,6 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
 	spac << msg;
 
-	CritLocker	player_lock(m_crit.players);	// lock players
 	CritLocker	send_lock(m_crit.send);	// lock send
 	m_socket.Send(spac);
 }
@@ -320,7 +315,7 @@ void NetPlayClient::SendPadState(const PadMapping local_nb, const NetPad& np)
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string &path)
 {
-	m_crit.buffer.Enter();	// lock buffer
+	CritLocker game_lock(m_crit.game);	// lock game state
 
 	if (false == NetPlay::StartGame(path))
 		return false;
@@ -328,9 +323,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	// tell server i started the game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
-	spac << m_on_game;
-
-	m_crit.buffer.Leave();
+	spac << m_current_game;
 
 	CritLocker	send_lock(m_crit.send);	// lock send
 	m_socket.Send(spac);
@@ -339,10 +332,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 }
 
 // called from ---GUI--- thread
-bool NetPlayClient::ChangeGame(const std::string &game)
+bool NetPlayClient::ChangeGame(const std::string&)
 {
-	// warning removal
-	game.size();
-
 	return true;
 }

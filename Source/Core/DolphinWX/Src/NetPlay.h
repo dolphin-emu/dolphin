@@ -7,17 +7,16 @@
 #include "Thread.h"
 #include "Timer.h"
 
-// hax, i hope something like this isn't needed on non-windows
 #define _WINSOCK2API_
 #include <SFML/Network.hpp>
 
 #include "GCPadStatus.h"
 
-//#include <wx/wx.h>
-
 #include <map>
 #include <queue>
 #include <sstream>
+
+#include "FifoQueue.h"
 
 class NetPlayDiag;
 
@@ -38,32 +37,34 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2.2"
+#define NETPLAY_VERSION		"Dolphin NetPlay r6423"
 
 // messages
-#define NP_MSG_PLAYER_JOIN		0x10
-#define NP_MSG_PLAYER_LEAVE		0x11
+enum
+{
+	NP_MSG_PLAYER_JOIN		= 0x10,
+	NP_MSG_PLAYER_LEAVE		= 0x11,
 
-#define NP_MSG_CHAT_MESSAGE		0x30
+	NP_MSG_CHAT_MESSAGE		= 0x30,
 
-#define NP_MSG_PAD_DATA			0x60
-#define NP_MSG_PAD_MAPPING		0x61
-#define NP_MSG_PAD_BUFFER		0x62
+	NP_MSG_PAD_DATA			= 0x60,
+	NP_MSG_PAD_MAPPING		= 0x61,
+	NP_MSG_PAD_BUFFER		= 0x62,
 
-#define NP_MSG_WIIMOTE_DATA		0x70
-#define NP_MSG_WIIMOTE_MAPPING	0x71	// just using pad mapping for now
+	NP_MSG_WIIMOTE_DATA		= 0x70,
+	NP_MSG_WIIMOTE_MAPPING	= 0x71,	// just using pad mapping for now
 
-#define NP_MSG_START_GAME		0xA0
-#define NP_MSG_CHANGE_GAME		0xA1
-#define NP_MSG_STOP_GAME		0xA2
-#define NP_MSG_DISABLE_GAME		0xA3
+	NP_MSG_START_GAME		= 0xA0,
+	NP_MSG_CHANGE_GAME		= 0xA1,
+	NP_MSG_STOP_GAME		= 0xA2,
+	NP_MSG_DISABLE_GAME		= 0xA3,
 
-#define NP_MSG_READY			0xD0
-#define NP_MSG_NOT_READY		0xD1
+	NP_MSG_READY			= 0xD0,
+	NP_MSG_NOT_READY		= 0xD1,
 
-#define NP_MSG_PING				0xE0
-#define NP_MSG_PONG				0xE1
-// end messages
+	NP_MSG_PING				= 0xE0,
+	NP_MSG_PONG				= 0xE1,
+};
 
 typedef u8	MessageId;
 typedef u8	PlayerId;
@@ -128,7 +129,7 @@ protected:
 	{
 		Common::CriticalSection		game;
 		// lock order
-		Common::CriticalSection		players, buffer, send;
+		Common::CriticalSection		players, send;
 	} m_crit;
 
 	class Player
@@ -143,8 +144,8 @@ protected:
 		std::string		revision;
 	};
 
-	std::queue<NetPad>		m_pad_buffer[4];
-	std::queue<NetWiimote>	m_wiimote_buffer[4];
+	Common::FifoQueue<NetPad>		m_pad_buffer[4];
+	Common::FifoQueue<NetWiimote>	m_wiimote_buffer[4];
 
 	NetWiimote		m_wiimote_input[4];
 
@@ -161,7 +162,7 @@ protected:
 
 	Player*		m_local_player;
 
-	u32		m_on_game;
+	u32		m_current_game;
 
 private:
 
@@ -198,11 +199,11 @@ private:
 	class Client : public Player
 	{
 	public:
-		Client() : ping(0), on_game(0) {}
+		Client() : ping(0), current_game(0) {}
 
 		sf::SocketTCP	socket;
 		u64				ping;	
-		u32				on_game;
+		u32				current_game;
 	};
 
 	void SendPadState(const PadMapping local_nb, const NetPad& np);

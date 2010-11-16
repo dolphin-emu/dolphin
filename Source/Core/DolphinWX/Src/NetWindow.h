@@ -30,23 +30,10 @@
 #include <wx/gbsizer.h>
 #include <wx/listbox.h>
 #include <wx/spinctrl.h>
-//#include <wx/thread.h>
 
 #include "GameListCtrl.h"
 
-// just leaving these here so i can find something later if i need it
-//#include "Frame.h"
-//#include "Globals.h"
-//#include "BootManager.h"
-//#include "Common.h"
-//#include "NetStructs.h"
-//#include "Core.h"
-//#include "HW/SI.h"
-//#include "HW/SI_Device.h"
-//#include "HW/SI_DeviceGCController.h"
-//#include "Timer.h"
-
-#include "LockingQueue.h"
+#include "FifoQueue.h"
 
 enum
 {
@@ -82,8 +69,7 @@ public:
 		, const std::string& game, const bool is_hosting = false);
 	~NetPlayDiag();
 
-	LockingQueue<std::string>	chat_msgs;
-	//std::string				chat_msg;
+	Common::FifoQueue<std::string>	chat_msgs;
 
 	void OnStart(wxCommandEvent& event);
 	void OnStop(wxCommandEvent& event);
@@ -109,7 +95,6 @@ private:
 	std::vector<int>	m_playerids;
 
 	const CGameListCtrl* const m_game_list;
-	//NetPlay* const	m_netplay;
 };
 
 DECLARE_EVENT_TYPE(wxEVT_THREAD, -1)

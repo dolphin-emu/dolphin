@@ -84,8 +84,8 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
 		, wxT("ALERT:\n\nNetPlay will currently only work properly when using the following settings:")
 			wxT("\n - Dual Core [OFF]")
-			wxT("\n - Audio Throttle [OFF/ON] (try both)")
-			wxT("\n - DSP LLE/HLE (try both)")
+			wxT("\n - Audio Throttle [OFF]")
+			wxT("\n - DSP-HLE with \"Null Audio\" or DSP-LLE")
 			wxT("\n - Manually set the exact number of controllers that will be used to [Standard Controller]")
 			wxT("\n\nAll players should try to use the same Dolphin version and settings.")
 			wxT("\nDisable all memory cards or send them to all players before starting.")
@@ -178,11 +178,8 @@ NetPlaySetupDiag::~NetPlaySetupDiag()
 	inifile.Save(dolphin_ini);
 }
 
-void NetPlaySetupDiag::OnHost(wxCommandEvent& event)
+void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	if (::netplay_ptr)
 	{
 		PanicAlert("A NetPlay window is already open!!");
@@ -217,11 +214,8 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent& event)
 	}
 }
 
-void NetPlaySetupDiag::OnJoin(wxCommandEvent& event)
+void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	if (::netplay_ptr)
 	{
 		PanicAlert("A NetPlay window is already open!!");
@@ -248,11 +242,8 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent& event)
 	}
 }
 
-void NetPlaySetupDiag::OnQuit(wxCommandEvent& event)
+void NetPlaySetupDiag::OnQuit(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	Destroy();
 }
 
@@ -359,11 +350,8 @@ NetPlayDiag::~NetPlayDiag()
 	}
 }
 
-void NetPlayDiag::OnChat(wxCommandEvent& event)
+void NetPlayDiag::OnChat(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	wxString s = m_chat_msg_text->GetValue();
 
 	if (s.Length())
@@ -374,11 +362,8 @@ void NetPlayDiag::OnChat(wxCommandEvent& event)
 	}
 }
 
-void NetPlayDiag::OnStart(wxCommandEvent& event)
+void NetPlayDiag::OnStart(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	// find path for selected game
 	std::string ntmp, ptmp, path;
 	std::istringstream nss(m_game_list->GetGameNames()), pss(m_game_list->GetGamePaths());
@@ -399,19 +384,13 @@ void NetPlayDiag::OnStart(wxCommandEvent& event)
 		PanicAlert("Game not found!!");
 }
 
-void NetPlayDiag::OnStop(wxCommandEvent& event)
+void NetPlayDiag::OnStop(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	::netplay_ptr->StopGame();
 }
 
-void NetPlayDiag::OnPadBuffHelp(wxCommandEvent& event)
+void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	const u64 time = ((NetPlayServer*)::netplay_ptr)->CalculateMinimumBufferTime();
 	std::ostringstream ss;
 	ss << "< Calculated from pings: required buffer: "
@@ -432,20 +411,14 @@ void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
 	m_chat_text->AppendText(wxString(ss.str().c_str(), *wxConvCurrent).Append(wxT('\n')));
 }
 
-void NetPlayDiag::OnQuit(wxCommandEvent& event)
+void NetPlayDiag::OnQuit(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	Destroy();
 }
 
 // update gui
 void NetPlayDiag::OnThread(wxCommandEvent& event)
 {
-	// warning removal
-	event.GetId();
-
 	// player list
 	m_playerids.clear();
 	std::string tmps;
@@ -495,11 +468,8 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	}
 }
 
-void NetPlayDiag::OnChangeGame(wxCommandEvent& event)
+void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	wxString game_name;
 	ChangeGameDiag* const cgd = new ChangeGameDiag(this, m_game_list, game_name);
 	cgd->ShowModal();
@@ -512,11 +482,8 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent& event)
 	}
 }
 
-void NetPlayDiag::OnConfigPads(wxCommandEvent& event)
+void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	int mapping[4];
 
 	// get selected player id
@@ -565,11 +532,8 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	SetSizerAndFit(dlg_szr);
 }
 
-void ChangeGameDiag::OnPick(wxCommandEvent& event)
+void ChangeGameDiag::OnPick(wxCommandEvent&)
 {
-	// warning removal
-	event.GetId();
-
 	// return the selected game name
 	m_game_name = m_game_lbox->GetStringSelection();
 	Destroy();
