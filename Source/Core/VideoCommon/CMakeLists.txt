@@ -35,13 +35,13 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFStructs.cpp
 			Src/OpenCL/OCLTextureDecoder.cpp)
 
-if(AVCODEC_FOUND OR WIN32)
+if(ENCODE_FRAMEDUMPS OR WIN32)
 	set(SRCS ${SRCS} Src/AVIDump.cpp)
 endif()
 
 add_library(videocommon STATIC ${SRCS})
 if(UNIX)
-	if(AVCODEC_FOUND)
+	if(ENCODE_FRAMEDUMPS)
 		target_link_libraries(videocommon avcodec swscale)
 		add_definitions(-D__STDC_CONSTANT_MACROS)
 	endif()

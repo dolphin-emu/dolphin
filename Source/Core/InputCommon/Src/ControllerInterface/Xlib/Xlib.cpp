@@ -163,7 +163,7 @@ std::string KeyboardMouse::Button::GetName() const
 	}
 
 	static char tmpstr[] = "Click .";
-	tmpstr[7] = button;
+	tmpstr[6] = button;
 	return tmpstr;
 }
 

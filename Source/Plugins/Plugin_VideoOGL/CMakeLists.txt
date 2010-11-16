@@ -13,7 +13,6 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
-			videouicommon
 			GLEW
 			SOIL
 			common
@@ -23,6 +22,7 @@ set(LIBS	videocommon
 if(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
 				Src/Debugger/Debugger.cpp)
+	set(LIBS	videouicommon ${LIBS})
 endif(wxWidgets_FOUND)
 
 if(APPLE AND NOT wxWidgets_FOUND)
