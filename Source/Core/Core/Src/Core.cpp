@@ -84,10 +84,7 @@ void Callback_VideoCopiedToXFB(bool video_update);
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
 const char *Callback_ISOName(void);
 void Callback_DSPInterrupt();
-void Callback_PADLog(const TCHAR* _szMessage);
-void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-bool Callback_RendererHasFocus(void);
 
 // For keyboard shortcuts.
 void Callback_CoreMessage(int Id);
@@ -711,7 +708,7 @@ void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
 
 // Callback_DSPLog
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
-	void Callback_DSPLog(const TCHAR* _szMessage, int _v)
+void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
 	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
@@ -722,15 +719,6 @@ void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
 void Callback_DSPInterrupt()
 {
 	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
-}
-
-
-// Callback_PADLog 
-//
-void Callback_PADLog(const TCHAR* _szMessage)
-{
-	// FIXME add levels
-	INFO_LOG(SERIALINTERFACE, _szMessage);
 }
 
 
@@ -750,19 +738,6 @@ const char *Callback_ISOName()
 void Callback_CoreMessage(int Id)
 {
 	Host_Message(Id);
-}
-
-// Callback_WiimoteLog
-//
-void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
-{
-	GENERIC_LOG(LogTypes::WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
-}
-
-// Check to see if the renderer window has focus
-bool Callback_RendererHasFocus(void)
-{
-	return Host_RendererHasFocus();
 }
 
 } // Core

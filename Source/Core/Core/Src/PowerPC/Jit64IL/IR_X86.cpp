@@ -56,7 +56,7 @@ static ThunkManager thunks;
 using namespace IREmitter;
 using namespace Gen;
 
-static const int MAX_NUMBER_OF_REGS = 16;
+static const unsigned int MAX_NUMBER_OF_REGS = 16;
 
 struct RegInfo {
 	JitIL *Jit;

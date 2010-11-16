@@ -141,9 +141,9 @@ void DoState(PointerWrap &p)
 	p.Do(g_CPUCyclesPerSample);
 }
 
-void GenerateAudioInterrupt();
-void UpdateInterrupts();
-void IncreaseSampleCount(const u32 _uAmount);
+static void GenerateAudioInterrupt();
+static void UpdateInterrupts();
+static void IncreaseSampleCount(const u32 _uAmount);
 void ReadStreamBlock(s16* _pPCM);
 
 void Init()
