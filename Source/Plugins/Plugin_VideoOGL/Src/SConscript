@@ -22,7 +22,7 @@ files = [
 	'GLUtil.cpp'
 	]
 
-libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
+libs = [ 'videocommon', 'videouicommon', 'GLEW', 'SOIL', 'common' ]
 
 if env['HAVE_WX']:
 	files += [

@@ -10,22 +10,24 @@ template class BoolSetting<wxRadioButton>;
 typedef BoolSetting<wxCheckBox> SettingCheckBox;
 typedef BoolSetting<wxRadioButton> SettingRadioButton;
 
+template <>
 SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style)
 	: wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
 	, m_setting(setting)
 	, m_reverse(reverse)
 {
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, BoolSetting<W>::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 }
 
+template <>
 SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style)
 	: wxRadioButton(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
 	, m_setting(setting)
 	, m_reverse(reverse)
 {
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, BoolSetting<W>::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	_connect_macro_(this, SettingRadioButton::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 }
 
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, int num, const wxString choices[])

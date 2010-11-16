@@ -358,6 +358,7 @@ dirs = [
     'Source/Core/InputCommon/Src',
     'Source/Core/InputUICommon/Src',
     'Source/Core/VideoCommon/Src',
+    'Source/Core/VideoUICommon/Src',
     'Source/Core/wiiuse/Src',
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',

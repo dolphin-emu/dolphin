@@ -13,6 +13,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
+			videouicommon
 			GLEW
 			SOIL
 			common
