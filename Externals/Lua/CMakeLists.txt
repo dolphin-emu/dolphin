@@ -1,6 +1,6 @@
-if(UNIX)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-DLUA_USE_LINUX)
-endif(UNIX)
+endif()
 
 set(SRCS	lapi.c
 			lauxlib.c

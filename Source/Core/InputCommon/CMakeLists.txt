@@ -11,7 +11,7 @@ if(WIN32)
 				Src/ControllerInterface/DInput/DInputKeyboardMouse.cpp
 				Src/ControllerInterface/SDL/SDL.cpp
 				Src/ControllerInterface/XInput/XInput.cpp)
-elseif(APPLE)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS	${SRCS}
 				Src/ControllerInterface/OSX/OSX.mm
 				Src/ControllerInterface/OSX/OSXKeyboard.mm

@@ -133,9 +133,9 @@ set(SRCS	Src/ActionReplay.cpp
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp)
-elseif(APPLE)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Apple.cpp)
-elseif(UNIX)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Unix.cpp)
 endif()
 

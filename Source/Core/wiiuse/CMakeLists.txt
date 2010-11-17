@@ -1,9 +1,9 @@
 set(SRCS	Src/ir.cpp
 			Src/wiiuse.cpp)
 
-if(APPLE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} Src/io_osx.m)
-elseif(UNIX AND BLUEZ_FOUND)
+elseif((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND BLUEZ_FOUND)
 	set(SRCS ${SRCS} Src/io_nix.cpp)
 	set(LIBS ${LIBS} bluetooth)
 elseif(WIN32)

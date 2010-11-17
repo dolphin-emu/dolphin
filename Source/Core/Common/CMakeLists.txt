@@ -40,6 +40,6 @@ if(WIN32)
 endif(WIN32)
 
 add_library(common STATIC ${SRCS})
-if(UNIX)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
-endif(UNIX)
+endif()

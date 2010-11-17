@@ -1,6 +1,6 @@
 set(SRCS	Src/VideoConfigDiag.cpp)
 
 add_library(videouicommon STATIC ${SRCS})
-if(UNIX)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
-endif(UNIX)
+endif()

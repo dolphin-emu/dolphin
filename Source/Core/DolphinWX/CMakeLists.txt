@@ -63,9 +63,9 @@ endif(XRANDR_FOUND)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/stdafx.cpp)
-elseif(APPLE AND NOT wxWidgets_FOUND)
+elseif((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	# TODO
-elseif(APPLE AND wxWidgets_FOUND)
+elseif((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND wxWidgets_FOUND)
 	# TODO
 else()
 	set(SRCS ${SRCS} Src/X11Utils.cpp)

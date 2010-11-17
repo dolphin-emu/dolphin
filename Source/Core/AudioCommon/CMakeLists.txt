@@ -6,7 +6,7 @@ set(SRCS	Src/AudioCommon.cpp
 
 set(LIBS "")
 
-if(APPLE)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} Src/CoreAudioSoundStream.cpp)
 else()
     if(ALSA_FOUND)
@@ -37,6 +37,6 @@ endif()
 
 add_library(audiocommon STATIC ${SRCS})
 target_link_libraries(audiocommon ${LIBS})
-if(UNIX)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
-endif(UNIX)
+endif()

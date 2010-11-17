@@ -25,11 +25,11 @@ if(wxWidgets_FOUND)
 	set(LIBS	videouicommon ${LIBS})
 endif(wxWidgets_FOUND)
 
-if(APPLE AND NOT wxWidgets_FOUND)
+if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
 elseif(WIN32)
 	set(SRCS ${SRCS} Src/OS/Win32.cpp)
-elseif(NOT APPLE)
+elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
 
