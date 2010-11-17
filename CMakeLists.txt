@@ -25,7 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries/plugins)
 
 include(FindSubversion OPTIONAL) # for revision info
-if(Subversion_FOUND)
+if(Subversion_FOUND AND NOT DOLPHIN_WC_REVISION)
 	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
 endif()
 
