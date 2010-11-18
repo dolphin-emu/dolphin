@@ -676,14 +676,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Decoder"
-			>
-			<File
-				RelativePath=".\Src\BPFunctions.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Render"
 			>
 			<File
@@ -708,6 +700,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\Render.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Render.h"
 				>
 			</File>
 			<File

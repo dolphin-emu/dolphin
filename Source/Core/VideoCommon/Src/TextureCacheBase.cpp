@@ -4,7 +4,7 @@
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "HiresTextures.h"
-#include "Render.h"
+#include "RenderBase.h"
 #include "FileUtil.h"
 #include "Profiler.h"
 
@@ -668,9 +668,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 
 	entry->frameCount = frameCount;
 
-	Renderer::ResetAPIState(); // reset any game specific settings
+	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	entry->FromRenderTarget(bFromZBuffer, bScaleByHalf, cbufid, colmat, source_rect, bIsIntensityFmt, copyfmt);
 
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }

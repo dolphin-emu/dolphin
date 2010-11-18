@@ -308,13 +308,13 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	Renderer::ResetAPIState();
+	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
 	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
     GL_REPORT_ERRORD();
 }
 
@@ -386,13 +386,13 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
 {
-	Renderer::ResetAPIState();
+	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
     GL_REPORT_ERRORD();
 }
 
@@ -409,7 +409,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	int srcFmtWidth = srcWidth / 2;
 
-	Renderer::ResetAPIState(); // reset any game specific settings
+	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
@@ -462,7 +462,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	FramebufferManager::SetFramebuffer(0);
 
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
     GL_REPORT_ERRORD();
 }
 

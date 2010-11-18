@@ -372,11 +372,11 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	Renderer::ResetAPIState();
+	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }
 
 u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 SourceW, u32 SourceH,float MValueX,float MValueY,float Xstride, float Ystride , bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
@@ -459,11 +459,11 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		1.0f,
 		(float)Renderer::GetFullTargetWidth(),
 		(float)Renderer::GetFullTargetHeight());
-	Renderer::ResetAPIState();
+	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }
 
 
@@ -479,7 +479,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 
 	int srcFmtWidth = srcWidth / 2;
 
-	Renderer::ResetAPIState(); // reset any game specific settings
+	g_renderer->ResetAPIState(); // reset any game specific settings
 	LPDIRECT3DTEXTURE9 s_srcTexture = D3D::CreateTexture2D(srcAddr, srcFmtWidth, srcHeight, srcFmtWidth, D3DFMT_A8R8G8B8, false);
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	destTexture->GetSurfaceLevel(0,&Rendersurf);
@@ -536,7 +536,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	D3D::SetTexture(0,NULL);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());	
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 	Rendersurf->Release();
 	s_srcTexture->Release();
 }

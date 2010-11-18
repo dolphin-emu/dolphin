@@ -82,7 +82,6 @@ CGprofile g_cgfProf;
 
 RasterFont* s_pfont = NULL;
 
-static bool s_bLastFrameDumped = false;
 #if defined _WIN32 || defined HAVE_AVCODEC
 static bool s_bAVIDumping = false;
 #else
@@ -96,40 +95,10 @@ static int s_MSAACoverageSamples = 0;
 bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
-static int s_LastEFBScale;
 
-static volatile bool s_bScreenshot = false;
 #if defined(HAVE_WX) && HAVE_WX
 static Common::Thread *scrshotThread = 0;
 #endif
-static Common::CriticalSection s_criticalScreenshot;
-static std::string s_sScreenshotName;
-
-int frameCount;
-
-// The custom resolution
-static int s_Fulltarget_width;
-static int s_Fulltarget_height;
-
-// TODO: Add functionality to reinit all the render targets when the window is resized.
-static int s_backbuffer_width;
-static int s_backbuffer_height;
-// The framebuffer size
-static int s_target_width;
-static int s_target_height;
-
-static unsigned int s_XFB_width;
-static unsigned int s_XFB_height;
-
-static float xScale;
-static float yScale;
-
-static float EFBxScale;
-static float EFByScale;
-
-static bool s_skipSwap = false;
-
-static bool XFBWrited = false;
 
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
@@ -215,10 +184,12 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue);
 }
 
-// Init functions
-bool Renderer::Init()
+namespace OGL
 {
-	UpdateActiveConfig();
+
+// Init functions
+Renderer::Renderer()
+{
 	bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
@@ -226,20 +197,37 @@ bool Renderer::Init()
 
 	switch (g_ActiveConfig.iMultisampleMode)
 	{
-		case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
-		case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
-		case MULTISAMPLE_4X:  s_MSAASamples = 4; break;
-		case MULTISAMPLE_8X:  s_MSAASamples = 8; break;
+		case MULTISAMPLE_OFF:
+			s_MSAASamples = 1;
+			break;
+		case MULTISAMPLE_2X:
+			s_MSAASamples = 2;
+			break;
+		case MULTISAMPLE_4X:
+			s_MSAASamples = 4;
+			break;
+		case MULTISAMPLE_8X:
+			s_MSAASamples = 8;
+			break;
 		case MULTISAMPLE_CSAA_8X:
-							  s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
+			s_MSAASamples = 4;
+			s_MSAACoverageSamples = 8;
+			break;
 		case MULTISAMPLE_CSAA_8XQ:
-							  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
+			s_MSAASamples = 8;
+			s_MSAACoverageSamples = 8;
+			break;
 		case MULTISAMPLE_CSAA_16X:
-							  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
+			s_MSAASamples = 4;
+			s_MSAACoverageSamples = 16;
+			break;
 		case MULTISAMPLE_CSAA_16XQ:
-							  s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
+			s_MSAASamples = 8;
+			s_MSAACoverageSamples = 16;
+			break;
 		default:
-		s_MSAASamples = 1;
+			s_MSAASamples = 1;
+			break;
 	}
 
 #if defined HAVE_CG && HAVE_CG
@@ -255,7 +243,7 @@ bool Renderer::Init()
 		PanicAlert("Your OpenGL Driver seems to be not working.\n"
 				"Please make sure your drivers are up-to-date and\n"
 				"that your video hardware is OpenGL 2.x compatible.");
-		return false;
+		return;	// TODO: fail
 	}
 
 	INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
@@ -280,7 +268,7 @@ bool Renderer::Init()
 	if (glewInit() != GLEW_OK)
 	{
 		ERROR_LOG(VIDEO, "glewInit() failed! Does your video card support OpenGL 2.x?");
-		return false;
+		return;	// TODO: fail
 	}
 
 	if (!GLEW_EXT_framebuffer_object)
@@ -311,7 +299,7 @@ bool Renderer::Init()
 	}
 
 	if (!bSuccess)
-		return false;
+		return;	// TODO: fail
 
 	// Decide frambuffer size
 	s_backbuffer_width = (int)OpenGL_GetBackbufferWidth();
@@ -366,27 +354,7 @@ bool Renderer::Init()
 	}
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	switch(s_LastEFBScale)
-	{
-		case 0:
-			EFBxScale = xScale;
-			EFByScale = yScale;
-			break;
-		case 1:
-			EFBxScale = ceilf(xScale);
-			EFByScale = ceilf(yScale);
-			break;
-		default:
-			EFBxScale = (float)(g_ActiveConfig.iEFBScale - 1);
-			EFByScale = EFBxScale;
-			break;
-	};
-
-	s_target_width  = EFB_WIDTH * EFBxScale;
-	s_target_height = EFB_HEIGHT * EFByScale;
-
-	s_Fulltarget_width  = s_target_width;
-	s_Fulltarget_height = s_target_height;
+	CalculateTargetSize();
 
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
@@ -411,13 +379,13 @@ bool Renderer::Init()
 	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE)
 	{
 		ERROR_LOG(VIDEO, "arbvp1 not supported");
-		return false;
+		return;	// TODO: fail
 	}
 
 	if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE)
 	{
 		ERROR_LOG(VIDEO, "arbfp1 not supported");
-		return false;
+		return;	// TODO: fail
 	}
 
 	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
@@ -505,10 +473,12 @@ bool Renderer::Init()
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	UpdateActiveConfig();
-	return GL_REPORT_ERROR() == GL_NO_ERROR && bSuccess;
+
+	//return GL_REPORT_ERROR() == GL_NO_ERROR && bSuccess;
+	return;
 }
 
-void Renderer::Shutdown()
+Renderer::~Renderer()
 {
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
@@ -539,49 +509,8 @@ void Renderer::Shutdown()
 #endif
 }
 
-// Return the rendering target width and height
-int Renderer::GetTargetWidth()
-{
-	return s_target_width;
-}
-
-int Renderer::GetTargetHeight()
-{
-	return s_target_height;
-}
-
-int Renderer::GetFullTargetWidth()
-{
-	return s_Fulltarget_width;
-}
-
-int Renderer::GetFullTargetHeight()
-{
-	return s_Fulltarget_height;
-}
-
-float Renderer::GetTargetScaleX()
-{
-	return EFBxScale;
-}
-
-float Renderer::GetTargetScaleY()
-{
-	return EFByScale;
-}
-
-float Renderer::GetXFBScaleX()
-{
-	return xScale;
-}
-
-float Renderer::GetXFBScaleY()
-{
-	return yScale;
-}
-
 // Create On-Screen-Messages
-void Renderer::DrawDebugText()
+void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
 	glViewport(0, 0, OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight());
@@ -651,108 +580,21 @@ void Renderer::DrawDebugText()
 		Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 		Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
 	}
-
-	// OSD Menu messages
-	if (g_ActiveConfig.bOSDHotKey)
-	{
-		if (OSDChoice > 0)
-		{
-			OSDTime = Common::Timer::GetTimeMs() + 3000;
-			OSDChoice = -OSDChoice;
-		}
-		if ((u32)OSDTime > Common::Timer::GetTimeMs())
-		{
-			std::string T1 = "", T2 = "";
-			std::vector<std::string> T0;
-
-			std::string OSDM1;
-			switch(g_ActiveConfig.iEFBScale)
-			{
-			case 0:
-				OSDM1 = "Auto (fractional)";
-				break;
-			case 1:
-				OSDM1 = "Auto (integral)";
-				break;
-			case 2:
-				OSDM1 = "Native";
-				break;
-			case 3:
-				OSDM1 = "2x";
-				break;
-			case 4:
-				OSDM1 = "3x";
-				break;
-			}
-
-			std::string OSDM21;
-			switch(g_ActiveConfig.iAspectRatio)
-			{
-			case ASPECT_AUTO:
-				OSDM21 = "Auto";
-				break;
-			case ASPECT_FORCE_16_9:
-				OSDM21 = "16:9";
-				break;
-			case ASPECT_FORCE_4_3:
-				OSDM21 = "4:3";
-				break;
-			case ASPECT_STRETCH:
-				OSDM21 = "Stretch";
-				break;
-			}
-			std::string OSDM22 =
-				g_ActiveConfig.bCrop ? " (crop)" : "";
-			std::string OSDM3 = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
-				g_ActiveConfig.bCopyEFBToTexture ? "To Texture" : "To RAM";
-
-			// If there is more text than this we will have a collision
-			if (g_ActiveConfig.bShowFPS)
-			{
-				T1 += "\n\n";
-				T2 += "\n\n";
-			}
-
-			// The rows
-			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
-			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
-			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
-			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
-
-			// The latest changed setting in yellow
-			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
-			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
-			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
-			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
-			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";
-
-			// The other settings in cyan
-			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
-			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
-			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
-			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
-			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";
-
-			// Render a shadow, and then the text
-			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
-			Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
-			Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
-			Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
-		}
-	}
 }
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
-	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
+	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
+
 	GL_REPORT_ERRORD();
 }
 
@@ -768,27 +610,6 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	return result;
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
-{
-	if (!fbWidth || !fbHeight)
-		return;
-	s_skipSwap = g_bSkipCurrentFrame;
-	VideoFifo_CheckEFBAccess();
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	XFBWrited = true;
-	// XXX: Without the VI, how would we know what kind of field this is? So
-	// just use progressive.
-	if (g_ActiveConfig.bUseXFB)
-	{
-		FramebufferManager::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	}
-	else
-	{
-		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
-		Common::AtomicStoreRelease(s_swapRequested, FALSE);
-	}
-}
-
 // Function: This function handles the OpenGL glScissor() function
 // ----------------------------
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
@@ -801,39 +622,38 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // therefore the width and height are (scissorBR + 1) - scissorTL
 bool Renderer::SetScissorRect()
 {
-	int xoff = bpmem.scissorOffset.x * 2 - 342;
-	int yoff = bpmem.scissorOffset.y * 2 - 342;
-	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
-	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
-	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
-	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
+	MathUtil::Rectangle<float> rc;
+	GetScissorRect(rc);
 
-	if (rc_left < 0) rc_left = 0;
-	if (rc_right > EFB_WIDTH) rc_right = EFB_WIDTH;
-	if (rc_top < 0) rc_top = 0;
-	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;
+	if (rc.left < 0) rc.left = 0;
 
-	if (rc_left > rc_right)
+	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
+
+	if (rc.top < 0) rc.top = 0;
+
+	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
+
+	if (rc.left > rc.right)
 	{
-		int temp = rc_right;
-		rc_right = rc_left;
-		rc_left = temp;
+		int temp = rc.right;
+		rc.right = rc.left;
+		rc.left = temp;
 	}
-	if (rc_top > rc_bottom)
+	if (rc.top > rc.bottom)
 	{
-		int temp = rc_bottom;
-		rc_bottom = rc_top;
-		rc_top = temp;
+		int temp = rc.bottom;
+		rc.bottom = rc.top;
+		rc.top = temp;
 	}
 
 	// Check that the coordinates are good
-	if (rc_right != rc_left && rc_bottom != rc_top)
+	if (rc.right != rc.left && rc.bottom != rc.top)
 	{
 		glScissor(
-			(int)(rc_left * EFBxScale), // x = 0 for example
-			(int)((EFB_HEIGHT - rc_bottom) * EFByScale), // y = 0 for example
-			(int)((rc_right - rc_left)* EFBxScale), // width = 640 for example
-			(int)((rc_bottom - rc_top) * EFByScale) // height = 480 for example
+			(int)(rc.left * EFBxScale), // x = 0 for example
+			(int)((EFB_HEIGHT - rc.bottom) * EFByScale), // y = 0 for example
+			(int)((rc.right - rc.left)* EFBxScale), // width = 640 for example
+			(int)((rc.bottom - rc.top) * EFByScale) // height = 480 for example
 			);
 		return true;
 	}
@@ -962,7 +782,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 // Called from VertexShaderManager
-void UpdateViewport()
+void Renderer::UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -979,10 +799,10 @@ void UpdateViewport()
 	// int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - float(scissorXOff)) * EFBxScale);
-	int Y = (int)ceil((float(EFB_HEIGHT) - xfregs.rawViewport[4] + xfregs.rawViewport[1] + float(scissorYOff)) * EFByScale);
-	int Width = (int)ceil(2.0f * xfregs.rawViewport[0] * EFBxScale);
-	int Height = (int)ceil(-2.0f * xfregs.rawViewport[1] * EFByScale);
+	int X = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - float(scissorXOff)) * Renderer::GetTargetScaleX());
+	int Y = (int)ceil((float(EFB_HEIGHT) - xfregs.rawViewport[4] + xfregs.rawViewport[1] + float(scissorYOff)) * Renderer::GetTargetScaleY());
+	int Width = (int)ceil(2.0f * xfregs.rawViewport[0] * Renderer::GetTargetScaleX());
+	int Height = (int)ceil(-2.0f * xfregs.rawViewport[1] * Renderer::GetTargetScaleY());
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
 	if (Width < 0)
@@ -1131,8 +951,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		return;
 	}
 
-	DVSTARTPROFILE();
 	ResetAPIState();
+
+	DVSTARTPROFILE();
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
 
@@ -1281,10 +1102,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
-		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), dst_rect);
+		SaveScreenshot(s_sScreenshotName, dst_rect);
 		// Reset settings
-		s_sScreenshotName = "";
+		s_sScreenshotName.clear();
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
 	}
@@ -1438,33 +1258,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 		}
 
-		switch(s_LastEFBScale)
+		if (CalculateTargetSize())
 		{
-			case 0:
-				EFBxScale = xScale;
-				EFByScale = yScale;
-				break;
-			case 1:
-				EFBxScale = ceilf(xScale);
-				EFByScale = ceilf(yScale);
-				break;
-			default:
-				EFBxScale = (float)(g_ActiveConfig.iEFBScale - 1);
-				EFByScale = EFBxScale;
-				break;
-		};
-
-		int m_newFrameBufferWidth  = EFB_WIDTH * EFBxScale;
-		int m_newFrameBufferHeight = EFB_HEIGHT * EFByScale;
-		if(m_newFrameBufferWidth != s_target_width ||
-			m_newFrameBufferHeight != s_target_height )
-		{
-			s_target_width  = m_newFrameBufferWidth;
-			s_target_height = m_newFrameBufferHeight;
-
-			s_Fulltarget_width  = s_target_width;
-			s_Fulltarget_height = s_target_height;
-
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
@@ -1559,7 +1354,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
-	// 		GetTargetWidth(), GetTargetHeight());
+	//	      GetTargetWidth(), GetTargetHeight());
 	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
 }
@@ -1668,15 +1463,6 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-// Save screenshot
-void Renderer::SetScreenshot(const char *filename)
-{
-	s_criticalScreenshot.Enter();
-	s_sScreenshotName = filename;
-	s_bScreenshot = true;
-	s_criticalScreenshot.Leave();
-}
-
 void Renderer::FlipImageData(u8 *data, int w, int h)
 {
 	// Flip image upside down. Damn OpenGL.
@@ -1689,6 +1475,8 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
 		}
 	}
+}
+
 }
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -1739,7 +1527,10 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 }
 #endif
 
-bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
+namespace OGL
+{
+
+bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &back_rc)
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
@@ -1769,7 +1560,7 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 	}
 
 	ScrStrct *threadStruct = new ScrStrct;
-	threadStruct->filename = std::string(filename);
+	threadStruct->filename = filename;
 	threadStruct->img = a;
 	threadStruct->H = H; threadStruct->W = W;
 
@@ -1782,9 +1573,11 @@ bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
 	OSD::AddMessage("Saving Screenshot... ", 2000);
 
 #else
-	bool result = SaveTGA(filename, W, H, data);
+	bool result = SaveTGA(filename.c_str(), W, H, data);
 	delete[] data;
 #endif
 
 	return result;
+}
+
 }

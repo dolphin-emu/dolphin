@@ -49,37 +49,9 @@
 
 #include <strsafe.h>
 
-int frameCount = 0;
 static int s_fps = 0;
 
-static bool WindowResized;
-static int s_target_width;
-static int s_target_height;
-
-static int s_Fulltarget_width;
-static int s_Fulltarget_height;
-
-static int s_backbuffer_width;
-static int s_backbuffer_height;
-
-static int s_XFB_width;
-static int s_XFB_height;
-
-// ratio of backbuffer size and render area size
-static float xScale;
-static float yScale;
-
-// Internal resolution scale (related to xScale/yScale for "Auto" scaling)
-static float EFBxScale;
-static float EFByScale;
-
 static u32 s_blendMode;
-static u32 s_LastEFBScale;
-static bool XFBWrited;
-
-static bool s_bScreenshot = false;
-static Common::CriticalSection s_criticalScreenshot;
-static char s_sScreenshotName[1024];
 
 ID3D11Buffer* access_efb_cbuf = NULL;
 ID3D11BlendState* clearblendstates[4] = {NULL};
@@ -250,16 +222,16 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
-	ddesc.DepthEnable      = FALSE;
+	ddesc.DepthEnable	  = FALSE;
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
-	ddesc.StencilEnable    = FALSE;
+	ddesc.DepthFunc		= D3D11_COMPARISON_ALWAYS;
+	ddesc.StencilEnable	= FALSE;
 	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
-	ddesc.DepthEnable      = TRUE;
+	ddesc.DepthEnable	  = TRUE;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -299,10 +271,10 @@ void SetupDeviceObjects()
 	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
 	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
-	ddesc.DepthEnable       = FALSE;
-	ddesc.DepthWriteMask    = D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc         = D3D11_COMPARISON_LESS;
-	ddesc.StencilEnable     = FALSE;
+	ddesc.DepthEnable	   = FALSE;
+	ddesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
+	ddesc.DepthFunc		 = D3D11_COMPARISON_LESS;
+	ddesc.StencilEnable	 = FALSE;
 	ddesc.StencilReadMask   = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask  = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
@@ -334,9 +306,11 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(resetraststate);
 }
 
-bool Renderer::Init()
+namespace DX11
 {
-	UpdateActiveConfig();
+
+Renderer::Renderer()
+{
 	int x, y, w_temp, h_temp;
 	s_blendMode = 0;
 
@@ -357,26 +331,7 @@ bool Renderer::Init()
 	yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	switch(s_LastEFBScale)
-	{
-		case 0:
-			EFBxScale = xScale;
-			EFByScale = yScale;
-			break;
-		case 1:
-			EFBxScale = ceilf(xScale);
-			EFByScale = ceilf(yScale);
-			break;
-		default:
-			EFBxScale = EFByScale = (float)(g_ActiveConfig.iEFBScale - 1);
-			break;
-	};
-
-	s_target_width  = (int)(EFB_WIDTH * EFBxScale);
-	s_target_height = (int)(EFB_HEIGHT * EFByScale);
-
-	s_Fulltarget_width  = s_target_width;
-	s_Fulltarget_height = s_target_height;
+	CalculateTargetSize();
 
 	SetupDeviceObjects();
 
@@ -396,109 +351,14 @@ bool Renderer::Init()
 	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
 
 	reset_called = false;
-	return true;
 }
 
-void Renderer::Shutdown()
+Renderer::~Renderer()
 {
 	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Present();
 	D3D::Close();
-}
-
-int Renderer::GetTargetWidth() { return s_target_width; }
-int Renderer::GetTargetHeight() { return s_target_height; }
-int Renderer::GetFullTargetWidth() { return s_Fulltarget_width; }
-int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
-float Renderer::GetTargetScaleX() { return EFBxScale; }
-float Renderer::GetTargetScaleY() { return EFByScale; }
-float Renderer::GetXFBScaleX() { return xScale; }
-float Renderer::GetXFBScaleY() { return yScale; }
-
-// Return the framebuffer size
-int Renderer::GetFrameBufferWidth()
-{
-	return s_backbuffer_width;
-}
-
-int Renderer::GetFrameBufferHeight()
-{
-	return s_backbuffer_height;
-}
-
-// Create On-Screen-Messages
-void Renderer::DrawDebugText()
-{
-	// OSD menu messages
-	if (g_ActiveConfig.bOSDHotKey)
-	{
-		if (OSDChoice > 0)
-		{
-			OSDTime = Common::Timer::GetTimeMs() + 3000;
-			OSDChoice = -OSDChoice;
-		}
-		if ((u32)OSDTime > Common::Timer::GetTimeMs())
-		{
-			std::string T1 = "", T2 = "";
-			std::vector<std::string> T0;
-
-			std::string OSDM1 = StringFromFormat("%i x %i", OSDInternalW, OSDInternalH);
-			std::string OSDM21;
-			switch(g_ActiveConfig.iAspectRatio)
-			{
-			case ASPECT_AUTO:
-				OSDM21 = "Auto";
-				break;
-			case ASPECT_FORCE_16_9:
-				OSDM21 = "16:9";
-				break;
-			case ASPECT_FORCE_4_3:
-				OSDM21 = "4:3";
-				break;
-			case ASPECT_STRETCH:
-				OSDM21 = "Stretch";
-				break;
-			}
-			std::string OSDM22 =
-				g_ActiveConfig.bCrop ? " (crop)" : "";
-			std::string OSDM3 = "Disabled";
-
-			// If there is more text than this we will have a collision
-			if (g_ActiveConfig.bShowFPS)
-			{
-				T1 += "\n\n";
-				T2 += "\n\n";
-			}
-
-			// The rows
-			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
-			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
-			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
-			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
-
-			// The latest changed setting in yellow
-			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
-			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
-			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
-			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
-			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";
-
-			// The other settings in cyan
-			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
-			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
-			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
-			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
-			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";
-
-			// Render a shadow, and then the text
-			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
-			Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
-			Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
-			Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
-		}
-	}
 }
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
@@ -512,16 +372,15 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
 	result.left   = (int)(rc.left   * EFBxScale) + Xstride;
-	result.top    = (int)(rc.top    * EFByScale) + Ystride;
+	result.top	= (int)(rc.top	* EFByScale) + Ystride;
 	result.right  = (int)(rc.right  * EFBxScale) + Xstride;
 	result.bottom = (int)(rc.bottom * EFByScale) + Ystride;
 	return result;
 }
 
-
 // With D3D, we have to resize the backbuffer if the window changed
 // size.
-void CheckForResize()
+bool Renderer::CheckForResize()
 {
 	while (EmuWindow::IsSizing())
 		Sleep(10);
@@ -533,7 +392,7 @@ void CheckForResize()
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcParentWindow);
 		int width = rcParentWindow.right - rcParentWindow.left;
 		int height = rcParentWindow.bottom - rcParentWindow.top;
-		if (width != s_backbuffer_width || height != s_backbuffer_height)
+		if (width != Renderer::GetBackbufferWidth() || height != Renderer::GetBackbufferHeight())
 			MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 	}
 	RECT rcWindow;
@@ -542,62 +401,43 @@ void CheckForResize()
 	int client_height = rcWindow.bottom - rcWindow.top;
 
 	// Sanity check
-	if ((client_width != s_backbuffer_width ||
-		client_height != s_backbuffer_height) && 
+	if ((client_width != Renderer::GetBackbufferWidth() ||
+		client_height != Renderer::GetBackbufferHeight()) && 
 		client_width >= 4 && client_height >= 4)
 	{
-		WindowResized = true;
+		return true;
 	}
-}
 
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
-{
-	if (!fbWidth || !fbHeight)
-		return;
-	VideoFifo_CheckEFBAccess();
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	XFBWrited = true;
-	// XXX: Without the VI, how would we know what kind of field this is? So
-	// just use progressive.
-	if (g_ActiveConfig.bUseXFB)
-	{
-		FramebufferManager::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	}
-	else
-	{
-		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
-		Common::AtomicStoreRelease(s_swapRequested, FALSE);
-	}
+	return false;
 }
 
 bool Renderer::SetScissorRect()
 {
-	int xoff = bpmem.scissorOffset.x * 2 - 342;
-	int yoff = bpmem.scissorOffset.y * 2 - 342;
-	D3D11_RECT rc = CD3D11_RECT(bpmem.scissorTL.x - xoff - 342,
-								bpmem.scissorTL.y - yoff - 342,
-								bpmem.scissorBR.x - xoff - 341,
-								bpmem.scissorBR.y - yoff - 341);
+	TargetRectangle rc;
+	GetScissorRect(rc);
 
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	rc.left   = (int)(rc.left   * EFBxScale);
-	rc.top    = (int)(rc.top    * EFByScale);
+	rc.top	= (int)(rc.top	* EFByScale);
 	rc.right  = (int)(rc.right  * EFBxScale);
 	rc.bottom = (int)(rc.bottom * EFByScale);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
+
 	if (rc.left > s_target_width) rc.left = s_target_width;
 	if (rc.right > s_target_width) rc.right = s_target_width;
+
 	if (rc.top < 0) rc.top = 0;
 	if (rc.bottom < 0) rc.bottom = 0;
+
 	if (rc.top > s_target_height) rc.top = s_target_height;
 	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
 
 	rc.left   += Xstride;
-	rc.top    += Ystride;
+	rc.top	+= Ystride;
 	rc.right  += Xstride;
 	rc.bottom += Ystride;
 
@@ -616,14 +456,14 @@ bool Renderer::SetScissorRect()
 
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
-		D3D::context->RSSetScissorRects(1, &rc);
+		D3D::context->RSSetScissorRects(1, rc.AsRECT());
 		return true;
 	}
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc = CD3D11_RECT(Xstride, Ystride, Xstride + s_target_width, Ystride + s_target_height);
-		D3D::context->RSSetScissorRects(1, &rc);
+		*rc.AsRECT() = CD3D11_RECT(Xstride, Ystride, Xstride + s_target_width, Ystride + s_target_height);
+		D3D::context->RSSetScissorRects(1, rc.AsRECT());
 		return false;
 	}
 	return false;
@@ -758,7 +598,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
 		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-									- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
+									- (float)RectToLock.top	* 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
 									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
 									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
 
@@ -768,7 +608,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 // Called from VertexShaderManager
-void UpdateViewport()
+void Renderer::UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -777,20 +617,20 @@ void UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
-	const int old_fulltarget_w = s_Fulltarget_width;
-	const int old_fulltarget_h = s_Fulltarget_height;
+	const int old_fulltarget_w = Renderer::GetFullTargetWidth();
+	const int old_fulltarget_h = Renderer::GetFullTargetHeight();
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
+	int Xstride =  (Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2;
+	int Ystride =  (Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * EFBxScale) + Xstride;
-	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * EFByScale) + Ystride;
-	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * EFBxScale);
-	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * EFByScale);
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * Renderer::GetTargetScaleX()) + Xstride;
+	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * Renderer::GetTargetScaleY()) + Ystride;
+	int Width = (int)ceil((int)(2 * xfregs.rawViewport[0]) * Renderer::GetTargetScaleX());
+	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * Renderer::GetTargetScaleY());
 	if (Width < 0)
 	{
 		X += Width;
@@ -822,16 +662,16 @@ void UpdateViewport()
 	if (sizeChanged)
 	{
 		// Make sure that the requested size is actually supported by the GFX driver
-		if (s_Fulltarget_width > (int)D3D::GetMaxTextureSize() || s_Fulltarget_height > (int)D3D::GetMaxTextureSize())
+		if (Renderer::GetFullTargetWidth() > (int)D3D::GetMaxTextureSize() || Renderer::GetFullTargetHeight() > (int)D3D::GetMaxTextureSize())
 		{
 			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
+			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight());
 
 			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
-			newx *= (float)old_fulltarget_w / (float)s_Fulltarget_width;
-			newy *= (float)old_fulltarget_h / (float)s_Fulltarget_height;
-			newwidth *= (float)old_fulltarget_w / (float)s_Fulltarget_width;
-			newheight *= (float)old_fulltarget_h / (float)s_Fulltarget_height;
+			newx *= (float)old_fulltarget_w / (float)Renderer::GetFullTargetWidth();
+			newy *= (float)old_fulltarget_h / (float)Renderer::GetFullTargetHeight();
+			newwidth *= (float)old_fulltarget_w / (float)Renderer::GetFullTargetWidth();
+			newheight *= (float)old_fulltarget_h / (float)Renderer::GetFullTargetHeight();
 
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;
@@ -849,7 +689,7 @@ void UpdateViewport()
 
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
-										0.f,    // (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
+										0.f,	// (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 										1.f);   //  xfregs.rawViewport[5] / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
@@ -906,6 +746,37 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
+bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
+{
+	// copy back buffer to system memory
+	ID3D11Texture2D* buftex;
+	D3D11_TEXTURE2D_DESC tex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+	HRESULT hr = D3D::device->CreateTexture2D(&tex_desc, NULL, &buftex);
+	if (FAILED(hr)) PanicAlert("Failed to create screenshot buffer texture");
+	D3D::context->CopyResource(buftex, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+
+	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
+	D3D11_MAPPED_SUBRESOURCE map;
+	D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
+	for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
+	{
+		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
+		for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
+		{
+			*ptr = 0xFF;
+			ptr += 4;
+		}
+	}
+	D3D::context->Unmap(buftex, 0);
+
+	// ready to be saved
+	hr = PD3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, filename.c_str());
+	buftex->Release();
+
+	return SUCCEEDED(hr);
+}
+
+
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
@@ -927,7 +798,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		return;
 	}
 
-	Renderer::ResetAPIState();
+	ResetAPIState();
 
 	// Prepare to copy the XFBs to our backbuffer
 	TargetRectangle dst_rect;
@@ -1010,36 +881,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 		D3DTexture2D* read_texture = FramebufferManager::GetEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		  
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{
-		// copy back buffer to system memory
-		ID3D11Texture2D* buftex;
-		D3D11_TEXTURE2D_DESC tex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-		HRESULT hr = D3D::device->CreateTexture2D(&tex_desc, NULL, &buftex);
-		if (FAILED(hr)) PanicAlert("Failed to create screenshot buffer texture");
-		D3D::context->CopyResource(buftex, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
-
-		// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
-		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
-		for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
-		{
-			u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-			for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
-			{
-				*ptr = 0xFF;
-				ptr += 4;
-			}
-		}
-		D3D::context->Unmap(buftex, 0);
-
-		// ready to be saved
-		hr = PD3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, s_sScreenshotName);
-		if (FAILED(hr)) PanicAlert("Failed to save screenshot");
-		buftex->Release();
+		SaveScreenshot(s_sScreenshotName, dst_rect);
 		s_bScreenshot = false;
 	}
 
@@ -1073,8 +920,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Enable any configuration changes
 	UpdateActiveConfig();
-	WindowResized = false;
-	CheckForResize();
+	const bool WindowResized = CheckForResize();
 
 	bool xfbchanged = false;
 
@@ -1124,23 +970,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		switch(s_LastEFBScale)
-		{
-			case 0:
-				EFBxScale = xScale;
-				EFByScale = yScale;
-				break;
-			case 1:
-				EFBxScale = ceilf(xScale);
-				EFByScale = ceilf(yScale);
-				break;
-			default:
-				EFBxScale = EFByScale = (float)(g_ActiveConfig.iEFBScale - 1);
-				break;
-		};
-
-		s_target_width  = (int)(EFB_WIDTH * EFBxScale);
-		s_target_height = (int)(EFB_HEIGHT * EFByScale);
+		CalculateTargetSize();
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 		
@@ -1248,13 +1078,13 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		if (tm0.mag_filter) // linear mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,        D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
+			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_MIP_LINEAR);
 		}
 		else // point mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,        D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
+			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
 			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
 			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
 		}
@@ -1263,13 +1093,13 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		if (tm0.mag_filter) // linear mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,        D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT);
+			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT);
 			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT);
 			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR);
 		}
 		else // point mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,        D3D11_FILTER_MIN_MAG_MIP_POINT);
+			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_MAG_MIP_POINT);
 			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_MAG_MIP_POINT);
 			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR);
 		}
@@ -1288,12 +1118,4 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-// Save screenshot
-void Renderer::SetScreenshot(const char *filename)
-{
-	s_criticalScreenshot.Enter();
-	strcpy_s(s_sScreenshotName, filename);
-	s_bScreenshot = true;
-	s_criticalScreenshot.Leave();
 }
-

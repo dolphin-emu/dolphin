@@ -734,10 +734,6 @@
 			Name="Render"
 			>
 			<File
-				RelativePath=".\Src\BPFunctions.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\FramebufferManager.cpp"
 				>
 			</File>
@@ -763,6 +759,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\Render.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Render.h"
 				>
 			</File>
 			<File

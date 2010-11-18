@@ -211,7 +211,7 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+		TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
@@ -241,7 +241,7 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 		// Transfer the EFB to a resolved texture. EXT_framebuffer_blit is
 		// required.
 
-		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+		TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
@@ -269,7 +269,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 		return;
 	}
 
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+	TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
 	TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, fbWidth, fbHeight);
 }
 

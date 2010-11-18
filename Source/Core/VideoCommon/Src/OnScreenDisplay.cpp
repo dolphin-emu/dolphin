@@ -20,7 +20,7 @@
 #include "Common.h"
 
 #include "OnScreenDisplay.h"
-#include "Render.h"
+#include "RenderBase.h"
 #include "Timer.h"
 
 namespace OSD
@@ -64,8 +64,8 @@ void DrawMessages()
 
 			alpha <<= 24;
 
-			Renderer::RenderText(it->str, left+1, top+1, 0x000000|alpha);
-			Renderer::RenderText(it->str, left, top, 0xffff30|alpha);
+			g_renderer->RenderText(it->str, left+1, top+1, 0x000000|alpha);
+			g_renderer->RenderText(it->str, left, top, 0xffff30|alpha);
 			top += 15;
 
 			if (time_left <= 0)

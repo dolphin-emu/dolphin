@@ -1,7 +1,7 @@
 
 #include "FramebufferManagerBase.h"
 
-#include "Render.h"
+#include "RenderBase.h"
 #include "VideoConfig.h"
 
 FramebufferManagerBase *g_framebuffer_manager;
@@ -154,17 +154,17 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
 
-	vxfb->xfbSource->sourceRc = Renderer::ConvertEFBRectangle(sourceRc);
+	vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);
 
 	// keep stale XFB data from being used
 	ReplaceVirtualXFB();
   
-	Renderer::ResetAPIState(); // reset any game specific settings
+	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// Copy EFB data to XFB and restore render target again
 	vxfb->xfbSource->CopyEFB();
 
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }
 
 FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)

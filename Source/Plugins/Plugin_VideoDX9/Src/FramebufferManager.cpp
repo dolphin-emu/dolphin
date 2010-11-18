@@ -192,7 +192,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 		return;
 	}
 
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(sourceRc);
+	TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
 	TextureConverter::EncodeToRamYUYV(GetEFBColorTexture(), targetRc, xfb_in_ram, fbWidth, fbHeight);
 }
 

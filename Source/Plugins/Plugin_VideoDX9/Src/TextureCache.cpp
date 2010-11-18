@@ -102,7 +102,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 
 		const float* const fConstAdd = colmat + 16;		// fConstAdd is the last 4 floats of colmat
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
-		TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
 		RECT sourcerect;
 		sourcerect.bottom = targetSource.bottom;
 		sourcerect.left = targetSource.left;

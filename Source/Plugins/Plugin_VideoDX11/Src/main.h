@@ -20,10 +20,8 @@
 
 #include "PluginSpecs_Video.h"
 #include "Render.h"
+#include "MainBase.h"
 
 extern SVideoInitialize g_VideoInitialize;
-extern volatile u32 s_swapRequested;
-void VideoFifo_CheckEFBAccess();
-void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 
 #endif

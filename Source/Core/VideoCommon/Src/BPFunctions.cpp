@@ -17,17 +17,14 @@
 
 #include "BPFunctions.h"
 #include "Common.h"
-#include "D3DBase.h"
-#include "Debugger/Debugger.h"
-#include "TextureCache.h"
-#include "VertexManager.h"
+#include "RenderBase.h"
+#include "TextureCacheBase.h"
+#include "VertexManagerBase.h"
 #include "VertexShaderManager.h"
 #include "VideoConfig.h"
 
 bool textureChanged[8];
 const bool renderFog = false;
-
-using namespace D3D;
 
 namespace BPFunctions
 {
@@ -44,40 +41,40 @@ void FlushPipeline()
 
 void SetGenerationMode(const BPCmd &bp)
 {
-	Renderer::SetGenerationMode();
+	g_renderer->SetGenerationMode();
 }
 
 void SetScissor(const BPCmd &bp)
 {
-	Renderer::SetScissorRect();
+	g_renderer->SetScissorRect();
 }
 
 void SetLineWidth(const BPCmd &bp)
 {
-	Renderer::SetLineWidth();
+	g_renderer->SetLineWidth();
 }
 
 void SetDepthMode(const BPCmd &bp)
 {
-	Renderer::SetDepthMode();
+	g_renderer->SetDepthMode();
 }
 
 void SetBlendMode(const BPCmd &bp)
 {
-	Renderer::SetBlendMode(false);
+	g_renderer->SetBlendMode(false);
 }
 void SetDitherMode(const BPCmd &bp)
 {
-	Renderer::SetDitherMode();
+	g_renderer->SetDitherMode();
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
-	Renderer::SetLogicOpMode();
+	g_renderer->SetLogicOpMode();
 }
 
 void SetColorMask(const BPCmd &bp)
 {
-	Renderer::SetColorMask();
+	g_renderer->SetColorMask();
 }
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
@@ -100,13 +97,13 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
 
-		Renderer::ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }
 
 void RestoreRenderState(const BPCmd &bp)
 {
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }
 
 bool GetConfig(const int &type)
@@ -132,7 +129,7 @@ u8 *GetPointer(const u32 &address)
 
 void SetTextureMode(const BPCmd &bp)
 {
-	Renderer::SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
+	g_renderer->SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
 }
 
 void SetInterlacingMode(const BPCmd &bp)

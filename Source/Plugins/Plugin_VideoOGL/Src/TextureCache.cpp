@@ -305,7 +305,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
 		GL_REPORT_ERRORD();
 
-		TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
 
 		glBegin(GL_QUADS);
 		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);

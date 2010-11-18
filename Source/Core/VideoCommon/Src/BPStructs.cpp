@@ -20,7 +20,7 @@
 #include "VideoConfig.h"
 #include "Profiler.h"
 #include "Statistics.h"
-#include "Render.h"
+#include "RenderBase.h"
 #include "VideoCommon.h"
 #include "PixelShaderManager.h"
 #include "PixelEngine.h"

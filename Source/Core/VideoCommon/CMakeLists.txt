@@ -1,4 +1,5 @@
 set(SRCS	Src/BPMemory.cpp
+			Src/BPFunctions.cpp
 			Src/BPStructs.cpp
 			Src/CommandProcessor.cpp
 			Src/CPMemory.cpp
@@ -8,6 +9,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
 			Src/IndexGenerator.cpp
+			Src/MainBase.cpp
 			Src/memcpy_amd.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp
@@ -15,6 +17,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/PixelShaderGen.cpp
 			Src/PixelShaderManager.cpp
 			Src/Profiler.cpp
+			Src/RenderBase.cpp
 			Src/Statistics.cpp
 			Src/TextureCacheBase.cpp
 			Src/TextureConversionShader.cpp

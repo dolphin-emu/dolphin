@@ -7,7 +7,6 @@ import sys
 name = os.sep + "Plugin_VideoOGL"
 
 files = [
-	'BPFunctions.cpp',
 	'RasterFont.cpp',
 	'Render.cpp',
 	'TextureCache.cpp',

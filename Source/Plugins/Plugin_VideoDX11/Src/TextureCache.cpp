@@ -117,7 +117,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 	unsigned int cbufid, const float colmat[], const EFBRectangle &source_rect,
 	bool bIsIntensityFmt, u32 copyfmt)
 {
-	Renderer::ResetAPIState();
+	g_renderer->ResetAPIState();
 	// stretch picture with increased internal resolution
 	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
 	D3D::context->RSSetViewports(1, &vp);
@@ -134,7 +134,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 	}
 	D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
 
-	const TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+	const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
 	// TODO: try targetSource.asRECT();
 	const D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
 
@@ -154,7 +154,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	
-	Renderer::RestoreAPIState();
+	g_renderer->RestoreAPIState();
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(

@@ -8,7 +8,7 @@
 #include "PixelShaderManager.h"
 #include "NativeVertexFormat.h"
 #include "TextureCacheBase.h"
-#include "Render.h"
+#include "RenderBase.h"
 #include "Profiler.h"
 
 #include "VertexManagerBase.h"

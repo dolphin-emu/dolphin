@@ -740,6 +740,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Render.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\TextureCache.cpp"
 				>
 			</File>
@@ -813,14 +817,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\GfxState.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Decoder"
-			>
-			<File
-				RelativePath=".\Src\BPFunctions.cpp"
 				>
 			</File>
 		</Filter>

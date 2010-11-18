@@ -59,7 +59,6 @@ enum
 
 extern SVideoInitialize g_VideoInitialize;
 
-
 inline u8 *Memory_GetPtr(u32 _uAddress)
 {
 	return g_VideoInitialize.pGetMemoryPointer(_uAddress);
@@ -123,9 +122,15 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 {
 #ifdef _WIN32
 	// Only used by D3D plugin.
-	const RECT *AsRECT() const {
+	const RECT *AsRECT() const
+	{
 		// The types are binary compatible so this works.
 		return (const RECT *)this;
+	}
+	RECT *AsRECT()
+	{
+		// The types are binary compatible so this works.
+		return (RECT *)this;
 	}
 #endif
 };

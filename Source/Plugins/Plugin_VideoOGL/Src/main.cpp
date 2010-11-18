@@ -65,6 +65,7 @@ Make AA apply instantly during gameplay if possible
 #include "Debugger/Debugger.h"
 #endif // HAVE_WX
 
+#include "MainBase.h"
 #include "VideoConfig.h"
 #include "LookUpTables.h"
 #include "ImageWrite.h"
@@ -89,33 +90,16 @@ Make AA apply instantly during gameplay if possible
 #include "OnScreenDisplay.h"
 #include "Setup.h"
 #include "DLCache.h"
+#include "FramebufferManager.h"
 
 #include "VideoState.h"
-
-SVideoInitialize g_VideoInitialize;
-PLUGIN_GLOBALS* globals = NULL;
 
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
-static bool s_PluginInitialized = false;
-
-volatile u32 s_swapRequested = FALSE;
 #if defined(HAVE_X11) && HAVE_X11
 static volatile u32 s_doStateRequested = FALSE;
 #endif
-static u32 s_efbAccessRequested = FALSE;
-static volatile u32 s_FifoShuttingDown = FALSE;
-
-static volatile struct
-{
-	u32 xfbAddr;
-	FieldType field;
-	u32 fbWidth;
-	u32 fbHeight;
-} s_beginFieldArgs;
-
-static volatile EFBAccessType s_AccessEFBType;
 
 bool IsD3D()
 {
@@ -236,11 +220,13 @@ void Initialize(void *init)
 void Video_Prepare()
 {
 	OpenGL_MakeCurrent();
-	if (!Renderer::Init()) {
-		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
-		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
-		exit(1);
-	}
+	//if (!Renderer::Init()) {
+	//	g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
+	//	PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
+	//	exit(1);
+	//}
+
+	g_renderer = new OGL::Renderer;
 
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -295,7 +281,7 @@ void Shutdown()
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	OpcodeDecoder_Shutdown();
-	Renderer::Shutdown();
+	delete g_renderer;
 	OpenGL_Shutdown();
 }
 
@@ -347,196 +333,4 @@ void DoState(unsigned char **ptr, int mode)
 	else
 #endif
 		check_DoState();
-}
-
-void EmuStateChange(PLUGIN_EMUSTATE newState)
-{
-	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
-}
-
-// Enter and exit the video loop
-void Video_EnterLoop()
-{
-	Fifo_EnterLoop(g_VideoInitialize);
-}
-
-void Video_ExitLoop()
-{
-	Fifo_ExitLoop();
-	s_FifoShuttingDown = TRUE;
-}
-
-void Video_SetRendering(bool bEnabled)
-{
-	Fifo_SetRendering(bEnabled);
-}
-
-// Run from the graphics thread (from Fifo.cpp)
-void VideoFifo_CheckSwapRequest()
-{
-	if(g_ActiveConfig.bUseXFB)
-	{
-		if (Common::AtomicLoadAcquire(s_swapRequested))
-		{
-			EFBRectangle rc;
-			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight,rc);
-			Common::AtomicStoreRelease(s_swapRequested, FALSE);
-		}
-	}
-}
-
-static inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
-{
-	return !((aLower >= bUpper) || (bLower >= aUpper));
-}
-
-// Run from the graphics thread (from Fifo.cpp)
-void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{
-	if (g_ActiveConfig.bUseXFB)
-	{
-		if(Common::AtomicLoadAcquire(s_swapRequested))
-		{
-			u32 aLower = xfbAddr;
-			u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
-			u32 bLower = s_beginFieldArgs.xfbAddr;
-			u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
-
-			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
-				VideoFifo_CheckSwapRequest();
-		}
-	}
-}
-
-// Run from the CPU thread (from VideoInterface.cpp)
-void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
-{
-	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
-	{
-		if (!g_VideoInitialize.bOnThread)
-			VideoFifo_CheckSwapRequest();
-		s_beginFieldArgs.xfbAddr = xfbAddr;
-		s_beginFieldArgs.field = field;
-		s_beginFieldArgs.fbWidth = fbWidth;
-		s_beginFieldArgs.fbHeight = fbHeight;
-	}
-}
-
-// Run from the CPU thread (from VideoInterface.cpp)
-void Video_EndField()
-{
-	if (s_PluginInitialized)
-	{
-		Common::AtomicStoreRelease(s_swapRequested, TRUE);
-	}
-}
-
-void Video_AddMessage(const char* pstr, u32 milliseconds)
-{
-	OSD::AddMessage(pstr, milliseconds);
-}
-
-// Screenshot
-void Video_Screenshot(const char *_szFilename)
-{
-	Renderer::SetScreenshot(_szFilename);
-}
-
-static struct
-{
-	EFBAccessType type;
-	u32 x;
-	u32 y;
-	u32 Data;
-} s_accessEFBArgs;
-
-static u32 s_AccessEFBResult = 0;
-
-void VideoFifo_CheckEFBAccess()
-{
-	if (Common::AtomicLoadAcquire(s_efbAccessRequested))
-	{
-		s_AccessEFBResult = Renderer::AccessEFB(s_accessEFBArgs.type, s_accessEFBArgs.x, s_accessEFBArgs.y, s_accessEFBArgs.Data);
-
-		Common::AtomicStoreRelease(s_efbAccessRequested, FALSE);
-	}
-}
-
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
-{
-	if (s_PluginInitialized)
-	{
-		s_accessEFBArgs.type = type;
-		s_accessEFBArgs.x = x;
-		s_accessEFBArgs.y = y;
-		s_accessEFBArgs.Data = InputData;
-
-		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
-
-		if (g_VideoInitialize.bOnThread)
-		{
-			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
-				//Common::SleepCurrentThread(1);
-				Common::YieldCPU();
-		}
-		else
-			VideoFifo_CheckEFBAccess();
-
-		return s_AccessEFBResult;
-	}
-
-	return 0;
-}
-
-void VideoFifo_CheckAsyncRequest() {
-	VideoFifo_CheckSwapRequest();
-	VideoFifo_CheckEFBAccess();
-#if defined(HAVE_X11) && HAVE_X11
-	check_DoState();
-#endif
-}
-
-void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
-{
-	CommandProcessor::Read16(_rReturnValue, _Address);
-}
-
-void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
-{
-	CommandProcessor::Write16(_Data, _Address);
-}
-
-void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
-{
-	PixelEngine::Read16(_rReturnValue, _Address);
-}
-
-void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
-{
-	PixelEngine::Write16(_Data, _Address);
-}
-
-void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
-{
-	PixelEngine::Write32(_Data, _Address);
-}
-
-void Video_GatherPipeBursted(void)
-{
-	CommandProcessor::GatherPipeBursted();
-}
-
-void Video_WaitForFrameFinish(void)
-{
-	CommandProcessor::WaitForFrameFinish();
-}
-
-bool Video_IsFifoBusy(void)
-{
-	return CommandProcessor::isFifoBusy;
-}
-
-void Video_AbortFrame(void)
-{
-	CommandProcessor::AbortFrame();
 }
