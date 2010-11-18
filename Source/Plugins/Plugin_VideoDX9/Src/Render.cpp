@@ -283,16 +283,7 @@ Renderer::Renderer()
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
-	if(g_ActiveConfig.bUseRealXFB)
-	{
-		xScale = 1.0f;
-		yScale = 1.0f;
-	}
-	else
-	{
-		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
-	}
+	CalculateXYScale(dst_rect);
 	
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	float SupersampleCoeficient = s_LastAA + 1;
@@ -865,7 +856,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
@@ -1135,25 +1126,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
-		if(g_ActiveConfig.bUseRealXFB)
-		{
-			xScale = 1.0f;
-			yScale = 1.0f;
-		}
-		else
-		{
-			if(g_ActiveConfig.b3DVision)
-			{
-				// This works, yet the version in the else doesn't. No idea why.
-				xScale = (float)s_backbuffer_width / (float)s_XFB_width;
-				yScale = (float)s_backbuffer_height / (float)s_XFB_height;
-			}
-			else
-			{
-				xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-				yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
-			}
-		}
+		CalculateXYScale(dst_rect);
 		
 		float SupersampleCoeficient = s_LastAA + 1;
 
@@ -1208,7 +1181,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
 }
 

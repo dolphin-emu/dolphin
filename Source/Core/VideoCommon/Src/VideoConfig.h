@@ -116,7 +116,7 @@ struct VideoConfig
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
-	bool bEFBCopyDisable;  // should reverse polarity of this one :) true=disabled can be confusing
+	bool bEFBCopyEnable;
 	bool bOSDHotKey;
 	bool bHack;
 	bool bCopyEFBToTexture;	

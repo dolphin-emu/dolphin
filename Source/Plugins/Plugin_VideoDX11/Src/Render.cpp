@@ -327,8 +327,7 @@ Renderer::Renderer()
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
-	xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-	yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+	CalculateXYScale(dst_rect);
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize();
@@ -780,7 +779,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
@@ -966,8 +965,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
-		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+		CalculateXYScale(dst_rect);
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		CalculateTargetSize();
@@ -985,7 +983,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
 
-	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
 }
 

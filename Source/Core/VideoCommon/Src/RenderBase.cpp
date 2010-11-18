@@ -209,8 +209,8 @@ void Renderer::DrawDebugText()
 				break;
 			}
 
-			const char* const efbcopy_text = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
-				g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM";
+			const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
+				(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
 
 			// The rows
 			const std::string lines[] =
@@ -254,6 +254,29 @@ void Renderer::DrawDebugText()
 			//and then the text
 			g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
 			g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
+		}
+	}
+}
+
+void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
+{
+	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
+	{
+		xScale = 1.0f;
+		yScale = 1.0f;
+	}
+	else
+	{
+		if (g_ActiveConfig.b3DVision)
+		{
+			// This works, yet the version in the else doesn't. No idea why.
+			xScale = (float)s_backbuffer_width / (float)s_XFB_width;
+			yScale = (float)s_backbuffer_height / (float)s_XFB_height;
+		}
+		else
+		{
+			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 		}
 	}
 }

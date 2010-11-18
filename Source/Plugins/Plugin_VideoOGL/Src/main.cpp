@@ -166,7 +166,6 @@ void GetShaders(std::vector<std::string> &shaders)
 void DllConfig(void *_hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
-	g_Config.GameIniLoad(globals->game_ini);
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX

@@ -94,7 +94,7 @@ void VideoConfig::Load(const char *ini_file)
 	
 	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
 	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
-	iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, false);
+	iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true);
 	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
@@ -123,7 +123,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	if (iniFile.Exists("Video", "MaxAnisotropy"))
 		iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	if (iniFile.Exists("Video", "EFBCopyDisable"))
-		iniFile.Get("Video", "EFBCopyDisable", &bEFBCopyDisable);
+		iniFile.Get("Video", "EFBCopyEnable", &bEFBCopyEnable);
 	if (iniFile.Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile.Get("Video", "EFBCopyDisableHotKey", &bOSDHotKey);
 	if (iniFile.Exists("Video", "EFBToTextureEnable"))
@@ -208,7 +208,7 @@ void VideoConfig::Save(const char *ini_file)
 	
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
-	iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
+	iniFile.Set("Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);

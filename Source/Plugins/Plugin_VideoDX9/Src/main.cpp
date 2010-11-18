@@ -161,7 +161,6 @@ void DllConfig(void *_hParent)
 	if (!s_PluginInitialized)
 		D3D::Init();
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-	g_Config.GameIniLoad(globals->game_ini);
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
 

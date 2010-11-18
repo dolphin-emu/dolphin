@@ -113,6 +113,7 @@ protected:
 	static std::string s_sScreenshotName;
 
 	static bool CalculateTargetSize(float multiplier = 1);
+	static void CalculateXYScale(const TargetRectangle& dst_rect);
 
 	static volatile bool s_bScreenshot;
 

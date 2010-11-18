@@ -182,7 +182,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Copy"));
 	group_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
 
-	group_efbcopy->Add(new SettingCheckBox(page_general, wxT("Enable"), vconfig.bEFBCopyDisable, true), 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_efbcopy->Add(new SettingCheckBox(page_general, wxT("Enable"), vconfig.bEFBCopyEnable), 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(new SettingRadioButton(page_general, wxT("Texture"), vconfig.bCopyEFBToTexture, false, wxRB_GROUP), 0, wxRIGHT, 5);
 	group_efbcopy->Add(new SettingRadioButton(page_general, wxT("RAM"), vconfig.bCopyEFBToTexture, true), 0, wxRIGHT, 5);

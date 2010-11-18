@@ -80,7 +80,7 @@ void SetColorMask(const BPCmd &bp)
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
-	if (!g_ActiveConfig.bEFBCopyDisable)
+	if (g_ActiveConfig.bEFBCopyEnable)
 	{
 		TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, !!scaleByHalf, rc);
 	}
