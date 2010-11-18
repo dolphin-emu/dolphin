@@ -1124,12 +1124,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				else
 				{
 					OSD::AddMessage(StringFromFormat(
-					#ifdef _WIN32
-						"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-					#else
-						"Dumping Frames to \"%sframedump.mpg\" (%dx%d RGB24)",
-					#endif
-						File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
+								"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+								File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
 				}
 			}
 			if (s_bAVIDumping)
