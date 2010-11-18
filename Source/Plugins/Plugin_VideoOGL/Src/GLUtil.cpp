@@ -175,9 +175,9 @@ THREAD_RETURN XEventThread(void *pArg)
 						case XK_5:
 							OSDChoice = 3;
 							// Toggle EFB copy
-							if (g_Config.bEFBCopyDisable || g_Config.bCopyEFBToTexture)
+							if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
 							{
-								g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
+								g_Config.bEFBCopyEnable ^= true;
 								g_Config.bCopyEFBToTexture = false;
 							}
 							else
