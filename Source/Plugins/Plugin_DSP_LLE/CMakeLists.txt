@@ -15,10 +15,10 @@ if(wxWidgets_FOUND)
 		Src/DSPConfigDlgLLE.cpp
 		Src/Debugger/DSPDebugWindow.cpp
 		Src/Debugger/DSPRegisterView.cpp)
-	set(LIBS ${LIBS} debugger_ui_util)
+	set(LIBS ${LIBS} debugger_ui_util ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
-add_library(Plugin_DSP_LLE SHARED ${SRCS})
+add_library(Plugin_DSP_LLE MODULE ${SRCS})
 target_link_libraries(Plugin_DSP_LLE ${LIBS})
 install(TARGETS Plugin_DSP_LLE
 		LIBRARY DESTINATION ${plugindir}

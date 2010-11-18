@@ -16,12 +16,15 @@ set(LIBS	videocommon
 			SOIL
 			common
 			Cg
-			CgGL)
+			CgGL
+			${OPENGL_LIBRARIES}
+			${X11_LIBRARIES})
 
 if(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
 				Src/Debugger/Debugger.cpp)
 	set(LIBS	videouicommon ${LIBS})
+	set(LIBS ${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
@@ -32,7 +35,7 @@ elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
 
-add_library(Plugin_VideoOGL SHARED ${SRCS})
+add_library(Plugin_VideoOGL MODULE ${SRCS})
 target_link_libraries(Plugin_VideoOGL ${LIBS})
 install(TARGETS Plugin_VideoOGL
 		LIBRARY DESTINATION ${plugindir}

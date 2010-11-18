@@ -27,7 +27,9 @@ set(SRCS	Src/BPMemLoader.cpp
 set(LIBS	videocommon
 			GLEW
 			SOIL
-			common)
+			common
+			${OPENGL_LIBRARIES}
+			${X11_LIBRARIES})
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
