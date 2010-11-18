@@ -1,5 +1,4 @@
-set(SRCS	Src/BPFunctions.cpp
-			Src/FramebufferManager.cpp
+set(SRCS	Src/FramebufferManager.cpp
 			Src/GLUtil.cpp
 			Src/main.cpp
 			Src/NativeVertexFormat.cpp
