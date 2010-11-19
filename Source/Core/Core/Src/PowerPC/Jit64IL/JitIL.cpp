@@ -156,34 +156,39 @@ ps_adds1
 #ifdef _WIN32
 // For profiling
 // FIXME: This is currently for windows only.
-#include <unordered_map>
 #include <windows.h>
+#include <intrin.h>
 namespace JitILProfiler {
-	struct Performance {
+	struct Block {
+		u32 index;
+		u64 codeHash;
 		u64 toalElapsed;
 		u64 numberOfCalls;
-		Performance() : toalElapsed(0), numberOfCalls(0) { }
+		Block() : index(0), codeHash(0), toalElapsed(0), numberOfCalls(0) { }
 	};
-	static u64 hash;
+	static std::vector<Block> blocks;
+	static u32 blockIndex;
 	static u64 beginTime;
-	// std::map is a bit slow for this purpose.
-	static std::tr1::unordered_map<u64, Performance> profiledData;
+	static Block& Add(u64 codeHash) {
+		const u32 blockIndex = blocks.size();
+		blocks.push_back(Block());
+		Block& block = blocks.back();
+		block.index = blockIndex;
+		block.codeHash = codeHash;
+		return block;
+	}
 	// These functions need to be static function
 	// because they are called with ABI_CallFunction().
-	static void Begin(u32 higher, u32 lower) {
-		hash = (((u64)higher) << 32) | lower;
-		LARGE_INTEGER largeInteger;
-		QueryPerformanceCounter(&largeInteger);
-		beginTime = largeInteger.QuadPart;
+	static void Begin(u32 index) {
+		blockIndex = index;
+		beginTime = __rdtsc();
 	}
 	static void End() {
-		LARGE_INTEGER largeInteger;
-		QueryPerformanceCounter(&largeInteger);
-		const u64 endTime = largeInteger.QuadPart;
+		const u64 endTime = __rdtsc();
 		const u64 duration = endTime - beginTime;
-		Performance& performance = profiledData[hash];
-		performance.toalElapsed += duration;
-		++performance.numberOfCalls;
+		Block& block = blocks[blockIndex];
+		block.toalElapsed += duration;
+		++block.numberOfCalls;
 	}
 	struct JitILProfilerFinalizer {
 		virtual ~JitILProfilerFinalizer() {
@@ -192,10 +197,10 @@ namespace JitILProfiler {
 			FILE* file = fopen(buffer, "w");
 			setvbuf(file, NULL, _IOFBF, 1024 * 1024);
 			fprintf(file, "code hash,total elapsed,number of calls,elapsed per call\n");
-			for (std::tr1::unordered_map<u64, Performance>::iterator it = profiledData.begin(), itEnd = profiledData.end(); it != itEnd; ++it) {
-				const u64 codeHash = it->first;
-				const u64 totalElapsed = it->second.toalElapsed;
-				const u64 numberOfCalls = it->second.numberOfCalls;
+			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it) {
+				const u64 codeHash = it->codeHash;
+				const u64 totalElapsed = it->toalElapsed;
+				const u64 numberOfCalls = it->numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
 				fprintf(file, "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
@@ -214,7 +219,8 @@ namespace JitILProfiler {
 #else
 namespace JitILProfiler {
 	// FIXME: Dummy functions for linux. Please implement them.
-	static void Begin(u32 higher, u32 lower) { }
+	static Block& Add(u64 codeHash) { }
+	static void Begin(u32 index) { }
 	static void End() { }
 	static void Init() { }
 	static void Shutdown() { }
@@ -565,7 +571,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// Ported from boost::hash
 			codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
 		}
-		ABI_CallFunctionCC(JitILProfiler::Begin, (u32)(codeHash >> 32), (u32)codeHash);
+		JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
+		ABI_CallFunctionC(JitILProfiler::Begin, block.index);
 	}
 
 	// Start up IR builder (structure that collects the
