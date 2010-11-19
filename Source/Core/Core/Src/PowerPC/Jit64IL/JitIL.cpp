@@ -219,7 +219,15 @@ namespace JitILProfiler {
 #else
 namespace JitILProfiler {
 	// FIXME: Dummy functions for linux. Please implement them.
-	static Block& Add(u64 codeHash) { }
+	struct Block {
+		u32 index;
+		u64 codeHash;
+		u64 toalElapsed;
+		u64 numberOfCalls;
+		Block() : index(0), codeHash(0), toalElapsed(0), numberOfCalls(0) { }
+	};
+	static Block dummyBlock;
+	static Block& Add(u64 codeHash) { return dummyBlock; }
 	static void Begin(u32 index) { }
 	static void End() { }
 	static void Init() { }
@@ -376,7 +384,7 @@ void JitIL::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
-		ABI_CallFunction(JitILProfiler::End);
+		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
@@ -405,7 +413,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	MOV(32, M(&PC), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
-		ABI_CallFunction(JitILProfiler::End);
+		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
@@ -416,7 +424,7 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 	MOV(32, M(&PC), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
-		ABI_CallFunction(JitILProfiler::End);
+		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
@@ -426,7 +434,7 @@ void JitIL::WriteExceptionExit()
 {
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
-		ABI_CallFunction(JitILProfiler::End);
+		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
@@ -572,7 +580,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
 		}
 		JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
-		ABI_CallFunctionC(JitILProfiler::Begin, block.index);
+		ABI_CallFunctionC((void *)JitILProfiler::Begin, block.index);
 	}
 
 	// Start up IR builder (structure that collects the
