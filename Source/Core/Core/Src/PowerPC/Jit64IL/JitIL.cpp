@@ -158,6 +158,7 @@ ps_adds1
 // FIXME: This is currently for windows only.
 #include <windows.h>
 #include <intrin.h>
+#include <time.h>
 namespace JitILProfiler {
 	struct Block {
 		u32 index;
