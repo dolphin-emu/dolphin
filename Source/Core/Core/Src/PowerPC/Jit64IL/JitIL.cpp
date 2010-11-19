@@ -25,6 +25,7 @@
 #include "../../Core.h"
 #include "../../PatchEngine.h"
 #include "../../CoreTiming.h"
+#include "../../ConfigManager.h"
 #include "../PowerPC.h"
 #include "../Profiler.h"
 #include "../PPCTables.h"
@@ -152,8 +153,7 @@ ps_adds1
 
 */
 
-//#define ENABLE_JITIL_PROFILING
-#ifdef ENABLE_JITIL_PROFILING
+#ifdef _WIN32
 // For profiling
 // FIXME: This is currently for windows only.
 #include <unordered_map>
@@ -170,13 +170,13 @@ namespace JitILProfiler {
 	static std::tr1::unordered_map<u64, Performance> profiledData;
 	// These functions need to be static function
 	// because they are called with ABI_CallFunction().
-	static void begin(u32 higher, u32 lower) {
+	static void Begin(u32 higher, u32 lower) {
 		hash = (((u64)higher) << 32) | lower;
 		LARGE_INTEGER largeInteger;
 		QueryPerformanceCounter(&largeInteger);
 		beginTime = largeInteger.QuadPart;
 	}
-	static void end() {
+	static void End() {
 		LARGE_INTEGER largeInteger;
 		QueryPerformanceCounter(&largeInteger);
 		const u64 endTime = largeInteger.QuadPart;
@@ -202,7 +202,22 @@ namespace JitILProfiler {
 			fclose(file);
 			file = NULL;
 		}
-	} finalizer; // Is this a bad manner?
+	};
+	std::auto_ptr<JitILProfilerFinalizer> finalizer;
+	static void Init() {
+		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+	}
+	static void Shutdown() {
+		finalizer.reset();
+	}
+};
+#else
+namespace JitILProfiler {
+	// FIXME: Dummy functions for linux. Please implement them.
+	static void Begin(u32 higher, u32 lower) { }
+	static void End() { }
+	static void Init() { }
+	static void Shutdown() { }
 };
 #endif
 
@@ -248,6 +263,10 @@ void JitIL::Init()
 
 	blocks.Init();
 	asm_routines.Init();
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		JitILProfiler::Init();
+	}
 }
 
 void JitIL::ClearCache()
@@ -259,6 +278,10 @@ void JitIL::ClearCache()
 
 void JitIL::Shutdown()
 {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		JitILProfiler::Shutdown();
+	}
+
 	FreeCodeSpace();
 
 	blocks.Shutdown();
@@ -346,9 +369,9 @@ void JitIL::Cleanup()
 void JitIL::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
-#ifdef ENABLE_JITIL_PROFILING
-	ABI_CallFunction(JitILProfiler::end);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		ABI_CallFunction(JitILProfiler::End);
+	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
@@ -375,9 +398,9 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();
-#ifdef ENABLE_JITIL_PROFILING
-	ABI_CallFunction(JitILProfiler::end);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		ABI_CallFunction(JitILProfiler::End);
+	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
 }
@@ -386,9 +409,9 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();
-#ifdef ENABLE_JITIL_PROFILING
-	ABI_CallFunction(JitILProfiler::end);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		ABI_CallFunction(JitILProfiler::End);
+	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
@@ -396,9 +419,9 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 void JitIL::WriteExceptionExit()
 {
 	Cleanup();
-#ifdef ENABLE_JITIL_PROFILING
-	ABI_CallFunction(JitILProfiler::end);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		ABI_CallFunction(JitILProfiler::End);
+	}
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
@@ -533,17 +556,17 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	js.rewriteStart = (u8*)GetCodePtr();
 
-#ifdef ENABLE_JITIL_PROFILING
-	// For profiling
-	u64 codeHash = -1;
-	for (int i = 0; i < (int)size; i++)
-	{
-		const u64 inst = ops[i].inst.hex;
-		// Ported from boost::hash
-		codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+		// For profiling
+		u64 codeHash = -1;
+		for (int i = 0; i < (int)size; i++)
+		{
+			const u64 inst = ops[i].inst.hex;
+			// Ported from boost::hash
+			codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
+		}
+		ABI_CallFunctionCC(JitILProfiler::Begin, (u32)(codeHash >> 32), (u32)codeHash);
 	}
-	ABI_CallFunctionCC(JitILProfiler::begin, (u32)(codeHash >> 32), (u32)codeHash);
-#endif
 
 	// Start up IR builder (structure that collects the
 	// instruction processed by the JIT routines)
