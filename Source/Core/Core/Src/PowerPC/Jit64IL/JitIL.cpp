@@ -152,6 +152,60 @@ ps_adds1
 
 */
 
+//#define ENABLE_JITIL_PROFILING
+#ifdef ENABLE_JITIL_PROFILING
+// For profiling
+// FIXME: This is currently for windows only.
+#include <unordered_map>
+#include <windows.h>
+namespace JitILProfiler {
+	struct Performance {
+		u64 toalElapsed;
+		u64 numberOfCalls;
+		Performance() : toalElapsed(0), numberOfCalls(0) { }
+	};
+	static u64 hash;
+	static u64 beginTime;
+	// std::map is a bit slow for this purpose.
+	static std::tr1::unordered_map<u64, Performance> profiledData;
+	// These functions need to be static function
+	// because they are called with ABI_CallFunction().
+	static void begin(u32 higher, u32 lower) {
+		hash = (((u64)higher) << 32) | lower;
+		LARGE_INTEGER largeInteger;
+		QueryPerformanceCounter(&largeInteger);
+		beginTime = largeInteger.QuadPart;
+	}
+	static void end() {
+		LARGE_INTEGER largeInteger;
+		QueryPerformanceCounter(&largeInteger);
+		const u64 endTime = largeInteger.QuadPart;
+		const u64 duration = endTime - beginTime;
+		Performance& performance = profiledData[hash];
+		performance.toalElapsed += duration;
+		++performance.numberOfCalls;
+	}
+	struct JitILProfilerFinalizer {
+		virtual ~JitILProfilerFinalizer() {
+			char buffer[1024];
+			sprintf(buffer, "JitIL_profiling_%d.csv", time(NULL));
+			FILE* file = fopen(buffer, "w");
+			setvbuf(file, NULL, _IOFBF, 1024 * 1024);
+			fprintf(file, "code hash,total elapsed,number of calls,elapsed per call\n");
+			for (std::tr1::unordered_map<u64, Performance>::iterator it = profiledData.begin(), itEnd = profiledData.end(); it != itEnd; ++it) {
+				const u64 codeHash = it->first;
+				const u64 totalElapsed = it->second.toalElapsed;
+				const u64 numberOfCalls = it->second.numberOfCalls;
+				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
+				fprintf(file, "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+			}
+			fclose(file);
+			file = NULL;
+		}
+	} finalizer; // Is this a bad manner?
+};
+#endif
+
 static int CODE_SIZE = 1024*1024*32;
 
 namespace CPUCompare
@@ -292,6 +346,9 @@ void JitIL::Cleanup()
 void JitIL::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
+#ifdef ENABLE_JITIL_PROFILING
+	ABI_CallFunction(JitILProfiler::end);
+#endif
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
@@ -318,6 +375,9 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();
+#ifdef ENABLE_JITIL_PROFILING
+	ABI_CallFunction(JitILProfiler::end);
+#endif
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
 }
@@ -326,6 +386,9 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();
+#ifdef ENABLE_JITIL_PROFILING
+	ABI_CallFunction(JitILProfiler::end);
+#endif
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
@@ -333,6 +396,9 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 void JitIL::WriteExceptionExit()
 {
 	Cleanup();
+#ifdef ENABLE_JITIL_PROFILING
+	ABI_CallFunction(JitILProfiler::end);
+#endif
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
@@ -466,6 +532,18 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	js.rewriteStart = (u8*)GetCodePtr();
+
+#ifdef ENABLE_JITIL_PROFILING
+	// For profiling
+	u64 codeHash = -1;
+	for (int i = 0; i < (int)size; i++)
+	{
+		const u64 inst = ops[i].inst.hex;
+		// Ported from boost::hash
+		codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
+	}
+	ABI_CallFunctionCC(JitILProfiler::begin, (u32)(codeHash >> 32), (u32)codeHash);
+#endif
 
 	// Start up IR builder (structure that collects the
 	// instruction processed by the JIT routines)
