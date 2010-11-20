@@ -338,9 +338,8 @@ endif(NOT DISABLE_WX)
 ########################################
 # Pre-build events: Define configuration variables and write svnrev header
 #
-file(WRITE ./Source/Core/Common/Src/svnrev.h
+file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
 	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"")
-
 
 ########################################
 # Start compiling our code

@@ -39,6 +39,8 @@ if(WIN32)
 	set(SRCS ${SRCS} Src/ExtendedTrace.cpp Src/stdafx.cpp)
 endif(WIN32)
 
+include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
+
 add_library(common STATIC ${SRCS})
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
