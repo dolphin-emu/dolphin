@@ -196,6 +196,10 @@ void Initialize(void *init)
 	g_Config.GameIniLoad(globals->game_ini);
 
 	g_Config.UpdateProjectionHack();
+#if defined _WIN32
+	// Enable support for PNG screenshots.
+	wxImage::AddHandler( new wxPNGHandler );
+#endif
 	UpdateActiveConfig();
 
 	if (!OpenGL_Create(g_VideoInitialize, 640, 480))

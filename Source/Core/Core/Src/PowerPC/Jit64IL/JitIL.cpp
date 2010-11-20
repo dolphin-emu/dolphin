@@ -162,12 +162,14 @@ ps_adds1
 #include <intrin.h>
 #else
 #include <memory>
-static inline u64 __rdtsc()
+#include <stdint.h>
+static inline uint64_t __rdtsc()
 {
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-
-	return (ts.tv_sec * 100000000 + ts.tv_nsec);
+	uint32_t lo, hi;
+	__asm__ __volatile__ ("xorl %%eax,%%eax \n cpuid"
+			::: "%rax", "%rbx", "%rcx", "%rdx");
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	return (uint64_t)hi << 32 | lo;
 }
 #endif
 

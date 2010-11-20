@@ -60,8 +60,13 @@
 #define INFINITE 0xffffffff
 #endif
 
-//for clock_gettime and struct timespec
+//for (clock_gettime|gettimeofday) and struct time(spec|val)
+#include <unistd.h>
 #include <time.h>
+#if !defined(_POSIX_TIMERS) || _POSIX_TIMERS == 0
+#define USE_GETTIMEOFDAY
+#include <sys/time.h>
+#endif
 #endif
 
 

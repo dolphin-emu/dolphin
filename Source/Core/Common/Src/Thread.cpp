@@ -492,11 +492,16 @@ namespace Common
 		
 		if (timeout != INFINITE) 
 		{
+			memset(&wait, 0, sizeof(wait));
+#ifdef USE_GETTIMEOFDAY
+			struct timeval now;
+			gettimeofday(&now, NULL);
+			wait.tv_nsec = (now.tv_usec + (timeout % 1000)) * 1000;
+#else
 			struct timespec now;
 			clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-			
-			memset(&wait, 0, sizeof(wait));
 			wait.tv_nsec = now.tv_nsec + (timeout % 1000) * 1000000;
+#endif
 			wait.tv_sec = now.tv_sec + (timeout / 1000);
 		}
 		
