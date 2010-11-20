@@ -492,15 +492,11 @@ namespace Common
 		
 		if (timeout != INFINITE) 
 		{
-			struct timeval now;
-			gettimeofday(&now, NULL);
+			struct timespec now;
+			clock_gettime(CLOCK_MONOTONIC_RAW, &now);
 			
 			memset(&wait, 0, sizeof(wait));
-			//TODO: timespec also has nanoseconds, but do we need them?
-			//as consequence, waiting is limited to seconds for now.
-			//the following just looks ridiculous, and probably fails for
-			//values 429 < ms <= 999 since it overflows the long.
-			//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
+			wait.tv_nsec = now.tv_nsec + (timeout % 1000) * 1000000;
 			wait.tv_sec = now.tv_sec + (timeout / 1000);
 		}
 		

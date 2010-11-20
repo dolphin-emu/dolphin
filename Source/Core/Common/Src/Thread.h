@@ -60,8 +60,7 @@
 #define INFINITE 0xffffffff
 #endif
 
-//for gettimeofday and struct time(val|spec)
-#include <sys/time.h>
+//for clock_gettime and struct timespec
 #include <time.h>
 #endif
 

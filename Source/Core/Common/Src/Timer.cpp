@@ -21,8 +21,6 @@
 #include <Windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
-#else
-#include <sys/time.h>
 #endif
 
 #include "Common.h"
@@ -37,9 +35,9 @@ u32 Timer::GetTimeMs()
 #ifdef _WIN32
 	return timeGetTime();
 #else
-	struct timeval t;
-	(void)gettimeofday(&t, NULL);
-	return((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
+	struct timespec t;
+	(void)clock_gettime(CLOCK_MONOTONIC_RAW, &t);
+	return ((u32)(t.tv_sec * 1000 + t.tv_nsec / 1000000));
 #endif
 }
 
@@ -157,13 +155,6 @@ void Timer::RestoreResolution()
 #endif
 }
 
-#ifdef __GNUC__
-void _time64(u64* t)
-{
-	*t = 0; //TODO
-}
-#endif
-
 // Get the number of seconds since January 1 1970
 u64 Timer::GetTimeSinceJan1970()
 {
@@ -213,9 +204,9 @@ std::string Timer::GetTimeFormatted()
 	(void)::ftime(&tp);
 	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
 #else
-	struct timeval t;
-	(void)gettimeofday(&t, NULL);
-	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_usec / 1000));
+	struct timespec t;
+	(void)clock_gettime(CLOCK_REALTIME, &t);
+	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_nsec / 1000000));
 #endif
 
 	return std::string(formattedTime);
@@ -229,8 +220,8 @@ double Timer::GetDoubleTime()
 	struct timeb tp;
 	(void)::ftime(&tp);
 #else
-	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	struct timespec t;
+	(void)clock_gettime(CLOCK_REALTIME, &t);
 #endif
 	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
@@ -246,7 +237,7 @@ double Timer::GetDoubleTime()
 #ifdef _WIN32
 	double ms = tp.millitm / 1000.0 / 1000.0;
 #else
-	double ms = t.tv_usec / 1000.0 / 1000.0;
+	double ms = t.tv_nsec / 1000000000.0;
 #endif
 	double TmpTime = Seconds + ms;
 

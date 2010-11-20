@@ -153,24 +153,39 @@ ps_adds1
 
 */
 
-#ifdef _WIN32
+
 // For profiling
-// FIXME: This is currently for windows only.
+#include <time.h>
+
+#ifdef _WIN32
 #include <windows.h>
 #include <intrin.h>
-#include <time.h>
-namespace JitILProfiler {
-	struct Block {
+#else
+#include <memory>
+static inline u64 __rdtsc()
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+
+	return (ts.tv_sec * 100000000 + ts.tv_nsec);
+}
+#endif
+
+namespace JitILProfiler
+{
+	struct Block
+	{
 		u32 index;
 		u64 codeHash;
-		u64 toalElapsed;
+		u64 totalElapsed;
 		u64 numberOfCalls;
-		Block() : index(0), codeHash(0), toalElapsed(0), numberOfCalls(0) { }
+		Block() : index(0), codeHash(0), totalElapsed(0), numberOfCalls(0) { }
 	};
 	static std::vector<Block> blocks;
 	static u32 blockIndex;
 	static u64 beginTime;
-	static Block& Add(u64 codeHash) {
+	static Block& Add(u64 codeHash)
+	{
 		const u32 blockIndex = blocks.size();
 		blocks.push_back(Block());
 		Block& block = blocks.back();
@@ -178,29 +193,34 @@ namespace JitILProfiler {
 		block.codeHash = codeHash;
 		return block;
 	}
-	// These functions need to be static function
-	// because they are called with ABI_CallFunction().
-	static void Begin(u32 index) {
+	// These functions need to be static because they are called with
+	// ABI_CallFunction().
+	static void Begin(u32 index)
+	{
 		blockIndex = index;
 		beginTime = __rdtsc();
 	}
-	static void End() {
+	static void End()
+	{
 		const u64 endTime = __rdtsc();
 		const u64 duration = endTime - beginTime;
 		Block& block = blocks[blockIndex];
-		block.toalElapsed += duration;
+		block.totalElapsed += duration;
 		++block.numberOfCalls;
 	}
-	struct JitILProfilerFinalizer {
-		virtual ~JitILProfilerFinalizer() {
+	struct JitILProfilerFinalizer
+	{
+		virtual ~JitILProfilerFinalizer()
+		{
 			char buffer[1024];
-			sprintf(buffer, "JitIL_profiling_%d.csv", time(NULL));
+			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(NULL));
 			FILE* file = fopen(buffer, "w");
 			setvbuf(file, NULL, _IOFBF, 1024 * 1024);
 			fprintf(file, "code hash,total elapsed,number of calls,elapsed per call\n");
-			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it) {
+			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it)
+			{
 				const u64 codeHash = it->codeHash;
-				const u64 totalElapsed = it->toalElapsed;
+				const u64 totalElapsed = it->totalElapsed;
 				const u64 numberOfCalls = it->numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
 				fprintf(file, "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
@@ -210,31 +230,15 @@ namespace JitILProfiler {
 		}
 	};
 	std::auto_ptr<JitILProfilerFinalizer> finalizer;
-	static void Init() {
+	static void Init()
+	{
 		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
 	}
-	static void Shutdown() {
+	static void Shutdown()
+	{
 		finalizer.reset();
 	}
 };
-#else
-namespace JitILProfiler {
-	// FIXME: Dummy functions for linux. Please implement them.
-	struct Block {
-		u32 index;
-		u64 codeHash;
-		u64 toalElapsed;
-		u64 numberOfCalls;
-		Block() : index(0), codeHash(0), toalElapsed(0), numberOfCalls(0) { }
-	};
-	static Block dummyBlock;
-	static Block& Add(u64 codeHash) { return dummyBlock; }
-	static void Begin(u32 index) { }
-	static void End() { }
-	static void Init() { }
-	static void Shutdown() { }
-};
-#endif
 
 static int CODE_SIZE = 1024*1024*32;
 
