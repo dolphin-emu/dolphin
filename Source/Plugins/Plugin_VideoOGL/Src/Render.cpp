@@ -1263,6 +1263,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	DrawDebugText();
+	DrawDebugInfo();
 
 	GL_REPORT_ERRORD();
 
