@@ -63,7 +63,7 @@
 //for (clock_gettime|gettimeofday) and struct time(spec|val)
 #include <unistd.h>
 #include <time.h>
-#if !defined(_POSIX_TIMERS) || _POSIX_TIMERS == 0 || !defined(_POSIX_MONOTONIC_CLOCK)
+#if !defined _POSIX_MONOTONIC_CLOCK || _POSIX_MONOTONIC_CLOCK < 200112L
 #define USE_GETTIMEOFDAY
 #include <sys/time.h>
 #endif
