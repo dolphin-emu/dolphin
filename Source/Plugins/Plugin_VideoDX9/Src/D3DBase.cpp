@@ -27,6 +27,10 @@ D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA = NULL;
 D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA = NULL;
 D3DXCOMPILESHADERTYPE PD3DXCompileShader = NULL;
 
+typedef IDirect3D9* (WINAPI* DIRECT3DCREATE9)(UINT);
+DIRECT3DCREATE9 PDirect3DCreate9 = NULL;
+HINSTANCE hD3DDll = NULL;
+
 namespace D3D
 {
 
@@ -89,8 +93,17 @@ bool IsATIDevice()
 
 HRESULT Init()
 {
+	hD3DDll = LoadLibraryA("d3d9.dll");
+	if (!hD3DDll)
+	{
+		MessageBoxA(NULL, "Failed to load d3d9.dll", "Critical error", MB_OK | MB_ICONERROR);
+		return E_FAIL;
+	}
+	PDirect3DCreate9 = (DIRECT3DCREATE9)GetProcAddress(hD3DDll, "Direct3DCreate9");
+	if (PDirect3DCreate9 == NULL) MessageBoxA(NULL, "GetProcAddress failed for Direct3DCreate9!", "Critical error", MB_OK | MB_ICONERROR);
+
 	// Create the D3D object, which is needed to create the D3DDevice.
-	D3D = Direct3DCreate9(D3D_SDK_VERSION);
+	D3D = PDirect3DCreate9(D3D_SDK_VERSION);
 	if (!D3D)
 		return E_FAIL;
 	Enumerate();
@@ -100,7 +113,10 @@ HRESULT Init()
 void Shutdown()
 {
 	D3D->Release();
-	D3D = 0;
+	D3D = NULL;
+
+	if (hD3DDll) FreeLibrary(hD3DDll);
+	PDirect3DCreate9 = NULL;
 }
 
 void EnableAlphaToCoverage()
