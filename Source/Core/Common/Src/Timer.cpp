@@ -23,7 +23,7 @@
 #include <sys/timeb.h>
 #else
 #include <unistd.h>
-#if !defined(_POSIX_TIMERS) || _POSIX_TIMERS == 0
+#if !defined(_POSIX_TIMERS) || _POSIX_TIMERS == 0 || !defined(_POSIX_MONOTONIC_CLOCK)
 #define USE_GETTIMEOFDAY
 #include <sys/time.h>
 #endif
