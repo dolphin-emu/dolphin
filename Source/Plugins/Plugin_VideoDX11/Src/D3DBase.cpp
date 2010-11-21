@@ -30,6 +30,13 @@ D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
 D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA = NULL;
 D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW = NULL;
 
+CREATEDXGIFACTORY PCreateDXGIFactory = NULL;
+HINSTANCE hDXGIDll = NULL;
+
+typedef HRESULT (WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = NULL;
+HINSTANCE hD3DDll = NULL;
+
 namespace D3D
 {
 
@@ -53,16 +60,28 @@ unsigned int xres, yres;
 
 bool bFrameInProgress = false;
 
-HRESULT Create(HWND wnd)
+HRESULT GetDXGIFuncPointers()
 {
-	hWnd = wnd;
-	HRESULT hr;
+	hDXGIDll = LoadLibraryA("dxgi.dll");
+	if (!hDXGIDll)
+	{
+		MessageBoxA(NULL, "Failed to load dxgi.dll", "Critical error", MB_OK | MB_ICONERROR);
+		return E_FAIL;
+	}
+	PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+	if (PCreateDXGIFactory == NULL) MessageBoxA(NULL, "GetProcAddress failed for CreateDXGIFactory!", "Critical error", MB_OK | MB_ICONERROR);
 
-	RECT client;
-	GetClientRect(hWnd, &client);
-	xres = client.right - client.left;
-	yres = client.bottom - client.top;
+	return S_OK;
+}
 
+void UnloadDXGI()
+{
+	if(hDXGIDll) FreeLibrary(hDXGIDll);
+	PCreateDXGIFactory = NULL;
+}
+
+HRESULT GetD3DFuncPointers()
+{
 	// try to load D3DX11 first to check whether we have proper runtime support
 	// try to use the dll the plugin was compiled against first - don't bother about debug runtimes
 	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
@@ -93,11 +112,39 @@ HRESULT Create(HWND wnd)
 	PD3DX11SaveTextureToFileW = (D3DX11SAVETEXTURETOFILEWTYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileW");
 	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
 
-	// D3DX11 is fine, initialize D3D11
+	// D3DX11 is fine, check DXGI and D3D11
+	HRESULT hr = GetDXGIFuncPointers();
+	if (FAILED(hr)) return hr;
+
+	hD3DDll = LoadLibraryA("d3d11.dll");
+	if (!hD3DDll)
+	{
+		MessageBoxA(NULL, "Failed to load d3d11.dll", "Critical error", MB_OK | MB_ICONERROR);
+		return E_FAIL;
+	}
+	PD3D11CreateDeviceAndSwapChain = (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
+	if (PD3D11CreateDeviceAndSwapChain == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!", "Critical error", MB_OK | MB_ICONERROR);
+
+	return S_OK;
+}
+
+HRESULT Create(HWND wnd)
+{
+	hWnd = wnd;
+	HRESULT hr;
+
+	RECT client;
+	GetClientRect(hWnd, &client);
+	xres = client.right - client.left;
+	yres = client.bottom - client.top;
+
+	hr = GetD3DFuncPointers();
+	if (FAILED(hr)) return hr;
+
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
 	IDXGIOutput* output;
-	hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
 
 	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
@@ -145,7 +192,7 @@ HRESULT Create(HWND wnd)
 #else
 	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 #endif
-	hr = D3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
+	hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
 										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 										D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
 										&featlevel, &context);
@@ -192,12 +239,6 @@ HRESULT Create(HWND wnd)
 
 void Close()
 {
-	// unload D3DX11
-	FreeLibrary(hD3DXDll);
-	PD3DX11FilterTexture = NULL;
-	PD3DX11SaveTextureToFileA = NULL;
-	PD3DX11SaveTextureToFileW = NULL;
-
 	// release all bound resources
 	context->ClearState();
 	SAFE_RELEASE(backbuf);
@@ -217,6 +258,17 @@ void Close()
 		NOTICE_LOG(VIDEO, "Successfully released all device references!");
 	}
 	device = NULL;
+
+	// unload DLLs
+	if(hD3DXDll) FreeLibrary(hD3DXDll);
+	PD3DX11FilterTexture = NULL;
+	PD3DX11SaveTextureToFileA = NULL;
+	PD3DX11SaveTextureToFileW = NULL;
+
+	if(hD3DXDll) FreeLibrary(hD3DXDll);
+	PD3D11CreateDeviceAndSwapChain = NULL;
+
+	UnloadDXGI();
 }
 
 /* just returning the 4_0 ones here */

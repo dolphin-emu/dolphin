@@ -31,6 +31,9 @@ class D3DTexture2D;
 namespace D3D
 {
 
+HRESULT GetDXGIFuncPointers();
+void UnloadDXGI();
+
 HRESULT Create(HWND wnd);
 void Close();
 
@@ -86,3 +89,6 @@ extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
 #else
 #define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileA
 #endif
+
+typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
+extern CREATEDXGIFACTORY PCreateDXGIFactory;

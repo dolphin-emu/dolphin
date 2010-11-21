@@ -152,9 +152,12 @@ void DllConfig(void *_hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 
+	HRESULT hr = D3D::GetDXGIFuncPointers();
+	if (FAILED(hr)) return;
+
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
-	const HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
@@ -185,6 +188,8 @@ void DllConfig(void *_hParent)
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 
 	factory->Release();
+
+	D3D::UnloadDXGI();
 }
 
 void Initialize(void *init)
