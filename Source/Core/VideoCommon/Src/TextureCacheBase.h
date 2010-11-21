@@ -97,8 +97,6 @@ private:
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
-
-	virtual bool isOGL() { return false; }	// Hacks for TextureDecode_real support
 };
 
 extern TextureCache *g_texture_cache;

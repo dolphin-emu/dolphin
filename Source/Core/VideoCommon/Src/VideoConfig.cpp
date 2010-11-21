@@ -34,11 +34,17 @@ void UpdateActiveConfig()
 VideoConfig::VideoConfig()
 {
 	bRunning = false;
-	bAllowSignedBytes = !IsD3D();
-	
+
 	// Needed for the first frame, I think
 	fAspectRatioHackW = 1;
 	fAspectRatioHackH = 1;
+
+	// disable all features by default
+	backend_info.APIType = API_NONE;
+	backend_info.bAllowSignedBytes = false;
+	backend_info.bUseRGBATextures = false;
+	backend_info.bSupportsEFBToRAM = false;
+	backend_info.bSupportsRealXFB = false;
 }
 
 void VideoConfig::Load(const char *ini_file)

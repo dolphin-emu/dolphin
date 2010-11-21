@@ -162,7 +162,7 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter!=tcend; ++iter)
-	iter->second->isRenderTarget = false;
+		iter->second->isRenderTarget = false;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -314,7 +314,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	if (pcfmt == PC_TEX_FMT_NONE)
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth,
-			expandedHeight, texformat, tlutaddr, tlutfmt, !g_texture_cache->isOGL());
+			expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	texLevels = (isPow2 && UseNativeMips && maxlevel) ?
@@ -376,7 +376,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			expandedWidth  = (currentWidth + bsw)  & (~bsw);
 			expandedHeight = (currentHeight + bsh) & (~bsh);
 
-			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, !g_texture_cache->isOGL());
+			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 			entry->Load(currentWidth, currentHeight, expandedWidth, level);
 
 			ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
@@ -429,7 +429,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	{
 		// TODO: these values differ slightly from the DX9/11 values,
 		// do they need to? or can this be removed
-		if (g_texture_cache->isOGL())
+		if (g_ActiveConfig.backend_info.APIType == API_OPENGL)
 		{
 			switch(copyfmt) 
 			{

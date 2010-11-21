@@ -152,8 +152,6 @@ void DllConfig(void *_hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 
-	std::vector<std::string> adapters;
-	
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
 	const HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
@@ -163,18 +161,30 @@ void DllConfig(void *_hParent)
 	char tmpstr[512] = {};
 
 	DXGI_ADAPTER_DESC desc;
-	while (factory->EnumAdapters((UINT)adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
+	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
 		ad->GetDesc(&desc);
 		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
-		adapters.push_back(tmpstr);
+		g_Config.backend_info.Adapters.push_back(tmpstr);
+		ad->Release();
 	}
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D11", adapters);
+	g_Config.backend_info.APIType = API_D3D11;
+	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bSupportsEFBToRAM = false;
+	g_Config.backend_info.bSupportsRealXFB = false;
+	g_Config.backend_info.bAllowSignedBytes = true;
+
+#if defined(HAVE_WX) && HAVE_WX
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D11");
 	diag->ShowModal();
 	diag->Destroy();
+#endif
+	UpdateActiveConfig();
 
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
+
+	factory->Release();
 }
 
 void Initialize(void *init)

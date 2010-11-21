@@ -26,11 +26,15 @@ public:
 	void UpdateValue(wxCommandEvent& ev)
 	{
 		m_setting = (ev.GetInt() != 0) ^ m_reverse;
+		ev.Skip();
 	}
 private:
 	bool &m_setting;
 	const bool m_reverse;
 };
+
+typedef BoolSetting<wxCheckBox> SettingCheckBox;
+typedef BoolSetting<wxRadioButton> SettingRadioButton;
 
 class SettingChoice : public wxChoice
 {
@@ -44,17 +48,49 @@ private:
 class VideoConfigDiag : public wxDialog
 {
 public:
-	VideoConfigDiag(wxWindow* parent, const std::string &title,
-		const std::vector<std::string> &adapters = std::vector<std::string>(),
-		const std::vector<std::string> &aamodes = std::vector<std::string>(),
-		const std::vector<std::string> &ppshader = std::vector<std::string>());
+	VideoConfigDiag(wxWindow* parent, const std::string &title);
 
 	VideoConfig &vconfig;
 
 protected:
-	void Event_StcSafe(wxCommandEvent &) { vconfig.iSafeTextureCache_ColorSamples = 0; }
-	void Event_StcNormal(wxCommandEvent &) { vconfig.iSafeTextureCache_ColorSamples = 512; }
-	void Event_StcFast(wxCommandEvent &) { vconfig.iSafeTextureCache_ColorSamples = 128; }
+	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO
+	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
+
+	void Event_EfbCopy(wxCommandEvent &ev)
+	{
+		if (ev.GetInt() == 0)
+		{
+			efbcopy_texture->Disable();
+			efbcopy_ram->Disable();
+		}
+		else
+		{
+			efbcopy_texture->Enable();
+			if (vconfig.backend_info.bSupportsEFBToRAM)
+				efbcopy_ram->Enable();
+		}
+		ev.Skip();
+	}
+
+	void Event_Stc(wxCommandEvent &ev)
+	{
+		if (ev.GetInt() == 0)
+		{
+			stc_safe->Disable();
+			stc_normal->Disable();
+			stc_fast->Disable();
+		}
+		else
+		{
+			stc_safe->Enable();
+			stc_normal->Enable();
+			stc_fast->Enable();
+		}
+		ev.Skip();
+	}
+	void Event_StcSafe(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 0; ev.Skip(); }
+	void Event_StcNormal(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 512; ev.Skip(); }
+	void Event_StcFast(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 128; ev.Skip(); }
 
 	void Event_PPShader(wxCommandEvent &ev)
 	{
@@ -63,9 +99,35 @@ protected:
 			vconfig.sPostProcessingShader = ev.GetString().mb_str();
 		else
 			vconfig.sPostProcessingShader.clear();
+		ev.Skip();
+	}
+
+	void Event_Xfb(wxCommandEvent &ev)
+	{
+		if (ev.GetInt() == 0)
+		{
+			virtual_xfb->Disable();
+			real_xfb->Disable();
+		}
+		else
+		{
+			virtual_xfb->Enable();
+			if(vconfig.backend_info.bSupportsRealXFB) real_xfb->Enable();
+		}
+		ev.Skip();
 	}
 
 	void CloseDiag(wxCommandEvent&);
+
+	wxRadioButton* stc_safe;
+	wxRadioButton* stc_normal;
+	wxRadioButton* stc_fast;
+
+	SettingRadioButton* efbcopy_texture;
+	SettingRadioButton* efbcopy_ram;
+
+	SettingRadioButton* virtual_xfb;
+	SettingRadioButton* real_xfb;
 };
 
 #endif

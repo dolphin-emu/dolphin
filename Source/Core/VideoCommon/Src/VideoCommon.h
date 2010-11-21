@@ -153,7 +153,8 @@ typedef enum
 	API_OPENGL,
 	API_D3D9,
 	API_D3D11,
-	API_GLSL
+	API_GLSL,
+	API_NONE
 } API_TYPE;
 
 #endif  // _VIDEOCOMMON_H

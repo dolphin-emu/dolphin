@@ -291,7 +291,7 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT) {
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3, g_Config.bAllowSignedBytes);
+		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3, g_Config.backend_info.bAllowSignedBytes);
 		if (pFunc == 0)
 		{
 			char temp[256];
@@ -310,7 +310,7 @@ void VertexLoader::CompileVertexTranslator()
 			{
 				vtx_decl.normal_gl_type = (vtx_attr.NormalFormat == FORMAT_BYTE)? VAR_BYTE : VAR_UNSIGNED_BYTE;
 				int native_size = 4;
-				if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.bAllowSignedBytes)
+				if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.backend_info.bAllowSignedBytes)
 				{
 					vtx_decl.normal_gl_type = VAR_SHORT;
 					native_size = 8;

@@ -7,9 +7,6 @@
 template class BoolSetting<wxCheckBox>;
 template class BoolSetting<wxRadioButton>;
 
-typedef BoolSetting<wxCheckBox> SettingCheckBox;
-typedef BoolSetting<wxRadioButton> SettingRadioButton;
-
 template <>
 SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style)
 	: wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
@@ -41,6 +38,7 @@ SettingChoice::SettingChoice(wxWindow* parent, int &setting, int num, const wxSt
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
 {
 	m_setting = ev.GetInt();
+	ev.Skip();
 }
 
 void VideoConfigDiag::CloseDiag(wxCommandEvent&)
@@ -48,11 +46,7 @@ void VideoConfigDiag::CloseDiag(wxCommandEvent&)
 	Close();
 }
 
-VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
-	const std::vector<std::string> &adapters,
-	const std::vector<std::string> &aamodes,
-	const std::vector<std::string> &ppshader
-	)
+VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	: wxDialog(parent, -1,
 		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize)
@@ -82,17 +76,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	//wxChoice* const choice_gfxapi = new SettingChoice(page_general,
 	//	g_gfxapi, sizeof(gfxapi_choices)/sizeof(*gfxapi_choices), gfxapi_choices);
 	//szr_basic->Add(choice_gfxapi, 1, 0, 0);
+	// TODO: Connect with Event_Backend()
 	//}
 
 	// adapter // for D3D only
-	if (adapters.size())
+	if (g_Config.backend_info.Adapters.size())
 	{
 	szr_basic->Add(new wxStaticText(page_general, -1, wxT("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
 	wxChoice* const choice_adapter = new SettingChoice(page_general, vconfig.iAdapter);
 
 	std::vector<std::string>::const_iterator
-		it = adapters.begin(),
-		itend = adapters.end();
+		it = g_Config.backend_info.Adapters.begin(),
+		itend = g_Config.backend_info.Adapters.end();
 	for (; it != itend; ++it)
 		choice_adapter->AppendString(wxString::FromAscii(it->c_str()));
 
@@ -131,15 +126,15 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
 	szr_enh->Add(new SettingChoice(page_general, vconfig.iMaxAnisotropy, 5, af_choices), 0, wxBOTTOM | wxLEFT, 5);
 
-	if (aamodes.size())
+	if (g_Config.backend_info.AAModes.size())
 	{
 		szr_enh->Add(new wxStaticText(page_general, -1, wxT("Anti-Aliasing:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
 		SettingChoice *const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode);
 
 		std::vector<std::string>::const_iterator
-			it = aamodes.begin(),
-			itend = aamodes.end();
+			it = g_Config.backend_info.AAModes.begin(),
+			itend = g_Config.backend_info.AAModes.end();
 		for (; it != itend; ++it)
 			choice_aamode->AppendString(wxString::FromAscii(it->c_str()));
 
@@ -182,10 +177,25 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Copy"));
 	group_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
 
-	group_efbcopy->Add(new SettingCheckBox(page_general, wxT("Enable"), vconfig.bEFBCopyEnable), 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	SettingCheckBox* efbcopy_enable = new SettingCheckBox(page_general, wxT("Enable"), vconfig.bEFBCopyEnable);
+	_connect_macro_(efbcopy_enable, VideoConfigDiag::Event_EfbCopy, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	efbcopy_texture = new SettingRadioButton(page_general, wxT("Texture"), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
+	efbcopy_ram = new SettingRadioButton(page_general, wxT("RAM"), vconfig.bCopyEFBToTexture, true);
+	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
-	group_efbcopy->Add(new SettingRadioButton(page_general, wxT("Texture"), vconfig.bCopyEFBToTexture, false, wxRB_GROUP), 0, wxRIGHT, 5);
-	group_efbcopy->Add(new SettingRadioButton(page_general, wxT("RAM"), vconfig.bCopyEFBToTexture, true), 0, wxRIGHT, 5);
+	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
+	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
+	if (!g_Config.backend_info.bSupportsEFBToRAM)
+	{
+		efbcopy_ram->Disable();
+		g_Config.bCopyEFBToTexture = true;
+		efbcopy_texture->SetValue(true);
+	}
+	if (!g_Config.bEFBCopyEnable)
+	{
+		efbcopy_ram->Disable();
+		efbcopy_texture->Disable();
+	}
 	}
 
 	// - safe texture cache
@@ -193,28 +203,36 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Safe Texture Cache"));
 	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	// safe texture cache
-	group_safetex->Add(new SettingCheckBox(page_general, wxT("Enable"), vconfig.bSafeTextureCache), 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	SettingCheckBox* stc_enable = new SettingCheckBox(page_general, wxT("Enable"), vconfig.bSafeTextureCache);
+	_connect_macro_(stc_enable, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	group_safetex->Add(stc_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_safetex->AddStretchSpacer(1);
 
-	wxRadioButton* stc_btn = new wxRadioButton(page_general, -1, wxT("Safe"),
+	stc_safe = new wxRadioButton(page_general, -1, wxT("Safe"),
 		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	_connect_macro_(stc_btn, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_btn, 0, wxRIGHT, 5);
+	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
 	if (0 == vconfig.iSafeTextureCache_ColorSamples)
-		stc_btn->SetValue(true);
+		stc_safe->SetValue(true);
 
-	stc_btn = new wxRadioButton(page_general, -1, wxT("Normal"));
-	_connect_macro_(stc_btn, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_btn, 0, wxRIGHT, 5);
+	stc_normal = new wxRadioButton(page_general, -1, wxT("Normal"));
+	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
 	if (512 == vconfig.iSafeTextureCache_ColorSamples)
-		stc_btn->SetValue(true);
+		stc_normal->SetValue(true);
 
-	stc_btn = new wxRadioButton(page_general, -1, wxT("Fast"));
-	_connect_macro_(stc_btn, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_btn, 0, wxRIGHT, 5);
+	stc_fast = new wxRadioButton(page_general, -1, wxT("Fast"));
+	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
 	if (128 == vconfig.iSafeTextureCache_ColorSamples)
-		stc_btn->SetValue(true);
+		stc_fast->SetValue(true);
+
+	if (!g_Config.bSafeTextureCache)
+	{
+		stc_safe->Disable();
+		stc_normal->Disable();
+		stc_fast->Disable();
+	}
 	}
 
 	}
@@ -261,10 +279,24 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_advanced, wxT("XFB"));
 	szr_advanced->Add(group_xfb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	group_xfb->Add(new SettingCheckBox(page_advanced, wxT("Enable"), vconfig.bUseXFB), 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	SettingCheckBox* enable_xfb = new SettingCheckBox(page_advanced, wxT("Enable"), vconfig.bUseXFB);
+	_connect_macro_(enable_xfb, VideoConfigDiag::Event_Xfb, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	virtual_xfb = new SettingRadioButton(page_advanced, wxT("Virtual"), vconfig.bUseRealXFB, true, wxRB_GROUP);
+	real_xfb = new SettingRadioButton(page_advanced, wxT("Real"), vconfig.bUseRealXFB);
+	group_xfb->Add(enable_xfb, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_xfb->AddStretchSpacer(1);
-	group_xfb->Add(new SettingRadioButton(page_advanced, wxT("Virtual"), vconfig.bUseRealXFB, true, wxRB_GROUP), 0, wxRIGHT, 5);
-	group_xfb->Add(new SettingRadioButton(page_advanced, wxT("Real"), vconfig.bUseRealXFB), 0, wxRIGHT, 5);
+	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
+	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
+
+	if (!g_Config.backend_info.bSupportsRealXFB)
+		real_xfb->Disable();
+		g_Config.bUseRealXFB = false;
+		virtual_xfb->SetValue(true);
+	}
+	if (!g_Config.bUseXFB)
+	{
+		real_xfb->Disable();
+		virtual_xfb->Disable();
 	}
 
 	// - utility
@@ -294,7 +326,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 	szr_misc->Add(new SettingCheckBox(page_advanced, wxT("Enable Hotkeys"), vconfig.bOSDHotKey));
 
 	// postproc shader
-	if (ppshader.size())
+	if (g_Config.backend_info.PPShaders.size())
 	{
 		szr_misc->Add(new wxStaticText(page_advanced, -1, wxT("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
@@ -302,8 +334,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title,
 		choice_ppshader->AppendString(wxT("(off)"));
 
 		std::vector<std::string>::const_iterator
-			it = ppshader.begin(),
-			itend = ppshader.end();
+			it = g_Config.backend_info.PPShaders.begin(),
+			itend = g_Config.backend_info.PPShaders.end();
 		for (; it != itend; ++it)
 			choice_ppshader->AppendString(wxString::FromAscii(it->c_str()));
 

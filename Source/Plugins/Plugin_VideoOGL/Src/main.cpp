@@ -168,20 +168,25 @@ void DllConfig(void *_hParent)
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
-#if defined(HAVE_WX) && HAVE_WX
-	std::vector<std::string> adapters;
 
 	std::string caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA"};
-	std::vector<std::string> aamodes(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
+	g_Config.backend_info.AAModes = std::vector<std::string>(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
 
-	std::vector<std::string> shaders;
-	GetShaders(shaders);
+	GetShaders(g_Config.backend_info.PPShaders);
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "OpenGL", adapters, aamodes, shaders);
+	g_Config.backend_info.APIType = API_OPENGL;
+	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bSupportsEFBToRAM = true;
+	g_Config.backend_info.bSupportsRealXFB = true;
+	g_Config.backend_info.bAllowSignedBytes = true;
+
+#if defined(HAVE_WX) && HAVE_WX
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "OpenGL");
 	diag->ShowModal();
 	diag->Destroy();
 #endif
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
+	UpdateActiveConfig();
 }
 
 void Initialize(void *init)

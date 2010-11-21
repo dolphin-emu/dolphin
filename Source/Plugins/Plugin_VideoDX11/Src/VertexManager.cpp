@@ -82,15 +82,7 @@ void VertexManager::DestroyDeviceObjects()
 	SAFE_RELEASE(m_indexBuffer);
 }
 
-VertexManager::VertexManager() :
-	m_indexBufferCursor(0),
-	m_vertexBufferCursor(0),
-	m_vertexDrawOffset(0),
-	m_triangleDrawIndex(0),
-	m_lineDrawIndex(0),
-	m_pointDrawIndex(0),
-	m_indexBuffer(NULL),
-	m_vertexBuffer(NULL)
+VertexManager::VertexManager()
 {
 	CreateDeviceObjects();
 }

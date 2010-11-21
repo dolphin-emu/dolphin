@@ -161,29 +161,33 @@ void DllConfig(void *_hParent)
 	if (!s_PluginInitialized)
 		D3D::Init();
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-	UpdateActiveConfig();
-#if defined(HAVE_WX) && HAVE_WX
+
+	g_Config.backend_info.APIType = API_D3D9;
+	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bSupportsEFBToRAM = true;
+	g_Config.backend_info.bSupportsRealXFB = true;
+	g_Config.backend_info.bAllowSignedBytes = false;
 
 	// adapters
-	std::vector<std::string> adapters;
 	for (int i = 0; i < D3D::GetNumAdapters(); ++i)
-		adapters.push_back(D3D::GetAdapter(i).ident.Description);
+		g_Config.backend_info.Adapters.push_back(D3D::GetAdapter(i).ident.Description);
 
 	// aamodes
-	std::vector<std::string> aamodes;
 	if (g_Config.iAdapter < D3D::GetNumAdapters())
 	{
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
 
 		for (int i = 0; i < adapter.aa_levels.size(); ++i)
-			aamodes.push_back(adapter.aa_levels[i].name);
+			g_Config.backend_info.AAModes.push_back(adapter.aa_levels[i].name);
 	}
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9", adapters, aamodes);
+#if defined(HAVE_WX) && HAVE_WX
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9");
 	diag->ShowModal();
 	diag->Destroy();
 #endif
 	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
+	UpdateActiveConfig();
 
 	if (!s_PluginInitialized)
 		D3D::Shutdown();

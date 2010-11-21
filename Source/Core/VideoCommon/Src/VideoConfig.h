@@ -28,6 +28,7 @@
 #include "Common.h"
 #include "VideoCommon.h"
 
+#include <vector>
 #include <string>
 
 // Log in two categories, and save three other options in the same byte
@@ -143,7 +144,19 @@ struct VideoConfig
 	int iAdapter;
 
 	// Static config per API
-	bool bAllowSignedBytes;
+	struct
+	{
+		API_TYPE APIType;
+
+		std::vector<std::string> Adapters; // for D3D9 and D3D11
+		std::vector<std::string> AAModes;
+		std::vector<std::string> PPShaders; // post-processing shaders
+
+		bool bUseRGBATextures; // used for D3D11 in TextureCache
+		bool bSupportsEFBToRAM;
+		bool bSupportsRealXFB;
+		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
+	} backend_info;
 };
 
 extern VideoConfig g_Config;
