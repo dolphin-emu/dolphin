@@ -37,7 +37,6 @@ u32 Timer::GetTimeMs()
 #ifdef _WIN32
 	return timeGetTime();
 #else
-	printf("using gettimeofday\n");
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
 	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));

@@ -317,9 +317,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 	else
 	{
-		//Progressive Scan is not used by Dolphin itself,
-		//and changing it on a per-game basis would have the side-effect of changing the SysConf, 
-		//making this setting rather useless.
+		// Progressive Scan is not used by Dolphin itself, and changing it on a per-game
+		// basis would have the side-effect of changing the SysConf, making this setting
+		// rather useless.
 		EnableProgressiveScan->Disable();
 	}
 	// Video
@@ -397,7 +397,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sEmuState->Add(EmuIssues,1,wxEXPAND);
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
-	sConfigPage->Layout();
 
 	
 	// Patches
@@ -420,7 +419,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sPatches->Add(sPatchButtons, 0, wxEXPAND|wxALL, 0);
 	sPatchPage->Add(sPatches, 1, wxEXPAND|wxALL, 5);
 	m_PatchPage->SetSizer(sPatchPage);
-	sPatchPage->Layout();
 
 	
 	// Action Replay Cheats
@@ -443,7 +441,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sCheats->Add(sCheatButtons, 0, wxEXPAND|wxALL, 0);
 	sCheatPage->Add(sCheats, 1, wxEXPAND|wxALL, 5);
 	m_CheatPage->SetSizer(sCheatPage);
-	sCheatPage->Layout();
 
 	
 	m_NameText = new wxStaticText(m_Information, ID_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
@@ -516,7 +513,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sInfoPage->Add(sbISODetails, 0, wxEXPAND|wxALL, 5);
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
 	m_Information->SetSizer(sInfoPage);
-	sInfoPage->Layout();
 
 	// Filesystem icons
 	m_iconList = new wxImageList(16, 16);
@@ -533,7 +529,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sTreePage = new wxBoxSizer(wxVERTICAL);
 	sTreePage->Add(m_Treectrl, 1, wxEXPAND|wxALL, 5);
 	m_Filesystem->SetSizer(sTreePage);
-	sTreePage->Layout();
 
 	// It's a wad file, so we remove the FileSystem page
 	if (IsWad)
@@ -547,8 +542,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
 	sMain->SetMinSize(wxSize(550, 600));
 
-	m_Notebook->SetMaxSize(wxSize(550, 600));
 	SetSizerAndFit(sMain);
+	Layout();
 }
 
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))

@@ -449,8 +449,6 @@ void CConfigMain::CreateGUIControls()
 	sGeneralPage->Add(sbAdvanced, 0, wxEXPAND | wxALL, 5);
 
 	GeneralPage->SetSizer(sGeneralPage);
-	sGeneralPage->Layout();
-	
 	
 	
 	// Display page
@@ -520,8 +518,6 @@ void CConfigMain::CreateGUIControls()
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
 
 	DisplayPage->SetSizer(sDisplayPage);
-	sDisplayPage->Layout();
-
 
 
 	// Gamecube page
@@ -641,8 +637,6 @@ void CConfigMain::CreateGUIControls()
 	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
 
 	GamecubePage->SetSizer(sGamecubePage);
-	sGamecubePage->Layout();
-
 
 
 	// Wii page
@@ -690,8 +684,6 @@ void CConfigMain::CreateGUIControls()
 	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
 
 	WiiPage->SetSizer(sWiiPage);
-	sWiiPage->Layout();
-
 
 	
 	// Paths page
@@ -737,8 +729,6 @@ void CConfigMain::CreateGUIControls()
 	sPathsPage->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
 
 	PathsPage->SetSizer(sPathsPage);
-	sPathsPage->Layout();
-
 
 	
 	// Plugins page
@@ -763,7 +753,7 @@ void CConfigMain::CreateGUIControls()
 	sPluginsPage->Add(sbDSPPlugin, 0, wxEXPAND|wxALL, 5);
 
 	PluginsPage->SetSizer(sPluginsPage);
-	sPluginsPage->Layout();
+
 
 	m_Ok = new wxButton(this, wxID_OK);
 
@@ -795,8 +785,6 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 {
 	Close();
-	// Sysconf saves when it gets deleted
-	//delete SConfig::GetInstance().m_SYSCONF;
 
 	// Save the config. Dolphin crashes to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
@@ -1097,17 +1085,13 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_ADDISOPATH)
 	{
-		wxString dirHome;
-		wxGetHomeDir(&dirHome);
-
-		wxDirDialog dialog(this, _T("Choose a directory to add"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+		wxDirDialog dialog(this, _T("Choose a directory to add"), wxGetHomeDir(),
+				wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 
 		if (dialog.ShowModal() == wxID_OK)
 		{
 			if (ISOPaths->FindString(dialog.GetPath()) != -1)
-			{
 				wxMessageBox(_("The chosen directory is already in the list"), _("Error"), wxOK);
-			}
 			else
 			{
 				bRefreshList = true;
