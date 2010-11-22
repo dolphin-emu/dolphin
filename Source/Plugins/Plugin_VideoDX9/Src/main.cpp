@@ -155,24 +155,31 @@ void DllAbout(HWND _hParent)
 	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
-void DllConfig(void *_hParent)
+void InitBackendInfo()
 {
-	// If not initialized, only init D3D so we can enumerate resolutions.
-	if (!s_PluginInitialized)
-		D3D::Init();
-	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-
 	g_Config.backend_info.APIType = API_D3D9;
-	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bSupportsEFBToRAM = true;
 	g_Config.backend_info.bSupportsRealXFB = true;
 	g_Config.backend_info.bAllowSignedBytes = false;
+}
+
+void DllConfig(void *_hParent)
+{
+#if defined(HAVE_WX) && HAVE_WX
+	InitBackendInfo();
+
+	// If not initialized, only init D3D so we can enumerate resolutions.
+	if (!s_PluginInitialized)
+		D3D::Init();
 
 	// adapters
+	g_Config.backend_info.Adapters.clear();
 	for (int i = 0; i < D3D::GetNumAdapters(); ++i)
 		g_Config.backend_info.Adapters.push_back(D3D::GetAdapter(i).ident.Description);
 
 	// aamodes
+	g_Config.backend_info.AAModes.clear();
 	if (g_Config.iAdapter < D3D::GetNumAdapters())
 	{
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
@@ -181,20 +188,20 @@ void DllConfig(void *_hParent)
 			g_Config.backend_info.AAModes.push_back(adapter.aa_levels[i].name);
 	}
 
-#if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9");
+
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9", "gfx_dx9");
 	diag->ShowModal();
 	diag->Destroy();
-#endif
-	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-	UpdateActiveConfig();
 
 	if (!s_PluginInitialized)
 		D3D::Shutdown();
+#endif
 }
 
 void Initialize(void *init)
 {
+	InitBackendInfo();
+
 	frameCount = 0;
 	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	// Create a shortcut to _pVideoInitialize that can also update it

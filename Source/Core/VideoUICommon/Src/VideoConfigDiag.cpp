@@ -1,6 +1,8 @@
 
 #include "VideoConfigDiag.h"
 
+#include "FileUtil.h"
+
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 // template instantiation
@@ -41,17 +43,27 @@ void SettingChoice::UpdateValue(wxCommandEvent& ev)
 	ev.Skip();
 }
 
-void VideoConfigDiag::CloseDiag(wxCommandEvent&)
+void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 {
 	Close();
 }
 
-VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
+void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
+{
+	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+
+	ev.Skip();
+}
+
+VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
 		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize)
 	, vconfig(g_Config)
+	, ininame(_ininame)
 {
+	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+
 	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
 	// -- GENERAL --
@@ -80,14 +92,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	//}
 
 	// adapter // for D3D only
-	if (g_Config.backend_info.Adapters.size())
+	if (vconfig.backend_info.Adapters.size())
 	{
 	szr_basic->Add(new wxStaticText(page_general, -1, wxT("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
 	wxChoice* const choice_adapter = new SettingChoice(page_general, vconfig.iAdapter);
 
 	std::vector<std::string>::const_iterator
-		it = g_Config.backend_info.Adapters.begin(),
-		itend = g_Config.backend_info.Adapters.end();
+		it = vconfig.backend_info.Adapters.begin(),
+		itend = vconfig.backend_info.Adapters.end();
 	for (; it != itend; ++it)
 		choice_adapter->AppendString(wxString::FromAscii(it->c_str()));
 
@@ -124,23 +136,23 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 
 	szr_enh->Add(new wxStaticText(page_general, -1, wxT("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
-	szr_enh->Add(new SettingChoice(page_general, vconfig.iMaxAnisotropy, 5, af_choices), 0, wxBOTTOM | wxLEFT, 5);
+	szr_enh->Add(new SettingChoice(page_general, vconfig.iMaxAnisotropy, 5, af_choices));
 
-	if (g_Config.backend_info.AAModes.size())
+	if (vconfig.backend_info.AAModes.size())
 	{
 		szr_enh->Add(new wxStaticText(page_general, -1, wxT("Anti-Aliasing:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
 		SettingChoice *const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode);
 
 		std::vector<std::string>::const_iterator
-			it = g_Config.backend_info.AAModes.begin(),
-			itend = g_Config.backend_info.AAModes.end();
+			it = vconfig.backend_info.AAModes.begin(),
+			itend = vconfig.backend_info.AAModes.end();
 		for (; it != itend; ++it)
 			choice_aamode->AppendString(wxString::FromAscii(it->c_str()));
 
 		choice_aamode->Select(vconfig.iMultisampleMode);
 
-		szr_enh->Add(choice_aamode, 0, wxBOTTOM | wxLEFT, 5);
+		szr_enh->Add(choice_aamode);
 	}
 	
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Load Native Mipmaps"), vconfig.bUseNativeMips));
@@ -185,13 +197,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
-	if (!g_Config.backend_info.bSupportsEFBToRAM)
+	if (!vconfig.backend_info.bSupportsEFBToRAM)
 	{
 		efbcopy_ram->Disable();
-		g_Config.bCopyEFBToTexture = true;
+		vconfig.bCopyEFBToTexture = true;
 		efbcopy_texture->SetValue(true);
 	}
-	if (!g_Config.bEFBCopyEnable)
+	if (!vconfig.bEFBCopyEnable)
 	{
 		efbcopy_ram->Disable();
 		efbcopy_texture->Disable();
@@ -227,7 +239,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	if (128 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_fast->SetValue(true);
 
-	if (!g_Config.bSafeTextureCache)
+	if (!vconfig.bSafeTextureCache)
 	{
 		stc_safe->Disable();
 		stc_normal->Disable();
@@ -288,14 +300,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 
-	if (!g_Config.backend_info.bSupportsRealXFB)
+	if (!vconfig.backend_info.bSupportsRealXFB)
 	{
 		real_xfb->Disable();
-		g_Config.bUseRealXFB = false;
+		vconfig.bUseRealXFB = false;
 		virtual_xfb->SetValue(true);
 	}
 
-	if (!g_Config.bUseXFB)
+	if (!vconfig.bUseXFB)
 	{
 		real_xfb->Disable();
 		virtual_xfb->Disable();
@@ -330,7 +342,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	szr_misc->Add(new SettingCheckBox(page_advanced, wxT("Enable Hotkeys"), vconfig.bOSDHotKey));
 
 	// postproc shader
-	if (g_Config.backend_info.PPShaders.size())
+	if (vconfig.backend_info.PPShaders.size())
 	{
 		szr_misc->Add(new wxStaticText(page_advanced, -1, wxT("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
@@ -338,8 +350,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 		choice_ppshader->AppendString(wxT("(off)"));
 
 		std::vector<std::string>::const_iterator
-			it = g_Config.backend_info.PPShaders.begin(),
-			itend = g_Config.backend_info.PPShaders.end();
+			it = vconfig.backend_info.PPShaders.begin(),
+			itend = vconfig.backend_info.PPShaders.end();
 		for (; it != itend; ++it)
 			choice_ppshader->AppendString(wxString::FromAscii(it->c_str()));
 
@@ -359,7 +371,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	}
 
 	wxButton* const btn_close = new wxButton(this, -1, wxT("Close"), wxDefaultPosition);
-	_connect_macro_(btn_close, VideoConfigDiag::CloseDiag, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	Connect(-1, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
 
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);

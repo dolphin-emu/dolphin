@@ -73,9 +73,6 @@ private:
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
 
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
-
-private:
-	bool isOGL() { return true; }
 };
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);

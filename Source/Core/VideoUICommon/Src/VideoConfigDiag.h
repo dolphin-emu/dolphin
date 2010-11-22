@@ -48,9 +48,7 @@ private:
 class VideoConfigDiag : public wxDialog
 {
 public:
-	VideoConfigDiag(wxWindow* parent, const std::string &title);
-
-	VideoConfig &vconfig;
+	VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& ininame);
 
 protected:
 	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO
@@ -117,7 +115,8 @@ protected:
 		ev.Skip();
 	}
 
-	void CloseDiag(wxCommandEvent&);
+	void Event_ClickClose(wxCommandEvent&);
+	void Event_Close(wxCloseEvent&);
 
 	wxRadioButton* stc_safe;
 	wxRadioButton* stc_normal;
@@ -128,6 +127,9 @@ protected:
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
+
+	VideoConfig &vconfig;
+	std::string ininame;
 };
 
 #endif

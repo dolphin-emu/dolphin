@@ -648,19 +648,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
-			>
-			<File
-				RelativePath=".\Src\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Resource.rc"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="win32"
 			>
 			<File

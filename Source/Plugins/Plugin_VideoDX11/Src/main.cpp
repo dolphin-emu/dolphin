@@ -43,7 +43,6 @@
 
 #include "MainBase.h"
 #include "main.h"
-#include "resource.h"
 #include "VideoConfigDiag.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
@@ -148,9 +147,19 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager*)globals->logManager);
 }
 
+void InitBackendInfo()
+{
+	g_Config.backend_info.APIType = API_D3D11;
+	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bSupportsEFBToRAM = false;
+	g_Config.backend_info.bSupportsRealXFB = false;
+	g_Config.backend_info.bAllowSignedBytes = true;
+}
+
 void DllConfig(void *_hParent)
 {
-	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
+#if defined(HAVE_WX) && HAVE_WX
+	InitBackendInfo();
 
 	HRESULT hr = D3D::GetDXGIFuncPointers();
 	if (FAILED(hr)) return;
@@ -162,8 +171,9 @@ void DllConfig(void *_hParent)
 		PanicAlert("Failed to create IDXGIFactory object");
 
 	char tmpstr[512] = {};
-
 	DXGI_ADAPTER_DESC desc;
+	// adapters
+	g_Config.backend_info.Adapters.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
 		ad->GetDesc(&desc);
@@ -172,28 +182,20 @@ void DllConfig(void *_hParent)
 		ad->Release();
 	}
 
-	g_Config.backend_info.APIType = API_D3D11;
-	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
-	g_Config.backend_info.bSupportsEFBToRAM = false;
-	g_Config.backend_info.bSupportsRealXFB = false;
-	g_Config.backend_info.bAllowSignedBytes = true;
-
-#if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D11");
-	diag->ShowModal();
-	diag->Destroy();
-#endif
-	UpdateActiveConfig();
-
-	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
-
 	factory->Release();
 
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D11", "gfx_dx11");
+	diag->ShowModal();
+	diag->Destroy();
+
 	D3D::UnloadDXGI();
+#endif
 }
 
 void Initialize(void *init)
 {
+	InitBackendInfo();
+
 	frameCount = 0;
 	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	// Create a shortcut to _pVideoInitialize that can also update it
