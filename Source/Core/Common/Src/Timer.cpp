@@ -22,11 +22,7 @@
 #include <mmsystem.h>
 #include <sys/timeb.h>
 #else
-#include <unistd.h>
-#if !defined(_POSIX_TIMERS) || _POSIX_TIMERS == 0 || !defined(_POSIX_MONOTONIC_CLOCK)
-#define USE_GETTIMEOFDAY
 #include <sys/time.h>
-#endif
 #endif
 
 #include "Common.h"
@@ -40,14 +36,11 @@ u32 Timer::GetTimeMs()
 {
 #ifdef _WIN32
 	return timeGetTime();
-#elif defined USE_GETTIMEOFDAY
+#else
+	printf("using gettimeofday\n");
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
 	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
-#else
-	struct timespec t;
-	(void)clock_gettime(CLOCK_MONOTONIC_RAW, &t);
-	return ((u32)(t.tv_sec * 1000 + t.tv_nsec / 1000000));
 #endif
 }
 
@@ -213,14 +206,10 @@ std::string Timer::GetTimeFormatted()
 	struct timeb tp;
 	(void)::ftime(&tp);
 	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
-#elif defined USE_GETTIMEOFDAY
+#else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
 	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_usec / 1000));
-#else
-	struct timespec t;
-	(void)clock_gettime(CLOCK_REALTIME, &t);
-	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_nsec / 1000000));
 #endif
 
 	return std::string(formattedTime);
@@ -233,12 +222,9 @@ double Timer::GetDoubleTime()
 #ifdef _WIN32
 	struct timeb tp;
 	(void)::ftime(&tp);
-#elif defined USE_GETTIMEOFDAY
+#else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
-#else
-	struct timespec t;
-	(void)clock_gettime(CLOCK_REALTIME, &t);
 #endif
 	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
@@ -253,10 +239,8 @@ double Timer::GetDoubleTime()
 	u32 Seconds = (u32)TmpSeconds;
 #ifdef _WIN32
 	double ms = tp.millitm / 1000.0 / 1000.0;
-#elif defined USE_GETTIMEOFDAY
-	double ms = t.tv_usec / 1000000.0;
 #else
-	double ms = t.tv_nsec / 1000000000.0;
+	double ms = t.tv_usec / 1000000.0;
 #endif
 	double TmpTime = Seconds + ms;
 

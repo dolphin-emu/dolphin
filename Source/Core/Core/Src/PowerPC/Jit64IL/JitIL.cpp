@@ -165,11 +165,16 @@ ps_adds1
 #include <stdint.h>
 static inline uint64_t __rdtsc()
 {
+#ifdef __linux__
 	uint32_t lo, hi;
 	__asm__ __volatile__ ("xorl %%eax,%%eax \n cpuid"
 			::: "%rax", "%rbx", "%rcx", "%rdx");
 	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
 	return (uint64_t)hi << 32 | lo;
+#else
+	// TODO: Figure out what is wrong with clobbering the rbx register on OSX
+	return 0;
+#endif
 }
 #endif
 
