@@ -289,15 +289,19 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title)
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 
 	if (!g_Config.backend_info.bSupportsRealXFB)
+	{
 		real_xfb->Disable();
 		g_Config.bUseRealXFB = false;
 		virtual_xfb->SetValue(true);
 	}
+
 	if (!g_Config.bUseXFB)
 	{
 		real_xfb->Disable();
 		virtual_xfb->Disable();
 	}
+
+	}	// xfb
 
 	// - utility
 	{
