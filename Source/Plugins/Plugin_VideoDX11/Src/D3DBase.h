@@ -31,8 +31,15 @@ class D3DTexture2D;
 namespace D3D
 {
 
-HRESULT GetDXGIFuncPointers();
+HRESULT LoadDXGI();
+HRESULT LoadD3D();
+HRESULT LoadD3DX();
 void UnloadDXGI();
+void UnloadD3D();
+void UnloadD3DX();
+
+void EnumAAModes(IDXGIAdapter* adapter, std::vector<DXGI_SAMPLE_DESC>& aa_modes);
+DXGI_SAMPLE_DESC GetAAMode(int index);
 
 HRESULT Create(HWND wnd);
 void Close();
@@ -92,3 +99,5 @@ extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
 
 typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
+typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+extern D3D11CREATEDEVICE PD3D11CreateDevice;

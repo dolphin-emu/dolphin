@@ -161,8 +161,13 @@ void DllConfig(void *_hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
 
-	HRESULT hr = D3D::GetDXGIFuncPointers();
-	if (FAILED(hr)) return;
+	HRESULT hr = D3D::LoadDXGI();
+	if (SUCCEEDED(hr)) hr = D3D::LoadD3D();
+	if (FAILED(hr))
+	{
+		if (!s_PluginInitialized) D3D::UnloadDXGI();
+		return;
+	}
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -174,10 +179,27 @@ void DllConfig(void *_hParent)
 	DXGI_ADAPTER_DESC desc;
 	// adapters
 	g_Config.backend_info.Adapters.clear();
+	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
 		ad->GetDesc(&desc);
 		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
+
+		// TODO: These don't get updated on adapter change, yet
+		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
+		{
+			char buf[32];
+			std::vector<DXGI_SAMPLE_DESC> modes;
+			D3D::EnumAAModes(ad, modes);
+			for (unsigned int i = 0; i < modes.size(); ++i)
+			{
+				if (i == 0) sprintf_s(buf, 32, "None");
+				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
+				else sprintf_s(buf, 32, "%d samples", modes[i].Count);
+				g_Config.backend_info.AAModes.push_back(buf);
+			}
+		}
+
 		g_Config.backend_info.Adapters.push_back(tmpstr);
 		ad->Release();
 	}
@@ -188,7 +210,11 @@ void DllConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
-	D3D::UnloadDXGI();
+	if (!s_PluginInitialized)
+	{
+		D3D::UnloadDXGI();
+		D3D::UnloadD3D();
+	}
 #endif
 }
 

@@ -51,6 +51,8 @@
 
 static int s_fps = 0;
 
+static u32 s_LastAA = 0;
+
 static u32 s_blendMode;
 
 ID3D11Buffer* access_efb_cbuf = NULL;
@@ -329,6 +331,7 @@ Renderer::Renderer()
 
 	CalculateXYScale(dst_rect);
 
+	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize();
 
@@ -492,6 +495,7 @@ void Renderer::SetColorMask()
 //	- GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
+	// TODO: This function currently is broken if anti-aliasing is enabled
 	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
 
@@ -542,7 +546,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
 		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
+		D3D::drawShadedTexQuad(FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV(),
 								&RectToLock,
 								Renderer::GetFullTargetWidth(),
 								Renderer::GetFullTargetHeight(),
@@ -572,7 +576,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	else if (type == PEEK_COLOR)
 	{
 		// we can directly copy to system memory here
-		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
+		read_tex = FramebufferManager::GetResolvedEFBColorTexture()->GetTex();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
 
@@ -879,7 +883,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	else
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-		D3DTexture2D* read_texture = FramebufferManager::GetEFBColorTexture();
+		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		  
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -956,8 +960,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// resize the back buffers NOW to avoid flickering
 	if (xfbchanged || WindowResized ||
-		s_LastEFBScale != g_ActiveConfig.iEFBScale)
+		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
+		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
+		s_LastAA = g_ActiveConfig.iMultisampleMode;
+
 		// TODO: Aren't we still holding a reference to the back buffer right now?
 		D3D::Reset();
 		s_backbuffer_width = D3D::GetBackBufferWidth();

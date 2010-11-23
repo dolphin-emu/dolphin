@@ -34,6 +34,7 @@ CREATEDXGIFACTORY PCreateDXGIFactory = NULL;
 HINSTANCE hDXGIDll = NULL;
 
 typedef HRESULT (WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+D3D11CREATEDEVICE PD3D11CreateDevice = NULL;
 D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = NULL;
 HINSTANCE hD3DDll = NULL;
 
@@ -46,6 +47,8 @@ IDXGISwapChain* swapchain = NULL;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = NULL;
 HWND hWnd;
+
+std::vector<DXGI_SAMPLE_DESC> aa_modes; // supported AA modes of the current adapter
 
 bool bgra_textures_supported;
 
@@ -60,8 +63,9 @@ unsigned int xres, yres;
 
 bool bFrameInProgress = false;
 
-HRESULT GetDXGIFuncPointers()
+HRESULT LoadDXGI()
 {
+	if (hDXGIDll) return S_OK;
 	hDXGIDll = LoadLibraryA("dxgi.dll");
 	if (!hDXGIDll)
 	{
@@ -74,14 +78,28 @@ HRESULT GetDXGIFuncPointers()
 	return S_OK;
 }
 
-void UnloadDXGI()
+HRESULT LoadD3D()
 {
-	if(hDXGIDll) FreeLibrary(hDXGIDll);
-	PCreateDXGIFactory = NULL;
+	if (hD3DDll) return S_OK;
+	hD3DDll = LoadLibraryA("d3d11.dll");
+	if (!hD3DDll)
+	{
+		MessageBoxA(NULL, "Failed to load d3d11.dll", "Critical error", MB_OK | MB_ICONERROR);
+		return E_FAIL;
+	}
+	PD3D11CreateDevice = (D3D11CREATEDEVICE)GetProcAddress(hD3DDll, "D3D11CreateDevice");
+	if (PD3D11CreateDevice == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3D11CreateDevice!", "Critical error", MB_OK | MB_ICONERROR);
+
+	PD3D11CreateDeviceAndSwapChain = (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
+	if (PD3D11CreateDeviceAndSwapChain == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!", "Critical error", MB_OK | MB_ICONERROR);
+
+	return S_OK;
 }
 
-HRESULT GetD3DFuncPointers()
+HRESULT LoadD3DX()
 {
+	if (hD3DXDll) return S_OK;
+
 	// try to load D3DX11 first to check whether we have proper runtime support
 	// try to use the dll the plugin was compiled against first - don't bother about debug runtimes
 	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
@@ -112,20 +130,62 @@ HRESULT GetD3DFuncPointers()
 	PD3DX11SaveTextureToFileW = (D3DX11SAVETEXTURETOFILEWTYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileW");
 	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
 
-	// D3DX11 is fine, check DXGI and D3D11
-	HRESULT hr = GetDXGIFuncPointers();
-	if (FAILED(hr)) return hr;
-
-	hD3DDll = LoadLibraryA("d3d11.dll");
-	if (!hD3DDll)
-	{
-		MessageBoxA(NULL, "Failed to load d3d11.dll", "Critical error", MB_OK | MB_ICONERROR);
-		return E_FAIL;
-	}
-	PD3D11CreateDeviceAndSwapChain = (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
-	if (PD3D11CreateDeviceAndSwapChain == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!", "Critical error", MB_OK | MB_ICONERROR);
-
 	return S_OK;
+}
+
+void UnloadDXGI()
+{
+	if(hDXGIDll) FreeLibrary(hDXGIDll);
+	hDXGIDll = NULL;
+	PCreateDXGIFactory = NULL;
+}
+
+void UnloadD3DX()
+{
+	if(hD3DXDll) FreeLibrary(hD3DXDll);
+	hD3DXDll = NULL;
+	PD3DX11FilterTexture = NULL;
+	PD3DX11SaveTextureToFileA = NULL;
+	PD3DX11SaveTextureToFileW = NULL;
+}
+
+void UnloadD3D()
+{
+	if(hD3DDll) FreeLibrary(hD3DDll);
+	hD3DDll = NULL;
+	PD3D11CreateDevice = NULL;
+	PD3D11CreateDeviceAndSwapChain = NULL;
+}
+
+void EnumAAModes(IDXGIAdapter* adapter, std::vector<DXGI_SAMPLE_DESC>& aa_modes)
+{
+	aa_modes.clear();
+
+	ID3D11Device* device;
+	ID3D11DeviceContext* context;
+	D3D_FEATURE_LEVEL feat_level;
+	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, NULL, 0, D3D11_SDK_VERSION, &device, &feat_level, &context);
+	if (FAILED(hr)) return;
+
+	for (int samples = 0; samples < D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
+	{
+		UINT quality_levels = 0;
+		device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality_levels);
+		if (quality_levels > 0) {
+			DXGI_SAMPLE_DESC desc;
+			desc.Count = samples;
+			for (desc.Quality = 0; desc.Quality < quality_levels; ++desc.Quality)
+				aa_modes.push_back(desc);
+		}
+	}
+
+	context->Release();
+	device->Release();
+}
+
+DXGI_SAMPLE_DESC GetAAMode(int index)
+{
+	return aa_modes[index];
 }
 
 HRESULT Create(HWND wnd)
@@ -138,8 +198,15 @@ HRESULT Create(HWND wnd)
 	xres = client.right - client.left;
 	yres = client.bottom - client.top;
 
-	hr = GetD3DFuncPointers();
-	if (FAILED(hr)) return hr;
+	hr = LoadDXGI();
+	if (SUCCEEDED(hr)) hr = LoadD3D();
+	if (SUCCEEDED(hr)) hr = LoadD3DX();
+	if (FAILED(hr))
+	{
+		UnloadDXGI();
+		UnloadD3D();
+		return hr;
+	}
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
@@ -163,6 +230,10 @@ HRESULT Create(HWND wnd)
 		hr = adapter->EnumOutputs(0, &output);
 		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
 	}
+
+	// get supported AA modes
+	aa_modes.clear();
+	EnumAAModes(adapter, aa_modes);
 
 	// this will need to be changed once multisampling gets implemented
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
@@ -260,14 +331,8 @@ void Close()
 	device = NULL;
 
 	// unload DLLs
-	if(hD3DXDll) FreeLibrary(hD3DXDll);
-	PD3DX11FilterTexture = NULL;
-	PD3DX11SaveTextureToFileA = NULL;
-	PD3DX11SaveTextureToFileW = NULL;
-
-	if(hD3DXDll) FreeLibrary(hD3DXDll);
-	PD3D11CreateDeviceAndSwapChain = NULL;
-
+	UnloadD3DX();
+	UnloadD3D();
 	UnloadDXGI();
 }
 

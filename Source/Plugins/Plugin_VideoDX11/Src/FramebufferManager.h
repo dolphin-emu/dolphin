@@ -80,6 +80,9 @@ public:
 	static D3DTexture2D* &GetEFBDepthReadTexture();
 	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
 
+	static D3DTexture2D* &GetResolvedEFBColorTexture();
+	static D3DTexture2D* &GetResolvedEFBDepthTexture();
+
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
@@ -94,6 +97,9 @@ private:
 		D3DTexture2D* depth_tex;
 		ID3D11Texture2D* depth_staging_buf;
 		D3DTexture2D* depth_read_texture;
+
+		D3DTexture2D* resolved_color_tex;
+		D3DTexture2D* resolved_depth_tex;
 	} m_efb;
 };
 

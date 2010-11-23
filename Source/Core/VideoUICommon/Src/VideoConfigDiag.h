@@ -51,7 +51,7 @@ public:
 	VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& ininame);
 
 protected:
-	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO
+	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
 	void Event_EfbCopy(wxCommandEvent &ev)
