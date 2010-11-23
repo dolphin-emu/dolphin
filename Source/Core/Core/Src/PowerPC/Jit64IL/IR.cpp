@@ -130,6 +130,8 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #endif
 
 #include <algorithm>
+#include <memory>
+#include <set>
 #include "IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
@@ -1226,7 +1228,7 @@ struct Writer {
 	FILE* file;
 	Writer() : file(NULL) {
 		char buffer[1024];
-		sprintf(buffer, "JitIL_IR_%d.txt", time(NULL));
+		sprintf(buffer, "JitIL_IR_%d.txt", (int)time(NULL));
 		file = fopen(buffer, "w");
 		setvbuf(file, NULL, _IOFBF, 1024 * 1024);
 	}
@@ -1237,6 +1239,7 @@ struct Writer {
 		}
 	}
 };
+
 static std::auto_ptr<Writer> writer;
 
 static const std::string opcodeNames[] = {
@@ -1285,7 +1288,7 @@ static const std::set<unsigned> extra16Regs(extra16RegList, extra16RegList + siz
 static const std::set<unsigned> extra24Regs(extra24RegList, extra24RegList + sizeof(extra24RegList) / sizeof(extra24RegList[0]));
 
 void IRBuilder::WriteToFile(u64 codeHash) {
-	assert(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
+	_assert_(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
 
 	if (!writer.get()) {
 		writer = std::auto_ptr<Writer>(new Writer);
@@ -1297,7 +1300,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();
 	const unsigned numInsts = getNumInsts();
-	for (int i = 0; i < numInsts; ++i) {
+	for (unsigned int i = 0; i < numInsts; ++i) {
 		const InstLoc I = ReadForward();
 		const unsigned opcode = getOpcode(*I);
 		const bool thisUsed = IsMarkUsed(I) ||
@@ -1321,7 +1324,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			if (isImm(*inst)) {
 				fprintf(file, " 0x%08x", GetImmValue(inst));
 			} else {
-				fprintf(file, " %10d", i - (I - inst));
+				fprintf(file, " %10lu", i - (I - inst));
 			}
 		}
 
@@ -1331,7 +1334,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			if (isImm(*inst)) {
 				fprintf(file, " 0x%08x", GetImmValue(inst));
 			} else {
-				fprintf(file, " %10d", i - (I - inst));
+				fprintf(file, " %10lu", i - (I - inst));
 			}
 		}
 
