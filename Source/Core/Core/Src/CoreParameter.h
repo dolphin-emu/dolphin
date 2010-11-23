@@ -63,6 +63,7 @@ struct SCoreStartupParameter
 	bool bJITBranchOff;
 	bool bJITProfiledReJIT;
 	bool bJITILTimeProfiling;
+	bool bJITILOutputIR;
 
 	bool bEnableFPRF;
 

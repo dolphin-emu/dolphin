@@ -40,7 +40,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITFloatingPointOff(false), bJITIntegerOff(false),
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false), bJITProfiledReJIT(false),
-  bJITILTimeProfiling(false),
+  bJITILTimeProfiling(false), bJITILOutputIR(false),
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false),
   bSkipIdle(true), bNTSC(false), bNTSCJ(false),

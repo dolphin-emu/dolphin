@@ -146,6 +146,7 @@ namespace IREmitter {
 InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0) {
 	InstLoc curIndex = &InstList[InstList.size()];
 	InstList.push_back(Opcode | (extra << 8));
+	MarkUsed.push_back(false);
 	return curIndex;
 }
 
@@ -154,10 +155,12 @@ InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 256) {
 		InstList.push_back(Tramp | backOp1 << 8);
+		MarkUsed.push_back(false);
 		backOp1 = 0;
 		curIndex++;
 	}
 	InstList.push_back(Opcode | (backOp1 << 8) | (extra << 16));
+	MarkUsed.push_back(false);
 	return curIndex;
 }
 
@@ -166,17 +169,20 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 255) {
 		InstList.push_back(Tramp | backOp1 << 8);
+		MarkUsed.push_back(false);
 		backOp1 = 0;
 		curIndex++;
 	}
 	unsigned backOp2 = (s32)(curIndex - 1 - Op2);
 	if (backOp2 >= 256) {
 		InstList.push_back(Tramp | backOp2 << 8);
+		MarkUsed.push_back(false);
 		backOp2 = 0;
 		backOp1++;
 		curIndex++;
 	}
 	InstList.push_back(Opcode | (backOp1 << 8) | (backOp2 << 16) | (extra << 24));
+	MarkUsed.push_back(false);
 	return curIndex;
 }
 
@@ -186,12 +192,14 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 	unsigned backOp1 = curIndex - 1 - Op1;
 	if (backOp1 >= 254) {
 		InstList.push_back(Tramp | backOp1 << 8);
+		MarkUsed.push_back(false);
 		backOp1 = 0;
 		curIndex++;
 	}
 	unsigned backOp2 = curIndex - 1 - Op2;
 	if (backOp2 >= 255) {
 		InstList.push_back((Tramp | backOp2 << 8));
+		MarkUsed.push_back(false);
 		backOp2 = 0;
 		backOp1++;
 		curIndex++;
@@ -199,12 +207,14 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 	unsigned backOp3 = curIndex - 1 - Op3;
 	if (backOp3 >= 256) {
 		InstList.push_back(Tramp | (backOp3 << 8));
+		MarkUsed.push_back(false);
 		backOp3 = 0;
 		backOp2++;
 		backOp1++;
 		curIndex++;
 	}
 	InstList.push_back(Opcode | (backOp1 << 8) | (backOp2 << 16) | (backOp3 << 24));
+	MarkUsed.push_back(false);
 	return curIndex;
 }
 #endif
@@ -1054,12 +1064,23 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 InstLoc IRBuilder::EmitIntConst(unsigned value) {
 	InstLoc curIndex = &InstList[InstList.size()];
 	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
+	MarkUsed.push_back(false);
 	ConstList.push_back(value);
 	return curIndex;
 }
 
 unsigned IRBuilder::GetImmValue(InstLoc I) const {
 	return ConstList[*I >> 8];
+}
+
+void IRBuilder::SetMarkUsed(InstLoc I) {
+	const unsigned i = (unsigned)(I - &InstList[0]);
+	MarkUsed[i] = true;
+}
+
+bool IRBuilder::IsMarkUsed(InstLoc I) const {
+	const unsigned i = (unsigned)(I - &InstList[0]);
+	return MarkUsed[i];
 }
 
 unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
@@ -1198,6 +1219,140 @@ InstLoc IRBuilder::isNeg(InstLoc I) const {
 	}
 
 	return NULL;
+}
+
+// TODO: Move the following code to a separated file.
+struct Writer {
+	FILE* file;
+	Writer() : file(NULL) {
+		char buffer[1024];
+		sprintf(buffer, "JitIL_IR_%d.txt", time(NULL));
+		file = fopen(buffer, "w");
+		setvbuf(file, NULL, _IOFBF, 1024 * 1024);
+	}
+	virtual ~Writer() {
+		if (file) {
+			fclose(file);
+			file = NULL;
+		}
+	}
+};
+static std::auto_ptr<Writer> writer;
+
+static const std::string opcodeNames[] = {
+	"Nop", "LoadGReg", "LoadLink", "LoadCR", "LoadCarry", "LoadCTR", 
+	"LoadMSR", "LoadGQR", "SExt8", "SExt16", "BSwap32", "BSwap16", "Cntlzw", 
+	"Not", "Load8", "Load16", "Load32", "BranchUncond", "StoreGReg", 
+	"StoreCR", "StoreLink", "StoreCarry", "StoreCTR", "StoreMSR", "StoreFPRF", 
+	"StoreGQR", "StoreSRR", "InterpreterFallback", "Add", "Mul", "And", "Or", 
+	"Xor", "MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol", 
+	"ICmpCRSigned", "ICmpCRUnsigned", "ICmpEq", "ICmpNe", "ICmpUgt", 
+	"ICmpUlt", "ICmpUge", "ICmpUle", "ICmpSgt", "ICmpSlt", "ICmpSge", 
+	"ICmpSle", "Store8", "Store16", "Store32", "BranchCond", "FResult_Start", 
+	"LoadSingle", "LoadDouble", "LoadPaired", "DoubleToSingle", 
+	"DupSingleToMReg", "DupSingleToPacked", "InsertDoubleInMReg", 
+	"ExpandPackedToMReg", "CompactMRegToPacked", "LoadFReg", 
+	"LoadFRegDENToZero", "FSMul", "FSAdd", "FSSub", "FSNeg", "FSRSqrt", 
+	"FPAdd", "FPMul", "FPSub", "FPNeg", "FDMul", "FDAdd", "FDSub", "FDNeg", 
+	"FPMerge00", "FPMerge01", "FPMerge10", "FPMerge11", "FPDup0", "FPDup1", 
+	"FResult_End", "StorePaired", "StoreSingle", "StoreDouble", "StoreFReg", 
+	"FDCmpCR", "CInt16", "CInt32", "SystemCall", "RFIExit", 
+	"InterpreterBranch", "IdleBranch", "ShortIdleLoop", 
+	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "Tramp", 
+	"BlockStart", "BlockEnd", "Int3", 
+};
+static const unsigned alwaysUsedList[] = {
+	InterpreterFallback, StoreGReg, StoreCR, StoreLink, StoreCTR, StoreMSR,
+	StoreGQR, StoreSRR, StoreCarry, StoreFPRF, Load8, Load16, Load32, Store8,
+	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
+	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
+	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheckStart,
+	FPExceptionCheckEnd, ISIException, Int3, Tramp, Nop
+};
+static const unsigned extra8RegList[] = {
+	LoadGReg, LoadCR, LoadGQR, LoadFReg, LoadFRegDENToZero,
+};
+static const unsigned extra16RegList[] = {
+	StoreGReg, StoreCR, StoreGQR, StoreSRR, LoadPaired, StoreFReg,
+};
+static const unsigned extra24RegList[] = {
+	StorePaired,
+};
+
+static const std::set<unsigned> alwaysUseds(alwaysUsedList, alwaysUsedList + sizeof(alwaysUsedList) / sizeof(alwaysUsedList[0]));
+static const std::set<unsigned> extra8Regs(extra8RegList, extra8RegList + sizeof(extra8RegList) / sizeof(extra8RegList[0]));
+static const std::set<unsigned> extra16Regs(extra16RegList, extra16RegList + sizeof(extra16RegList) / sizeof(extra16RegList[0]));
+static const std::set<unsigned> extra24Regs(extra24RegList, extra24RegList + sizeof(extra24RegList) / sizeof(extra24RegList[0]));
+
+void IRBuilder::WriteToFile(u64 codeHash) {
+	assert(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
+
+	if (!writer.get()) {
+		writer = std::auto_ptr<Writer>(new Writer);
+	}
+
+	FILE* file = writer->file;
+	fprintf(file, "\ncode hash:%016llx\n", codeHash);
+
+	const InstLoc lastCurReadPtr = curReadPtr;
+	StartForwardPass();
+	const unsigned numInsts = getNumInsts();
+	for (int i = 0; i < numInsts; ++i) {
+		const InstLoc I = ReadForward();
+		const unsigned opcode = getOpcode(*I);
+		const bool thisUsed = IsMarkUsed(I) ||
+			alwaysUseds.find(opcode) != alwaysUseds.end();
+
+		// Line number
+		fprintf(file, "%4d", i);
+
+		if (!thisUsed) {
+			fprintf(file, "%*c", 32, ' ');
+		}
+
+		// Opcode
+		const std::string& opcodeName = opcodeNames[opcode];
+		fprintf(file, " %-20s", opcodeName.c_str());
+		const unsigned numberOfOperands = getNumberOfOperands(I);
+
+		// Op1
+		if (numberOfOperands >= 1) {
+			const IREmitter::InstLoc inst = getOp1(I);
+			if (isImm(*inst)) {
+				fprintf(file, " 0x%08x", GetImmValue(inst));
+			} else {
+				fprintf(file, " %10d", i - (I - inst));
+			}
+		}
+
+		// Op2
+		if (numberOfOperands >= 2) {
+			const IREmitter::InstLoc inst = getOp2(I);
+			if (isImm(*inst)) {
+				fprintf(file, " 0x%08x", GetImmValue(inst));
+			} else {
+				fprintf(file, " %10d", i - (I - inst));
+			}
+		}
+
+		if (extra8Regs.count(opcode)) {
+			fprintf(file, " R%d", *I >> 8);
+		}
+		if (extra16Regs.count(opcode)) {
+			fprintf(file, " R%d", *I >> 16);
+		}
+		if (extra24Regs.count(opcode)) {
+			fprintf(file, " R%d", *I >> 24);
+		}
+
+		if (opcode == CInt32 || opcode == CInt16) {
+			fprintf(file, " 0x%08x", GetImmValue(I));
+		}
+
+		fprintf(file, "\n");
+	}
+
+	curReadPtr = lastCurReadPtr;
 }
 
 }

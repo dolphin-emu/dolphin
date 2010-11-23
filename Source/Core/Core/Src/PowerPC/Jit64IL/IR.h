@@ -544,10 +544,15 @@ public:
 	unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
 	unsigned int ReadInst(InstLoc I) { return *I; }
 	unsigned int GetImmValue(InstLoc I) const;
+	void SetMarkUsed(InstLoc I);
+	bool IsMarkUsed(InstLoc I) const;
+	void WriteToFile(u64 codeHash);
 
 	void Reset() {
 		InstList.clear();
 		InstList.reserve(100000);
+		MarkUsed.clear();
+		MarkUsed.reserve(100000);
 		for (unsigned i = 0; i < 32; i++) {
 			GRegCache[i] = 0;
 			GRegCacheStore[i] = 0;
@@ -576,8 +581,8 @@ private:
 	bool maskedValueIsZero(InstLoc Op1, InstLoc Op2) const;
 	InstLoc isNeg(InstLoc I) const;
 
-	std::vector<Inst> InstList; // FIXME: We must ensure this is 
-				    // continuous!
+	std::vector<Inst> InstList; // FIXME: We must ensure this is continuous!
+	std::vector<bool> MarkUsed;	// Used for IRWriter
 	std::vector<unsigned> ConstList;
 	InstLoc curReadPtr;
 	InstLoc GRegCache[32];

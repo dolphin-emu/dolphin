@@ -582,15 +582,21 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	js.rewriteStart = (u8*)GetCodePtr();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
-		// For profiling
-		u64 codeHash = -1;
+	u64 codeHash = -1;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
+	{
+		// For profiling and IR Writer
 		for (int i = 0; i < (int)size; i++)
 		{
 			const u64 inst = ops[i].inst.hex;
 			// Ported from boost::hash
 			codeHash ^= inst + (codeHash << 6) + (codeHash >> 2);
 		}
+	}
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
 		ABI_CallFunctionC((void *)JitILProfiler::Begin, block.index);
 	}
@@ -660,6 +666,11 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #ifdef JIT_LOG_X86
 	LogGeneratedX86(size, code_buf, normalEntry, b);
 #endif
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
+	{
+		ibuild.WriteToFile(codeHash);
+	}
 
 	return normalEntry;
 }

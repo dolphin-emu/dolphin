@@ -892,6 +892,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 	for (unsigned i = 0; i != RI.IInfo.size(); i++) {
 		InstLoc I = ibuild->ReadForward();
 		bool thisUsed = regReadUse(RI, I) ? true : false;
+		if (thisUsed) {
+			// Needed for IR Writer
+			ibuild->SetMarkUsed(I);
+		}
+
 		switch (getOpcode(*I)) {
 		case InterpreterFallback: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
