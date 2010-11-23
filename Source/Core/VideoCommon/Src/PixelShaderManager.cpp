@@ -201,9 +201,11 @@ void PixelShaderManager::SetConstants()
 	{
 		if(!g_ActiveConfig.bDisableFog)
 		{
-			float a = bpmem.fog.a.GetA() * ((float)(1 << (bpmem.fog.b_shift - 1)));
-			float b = ((float)bpmem.fog.b_magnitude / 8388638) * ((float)(1 << (bpmem.fog.b_shift - 1)));
-			SetPSConstant4f(C_FOG + 1, a, b, bpmem.fog.c_proj_fsel.GetC(), 0);
+			//downscale magnitude to 0.24 bits
+			float b = (float)bpmem.fog.b_magnitude / 0xFFFFFF;
+
+			float b_shf = (float)(1 << bpmem.fog.b_shift);
+			SetPSConstant4f(C_FOG + 1, bpmem.fog.a.GetA(), b, bpmem.fog.c_proj_fsel.GetC(), b_shf);
 		}
 		else
 		{

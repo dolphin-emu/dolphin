@@ -1310,15 +1310,20 @@ static void WriteFog(char *&p)
 	if (bpmem.fog.c_proj_fsel.proj == 0) 
 	{
 		// perspective
-		// ze = A/(B - Zs)
-		WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - zCoord);\n");
+		// ze = A/(B - (Zs >> B_SHF)
+		WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - (zCoord / "I_FOG"[1].w));\n");
 	}
 	else
 	{
 		// orthographic
-		// ze = a*Zs
+		// ze = a*Zs	(here, no B_SHF)
 		WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
 	}
+	
+	// stuff to do!
+	// here, where we'll have to add/handle x range adjustment (if related BP register it's enabled)
+	// x_adjust = sqrt((x-center)^2 + k^2)/k
+	// ze *= x_adjust
 
 	WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
 

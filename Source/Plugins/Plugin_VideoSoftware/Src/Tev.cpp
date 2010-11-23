@@ -718,18 +718,26 @@ void Tev::Draw()
 		if (bpmem.fog.c_proj_fsel.proj == 0)
 		{
 			// perspective
-			// ze = A/(B - Zs)
+			// ze = A/(B - (Zs >> B_SHF))
 			s32 denom = bpmem.fog.b_magnitude - (Position[2] >> bpmem.fog.b_shift);
-			ze = bpmem.fog.a.GetA() / (float)denom;
+			//in addition downscale magnitude and zs to 0.24 bits
+			ze = (bpmem.fog.a.GetA() * 16777215.0f) / (float)denom;
 		} 
 		else 
 		{
 			// orthographic
 			// ze = a*Zs
-			ze = bpmem.fog.a.GetA() / (float)Position[2];
+			//in addition downscale zs to 0.24 bits
+			ze = bpmem.fog.a.GetA() * ((float)Position[2] / 16777215.0f);
+
 		}
 
-		ze = (ze * (float)0xffffff) - bpmem.fog.c_proj_fsel.GetC();
+		// stuff to do!
+		// here, where we'll have to add/handle x range adjustment (if related BP register it's enabled)
+		// x_adjust = sqrt((x-center)^2 + k^2)/k
+		// ze *= x_adjust
+
+		ze -= bpmem.fog.c_proj_fsel.GetC();
 
 		// clamp 0 to 1
 		float fog = (ze<0.0f) ? 0.0f : ((ze>1.0f) ? 1.0f : ze);
@@ -744,11 +752,11 @@ void Tev::Draw()
 				break;
 			case 6: // backward exp
 				fog = 1.0f - fog;
-				fog = 1.0f - pow(2.0f, -8.0f * fog);
+				fog = pow(2.0f, -8.0f * fog);
 				break;
 			case 7: // backward exp2
 				fog = 1.0f - fog;
-				fog = 1.0f - pow(2.0f, -8.0f * fog * fog);
+				fog = pow(2.0f, -8.0f * fog * fog);
 				break;
 		}
 
