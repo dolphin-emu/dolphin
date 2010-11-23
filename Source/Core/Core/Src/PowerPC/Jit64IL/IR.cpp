@@ -130,7 +130,7 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #endif
 
 #include <algorithm>
-#include <cassert>
+#include <memory>
 #include <ctime>
 #include <set>
 #include "IR.h"

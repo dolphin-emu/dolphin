@@ -193,10 +193,10 @@ namespace JitILProfiler
 	static u64 beginTime;
 	static Block& Add(u64 codeHash)
 	{
-		const u32 blockIndex = blocks.size();
+		const u32 _blockIndex = blocks.size();
 		blocks.push_back(Block());
 		Block& block = blocks.back();
-		block.index = blockIndex;
+		block.index = _blockIndex;
 		block.codeHash = codeHash;
 		return block;
 	}
