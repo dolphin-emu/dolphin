@@ -469,7 +469,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_END_LO:
-		// Somtimes this value is not aligned with 32B, e.g. New Super Mario Bros. Wii
+		// Sometimes this value is not aligned with 32B, e.g. New Super Mario Bros. Wii
 		WriteLow ((u32 &)fifo.CPEnd,  _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO : %04x", _Value);
 		break;
@@ -517,16 +517,11 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_BP_LO:
-		WriteLow ((u32 &)fifo.CPBreakpoint,     _Value);
-// Ayuanx: What if BP is not aligned ...
-//		WriteLow ((u32 &)fifo.CPBreakpoint,     (_Value + 31) & 0xFFE0);
+		WriteLow ((u32 &)fifo.CPBreakpoint,     _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
 	case FIFO_BP_HI:
 		WriteHigh((u32 &)fifo.CPBreakpoint,     _Value);
-// Ayuanx: If it is set at the very end, it would never be achieved ...
-//		if (fifo.CPBreakpoint == fifo.CPEnd + 32)
-//			fifo.CPBreakpoint = fifo.CPBase;
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
@@ -539,7 +534,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
 		break;
 	case FIFO_RW_DISTANCE_LO:
-		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value);
+		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
 
