@@ -130,7 +130,8 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #endif
 
 #include <algorithm>
-#include <memory>
+#include <cassert>
+#include <ctime>
 #include <set>
 #include "IR.h"
 #include "../PPCTables.h"
