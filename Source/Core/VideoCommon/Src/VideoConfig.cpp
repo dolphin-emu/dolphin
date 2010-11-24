@@ -94,6 +94,8 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
 	
+	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
+
 	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
@@ -117,7 +119,6 @@ void VideoConfig::Load(const char *ini_file)
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
-	iniFile.Get("Core", "EnableOpenCL", &bEnableOpenCL, false);
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
@@ -207,6 +208,8 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
+
+	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
