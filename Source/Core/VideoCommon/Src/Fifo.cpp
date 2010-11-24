@@ -146,7 +146,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 		// check if we are able to run this buffer		
 		
-		while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance || (_fifo.bFF_BPEnable && !_fifo.bFF_Breakpoint)))
+		while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance || (_fifo.bFF_BPEnable && ((_fifo.CPReadPointer <= _fifo.CPBreakpoint) && (_fifo.CPReadPointer + 32 > _fifo.CPBreakpoint)))))
 		{
 			// while the FIFO is processing data we activate this for sync with emulator thread.
 			CommandProcessor::isFifoBusy = true;

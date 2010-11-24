@@ -568,7 +568,7 @@ bool AllowIdleSkipping()
 	return !g_VideoInitialize.bOnThread || !m_CPCtrlReg.BPEnable;
 }
 
-// Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occured
+// Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occurred
 // if not then lock CPUThread until GP finish a frame.
 void WaitForFrameFinish()
 {
@@ -696,10 +696,10 @@ void SetFifoIdleFromVideoPlugin()
 	s_fifoIdleEvent.Set();
 }
 
-// This is called by the ProcessorInterface when PI_FIFO_RESET is writed,
-// the general idea is abort all commands in the FIFO. 
-// This prevent Negative fifo.CPReadWriteDistance because when PI_FIFO_RESET happens
-// the fifo.CPReadWriteDistance is writed to 0
+// This is called by the ProcessorInterface when PI_FIFO_RESET is written to.
+// The general idea is abort all commands in the FIFO. 
+// This prevents negative fifo.CPReadWriteDistance by changing fifo.CPReadWriteDistance
+// to 0 when PI_FIFO_RESET occurs.
 void AbortFrame()
 {
 	Fifo_SetRendering(false);
