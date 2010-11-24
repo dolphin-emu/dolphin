@@ -61,12 +61,12 @@ bool TextureCache::TCacheEntry::Save(const char filename[])
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level)
+	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
-	// TODO: remove hax
-	if (level != 0) return;
-
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
+
+	if (autogen_mips)
+		PD3DX11FilterTexture(D3D::context, texture->GetTex(), 0, D3DX11_DEFAULT);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -77,18 +77,15 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
 	D3D11_SUBRESOURCE_DATA srdata, *data = NULL;
 
-	// TODO: remove hax
-	tex_levels = 1;
-
-	if (1 == tex_levels)
+	if (tex_levels == 1)
 	{
 		usage = D3D11_USAGE_DYNAMIC;
 		cpu_access = D3D11_CPU_ACCESS_WRITE;
 
 		srdata.pSysMem = TextureCache::temp;
 		srdata.SysMemPitch = 4 * expanded_width;
-		// testing
-		//data = &srdata;
+
+		data = &srdata;
 	}
 
 	const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -106,9 +103,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
 
 	SAFE_RELEASE(pTexture);
-
-	if (0 == tex_levels)
-		PD3DX11FilterTexture(D3D::context, entry->texture->GetTex(), 0, D3DX11_DEFAULT);
 
 	return entry;
 }

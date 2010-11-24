@@ -46,7 +46,7 @@ private:
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int levels);
+			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
 
 		void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
 			unsigned int cbufid, const float* colmat, const EFBRectangle &source_rect,

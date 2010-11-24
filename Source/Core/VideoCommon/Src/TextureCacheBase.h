@@ -61,7 +61,7 @@ public:
 		virtual bool Save(const char filename[]) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level) = 0;
+			unsigned int expanded_width, unsigned int level, bool autogen_mips = false) = 0;
 		virtual void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
 			unsigned int cbufid, const float *colmat, const EFBRectangle &source_rect,
 			bool bIsIntensityFmt, u32 copyfmt) = 0;

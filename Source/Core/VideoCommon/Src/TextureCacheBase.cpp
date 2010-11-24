@@ -356,7 +356,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		entry->hash = *(u32*)ptr = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 
 	// load texture
-	entry->Load(width, height, expandedWidth, 0);
+	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
 
 	// load mips
 	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE)

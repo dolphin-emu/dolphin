@@ -36,8 +36,6 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	}
 
 	HRESULT hr;
-	// TODO(ector): Allow mipmaps for non-pow textures on newer cards?
-	// TODO(ector): Use the game-specified mipmaps?
 	if (levels > 0)
 		hr = dev->CreateTexture(width, height, levels, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 	else

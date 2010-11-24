@@ -26,7 +26,7 @@
 // shader cache for every revision, graphics-related or not, which is simply annoying.
 enum
 {
-	LINEAR_DISKCACHE_VER = 6463
+	LINEAR_DISKCACHE_VER = 6473
 };
 
 // On disk format:

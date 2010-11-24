@@ -540,13 +540,22 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);		
+		if(g_ActiveConfig.bEnablePixelLigting)
+			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);		
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
-		for (int i = 0; i < 8; ++i)
-			WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
+		if(g_ActiveConfig.bEnablePixelLigting)
+		{
+			for (int i = 0; i < 8; ++i)
+				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
+		}
+		else
+		{
+			for (int i = 0; i < xfregs.numTexGens; ++i)
+				WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
+		}
 	}
 	WRITE(p, "        ) {\n");
 
