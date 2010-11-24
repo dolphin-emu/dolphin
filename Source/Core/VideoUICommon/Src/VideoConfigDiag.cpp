@@ -159,15 +159,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("EFB Scaled Copy"), vconfig.bCopyEFBScaled));	
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Pixel Lighting"), vconfig.bEnablePixelLigting));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Force Bi/Trilinear Filtering"), vconfig.bForceFiltering));
-
-	SettingCheckBox* enable_3dVision = new SettingCheckBox(page_general, wxT("3D Vision (Requires Fullscreen)"), vconfig.b3DVision);
 	
-	if (!vconfig.backend_info.bSupports3DVision)
+	if (vconfig.backend_info.bSupports3DVision)
 	{
-		enable_3dVision->Disable();
+		szr_enh->Add(new SettingCheckBox(page_general, wxT("3D Vision (Requires Fullscreen)"), vconfig.b3DVision));
 	}
-
-	szr_enh->Add(enable_3dVision);
 
 	}
 
