@@ -155,6 +155,7 @@ struct VideoConfig
 		bool bUseRGBATextures; // used for D3D11 in TextureCache
 		bool bSupportsEFBToRAM;
 		bool bSupportsRealXFB;
+		bool bSupports3DVision;
 		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
 	} backend_info;
 };

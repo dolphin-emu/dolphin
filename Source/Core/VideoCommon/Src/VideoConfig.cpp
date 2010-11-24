@@ -45,6 +45,7 @@ VideoConfig::VideoConfig()
 	backend_info.bUseRGBATextures = false;
 	backend_info.bSupportsEFBToRAM = false;
 	backend_info.bSupportsRealXFB = false;
+	backend_info.bSupports3DVision = false;
 }
 
 void VideoConfig::Load(const char *ini_file)

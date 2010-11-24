@@ -161,6 +161,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bSupportsEFBToRAM = true;
 	g_Config.backend_info.bSupportsRealXFB = true;
+	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bAllowSignedBytes = false;
 }
 
