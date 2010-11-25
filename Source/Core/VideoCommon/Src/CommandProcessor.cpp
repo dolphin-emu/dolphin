@@ -634,7 +634,8 @@ void CatchUpGPU()
 	u8 *ptr = Memory_GetPtr(fifo.CPReadPointer);
 
 	// check if we are able to run this buffer
-	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance)
+	while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance ||
+		(fifo.bFF_BPEnable && ((fifo.CPReadPointer <= fifo.CPBreakpoint) && (fifo.CPReadPointer + 32 > fifo.CPBreakpoint)))))
 	{
 		// check if we are on a breakpoint
 		if (fifo.bFF_BPEnable && ((fifo.CPReadPointer <= fifo.CPBreakpoint) && (fifo.CPReadPointer + 32 > fifo.CPBreakpoint)))
