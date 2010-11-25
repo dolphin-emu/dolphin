@@ -325,7 +325,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Video
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EFBCopyEnable = new wxCheckBox(m_GameConfig, ID_EFBCOPYENABLE, _("Enable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To Texture"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -373,7 +373,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(EFBCopyEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
@@ -874,10 +874,10 @@ void CISOProperties::LoadGameConfig()
 	else
 		ForceFiltering->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Video", "EFBCopyDisable", &bTemp))
-		EFBCopyDisable->Set3StateValue((wxCheckBoxState)bTemp);
+	if (GameIni.Get("Video", "EFBCopyEnable", &bTemp))
+		EFBCopyEnable->Set3StateValue((wxCheckBoxState)bTemp);
 	else
-		EFBCopyDisable->Set3StateValue(wxCHK_UNDETERMINED);
+		EFBCopyEnable->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Video", "EFBToTextureEnable", &bTemp))
 		EFBToTextureEnable->Set3StateValue((wxCheckBoxState)bTemp);
@@ -990,10 +990,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Video", "ForceFiltering", ForceFiltering->Get3StateValue());
 
-	if (EFBCopyDisable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBCopyDisable");
+	if (EFBCopyEnable->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "EFBCopyEnable");
 	else
-		GameIni.Set("Video", "EFBCopyDisable", EFBCopyDisable->Get3StateValue());
+		GameIni.Set("Video", "EFBCopyEnable", EFBCopyEnable->Get3StateValue());
 
 	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBToTextureEnable");

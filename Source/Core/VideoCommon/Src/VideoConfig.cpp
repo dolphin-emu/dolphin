@@ -130,7 +130,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "ForceFiltering", &bForceFiltering);
 	if (iniFile.Exists("Video", "MaxAnisotropy"))
 		iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	if (iniFile.Exists("Video", "EFBCopyDisable"))
+	if (iniFile.Exists("Video", "EFBCopyEnable"))
 		iniFile.Get("Video", "EFBCopyEnable", &bEFBCopyEnable);
 	if (iniFile.Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile.Get("Video", "EFBCopyDisableHotKey", &bOSDHotKey);
