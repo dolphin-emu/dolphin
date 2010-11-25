@@ -17,6 +17,14 @@
 
 #include "X11Utils.h"
 
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+#include <unistd.h>
+#include <spawn.h>
+#include <sys/wait.h>
+
+extern char **environ;
+#endif
+
 namespace X11Utils
 {
 
@@ -78,6 +86,7 @@ void EWMH_Fullscreen(Display *dpy, int action)
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
 }
 
+
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle)
 {
@@ -87,6 +96,39 @@ Window XWindowFromHandle(void *Handle)
 Display *XDisplayFromHandle(void *Handle)
 {
 	return GDK_WINDOW_XDISPLAY(GTK_WIDGET(Handle)->window);
+}
+#endif
+
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+void InhibitScreensaver(Display *dpy, Window win, bool suspend)
+{
+	// Get X server window id
+	Atom actual_type;
+	int actual_format, status;
+	unsigned long nitems, bytes_after;
+	unsigned char *prop;
+
+	status = XGetWindowProperty(dpy, win, XInternAtom(dpy, "_NET_FRAME_WINDOW", True),
+			0, 125000, False, AnyPropertyType,
+			&actual_type, &actual_format, &nitems, &bytes_after, &prop);
+
+	char id[11];
+	snprintf(id, sizeof(id), "0x%lx", *(unsigned long *)prop & 0xffffffff);
+
+	// Call xdg-screensaver
+	char *argv[4] = {
+		(char *)"xdg-screensaver",
+		(char *)(suspend ? "suspend" : "resume"),
+		id,
+		NULL};
+	pid_t pid;
+	if (!posix_spawnp(&pid, "xdg-screensaver", NULL, NULL, argv, environ))
+	{
+		int status;
+		while (waitpid (pid, &status, 0) == -1);
+
+		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", (int)pid);
+	}
 }
 #endif
 
@@ -124,7 +166,6 @@ XRRConfiguration::~XRRConfiguration()
 		XRRFreeScreenConfigInfo(screenConfig);
 	}
 }
-
 
 void XRRConfiguration::Update()
 {

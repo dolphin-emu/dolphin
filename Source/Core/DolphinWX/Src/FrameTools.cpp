@@ -815,6 +815,11 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
+				X11Utils::XWindowFromHandle(GetHandle()), true);
+#endif
+
 		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 #ifdef _WIN32
@@ -914,6 +919,11 @@ void CFrame::DoStop()
 		}
 
 		BootManager::Stop();
+
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
+				X11Utils::XWindowFromHandle(GetHandle()), false);
+#endif
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderParent->Disconnect(wxID_ANY, wxEVT_SIZE,

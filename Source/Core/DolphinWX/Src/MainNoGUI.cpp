@@ -141,6 +141,10 @@ void X11_MainLoop()
 	Window win = (Window)Core::GetWindowHandle();
 	XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+	X11Utils::InhibitScreensaver(dpy, win, true);
+#endif
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	X11Utils::XRRConfiguration *XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
@@ -251,6 +255,11 @@ void X11_MainLoop()
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	delete XRRConfig;
 #endif
+
+#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+	X11Utils::InhibitScreensaver(dpy, win, false);
+#endif
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 		XFreeCursor(dpy, blankCursor);
 	XCloseDisplay(dpy);

@@ -34,7 +34,7 @@ set(LIBS	videocommon
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
 elseif(WIN32)
-	set(SRCS ${SRCS} Src/OS/Win32.cpp)
+	set(SRCS ${SRCS} Src/Win32.cpp)
 elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
