@@ -21,9 +21,9 @@
 *
 QUAD simulator
 
-0   2   4   6
-1   3   5   7
-021231 243453
+0   1   4   5
+3   2   7   6
+012023 147172 ...
 */
 
 //Init
@@ -235,8 +235,8 @@ void IndexGenerator::AddQuads(int numVerts)
 		{
 			*Tptr++ = index+i*4;
 			*Tptr++ = index+i*4+1;
-			*Tptr++ = index+i*4+3;
-			*Tptr++ = index+i*4+1;
+			*Tptr++ = index+i*4+2;
+			*Tptr++ = index+i*4;
 			*Tptr++ = index+i*4+2;
 			*Tptr++ = index+i*4+3;
 		}
