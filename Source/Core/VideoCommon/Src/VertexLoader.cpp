@@ -183,7 +183,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
-	m_NativeFmt = NativeVertexFormat::Create();
+	m_NativeFmt = g_vertex_manager->CreateNativeVertexFormat();
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();

@@ -26,6 +26,7 @@
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
+#include "VertexManager.h"
 
 class D3DVertexFormat : public NativeVertexFormat
 {
@@ -33,19 +34,20 @@ class D3DVertexFormat : public NativeVertexFormat
 	UINT m_num_elems;
 
 public:
-	D3DVertexFormat();
-	~D3DVertexFormat();
+	D3DVertexFormat() : m_num_elems(0) {}
 	void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	void SetupVertexPointers() const;
 };
 
-NativeVertexFormat* NativeVertexFormat::Create()
+namespace DX11
+{
+
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new D3DVertexFormat();
 }
 
-D3DVertexFormat::D3DVertexFormat() : m_num_elems(0) { }
-D3DVertexFormat::~D3DVertexFormat() {}
+}
 
 DXGI_FORMAT VarToD3D(VarType t, int size)
 {

@@ -32,6 +32,8 @@ class VertexManager : public ::VertexManager
 public:
 	VertexManager();
 
+	NativeVertexFormat* CreateNativeVertexFormat();
+
 private:
 	void Draw();
 	// temp

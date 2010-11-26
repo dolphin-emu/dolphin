@@ -99,15 +99,14 @@ public:
 
 	int GetVertexStride() const { return vertex_stride; }
 
-	static NativeVertexFormat *Create();
-
-	// TODO: move these in under private:
+	// TODO: move this under private:
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
-	u32 vertex_stride;
 
 protected:
 	// Let subclasses construct.
 	NativeVertexFormat() {}
+
+	u32 vertex_stride;
 };
 
 #endif  // _NATIVEVERTEXFORMAT_H

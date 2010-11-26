@@ -28,6 +28,8 @@ namespace DX9
 
 class VertexManager : public ::VertexManager
 {
+	NativeVertexFormat* CreateNativeVertexFormat();
+
 private:
 	void Draw(int stride);
 	// temp

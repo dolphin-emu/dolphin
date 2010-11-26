@@ -26,25 +26,27 @@
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
+#include "VertexManager.h"
 
 class D3DVertexFormat : public NativeVertexFormat
 {
 	LPDIRECT3DVERTEXDECLARATION9 d3d_decl;
 
 public:
-	D3DVertexFormat();
+	D3DVertexFormat() : d3d_decl(NULL) {}
 	~D3DVertexFormat();
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	virtual void SetupVertexPointers() const;
 };
 
-NativeVertexFormat *NativeVertexFormat::Create()
+namespace DX9
+{
+
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new D3DVertexFormat();
 }
 
-D3DVertexFormat::D3DVertexFormat() : d3d_decl(NULL)
-{
 }
 
 D3DVertexFormat::~D3DVertexFormat()
@@ -93,8 +95,8 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;
 
-	D3DVERTEXELEMENT9 *elems = new D3DVERTEXELEMENT9[32];
-	memset(elems, 0, sizeof(D3DVERTEXELEMENT9) * 32);
+	D3DVERTEXELEMENT9 elems[32];
+	memset(elems, 0, sizeof(elems));
 
 	// There's only one stream and it's 0, so the above memset takes care of that - no need to set Stream.
 	// Same for method.
@@ -161,7 +163,6 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		PanicAlert("Failed to create D3D vertex declaration!");
 		return;
 	}
-	delete [] elems;
 }
 
 void D3DVertexFormat::SetupVertexPointers() const

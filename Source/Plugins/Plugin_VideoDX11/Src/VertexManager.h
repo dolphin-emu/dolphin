@@ -33,6 +33,8 @@ public:
 	VertexManager();
 	~VertexManager();
 
+	NativeVertexFormat* CreateNativeVertexFormat();
+
 private:
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();

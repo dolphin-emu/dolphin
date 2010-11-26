@@ -24,10 +24,11 @@
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
-#include "VertexManagerBase.h"
+#include "VertexManager.h"
 
 #define COMPILED_CODE_SIZE 4096
 
+// TODO: this guy is never initialized
 u32 s_prevcomponents; // previous state set
 /*
 #ifdef _WIN32
@@ -67,10 +68,14 @@ public:
 	virtual void EnableComponents(u32 components);
 };
 
+namespace OGL
+{
 
-NativeVertexFormat *NativeVertexFormat::Create()
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new GLVertexFormat();
+}
+
 }
 
 GLVertexFormat::GLVertexFormat()
