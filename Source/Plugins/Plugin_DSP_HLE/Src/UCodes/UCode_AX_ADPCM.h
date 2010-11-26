@@ -31,7 +31,7 @@ inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 
 		}
 
 		int scale = 1 << (adpcm.pred_scale & 0xF);
-		int coef_idx = adpcm.pred_scale >> 4;
+		int coef_idx = (adpcm.pred_scale >> 4) & 7;
 
 		s32 coef1 = adpcm.coefs[coef_idx * 2 + 0];
 		s32 coef2 = adpcm.coefs[coef_idx * 2 + 1];

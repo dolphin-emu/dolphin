@@ -140,11 +140,13 @@ inline void MixAddVoice(ParamBlockType &pb,
 		// identify these types of blocks. Updates did not write any looping values.
 		if (
 			(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
-			&& pb.mixer_control == 0			
-			)
+			&& pb.mixer_control == 0 && pb.adpcm_loop_info.pred_scale <= 0x7F
+		   )
 		{
 			pb.audio_addr.looping = 1;
 		}
+
+
 
 		// Top Spin 3 Wii
 		if (pb.audio_addr.sample_format > 25)
