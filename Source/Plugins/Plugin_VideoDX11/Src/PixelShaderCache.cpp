@@ -150,7 +150,8 @@ const char depth_matrix_program_msaa[] = {
 
 ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 {
-	if (!multisampled || s_ColorCopyProgram[1]) return s_ColorCopyProgram[multisampled];
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1) return s_ColorCopyProgram[0];
+	else if (s_ColorCopyProgram[1]) return s_ColorCopyProgram[1];
 	else
 	{
 		// create MSAA shader for current AA mode
@@ -165,7 +166,8 @@ ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 
 ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
 {
-	if (!multisampled || s_ColorMatrixProgram[1]) return s_ColorMatrixProgram[multisampled];
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1) return s_ColorMatrixProgram[0];
+	else if (s_ColorMatrixProgram[1]) return s_ColorMatrixProgram[1];
 	else
 	{
 		// create MSAA shader for current AA mode
@@ -180,7 +182,8 @@ ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
 
 ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram(bool multisampled)
 {
-	if (!multisampled || s_DepthMatrixProgram[1]) return s_DepthMatrixProgram[multisampled];
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1) return s_DepthMatrixProgram[0];
+	else if (s_DepthMatrixProgram[1]) return s_DepthMatrixProgram[1];
 	else
 	{
 		// create MSAA shader for current AA mode
