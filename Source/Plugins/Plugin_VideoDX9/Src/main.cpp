@@ -56,11 +56,6 @@
 
 HINSTANCE g_hInstance = NULL;
 
-bool IsD3D()
-{
-	return true;
-}
-
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);

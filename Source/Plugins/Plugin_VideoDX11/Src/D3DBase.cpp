@@ -235,7 +235,6 @@ HRESULT Create(HWND wnd)
 	aa_modes.clear();
 	EnumAAModes(adapter, aa_modes);
 
-	// this will need to be changed once multisampling gets implemented
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
 	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
 	swap_chain_desc.BufferCount = 1;
@@ -337,8 +336,19 @@ void Close()
 }
 
 /* just returning the 4_0 ones here */
-const char* VertexShaderVersionString() { return "vs_4_0"; }
-const char* PixelShaderVersionString() { return "ps_4_0"; }
+const char* VertexShaderVersionString()
+{
+	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "vs_5_0";
+	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "vs_4_1";
+	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "vs_4_0";
+}
+
+const char* PixelShaderVersionString()
+{
+	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "ps_5_0";
+	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "ps_4_1";
+	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "ps_4_0";
+}
 
 D3DTexture2D* &GetBackBuffer() { return backbuf; }
 unsigned int GetBackBufferWidth() { return xres; }
@@ -352,11 +362,11 @@ unsigned int GetMaxTextureSize()
 	switch (featlevel)
 	{
 		case D3D_FEATURE_LEVEL_11_0:
-			return 16384;
+			return D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 
 		case D3D_FEATURE_LEVEL_10_1:
 		case D3D_FEATURE_LEVEL_10_0:
-			return 8192;
+			return D3D10_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 
 		case D3D_FEATURE_LEVEL_9_3:
 			return 4096;

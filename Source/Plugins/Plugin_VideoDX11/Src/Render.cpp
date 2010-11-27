@@ -283,7 +283,6 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
 
-	// this might need to be changed once multisampling support gets added
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
 	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
@@ -546,11 +545,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
 		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV(),
+		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
 								Renderer::GetFullTargetWidth(),
 								Renderer::GetFullTargetHeight(),
-								PixelShaderCache::GetDepthMatrixProgram(),
+								PixelShaderCache::GetDepthMatrixProgram(true),
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
@@ -815,7 +814,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	int Y = dst_rect.top;
 	int Width  = dst_rect.right - dst_rect.left;
 	int Height = dst_rect.bottom - dst_rect.top;
-	
+
 	if (X < 0) X = 0;
 	if (Y < 0) Y = 0;
 	if (X > s_backbuffer_width) X = s_backbuffer_width;
@@ -883,8 +882,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	else
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+
+		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		  
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
@@ -964,6 +965,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
+		PixelShaderCache::InvalidateMSAAShaders();
 
 		// TODO: Aren't we still holding a reference to the back buffer right now?
 		D3D::Reset();
@@ -1079,7 +1081,11 @@ void Renderer::SetSamplerState(int stage, int texindex)
 
 	// TODO: Clarify whether these values are correct
 	// NOTE: since there's no "no filter" in DX11 we're using point filters in these cases
-	if (tm0.min_filter & 4) // linear min filter
+	if (g_ActiveConfig.bForceFiltering)
+	{
+		D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_MIP_LINEAR);
+	}
+	else if (tm0.min_filter & 4) // linear min filter
 	{
 		if (tm0.mag_filter) // linear mag filter
 		{

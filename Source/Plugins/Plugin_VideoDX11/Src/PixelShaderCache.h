@@ -35,10 +35,12 @@ public:
 	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static bool InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen);
 
-	static ID3D11PixelShader* GetColorMatrixProgram();
-	static ID3D11PixelShader* GetColorCopyProgram();
-	static ID3D11PixelShader* GetDepthMatrixProgram();
+	static ID3D11PixelShader* GetColorMatrixProgram(bool multisampled);
+	static ID3D11PixelShader* GetColorCopyProgram(bool multisampled);
+	static ID3D11PixelShader* GetDepthMatrixProgram(bool multisampled);
 	static ID3D11PixelShader* GetClearProgram();
+
+	static void InvalidateMSAAShaders();
 
 private:
 	struct PSCacheEntry

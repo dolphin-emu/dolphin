@@ -40,9 +40,9 @@ const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
 
 LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
 
-ID3D11PixelShader* s_ColorMatrixProgram = NULL;
-ID3D11PixelShader* s_ColorCopyProgram = NULL;
-ID3D11PixelShader* s_DepthMatrixProgram = NULL;
+ID3D11PixelShader* s_ColorMatrixProgram[2] = {NULL};
+ID3D11PixelShader* s_ColorCopyProgram[2] = {NULL};
+ID3D11PixelShader* s_DepthMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ClearProgram = NULL;
 
 const char clear_program_code[] = {
@@ -65,6 +65,23 @@ const char color_copy_program_code[] = {
 	"}\n"
 };
 
+// TODO: Improve sampling algorithm!
+const char color_copy_program_code_msaa[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"void main(\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
+	"in float2 uv0 : TEXCOORD0){\n"
+	"int width, height, samples;\n"
+	"Tex0.GetDimensions(width, height, samples);\n"
+	"ocol0 = 0;\n"
+	"for(int i = 0; i < samples; ++i)\n"
+	"	ocol0 += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"ocol0 /= samples;\n"
+	"}\n"
+};
+
 const char color_matrix_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2D Tex0 : register(t0);\n"
@@ -74,6 +91,24 @@ const char color_matrix_program_code[] = {
 	"in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
 	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
+	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
+	"}\n"
+};
+
+const char color_matrix_program_code_msaa[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"void main(\n" 
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
+	" in float2 uv0 : TEXCOORD0){\n"
+	"int width, height, samples;\n"
+	"Tex0.GetDimensions(width, height, samples);\n"
+	"float4 texcol = 0;\n"
+	"for(int i = 0; i < samples; ++i)\n"
+	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"texcol /= samples;\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
@@ -93,19 +128,69 @@ const char depth_matrix_program[] = {
 	"}\n"
 };
 
-ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram()
+const char depth_matrix_program_msaa[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"void main(\n"
+	"out float4 ocol0 : SV_Target,\n"
+	" in float4 pos : SV_Position,\n"
+	" in float2 uv0 : TEXCOORD0){\n"
+	"int width, height, samples;\n"
+	"Tex0.GetDimensions(width, height, samples);\n"
+	"float4 texcol = 0;\n"
+	"for(int i = 0; i < samples; ++i)\n"
+	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"texcol /= samples;\n"
+	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
+	"texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n"
+	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
+	"}\n"
+};
+
+ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 {
-	return s_ColorMatrixProgram;
+	if (!multisampled || s_ColorCopyProgram[1]) return s_ColorCopyProgram[multisampled];
+	else
+	{
+		// create MSAA shader for current AA mode
+		char buf[1024];
+		int l = sprintf_s(buf, 1024, color_copy_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
+		s_ColorCopyProgram[1] = D3D::CompileAndCreatePixelShader(buf, l);
+		CHECK(s_ColorCopyProgram[1]!=NULL, "Create color copy MSAA pixel shader");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorCopyProgram[1], "color copy MSAA pixel shader");
+		return s_ColorCopyProgram[1];
+	}
 }
 
-ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram()
+ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
 {
-	return s_DepthMatrixProgram;
+	if (!multisampled || s_ColorMatrixProgram[1]) return s_ColorMatrixProgram[multisampled];
+	else
+	{
+		// create MSAA shader for current AA mode
+		char buf[1024];
+		int l = sprintf_s(buf, 1024, color_matrix_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
+		s_ColorMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf, l);
+		CHECK(s_ColorMatrixProgram[1]!=NULL, "Create color matrix MSAA pixel shader");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorMatrixProgram[1], "color matrix MSAA pixel shader");
+		return s_ColorMatrixProgram[1];
+	}
 }
 
-ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram()
+ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram(bool multisampled)
 {
-	return s_ColorCopyProgram;
+	if (!multisampled || s_DepthMatrixProgram[1]) return s_DepthMatrixProgram[multisampled];
+	else
+	{
+		// create MSAA shader for current AA mode
+		char buf[1024];
+		int l = sprintf_s(buf, 1024, depth_matrix_program_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
+		s_DepthMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf, l);
+		CHECK(s_DepthMatrixProgram[1]!=NULL, "Create depth matrix MSAA pixel shader");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthMatrixProgram[1], "depth matrix MSAA pixel shader");
+		return s_DepthMatrixProgram[1];
+	}
 }
 
 ID3D11PixelShader* PixelShaderCache::GetClearProgram()
@@ -175,19 +260,19 @@ void PixelShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
 
 	// used when copying/resolving the color buffer
-	s_ColorCopyProgram = D3D::CompileAndCreatePixelShader(color_copy_program_code, sizeof(color_copy_program_code));
-	CHECK(s_ColorCopyProgram!=NULL, "Create color copy pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color copy pixel shader");
+	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code, sizeof(color_copy_program_code));
+	CHECK(s_ColorCopyProgram[0]!=NULL, "Create color copy pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorCopyProgram[0], "color copy pixel shader");
 
 	// used for color conversion
-	s_ColorMatrixProgram = D3D::CompileAndCreatePixelShader(color_matrix_program_code, sizeof(color_matrix_program_code));
-	CHECK(s_ColorMatrixProgram!=NULL, "Create color matrix pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color matrix pixel shader");
+	s_ColorMatrixProgram[0] = D3D::CompileAndCreatePixelShader(color_matrix_program_code, sizeof(color_matrix_program_code));
+	CHECK(s_ColorMatrixProgram[0]!=NULL, "Create color matrix pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorMatrixProgram[0], "color matrix pixel shader");
 
 	// used for depth copy
-	s_DepthMatrixProgram = D3D::CompileAndCreatePixelShader(depth_matrix_program, sizeof(depth_matrix_program));
-	CHECK(s_DepthMatrixProgram!=NULL, "Create depth matrix pixel shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "depth matrix pixel shader");
+	s_DepthMatrixProgram[0] = D3D::CompileAndCreatePixelShader(depth_matrix_program, sizeof(depth_matrix_program));
+	CHECK(s_DepthMatrixProgram[0]!=NULL, "Create depth matrix pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_DepthMatrixProgram[0], "depth matrix pixel shader");
 
 	Clear();
 
@@ -211,12 +296,23 @@ void PixelShaderCache::Clear()
 	PixelShaders.clear(); 
 }
 
+// Used in Swap() when AA mode has changed
+void PixelShaderCache::InvalidateMSAAShaders()
+{
+	SAFE_RELEASE(s_ColorCopyProgram[1]);
+	SAFE_RELEASE(s_ColorMatrixProgram[1]);
+	SAFE_RELEASE(s_DepthMatrixProgram[1]);
+}
+
 void PixelShaderCache::Shutdown()
 {
-	SAFE_RELEASE(s_ColorMatrixProgram);
-	SAFE_RELEASE(s_ColorCopyProgram);
-	SAFE_RELEASE(s_DepthMatrixProgram);
 	SAFE_RELEASE(s_ClearProgram);
+	for (int i = 0; i < 2; ++i)
+	{
+		SAFE_RELEASE(s_ColorCopyProgram[i]);
+		SAFE_RELEASE(s_ColorMatrixProgram[i]);
+		SAFE_RELEASE(s_DepthMatrixProgram[i]);
+	}
 	
 	Clear();
 	g_ps_disk_cache.Sync();

@@ -172,7 +172,7 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 	const MathUtil::Rectangle<float> &drawrc, int width, int height) const
 {
 	D3D::drawShadedTexSubQuad(tex->GetSRV(), &sourcerc,
-		texWidth, texHeight, &drawrc, PixelShaderCache::GetColorCopyProgram(),
+		texWidth, texHeight, &drawrc, PixelShaderCache::GetColorCopyProgram(false),
 		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 }
 
@@ -193,7 +193,7 @@ void XFBSource::CopyEFB()
 
 	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), sourceRc.AsRECT(),
 		Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
-		PixelShaderCache::GetColorCopyProgram(), VertexShaderCache::GetSimpleVertexShader(),
+		PixelShaderCache::GetColorCopyProgram(true), VertexShaderCache::GetSimpleVertexShader(),
 		VertexShaderCache::GetSimpleInputLayout());
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),

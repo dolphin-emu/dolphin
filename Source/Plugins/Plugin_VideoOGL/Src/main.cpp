@@ -101,11 +101,6 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 static volatile u32 s_doStateRequested = FALSE;
 #endif
 
-bool IsD3D()
-{
-	return false;
-}
-
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 #ifdef _WIN32
