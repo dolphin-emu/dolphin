@@ -23,7 +23,7 @@
 #include "DSPInterpreter.h"
 
 // The hardware adpcm decoder :)
-s16 ADPCM_Step(u32& _rSamplePos)
+static s16 ADPCM_Step(u32& _rSamplePos)
 {
 	const s16 *pCoefTable = (const s16 *)&g_dsp.ifx_regs[DSP_COEF_A1_0];
 
@@ -34,7 +34,7 @@ s16 ADPCM_Step(u32& _rSamplePos)
 	}
 
 	int scale = 1 << (g_dsp.ifx_regs[DSP_PRED_SCALE] & 0xF);
-	int coef_idx = g_dsp.ifx_regs[DSP_PRED_SCALE] >> 4;
+	int coef_idx = (g_dsp.ifx_regs[DSP_PRED_SCALE] >> 4) & 0x7;
 
 	s32 coef1 = pCoefTable[coef_idx * 2 + 0];
 	s32 coef2 = pCoefTable[coef_idx * 2 + 1];

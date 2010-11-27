@@ -22,21 +22,306 @@
 #include "ABI.h"
 using namespace Gen;
 
+//clobbers:
+//EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
+//R10 = &g_dsp.reg_stack[stack_reg][0]
+//R11 = &g_dsp.r
+//CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
+void DSPEmitter::dsp_reg_stack_push(int stack_reg)
+{
+	//g_dsp.reg_stack_ptr[stack_reg]++;
+	//g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
+#ifdef _M_IX86 // All32
+	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
+#else
+	MOV(64, R(R10), ImmPtr(g_dsp.reg_stack_ptr));
+	MOV(8, R(AL), MDisp(R10,stack_reg));
+#endif
+	ADD(8, R(AL), Imm8(1));
+	AND(8, R(AL), Imm8(DSP_STACK_MASK));
+#ifdef _M_IX86 // All32
+	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
+#else
+	MOV(8, MDisp(R10,stack_reg), R(AL));
+#endif
+
+	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
+#ifdef _M_IX86 // All32
+	MOV(16, R(CX), M(&g_dsp.r[DSP_REG_ST0 + stack_reg]));
+	MOVZX(32, 8, EAX, R(AL));
+	MOV(16, MComplex(EAX,EAX,1,(u32)&g_dsp.reg_stack[stack_reg][0]), R(CX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, R(CX), MDisp(R11,(DSP_REG_ST0 + stack_reg)*2));
+	MOVZX(64, 8, RAX, R(AL));
+	MOV(64, R(R10), ImmPtr(&g_dsp.reg_stack[stack_reg][0]));
+	MOV(16, MComplex(R10,RAX,2,0), R(CX));
+#endif
+}
+
+//clobbers:
+//EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
+//R10 = &g_dsp.reg_stack[stack_reg][0]
+//R11 = &g_dsp.r
+//CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
+void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
+{
+	//g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
+#ifdef _M_IX86 // All32
+	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
+#else
+	MOV(64, R(R10), ImmPtr(g_dsp.reg_stack_ptr));
+	MOV(8, R(AL), MDisp(R10,stack_reg));
+#endif
+#ifdef _M_IX86 // All32
+	MOVZX(32, 8, EAX, R(AL));
+	MOV(16, R(CX), MComplex(EAX,EAX,1,(u32)&g_dsp.reg_stack[stack_reg][0]));
+	MOV(16, M(&g_dsp.r[DSP_REG_ST0 + stack_reg]), R(CX));
+#else
+	MOVZX(64, 8, RAX, R(AL));
+	MOV(64, R(R10), ImmPtr(&g_dsp.reg_stack[stack_reg][0]));
+	MOV(16, R(CX), MComplex(R10,RAX,2,0));
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,(DSP_REG_ST0 + stack_reg)*2), R(CX));
+#endif
+
+	//g_dsp.reg_stack_ptr[stack_reg]--;
+	//g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
+	SUB(8, R(AL), Imm8(1));
+	AND(8, R(AL), Imm8(DSP_STACK_MASK));
+#ifdef _M_IX86 // All32
+	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
+#else
+	MOV(64, R(R10), ImmPtr(g_dsp.reg_stack_ptr));
+	MOV(8, MDisp(R10,stack_reg), R(AL));
+#endif
+}
+
+
+void DSPEmitter::dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg)
+{
+	if (host_sreg != EDX) {
+		MOV(16, R(EDX), R(host_sreg));
+	}
+	dsp_reg_stack_push(stack_reg);
+	//g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[DSP_REG_ST0+stack_reg]), R(EDX));
+#else
+	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(16, MDisp(R11,(DSP_REG_ST0+stack_reg)*2), R(EDX));
+#endif
+}
+
+void DSPEmitter::dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg)
+{
+	//u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
+#ifdef _M_IX86 // All32
+	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_ST0+stack_reg]));
+#else
+	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(16, R(EDX), MDisp(R11,(DSP_REG_ST0+stack_reg)*2));
+#endif
+	dsp_reg_stack_pop(stack_reg);
+	if (host_dreg != EDX) {
+		MOV(16, R(host_dreg), R(EDX));
+	}
+}
+
+void DSPEmitter::dsp_reg_store_stack_imm(int stack_reg, u16 val)
+{
+	dsp_reg_stack_push(stack_reg);
+	//g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[DSP_REG_ST0+stack_reg]), Imm16(val));
+#else
+	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(16, MDisp(R11,(DSP_REG_ST0+stack_reg)*2), Imm16(val));
+#endif
+}
+
+void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
+{
+	switch (reg & 0x1f) {
+	// 8-bit sign extended registers. Should look at prod.h too...
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		// sign extend from the bottom 8 bits.
+		MOVSX(16,8,host_sreg,R(host_sreg));
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.r[reg]), R(host_sreg));
+#else
+		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(16, MDisp(R11,reg*2), R(host_sreg));
+#endif
+		break;
+
+	// Stack registers.
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		dsp_reg_store_stack(reg - DSP_REG_ST0, host_sreg);
+		break;
+
+	default:
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.r[reg]), R(host_sreg));
+#else
+		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(16, MDisp(R11,reg*2), R(host_sreg));
+#endif
+		break;
+	}
+}
+
+void DSPEmitter::dsp_op_write_reg_imm(int reg, u16 val)
+{
+	switch (reg & 0x1f) {
+	// 8-bit sign extended registers. Should look at prod.h too...
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		// sign extend from the bottom 8 bits.
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.r[reg]), Imm16((u16)(s16)(s8)(u8)val));
+#else
+		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(16, MDisp(R11,reg*2), Imm16((u16)(s16)(s8)(u8)val));
+#endif
+		break;
+
+	// Stack registers.
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		dsp_reg_store_stack_imm(reg - DSP_REG_ST0, val);
+		break;
+
+	default:
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.r[reg]), Imm16(val));
+#else
+		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(16, MDisp(R11,reg*2), Imm16(val));
+#endif
+		break;
+	}
+}
+
+void DSPEmitter::dsp_conditional_extend_accum(int reg)
+{
+	switch (reg)
+	{
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+	{
+#ifdef _M_IX86 // All32
+		MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+#else
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
+		MOV(16, R(EAX), MDisp(R11,DSP_REG_SR*2));
+#endif
+		TEST(16, R(EAX), Imm16(SR_40_MODE_BIT));
+		FixupBranch not_40bit = J_CC(CC_Z);
+		//if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
+		//{
+		// Sign extend into whole accum.
+		//u16 val = g_dsp.r[reg];
+#ifdef _M_IX86 // All32
+		MOVSX(32, 16, EAX, M(&g_dsp.r[reg]));
+#else
+		MOVSX(32, 16, EAX, MDisp(R11,reg*2));
+#endif
+		SHR(32,R(EAX),Imm8(16));
+		//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
+		//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
+#ifdef _M_IX86 // All32
+		MOV(16,M(&g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0]),
+		    R(EAX));
+		MOV(16,M(&g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0]),
+		    Imm16(0));
+#else
+		MOV(16, MDisp(R11,(reg - DSP_REG_ACM0 + DSP_REG_ACH0)*2), R(EAX));
+		MOV(16, MDisp(R11,(reg - DSP_REG_ACM0 + DSP_REG_ACL0)*2), Imm16(0));
+#endif
+		//}
+		SetJumpTarget(not_40bit);
+	}
+	}
+}
+
+void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
+{
+	switch (reg)
+	{
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+	{
+#ifdef _M_IX86 // All32
+		MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+#else
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
+		MOV(16, R(EAX), MDisp(R11,DSP_REG_SR*2));
+#endif
+		TEST(16, R(EAX), Imm16(SR_40_MODE_BIT));
+		FixupBranch not_40bit = J_CC(CC_Z);
+		//if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
+		//{
+		// Sign extend into whole accum.
+		//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
+		//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
+#ifdef _M_IX86 // All32
+		MOV(16,M(&g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0]),
+		    Imm16((val & 0x8000)?0xffff:0x0000));
+		MOV(16,M(&g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0]),
+		    Imm16(0));
+#else
+		MOV(16, MDisp(R11,(reg - DSP_REG_ACM0 + DSP_REG_ACH0)*2),
+		    Imm16((val & 0x8000)?0xffff:0x0000));
+		MOV(16, MDisp(R11,(reg - DSP_REG_ACM0 + DSP_REG_ACL0)*2),
+		    Imm16(0));
+#endif
+		//}
+		SetJumpTarget(not_40bit);
+	}
+	}
+}
+
+void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg)
+{
+	switch (reg & 0x1f) {
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		return dsp_reg_load_stack(reg - 0x0c, host_dreg);
+	default:
+		//return g_dsp.r[reg];
+#ifdef _M_IX86 // All32
+		MOV(16, R(host_dreg), M(&g_dsp.r[reg]));
+#else
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
+		MOV(16, R(host_dreg), MDisp(R11,reg*2));
+#endif
+	}
+}
+
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
 // FIXME: Perform additional operation depending on destination register.
-/*void DSPEmitter::mrr(const UDSPInstruction opc)
+void DSPEmitter::mrr(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x1f;
 	u8 dreg = (opc >> 5) & 0x1f;
 
-	u16 val = dsp_op_read_reg(sreg);
-	dsp_op_write_reg(dreg, val);
+	dsp_op_read_reg(sreg, EDX);
+	dsp_op_write_reg(dreg, EDX);
 	dsp_conditional_extend_accum(dreg);
 }
-*/
 
+/*
 // LRI $D, #I
 // 0000 0000 100d dddd
 // iiii iiii iiii iiii
@@ -54,18 +339,19 @@ using namespace Gen;
 	dsp_op_write_reg(reg, imm);
 	dsp_conditional_extend_accum(reg);
 }
+*/
 
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
-// Load immediate value I (8-bit sign extended) to accumulator register. 
+// Load immediate value I (8-bit sign extended) to accumulator register.
 // FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
 	u8 reg  = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
 	u16 imm = (s8)opc;
-	dsp_op_write_reg(reg, imm);
-	dsp_conditional_extend_accum(reg);
+	dsp_op_write_reg_imm(reg, imm);
+	dsp_conditional_extend_accum_imm(reg, imm);
 }
 
 //----
@@ -77,9 +363,9 @@ void DSPEmitter::lris(const UDSPInstruction opc)
 // an opcode extension but not do anything. At least according to duddie.
 void DSPEmitter::nx(const UDSPInstruction opc)
 {
-	zeroWriteBackLog();
+	zeroWriteBackLog(opc);
 }
-*/
+
 //----
 
 // DAR $arD

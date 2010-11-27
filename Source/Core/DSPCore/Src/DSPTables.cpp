@@ -161,13 +161,13 @@ const DSPOPCTemplate opcodes[] =
 	{"LR",		0x00c0, 0xffe0, DSPInterpreter::lr,      NULL,                2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_MEM, 2, 1, 0, 0xffff}},                               false, false, false},
 	{"SR",		0x00e0, 0xffe0, DSPInterpreter::sr,      NULL,                2, 2, {{P_MEM, 2, 1, 0, 0xffff},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false},
 
-	{"MRR",		0x1c00, 0xfc00, DSPInterpreter::mrr,     NULL,                1, 2, {{P_REG, 1, 0, 5, 0x03e0},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false},
+	{"MRR",		0x1c00, 0xfc00, DSPInterpreter::mrr,     &DSPEmitter::mrr,    1, 2, {{P_REG, 1, 0, 5, 0x03e0},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false},
 
 	{"SI",		0x1600, 0xff00, DSPInterpreter::si,      NULL,                2, 2, {{P_MEM, 1, 0, 0, 0x00ff},     {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false},
 
 	{"ADDIS",	0x0400, 0xfe00, DSPInterpreter::addis,   NULL,                1, 2, {{P_ACCM,  1, 0, 8, 0x0100},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false},
 	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis,   NULL,                1, 2, {{P_ACCM,  1, 0, 8, 0x0100},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false},
-	{"LRIS",	0x0800, 0xf800, DSPInterpreter::lris,    NULL,                1, 2, {{P_REG18, 1, 0, 8, 0x0700},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false},
+	{"LRIS",	0x0800, 0xf800, DSPInterpreter::lris,    &DSPEmitter::lris,   1, 2, {{P_REG18, 1, 0, 8, 0x0700},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false},
 
 	{"ADDI",	0x0200, 0xfeff, DSPInterpreter::addi,    NULL,                2, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false},
 	{"XORI",	0x0220, 0xfeff, DSPInterpreter::xori,    NULL,                2, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false},
@@ -247,7 +247,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MOVNP",	0x7e00, 0xfe00, DSPInterpreter::movnp,   NULL,                1, 1, {{P_ACC,  1, 0, 8, 0x0100}},                                                            true, false, false},
 
 	//8
-	{"NX",	 	0x8000, 0xf700, DSPInterpreter::nx,      NULL,                1, 0, {},                                                                                     true, false, false},
+	{"NX",	 	0x8000, 0xf700, DSPInterpreter::nx,      &DSPEmitter::nx,     1, 0, {},                                                                                     true, false, false},
 	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,     NULL,                1, 1, {{P_ACC,   1, 0, 11, 0x0800}},                                                          true, false, false},
 	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,     NULL,                1, 0, {},                                                                                     true, false, false},
 	{"MULAXH",	0x8300, 0xff00, DSPInterpreter::mulaxh,  NULL,                1, 0, {},                                                                                     true, false, false},

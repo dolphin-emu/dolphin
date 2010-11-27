@@ -89,6 +89,18 @@ public:
 	void nr(const UDSPInstruction opc);
 	void nop(const UDSPInstruction opc) {}
 
+	// Command helpers
+	void dsp_reg_stack_push(int stack_reg);
+	void dsp_reg_stack_pop(int stack_reg);
+	void dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg);
+	void dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg);
+	void dsp_reg_store_stack_imm(int stack_reg, u16 val);
+	void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
+	void dsp_op_write_reg_imm(int reg, u16 val);
+	void dsp_conditional_extend_accum(int reg);
+	void dsp_conditional_extend_accum_imm(int reg, u16 val);
+	void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg);
+
 	// Commands
 	void dar(const UDSPInstruction opc);
 	void iar(const UDSPInstruction opc);
@@ -97,6 +109,9 @@ public:
 	void sbclr(const UDSPInstruction opc);
 	void sbset(const UDSPInstruction opc);
 	void srbith(const UDSPInstruction opc);
+	void lris(const UDSPInstruction opc);
+	void mrr(const UDSPInstruction opc);
+	void nx(const UDSPInstruction opc);
 
 private:
 	CompiledCode *blocks;
