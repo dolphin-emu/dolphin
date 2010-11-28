@@ -326,11 +326,8 @@ void DSPEmitter::CompileDispatcher()
 	// Compile block if needed
 	FixupBranch found = J_CC(CC_NE);
 	CALL((void *)CompileCurrent);
+	MOVZX(32, 16, ECX, M(&g_dsp.pc));
 	SetJumpTarget(found);
-
-	// Check if we have enough cycles to execute
-	CMP(32, R(ESI), R(EAX));
-	FixupBranch noCycles = J_CC(CC_B);
 
 	// Execute block. Cycles executed returned in EAX.
 #ifdef _M_IX86
@@ -344,12 +341,6 @@ void DSPEmitter::CompileDispatcher()
 	
 	J_CC(CC_A, dispatcherLoop);
 	
-	// Not enough cycles.
-	SetJumpTarget(noCycles);
-	//MOV(32, M(&cyclesLeft), R(ESI));
-	//ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	//RET();
-
 	// DSP gave up the remaining cycles.
 	SetJumpTarget(halt);
 	//MOV(32, M(&cyclesLeft), Imm32(0));
