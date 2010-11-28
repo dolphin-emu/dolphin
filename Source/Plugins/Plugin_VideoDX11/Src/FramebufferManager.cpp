@@ -126,6 +126,11 @@ FramebufferManager::FramebufferManager()
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetTex(), "EFB depth resolve texture");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetSRV(), "EFB depth resolve texture shader resource view");
 	}
+	else
+	{
+		m_efb.resolved_color_tex = NULL;
+		m_efb.resolved_depth_tex = NULL;
+	}
 }
 
 FramebufferManager::~FramebufferManager()

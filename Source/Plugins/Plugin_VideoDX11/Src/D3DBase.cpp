@@ -169,6 +169,10 @@ void EnumAAModes(IDXGIAdapter* adapter, std::vector<DXGI_SAMPLE_DESC>& aa_modes)
 	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &feat_level, &context);
 	if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
 	{
+		DXGI_SAMPLE_DESC desc;
+		desc.Count = 1;
+		desc.Quality = 0;
+		aa_modes.push_back(desc);
 		SAFE_RELEASE(context);
 		SAFE_RELEASE(device);
 		return;
@@ -241,7 +245,7 @@ HRESULT Create(HWND wnd)
 	// get supported AA modes
 	aa_modes.clear();
 	EnumAAModes(adapter, aa_modes);
-	if (g_Config.iMultisampleMode >= aa_modes.size())
+	if (g_Config.iMultisampleMode >= (int)aa_modes.size())
 	{
 		g_Config.iMultisampleMode = 0;
 		UpdateActiveConfig();

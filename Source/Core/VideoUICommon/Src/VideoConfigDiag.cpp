@@ -143,24 +143,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
 	SettingChoice* const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode);
 
-	if (vconfig.backend_info.AAModes.size())
+	std::vector<std::string>::const_iterator
+		it = vconfig.backend_info.AAModes.begin(),
+		itend = vconfig.backend_info.AAModes.end();
+	for (; it != itend; ++it)
+		choice_aamode->AppendString(wxString::FromAscii(it->c_str()));
+
+	if (vconfig.backend_info.AAModes.size() <= 1)
 	{
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.AAModes.begin(),
-			itend = vconfig.backend_info.AAModes.end();
-		for (; it != itend; ++it)
-			choice_aamode->AppendString(wxString::FromAscii(it->c_str()));
-	}
-	else
-	{
-		choice_aamode->AppendString(wxString::FromAscii("(not supported)"));
-		vconfig.iMultisampleMode = 0;
 		choice_aamode->Disable();
 		text_aamode->Disable();
 	}
+
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(choice_aamode);
-	
+
 
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Load Native Mipmaps"), vconfig.bUseNativeMips));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("EFB Scaled Copy"), vconfig.bCopyEFBScaled));	
