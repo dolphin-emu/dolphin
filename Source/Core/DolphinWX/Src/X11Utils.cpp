@@ -102,18 +102,8 @@ Display *XDisplayFromHandle(void *Handle)
 #if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
 void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 {
-	// Get X server window id
-	Atom actual_type;
-	int actual_format, status;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop;
-
-	status = XGetWindowProperty(dpy, win, XInternAtom(dpy, "_NET_FRAME_WINDOW", True),
-			0, 125000, False, AnyPropertyType,
-			&actual_type, &actual_format, &nitems, &bytes_after, &prop);
-
 	char id[11];
-	snprintf(id, sizeof(id), "0x%lx", *(unsigned long *)prop & 0xffffffff);
+	snprintf(id, sizeof(id), "0x%lx", win);
 
 	// Call xdg-screensaver
 	char *argv[4] = {

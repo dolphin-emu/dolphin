@@ -379,8 +379,6 @@ void DSPEmitter::CompileDispatcher()
 // Don't use the % operator in the inner loop. It's slow.
 int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 {
-	const int idle_cycles = DSP_IDLE_SKIP_CYCLES;
-
 	while (!(g_dsp.cr & CR_HALT))
 	{
 		// Compile the block if needed
