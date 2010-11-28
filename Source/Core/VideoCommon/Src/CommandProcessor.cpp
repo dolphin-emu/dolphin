@@ -526,8 +526,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 	case FIFO_HI_WATERMARK_HI:
 		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
-		// Tune this when you see lots of FIFO overflown by GatherPipe
-		HiWatermark_Tighter = fifo.CPHiWatermark - 32 * g_ActiveConfig.iFIFOWatermarkTightness;
+		// Tune this when you see lots of FIFO overflown by GatherPipe 
+		//HiWatermark_Tighter = fifo.CPHiWatermark - 32 * g_ActiveConfig.iFIFOWatermarkTightness;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 
@@ -625,21 +625,32 @@ void STACKALIGN GatherPipeBursted()
 
 	if (g_VideoInitialize.bOnThread)
 	{
-		// A little trick to prevent FIFO from overflown in dual core mode (n < 100 to avoid dead lock)
-		for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
-			Common::SwitchCurrentThread();
+		
+		if  (fifo.CPReadWriteDistance >= fifo.CPHiWatermark)
+		{
+			// A little trick to prevent FIFO from overflown in dual core mode
+			while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance >= fifo.CPHiWatermark))
+				Common::YieldCPU();
+			
+			if (!m_CPStatusReg.OverflowHiWatermark)
+			{
+				m_CPStatusReg.OverflowHiWatermark = true;
+				if (m_CPCtrlReg.FifoOverflowIntEnable)
+					UpdateInterrupts();
+			}
+		
+		}
+
 	}
 	else
 	{
 		CatchUpGPU();
-	}
-
-	// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
-	if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= HiWatermark_Tighter)
-	{
-		m_CPStatusReg.OverflowHiWatermark = true;
-		if (m_CPCtrlReg.FifoOverflowIntEnable)
-			UpdateInterrupts();
+		if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= fifo.CPHiWatermark)
+		{
+			m_CPStatusReg.OverflowHiWatermark = true;
+			if (m_CPCtrlReg.FifoOverflowIntEnable)
+				UpdateInterrupts();
+		}	
 	}
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,

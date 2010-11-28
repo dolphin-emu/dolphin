@@ -196,6 +196,10 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					readPtr += distToSend;
 			}
 
+			
+			_assert_msg_(COMMANDPROCESSOR, _fifo.CPReadWriteDistance - distToSend >= 0 ,
+			"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce inestabilty in the game. Please report it.", _fifo.CPReadWriteDistance - distToSend);
+			
 			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
 			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
 			// Execute new instructions found in uData
