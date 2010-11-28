@@ -189,7 +189,12 @@ void DSPEmitter::Compile(int start_addr)
 
 		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
 		// Fallbacks to interpreter need this for fetching immediate values
+#ifdef _M_IX86 // All32
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		ADD(16, MDisp(RAX,0), Imm16(1));
+#endif
 
 		EmitInstruction(inst);
 
@@ -248,7 +253,8 @@ void DSPEmitter::Compile(int start_addr)
 #ifdef _M_IX86 // All32
 				MOV(16, R(AX), M(&g_dsp.pc));
 #else
-				MOVZX(32, 16, EAX, M(&g_dsp.pc));
+				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+				MOV(16, R(AX), MDisp(RAX,0));
 #endif
 				CMP(16, R(AX), Imm16(addr));
 				FixupBranch rNoBranch = J_CC(CC_Z);
@@ -303,7 +309,7 @@ const u8 *DSPEmitter::CompileStub()
 	const u8 *entryPoint = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	//	ABI_AlignStack(0);
-	CALL((void *)CompileCurrent);
+	ABI_CallFunction((void *)&CompileCurrent);
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	//MOVZX(32, 16, ECX, M(&g_dsp.pc));
@@ -320,29 +326,46 @@ void DSPEmitter::CompileDispatcher()
 	// Cache pointers into registers
 #ifdef _M_IX86
 	MOV(32, R(ESI), M(&cyclesLeft));
-	MOV(32, R(EBX), Imm32((u32)blocks));
+	MOV(32, R(EBX), ImmPtr(blocks));
 #else
-	MOV(32, R(ESI), M(&cyclesLeft));
-	MOV(64, R(RBX), Imm64((u64)blocks));
+	// Using R12 here since it is callee save register on both
+	// linux and windows 64.
+	MOV(64, R(R12), ImmPtr(&cyclesLeft));
+	MOV(32, R(R12), MDisp(R12,0));
+	MOV(64, R(RBX), ImmPtr(blocks));
 #endif
 
 	const u8 *dispatcherLoop = GetCodePtr();
 
 	// Check for DSP halt
+#ifdef _M_IX86
 	TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.cr));
+	TEST(8, MDisp(R11,0), Imm8(CR_HALT));
+#endif
 	FixupBranch halt = J_CC(CC_NE);
 
+#ifdef _M_IX86
 	MOVZX(32, 16, ECX, M(&g_dsp.pc));
+#else
+	MOV(64, R(RCX), ImmPtr(&g_dsp.pc));
+	MOVZX(64, 16, RCX, MDisp(RCX,0));
+#endif
 
 	// Execute block. Cycles executed returned in EAX.
 #ifdef _M_IX86
 	CALLptr(MComplex(EBX, ECX, SCALE_4, 0));
 #else
-	CALLptr(MComplex(RBX, ECX, SCALE_8, 0));
+	CALLptr(MComplex(RBX, RCX, SCALE_8, 0));
 #endif
 
 	// Decrement cyclesLeft
+#ifdef _M_IX86
 	SUB(32, R(ESI), R(EAX));
+#else
+	SUB(32, R(R12), R(EAX));
+#endif
 
 	J_CC(CC_A, dispatcherLoop);
 	
