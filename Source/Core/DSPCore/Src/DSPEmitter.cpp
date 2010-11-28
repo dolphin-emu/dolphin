@@ -26,6 +26,7 @@
 #include "ABI.h"
 
 #define MAX_BLOCK_SIZE 250
+#define DSP_IDLE_SKIP_CYCLES 1000
 
 using namespace Gen;
 
@@ -150,9 +151,9 @@ void DSPEmitter::Default(UDSPInstruction _inst)
 	EmitInstruction(_inst);
 }
 
-const u8 *DSPEmitter::Compile(int start_addr) {
-	AlignCode16();
-	const u8 *entryPoint = GetCodePtr();
+void DSPEmitter::Compile(int start_addr)
+{
+	const u8 *entryPoint = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	//	ABI_AlignStack(0);
 
@@ -185,13 +186,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 
 		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
-		// fallbacks to interpreter need this for fetching immedate values
-#ifdef _M_IX86 // All32
+		// Fallbacks to interpreter need this for fetching immediate values
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
-#else
-		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		ADD(16, MDisp(RAX,0), Imm16(1));
-#endif
 
 		EmitInstruction(inst);
 
@@ -202,7 +198,6 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		// by the analyzer.
 		if (DSPAnalyzer::code_flags[addr-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
-			// TODO: Change to TEST for some reason (who added this comment?)
 #ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
 #else
@@ -232,16 +227,19 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 			SetJumpTarget(rLoopCounterExit);
 		}
 
-		if (opcode->branch) {
-			if (opcode->uncond_branch) {
+		if (opcode->branch)
+		{
+			if (opcode->uncond_branch)
+			{
 				break;
-			} else {
+			}
+			else
+			{
 				//look at g_dsp.pc if we actually branched
 #ifdef _M_IX86 // All32
-				MOV(16, R(AX), M(&(g_dsp.pc)));
+				MOV(16, R(AX), M(&g_dsp.pc));
 #else
-				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-				MOV(16, R(AX), MDisp(RAX,0));
+				MOVZX(32, 16, EAX, M(&g_dsp.pc));
 #endif
 				CMP(16, R(AX), Imm16(addr));
 				FixupBranch rNoBranch = J_CC(CC_Z);
@@ -256,7 +254,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		}
 
 		// End the block if we're before an idle skip address
-		if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP) {
+		if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+		{
 			break;
 		}
 	}
@@ -274,56 +273,129 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	MOV(32,R(EAX),Imm32(blockSize[start_addr]));
 	RET();
-
-	return entryPoint;
 }
 
-void STACKALIGN DSPEmitter::CompileDispatcher()
+void DSPEmitter::CompileDispatcher()
 {
-	/*
-	// TODO	
-	enterDispatcher = GetCodePtr();
-	AlignCode16();
+	enterDispatcher = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-	
-	const u8 *outer_loop = GetCodePtr();
 
-		
-	//Landing pad for drec space
+	// Cache pointers into registers
+#ifdef _M_IX86
+	MOV(32, R(ESI), M(&cyclesLeft));
+	MOV(32, R(EBX), Imm32((u32)blocks));
+	MOV(32, R(EDI), Imm32((u32)blockSize));
+#else
+	MOV(32, R(ESI), M(&cyclesLeft));
+	MOV(64, R(RBX), Imm64((u64)blocks));
+	MOV(64, R(RDI), Imm64((u64)blockSize));
+#endif
+
+	const u8 *dispatcherLoop = GetCodePtr();
+
+	// Check for DSP halt
+	TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
+	FixupBranch halt = J_CC(CC_NE);
+
+	// Check if block has been compiled (blockSize > 0)
+	MOVZX(32, 16, ECX, M(&g_dsp.pc));
+	MOVZX(32, 16, EAX, MComplex(RDI, ECX, SCALE_2, 0));
+	TEST(16, R(AX), R(AX));
+
+	// Compile block if needed
+	FixupBranch found = J_CC(CC_NE);
+	CALL((void *)CompileCurrent);
+	SetJumpTarget(found);
+
+	// Check if we have enough cycles to execute
+	CMP(32, R(ESI), R(EAX));
+	FixupBranch noCycles = J_CC(CC_B);
+
+	// Check for idle skip (C++ version below)
+	// if (code_flags[pc] & CODE_IDLE_SKIP)
+	//   if (cycles > DSP_IDLE_SKIP_CYCLES) cycles -= DSP_IDLE_SKIP_CYCLES;
+	//   else cycles = 0;
+#ifdef _M_IX86
+	MOV(32, R(EDX), Imm32((u32)DSPAnalyzer::code_flags));
+#else
+	MOV(64, R(RDX), Imm64((u64)DSPAnalyzer::code_flags));
+#endif
+	TEST(8, MComplex(RDX, ECX, SCALE_1, 0), Imm8(DSPAnalyzer::CODE_IDLE_SKIP));
+	FixupBranch noIdleSkip = J_CC(CC_E);
+	SUB(32, R(ESI), Imm32(DSP_IDLE_SKIP_CYCLES));
+	FixupBranch idleSkip = J_CC(CC_A);
+	//MOV(32, M(&cyclesLeft), Imm32(0));
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();*/
+	RET();
+	SetJumpTarget(idleSkip);
+	SetJumpTarget(noIdleSkip);
+
+	// Execute block. Cycles executed returned in EAX.
+#ifdef _M_IX86
+	CALLptr(MComplex(EBX, ECX, SCALE_4, 0));
+#else
+	CALLptr(MComplex(RBX, ECX, SCALE_8, 0));
+#endif
+
+	// Decrement cyclesLeft
+	SUB(32, R(ESI), R(EAX));
+	
+	J_CC(CC_A, dispatcherLoop);
+	
+	// Not enough cycles.
+	SetJumpTarget(noCycles);
+	//MOV(32, M(&cyclesLeft), R(ESI));
+	//ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	//RET();
+
+	// DSP gave up the remaining cycles.
+	SetJumpTarget(halt);
+	//MOV(32, M(&cyclesLeft), Imm32(0));
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	RET();
 }
 
 // Don't use the % operator in the inner loop. It's slow.
 int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 {
-	const int idle_cycles = 1000;
+	const int idle_cycles = DSP_IDLE_SKIP_CYCLES;
 
 	while (!(g_dsp.cr & CR_HALT))
 	{
 		// Compile the block if needed
 		u16 block_addr = g_dsp.pc;
-		if (!blocks[block_addr])
+		int block_size = blockSize[block_addr];
+		if (!block_size)
 		{
 			CompileCurrent();
+			block_size = blockSize[block_addr];
 		}
-		int block_size = blockSize[block_addr];
+		
 		// Execute the block if we have enough cycles
 		if (cycles > block_size)
 		{
 			int c = blocks[block_addr]();
-			if (DSPAnalyzer::code_flags[block_addr] & DSPAnalyzer::CODE_IDLE_SKIP) {
+			if (DSPAnalyzer::code_flags[block_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+			{
 				if (cycles > idle_cycles)
 					cycles -= idle_cycles;
 				else
 					cycles = 0;
-			} else {
+			}
+			else
+			{
 				cycles -= c;
 			}
 		}
-		else {
+		else
+		{
 			break;
 		}
 	}
+
+	// DSP gave up the remaining cycles.
+	if (g_dsp.cr & CR_HALT)
+		return 0;
+
 	return cycles;
 }

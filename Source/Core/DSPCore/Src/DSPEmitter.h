@@ -42,7 +42,7 @@ public:
 
 	void CompileDispatcher();
 
-	const u8 *Compile(int start_addr);
+	void Compile(int start_addr);
 
 	int STACKALIGN RunForCycles(int cycles);
 
@@ -113,17 +113,13 @@ public:
 	void mrr(const UDSPInstruction opc);
 	void nx(const UDSPInstruction opc);
 
+	// CALL this to start the dispatcher
+	const u8 *enterDispatcher;
+
 private:
 	CompiledCode *blocks;
 	u16 *blockSize;
 	u16 compileSR;
-
-	// CALL this to start the dispatcher
-	u8 *enterDispatcher;
-
-	// JMP here when a block should be dispatches. make sure you're in a block
-	// or at the same stack level already.
-	u8 *dispatcher;
 
 	// The index of the last stored ext value (compile time).
 	int storeIndex;

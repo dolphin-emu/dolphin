@@ -37,6 +37,7 @@
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_STOP;
+int cyclesLeft = 0;
 DSPEmitter *jit = NULL;
 Common::Event step_event;
 
@@ -71,6 +72,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 				  bool bUsingJIT)
 {
 	g_dsp.step_counter = 0;
+	cyclesLeft = 0;
 	jit = NULL;
 	
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
@@ -224,13 +226,18 @@ void DSPCore_CheckExceptions()
 // Handle state changes and stepping.
 int DSPCore_RunCycles(int cycles)
 {
-	static int spare_cycles = 0;
 	if (jit)
 	{
 		// DSPCore_CheckExceptions();
 		// DSPCore_CheckExternalInterrupt();
-		spare_cycles = jit->RunForCycles(cycles + spare_cycles);
-		return 0;
+		cyclesLeft = cycles;
+
+		CompiledCode pExecAddr = (CompiledCode)jit->enterDispatcher;
+		pExecAddr();
+
+		// To use the C++ dispatcher, uncomment the line below and comment out the two lines above
+		//jit->RunForCycles(cyclesLeft);
+		return cyclesLeft;
 	}
 
 	while (cycles > 0) {
@@ -284,7 +291,8 @@ void DSPCore_Step()
 		step_event.Set();
 }
 
-void CompileCurrent() {
+void CompileCurrent()
+{
 	jit->Compile(g_dsp.pc);
 }
 
