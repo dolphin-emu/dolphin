@@ -220,7 +220,14 @@ void DSPEmitter::Compile(int start_addr)
 			ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
 			//		ABI_RestoreStack(0);
 			ABI_PopAllCalleeSavedRegsAndAdjustStack();
-			MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+			{
+				MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+			}
+			else
+			{
+				MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+			}	
 			RET();
 
 			SetJumpTarget(rLoopAddressExit);
@@ -246,7 +253,14 @@ void DSPEmitter::Compile(int start_addr)
 
 				//		ABI_RestoreStack(0);
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
-				MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+				{
+					MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+				}
+				else
+				{
+					MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+				}	
 				RET();
 
 				SetJumpTarget(rNoBranch);
@@ -271,7 +285,14 @@ void DSPEmitter::Compile(int start_addr)
 
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+	if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+	{
+		MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+	}
+	else
+	{
+		MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+	}	
 	RET();
 }
 
@@ -310,25 +331,6 @@ void DSPEmitter::CompileDispatcher()
 	// Check if we have enough cycles to execute
 	CMP(32, R(ESI), R(EAX));
 	FixupBranch noCycles = J_CC(CC_B);
-
-	// Check for idle skip (C++ version below)
-	// if (code_flags[pc] & CODE_IDLE_SKIP)
-	//   if (cycles > DSP_IDLE_SKIP_CYCLES) cycles -= DSP_IDLE_SKIP_CYCLES;
-	//   else cycles = 0;
-#ifdef _M_IX86
-	MOV(32, R(EDX), Imm32((u32)DSPAnalyzer::code_flags));
-#else
-	MOV(64, R(RDX), Imm64((u64)DSPAnalyzer::code_flags));
-#endif
-	TEST(8, MComplex(RDX, ECX, SCALE_1, 0), Imm8(DSPAnalyzer::CODE_IDLE_SKIP));
-	FixupBranch noIdleSkip = J_CC(CC_E);
-	SUB(32, R(ESI), Imm32(DSP_IDLE_SKIP_CYCLES));
-	FixupBranch idleSkip = J_CC(CC_A);
-	//MOV(32, M(&cyclesLeft), Imm32(0));
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
-	SetJumpTarget(idleSkip);
-	SetJumpTarget(noIdleSkip);
 
 	// Execute block. Cycles executed returned in EAX.
 #ifdef _M_IX86
@@ -374,18 +376,7 @@ int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 		// Execute the block if we have enough cycles
 		if (cycles > block_size)
 		{
-			int c = blocks[block_addr]();
-			if (DSPAnalyzer::code_flags[block_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
-			{
-				if (cycles > idle_cycles)
-					cycles -= idle_cycles;
-				else
-					cycles = 0;
-			}
-			else
-			{
-				cycles -= c;
-			}
+			cycles -= blocks[block_addr]();
 		}
 		else
 		{
@@ -394,7 +385,7 @@ int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 	}
 
 	// DSP gave up the remaining cycles.
-	if (g_dsp.cr & CR_HALT)
+	if (g_dsp.cr & CR_HALT || cycles < 0)
 		return 0;
 
 	return cycles;

@@ -353,13 +353,13 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	if (_iAddress != (0xCC000000 + DSP_MAIL_FROM_DSP_HI))
 	{
-		DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x (%02x)  (%08x)", _iAddress, _uReturnValue, PowerPC::ppcState.pc);
+		DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x (0x%04x)  (%08x)", _iAddress, _uReturnValue, PowerPC::ppcState.pc);
 	}
 }
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	DEBUG_LOG(DSPINTERFACE, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
+	DEBUG_LOG(DSPINTERFACE, "DSPInterface(w16) 0x%08x (0x%04x)  (%08x)", _Address, _Value, PowerPC::ppcState.pc);
 
 	switch (_Address & 0xFFFF)
 	{
