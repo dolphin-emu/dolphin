@@ -41,7 +41,7 @@ public:
 	void ClearIRAM();
 
 	void CompileDispatcher();
-
+	const u8 *CompileStub();
 	void Compile(int start_addr);
 
 	int STACKALIGN RunForCycles(int cycles);

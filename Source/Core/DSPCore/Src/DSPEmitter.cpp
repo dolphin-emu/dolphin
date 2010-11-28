@@ -30,6 +30,8 @@
 
 using namespace Gen;
 
+const u8 *stubEntryPoint;
+
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
 	m_compiledCode = NULL;
@@ -39,18 +41,19 @@ DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 	blocks = new CompiledCode[MAX_BLOCKS];
 	blockSize = new u16[0x10000];
 	
-	//clear all of the block references
-	for(int i = 0x0000; i < MAX_BLOCKS; i++)
-	{
-		blocks[i] = NULL;
-		blockSize[i] = 0;
-	}
-
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;
 	compileSR |= SR_EXT_INT_ENABLE;
 
 	CompileDispatcher();
+	stubEntryPoint = CompileStub();
+
+	//clear all of the block references
+	for(int i = 0x0000; i < MAX_BLOCKS; i++)
+	{
+		blocks[i] = (CompiledCode)stubEntryPoint;
+		blockSize[i] = 0;
+	}
 }
 
 DSPEmitter::~DSPEmitter() 
@@ -64,11 +67,10 @@ void DSPEmitter::ClearIRAM() {
 	// ClearCodeSpace();
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
-		blocks[i] = NULL;
+		blocks[i] = (CompiledCode)stubEntryPoint;
 		blockSize[i] = 0;
 	}
 }
-
 
 // Must go out of block if exception is detected
 void DSPEmitter::checkExceptions(u32 retval) {
@@ -296,6 +298,20 @@ void DSPEmitter::Compile(int start_addr)
 	RET();
 }
 
+const u8 *DSPEmitter::CompileStub()
+{
+	const u8 *entryPoint = AlignCode16();
+	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	//	ABI_AlignStack(0);
+	CALL((void *)CompileCurrent);
+	//	ABI_RestoreStack(0);
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	//MOVZX(32, 16, ECX, M(&g_dsp.pc));
+	XOR(32, R(EAX), R(EAX)); // Return 0 cycles executed
+	RET();
+	return entryPoint;
+}
+
 void DSPEmitter::CompileDispatcher()
 {
 	enterDispatcher = AlignCode16();
@@ -305,11 +321,9 @@ void DSPEmitter::CompileDispatcher()
 #ifdef _M_IX86
 	MOV(32, R(ESI), M(&cyclesLeft));
 	MOV(32, R(EBX), Imm32((u32)blocks));
-	MOV(32, R(EDI), Imm32((u32)blockSize));
 #else
 	MOV(32, R(ESI), M(&cyclesLeft));
 	MOV(64, R(RBX), Imm64((u64)blocks));
-	MOV(64, R(RDI), Imm64((u64)blockSize));
 #endif
 
 	const u8 *dispatcherLoop = GetCodePtr();
@@ -318,16 +332,7 @@ void DSPEmitter::CompileDispatcher()
 	TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
 	FixupBranch halt = J_CC(CC_NE);
 
-	// Check if block has been compiled (blockSize > 0)
 	MOVZX(32, 16, ECX, M(&g_dsp.pc));
-	MOVZX(32, 16, EAX, MComplex(RDI, ECX, SCALE_2, 0));
-	TEST(16, R(AX), R(AX));
-
-	// Compile block if needed
-	FixupBranch found = J_CC(CC_NE);
-	CALL((void *)CompileCurrent);
-	MOVZX(32, 16, ECX, M(&g_dsp.pc));
-	SetJumpTarget(found);
 
 	// Execute block. Cycles executed returned in EAX.
 #ifdef _M_IX86
@@ -338,7 +343,7 @@ void DSPEmitter::CompileDispatcher()
 
 	// Decrement cyclesLeft
 	SUB(32, R(ESI), R(EAX));
-	
+
 	J_CC(CC_A, dispatcherLoop);
 	
 	// DSP gave up the remaining cycles.
