@@ -161,11 +161,18 @@ void EnumAAModes(IDXGIAdapter* adapter, std::vector<DXGI_SAMPLE_DESC>& aa_modes)
 {
 	aa_modes.clear();
 
+	// NOTE: D3D 10.0 doesn't support multisampled resources which are bound as depth buffers AND shader resources.
+	// Thus, we can't have MSAA with 10.0 level hardware.
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
 	D3D_FEATURE_LEVEL feat_level;
-	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, NULL, 0, D3D11_SDK_VERSION, &device, &feat_level, &context);
-	if (FAILED(hr)) return;
+	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &feat_level, &context);
+	if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
+	{
+		SAFE_RELEASE(context);
+		SAFE_RELEASE(device);
+		return;
+	}
 
 	for (int samples = 0; samples < D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
 	{
@@ -234,6 +241,11 @@ HRESULT Create(HWND wnd)
 	// get supported AA modes
 	aa_modes.clear();
 	EnumAAModes(adapter, aa_modes);
+	if (g_Config.iMultisampleMode >= aa_modes.size())
+	{
+		g_Config.iMultisampleMode = 0;
+		UpdateActiveConfig();
+	}
 
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
 	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
