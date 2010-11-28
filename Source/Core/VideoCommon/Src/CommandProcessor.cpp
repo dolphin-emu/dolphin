@@ -249,15 +249,15 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		return;
 
 	case FIFO_READ_POINTER_LO:
-		_rReturnValue = ReadLow (fifo.CPReadPointer);
+		//_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		//_rReturnValue = ReadLow (fifo.CPWritePointer);
+		_rReturnValue = ReadLow (fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_HI:
-		_rReturnValue = ReadHigh(fifo.CPReadPointer);
+		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		//_rReturnValue = ReadHigh(fifo.CPWritePointer);
+	    _rReturnValue = ReadHigh(fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
 

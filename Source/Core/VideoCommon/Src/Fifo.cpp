@@ -196,11 +196,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					readPtr += distToSend;
 			}
 
+			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
+			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
 			// Execute new instructions found in uData
 			Fifo_SendFifoData(uData, distToSend);
 
-			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
-			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+		
 
 			CommandProcessor::FifoCriticalLeave();
 
