@@ -39,6 +39,11 @@ public:
 
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
+	static u16* GetTriangleIndexBuffer() { return TIBuffer; }
+	static u16* GetLineIndexBuffer() { return LIBuffer; }
+	static u16* GetPointIndexBuffer() { return PIBuffer; }
+	static u8* GetVertexBuffer() { return LocalVBuffer; }
+
 protected:
 	// TODO: make private after Flush() is merged
 	static void ResetBuffer();

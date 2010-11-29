@@ -180,7 +180,7 @@ void DllConfig(void *_hParent)
 	{
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
 
-		for (int i = 0; i < adapter.aa_levels.size(); ++i)
+		for (int i = 0; i < (int)adapter.aa_levels.size(); ++i)
 			g_Config.backend_info.AAModes.push_back(adapter.aa_levels[i].name);
 	}
 

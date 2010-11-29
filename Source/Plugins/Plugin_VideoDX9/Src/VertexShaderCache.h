@@ -58,10 +58,8 @@ public:
 	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexShader(int level);
 	static LPDIRECT3DVERTEXSHADER9 GetClearVertexShader();	
 	static bool InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
-#if defined(_DEBUG) || defined(DEBUGFAST)
+
 	static std::string GetCurrentShaderCode();
-#endif
-	static LPDIRECT3DVERTEXSHADER9 CompileCgShader(const char *pstrprogram);
 };
 
 #endif  // _VERTEXSHADERCACHE_H

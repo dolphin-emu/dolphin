@@ -1097,6 +1097,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
+
+	DEBUGGER_PAUSE_AT(NEXT_FRAME,true);
+
 	frameCount++;
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();

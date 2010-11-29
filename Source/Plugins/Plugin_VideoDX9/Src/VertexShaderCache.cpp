@@ -260,6 +260,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	}
 #endif
 	delete [] bytecode;
+	DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
 	return result;
 }
 
@@ -286,12 +287,12 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 	return false;
 }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
 std::string VertexShaderCache::GetCurrentShaderCode()
 {
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (last_entry)
 		return last_entry->code;
 	else
-		return "(no shader)\n";
-}
 #endif
+		return "(not available)\n";
+}

@@ -66,6 +66,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[])
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
+	DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE,true);
 	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
 	// D3D9 will automatically generate mip maps if necessary
 }
@@ -214,6 +215,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 	entry->swap_r_b = swap_r_b;
 	entry->d3d_fmt = d3d_fmt;
 	
+	DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE,true);
 	return entry;
 }
 

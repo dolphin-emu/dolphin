@@ -21,14 +21,17 @@
 #include "FileUtil.h"
 
 #include "VideoConfig.h"
+#include "IndexGenerator.h"
 #include "../Globals.h"
 #include "../D3DBase.h"
 #include "../FramebufferManager.h"
 #include "../TextureCache.h"
 #include "../VertexShaderCache.h"
 #include "../PixelShaderCache.h"
+#include "../VertexManager.h"
 
 extern int g_Preset;
+extern NativeVertexFormat *g_nativeVertexFmt;
 
 BEGIN_EVENT_TABLE(GFXDebuggerDX9, wxPanel)
 	EVT_CLOSE(GFXDebuggerDX9::OnClose)
@@ -313,39 +316,36 @@ void GFXDebuggerDX9::OnPauseAtNextFrameButton(wxCommandEvent& event)
 
 void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 {
+	char dump_path[MAX_PATH];
+	sprintf(dump_path, "%sDebug/%s", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+	if (!File::Exists(dump_path) || !File::IsDirectory(dump_path))
+		if (!File::CreateDir(dump_path))
+			return;
+
 	switch (m_pDumpList->GetSelection())
 	{
 		case 0: // Pixel Shader
 		{
-#if defined(_DEBUG) || defined(DEBUGFAST)
 			char filename[MAX_PATH];
-			sprintf(filename, "%s/Debug/%s/dump_ps.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			sprintf(filename, "%s/dump_ps.txt", dump_path);
 			File::CreateEmptyFile(filename);
 			File::WriteStringToFile(true, PixelShaderCache::GetCurrentShaderCode(), filename);
-#else
-			MessageBox(NULL, L"Dumping pixel shaders not supported in Release builds!", L"Error", MB_OK);
-#endif
 			break;
 		}
 
 		case 1: // Vertex Shader
 		{
-#if defined(_DEBUG) || defined(DEBUGFAST)
 			char filename[MAX_PATH];
-			sprintf(filename, "%s/Debug/%s/dump_vs.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			sprintf(filename, "%s/dump_vs.txt", dump_path);
 			File::CreateEmptyFile(filename);
 			File::WriteStringToFile(true, VertexShaderCache::GetCurrentShaderCode(), filename);
-#else
-			MessageBox(NULL, L"Dumping vertex shaders not supported in Release builds!", L"Error", MB_OK);
-#endif
 			break;
 		}
 
 		case 2: // Pixel Shader Constants
 		{
 			char filename[MAX_PATH];
-			sprintf(filename, "%s/Debug/%s/dump_ps_consts.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
-
+			sprintf(filename, "%s/dump_ps_consts.txt", dump_path);
 			FILE* file = fopen(filename, "w");
 
 			float constants[4*C_PENVCONST_END];
@@ -379,14 +379,13 @@ void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 				fprintf(file, "Constant COLORMATRIX %d: %f   %f   %f   %f\n", i, constants[4*i], constants[4*i+1], constants[4*i+2], constants[4*i+3]);
 
 			fclose(file);
-
 			break;
 		}
 
 		case 3: // Vertex Shader Constants
 		{
 			char filename[MAX_PATH];
-			sprintf(filename, "%s/Debug/%s/dump_vs_consts.txt", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+			sprintf(filename, "%s/dump_vs_consts.txt", dump_path);
 			FILE* file = fopen(filename, "w");
 
 			float constants[4*C_VENVCONST_END];
@@ -437,7 +436,7 @@ void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 			D3D::dev->GetTexture(stage, (IDirect3DBaseTexture9**)&texture);
 			if(!texture) break;
 			char filename[MAX_PATH];
-			sprintf(filename, "%s/Debug/%s/dump_tex%d.png", File::GetUserPath(D_DUMP_IDX), globals->unique_id, stage);
+			sprintf(filename, "%s/dump_tex%d.png", dump_path, stage);
 			IDirect3DSurface9* surface;
 			texture->GetSurfaceLevel(0, &surface);
 			HRESULT hr = PD3DXSaveSurfaceToFileA(filename, D3DXIFF_PNG, surface, NULL, NULL);
@@ -453,17 +452,131 @@ void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
 			break;
 
 		case 13: // Vertices
+		{
+			D3DVERTEXELEMENT9* elements;
+			int num_elements;
+			((DX9::VertexManager*)g_vertex_manager)->GetElements(g_nativeVertexFmt, &elements, &num_elements);
+			if (elements == NULL || num_elements == 0)
+				return;
+
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/vertex_dump.txt", dump_path);
+			FILE* file = fopen(filename, "w");
+
+			u8* vertices = g_vertex_manager->GetVertexBuffer();
+			u16* tri_indices = g_vertex_manager->GetTriangleIndexBuffer();
+			u16* line_indices = g_vertex_manager->GetLineIndexBuffer();
+			u16* point_indices = g_vertex_manager->GetPointIndexBuffer();
+
+			fprintf(file, "VERTICES\n");
+			for (int i = 0; i < IndexGenerator::GetNumVerts(); ++i)
+			{
+				u8* cur_vertex = vertices + i * g_nativeVertexFmt->GetVertexStride();
+				for (int elem = 0; elem < num_elements; elem++)
+				{
+					switch (elements[elem].Type)
+					{
+						case D3DDECLTYPE_FLOAT1:
+							fprintf(file, "%f\t", *(float*)&cur_vertex[elements[elem].Offset]);
+							break;
+						case D3DDECLTYPE_FLOAT2:
+							fprintf(file, "%f  ", *(float*)&cur_vertex[elements[elem].Offset]);
+							fprintf(file, "%f\t", *(float*)&cur_vertex[4+elements[elem].Offset]);
+							break;
+						case D3DDECLTYPE_FLOAT3:
+							fprintf(file, "%f  ", *(float*)&cur_vertex[elements[elem].Offset]);
+							fprintf(file, "%f  ", *(float*)&cur_vertex[4+elements[elem].Offset]);
+							fprintf(file, "%f\t", *(float*)&cur_vertex[8+elements[elem].Offset]);
+							break;
+						case D3DDECLTYPE_FLOAT4:
+							fprintf(file, "%f  ", *(float*)&cur_vertex[elements[elem].Offset]);
+							fprintf(file, "%f  ", *(float*)&cur_vertex[4+elements[elem].Offset]);
+							fprintf(file, "%f  ", *(float*)&cur_vertex[8+elements[elem].Offset]);
+							fprintf(file, "%f\t", *(float*)&cur_vertex[12+elements[elem].Offset]);
+							break;
+						case D3DDECLTYPE_UBYTE4N:
+							fprintf(file, "%f  ", (float)(*(u8*)&cur_vertex[elements[elem].Offset])/255.f);
+							fprintf(file, "%f  ", (float)(*(u8*)&cur_vertex[1+elements[elem].Offset])/255.f);
+							fprintf(file, "%f  ", (float)(*(u8*)&cur_vertex[2+elements[elem].Offset])/255.f);
+							fprintf(file, "%f\t", (float)(*(u8*)&cur_vertex[3+elements[elem].Offset])/255.f);
+							break;
+						case D3DDECLTYPE_SHORT2N:
+							fprintf(file, "%f  ", (float)(*(s16*)&cur_vertex[elements[elem].Offset])/32767.f);
+							fprintf(file, "%f\t", (float)(*(s16*)&cur_vertex[2+elements[elem].Offset])/32767.f);
+							break;
+						case D3DDECLTYPE_SHORT4N:
+							fprintf(file, "%f  ", (float)(*(s16*)&cur_vertex[elements[elem].Offset])/32767.f);
+							fprintf(file, "%f  ", (float)(*(s16*)&cur_vertex[2+elements[elem].Offset])/32767.f);
+							fprintf(file, "%f  ", (float)(*(s16*)&cur_vertex[4+elements[elem].Offset])/32767.f);
+							fprintf(file, "%f\t", (float)(*(s16*)&cur_vertex[6+elements[elem].Offset])/32767.f);
+							break;
+						case D3DDECLTYPE_USHORT2N:
+							fprintf(file, "%f  ", (float)(*(u16*)&cur_vertex[elements[elem].Offset])/65535.f);
+							fprintf(file, "%f\t", (float)(*(u16*)&cur_vertex[2+elements[elem].Offset])/65535.f);
+							break;
+						case D3DDECLTYPE_USHORT4N:
+							fprintf(file, "%f  ", (float)(*(u16*)&cur_vertex[elements[elem].Offset])/65535.f);
+							fprintf(file, "%f  ", (float)(*(u16*)&cur_vertex[2+elements[elem].Offset])/65535.f);
+							fprintf(file, "%f  ", (float)(*(u16*)&cur_vertex[4+elements[elem].Offset])/65535.f);
+							fprintf(file, "%f\t", (float)(*(u16*)&cur_vertex[6+elements[elem].Offset])/65535.f);
+							break;
+					}
+					fprintf(file, "\t");
+				}
+				fprintf(file, "\n");
+			}
+
+			fprintf(file, "\nTRIANGLE INDICES\n");
+			for (int i = 0; i < IndexGenerator::GetNumTriangles(); ++i)
+				fprintf(file, "%d\t%d\t%d\n", tri_indices[3*i], tri_indices[3*i+1], tri_indices[3*i+2]);
+
+			fprintf(file, "\nLINE INDICES\n");
+			for (int i = 0; i < IndexGenerator::GetNumLines(); ++i)
+				fprintf(file, "%d\t%d\n", line_indices[2*i], line_indices[2*i+1]);
+
+			fprintf(file, "\nPOINT INDICES\n");
+			for (int i = 0; i < IndexGenerator::GetNumPoints(); ++i)
+				fprintf(file, "%d\n", point_indices[i]);
+
+			fclose(file);
 			break;
+		}
 
 		case 14: // Vertex Description
-			break;
+		{
+			D3DVERTEXELEMENT9* elements;
+			int num_elements;
+			((DX9::VertexManager*)g_vertex_manager)->GetElements(g_nativeVertexFmt, &elements, &num_elements);
+			if (elements == NULL || num_elements == 0)
+				return;
 
+			char filename[MAX_PATH];
+			sprintf(filename, "%s/vertex_decl.txt", dump_path);
+			FILE* file = fopen(filename, "w");
+
+			fprintf(file, "Index\tOffset\tType\t\tUsage\t\tUsageIndex\n");
+			for (int i = 0; i < num_elements; ++i)
+			{
+				const char* types[] = {
+					"FLOAT1  " , "FLOAT2  ", "FLOAT3  ", "FLOAT4  ", "D3DCOLOR", "UBYTE4  ", "SHORT2  ", "SHORT4  ",
+					"UBYTE4N " , "SHORT2N ", "SHORT4N ", "USHORT2N", "USHORT4N", "UDEC3   ", "DEC3N   ", "FLOAT16_2",
+					"FLOAT16_4", "UNUSED  ",
+				};
+				const char* usages[] = {
+					"POSITION    ", "BLENDWEIGHT ", "BLENDINDICES", "NORMAL      ", "PSIZE       ", "TEXCOORD    ", "TANGENT     ", "BINORMAL    ",
+					"TESSFACTOR  ", "POSITIONT   ", "COLOR       ", "FOG         ", "DEPTH       ", "SAMPLE      ",
+				};
+				fprintf(file, "%d\t%d\t%s\t%s\t%d\n", i, elements[i].Offset, types[elements[i].Type], usages[elements[i].Usage], elements[i].UsageIndex);
+			}
+
+			fclose(file);
+			break;
+		}
 		case 15: // Vertex Matrices
 			break;
 
 		case 16: // Statistics
 			break;
-
 	}
 }
 

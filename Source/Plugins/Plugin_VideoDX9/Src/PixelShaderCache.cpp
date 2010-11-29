@@ -352,6 +352,8 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	}
 #endif
 	delete [] bytecode;
+
+	DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
 	return result;
 }
 
@@ -381,12 +383,12 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytec
 }
 
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
 std::string PixelShaderCache::GetCurrentShaderCode()
 {
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (last_entry)
 		return last_entry->code;
 	else
-		return "(no shader)\n";
-}
 #endif
+		return "(not available)\n";
+}

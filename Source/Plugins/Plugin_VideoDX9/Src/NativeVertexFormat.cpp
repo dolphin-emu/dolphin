@@ -37,6 +37,11 @@ public:
 	~D3DVertexFormat();
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	virtual void SetupVertexPointers() const;
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	D3DVERTEXELEMENT9 elements[32];
+	int num_elements;
+#endif
 };
 
 namespace DX9
@@ -47,6 +52,17 @@ NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 	return new D3DVertexFormat();
 }
 
+}
+
+void DX9::VertexManager::GetElements(NativeVertexFormat* format, D3DVERTEXELEMENT9** elems, int* num)
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	*elems = ((D3DVertexFormat*)format)->elements;
+	*num = ((D3DVertexFormat*)format)->num_elements;
+#else
+	*elems = NULL;
+	*num = 0;
+#endif
 }
 
 D3DVertexFormat::~D3DVertexFormat()
@@ -163,6 +179,10 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		PanicAlert("Failed to create D3D vertex declaration!");
 		return;
 	}
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	memcpy(&elements, elems, sizeof(elems));
+	num_elements = elem_idx;
+#endif
 }
 
 void D3DVertexFormat::SetupVertexPointers() const
