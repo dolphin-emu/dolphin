@@ -12,7 +12,8 @@ set(LIBS	core
 			wiiuse
 			SDL
 			GL
-			${XRANDR_LIBS})
+			${XRANDR_LIBRARIES}
+			${X11_LIBRARIES})
 
 if(wxWidgets_FOUND)
 	set(MEMCARDSRCS	Src/MemcardManager.cpp
@@ -51,8 +52,7 @@ if(wxWidgets_FOUND)
 				inputuicommon
 				memcard
 				${wxWidgets_LIBRARIES}
-				${GTK2_LIBRARIES}
-				${X11_LIBRARIES})
+				${GTK2_LIBRARIES})
 
 else(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
