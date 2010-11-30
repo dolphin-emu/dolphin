@@ -11,7 +11,8 @@ set(LIBS	core
 			sfml-network
 			wiiuse
 			SDL
-			GL)
+			GL
+			${XRANDR_LIBS})
 
 if(wxWidgets_FOUND)
 	set(MEMCARDSRCS	Src/MemcardManager.cpp
@@ -49,17 +50,15 @@ if(wxWidgets_FOUND)
 				debugger_ui_util
 				inputuicommon
 				memcard
-				${wxWidgets_LIBRARIES})
+				${wxWidgets_LIBRARIES}
+				${GTK2_LIBRARIES}
+				${X11_LIBRARIES})
 
 else(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
 				Src/MainNoGUI.cpp
 				Src/cmdline.c)
 endif()
-
-if(XRANDR_FOUND)
-	set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
-endif(XRANDR_FOUND)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/stdafx.cpp)
