@@ -42,6 +42,7 @@ endif(WIN32)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
 add_library(common STATIC ${SRCS})
+target_link_libraries(common ${CMAKE_DL_LIBS})
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
 endif()

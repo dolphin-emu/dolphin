@@ -23,8 +23,7 @@ set(LIBS	videocommon
 if(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
 				Src/Debugger/Debugger.cpp)
-	set(LIBS	videouicommon ${LIBS})
-	set(LIBS ${LIBS} ${wxWidgets_LIBRARIES})
+	set(LIBS	videouicommon ${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
