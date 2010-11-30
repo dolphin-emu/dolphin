@@ -813,7 +813,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-	if (bpmem.blendmode.logicopenable)
+	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 	
 	if (bpmem.blendmode.subtract && bpmem.blendmode.blendenable)
