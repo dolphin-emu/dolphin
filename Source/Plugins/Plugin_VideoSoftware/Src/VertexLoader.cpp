@@ -107,16 +107,26 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     m_NumAttributeLoaders = 0;
 
     // Reset vertex
-    // matrix index from xfregs or cp memory?
-    _assert_msg_(VIDEO, xfregs.MatrixIndexA.PosNormalMtxIdx == MatrixIndexA.PosNormalMtxIdx, "Matrix indices don't match");
-    //_assert_msg_(VIDEO, xfregs.MatrixIndexA.Tex0MtxIdx == MatrixIndexA.Tex0MtxIdx, "Matrix indices don't match");
-    //_assert_msg_(VIDEO, xfregs.MatrixIndexA.Tex1MtxIdx == MatrixIndexA.Tex1MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexA.Tex2MtxIdx == MatrixIndexA.Tex2MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexA.Tex3MtxIdx == MatrixIndexA.Tex3MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexB.Tex4MtxIdx == MatrixIndexB.Tex4MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexB.Tex5MtxIdx == MatrixIndexB.Tex5MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexB.Tex6MtxIdx == MatrixIndexB.Tex6MtxIdx, "Matrix indices don't match");
-    _assert_msg_(VIDEO, xfregs.MatrixIndexB.Tex7MtxIdx == MatrixIndexB.Tex7MtxIdx, "Matrix indices don't match");
+    // matrix index from xf regs or cp memory?
+	if (xfregs.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
+		xfregs.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
+		xfregs.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
+		xfregs.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
+		xfregs.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
+		xfregs.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
+		xfregs.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
+		xfregs.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
+		xfregs.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
+	{
+		WARN_LOG(VIDEO, "Matrix indices don't match");
+
+		// Just show the assert once
+		static bool showedAlert = false;
+		_assert_msg_(VIDEO, showedAlert, "Matrix indices don't match");
+		showedAlert = true;
+	}
+
+#if(1)
     m_Vertex.posMtx = xfregs.MatrixIndexA.PosNormalMtxIdx;
     m_Vertex.texMtx[0] = xfregs.MatrixIndexA.Tex0MtxIdx;
     m_Vertex.texMtx[1] = xfregs.MatrixIndexA.Tex1MtxIdx;
@@ -126,7 +136,8 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     m_Vertex.texMtx[5] = xfregs.MatrixIndexB.Tex5MtxIdx;
     m_Vertex.texMtx[6] = xfregs.MatrixIndexB.Tex6MtxIdx;
     m_Vertex.texMtx[7] = xfregs.MatrixIndexB.Tex7MtxIdx;
-    /*m_Vertex.posMtx = MatrixIndexA.PosNormalMtxIdx;
+#else
+    m_Vertex.posMtx = MatrixIndexA.PosNormalMtxIdx;
     m_Vertex.texMtx[0] = MatrixIndexA.Tex0MtxIdx;
     m_Vertex.texMtx[1] = MatrixIndexA.Tex1MtxIdx;
     m_Vertex.texMtx[2] = MatrixIndexA.Tex2MtxIdx;
@@ -134,7 +145,8 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     m_Vertex.texMtx[4] = MatrixIndexB.Tex4MtxIdx;
     m_Vertex.texMtx[5] = MatrixIndexB.Tex5MtxIdx;
     m_Vertex.texMtx[6] = MatrixIndexB.Tex6MtxIdx;
-    m_Vertex.texMtx[7] = MatrixIndexB.Tex7MtxIdx;*/
+    m_Vertex.texMtx[7] = MatrixIndexB.Tex7MtxIdx;
+#endif
 
     if (g_VtxDesc.PosMatIdx != NOT_PRESENT) {
         AddAttributeLoader(LoadPosMtx);
@@ -258,7 +270,7 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_TexGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
-		(xfregs.texMtxInfo[0].inputform == XF_TEXINPUT_AB11);
+		(xfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 
 
     m_SetupUnit->Init(primitiveType);

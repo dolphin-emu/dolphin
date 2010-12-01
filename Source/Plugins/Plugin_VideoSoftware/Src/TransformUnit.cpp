@@ -35,6 +35,7 @@ void MultiplyVec2Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
 {
     result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] + mat[3];
     result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] + mat[7];
+	result.z = 1.0f;
 }
 
 void MultiplyVec2Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
@@ -49,6 +50,13 @@ void MultiplyVec3Mat33(const Vec3 &vec, const float *mat, Vec3 &result)
     result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z;
     result.y = mat[3] * vec.x + mat[4] * vec.y + mat[5] * vec.z;
     result.z = mat[6] * vec.x + mat[7] * vec.y + mat[8] * vec.z;
+}
+
+void MultiplyVec3Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
+{
+    result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z + mat[3];
+    result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] * vec.z + mat[7];
+    result.z = 1.0f;
 }
 
 void MultiplyVec3Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
@@ -134,14 +142,22 @@ inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
     const float *mat = (const float*)&xfregs.posMatrices[srcVertex->texMtx[coordNum] * 4];
     Vec3 *dst = &dstVertex->texCoords[coordNum];
 
-    if (texinfo.inputform == XF_TEXINPUT_AB11)
-    {
-        MultiplyVec2Mat34(*src, mat, *dst); 
-    }
-    else
-    {
-        MultiplyVec3Mat34(*src, mat, *dst); 
-    }
+	if (texinfo.projection == XF_TEXPROJ_ST)
+	{
+		if (texinfo.inputform == XF_TEXINPUT_AB11 || specialCase)
+			MultiplyVec2Mat24(*src, mat, *dst);
+		else
+			MultiplyVec3Mat24(*src, mat, *dst);
+	}
+	else // texinfo.projection == XF_TEXPROJ_STQ
+	{
+		_assert_(!specialCase);
+
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
+			MultiplyVec2Mat34(*src, mat, *dst);
+		else
+			MultiplyVec3Mat34(*src, mat, *dst);
+	}
 
     if (xfregs.dualTexTrans)
     {

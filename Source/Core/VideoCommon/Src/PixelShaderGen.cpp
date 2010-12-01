@@ -730,7 +730,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// optional perspective divides
 			if (xfregs.texcoords[i].texmtxinfo.projection == XF_TEXPROJ_STQ)
-				WRITE(p, "uv%d.xy = uv%d.xy/uv%d.z;\n", i, i, i);
+			{
+				WRITE(p, "if (uv%d.z)", i);
+				WRITE(p, "	uv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
+				WRITE(p, "else");
+				WRITE(p, "	uv%d.xy = float2(0.0f, 0.0f);\n", i);
+			}
 			
 			WRITE(p, "uv%d.xy = uv%d.xy * "I_TEXDIMS"[%d].zw;\n", i, i, i);
 		}
