@@ -401,31 +401,9 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UCPCtrlReg tmpCtrl(_Value);
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
-
-			//If there is a SetBreakPoint and the actual distance is enought to achieve the BP,
-			//we wait for the FIFO Loop in DC MODE
-			if (g_VideoInitialize.bOnThread && fifo.bFF_BPInt && tmpCtrl.BPInt && fifo.bFF_BPEnable && tmpCtrl.BPEnable)				
-			{
-				bool wait = false;
-				if (fifo.CPReadPointer + fifo.CPReadWriteDistance + 32 > fifo.CPBreakpoint)
-				{
-					wait = true;
-				} //If the distance is >= CPEnd we need to calculate the distane related to CPBase
-				else if (fifo.CPReadPointer + fifo.CPReadWriteDistance  >= fifo.CPEnd) 
-				{
-					if (fifo.CPReadWriteDistance + fifo.CPReadPointer - fifo.CPEnd + 32 > fifo.CPBreakpoint)
-						wait = true;
-				}
-
-				// We waiting for the fifo loop finish
-				while (wait && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance ||
-					(fifo.bFF_BPEnable && ((fifo.CPReadPointer <= fifo.CPBreakpoint) &&
-					(fifo.CPReadPointer + 32 > fifo.CPBreakpoint)))))
-				{
-					Common::YieldCPU();
-				}					
-			}
-
+			u32 tmpFifoGPReadEnable = fifo.bFF_GPReadEnable;
+			
+			if(fifo.bFF_GPReadEnable && !fifo.bFF_BPInt)
 			Common::AtomicStore(fifo.bFF_Breakpoint, false);
 
 			if (tmpCtrl.FifoUnderflowIntEnable)
@@ -446,7 +424,22 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			fifo.bFF_BPInt = tmpCtrl.BPInt;
 			fifo.bFF_BPEnable = tmpCtrl.BPEnable;
-			fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
+			if(tmpFifoGPReadEnable == fifo.bFF_GPReadEnable)
+			{
+				fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
+				
+				if  (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance >= fifo.CPHiWatermark))
+				{
+					// A little trick to prevent FIFO from overflown in dual core mode
+					while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance >= fifo.CPHiWatermark))
+						Common::YieldCPU();
+					
+					if (!m_CPStatusReg.OverflowHiWatermark)
+						m_CPStatusReg.OverflowHiWatermark = true;				
+				}
+
+
+			}
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
