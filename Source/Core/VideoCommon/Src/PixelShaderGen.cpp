@@ -415,7 +415,7 @@ char *GeneratePixelLightShader(char *p, int index, const LitChannel& chan, const
 		else if (chan.attnfunc == 1) 
 		{ // specular
 			WRITE(p, "ldir = normalize("I_PLIGHTS".lights[%d].pos.xyz);\n",index);
-			WRITE(p, "attn = (dot(_norm0,ldir) > 0.0f) ? max(0.0f, dot(_norm0, "I_PLIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index);
+			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, "I_PLIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index);
 			WRITE(p, "attn = max(0.0f, dot("I_PLIGHTS".lights[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot("I_PLIGHTS".lights[%d].distatt.xyz, float3(1,attn,attn*attn));\n", index, index);
 		}
 
