@@ -32,8 +32,6 @@ namespace HwRasterizer
 {
     float efbHalfWidth;
     float efbHalfHeight;
-    float texWidth;
-    float texHeight;
     bool hasTexture;
 
     u8 *temp;   
@@ -53,9 +51,6 @@ namespace HwRasterizer
 
         TexCacheEntry &cacheEntry = textures[imageAddr];
         cacheEntry.Update();
-
-        texWidth = (float)(bpmem.texcoords[0].s.scale_minus_1 + 1);
-        texHeight = (float)(bpmem.texcoords[0].t.scale_minus_1 + 1);
 
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, cacheEntry.texture);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
@@ -90,8 +85,14 @@ namespace HwRasterizer
 
     void DrawTextureVertex(OutputVertexData *v)
     {
-        glTexCoord2f(v->texCoords[0].x * texWidth, v->texCoords[0].y * texHeight);
-        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z);
+        float s = v->texCoords[0].x;
+		float t = v->texCoords[0].y;
+		glTexCoord2f(s, t);
+
+		float x = (v->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y = 1.0f - (v->screenPosition.y / efbHalfHeight);
+		float z = v->screenPosition.z;
+        glVertex3f(x, y, z);
     }
 
     void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)

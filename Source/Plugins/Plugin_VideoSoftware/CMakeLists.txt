@@ -22,6 +22,7 @@ set(SRCS	Src/BPMemLoader.cpp
 			Src/VertexFormatConverter.cpp
 			Src/VertexLoader.cpp
 			Src/VideoConfig.cpp
+			Src/VideoConfigDialog.cpp
 			Src/XFMemLoader.cpp)
 
 set(LIBS	videocommon

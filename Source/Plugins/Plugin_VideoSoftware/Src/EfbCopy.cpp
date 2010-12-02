@@ -26,13 +26,16 @@
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
 #include "CommandProcessor.h"
+#include "GLUtil.h"
 
 
 namespace EfbCopy
 {
     void CopyToXfb()
     {
-        if (!g_Config.bHwRasterizer)
+        OpenGL_Update(); // just updates the render window position and the backbuffer size	
+
+		if (!g_Config.bHwRasterizer)
         {
             // copy to open gl for rendering
             EfbInterface::UpdateColorTexture();
@@ -45,9 +48,12 @@ namespace EfbCopy
 
     void CopyToRam()
     {
-        u8 *dest_ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.copyTexDest << 5);
+        if (!g_Config.bHwRasterizer)
+		{
+			u8 *dest_ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.copyTexDest << 5);
 
-        TextureEncoder::Encode(dest_ptr);
+			TextureEncoder::Encode(dest_ptr);
+		}
     }
 
     void ClearEfb()

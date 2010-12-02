@@ -34,10 +34,16 @@ namespace DebugUtil
 {
 
 u32 skipFrames = 0;
-const int NumObjectBuffers = 32;
-u8 ObjectBuffer[NumObjectBuffers][EFB_WIDTH*EFB_HEIGHT*4];
+bool drawingHwTriangles = false;
+
+enum { NumObjectBuffers = 40};
+
+u32 ObjectBuffer[NumObjectBuffers][EFB_WIDTH*EFB_HEIGHT];
+u32 TempBuffer[NumObjectBuffers];
+
 bool DrawnToBuffer[NumObjectBuffers];
 const char* ObjectBufferName[NumObjectBuffers];
+int BufferBase[NumObjectBuffers];
 
 void Init()
 {
@@ -46,6 +52,7 @@ void Init()
         memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
         DrawnToBuffer[i] = false;
         ObjectBufferName[i] = 0;
+		BufferBase[i] = 0;
     }
 }
 
@@ -168,10 +175,12 @@ void DumpDepth(const char* filename)
     delete []data;
 }
 
-void DrawObjectBuffer(s16 x, s16 y, u8 *color, int buffer, const char *name)
+void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)
 {
-    u32 offset = (x + y * EFB_WIDTH) * 4;
-    u8 *dst = &ObjectBuffer[buffer][offset];
+    int buffer = bufferBase + subBuffer;
+
+	u32 offset = (x + y * EFB_WIDTH) * 4;
+    u8 *dst = (u8*)&ObjectBuffer[buffer][offset];
     *(dst++) = color[2];
     *(dst++) = color[1];
     *(dst++) = color[0];
@@ -179,6 +188,28 @@ void DrawObjectBuffer(s16 x, s16 y, u8 *color, int buffer, const char *name)
 
     DrawnToBuffer[buffer] = true;
     ObjectBufferName[buffer] = name;
+	BufferBase[buffer] = bufferBase;
+}
+
+void DrawTempBuffer(u8 *color, int buffer)
+{
+	u8 *dst = (u8*)&TempBuffer[buffer];
+    *(dst++) = color[2];
+    *(dst++) = color[1];
+    *(dst++) = color[0];
+    *(dst++) = color[3];
+}
+
+void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *name)
+{
+	int buffer = bufferBase + subBuffer;
+
+	u32 offset = (x + y * EFB_WIDTH);
+	ObjectBuffer[buffer][offset] = TempBuffer[buffer];
+
+	DrawnToBuffer[buffer] = true;
+    ObjectBufferName[buffer] = name;
+	BufferBase[buffer] = bufferBase;
 }
 
 void OnObjectBegin()
@@ -189,7 +220,10 @@ void OnObjectBegin()
             DumpActiveTextures();
 
         if (g_Config.bHwRasterizer)
+		{
             HwRasterizer::BeginTriangles();
+			drawingHwTriangles = true;
+		}
     }
 }
 
@@ -200,8 +234,11 @@ void OnObjectEnd()
         if (g_Config.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
             DumpEfb(StringFromFormat("%sobject%i.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.thisFrame.numDrawnObjects).c_str());
 
-        if (g_Config.bHwRasterizer)
+        if (g_Config.bHwRasterizer || drawingHwTriangles)
+		{
             HwRasterizer::EndTriangles();
+			drawingHwTriangles = false;
+		}
 
         for (int i = 0; i < NumObjectBuffers; i++)
         {
@@ -209,7 +246,7 @@ void OnObjectEnd()
             {
                 DrawnToBuffer[i] = false;
                 (void)SaveTGA(StringFromFormat("%sobject%i_%s(%i).tga", File::GetUserPath(D_DUMPFRAMES_IDX),
-                    stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i).c_str(), EFB_WIDTH, EFB_HEIGHT, ObjectBuffer[i]);
+                    stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]).c_str(), EFB_WIDTH, EFB_HEIGHT, ObjectBuffer[i]);
                 memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
             }
         }

@@ -55,6 +55,13 @@ class Tev
     u8 m_ScaleLShiftLUT[4];
     u8 m_ScaleRShiftLUT[4];
 
+	enum BufferBase
+	{
+		DIRECT = 0,
+		DIRECT_TFETCH = 16,
+		INDIRECT = 32
+	};
+
     void SetRasColor(int colorChan, int swaptable);
 
     void DrawColorRegular(TevStageCombiner::ColorCombiner &cc);

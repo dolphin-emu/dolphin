@@ -19,6 +19,10 @@
 #include "Common.h"
 #include "pluginspecs_video.h"
 
+#if defined(HAVE_WX) && HAVE_WX
+#include "VideoConfigDialog.h"
+#endif // HAVE_WX
+
 #include "CommandProcessor.h"
 #include "OpcodeDecoder.h"
 #include "VideoConfig.h"
@@ -34,6 +38,7 @@
 #include "LogManager.h"
 #include "EfbInterface.h"
 #include "DebugUtil.h"
+#include "FileUtil.h"
 
 
 PLUGIN_GLOBALS* globals = NULL;
@@ -68,6 +73,11 @@ void *DllDebugger(void *_hParent, bool Show)
 
 void DllConfig(void *_hParent)
 {
+#if defined(HAVE_WX) && HAVE_WX
+	VideoConfigDialog* const diag = new VideoConfigDialog((wxWindow*)_hParent, "Software", "gfx_software");
+	diag->ShowModal();
+	diag->Destroy();
+#endif
 }
 
 void Initialize(void *init)
@@ -75,7 +85,7 @@ void Initialize(void *init)
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *_pVideoInitialize;
 
-    g_Config.Load();
+    g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
 
     InitBPMemory();
     InitXFMemory();

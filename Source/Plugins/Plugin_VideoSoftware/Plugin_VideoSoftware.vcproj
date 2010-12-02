@@ -664,6 +664,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\VideoConfigDialog.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoConfigDialog.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\XFMemLoader.cpp"
 			>
 		</File>

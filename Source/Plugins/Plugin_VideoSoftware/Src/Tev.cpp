@@ -26,6 +26,12 @@
 
 #include <math.h>
 
+#ifdef _DEBUG
+#define ALLOW_TEV_DUMPS 1
+#else
+#define ALLOW_TEV_DUMPS 0
+#endif
+
 void Tev::Init()
 {
     FixedConstants[0] = 0;
@@ -592,11 +598,11 @@ void Tev::Draw()
         TextureSampler::Sample(Uv[texcoordSel].s >> scaleS, Uv[texcoordSel].t >> scaleT,
 			IndirectLod[stageNum], IndirectLinear[stageNum], texmap, IndirectTex[stageNum]);
 
-#ifdef _DEBUG
+#if ALLOW_TEV_DUMPS
         if (g_Config.bDumpTevStages)
         {
             u8 stage[4] = {(u8)IndirectTex[stageNum][3], (u8)IndirectTex[stageNum][2], (u8)IndirectTex[stageNum][1], 255};
-            DebugUtil::DrawObjectBuffer(Position[0], Position[1], stage, 16+stageNum, "Ind");
+			DebugUtil::DrawTempBuffer(stage, INDIRECT + stageNum);
         }
 #endif
     }
@@ -623,6 +629,11 @@ void Tev::Draw()
             u8 texel[4];
     
 			TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
+
+#if ALLOW_TEV_DUMPS
+			if (g_Config.bDumpTevTextureFetches)
+				DebugUtil::DrawTempBuffer(texel, DIRECT_TFETCH + stageNum);
+#endif
 
             int swaptable = ac.tswap * 2;            
 
@@ -673,11 +684,11 @@ void Tev::Draw()
         else
             Reg[ac.dest][ALP_C] = Clamp1024(Reg[ac.dest][ALP_C]);
 
-#ifdef _DEBUG
+#if ALLOW_TEV_DUMPS
         if (g_Config.bDumpTevStages)
         {
             u8 stage[4] = {(u8)Reg[0][0], (u8)Reg[0][1], (u8)Reg[0][2], (u8)Reg[0][3]};
-            DebugUtil::DrawObjectBuffer(Position[0], Position[1], stage, stageNum, "Stage");
+			DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
         }
 #endif
     }
@@ -774,6 +785,26 @@ void Tev::Draw()
         if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
             return;
     }
+
+#if ALLOW_TEV_DUMPS
+	if (g_Config.bDumpTevStages)
+	{
+		for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
+			DebugUtil::CopyTempBuffer(Position[0], Position[1], INDIRECT, i, "Indirect");
+		for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
+			DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT, i, "Stage");
+	}
+
+	if (g_Config.bDumpTevTextureFetches)
+	{
+		for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
+		{
+			TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
+			if (order.getEnable(i & 1))
+				DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT_TFETCH, i, "TFetch");
+		}
+	}
+#endif
 
     INCSTAT(stats.thisFrame.tevPixelsOut);
 

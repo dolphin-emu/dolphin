@@ -23,29 +23,33 @@
 #define STATISTICS 1
 
 // NEVER inherit from this class.
-struct Config : NonCopyable
+struct VideoConfig : NonCopyable
 {
-    Config();
-    void Load();
-    void Save();
+    VideoConfig();
+    void Load(const char* ini_file);
+    void Save(const char* ini_file);
 
     // General
     bool bFullscreen;
     bool bHideCursor;
     bool renderToMainframe;	
 
+	bool bHwRasterizer;
+
     bool bShowStats;
+
     bool bDumpTextures;
     bool bDumpObjects;
     bool bDumpFrames;
-    bool bDumpTevStages;
 
-    bool bHwRasterizer;
+	// Debug only
+    bool bDumpTevStages;
+	bool bDumpTevTextureFetches;
 
     u32 drawStart;
     u32 drawEnd;
 };
 
-extern Config g_Config;
+extern VideoConfig g_Config;
 
 #endif  // _PLUGIN_VIDEOSOFTWARE_CONFIG_H_

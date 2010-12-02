@@ -59,13 +59,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Clipper
 {
-    float m_ViewOffset[3];
-    OutputVertexData ClippedVertices[18];
-    OutputVertexData *Vertices[21];
+	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
+
+	float m_ViewOffset[3];
+    OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
+    OutputVertexData *Vertices[NUM_INDICES];
 
     void Init()
     {
-        for (int i = 0; i < 18; ++i)
+        for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
             Vertices[i+3] = &ClippedVertices[i];
     }
 
@@ -282,7 +284,7 @@ namespace Clipper
         if(!CullTest(v0, v1, v2, backface))
             return;
         
-        int indices[21] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+        int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
                                      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
                                      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG };
         int numIndices = 3;
@@ -304,7 +306,8 @@ namespace Clipper
 
         for(int i = 0; i+3 <= numIndices; i+=3)
         {
-            if(indices[i] != SKIP_FLAG)
+			_assert_(i < NUM_INDICES);
+			if(indices[i] != SKIP_FLAG)
             {
                 PerspectiveDivide(Vertices[indices[i]]);
                 PerspectiveDivide(Vertices[indices[i+1]]);

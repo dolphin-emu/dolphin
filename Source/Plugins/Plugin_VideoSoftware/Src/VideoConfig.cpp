@@ -19,46 +19,73 @@
 #include "IniFile.h"
 #include "VideoConfig.h"
 
-Config g_Config;
+VideoConfig g_Config;
 
-Config::Config()
+VideoConfig::VideoConfig()
 {
     bFullscreen = false;
     bHideCursor = false;
     renderToMainframe = false;	
 
+	bHwRasterizer = false;
+
     bShowStats = false;
+
     bDumpTextures = false;
     bDumpObjects = false;
     bDumpFrames = false;
-    bDumpTevStages = false;
 
-    bHwRasterizer = false;
+    bDumpTevStages = false;
+	bDumpTevTextureFetches = false;
 
     drawStart = 0;
     drawEnd = 100000;
 }
 
-void Config::Load()
+void VideoConfig::Load(const char* ini_file)
 {
     std::string temp;
     IniFile iniFile;
-    iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
+    iniFile.Load(ini_file);
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
+
+	iniFile.Get("Rendering", "HwRasterizer", &bHwRasterizer, false);
+
+	iniFile.Get("Info", "ShowStats", &bShowStats, false);
+
+	iniFile.Get("Utility", "DumpTexture", &bDumpTextures, false);
+	iniFile.Get("Utility", "DumpObjects", &bDumpObjects, false);
+	iniFile.Get("Utility", "DumpFrames", &bDumpFrames, false);
+	iniFile.Get("Utility", "DumpTevStages", &bDumpTevStages, false);
+	iniFile.Get("Utility", "DumpTevTexFetches", &bDumpTevTextureFetches, false);
+
+	iniFile.Get("Misc", "DrawStart", &drawStart, 0);
+	iniFile.Get("Misc", "DrawEnd", &drawEnd, 100000);
 }
 
-
-
-void Config::Save()
+void VideoConfig::Save(const char* ini_file)
 {
     IniFile iniFile;
-    iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
+    iniFile.Load(ini_file);
 
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+
+	iniFile.Set("Rendering", "HwRasterizer", bHwRasterizer);
+
+	iniFile.Set("Info", "ShowStats", bShowStats);
+
+	iniFile.Set("Utility", "DumpTexture", bDumpTextures);
+	iniFile.Set("Utility", "DumpObjects", bDumpObjects);
+	iniFile.Set("Utility", "DumpFrames", bDumpFrames);
+	iniFile.Set("Utility", "DumpTevStages", bDumpTevStages);
+	iniFile.Set("Utility", "DumpTevTexFetches", bDumpTevTextureFetches);
+
+	iniFile.Set("Misc", "DrawStart", drawStart);
+	iniFile.Set("Misc", "DrawEnd", drawEnd);
     
-    iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
+    iniFile.Save(ini_file);
 }
 

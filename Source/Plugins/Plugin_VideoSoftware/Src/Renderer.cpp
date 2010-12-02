@@ -149,9 +149,7 @@ void Renderer::DrawDebugText()
 
 void Renderer::DrawTexture(u8 *texture, int width, int height)
 {
-    OpenGL_Update(); // just updates the render window position and the backbuffer size	
-
-	GLsizei glWidth = (GLsizei)OpenGL_GetBackbufferWidth();
+    GLsizei glWidth = (GLsizei)OpenGL_GetBackbufferWidth();
 	GLsizei glHeight = (GLsizei)OpenGL_GetBackbufferHeight();
 
 	// Update GLViewPort

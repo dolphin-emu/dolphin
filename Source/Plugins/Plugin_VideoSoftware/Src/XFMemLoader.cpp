@@ -92,5 +92,10 @@ void LoadIndexedXF(u32 val, int array)
 
 	u32 *pData = (u32*)g_VideoInitialize.pGetMemoryPointer(arraybases[array] + arraystrides[array]*index);
 
-	LoadXFReg(size, address, pData);
+	// byteswap data
+	u32 buffer[16];
+	for (int i = 0; i < size; ++i)
+		buffer[i] = Common::swap32(*(pData + i));
+
+	LoadXFReg(size, address, buffer);
 }
