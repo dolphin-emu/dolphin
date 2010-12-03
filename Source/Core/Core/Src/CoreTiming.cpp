@@ -400,22 +400,37 @@ void ProcessFifoWaitEvents()
 {
 	MoveEvents();
 
-	while (first)
+	if (!first)
+		return;
+
+	if (first->time <= globalTimer && first->fifoWait)
 	{
-		if ((first->time <= globalTimer) && first->fifoWait)
-		{
-			
-			Event* evt = first;
-			first = first->next;
-			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
-			FreeEvent(evt);
+		Event *next = first->next;
+		event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
+		FreeEvent(first);
+		first = next;
+	}
+
+	if (!first)
+		return;
+	
+	Event *prev = first;
+	Event *ptr = prev->next;
+	while (ptr)
+	{
+		if (ptr->time <= globalTimer && ptr->fifoWait)
+		{	
+			prev->next = ptr->next;
+			event_types[ptr->type].callback(ptr->userdata, (int)(globalTimer - ptr->time));
+			FreeEvent(ptr);
+			ptr = prev->next;
 		}
 		else
 		{
-			break;
+			prev = ptr;
+			ptr = ptr->next;
 		}
 	}
-
 }
 
 void MoveEvents()
