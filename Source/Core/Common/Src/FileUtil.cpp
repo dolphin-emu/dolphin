@@ -50,6 +50,7 @@
 
 #ifdef BSD4_4
 #define stat64 stat	// XXX
+#define fstat64 fstat	// XXX
 #endif
 
 // This namespace has various generic functions related to files and paths.
