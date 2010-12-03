@@ -129,7 +129,7 @@ std::string CVolumeGC::GetApploaderDate() const
 u64 CVolumeGC::GetSize() const
 {
 	if (m_pReader)
-		return (size_t)m_pReader->GetDataSize();
+		return m_pReader->GetDataSize();
 	else
 		return 0;
 }

@@ -39,9 +39,7 @@ CompressedBlobReader::CompressedBlobReader(const char *filename)
 {
 	file_name = filename;
 	file = fopen(filename, "rb");
-	fseek(file, 0, SEEK_END);
-	file_size = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	file_size = File::GetSize(filename);
 	fread(&header, sizeof(CompressedBlobHeader), 1, file);
 
 	SetSectorSize(header.block_size);
@@ -190,14 +188,11 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 
 	callback("Files opened, ready to compress.", 0, arg);
 
-	fseek(inf, 0, SEEK_END);
-	s64 insize = ftell(inf);
-	fseek(inf, 0, SEEK_SET);
 	CompressedBlobHeader header;
 	header.magic_cookie = kBlobCookie;
 	header.sub_type   = sub_type;
 	header.block_size = block_size;
-	header.data_size  = insize;
+	header.data_size  = File::GetSize(infile);
 
 	// round upwards!
 	header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);

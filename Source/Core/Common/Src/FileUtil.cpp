@@ -345,6 +345,24 @@ u64 GetSize(const char *filename)
 	return 0;
 }
 
+// Overloaded GetSize, accepts file descriptor
+u64 GetSize(const int fd)
+{
+	struct stat64 buf;
+	if (fstat64(fd, &buf) != 0) {
+		ERROR_LOG(COMMON, "GetSize: stat failed %i: %s",
+			fd, GetLastErrorMsg());
+		return 0;
+	}
+	return buf.st_size;
+}
+
+// Overloaded GetSize, accepts FILE*
+u64 GetSize(FILE *f)
+{
+	return GetSize(fileno(f));
+}
+
 // creates an empty file filename, returns true on success 
 bool CreateEmptyFile(const char *filename)
 {
@@ -769,9 +787,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	FILE *f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)
 		return false;
-	fseek(f, 0, SEEK_END);
-	size_t len = (size_t)ftell(f);
-	fseek(f, 0, SEEK_SET);
+	size_t len = (size_t)GetSize(f);
 	char *buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;
 	str = std::string(buf, len);

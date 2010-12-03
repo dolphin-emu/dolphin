@@ -19,6 +19,7 @@
 
 #include "Blob.h"
 #include "FileBlob.h"
+#include "FileUtil.h"
 
 namespace DiscIO
 {
@@ -26,9 +27,7 @@ namespace DiscIO
 PlainFileReader::PlainFileReader(FILE* file__)
 {
 	file_ = file__;
-	fseek(file_, 0, SEEK_END);
-	size = ftell(file_);
-	fseek(file_, 0, SEEK_SET);
+	size = File::GetSize(file__);
 }
 
 PlainFileReader* PlainFileReader::Create(const char* filename)

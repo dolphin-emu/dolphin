@@ -94,6 +94,8 @@ char* strndup (char const *s, size_t n);
 	#define ftell _ftelli64
 	#define atoll _atoi64
 	#define stat64 _stat64
+	#define fstat64 _fstat64
+	#define fileno _fileno
 
 	#if _M_IX86
 		#define Crash() {__asm int 3}

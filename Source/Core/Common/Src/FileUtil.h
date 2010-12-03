@@ -78,6 +78,12 @@ bool IsDirectory(const char *filename);
 // Returns the size of filename (64bit)
 u64 GetSize(const char *filename);
 
+// Overloaded GetSize, accepts file descriptor
+u64 GetSize(const int fd);
+
+// Overloaded GetSize, accepts FILE*
+u64 GetSize(FILE *f);
+
 // Returns true if successful, or path already exists.
 bool CreateDir(const char *filename);
 

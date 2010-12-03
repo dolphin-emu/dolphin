@@ -343,9 +343,7 @@ bool DSPDisassembler::DisFile(const char* name, int base_addr, int pass, std::st
 		return false;
 	}
 
-	fseek(in, 0, SEEK_END);
-	int size = (int)ftell(in) & ~1;
-	fseek(in, 0, SEEK_SET);
+	int size = (int)File::GetSize(in) & ~1;
 	u16 *binbuf = new u16[size / 2];
 	fread(binbuf, 1, size, in);
 	fclose(in);

@@ -100,11 +100,6 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 			iPosition = _iLength;
 			break;
 
-		// WII Something - this could be bogus
-		case 0xCE:
-			WARN_LOG(SERIALINTERFACE, "Unknown Wii SI Command");
-			break;
-
 		// DEFAULT
 		default:
 			{

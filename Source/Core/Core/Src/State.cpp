@@ -353,9 +353,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	}
 	else
 	{
-		fseek(f, 0, SEEK_END);
-		sz = (int)(ftell(f) - sizeof(state_header));
-		fseek(f, sizeof(state_header), SEEK_SET);
+		sz = (int)(File::GetSize(f) - sizeof(state_header));
 		buffer = new u8[sz];
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
@@ -455,9 +453,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 	}
 	else
 	{
-		fseek(f, 0, SEEK_END);
-		sz = (int)(ftell(f) - sizeof(int));
-		fseek(f, sizeof(int), SEEK_SET);
+		sz = (int)(File::GetSize(f) - sizeof(int));
 		buffer = new u8[sz];
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)

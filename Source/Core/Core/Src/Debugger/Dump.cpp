@@ -18,6 +18,7 @@
 
 #include "Common.h"
 #include "Dump.h"
+#include "FileUtil.h"
 
 CDump::CDump(const char* _szFilename) :
 	m_pData(NULL),
@@ -26,9 +27,7 @@ CDump::CDump(const char* _szFilename) :
 	FILE* pStream = fopen(_szFilename, "rb");
 	if (pStream != NULL)
 	{
-		fseek(pStream, 0, SEEK_END);
-		m_size = (size_t) ftell(pStream);
-		fseek(pStream, 0, SEEK_SET);
+		m_size = (size_t)File::GetSize(pStream);
 
 		m_pData = new u8[m_size];
 

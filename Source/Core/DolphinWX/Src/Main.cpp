@@ -269,10 +269,7 @@ bool DolphinApp::OnInit()
 		else
 		{
 			char *tmpChar;
-			long len;
-			fseek(workingDir, 0, SEEK_END);
-			len = ftell(workingDir);
-			fseek(workingDir, 0, SEEK_SET);
+			size_t len = (size_t)File::GetSize(workingDir);
 			tmpChar = new char[len];
 			fread(tmpChar, len, 1, workingDir);
 			fclose(workingDir);
