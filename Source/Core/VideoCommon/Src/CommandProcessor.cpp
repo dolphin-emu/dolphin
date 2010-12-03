@@ -185,8 +185,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 		m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance || !fifo.bFF_GPReadEnable;
 		m_CPStatusReg.CommandIdle = fifo.CPCmdIdle;
-		m_CPStatusReg.UnderflowLoWatermark = (fifo.CPReadWriteDistance <= fifo.CPLoWatermark);
-		m_CPStatusReg.OverflowHiWatermark = (fifo.CPReadWriteDistance >= fifo.CPHiWatermark);
+		m_CPStatusReg.UnderflowLoWatermark = fifo.CPReadIdle;
 		
 		// hack: CPU will always believe fifo is empty and on idle
 		//m_CPStatusReg.ReadIdle = 1;
