@@ -403,8 +403,8 @@ void Write16(const u16 _Value, const u32 _Address)
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 			u32 tmpFifoGPReadEnable = fifo.bFF_GPReadEnable;
 			
-			if(fifo.bFF_GPReadEnable && !fifo.bFF_BPInt)
-			Common::AtomicStore(fifo.bFF_Breakpoint, false);
+			if((fifo.bFF_GPReadEnable && !tmpCtrl.GPReadEnable)  || (fifo.bFF_BPInt && !tmpCtrl.BPInt))
+				Common::AtomicStore(fifo.bFF_Breakpoint, false);
 
 			if (tmpCtrl.FifoUnderflowIntEnable)
 				Common::AtomicStore(fifo.CPReadIdle, false);
