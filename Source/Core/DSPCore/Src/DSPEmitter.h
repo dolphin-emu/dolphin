@@ -46,6 +46,9 @@ public:
 
 	int STACKALIGN RunForCycles(int cycles);
 
+	// CC Util
+	void Update_SR_Register64(bool carry = false, bool overflow = false);
+
 	// Register helpers
 	void setCompileSR(u16 bit);
 	void clrCompileSR(u16 bit);
@@ -113,6 +116,20 @@ public:
 	void mrr(const UDSPInstruction opc);
 	void nx(const UDSPInstruction opc);
 
+	// Multipliers
+	void get_multiply_prod();
+	void multiply();
+	void clrp(const UDSPInstruction opc);
+	void tstprod(const UDSPInstruction opc);
+	void movp(const UDSPInstruction opc);
+	void movnp(const UDSPInstruction opc);
+	void movpz(const UDSPInstruction opc);
+	void mulaxh(const UDSPInstruction opc);
+	void mul(const UDSPInstruction opc);
+	void mulmv(const UDSPInstruction opc);
+	void mulmvz(const UDSPInstruction opc);
+	void mulc(const UDSPInstruction opc);
+
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
 
@@ -131,7 +148,15 @@ private:
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_increment_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_decrement_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
-};									  
+	void get_long_prod();
+	void get_long_prod_round_prodl();
+	void set_long_prod();
+	void set_long_acc(int _reg);
+	void get_acc_m(int _reg);
+	void get_ax_l(int _reg);
+	void get_ax_h(int _reg);
+	void get_long_acc(int _reg);
+};
 
 
 #endif // _DSPEMITTER_H

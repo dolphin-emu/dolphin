@@ -459,11 +459,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Jit\DSPJitCCUtil.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Jit\DSPJitExtOps.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\Jit\DSPJitMisc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Jit\DSPJitMultiplier.cpp"
 				>
 			</File>
 			<File

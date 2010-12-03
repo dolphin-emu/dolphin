@@ -235,7 +235,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MOVR",	0x6000, 0xf800, DSPInterpreter::movr,    NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_REG18, 1, 0, 9, 0x0600}},                             true, false, false},
 	{"MOVAX",	0x6800, 0xfc00, DSPInterpreter::movax,   NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_AX, 1, 0, 9, 0x0200}},                                true, false, false},
 	{"MOV", 	0x6c00, 0xfe00, DSPInterpreter::mov,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_ACC_D, 1, 0, 8, 0x0100}},                             true, false, false},
-	{"MOVP",	0x6e00, 0xfe00, DSPInterpreter::movp,    NULL,                1, 1, {{P_ACC, 1, 0, 8, 0x0100}},                                                             true, false, false},
+	{"MOVP",	0x6e00, 0xfe00, DSPInterpreter::movp,    &DSPEmitter::movp,   1, 1, {{P_ACC, 1, 0, 8, 0x0100}},                                                             true, false, false},
 
 	//7
 	{"ADDAXL",	0x7000, 0xfc00, DSPInterpreter::addaxl,  NULL,                1, 2, {{P_ACC,  1, 0, 8, 0x0100},    {P_REG18, 1, 0, 9, 0x0200}},                             true, false, false},
@@ -244,15 +244,15 @@ const DSPOPCTemplate opcodes[] =
 	{"DECM",	0x7800, 0xfe00, DSPInterpreter::decm,    NULL,                1, 1, {{P_ACCM, 1, 0, 8, 0x0100}},                                                            true, false, false},
 	{"DEC",		0x7a00, 0xfe00, DSPInterpreter::dec,     NULL,                1, 1, {{P_ACC,  1, 0, 8, 0x0100}},                                                            true, false, false},
 	{"NEG",		0x7c00, 0xfe00, DSPInterpreter::neg,     NULL,                1, 1, {{P_ACC,  1, 0, 8, 0x0100}},                                                            true, false, false},
-	{"MOVNP",	0x7e00, 0xfe00, DSPInterpreter::movnp,   NULL,                1, 1, {{P_ACC,  1, 0, 8, 0x0100}},                                                            true, false, false},
+	{"MOVNP",	0x7e00, 0xfe00, DSPInterpreter::movnp,   &DSPEmitter::movnp,  1, 1, {{P_ACC,  1, 0, 8, 0x0100}},                                                            true, false, false},
 
 	//8
 	{"NX",	 	0x8000, 0xf700, DSPInterpreter::nx,      &DSPEmitter::nx,     1, 0, {},                                                                                     true, false, false},
 	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,     NULL,                1, 1, {{P_ACC,   1, 0, 11, 0x0800}},                                                          true, false, false},
 	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,     NULL,                1, 0, {},                                                                                     true, false, false},
-	{"MULAXH",	0x8300, 0xff00, DSPInterpreter::mulaxh,  NULL,                1, 0, {},                                                                                     true, false, false},
-	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp,    NULL,                1, 0, {},                                                                                     true, false, false},
-	{"TSTPROD",	0x8500, 0xff00, DSPInterpreter::tstprod, NULL,                1, 0, {},                                                                                     true, false, false},
+	{"MULAXH",	0x8300, 0xff00, DSPInterpreter::mulaxh,  &DSPEmitter::mulaxh, 1, 0, {},                                                                                     true, false, false},
+	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp,    &DSPEmitter::clrp,   1, 0, {},                                                                                     true, false, false},
+	{"TSTPROD",	0x8500, 0xff00, DSPInterpreter::tstprod, &DSPEmitter::tstprod,1, 0, {},                                                                                     true, false, false},
 	{"TSTAXH",	0x8600, 0xfe00, DSPInterpreter::tstaxh,  NULL,                1, 1, {{P_REG1A, 1, 0, 8, 0x0100}},                                                           true, false, false},
 	{"M2",		0x8a00, 0xff00, DSPInterpreter::srbith,  &DSPEmitter::srbith, 1, 0, {},                                                                                     true, false, false},
 	{"M0",		0x8b00, 0xff00, DSPInterpreter::srbith,  &DSPEmitter::srbith, 1, 0, {},                                                                                     true, false, false},
@@ -262,11 +262,11 @@ const DSPOPCTemplate opcodes[] =
 	{"SET40",	0x8f00, 0xff00, DSPInterpreter::srbith,  &DSPEmitter::srbith, 1, 0, {},                                                                                     true, false, false},
 
 	//9
-	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,     NULL,                1, 2, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
+	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,     &DSPEmitter::mul,    1, 2, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
 	{"ASR16",	0x9100, 0xf700, DSPInterpreter::asr16,   NULL,                1, 1, {{P_ACC,   1, 0, 11, 0x0800}},                                                          true, false, false},
-	{"MULMVZ",	0x9200, 0xf600, DSPInterpreter::mulmvz,  NULL,                1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULMVZ",	0x9200, 0xf600, DSPInterpreter::mulmvz,  &DSPEmitter::mulmvz, 1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 	{"MULAC",	0x9400, 0xf600, DSPInterpreter::mulac,   NULL,                1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
-	{"MULMV",	0x9600, 0xf600, DSPInterpreter::mulmv,   NULL,                1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULMV",	0x9600, 0xf600, DSPInterpreter::mulmv,   &DSPEmitter::mulmv,  1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 
 	//a-b
 	{"MULX",	0xa000, 0xe700, DSPInterpreter::mulx,    NULL,                1, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}},                           true, false, false},
@@ -277,7 +277,7 @@ const DSPOPCTemplate opcodes[] =
 	{"TST",		0xb100, 0xf700, DSPInterpreter::tst,     NULL,                1, 1, {{P_ACC,    1, 0, 11, 0x0800}},                                                         true, false, false},
 
 	//c-d
-	{"MULC",	0xc000, 0xe700, DSPInterpreter::mulc,    NULL,                1, 2, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
+	{"MULC",	0xc000, 0xe700, DSPInterpreter::mulc,    &DSPEmitter::mulc,   1, 2, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
 	{"CMPAR" ,	0xc100, 0xe700, DSPInterpreter::cmpar,   NULL,                1, 2, {{P_ACC,  1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
 	{"MULCMVZ",	0xc200, 0xe600, DSPInterpreter::mulcmvz, NULL,                1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 	{"MULCAC",	0xc400, 0xe600, DSPInterpreter::mulcac,  NULL,                1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
@@ -296,7 +296,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MSUB",	0xf600, 0xfe00, DSPInterpreter::msub,    NULL,                1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
 	{"ADDPAXZ",	0xf800, 0xfc00, DSPInterpreter::addpaxz, NULL,                1, 2, {{P_ACC,   1, 0,  9, 0x0200},  {P_AX, 1, 0, 8, 0x0100}},                                true, false, false},
 	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl,    NULL,                1, 1, {{P_ACCL,  1, 0, 11, 0x0800}},                                                          true, false, false},
-	{"MOVPZ",	0xfe00, 0xfe00, DSPInterpreter::movpz,   NULL,                1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
+	{"MOVPZ",	0xfe00, 0xfe00, DSPInterpreter::movpz,   &DSPEmitter::movpz,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
 };
 
 const DSPOPCTemplate cw = 
