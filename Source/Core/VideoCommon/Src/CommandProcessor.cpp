@@ -717,7 +717,7 @@ void UpdateInterrupts()
 
 void UpdateInterruptsFromVideoPlugin()
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0, true);
+	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0);
 }
 
 void SetFifoIdleFromVideoPlugin()

@@ -322,7 +322,7 @@ void UpdateInterrupts(u64 userdata)
 
 void UpdateInterruptsFromVideoPlugin(u64 userdata)
 {
-    g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata, true);
+    g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
 void ReadFifo()
