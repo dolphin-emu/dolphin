@@ -77,11 +77,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	if (pFile)
 	{
 		// Measure size of the memcard file.
-		fseek(pFile, 0L, SEEK_END);
-		u64 MemFileSize = ftell(pFile);
-		fseek(pFile, 0L, SEEK_SET);
-
-		memory_card_size = (int)MemFileSize;
+		memory_card_size = (int)File::GetSize(pFile);
 		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);

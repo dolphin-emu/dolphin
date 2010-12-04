@@ -46,7 +46,7 @@ PlainFileReader::~PlainFileReader()
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-	int seekStatus = fseek(file_, offset, SEEK_SET);
+	int seekStatus = fseeko(file_, offset, SEEK_SET);
 	if (seekStatus != 0)
 		return false;
 	size_t bytesRead = fread(out_ptr, 1, nbytes, file_);

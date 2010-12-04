@@ -106,9 +106,9 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	FILE *f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)
 		return false;
-	fseek(f, 0, SEEK_END);
-	size_t len = ftell(f);
-	fseek(f, 0, SEEK_SET);
+	fseeko(f, 0, SEEK_END);
+	size_t len = ftello(f);
+	fseeko(f, 0, SEEK_SET);
 	char *buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;
 	str = std::string(buf, len);

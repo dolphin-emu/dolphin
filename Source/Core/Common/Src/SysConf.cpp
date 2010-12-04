@@ -84,7 +84,7 @@ bool SysConf::LoadFromFileInternal(FILE *f)
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
 		SSysConfEntry& curEntry = m_Entries.at(i);
-		if (fseek(f, curEntry.offset, SEEK_SET) != 0) return false;
+		if (fseeko(f, curEntry.offset, SEEK_SET) != 0) return false;
 
 		u8 description = 0;
 		if (fread(&description, sizeof(description), 1, f) != 1) return false;
@@ -142,7 +142,7 @@ bool SysConf::SaveToFile(const char *filename)
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
 		// Seek to after the name of this entry
-		if (fseek(f, m_Entries.at(i).offset + m_Entries.at(i).nameLength + 1, SEEK_SET) != 0) return false;
+		if (fseeko(f, m_Entries.at(i).offset + m_Entries.at(i).nameLength + 1, SEEK_SET) != 0) return false;
 		// We may have to write array length value...
 		if (m_Entries.at(i).type == Type_BigArray)
 		{

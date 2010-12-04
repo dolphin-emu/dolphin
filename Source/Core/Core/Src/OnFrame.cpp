@@ -358,7 +358,7 @@ void LoadInput(const char *filename)
 	File::Copy(filename, g_recordFile.c_str());
 	
 	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	fseek(g_recordfd, 0, SEEK_END);
+	fseeko(g_recordfd, 0, SEEK_END);
 	
 	g_rerecords++;
 	
@@ -469,6 +469,6 @@ void SaveRecording(const char *filename)
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
 	
 	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	fseek(g_recordfd, 0, SEEK_END);
+	fseeko(g_recordfd, 0, SEEK_END);
 }
 };

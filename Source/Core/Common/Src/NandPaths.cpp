@@ -56,7 +56,7 @@ bool CheckTitleTMD(u64 _titleID)
 		if(pTMDFile)
 		{
 			u64 TitleID = 0xDEADBEEFDEADBEEFULL;
-			fseek(pTMDFile, 0x18C, SEEK_SET);
+			fseeko(pTMDFile, 0x18C, SEEK_SET);
 			fread(&TitleID, 8, 1, pTMDFile);
 			fclose(pTMDFile);
 			if (_titleID == Common::swap64(TitleID))
@@ -76,7 +76,7 @@ bool CheckTitleTIK(u64 _titleID)
 		if(pTIKFile)
 		{
 			u64 TitleID = 0xDEADBEEFDEADBEEFULL;
-			fseek(pTIKFile, 0x1dC, SEEK_SET);
+			fseeko(pTIKFile, 0x1dC, SEEK_SET);
 			fread(&TitleID, 8, 1, pTIKFile);
 			fclose(pTIKFile);
 			if (_titleID == Common::swap64(TitleID))

@@ -86,7 +86,7 @@ bool CDolLoader::IsDolWii(const char* filename)
 	FILE* pStream = fopen(filename, "rb");
 	if (pStream)
 	{
-		fseek(pStream, 0xe0, SEEK_SET);
+		fseeko(pStream, 0xe0, SEEK_SET);
 		u32 entrypt = fgetc(pStream) << 24 | fgetc(pStream) << 16 |
 			fgetc(pStream) << 8 | fgetc(pStream);
 

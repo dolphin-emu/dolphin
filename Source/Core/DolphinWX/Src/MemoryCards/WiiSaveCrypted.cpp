@@ -185,7 +185,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 		b_valid = false;
 		return;
 	}
-	fseek(fpData_bin, HEADER_SZ, SEEK_SET);
+	fseeko(fpData_bin, HEADER_SZ, SEEK_SET);
 	if (fread(&bkhdr, BK_SZ, 1, fpData_bin) != 1)
 	{
 		PanicAlert("failed to read bk header");
@@ -267,7 +267,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
 	for(u32 i = 0; i < _numberOfFiles; i++)
 	{
-		fseek(fpData_bin, lastpos, SEEK_SET);
+		fseeko(fpData_bin, lastpos, SEEK_SET);
 		memset(&_tmpFileHDR, 0, FILE_HDR_SZ);
 		memset(IV, 0, 0x10);
 		_fileSize = 0;
@@ -450,7 +450,7 @@ void CWiiSaveCrypted::do_sig()
 	}
 	data = new u8[data_size];
 
-	fseek(fpData_bin, 0xf0c0, SEEK_SET);
+	fseeko(fpData_bin, 0xf0c0, SEEK_SET);
 	if (fread(data, data_size, 1, fpData_bin) != 1)
 		PanicAlert("read data for sig check");
 	sha1(data, data_size, hash);

@@ -108,7 +108,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// clear unused part of zlib buffer. maybe this can be deleted when it works fully.
 	memset(zlib_buffer + comp_block_size, 0, zlib_buffer_size - comp_block_size);
 	
-	fseek(file, offset, SEEK_SET);
+	fseeko(file, offset, SEEK_SET);
 	fread(zlib_buffer, 1, comp_block_size, file);
 
 	u8* source = zlib_buffer;
@@ -203,9 +203,9 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	u8* in_buf = new u8[block_size];
 
 	// seek past the header (we will write it at the end)
-	fseek(f, sizeof(CompressedBlobHeader), SEEK_CUR);
+	fseeko(f, sizeof(CompressedBlobHeader), SEEK_CUR);
 	// seek past the offset and hash tables (we will write them at the end)
-	fseek(f, (sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
+	fseeko(f, (sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
 
 	// Now we are ready to write compressed data!
 	u64 position = 0;
@@ -217,7 +217,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	{
 		if (i % progress_monitor == 0)
 		{
-			u64 inpos = ftell(inf);
+			u64 inpos = ftello(inf);
 			int ratio = 0;
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
@@ -279,7 +279,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	header.compressed_data_size = position;
 
 	// Okay, go back and fill in headers
-	fseek(f, 0, SEEK_SET);
+	fseeko(f, 0, SEEK_SET);
 	fwrite(&header, sizeof(header), 1, f);
 	fwrite(offsets, sizeof(u64), header.num_blocks, f);
 	fwrite(hashes, sizeof(u32), header.num_blocks, f);

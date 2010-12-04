@@ -138,7 +138,7 @@ void GetNextBlock(FILE* in, u8* buffer)
 	{
 		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
 		std::fill(buffer, buffer + m_BlockSize, 0xFF);
-		fseek(in, m_BlockSize, SEEK_CUR);
+		fseeko(in, m_BlockSize, SEEK_CUR);
 	}
 	else
 	{

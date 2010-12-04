@@ -65,7 +65,7 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 
 	FILE* file = NULL;
 	fopen_s(&file, "exceptioninfo.txt", "a");
-	fseek(file, 0, SEEK_END);
+	fseeko(file, 0, SEEK_END);
 	etfprint(file, "\n");
 	//etfprint(file, g_buildtime);
 	//etfprint(file, "\n");

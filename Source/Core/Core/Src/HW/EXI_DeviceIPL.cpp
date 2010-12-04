@@ -228,9 +228,7 @@ void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
 	FILE* pStream = fopen(filename.c_str(), "rb");
 	if (pStream != NULL)
 	{
-		fseek(pStream, 0, SEEK_END);
-		size_t filesize = (size_t)ftell(pStream);
-		rewind(pStream);
+		u64 filesize = File::GetSize(pStream);
 
 		fread(m_pIPL + offset, 1, filesize, pStream);
 		fclose(pStream);

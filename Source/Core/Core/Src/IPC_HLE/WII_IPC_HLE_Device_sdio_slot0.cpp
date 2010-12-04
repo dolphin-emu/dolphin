@@ -344,8 +344,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		{
 			u32 size = req.bsize * req.blocks;
 
-			if (fseek(m_Card, req.arg, SEEK_SET) != 0)
-				ERROR_LOG(WII_IPC_SD, "fseek failed WTF");
+			if (fseeko(m_Card, req.arg, SEEK_SET) != 0)
+				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
 			u8* buffer = new u8[size];
 
@@ -383,8 +383,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		{
 			u32 size = req.bsize * req.blocks;
 
-			if (fseek(m_Card, req.arg, SEEK_SET) != 0)
-				ERROR_LOG(WII_IPC_SD, "fseek failed WTF");
+			if (fseeko(m_Card, req.arg, SEEK_SET) != 0)
+				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
 			u8* buffer = new u8[size];
 

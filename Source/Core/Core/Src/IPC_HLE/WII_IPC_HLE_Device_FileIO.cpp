@@ -163,9 +163,9 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 	if (Mode >= 0 && Mode <= 2)
 	{
-        if (fseek(m_pFileHandle, NewSeekPosition, seek_mode[Mode]) == 0)
+        if (fseeko(m_pFileHandle, NewSeekPosition, seek_mode[Mode]) == 0)
 		{
-		    ReturnValue = (u32)ftell(m_pFileHandle);
+		    ReturnValue = (u32)ftello(m_pFileHandle);
         }
 		else
 		{
@@ -243,7 +243,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     case ISFS_IOCTL_GETFILESTATS:
         {
 			m_FileLength = (u32)File::GetSize(m_Filename.c_str());
-            u32 Position = (u32)ftell(m_pFileHandle);
+            u32 Position = (u32)ftello(m_pFileHandle);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
@@ -278,7 +278,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 {
 	if (p.GetMode() == PointerWrap::MODE_WRITE)
 	{
-		m_Seek = (m_pFileHandle) ? (s32)ftell(m_pFileHandle) : 0;
+		m_Seek = (m_pFileHandle) ? (s32)ftello(m_pFileHandle) : 0;
 	}
 
 	p.Do(m_Mode);
@@ -290,7 +290,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 		{
 			Open(0, m_Mode);
 			if (m_pFileHandle)
-				fseek(m_pFileHandle, m_Seek, SEEK_SET);
+				fseeko(m_pFileHandle, m_Seek, SEEK_SET);
 		}
 	}
 }
