@@ -265,7 +265,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,     &DSPEmitter::mul,    1, 2, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
 	{"ASR16",	0x9100, 0xf700, DSPInterpreter::asr16,   NULL,                1, 1, {{P_ACC,   1, 0, 11, 0x0800}},                                                          true, false, false},
 	{"MULMVZ",	0x9200, 0xf600, DSPInterpreter::mulmvz,  &DSPEmitter::mulmvz, 1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
-	{"MULAC",	0x9400, 0xf600, DSPInterpreter::mulac,   NULL,                1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULAC",	0x9400, 0xf600, DSPInterpreter::mulac,   &DSPEmitter::mulac,  1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 	{"MULMV",	0x9600, 0xf600, DSPInterpreter::mulmv,   &DSPEmitter::mulmv,  1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 
 	//a-b
@@ -279,21 +279,21 @@ const DSPOPCTemplate opcodes[] =
 	//c-d
 	{"MULC",	0xc000, 0xe700, DSPInterpreter::mulc,    &DSPEmitter::mulc,   1, 2, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
 	{"CMPAR" ,	0xc100, 0xe700, DSPInterpreter::cmpar,   NULL,                1, 2, {{P_ACC,  1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false},
-	{"MULCMVZ",	0xc200, 0xe600, DSPInterpreter::mulcmvz, NULL,                1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
-	{"MULCAC",	0xc400, 0xe600, DSPInterpreter::mulcac,  NULL,                1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
-	{"MULCMV",	0xc600, 0xe600, DSPInterpreter::mulcmv,  NULL,                1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULCMVZ",	0xc200, 0xe600, DSPInterpreter::mulcmvz, &DSPEmitter::mulcmvz,1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULCAC",	0xc400, 0xe600, DSPInterpreter::mulcac,  &DSPEmitter::mulcac, 1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
+	{"MULCMV",	0xc600, 0xe600, DSPInterpreter::mulcmv,  &DSPEmitter::mulcmv, 1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false},
 
 	//e
 	{"MADDX",	0xe000, 0xfc00, DSPInterpreter::maddx,   NULL,                1, 2, {{P_REGM18, 1, 0, 8, 0x0200},  {P_REGM19, 1, 0, 7, 0x0100}},                            true, false, false},
 	{"MSUBX",	0xe400, 0xfc00, DSPInterpreter::msubx,   NULL,                1, 2, {{P_REGM18, 1, 0, 8, 0x0200},  {P_REGM19, 1, 0, 7, 0x0100}},                            true, false, false},
-	{"MADDC",	0xe800, 0xfc00, DSPInterpreter::maddc,   NULL,                1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false},
-	{"MSUBC",	0xec00, 0xfc00, DSPInterpreter::msubc,   NULL,                1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false},
+	{"MADDC",	0xe800, 0xfc00, DSPInterpreter::maddc,   &DSPEmitter::maddc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false},
+	{"MSUBC",	0xec00, 0xfc00, DSPInterpreter::msubc,   &DSPEmitter::msubc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false},
 
 	//f
 	{"LSL16",	0xf000, 0xfe00, DSPInterpreter::lsl16,   NULL,                1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
-	{"MADD",	0xf200, 0xfe00, DSPInterpreter::madd,    NULL,                1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
+	{"MADD",	0xf200, 0xfe00, DSPInterpreter::madd,    &DSPEmitter::madd,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
 	{"LSR16",	0xf400, 0xfe00, DSPInterpreter::lsr16,   NULL,                1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
-	{"MSUB",	0xf600, 0xfe00, DSPInterpreter::msub,    NULL,                1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
+	{"MSUB",	0xf600, 0xfe00, DSPInterpreter::msub,    &DSPEmitter::msub,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
 	{"ADDPAXZ",	0xf800, 0xfc00, DSPInterpreter::addpaxz, NULL,                1, 2, {{P_ACC,   1, 0,  9, 0x0200},  {P_AX, 1, 0, 8, 0x0100}},                                true, false, false},
 	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl,    NULL,                1, 1, {{P_ACCL,  1, 0, 11, 0x0800}},                                                          true, false, false},
 	{"MOVPZ",	0xfe00, 0xfe00, DSPInterpreter::movpz,   &DSPEmitter::movpz,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},

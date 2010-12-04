@@ -119,6 +119,8 @@ public:
 	// Multipliers
 	void get_multiply_prod();
 	void multiply();
+	void multiply_add();
+	void multiply_sub();
 	void clrp(const UDSPInstruction opc);
 	void tstprod(const UDSPInstruction opc);
 	void movp(const UDSPInstruction opc);
@@ -126,9 +128,17 @@ public:
 	void movpz(const UDSPInstruction opc);
 	void mulaxh(const UDSPInstruction opc);
 	void mul(const UDSPInstruction opc);
+	void mulac(const UDSPInstruction opc);
 	void mulmv(const UDSPInstruction opc);
 	void mulmvz(const UDSPInstruction opc);
 	void mulc(const UDSPInstruction opc);
+	void mulcac(const UDSPInstruction opc);
+	void mulcmv(const UDSPInstruction opc);
+	void mulcmvz(const UDSPInstruction opc);
+	void maddc(const UDSPInstruction opc);
+	void msubc(const UDSPInstruction opc);
+	void madd(const UDSPInstruction opc);
+	void msub(const UDSPInstruction opc);
 
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;

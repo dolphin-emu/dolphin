@@ -403,7 +403,7 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 }
 
 // Returns s64 in RAX
-// Clobbers RSI
+// Clobbers RSI, RDI
 void DSPEmitter::get_long_prod()
 {
 #ifdef _M_X64
@@ -518,7 +518,7 @@ void DSPEmitter::get_acc_m(int _reg)
 //	return g_dsp.r[DSP_REG_ACM0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(EAX), MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
 #endif
 }
 
@@ -528,7 +528,7 @@ void DSPEmitter::get_ax_l(int _reg)
 //	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(EAX), MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
+	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
 #endif
 }
 
@@ -538,7 +538,7 @@ void DSPEmitter::get_ax_h(int _reg)
 //	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(EAX), MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
+	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
 #endif
 }
 
