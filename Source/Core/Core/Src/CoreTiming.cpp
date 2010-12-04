@@ -306,14 +306,20 @@ bool IsScheduled(int event_type)
 
 void RemoveEvent(int event_type)
 {
-
 	if (!first)
 		return;
-	if (first->type == event_type)
+	while(first)
 	{
-		Event *next = first->next;
-		FreeEvent(first);
-		first = next;
+		if (first->type == event_type)
+		{
+			Event *next = first->next;
+			FreeEvent(first);
+			first = next;
+		}
+		else
+		{
+			break;
+		}
 	}
 	if (!first)
 		return;
@@ -343,11 +349,18 @@ void RemoveThreadsafeEvent(int event_type)
 		externalEventSection.Leave();
 		return;
 	}
-	if (tsFirst->type == event_type)
+	while(tsFirst)
 	{
-		Event *next = tsFirst->next;
-		FreeTsEvent(tsFirst);
-		tsFirst = next;
+		if (tsFirst->type == event_type)
+		{
+			Event *next = tsFirst->next;
+			FreeTsEvent(tsFirst);
+			tsFirst = next;
+		}
+		else
+		{
+			break;
+		}
 	}
 	if (!tsFirst)
 	{
@@ -398,34 +411,20 @@ void ProcessFifoWaitEvents()
 	if (!first)
 		return;
 
-	if (first->time <= globalTimer)
+	while (first)
 	{
-		Event *next = first->next;
-		event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
-		FreeEvent(first);
-		first = next;
-	}
-
-	if (!first)
-		return;
-	
-	Event *prev = first;
-	Event *ptr = prev->next;
-	while (ptr)
-	{
-		if (ptr->time <= globalTimer)
-		{	
-			prev->next = ptr->next;
-			event_types[ptr->type].callback(ptr->userdata, (int)(globalTimer - ptr->time));
-			FreeEvent(ptr);
-			ptr = prev->next;
+		if (first->time <= globalTimer)
+		{
+			Event* evt = first;
+			first = first->next;
+			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
+			FreeEvent(evt);
 		}
 		else
 		{
-			prev = ptr;
-			ptr = ptr->next;
+			break;
 		}
-	}
+	}	
 }
 
 void MoveEvents()
