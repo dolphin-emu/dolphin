@@ -15,8 +15,6 @@ set(LIBS	videocommon
 			GLEW
 			SOIL
 			common
-			Cg
-			CgGL
 			${OPENGL_LIBRARIES}
 			${X11_LIBRARIES})
 
@@ -30,8 +28,19 @@ if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
 elseif(WIN32)
 	set(SRCS ${SRCS} Src/OS/Win32.cpp)
-elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+endif()
+
+if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	set(LIBS	${LIBS} Cg CgGL)
+endif()
+
+if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(LIBS	${LIBS} clrun)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
+	${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+	set(LIBS	${LIBS} usbhid)
 endif()
 
 add_library(Plugin_VideoOGL MODULE ${SRCS})

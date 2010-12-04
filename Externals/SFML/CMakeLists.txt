@@ -8,7 +8,7 @@ set(SRCS	src/SFML/Network/Ftp.cpp
 			src/SFML/Network/SocketTCP.cpp
 			src/SFML/Network/SocketUDP.cpp)
 
-if(UNIX OR APPLE)
+if(UNIX)
 	set(SRCS ${SRCS} src/SFML/Network/Unix/SocketHelper.cpp)
 elseif(WIN32)
 	set(SRCS ${SRCS} src/SFML/Network/Win32/SocketHelper.cpp)

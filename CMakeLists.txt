@@ -52,7 +52,7 @@ if(VISIBILITY_INLINES_HIDDEN)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
 endif(VISIBILITY_INLINES_HIDDEN)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(UNIX AND NOT APPLE)
 	CHECK_CXX_COMPILER_FLAG(-fvisibility=hidden VISIBILITY_HIDDEN)
 	if(VISIBILITY_HIDDEN)
 		add_definitions(-fvisibility=hidden)
@@ -150,7 +150,7 @@ endif(OPENAL_FOUND)
 
 # Note: We do not need to explicitly check for X11 as it is done in the cmake
 # FindOpenGL module on linux.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(UNIX AND NOT APPLE)
 	if(X11_FOUND)
 		add_definitions(-DHAVE_X11=1)
 		include_directories(${X11_INCLUDE_DIR})
@@ -270,7 +270,7 @@ if(SDL_FOUND)
 else(SDL_FOUND)
 	# TODO: Use the prebuilt one on Windows
 	message("Shared SDL not found, falling back to the static library")
-	include_directories(Externals/SDL/include)
+	include_directories(Externals/SDL Externals/SDL/include)
 	add_subdirectory(Externals/SDL)
 endif(SDL_FOUND)
 
@@ -309,10 +309,16 @@ if(WIN32)
 	include_directories(Externals/GLew/include)
 else()
 	check_lib(GLU glu REQUIRED)
-	check_lib_and_header(GLEW GLEW GL/glew.h REQUIRED)
-	check_lib_and_header(CG Cg Cg/cg.h REQUIRED)
-	check_lib_and_header(CGGL CgGL Cg/cgGL.h REQUIRED)
+	check_lib_and_header(GLEW GLEW GL/glew.h OPTIONAL)
+	check_lib_and_header(CG Cg Cg/cg.h OPTIONAL)
+	check_lib_and_header(CGGL CgGL Cg/cgGL.h OPTIONAL)
 endif()
+
+if(NOT GLEW_FOUND)
+	message("Shared GLEW not found, falling back to the static library")
+	add_subdirectory(Externals/GLew)
+	include_directories(Externals/GLew/include)
+endif(NOT GLEW_FOUND)
 
 if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	include_directories(Externals/CLRun/include)
@@ -327,7 +333,7 @@ if(NOT DISABLE_WX)
 	if(wxWidgets_FOUND)
 		include(${wxWidgets_USE_FILE})
 
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		if(UNIX AND NOT APPLE)
 			check_lib(GTK2 gtk+-2.0 REQUIRED)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
@@ -348,7 +354,7 @@ endif(NOT DISABLE_WX)
 # Pre-build events: Define configuration variables and write svnrev header
 #
 file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
-	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"")
+	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
 
 ########################################
 # Start compiling our code

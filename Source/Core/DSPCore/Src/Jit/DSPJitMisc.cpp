@@ -321,7 +321,7 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 	dsp_conditional_extend_accum(dreg);
 }
 
-/*
+#if 0
 // LRI $D, #I
 // 0000 0000 100d dddd
 // iiii iiii iiii iiii
@@ -332,15 +332,14 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 // register, has a different behaviour in S40 mode if loaded to AC0.M: The
 // value gets sign extended to the whole accumulator! This does not happen in
 // S16 mode.
-/*void DSPEmitter::lri(const UDSPInstruction opc)
+void DSPEmitter::lri(const UDSPInstruction opc)
 {
 	u8 reg  = opc & DSP_REG_MASK;
 	u16 imm = dsp_fetch_code();
 	dsp_op_write_reg(reg, imm);
 	dsp_conditional_extend_accum(reg);
 }
-*/
-
+#endif
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii

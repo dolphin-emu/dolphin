@@ -16,10 +16,6 @@ set(LIBS	core
 			${X11_LIBRARIES})
 
 if(wxWidgets_FOUND)
-	set(MEMCARDSRCS	Src/MemcardManager.cpp
-					Src/MemoryCards/GCMemcard.cpp
-					Src/WxUtils.cpp)
-
 	set(SRCS	${SRCS}
 				Src/AboutDolphin.cpp
 				Src/ARCodeAddEdit.cpp
@@ -38,6 +34,8 @@ if(wxWidgets_FOUND)
 				Src/LogWindow.cpp
 				Src/LuaWindow.cpp
 				Src/Main.cpp
+				Src/MemcardManager.cpp
+				Src/MemoryCards/GCMemcard.cpp
 				Src/NetPlay.cpp
 				Src/NetPlayClient.cpp
 				Src/NetPlayServer.cpp
@@ -45,12 +43,12 @@ if(wxWidgets_FOUND)
 				Src/PatchAddEdit.cpp
 				Src/UDPConfigDiag.cpp
 				Src/WiimoteConfigDiag.cpp
-				Src/MemoryCards/WiiSaveCrypted.cpp)
+				Src/MemoryCards/WiiSaveCrypted.cpp
+				Src/WxUtils.cpp)
 
 	set(WXLIBS	debwx
 				debugger_ui_util
 				inputuicommon
-				memcard
 				${wxWidgets_LIBRARIES}
 				${GTK2_LIBRARIES})
 
@@ -70,11 +68,15 @@ else()
 	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
+        ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+	set(LIBS ${LIBS} usbhid)
+endif()
+
 set(EXEGUI dolphin-emu)
 set(EXENOGUI dolphin-emu-nogui)
 
 if(wxWidgets_FOUND)
-	add_library(memcard STATIC ${MEMCARDSRCS})
 	add_executable(${EXEGUI} ${SRCS})
 	target_link_libraries(${EXEGUI} ${LIBS} ${WXLIBS})
 	install(TARGETS ${EXEGUI} RUNTIME DESTINATION ${bindir})
