@@ -89,7 +89,8 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	bool colorEnable = bpmem.blendmode.colorupdate;
-	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
+	//bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
+	bool alphaEnable = bpmem.blendmode.alphaupdate;
 	bool zEnable = bpmem.zmode.updateenable;
 
 	if (colorEnable || alphaEnable || zEnable)

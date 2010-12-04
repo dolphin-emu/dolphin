@@ -58,7 +58,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	u32 enableZTexture = (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)?1:0;
+	u32 enableZTexture = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc || g_ActiveConfig.bEnablePerPixelDepth)? 1 : 0;
 
 	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
@@ -466,7 +466,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable;
+	DepthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc || g_ActiveConfig.bEnablePerPixelDepth ;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -816,11 +816,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (DepthTextureEnable)
 		{
 			// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-			if (bpmem.ztex2.op == ZTEXTURE_ADD)
-				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
-			else
-				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
-
+			if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc)
+			{
+				if (bpmem.ztex2.op == ZTEXTURE_ADD)
+					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
+				else
+					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
+			}
 			// scale to make result from frac correct
 			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 			WRITE(p, "zCoord = frac(zCoord);\n");

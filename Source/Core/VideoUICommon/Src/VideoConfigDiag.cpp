@@ -162,6 +162,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Load Native Mipmaps"), vconfig.bUseNativeMips));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("EFB Scaled Copy"), vconfig.bCopyEFBScaled));	
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Pixel Lighting"), vconfig.bEnablePixelLigting));
+	szr_enh->Add(new SettingCheckBox(page_general, wxT("Pixel Depth"), vconfig.bEnablePerPixelDepth));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Force Bi/Trilinear Filtering"), vconfig.bForceFiltering));
 	
 	if (vconfig.backend_info.bSupports3DVision)

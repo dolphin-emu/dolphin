@@ -229,7 +229,6 @@ inline u64 CreateVMapId(u8 VATUSED)
 	{
 		if(VATUSED & (1 << i))
 		{
-			//vmap_id ^= GetHash64((u8*)(&g_VtxAttr[i].g0.),sizeof(VAT),0);
 			if(vmap_id != 0)
 			{
 				vmap_id ^= (((u64)g_VtxAttr[i].g0.Hex) | (((u64)g_VtxAttr[i].g1.Hex) << 32)) ^ (((u64)g_VtxAttr[i].g2.Hex) << 16); 
@@ -240,7 +239,7 @@ inline u64 CreateVMapId(u8 VATUSED)
 			}
 		}
 	}
-	return vmap_id;
+	return vmap_id ^ g_VtxDesc.Hex;
 }
 
 typedef std::map<u64, CachedDisplayList> DLMap;
@@ -563,13 +562,8 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 						NewRegion->hash = 0;					
 						dl->InsertRegion(NewRegion);
 						memcpy(NewRegion->start_address, StartAddress, Vdatasize);
-						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);	
-						/*ReferencedDataRegion* VatRegion = new ReferencedDataRegion;
-						VatRegion->MustClean = false;
-						VatRegion->size = sizeof(VAT);
-						VatRegion->start_address = (u8*)(&g_VtxAttr[cmd_byte & GX_VAT_MASK]); 
-						VatRegion->hash = GetHash64(NewRegion->start_address, VatRegion->size, 0);
-						dl->InsertRegion(VatRegion);*/
+						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
+						
 					}					
 					const int tc[12] = {
 						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
