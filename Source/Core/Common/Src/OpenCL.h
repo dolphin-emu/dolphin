@@ -20,9 +20,8 @@
 
 #include "Common.h"
 
-// OpenCL on Windows is linked through the CLRun library
-// It provides the headers and all the imports
-#if defined(_WIN32) || defined(USE_CLRUN)
+// The CLRun library provides the headers and all the imports
+#ifndef __APPLE__
 #define HAVE_OPENCL 1
 #endif
 

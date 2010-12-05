@@ -21,7 +21,7 @@
 #include "Common.h"
 #include "Timer.h"
 
-#if defined(_WIN32) || defined(USE_CLRUN)
+#ifndef __APPLE__
 #include "clrun.h"
 #endif
 
@@ -46,14 +46,15 @@ bool Initialize()
 		return false;
 	int err;			// error code returned from api calls
 
-#if defined(_WIN32) || defined(USE_CLRUN)
+#ifdef __APPLE__
+	// If OpenCL is weakly linked and not found, its symbols will be NULL
+	if (clGetPlatformIDs == NULL)
+		return false;
+#else
 	clrInit();
 	if(!clrHasOpenCL())
 		return false;
 #endif
-	// If OpenCL is weakly linked and not found, its symbols will be NULL
-	if (clGetPlatformIDs == NULL)
-		return false;
 
 	// Connect to a compute device
 	cl_uint numPlatforms;

@@ -323,7 +323,6 @@ endif(NOT GLEW_FOUND)
 if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
-	add_definitions(-DUSE_CLRUN)
 endif()
 
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
