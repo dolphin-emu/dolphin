@@ -17,7 +17,6 @@
 
 #include "Common.h"
 #include "Host.h"
-#include "Debugger.h"
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "BreakpointWindow.h"

@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// #include "Debugger.h"
-// #include "Debugger/PPCDebugInterface.h"
-
-// #include "PowerPC/SymbolDB.h"
 #include "Common.h"
 #include "StringUtil.h"
 #include "DebuggerUIUtil.h"
@@ -27,7 +23,6 @@
 #include "Host.h"
 #include "CodeView.h"
 #include "SymbolDB.h"
-// #include "JitWindow.h"
 
 #include <wx/event.h>
 #include <wx/clipbrd.h>

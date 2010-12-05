@@ -17,7 +17,6 @@
 
 #include "MemoryCheckDlg.h"
 #include "Common.h"
-#include "Debugger.h"
 #include "StringUtil.h"
 #include "Host.h"
 #include "PowerPC/PowerPC.h"

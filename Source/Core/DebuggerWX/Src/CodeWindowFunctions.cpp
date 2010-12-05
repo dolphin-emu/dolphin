@@ -31,7 +31,6 @@
 
 #include "Host.h"
 
-#include "Debugger.h"
 #include "DebuggerUIUtil.h"
 
 #include "RegisterWindow.h"

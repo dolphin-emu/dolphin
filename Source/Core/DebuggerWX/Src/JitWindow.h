@@ -25,7 +25,6 @@
 #include <wx/listctrl.h>
 #include <wx/listbox.h>
 
-#include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"
 #include "CoreParameter.h"

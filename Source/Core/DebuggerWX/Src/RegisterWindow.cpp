@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Debugger.h"
+#include <wx/wx.h>
+
 #include "RegisterWindow.h"
 #include "PowerPC/PowerPC.h"
 #include "RegisterView.h"

@@ -21,7 +21,6 @@
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
-#include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"
 #include "StringUtil.h"

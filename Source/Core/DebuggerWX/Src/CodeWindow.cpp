@@ -28,8 +28,6 @@
 
 #include "Host.h"
 
-#include "Debugger.h"
-
 #include "RegisterWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"

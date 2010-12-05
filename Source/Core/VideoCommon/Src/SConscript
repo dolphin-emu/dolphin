@@ -8,7 +8,7 @@ files = [
 	'BPStructs.cpp',
 	'CPMemory.cpp',
 	'CommandProcessor.cpp',
-	'DebuggerPanel.cpp',
+	'Debugger.cpp',
 	'DLCache.cpp',
 	'Fifo.cpp',
 	'FramebufferManagerBase.cpp',

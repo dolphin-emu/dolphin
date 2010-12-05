@@ -84,7 +84,7 @@ void GFXDebuggerUpdateScreen();
 #define GFX_DEBUGGER_PAUSE_AT(event,update)
 #define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc)
 #define GFX_DEBUGGER_LOG_AT(event,dumpfunc)
-#endif ENABLE_GFX_DEBUGGER
+#endif // ENABLE_GFX_DEBUGGER
 
 
 #endif // _GFX_DEBUGGER_H_
