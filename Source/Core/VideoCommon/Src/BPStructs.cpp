@@ -252,7 +252,7 @@ void BPWritten(const BPCmd& bp)
 				// here. Not sure if there's a better spot to put this.
 				// the number of lines copied is determined by the y scale * source efb height
 #ifdef BBOX_SUPPORT
-				*g_VideoInitialize.pBBoxActive = false;
+				PixelEngine::bbox_active = false;
 #endif
 
 				float yScale;
@@ -402,18 +402,18 @@ void BPWritten(const BPCmd& bp)
 			int left = bp.newvalue & 0x3ff;
 			
 			// We should only set these if bbox is calculated properly.
-			g_VideoInitialize.pBBox[0] = left;
-			g_VideoInitialize.pBBox[1] = right;
-			*g_VideoInitialize.pBBoxActive = true;
+			PixelEngine::bbox[0] = left;
+			PixelEngine::bbox[1] = right;
+			PixelEngine::bbox_active = true;
 			// WARN_LOG(VIDEO, "ClearBBox LR: %i, %08x - %i, %i", bp.address, bp.newvalue, left, right);
 		} else {
 			int bottom = bp.newvalue >> 10;
 			int top = bp.newvalue & 0x3ff;
 
 			// We should only set these if bbox is calculated properly.
-			g_VideoInitialize.pBBox[2] = top;
-			g_VideoInitialize.pBBox[3] = bottom;
-			*g_VideoInitialize.pBBoxActive = true;
+			PixelEngine::bbox[2] = top;
+			PixelEngine::bbox[3] = bottom;
+			PixelEngine::bbox_active = true;
 			// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
 		}
 #endif
