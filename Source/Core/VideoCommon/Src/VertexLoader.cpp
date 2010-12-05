@@ -136,11 +136,18 @@ void LOADERDECL UpdateBoundingBox()
 	// should possibly adjust for viewport?
 	o[0] = (o[0] + 1.0f) * 320.0f;
 	o[1] = (o[1] + 1.0f) * 240.0f;
-	
+
     if (o[0] < PixelEngine::bbox[0]) PixelEngine::bbox[0] = (u16)std::max(0.0f, o[0]);
 	if (o[0] > PixelEngine::bbox[1]) PixelEngine::bbox[1] = (u16)std::min(640.0f, o[0]);
 	if (o[1] < PixelEngine::bbox[2]) PixelEngine::bbox[2] = (u16)std::max(0.0f, o[1]);
 	if (o[1] > PixelEngine::bbox[3]) PixelEngine::bbox[3] = (u16)std::min(480.0f, o[1]);
+
+	// Hardware tests bounding boxes in 2x2 blocks => left and top are even, right and bottom are odd
+	PixelEngine::bbox[0] &= ~1;
+	PixelEngine::bbox[1] |= 1;
+	PixelEngine::bbox[2] &= ~1;
+	PixelEngine::bbox[3] |= 1;
+
 	/*
 	if (GetAsyncKeyState(VK_LSHIFT)) {
 		ERROR_LOG(VIDEO, "XForm: %f %f %f to %f %f", p[0], p[1], p[2], o[0], o[1]);
