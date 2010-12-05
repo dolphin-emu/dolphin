@@ -40,6 +40,7 @@
 #include "XFStructs.h"
 
 #include "Globals.h"
+#include "Debugger.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -218,9 +219,15 @@ void VertexManager::vFlush()
 	if (!PixelShaderCache::SetShader(
 		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
 		g_nativeVertexFmt->m_components))
+	{
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
+	}
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
+	{
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
+	}
 
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
@@ -229,6 +236,8 @@ void VertexManager::vFlush()
 	Draw(stride);
 
 	D3D::gfxstate->Reset();
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 shader_fail:
 	ResetBuffer();

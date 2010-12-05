@@ -3,6 +3,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/BPStructs.cpp
 			Src/CommandProcessor.cpp
 			Src/CPMemory.cpp
+			Src/Debugger.cpp
 			Src/DLCache.cpp
 			Src/Fifo.cpp
 			Src/FramebufferManagerBase.cpp

@@ -40,8 +40,7 @@
 #include "TextureCache.h"
 #include "HiresTextures.h"
 #include "TextureConverter.h"
-
-#include "debugger/debugger.h"
+#include "Debugger.h"
 
 extern int frameCount;
 
@@ -66,7 +65,6 @@ bool TextureCache::TCacheEntry::Save(const char filename[])
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
-	DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE,true);
 	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
 	// D3D9 will automatically generate mip maps if necessary
 }
@@ -214,8 +212,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 	TCacheEntry* entry = new TCacheEntry(D3D::CreateTexture2D(temp, width, height, expanded_width, d3d_fmt, swap_r_b, tex_levels));
 	entry->swap_r_b = swap_r_b;
 	entry->d3d_fmt = d3d_fmt;
-	
-	DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE,true);
+
 	return entry;
 }
 

@@ -775,18 +775,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Debugger"
-			>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\Src\Globals.h"
 			>

@@ -62,7 +62,7 @@ Make AA apply instantly during gameplay if possible
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "VideoConfigDiag.h"
-#include "Debugger/Debugger.h"
+#include "DebuggerPanel.h"
 #endif // HAVE_WX
 
 #include "MainBase.h"
@@ -131,7 +131,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 void *DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	return new GFXDebuggerOGL((wxWindow *)_hParent);
+	return new GFXDebuggerPanel((wxWindow *)_hParent);
 #else
 	return NULL;
 #endif
@@ -166,6 +166,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsRealXFB = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bAllowSignedBytes = true;
+	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 }
 
 void DllConfig(void *_hParent)

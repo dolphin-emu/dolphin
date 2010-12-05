@@ -735,6 +735,14 @@
 			Name="Base"
 			>
 			<File
+				RelativePath=".\Src\Debugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\FramebufferManagerBase.cpp"
 				>
 			</File>

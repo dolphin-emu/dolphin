@@ -405,6 +405,14 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\Src\DebuggerPanel.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DebuggerPanel.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\VideoConfigDiag.cpp"
 			>
 		</File>

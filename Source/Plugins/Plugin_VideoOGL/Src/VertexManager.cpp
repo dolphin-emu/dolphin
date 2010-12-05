@@ -40,6 +40,7 @@
 #include "IndexGenerator.h"
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
+#include "Debugger.h"
 
 #include "main.h"
 
@@ -239,6 +240,8 @@ void VertexManager::vFlush()
 		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
 			glEnable(GL_BLEND);
 	}
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
+
 	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = LocalVBuffer;
 	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);

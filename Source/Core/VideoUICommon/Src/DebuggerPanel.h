@@ -15,27 +15,24 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DX_DEBUGGER_H_
-#define _DX_DEBUGGER_H_
+#ifndef _GFX_DEBUGGER_PANEL_H_
+#define _GFX_DEBUGGER_PANEL_H_
 
 #include <wx/wx.h>
 #include <wx/notebook.h>
+#include "Debugger.h"
 
-#include "../Globals.h"
-
-class IniFile;
-
-class GFXDebuggerDX9 : public wxPanel
+class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {
 public:
-	GFXDebuggerDX9(wxWindow *parent,
+	GFXDebuggerPanel(wxWindow *parent,
 		wxWindowID id = wxID_ANY,
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL,
-		const wxString &title = wxT("DX9 Debugger"));
+		const wxString &title = wxT("GFX Debugger"));
 
-	virtual ~GFXDebuggerDX9();
+	virtual ~GFXDebuggerPanel();
 
 	void SaveSettings() const;
 	void LoadSettings();
@@ -46,18 +43,18 @@ public:
 	bool bSaveTargets;
 	bool bSaveShaders;
 
-	void EnableButtons(bool enable);
+	void OnPause();
+	void OnContinue();
 
 private:
 	DECLARE_EVENT_TABLE();
 
 	wxPanel *m_MainPanel;
 
-	wxCheckBox	*m_Check[6];
 	wxButton	*m_pButtonPause;
 	wxButton	*m_pButtonPauseAtNext;
 	wxButton	*m_pButtonPauseAtNextFrame;
-	wxButton	*m_pButtonGo;
+	wxButton	*m_pButtonCont;
 	wxChoice	*m_pPauseAtList;
 	wxButton	*m_pButtonDump;
 	wxChoice	*m_pDumpList;
@@ -69,18 +66,11 @@ private:
 	wxTextCtrl	*m_pCount;
 
 
-	// WARNING: Make sure these are not also elsewhere
+	// TODO: Prefix with GFX_
 	enum
 	{
 		ID_MAINPANEL = 3900,
-		ID_SAVETOFILE,
-		ID_INFOLOG,
-		ID_PRIMLOG,
-		ID_SAVETEXTURES,
-		ID_SAVETARGETS,
-		ID_SAVESHADERS,
-		NUM_OPTIONS,
-		ID_GO,
+		ID_CONT,
 		ID_PAUSE,
 		ID_PAUSE_AT_NEXT,
 		ID_PAUSE_AT_NEXT_FRAME,
@@ -103,65 +93,13 @@ private:
 	void OnPauseAtNextButton(wxCommandEvent& event);
 	void OnPauseAtNextFrameButton(wxCommandEvent& event);
 	void OnDumpButton(wxCommandEvent& event);
-	void OnGoButton(wxCommandEvent& event);
+	void OnContButton(wxCommandEvent& event);
 	void OnUpdateScreenButton(wxCommandEvent& event);
 	void OnClearScreenButton(wxCommandEvent& event);
 	void OnClearTextureCacheButton(wxCommandEvent& event);
 	void OnClearVertexShaderCacheButton(wxCommandEvent& event);
 	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
 	void OnCountEnter(wxCommandEvent& event);
-
 };
 
-enum PauseEvent {
-	NOT_PAUSE	=	0,
-	NEXT_FRAME	=	1<<0,
-	NEXT_FLUSH	=	1<<1,
-
-	NEXT_PIXEL_SHADER_CHANGE	=	1<<2,
-	NEXT_VERTEX_SHADER_CHANGE	=	1<<3,
-	NEXT_TEXTURE_CHANGE	=	1<<4,
-	NEXT_NEW_TEXTURE	=	1<<5,
-
-	NEXT_XFB_CMD	=	1<<6,
-	NEXT_EFB_CMD	=	1<<7,
-
-	NEXT_MATRIX_CMD	=	1<<8,
-	NEXT_VERTEX_CMD	=	1<<9,
-	NEXT_TEXTURE_CMD	=	1<<10,
-	NEXT_LIGHT_CMD	=	1<<11,
-	NEXT_FOG_CMD	=	1<<12,
-
-	NEXT_SET_TLUT	=	1<<13,
-
-	NEXT_ERROR	=	1<<14,
-};
-
-extern volatile bool DX9DebuggerPauseFlag;
-extern volatile PauseEvent DX9DebuggerToPauseAtNext;
-extern volatile int DX9DebuggerEventToPauseCount;
-void ContinueDX9Debugger();
-void DX9DebuggerCheckAndPause(bool update);
-void DX9DebuggerToPause(bool update);
-
-#undef ENABLE_DX_DEBUGGER
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#define ENABLE_DX_DEBUGGER
-#endif
-
-#ifdef ENABLE_DX_DEBUGGER
-
-#define DEBUGGER_PAUSE_AT(event,update) {if (((DX9DebuggerToPauseAtNext & event) && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) DX9DebuggerToPause(update);}
-#define DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if (((DX9DebuggerToPauseAtNext & event) && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) {{dumpfunc};DX9DebuggerToPause(update);}}
-#define DEBUGGER_LOG_AT(event,dumpfunc) {if (( DX9DebuggerToPauseAtNext & event ) ) {{dumpfunc};}}
-
-#else
-// Not to use debugger in release build
-#define DEBUGGER_PAUSE_AT(event,update)
-#define DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc)
-#define DEBUGGER_LOG_AT(event,dumpfunc)
-
-#endif ENABLE_DX_DEBUGGER
-
-
-#endif // _DX_DEBUGGER_H_
+#endif // _GFX_DEBUGGER_PANEL_H_

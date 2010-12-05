@@ -31,8 +31,7 @@
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
-
-#include "debugger/debugger.h"
+#include "Debugger.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
@@ -211,7 +210,10 @@ bool VertexShaderCache::SetShader(u32 components)
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
+	{
+		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 		return (vshaders[uid].shader != NULL);
+	}
 
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
@@ -222,20 +224,9 @@ bool VertexShaderCache::SetShader(u32 components)
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		if(iter->second.code.empty()) {
-			iter->second.code = std::string(GenerateVertexShaderCode(components, API_D3D9));
-		}
-#endif
-
-		DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
-		if (entry.shader)
-		{
-			D3D::SetVertexShader(entry.shader);
-			return true;
-		}
-		else
-			return false;
+		if (entry.shader) D3D::SetVertexShader(entry.shader);
+		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		return (entry.shader != NULL);
 	}
 
 	const char *code = GenerateVertexShaderCode(components, API_D3D9);
@@ -247,20 +238,15 @@ bool VertexShaderCache::SetShader(u32 components)
 		{
 			PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 		}
+		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}
 	g_vs_disk_cache.Append(uid, bytecode, bytecodelen);
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	iter = vshaders.find(uid);
-	if(iter->second.code.empty()) {
-		iter->second.code = std::string(code);
-	}
-#endif
 	delete [] bytecode;
-	DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
+	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return result;
 }
 
@@ -285,14 +271,4 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 		return true;
 	}
 	return false;
-}
-
-std::string VertexShaderCache::GetCurrentShaderCode()
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (last_entry)
-		return last_entry->code;
-	else
-#endif
-		return "(not available)\n";
 }

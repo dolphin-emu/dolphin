@@ -54,6 +54,7 @@
 #include "EmuWindow.h"
 #include "FramebufferManager.h"
 #include "DLCache.h"
+#include "DebuggerPanel.h"
 
 HINSTANCE g_hInstance = NULL;
 
@@ -64,7 +65,11 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
 void *DllDebugger(void *_hParent, bool Show)
 {
+#if defined(HAVE_WX) && HAVE_WX
+	return new GFXDebuggerPanel((wxWindow*)_hParent);
+#else
 	return NULL;
+#endif
 }
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -150,6 +155,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsRealXFB = false;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bAllowSignedBytes = true;
+	g_Config.backend_info.bSupportsDualSourceBlend = true;
 }
 
 void DllConfig(void *_hParent)

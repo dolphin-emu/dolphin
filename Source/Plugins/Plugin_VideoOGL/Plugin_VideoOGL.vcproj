@@ -783,18 +783,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Debugger"
-			>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Logging"
 			>
 			<File

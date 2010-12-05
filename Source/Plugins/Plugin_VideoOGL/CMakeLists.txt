@@ -19,8 +19,6 @@ set(LIBS	videocommon
 			${X11_LIBRARIES})
 
 if(wxWidgets_FOUND)
-	set(SRCS	${SRCS}
-				Src/Debugger/Debugger.cpp)
 	set(LIBS	videouicommon ${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 

@@ -57,6 +57,7 @@
 #include "StringUtil.h"
 #include "FramebufferManager.h"
 #include "Fifo.h"
+#include "Debugger.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -1309,6 +1310,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	TextureCache::Cleanup();
 
 	frameCount++;
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly

@@ -33,6 +33,7 @@
 #include "XFMemory.h"
 #include "ImageWrite.h"
 #include "FileUtil.h"
+#include "Debugger.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 bool VertexShaderCache::s_displayCompileAlert;
@@ -107,7 +108,10 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
+	{
+		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 		return pShaderLast;
+	}
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
 	VSCache::iterator iter = vshaders.find(uid);
@@ -119,10 +123,11 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 			pShaderLast = &entry.shader;
 		}
 
+		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 		return pShaderLast;
 	}
 
-	//Make an entry in the table
+	// Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
 	entry.frameCount = frameCount;
 	pShaderLast = &entry.shader;
@@ -140,11 +145,13 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 
 	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
 		ERROR_LOG(VIDEO, "failed to create vertex shader");
+		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}
 
 	INCSTAT(stats.numVertexShadersCreated);
 	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
+	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return pShaderLast;
 }
 

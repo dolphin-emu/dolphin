@@ -31,6 +31,7 @@
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "FileUtil.h"
+#include "Debugger.h"
 
 static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
@@ -193,6 +194,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	// Check if the shader is already set
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
+		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 		return pShaderLast;
 	}
 
@@ -209,10 +211,11 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 			pShaderLast = &entry.shader;
 		}
 
+		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 		return pShaderLast;
 	}
 
-	//Make an entry in the table
+	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
@@ -235,11 +238,13 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);			
 		SaveData(szTemp, code);
+		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}
 	
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
+	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 	return pShaderLast;
 }
 

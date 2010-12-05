@@ -49,8 +49,7 @@
 #include "Fifo.h"
 #include "TextureConverter.h"
 #include "DLCache.h"
-
-#include "debugger/debugger.h"
+#include "Debugger.h"
 
 static int s_fps = 0;
 
@@ -1097,10 +1096,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-
-	DEBUGGER_PAUSE_AT(NEXT_FRAME,true);
-
 	frameCount++;
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
+
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 

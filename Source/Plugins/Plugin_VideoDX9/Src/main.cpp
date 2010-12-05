@@ -19,14 +19,13 @@
 #include "Atomic.h"
 #include "Thread.h"
 #include "LogManager.h"
-#include "debugger/debugger.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "VideoConfigDiag.h"
 #endif // HAVE_WX
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "Debugger/Debugger.h"
+#include "DebuggerPanel.h"
 #endif // HAVE_WX
 
 #include "MainBase.h"
@@ -64,7 +63,7 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 void *DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	return new GFXDebuggerDX9((wxWindow *)_hParent);
+	return new GFXDebuggerPanel((wxWindow*)_hParent);
 #else
 	return NULL;
 #endif
@@ -158,6 +157,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsRealXFB = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bAllowSignedBytes = false;
+	g_Config.backend_info.bSupportsDualSourceBlend = false;
 }
 
 void DllConfig(void *_hParent)

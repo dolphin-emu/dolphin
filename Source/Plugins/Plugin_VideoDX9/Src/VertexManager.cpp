@@ -35,8 +35,8 @@
 
 #include "BPStructs.h"
 #include "XFStructs.h"
-
-#include "debugger/debugger.h"
+#include "Debugger.h"
+#include "VideoConfig.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -47,7 +47,8 @@ namespace DX9
 inline void DumpBadShaders()
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	std::string error_shaders;
+	// TODO: Reimplement!
+/*	std::string error_shaders;
 	error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
 	error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
 	char filename[512] = "bad_shader_combo_0.txt";
@@ -58,7 +59,7 @@ inline void DumpBadShaders()
 		sprintf(filename, "bad_shader_combo_%i.txt", which);
 	}
 	File::WriteStringToFile(true, error_shaders, filename);
-	PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to %s", filename);
+	PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to %s", filename);*/
 #endif
 }
 
@@ -157,12 +158,12 @@ void VertexManager::vFlush()
 
 	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
 	{
-		DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
 	}
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
-		DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
 		goto shader_fail;
 
 	}
@@ -177,7 +178,7 @@ void VertexManager::vFlush()
 		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{
-			DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
 		}
 		// update alpha only
@@ -189,7 +190,7 @@ void VertexManager::vFlush()
 		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 	}
-	DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 shader_fail:
 	ResetBuffer();

@@ -11,6 +11,7 @@
 #include "PluginSpecs.h"
 
 #include "TextureCacheBase.h"
+#include "Debugger.h"
 
 // ugly
 extern int frameCount;
@@ -261,7 +262,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			hash_value = 0;
 		}
 
-		// TODO: Is the mipLevels check needed?
 		if (((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr) 
 			|| ((address == entry->addr) && (hash_value == entry->hash) && full_format == entry->format && entry->mipLevels == maxlevel))
 		{
@@ -275,7 +275,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			// Might speed up movie playback very, very slightly.
 			texture_is_dynamic = (entry->isRenderTarget || entry->isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
 
-			// TODO: Is the mipLevels check needed?
 			if (!entry->isRenderTarget &&
 				((!entry->isDynamic && width == entry->realW && height == entry->realH && full_format == entry->format && entry->mipLevels == maxlevel)
 				|| (entry->isDynamic && entry->realW == width && entry->realH == height)))
@@ -331,6 +330,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
 		entry->mipLevels = maxlevel;
+
+		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
 	entry->addr = address;
@@ -411,6 +412,8 @@ return_entry:
 
 	entry->frameCount = frameCount;
 	entry->Bind(stage);
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
 
 	return entry;
 }

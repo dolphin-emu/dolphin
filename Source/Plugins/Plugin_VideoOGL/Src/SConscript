@@ -23,11 +23,6 @@ files = [
 
 libs = [ 'videocommon', 'videouicommon', 'GLEW', 'SOIL', 'common' ]
 
-if env['HAVE_WX']:
-	files += [
-		'Debugger/Debugger.cpp',
-		]
-
 if sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaGL.m' ]
 elif sys.platform == 'win32':
