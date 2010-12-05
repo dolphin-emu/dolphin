@@ -851,8 +851,13 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	// TODO: finish this
 
 	// Buttons
+#ifdef __linux__
+	set_control(m_buttons, 0, "Click 1");		// A
+	set_control(m_buttons, 1, "Click 3");		// B
+#else
 	set_control(m_buttons, 0, "Click 0");		// A
 	set_control(m_buttons, 1, "Click 1");		// B
+#endif
 	//set_control(m_buttons, 2, "");		// 1
 	//set_control(m_buttons, 3, "");		// 2
 	//set_control(m_buttons, 4, "");		// -

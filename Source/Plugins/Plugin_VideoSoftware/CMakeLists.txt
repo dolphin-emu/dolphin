@@ -22,8 +22,11 @@ set(SRCS	Src/BPMemLoader.cpp
 			Src/VertexFormatConverter.cpp
 			Src/VertexLoader.cpp
 			Src/VideoConfig.cpp
-			Src/VideoConfigDialog.cpp
 			Src/XFMemLoader.cpp)
+
+if(wxWidgets_FOUND)
+	set(SRCS ${SRCS} Src/VideoConfigDialog.cpp)
+endif(wxWidgets_FOUND)
 
 set(LIBS	videocommon
 			GLEW
