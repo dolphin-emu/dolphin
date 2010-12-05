@@ -21,7 +21,7 @@ template <typename W>
 class BoolSetting : public W
 {
 public:
-	BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse = false, long style = 0);
+	BoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool reverse = false, long style = 0);
 
 	void UpdateValue(wxCommandEvent& ev)
 	{
@@ -39,7 +39,7 @@ typedef BoolSetting<wxRadioButton> SettingRadioButton;
 class SettingChoice : public wxChoice
 {
 public:
-	SettingChoice(wxWindow* parent, int &setting, int num = 0, const wxString choices[] = NULL);
+	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = NULL);
 	void UpdateValue(wxCommandEvent& ev);
 private:
 	int &m_setting;
