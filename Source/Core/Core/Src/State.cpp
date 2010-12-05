@@ -357,7 +357,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		buffer = new u8[sz];
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
-			PanicAlert("wtf? %d %lu", x, sz);
+			PanicAlert("wtf? %d %lu", x, (unsigned long)sz);
 	}
 
 	fclose(f);
@@ -457,7 +457,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 		buffer = new u8[sz];
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
-			PanicAlert("wtf? %d %lu", x, sz);
+			PanicAlert("wtf? %d %lu", x, (unsigned long)sz);
 	}
 
 	fclose(f);

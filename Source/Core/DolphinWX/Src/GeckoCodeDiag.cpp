@@ -240,7 +240,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 		if (gcodes.size())
 		{
-			PanicAlert("Downloaded %lu codes.", gcodes.size());
+			PanicAlert("Downloaded %lu codes.",
+				(unsigned long)gcodes.size());
 
 			// append the codes to the code list
 			std::vector<GeckoCode>::const_iterator

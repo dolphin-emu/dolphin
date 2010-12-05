@@ -218,7 +218,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			else
 			{
 				Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), _CommandAddress + 0x4);
-				INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %lu", rNANDCOntent.GetContentSize());
+				INFO_LOG(WII_IPC_ES,
+					"IOCTL_ES_GETTITLECONTENTS: "
+					"Unable to open content %lu",
+					(unsigned long)rNANDCOntent.\
+						GetContentSize());
 			}
 
             return true;
@@ -399,7 +403,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             Memory::Write_U32((u32)m_TitleIDs.size(), Buffer.PayloadBuffer[0].m_Address);
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %lu", m_TitleIDs.size());
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %lu",
+                (unsigned long)m_TitleIDs.size());
 
             Memory::Write_U32(0, _CommandAddress + 0x4);		
 

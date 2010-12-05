@@ -103,7 +103,8 @@ void SignatureDB::List()
 	{
 		INFO_LOG(OSHLE, "%s : %i bytes, hash = %08x", iter->second.name.c_str(), iter->second.size, iter->first);
 	}
-	INFO_LOG(OSHLE, "%lu functions known in current database.", database.size());
+	INFO_LOG(OSHLE, "%lu functions known in current database.",
+		(unsigned long)database.size());
 }
 
 void SignatureDB::Clear()

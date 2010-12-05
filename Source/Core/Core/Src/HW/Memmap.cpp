@@ -121,10 +121,10 @@ readFn64  hwReadWii64[NUMHWMEMFUN];
 
 // Default read and write functions
 template <class T>
-void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%lu %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
+void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%lu %08x", (unsigned long)sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
 
 template <class T>
-void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
+void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", (unsigned long)sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
 #define PAGE_SHIFT 10
 #define PAGE_SIZE (1 << PAGE_SHIFT)

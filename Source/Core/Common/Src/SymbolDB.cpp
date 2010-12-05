@@ -28,7 +28,7 @@ void SymbolDB::List()
 			iter->second.numCalls);
 	}
 	INFO_LOG(OSHLE, "%lu functions known in this program above.",
-		functions.size());
+		(unsigned long)functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)
