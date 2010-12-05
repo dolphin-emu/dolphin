@@ -1,4 +1,4 @@
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(UNIX)
 	add_definitions(-DLUA_USE_LINUX)
 endif()
 
