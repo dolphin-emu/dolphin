@@ -577,7 +577,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	else if (type == PEEK_COLOR)
 	{
 		// we can directly copy to system memory here
-		read_tex = FramebufferManager::GetResolvedEFBColorTexture()->GetTex();
+		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
 		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
 
