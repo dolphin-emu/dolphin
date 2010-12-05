@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <wx/wx.h>
+
 #include "Common.h"
 #include "Host.h"
 #include "StringUtil.h"

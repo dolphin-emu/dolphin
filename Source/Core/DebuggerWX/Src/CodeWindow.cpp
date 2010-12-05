@@ -18,6 +18,7 @@
 // Include
 #include "Common.h"
 
+#include <wx/wx.h>
 #include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>

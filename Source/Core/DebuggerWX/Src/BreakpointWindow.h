@@ -18,8 +18,6 @@
 #ifndef __BREAKPOINTWINDOW_h__
 #define __BREAKPOINTWINDOW_h__
 
-#include <wx/listctrl.h>
-
 class CBreakPointView;
 class CBreakPointBar;
 class CCodeWindow;

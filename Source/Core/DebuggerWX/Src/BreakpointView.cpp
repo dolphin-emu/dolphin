@@ -15,15 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <wx/wx.h>
+#include <wx/mstream.h>
+#include <wx/imaglist.h>
+
 #include "BreakpointView.h"
 #include "DebuggerUIUtil.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/Memmap.h"
-
-#include <wx/mstream.h>
-#include <wx/imaglist.h>
 
 extern "C" {
 #include "../resources/toolbar_add_breakpoint.c"
