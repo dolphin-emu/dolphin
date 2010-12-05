@@ -117,7 +117,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// First, check hash.
 	u32 block_hash = HashAdler32(source, comp_block_size);
 	if (block_hash != hashes[block_num])
-		PanicAlert("Hash of block %i is %08x instead of %08x.\n"
+		PanicAlert("Hash of block %lli is %08x instead of %08x.\n"
 		           "Your ISO, %s, is corrupt.",
 		           block_num, block_hash, hashes[block_num],
 				   file_name.c_str());
