@@ -171,7 +171,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg) const
 		s64 distance = (s64)offset - (s64)ripAddr;
 		if (distance >= 0x0000000080000000LL
 		    || distance <  -0x0000000080000000LL) {
-		    PanicAlert("WriteRest: op out of range (%p uses %p)", ripAddr, offset);
+		    PanicAlert("WriteRest: op out of range (0x%llx uses 0x%llx)", ripAddr, offset);
 		}
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);

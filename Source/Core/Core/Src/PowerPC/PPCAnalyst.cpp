@@ -700,7 +700,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	{
 		if (iter->second.address == 4)
 		{
-			WARN_LOG(HLE, "weird function");
+			WARN_LOG(OSHLE, "weird function");
 			continue;
 		}
 		AnalyzeFunction2(&(iter->second));
@@ -750,8 +750,11 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	else
 		unniceSize /= numUnNice;
 
-	INFO_LOG(HLE, "Functions analyzed. %i leafs, %i nice, %i unnice. %i timer, %i rfi. %i are branchless leafs.",numLeafs,numNice,numUnNice,numTimer,numRFI,numStraightLeaf);
-	INFO_LOG(HLE, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize, unniceSize);
+	INFO_LOG(OSHLE, "Functions analyzed. %i leafs, %i nice, %i unnice."
+		"%i timer, %i rfi. %i are branchless leafs.", numLeafs,
+		numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
+	INFO_LOG(OSHLE, "Average size: %i (leaf), %i (nice), %i(unnice)",
+		leafSize, niceSize, unniceSize);
 }
 
 }  // namespace

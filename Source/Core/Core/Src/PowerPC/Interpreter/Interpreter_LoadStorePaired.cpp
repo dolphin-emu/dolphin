@@ -109,7 +109,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
 		break;
 
 	default:
-		_dbg_assert_msg_(POWERPC,0,"PS dequantize","Unknown type to read");
+		_dbg_assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
 		break;
 	}
 }
@@ -146,7 +146,7 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 		break;
 
 	default:
-		_dbg_assert_msg_(POWERPC,0,"PS dequantize","Unknown type to read");
+		_dbg_assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
 		fResult = 0;
 		break;
 	}

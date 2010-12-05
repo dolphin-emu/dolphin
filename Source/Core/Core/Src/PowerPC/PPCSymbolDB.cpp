@@ -58,7 +58,7 @@ Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 		u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
 		if (targetEnd == 0)
 			return 0;  //found a dud :(
-		//LOG(HLE,"Symbol found at %08x",startAddr);
+		//LOG(OSHLE, "Symbol found at %08x", startAddr);
 		functions[startAddr] = tempFunc;
 		tempFunc.type = Symbol::SYMBOL_FUNCTION;
 		checksumToFunction[tempFunc.hash] = &(functions[startAddr]);
@@ -144,7 +144,7 @@ void PPCSymbolDB::FillInCallers()
             }
             else
             {
-                //LOG(HLE,"FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
+                //LOG(OSHLE, "FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
 				// TODO - analyze the function instead.
             }
         }
@@ -157,7 +157,7 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 	if (iter != functions.end())
 	{
 		const Symbol &f = iter->second;
-		INFO_LOG(HLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
+		INFO_LOG(OSHLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
 		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); ++fiter)
 		{
 			XFuncMap::const_iterator n = functions.find(fiter->function);

@@ -74,7 +74,7 @@ bool WaveFileWriter::Start(const char *filename)
 
 	// We are now at offset 44
 	if (ftello(file) != 44)
-		PanicAlert("wrong offset: %lli", ftello(file));
+		PanicAlert("wrong offset: %lld", (long long)ftello(file));
 
 	return true;
 }

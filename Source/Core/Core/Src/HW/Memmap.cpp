@@ -121,10 +121,10 @@ readFn64  hwReadWii64[NUMHWMEMFUN];
 
 // Default read and write functions
 template <class T>
-void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
+void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%lu %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
 
 template <class T>
-void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
+void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
 #define PAGE_SHIFT 10
 #define PAGE_SIZE (1 << PAGE_SHIFT)
@@ -623,7 +623,7 @@ u8 *GetPointer(const u32 _Address)
 
 	case 0xCC:
 	case 0xCD:
-		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
+		_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
 		return NULL;
 	default:
 		if (bFakeVMEM)

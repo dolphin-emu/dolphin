@@ -127,7 +127,7 @@ void PrintCallstack()
 	}
 }
 
-void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
+void PrintCallstack(enum LOG_TYPE type, enum LOG_LEVEL level)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
@@ -157,9 +157,9 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	}
 }
 
-void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
+void PrintDataBuffer(enum LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
 {
-	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title);		
+	DEBUG_LOG(type, "%s", _title);		
 	for (u32 j = 0; j < _Size;)
 	{
 		std::string Temp;
@@ -172,7 +172,7 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const ch
 			if (j >= _Size)
 				break;
 		}
-		GENERIC_LOG(type, LogTypes::LDEBUG, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(type, "   Data: %s", Temp.c_str());
 	}
 }
 

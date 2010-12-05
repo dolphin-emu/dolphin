@@ -188,9 +188,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	}
 
 // 	INFO_LOG(WII_IPC_SD, "InBuffer");
-// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+// 	DumpCommands(BufferIn, BufferInSize / 4, WII_IPC_SD);
 // 	INFO_LOG(WII_IPC_SD, "OutBuffer");
-// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+// 	DumpCommands(BufferOut, BufferOutSize/4, WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -226,7 +226,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	//DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
+	//DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, WII_IPC_SD);
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -361,7 +361,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			}
 			else
 			{
-				ERROR_LOG(WII_IPC_SD, "Read Failed - read %x, error %i, eof? %i",
+				ERROR_LOG(WII_IPC_SD, "Read Failed - read %lx, error %i, eof? %i",
 					nRead, ferror(m_Card), feof(m_Card));
 				rwFail = 1;
 			}
@@ -396,7 +396,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
 			if (nWritten != req.blocks)
 			{
-				ERROR_LOG(WII_IPC_SD, "Write Failed - wrote %x, error %i, eof? %i",
+				ERROR_LOG(WII_IPC_SD, "Write Failed - wrote %lx, error %i, eof? %i",
 					nWritten, ferror(m_Card), feof(m_Card));
 				rwFail = 1;
 			}

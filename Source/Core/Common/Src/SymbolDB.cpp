@@ -22,9 +22,13 @@ void SymbolDB::List()
 {
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
-		DEBUG_LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls", iter->second.name.c_str(), iter->second.address, iter->second.size, iter->second.hash,iter->second.numCalls);
+		DEBUG_LOG(OSHLE, "%s @ %08x: %i bytes (hash %08x) : %i calls",
+			iter->second.name.c_str(), iter->second.address,
+			iter->second.size, iter->second.hash,
+			iter->second.numCalls);
 	}
-	INFO_LOG(HLE,"%i functions known in this program above.", functions.size());
+	INFO_LOG(OSHLE, "%lu functions known in this program above.",
+		functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)

@@ -127,7 +127,7 @@ void PatchFunctions()
 				orig_instruction[addr] = Memory::ReadUnchecked_U32(addr);
 				Memory::Write_U32(HLEPatchValue | i, addr);
 			}
-			INFO_LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
+			INFO_LOG(OSHLE, "Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
 		}
 	}
 
@@ -137,7 +137,7 @@ void PatchFunctions()
 		if (symbol > 0)
 		{
 			PowerPC::breakpoints.Add(symbol->address, false);
-			INFO_LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
+			INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
 		}
 	}
 

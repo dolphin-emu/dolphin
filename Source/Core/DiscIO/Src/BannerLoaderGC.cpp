@@ -44,7 +44,7 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 			else m_IsValid = true;
 		}
 	}
-	else WARN_LOG(DISCIO, "Invalid opening.bnr size: %0x", FileSize);
+	else WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx", FileSize);
 }
 
 

@@ -1325,7 +1325,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			if (isImm(*inst)) {
 				fprintf(file, " 0x%08x", GetImmValue(inst));
 			} else {
-				fprintf(file, " %10u", i - (I - inst));
+				fprintf(file, " %10u", i - (unsigned int)(I - inst));
 			}
 		}
 
@@ -1335,7 +1335,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			if (isImm(*inst)) {
 				fprintf(file, " 0x%08x", GetImmValue(inst));
 			} else {
-				fprintf(file, " %10u", i - (I - inst));
+				fprintf(file, " %10u", i - (unsigned int)(I - inst));
 			}
 		}
 

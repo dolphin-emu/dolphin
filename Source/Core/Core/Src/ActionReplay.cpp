@@ -238,7 +238,7 @@ void LogInfo(const char *format, ...)
 {
 	if (!b_RanOnce) 
 	{
-		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
+		if (LogManager::GetMaxLevel() >= INFO_LEVEL || logSelf)
 		{
 			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;
@@ -448,7 +448,7 @@ ARCode GetARCode(size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("GetARCode: Index is greater than ar code list size %i", index);
+		PanicAlert("GetARCode: Index is greater than ar code list size %lu", index);
 		return ARCode();
 	}
 	return arCodes[index];
@@ -458,7 +458,7 @@ void SetARCode_IsActive(bool active, size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("SetARCode_IsActive: Index is greater than ar code list size %i", index);
+		PanicAlert("SetARCode_IsActive: Index is greater than ar code list size %lu", index);
 		return;
 	}
 	arCodes[index].active = active;

@@ -40,7 +40,7 @@ void DEBUGPRINT (const char * format, ...)
 #endif
 	printf("%s\n", buffer);
 #else
-	INFO_LOG(SP1, buffer);
+	INFO_LOG(SP1, "%s", buffer);
 #endif
 	va_end(args);
 }

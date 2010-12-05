@@ -58,7 +58,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	for (int i = 0; i < 8; i += 2)
 		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	u32 enableZTexture = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc || g_ActiveConfig.bEnablePerPixelDepth)? 1 : 0;
+	u32 enableZTexture = (bpmem.ztex2.op != (ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc) || g_ActiveConfig.bEnablePerPixelDepth)? 1 : 0;
 
 	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
@@ -466,7 +466,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc || g_ActiveConfig.bEnablePerPixelDepth ;
+	DepthTextureEnable = bpmem.ztex2.op != (ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc) || g_ActiveConfig.bEnablePerPixelDepth ;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)

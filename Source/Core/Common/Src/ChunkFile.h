@@ -70,7 +70,7 @@ public:
 		case MODE_READ:	memcpy(data, *ptr, size); break;
 		case MODE_WRITE: memcpy(*ptr, data, size); break;
 		case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
-		case MODE_VERIFY: for(int i = 0; i < size; i++) _dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at 0x%X) != %d (0x%X) (at 0x%X).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
+		case MODE_VERIFY: for(int i = 0; i < size; i++) _dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
 		default: break;  // throw an error?
 		}
 		(*ptr) += size;
@@ -136,7 +136,7 @@ public:
 		case MODE_READ:		x = (char*)*ptr; break;
 		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
 		case MODE_MEASURE: break;
-		case MODE_VERIFY: _dbg_assert_msg_(COMMON, !strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at 0x%X).\n", x.c_str(), (char*)*ptr, ptr); break;
+		case MODE_VERIFY: _dbg_assert_msg_(COMMON, !strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (char*)*ptr, ptr); break;
 		}
 		(*ptr) += stringLen;
 	}
@@ -150,7 +150,7 @@ public:
 			case MODE_READ:		delete[] *pBuffer; *pBuffer = new u8[_Size]; memcpy(*pBuffer, *ptr, _Size); break;
 			case MODE_WRITE:	memcpy(*ptr, *pBuffer, _Size); break;
 			case MODE_MEASURE:	break;
-			case MODE_VERIFY: if(*pBuffer) for(u32 i = 0; i < _Size; i++) _dbg_assert_msg_(COMMON, (*pBuffer)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at 0x%X) != %d (0x%X) (at 0x%X).\n", (*pBuffer)[i], (*pBuffer)[i], &(*pBuffer)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
+			case MODE_VERIFY: if(*pBuffer) for(u32 i = 0; i < _Size; i++) _dbg_assert_msg_(COMMON, (*pBuffer)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", (*pBuffer)[i], (*pBuffer)[i], &(*pBuffer)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
 			}
 		} else 	{
 			*pBuffer = NULL;

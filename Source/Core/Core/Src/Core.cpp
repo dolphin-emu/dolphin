@@ -407,7 +407,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
 	// Spawn the CPU thread
-	_dbg_assert_(HLE, cpuThread == NULL);
+	_dbg_assert_(OSHLE, cpuThread == NULL);
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -710,7 +710,7 @@ void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, "%s", _szMessage);
+	GENERIC_LOG(AUDIO, (enum LOG_LEVEL)_v, "%s", _szMessage);
 }
 
 

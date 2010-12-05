@@ -127,7 +127,7 @@ void Interpreter::rfi(UGeckoInstruction _inst)
 
 void Interpreter::rfid(UGeckoInstruction _inst) 
 {
-	_dbg_assert_msg_(POWERPC,0,"Instruction unimplemented (does this instruction even exist?)","rfid");
+	_dbg_assert_msg_(POWERPC, 0, "rfid instruction unimplemented (does this instruction even exist?)");
 	m_EndBlock = true;
 }
 

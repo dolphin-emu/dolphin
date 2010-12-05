@@ -381,7 +381,7 @@ void CheckExceptions()
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 
-			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");
+			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
 		}
 		else if (exceptions & EXCEPTION_DECREMENTER)
 		{

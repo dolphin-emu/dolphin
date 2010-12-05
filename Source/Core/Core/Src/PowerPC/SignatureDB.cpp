@@ -63,7 +63,7 @@ bool SignatureDB::Save(const char *filename)
 	FILE *f = fopen(filename,"wb");
 	if (!f)
 	{
-		ERROR_LOG(HLE, "Database save failed");
+		ERROR_LOG(OSHLE, "Database save failed");
 		return false;
 	}
 	int fcount = (int)database.size();
@@ -78,7 +78,7 @@ bool SignatureDB::Save(const char *filename)
 		fwrite(&temp, sizeof(temp), 1, f);
 	}
 	fclose(f);
-	INFO_LOG(HLE,"Database save successful");
+	INFO_LOG(OSHLE, "Database save successful");
 	return true;
 }
 
@@ -101,9 +101,9 @@ void SignatureDB::List()
 {
 	for (FuncDB::iterator iter = database.begin(); iter != database.end(); ++iter)
 	{
-		INFO_LOG(HLE,"%s : %i bytes, hash = %08x",iter->second.name.c_str(), iter->second.size, iter->first);
+		INFO_LOG(OSHLE, "%s : %i bytes, hash = %08x", iter->second.name.c_str(), iter->second.size, iter->first);
 	}
-	INFO_LOG(HLE, "%i functions known in current database.", database.size());
+	INFO_LOG(OSHLE, "%lu functions known in current database.", database.size());
 }
 
 void SignatureDB::Clear()
@@ -123,12 +123,12 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 			if (iter->second.size == (unsigned int)function->size)
 			{
 				function->name = iter->second.name;
-				INFO_LOG(HLE,  "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
+				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
 			}
 			else 
 			{
 				function->name = iter->second.name;
-				ERROR_LOG(HLE, "Wrong sizzze! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
+				ERROR_LOG(OSHLE, "Wrong sizzze! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
 			}
 		}
 	}

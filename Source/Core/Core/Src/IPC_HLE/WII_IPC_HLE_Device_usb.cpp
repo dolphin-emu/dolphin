@@ -300,7 +300,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queueing(%i)...", m_ACLQ.size());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queueing(%lu)...", m_ACLQ.size());
 		m_ACLQ.push(ACLQ(_pData, _Size, _ConnectionHandle));
 	}
 }
@@ -330,10 +330,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		}
 		else // push new one, pop oldest
 		{
-			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing(%i)...", m_EventQueue.size());
+			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing(%lu)...", m_EventQueue.size());
 			m_EventQueue.push(_event);
 			const SQueuedEvent& event = m_EventQueue.front();
-			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x being written from queue(%i) to %08x...",
+			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x being written from queue(%lu) to %08x...",
 				((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size()-1, m_HCIEndpoint.m_address);
 			m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 			m_HCIEndpoint.SetRetVal(event.m_size);
@@ -345,7 +345,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing(%i)...", m_EventQueue.size());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, queueing(%lu)...", m_EventQueue.size());
 		m_EventQueue.push(_event);
 	}
 }
@@ -357,7 +357,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	{
 		// an endpoint has become available, and we have a stored response.
 		const SQueuedEvent& event = m_EventQueue.front();
-		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x being written from queue(%i) to %08x...",
+		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x being written from queue(%lu) to %08x...",
 			((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size()-1, m_HCIEndpoint.m_address);
 		m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 		m_HCIEndpoint.SetRetVal(event.m_size);
@@ -373,7 +373,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	if (!m_ACLQ.empty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
 	{
 		const ACLQ& acl_data = m_ACLQ.front();
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from queue(%i) to %08x",
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from queue(%lu) to %08x",
 			m_ACLQ.size()-1, m_ACLEndpoint.m_address);
 
 		hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(m_ACLEndpoint.m_buffer);
@@ -1728,7 +1728,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4F(u8* _Input,
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
 
-	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4F, &Reply, sizeof(hci_status_rp));
 }
@@ -1740,7 +1740,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
-	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4C, &Reply, sizeof(hci_status_rp));
 }

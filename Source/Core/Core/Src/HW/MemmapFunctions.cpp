@@ -229,10 +229,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 			// TODO figure out a way to send data without falling into the template trap
 			if (em_address & 0x00400000) {
 				CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(POKE_Z, x, y, (u32)data);
-				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
+				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", (u32)data, x, y);
 			} else {
 				CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(POKE_COLOR, x, y,(u32)data);
-				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
+				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", (u32)data, x, y);
 			}
 			return;
 		}
@@ -256,7 +256,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		}
 		else
 		{
-			ERROR_LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, data, PC);
+			ERROR_LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, (u32)data, PC);
 			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", em_address);
 		}
 	}
