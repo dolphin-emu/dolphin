@@ -42,9 +42,7 @@
 #ifdef _WIN32
 	#include <windows.h>
 #elif defined(__APPLE__)
-	#include <CoreFoundation/CoreFoundation.h>
-	#include <IOBluetooth/IOBluetoothUserLib.h>
-	#include <string.h>
+	#import <IOBluetooth/IOBluetooth.h>
 #elif defined(__linux__)
 	#ifdef HAVE_CONFIG_H
 		#include "config.h"
@@ -154,16 +152,17 @@ typedef struct wiimote_t {
 	WCONST int unid;				/**< user specified id				*/
 
 	#if defined(__APPLE__)
-		WCONST IOBluetoothDeviceRef *device;
-		WCONST char bdaddr_str[18];
+		WCONST IOBluetoothDevice *btd;
+		WCONST IOBluetoothL2CAPChannel *ichan;
+		WCONST IOBluetoothL2CAPChannel *cchan;
 	#elif defined(__linux__) && HAVE_BLUEZ
 		WCONST bdaddr_t bdaddr;			/**< bt address	(linux)				*/
 		WCONST char bdaddr_str[18];		/**< readable bt address			*/
 		WCONST int out_sock;			/**< output socket				*/
 		WCONST int in_sock;			/**< input socket 				*/
 	#elif defined(_WIN32)
-		WCONST char devicepath[255];		/**< unique wiimote reference */
-		//WCONST ULONGLONG btaddr;			/**< bt address	(windows)				*/
+		WCONST char devicepath[255];		/**< unique wiimote reference			*/
+		//WCONST ULONGLONG btaddr;		/**< bt address	(windows)			*/
 		WCONST HANDLE dev_handle;		/**< HID handle					*/
 		WCONST OVERLAPPED hid_overlap;		/**< overlap handle				*/
 		WCONST enum win_bt_stack_t stack;	/**< type of bluetooth stack to use		*/

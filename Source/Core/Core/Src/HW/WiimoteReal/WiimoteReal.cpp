@@ -36,6 +36,10 @@
 #pragma comment(lib, "Bthprops.lib")
 #endif
 
+#ifdef __APPLE__
+#import <Foundation/NSAutoreleasePool.h>
+#endif
+
 unsigned int	g_wiimote_sources[MAX_WIIMOTES];
 
 namespace WiimoteReal
@@ -468,6 +472,10 @@ void StopWiimoteThreads()
 
 THREAD_RETURN WiimoteThreadFunc(void* arg)
 {
+#ifdef __APPLE__
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
+
 	Wiimote* const wiimote = (Wiimote*)arg;
 
 	{
@@ -492,6 +500,9 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 			Common::SleepCurrentThread(1);
 	}
 
+#ifdef __APPLE__
+	[pool release];
+#endif
 	return 0;
 }
 

@@ -34,10 +34,7 @@
 #import <CoreServices/CoreServices.h>
 extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 #define BLUETOOTH_VERSION_USE_CURRENT
-#import <IOBluetooth/objc/IOBluetoothDevice.h>
-#import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
-#import <IOBluetooth/objc/IOBluetoothHostController.h>
-#import <IOBluetooth/objc/IOBluetoothL2CAPChannel.h>
+#import <IOBluetooth/IOBluetooth.h>
 
 #include "Common.h"
 #include "wiiuse_internal.h"
@@ -116,7 +113,7 @@ volatile int reader, writer, outstanding, watermark;
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
-	UpdateSystemActivity(1);
+	(void)UpdateSystemActivity(1);
 }
 
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
@@ -151,7 +148,6 @@ volatile int reader, writer, outstanding, watermark;
  */
 int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	IOBluetoothHostController *bth;
 	IOBluetoothDeviceInquiry *bti;
 	SearchBT *sbt;
@@ -199,7 +195,6 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 	[bth release];
 	[bti release];
 	[sbt release];
-	[pool release];
 
 	return found_devices;
 }
@@ -247,7 +242,6 @@ int wiiuse_connect(struct wiimote_t **wm, int wiimotes)
  */
 static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	ConnectBT *cbt = [[ConnectBT alloc] init];
 
 	if (wm == NULL || WIIMOTE_IS_CONNECTED(wm))
@@ -268,7 +262,6 @@ static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
 	wiiuse_set_report_type(wm);
 
 	[cbt release];
-	[pool release];
 
 	return 1;
 }
@@ -284,8 +277,6 @@ static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
  */
 void wiiuse_disconnect(struct wiimote_t *wm)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	if (wm == NULL)
 		return;
 
@@ -297,7 +288,6 @@ void wiiuse_disconnect(struct wiimote_t *wm)
 	[cchan closeChannel];
 	[ichan closeChannel];
 	[btd closeConnection];
-	[pool release];
 }
 
 int wiiuse_io_read(struct wiimote_t *wm)

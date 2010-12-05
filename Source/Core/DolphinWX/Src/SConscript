@@ -84,8 +84,8 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		CFBundlePackageType = 'APPL',
 		CFBundleShortVersionString =
 			utils.GenerateRevFile('', Dir('#None').abspath, None),
-		CFBundleVersion = '2.0',
-		LSMinimumSystemVersion = '10.5.0',
+		CFBundleVersion = '3.0',
+		LSMinimumSystemVersion = '10.5.4',
 		LSRequiresCarbon = True,
 		)))
 else:

@@ -117,7 +117,7 @@ rev = utils.GenerateRevFile(env['flavor'], '.', None)
 
 # OS X specifics
 if sys.platform == 'darwin':
-    ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
+    ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5.4']
     ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
     system = '/System/Library/Frameworks'
     env['CCFLAGS'] += ccld

@@ -300,7 +300,11 @@ int wiiuse_write_data(struct wiimote_t* wm, unsigned int addr, byte* data, byte 
 	#endif
 
 	/* the offset is in big endian */
-	*(int*)(buf) = Common::swap32(addr); /* XXX only if little-endian */
+#ifdef __BIG_ENDIAN__
+	*(int*)(buf) = addr;
+#else
+	*(int*)(buf) = Common::swap32(addr);
+#endif
 
 	/* length */
 	*(byte*)(buf + 4) = len;
@@ -365,26 +369,6 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 	return wiiuse_io_write(wm, buf, len+2);
 }
 
-
-
-
-/**
- *	@brief	Set the bluetooth stack type to use.
- *
- *	@param wm		Array of wiimote_t structures.
- *	@param wiimotes	Number of objects in the wm array.
- *	@param type		The type of bluetooth stack to use.
- */
-void wiiuse_set_bluetooth_stack(struct wiimote_t** wm, int wiimotes, enum win_bt_stack_t type) {
-	#ifdef _WIN32
-	int i;
-
-	if (!wm)	return;
-
-	for (i = 0; i < wiimotes; ++i)
-		wm[i]->stack = type;
-	#endif
-}
 
 /**
  *	@brief Set the normal and expansion handshake timeouts.
