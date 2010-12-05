@@ -106,11 +106,11 @@ void CheckFile(std::string File, u64 Size)
 	std::string Str = StringFromFormat("%s kB %s", ThousandSeparate(Size, 7).c_str(), File.c_str());
 	if (ShowSound(File))
 	{
-		NOTICE_LOG(FILEMON, Str.c_str());
+		NOTICE_LOG(FILEMON, "%s", Str.c_str());
 	}
 	else
 	{
-		WARN_LOG(FILEMON, Str.c_str());
+		WARN_LOG(FILEMON, "%s", Str.c_str());
 	}
 
 	// Update the current file

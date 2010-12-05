@@ -343,7 +343,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 			break;
 
 		case 0x0003:
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST command 0x0003 ????");
+			DEBUG_LOG(DSPHLE, "%08x : AXLIST command 0x0003 ????", uAddress);
 			break;
 
 		case 0x0004:  // AUX?
@@ -377,7 +377,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		case 0x0009:
 			Addr__9   = Memory_Read_U32(uAddress);
 			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 6 address: %08x", Addr__9);
+			DEBUG_LOG(DSPHLE, "%08x : AXLIST 6 address: %08x", uAddress, Addr__9);
 			break;
 
 		case AXLIST_COMPRESSORTABLE:  // 0xa
@@ -438,7 +438,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 						num += 2;
 					}
 
-					PanicAlert(szTemp);
+					PanicAlert("%s", szTemp);
 					// bFirst = false;
 				}
 

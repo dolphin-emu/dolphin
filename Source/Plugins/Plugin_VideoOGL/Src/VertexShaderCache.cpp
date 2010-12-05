@@ -169,14 +169,14 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
         }
         cgDestroyProgram(tempprog);
 		ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-		ERROR_LOG(VIDEO, pstrprogram);
+		ERROR_LOG(VIDEO, "%s", pstrprogram);
 		return false;
 	}
 
 	if (cgGetError() != CG_NO_ERROR)
 	{
 		WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-		WARN_LOG(VIDEO, pstrprogram);
+		WARN_LOG(VIDEO, "%s", pstrprogram);
 	}
 
 	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
@@ -194,8 +194,8 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);	
 	err = GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
-		ERROR_LOG(VIDEO, pstrprogram);
-		ERROR_LOG(VIDEO, pcompiledprog);
+		ERROR_LOG(VIDEO, "%s", pstrprogram);
+		ERROR_LOG(VIDEO, "%s", pcompiledprog);
 	}
 
 	cgDestroyProgram(tempprog);

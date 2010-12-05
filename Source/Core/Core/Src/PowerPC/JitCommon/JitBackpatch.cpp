@@ -51,8 +51,8 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 #endif
 	PanicAlert("%s\n\n"
        "Error encountered accessing emulated address %08x.\n"
-	   "Culprit instruction: \n%s\nat %08x%08x",
-	   text.c_str(), emAddress, disbuf, code_addr>>32, code_addr);
+	   "Culprit instruction: \n%s\nat %#llx",
+	   text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
 

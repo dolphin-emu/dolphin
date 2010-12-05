@@ -831,7 +831,7 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 			break;
 
 		default :
-			PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp->type, hidp->param);
+			PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp->param);
 			break;
 		}
 		break;

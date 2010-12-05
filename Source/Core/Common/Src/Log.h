@@ -100,7 +100,11 @@ enum LOG_LEVELS {
 extern "C" {
 #endif
 void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
-		const char *file, int line, const char *fmt, ...);
+		const char *file, int line, const char *fmt, ...)
+#ifdef __GNUC__
+		__attribute__((format(printf, 5, 6)))
+#endif
+		;
 #ifdef __cplusplus
 };
 #endif

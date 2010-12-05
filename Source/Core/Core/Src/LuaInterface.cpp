@@ -425,11 +425,11 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 	const char* answer = "ok";
 
 	if(itype == 1)
-		answer = PanicYesNo(str) ? "yes" : "no";
+		answer = PanicYesNo("%s", str) ? "yes" : "no";
 	else if(iicon == 1)
-		SuccessAlert(str);
+		SuccessAlert("%s", str);
 	else
-		PanicAlert(str);
+		PanicAlert("%s", str);
 
 	lua_pushstring(L, answer);
 	return 1;

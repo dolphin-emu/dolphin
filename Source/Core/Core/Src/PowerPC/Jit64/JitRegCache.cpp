@@ -80,7 +80,7 @@ void RegCache::Lock(int p1, int p2, int p3, int p4)
 void RegCache::LockX(int x1, int x2, int x3, int x4)
 {
 	if (xlocks[x1]) {
-		PanicAlert("RegCache: x %i already locked!");
+		PanicAlert("RegCache: x %i already locked!", x1);
 	}
 	xlocks[x1] = true;
 	if (x2 != 0xFF) xlocks[x2] = true;

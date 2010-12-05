@@ -439,8 +439,8 @@ void OpenGL_ReportARBProgramError()
 		GLint loc = 0;
 		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
 		ERROR_LOG(VIDEO, "program error at %d: ", loc);
-		ERROR_LOG(VIDEO, (char*)pstr);
-		ERROR_LOG(VIDEO, "");
+		ERROR_LOG(VIDEO, "%s", (char*)pstr);
+		ERROR_LOG(VIDEO, "\n");
 	}
 }
 

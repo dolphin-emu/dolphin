@@ -183,7 +183,7 @@ bool AlsaSound::AlsaInit()
 	//it is probably a bad idea to try to send more than one buffer of data
 	if ((unsigned int)frames_to_deliver > buffer_size)
 	    frames_to_deliver = buffer_size;
-	NOTICE_LOG(AUDIO, "ALSA gave us a %d sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, frames_to_deliver);
+	NOTICE_LOG(AUDIO, "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, frames_to_deliver);
 
 	snd_pcm_sw_params_alloca(&swparams);
 

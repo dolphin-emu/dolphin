@@ -52,7 +52,7 @@ void CUCode_CARD::HandleMail(u32 _uMail)
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown cmd: %x (size %i)", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown cmd: %x", _uMail);
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);

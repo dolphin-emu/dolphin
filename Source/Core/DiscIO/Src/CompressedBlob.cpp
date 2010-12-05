@@ -145,7 +145,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		{
 			// this seem to fire wrongly from time to time
 			// to be sure, don't use compressed isos :P
-			PanicAlert("Failure reading block %i - out of data and not at end.", block_num);
+			PanicAlert("Failure reading block %lli - out of data and not at end.", block_num);
 		}
 		inflateEnd(&z);
 		if (uncomp_size != header.block_size)

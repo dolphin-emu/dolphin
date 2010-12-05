@@ -221,7 +221,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if(!AskYesNo("Do you want to clear the list of symbol names?", "Confirm", wxYES_NO)) return;
+		if(!AskYesNo("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;

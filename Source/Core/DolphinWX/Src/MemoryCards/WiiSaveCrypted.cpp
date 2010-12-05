@@ -209,7 +209,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	if (_sizeOfFiles + FULL_CERT_SZ != _totalSize)
 		WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", _sizeOfFiles, FULL_CERT_SZ, _totalSize);
 	if (_saveGameTitle != Common::swap64(bkhdr.SaveGameTitle))
-		WARN_LOG(CONSOLE, "encrypted title (%x) does not match unencrypted title (%x)", _saveGameTitle,  Common::swap64(bkhdr.SaveGameTitle));
+		WARN_LOG(CONSOLE, "encrypted title (%llx) does not match unencrypted title (%llx)", _saveGameTitle,  Common::swap64(bkhdr.SaveGameTitle));
 
 
 }

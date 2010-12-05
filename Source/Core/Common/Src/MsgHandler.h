@@ -28,7 +28,11 @@ enum MSG_TYPE
 typedef bool (*MsgAlertHandler)(const char* caption, const char* text, 
                                 bool yes_no, int Style);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
-extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...);
+extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
+#ifdef __GNUC__
+	__attribute__((format(printf, 4, 5)))
+#endif
+	;
 void SetEnableAlert(bool enable);
 
 #ifndef GEKKO

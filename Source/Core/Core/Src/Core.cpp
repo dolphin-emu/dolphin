@@ -689,7 +689,7 @@ bool report_slow(int skipped)
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
 void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 {
-	INFO_LOG(VIDEO, _szMessage);
+	INFO_LOG(VIDEO, "%s", _szMessage);
 }
 
 // Should be called from GPU thread when a frame is drawn
@@ -710,7 +710,7 @@ void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
+	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, "%s", _szMessage);
 }
 
 

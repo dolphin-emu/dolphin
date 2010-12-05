@@ -247,8 +247,8 @@ Renderer::Renderer()
 	}
 
 	INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
-	INFO_LOG(VIDEO, ptoken);  // write to the log file
-	INFO_LOG(VIDEO, "");
+	INFO_LOG(VIDEO, "%s", ptoken);  // write to the log file
+	INFO_LOG(VIDEO, "\n");
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
 				glGetString(GL_VENDOR),

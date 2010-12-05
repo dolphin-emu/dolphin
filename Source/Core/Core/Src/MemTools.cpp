@@ -211,7 +211,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	u64 bad_address = (u64)fault_memory_ptr;
 	u64 memspace_bottom = (u64)Memory::base;
 	if (bad_address < memspace_bottom) {
-		PanicAlert("Exception handler - access below memory space. %08x%08x",
+		PanicAlert("Exception handler - access below memory space. %08llx%08llx",
 			bad_address >> 32, bad_address);
 	}
 	u32 em_address = (u32)(bad_address - memspace_bottom);

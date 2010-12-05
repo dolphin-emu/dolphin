@@ -108,7 +108,7 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 
 	if (temp == NULL)
 	{
-		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str(), width, height);
+		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str());
 		SOIL_free_image_data(temp);
 		return PC_TEX_FMT_NONE;
 	}

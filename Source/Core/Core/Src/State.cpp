@@ -341,7 +341,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
-				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
+				PanicAlert("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
 					"Try loading the state again", res, i, new_len);
 				fclose(f);
 				delete[] buffer;
@@ -440,7 +440,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
-				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
+				PanicAlert("Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
 					"Try verifying the state again", res, i, new_len);
 				fclose(f);
 				delete [] buffer;

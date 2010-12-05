@@ -245,7 +245,7 @@ void LogInfo(const char *format, ...)
 			va_start(args, format);
 			CharArrayFromFormatV(temp, 512, format, args);
 			va_end(args);
-			INFO_LOG(ACTIONREPLAY, temp);
+			INFO_LOG(ACTIONREPLAY, "%s", temp);
 
 			if (logSelf)
 			{
@@ -798,7 +798,7 @@ bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data)
 	else
 	{
 		LogInfo("Bad Value");
-		PanicAlert("Action Replay Error: Invalid value (&08x) in Memory Copy (%s)", (data & ~0x7FFF), current_code->name.c_str());
+		PanicAlert("Action Replay Error: Invalid value (%08x) in Memory Copy (%s)", (data & ~0x7FFF), current_code->name.c_str());
 		return false;
 	}
 	return true;

@@ -47,7 +47,7 @@ bool SysConf::LoadFromFile(const char *filename)
 		return false; //most likely: file does not exist
 	if (size != SYSCONF_SIZE)
 	{
-		PanicAlert("Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04x)", 
+		PanicAlert("Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04llx)", 
 			SYSCONF_SIZE, size);
 		return false;
 	}

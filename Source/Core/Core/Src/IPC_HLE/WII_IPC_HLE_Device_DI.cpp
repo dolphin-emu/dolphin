@@ -214,13 +214,13 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
 			if (pFilename != NULL)
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%llx) - (DVDAddr: 0x%llx, Size: 0x%x)",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
 				FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%llx, Size: 0x%x)",
 					DVDAddress, Size);
 			}
 
@@ -315,9 +315,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				return 2;
 			}
 
-			u64 DVDAddress = (u64)(DVDAddress32 << 2);
+			u64 DVDAddress = (u64)DVDAddress32 << 2;
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: DVDAddr: 0x%08x, Size: 0x%x", DVDAddress, Size);
+			INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: DVDAddr: 0x%08llx, Size: 0x%x", DVDAddress, Size);
 
 			if (Size > _BufferOutSize)
 			{
@@ -350,12 +350,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
 			if (pFilename != NULL)
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%x) - (DVDAddr: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%llx) - (DVDAddr: 0x%llx)",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unkw - (DVDAddr: 0x%x)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unkw - (DVDAddr: 0x%llx)",
 					DVDAddress);
 			}
 		}

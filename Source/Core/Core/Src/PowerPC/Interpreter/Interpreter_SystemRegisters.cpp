@@ -88,7 +88,7 @@ void FPSCRtoFPUSettings(UReg_FPSCR fp)
 		FPU_ROUND_DOWN
 	};
 	unsigned short mode;
-	asm ("fstcw %0" : : "m" (mode));
+	asm ("fstcw %0" : "=m" (mode) : );
 	mode = (mode & ~FPU_ROUND_MASK) | table[fp.RN];
 	asm ("fldcw %0" : : "m" (mode));
 #endif
@@ -383,7 +383,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		break;
 
 	case SPR_WPAR:
-		_assert_msg_(POWERPC, m_GPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x");
+		_assert_msg_(POWERPC, m_GPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
 		GPFifo::ResetGatherPipe();
 		break;
 

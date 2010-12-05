@@ -529,8 +529,10 @@ void ExecuteCommand(UDICR& _DICR)
 
 	if (GCAM)
 	{
-		ERROR_LOG(DVDINTERFACE, "DVD: %08x, %08x, %08x, DMA=addr:%08x,len:%08x,ctrl:%08x",
-			m_DICMDBUF[0], m_DICMDBUF[1], m_DICMDBUF[2], m_DIMAR, m_DILENGTH, m_DICR);
+		ERROR_LOG(DVDINTERFACE,
+			"DVD: %08x, %08x, %08x, DMA=addr:%08x,len:%08x,ctrl:%08x",
+			m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex, m_DICMDBUF[2].Hex,
+			m_DIMAR.Hex, m_DILENGTH.Hex, m_DICR.Hex);
 		// decrypt command. But we have a zero key, that simplifies things a lot.
 		// If you get crazy dvd command errors, make sure 0x80000000 - 0x8000000c is zero'd
 		m_DICMDBUF[0].Hex <<= 24;

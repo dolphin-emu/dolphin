@@ -183,9 +183,10 @@ void PixelShaderManager::SetConstants()
 					bpmem.indmtx[i].col2.mf * fscale,
 					fscale * 4.0f);
 
-                PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n", i,
-                    1024.0f*fscale, bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
-                    bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale, fscale);
+                PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n",
+                	i, 1024.0f*fscale,
+                	bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
+                	bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale);
             }
         }
         s_nIndTexMtxChanged = 0;

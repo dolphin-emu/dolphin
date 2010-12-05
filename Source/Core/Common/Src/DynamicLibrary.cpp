@@ -143,7 +143,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 	
 	if (!library)
 	{
-		ERROR_LOG(COMMON, "DL: Get failed %s - Library not loaded");
+		ERROR_LOG(COMMON, "DL: Get failed %s - Library not loaded", funcname);
 		return NULL;
 	}
 
