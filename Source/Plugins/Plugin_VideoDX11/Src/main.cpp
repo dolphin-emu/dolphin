@@ -50,7 +50,6 @@
 #include "PixelShaderCache.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
-#include "W32Util/Misc.h"
 #include "EmuWindow.h"
 #include "FramebufferManager.h"
 #include "DLCache.h"

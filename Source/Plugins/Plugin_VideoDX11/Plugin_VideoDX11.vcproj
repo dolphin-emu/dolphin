@@ -651,51 +651,11 @@
 			Name="win32"
 			>
 			<File
-				RelativePath=".\Src\W32Util\DialogManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\DialogManager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\EmuWindow.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\EmuWindow.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\Misc.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\Misc.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\PropertySheet.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\PropertySheet.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\TabControl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\TabControl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\Thread.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\W32Util\Thread.h"
 				>
 			</File>
 		</Filter>
