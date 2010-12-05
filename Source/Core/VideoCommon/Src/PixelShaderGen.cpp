@@ -822,11 +822,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
 				else
 					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
+
+				// scale to make result from frac correct
+				WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
+				WRITE(p, "zCoord = frac(zCoord);\n");
+				WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");			
 			}
-			// scale to make result from frac correct
-			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-			WRITE(p, "zCoord = frac(zCoord);\n");
-			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 			WRITE(p, "depth = zCoord;\n");
 		}
 
