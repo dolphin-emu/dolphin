@@ -33,7 +33,8 @@ set(LIBS	videocommon
 			SOIL
 			common
 			${OPENGL_LIBRARIES}
-			${X11_LIBRARIES})
+			${X11_LIBRARIES}
+			${wxWidgets_LIBRARIES})
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
 	set(SRCS	${SRCS} Src/cocoaGL.m)
