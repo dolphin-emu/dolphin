@@ -35,25 +35,29 @@ bool OpenALStream::Start()
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
-		pDevice = alcOpenDevice((const ALCchar *)pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice()));
+		char *defDevName = pDeviceList-> \
+			GetDeviceName(pDeviceList->GetDefaultDevice());
+		pDevice = alcOpenDevice(defDevName);
 		if (pDevice)
 		{
 			pContext = alcCreateContext(pDevice, NULL);
 			if (pContext)
 			{
 				alcMakeContextCurrent(pContext);
-				thread = new Common::Thread(OpenALStream::ThreadFunc, (void *)this);
+				thread = new Common::Thread(
+					OpenALStream::ThreadFunc, (void *)this);
 				bReturn = true;
 			}
 			else
 			{
 				alcCloseDevice(pDevice);
-				PanicAlert("OpenAL: can't create context for device %s", pDevice);
+				PanicAlert("OpenAL: can't create context "
+					"for device %s", defDevName);
 			}
 		}
 		else
 		{
-			PanicAlert("OpenAL: can't open device %s", pDevice);
+			PanicAlert("OpenAL: can't open device %s", defDevName);
 		}
 		delete pDeviceList;
 	}
