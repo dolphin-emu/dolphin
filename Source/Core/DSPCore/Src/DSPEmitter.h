@@ -116,6 +116,11 @@ public:
 	void mrr(const UDSPInstruction opc);
 	void nx(const UDSPInstruction opc);
 
+	// Arithmetic
+	void addr(const UDSPInstruction opc);
+	void lsl16(const UDSPInstruction opc);
+	void lsl(const UDSPInstruction opc);
+
 	// Multipliers
 	void get_multiply_prod();
 	void multiply();

@@ -149,7 +149,7 @@ const DSPOPCTemplate opcodes[] =
 	{"SBCLR",	0x1200, 0xff00, DSPInterpreter::sbclr,   &DSPEmitter::sbclr,  1, 1, {{P_IMM, 1, 0, 0, 0x0007}},                                                             false, false, false},
 	{"SBSET",	0x1300, 0xff00, DSPInterpreter::sbset,   &DSPEmitter::sbset,  1, 1, {{P_IMM, 1, 0, 0, 0x0007}},                                                             false, false, false},
 
-	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false},
+	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl,     &DSPEmitter::lsl,    1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false},
 	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false},
 	{"ASL",		0x1480, 0xfec0, DSPInterpreter::asl,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false},
 	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::asr,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false},
@@ -220,7 +220,7 @@ const DSPOPCTemplate opcodes[] =
 	{"ASRNR",	0x3e80, 0xfe80, DSPInterpreter::asrnr,   NULL,                1, 2, {{P_ACC,  1, 0, 8, 0x0100},    {P_ACCM_D, 1, 0, 8, 0x0100}},                            true, false, false},
 
 	//4
-	{"ADDR",	0x4000, 0xf800, DSPInterpreter::addr,    NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_REG18, 1, 0, 9, 0x0600}},                             true, false, false},
+	{"ADDR",	0x4000, 0xf800, DSPInterpreter::addr,    &DSPEmitter::addr,   1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_REG18, 1, 0, 9, 0x0600}},                             true, false, false},
 	{"ADDAX",	0x4800, 0xfc00, DSPInterpreter::addax,   NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_AX, 1, 0, 9, 0x0200}},                                true, false, false},
 	{"ADD", 	0x4c00, 0xfe00, DSPInterpreter::add,     NULL,                1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_ACC_D, 1, 0, 8, 0x0100}},                             true, false, false},
 	{"ADDP",	0x4e00, 0xfe00, DSPInterpreter::addp,    NULL,                1, 1, {{P_ACC, 1, 0, 8, 0x0100}},                                                             true, false, false},
@@ -290,7 +290,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MSUBC",	0xec00, 0xfc00, DSPInterpreter::msubc,   &DSPEmitter::msubc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false},
 
 	//f
-	{"LSL16",	0xf000, 0xfe00, DSPInterpreter::lsl16,   NULL,                1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
+	{"LSL16",	0xf000, 0xfe00, DSPInterpreter::lsl16,   &DSPEmitter::lsl16,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
 	{"MADD",	0xf200, 0xfe00, DSPInterpreter::madd,    &DSPEmitter::madd,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},
 	{"LSR16",	0xf400, 0xfe00, DSPInterpreter::lsr16,   NULL,                1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false},
 	{"MSUB",	0xf600, 0xfe00, DSPInterpreter::msub,    &DSPEmitter::msub,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false},

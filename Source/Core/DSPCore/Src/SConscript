@@ -26,6 +26,7 @@ files = [
 	"Jit/DSPJitExtOps.cpp",
 	"Jit/DSPJitUtil.cpp",
 	"Jit/DSPJitCCUtil.cpp",
+	"Jit/DSPJitArithmetic.cpp",
 	"Jit/DSPJitMultiplier.cpp",
 	"Jit/DSPJitMisc.cpp",
 	]

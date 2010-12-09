@@ -26,7 +26,8 @@
 #include "ABI.h"
 using namespace Gen;
 
-// In: RAX: s64 _Value, 
+// In: RAX: s64 _Value
+// In: RCX: 1 = carry, 2 = overflow
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64(bool carry, bool overflow)
 {
@@ -36,18 +37,18 @@ void DSPEmitter::Update_SR_Register64(bool carry, bool overflow)
 
 	// 0x01
 	//	g_dsp.r[DSP_REG_SR] |= SR_CARRY;
-	if (carry)
-	{
-		OR(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_CARRY));
-	}
+	TEST(8, R(RSI), Imm8(1));
+	FixupBranch noCarry = J_CC(CC_NZ);
+	OR(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_CARRY));
+	SetJumpTarget(noCarry);
 
 	// 0x02 and 0x80
 	//	g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
 	//	g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW_STICKY;
-	if (overflow)
-	{
-		OR(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_OVERFLOW | SR_OVERFLOW_STICKY));
-	}
+	TEST(8, R(RSI), Imm8(2));
+	FixupBranch noOverflow = J_CC(CC_NZ);
+	OR(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_OVERFLOW | SR_OVERFLOW_STICKY));
+	SetJumpTarget(noOverflow);
 
 //	// 0x04
 //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;

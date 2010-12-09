@@ -20,6 +20,7 @@ set(SRCS	Src/assemble.cpp
 			Src/DSPTables.cpp
 			Src/Jit/DSPJitExtOps.cpp
 			Src/Jit/DSPJitCCUtil.cpp
+			Src/Jit/DSPJitArithmetic.cpp
 			Src/Jit/DSPJitMultiplier.cpp
 			Src/Jit/DSPJitUtil.cpp
 			Src/Jit/DSPJitMisc.cpp)

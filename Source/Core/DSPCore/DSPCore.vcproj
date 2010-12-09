@@ -459,6 +459,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Jit\DSPJitArithmetic.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Jit\DSPJitCCUtil.cpp"
 				>
 			</File>
