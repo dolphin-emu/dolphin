@@ -295,6 +295,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	if (!f)
 	{
 		Core::DisplayMessage("State not found", 2000);
+		// Resume the clock
+		PowerPC::Start();
 		return;
 	}
 
@@ -312,6 +314,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 			gameID), 2000);
 
 		fclose(f);
+		// Resume the clock
+		PowerPC::Start();
 		return;
 	}
 
@@ -326,6 +330,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		if (!buffer)
 		{
 			PanicAlert("Error allocating buffer");
+			// Resume the clock
+			PowerPC::Start();
 			return;
 		}
 		while (true)
@@ -345,6 +351,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 					"Try loading the state again", res, i, new_len);
 				fclose(f);
 				delete[] buffer;
+				// Resume the clock
+				PowerPC::Start();
 				return;
 			}
 	
