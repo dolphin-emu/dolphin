@@ -63,7 +63,7 @@
 #ifdef _WIN32
 #include "OS/Win32.h"
 #endif
-#if defined _WIN32 || defined HAVE_AVCODEC
+#if defined _WIN32 || defined HAVE_LIBAV
 #include "AVIDump.h"
 #endif
 
@@ -83,7 +83,7 @@ CGprofile g_cgfProf;
 
 RasterFont* s_pfont = NULL;
 
-#if defined _WIN32 || defined HAVE_AVCODEC
+#if defined _WIN32 || defined HAVE_LIBAV
 static bool s_bAVIDumping = false;
 #else
 static FILE* f_pFrameDump;
@@ -492,7 +492,7 @@ Renderer::~Renderer()
 
 	delete g_framebuffer_manager;
 
-#if defined _WIN32 || defined HAVE_AVCODEC
+#if defined _WIN32 || defined HAVE_LIBAV
 	if(s_bAVIDumping)
 		AVIDump::Stop();
 #else
@@ -1102,7 +1102,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// Frame dumps are handled a little differently in Windows
-#if defined _WIN32 || defined HAVE_AVCODEC
+#if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		s_criticalScreenshot.Enter();

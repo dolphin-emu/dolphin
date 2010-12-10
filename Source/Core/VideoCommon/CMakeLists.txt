@@ -39,14 +39,14 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFStructs.cpp
 			Src/OpenCL/OCLTextureDecoder.cpp)
 
-if(ENCODE_FRAMEDUMPS OR WIN32)
+if(LIBAV_FOUND OR WIN32)
 	set(SRCS ${SRCS} Src/AVIDump.cpp)
 endif()
 
 add_library(videocommon STATIC ${SRCS})
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	if(ENCODE_FRAMEDUMPS)
-		target_link_libraries(videocommon avcodec avformat swscale avutil)
+	if(LIBAV_FOUND)
+		target_link_libraries(videocommon ${LIBAV_LIBRARIES})
 		add_definitions(-D__STDC_CONSTANT_MACROS)
 	endif()
 	add_definitions(-fPIC)
