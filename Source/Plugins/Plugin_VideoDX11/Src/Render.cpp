@@ -371,13 +371,11 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
-	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)(rc.left   * EFBxScale) + Xstride;
-	result.top	= (int)(rc.top	* EFByScale) + Ystride;
-	result.right  = (int)(rc.right  * EFBxScale) + Xstride;
-	result.bottom = (int)(rc.bottom * EFByScale) + Ystride;
+	result.left   = EFBToScaledX(rc.left) + TargetStrideX();
+	result.top    = EFBToScaledY(rc.top) + TargetStrideY();
+	result.right  = EFBToScaledX(rc.right) + TargetStrideX();
+	result.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
 	return result;
 }
 
@@ -419,30 +417,20 @@ bool Renderer::SetScissorRect()
 	TargetRectangle rc;
 	GetScissorRect(rc);
 
-	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
-
-	rc.left   = (int)(rc.left   * EFBxScale);
-	rc.top	= (int)(rc.top	* EFByScale);
-	rc.right  = (int)(rc.right  * EFBxScale);
-	rc.bottom = (int)(rc.bottom * EFByScale);
-
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
-
-	if (rc.left > s_target_width) rc.left = s_target_width;
-	if (rc.right > s_target_width) rc.right = s_target_width;
-
 	if (rc.top < 0) rc.top = 0;
 	if (rc.bottom < 0) rc.bottom = 0;
 
-	if (rc.top > s_target_height) rc.top = s_target_height;
-	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
+	if (rc.left > EFB_WIDTH) rc.left = EFB_WIDTH;
+	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
+	if (rc.top > EFB_HEIGHT) rc.top = EFB_HEIGHT;
+	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
 
-	rc.left   += Xstride;
-	rc.top	+= Ystride;
-	rc.right  += Xstride;
-	rc.bottom += Ystride;
+	rc.left = EFBToScaledX(rc.left) + TargetStrideX();
+	rc.right = EFBToScaledX(rc.right) + TargetStrideX();
+	rc.top = EFBToScaledY(rc.top) + TargetStrideY();
+	rc.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
 
 	if (rc.left > rc.right)
 	{
@@ -465,11 +453,11 @@ bool Renderer::SetScissorRect()
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		*rc.AsRECT() = CD3D11_RECT(Xstride, Ystride, Xstride + s_target_width, Ystride + s_target_height);
+		*rc.AsRECT() = CD3D11_RECT(TargetStrideX(), TargetStrideY(),
+									TargetStrideX() + s_target_width, TargetStrideY() + s_target_height);
 		D3D::context->RSSetScissorRects(1, rc.AsRECT());
 		return false;
 	}
-	return false;
 }
 
 void Renderer::SetColorMask()
@@ -624,21 +612,19 @@ void Renderer::UpdateViewport()
 	const int old_fulltarget_w = Renderer::GetFullTargetWidth();
 	const int old_fulltarget_h = Renderer::GetFullTargetHeight();
 
-	int scissorXOff = bpmem.scissorOffset.x * 2;
-	int scissorYOff = bpmem.scissorOffset.y * 2;
+	int scissorXOff = bpmem.scissorOffset.x << 1;
+	int scissorYOff = bpmem.scissorOffset.y << 1;
 
-	int Xstride =  (Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2;
-	int Ystride =  (Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2;
-
-	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * Renderer::GetTargetScaleX()) + Xstride;
-	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * Renderer::GetTargetScaleY()) + Ystride;
-	int Width = (int)ceil((int)(2 * xfregs.rawViewport[0]) * Renderer::GetTargetScaleX());
-	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * Renderer::GetTargetScaleY());
+	// TODO: ceil, floor or just cast to int?
+	// TODO: Directly use the floats instead of rounding them?
+	int X = Renderer::EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff)) + Renderer::TargetStrideX();
+	int Y = Renderer::EFBToScaledY((int)ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - scissorYOff)) + Renderer::TargetStrideY();
+	int Width = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.rawViewport[0]));
+	int Height = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.rawViewport[1]));
 	if (Width < 0)
 	{
 		X += Width;
-		Width*=-1;
+		Width *= -1;
 	}
 	if (Height < 0)
 	{
@@ -650,7 +636,7 @@ void Renderer::UpdateViewport()
 	{
 		s_Fulltarget_width -= 2 * X;
 		X = 0;
-		sizeChanged=true;
+		sizeChanged = true;
 	}
 	if (Y < 0)
 	{
@@ -844,8 +830,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			
 			sourceRc.left = 0;
 			sourceRc.top = 0;
-			sourceRc.right = xfbSource->texWidth;
-			sourceRc.bottom = xfbSource->texHeight;
+			sourceRc.right = (float)xfbSource->texWidth;
+			sourceRc.bottom = (float)xfbSource->texHeight;
 
 			MathUtil::Rectangle<float> drawRc;
 

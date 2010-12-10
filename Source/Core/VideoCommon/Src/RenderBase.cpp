@@ -65,10 +65,6 @@ int Renderer::s_Fulltarget_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
-// Internal resolution scale (related to xScale/yScale for "Auto" scaling)
-float Renderer::EFBxScale;
-float Renderer::EFByScale;
-
 // ratio of backbuffer size and render area size
 float Renderer::xScale;
 float Renderer::yScale;
@@ -116,47 +112,43 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(float multiplier)
+bool Renderer::CalculateTargetSize(int multiplier)
 {
+	int newEFBWidth, newEFBHeight;
 	switch (s_LastEFBScale)
 	{
 		case 0:
-			EFBxScale = xScale;
-			EFByScale = yScale;
+			newEFBWidth = (int)(EFB_WIDTH * xScale);
+			newEFBHeight = (int)(EFB_HEIGHT * yScale);
 			break;
 		case 1:
-			EFBxScale = ceilf(xScale);
-			EFByScale = ceilf(yScale);
+			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
+			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
 			break;
 		default:
-			EFBxScale = EFByScale = (float)(g_ActiveConfig.iEFBScale - 1);
+			newEFBWidth = EFB_WIDTH * (g_ActiveConfig.iEFBScale - 1);
+			newEFBHeight = EFB_HEIGHT * (g_ActiveConfig.iEFBScale - 1);
 			break;
 	};
 
-	EFBxScale *= multiplier;
-	EFByScale *= multiplier;
+	newEFBWidth *= multiplier;
+	newEFBHeight *= multiplier;
 
-	const int m_newFrameBufferWidth  = (int)(EFB_WIDTH * EFBxScale);
-	const int m_newFrameBufferHeight = (int)(EFB_HEIGHT * EFByScale);
-
-	if (m_newFrameBufferWidth != s_target_width ||
-		m_newFrameBufferHeight != s_target_height)
+	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
-		s_Fulltarget_width  = s_target_width  = m_newFrameBufferWidth;
-		s_Fulltarget_height = s_target_height = m_newFrameBufferHeight;
-		
+		s_Fulltarget_width  = s_target_width  = newEFBWidth;
+		s_Fulltarget_height = s_target_height = newEFBHeight;
 		return true;
 	}
-	
 	return false;
 }
 
 void Renderer::SetScreenshot(const char *filename)
 {
-        s_criticalScreenshot.Enter();
-        s_sScreenshotName = filename;
-        s_bScreenshot = true;
-        s_criticalScreenshot.Leave();
+	s_criticalScreenshot.Enter();
+	s_sScreenshotName = filename;
+	s_bScreenshot = true;
+	s_criticalScreenshot.Leave();
 }
 
 // Create On-Screen-Messages

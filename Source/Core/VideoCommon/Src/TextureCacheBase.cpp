@@ -617,11 +617,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	const unsigned int tex_w = (abs(source_rect.GetWidth()) >> (int)bScaleByHalf);
 	const unsigned int tex_h = (abs(source_rect.GetHeight()) >> (int)bScaleByHalf);
 
-	const float xScale = Renderer::GetTargetScaleX();
-	const float yScale = Renderer::GetTargetScaleY();
-
-	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? (int)(tex_w * xScale) : tex_w;
-	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? (int)(tex_h * yScale) : tex_h;
+	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
+	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
 	bool texture_is_dynamic = false;
 

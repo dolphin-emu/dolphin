@@ -40,7 +40,7 @@
 
 // TODO: Move these out of here.
 extern int frameCount;
-extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+extern int OSDChoice, OSDTime;
 
 extern bool s_bLastFrameDumped;
 extern SVideoInitialize g_VideoInitialize;
@@ -66,24 +66,42 @@ public:
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
 
-	// Return the rendering target width and height
-	static int GetTargetWidth() { return s_target_width; }
-	static int GetTargetHeight() { return s_target_height; }
-
+	// Real internal resolution:
+	// D3D doesn't support viewports larger than the target size, so we need to resize the target to the viewport size for those.
+	// OpenGL supports this, so GetFullTargetWidth returns the same as GetTargetWidth there.
 	static int GetFullTargetWidth() { return s_Fulltarget_width; }
 	static int GetFullTargetHeight() { return s_Fulltarget_height; }
 
-	// Multiply any 2D EFB coordinates by these when rendering.
-	static float GetTargetScaleX() { return EFBxScale; }
-	static float GetTargetScaleY() { return EFByScale; }
+	// Ideal internal resolution - determined by display resolution (automatic scaling) and/or a multiple of the native EFB resolution
+	static int GetTargetWidth() { return s_target_width; }
+	static int GetTargetHeight() { return s_target_height; }
 
-	static float GetXFBScaleX() { return xScale; }
-	static float GetXFBScaleY() { return yScale; }
-
+	// Display resolution
 	static int GetBackbufferWidth() { return s_backbuffer_width; }
 	static int GetBackbufferHeight() { return s_backbuffer_height; }
 
+	// XFB scale - TODO: Remove this and add two XFBToScaled functions instead
+	static float GetXFBScaleX() { return xScale; }
+	static float GetXFBScaleY() { return yScale; }
+
+	// EFB coordinate conversion functions
+
+	// Use this to convert a whole native EFB rect to backbuffer coordinates
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
+
+	// Use this to upscale native EFB coordinates to IDEAL internal resolution
+	static int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
+	static int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
+
+	// Floating point versions of the above - only use them if really necessary
+	static float EFBToScaledXf(float x) { return x * (float)GetTargetWidth() / (float)EFB_WIDTH; }
+	static float EFBToScaledYf(float y) { return y * (float)GetTargetHeight() / (float)EFB_HEIGHT; }
+
+	// Returns the offset at which the EFB will be drawn onto the backbuffer
+	// NOTE: Never calculate this manually (e.g. to "increase accuracy"), since you might end up getting off-by-one errors.
+	//		This is a per-frame constant, so it won't cause any issues.
+	static int TargetStrideX() { return (s_Fulltarget_width - s_target_width) / 2; }
+	static int TargetStrideY() { return (s_Fulltarget_height - s_target_height) / 2; }
 
 	// Random utilities
 	static void SetScreenshot(const char *filename);
@@ -112,7 +130,7 @@ protected:
 	static Common::CriticalSection s_criticalScreenshot;
 	static std::string s_sScreenshotName;
 
-	static bool CalculateTargetSize(float multiplier = 1);
+	static bool CalculateTargetSize(int multiplier = 1);
 	static void CalculateXYScale(const TargetRectangle& dst_rect);
 
 	static volatile bool s_bScreenshot;
@@ -129,11 +147,7 @@ protected:
 	static int s_backbuffer_width;
 	static int s_backbuffer_height;
 
-	// Internal resolution scale (related to xScale/yScale for "Auto" scaling)
-	static float EFBxScale;
-	static float EFByScale;
-
-	// ratio of backbuffer size and render area size
+	// ratio of backbuffer size and render area size - TODO: Remove these!
 	static float xScale;
 	static float yScale;
 
@@ -157,10 +171,10 @@ void GetScissorRect(MathUtil::Rectangle<R> &rect)
 	const int xoff = bpmem.scissorOffset.x * 2 - 342;
 	const int yoff = bpmem.scissorOffset.y * 2 - 342;
 
-	rect.left   = (R)((float)bpmem.scissorTL.x - xoff - 342);
-	rect.top    = (R)((float)bpmem.scissorTL.y - yoff - 342);
-	rect.right  = (R)((float)bpmem.scissorBR.x - xoff - 341);
-	rect.bottom = (R)((float)bpmem.scissorBR.y - yoff - 341);
+	rect.left   = (R)(bpmem.scissorTL.x - xoff - 342);
+	rect.top    = (R)(bpmem.scissorTL.y - yoff - 342);
+	rect.right  = (R)(bpmem.scissorBR.x - xoff - 341);
+	rect.bottom = (R)(bpmem.scissorBR.y - yoff - 341);
 }
 
 #endif // _COMMON_RENDERBASE_H_

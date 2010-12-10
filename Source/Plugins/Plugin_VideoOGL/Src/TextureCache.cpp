@@ -276,10 +276,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		FramebufferManager::ResolveAndGetDepthTarget(source_rect) :
 		FramebufferManager::ResolveAndGetRenderTarget(source_rect);
 
-	// TODO: move
-	const float xScale = Renderer::GetTargetScaleX();
-	const float yScale = Renderer::GetTargetScaleY();
-
     GL_REPORT_ERRORD();
 
 	if (false == isDynamic || g_ActiveConfig.bCopyEFBToTexture)
@@ -325,8 +321,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		hash = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
-			xScale,
-			yScale,
 			bFromZBuffer, 
 			bIsIntensityFmt, 
 			copyfmt, 

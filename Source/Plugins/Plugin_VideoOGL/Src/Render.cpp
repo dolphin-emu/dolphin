@@ -593,12 +593,10 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
-	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
-	result.left   = (int)(rc.left * EFBxScale) + Xstride;
-	result.top    = (int)((EFB_HEIGHT - rc.top) * EFByScale) + Ystride;
-	result.right  = (int)(rc.right * EFBxScale) - (Xstride * 2);
-	result.bottom = (int)((EFB_HEIGHT - rc.bottom) * EFByScale) - (Ystride * 2);
+	result.left   = EFBToScaledX(rc.left) + TargetStrideX();
+	result.top    = EFBToScaledY(EFB_HEIGHT - rc.top) + TargetStrideY();
+	result.right  = EFBToScaledX(rc.right) - (TargetStrideX() * 2);
+	result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom) - (TargetStrideY() * 2);
 	return result;
 }
 
@@ -618,11 +616,8 @@ bool Renderer::SetScissorRect()
 	GetScissorRect(rc);
 
 	if (rc.left < 0) rc.left = 0;
-
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-
 	if (rc.top < 0) rc.top = 0;
-
+	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
 	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
 
 	if (rc.left > rc.right)
@@ -642,11 +637,10 @@ bool Renderer::SetScissorRect()
 	if (rc.right != rc.left && rc.bottom != rc.top)
 	{
 		glScissor(
-			(int)(rc.left * EFBxScale), // x = 0 for example
-			(int)((EFB_HEIGHT - rc.bottom) * EFByScale), // y = 0 for example
-			(int)((rc.right - rc.left)* EFBxScale), // width = 640 for example
-			(int)((rc.bottom - rc.top) * EFByScale) // height = 480 for example
-			);
+			EFBToScaledX(rc.left), // x = 0 for example
+			EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
+			EFBToScaledX(rc.right - rc.left), // width = 640 for example
+			EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
 		return true;
 	}
 	else
@@ -784,23 +778,23 @@ void Renderer::UpdateViewport()
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
 
-	int scissorXOff = bpmem.scissorOffset.x * 2;
-	int scissorYOff = bpmem.scissorOffset.y * 2;
+	int scissorXOff = bpmem.scissorOffset.x << 1;
+	int scissorYOff = bpmem.scissorOffset.y << 1;
 
 	// int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	// int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
-	// Stretch picture with increased internal resolution
-	int X = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - float(scissorXOff)) * Renderer::GetTargetScaleX());
-	int Y = (int)ceil((float(EFB_HEIGHT) - xfregs.rawViewport[4] + xfregs.rawViewport[1] + float(scissorYOff)) * Renderer::GetTargetScaleY());
-	int Width = (int)ceil(2.0f * xfregs.rawViewport[0] * Renderer::GetTargetScaleX());
-	int Height = (int)ceil(-2.0f * xfregs.rawViewport[1] * Renderer::GetTargetScaleY());
+	// TODO: ceil, floor or just cast to int?
+	int X = EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (float)scissorXOff));
+	int Y = EFBToScaledY((int)ceil((float)EFB_HEIGHT - xfregs.rawViewport[4] + xfregs.rawViewport[1] + (float)scissorYOff));
+	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.rawViewport[0]));
+	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.rawViewport[1]));
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
 	if (Width < 0)
 	{
 		X += Width;
-		Width*=-1;
+		Width *= -1;
 	}
 	if (Height < 0)
 	{

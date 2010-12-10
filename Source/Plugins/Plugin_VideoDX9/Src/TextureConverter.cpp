@@ -344,21 +344,15 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float MValueX = Renderer::GetTargetScaleX();
-	float MValueY = Renderer::GetTargetScaleY();
-
-	float Xstride = (float)((Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2);
-	float Ystride = (float)((Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2);
-
-	float sampleStride = bScaleByHalf?2.0f:1.0f;
-
+	float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	// TODO: sampleStride scaling might be slightly off
 	TextureConversionShader::SetShaderParameters(
-		(float)expandedWidth, 
-		expandedHeight * MValueY, 
-		source.left * MValueX + Xstride , 
-		source.top * MValueY + Ystride, 
-		sampleStride * MValueX, 
-		sampleStride * MValueY,
+		(float)expandedWidth,
+		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
+		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
+		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
+		Renderer::EFBToScaledXf(sampleStride),
+		Renderer::EFBToScaledYf(sampleStride),
 		(float)Renderer::GetFullTargetWidth(),
 		(float)Renderer::GetFullTargetHeight());
 
@@ -379,7 +373,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	g_renderer->RestoreAPIState();
 }
 
-u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 SourceW, u32 SourceH,float MValueX,float MValueY,float Xstride, float Ystride , bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 SourceW, u32 SourceH, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -415,15 +409,15 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 Sou
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float sampleStride = bScaleByHalf?2.0f:1.0f;
-
+    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	// TODO: sampleStride scaling might be slightly off
 	TextureConversionShader::SetShaderParameters(
-		(float)expandedWidth, 
-		expandedHeight * MValueY, 
-		source.left * MValueX + Xstride , 
-		source.top * MValueY + Ystride, 
-		sampleStride * MValueX, 
-		sampleStride * MValueY,
+		(float)expandedWidth,
+		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
+		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
+		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
+		Renderer::EFBToScaledXf(sampleStride),
+		Renderer::EFBToScaledYf(sampleStride),
 		(float)SourceW,
 		(float)SourceH);
 

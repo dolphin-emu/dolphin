@@ -284,19 +284,14 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float MValueX = Renderer::GetTargetScaleX();
-	float MValueY = Renderer::GetTargetScaleY();
-
-	float top = (EFB_HEIGHT - source.top - expandedHeight) * MValueY ;
-
-    float sampleStride = bScaleByHalf?2.0f:1.0f;
-
-	TextureConversionShader::SetShaderParameters((float)expandedWidth, 
-		expandedHeight * MValueY, 
-		source.left * MValueX, 
-		top, 
-		sampleStride * MValueX, 
-		sampleStride * MValueY);
+    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	// TODO: sampleStride scaling might be slightly off
+	TextureConversionShader::SetShaderParameters((float)expandedWidth,
+		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
+		(float)Renderer::EFBToScaledX(source.left),
+		(float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight),
+		Renderer::EFBToScaledXf(sampleStride),
+		Renderer::EFBToScaledYf(sampleStride));
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -318,7 +313,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
     GL_REPORT_ERRORD();
 }
 
-u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float MValueY,bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -354,14 +349,14 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float sampleStride = bScaleByHalf?2.0f:1.0f;
-	float top = (EFB_HEIGHT - source.top - expandedHeight) * MValueY ;
-	TextureConversionShader::SetShaderParameters((float)expandedWidth, 
-		expandedHeight * MValueY, 
-		source.left * MValueX, 
-		top, 
-		sampleStride * MValueX, 
-		sampleStride * MValueY);
+    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	// TODO: sampleStride scaling might be slightly off
+	TextureConversionShader::SetShaderParameters((float)expandedWidth,
+		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
+		(float)Renderer::EFBToScaledX(source.left),
+		(float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight),
+		Renderer::EFBToScaledXf(sampleStride),
+		Renderer::EFBToScaledYf(sampleStride));
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -447,8 +442,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-	glTexCoord2f(srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
-	glTexCoord2f(srcFmtWidth, 0); glVertex2f(1,1);
+	glTexCoord2f((float)srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
+	glTexCoord2f((float)srcFmtWidth, 0); glVertex2f(1,1);
 	glTexCoord2f(0, 0); glVertex2f(-1,1);
 	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
     glEnd();	
