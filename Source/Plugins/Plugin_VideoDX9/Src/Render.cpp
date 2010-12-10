@@ -1250,9 +1250,6 @@ void Renderer::SetDitherMode()
 void Renderer::SetLineWidth()
 {
 	// We can't change line width in D3D unless we use ID3DXLine
-	float fratio = xfregs.rawViewport[0] != 0 ? Renderer::GetTargetScaleX() : 1.0f;
-	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
-	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)
