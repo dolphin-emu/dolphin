@@ -29,7 +29,8 @@
 
 #include "../OnFrame.h"
 
-#include "Timer.h"
+#include "../CoreTiming.h"
+#include "SystemTimers.h"
 #include "ProcessorInterface.h"
 
 
@@ -205,7 +206,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	}
 
 	// Keep track of the special button combos (embedded in controller hardware... :( )
-	// Should technically be in "gc time", but we just use host system time :)
 	EButtonCombo tempCombo;
 	if ((PadStatus.button & 0xff00) == (PAD_BUTTON_Y|PAD_BUTTON_X|PAD_BUTTON_START))
 		tempCombo = COMBO_ORIGIN;
@@ -217,12 +217,12 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	{
 		m_LastButtonCombo = tempCombo;
 		if (m_LastButtonCombo != COMBO_NONE)
-			m_TButtonComboStart = Common::Timer::GetTimeMs();
+			m_TButtonComboStart = CoreTiming::GetTicks();
 	}
 	if (m_LastButtonCombo != COMBO_NONE)
 	{
-		m_TButtonCombo = Common::Timer::GetTimeMs();
-		if ((m_TButtonCombo - m_TButtonComboStart) > 3000)
+		m_TButtonCombo = CoreTiming::GetTicks();
+		if ((m_TButtonCombo - m_TButtonComboStart) > SystemTimers::GetTicksPerSecond() * 3)
 		{
 			if (m_LastButtonCombo == COMBO_RESET)
 				ProcessorInterface::ResetButton_Tap();
