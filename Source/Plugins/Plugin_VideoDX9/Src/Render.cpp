@@ -703,7 +703,7 @@ void Renderer::UpdateViewport()
 	if (Width < 0)
 	{
 		X += Width;
-		Width*=-1;
+		Width *= -1;
 	}
 	if (Height < 0)
 	{
@@ -1250,6 +1250,9 @@ void Renderer::SetDitherMode()
 void Renderer::SetLineWidth()
 {
 	// We can't change line width in D3D unless we use ID3DXLine
+	float fratio = xfregs.rawViewport[0] != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
+	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
+	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)
