@@ -76,4 +76,5 @@ union SRAM
 	};
 };
 #pragma pack(pop)
+extern SRAM sram_dump;
 #endif

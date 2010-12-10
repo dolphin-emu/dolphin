@@ -1156,14 +1156,15 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	if ((SizeMb != MemCard2043Mb) || (data_size != mc_data_size)) return false;
 
 	pStream = fopen(File::GetUserPath(F_GCSRAM_IDX), "rb");
-	if (pStream == NULL)
+	if (pStream)
 	{
-		PanicAlert("Could not open SRAM file");
-		return false;
+		fread(&m_SRAM, 1, 64, pStream);
+		fclose(pStream);
 	}
-	fread(&m_SRAM, 1, 64, pStream);
-	fclose(pStream);
-
+	else
+	{
+		m_SRAM = sram_dump;
+	}
 	time = CEXIIPL::GetGCTime();
 	rand = Common::swap64(time);
 

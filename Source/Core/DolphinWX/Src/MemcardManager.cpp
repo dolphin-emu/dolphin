@@ -18,9 +18,7 @@
 #include "MemcardManager.h"
 #include "Common.h"
 #include "wx/mstream.h"
-#include "WxUtils.h"
 
-#define DEFAULTS wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator
 #define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
 
 const u8 hdr[] = {
@@ -108,18 +106,17 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 {
 	memoryCard[SLOT_A]=NULL;
 	memoryCard[SLOT_B]=NULL;
-	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
+
+	if (!LoadSettings())
 	{
-		MemcardManagerIni.Get("MemcardManager", "Items per page",  &itemsPerPage, 16);
-		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardA", &(DefaultMemcard[SLOT_A]), ".");
-		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardB", &(DefaultMemcard[SLOT_B]), ".");
-		MemcardManagerIni.Get("MemcardManager", "DefaultIOFolder", &DefaultIOPath, "/Users/GC");
+		itemsPerPage = 16;
+		mcmSettings.usePages = true;
+		for (int i = 0; i < NUMBER_OF_COLUMN; i++)
+		{
+			mcmSettings.column[i] = (i <= COLUMN_FIRSTBLOCK)? true:false;
+		}
 	}
-	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
-#ifdef MCM_DEBUG_FRAME
-	MemcardManagerDebug = NULL;
-#endif
 	CreateGUIControls();
 }
 
@@ -135,80 +132,55 @@ CMemcardManager::~CMemcardManager()
 		delete memoryCard[SLOT_B];
 		memoryCard[SLOT_B] = NULL;
 	}
-#ifdef MCM_DEBUG_FRAME
-	if (MemcardManagerDebug)
-	{
-		MemcardManagerDebug->Destroy();
-		delete MemcardManagerDebug;
-		MemcardManagerDebug = NULL;
-	}
-#endif
-	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
-
-	if (!DefaultMemcard[SLOT_A].empty() && (strcmp(DefaultMemcard[SLOT_A].c_str(), ".")))
-		MemcardManagerIni.Set("MemcardManager", "DefaultMemcardA", DefaultMemcard[SLOT_A]);
-	else
-		MemcardManagerIni.DeleteKey("MemcardManager", "DefaultMemcardA");
-	if (!DefaultMemcard[SLOT_B].empty() && (strcmp(DefaultMemcard[SLOT_B].c_str(), ".")))
-		MemcardManagerIni.Set("MemcardManager", "DefaultMemcardB", DefaultMemcard[SLOT_B]);
-	else
-		MemcardManagerIni.DeleteKey("MemcardManager", "DefaultMemcardB");
-	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	SaveSettings();
 }
 
-CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style)
+bool CMemcardManager::LoadSettings()
 {
 	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
-		MemcardManagerIni.Get("MemcardManager", "Use Pages", &usePages, true);
-		MemcardManagerIni.Get("MemcardManager", "cBanner", &column[COLUMN_BANNER], true);
-		MemcardManagerIni.Get("MemcardManager", "cTitle", &column[COLUMN_TITLE], true);
-		MemcardManagerIni.Get("MemcardManager", "cComment", &column[COLUMN_COMMENT], true);
-		MemcardManagerIni.Get("MemcardManager", "cIcon", &column[COLUMN_ICON], true);
-		MemcardManagerIni.Get("MemcardManager", "cBlocks", &column[COLUMN_BLOCKS], true);
-		MemcardManagerIni.Get("MemcardManager", "cFirst Block", &column[COLUMN_FIRSTBLOCK], true);
-#ifdef DEBUG_MCM
-		MemcardManagerIni.Get("MemcardManager", "cDebug", &column[NUMBER_OF_COLUMN], false);	
-#else
-		column[NUMBER_OF_COLUMN] = false;
-#endif
+		iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
+		iniMemcardSection->Get("Items per page",  &itemsPerPage, 16);
+		iniMemcardSection->Get("DefaultMemcardA", &(DefaultMemcard[SLOT_A]), "");
+		iniMemcardSection->Get("DefaultMemcardB", &(DefaultMemcard[SLOT_B]), "");
+		iniMemcardSection->Get("DefaultIOFolder", &DefaultIOPath, "/Users/GC");
+
+		iniMemcardSection->Get("Use Pages", &mcmSettings.usePages, true);
+		iniMemcardSection->Get("cBanner", &mcmSettings.column[COLUMN_BANNER], true);
+		iniMemcardSection->Get("cTitle", &mcmSettings.column[COLUMN_TITLE], true);
+		iniMemcardSection->Get("cComment", &mcmSettings.column[COLUMN_COMMENT], true);
+		iniMemcardSection->Get("cIcon", &mcmSettings.column[COLUMN_ICON], true);
+		iniMemcardSection->Get("cBlocks", &mcmSettings.column[COLUMN_BLOCKS], true);
+		iniMemcardSection->Get("cFirst Block", &mcmSettings.column[COLUMN_FIRSTBLOCK], true);
+
+		mcmSettings.column[NUMBER_OF_COLUMN] = false;
+
 		for(int i = COLUMN_GAMECODE; i < NUMBER_OF_COLUMN; i++)
 		{
-			column[i] = column[NUMBER_OF_COLUMN];
+			mcmSettings.column[i] = mcmSettings.column[NUMBER_OF_COLUMN];
 		}
+		return true;
 	}
-	else
-	{
-		usePages = true;
-		for (int i = 0; i < NUMBER_OF_COLUMN; i++)
-		{
-			if ( i > COLUMN_FIRSTBLOCK) column[i] = false;
-			else	column[i] = true;
-		}
-	}
-	twoCardsLoaded = false;
-	prevPage = false;
-	nextPage = false;
-
+	return false;
 }
 
-CMemcardManager::CMemcardListCtrl::~CMemcardListCtrl()
+bool CMemcardManager::SaveSettings()
 {
 	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
+	iniMemcardSection->Set("Items per page",  itemsPerPage, 16);
+	iniMemcardSection->Set("DefaultMemcardA", DefaultMemcard[SLOT_A], "");
+	iniMemcardSection->Set("DefaultMemcardB", DefaultMemcard[SLOT_B], "");
 
-	MemcardManagerIni.Set("MemcardManager", "Use Pages", usePages);
-	MemcardManagerIni.Set("MemcardManager", "cBanner", column[COLUMN_BANNER]);
-	MemcardManagerIni.Set("MemcardManager", "cTitle", column[COLUMN_TITLE]);
-	MemcardManagerIni.Set("MemcardManager", "cComment", column[COLUMN_COMMENT]);
-	MemcardManagerIni.Set("MemcardManager", "cIcon", column[COLUMN_ICON]);
-	MemcardManagerIni.Set("MemcardManager", "cBlocks", column[COLUMN_BLOCKS]);
-	MemcardManagerIni.Set("MemcardManager", "cFirst Block", column[COLUMN_FIRSTBLOCK]);
-#ifdef DEBUG_MCM
-	MemcardManagerIni.Set("MemcardManager", "cDebug", column[NUMBER_OF_COLUMN]);
-#endif
-	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	iniMemcardSection->Set("Use Pages", mcmSettings.usePages, true);
+	iniMemcardSection->Set("cBanner", mcmSettings.column[COLUMN_BANNER], true);
+	iniMemcardSection->Set("cTitle", mcmSettings.column[COLUMN_TITLE], true);
+	iniMemcardSection->Set("cComment", mcmSettings.column[COLUMN_COMMENT], true);
+	iniMemcardSection->Set("cIcon",	mcmSettings.column[COLUMN_ICON], true);
+	iniMemcardSection->Set("cBlocks", mcmSettings.column[COLUMN_BLOCKS], true);
+	iniMemcardSection->Set("cFirst Block", mcmSettings.column[COLUMN_FIRSTBLOCK], true);
+
+	return MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
 void CMemcardManager::CreateGUIControls()
@@ -217,22 +189,22 @@ void CMemcardManager::CreateGUIControls()
 
 	const wxChar* ARROW[2] = {_T("<-"), _T("->")};
 
-	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"), DEFAULTS);
+	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"));
 	
 	for (int slot = SLOT_A; slot < SLOT_B + 1; slot++)
 	{
 		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
-			wxString::Format(wxT("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]), DEFAULTS);
+			wxString::Format(wxT("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
 		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
-			wxString::Format(wxT("%sImport GCI%s"), ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sImport GCI%s"), ARROWS));
 		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
-			wxString::Format(wxT("%sExport GCI%s"), ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sExport GCI%s"), ARROWS));
 		m_Delete[slot]		= new wxButton(this, ID_DELETE_A + slot,
-			wxString::Format(wxT("%sDelete%s"), ARROWS), DEFAULTS);
+			wxString::Format(wxT("%sDelete%s"), ARROWS));
 
 
-		m_PrevPage[slot] = new wxButton(this, ID_PREVPAGE_A + slot, wxT("Prev Page"), DEFAULTS);
-		m_NextPage[slot] = new wxButton(this, ID_NEXTPAGE_A + slot, wxT("Next Page"), DEFAULTS);
+		m_PrevPage[slot] = new wxButton(this, ID_PREVPAGE_A + slot, wxT("Prev Page"));
+		m_NextPage[slot] = new wxButton(this, ID_NEXTPAGE_A + slot, wxT("Next Page"));
 
 		t_Status[slot] = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition,wxDefaultSize, 0, wxEmptyString);
 
@@ -247,7 +219,7 @@ void CMemcardManager::CreateGUIControls()
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),
-		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
+		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL, mcmSettings);
 	
 		m_MemcardList[slot]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
@@ -292,10 +264,10 @@ void CMemcardManager::CreateGUIControls()
 		m_SaveImport[i]->Disable();
 		m_SaveExport[i]->Disable();
 		m_Delete[i]->Disable();
-		if (strcmp(DefaultMemcard[i].c_str(), "."))
+		if (DefaultMemcard[i].length())
 		{
 			m_MemcardPath[i]->SetPath(wxString::From8BitData(DefaultMemcard[i].c_str()));
-			ChangePath(ID_MEMCARDPATH_A + i);
+			ChangePath(i);
 		}
 	}
 }
@@ -307,56 +279,52 @@ void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 {
-	ChangePath(event.GetId());
+	ChangePath(event.GetId() - ID_MEMCARDPATH_A);
 }
 
-void CMemcardManager::ChangePath(int id)
+void CMemcardManager::ChangePath(int slot)
 {
-	int slot = SLOT_B;
-	int slot2 = SLOT_A;
-	switch (id)
+	int slot2 = (slot == SLOT_A) ? SLOT_B : SLOT_A;
+	page[slot] = FIRSTPAGE;
+	if (mcmSettings.usePages && m_PrevPage[slot]->IsEnabled())
 	{
-	case ID_MEMCARDPATH_A:
-		slot = SLOT_A;
-		slot2 = SLOT_B;
-	case ID_MEMCARDPATH_B:
-		page[slot] = FIRSTPAGE;
-		if (m_MemcardList[slot]->usePages && m_PrevPage[slot]->IsEnabled())
-		{
-			m_PrevPage[slot]->Disable();
-			m_MemcardList[slot]->prevPage = false;
-		}
-		if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
-		{
-			if(!m_MemcardPath[slot]->GetPath().IsEmpty())
+		m_PrevPage[slot]->Disable();
+		m_MemcardList[slot]->prevPage = false;
+	}
+	if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
+	{
+		if(m_MemcardPath[slot]->GetPath().length())
 			PanicAlert("Memcard already opened");
-		}
-		else if (ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
+	}
+	else
+	{
+		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
-			m_MemcardList[slot2]->twoCardsLoaded = true;
+			mcmSettings.twoCardsLoaded = true;
 			m_SaveImport[slot]->Enable();
 			m_SaveExport[slot]->Enable();
 			m_Delete[slot]->Enable();
-			break;
 		}
-		if (memoryCard[slot])
+		else
 		{
-			delete memoryCard[slot];
-			memoryCard[slot] = NULL;
+			if (memoryCard[slot])
+			{
+				delete memoryCard[slot];
+				memoryCard[slot] = NULL;
+			}
+			mcmSettings.twoCardsLoaded = false;
+			m_MemcardPath[slot]->SetPath(wxEmptyString);
+			m_MemcardList[slot]->ClearAll();
+			t_Status[slot]->SetLabel(wxEmptyString);
+			m_SaveImport[slot]->Disable();
+			m_SaveExport[slot]->Disable();
+			m_Delete[slot]->Disable();
+			if (mcmSettings.usePages)
+			{
+				m_PrevPage[slot]->Disable();
+				m_NextPage[slot]->Disable();
+			}
 		}
-		m_MemcardList[slot2]->twoCardsLoaded = false;
-		m_MemcardPath[slot]->SetPath(wxEmptyString);
-		m_MemcardList[slot]->ClearAll();
-		t_Status[slot]->SetLabel(wxEmptyString);
-		m_SaveImport[slot]->Disable();
-		m_SaveExport[slot]->Disable();
-		m_Delete[slot]->Disable();
-		if (m_MemcardList[slot]->usePages)
-		{
-			m_PrevPage[slot]->Disable();
-			m_NextPage[slot]->Disable();
-		}
-		break;
 	}
 	if (m_Delete[SLOT_A]->IsEnabled() && m_Delete[SLOT_B]->IsEnabled())
 	{
@@ -412,39 +380,40 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 
 void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 {
-	switch(event.GetId())
+	int _id = event.GetId();
+	switch(_id)
 	{
+	case ID_MEMCARDPATH_A:
+	case ID_MEMCARDPATH_B:
+		DefaultMemcard[_id - ID_MEMCARDPATH_A] = m_MemcardPath[_id - ID_MEMCARDPATH_A]->GetPath().mb_str();
+		return;
 	case ID_USEPAGES:
-		m_MemcardList[SLOT_A]->usePages = !m_MemcardList[SLOT_A]->usePages;
-		m_MemcardList[SLOT_B]->usePages = !m_MemcardList[SLOT_B]->usePages;
-		if (!m_MemcardList[SLOT_A]->usePages)
+		mcmSettings.usePages = !mcmSettings.usePages;
+		if (!mcmSettings.usePages)
 		{
 			m_PrevPage[SLOT_A]->Disable();
 			m_PrevPage[SLOT_B]->Disable();
 			m_NextPage[SLOT_A]->Disable();
 			m_NextPage[SLOT_B]->Disable();
-			page[SLOT_A] = page[SLOT_B] = FIRSTPAGE;
+			m_MemcardList[SLOT_A]->prevPage =
+			m_MemcardList[SLOT_B]->prevPage = false;
+			page[SLOT_A] =
+			page[SLOT_B] = FIRSTPAGE;
 		}
-		break;
-	case ID_MEMCARDPATH_A:
-		DefaultMemcard[SLOT_A] = m_MemcardPath[SLOT_A]->GetPath().mb_str();
-		break;
-	case ID_MEMCARDPATH_B:
-		DefaultMemcard[SLOT_B] = m_MemcardPath[SLOT_B]->GetPath().mb_str();
 		break;
 	case NUMBER_OF_COLUMN:
-		for( int i = COLUMN_GAMECODE; i < NUMBER_OF_COLUMN; i++)
+		for (int i = COLUMN_GAMECODE; i <= NUMBER_OF_COLUMN; i++)
 		{
-			m_MemcardList[SLOT_A]->column[i] = !m_MemcardList[SLOT_A]->column[i];
-			m_MemcardList[SLOT_B]->column[i] = !m_MemcardList[SLOT_B]->column[i];
+			mcmSettings.column[i] = !mcmSettings.column[i];
 		}
+		break;
 	default:
-		m_MemcardList[SLOT_A]->column[event.GetId()] = !m_MemcardList[SLOT_A]->column[event.GetId()];
-		m_MemcardList[SLOT_B]->column[event.GetId()] = !m_MemcardList[SLOT_B]->column[event.GetId()];
-		if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
-		if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
+		mcmSettings.column[_id] = !mcmSettings.column[_id];
 		break;
 	}
+
+	if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
+	if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
@@ -668,19 +637,6 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	m_MemcardList[card]->InsertColumn(COLUMN_ICON, _T("Icon"));
 	m_MemcardList[card]->InsertColumn(COLUMN_BLOCKS, _T("Blocks"));
 	m_MemcardList[card]->InsertColumn(COLUMN_FIRSTBLOCK, _T("First Block"));
-#ifdef DEBUG_MCM
-	m_MemcardList[card]->InsertColumn(COLUMN_GAMECODE, _T("GameCode"));
-	m_MemcardList[card]->InsertColumn(COLUMN_MAKERCODE, _T("MakerCode"));
-	m_MemcardList[card]->InsertColumn(COLUMN_BIFLAGS, _T("BIFLAGS"));
-	m_MemcardList[card]->InsertColumn(COLUMN_FILENAME, _T("FILENAME"));
-	m_MemcardList[card]->InsertColumn(COLUMN_MODTIME, _T("MODTIME"));
-	m_MemcardList[card]->InsertColumn(COLUMN_IMAGEADD, _T("IMAGEADD"));
-	m_MemcardList[card]->InsertColumn(COLUMN_ICONFMT, _T("ICONFMT"));
-	m_MemcardList[card]->InsertColumn(COLUMN_ANIMSPEED, _T("ANIMSPEED"));
-	m_MemcardList[card]->InsertColumn(COLUMN_PERMISSIONS, _T("PERMISSIONS"));
-	m_MemcardList[card]->InsertColumn(COLUMN_COPYCOUNTER, _T("COPYCOUNTER"));
-	m_MemcardList[card]->InsertColumn(COLUMN_COMMENTSADDRESS, _T("COMMENTSADDRESS"));
-#endif
 
 	wxImageList *list = m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
 	list->RemoveAll();
@@ -736,9 +692,11 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			images[i*2+1] = list->Add(icon);
 		}
 	}
-	int pagesMax = 128;
-	if (m_MemcardList[card]->usePages) pagesMax = (page[card] + 1) * itemsPerPage;
-	for (j = page[card] * itemsPerPage;(j < nFiles) && (j < pagesMax); j++)
+
+	int	pagesMax = (mcmSettings.usePages) ?
+					(page[card] + 1) * itemsPerPage : 128;
+
+	for (j = page[card] * itemsPerPage; (j < nFiles) && (j < pagesMax); j++)
 	{
 		char title[DENTRY_STRLEN];
 		char comment[DENTRY_STRLEN];
@@ -779,49 +737,9 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			m_MemcardList[card]->SetItemImage(index, images[j*2]);
 			m_MemcardList[card]->SetItemColumnImage(index, COLUMN_ICON, images[j*2+1]);
 		}
-#ifdef DEBUG_MCM
-		char gC[5];
-		if (!memoryCard[card]->DEntry_GameCode(j, gC)) gC[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_GAMECODE, wxString::FromAscii(gC));
-
-		char mC[3];
-		if (!memoryCard[card]->DEntry_Markercode(j, mC)) mC[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_MAKERCODE, wxString::FromAscii(mC));
-
-		char bI[9];
-		if (!memoryCard[card]->DEntry_BIFlags(j, bI)) bI[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_BIFLAGS, wxString::FromAscii(bI));
-
-		char fN[32];
-		if (!memoryCard[card]->DEntry_FileName(j, fN)) fN[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_FILENAME, wxString::FromAscii(fN));
-
-		tString.Printf(wxT("%04X"), memoryCard[card]->DEntry_ModTime(j));
-		m_MemcardList[card]->SetItem(index, COLUMN_MODTIME, tString);
-
-		tString.Printf(wxT("%04X"), memoryCard[card]->DEntry_ImageOffset(j));
-		m_MemcardList[card]->SetItem(index, COLUMN_IMAGEADD, tString);
-
-		char iF[17];
-		if (!memoryCard[card]->DEntry_IconFmt(j, iF)) iF[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_ICONFMT, wxString::FromAscii(iF));
-
-		tString.Printf(wxT("%02X"), memoryCard[card]->DEntry_AnimSpeed(j));
-		m_MemcardList[card]->SetItem(index, COLUMN_ANIMSPEED, tString);
-
-		char per[40];
-		if (!memoryCard[card]->DEntry_Permissions(j, per)) per[0]=0;
-		m_MemcardList[card]->SetItem(index, COLUMN_PERMISSIONS, wxString::FromAscii(per));
-
-		tString.Printf(wxT("%0X"), memoryCard[card]->DEntry_CopyCounter(j));
-		m_MemcardList[card]->SetItem(index, COLUMN_COPYCOUNTER, tString);
-
-		tString.Printf(wxT("%04X"), memoryCard[card]->DEntry_CommentsAddress(j));
-		m_MemcardList[card]->SetItem(index, COLUMN_COMMENTSADDRESS, tString);
-#endif
 	}
 
-	if (m_MemcardList[card]->usePages)
+	if (mcmSettings.usePages)
 	{
 		if (nFiles <= itemsPerPage)
 		{
@@ -844,7 +762,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	// Automatic column width and then show the list
 	for (int i = 0; i < NUMBER_OF_COLUMN; i++)
 	{
-		if (m_MemcardList[card]->column[i])
+		if (mcmSettings.column[i])
 			m_MemcardList[card]->SetColumnWidth(i, wxLIST_AUTOSIZE);
 		else
 			m_MemcardList[card]->SetColumnWidth(i, 0);
@@ -855,19 +773,6 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		memoryCard[card]->GetFreeBlocks(), DIRLEN - nFiles);
 	t_Status[card]->SetLabel(wxLabel);
 
-
-#ifdef MCM_DEBUG_FRAME
-	if(MemcardManagerDebug == NULL)
-	{
-		MemcardManagerDebug = new CMemcardManagerDebug((wxFrame *)NULL, wxDefaultPosition, wxSize(950, 400));
- 
-	}
-	if (MemcardManagerDebug != NULL)
-	{
-		MemcardManagerDebug->Show();
-		MemcardManagerDebug->updatePanels(memoryCard, card);
-	}
-#endif
 	return true;
 }
 
@@ -886,15 +791,14 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		}
 		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
-		int slot = event.GetId() - ID_MEMCARDLIST_A;
+		int slot = GetId() - ID_MEMCARDLIST_A;
 		popupMenu->Append(ID_COPYFROM_A + slot, wxString::Format(wxT("Copy to Memcard %c"), 'B' - slot));
 		popupMenu->Append(ID_DELETE_A + slot, wxT("Delete Save"));
 		popupMenu->Append(ID_SAVEIMPORT_A + slot, wxT("Import Save"));
 		popupMenu->Append(ID_SAVEEXPORT_A + slot, wxT("Export Save"));
 		popupMenu->Append(ID_EXPORTALL_A + slot, wxT("Export all saves"));
 				
-		if (!twoCardsLoaded) 
-			popupMenu->FindItem(ID_COPYFROM_A + slot)->Enable(false);
+		popupMenu->FindItem(ID_COPYFROM_A + slot)->Enable(__mcmSettings.twoCardsLoaded);
 
 		popupMenu->AppendSeparator();
 
@@ -904,12 +808,9 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(wxT("Set as default Memcard %c"), 'A' + slot));
 		popupMenu->AppendCheckItem(ID_USEPAGES, wxT("Enable pages"));
 	
-		if (!prevPage || !usePages)
-			popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(false);
-		if (!nextPage || !usePages)
-			popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(false);
-		if(usePages)
-			popupMenu->FindItem(ID_USEPAGES)->Check();
+		popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
+		popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && __mcmSettings.usePages);
+		popupMenu->FindItem(ID_USEPAGES)->Check(__mcmSettings.usePages);
 		
 		popupMenu->AppendSeparator();
 
@@ -921,12 +822,8 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 
 		for (int i = COLUMN_BANNER; i <= COLUMN_BLOCKS; i++)
 		{
-			if (column[i]) popupMenu->FindItem(i)->Check();
+			popupMenu->FindItem(i)->Check(__mcmSettings.column[i]);
 		}
-#ifdef DEBUG_MCM
-		popupMenu->AppendCheckItem(NUMBER_OF_COLUMN, wxT("Debug Memcard"));
-		if (column[NUMBER_OF_COLUMN]) popupMenu->FindItem(NUMBER_OF_COLUMN)->Check();
-#endif
 	}
 	PopupMenu(popupMenu);
 }

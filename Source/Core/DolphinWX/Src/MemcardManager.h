@@ -39,15 +39,6 @@
 #define E_UNK "Unknown error"
 #define FIRSTPAGE 0
 
-#ifdef MEMCMAN
-#undef	CONFIG_FILE
-#define CONFIG_FILE "./MemcardManager.ini"
-#define DEBUG_MCM
-#define MCM_DEBUG_FRAME
-#include "MCMdebug.h"
-#endif
-
-
 class CMemcardManager : public wxDialog
 {
 	public:
@@ -65,9 +56,7 @@ class CMemcardManager : public wxDialog
 		std::string DefaultMemcard[2],
 					DefaultIOPath;
 		IniFile MemcardManagerIni;
-#ifdef MCM_DEBUG_FRAME
-		CMemcardManagerDebug * MemcardManagerDebug;
-#endif
+		IniFile::Section* iniMemcardSection;
 
 		wxBoxSizer *sMain,
 				   *sButtons,
@@ -143,19 +132,25 @@ class CMemcardManager : public wxDialog
 		void OnPathChange(wxFileDirPickerEvent& event);
 		void ChangePath(int id);
 		bool CopyDeleteSwitch(u32 error, int slot);
+		bool LoadSettings();
+		bool SaveSettings();
+
+		struct _mcmSettings
+		{
+			bool twoCardsLoaded,
+				 usePages,
+				 column[NUMBER_OF_COLUMN+1];
+		}mcmSettings;
 
 		class CMemcardListCtrl : public wxListCtrl
 		{
 		public:
-			IniFile MemcardManagerIni;
-
-			CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
-			~CMemcardListCtrl();
-			bool twoCardsLoaded,
-				 usePages,
-				 prevPage,
-				 nextPage,
-				 column[NUMBER_OF_COLUMN+1];
+			CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style, _mcmSettings& _mcmSetngs)
+				: wxListCtrl(parent, id, pos, size, style),	__mcmSettings(_mcmSetngs){;}
+			~CMemcardListCtrl(){;}
+			_mcmSettings & __mcmSettings;
+			bool prevPage,
+				 nextPage;
 		private:
 			DECLARE_EVENT_TABLE()
 			void OnRightClick(wxMouseEvent& event);	
