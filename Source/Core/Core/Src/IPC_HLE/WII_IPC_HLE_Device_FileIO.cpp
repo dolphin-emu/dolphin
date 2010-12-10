@@ -22,6 +22,7 @@
 
 #include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
+#include <algorithm>
 
 
 // This is used by several of the FileIO and /dev/fs/ functions 
@@ -32,7 +33,16 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 	std::string Filename = std::string(File::GetUserPath(D_WIIROOT_IDX));
 	if (Buffer[1] == '0')
-		Filename += std::string("/title");     // this looks and feel like a hack...
+		Filename += std::string("/title"); // this looks and feel like a hack...
+
+	// Replaces chars that NTFS can't support with '-'. TODO '/', '\' ?
+	std::replace(Buffer, Buffer + _size, '"', '-');
+	std::replace(Buffer, Buffer + _size, '*', '-');
+	std::replace(Buffer, Buffer + _size, ':', '-');
+	std::replace(Buffer, Buffer + _size, '<', '-');
+	std::replace(Buffer, Buffer + _size, '>', '-');
+	std::replace(Buffer, Buffer + _size, '?', '-');
+	std::replace(Buffer, Buffer + _size, '|', '-');
 
 	Filename += Buffer;
 
