@@ -399,18 +399,16 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 {
 	float sw = 1.0f /(float) SourceWidth;
 	float sh = 1.0f /(float) SourceHeight;
-	float dw = 1.0f /(float) DestWidth;
-	float dh = 1.0f /(float) DestHeight;
 	float u1= rSource->left * sw;
 	float u2= rSource->right * sw;
 	float v1= rSource->top * sh;
 	float v2= rSource->bottom * sh;
 
 	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,L,T,R,B; } coords[4] = {
-		{ rDest->left  - dw , rDest->top    + dh, 1.0f,1.0f, u1, v2, sw, sh,u1,v1,u2,v2},
-		{ rDest->left  - dw , rDest->bottom + dh, 1.0f,1.0f, u1, v1, sw, sh,u1,v1,u2,v2},
-		{ rDest->right - dw , rDest->top    + dh, 1.0f,1.0f, u2, v2, sw, sh,u1,v1,u2,v2},
-		{ rDest->right - dw , rDest->bottom + dh, 1.0f,1.0f, u2, v1, sw, sh,u1,v1,u2,v2}
+		{ rDest->left  - 0.5f, rDest->top    - 0.5f, 1.0f,1.0f, u1, v2, sw, sh,u1,v1,u2,v2},
+		{ rDest->left  - 0.5f, rDest->bottom - 0.5f, 1.0f,1.0f, u1, v1, sw, sh,u1,v1,u2,v2},
+		{ rDest->right - 0.5f, rDest->top    - 0.5f, 1.0f,1.0f, u2, v2, sw, sh,u1,v1,u2,v2},
+		{ rDest->right - 0.5f, rDest->bottom - 0.5f, 1.0f,1.0f, u2, v1, sw, sh,u1,v1,u2,v2}
 	};
 	dev->SetVertexShader(Vshader);
 	dev->SetPixelShader(PShader);
