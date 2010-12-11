@@ -208,13 +208,11 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
 	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub 
 	case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
-	case 23://sel
-		Default(inst);
-		break;
-	case 24://res
-		Default(inst);
-		break;
-	case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
+	case 23: Default(inst); break; //sel
+	case 24: Default(inst); break; //res
+	case 25: Default(inst); break;
+		// TODO: MULPD breaks Sonic Colours (black screen) 
+		//tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
 	}
