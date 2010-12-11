@@ -319,7 +319,7 @@ endif()
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
-	FIND_PACKAGE(wxWidgets COMPONENTS aui)
+	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
 		include(${wxWidgets_USE_FILE})
