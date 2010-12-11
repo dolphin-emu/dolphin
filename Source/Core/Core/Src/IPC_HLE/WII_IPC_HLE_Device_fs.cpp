@@ -19,14 +19,13 @@
 #include "CommonPaths.h"
 
 #include "WII_IPC_HLE_Device_fs.h"
+#include "WII_IPC_HLE_Device_FileIO.h"
 
 #include "StringUtil.h"
 #include "FileSearch.h"
 #include "FileUtil.h"
 
 #include "../VolumeHandler.h"
-
-extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 
 #define MAX_NAME				(12)
 

@@ -23,32 +23,64 @@
 #include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
 #include <algorithm>
+#include <fstream>
 
+typedef std::pair<char, std::string> replace_t;
+typedef std::vector<replace_t> replace_v;
+static replace_v replacements;
+#pragma optimize("",off)
+static void CreateReplacementFile(std::string &filename)
+{
+	std::ofstream replace(filename.c_str());
+	replace <<"\" __22__\n";
+	replace << "* __2a__\n";
+	//replace << "/ __2f__\n";
+	replace << ": __3a__\n";
+	replace << "< __3c__\n";
+	replace << "> __3e__\n";
+	replace << "? __3f__\n";
+	//replace <<"\\ __5c__\n";
+	replace << "| __7c__\n";
+}
+
+static void ReadReplacements()
+{
+	const std::string replace_fname = "/sys/replace";
+	std::string filename(File::GetUserPath(D_WIIROOT_IDX));
+	filename += replace_fname;
+
+	if (!File::Exists(filename.c_str()))
+		CreateReplacementFile(filename);
+
+	std::ifstream f(filename.c_str());
+	char letter;
+	std::string replacement;
+
+	while (f >> letter >> replacement && replacement.size())
+		replacements.push_back(std::make_pair(letter, replacement));
+}
 
 // This is used by several of the FileIO and /dev/fs/ functions 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
-	char Buffer[128];
-	memcpy(Buffer, _pFilename, _size);
+	std::string path_full = std::string(File::GetUserPath(D_WIIROOT_IDX));
+	std::string path_wii(_pFilename, _size);
 
-	std::string Filename = std::string(File::GetUserPath(D_WIIROOT_IDX));
-	if (Buffer[1] == '0')
-		Filename += std::string("/title"); // this looks and feel like a hack...
+	if (path_wii[1] == '0')
+		path_full += std::string("/title"); // this looks and feel like a hack...
 
-	// Replaces chars that NTFS can't support with '-'. TODO '/', '\' ?
-	std::replace(Buffer, Buffer + _size, '"', '-');
-	std::replace(Buffer, Buffer + _size, '*', '-');
-	std::replace(Buffer, Buffer + _size, ':', '-');
-	std::replace(Buffer, Buffer + _size, '<', '-');
-	std::replace(Buffer, Buffer + _size, '>', '-');
-	std::replace(Buffer, Buffer + _size, '?', '-');
-	std::replace(Buffer, Buffer + _size, '|', '-');
+	// Replaces chars that FAT32 can't support with strings defined in /sys/replace
+	for (replace_v::const_iterator i = replacements.begin(); i != replacements.end(); ++i)
+	{
+		for (size_t j = 0; (j = path_wii.find(i->first, j)) != path_wii.npos; ++j)
+			path_wii.replace(j, 1, i->second);
+	}
 
-	Filename += Buffer;
+	path_full += path_wii;
 
-	return Filename;
+	return path_full;
 }
-
+#pragma optimize("",on)
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
@@ -56,6 +88,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 	, m_Mode(0)
 	, m_Seek(0)
 {
+	ReadReplacements();
 }
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
