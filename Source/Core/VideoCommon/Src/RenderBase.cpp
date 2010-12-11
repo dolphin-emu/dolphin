@@ -262,13 +262,13 @@ void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 		if (g_ActiveConfig.b3DVision)
 		{
 			// This works, yet the version in the else doesn't. No idea why.
-			xScale = (float)s_backbuffer_width / (float)s_XFB_width;
-			yScale = (float)s_backbuffer_height / (float)s_XFB_height;
+			xScale = (float)(s_backbuffer_width-1) / (float)(s_XFB_width-1);
+			yScale = (float)(s_backbuffer_height-1) / (float)(s_XFB_height-1);
 		}
 		else
 		{
-			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(s_XFB_width-1);
+			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(s_XFB_height-1);
 		}
 	}
 }
