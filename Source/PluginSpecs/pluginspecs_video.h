@@ -64,6 +64,12 @@ typedef struct
 	volatile u32 CPCmdIdle;
 	volatile u32 CPReadIdle;	
 
+	volatile u32 bFF_LoWatermarkInt;
+	volatile u32 bFF_HiWatermarkInt;
+
+	volatile u32 bFF_LoWatermark;
+	volatile u32 bFF_HiWatermark;
+
 	// for GP watchdog hack
 	volatile u32 Fake_GPWDToken; // cicular incrementer
 } SCPFifoStruct;

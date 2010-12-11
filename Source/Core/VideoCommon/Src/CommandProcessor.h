@@ -31,6 +31,9 @@ namespace CommandProcessor
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
 extern volatile bool isFifoBusy; //This one is used for sync gfx thread and emulator thread.
+extern volatile bool interruptSet;
+extern volatile bool interruptWaiting;
+
 // internal hardware addresses
 enum
 {
@@ -147,10 +150,12 @@ void Write32(const u32 _Data, const u32 _Address);
 
 // for CGPFIFO
 void CatchUpGPU();
+void SetStatus();
 void GatherPipeBursted();
 void UpdateFifoRegister();
-void UpdateInterrupts();
-void UpdateInterruptsFromVideoPlugin();
+void UpdateInterrupts(u64 userdata);
+void UpdateInterruptsFromVideoPlugin(u64 userdata);
+void UpdateInterruptsScMode();
 void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();
@@ -162,6 +167,9 @@ void WaitForFrameFinish();
 void FifoCriticalEnter();
 void FifoCriticalLeave();
 
+void SetOverflowStatusFromGatherPipe();
+void ProcessFifoToLoWatemark();
+void ProcessFifoAllDistance();
 void AbortFrame();
 } // namespace CommandProcessor
 

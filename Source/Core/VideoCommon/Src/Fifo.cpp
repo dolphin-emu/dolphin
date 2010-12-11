@@ -127,13 +127,14 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
 	// Copy new video instructions to videoBuffer for future use in rendering the new picture
     memcpy(videoBuffer + size, _uData, len);
     size += len;
-    OpcodeDecoder_Run(g_bSkipCurrentFrame);
 }
+
 
 // Description: Main FIFO update loop
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
+
 	fifoStateRun = true;
 	SCPFifoStruct &_fifo = CommandProcessor::fifo;
 	s32 distToSend;
@@ -146,67 +147,48 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 		// check if we are able to run this buffer		
 		
-		while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance || (_fifo.bFF_BPEnable && ((_fifo.CPReadPointer <= _fifo.CPBreakpoint) && (_fifo.CPReadPointer + 32 > _fifo.CPBreakpoint)))))
+		CommandProcessor::SetStatus();
+
+		while (!CommandProcessor::interruptWaiting && _fifo.bFF_GPReadEnable &&
+			_fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
 			// while the FIFO is processing data we activate this for sync with emulator thread.
-			CommandProcessor::isFifoBusy = true;
+			
 
-			if (!fifoStateRun)
-				break;
+			if (!fifoStateRun) break;
 
-			_fifo.CPCmdIdle = false;
+			
 			CommandProcessor::FifoCriticalEnter();
 			// Create pointer to video data and send it to the VideoPlugin
 			u32 readPtr = _fifo.CPReadPointer;
 			u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
-//			DEBUG_LOG(BOOT, "readPtr: %08x uData %08x", readPtr, uData);
 
-			// If we are in BP mode we only send 32B chunks to Video plugin for BP checking
-			if (_fifo.bFF_BPEnable)
-			{
-				if ((readPtr <= _fifo.CPBreakpoint) && (readPtr + 32 > _fifo.CPBreakpoint))
-				{
-					Common::AtomicStore(_fifo.bFF_GPReadEnable, false);
-					Common::AtomicStore(_fifo.bFF_Breakpoint, true);
-					if (_fifo.bFF_BPInt)
-						CommandProcessor::UpdateInterruptsFromVideoPlugin();
-					CommandProcessor::FifoCriticalLeave();
-					CommandProcessor::isFifoBusy = false;
-					break;
-				}
+			distToSend = 32;
 
-				distToSend = 32;
-				if (readPtr >= _fifo.CPEnd) 
-					readPtr = _fifo.CPBase;
-				else
-					readPtr += 32;
-			}
-			// If we are not in BP mode we send all the chunk we have to speed up
+			if (readPtr == _fifo.CPEnd) 
+				readPtr = _fifo.CPBase;
 			else
-			{
-				distToSend = _fifo.CPReadWriteDistance;
-				// send 1024B chunk max length to have better control over PeekMessages' period
-				distToSend = distToSend > 1024 ? 1024 : distToSend;
-				if (readPtr + distToSend >= _fifo.CPEnd + 32)
-				{
-					distToSend = _fifo.CPEnd + 32 - readPtr;
-					readPtr = _fifo.CPBase;
-				}
-				else
-					readPtr += distToSend;
-			}
-
+				readPtr += 32;
 			
 			_assert_msg_(COMMANDPROCESSOR, (s32)_fifo.CPReadWriteDistance - distToSend >= 0 ,
 			"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce inestabilty in the game. Please report it.", _fifo.CPReadWriteDistance - distToSend);
 			
-			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
-			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+
 			// Execute new instructions found in uData
-			Fifo_SendFifoData(uData, distToSend);
+			Fifo_SendFifoData(uData, distToSend);											
+			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
+			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);						
+		    
+			CommandProcessor::isFifoBusy = true;
+			CommandProcessor::SetStatus();
+			
+			_fifo.CPCmdIdle = false;
 
-		
-
+			OpcodeDecoder_Run(g_bSkipCurrentFrame);
+			
+			_fifo.CPCmdIdle = true;
+			
+			CommandProcessor::isFifoBusy = false;
 			CommandProcessor::FifoCriticalLeave();
 
 			// Those two are pretty important and must be called in the FIFO Loop.
@@ -214,17 +196,10 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			
 			VideoFifo_CheckAsyncRequest();
-			CommandProcessor::isFifoBusy = false;						
+									
 		}
 		
 		
-		if (!_fifo.CPReadIdle && _fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
-		{
-			Common::AtomicStore(_fifo.CPReadIdle, true);
-			CommandProcessor::UpdateInterruptsFromVideoPlugin();
-		}
-		
-		_fifo.CPCmdIdle = true;
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		if (EmuRunning)
 			Common::YieldCPU();
@@ -233,3 +208,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	}
 }
 
+
+bool AtBreakpoint()
+{
+	SCPFifoStruct &_fifo = CommandProcessor::fifo;
+	return _fifo.bFF_BPEnable && (_fifo.CPReadPointer == _fifo.CPBreakpoint);
+}

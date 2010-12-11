@@ -27,6 +27,7 @@ class PointerWrap;
 
 extern volatile bool g_bSkipCurrentFrame;
 
+
 void Fifo_Init();
 void Fifo_Shutdown();
 
@@ -37,7 +38,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
 void Fifo_ExitLoop();
 void Fifo_ExitLoopNonBlocking();
 void Fifo_RunLoop(bool run);
-
+bool AtBreakpoint();
 void Fifo_DoState(PointerWrap &f);
 
 void Fifo_SetRendering(bool bEnabled);
