@@ -28,7 +28,7 @@
 typedef std::pair<char, std::string> replace_t;
 typedef std::vector<replace_t> replace_v;
 static replace_v replacements;
-#pragma optimize("",off)
+
 static void CreateReplacementFile(std::string &filename)
 {
 	std::ofstream replace(filename.c_str());
@@ -80,7 +80,7 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 	return path_full;
 }
-#pragma optimize("",on)
+
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
