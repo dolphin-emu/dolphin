@@ -692,9 +692,6 @@ void Renderer::UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x << 1;
 	int scissorYOff = bpmem.scissorOffset.y << 1;
 
-	int Xstride =  (Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2;
-	int Ystride =  (Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2;
-
 	// TODO: ceil, floor or just cast to int?
 	int X = EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff)) + TargetStrideX();
 	int Y = EFBToScaledY((int)ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - scissorYOff)) + TargetStrideY();
@@ -740,16 +737,16 @@ void Renderer::UpdateViewport()
 	{
 		D3DCAPS9 caps = D3D::GetCaps();
 		// Make sure that the requested size is actually supported by the GFX driver
-		if (Renderer::GetFullTargetWidth() > caps.MaxTextureWidth || Renderer::GetFullTargetHeight() > caps.MaxTextureHeight)
+		if (Renderer::GetFullTargetWidth() > (int)caps.MaxTextureWidth || Renderer::GetFullTargetHeight() > (int)caps.MaxTextureHeight)
 		{
 			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
 			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d, keeping the %dx%d EFB now\n", Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), old_fulltarget_w, old_fulltarget_h);
 
-			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
-			X *= old_fulltarget_w / Renderer::GetFullTargetWidth();
-			Y *= old_fulltarget_h / Renderer::GetFullTargetHeight();
-			Width *= old_fulltarget_w / Renderer::GetFullTargetWidth();
-			Height *= old_fulltarget_h / Renderer::GetFullTargetHeight();
+			// Fix the viewport to fit to the old EFB size
+			X *= (old_fulltarget_w-1) / (Renderer::GetFullTargetWidth()-1);
+			Y *= (old_fulltarget_h-1) / (Renderer::GetFullTargetHeight()-1);
+			Width *= (old_fulltarget_w-1) / (Renderer::GetFullTargetWidth()-1);
+			Height *= (old_fulltarget_h-1) / (Renderer::GetFullTargetHeight()-1);
 
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;

@@ -658,10 +658,10 @@ void Renderer::UpdateViewport()
 			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight());
 
 			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
-			newx *= (float)old_fulltarget_w / (float)Renderer::GetFullTargetWidth();
-			newy *= (float)old_fulltarget_h / (float)Renderer::GetFullTargetHeight();
-			newwidth *= (float)old_fulltarget_w / (float)Renderer::GetFullTargetWidth();
-			newheight *= (float)old_fulltarget_h / (float)Renderer::GetFullTargetHeight();
+			newx *= (float)(old_fulltarget_w-1) / (float)(Renderer::GetFullTargetWidth()-1);
+			newy *= (float)(old_fulltarget_h-1) / (float)(Renderer::GetFullTargetHeight()-1);
+			newwidth *= (float)(old_fulltarget_w-1) / (float)(Renderer::GetFullTargetWidth()-1);
+			newheight *= (float)(old_fulltarget_h-1) / (float)(Renderer::GetFullTargetHeight()-1);
 
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;

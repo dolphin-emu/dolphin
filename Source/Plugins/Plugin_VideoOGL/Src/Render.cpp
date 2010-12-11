@@ -781,9 +781,6 @@ void Renderer::UpdateViewport()
 	int scissorXOff = bpmem.scissorOffset.x << 1;
 	int scissorYOff = bpmem.scissorOffset.y << 1;
 
-	// int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
-	// int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
-
 	// TODO: ceil, floor or just cast to int?
 	int X = EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (float)scissorXOff));
 	int Y = EFBToScaledY((int)ceil((float)EFB_HEIGHT - xfregs.rawViewport[4] + xfregs.rawViewport[1] + (float)scissorYOff));
