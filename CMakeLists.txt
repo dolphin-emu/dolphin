@@ -6,7 +6,6 @@ project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 
 set(DOLPHIN_IS_STABLE FALSE)
-set(prefix		${CMAKE_INSTALL_PREFIX}						CACHE PATH "prefix")
 set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
 set(libdir		${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}	CACHE PATH "libdir")
 set(plugindir	${libdir}/dolphin-emu						CACHE PATH "plugindir")
@@ -358,7 +357,9 @@ add_subdirectory(Source)
 #
 install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN .svn EXCLUDE)
 install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN .svn EXCLUDE)
-install(FILES Data/license.txt DESTINATION ${datadir})
+if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
+	install(FILES Data/license.txt DESTINATION ${datadir})
+endif()
 
 # packaging information
 set(CPACK_PACKAGE_NAME "dolphin-emu")

@@ -808,20 +808,20 @@ void SetStatus()
         {        
 			
             if (!fifo.bFF_Breakpoint)
-				INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i %i", fifo.CPReadPointer);
+				INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
             fifo.bFF_Breakpoint = true;			
         }
 		else
 		{
 			if (fifo.bFF_Breakpoint)
-				INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i %i", fifo.CPReadPointer);
+				INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
 			fifo.bFF_Breakpoint = false;		
 		}
     }
     else
     {
         if (fifo.bFF_Breakpoint)
-			INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i %i", fifo.CPReadPointer);
+			INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
         fifo.bFF_Breakpoint = false;
     }
 
