@@ -64,7 +64,7 @@ static void ReadReplacements()
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
 	std::string path_full = std::string(File::GetUserPath(D_WIIROOT_IDX));
-	std::string path_wii(_pFilename, _size);
+	std::string path_wii(_pFilename);
 
 	if (path_wii[1] == '0')
 		path_full += std::string("/title"); // this looks and feel like a hack...
