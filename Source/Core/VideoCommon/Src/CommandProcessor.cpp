@@ -662,7 +662,7 @@ void STACKALIGN GatherPipeBursted()
 	
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
-	"FIFO is overflown by GatherPipe !\nCPU thread is too fast, try changing the watermark tightness in the game properties.");
+	"FIFO is overflown by GatherPipe !\nCPU thread is too fast!");
 
 	// check if we are in sync
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");

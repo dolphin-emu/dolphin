@@ -343,10 +343,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Metroid Other M"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
-	WMTightnessText = new wxStaticText(m_GameConfig, ID_WMTIGHTNESS_TEXT, wxT("Watermark tightness: "), wxDefaultPosition, wxDefaultSize);
-	WMTightness = new wxTextCtrl(m_GameConfig, ID_WMTIGHTNESS, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxTextValidator(wxFILTER_NUMERIC));
-	WMTightness->SetToolTip(wxT("Change this if you get lots of FIFO overflow errors. Reasonable values range from 0 to 1000."));
-
 	// Emulation State
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
@@ -380,13 +376,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DListCache, 0, wxEXPAND|wxLEFT, 5);
-
-	wxFlexGridSizer* fifosizer = new wxFlexGridSizer(2, 2, 0, 0);
-	fifosizer->Add(Hacktext, 0, wxLEFT, 5);
-	fifosizer->Add(Hack, 0, wxEXPAND|wxLEFT, 5);
-	fifosizer->Add(WMTightnessText, 0, wxLEFT, 5);
-	fifosizer->Add(WMTightness, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(fifosizer);
+	sbVideoOverrides->Add(Hacktext, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(Hack, 0, wxEXPAND|wxLEFT, 5);
 
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
@@ -909,11 +900,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		DListCache->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Video", "FIFOWatermarkTightness", &sTemp))
-		WMTightness->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-	else
-		WMTightness->SetValue(wxT("50"));
-
 	GameIni.Get("Video", "ProjectionHack", &iTemp, 0/*None*/);
 	Hack->SetSelection(iTemp);
 
@@ -1026,18 +1012,7 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Video", "DlistCachingEnable", DListCache->Get3StateValue());
 
 	GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
-
-	if (WMTightness->GetValue().size() == 0)
-		GameIni.DeleteKey("Video", "FIFOWatermarkTightness");
-	else
-	{
-		long val;
-		WMTightness->GetValue().ToLong(&val);
-		GameIni.Set("Video", "FIFOWatermarkTightness", (int)val);
-	}
-
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
-
 	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
 	PatchList_Save();
