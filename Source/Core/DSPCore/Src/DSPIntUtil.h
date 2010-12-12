@@ -51,11 +51,6 @@ inline bool dsp_SR_is_flag_set(int flag)
 // ---------------------------------------------------------------------------------------
 // --- AR increments, decrements
 // ---------------------------------------------------------------------------------------
-//
-// HORRIBLE UGLINESS, someone please fix.
-// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-//
-// increment, decrement 100% ok (as far as i can tell), increase, decrease still probs
 
 // NextPowerOf2()-1
 inline u16 ToMask(u16 a)
@@ -66,72 +61,49 @@ inline u16 ToMask(u16 a)
 	return a | (a >> 1);
 }
 
-inline u16 dsp_increment_addr_reg(u16 reg, u16 ar)
-{
-	u16 wr = g_dsp.r[DSP_REG_WR0 + reg];
-	u16 tmb = ToMask(wr);
-
-	if ((ar & tmb) == tmb)
-		ar-=wr;
-	else
-		ar++;
-	
-	return ar;
-}
-inline u16 dsp_increment_addr_reg(u16 reg)
-{
-	return dsp_increment_addr_reg(reg, g_dsp.r[reg]);
-}
-
-inline u16 dsp_decrement_addr_reg(u16 reg, u16 ar)
-{
-	u16 wr = g_dsp.r[DSP_REG_WR0 + reg];
-	u16 tmb = ToMask(wr);
-	u16 min = (tmb+1-ar)&tmb;
-
-	if ((wr < min) || !min)
-		ar+=wr;
-	else
-		ar--;
-
-	return ar;
-}
-inline u16 dsp_decrement_addr_reg(u16 reg)
-{
-	return dsp_decrement_addr_reg(reg, g_dsp.r[reg]);
-}
-
 inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
 {
 	u16 ar = g_dsp.r[reg];
-
-	if (ix > 0) {
-		for (s32 i = 0; i < ix; i++) {
-			ar = dsp_increment_addr_reg(reg, ar);
-		}
-	} else if (ix < 0) {
-		for (s32 i = 0; i < (-ix); i++) {
-			ar = dsp_decrement_addr_reg(reg, ar);
-		}
-	} 
-	return ar;
+	u16 wr = g_dsp.r[reg+8]; 
+	u16 m = ToMask(wr) | 1;
+    u16 nar = ar+ix;
+    if (ix >= 0) {
+        if((ar&m)+(ix&m) -m-1 >= 0)
+            nar -= wr+1;
+    } else {
+        if((ar&m)+(ix&m) -m-1 < m-wr)
+            nar += wr+1;
+    }
+    return nar;
 }
 
-inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix)
+inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix) 
 {
 	u16 ar = g_dsp.r[reg];
-
-	if (ix > 0) {
-		for (s32 i = 0; i < ix; i++) {
-			ar = dsp_decrement_addr_reg(reg, ar);
-		}
-	} else if (ix < 0) {
-		for (s32 i = 0; i < (-ix); i++) {
-			ar = dsp_increment_addr_reg(reg, ar);
-		}
-	}
-	return ar;
+	u16 wr = g_dsp.r[reg+8]; 
+    u16 m = ToMask(wr) | 1;
+    ix = -ix-1;
+    u16 nar = ar+ix+1;
+    if (ix-1 >= 0) {
+        if((ar&m)+(ix&m) -m >= 0)
+            nar -= wr+1;
+    } else {
+        if((ar&m)+(ix&m) -m < m-wr)
+            nar += wr+1;
+    }
+    return nar;
 }
+
+inline u16 dsp_increment_addr_reg(u16 reg) 
+{
+    return dsp_increase_addr_reg(reg, 1);
+}
+
+inline u16 dsp_decrement_addr_reg(u16 reg) 
+{
+    return dsp_decrease_addr_reg(reg, 1);
+}
+
 
 // ---------------------------------------------------------------------------------------
 // --- reg
@@ -223,7 +195,7 @@ inline s64 dsp_get_long_prod_round_prodl()
 }
 
 // For accurate emulation, this is wrong - but the real prod registers behave
-// in completely bizarre ways. Probably not meaningful to emulate them accurately.
+// in completely bizarre ways. Not needed to emulate them correctly for game ucodes.
 inline void dsp_set_long_prod(s64 val)
 {
 #if PROFILE
@@ -248,7 +220,6 @@ inline s64 dsp_get_long_acc(int reg)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	_assert_(reg < 2);
 	s64 high = (s64)(s8)g_dsp.r[DSP_REG_ACH0 + reg] << 32;
 	u32 mid_low = ((u32)g_dsp.r[DSP_REG_ACM0 + reg] << 16) | g_dsp.r[DSP_REG_ACL0 + reg];
 	return high | mid_low;
@@ -260,7 +231,6 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	_assert_(_reg < 2);
 	g_dsp.r[DSP_REG_ACL0 + _reg] = (u16)val;
 	val >>= 16;
 	g_dsp.r[DSP_REG_ACM0 + _reg] = (u16)val;
@@ -285,19 +255,16 @@ inline s64 dsp_round_long_acc(s64 val)
 
 inline s16 dsp_get_acc_l(int _reg)
 {
-	_assert_(_reg < 2);
 	return g_dsp.r[DSP_REG_ACL0 + _reg];
 }
 
 inline s16 dsp_get_acc_m(int _reg)
 {
-	_assert_(_reg < 2);
 	return g_dsp.r[DSP_REG_ACM0 + _reg];
 }
 
 inline s16 dsp_get_acc_h(int _reg)
 {
-	_assert_(_reg < 2);
 	return g_dsp.r[DSP_REG_ACH0 + _reg];
 }
 
@@ -311,19 +278,16 @@ inline s32 dsp_get_long_acx(int _reg)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	_assert_(_reg < 2);
 	return ((u32)g_dsp.r[DSP_REG_AXH0 + _reg] << 16) | g_dsp.r[DSP_REG_AXL0 + _reg];
 }
 
 inline s16 dsp_get_ax_l(int _reg)
 {
-	_assert_(_reg < 2);
 	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
 }
 
 inline s16 dsp_get_ax_h(int _reg)
 {
-	_assert_(_reg < 2);
 	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
 }
 
