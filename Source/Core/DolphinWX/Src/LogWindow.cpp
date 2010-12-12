@@ -324,7 +324,11 @@ void CLogWindow::PopulateRight()
 wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Style)
 {
 	wxTextCtrl* TC = new wxTextCtrl(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, Style);
+#ifdef __APPLE__
 	TC->SetBackgroundColour(*wxLIGHT_GREY);
+#else
+	TC->SetBackgroundColour(*wxBLACK);
+#endif
 	if (m_FontChoice)
 	{
 		if (m_FontChoice->GetSelection() < (int)LogFont.size())
