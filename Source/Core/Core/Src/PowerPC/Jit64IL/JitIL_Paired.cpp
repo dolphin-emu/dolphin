@@ -76,8 +76,10 @@ void JitIL::ps_arith(UGeckoInstruction inst)
 
 void JitIL::ps_sum(UGeckoInstruction inst)
 {
-	// FIXME: This operation strikes me as a bit strange...
+	// TODO: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
+	// TODO: ps_sum breaks Sonic Colours (black screen) 
+	Default(inst); return;
 	INSTRUCTION_START
 	JITDISABLE(Paired)
 	if (inst.Rc || inst.SUBOP5 != 10) {
