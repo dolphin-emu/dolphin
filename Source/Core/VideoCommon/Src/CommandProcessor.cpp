@@ -744,12 +744,9 @@ void UpdateInterrupts(u64 userdata)
 	}
 	else
 	{
-		if(!fifo.bFF_Breakpoint)
-		{
-			interruptSet = false;
-			INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared %i %i %i %i", fifo.CPReadPointer, fifo.CPBreakpoint, fifo.CPWritePointer, fifo.CPReadWriteDistance);
-			g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);        
-		}
+		interruptSet = false;
+		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
+		g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);        
 	}
     interruptWaiting = false;
 }
@@ -829,7 +826,7 @@ void SetStatus()
 	bool ovfInt = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt;
 	bool undfInt = fifo.bFF_LoWatermark && fifo.bFF_LoWatermarkInt;
 	
-	bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPLinkEnable && m_CPCtrlReg.GPReadEnable;
+	bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
     if (interrupt != interruptSet && !interruptWaiting)
     {
