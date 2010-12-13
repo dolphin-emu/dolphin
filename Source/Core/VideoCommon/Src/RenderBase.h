@@ -90,12 +90,12 @@ public:
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
-	static int EFBToScaledX(int x) { return x * (GetTargetWidth()-1) / (EFB_WIDTH-1); }
-	static int EFBToScaledY(int y) { return y * (GetTargetHeight()-1) / (EFB_HEIGHT-1); }
+	static int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
+	static int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
 
 	// Floating point versions of the above - only use them if really necessary
-	static float EFBToScaledXf(float x) { return x * (float)(GetTargetWidth()-1) / (float)(EFB_WIDTH-1); }
-	static float EFBToScaledYf(float y) { return y * (float)(GetTargetHeight()-1) / (float)(EFB_HEIGHT-1); }
+	static float EFBToScaledXf(float x) { return x * (float)GetTargetWidth() / (float)EFB_WIDTH; }
+	static float EFBToScaledYf(float y) { return y * (float)GetTargetHeight() / (float)EFB_HEIGHT; }
 
 	// Returns the offset at which the EFB will be drawn onto the backbuffer
 	// NOTE: Never calculate this manually (e.g. to "increase accuracy"), since you might end up getting off-by-one errors.

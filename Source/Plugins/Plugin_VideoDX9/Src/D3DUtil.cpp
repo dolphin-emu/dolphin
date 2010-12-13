@@ -355,6 +355,27 @@ void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v
 	RestoreShaders();
 }
 
+/* Explanation of texture copying via drawShadedTexQuad and drawShadedTexSubQuad:
+	From MSDN: "When rendering 2D output using pre-transformed vertices,
+				care must be taken to ensure that each texel area correctly corresponds
+				to a single pixel area, otherwise texture distortion can occur."
+	=> We need to subtract 0.5 from the vertex positions to properly map texels to pixels.
+	HOWEVER, the MSDN article talks about D3DFVF_XYZRHW vertices, which bypass the programmable pipeline.
+	Since we're using D3DFVF_XYZW and the programmable pipeline though, the vertex positions
+	are normalized to [-1;+1], i.e. we need to scale the -0.5 offset by the texture dimensions.
+	For example see a texture with a width of 640 pixels:
+	"Expected" coordinate range when using D3DFVF_XYZRHW: [0;640]
+	Normalizing this coordinate range for D3DFVF_XYZW: [0;640]->[-320;320]->[-1;1]
+		i.e. we're subtracting width/2 and dividing by width/2
+	BUT: The actual range when using D3DFVF_XYZRHW needs to be [-0.5;639.5] because of the need for exact texel->pixel mapping.
+	We can still apply the same normalizing procedure though:
+		[-0.5;639.5]->[-320-0.5;320-0.5]->[-1-0.5/320;1-0.5/320]
+
+	So generally speaking the correct coordinate range is [-1-0.5/(w/2);1-0.5/(w/2)]
+	which can be simplified to [-1-1/w;1-1/w].
+
+	For a detailed explanation of this read the MSDN article "Directly Mapping Texels to Pixels (Direct3D 9)".
+*/
 void drawShadedTexQuad(IDirect3DTexture9 *texture,
 					   const RECT *rSource,
 					   int SourceWidth,
@@ -373,6 +394,7 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	float v1=((float)rSource->top) * sh;
 	float v2=((float)rSource->bottom) * sh;
 
+	// TODO: Why do we ADD dh here?
 	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,L,T,R,B; } coords[4] = {
 		{-1.0f - dw,-1.0f + dh, 0.0f,1.0f, u1, v2, sw, sh,u1,v1,u2,v2},
 		{-1.0f - dw, 1.0f + dh, 0.0f,1.0f, u1, v1, sw, sh,u1,v1,u2,v2},
