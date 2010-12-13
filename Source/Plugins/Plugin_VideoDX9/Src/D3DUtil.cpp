@@ -374,6 +374,9 @@ void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v
 	So generally speaking the correct coordinate range is [-1-0.5/(w/2);1-0.5/(w/2)]
 	which can be simplified to [-1-1/w;1-1/w].
 
+	Note that while for D3DFVF_XYZRHW the y coordinate of the bottom of the screen is positive,
+		it's negative for D3DFVF_XYZW. This is why we need to _add_ 1/h for the second position component instead of subtracting it.
+
 	For a detailed explanation of this read the MSDN article "Directly Mapping Texels to Pixels (Direct3D 9)".
 */
 void drawShadedTexQuad(IDirect3DTexture9 *texture,
@@ -394,7 +397,6 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	float v1=((float)rSource->top) * sh;
 	float v2=((float)rSource->bottom) * sh;
 
-	// TODO: Why do we ADD dh here?
 	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,L,T,R,B; } coords[4] = {
 		{-1.0f - dw,-1.0f + dh, 0.0f,1.0f, u1, v2, sw, sh,u1,v1,u2,v2},
 		{-1.0f - dw, 1.0f + dh, 0.0f,1.0f, u1, v1, sw, sh,u1,v1,u2,v2},
