@@ -82,9 +82,9 @@ void STACKALIGN CheckGatherPipe()
 
 			// increase the CPUWritePointer
 			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			{
-				curMem -= ProcessorInterface::Fifo_CPUWritePointer - ProcessorInterface::Fifo_CPUBase;
+			{				
 				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+				curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
 			}
 			else
 			{
