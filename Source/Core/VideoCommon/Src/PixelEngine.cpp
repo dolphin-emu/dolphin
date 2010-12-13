@@ -112,6 +112,9 @@ static bool g_bSignalFinishInterrupt;
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
+volatile bool interruptSetToken = false;
+volatile bool interruptSetFinish = false;
+
 u16 bbox[4];
 bool bbox_active;
 
@@ -139,7 +142,8 @@ void DoState(PointerWrap &p)
 }
 
 void UpdateInterrupts();
-
+void UpdateTokenInterrupt(bool active);
+void UpdateFinishInterrupt(bool active);
 void SetToken_OnMainThread(u64 userdata, int cyclesLate);
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 
@@ -161,7 +165,7 @@ void Init()
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
-
+	CommandProcessor::ProcessFifoEvents();
 	switch (_iAddress & 0xFFF)
 	{
 		// CPU Direct Access EFB Raster State Config
@@ -226,6 +230,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = 1;
 		break;
 	}
+	
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
@@ -282,6 +287,8 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		WARN_LOG(PIXELENGINE, "(w16) unknown %04x @ %08x", _iValue, _iAddress);
 		break;
 	}
+
+	CommandProcessor::ProcessFifoEvents();
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
@@ -291,22 +298,35 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bOnThread|| (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
+	return !g_VideoInitialize.bOnThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }
 
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
-	if (g_bSignalTokenInterrupt	& m_Control.PETokenEnable)
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, true);
-	else
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, false);
-
+	UpdateTokenInterrupt((g_bSignalTokenInterrupt & m_Control.PETokenEnable));
+	
 	// check if there is a finish-interrupt
-	if (g_bSignalFinishInterrupt & m_Control.PEFinishEnable)
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, true);
-	else
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, false);
+	UpdateFinishInterrupt((g_bSignalFinishInterrupt & m_Control.PEFinishEnable));
+}
+
+void UpdateTokenInterrupt(bool active)
+{
+	if(interruptSetToken != active)
+	{
+		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, active);
+		interruptSetToken = active;
+	}
+}
+
+void UpdateFinishInterrupt(bool active)
+{
+
+	if(interruptSetFinish != active)
+	{
+		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, active);
+		interruptSetFinish = active;
+	}
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -322,6 +342,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
 		INFO_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 		UpdateInterrupts();
+		CommandProcessor::interruptTokenWaiting = false;
 	//}
 	//else
 	//	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", CommandProcessor::fifo.PEToken);
@@ -331,6 +352,7 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
 	g_bSignalFinishInterrupt = 1;	
 	UpdateInterrupts();
+	CommandProcessor::interruptFinishWaiting = false;
 }
 
 // SetToken
@@ -342,6 +364,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
 		// This seems smelly...
 		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
+		CommandProcessor::interruptTokenWaiting = true;
 		g_VideoInitialize.pScheduleEvent_Threadsafe(
 			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	}
@@ -361,6 +384,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 void SetFinish()
 {
 	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
+	CommandProcessor::interruptFinishWaiting = true;
 	g_VideoInitialize.pScheduleEvent_Threadsafe(
 		0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
@@ -373,25 +397,27 @@ void ResetSetFinish()
 	//remove event from the queque
 	if (g_bSignalFinishInterrupt)
 	{
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, false);
+		UpdateFinishInterrupt(false);
 		g_bSignalFinishInterrupt = false;
 		
 	}else
 	{
 		g_VideoInitialize.pRemoveEvent(et_SetFinishOnMainThread);
 	}
+	CommandProcessor::interruptFinishWaiting = false;
 }
 
 void ResetSetToken()
 {
 	if (g_bSignalTokenInterrupt)
 	{
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, false);
+		UpdateTokenInterrupt(false);
 		g_bSignalTokenInterrupt = false;
 		
 	}else
 	{
 		g_VideoInitialize.pRemoveEvent(et_SetTokenOnMainThread);
 	}
+	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine

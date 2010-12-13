@@ -111,11 +111,13 @@ static u32 fake_GPWatchdogLastToken = 0;
 static Common::EventEx s_fifoIdleEvent;
 static Common::CriticalSection sFifoCritical;
 static bool bProcessFifoToLoWatemark = false;
+static bool bProcessFifoAllDistance = false;
 
 volatile bool isFifoBusy = false; //This state is changed when the FIFO is processing data.
 volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
-
+volatile bool interruptTokenWaiting = false;
+volatile bool interruptFinishWaiting = false;
 
 void FifoCriticalEnter()
 {
@@ -177,6 +179,8 @@ void Init()
 
 	interruptSet = false;
     interruptWaiting = false;
+	interruptFinishWaiting = false;
+	interruptTokenWaiting = false;
 
 	s_fifoIdleEvent.Init();
 
@@ -192,6 +196,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 {
 
 	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
+	ProcessFifoEvents();
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
@@ -458,6 +463,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			// If overflown happens process the fifo to LoWatemark
 			if (bProcessFifoToLoWatemark)
 				ProcessFifoToLoWatemark();
+			
+			if (bProcessFifoAllDistance)
+				ProcessFifoAllDistance();
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
@@ -479,6 +487,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				if (!tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
 					bProcessFifoToLoWatemark = true;
+
+				if (tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
+					bProcessFifoAllDistance = true;
 			}
 			else
 			{
@@ -590,8 +601,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	if (!g_VideoInitialize.bOnThread)
 		CatchUpGPU();
-
-
+	ProcessFifoEvents();
 }
 
 void Read32(u32& _rReturnValue, const u32 _Address)
@@ -626,7 +636,7 @@ void WaitForFrameFinish()
 
 void STACKALIGN GatherPipeBursted()
 {
-
+	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
@@ -862,6 +872,13 @@ void ProcessFifoAllDistance()
 			fifo.CPReadWriteDistance && !AtBreakpoint())
 			Common::YieldCPU();
 	}
+	bProcessFifoAllDistance = false;
+}
+
+void ProcessFifoEvents()
+{
+	if (g_VideoInitialize.bOnThread || interruptWaiting || interruptFinishWaiting || interruptTokenWaiting)
+	g_VideoInitialize.pProcessFifoEvents();
 }
 
 

@@ -15,6 +15,7 @@ typedef void            (*TSetInterrupt)(u32 _causemask, bool _bSet);
 typedef int             (*TRegisterEvent)(const char *name, TimedCallback callback);
 typedef void            (*TScheduleEvent_Threadsafe)(int cyclesIntoFuture, int event_type, u64 userdata);
 typedef void            (*TRemoveEvent)(int event_type);
+typedef void            (*TProcessFifoEvents)(void);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
@@ -82,6 +83,7 @@ typedef struct
     TRegisterEvent                  pRegisterEvent;
     TScheduleEvent_Threadsafe       pScheduleEvent_Threadsafe;
 	TRemoveEvent					pRemoveEvent;
+	TProcessFifoEvents				pProcessFifoEvents;
 	TGetMemoryPointer				pGetMemoryPointer;
 	TVideoLog						pLog;
 	TSysMessage						pSysMessage;
@@ -196,6 +198,7 @@ EXPORT void CALL Video_WaitForFrameFinish(void);
 EXPORT bool CALL Video_IsFifoBusy(void);
 
 EXPORT void CALL Video_AbortFrame(void);
+
 
 #include "ExportEpilog.h"
 #endif
