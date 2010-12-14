@@ -314,7 +314,12 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
-		Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
+	{
+		if (cpu_info.num_cores > 3)
+			Common::Thread::SetCurrentThreadAffinity(3);  // Force to third, non-HT core
+		else
+			Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
+	}
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	INFO_LOG(OSREPORT, "CPU Thread separate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
