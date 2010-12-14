@@ -24,7 +24,7 @@
 #include "../PowerPC/PowerPC.h"
 
 #include "EXI.h"
-#include "sram.h"
+#include "Sram.h"
 SRAM g_SRAM;
 
 namespace ExpansionInterface
