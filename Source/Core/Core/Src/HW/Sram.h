@@ -71,10 +71,14 @@ union SRAM
 		u16 wirelessPad_id[4];	// 16bit device ID of last connected pad.
 		u8 dvderr_code;			// last non-recoverable error from DVD interface
 		u8 __padding0;			// reserved
-		u16 flashID_chksum[2];	// 16bit checksum of unlock flash ID
-		u16 __padding1;			// padding
+		u8 flashID_chksum[2];	// 8bit checksum of unlock flash ID
+		u32 __padding1;			// padding
 	};
 };
 #pragma pack(pop)
+void initSRAM();
+void SetCardFlashID(u8* buffer, u8 card_index);
+
 extern SRAM sram_dump;
+extern SRAM g_SRAM;
 #endif

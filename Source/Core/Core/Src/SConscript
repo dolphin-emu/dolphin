@@ -72,6 +72,7 @@ files = [
 	"HW/SI_DeviceAMBaseboard.cpp",
 	"HW/SI_DeviceGBA.cpp",
 	"HW/SI_DeviceGCController.cpp",
+	"HW/Sram.cpp",
 	"HW/StreamADPCM.cpp",
 	"HW/SystemTimers.cpp",
 	"HW/VideoInterface.cpp",

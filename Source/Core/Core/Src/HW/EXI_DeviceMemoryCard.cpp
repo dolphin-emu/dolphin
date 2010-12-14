@@ -25,6 +25,7 @@
 #include "EXI.h"
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
+#include "Sram.h"
 
 #define MC_STATUS_BUSY					0x80   
 #define MC_STATUS_UNLOCKED				0x40
@@ -85,6 +86,8 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		fread(memory_card_content, 1, memory_card_size, pFile);
 		fclose(pFile);
+		SetCardFlashID(memory_card_content, card_index);
+
 	}
 	else
 	{

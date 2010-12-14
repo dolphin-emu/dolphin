@@ -602,6 +602,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\HW\Sram.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\HW\Sram.h"
 					>
 				</File>

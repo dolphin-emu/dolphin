@@ -24,6 +24,8 @@
 #include "../PowerPC/PowerPC.h"
 
 #include "EXI.h"
+#include "sram.h"
+SRAM g_SRAM;
 
 namespace ExpansionInterface
 {
@@ -36,9 +38,9 @@ enum
 };
 
 CEXIChannel *g_Channels[NUM_CHANNELS];
-
 void Init()
 {
+	initSRAM();
 	for (u32 i = 0; i < NUM_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 

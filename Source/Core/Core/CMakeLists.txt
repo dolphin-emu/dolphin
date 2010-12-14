@@ -55,6 +55,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/SI_Device.cpp
 			Src/HW/SI_DeviceGBA.cpp
 			Src/HW/SI_DeviceGCController.cpp
+			Src/HW/Sram.cpp
 			Src/HW/StreamADPCM.cpp
 			Src/HW/SystemTimers.cpp
 			Src/HW/VideoInterface.cpp

@@ -176,22 +176,9 @@ CEXIIPL::CEXIIPL() :
 	// Clear RTC
 	memset(m_RTC, 0, sizeof(m_RTC));
 
-	// SRAM
-	FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
-    if (file != NULL)
-    {
-        if (fread(&m_SRAM, 1, 64, file) < 64) {
-	    ERROR_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: Could not read all of SRAM");
-	    m_SRAM = sram_dump;
-	}
-        fclose(file);
-    }
-    else
-    {
-		m_SRAM = sram_dump;
-    }
+
     // We Overwrite language selection here since it's possible on the GC to change the language as you please
-	m_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;		
@@ -214,7 +201,7 @@ CEXIIPL::~CEXIIPL()
     FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "wb");
     if (file)
     {
-        fwrite(&m_SRAM, 1, 64, file);
+        fwrite(&g_SRAM, 1, 64, file);
         fclose(file);
     }
 }
@@ -357,9 +344,9 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
 		{
 			if (m_uAddress & 0x80000000)
-				m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
 			else
-				_uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+				_uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
 		}
 		// --- UART ---
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
@@ -393,9 +380,9 @@ void CEXIIPL::TransferByte(u8& _uByte)
         {
             // WII only RTC flags... afaik just the wii menu initialize it
 // 			if (m_uAddress & 0x80000000)
-// 				m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+// 				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
 // 			else
-// 				_uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+// 				_uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
         }
 		m_uRWOffset++;
 	}

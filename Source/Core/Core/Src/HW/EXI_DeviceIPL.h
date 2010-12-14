@@ -53,9 +53,6 @@ private:
 	//! RealTimeClock
 	u8 m_RTC[4];
 
-	//! SRam
-	SRAM m_SRAM;
-
 	//! Helper
 	u32 m_uPosition;
 	u32 m_uAddress;
