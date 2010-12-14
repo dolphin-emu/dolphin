@@ -162,8 +162,8 @@ protected:
 	// Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
 	// of 4 byte commands.
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
-		enum LOG_TYPE LogType = WII_IPC_HLE,
-		enum LOG_LEVEL Verbosity = DEBUG_LEVEL)
+		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
+		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s", 
 					GetDeviceName().c_str());
@@ -175,8 +175,8 @@ protected:
     }
 	
     void DumpAsync(u32 BufferVector, u32 NumberInBuffer, u32 NumberOutBuffer,
-		enum LOG_TYPE LogType = WII_IPC_HLE,
-		enum LOG_LEVEL Verbosity = DEBUG_LEVEL)
+		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
+		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "======= DumpAsync ======");
 
@@ -186,7 +186,7 @@ protected:
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
             u32 InBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            INFO_LOG(LogType, "%s - IOCtlV InBuffer[%i]:",
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:",
 				GetDeviceName().c_str(), i);
 
             std::string Temp;
@@ -197,7 +197,7 @@ protected:
                 Temp.append(Buffer);
             }
 
-            DEBUG_LOG(LogType, "    Buffer: %s", Temp.c_str());
+            GENERIC_LOG(LogType, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
         }
 
         for (u32 i = 0; i < NumberOutBuffer; i++)
@@ -205,9 +205,9 @@ protected:
 			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            INFO_LOG(LogType, "%s - IOCtlV OutBuffer[%i]:",
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:",
 				GetDeviceName().c_str(), i);
-            INFO_LOG(LogType, "    OutBuffer: 0x%08x (0x%x):",
+            GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):",
 				OutBuffer, OutBufferSize);
 
 			#if defined(MAX_LOGLEVEL) && MAX_LOGLEVEL >= INFO_LEVEL

@@ -756,12 +756,12 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	pHeader->length = (u16)(Offset - sizeof(l2cap_hdr_t));
 	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->length + sizeof(l2cap_hdr_t));
 
-	//	Debugger::PrintDataBuffer(WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "test response: ");
+	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "test response: ");
 }
 
 void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 {
-	//	Debugger::PrintDataBuffer(WIIMOTE, _pData, _Size, "HandleSDP: ");
+	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "HandleSDP: ");
 
 	CBigEndianBuffer buffer(_pData);
 
@@ -847,7 +847,7 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 	// send ....
 	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->length + sizeof(l2cap_hdr_t));
 
-	//Debugger::PrintDataBuffer(WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "m_pHost->SendACLPacket: ");
+	//Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "m_pHost->SendACLPacket: ");
 }
 
 void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)

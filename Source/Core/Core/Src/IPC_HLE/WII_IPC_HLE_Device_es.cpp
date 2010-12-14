@@ -756,7 +756,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     default:
         WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
-        DumpCommands(_CommandAddress, 8, WII_IPC_ES);
+		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
         INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", Buffer.Parameter);
         break;
     }

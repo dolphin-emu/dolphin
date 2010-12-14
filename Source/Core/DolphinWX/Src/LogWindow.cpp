@@ -55,8 +55,8 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 #endif
 {
 	m_LogManager = LogManager::GetInstance();
-	for (int i = 0; i < NUMBER_OF_LOGS; ++i)
-		m_LogManager->addListener(i, this);
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+		m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);
 	m_fileLog = m_LogManager->getFileListener();
 	m_console = m_LogManager->getConsoleListener();
 
@@ -151,9 +151,9 @@ void CLogWindow::CreateGUIControls()
 
 CLogWindow::~CLogWindow()
 {
-	for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		m_LogManager->removeListener(i, this);
+		m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
 	}
 	m_LogTimer->Stop();
 	delete m_LogTimer;
@@ -193,8 +193,8 @@ void CLogWindow::SaveSettings()
 	ini.Set("Options", "WriteToFile", m_writeFile);
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
 	ini.Set("Options", "WriteToWindow", m_writeWindow);
-	for (int i = 0; i < NUMBER_OF_LOGS; ++i)
-		ini.Set("Logs", m_LogManager->getShortName(i), m_checks->IsChecked(i));
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+		ini.Set("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
@@ -222,26 +222,26 @@ void CLogWindow::LoadSettings()
 	m_writeConsoleCB->SetValue(m_writeConsole);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
 	m_writeWindowCB->SetValue(m_writeWindow);
-	for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		ini.Get("Logs", m_LogManager->getShortName(i), &enable, true);
+		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
 		if (m_writeWindow && enable)
-			m_LogManager->addListener(i, this);
+			m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);
 		else
-			m_LogManager->removeListener(i, this);
+			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
 
 		if (m_writeFile && enable)
-			m_LogManager->addListener(i, m_fileLog);
+			m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
 		else
-			m_LogManager->removeListener(i, m_fileLog);
+			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
 
 		if (m_writeConsole && enable)
-			m_LogManager->addListener(i, m_console);
+			m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_console);
 		else
-			m_LogManager->removeListener(i, m_console);
-		m_LogManager->setLogLevel(i, (enum LOG_LEVEL)verbosity);
+			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
+		m_LogManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 	UpdateChecks();
 }
@@ -270,7 +270,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 void CLogWindow::OnToggleAll(wxCommandEvent& WXUNUSED (event))
 {
 	static bool enableAll = false;
-	for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		ToggleLog(i, enableAll);
 	}
@@ -289,20 +289,20 @@ void CLogWindow::UpdateChecks()
 		// if you don't do it (at least the win version)
 		m_checks->Freeze();
 
-		for (int i = 0; i < NUMBER_OF_LOGS; i++)
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		{
-			m_checks->Append(wxString::FromAscii(m_LogManager->getFullName(i)));
+			m_checks->Append(wxString::FromAscii(m_LogManager->getFullName( (LogTypes::LOG_TYPE)i )));
 		}
 		m_checks->Thaw();
 	}
 
 	m_checks->Freeze();
-	for (int i = 0; i < NUMBER_OF_LOGS; i++)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
 		m_checks->Check(i,
-			m_LogManager->isListener(i, this) ||
-			m_LogManager->isListener(i, m_console) ||
-			m_LogManager->isListener(i, m_fileLog));
+			m_LogManager->isListener((LogTypes::LOG_TYPE)i, this) ||
+			m_LogManager->isListener((LogTypes::LOG_TYPE)i, m_console) ||
+			m_LogManager->isListener((LogTypes::LOG_TYPE)i, m_fileLog));
 	}
 	m_checks->Thaw();
 }
@@ -348,9 +348,9 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		{
 			// get selection
 			int v = m_verbosity->GetSelection() + 1;
-			for (int i = 0; i < NUMBER_OF_LOGS; i++)
+			for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 			{
-				m_LogManager->setLogLevel(i, (enum LOG_LEVEL)v);
+				m_LogManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
 			}
 		}
 		break;
@@ -389,43 +389,43 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		break;
 
 	case IDM_WRITEFILE:
-		for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		{
 			m_writeFile = event.IsChecked();
 			if (m_checks->IsChecked(i))
 			{
 				if (m_writeFile)
-					m_LogManager->addListener(i, m_fileLog);
+					m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_fileLog);
 				else
-					m_LogManager->removeListener(i, m_fileLog);
+					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
 			}
 		}
 		break;
 
 	case IDM_WRITEWINDOW:
-		for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		{
 			m_writeWindow = event.IsChecked();
 			if (m_checks->IsChecked(i))
 			{
 				if (m_writeWindow)
-					m_LogManager->addListener(i, this);
+					m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);
 				else
-					m_LogManager->removeListener(i, this);
+					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
 			}
 		}
 		break;
 
 	case IDM_WRITECONSOLE:
-		for (int i = 0; i < NUMBER_OF_LOGS; ++i)
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		{
 			m_writeConsole = event.IsChecked();
 			if (m_checks->IsChecked(i))
 			{
 				if (m_writeConsole)
-					m_LogManager->addListener(i, m_console);
+					m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_console);
 				else
-					m_LogManager->removeListener(i, m_console);
+					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_console);
 			}
 		}
 		break;
@@ -444,7 +444,7 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 
 void CLogWindow::ToggleLog(int _logType, bool enable)
 {
-	enum LOG_TYPE logType = (enum LOG_TYPE)_logType;
+	LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
 
 	m_checks->Check(_logType, enable);
 
@@ -493,7 +493,7 @@ void CLogWindow::UpdateLog()
 	{
 		switch (msgQueue.front().first)
 		{
-				// red
+			// red
 			case ERROR_LEVEL:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
 				break;
@@ -532,7 +532,7 @@ void CLogWindow::UpdateLog()
 	m_LogTimer->Start(UPDATETIME);
 }
 
-void CLogWindow::Log(enum LOG_LEVEL level, const char *text)
+void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 {
 	m_LogSection.Enter();
 	if (msgQueue.size() >= 100)

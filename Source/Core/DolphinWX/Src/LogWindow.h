@@ -60,7 +60,7 @@ public:
 
 	void SaveSettings();
 	void LoadSettings();
-	void Log(enum LOG_LEVEL level, const char *text);
+	void Log(LogTypes::LOG_LEVELS, const char *text);
 
 	int x, y, winpos;
 

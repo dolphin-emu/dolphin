@@ -238,7 +238,7 @@ void LogInfo(const char *format, ...)
 {
 	if (!b_RanOnce) 
 	{
-		if (LogManager::GetMaxLevel() >= INFO_LEVEL || logSelf)
+		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
 		{
 			char* temp = (char*)alloca(strlen(format)+512);
 			va_list args;

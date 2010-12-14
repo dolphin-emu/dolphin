@@ -245,14 +245,14 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	COORD Coo = GetCoordinates(OldCursor, LBufWidth);
 	SetConsoleCursorPosition(hConsole, Coo);
 
-	if (SLog.length() > 0) Log(NOTICE_LEVEL, SLog.c_str());
+	if (SLog.length() > 0) Log(LogTypes::LNOTICE, SLog.c_str());
 
 	// Resize the window too
 	if (Resize) MoveWindow(GetConsoleWindow(), Left,Top, (Width + 100),Height, true);
 #endif
 }
 
-void ConsoleListener::Log(enum LOG_LEVEL Level, const char *Text)
+void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 {
 #if defined(_WIN32)
 	/*

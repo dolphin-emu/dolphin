@@ -1739,7 +1739,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4F(u8* _Input,
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
 
-	Dolphin_Debugger::PrintDataBuffer(WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4F, &Reply, sizeof(hci_status_rp));
 }
@@ -1751,7 +1751,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
 	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
-	Dolphin_Debugger::PrintDataBuffer(WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
+	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4C, &Reply, sizeof(hci_status_rp));
 }

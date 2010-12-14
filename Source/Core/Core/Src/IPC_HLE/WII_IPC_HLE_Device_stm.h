@@ -94,7 +94,7 @@ public:
         case IOCTL_STM_VIDIMMING: // (Input: 20 bytes, Output: 20 bytes)
             INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());
             INFO_LOG(WII_IPC_STM, "    IOCTL_STM_VIDIMMING");
-			//DumpCommands(BufferIn, BufferInSize / 4, WII_IPC_STM);
+			//DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_STM);
 			//Memory::Write_U32(1, BufferOut);
 			//ReturnValue = 1;
             break;
@@ -182,7 +182,7 @@ public:
                 DEBUG_LOG(WII_IPC_STM, "BufferOut: 0x%08x", BufferOut);
                 DEBUG_LOG(WII_IPC_STM, "BufferOutSize: 0x%08x", BufferOutSize);
 
-				DumpCommands(BufferIn, BufferInSize/4, WII_IPC_STM);
+				DumpCommands(BufferIn, BufferInSize/4, LogTypes::WII_IPC_STM);
             }
             break;
 

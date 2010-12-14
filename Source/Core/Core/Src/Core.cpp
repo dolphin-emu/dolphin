@@ -716,7 +716,7 @@ void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(AUDIO, (enum LOG_LEVEL)_v, "%s", _szMessage);
+	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, "%s", _szMessage);
 }
 
 
