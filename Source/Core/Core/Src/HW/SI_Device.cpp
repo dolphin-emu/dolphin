@@ -38,11 +38,11 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 
 		if ((num % 8) == 0)
 		{
-			DEBUG_LOG(SERIALINTERFACE, szTemp);
+			DEBUG_LOG(SERIALINTERFACE, "%s", szTemp);
 			szTemp[0] = '\0';
 		}
 	}
-	DEBUG_LOG(SERIALINTERFACE, szTemp);
+	DEBUG_LOG(SERIALINTERFACE, "%s", szTemp);
 #endif
 	return 0;
 };

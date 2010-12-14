@@ -94,7 +94,7 @@ void ContinueGFXDebugger()
 void GFXDebuggerBase::DumpPixelShader(const char* path)
 {
 	char filename[MAX_PATH];
-	sprintf(filename, "%s/dump_ps.txt", path);
+	sprintf(filename, "%sdump_ps.txt", path);
 
 	std::string output;
 	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
@@ -126,7 +126,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 void GFXDebuggerBase::DumpVertexShader(const char* path)
 {
 	char filename[MAX_PATH];
-	sprintf(filename, "%s/dump_vs_consts.txt", path);
+	sprintf(filename, "%sdump_vs_consts.txt", path);
 
 	File::CreateEmptyFile(filename);
 	File::WriteStringToFile(true, GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);

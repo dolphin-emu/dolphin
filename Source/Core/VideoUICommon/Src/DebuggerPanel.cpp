@@ -54,7 +54,7 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 
 GFXDebuggerPanel::~GFXDebuggerPanel()
 {
-	SaveSettings();
+	GFXDebuggerPauseFlag = false;
 }
 
 void GFXDebuggerPanel::OnClose(wxCloseEvent& event)
@@ -249,10 +249,9 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
 	char dump_path[MAX_PATH];
-	sprintf(dump_path, "%sDebug/%s", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
-	if (!File::Exists(dump_path) || !File::IsDirectory(dump_path))
-		if (!File::CreateDir(dump_path))
-			return;
+	sprintf(dump_path, "%sDebug/%s/", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+	if (!File::CreateFullPath(dump_path))
+		return;
 
 	switch (m_pDumpList->GetSelection())
 	{

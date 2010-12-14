@@ -132,6 +132,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 
 		if (!File::Exists(APPFileName))
 		{
+			File::CreateFullPath(APPFileName);
 			FILE* pAPPFile = fopen(APPFileName, "wb");
 			if (pAPPFile == NULL)
 			{

@@ -134,7 +134,8 @@ void GBASockServer::Transfer(char* si_buffer)
 	else if (cmd == CMD_WRITE)
 		num_expecting = 1;
 	if (num_received != num_expecting)
-		ERROR_LOG(SERIALINTERFACE, "%x:%x:%x", (u8)cmd, num_received, num_expecting);
+		ERROR_LOG(SERIALINTERFACE, "%x:%x:%x", (u8)cmd,
+				(unsigned int)num_received, (unsigned int)num_expecting);
 #endif
 
 	si_buffer[0] = current_data[3];
