@@ -1138,12 +1138,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString path = wxFileSelector(_T("Select the save file"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("Wii save files|data.bin|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
+			_T("Wii save files (*.bin)|*.bin"),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 

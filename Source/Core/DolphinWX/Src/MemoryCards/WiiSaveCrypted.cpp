@@ -491,7 +491,7 @@ void CWiiSaveCrypted::make_ec_cert(u8 *cert, u8 *sig, char *signer, char *name, 
 	ec_priv_to_pub(priv, cert + 0x108);
 }
 
-bool CWiiSaveCrypted::getPaths(bool _export)
+bool CWiiSaveCrypted::getPaths(bool forExport)
 {
 	if (_saveGameTitle)
 	{	
@@ -501,7 +501,7 @@ bool CWiiSaveCrypted::getPaths(bool _export)
 			(u8)(_saveGameTitle >> 24) & 0xFF, (u8)(_saveGameTitle >> 16) & 0xFF,
 			(u8)(_saveGameTitle >>  8) & 0xFF, (u8)_saveGameTitle & 0xFF);
 	}
-	if (_export)
+	if (forExport)
 	{
 		if(!File::IsDirectory(pathSavedir))
 		{
