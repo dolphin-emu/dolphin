@@ -43,6 +43,7 @@ public:
 	void CompileDispatcher();
 	const u8 *CompileStub();
 	void Compile(int start_addr);
+	void ClearCallFlag();
 
 	void MainOpFallback(UDSPInstruction inst);
 

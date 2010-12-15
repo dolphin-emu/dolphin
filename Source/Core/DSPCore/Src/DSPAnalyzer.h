@@ -32,6 +32,7 @@ enum
 	CODE_IDLE_SKIP = 2,
 	CODE_LOOP_START = 4,
 	CODE_LOOP_END = 8,
+	CODE_CALL = 16,
 };
 
 // Easy to query array covering the whole of instruction memory.

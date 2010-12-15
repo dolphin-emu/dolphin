@@ -156,6 +156,7 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	{
 		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
 		emitter.JMPptr(R(RAX));
+		emitter.ClearCallFlag();
 	}
 #endif
 }
@@ -222,6 +223,7 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	{
 		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
 		emitter.JMPptr(R(RAX));
+		emitter.ClearCallFlag();
 	}
 #endif
 }
