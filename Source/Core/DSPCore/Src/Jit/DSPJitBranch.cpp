@@ -34,24 +34,6 @@ const int GetCodeSize(void(*jitCode)(const UDSPInstruction, DSPEmitter&), const 
 	return size;
 }
 
-template <void(*jitCode)(const UDSPInstruction, DSPEmitter&)>
-void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
-{
-	static const int codeSize = GetCodeSize(jitCode, opc, emitter);
-	//emitter.INT3();
-	const u8* codePtr = CheckCondition(emitter, opc & 0xf, codeSize);
-	const u8* afterSkip = emitter.GetCodePtr();
-	if (codePtr != NULL) 
-		emitter.SetCodePtr((u8*)codePtr);
-	jitCode(opc, emitter);
-	//if (codePtr != NULL) 
-	//{
-	//	emitter.JMP(afterSkip + 4 + sizeof(void*));
-	//	emitter.SetCodePtr((u8*)afterSkip);
-	//	emitter.ADD(16, M(&g_dsp.pc), Imm8(1)); //4 bytes + pointer
-	//}
-}
-
 const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 {
 	if (cond == 0xf) // Always true.
@@ -134,6 +116,24 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 	return res;
 }
 
+template <void(*jitCode)(const UDSPInstruction, DSPEmitter&)>
+void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
+{
+	static const int codeSize = GetCodeSize(jitCode, opc, emitter);
+	//emitter.INT3();
+	const u8* codePtr = CheckCondition(emitter, opc & 0xf, codeSize);
+	//const u8* afterSkip = emitter.GetCodePtr();
+	if (codePtr != NULL) 
+		emitter.SetCodePtr((u8*)codePtr);
+	jitCode(opc, emitter);
+	//if (codePtr != NULL) 
+	//{
+	//	emitter.JMP(afterSkip + 4 + sizeof(void*));
+	//	emitter.SetCodePtr((u8*)afterSkip);
+	//	emitter.ADD(16, M(&g_dsp.pc), Imm8(1)); //4 bytes + pointer
+	//}
+}
+
 void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
@@ -187,7 +187,7 @@ void DSPEmitter::jmprcc(const UDSPInstruction opc)
 void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
-	emitter.ABI_CallFunctionCC16(dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 2);
+	emitter.ABI_CallFunctionCC16((void *)dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 2);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
 #else
@@ -216,7 +216,7 @@ void DSPEmitter::call(const UDSPInstruction opc)
 void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
-	emitter.ABI_CallFunctionCC16(dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 1);
+	emitter.ABI_CallFunctionCC16((void *)dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 1);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
