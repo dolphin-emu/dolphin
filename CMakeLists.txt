@@ -379,6 +379,11 @@ endif()
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
 
+set(CPACK_SET_DESTDIR ON)
+set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
+set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.svn")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
+
 # CPack must be included after the CPACK_* variables are set in order for those
 # variables to take effect.
 include(CPack)

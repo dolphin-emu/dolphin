@@ -83,6 +83,8 @@ std::string CSharedContent::AddSharedContent(u8* _pHash)
 		memcpy(Element.FileName, c_ID, 8);
 		memcpy(Element.SHA1Hash, _pHash, 20);
 		m_Elements.push_back(Element);
+
+		File::CreateFullPath(contentMap);
 		FILE* pFile = fopen(contentMap, "ab");
 		if (pFile)
 		{
@@ -403,6 +405,7 @@ cUIDsys::cUIDsys()
 		*(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 
+		File::CreateFullPath(uidSys);
 		FILE* pFile = fopen(uidSys, "wb");
 		if (pFile)
 		{
@@ -438,6 +441,8 @@ bool cUIDsys::AddTitle(u64 _TitleID)
 		*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 		m_Elements.push_back(Element);
+
+		File::CreateFullPath(uidSys);
 		FILE* pFile = fopen(uidSys, "ab");
 		if (pFile)
 		{

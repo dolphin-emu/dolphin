@@ -126,7 +126,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 void GFXDebuggerBase::DumpVertexShader(const char* path)
 {
 	char filename[MAX_PATH];
-	sprintf(filename, "%sdump_vs_consts.txt", path);
+	sprintf(filename, "%sdump_vs.txt", path);
 
 	File::CreateEmptyFile(filename);
 	File::WriteStringToFile(true, GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
