@@ -316,7 +316,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bLockThreads)
 	{
 		if (cpu_info.num_cores > 3)
-			Common::Thread::SetCurrentThreadAffinity(3);  // Force to third, non-HT core
+			Common::Thread::SetCurrentThreadAffinity(4);  // Force to third, non-HT core
 		else
 			Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
 	}
