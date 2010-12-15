@@ -220,14 +220,30 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					return false; //do not boot
 				}
 
-				u64 TitleID = ContentLoader.GetTitleID();
-				char* pTitleID = (char*)&TitleID;
-
-				// NTSC or PAL
-				if (pTitleID[0] == 'E' || pTitleID[0] == 'J')
+				switch (ContentLoader.GetCountry())
+				{
+				case DiscIO::IVolume::COUNTRY_USA:
 					bNTSC = true;
-				else
+					break;
+				
+				case DiscIO::IVolume::COUNTRY_TAIWAN:
+				case DiscIO::IVolume::COUNTRY_KOREA:
+					// TODO: Should these have their own Region Dir?
+				case DiscIO::IVolume::COUNTRY_JAPAN:
+					bNTSC = true;
+					break;
+				
+				case DiscIO::IVolume::COUNTRY_EUROPE:
+				case DiscIO::IVolume::COUNTRY_FRANCE:
+				case DiscIO::IVolume::COUNTRY_ITALY:
+				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
+					break;
+				
+				default:
+					bNTSC = false;
+						break;
+				}
 
 				bWii = true;
 				Region = EUR_DIR;
@@ -237,9 +253,29 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				{
 					m_strName = pVolume->GetName();
 					m_strUniqueID = pVolume->GetUniqueID();
+					delete pVolume;
+				}
+				else
+				{	// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
+					// if this is the second boot we would be using the Name and id of the last title
+					m_strName.clear();
+					m_strUniqueID.clear();
 				}
 
-				delete pVolume;
+				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
+				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
+				char titleidstr[17];
+				snprintf(titleidstr, 17, "%016llx", ContentLoader.GetTitleID());
+					
+				if (!m_strName.length())
+				{
+					m_strName = titleidstr;
+				}
+				if (!m_strUniqueID.length())
+				{
+					m_strUniqueID = titleidstr;
+				}
+
 			}
 			else
 			{

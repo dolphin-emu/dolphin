@@ -110,7 +110,18 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	CreateGUIControls(DiscIO::IsVolumeWadFile(OpenISO));
 
-	GameIniFile = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (OpenISO->GetUniqueID()) + ".ini";
+	std::string _iniFilename = OpenISO->GetUniqueID();
+	if (!_iniFilename.length())
+	{
+		char tmp[17];
+		u8 _tTitleID[8];
+		if(OpenISO->GetTitleID(_tTitleID))
+		{
+			snprintf(tmp, 17, "%016llx", Common::swap64(_tTitleID));
+			_iniFilename = tmp;
+		}
+	}
+	GameIniFile = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + _iniFilename + ".ini";
 	if (GameIni.Load(GameIniFile.c_str()))
 		LoadGameConfig();
 	else
