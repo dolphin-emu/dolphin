@@ -154,7 +154,7 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 //	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
 	MOV(16, MDisp(R11, DSP_REG_PRODM2 * 2), Imm16(0x0010));
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::clrp, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -171,7 +171,7 @@ void DSPEmitter::tstprod(const UDSPInstruction opc)
 //	Update_SR_Register64(prod);
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::tstprod, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -194,7 +194,7 @@ void DSPEmitter::movp(const UDSPInstruction opc)
 //	Update_SR_Register64(acc);
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::movp, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -217,7 +217,7 @@ void DSPEmitter::movnp(const UDSPInstruction opc)
 //	Update_SR_Register64(acc);
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::movnp, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -239,7 +239,7 @@ void DSPEmitter::movpz(const UDSPInstruction opc)
 //	Update_SR_Register64(acc);
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::movpz, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -282,7 +282,7 @@ void DSPEmitter::mulaxh(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulaxh, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -307,7 +307,7 @@ void DSPEmitter::mul(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mul, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -344,7 +344,7 @@ void DSPEmitter::mulac(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulac, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -370,7 +370,7 @@ void DSPEmitter::mulmv(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulmv, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -397,7 +397,7 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulmvz, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -519,7 +519,7 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulc, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -557,7 +557,7 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulcac, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -593,7 +593,7 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulcmv, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -631,7 +631,7 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::mulcmvz, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -696,7 +696,7 @@ void DSPEmitter::maddc(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::maddc, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -721,7 +721,7 @@ void DSPEmitter::msubc(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::msubc, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -745,7 +745,7 @@ void DSPEmitter::madd(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::madd, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -769,6 +769,6 @@ void DSPEmitter::msub(const UDSPInstruction opc)
 //	dsp_set_long_prod(prod);
 	set_long_prod();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::msub, opc);
+	MainOpFallback(opc);
 #endif
 }

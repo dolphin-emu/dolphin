@@ -618,13 +618,12 @@ void UpdateAudioDMA()
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output. If that audio queue fills up, we delay the
 		// emulator.
-		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, 8);
-
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
+			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, 8*g_audioDMA.AudioDMAControl.NumBlocks);
 			GenerateDSPInterrupt(DSP::INT_AID);
 			if (g_audioDMA.AudioDMAControl.Enable)
 			{

@@ -24,6 +24,7 @@ files = [
 	"DSPCore.cpp",
 	"DSPTables.cpp",
 	"Jit/DSPJitExtOps.cpp",
+	"Jit/DSPJitBranch.cpp",
 	"Jit/DSPJitUtil.cpp",
 	"Jit/DSPJitCCUtil.cpp",
 	"Jit/DSPJitArithmetic.cpp",

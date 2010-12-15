@@ -597,6 +597,7 @@ public:
 	void ABI_CallFunction(void *func);
 
 	void ABI_CallFunctionC16(void *func, u16 param1);
+	void ABI_CallFunctionCC16(void *func, u32 param1, u16 param2);
 	
 	// These only support u32 parameters, but that's enough for a lot of uses.
 	// These will destroy the 1 or 2 first "parameter regs".

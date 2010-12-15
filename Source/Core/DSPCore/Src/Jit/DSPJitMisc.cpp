@@ -321,12 +321,10 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 	dsp_conditional_extend_accum(dreg);
 }
 
-#if 0
 // LRI $D, #I
 // 0000 0000 100d dddd
 // iiii iiii iiii iiii
-// Load immediate value I to register $D. 
-// FIXME: Perform additional operation depending on destination register.
+// Load immediate value I to register $D.
 //
 // DSPSpy discovery: This, and possibly other instructions that load a
 // register, has a different behaviour in S40 mode if loaded to AC0.M: The
@@ -335,11 +333,10 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
 	u8 reg  = opc & DSP_REG_MASK;
-	u16 imm = dsp_fetch_code();
-	dsp_op_write_reg(reg, imm);
-	dsp_conditional_extend_accum(reg);
+	u16 imm = dsp_imem_read(compilePC+1);
+	dsp_op_write_reg_imm(reg, imm);
+	dsp_conditional_extend_accum_imm(reg, imm);
 }
-#endif
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii

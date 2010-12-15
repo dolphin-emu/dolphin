@@ -19,6 +19,7 @@ set(SRCS	Src/assemble.cpp
 			Src/DSPCore.cpp
 			Src/DSPTables.cpp
 			Src/Jit/DSPJitExtOps.cpp
+			Src/Jit/DSPJitBranch.cpp
 			Src/Jit/DSPJitCCUtil.cpp
 			Src/Jit/DSPJitArithmetic.cpp
 			Src/Jit/DSPJitMultiplier.cpp

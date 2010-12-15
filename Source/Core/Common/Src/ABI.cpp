@@ -73,6 +73,14 @@ void XEmitter::ABI_CallFunctionC16(void *func, u16 param1) {
 	ABI_RestoreStack(1 * 2);
 }
 
+void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
+	ABI_AlignStack(1 * 2 + 1 * 4);
+	PUSH(16, Imm16(param2));
+	PUSH(32, Imm32(param1));
+	CALL(func);
+	ABI_RestoreStack(1 * 2 + 1 * 4);
+}
+
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, Imm32(param1));
@@ -229,6 +237,12 @@ void XEmitter::ABI_CallFunctionC16(void *func, u16 param1) {
 	} else {
 	    CALL(func);
 	}
+}
+
+void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
+	MOV(32, R(ABI_PARAM1), Imm32(param1));
+	MOV(32, R(ABI_PARAM2), Imm32((u32)param2));
+	CALL(func);
 }
 
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {

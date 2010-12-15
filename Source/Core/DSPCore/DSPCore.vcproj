@@ -471,6 +471,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Jit\DSPJitBranch.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Jit\DSPJitMisc.cpp"
 				>
 			</File>

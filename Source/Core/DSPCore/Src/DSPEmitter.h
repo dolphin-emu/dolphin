@@ -44,6 +44,8 @@ public:
 	const u8 *CompileStub();
 	void Compile(int start_addr);
 
+	void MainOpFallback(UDSPInstruction inst);
+
 	int STACKALIGN RunForCycles(int cycles);
 
 	// CC Util
@@ -112,9 +114,15 @@ public:
 	void sbclr(const UDSPInstruction opc);
 	void sbset(const UDSPInstruction opc);
 	void srbith(const UDSPInstruction opc);
+	void lri(const UDSPInstruction opc);
 	void lris(const UDSPInstruction opc);
 	void mrr(const UDSPInstruction opc);
 	void nx(const UDSPInstruction opc);
+
+	void jcc(const UDSPInstruction opc);
+	void jmprcc(const UDSPInstruction opc);
+	void call(const UDSPInstruction opc);
+	void callr(const UDSPInstruction opc);
 
 	// Arithmetic
 	void addr(const UDSPInstruction opc);
@@ -147,6 +155,7 @@ public:
 
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
+	u16 compilePC;
 
 private:
 	CompiledCode *blocks;

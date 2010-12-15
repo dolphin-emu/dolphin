@@ -386,7 +386,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 	get_long_acc(dreg);
 	PUSH(64, R(RAX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	MOV(16, R(RDX), MDisp(R11, sreg * 2));
+	MOVSX(64, 16, RDX, MDisp(R11, sreg * 2));
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc + ax;
@@ -414,7 +414,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::addr, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -821,7 +821,7 @@ void DSPEmitter::lsl16(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(areg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::lsl16, opc);
+	MainOpFallback(opc);
 #endif
 }
 
@@ -883,7 +883,7 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	ABI_CallFunctionC((void *)&DSPInterpreter::lsl, opc);
+	MainOpFallback(opc);
 #endif
 }
 

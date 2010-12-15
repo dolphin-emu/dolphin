@@ -73,7 +73,8 @@ void DSPEmitter::ClearIRAM() {
 }
 
 // Must go out of block if exception is detected
-void DSPEmitter::checkExceptions(u32 retval) {
+void DSPEmitter::checkExceptions(u32 retval)
+{
 	// Check for interrupts and exceptions
 #ifdef _M_IX86 // All32
 	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
@@ -82,15 +83,41 @@ void DSPEmitter::checkExceptions(u32 retval) {
 	TEST(8, MDisp(RAX,0), Imm8(0xff));
 #endif
 	FixupBranch skipCheck = J_CC(CC_Z);
-	
+
+#ifdef _M_IX86 // All32
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MDisp(RAX,0), Imm16(compilePC));
+#endif
+
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
-	
+
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	MOV(32,R(EAX),Imm32(retval));
 	RET();
-	
+
 	SetJumpTarget(skipCheck);
+}
+
+void DSPEmitter::MainOpFallback(UDSPInstruction inst)
+{
+	if (opTable[inst]->reads_pc)
+	{
+		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
+		// Fallbacks to interpreter need this for fetching immediate values
+
+#ifdef _M_IX86 // All32
+		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+#endif
+	}
+
+	// Fall back to interpreter
+	ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
 }
 
 void DSPEmitter::EmitInstruction(UDSPInstruction inst)
@@ -123,8 +150,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	
 	// Main instruction
 	if (!opTable[inst]->jitFunc) {
-		// Fall back to interpreter
-		ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
+		MainOpFallback(inst);
 	}
 	else
 	{
@@ -178,32 +204,27 @@ void DSPEmitter::Compile(int start_addr)
 	*/
 	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
 
-	int addr = start_addr;
+	compilePC = start_addr;
+	bool fixup_pc = false;
 	blockSize[start_addr] = 0;
-	while (addr < start_addr + MAX_BLOCK_SIZE)
+
+	while (compilePC < start_addr + MAX_BLOCK_SIZE)
 	{
 		checkExceptions(blockSize[start_addr]);
 
-		UDSPInstruction inst = dsp_imem_read(addr);
+		UDSPInstruction inst = dsp_imem_read(compilePC);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
-
-		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
-		// Fallbacks to interpreter need this for fetching immediate values
-#ifdef _M_IX86 // All32
-		ADD(16, M(&(g_dsp.pc)), Imm16(1));
-#else
-		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		ADD(16, MDisp(RAX,0), Imm16(1));
-#endif
 
 		EmitInstruction(inst);
 
 		blockSize[start_addr]++;
-		addr += opcode->size;
+		compilePC += opcode->size;
+
+		fixup_pc = true;
 
 		// Handle loop condition, only if current instruction was flagged as a loop destination
 		// by the analyzer.
-		if (DSPAnalyzer::code_flags[addr-1] & DSPAnalyzer::CODE_LOOP_END)
+		if (DSPAnalyzer::code_flags[compilePC-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
 #ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
@@ -221,6 +242,17 @@ void DSPEmitter::Compile(int start_addr)
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE);
+
+			if (!opcode->branch)
+			{
+				//branch insns update the g_dsp.pc
+#ifdef _M_IX86 // All32
+				MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
+#else
+				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+				MOV(16, MDisp(RAX,0), Imm16(compilePC));
+#endif
+			}
 
 			// These functions branch and therefore only need to be called in the
 			// end of each block and in this order
@@ -243,6 +275,8 @@ void DSPEmitter::Compile(int start_addr)
 
 		if (opcode->branch)
 		{
+			//don't update g_dsp.pc -- the branch insn already did
+			fixup_pc = false;
 			if (opcode->uncond_branch)
 			{
 				break;
@@ -256,9 +290,10 @@ void DSPEmitter::Compile(int start_addr)
 				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 				MOV(16, R(AX), MDisp(RAX,0));
 #endif
-				CMP(16, R(AX), Imm16(addr));
+				CMP(16, R(AX), Imm16(compilePC));
 				FixupBranch rNoBranch = J_CC(CC_Z);
 
+				//don't update g_dsp.pc -- the branch insn already did
 				//		ABI_RestoreStack(0);
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
@@ -276,10 +311,19 @@ void DSPEmitter::Compile(int start_addr)
 		}
 
 		// End the block if we're before an idle skip address
-		if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+		if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_IDLE_SKIP)
 		{
 			break;
 		}
+	}
+
+	if (fixup_pc) {
+#ifdef _M_IX86 // All32
+		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		MOV(16, MDisp(RAX,0), Imm16(compilePC));
+#endif
 	}
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
