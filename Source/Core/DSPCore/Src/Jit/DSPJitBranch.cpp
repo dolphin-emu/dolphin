@@ -154,7 +154,7 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	// TODO: Subtract cycles from cyclesLeft
 	if (emitter.blockLinks[dest])
 	{
-		emitter.MOV(64, R(RAX), ImmPtr(emitter.blockLinks[dest]));
+		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
 		emitter.JMPptr(R(RAX));
 	}
 #endif
@@ -220,7 +220,7 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	// TODO: Subtract cycles from cyclesLeft
 	if (emitter.blockLinks[dest])
 	{
-		emitter.MOV(64, R(RAX), ImmPtr(emitter.blockLinks[dest]));
+		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
 		emitter.JMPptr(R(RAX));
 	}
 #endif
