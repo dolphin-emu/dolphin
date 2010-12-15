@@ -139,9 +139,24 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
+
+	// Jump directly to the called block if it has already been compiled.
+	// TODO: Subtract cycles from cyclesLeft
+	if (emitter.blockLinks[dest])
+	{
+		emitter.JMPptr(M(&emitter.blockLinks[dest]));
+	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MDisp(RAX,0), Imm16(dest));
+
+	// Jump directly to the next block if it has already been compiled.
+	// TODO: Subtract cycles from cyclesLeft
+	if (emitter.blockLinks[dest])
+	{
+		emitter.MOV(64, R(RAX), ImmPtr(emitter.blockLinks[dest]));
+		emitter.JMPptr(R(RAX));
+	}
 #endif
 }
 // Generic jmp implementation
@@ -190,9 +205,24 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.ABI_CallFunctionCC16((void *)dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 2);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
+
+	// Jump directly to the called block if it has already been compiled.
+	// TODO: Subtract cycles from cyclesLeft
+	if (emitter.blockLinks[dest])
+	{
+		emitter.JMPptr(M(&emitter.blockLinks[dest]));
+	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MDisp(RAX,0), Imm16(dest));
+
+	// Jump directly to the called block if it has already been compiled.
+	// TODO: Subtract cycles from cyclesLeft
+	if (emitter.blockLinks[dest])
+	{
+		emitter.MOV(64, R(RAX), ImmPtr(emitter.blockLinks[dest]));
+		emitter.JMPptr(R(RAX));
+	}
 #endif
 }
 // Generic call implementation

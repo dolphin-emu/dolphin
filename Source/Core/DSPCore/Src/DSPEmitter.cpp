@@ -39,6 +39,7 @@ DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
 	blocks = new CompiledCode[MAX_BLOCKS];
+	blockLinks = new CompiledCode[MAX_BLOCKS];
 	blockSize = new u16[0x10000];
 	
 	compileSR = 0;
@@ -52,6 +53,7 @@ DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 	for(int i = 0x0000; i < MAX_BLOCKS; i++)
 	{
 		blocks[i] = (CompiledCode)stubEntryPoint;
+		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
 }
@@ -59,6 +61,7 @@ DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 DSPEmitter::~DSPEmitter() 
 {
 	delete[] blocks;
+	delete[] blockLinks;
 	delete[] blockSize;
 	FreeCodeSpace();
 }
@@ -68,6 +71,7 @@ void DSPEmitter::ClearIRAM() {
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
 		blocks[i] = (CompiledCode)stubEntryPoint;
+		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
 }
@@ -202,6 +206,9 @@ void DSPEmitter::Compile(int start_addr)
 	if (g_dsp.exceptions == 0)
 		return;	
 	*/
+
+	blockLinkEntry = GetCodePtr();
+
 	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
 
 	compilePC = start_addr;
@@ -327,6 +334,7 @@ void DSPEmitter::Compile(int start_addr)
 	}
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
+	blockLinks[start_addr] = (CompiledCode)blockLinkEntry;
 	if (blockSize[start_addr] == 0) 
 	{
 		// just a safeguard, should never happen anymore.

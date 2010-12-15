@@ -156,9 +156,11 @@ public:
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
 	u16 compilePC;
+	CompiledCode *blockLinks;
 
 private:
 	CompiledCode *blocks;
+	const u8 *blockLinkEntry;
 	u16 *blockSize;
 	u16 compileSR;
 
