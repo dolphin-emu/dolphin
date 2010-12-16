@@ -202,7 +202,10 @@ void CFrame::CreateMenu()
 
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 	{
-		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
+		int sysmenuVersion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetTitleVersion();
+		char sysmenuRegion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetCountryChar();
+		
+		toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_T("Load Wii System Menu (%d %c)"), sysmenuVersion, sysmenuRegion));
 	}
 	else
 	{

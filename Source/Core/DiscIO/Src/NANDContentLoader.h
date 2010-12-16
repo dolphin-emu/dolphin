@@ -63,6 +63,7 @@ public:
     virtual u16 GetTitleVersion() const = 0;
     virtual u16 GetNumEntries() const = 0;
     virtual DiscIO::IVolume::ECountry GetCountry() const = 0;
+	virtual u8 GetCountryChar() const = 0;
 
     enum
     {

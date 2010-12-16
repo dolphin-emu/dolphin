@@ -62,6 +62,7 @@ public:
 
 // Generic Switch function for all volumes
 IVolume::ECountry CountrySwitch(u8 CountryCode);
+u8 GetSysMenuRegion(u16 _TitleVersion);
 
 } // namespace
 

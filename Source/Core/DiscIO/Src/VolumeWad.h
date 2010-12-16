@@ -48,6 +48,7 @@ private:
 	IBlobReader* m_pReader;
 	u64 m_titleID;
 	u32 OpeningBnrOffset, hdr_size, cert_size, tick_size, tmd_size, data_size;
+	u8 m_Country;
 };
 
 } // namespace
