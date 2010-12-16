@@ -164,6 +164,10 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 	return 0;
 }
 
+#if defined(HAVE_X11) && HAVE_X11
+static volatile u32 s_doStateRequested = FALSE;
+#endif
+ 
 static volatile struct
 {
 	unsigned char **ptr;
