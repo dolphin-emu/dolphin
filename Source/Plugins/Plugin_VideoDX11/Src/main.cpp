@@ -311,14 +311,3 @@ void Shutdown()
 
 	s_PluginInitialized = false;
 }
-
-void DoState(unsigned char **ptr, int mode)
-{
-	// Clear texture cache because it might have written to RAM
-	CommandProcessor::FifoCriticalEnter();
-	TextureCache::Invalidate(false);
-	CommandProcessor::FifoCriticalLeave();
-	// No need to clear shader caches
-	PointerWrap p(ptr, mode);
-	VideoCommon_DoState(p);
-}

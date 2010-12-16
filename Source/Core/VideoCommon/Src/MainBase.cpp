@@ -5,10 +5,12 @@
 #include "RenderBase.h"
 #include "FramebufferManagerBase.h"
 #include "TextureCacheBase.h"
+#include "VertexLoaderManager.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
 #include "Atomic.h"
 #include "Fifo.h"
+#include "BPStructs.h"
 #include "OnScreenDisplay.h"
 
 bool s_PluginInitialized = false;
@@ -162,10 +164,65 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 	return 0;
 }
 
+static volatile struct
+{
+	unsigned char **ptr;
+	int mode;
+} s_doStateArgs;
+
+// Run from the GPU thread on X11, CPU thread on the rest
+static void check_DoState() {
+#if defined(HAVE_X11) && HAVE_X11
+	if (Common::AtomicLoadAcquire(s_doStateRequested))
+	{
+#endif
+		// Clear all caches that touch RAM
+		CommandProcessor::FifoCriticalEnter();
+		TextureCache::Invalidate(false);
+		VertexLoaderManager::MarkAllDirty();
+		CommandProcessor::FifoCriticalLeave();
+
+		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
+		VideoCommon_DoState(p);
+
+		// Refresh state.
+		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
+		{
+			BPReload();
+			RecomputeCachedArraybases();
+		}
+
+#if defined(HAVE_X11) && HAVE_X11
+		Common::AtomicStoreRelease(s_doStateRequested, FALSE);
+	}
+#endif
+}
+
+// Run from the CPU thread
+void DoState(unsigned char **ptr, int mode)
+{
+	s_doStateArgs.ptr = ptr;
+	s_doStateArgs.mode = mode;
+#if defined(HAVE_X11) && HAVE_X11
+	Common::AtomicStoreRelease(s_doStateRequested, TRUE);
+	if (g_VideoInitialize.bOnThread)
+	{
+		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
+			//Common::SleepCurrentThread(1);
+			Common::YieldCPU();
+	}
+	else
+#endif
+	check_DoState();
+}
+
 void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
+#if defined(HAVE_X11) && HAVE_X11
+    check_DoState();
+#endif
 }
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
