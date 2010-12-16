@@ -28,6 +28,7 @@ files = [
 	"Jit/DSPJitUtil.cpp",
 	"Jit/DSPJitCCUtil.cpp",
 	"Jit/DSPJitArithmetic.cpp",
+	"Jit/DSPJitLoadStore.cpp",
 	"Jit/DSPJitMultiplier.cpp",
 	"Jit/DSPJitMisc.cpp",
 	]

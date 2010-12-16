@@ -37,7 +37,6 @@ public:
 
 	void EmitInstruction(UDSPInstruction inst);
 	void unknown_instruction(UDSPInstruction inst);
-	void Default(UDSPInstruction _inst);
 	void ClearIRAM();
 
 	void CompileDispatcher();
@@ -45,7 +44,7 @@ public:
 	void Compile(int start_addr);
 	void ClearCallFlag();
 
-	void MainOpFallback(UDSPInstruction inst);
+	void Default(UDSPInstruction inst);
 
 	int STACKALIGN RunForCycles(int cycles);
 
@@ -62,8 +61,10 @@ public:
 	void decrement_addr_reg(int reg);
 	void increase_addr_reg(int reg);
 	void decrease_addr_reg(int reg);
-	void ext_dmem_write(u32 src, u32 dest);
-	void ext_dmem_read(u16 addr);
+	void dmem_write();
+	void dmem_write_imm(u16 addr);
+	void dmem_read();
+	void dmem_read_imm(u16 addr);
 
 	// Ext command helpers
 	void pushExtValueFromReg(u16 dreg, u16 sreg);
@@ -124,6 +125,13 @@ public:
 	void jmprcc(const UDSPInstruction opc);
 	void call(const UDSPInstruction opc);
 	void callr(const UDSPInstruction opc);
+
+	// Load/Store
+	void srs(const UDSPInstruction opc);
+	void lrs(const UDSPInstruction opc);
+	void lr(const UDSPInstruction opc);
+	void sr(const UDSPInstruction opc);
+	void si(const UDSPInstruction opc);
 
 	// Arithmetic
 	void addr(const UDSPInstruction opc);

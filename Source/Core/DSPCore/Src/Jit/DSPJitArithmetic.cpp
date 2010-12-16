@@ -414,7 +414,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 
 	Update_SR_Register64();
 #else
-	MainOpFallback(opc);
+	Default(opc);
 #endif
 }
 
@@ -821,7 +821,7 @@ void DSPEmitter::lsl16(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(areg));
 	Update_SR_Register64();
 #else
-	MainOpFallback(opc);
+	Default(opc);
 #endif
 }
 
@@ -883,7 +883,7 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	Update_SR_Register64();
 #else
-	MainOpFallback(opc);
+	Default(opc);
 #endif
 }
 

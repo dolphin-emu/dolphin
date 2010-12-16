@@ -304,33 +304,16 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	SetJumpTarget(end);
 }
-// EAX - destination address (g_dsp.r[dest])
-// ECX - value (g_dsp.r[src])
-// ESI - the upper bits of the address (>> 12)
-void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
+
+
+// EAX - destination address
+// ECX - value
+// ESI - Base of dram
+void DSPEmitter::dmem_write()
 {
-	//	u16 addr = g_dsp.r[dest];
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&g_dsp.r[dest]));
-#else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EAX, MDisp(R11,dest*2));
-#endif
-
-	//	u16 val = g_dsp.r[src];
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r[src]));
-#else
-	MOVZX(32, 16, ECX, MDisp(R11,src*2));
-#endif
-
-	//	u16 saddr = addr >> 12; 
-	MOV(32, R(ESI), R(EAX));
-	SHR(16, R(ESI), Imm8(12));
-
 	//	if (saddr == 0)
-	TEST(16, R(ESI), R(ESI));
-	FixupBranch ifx = J_CC(CC_NZ);
+	CMP(16, R(EAX), Imm16(0x0fff));
+	FixupBranch ifx = J_CC(CC_A);
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
@@ -349,26 +332,35 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	SetJumpTarget(end);
 }
 
+// ECX - value
+void DSPEmitter::dmem_write_imm(u16 addr)
+{
+	switch (addr >> 12)
+	{
+	case 0x0: // 0xxx DRAM
+		MOV(16, M(&g_dsp.dram[addr & DSP_DRAM_MASK]), R(ECX));
+		break;
+
+	case 0xf: // Fxxx HW regs
+		MOV(16, R(EAX), Imm16(addr));
+		ABI_CallFunctionRR((void *)gdsp_ifx_write, EAX, ECX);
+		break;
+
+	default:  // Unmapped/non-existing memory
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		break;
+	}
+}
+
 // EAX - the result of the read (used by caller)
 // ECX - the address to read
-// ESI - the upper bits of the address (>> 12)
-void DSPEmitter::ext_dmem_read(u16 addr)
+// ESI - Base
+// Trashes R11 on gdsp_ifx_read
+void DSPEmitter::dmem_read()
 {
-	//	u16 addr = g_dsp.r[addr];
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r[addr]));
-#else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, ECX, MDisp(R11,addr*2));
-#endif
-
-	//	u16 saddr = addr >> 12;
-	MOV(32, R(ESI), R(ECX));
-	SHR(16, R(ESI), Imm8(12));
-
 	//	if (saddr == 0)
-	TEST(16, R(ESI), R(ESI));
-	FixupBranch dram = J_CC(CC_NZ);
+	CMP(16, R(ECX), Imm16(0x0fff));
+	FixupBranch dram = J_CC(CC_A);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
 #ifdef _M_X64
@@ -381,8 +373,8 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	FixupBranch end = J();
 	SetJumpTarget(dram);
 	//	else if (saddr == 0x1)
-	CMP(16, R(ESI), Imm16(0x1));
-	FixupBranch ifx = J_CC(CC_NZ);
+	CMP(16, R(ECX), Imm16(0x1fff));
+	FixupBranch ifx = J_CC(CC_A);
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
 	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
 #ifdef _M_X64
@@ -400,6 +392,27 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	
 	SetJumpTarget(end);
 	SetJumpTarget(end2);
+}
+
+void DSPEmitter::dmem_read_imm(u16 addr)
+{
+	switch (addr >> 12)
+	{
+	case 0x0:  // 0xxx DRAM
+		MOV(16, R(EAX), M(&g_dsp.dram[addr & DSP_DRAM_MASK]));
+		break;
+
+	case 0x1:  // 1xxx COEF
+		MOV(16, R(EAX), Imm16(g_dsp.coef[addr & DSP_COEF_MASK]));
+		break;
+
+	case 0xf:  // Fxxx HW regs
+		ABI_CallFunctionC16((void *)gdsp_ifx_read, addr);
+		break;
+
+	default:   // Unmapped/non-existing memory
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
+	}
 }
 
 // Returns s64 in RAX

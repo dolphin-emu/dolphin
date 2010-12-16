@@ -178,6 +178,9 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // address represented by value that follows this "jmp" instruction.
 void DSPEmitter::jcc(const UDSPInstruction opc)
 {
+	// Disabled as jcc has issues in games
+	Default(opc); return;
+#if 0
 #ifdef _M_IX86 // All32
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
@@ -185,6 +188,7 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 	MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
 #endif
 	ReJitConditional<r_jcc>(opc, *this);
+#endif
 }
 
 void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)

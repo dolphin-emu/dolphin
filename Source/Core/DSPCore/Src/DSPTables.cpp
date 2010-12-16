@@ -95,22 +95,22 @@ const DSPOPCTemplate opcodes[] =
 	{"IFO",		0x027e, 0xffff, DSPInterpreter::ifcc,    NULL,                1, 0, {},                                                                                     false, true, false, true},
 	{"IF",		0x027f, 0xffff, DSPInterpreter::ifcc,    NULL,                1, 0, {},                                                                                     false, true, true, true},
 
-	{"JGE",		0x0290, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JL",		0x0291, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JG",		0x0292, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JLE",		0x0293, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JNZ",		0x0294, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JZ",		0x0295, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JNC",		0x0296, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JC",		0x0297, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JMPx8",	0x0298, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JMPx9",	0x0299, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JMPxA",	0x029a, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JMPxB",	0x029b, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JO",		0x029e, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
-	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc,     NULL,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, true, true},
+	{"JGE",		0x0290, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JL",		0x0291, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JG",		0x0292, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JLE",		0x0293, 0xffff, DSPInterpreter::jcc,     NULL/*&DSPEmitter::jcc*/,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JNZ",		0x0294, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JZ",		0x0295, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JNC",		0x0296, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JC",		0x0297, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JMPx8",	0x0298, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JMPx9",	0x0299, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JMPxA",	0x029a, 0xffff, DSPInterpreter::jcc,     NULL/*&DSPEmitter::jcc*/,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JMPxB",	0x029b, 0xffff, DSPInterpreter::jcc,     NULL/*&DSPEmitter::jcc*/,                2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JO",		0x029e, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true},
+	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc,     &DSPEmitter::jcc,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, true, true},
 
 	{"JRGE",	0x1700, 0xff1f, DSPInterpreter::jmprcc,  &DSPEmitter::jmprcc, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false},
 	{"JRL",		0x1701, 0xff1f, DSPInterpreter::jmprcc,  &DSPEmitter::jmprcc, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}},                                                             false, true, false, false},
@@ -158,12 +158,12 @@ const DSPOPCTemplate opcodes[] =
 	{"ASRN",	0x02cb, 0xffff, DSPInterpreter::asrn,    NULL,                1, 0, {},                                                                                     false, false, false, false}, // discovered by ector!
 
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri,     &DSPEmitter::lri,    2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false, true},
-	{"LR",		0x00c0, 0xffe0, DSPInterpreter::lr,      NULL,                2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_MEM, 2, 1, 0, 0xffff}},                               false, false, false, true},
-	{"SR",		0x00e0, 0xffe0, DSPInterpreter::sr,      NULL,                2, 2, {{P_MEM, 2, 1, 0, 0xffff},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, true},
+	{"LR",		0x00c0, 0xffe0, DSPInterpreter::lr,      &DSPEmitter::lr,     2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_MEM, 2, 1, 0, 0xffff}},                               false, false, false, true},
+	{"SR",		0x00e0, 0xffe0, DSPInterpreter::sr,      &DSPEmitter::sr,     2, 2, {{P_MEM, 2, 1, 0, 0xffff},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, true},
 
 	{"MRR",		0x1c00, 0xfc00, DSPInterpreter::mrr,     &DSPEmitter::mrr,    1, 2, {{P_REG, 1, 0, 5, 0x03e0},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
 
-	{"SI",		0x1600, 0xff00, DSPInterpreter::si,      NULL,                2, 2, {{P_MEM, 1, 0, 0, 0x00ff},     {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false, true},
+	{"SI",		0x1600, 0xff00, DSPInterpreter::si,      &DSPEmitter::si,     2, 2, {{P_MEM, 1, 0, 0, 0x00ff},     {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false, true},
 
 	{"ADDIS",	0x0400, 0xfe00, DSPInterpreter::addis,   NULL,                1, 2, {{P_ACCM,  1, 0, 8, 0x0100},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false, false},
 	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis,   NULL,                1, 2, {{P_ACCM,  1, 0, 8, 0x0100},   {P_IMM, 1, 0, 0, 0x00ff}},                               false, false, false, false},
@@ -201,8 +201,8 @@ const DSPOPCTemplate opcodes[] =
 	{"SRRN",	0x1b80, 0xff80, DSPInterpreter::srrn,    NULL,                1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
 
 	//2
-	{"LRS",		0x2000, 0xf800, DSPInterpreter::lrs,     NULL,                1, 2, {{P_REG18, 1, 0, 8, 0x0700},   {P_MEM, 1, 0, 0, 0x00ff}},                               false, false, false, false},
-	{"SRS",		0x2800, 0xf800, DSPInterpreter::srs,     NULL,                1, 2, {{P_MEM,   1, 0, 0, 0x00ff},   {P_REG18, 1, 0, 8, 0x0700}},                             false, false, false, false},
+	{"LRS",		0x2000, 0xf800, DSPInterpreter::lrs,     &DSPEmitter::lrs,    1, 2, {{P_REG18, 1, 0, 8, 0x0700},   {P_MEM, 1, 0, 0, 0x00ff}},                               false, false, false, false},
+	{"SRS",		0x2800, 0xf800, DSPInterpreter::srs,     &DSPEmitter::srs,    1, 2, {{P_MEM,   1, 0, 0, 0x00ff},   {P_REG18, 1, 0, 8, 0x0700}},                             false, false, false, false},
 
 // opcodes that can be extended
 

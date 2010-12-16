@@ -79,8 +79,17 @@ void DSPEmitter::s(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
-
-	ext_dmem_write(dreg, sreg);
+	//	u16 addr = g_dsp.r[dest];
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,dreg*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	//	u16 val = g_dsp.r[src];
+	dmem_write();
 	increment_addr_reg(dreg);
 }
 
@@ -92,8 +101,15 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
-
-	ext_dmem_write(dreg, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,dreg*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 	increase_addr_reg(dreg);
 }
 
@@ -164,8 +180,15 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-
-	ext_dmem_write(DSP_REG_AR3, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR3]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR3*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
@@ -184,8 +207,15 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-
-	ext_dmem_write(DSP_REG_AR3, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR3]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR3*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
 	
@@ -203,8 +233,15 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR3, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR3]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR3*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
@@ -223,8 +260,15 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR3, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR3]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR3*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
@@ -241,8 +285,15 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR0, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR0]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR0*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
@@ -260,8 +311,15 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR0, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR0]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR0*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
@@ -279,8 +337,15 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR0, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR0]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR0*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
@@ -298,8 +363,15 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 {
 	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-	
-	ext_dmem_write(DSP_REG_AR0, sreg);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_AR0]));
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11,DSP_REG_AR0*2));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_write();
 
 	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
@@ -566,14 +638,28 @@ void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
 }
 
 void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
-	ext_dmem_read(sreg);
+	//	u16 addr = g_dsp.r[addr];
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_read();
 	MOVZX(32, 16, EBX, R(EAX));
 
 	storeIndex = dreg;
 }
 
 void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
-	ext_dmem_read(sreg);
+	//	u16 addr = g_dsp.r[addr];
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[sreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, ECX, MDisp(R11,sreg*2));
+#endif
+	dmem_read();
 	SHL(32,R(EAX),Imm8(16));
 	OR(32, R(EBX), R(EAX));
 

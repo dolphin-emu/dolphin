@@ -112,7 +112,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 	SetJumpTarget(skipCheck);
 }
 
-void DSPEmitter::MainOpFallback(UDSPInstruction inst)
+void DSPEmitter::Default(UDSPInstruction inst)
 {
 	if (opTable[inst]->reads_pc)
 	{
@@ -161,7 +161,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	
 	// Main instruction
 	if (!opTable[inst]->jitFunc) {
-		MainOpFallback(inst);
+		Default(inst);
 	}
 	else
 	{
@@ -183,11 +183,6 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 void DSPEmitter::unknown_instruction(UDSPInstruction inst)
 {
 	PanicAlert("unknown_instruction %04x - Fix me ;)", inst);
-}
-
-void DSPEmitter::Default(UDSPInstruction _inst)
-{
-	EmitInstruction(_inst);
 }
 
 void DSPEmitter::ClearCallFlag()

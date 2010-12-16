@@ -108,7 +108,7 @@ void DSPEmitter::dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg)
 #ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[DSP_REG_ST0+stack_reg]), R(EDX));
 #else
-	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
 	MOV(16, MDisp(R11,(DSP_REG_ST0+stack_reg)*2), R(EDX));
 #endif
 }
@@ -119,7 +119,7 @@ void DSPEmitter::dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg)
 #ifdef _M_IX86 // All32
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_ST0+stack_reg]));
 #else
-	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
 	MOV(16, R(EDX), MDisp(R11,(DSP_REG_ST0+stack_reg)*2));
 #endif
 	dsp_reg_stack_pop(stack_reg);
@@ -135,7 +135,7 @@ void DSPEmitter::dsp_reg_store_stack_imm(int stack_reg, u16 val)
 #ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r[DSP_REG_ST0+stack_reg]), Imm16(val));
 #else
-	MOV(64, R(R11), Imm64((u64)g_dsp.r));
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
 	MOV(16, MDisp(R11,(DSP_REG_ST0+stack_reg)*2), Imm16(val));
 #endif
 }
@@ -151,7 +151,7 @@ void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
 #ifdef _M_IX86 // All32
 		MOV(16, M(&g_dsp.r[reg]), R(host_sreg));
 #else
-		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
 		MOV(16, MDisp(R11,reg*2), R(host_sreg));
 #endif
 		break;
@@ -168,7 +168,7 @@ void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
 #ifdef _M_IX86 // All32
 		MOV(16, M(&g_dsp.r[reg]), R(host_sreg));
 #else
-		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
 		MOV(16, MDisp(R11,reg*2), R(host_sreg));
 #endif
 		break;
@@ -185,7 +185,7 @@ void DSPEmitter::dsp_op_write_reg_imm(int reg, u16 val)
 #ifdef _M_IX86 // All32
 		MOV(16, M(&g_dsp.r[reg]), Imm16((u16)(s16)(s8)(u8)val));
 #else
-		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
 		MOV(16, MDisp(R11,reg*2), Imm16((u16)(s16)(s8)(u8)val));
 #endif
 		break;
@@ -202,7 +202,7 @@ void DSPEmitter::dsp_op_write_reg_imm(int reg, u16 val)
 #ifdef _M_IX86 // All32
 		MOV(16, M(&g_dsp.r[reg]), Imm16(val));
 #else
-		MOV(64, R(R11), Imm64((u64)g_dsp.r));
+		MOV(64, R(R11), ImmPtr(g_dsp.r));
 		MOV(16, MDisp(R11,reg*2), Imm16(val));
 #endif
 		break;
@@ -231,7 +231,7 @@ void DSPEmitter::dsp_conditional_extend_accum(int reg)
 #ifdef _M_IX86 // All32
 		MOVSX(32, 16, EAX, M(&g_dsp.r[reg]));
 #else
-		MOVSX(32, 16, EAX, MDisp(R11,reg*2));
+		MOVSX(64, 16, EAX, MDisp(R11,reg*2));
 #endif
 		SHR(32,R(EAX),Imm8(16));
 		//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
@@ -295,7 +295,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg)
 	case DSP_REG_ST1:
 	case DSP_REG_ST2:
 	case DSP_REG_ST3:
-		return dsp_reg_load_stack(reg - 0x0c, host_dreg);
+		return dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
 	default:
 		//return g_dsp.r[reg];
 #ifdef _M_IX86 // All32

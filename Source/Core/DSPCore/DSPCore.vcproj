@@ -463,6 +463,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Jit\DSPJitLoadStore.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Jit\DSPJitCCUtil.cpp"
 				>
 			</File>

@@ -22,6 +22,7 @@ set(SRCS	Src/assemble.cpp
 			Src/Jit/DSPJitBranch.cpp
 			Src/Jit/DSPJitCCUtil.cpp
 			Src/Jit/DSPJitArithmetic.cpp
+			Src/Jit/DSPJitLoadStore.cpp
 			Src/Jit/DSPJitMultiplier.cpp
 			Src/Jit/DSPJitUtil.cpp
 			Src/Jit/DSPJitMisc.cpp)
