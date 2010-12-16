@@ -40,7 +40,12 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		return NULL;
 	//emitter.INT3();
 	FixupBranch skipCode2;
+#ifdef _M_IX86 // All32
 	emitter.MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+#else
+	emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r[DSP_REG_SR]));
+	emitter.MOV(16, R(EAX), MatR(RAX));
+#endif
 	switch(cond)
 	{
 	case 0x0: // GE - Greater Equal
@@ -60,7 +65,12 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		//LE: problem in here, half the tests fail
 		skipCode2 = emitter.J_CC(CC_NE);
 		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
+#ifdef _M_IX86 // All32
 		emitter.MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+#else
+		emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r[DSP_REG_SR]));
+		emitter.MOV(16, R(EAX), MatR(RAX));
+#endif
 		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
 		break;
 	case 0x4: // NZ - Not Zero
@@ -148,7 +158,7 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MDisp(RAX,0), Imm16(dest));
+	emitter.MOV(16, MatR(RAX), Imm16(dest));
 
 	// Jump directly to the next block if it has already been compiled.
 	// TODO: Subtract cycles from cyclesLeft
@@ -186,9 +196,10 @@ void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(16, R(RSI), M(&g_dsp.r[reg]));
+	emitter.MOV(64, R(RSI), ImmPtr(&g_dsp.r[reg]));
+	emitter.MOV(16, R(RSI), MatR(RSI));
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MDisp(RAX,0), R(RSI));
+	emitter.MOV(16, MatR(RAX), R(RSI));
 #endif
 }
 // Generic jmpr implementation
@@ -253,7 +264,8 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(16, R(RSI), M(&g_dsp.r[reg]));
+	emitter.MOV(64, R(RSI), ImmPtr(&g_dsp.r[reg]));
+	emitter.MOV(16, R(RSI), MatR(RSI));
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MDisp(RAX,0), R(RSI));
 #endif
