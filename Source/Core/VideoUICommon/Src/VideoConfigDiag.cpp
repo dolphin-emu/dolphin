@@ -67,7 +67,6 @@ wxString aa_tooltip = wxT("Reduces the amount of aliasing caused by rasterizing 
 wxString native_mips_tooltip = wxT("Loads native mipmaps instead of generating them.\nLoading native mipmaps is the more accurate behavior, but might also decrease performance (your mileage might vary though).");
 wxString scaled_efb_copy_tooltip = wxT("Uses the high-resolution render buffer for EFB copies instead of scaling them down to native resolution.\nVastly improves visual quality in games which use EFB copies but might cause glitches in some games.");
 wxString pixel_lighting_tooltip = wxT("Calculates lighting of 3D graphics on a per-pixel basis rather than per vertex.\nThis is the more accurate behavior but reduces performance.");
-wxString pixel_depth_tooltip = wxT("");
 wxString force_filtering_tooltip = wxT("Forces bilinear texture filtering even if the game explicitly disabled it.\nImproves texture quality (especially when using a high internal resolution) but causes glitches in some games.");
 wxString _3d_vision_tooltip = wxT("");
 wxString internal_res_tooltip = wxT("Specifies the resolution used to render at.\nA high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in a very limited number of games.\nAuto (performance): Uses the display resolution to render at. This is slightly faster than integral scaling, but might cause visual glitches in a small number of games.\nAuto (accuracy): Uses a multiple of the native resolution to render at. Visual quality compared to the other automatic resolution is similar and a matter of personal preference.\nThe other options specify a fixed resolution and can be used to further increase visual quality.");
@@ -203,7 +202,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Load Native Mipmaps"), native_mips_tooltip, vconfig.bUseNativeMips));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("EFB Scaled Copy"), scaled_efb_copy_tooltip, vconfig.bCopyEFBScaled));	
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Pixel Lighting"), pixel_lighting_tooltip, vconfig.bEnablePixelLigting));
-	szr_enh->Add(new SettingCheckBox(page_general, wxT("Pixel Depth"), pixel_depth_tooltip, vconfig.bEnablePerPixelDepth));
 	szr_enh->Add(new SettingCheckBox(page_general, wxT("Force Bi/Trilinear Filtering"), force_filtering_tooltip, vconfig.bForceFiltering));
 	
 	if (vconfig.backend_info.bSupports3DVision)

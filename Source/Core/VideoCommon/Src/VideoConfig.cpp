@@ -80,7 +80,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLigting", &bEnablePixelLigting, 0);
-	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
 	
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
@@ -194,8 +193,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLigting", bEnablePixelLigting);
-	iniFile.Set("Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
-	
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);

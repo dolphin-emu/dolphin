@@ -796,7 +796,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-	D3D::drawClearQuad((color | (alphaEnable ? 0x0 : 0xFF000000)), (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	RestoreAPIState();
 }
 

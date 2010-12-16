@@ -823,7 +823,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			((color >> 16) & 0xFF) / 255.0f,
 			((color >> 8) & 0xFF) / 255.0f,
 			(color & 0xFF) / 255.0f,
-			(alphaEnable ? ((color >> 24) & 0xFF) / 255.0f : 1.0f)
+			((color >> 24) & 0xFF) / 255.0f
 			);
 	}
 	if (zEnable)
