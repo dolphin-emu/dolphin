@@ -543,27 +543,28 @@ void CFrame::OnActive(wxActivateEvent& event)
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		DoStop();
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			return;
+		UpdateGUI();
+	}
+
 	//Stop Dolphin from saving the minimized Xpos and Ypos
 	if(main_frame->IsIconized())
 		main_frame->Iconize(false);
 
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
+
 	// Save GUI settings
 	if (g_pCodeWindow) SaveIniPerspectives();
-
 	// Close the log window now so that its settings are saved
-	if (!g_pCodeWindow)
-		m_LogWindow->Close();
+	else m_LogWindow->Close();
 
 	// Uninit
 	m_Mgr->UnInit();
-
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		DoStop();
-		UpdateGUI();
-	}
 }
 
 // Post events
