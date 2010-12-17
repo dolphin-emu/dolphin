@@ -700,7 +700,8 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnRenderParentClose(wxCloseEvent& event)
 {
 	DoStop();
-	event.Skip();
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		event.Skip();
 }
 
 void CFrame::OnRenderParentMove(wxMoveEvent& event)

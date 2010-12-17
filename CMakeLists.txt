@@ -102,6 +102,9 @@ include(CheckLib)
 
 include(FindOpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
+if(NOT OPENGL_GLU_FOUND)
+	message(FATAL_ERROR "GLU is required but not found")
+endif()
 
 include(FindALSA OPTIONAL)
 if(ALSA_FOUND)
@@ -297,8 +300,6 @@ if(WIN32)
 	find_library(GLEW glew32s PATHS Externals/GLew)
 	include_directories(Externals/GLew/include)
 else()
-	check_lib(GLU GLU GL/glu.h REQUIRED)
-
 	check_lib(GLEW GLEW GL/glew.h)
 	if(NOT GLEW_FOUND)
 		message("Shared GLEW not found, falling back to the static library")
