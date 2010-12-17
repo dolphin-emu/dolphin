@@ -61,10 +61,11 @@ public:
 	void decrement_addr_reg(int reg);
 	void increase_addr_reg(int reg);
 	void decrease_addr_reg(int reg);
-	void dmem_write();
-	void dmem_write_imm(u16 addr);
+	void imem_read();
 	void dmem_read();
 	void dmem_read_imm(u16 addr);
+	void dmem_write();
+	void dmem_write_imm(u16 addr);
 
 	// Ext command helpers
 	void pushExtValueFromReg(u16 dreg, u16 sreg);
@@ -132,6 +133,15 @@ public:
 	void lr(const UDSPInstruction opc);
 	void sr(const UDSPInstruction opc);
 	void si(const UDSPInstruction opc);
+	void lrr(const UDSPInstruction opc);
+	void lrrd(const UDSPInstruction opc);
+	void lrri(const UDSPInstruction opc);
+	void srr(const UDSPInstruction opc);
+	void srrd(const UDSPInstruction opc);
+	void srri(const UDSPInstruction opc);
+	void ilrr(const UDSPInstruction opc);
+	void ilrrd(const UDSPInstruction opc);
+	void ilrri(const UDSPInstruction opc);
 
 	// Arithmetic
 	void addr(const UDSPInstruction opc);

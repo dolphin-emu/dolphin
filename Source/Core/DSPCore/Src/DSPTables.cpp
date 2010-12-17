@@ -178,9 +178,9 @@ const DSPOPCTemplate opcodes[] =
 	{"ANDF",	0x02a0, 0xfeff, DSPInterpreter::andf,    NULL,                2, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false, true},
 	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andcf,   NULL,                2, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_IMM, 2, 1, 0, 0xffff}},                               false, false, false, true},
 
-	{"ILRR",	0x0210, 0xfefc, DSPInterpreter::ilrr,    NULL,                1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
-	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd,   NULL,                1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
-	{"ILRRI",	0x0218, 0xfefc, DSPInterpreter::ilrri,   NULL,                1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
+	{"ILRR",	0x0210, 0xfefc, DSPInterpreter::ilrr,    &DSPEmitter::ilrr,   1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
+	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd,   &DSPEmitter::ilrrd,  1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
+	{"ILRRI",	0x0218, 0xfefc, DSPInterpreter::ilrri,   &DSPEmitter::ilrri,  1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
 	{"ILRRN",	0x021c, 0xfefc, DSPInterpreter::ilrrn,   NULL,                1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false},
 
 	// LOOPS
@@ -190,14 +190,14 @@ const DSPOPCTemplate opcodes[] =
 	{"BLOOPI",	0x1100, 0xff00, DSPInterpreter::bloopi,  NULL,                2, 2, {{P_IMM, 1, 0, 0, 0x00ff},     {P_ADDR_I, 2, 1, 0, 0xffff}},                            false, true, false, true},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
-	{"LRR",		0x1800, 0xff80, DSPInterpreter::lrr,     NULL,                1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
-	{"LRRD",	0x1880, 0xff80, DSPInterpreter::lrrd,    NULL,                1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
-	{"LRRI",	0x1900, 0xff80, DSPInterpreter::lrri,    NULL,                1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
+	{"LRR",		0x1800, 0xff80, DSPInterpreter::lrr,     &DSPEmitter::lrr,    1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
+	{"LRRD",	0x1880, 0xff80, DSPInterpreter::lrrd,    &DSPEmitter::lrrd,   1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
+	{"LRRI",	0x1900, 0xff80, DSPInterpreter::lrri,    &DSPEmitter::lrri,   1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
 	{"LRRN",	0x1980, 0xff80, DSPInterpreter::lrrn,    NULL,                1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false},
 
-	{"SRR",		0x1a00, 0xff80, DSPInterpreter::srr,     NULL,                1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
-	{"SRRD",	0x1a80, 0xff80, DSPInterpreter::srrd,    NULL,                1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
-	{"SRRI",	0x1b00, 0xff80, DSPInterpreter::srri,    NULL,                1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
+	{"SRR",		0x1a00, 0xff80, DSPInterpreter::srr,     &DSPEmitter::srr,    1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
+	{"SRRD",	0x1a80, 0xff80, DSPInterpreter::srrd,    &DSPEmitter::srrd,   1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
+	{"SRRI",	0x1b00, 0xff80, DSPInterpreter::srri,    &DSPEmitter::srri,   1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
 	{"SRRN",	0x1b80, 0xff80, DSPInterpreter::srrn,    NULL,                1, 2, {{P_PRG, 1, 0, 5, 0x0060},     {P_REG, 1, 0, 0, 0x001f}},                               false, false, false, false},
 
 	//2

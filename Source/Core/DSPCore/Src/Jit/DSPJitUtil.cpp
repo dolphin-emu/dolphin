@@ -338,7 +338,12 @@ void DSPEmitter::dmem_write_imm(u16 addr)
 	switch (addr >> 12)
 	{
 	case 0x0: // 0xxx DRAM
+#ifdef _M_IX86 // All32
 		MOV(16, M(&g_dsp.dram[addr & DSP_DRAM_MASK]), R(ECX));
+#else
+		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
+		MOV(16, MDisp(RDX,(addr & DSP_DRAM_MASK)*2), R(ECX));
+#endif
 		break;
 
 	case 0xf: // Fxxx HW regs
@@ -352,8 +357,40 @@ void DSPEmitter::dmem_write_imm(u16 addr)
 	}
 }
 
-// EAX - the result of the read (used by caller)
-// ECX - the address to read
+// In:  ECX - the address to read
+// Out: EAX - the result of the read (used by caller)
+// ESI - Base
+void DSPEmitter::imem_read()
+{
+	//	if (addr == 0)
+	CMP(16, R(ECX), Imm16(0x0fff));
+	FixupBranch irom = J_CC(CC_A);
+	//	return g_dsp.iram[addr & DSP_IRAM_MASK];
+	AND(16, R(ECX), Imm16(DSP_IRAM_MASK));
+#ifdef _M_X64
+	MOV(64, R(ESI), ImmPtr(g_dsp.iram));
+#else
+	MOV(32, R(ESI), ImmPtr(g_dsp.iram));
+#endif
+	MOV(16, R(EAX), MComplex(ESI, ECX, 2, 0));
+
+	FixupBranch end = J();
+	SetJumpTarget(irom);
+	//	else if (addr == 0x8)
+	//		return g_dsp.irom[addr & DSP_IROM_MASK];
+	AND(16, R(ECX), Imm16(DSP_IROM_MASK));
+#ifdef _M_X64
+	MOV(64, R(ESI), ImmPtr(g_dsp.irom));
+#else
+	MOV(32, R(ESI), ImmPtr(g_dsp.irom));
+#endif
+	MOV(16, R(EAX), MComplex(ESI,ECX,2,0));
+
+	SetJumpTarget(end);
+}
+
+// In:  ECX - the address to read
+// Out: EAX - the result of the read (used by caller)
 // ESI - Base
 // Trashes R11 on gdsp_ifx_read
 void DSPEmitter::dmem_read()
@@ -399,11 +436,21 @@ void DSPEmitter::dmem_read_imm(u16 addr)
 	switch (addr >> 12)
 	{
 	case 0x0:  // 0xxx DRAM
+#ifdef _M_IX86 // All32
 		MOV(16, R(EAX), M(&g_dsp.dram[addr & DSP_DRAM_MASK]));
+#else
+		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
+		MOV(16, R(EAX), MDisp(RDX,(addr & DSP_DRAM_MASK)*2));
+#endif
 		break;
 
 	case 0x1:  // 1xxx COEF
+#ifdef _M_IX86 // All32
 		MOV(16, R(EAX), Imm16(g_dsp.coef[addr & DSP_COEF_MASK]));
+#else
+		MOV(64, R(RDX), ImmPtr(g_dsp.coef));
+		MOV(16, R(EAX), MDisp(RDX,(addr & DSP_COEF_MASK)*2));
+#endif
 		break;
 
 	case 0xf:  // Fxxx HW regs

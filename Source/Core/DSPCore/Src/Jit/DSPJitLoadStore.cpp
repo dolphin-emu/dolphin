@@ -36,7 +36,7 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 	//u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc & 0xFF);
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r[reg]));
-	MOV(32, R(EAX), M(&g_dsp.r[DSP_REG_CR]));
+	MOVZX(32, 8, EAX, M(&g_dsp.r[DSP_REG_CR]));
 #else
 	MOV(64, R(R11), ImmPtr(g_dsp.r));
 	MOVZX(64, 16, RCX, MDisp(R11,reg*2));
@@ -57,7 +57,7 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
 	u8 reg   = ((opc >> 8) & 0x7) + 0x18;
 	//u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc & 0xFF);
 #ifdef _M_IX86 // All32
-	MOV(32, R(ECX), M(&g_dsp.r[DSP_REG_CR]));
+	MOVZX(32, 8, ECX, M(&g_dsp.r[DSP_REG_CR]));
 	SHL(16, R(ECX), Imm8(8));
 	OR(8, R(ECX), Imm8(opc & 0xFF));
 	dmem_read();
@@ -118,47 +118,65 @@ void DSPEmitter::si(const UDSPInstruction opc)
 // 0001 1000 0ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
 // FIXME: Perform additional operation depending on destination register.
-//void DSPEmitter::lrr(const UDSPInstruction opc)
-//{
-//	u8 sreg = (opc >> 5) & 0x3;
-//	u8 dreg = opc & 0x1f;
+void DSPEmitter::lrr(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x3;
+	u8 dreg = opc & 0x1f;
 
-//	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
-//	dsp_op_write_reg(dreg, val);
-//	dsp_conditional_extend_accum(dreg);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, R(ECX));
+#else
+	MOVZX(64, 16, ECX, R(ECX));
+#endif
+	dmem_read();
+	dsp_op_write_reg(dreg, EAX);
+	dsp_conditional_extend_accum(dreg);
+}
 
 // LRRD $D, @$S
 // 0001 1000 1ssd dddd
 // Move value from data memory pointed by addressing register $S toregister $D.
 // Decrement register $S. 
 // FIXME: Perform additional operation depending on destination register.
-//void DSPEmitter::lrrd(const UDSPInstruction opc)
-//{
-//	u8 sreg = (opc >> 5) & 0x3;
-//	u8 dreg = opc & 0x1f;
+void DSPEmitter::lrrd(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x3;
+	u8 dreg = opc & 0x1f;
 
-//	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
-//	dsp_op_write_reg(dreg, val);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[sreg] = dsp_decrement_addr_reg(sreg);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, R(ECX));
+#else
+	MOVZX(64, 16, ECX, R(ECX));
+#endif
+	dmem_read();
+	dsp_op_write_reg(dreg, EAX);
+	dsp_conditional_extend_accum(dreg);
+	decrement_addr_reg(sreg);
+}
 
 // LRRI $D, @$S
 // 0001 1001 0ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
 // Increment register $S. 
 // FIXME: Perform additional operation depending on destination register.
-//void DSPEmitter::lrri(const UDSPInstruction opc)
-//{
-//	u8 sreg = (opc >> 5) & 0x3;
-//	u8 dreg = opc & 0x1f;
+void DSPEmitter::lrri(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x3;
+	u8 dreg = opc & 0x1f;
 
-//	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
-//	dsp_op_write_reg(dreg, val);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[sreg] = dsp_increment_addr_reg(sreg);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, R(ECX));
+#else
+	MOVZX(64, 16, ECX, R(ECX));
+#endif
+	dmem_read();
+	dsp_op_write_reg(dreg, EAX);
+	dsp_conditional_extend_accum(dreg);
+	increment_addr_reg(sreg);
+}
 
 // LRRN $D, @$S
 // 0001 1001 1ssd dddd
@@ -181,45 +199,62 @@ void DSPEmitter::si(const UDSPInstruction opc)
 // Store value from source register $S to a memory location pointed by 
 // addressing register $D. 
 // FIXME: Perform additional operation depending on source register.
-//void DSPEmitter::srr(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 5) & 0x3;
-//	u8 sreg = opc & 0x1f;
+void DSPEmitter::srr(const UDSPInstruction opc)
+{
+	u8 dreg = (opc >> 5) & 0x3;
+	u8 sreg = opc & 0x1f;
 
-//	u16 val = dsp_op_read_reg(sreg);
-//	dsp_dmem_write(g_dsp.r[dreg], val);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RAX, MDisp(R11,dreg*2));
+#endif
+	dmem_write();
+}
 
 // SRRD @$D, $S
 // 0001 1010 1dds ssss
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Decrement register $D. 
 // FIXME: Perform additional operation depending on source register.
-//void DSPEmitter::srrd(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 5) & 0x3;
-//	u8 sreg = opc & 0x1f;
+void DSPEmitter::srrd(const UDSPInstruction opc)
+{
+	u8 dreg = (opc >> 5) & 0x3;
+	u8 sreg = opc & 0x1f;
 
-//	u16 val = dsp_op_read_reg(sreg);
-//	dsp_dmem_write(g_dsp.r[dreg], val);
-//	g_dsp.r[dreg] = dsp_decrement_addr_reg(dreg);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RAX, MDisp(R11,dreg*2));
+#endif
+	dmem_write();
+	decrement_addr_reg(dreg);
+}
 
 // SRRI @$D, $S
 // 0001 1011 0dds ssss
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Increment register $D. 
 // FIXME: Perform additional operation depending on source register.
-//void DSPEmitter::srri(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 5) & 0x3;
-//	u8 sreg = opc & 0x1f;
+void DSPEmitter::srri(const UDSPInstruction opc)
+{
+	u8 dreg = (opc >> 5) & 0x3;
+	u8 sreg = opc & 0x1f;
 
-//	u16 val = dsp_op_read_reg(sreg);
-
-//	dsp_dmem_write(g_dsp.r[dreg], val);
-//	g_dsp.r[dreg] = dsp_increment_addr_reg(dreg);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RAX, MDisp(R11,dreg*2));
+#endif
+	dmem_write();
+	increment_addr_reg(dreg);
+}
 
 // SRRN @$D, $S
 // 0001 1011 1dds ssss
@@ -240,42 +275,78 @@ void DSPEmitter::si(const UDSPInstruction opc)
 // 0000 001d 0001 00ss
 // Move value from instruction memory pointed by addressing register
 // $arS to mid accumulator register $acD.m.
-//void DSPEmitter::ilrr(const UDSPInstruction opc)
-//{
-//	u16 reg  = opc & 0x3;
-//	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
+void DSPEmitter::ilrr(const UDSPInstruction opc)
+{
+	u16 reg  = opc & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
 
-//	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-//	dsp_conditional_extend_accum(dreg);
-//}
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[reg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RCX, MDisp(R11,reg*2));
+#endif
+	imem_read();
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,dreg*2), R(RAX));
+#endif
+	dsp_conditional_extend_accum(dreg);
+}
 
 // ILRRD $acD.m, @$arS
 // 0000 001d 0001 01ss
 // Move value from instruction memory pointed by addressing register
 // $arS to mid accumulator register $acD.m. Decrement addressing register $arS.
-//void DSPEmitter::ilrrd(const UDSPInstruction opc)
-//{
-//	u16 reg  = opc & 0x3;
-//	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
+void DSPEmitter::ilrrd(const UDSPInstruction opc)
+{
+	u16 reg  = opc & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
 
-//	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[reg] = dsp_decrement_addr_reg(reg);
-//}
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[reg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RCX, MDisp(R11,reg*2));
+#endif
+	imem_read();
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,dreg*2), R(RAX));
+#endif
+	dsp_conditional_extend_accum(dreg);
+	dsp_decrement_addr_reg(reg);
+}
 
 // ILRRI $acD.m, @$S
 // 0000 001d 0001 10ss
 // Move value from instruction memory pointed by addressing register
 // $arS to mid accumulator register $acD.m. Increment addressing register $arS.
-//void DSPEmitter::ilrri(const UDSPInstruction opc)
-//{
-//	u16 reg  = opc & 0x3;
-//	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
+void DSPEmitter::ilrri(const UDSPInstruction opc)
+{
+	u16 reg  = opc & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
 
-//	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[reg] = dsp_increment_addr_reg(reg);
-//}
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[reg]));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOVZX(64, 16, RCX, MDisp(R11,reg*2));
+#endif
+	imem_read();
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(g_dsp.r));
+	MOV(16, MDisp(R11,dreg*2), R(RAX));
+#endif
+	dsp_conditional_extend_accum(dreg);
+	dsp_increment_addr_reg(reg);
+}
 
 // ILRRN $acD.m, @$arS
 // 0000 001d 0001 11ss
