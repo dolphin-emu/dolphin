@@ -242,7 +242,15 @@ void XEmitter::ABI_CallFunctionC16(void *func, u16 param1) {
 void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32((u32)param2));
-	CALL(func);
+	u64 distance = u64(func) - (u64(code) + 5);
+	if (distance >= 0x0000000080000000ULL
+		&& distance <  0xFFFFFFFF80000000ULL) {
+			// Far call
+			MOV(64, R(RAX), Imm64((u64)func));
+			CALLptr(R(RAX));
+	} else {
+		CALL(func);
+	}
 }
 
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
