@@ -599,10 +599,12 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
 		SConfig::GetInstance().m_Framelimit * 5 : VideoInterface::TargetRefreshRate;
 
-	// When frame limit is NOT off
+#ifdef _WIN32
+	// Disable the frame-limiter when the throttle (Tab) key is held down
+	if (!GetAsyncKeyState(VK_TAB))
+#endif
 	if (SConfig::GetInstance().m_Framelimit)
 	{
-		// Make the limiter a bit loose
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
 		u32 timeDifference = (u32)Timer.GetTimeDifference();

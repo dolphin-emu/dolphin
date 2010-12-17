@@ -127,9 +127,9 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 					break;
 			}
 			// Shortcut key for Throttle Skipping
-			#ifdef _WIN32
+#ifdef _WIN32
 			if (GetAsyncKeyState(VK_TAB)) break;;
-			#endif
+#endif
 			SLEEP(1);
 			soundStream->Update();
 		}
