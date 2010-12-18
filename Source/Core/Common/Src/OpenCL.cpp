@@ -159,10 +159,25 @@ cl_program CompileProgram(const char *Kernel)
 	// Build the program executable
 	err = clBuildProgram(program , 0, NULL, NULL, NULL, NULL);
 	if(err != CL_SUCCESS) {
-		char *errors[16384] = {0};
-		err = clGetProgramBuildInfo(program, OpenCL::device_id,
-			CL_PROGRAM_BUILD_LOG, sizeof(*errors), errors, NULL);
-		ERROR_LOG(COMMON, "Error log:\n%s\n", *errors);
+        HandleCLError(err, "Error: failed to build program");
+
+		char *buildlog = NULL;
+        size_t buildlog_size = 0;
+
+		clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &buildlog_size);
+        buildlog = new char[buildlog_size + 1];
+        err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, buildlog_size, buildlog, NULL);
+        buildlog[buildlog_size] = 0;
+        
+        if(err != CL_SUCCESS)
+        {
+            HandleCLError(err, "Error: can't get build log");
+        } else
+        {
+		    ERROR_LOG(COMMON, "Error log:\n%s\n", buildlog);
+        }
+
+        delete[] buildlog;
 		return NULL;
 	}
 
