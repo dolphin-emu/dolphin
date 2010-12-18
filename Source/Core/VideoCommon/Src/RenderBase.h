@@ -109,7 +109,7 @@ public:
 
 	virtual void RenderText(const char* pstr, int left, int top, u32 color) = 0;
 
-	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
+	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool zEnable, u32 color, u32 z) = 0;
 	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;

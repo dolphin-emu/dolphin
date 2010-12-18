@@ -133,8 +133,8 @@ void CPUInfo::Detect()
 	strcpy(brand_string, cpu_string);
 	
 	// Detect family and other misc stuff.
-	bool HTT = false;
-	int logical_cpu_count = 1;
+	HTT = false;
+	logical_cpu_count = 1;
 	if (max_std_fn >= 1) {
 		__cpuid(cpu_id, 0x00000001);
 		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
@@ -171,11 +171,14 @@ void CPUInfo::Detect()
 		__cpuid(cpu_id, 0x80000008);
 		int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
 		if (apic_id_core_id_size == 0) {
-			// Use what AMD calls the "legacy method" to determine # of cores.
+			// New mechanism for modern CPUs.
+			num_cores = logical_cpu_count;
 			if (HTT) {
-				num_cores = logical_cpu_count;
-			} else {
-				num_cores = 1;
+				__cpuid(cpu_id, 0x00000004);
+				int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
+				cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
+				num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
+				logical_cpu_count /= cores_x_package;
 			}
 		} else {
 			// Use AMD's new method.
@@ -193,10 +196,13 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum;
 	if (num_cores == 1)
-		sum = StringFromFormat("%s, %i core, ", cpu_string, num_cores);
+		sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
 	else
-		sum = StringFromFormat("%s, %i cores, ", cpu_string, num_cores);
-	if (bSSE) sum += "SSE";
+	{
+		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
+		if (HTT) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
+	}
+	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";
 	if (bSSE3) sum += ", SSE3";
 	if (bSSSE3) sum += ", SSSE3";

@@ -229,6 +229,8 @@ void BPWritten(const BPCmd& bp)
 			EFBRectangle rc;
 			rc.left = (int)bpmem.copyTexSrcXY.x;
 			rc.top = (int)bpmem.copyTexSrcXY.y;
+			
+			// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
 			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
 			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
@@ -242,8 +244,7 @@ void BPWritten(const BPCmd& bp)
 
 				CopyEFB(bp, rc, bpmem.copyTexDest << 5, 
 							bpmem.zcontrol.pixel_format == PIXELFMT_Z24, 
-							PE_copy.intensity_fmt > 0, 
-							((PE_copy.target_pixel_format / 2) + ((PE_copy.target_pixel_format & 1) * 8)), 
+							PE_copy.intensity_fmt > 0,PE_copy.tp_realFormat(),
 							PE_copy.half_scale);
 			}
 			else

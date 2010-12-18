@@ -684,7 +684,7 @@ void Renderer::UpdateViewport()
 	D3D::context->RSSetViewports(1, &vp);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool zEnable, u32 color, u32 z)
 {
 	ResetAPIState();
 

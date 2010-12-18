@@ -210,7 +210,7 @@ void PixelShaderManager::SetConstants()
 		}
 		else
 		{
-			SetPSConstant4f(C_FOG + 1, 0.0, 1.0, 1.0, 0);
+			SetPSConstant4f(C_FOG + 1, 0.0, 1.0, 0.0, 1.0);
 		}
         s_bFogParamChanged = false;
     }

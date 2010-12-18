@@ -40,6 +40,7 @@ struct CPUInfo
 	
 	bool hyper_threaded;
 	int num_cores;
+	int logical_cpu_count;
 
 	bool bSSE;
 	bool bSSE2;
@@ -52,6 +53,7 @@ struct CPUInfo
 	bool bSSE4A;
 	bool bLAHFSAHF64;
 	bool bLongMode;
+	bool HTT;
 
 	// Call Detect()
 	explicit CPUInfo();

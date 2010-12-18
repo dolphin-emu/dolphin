@@ -438,6 +438,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			{
 			case 0: // Z4
 			case 1: // Z8
+			case 8: // Z8
 				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
 				break;
 
@@ -477,6 +478,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			{
 			case 0: // Z4
 			case 1: // Z8
+			case 8: // Z8
 				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
 				cbufid = 12;
 				break;
@@ -528,12 +530,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		case 1: // I8
 		case 2: // IA4
 		case 3: // IA8
+		case 8: // I8
 			// TODO - verify these coefficients
 			colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
 			colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
 			colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
 
-			if (copyfmt < 2) 
+			if (copyfmt < 2 || copyfmt == 8) 
 			{
 				fConstAdd[3] = 16.0f / 255.0f;
 				colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
@@ -558,6 +561,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		switch (copyfmt) 
 		{
 		case 0: // R4
+		case 1: // R8
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 			cbufid = 2;
