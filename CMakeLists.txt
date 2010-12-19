@@ -343,6 +343,8 @@ endif(NOT DISABLE_WX)
 #
 file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
 	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
+include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
+
 
 ########################################
 # Start compiling our code
