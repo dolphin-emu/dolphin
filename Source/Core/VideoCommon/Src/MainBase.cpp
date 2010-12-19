@@ -164,9 +164,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 	return 0;
 }
 
-#if defined(HAVE_X11) && HAVE_X11
 static volatile u32 s_doStateRequested = FALSE;
-#endif
  
 static volatile struct
 {
@@ -176,10 +174,8 @@ static volatile struct
 
 // Run from the GPU thread on X11, CPU thread on the rest
 static void check_DoState() {
-#if defined(HAVE_X11) && HAVE_X11
 	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
-#endif
 		// Clear all caches that touch RAM
 		CommandProcessor::FifoCriticalEnter();
 		TextureCache::Invalidate(false);
@@ -196,10 +192,8 @@ static void check_DoState() {
 			RecomputeCachedArraybases();
 		}
 
-#if defined(HAVE_X11) && HAVE_X11
 		Common::AtomicStoreRelease(s_doStateRequested, FALSE);
 	}
-#endif
 }
 
 // Run from the CPU thread
@@ -207,7 +201,6 @@ void DoState(unsigned char **ptr, int mode)
 {
 	s_doStateArgs.ptr = ptr;
 	s_doStateArgs.mode = mode;
-#if defined(HAVE_X11) && HAVE_X11
 	Common::AtomicStoreRelease(s_doStateRequested, TRUE);
 	if (g_VideoInitialize.bOnThread)
 	{
@@ -216,7 +209,6 @@ void DoState(unsigned char **ptr, int mode)
 			Common::YieldCPU();
 	}
 	else
-#endif
 	check_DoState();
 }
 
@@ -224,9 +216,7 @@ void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
-#if defined(HAVE_X11) && HAVE_X11
-    check_DoState();
-#endif
+	check_DoState();
 }
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
