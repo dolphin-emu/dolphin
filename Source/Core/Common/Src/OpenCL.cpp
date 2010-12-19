@@ -150,10 +150,10 @@ cl_program CompileProgram(const char *Kernel)
 	cl_program program;
 	program = clCreateProgramWithSource(OpenCL::g_context, 1,
 		(const char **) & Kernel, NULL, &err);
+
 	if (!program)
 	{
 		HandleCLError(err, "Error: Failed to create compute program!");
-		return NULL;
 	}
 
 	// Build the program executable
@@ -181,7 +181,7 @@ cl_program CompileProgram(const char *Kernel)
 		return NULL;
 	}
 
-	NOTICE_LOG(COMMON, "OpenCL CompileProgram took %.3f seconds",
+	INFO_LOG(COMMON, "OpenCL CompileProgram took %.3f seconds",
 		(float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);
 	return program;
 }
@@ -200,7 +200,7 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 		HandleCLError(err, buffer);
 		return NULL;
 	}
-	NOTICE_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds",
+	INFO_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds",
 		(float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);
 	return kernel;
 }
