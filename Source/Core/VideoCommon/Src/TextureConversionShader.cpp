@@ -30,6 +30,7 @@
 
 static char text[16384];
 static bool IntensityConstantAdded =  false;
+static int s_incrementSampleXCount = 0;
 
 namespace TextureConversionShader
 {
@@ -204,14 +205,25 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	}	
 }
 
-void WriteSampleColor(char*& p, const char* colorComp, const char* dest,API_TYPE ApiType)
+void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
+	const char* texSampleOpName;
 	if (ApiType == API_D3D9)
-		WRITE(p, "  %s = tex2D(samp0, sampleUv).%s;\n", dest, colorComp);
+		texSampleOpName = "tex2D";
 	else if (ApiType == API_D3D11)
-		WRITE(p, "  %s = tex0.Sample(samp0, sampleUv).%s;\n", dest, colorComp);
+		texSampleOpName = "tex0.Sample";
 	else
-		WRITE(p, "  %s = texRECT(samp0, sampleUv).%s;\n", dest, colorComp);	
+		texSampleOpName = "texRECT";
+
+	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
+	const char* texSampleIncrementUnit;
+	if(ApiType != API_OPENGL)
+		texSampleIncrementUnit = "blkDims.x / blkDims.z";
+	else
+		texSampleIncrementUnit = "blkDims.x";
+
+	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d * (%s), 0)).%s;\n",
+		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
 void WriteColorToIntensity(char*& p, const char* src, const char* dest)
@@ -221,15 +233,27 @@ void WriteColorToIntensity(char*& p, const char* src, const char* dest)
 		WRITE(p, "  float4 IntensityConst = float4(0.257f,0.504f,0.098f,0.0625f);\n");
 		IntensityConstantAdded = true;
 	}
-	WRITE(p, "  %s = dot(IntensityConst.rgb, %s.rgb) + IntensityConst.a;\n", dest, src);
+	WRITE(p, "  %s = dot(IntensityConst.rgb, %s.rgb);\n", dest, src);
+	// don't add IntensityConst.a yet, because doing it later is faster and uses less instructions, due to vectorization
 }
 
 void WriteIncrementSampleX(char*& p,API_TYPE ApiType)
 {
-	if(ApiType != API_OPENGL)
-		WRITE(p, "  sampleUv.x = sampleUv.x + blkDims.x / blkDims.z;\n");
-	else
-		WRITE(p, "  sampleUv.x = sampleUv.x + blkDims.x;\n");
+	// the shader compiler apparently isn't smart or aggressive enough to recognize that:
+	//    foo1 = lookup(x)
+	//    x = x + increment;
+	//    foo2 = lookup(x)
+	//    x = x + increment;
+	//    foo3 = lookup(x)
+	// can be replaced with this:
+	//    foo1 = lookup(x + 0.0 * increment)
+	//    foo2 = lookup(x + 1.0 * increment)
+	//    foo3 = lookup(x + 2.0 * increment)
+	// which looks like the same operations but uses considerably fewer ALU instruction slots.
+	// thus, instead of using the former method, we only increment a counter internally here,
+	// and we wait until WriteSampleColor to write out the constant multiplier
+	// to achieve the increment as in the latter case.
+	s_incrementSampleXCount++;
 }
 
 void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
@@ -242,6 +266,7 @@ void WriteEncoderEnd(char* p)
 {
 	WRITE(p, "}\n");
 	IntensityConstantAdded = false;
+	s_incrementSampleXCount = 0;
 }
 
 void WriteI8Encoder(char* p, API_TYPE ApiType)
@@ -263,6 +288,8 @@ void WriteI8Encoder(char* p, API_TYPE ApiType)
 
 	WriteSampleColor(p, "rgb", "texSample",ApiType);
 	WriteColorToIntensity(p, "texSample", "ocol0.a");
+
+	WRITE(p, "  ocol0.rgba += IntensityConst.aaaa;\n"); // see WriteColorToIntensity
 
 	WriteEncoderEnd(p);
 }
@@ -305,6 +332,9 @@ void WriteI4Encoder(char* p, API_TYPE ApiType)
 	WriteSampleColor(p, "rgb", "texSample",ApiType);
 	WriteColorToIntensity(p, "texSample", "color1.a");
 
+	WRITE(p, "  color0.rgba += IntensityConst.aaaa;\n");
+	WRITE(p, "  color1.rgba += IntensityConst.aaaa;\n");
+
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
@@ -325,6 +355,8 @@ void WriteIA8Encoder(char* p,API_TYPE ApiType)
 	WriteSampleColor(p, "rgba", "texSample",ApiType);
 	WRITE(p, "  ocol0.r = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "ocol0.a");
+
+	WRITE(p, "  ocol0.ga += IntensityConst.aa;\n");
 
 	WriteEncoderEnd(p);
 }
@@ -355,6 +387,8 @@ void WriteIA4Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "  color0.a = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "color1.a");
 
+	WRITE(p, "  color1.rgba += IntensityConst.aaaa;\n");
+
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
@@ -366,32 +400,22 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGB565,ApiType);
 
-	WRITE(p, "  float3 texSample;\n");
-	WRITE(p, "  float gInt;\n");
-	WRITE(p, "  float gUpper;\n");
-	WRITE(p, "  float gLower;\n");
-
-	WriteSampleColor(p, "rgb", "texSample",ApiType);
-	WriteToBitDepth(p, 6, "texSample.g", "gInt");
-	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");
-	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
-
-	WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
-	WRITE(p, "  ocol0.b = ocol0.b * 8.0f + gUpper;\n");
-	WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
-	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");
-
+	WriteSampleColor(p, "rgb", "float3 texSample0",ApiType);
 	WriteIncrementSampleX(p,ApiType);
+	WriteSampleColor(p, "rgb", "float3 texSample1",ApiType);
 
-	WriteSampleColor(p, "rgb", "texSample",ApiType);
-	WriteToBitDepth(p, 6, "texSample.g", "gInt");
-	WRITE(p, "  gUpper = floor(gInt / 8.0f);\n");
-	WRITE(p, "  gLower = gInt - gUpper * 8.0f;\n");
+	WRITE(p, "  float2 texRs = {texSample0.r, texSample1.r};\n");
+	WRITE(p, "  float2 texGs = {texSample0.g, texSample1.g};\n");
+	WRITE(p, "  float2 texBs = {texSample0.b, texSample1.b};\n");
+  
+	WriteToBitDepth(p, 6, "texGs", "float2 gInt");
+	WRITE(p, "  float2 gUpper = floor(gInt / 8.0f);\n");
+	WRITE(p, "  float2 gLower = gInt - gUpper * 8.0f;\n");
 
-	WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
-	WRITE(p, "  ocol0.r = ocol0.r * 8.0f + gUpper;\n");
-	WriteToBitDepth(p, 5, "texSample.b", "ocol0.a");
-	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0f;\n");
+	WriteToBitDepth(p, 5, "texRs", "ocol0.br");
+	WRITE(p, "  ocol0.br = ocol0.br * 8.0f + gUpper;\n");
+	WriteToBitDepth(p, 5, "texBs", "ocol0.ga");
+	WRITE(p, "  ocol0.ga = ocol0.ga + gLower * 32.0f;\n");
 
 	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
 	WriteEncoderEnd(p);
