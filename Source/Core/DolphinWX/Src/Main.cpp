@@ -300,6 +300,7 @@ bool DolphinApp::OnInit()
 	File::CopyDir(SHARED_USER_DIR MAPS_DIR DIR_SEP, File::GetUserPath(D_MAPS_IDX));
 	File::CopyDir(SHARED_USER_DIR SHADERS_DIR DIR_SEP, File::GetUserPath(D_SHADERS_IDX));
 	File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
+	File::CopyDir(SHARED_USER_DIR OPENCL_DIR DIR_SEP, File::GetUserPath(D_OPENCL_IDX));
 
 	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
 		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));

@@ -100,6 +100,7 @@
 #define SHADERCACHE_DIR		"ShaderCache"
 #define STATESAVES_DIR		"StateSaves"
 #define SCREENSHOTS_DIR		"ScreenShots"
+#define OPENCL_DIR		"OpenCL"
 #define LOAD_DIR 		"Load"
 #define HIRES_TEXTURES_DIR	LOAD_DIR DIR_SEP "Textures"
 #define DUMP_DIR		"Dump"

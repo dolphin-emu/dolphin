@@ -103,7 +103,7 @@ void TexDecoder_OpenCL_Initialize()
 		char **binaries = NULL;		
 		char filename[1024];
 
-		sprintf(filename, "%sOpenCL/kernel.bin", File::GetUserPath(D_USER_IDX));
+		sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
 
 		FILE *input = NULL;
 
@@ -155,7 +155,7 @@ void TexDecoder_OpenCL_Initialize()
 		if (err)
 		{
 			std::string code;
-			sprintf(filename, "%sOpenCL/TextureDecoder.cl", File::GetUserPath(D_USER_IDX));
+			sprintf(filename, "%sTextureDecoder.cl", File::GetUserPath(D_OPENCL_IDX));
 			if (!File::ReadFileToString(true, filename, code))
 			{
 				ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename);
@@ -204,7 +204,7 @@ void TexDecoder_OpenCL_Initialize()
 
 			if (!err)
 			{
-				sprintf(filename, "%sOpenCL/kernel.bin", File::GetUserPath(D_USER_IDX));
+				sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
 				const char *current_rev = SVN_REV_STR + '\0';
 
 				FILE *output = NULL;
