@@ -96,7 +96,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	{
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
-		
+		/*
 		// texture formats logic transposition from "EFB Copy to Texture" to "Copy Clear Screen" concepts.
 		// this it's a deduction without assurance. Ref. (p.12(Nintendo Co., Ltd. US 2010/0073394 A1))
 		UPE_Copy EFB_copy = bpmem.triggerEFBCopy; 
@@ -106,8 +106,8 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 			color |= (!EFB_copy.intensity_fmt && z > 0) ? 0xFF000000 : 0x0;
 		else if (EFB_copy.tp_realFormat() == 7)	// A8
 			color |= ((!EFB_copy.intensity_fmt && bpmem.zcontrol.pixel_format > 3) || z > 0) ? 0xFF000000 : 0x0;
-		
-		g_renderer->ClearScreen(rc, colorEnable, zEnable, color, z);
+		*/
+		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }
 

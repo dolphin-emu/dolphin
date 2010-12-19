@@ -785,7 +785,7 @@ void Renderer::UpdateViewport()
 	D3D::dev->SetViewport(&vp);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool zEnable, u32 color, u32 z)
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	// Reset rendering pipeline while keeping color masks and depth buffer settings
 	ResetAPIState();

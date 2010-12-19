@@ -807,7 +807,7 @@ void Renderer::UpdateViewport()
 	glDepthRange(GLNear, GLFar);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool zEnable, u32 color, u32 z)
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);

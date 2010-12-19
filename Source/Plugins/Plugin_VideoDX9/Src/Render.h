@@ -35,8 +35,8 @@ public:
 
 	void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc);
 
-	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool zEnable, u32 color, u32 z);
-
+	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
+	
 	void UpdateViewport();
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
