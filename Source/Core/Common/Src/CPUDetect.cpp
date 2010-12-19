@@ -173,7 +173,7 @@ void CPUInfo::Detect()
 		if (apic_id_core_id_size == 0) {
 			// New mechanism for modern CPUs.
 			num_cores = logical_cpu_count;
-			if (HTT) {
+			if (HTT && vendor == VENDOR_INTEL) {
 				__cpuid(cpu_id, 0x00000004);
 				int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
 				cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
@@ -200,7 +200,7 @@ std::string CPUInfo::Summarize()
 	else
 	{
 		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
+		if (HTT && vendor == VENDOR_INTEL) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";
