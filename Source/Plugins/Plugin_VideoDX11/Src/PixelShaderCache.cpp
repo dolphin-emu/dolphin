@@ -214,16 +214,16 @@ unsigned int ps_constant_offset_table[] = {
 	76, 80,							// C_INDTEXSCALE, 8
 	84, 88, 92, 96, 100, 104,		// C_INDTEXMTX, 24
 	108, 112,						// C_FOG, 8
-	116, 120, 124 ,128,				// C_COLORMATRIX, 16	
-	132, 136, 140, 144, 148,        // C_PLIGHTS0, 20
-	152, 156, 160, 164, 168,		// C_PLIGHTS1, 20
-	172, 176, 180, 184, 188,		// C_PLIGHTS2, 20		
-	192, 196, 200, 204, 208,		// C_PLIGHTS3, 20
-	212, 216, 220, 224, 228,		// C_PLIGHTS4, 20
-	232, 236, 240, 244, 248,		// C_PLIGHTS5, 20
-	252, 256, 260, 264, 268,		// C_PLIGHTS6, 20
-	272, 276, 280, 284, 288,		// C_PLIGHTS7, 20	
-	292, 296, 300, 304,				// C_PMATERIALS, 16
+	116, 120, 124, 128, 132,		// C_COLORMATRIX, 20	
+	136, 140, 144, 148, 152,		// C_PLIGHTS0, 20
+	156, 160, 164, 168, 172,		// C_PLIGHTS1, 20
+	176, 180, 184, 188, 192,		// C_PLIGHTS2, 20		
+	196, 200, 204, 208, 212,		// C_PLIGHTS3, 20
+	216, 220, 224, 228, 232,		// C_PLIGHTS4, 20
+	236, 240, 244, 248, 252,		// C_PLIGHTS5, 20
+	256, 260, 264, 268, 272,		// C_PLIGHTS6, 20
+	276, 280, 284, 288, 292,		// C_PLIGHTS7, 20	
+	296, 300, 304, 308,				// C_PMATERIALS, 16
 };
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
