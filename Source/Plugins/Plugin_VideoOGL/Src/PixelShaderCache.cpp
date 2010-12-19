@@ -219,7 +219,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	PSCacheEntry& newentry = PixelShaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, 65536, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	

@@ -52,6 +52,7 @@ static LPDIRECT3DPIXELSHADER9 s_yuyvToRgbProgram = NULL;
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static LPDIRECT3DPIXELSHADER9 s_encodingPrograms[NUM_ENCODING_PROGRAMS];
+static bool s_encodingProgramsFailed[NUM_ENCODING_PROGRAMS];
 
 void CreateRgbToYuyvProgram()
 {
@@ -121,6 +122,13 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 
 	if (!s_encodingPrograms[format])
 	{
+		if(s_encodingProgramsFailed[format])
+		{
+			// we already failed to create a shader for this format,
+			// so instead of re-trying and showing the same error message every frame, just return.
+			return NULL;
+		}
+
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format,API_D3D9);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -135,6 +143,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 		s_encodingPrograms[format] = D3D::CompileAndCreatePixelShader(shader, (int)strlen(shader));
 		if (!s_encodingPrograms[format]) {
 			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
+			s_encodingProgramsFailed[format] = true;
 		}
     }
 	return s_encodingPrograms[format];
@@ -145,6 +154,7 @@ void Init()
 	for (unsigned int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
 	{
 		s_encodingPrograms[i] = NULL;
+		s_encodingProgramsFailed[i] = false;
 	}
 	for (unsigned int i = 0; i < NUM_TRANSFORM_BUFFERS; i++)
 	{

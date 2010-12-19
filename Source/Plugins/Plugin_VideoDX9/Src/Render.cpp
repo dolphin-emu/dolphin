@@ -589,13 +589,22 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
+		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
+		int depthConversionType;
+		if(bformat == FOURCC_RAWZ)
+			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE;
+		else if(bformat == FOURCC_DF16)
+			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT;
+		else
+			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT;
+
 		D3D::drawShadedTexQuad(
 			read_texture,
 			&RectToLock,
 			Renderer::GetFullTargetWidth(),
 			Renderer::GetFullTargetHeight(),
 			4, 4,
-			(FramebufferManager::GetEFBDepthRTSurfaceFormat() == FOURCC_RAWZ) ? PixelShaderCache::GetColorMatrixProgram(0) : PixelShaderCache::GetDepthMatrixProgram(0),
+			PixelShaderCache::GetDepthMatrixProgram(0, depthConversionType),
 			VertexShaderCache::GetSimpleVertexShader(0));
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
