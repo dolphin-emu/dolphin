@@ -101,7 +101,11 @@ static u32 s_blendMode;
 static Common::Thread *scrshotThread = 0;
 #endif
 
+#ifdef _WIN32
 extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+#else
+int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+#endif
 
 namespace
 {
