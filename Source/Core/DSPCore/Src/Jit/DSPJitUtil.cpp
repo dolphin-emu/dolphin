@@ -333,26 +333,27 @@ void DSPEmitter::dmem_write()
 }
 
 // ECX - value
-void DSPEmitter::dmem_write_imm(u16 addr)
+void DSPEmitter::dmem_write_imm(u16 address)
 {
-	switch (addr >> 12)
+	switch (address >> 12)
 	{
 	case 0x0: // 0xxx DRAM
 #ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.dram[addr & DSP_DRAM_MASK]), R(ECX));
+		MOV(16, M(&g_dsp.dram[address & DSP_DRAM_MASK]), R(ECX));
 #else
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
-		MOV(16, MDisp(RDX,(addr & DSP_DRAM_MASK)*2), R(ECX));
+		MOV(16, MDisp(RDX,(address & DSP_DRAM_MASK)*2), R(ECX));
 #endif
 		break;
 
 	case 0xf: // Fxxx HW regs
-		MOV(16, R(EAX), Imm16(addr));
+		MOV(16, R(EAX), Imm16(address));
 		ABI_CallFunctionRR((void *)gdsp_ifx_write, EAX, ECX);
 		break;
 
 	default:  // Unmapped/non-existing memory
-		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory",
+			g_dsp.pc, address);
 		break;
 	}
 }
@@ -431,34 +432,35 @@ void DSPEmitter::dmem_read()
 	SetJumpTarget(end2);
 }
 
-void DSPEmitter::dmem_read_imm(u16 addr)
+void DSPEmitter::dmem_read_imm(u16 address)
 {
-	switch (addr >> 12)
+	switch (address >> 12)
 	{
 	case 0x0:  // 0xxx DRAM
 #ifdef _M_IX86 // All32
-		MOV(16, R(EAX), M(&g_dsp.dram[addr & DSP_DRAM_MASK]));
+		MOV(16, R(EAX), M(&g_dsp.dram[address & DSP_DRAM_MASK]));
 #else
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
-		MOV(16, R(EAX), MDisp(RDX,(addr & DSP_DRAM_MASK)*2));
+		MOV(16, R(EAX), MDisp(RDX,(address & DSP_DRAM_MASK)*2));
 #endif
 		break;
 
 	case 0x1:  // 1xxx COEF
 #ifdef _M_IX86 // All32
-		MOV(16, R(EAX), Imm16(g_dsp.coef[addr & DSP_COEF_MASK]));
+		MOV(16, R(EAX), Imm16(g_dsp.coef[address & DSP_COEF_MASK]));
 #else
 		MOV(64, R(RDX), ImmPtr(g_dsp.coef));
-		MOV(16, R(EAX), MDisp(RDX,(addr & DSP_COEF_MASK)*2));
+		MOV(16, R(EAX), MDisp(RDX,(address & DSP_COEF_MASK)*2));
 #endif
 		break;
 
 	case 0xf:  // Fxxx HW regs
-		ABI_CallFunctionC16((void *)gdsp_ifx_read, addr);
+		ABI_CallFunctionC16((void *)gdsp_ifx_read, address);
 		break;
 
 	default:   // Unmapped/non-existing memory
-		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
+		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory",
+			g_dsp.pc, address);
 	}
 }
 

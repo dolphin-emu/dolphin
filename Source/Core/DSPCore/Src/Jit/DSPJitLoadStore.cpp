@@ -82,8 +82,8 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
 void DSPEmitter::lr(const UDSPInstruction opc)
 {
 	int reg = opc & DSP_REG_MASK;
-	u16 addr = dsp_imem_read(compilePC + 1);
-	dmem_read_imm(addr);
+	u16 address = dsp_imem_read(compilePC + 1);
+	dmem_read_imm(address);
 	dsp_op_write_reg(reg, EAX);
 	dsp_conditional_extend_accum(reg);
 }
@@ -96,9 +96,9 @@ void DSPEmitter::lr(const UDSPInstruction opc)
 void DSPEmitter::sr(const UDSPInstruction opc)
 {
 	u8 reg   = opc & DSP_REG_MASK;
-	u16 addr = dsp_imem_read(compilePC + 1);
+	u16 address = dsp_imem_read(compilePC + 1);
 	dsp_op_read_reg(reg, ECX);
-	dmem_write_imm(addr);
+	dmem_write_imm(address);
 }
 
 // SI @M, #I
@@ -108,10 +108,10 @@ void DSPEmitter::sr(const UDSPInstruction opc)
 // M (M is 8-bit value sign extended).
 void DSPEmitter::si(const UDSPInstruction opc)
 {
-	u16 addr = (s8)opc;
+	u16 address = (s8)opc;
 	u16 imm = dsp_imem_read(compilePC + 1);
 	MOV(32, R(ECX), Imm32((u32)imm));
-	dmem_write_imm(addr);
+	dmem_write_imm(address);
 }
 
 // LRR $D, @$S
