@@ -25,8 +25,6 @@ libs = [ 'videocommon', 'videouicommon', 'GLEW', 'SOIL', 'common' ]
 
 if sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaGL.m' ]
-elif sys.platform == 'win32':
-	files += [ 'OS/Win32.cpp' ]
 elif not sys.platform == 'darwin' and env['HAVE_OPENCL']:
 	libs += [ 'OpenCL' ]
 

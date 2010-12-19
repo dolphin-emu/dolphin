@@ -648,18 +648,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="win32"
-			>
-			<File
-				RelativePath=".\Src\EmuWindow.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\EmuWindow.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Render"
 			>
 			<File

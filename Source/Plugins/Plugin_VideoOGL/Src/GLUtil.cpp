@@ -25,7 +25,7 @@
 #include "GLUtil.h"
 
 #if defined(_WIN32)
-#include "OS/Win32.h"
+#include "EmuWindow.h"
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
 extern HINSTANCE g_hInstance;

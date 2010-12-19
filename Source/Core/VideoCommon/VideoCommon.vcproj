@@ -743,6 +743,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\EmuWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\FramebufferManagerBase.cpp"
 				>
 			</File>

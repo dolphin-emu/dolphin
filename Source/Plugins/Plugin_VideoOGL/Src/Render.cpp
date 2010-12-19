@@ -61,7 +61,7 @@
 
 #include "main.h" // Local
 #ifdef _WIN32
-#include "OS/Win32.h"
+#include "EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
 #include "AVIDump.h"
@@ -101,7 +101,7 @@ static u32 s_blendMode;
 static Common::Thread *scrshotThread = 0;
 #endif
 
-int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
+extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 
 namespace
 {

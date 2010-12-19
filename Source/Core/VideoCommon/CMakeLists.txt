@@ -39,6 +39,10 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFStructs.cpp
 			Src/OpenCL/OCLTextureDecoder.cpp)
 
+if(wxWidgets_FOUND AND WIN32)
+	set(SRCS ${SRCS} Src/EmuWindow.cpp)
+endif()
+
 if(LIBAV_FOUND OR WIN32)
 	set(SRCS ${SRCS} Src/AVIDump.cpp)
 endif()
