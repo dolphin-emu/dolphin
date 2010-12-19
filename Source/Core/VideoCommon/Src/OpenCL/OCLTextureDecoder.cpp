@@ -93,13 +93,13 @@ void TexDecoder_OpenCL_Initialize()
 			return;
 
 		cl_int err = 1;
-		u64 binary_size = 0;
+		size_t binary_size = 0;
 		char *binary = NULL;
 		char *header = NULL;
-		u32 nDevices = 0;
+		size_t nDevices = 0;
 		cl_device_id *devices = NULL;
 		cl_program program = NULL;
-		u64 *binary_sizes = NULL;
+		size_t *binary_sizes = NULL;
 		char **binaries = NULL;		
 		char filename[1024];
 
