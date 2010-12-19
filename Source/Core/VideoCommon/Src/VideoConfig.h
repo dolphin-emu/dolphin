@@ -131,6 +131,7 @@ struct VideoConfig
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bEnablePixelLigting;
+	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
