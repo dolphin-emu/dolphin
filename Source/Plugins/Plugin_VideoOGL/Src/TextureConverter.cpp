@@ -349,7 +349,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	// TODO: sampleStride scaling might be slightly off
 	TextureConversionShader::SetShaderParameters((float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
@@ -364,23 +364,28 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
-    if ((format & 0x0f) == 6)
-        cacheBytes = 64;
+	if ((format & 0x0f) == 6)
+		cacheBytes = 64;
 
-    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0 && !bFromZBuffer);
-	u64 hash = 0;
+	int readStride = (expandedWidth * cacheBytes) /
+		TexDecoder_GetBlockWidthInTexels(format);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource,
+		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
+		true, bScaleByHalf > 0 && !bFromZBuffer);
+
 	if (g_ActiveConfig.bEFBCopyCacheEnable)
 	{
-		u64 hash = GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		u64 hash = GetHash64(dest_ptr, size_in_bytes,
+			g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-		// If the texture in RAM is already in the texture cache, do not copy it again as it has not changed.
+		// If the texture in RAM is already in the texture cache,
+		// do not copy it again as it has not changed.
 		if (TextureCache::Find(address, hash))
 			return hash;
 	}
 
 	TextureCache::MakeRangeDynamic(address,size_in_bytes);
-	return hash;
+	return 0;
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)

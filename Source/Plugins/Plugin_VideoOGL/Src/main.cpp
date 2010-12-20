@@ -140,10 +140,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,       // DLL module handle
 }
 #endif // _WIN32
 
-#if defined(HAVE_X11) && HAVE_X11
-static volatile u32 s_doStateRequested = FALSE;
-#endif
-
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
