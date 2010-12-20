@@ -117,17 +117,32 @@ bool Renderer::CalculateTargetSize(int multiplier)
 	int newEFBWidth, newEFBHeight;
 	switch (s_LastEFBScale)
 	{
-		case 0:
+		default:
+		case 0: // fractional
 			newEFBWidth = (int)(EFB_WIDTH * xScale);
 			newEFBHeight = (int)(EFB_HEIGHT * yScale);
 			break;
-		case 1:
+		case 1: // integral
 			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
 			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
 			break;
-		default:
+		case 2: // 1x
+		case 3: // 2x
+		case 4: // 3x
 			newEFBWidth = EFB_WIDTH * (g_ActiveConfig.iEFBScale - 1);
 			newEFBHeight = EFB_HEIGHT * (g_ActiveConfig.iEFBScale - 1);
+			break;
+		case 5: // 0.75x
+			newEFBWidth = (EFB_WIDTH * 3) / 4;
+			newEFBHeight = (EFB_HEIGHT * 3) / 4;
+			break;
+		case 6: // 0.5x
+			newEFBWidth = EFB_WIDTH / 2;
+			newEFBHeight = EFB_HEIGHT / 2;
+			break;
+		case 7: // 0.375x
+			newEFBWidth = (EFB_WIDTH * 3) / 8;
+			newEFBHeight = (EFB_HEIGHT * 3) / 8;
 			break;
 	};
 
@@ -181,6 +196,15 @@ void Renderer::DrawDebugText()
 				break;
 			case 4:
 				res_text = "3x";
+				break;
+			case 5:
+				res_text = "0.75x";
+				break;
+			case 6:
+				res_text = "0.5x";
+				break;
+			case 7:
+				res_text = "0.375x";
 				break;
 			}
 

@@ -58,6 +58,9 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	ev.Skip();
 }
 
+
+// TODO: implement some hack to increase the tooltip display duration, because some of these are way too long for anyone to read in 5 seconds.
+
 wxString adapter_tooltip = wxT("Select a hardware adapter to use.\nWhen in doubt, use the first one");
 wxString ar_tooltip = wxT("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio (4:3)\nForce 16:9: Stretch the picture to an aspect ratio of 16:9.\nForce 4:3: Stretch the picture to an aspect ratio of 4:3.\nStretch to window: Stretch the picture to the window size.");
 wxString ws_hack_tooltip = wxT("Force the game to output graphics for widescreen resolutions.\nNote that this might cause graphical glitches");
@@ -70,15 +73,18 @@ wxString pixel_lighting_tooltip = wxT("Calculates lighting of 3D graphics on a p
 wxString pixel_depth_tooltip = wxT("");
 wxString force_filtering_tooltip = wxT("Forces bilinear texture filtering even if the game explicitly disabled it.\nImproves texture quality (especially when using a high internal resolution) but causes glitches in some games.");
 wxString _3d_vision_tooltip = wxT("");
-wxString internal_res_tooltip = wxT("Specifies the resolution used to render at.\nA high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in a very limited number of games.\nAuto (performance): Uses the display resolution to render at. This is slightly faster than integral scaling, but might cause visual glitches in a small number of games.\nAuto (accuracy): Uses a multiple of the native resolution to render at. Visual quality compared to the other automatic resolution is similar and a matter of personal preference.\nThe other options specify a fixed resolution and can be used to further increase visual quality.");
-wxString efb_access_tooltip = wxT("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri), but enabling this option has a huge negative impact on performance if the game uses this functionality.");
-wxString efb_copy_tooltip = wxT("");
-wxString stc_tooltip = wxT("");
+wxString internal_res_tooltip = wxT("Specifies the resolution used to render at. A high resolution will improve visual quality but is also quite heavy on performance and might cause glitches in certain games.\nFractional: Uses your display resolution directly instead of the native resolution. The quality scales with your display/window size, as does the performance impact.\nIntegral: This is like Fractional, but rounds up to an integer multiple of the native resolution. Should give a more accurate look but is usually slower.\nThe other options are fixed resolutions for choosing a visual quality independent of your display size.");
+wxString efb_access_tooltip = wxT("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\nbut enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily.");
+wxString efb_copy_tooltip = wxT("Enables emulation of Embedded Frame Buffer copies, if the game uses them.\nGames often need this for post-processing or other things, but if you can live without it, you can sometimes get a big speedup.");
+wxString efb_copy_texture_tooltip = wxT("Emulate frame buffer copies directly to textures.\nThis is not so accurate, but it's good enough for the way many games use framebuffer copies.");
+wxString efb_copy_ram_tooltip = wxT("Fully emulate embedded frame buffer copies.\nThis is more accurate than EFB Copy to Texture, and some games need this to work properly, but it can also be very slow.");
+wxString stc_tooltip = wxT("Keeps track of textures based on looking at the actual pixels in the texture.\nCan cause slowdown, but some games need this option enabled to work properly.");
+wxString stc_speed_tooltip = wxT("Faster variants look at fewer pixels and thus have more potential for errors.\nSlower variants look at more pixels and thus are safer.");
 wxString wireframe_tooltip = wxT("Render the scene as a wireframe.\nThis is only useful for debugging purposes.");
 wxString disable_lighting_tooltip = wxT("Disable lighting. Improves performance but causes lighting to disappear in games which use it.");
 wxString disable_textures_tooltip = wxT("Disable texturing.\nThis is only useful for debugging purposes.");
 wxString disable_fog_tooltip = wxT("Disable fog. Improves performance but causes glitches in games which rely on proper fog emulation.");
-wxString disable_alphapass_tooltip = wxT("");
+wxString disable_alphapass_tooltip = wxT("Disables an alpha-setting pass.\nBreaks certain effects but might help performance.");
 wxString show_fps_tooltip = wxT("Show the number of frames rendered per second.");
 wxString show_stats_tooltip = wxT("Show various statistics.\nThis is only useful for debugging purposes.");
 wxString proj_stats_tooltip = wxT("Show projection statistics.\nThis is only useful for debugging purposes.");
@@ -221,9 +227,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// EFB scale
 	{
 	wxBoxSizer* const efb_scale_szr = new wxBoxSizer(wxHORIZONTAL);
-	// TODO: give this a label
+	// TODO: give this a label (?)
 	const wxString efbscale_choices[] = { wxT("Fractional"), wxT("Integral [recommended]"),
-		wxT("1x"), wxT("2x"), wxT("3x")/*, wxT("4x")*/ };
+		wxT("1x"), wxT("2x"), wxT("3x"), wxT("0.75x"), wxT("0.5x"), wxT("0.375x") };
 
 	wxChoice *const choice_efbscale = new SettingChoice(page_general,
 		vconfig.iEFBScale, internal_res_tooltip, sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
@@ -244,7 +250,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	SettingCheckBox* efbcopy_enable = new SettingCheckBox(page_general, wxT("Enable"), efb_copy_tooltip, vconfig.bEFBCopyEnable);
 	_connect_macro_(efbcopy_enable, VideoConfigDiag::Event_EfbCopy, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	efbcopy_texture = new SettingRadioButton(page_general, wxT("Texture"), efb_copy_tooltip, vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
+	efbcopy_texture->SetToolTip(efb_copy_texture_tooltip);
 	efbcopy_ram = new SettingRadioButton(page_general, wxT("RAM"), efb_copy_tooltip, vconfig.bCopyEFBToTexture, true);
+	efbcopy_ram->SetToolTip(efb_copy_ram_tooltip);
 	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
@@ -274,18 +282,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	stc_safe = new wxRadioButton(page_general, -1, wxT("Safe"),
 		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	stc_safe->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
 	if (0 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_safe->SetValue(true);
 
 	stc_normal = new wxRadioButton(page_general, -1, wxT("Normal"));
+	stc_normal->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
 	if (512 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_normal->SetValue(true);
 
 	stc_fast = new wxRadioButton(page_general, -1, wxT("Fast"));
+	stc_fast->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
 	if (128 == vconfig.iSafeTextureCache_ColorSamples)

@@ -112,7 +112,8 @@ HRESULT Init()
 
 void Shutdown()
 {
-	D3D->Release();
+	if(D3D)
+		D3D->Release();
 	D3D = NULL;
 
 	if (hD3DDll) FreeLibrary(hD3DDll);
