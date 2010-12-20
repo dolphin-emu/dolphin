@@ -473,8 +473,9 @@ bool Renderer::SetScissorRect()
 
 void Renderer::SetColorMask()
 {
+	// Only enable alpha channel if it's supported by the current EFB format
 	DWORD color_mask = 0;
-	if (bpmem.blendmode.alphaupdate)
+	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask = D3DCOLORWRITEENABLE_ALPHA;
 	if (bpmem.blendmode.colorupdate)
 		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
@@ -789,11 +790,22 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	// Reset rendering pipeline while keeping color masks and depth buffer settings
 	ResetAPIState();
-	SetDepthMode();
-	SetColorMask();
 
-	if (zEnable) // other depth functions don't make sense here
+	DWORD color_mask = 0;
+	if (alphaEnable)
+		color_mask = D3DCOLORWRITEENABLE_ALPHA;
+	if (colorEnable)
+		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, color_mask);
+
+	if (zEnable)
+	{
+		D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
+		D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, TRUE);
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+	}
+	else
+		D3D::ChangeRenderState(D3DRS_ZENABLE, FALSE);
 
 	// Update the viewport for clearing the target EFB rect
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);

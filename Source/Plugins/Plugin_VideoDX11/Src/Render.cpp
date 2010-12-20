@@ -462,9 +462,12 @@ bool Renderer::SetScissorRect()
 
 void Renderer::SetColorMask()
 {
+	// Only enable alpha channel if it's supported by the current EFB format
 	UINT8 color_mask = 0;
-	if (bpmem.blendmode.alphaupdate) color_mask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate) color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+	if (bpmem.blendmode.colorupdate)
+		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
 	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
 }
 
@@ -688,14 +691,15 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	if (bpmem.blendmode.colorupdate && bpmem.blendmode.alphaupdate) D3D::stateman->PushBlendState(clearblendstates[0]);
-	else if (bpmem.blendmode.colorupdate) D3D::stateman->PushBlendState(clearblendstates[1]);
-	else if (bpmem.blendmode.alphaupdate) D3D::stateman->PushBlendState(clearblendstates[2]);
+	if (colorEnable && alphaEnable) D3D::stateman->PushBlendState(clearblendstates[0]);
+	else if (colorEnable) D3D::stateman->PushBlendState(clearblendstates[1]);
+	else if (alphaEnable) D3D::stateman->PushBlendState(clearblendstates[2]);
 	else D3D::stateman->PushBlendState(clearblendstates[3]);
 
-	if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
-	else if (bpmem.zmode.updateenable) D3D::stateman->PushDepthState(cleardepthstates[1]);
-	else /*if (!bpmem.zmode.updateenable)*/ D3D::stateman->PushDepthState(cleardepthstates[2]);
+	// TODO: Should we enable Z testing here?
+	/*if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
+	else */if (zEnable) D3D::stateman->PushDepthState(cleardepthstates[1]);
+	else /*if (!zEnable)*/ D3D::stateman->PushDepthState(cleardepthstates[2]);
 
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);

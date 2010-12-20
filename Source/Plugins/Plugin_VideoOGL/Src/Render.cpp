@@ -661,8 +661,9 @@ bool Renderer::SetScissorRect()
 
 void Renderer::SetColorMask()
 {
+	// Only enable alpha channel if it's supported by the current EFB format
 	GLenum ColorMask = (bpmem.blendmode.colorupdate) ? GL_TRUE : GL_FALSE;
-	GLenum AlphaMask = (bpmem.blendmode.alphaupdate) ? GL_TRUE : GL_FALSE;
+	GLenum AlphaMask = (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)) ? GL_TRUE : GL_FALSE;
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 
@@ -807,12 +808,12 @@ void Renderer::UpdateViewport()
 	glDepthRange(GLNear, GLFar);
 }
 
+// TODO: Clearing RGB or alpha only isn't implemented, yet!
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);
 	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-
 
 	// Always set the scissor in case it was set by the game and has not been reset
 	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());

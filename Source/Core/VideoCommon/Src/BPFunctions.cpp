@@ -86,27 +86,73 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	}
 }
 
+/* Explanation of the magic behind ClearScreen:
+	There's numerous possible formats for the pixel data in the EFB.
+	However, in the HW accelerated plugins we're always using RGBA8
+	for the EFB format, which implicates some problems:
+	- We're using an alpha channel although the game doesn't (1)
+	- If the actual EFB format is PIXELFMT_RGBA6_Z24, we are using more bits per channel than the native HW (2)
+	- When doing a z copy (EFB copy target format GX_TF_Z24X8 (and possibly others?)), the native HW assumes that the EFB format is RGB8 when clearing.
+		Thus the RGBA6 values get overwritten with plain RGB8 data without any kind of conversion. (3)
+	- When changing EFB formats, the EFB contents will NOT get converted to the new format;
+		this currently isn't implemented in any HW accelerated plugin and might cause issues. (4)
+	- Possible other oddities should be noted here as well
+
+	To properly emulate the above points, we're doing the following:
+	(1)
+		- disable alpha channel writing in any kind of rendering if the actual EFB format doesn't use an alpha channel
+		- when clearing:
+			- if the actual EFB format uses an alpha channel, enable alpha channel writing if alphaupdate is set
+			- if the actual EFB format doesn't use an alpha channel, set the alpha channel to 0xFF
+	(2)
+		- just scale down the RGBA8 color to RGBA6 and upscale it to RGBA8 again
+	(3)
+		- more tricky, doing some bit magic here to properly reinterpret the data
+	(4) TODO
+		- generally delay ClearScreen calls as long as possible (until any other EFB access)
+		- when the pixel format changes:
+			- call ClearScreen if it's still being delayed, reinterpret the color for the new format though
+			- otherwise convert EFB contents to the new pixel format
+*/
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	bool colorEnable = bpmem.blendmode.colorupdate;
-	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
+	bool alphaEnable = bpmem.blendmode.alphaupdate || (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24); // (1)
 	bool zEnable = bpmem.zmode.updateenable;
 
 	if (colorEnable || alphaEnable || zEnable)
 	{
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
-		/*
-		// texture formats logic transposition from "EFB Copy to Texture" to "Copy Clear Screen" concepts.
-		// this it's a deduction without assurance. Ref. (p.12(Nintendo Co., Ltd. US 2010/0073394 A1))
-		UPE_Copy EFB_copy = bpmem.triggerEFBCopy; 
-
-		// since this is an early implementation and we can't be sure, forward clauses are fairly restrictive.
-		if (EFB_copy.tp_realFormat() == 6)	// RGBA8
-			color |= (!EFB_copy.intensity_fmt && z > 0) ? 0xFF000000 : 0x0;
-		else if (EFB_copy.tp_realFormat() == 7)	// A8
-			color |= ((!EFB_copy.intensity_fmt && bpmem.zcontrol.pixel_format > 3) || z > 0) ? 0xFF000000 : 0x0;
-		*/
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		{
+			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+			// TODO: Not sure whether there's more formats to check for here - maybe GX_TF_Z8 and GX_TF_Z16?
+			if (PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): Reinterpret RGB8 color as RGBA6
+			{
+				u32 srcr8 = (color & 0xFF0000) >> 16;
+				u32 srcg8 = (color & 0xFF00) >> 8;
+				u32 srcb8 =  color & 0xFF;
+				u32 dstr6 = srcr8 >> 2;
+				u32 dstg6 = ((srcr8 & 0xFF) << 4) | (srcg8 >> 4);
+				u32 dstb6 = ((srcg8 & 0xFFFF) << 2) | (srcb8 >> 6);
+				u32 dsta6 = srcb8 & 0xFFFFFF;
+				u32 dstr8 = (dstr6 << 2) | (dstr6>>4);
+				u32 dstg8 = (dstg6 << 2) | (dstg6>>4);
+				u32 dstb8 = (dstb6 << 2) | (dstb6>>4);
+				u32 dsta8 = (dsta6 << 2) | (dsta6>>4);
+				color = (dsta8 << 24) | (dstr8 << 16) | (dstg8 << 8) | dstb8;
+			}
+			else // (2): convert RGBA8 color to RGBA6
+			{
+				color = ((color & 0xFCFCFCFC) >> 2) << 2;
+				color |= (color >> 6) & 0x3030303;
+			}
+		}
+		else // (1): Clear alpha channel to 0xFF if no alpha channel is supposed to be there
+		{
+			color |= 0xFF000000;
+		}
 		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }
