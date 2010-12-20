@@ -373,9 +373,10 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		true, bScaleByHalf > 0 && !bFromZBuffer);
 
+	u64 hash = 0;
 	if (g_ActiveConfig.bEFBCopyCacheEnable)
 	{
-		u64 hash = GetHash64(dest_ptr, size_in_bytes,
+		hash = GetHash64(dest_ptr, size_in_bytes,
 			g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// If the texture in RAM is already in the texture cache,
@@ -385,7 +386,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	}
 
 	TextureCache::MakeRangeDynamic(address,size_in_bytes);
-	return 0;
+	return hash;
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
