@@ -807,7 +807,15 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				event.Skip();
 		}
 		else
+#ifdef __APPLE__
+			// We claim all keyboard events while emulation is
+			// running to avoid wxWidgets sounding the system beep
+			// for unhandled key events when receiving pad/wiimote
+			// keypresses separately from HID devices.
+			return;
+#else
 			event.Skip();
+#endif
 
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
