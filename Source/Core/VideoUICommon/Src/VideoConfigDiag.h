@@ -60,13 +60,30 @@ protected:
 		{
 			efbcopy_texture->Disable();
 			efbcopy_ram->Disable();
+			cache_efb_copies->Disable();
 		}
 		else
 		{
 			efbcopy_texture->Enable();
 			if (vconfig.backend_info.bSupportsEFBToRAM)
+			{
 				efbcopy_ram->Enable();
+				if (!vconfig.bCopyEFBToTexture)
+					cache_efb_copies->Enable();
+			}
 		}
+		ev.Skip();
+	}
+
+	void Event_EfbCopyToTexture(wxCommandEvent &ev)
+	{
+		cache_efb_copies->Disable();
+		ev.Skip();
+	}
+
+	void Event_EfbCopyToRam(wxCommandEvent &ev)
+	{
+		cache_efb_copies->Enable();
 		ev.Skip();
 	}
 
@@ -124,6 +141,7 @@ protected:
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
+	SettingCheckBox* cache_efb_copies;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
