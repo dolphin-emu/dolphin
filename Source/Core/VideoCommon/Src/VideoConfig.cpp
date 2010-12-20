@@ -64,8 +64,8 @@ void VideoConfig::Load(const char *ini_file)
 	
 	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
 	//Safe texture cache params
-	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);		
-	
+	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);
+
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
@@ -108,6 +108,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
+	iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
@@ -222,8 +223,9 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
+	iniFile.Set("Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
-	
+
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 	
 	iniFile.Save(ini_file);

@@ -118,6 +118,7 @@ struct VideoConfig
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
 	bool bEFBCopyEnable;
+	bool bEFBCopyCacheEnable;
 	bool bOSDHotKey;
 	bool bHack;
 	bool bCopyEFBToTexture;	

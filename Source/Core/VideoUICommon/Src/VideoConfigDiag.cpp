@@ -101,6 +101,7 @@ wxString opencl_tooltip = wxT("");
 wxString dlc_tooltip = wxT("");
 wxString hotkeys_tooltip = wxT("");
 wxString ppshader_tooltip = wxT("");
+wxString cache_efb_copies_tooltip = wxT("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safier the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
@@ -249,14 +250,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	SettingCheckBox* efbcopy_enable = new SettingCheckBox(page_general, wxT("Enable"), efb_copy_tooltip, vconfig.bEFBCopyEnable);
 	_connect_macro_(efbcopy_enable, VideoConfigDiag::Event_EfbCopy, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	efbcopy_texture = new SettingRadioButton(page_general, wxT("Texture"), efb_copy_tooltip, vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	efbcopy_texture->SetToolTip(efb_copy_texture_tooltip);
-	efbcopy_ram = new SettingRadioButton(page_general, wxT("RAM"), efb_copy_tooltip, vconfig.bCopyEFBToTexture, true);
-	efbcopy_ram->SetToolTip(efb_copy_ram_tooltip);
+	efbcopy_texture = new SettingRadioButton(page_general, wxT("Texture"), efb_copy_texture_tooltip, vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
+	_connect_macro_(efbcopy_texture, VideoConfigDiag::Event_EfbCopyToTexture, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	efbcopy_ram = new SettingRadioButton(page_general, wxT("RAM"), efb_copy_ram_tooltip, vconfig.bCopyEFBToTexture, true);
+	_connect_macro_(efbcopy_ram, VideoConfigDiag::Event_EfbCopyToRam, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	cache_efb_copies = new SettingCheckBox(page_general, wxT("Enable cache"), cache_efb_copies_tooltip, vconfig.bEFBCopyCacheEnable);
 	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
+	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
+
 	if (!vconfig.backend_info.bSupportsEFBToRAM)
 	{
 		efbcopy_ram->Disable();
@@ -267,12 +271,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		efbcopy_ram->Disable();
 		efbcopy_texture->Disable();
+		cache_efb_copies->Disable();
 	}
+	else if (vconfig.bCopyEFBToTexture)
+		cache_efb_copies->Disable();
+
 	}
 
 	// - safe texture cache
 	{
-	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Safe Texture Cache"));
+	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Accurate texture cache"));
 	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	SettingCheckBox* stc_enable = new SettingCheckBox(page_general, wxT("Enable"), stc_tooltip, vconfig.bSafeTextureCache);
@@ -285,20 +293,23 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	stc_safe->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
-	if (0 == vconfig.iSafeTextureCache_ColorSamples)
-		stc_safe->SetValue(true);
 
 	stc_normal = new wxRadioButton(page_general, -1, wxT("Normal"));
 	stc_normal->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
-	if (512 == vconfig.iSafeTextureCache_ColorSamples)
-		stc_normal->SetValue(true);
 
 	stc_fast = new wxRadioButton(page_general, -1, wxT("Fast"));
 	stc_fast->SetToolTip(stc_speed_tooltip);
 	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
+
+	if (0 == vconfig.iSafeTextureCache_ColorSamples)
+		stc_safe->SetValue(true);
+
+	if (512 == vconfig.iSafeTextureCache_ColorSamples)
+		stc_normal->SetValue(true);
+
 	if (128 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_fast->SetValue(true);
 
@@ -308,6 +319,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		stc_normal->Disable();
 		stc_fast->Disable();
 	}
+
 	}
 
 	}
