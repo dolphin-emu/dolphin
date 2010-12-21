@@ -182,7 +182,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), File::GetSize(m_pFileHandle));
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), File::GetSize(m_pFileHandle));
 
 	/* TODO: Check if the new changes and the removed hack
 	         "magically" fixes Zelda - Twilight Princess as well */
