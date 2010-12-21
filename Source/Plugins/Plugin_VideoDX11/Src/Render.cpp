@@ -341,7 +341,7 @@ Renderer::Renderer()
 	for (unsigned int stage = 0; stage < 8; stage++)
 		D3D::gfxstate->samplerdesc[stage].MaxAnisotropy = g_ActiveConfig.iMaxAnisotropy;
 
-	float ClearColor[4] = { 0.f, 0.f, 0.f, 0.f };
+	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
 	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
@@ -466,7 +466,7 @@ void Renderer::SetColorMask()
 	UINT8 color_mask = 0;
 	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
+	if (bpmem.blendmode.colorupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24 || bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 || bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16))
 		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
 	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
 }
@@ -677,6 +677,9 @@ void Renderer::UpdateViewport()
 			g_framebuffer_manager = new FramebufferManager;
 
 			D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+			float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
+			D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
+			D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 		}
 	}
 
@@ -978,6 +981,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
+		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 	}
 
 	// begin next frame

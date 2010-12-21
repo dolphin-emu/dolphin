@@ -25,7 +25,6 @@
 
 bool textureChanged[8];
 const bool renderFog = false;
-u32 prev_pix_format = -1;
 
 namespace BPFunctions
 {
@@ -90,7 +89,7 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 /* Explanation of the magic behind ClearScreen:
 	There's numerous possible formats for the pixel data in the EFB.
 	However, in the HW accelerated plugins we're always using RGBA8
-	for the EFB format, which implicates some problems:
+	for the EFB format, which causes some problems:
 	- We're using an alpha channel although the game doesn't (1)
 	- If the actual EFB format is PIXELFMT_RGBA6_Z24, we are using more bits per channel than the native HW (2)
 	- When doing a z copy (EFB copy target format GX_TF_Z24X8 (and possibly others?)), the native HW assumes that the EFB format is RGB8 when clearing.
@@ -101,10 +100,9 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 
 	To properly emulate the above points, we're doing the following:
 	(1)
-		- disable alpha channel writing in any kind of rendering if the actual EFB format doesn't use an alpha channel
-		- when clearing:
-			- if the actual EFB format uses an alpha channel, enable alpha channel writing if alphaupdate is set
-			- if the actual EFB format doesn't use an alpha channel, set the alpha channel to 0xFF
+		- disable alpha channel writing of any kind of rendering if the actual EFB format doesn't use an alpha channel
+		- NOTE: Always make sure that the EFB has been cleared to an alpha value of 0xFF in this case!
+		- Same for color channels, these need to be cleared to 0x00 though.
 	(2)
 		- just scale down the RGBA8 color to RGBA6 and upscale it to RGBA8 again
 	(3)
@@ -117,9 +115,32 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 */
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
+	UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 	bool colorEnable = bpmem.blendmode.colorupdate;
-	bool alphaEnable = bpmem.blendmode.alphaupdate || (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24); // (1)
+	bool alphaEnable = bpmem.blendmode.alphaupdate;
 	bool zEnable = bpmem.zmode.updateenable;
+
+	// (1): Disable unused color channels
+	switch (bpmem.zcontrol.pixel_format)
+	{
+		case PIXELFMT_RGBA6_Z24:
+			if (colorEnable && PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): alpha update forced
+				alphaEnable = true;
+			break;
+
+		case PIXELFMT_RGB8_Z24:
+		case PIXELFMT_RGB565_Z16:
+			alphaEnable = false;
+			break;
+
+		case PIXELFMT_Z24:
+			alphaEnable = colorEnable = false;
+			break;
+
+		default:
+			// TODO?
+			break;
+	}
 
 	if (colorEnable || alphaEnable || zEnable)
 	{
@@ -127,7 +148,6 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 		u32 z = bpmem.clearZValue;
 		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
 		{
-			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 			// TODO: Not sure whether there's more formats to check for here - maybe GX_TF_Z8 and GX_TF_Z16?
 			if (PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): Reinterpret RGB8 color as RGBA6
 			{
@@ -150,11 +170,11 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 				color |= (color >> 6) & 0x3030303;
 			}
 		}
-		else // (1): Clear alpha channel to 0xFF if no alpha channel is supposed to be there
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			color |= (prev_pix_format == PIXELFMT_RGBA6_Z24) ? 0x0 : 0xFF000000;
+			z >>=8;
+			z = z | (z>>16);
 		}
-		prev_pix_format = bpmem.zcontrol.pixel_format;
 		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }

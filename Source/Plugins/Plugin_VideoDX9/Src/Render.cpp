@@ -322,7 +322,7 @@ Renderer::Renderer()
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
 	D3D::dev->SetViewport(&vp);
-	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
+	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
@@ -477,7 +477,7 @@ void Renderer::SetColorMask()
 	DWORD color_mask = 0;
 	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
+	if (bpmem.blendmode.colorupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16 || bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24|| bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
@@ -771,6 +771,7 @@ void Renderer::UpdateViewport()
 
 			D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 			D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+			D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
 		}
 	}
 
@@ -1159,6 +1160,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
 	}
 
 	// Place messages on the picture, then copy it to the screen
