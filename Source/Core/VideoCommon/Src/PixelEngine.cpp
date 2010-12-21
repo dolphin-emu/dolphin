@@ -364,6 +364,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
 		// This seems smelly...
 		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
+		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 		CommandProcessor::interruptTokenWaiting = true;
 		g_VideoInitialize.pScheduleEvent_Threadsafe(
 			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
