@@ -64,6 +64,37 @@ void SendKeyEvent(Display *dpy, int key)
 		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.");
 }
 
+void SendButtonEvent(Display *dpy, int button, int x, int y, bool pressed)
+{
+	XEvent event;
+	Window win = (Window)Core::GetWindowHandle();
+
+	// Init X event structure for mouse button press event
+	event.xbutton.type = pressed ? ButtonPress : ButtonRelease;
+	event.xbutton.x = x;
+	event.xbutton.y = y;
+	event.xbutton.button = button;
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+		ERROR_LOG(VIDEO, "Failed to send mouse button event to the emulator window.");
+}
+
+void SendMotionEvent(Display *dpy, int x, int y)
+{
+	XEvent event;
+	Window win = (Window)Core::GetWindowHandle();
+
+	// Init X event structure for mouse motion
+	event.xmotion.type = MotionNotify;
+	event.xmotion.x = x;
+	event.xmotion.y = y;
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+		ERROR_LOG(VIDEO, "Failed to send mouse button event to the emulator window.");
+}
+
 void EWMH_Fullscreen(Display *dpy, int action)
 {
 	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD

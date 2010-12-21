@@ -838,6 +838,21 @@ void CFrame::StartGame(const std::string& filename)
 		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
 				wxKeyEventHandler(CFrame::OnKeyUp),
 				(wxObject*)0, this);
+		wxTheApp->Connect(wxID_ANY, wxEVT_RIGHT_DOWN, // Mouse
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Connect(wxID_ANY, wxEVT_RIGHT_UP,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Connect(wxID_ANY, wxEVT_MIDDLE_DOWN,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Connect(wxID_ANY, wxEVT_MIDDLE_UP,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
 		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
@@ -938,6 +953,21 @@ void CFrame::DoStop()
 				(wxObject*)0, this);
 		wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_UP,
 				wxKeyEventHandler(CFrame::OnKeyUp),
+				(wxObject*)0, this);
+		wxTheApp->Disconnect(wxID_ANY, wxEVT_RIGHT_DOWN, // Mouse
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Disconnect(wxID_ANY, wxEVT_RIGHT_UP,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Disconnect(wxID_ANY, wxEVT_MIDDLE_DOWN,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Disconnect(wxID_ANY, wxEVT_MIDDLE_UP,
+				wxMouseEventHandler(CFrame::OnMouse),
+				(wxObject*)0, this);
+		wxTheApp->Disconnect(wxID_ANY, wxEVT_MOTION,
+				wxMouseEventHandler(CFrame::OnMouse),
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_ARROW);

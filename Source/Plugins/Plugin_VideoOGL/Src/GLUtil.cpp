@@ -21,6 +21,7 @@
 #include "Setup.h"
 
 #include "Render.h"
+#include "VertexShaderManager.h"
 
 #include "GLUtil.h"
 
@@ -150,11 +151,16 @@ void DestroyXWindow(void)
 
 THREAD_RETURN XEventThread(void *pArg)
 {
+	// Free look variables
+	static bool mouseLookEnabled = false;
+	static bool mouseMoveEnabled = false;
+	static float lastMouse[2];
 	while (GLWin.win)
 	{
 		XEvent event;
 		KeySym key;
-		for (int num_events = XPending(GLWin.evdpy); num_events > 0; num_events--) {
+		for (int num_events = XPending(GLWin.evdpy); num_events > 0; num_events--)
+		{
 			XNextEvent(GLWin.evdpy, &event);
 			switch(event.type) {
 				case KeyPress:
@@ -195,6 +201,86 @@ THREAD_RETURN XEventThread(void *pArg)
 							break;
 						default:
 							break;
+					}
+					if (g_Config.bFreeLook)
+					{
+						static float debugSpeed = 1.0f;
+						switch (key)
+						{
+							case XK_parenleft:
+								debugSpeed /= 2.0f;
+								break;
+							case XK_parenright:
+								debugSpeed *= 2.0f;
+								break;
+							case XK_w:
+								VertexShaderManager::TranslateView(0.0f, debugSpeed);
+								break;
+							case XK_s:
+								VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+								break;
+							case XK_a:
+								VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+								break;
+							case XK_d:
+								VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+								break;
+							case XK_r:
+								VertexShaderManager::ResetView();
+								break;
+						}
+					}
+					break;
+				case ButtonPress:
+					if (g_Config.bFreeLook)
+					{
+						switch (event.xbutton.button)
+						{
+							case 2: // Middle button
+								lastMouse[0] = event.xbutton.x;
+								lastMouse[1] = event.xbutton.y;
+								mouseMoveEnabled = true;
+								break;
+							case 3: // Right button
+								lastMouse[0] = event.xbutton.x;
+								lastMouse[1] = event.xbutton.y;
+								mouseLookEnabled = true;
+								break;
+						}
+					}
+					break;
+				case ButtonRelease:
+					if (g_Config.bFreeLook)
+					{
+						switch (event.xbutton.button)
+						{
+							case 2: // Middle button
+								mouseMoveEnabled = false;
+								break;
+							case 3: // Right button
+								mouseLookEnabled = false;
+								break;
+						}
+					}
+					break;
+				case MotionNotify:
+					if (g_Config.bFreeLook)
+					{
+						if (mouseLookEnabled)
+						{
+							VertexShaderManager::RotateView((event.xmotion.x - lastMouse[0]) / 200.0f,
+									(event.xmotion.y - lastMouse[1]) / 200.0f);
+							lastMouse[0] = event.xmotion.x;
+							lastMouse[1] = event.xmotion.y;
+						}
+
+						if (mouseMoveEnabled)
+						{
+							VertexShaderManager::TranslateView((event.xmotion.x - lastMouse[0]) / 50.0f,
+									(event.xmotion.y - lastMouse[1]) / 50.0f);
+							lastMouse[0] = event.xmotion.x;
+							lastMouse[1] = event.xmotion.y;
+						}
 					}
 					break;
 				case ConfigureNotify:

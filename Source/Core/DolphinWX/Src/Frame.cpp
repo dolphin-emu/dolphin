@@ -837,12 +837,20 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
 #endif
 		}
-#ifdef _WIN32
 		// Send the freelook hotkeys to the video plugin
-		if ((event.GetKeyCode() == '0', '9', 'W', 'S', 'A', 'D', 'R')
+		if ((event.GetKeyCode() == ')' || event.GetKeyCode() == '(' ||
+					event.GetKeyCode() == '0' || event.GetKeyCode() == '9' ||
+					event.GetKeyCode() == 'W' || event.GetKeyCode() == 'S' ||
+					event.GetKeyCode() == 'A' || event.GetKeyCode() == 'D' ||
+					event.GetKeyCode() == 'R')
 				&& event.GetModifiers() == wxMOD_SHIFT)
+		{
+#ifdef _WIN32
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
+#elif defined(HAVE_X11) && HAVE_X11
+			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
 #endif
+		}
 	}
 	else
 		event.Skip();
@@ -851,6 +859,21 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
 	event.Skip();
+}
+
+void CFrame::OnMouse(wxMouseEvent& event)
+{
+#if defined(HAVE_X11) && HAVE_X11
+	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if(event.Dragging())
+			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),
+					event.GetPosition().x, event.GetPosition().y);
+		else
+			X11Utils::SendButtonEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetButton(),
+					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
+	}
+#endif
 }
 
 void CFrame::DoFullscreen(bool bF)

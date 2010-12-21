@@ -311,8 +311,11 @@ class CFrame : public CRenderFrame
 		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnToggleWindow(wxCommandEvent& event);
-		void OnKeyDown(wxKeyEvent& event);
+
+		void OnKeyDown(wxKeyEvent& event); // Keyboard
 		void OnKeyUp(wxKeyEvent& event);
+
+		void OnMouse(wxMouseEvent& event); // Mouse
 		
 		void OnHostMessage(wxCommandEvent& event);
 

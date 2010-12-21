@@ -124,7 +124,9 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode)
 
 ControlState KeyboardMouse::Key::GetState(const State* const state) const
 {
-	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0;
+	KeyCode shift = XKeysymToKeycode(m_display, XK_Shift_L);
+	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0
+			&& (state->keyboard[shift/8] & (1 << (shift%8))) == 0;
 }
 
 ControlState KeyboardMouse::Button::GetState(const State* const state) const
