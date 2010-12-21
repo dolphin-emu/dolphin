@@ -25,6 +25,7 @@
 
 bool textureChanged[8];
 const bool renderFog = false;
+u32 prev_pix_format = -1;
 
 namespace BPFunctions
 {
@@ -151,8 +152,9 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 		}
 		else // (1): Clear alpha channel to 0xFF if no alpha channel is supposed to be there
 		{
-			color |= 0xFF000000;
+			color |= (prev_pix_format == PIXELFMT_RGBA6_Z24) ? 0x0 : 0xFF000000;
 		}
+		prev_pix_format = bpmem.zcontrol.pixel_format;
 		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }
