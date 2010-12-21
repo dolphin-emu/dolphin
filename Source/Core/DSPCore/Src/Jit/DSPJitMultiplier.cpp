@@ -22,6 +22,7 @@
 
 #include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
+#include "../DSPAnalyzer.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 using namespace Gen;
@@ -166,10 +167,13 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 void DSPEmitter::tstprod(const UDSPInstruction opc)
 {
 #ifdef _M_X64
-//	s64 prod = dsp_get_long_prod();
-	get_long_prod();
-//	Update_SR_Register64(prod);
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+//		s64 prod = dsp_get_long_prod();
+		get_long_prod();
+//		Update_SR_Register64(prod);
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -192,7 +196,10 @@ void DSPEmitter::movp(const UDSPInstruction opc)
 //	dsp_set_long_acc(dreg, acc);
 	set_long_acc(dreg);
 //	Update_SR_Register64(acc);
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -215,7 +222,10 @@ void DSPEmitter::movnp(const UDSPInstruction opc)
 //	dsp_set_long_acc(dreg, acc);
 	set_long_acc(dreg);
 //	Update_SR_Register64(acc);
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -237,7 +247,10 @@ void DSPEmitter::movpz(const UDSPInstruction opc)
 //	dsp_set_long_acc(dreg, acc);
 	set_long_acc(dreg);
 //	Update_SR_Register64(acc);
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -342,7 +355,10 @@ void DSPEmitter::mulac(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -368,7 +384,10 @@ void DSPEmitter::mulmv(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -395,7 +414,10 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -555,7 +577,10 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -591,7 +616,10 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -629,7 +657,10 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 	POP(64, R(RAX));
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif

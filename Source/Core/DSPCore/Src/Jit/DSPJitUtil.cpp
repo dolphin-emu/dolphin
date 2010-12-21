@@ -466,14 +466,15 @@ void DSPEmitter::dmem_read_imm(u16 address)
 
 // Returns s64 in RAX
 // Clobbers RSI, RDI
-void DSPEmitter::get_long_prod()
+void DSPEmitter::get_long_prod(X64Reg long_prod)
 {
 #ifdef _M_X64
+	/*	
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];	
-	MOVSX(64, 8, RAX, MDisp(R11,DSP_REG_PRODH*2));
+	MOVSX(64, 8, long_prod, MDisp(R11,DSP_REG_PRODH*2));
 	//val <<= 32;
-	SHL(64, R(RAX), Imm8(32));
+	SHL(64, R(long_prod), Imm8(32));
 	//s64 low_prod  = g_dsp.r[DSP_REG_PRODM];
 	MOVSX(64, 16, RSI, MDisp(R11,DSP_REG_PRODM*2));
 	//low_prod += g_dsp.r[DSP_REG_PRODM2];
@@ -481,33 +482,50 @@ void DSPEmitter::get_long_prod()
 	ADD(16, R(RSI), R(EDI));
 	//low_prod <<= 16;
 	SHL(64, R(RSI), Imm8(16));
-	OR(64, R(RAX), R(RSI));
+	OR(64, R(long_prod), R(RSI));
 	//low_prod |= g_dsp.r[DSP_REG_PRODL];
-	MOV(16, R(RAX), MDisp(R11,DSP_REG_PRODL*2));
+	MOV(16, R(long_prod), MDisp(R11,DSP_REG_PRODL*2));
 	//return val;
+	*/
+
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];	
+	MOVSX(64, 8, long_prod, MDisp(R11,DSP_REG_PRODH*2));
+	//val <<= 32;
+	SHL(64, R(long_prod), Imm8(16));
+	//s64 low_prod  = g_dsp.r[DSP_REG_PRODM];
+	OR(16, R(long_prod), MDisp(R11,DSP_REG_PRODM*2));
+	//low_prod += g_dsp.r[DSP_REG_PRODM2];
+	ADD(16, R(long_prod), MDisp(R11,DSP_REG_PRODM2*2));
+	//low_prod <<= 16;
+	SHL(64, R(long_prod), Imm8(16));
+	//low_prod |= g_dsp.r[DSP_REG_PRODL];
+	OR(16, R(long_prod), MDisp(R11,DSP_REG_PRODL*2));
+	//return val;
+
 #endif
 }
 
 // Returns s64 in RAX
 // Clobbers RSI
-void DSPEmitter::get_long_prod_round_prodl()
+void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 {
 #ifdef _M_X64
 	//s64 prod = dsp_get_long_prod();
 	get_long_prod();
 
 	//if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
-	TEST(32, R(EAX), Imm32(0x10000));
+	TEST(32, R(long_prod), Imm32(0x10000));
 	FixupBranch jump = J_CC(CC_Z);
-	ADD(64, R(RAX), Imm32(0x8000));
+	ADD(64, R(long_prod), Imm32(0x8000));
 	MOV(64, R(ESI), Imm64(~0xffff));
-	AND(64, R(RAX), R(RSI));
+	AND(64, R(long_prod), R(RSI));
 	FixupBranch ret = J();
 	//else prod = (prod + 0x7fff) & ~0xffff;
 	SetJumpTarget(jump);
-	ADD(64, R(RAX), Imm32(0x7fff));
+	ADD(64, R(long_prod), Imm32(0x7fff));
 	MOV(64, R(RSI), Imm64(~0xffff));
-	AND(64, R(RAX), R(RSI));
+	AND(64, R(long_prod), R(RSI));
 	SetJumpTarget(ret);
 	//return prod;
 #endif
@@ -523,13 +541,13 @@ void DSPEmitter::set_long_prod()
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOV(16, MDisp(R11, DSP_REG_PRODL * 2), R(AX));
 	//	val >>= 16;
-	SHR(64, R(RAX), Imm8(16));
+	SAR(64, R(RAX), Imm8(16));
 	//	g_dsp.r[DSP_REG_PRODM] = (u16)val;
 	MOV(16, MDisp(R11, DSP_REG_PRODM * 2), R(AX));
 	//	val >>= 16;
-	SHR(64, R(RAX), Imm8(16));
+	SAR(64, R(RAX), Imm8(16));
 	//	g_dsp.r[DSP_REG_PRODH] = (u8)val;
-	MOVZX(64, 8, RAX, R(AL));
+	MOVSX(64, 8, RAX, R(AL));
 	MOV(8, MDisp(R11, DSP_REG_PRODH * 2), R(AL));
 	//	g_dsp.r[DSP_REG_PRODM2] = 0;
 	MOV(16, MDisp(R11, DSP_REG_PRODM2 * 2), Imm16(0));
@@ -537,40 +555,38 @@ void DSPEmitter::set_long_prod()
 }
 
 // Returns s64 in RAX
-// Clobbers ESI
-void DSPEmitter::get_long_acc(int _reg)
+void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 {
 #ifdef _M_X64
 //	s64 high = (s64)(s8)g_dsp.r[DSP_REG_ACH0 + reg] << 32;
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 8, EAX, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2));
-	SHL(64, R(EAX), Imm8(32));
+	MOVSX(64, 8, acc, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2));
+	SHL(64, R(acc), Imm8(16));
 //	u32 mid_low = ((u32)g_dsp.r[DSP_REG_ACM0 + reg] << 16) | g_dsp.r[DSP_REG_ACL0 + reg];
-	MOVZX(64, 16, RSI, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
-	SHL(32, R(RSI), Imm8(16));
-	OR(64, R(EAX), R(RSI));
-	MOVZX(64, 16, RSI, MDisp(R11, (DSP_REG_ACL0 + _reg) * 2));
-	OR(64, R(EAX), R(RSI));
+	OR(16, R(acc), MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+	SHL(64, R(acc), Imm8(16));
+	OR(16, R(acc), MDisp(R11, (DSP_REG_ACL0 + _reg) * 2));
 //	return high | mid_low;
 #endif
 }
 
 // In: RAX = s64 val
-void DSPEmitter::set_long_acc(int _reg)
+// Clobbers the input reg
+void DSPEmitter::set_long_acc(int _reg, X64Reg acc)
 {
 #ifdef _M_X64
 //	g_dsp.r[DSP_REG_ACL0 + _reg] = (u16)val;
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, (DSP_REG_ACL0 + _reg) * 2), R(AX));
+	MOV(16, MDisp(R11, (DSP_REG_ACL0 + _reg) * 2), R(acc));
 //	val >>= 16;
-	SHR(64, R(RAX), Imm8(16));
+	SHR(64, R(acc), Imm8(16));
 //	g_dsp.r[DSP_REG_ACM0 + _reg] = (u16)val;
-	MOV(16, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2), R(AX));
+	MOV(16, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2), R(acc));
 //	val >>= 16;
-	SHR(64, R(RAX), Imm8(16));
+	SHR(64, R(acc), Imm8(16));
 //	g_dsp.r[DSP_REG_ACH0 + _reg] = (u16)(s16)(s8)(u8)val;
-	MOVSX(16, 8, AX, R(AX));
-	MOV(16, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2), R(AX));
+	MOVSX(64, 8, acc, R(acc));
+	MOV(16, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2), R(acc));
 #endif
 }
 
@@ -581,6 +597,18 @@ void DSPEmitter::get_acc_m(int _reg)
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+#endif
+}
+
+// Returns u32 in EAX
+void DSPEmitter::get_long_acx(int _reg, X64Reg acx)
+{
+//	return ((u32)g_dsp.r[DSP_REG_AXH0 + _reg] << 16) | g_dsp.r[DSP_REG_AXL0 + _reg];
+#ifdef _M_X64
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, acx, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
+	SHL(64, R(acx), Imm8(16));
+	OR(16, R(acx), MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
 #endif
 }
 

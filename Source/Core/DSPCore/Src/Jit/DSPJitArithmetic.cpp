@@ -20,6 +20,7 @@
 #include "../DSPIntCCUtil.h"
 #include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
+#include "../DSPAnalyzer.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 using namespace Gen;
@@ -96,14 +97,21 @@ using namespace Gen;
 // Test accumulator %acR.
 //
 // flags out: --xx xx00
-//void DSPEmitter::tst(const UDSPInstruction opc)
-//{
-//	u8 reg = (opc >> 11) & 0x1;
-
-//	s64 acc = dsp_get_long_acc(reg);
-//	Update_SR_Register64(acc);
-//	zeroWriteBackLog();
-//}
+void DSPEmitter::tst(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		u8 reg = (opc >> 11) & 0x1;
+//		s64 acc = dsp_get_long_acc(reg);
+		get_long_acc(reg);
+//		Update_SR_Register64(acc);
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // TSTAXH $axR.h
 // 1000 011r xxxx xxxx
@@ -383,8 +391,8 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_acc(dreg);
-	get_long_acc(dreg);
-	PUSH(64, R(RAX));
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
 	MOVSX(64, 16, RDX, MDisp(R11, sreg * 2));
 //	ax <<= 16;
@@ -392,27 +400,18 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 //	s64 res = acc + ax;
 	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
-	set_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, ax, res));
-	XOR(8, R(RSI), R(RSI));
-	POP(64, R(RCX));
-	CMP(64, R(RCX), R(RAX));
-
-	// Carry = (acc>res)
-	FixupBranch noCarry = J_CC(CC_G);
-	OR(8, R(RSI), Imm8(1));
-	SetJumpTarget(noCarry);
-
-	// Overflow = ((acc ^ res) & (ax ^ res)) < 0
-	XOR(64, R(RCX), R(RAX));
-	XOR(64, R(RDX), R(RAX));
-	AND(64, R(RCX), R(RDX));
-	CMP(64, R(RCX), Imm8(0));
-	FixupBranch noOverflow = J_CC(CC_L);
-	OR(8, R(RSI), Imm8(2));
-	SetJumpTarget(noOverflow);
-
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+	
 #else
 	Default(opc);
 #endif
@@ -423,61 +422,106 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // Adds secondary accumulator $axS to accumulator register $acD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::addax(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::addax(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 ax  = dsp_get_long_acx(sreg);
+	get_long_acx(sreg, RDX);
 //	s64 res = acc + ax;
-
-//	zeroWriteBackLog();
-
+	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, ax, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ADD $acD, $ac(1-D)
 // 0100 110d xxxx xxxx
 // Adds accumulator $ac(1-D) to accumulator register $acD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::add(const UDSPInstruction opc)
-//{
-//	u8 dreg  = (opc >> 8) & 0x1;
+void DSPEmitter::add(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg  = (opc >> 8) & 0x1;
 
 //	s64 acc0 = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 acc1 = dsp_get_long_acc(1 - dreg);
+	get_long_acc(1 - dreg, RDX);
 //	s64 res = acc0 + acc1;
-
-//	zeroWriteBackLog();
-
+	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc0, res), isOverflow(acc0, acc1, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ADDP $acD
 // 0100 111d xxxx xxxx
 // Adds product register to accumulator register.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::addp(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
+void DSPEmitter::addp(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 prod = dsp_get_long_prod();
+	get_long_prod(RDX);
 //	s64 res = acc + prod;
-
-//	zeroWriteBackLog();
-
+	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, prod, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ADDAXL $acD, $axS.l
 // 0111 00sd xxxx xxxx
@@ -508,77 +552,145 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::addi(const UDSPInstruction opc)
-//{
-//	u8 areg = (opc >> 8) & 0x1;
-
+void DSPEmitter::addi(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 areg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(areg);
+	get_long_acc(areg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 imm = (s16)dsp_fetch_code();
-//	imm <<= 16;
+	s16 imm = dsp_imem_read(compilePC+1);
+	//imm <<= 16;
+	MOV(16, R(RDX), Imm16(imm));
+	MOVSX(64, 16, RDX, R(RDX));
+	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc + imm;
-
+	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(areg, res);
 //	res = dsp_get_long_acc(areg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, imm, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(areg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(areg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ADDIS $acD, #I
 // 0000 010d iiii iiii
 // Adds short immediate (8-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::addis(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
+void DSPEmitter::addis(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 imm = (s8)(u8)opc;
 //	imm <<= 16;
+	MOV(8, R(RDX), Imm8((u8)opc));
+	MOVSX(64, 8, RDX, R(RDX));
+	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc + imm;
-
+	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, imm, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // INCM $acsD
 // 0111 010d xxxx xxxx
 // Increment 24-bit mid-accumulator $acsD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::incm(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-
-//	s64 sub = 0x10000;
+void DSPEmitter::incm(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	s64 sub = 0x10000;
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 res = acc + sub;
-
-//	zeroWriteBackLog();
-//	
+	ADD(64, R(RAX), Imm32((u32)sub));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, sub, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RDX), Imm32((u32)sub));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg);
+		Update_SR_Register64_Carry();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // INC $acD
 // 0111 011d xxxx xxxx
 // Increment accumulator $acD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::inc(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-
+void DSPEmitter::inc(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(dreg);
-//	s64 res = acc + 1;	
-
-//	zeroWriteBackLog();
-
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
+//	s64 res = acc + 1;
+	ADD(64, R(RAX), Imm8(1));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, 1, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RDX), Imm64(1));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg);
+		Update_SR_Register64_Carry();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 //----
 
@@ -587,122 +699,216 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // Subtracts register $axS.L from accumulator $acD.M register.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::subr(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+void DSPEmitter::subr(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RDX, MDisp(R11, sreg * 2));
 //	ax <<= 16;
+	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc - ax;
-
-//	zeroWriteBackLog();
-
+	SUB(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -ax, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		NEG(64, R(RDX));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // SUBAX $acD, $axS
 // 0101 10sd xxxx xxxx
 // Subtracts secondary accumulator $axS from accumulator register $acD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::subax(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::subax(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 acx = dsp_get_long_acx(sreg);
+	get_long_acx(sreg, RDX);
 //	s64 res = acc - acx;
-
-//	zeroWriteBackLog();
-
+	SUB(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -acx, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		NEG(64, R(RDX));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // SUB $acD, $ac(1-D)
 // 0101 110d xxxx xxxx
 // Subtracts accumulator $ac(1-D) from accumulator register $acD. 
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::sub(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-
+void DSPEmitter::sub(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 //	s64 acc1 = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 acc2 = dsp_get_long_acc(1 - dreg);
+	get_long_acc(1 - dreg, RDX);
 //	s64 res = acc1 - acc2;
-
-//	zeroWriteBackLog();
-
+	SUB(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc1, res), isOverflow(acc1, -acc2, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		NEG(64, R(RDX));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // SUBP $acD
 // 0101 111d xxxx xxxx
 // Subtracts product register from accumulator register.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::subp(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-
+void DSPEmitter::subp(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 prod = dsp_get_long_prod();
+	get_long_prod(RDX);
 //	s64 res = acc - prod;
-
-//	zeroWriteBackLog();
-
+	SUB(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -prod, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		NEG(64, R(RDX));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // DECM $acsD
 // 0111 100d xxxx xxxx
 // Decrement 24-bit mid-accumulator $acsD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::decm(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x01;
-
-//	s64 sub = 0x10000;
+void DSPEmitter::decm(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x01;
+	s64 sub = 0x10000;
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 res = acc - sub;
-
-//	zeroWriteBackLog();
-//	
+	SUB(64, R(RAX), Imm32((u32)sub));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);	
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -sub, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(64, R(RDX), Imm64(-sub));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // DEC $acD
 // 0111 101d xxxx xxxx
 // Decrement accumulator $acD.
 //
 // flags out: x-xx xxxx
-//void DSPEmitter::dec(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x01;
-
+void DSPEmitter::dec(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x01;
 //	s64 acc = dsp_get_long_acc(dreg); 
+	get_long_acc(dreg, RCX);
+	MOV(64, R(RAX), R(RCX));
 //	s64 res = acc - 1;
-
-//	zeroWriteBackLog();
-
+	SUB(64, R(RAX), Imm8(1));
 //	dsp_set_long_acc(dreg, res);
+	set_long_acc(dreg);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -1, res));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		MOV(8, R(RDX), Imm8(1));
+		NEG(8, R(RDX));
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry2();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 //----
 
@@ -711,38 +917,55 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // Negate accumulator $acD.
 //
 // flags out: --xx xx00
-//void DSPEmitter::neg(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	
+void DSPEmitter::neg(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(dreg);
+	get_long_acc(dreg);
 //	acc = 0 - acc;
-
-//	zeroWriteBackLog();
-
+	NEG(64, R(RAX));
 //	dsp_set_long_acc(dreg, acc);
+	set_long_acc(dreg);
 //	Update_SR_Register64(dsp_get_long_acc(dreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ABS  $acD
 // 1010 d001 xxxx xxxx 
 // absolute value of $acD
 //
 // flags out: --xx xx00
-//void DSPEmitter::abs(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 11) & 0x1;
+void DSPEmitter::abs(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 11) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(dreg); 	
-
-//	if (acc < 0)
-//		acc = 0 - acc;
-//	
-//	zeroWriteBackLog();
-
+	get_long_acc(dreg);
+//	if (acc < 0) acc = 0 - acc;
+	CMP(64, R(RAX), Imm8(0));
+	FixupBranch lessThan = J_CC(CC_L);
+	NEG(64, R(RAX));
+	set_long_acc(dreg);
+	SetJumpTarget(lessThan);
 //	dsp_set_long_acc(dreg, acc);
+	set_long_acc(dreg);
 //	Update_SR_Register64(dsp_get_long_acc(dreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 //----
 
 // MOVR $acD, $axS.R
@@ -752,54 +975,76 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // TODO: Check what happens to acD.h.
 //
 // flags out: --xx xx00
-//void DSPEmitter::movr(const UDSPInstruction opc)
-//{
-//	u8 areg = (opc >> 8) & 0x1;
-//	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
-// 		
+void DSPEmitter::movr(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
+ 		
 //	s64 acc = (s16)g_dsp.r[sreg];
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RAX, MDisp(R11, sreg * 2));
 //	acc <<= 16;
+	SHL(64, R(RAX), Imm8(16));
 //	acc &= ~0xffff;
-
-//	zeroWriteBackLog();
-
 //	dsp_set_long_acc(areg, acc);
-//	Update_SR_Register64(acc);
-//}
+	set_long_acc(areg);
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // MOVAX $acD, $axS
 // 0110 10sd xxxx xxxx
 // Moves secondary accumulator $axS to accumulator $axD. 
 //
 // flags out: --xx xx00
-//void DSPEmitter::movax(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::movax(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 //	s64 acx = dsp_get_long_acx(sreg);
-
-//	zeroWriteBackLog();
-
+	get_long_acx(sreg);
 //	dsp_set_long_acc(dreg, acx);
+	set_long_acc(dreg);
 //	Update_SR_Register64(acx);
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // MOV $acD, $ac(1-D)
 // 0110 110d xxxx xxxx
 // Moves accumulator $ax(1-D) to accumulator $axD.
 //
 // flags out: --x0 xx00
-//void DSPEmitter::mov(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
+void DSPEmitter::mov(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
 //	u64 acc = dsp_get_long_acc(1 - dreg);
-
-//	zeroWriteBackLog();
-
+	get_long_acc(1 - dreg);
 //	dsp_set_long_acc(dreg, acc);
+	set_long_acc(dreg);
 //	Update_SR_Register64(acc);
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 //----
 
@@ -810,6 +1055,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsl16(const UDSPInstruction opc)
 {
+	Default(opc); return; // TODO: Breaks ZTP Wii
 #ifdef _M_X64
 	u8 areg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(areg);
@@ -819,7 +1065,10 @@ void DSPEmitter::lsl16(const UDSPInstruction opc)
 //	dsp_set_long_acc(areg, acc);
 	set_long_acc(areg);
 //	Update_SR_Register64(dsp_get_long_acc(areg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -830,37 +1079,54 @@ void DSPEmitter::lsl16(const UDSPInstruction opc)
 // Logically shifts right accumulator $acR by 16.
 //
 // flags out: --xx xx00
-//void DSPEmitter::lsr16(const UDSPInstruction opc)
-//{
-//	u8 areg = (opc >> 8) & 0x1;
+void DSPEmitter::lsr16(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 areg = (opc >> 8) & 0x1;
 
 //	u64 acc = dsp_get_long_acc(areg);
+	get_long_acc(areg);
 //	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 //	acc >>= 16; 
-
-//	zeroWriteBackLog();
-
+	SHR(64, R(RAX), Imm8(16));
+	AND(64, R(RAX), Imm32(0xffffff));
 //	dsp_set_long_acc(areg, (s64)acc);
+	set_long_acc(areg);
 //	Update_SR_Register64(dsp_get_long_acc(areg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ASR16 $acR
 // 1001 r001 xxxx xxxx
 // Arithmetically shifts right accumulator $acR by 16.
 //
 // flags out: --xx xx00
-//void DSPEmitter::asr16(const UDSPInstruction opc)
-//{
-//	u8 areg = (opc >> 11) & 0x1;
+void DSPEmitter::asr16(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 areg = (opc >> 11) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(areg);
+	get_long_acc(areg);
 //	acc >>= 16;
-
-//	zeroWriteBackLog();
-
+	SHR(64, R(RAX), Imm8(16));
 //	dsp_set_long_acc(areg, acc);
+	set_long_acc(areg);
 //	Update_SR_Register64(dsp_get_long_acc(areg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // LSL $acR, #I
 // 0001 010r 00ii iiii
@@ -876,12 +1142,15 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
 	get_long_acc(rreg);
 
 //	acc <<= shift;
-	SHL(64, R(RAX), Imm8(shift));
+	SHL(64, R(RAX), Imm8((u8)shift));
 
 //	dsp_set_long_acc(rreg, acc);
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-	Update_SR_Register64();
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
 #else
 	Default(opc);
 #endif
@@ -916,17 +1185,26 @@ void DSPEmitter::lsl(const UDSPInstruction opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-//void DSPEmitter::asl(const UDSPInstruction opc)
-//{
-//	u8 rreg = (opc >> 8) & 0x01;
-//	u16 shift = opc & 0x3f;
+void DSPEmitter::asl(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 rreg = (opc >> 8) & 0x01;
+	u16 shift = opc & 0x3f;
 //	u64 acc = dsp_get_long_acc(rreg);
-
+	get_long_acc(rreg);
 //	acc <<= shift;
-//	
+	SHL(64, R(RAX), Imm8((u8)shift));
 //	dsp_set_long_acc(rreg, acc);
+	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64();
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // ASR $acR, #I
 // 0001 010r 11ii iiii

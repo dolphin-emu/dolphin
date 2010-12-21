@@ -49,7 +49,9 @@ public:
 	int STACKALIGN RunForCycles(int cycles);
 
 	// CC Util
-	void Update_SR_Register64(bool carry = false, bool overflow = false);
+	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
+	void Update_SR_Register64_Carry(Gen::X64Reg val = Gen::EAX);
+	void Update_SR_Register64_Carry2(Gen::X64Reg val = Gen::EAX);
 
 	// Register helpers
 	void setCompileSR(u16 bit);
@@ -122,6 +124,7 @@ public:
 	void mrr(const UDSPInstruction opc);
 	void nx(const UDSPInstruction opc);
 
+	// Branch
 	void jcc(const UDSPInstruction opc);
 	void jmprcc(const UDSPInstruction opc);
 	void call(const UDSPInstruction opc);
@@ -144,9 +147,31 @@ public:
 	void ilrri(const UDSPInstruction opc);
 
 	// Arithmetic
+	void tst(const UDSPInstruction opc);
 	void addr(const UDSPInstruction opc);
+	void addax(const UDSPInstruction opc);
+	void add(const UDSPInstruction opc);
+	void addp(const UDSPInstruction opc);
+	void addi(const UDSPInstruction opc);
+	void addis(const UDSPInstruction opc);
+	void incm(const UDSPInstruction opc);
+	void inc(const UDSPInstruction opc);
+	void subr(const UDSPInstruction opc);
+	void subax(const UDSPInstruction opc);
+	void sub(const UDSPInstruction opc);
+	void subp(const UDSPInstruction opc);
+	void decm(const UDSPInstruction opc);
+	void dec(const UDSPInstruction opc);
+	void neg(const UDSPInstruction opc);
+	void abs(const UDSPInstruction opc);
+	void movr(const UDSPInstruction opc);
+	void movax(const UDSPInstruction opc);
+	void mov(const UDSPInstruction opc);
 	void lsl16(const UDSPInstruction opc);
+	void lsr16(const UDSPInstruction opc);
+	void asr16(const UDSPInstruction opc);
 	void lsl(const UDSPInstruction opc);
+	void asl(const UDSPInstruction opc);
 
 	// Multipliers
 	void get_multiply_prod();
@@ -190,17 +215,20 @@ private:
 	// Counts down.
 	// int cycles;
 
+	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
+
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_increment_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_decrement_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
-	void get_long_prod();
-	void get_long_prod_round_prodl();
+	void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
+	void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
 	void set_long_prod();
-	void set_long_acc(int _reg);
+	void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 	void get_acc_m(int _reg);
+	void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
 	void get_ax_l(int _reg);
 	void get_ax_h(int _reg);
-	void get_long_acc(int _reg);
+	void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };
 
 

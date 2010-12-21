@@ -85,6 +85,7 @@ void AnalyzeRange(int start_addr, int end_addr)
 
 	// This may not be 100% accurate in case of jump tables!
 	// It could get desynced, which would be bad. We'll see if that's an issue.
+	u16 last_arithmetic = 0;
 	for (int addr = start_addr; addr < end_addr;)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
@@ -96,16 +97,32 @@ void AnalyzeRange(int start_addr, int end_addr)
 		}
 		code_flags[addr] |= CODE_START_OF_INST;
 		// Look for loops.
-		if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100) {
+		if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100)
+		{
 			// BLOOP, BLOOPI
 			u16 loop_end = dsp_imem_read(addr + 1);
 			code_flags[addr] |= CODE_LOOP_START;
 			code_flags[loop_end] |= CODE_LOOP_END;
-		} else if ((inst & 0xffe0) == 0x0040 || (inst & 0xff00) == 0x1000) {
+		}
+		else if ((inst & 0xffe0) == 0x0040 || (inst & 0xff00) == 0x1000)
+		{
 			// LOOP, LOOPI
 			code_flags[addr] |= CODE_LOOP_START;
 			code_flags[addr + 1] |= CODE_LOOP_END;
 		}
+
+		// Mark the last arithmetic/multiplier instruction before a branch.
+		// We must update the SR reg at these instructions
+		if (opcode->updates_sr)
+		{
+			last_arithmetic = addr;
+		}
+
+		if (opcode->branch && !opcode->uncond_branch)
+		{
+			code_flags[last_arithmetic] |= CODE_UPDATE_SR;
+		}
+
 		addr += opcode->size;
 	}
 
@@ -126,12 +143,12 @@ void AnalyzeRange(int start_addr, int end_addr)
 			}
 			if (found)
 			{
-				NOTICE_LOG(DSPLLE, "Idle skip location found at %02x (sigNum:%d)", addr, s+1);
+				INFO_LOG(DSPLLE, "Idle skip location found at %02x (sigNum:%d)", addr, s+1);
 				code_flags[addr] |= CODE_IDLE_SKIP;
 			}
 		}
 	}
-	NOTICE_LOG(DSPLLE, "Finished analysis.");
+	INFO_LOG(DSPLLE, "Finished analysis.");
 }
 
 void Analyze()

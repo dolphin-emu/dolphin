@@ -91,7 +91,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
 #else
 	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
-	TEST(8, MDisp(RAX,0), Imm8(0xff));
+	TEST(8, MatR(RAX), Imm8(0xff));
 #endif
 	FixupBranch skipCheck = J_CC(CC_Z);
 
@@ -123,7 +123,7 @@ void DSPEmitter::Default(UDSPInstruction inst)
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
 		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+		MOV(16, MatR(RAX), Imm16(compilePC + 1));
 #endif
 	}
 
@@ -225,15 +225,6 @@ void DSPEmitter::Compile(int start_addr)
 	//	ABI_AlignStack(0);
 
 	/*
-	// check if there is an external interrupt
-	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
-		return;
-
-	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
-		return;
-
-	g_dsp.cr &= ~CR_EXTERNAL_INT;
-
 	// Check for other exceptions
 	if (dsp_SR_is_flag_set(SR_INT_ENABLE))
 		return;
@@ -244,7 +235,33 @@ void DSPEmitter::Compile(int start_addr)
 
 	blockLinkEntry = GetCodePtr();
 
+//	ASM version of DSPCore_CheckExternalInterrupt.
+#ifdef _M_IX86 // All32
+	TEST(16, M(&g_dsp.cr), Imm16(CR_EXTERNAL_INT));
+	FixupBranch noExternalInterrupt = J_CC(CC_Z);
+	TEST(16, M(&g_dsp.r[DSP_REG_SR]), Imm16(SR_EXT_INT_ENABLE));
+	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
+	OR(8, M(&g_dsp.exceptions), Imm8(1 << EXP_INT));
+	AND(16, M(&g_dsp.cr), Imm16(~CR_EXTERNAL_INT));
+	SetJumpTarget(externalInterruptDisabled);
+	SetJumpTarget(noExternalInterrupt);
+#else
+	/* // TODO: Needs to be optimised
+	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
+	TEST(16, MatR(RAX), Imm16(CR_EXTERNAL_INT));
+	FixupBranch noExternalInterrupt = J_CC(CC_Z);
+	MOV(64, R(RAX), ImmPtr(&g_dsp.r));
+	TEST(16, MDisp(RAX,DSP_REG_SR*2), Imm16(SR_EXT_INT_ENABLE));
+	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
+	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
+	OR(8, MatR(RAX), Imm8(1 << EXP_INT));
+	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
+	AND(16, MatR(RAX), Imm16(~CR_EXTERNAL_INT));
+	SetJumpTarget(externalInterruptDisabled);
+	SetJumpTarget(noExternalInterrupt);
+	*/
 	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
+#endif
 
 	compilePC = start_addr;
 	bool fixup_pc = false;

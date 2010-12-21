@@ -97,6 +97,7 @@ typedef struct
 	bool branch;
 	bool uncond_branch;
 	bool reads_pc;
+	bool updates_sr;
 } DSPOPCTemplate;
 
 typedef DSPOPCTemplate opc_t;

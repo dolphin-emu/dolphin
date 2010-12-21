@@ -319,7 +319,7 @@ void DSPEmitter::ilrrd(const UDSPInstruction opc)
 	MOV(16, MDisp(R11,dreg*2), R(RAX));
 #endif
 	dsp_conditional_extend_accum(dreg);
-	dsp_decrement_addr_reg(reg);
+	decrement_addr_reg(reg);
 }
 
 // ILRRI $acD.m, @$S
@@ -345,7 +345,7 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 	MOV(16, MDisp(R11,dreg*2), R(RAX));
 #endif
 	dsp_conditional_extend_accum(dreg);
-	dsp_increment_addr_reg(reg);
+	increment_addr_reg(reg);
 }
 
 // ILRRN $acD.m, @$arS
