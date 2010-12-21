@@ -362,7 +362,19 @@ u64 GetSize(const int fd)
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE *f)
 {
-	return GetSize(fileno(f));
+	off_t pos = ftello(f);
+	if (fseeko(f, 0, SEEK_END) != 0) {
+		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+			  f, GetLastErrorMsg());
+		return 0;
+	}
+	off_t size = ftello(f);
+	if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0)) {
+		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+			  f, GetLastErrorMsg());
+		return 0;
+	}
+	return size;
 }
 
 // creates an empty file filename, returns true on success 

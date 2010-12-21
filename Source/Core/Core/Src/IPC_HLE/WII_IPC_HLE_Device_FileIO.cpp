@@ -138,8 +138,8 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	m_Filename = std::string(HLE_IPC_BuildFilename(m_Name.c_str(), 64));
 
-	// AyuanX: I think file must exist before we can open it
-	// otherwise it should be created by FS, not here
+	// The file must exist before we can open it
+	// It should be created by ISFS_CreateFile, not here
 	if(File::Exists(m_Filename.c_str()))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", m_Name.c_str(), Modes[_Mode]);
@@ -161,7 +161,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	if (m_pFileHandle != NULL)
 	{
-		m_FileLength = (u32)File::GetSize(m_Filename.c_str());
+		m_FileLength = (u32)File::GetSize(m_pFileHandle);
 		ReturnValue = m_DeviceID;
 	}
 	else if (ReturnValue == 0)
@@ -178,35 +178,21 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
-	u32 ReturnValue = 0;
+	u32 ReturnValue		= FS_INVALID_ARGUMENT;
 	s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);
 
-	// TODO : The following hack smells bad 
-	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
-	   it's probably better than trying to read outside the file (it seeks to 0x6000 instead
-	   of the correct 0x2000 for the second half of the file). Could this be right
-	   or has it misunderstood the filesize somehow? My guess is that the filesize is
-	   hardcoded in to the game, and it never checks the filesize, so I don't know.
-	   Maybe it's wrong to return the seekposition when it's zero? Perhaps it wants
-	   the filesize then? - No, that didn't work either, it seeks to 0x6000 even if I return
-	   0x4000 from the first seek. */
-
-	s32 NewSeekPosition = SeekPosition;
-	if (m_FileLength > 0 && SeekPosition > (s32)m_FileLength && Mode == 0)
-	{
-		NewSeekPosition = SeekPosition % m_FileLength;
-	}
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: New Seek Pos: 0x%08x, Mode: %i (%s)", NewSeekPosition, Mode, m_Name.c_str());	
+	/* TODO: Check if the new changes and the removed hack
+	         "magically" fixes Zelda - Twilight Princess as well */
 
 	// Set seek mode
 	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
 
 	if (Mode >= 0 && Mode <= 2)
 	{
-        if (fseeko(m_pFileHandle, NewSeekPosition, seek_mode[Mode]) == 0)
+        if (fseeko(m_pFileHandle, SeekPosition, seek_mode[Mode]) == 0)
 		{
 		    ReturnValue = (u32)ftello(m_pFileHandle);
         }
@@ -235,6 +221,7 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     {
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
         ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);		
+        if ((ReturnValue != Size) && ferror(m_pFileHandle)) ReturnValue = FS_EACCESS;
     }
     else
     {
@@ -261,7 +248,7 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 #else
 		(void)Result;
 #endif
-	        ReturnValue = Size;
+	        ReturnValue = (Result == 1) ? Size : FS_EACCESS;
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -285,7 +272,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
-			m_FileLength = (u32)File::GetSize(m_Filename.c_str());
+	    m_FileLength = File::GetSize(m_pFileHandle);
             u32 Position = (u32)ftello(m_pFileHandle);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
