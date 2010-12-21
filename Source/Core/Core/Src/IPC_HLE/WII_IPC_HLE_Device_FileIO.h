@@ -35,7 +35,6 @@ public:
 	bool Read(u32 _CommandAddress);
 	bool Write(u32 _CommandAddress);
     bool IOCtl(u32 _CommandAddress);
-	bool ReturnFileHandle();
 	void DoState(PointerWrap &p);
 
 private:

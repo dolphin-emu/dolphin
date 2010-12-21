@@ -91,8 +91,6 @@ public:
 
 	virtual u32 Update() { return 0; }
 
-	virtual bool ReturnFileHandle() { return false; }
-
 	virtual bool IsHardware() { return m_Hardware; }
 	virtual bool IsOpened() { return m_Active; }
 

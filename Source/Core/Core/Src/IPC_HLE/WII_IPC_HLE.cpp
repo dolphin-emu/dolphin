@@ -316,30 +316,12 @@ void ExecuteCommand(u32 _Address)
             }
             else
             {
-				CmdSuccess = true;
-				// The device is already created 
-                pDevice = AccessDeviceByID(DeviceID);
-
 				// F|RES: prolly the re-open is just a mode change
+                pDevice = AccessDeviceByID(DeviceID);
+				CmdSuccess = pDevice->Open(_Address, Mode);
 
                 INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-
-				if (pDevice->IsHardware())
-				{
-					pDevice->Open(_Address, Mode);
-				}
-				else
-				{
-					// We may not have a file handle at this point, in Mario Kart I got a
-					//  Open > Failed > ... other stuff > ReOpen call sequence, in that case
-					//  we have no file and no file handle, so we call Open again to basically
-					//  get a -106 error so that the game call CreateFile and then ReOpen again. 
-					if (pDevice->ReturnFileHandle())
-						Memory::Write_U32(DeviceID, _Address + 4);
-					else
-						pDevice->Open(_Address, Mode);						
-				}                
             }
         }
         break;

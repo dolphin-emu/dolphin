@@ -147,7 +147,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		{
 		case ISFS_OPEN_READ:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
 		case ISFS_OPEN_WRITE:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
-			// MK Wii gets here corrupting its saves, however using rb+ mode works fine
+			// MK Wii gets here corrupting its saves (truncating rksys.dat), however using rb+ mode works fine
 			// TODO : figure it properly...
 		case ISFS_OPEN_RW:		m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		default: PanicAlert("FileIO: Unknown open mode : 0x%02x", _Mode); break;
@@ -182,7 +182,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), File::GetSize(m_pFileHandle));
 
 	/* TODO: Check if the new changes and the removed hack
 	         "magically" fixes Zelda - Twilight Princess as well */
@@ -297,11 +297,6 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
-}
-
-bool CWII_IPC_HLE_Device_FileIO::ReturnFileHandle()
-{
-	return (m_pFileHandle) ? true : false;
 }
 
 void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
