@@ -387,11 +387,12 @@ void Write16(const u16 _Value, const u32 _Address)
 			tmpControl.Hex = (_Value & ~DSP_CONTROL_MASK) |
 							(dsp_plugin->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
-			// HACK for DSPReset: do it instantaneously
-			if (_Value & 1)
+			// Not really sure if this is correct, but it works...
+			// Kind of a hack because DSP_CONTROL_MASK should make this bit
+			// only viewable to dsp plugin
+			if (_Value & 1 /*DSPReset*/)
 			{
-				Shutdown();
-				Init();
+				g_audioDMA.AudioDMAControl.Hex = 0;
 			}
 
 			// Update DSP related flags
