@@ -51,7 +51,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
-#include "AES/aes.h"
+#include "Crypto/aes.h"
 
 #include "../Boot/Boot_DOL.h"
 #include "NandPaths.h"
