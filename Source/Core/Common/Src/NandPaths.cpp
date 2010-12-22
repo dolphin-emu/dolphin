@@ -18,6 +18,7 @@
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "NandPaths.h"
+#include <fstream>
 
 namespace Common
 {
@@ -85,6 +86,38 @@ bool CheckTitleTIK(u64 _titleID)
 	}
 	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
 	return false;
+}
+
+static void CreateReplacementFile(std::string &filename)
+{
+	std::ofstream replace(filename.c_str());
+	replace <<"\" __22__\n";
+	replace << "* __2a__\n";
+	//replace << "/ __2f__\n";
+	replace << ": __3a__\n";
+	replace << "< __3c__\n";
+	replace << "> __3e__\n";
+	replace << "? __3f__\n";
+	//replace <<"\\ __5c__\n";
+	replace << "| __7c__\n";
+}
+
+void ReadReplacements(replace_v& replacements)
+{
+	replacements.clear();
+	const std::string replace_fname = "/sys/replace";
+	std::string filename(File::GetUserPath(D_WIIROOT_IDX));
+	filename += replace_fname;
+
+	if (!File::Exists(filename.c_str()))
+		CreateReplacementFile(filename);
+
+	std::ifstream f(filename.c_str());
+	char letter;
+	std::string replacement;
+
+	while (f >> letter >> replacement && replacement.size())
+		replacements.push_back(std::make_pair(letter, replacement));
 }
 
 };

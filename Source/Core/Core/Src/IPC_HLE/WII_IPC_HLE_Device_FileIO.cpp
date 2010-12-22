@@ -22,43 +22,11 @@
 
 #include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
+#include "NandPaths.h"
 #include <algorithm>
-#include <fstream>
 
-typedef std::pair<char, std::string> replace_t;
-typedef std::vector<replace_t> replace_v;
-static replace_v replacements;
 
-static void CreateReplacementFile(std::string &filename)
-{
-	std::ofstream replace(filename.c_str());
-	replace <<"\" __22__\n";
-	replace << "* __2a__\n";
-	//replace << "/ __2f__\n";
-	replace << ": __3a__\n";
-	replace << "< __3c__\n";
-	replace << "> __3e__\n";
-	replace << "? __3f__\n";
-	//replace <<"\\ __5c__\n";
-	replace << "| __7c__\n";
-}
-
-static void ReadReplacements()
-{
-	const std::string replace_fname = "/sys/replace";
-	std::string filename(File::GetUserPath(D_WIIROOT_IDX));
-	filename += replace_fname;
-
-	if (!File::Exists(filename.c_str()))
-		CreateReplacementFile(filename);
-
-	std::ifstream f(filename.c_str());
-	char letter;
-	std::string replacement;
-
-	while (f >> letter >> replacement && replacement.size())
-		replacements.push_back(std::make_pair(letter, replacement));
-}
+static Common::replace_v replacements;
 
 // This is used by several of the FileIO and /dev/fs/ functions 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
@@ -70,7 +38,7 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 		path_full += std::string("/title"); // this looks and feel like a hack...
 
 	// Replaces chars that FAT32 can't support with strings defined in /sys/replace
-	for (replace_v::const_iterator i = replacements.begin(); i != replacements.end(); ++i)
+	for (Common::replace_v::const_iterator i = replacements.begin(); i != replacements.end(); ++i)
 	{
 		for (size_t j = 0; (j = path_wii.find(i->first, j)) != path_wii.npos; ++j)
 			path_wii.replace(j, 1, i->second);
@@ -88,7 +56,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 	, m_Mode(0)
 	, m_Seek(0)
 {
-	ReadReplacements();
+	Common::ReadReplacements(replacements);
 }
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
@@ -272,7 +240,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
-	    m_FileLength = File::GetSize(m_pFileHandle);
+		    m_FileLength = File::GetSize(m_pFileHandle);
             u32 Position = (u32)ftello(m_pFileHandle);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);

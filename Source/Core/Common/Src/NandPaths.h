@@ -25,11 +25,15 @@
 
 namespace Common
 {
+	typedef std::pair<char, std::string> replace_t;
+	typedef std::vector<replace_t> replace_v;
+
 	std::string CreateTicketFileName(u64 _titleID);
 	std::string CreateTitleDataPath(u64 _titleID);
 	std::string CreateTitleContentPath(u64 _titleID);
 	bool CheckTitleTMD(u64 _titleID);
 	bool CheckTitleTIK(u64 _titleID);
+	void ReadReplacements(replace_v& replacements);
 }
 #endif
 

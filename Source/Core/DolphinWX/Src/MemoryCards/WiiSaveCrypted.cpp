@@ -23,6 +23,10 @@
 #include "WiiSaveCrypted.h"
 #include "FileUtil.h"
 #include "MathUtil.h"
+#include "NandPaths.h"
+#include <algorithm>
+
+static Common::replace_v replacements;
 
 const u8 SDKey[16] =	{0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
 						 0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
@@ -32,6 +36,7 @@ const u8 MD5_BLANKER[0x10] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
 CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 title)
  : _saveGameTitle(title)
 {
+	Common::ReadReplacements(replacements);
 	strcpy(pathData_bin, FileName);
 	memcpy(SD_IV, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
 
@@ -286,7 +291,14 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 		}
 		else
 		{
-			sprintf(pathRawSave, "%s%s", pathSavedir, _tmpFileHDR.name);
+			std::string fileName ((char*)_tmpFileHDR.name);
+			for (Common::replace_v::const_iterator iter = replacements.begin(); iter != replacements.end(); ++iter)
+			{
+				for (size_t j = 0; (j = fileName.find(iter->first, j)) != fileName.npos; ++j)
+					fileName.replace(j, 1, iter->second);
+			}
+
+			sprintf(pathRawSave, "%s%s", pathSavedir, fileName.c_str());
 			File::CreateFullPath(pathRawSave);
 			if (_tmpFileHDR.type == 1)
 			{
@@ -349,13 +361,25 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		SplitPath(FilesList.at(i), NULL, &__name, &__ext);
 		__name += __ext;
 
+		
+		for (Common::replace_v::const_iterator iter = replacements.begin(); iter != replacements.end(); ++iter)
+		{
+
+			for (size_t j = 0; (j = __name.find(iter->second, j)) != __name.npos; ++j)
+			{
+				/*std::string tmp = __name.substr(0, j) + iter->first +__name.substr(j+iter->second.length(), __name.length());
+				__name = tmp;*/
+				__name.replace(j, iter->second.length(), 1, iter->first);
+			}
+		}
+		
 		if (__name.length() > 0x44)
 		{
 			PanicAlert("%s is too long for the filename, max chars is 45", __name.c_str());
 			b_valid = false;
 			return;
 		}
-		strncpy((char *)tmpFileHDR.name, __name.c_str(), 0x44);
+		strncpy((char *)tmpFileHDR.name, __name.c_str(), __name.length());
 		
 		fpData_bin = fopen(pathData_bin, "ab");
 		if (fpData_bin)

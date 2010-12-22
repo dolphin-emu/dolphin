@@ -25,15 +25,18 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		// Region free - fall through to European defaults for now
 		case 'A':
 
-		case 'X': // Not a real region code. Used by DVDX 1.0 and
-			  // The Homebrew Channel versions 1.0.4 and earlier.
-
+		
 		// PAL
-		case 'D':
+		case 'D': // German
+		case 'X': // Used by a couple PAL games
+		case 'Y': // German, french
+
+
 		case 'L': // Japanese import to PAL regions
 		case 'M': // Japanese import to PAL regions
 		case 'S': // Spanish-speaking regions
 		case 'P':
+		case 'U': // Australia 
 			return IVolume::COUNTRY_EUROPE;
 			break;
 			
