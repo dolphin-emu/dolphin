@@ -112,6 +112,8 @@ private:
 
 	// Wiimote
 	wxChoice* WiiSensBarPos;
+	wxSlider* WiiSensBarSens;
+	wxCheckBox* WiimoteMotor;
 
 	// Misc
 	wxCheckBox* WiiScreenSaver;
@@ -226,6 +228,9 @@ private:
 
 		ID_WII_BT_BAR_TEXT,
 		ID_WII_BT_BAR,
+		ID_WII_BT_SENS_TEXT,
+		ID_WII_BT_SENS,
+		ID_WII_BT_MOT,
 
 		ID_WII_IPL_SSV,
 		ID_WII_IPL_E60,

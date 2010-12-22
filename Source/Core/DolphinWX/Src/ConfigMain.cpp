@@ -100,6 +100,8 @@ EVT_CHOICE(ID_GC_SIDEVICE3, CConfigMain::GCSettingsChanged)
 
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
+EVT_SLIDER(ID_WII_BT_SENS, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_BT_MOT, CConfigMain::WiiSettingsChanged)
 
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
@@ -177,6 +179,8 @@ void CConfigMain::UpdateGUI()
 
 		// Disable stuff on WiiPage
 		WiiSensBarPos->Disable();
+		WiiSensBarSens->Disable();
+		WiimoteMotor->Disable();
 		WiiScreenSaver->Disable();
 		WiiEuRGB60->Disable();
 		WiiAspectRatio->Disable();
@@ -300,6 +304,8 @@ void CConfigMain::InitializeGUIValues()
 
 	// Wii - Wiimote
 	WiiSensBarPos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
+	WiiSensBarSens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
+	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
 	
 	// Wii - Misc
 	WiiScreenSaver->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
@@ -624,6 +630,9 @@ void CConfigMain::CreateGUIControls()
 	sbWiimoteSettings = new wxStaticBoxSizer(wxHORIZONTAL, WiiPage, wxT("Wiimote Settings"));
 	wxStaticText* WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, wxT("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
+	wxStaticText* WiiSensBarSensText = new wxStaticText(WiiPage, ID_WII_BT_SENS_TEXT, wxT("IR Sensitivity:"), wxDefaultPosition, wxDefaultSize);
+	WiiSensBarSens = new wxSlider(WiiPage, ID_WII_BT_SENS, 0, 0, 4);
+	WiimoteMotor = new wxCheckBox(WiiPage, ID_WII_BT_MOT, wxT("Wiimote Motor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Misc Settings
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Misc Settings"));
@@ -643,6 +652,9 @@ void CConfigMain::CreateGUIControls()
 	sWiimoteSettings = new wxGridBagSizer();
 	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sWiimoteSettings->Add(WiiSensBarSensText, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiimoteSettings->Add(WiiSensBarSens, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sWiimoteSettings->Add(WiimoteMotor, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings->Add(sWiimoteSettings);
 
 	sWiiIPLSettings = new wxGridBagSizer();
@@ -1014,6 +1026,12 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	// Wii - Wiimote settings
 	case ID_WII_BT_BAR:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", WiiSensBarPos->GetSelection());
+		break;
+	case ID_WII_BT_SENS:
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", WiiSensBarSens->GetValue());
+		break;
+	case ID_WII_BT_MOT:
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", WiimoteMotor->IsChecked());
 		break;
 	// SYSCONF settings
 	case ID_WII_IPL_SSV:
