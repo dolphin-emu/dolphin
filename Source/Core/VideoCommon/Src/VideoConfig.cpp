@@ -135,6 +135,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "EFBCopyEnable", &bEFBCopyEnable);
 	if (iniFile.Exists("Video", "EFBCopyDisableHotKey"))
 		iniFile.Get("Video", "EFBCopyDisableHotKey", &bOSDHotKey);
+	if (iniFile.Exists("Video", "EFBAccessEnable"))
+		iniFile.Get("Video", "EFBAccessEnable", &bEFBAccessEnable);
 	if (iniFile.Exists("Video", "EFBToTextureEnable"))
 		iniFile.Get("Video", "EFBToTextureEnable", &bCopyEFBToTexture);	
 	if (iniFile.Exists("Video", "EFBScaledCopy"))

@@ -90,7 +90,7 @@ class CISOProperties : public wxDialog
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
 		// Video
 		wxCheckBox *ForceFiltering,
-			*EFBCopyEnable, *EFBToTextureEnable,
+			*EFBCopyEnable, *EFBAccessEnable, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB, *UseZTPSpeedupHack,
 			*DListCache;
 		wxStaticText *Hacktext;
@@ -172,6 +172,7 @@ class CISOProperties : public wxDialog
 			ID_MERGEBLOCKS,
 			ID_FORCEFILTERING,
 			ID_EFBCOPYENABLE,
+			ID_EFBACCESSENABLE,
 			ID_EFBTOTEXTUREENABLE,
 			ID_SAFETEXTURECACHE,
 			ID_DSTALPHAPASS,
