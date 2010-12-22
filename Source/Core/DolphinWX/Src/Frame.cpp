@@ -807,13 +807,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				event.Skip();
 		}
 		else
-#ifdef __APPLE__
-			// We claim all keyboard events while emulation is
-			// running to avoid wxWidgets sounding the system beep
-			// for unhandled key events when receiving pad/wiimote
-			// keypresses separately from HID devices.
-			return;
-#else
+			// On OS X, we claim all keyboard events while
+			// emulation is running to avoid wxWidgets sounding
+			// the system beep for unhandled key events when
+			// receiving pad/wiimote keypresses which take an
+			// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+			// On other platforms, we leave the key event alone
+			// so it can be passed on to the windowing system.
 			event.Skip();
 #endif
 
