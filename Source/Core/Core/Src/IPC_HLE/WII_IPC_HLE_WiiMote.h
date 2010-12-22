@@ -49,7 +49,7 @@ private:
 class CWII_IPC_HLE_WiiMote
 {
 public:
-	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bool ready = false);
+	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD, bool ready = false);
 
 	virtual ~CWII_IPC_HLE_WiiMote() {}
 

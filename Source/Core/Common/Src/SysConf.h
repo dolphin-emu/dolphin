@@ -55,6 +55,25 @@ struct SSysConfEntry
 
 	template<class T>
 	T GetData() { return *(T*)data; }
+	bool GetArrayData(u8* dest, u16 destSize)
+	{
+		if (dest && destSize >= dataLength)
+		{
+			memcpy(dest, data, dataLength);
+			return true;
+		}
+		return false;
+	}
+	bool SetArrayData(u8* buffer, u16 bufferSize)
+	{
+
+		if (buffer && bufferSize == dataLength)
+		{
+			memcpy(data, buffer, dataLength);
+			return true;
+		}
+		return false;
+	}
 };
 
 class SysConf
@@ -93,6 +112,49 @@ public:
 		}
 
 		return m_Entries.at(index).GetData<T>();
+	}
+
+	bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
+	{
+		if (!m_IsValid)
+		{
+			PanicAlert("Trying to read from invalid SYSCONF");
+			return 0;
+		}
+
+		size_t index = 0;
+		for (; index < m_Entries.size() - 1; index++)
+		{
+			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+				break;
+		}
+		if (index == m_Entries.size() - 1)
+		{
+			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			return 0;
+		}
+
+		return m_Entries.at(index).GetArrayData(dest, destSize);
+	}
+
+	bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
+	{
+		if (!m_IsValid)
+			return false;
+
+		size_t index = 0;
+		for (; index < m_Entries.size() - 1; index++)
+		{
+			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+				break;
+		}
+		if (index == m_Entries.size() - 1)
+		{
+			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			return false;
+		}
+
+		return m_Entries.at(index).SetArrayData(buffer, bufferSize);
 	}
 
 	template<class T>
