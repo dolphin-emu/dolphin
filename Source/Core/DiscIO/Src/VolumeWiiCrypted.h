@@ -20,7 +20,7 @@
 
 #include "Volume.h"
 #include "Blob.h"
-#include "AES/aes.h"
+#include "Crypto/aes.h"
 
 // --- this volume type is used for encrypted Wii images ---
 

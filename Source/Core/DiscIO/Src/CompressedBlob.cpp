@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "stdafx.h"
-
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>

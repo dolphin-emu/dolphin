@@ -15,18 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-// -----------
-// Include
-
-#include "stdafx.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
 
 
-#include "Common.h"	// Common
+#include "Common.h"
 #include "IniFile.h"
 #include "LogManager.h"
 

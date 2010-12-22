@@ -30,6 +30,8 @@ set(SRCS	Src/ABI.cpp
 			Src/Version.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp
+			Src/Crypto/aes_cbc.cpp
+			Src/Crypto/aes_core.cpp
 			Src/Crypto/bn.cpp
 			Src/Crypto/ec.cpp
 			Src/Crypto/md5.cpp

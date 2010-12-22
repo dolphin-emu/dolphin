@@ -42,6 +42,8 @@ files = [
 	"Version.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
+	"Crypto/aes_cbc.cpp",
+	"Crypto/aes_core.cpp",
 	"Crypto/bn.cpp",
 	"Crypto/ec.cpp",
 	"Crypto/md5.cpp",

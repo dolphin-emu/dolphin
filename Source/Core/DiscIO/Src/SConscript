@@ -23,8 +23,6 @@ files = [
 	'FileMonitor.cpp',
 	'NANDContentLoader.cpp',
 	'WiiWad.cpp',
-	'AES/aes_cbc.c',
-	'AES/aes_core.c',
 	]
 
 libs = [

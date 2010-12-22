@@ -15,12 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "stdafx.h"
 #include "NANDContentLoader.h"
 
 #include <algorithm>
 #include <cctype> 
-#include "AES/aes.h"
+#include "Crypto/aes.h"
 #include "MathUtil.h"
 #include "FileUtil.h"
 #include "Log.h"

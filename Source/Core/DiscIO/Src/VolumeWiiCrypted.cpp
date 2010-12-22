@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "stdafx.h"
-
 #include "VolumeWiiCrypted.h"
 #include "StringUtil.h"
 

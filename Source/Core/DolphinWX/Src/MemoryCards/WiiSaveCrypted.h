@@ -18,8 +18,8 @@
 #ifndef _WII_SAVE_CRYPTED
 #define _WII_SAVE_CRYPTED
 
-#include "AES/aes.h"
 #include "StringUtil.h"
+#include "Crypto/aes.h"
 #include "Crypto/tools.h"
 #include "Crypto/md5.h"
 
