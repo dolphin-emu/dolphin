@@ -45,7 +45,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	else
 	{
 		maxWM = BT_DINF[0];
-		bdaddr_t tmpBD;// = BDADDR_ANY;
+		bdaddr_t tmpBD = BDADDR_ANY;
 		u8 i = 0;
 		while (i < maxWM)
 		{

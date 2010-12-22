@@ -37,20 +37,12 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 #import <IOBluetooth/IOBluetooth.h>
 
 #include "Common.h"
+#include "HW/Wiimote.h"
 #include "wiiuse_internal.h"
 
 static int wiiuse_connect_single(struct wiimote_t *wm, char *address);
 
-IOBluetoothDevice *btd;
-IOBluetoothL2CAPChannel *ichan;
-IOBluetoothL2CAPChannel *cchan;
-
-#define QUEUE_SIZE 64
-struct buffer {
-	char data[MAX_PAYLOAD];
-	int len;
-} queue[QUEUE_SIZE];
-volatile int reader, writer, outstanding, watermark;
+static struct wiimote_t *motes[MAX_WIIMOTES];
 
 @interface SearchBT: NSObject {
 @public
@@ -86,29 +78,44 @@ volatile int reader, writer, outstanding, watermark;
 	data: (byte *) data
 	length: (NSUInteger) length
 {
-	//	IOBluetoothDevice *device = [l2capChannel getDevice];
+	IOBluetoothDevice *device = [l2capChannel getDevice];
+	struct wiimote_t *wm = NULL;
+
+	for (int i = 0; i < MAX_WIIMOTES; i++) {
+		if (motes[i] == NULL)
+			continue;
+		if ([device isEqual: motes[i]->btd] == TRUE)
+			wm = motes[i];
+		if (i == MAX_WIIMOTES && wm == NULL) {
+			WARN_LOG(WIIMOTE, "Received packet for unknown wiimote");
+			return;
+		}
+	}
 
 	if (length > MAX_PAYLOAD) {
-		WARN_LOG(WIIMOTE, "Dropping wiimote packet - too large");
+		WARN_LOG(WIIMOTE, "Dropping wiimote packet, too large [id %i]",
+			wm->unid);
 		return;
 	}
 
-	if (queue[writer].len != 0) {
-		WARN_LOG(WIIMOTE, "Dropping wiimote packet - queue full");
+	if (wm->queue[wm->writer].len != 0) {
+		WARN_LOG(WIIMOTE, "Dropping wiimote packet, queue full [id %i]",
+			wm->unid);
 		return;
 	}
 
-	memcpy(queue[writer].data, data, length);
-	queue[writer].len = length;
+	memcpy(wm->queue[wm->writer].data, data, length);
+	wm->queue[wm->writer].len = length;
 
-	writer++;
-	outstanding++;
-	if (writer == QUEUE_SIZE)
-		writer = 0;
+	wm->writer++;
+	wm->outstanding++;
+	if (wm->writer == QUEUE_SIZE)
+		wm->writer = 0;
 
-	if (outstanding > watermark) {
-		watermark = outstanding;
-		WARN_LOG(WIIMOTE, "New wiimote queue watermark %d", watermark);
+	if (wm->outstanding > wm->watermark) {
+		wm->watermark = wm->outstanding;
+		WARN_LOG(WIIMOTE, "New wiimote queue watermark %i [id %i]",
+			wm->watermark, wm->unid);
 	}
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
@@ -118,15 +125,27 @@ volatile int reader, writer, outstanding, watermark;
 
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
 {
-	//	IOBluetoothDevice *device = [l2capChannel getDevice];
+	IOBluetoothDevice *device = [l2capChannel getDevice];
+	struct wiimote_t *wm = NULL;
 
-	WARN_LOG(WIIMOTE, "L2CAP channel was closed");
+	for (int i = 0; i < MAX_WIIMOTES; i++) {
+		if (motes[i] == NULL)
+			continue;
+		if ([device isEqual: motes[i]->btd] == TRUE)
+			wm = motes[i];
+		if (i == MAX_WIIMOTES && wm == NULL) {
+			WARN_LOG(WIIMOTE, "Received packet for unknown wiimote");
+			return;
+		}
+	}
 
-	if (l2capChannel == cchan)
-		cchan = nil;
+	WARN_LOG(WIIMOTE, "L2CAP channel was closed [id %i]", wm->unid);
 
-	if (l2capChannel == ichan)
-		ichan = nil;
+	if (l2capChannel == wm->cchan)
+		wm->cchan = nil;
+
+	if (l2capChannel == wm->ichan)
+		wm->ichan = nil;
 }
 @end
 
@@ -154,6 +173,9 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 	NSEnumerator *en;
 	int i, found_devices = 0;
 
+	if (max_wiimotes > MAX_WIIMOTES)
+		return 0;
+
 	bth = [[IOBluetoothHostController alloc] init];
 	if ([bth addressAsString] == nil)
 	{
@@ -164,7 +186,6 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 
 	sbt = [[SearchBT alloc] init];
 	sbt->maxDevices = max_wiimotes;
-/*XXX*/	sbt->maxDevices = 1;
 	bti = [[IOBluetoothDeviceInquiry alloc] init];
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: timeout];
@@ -172,6 +193,7 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 		majorDeviceClass: kBluetoothDeviceClassMajorPeripheral
 		minorDeviceClass: kBluetoothDeviceClassMinorPeripheral2Joystick
 		];
+	[bti setUpdateNewDeviceNames: FALSE];
 
 	IOReturn ret = [bti start];
 	if (ret == kIOReturnSuccess)
@@ -184,13 +206,17 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 	[bti stop];
 	found_devices = [[bti foundDevices] count];
 
-	NOTICE_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
+	NOTICE_LOG(WIIMOTE, "Found %i bluetooth device%c", found_devices,
+		found_devices == 1 ? '\0' : 's');
 
 	en = [[bti foundDevices] objectEnumerator];
 	for (i = 0; i < found_devices; i++) {
-		btd = [en nextObject];
+		wm[i]->btd = [en nextObject];
 		WIIMOTE_ENABLE_STATE(wm[i], WIIMOTE_STATE_DEV_FOUND);
+		motes[i] = wm[i];
 	}
+	for (i = found_devices; i < MAX_WIIMOTES; i++)
+		motes[i] = NULL;
 
 	[bth release];
 	[bti release];
@@ -247,16 +273,18 @@ static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
 	if (wm == NULL || WIIMOTE_IS_CONNECTED(wm))
 		return 0;
 
-	[btd openL2CAPChannelSync: &cchan
+	[wm->btd openL2CAPChannelSync: &wm->cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
-	[btd openL2CAPChannelSync: &ichan
+	[wm->btd openL2CAPChannelSync: &wm->ichan
 		withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
-	if (ichan == NULL || cchan == NULL) {
-		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels");
+	if (wm->ichan == NULL || wm->cchan == NULL) {
+		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels [id %i]",
+			wm->unid);
 		wiiuse_disconnect(wm);
 	}
 
-	NOTICE_LOG(WIIMOTE, "Connected to wiimote [id %i].", wm->unid);
+	NOTICE_LOG(WIIMOTE, "Connected to wiimote at %s [id %i]",
+		[[wm->btd getAddressString] UTF8String], wm->unid);
 
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	wiiuse_set_report_type(wm);
@@ -277,6 +305,7 @@ static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
  */
 void wiiuse_disconnect(struct wiimote_t *wm)
 {
+
 	if (wm == NULL)
 		return;
 
@@ -285,9 +314,9 @@ void wiiuse_disconnect(struct wiimote_t *wm)
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 
-	[cchan closeChannel];
-	[ichan closeChannel];
-	[btd closeConnection];
+	[wm->cchan closeChannel];
+	[wm->ichan closeChannel];
+	[wm->btd closeConnection];
 }
 
 int wiiuse_io_read(struct wiimote_t *wm)
@@ -297,20 +326,20 @@ int wiiuse_io_read(struct wiimote_t *wm)
 	if (!WIIMOTE_IS_CONNECTED(wm))
 		return 0;
 
-	if (outstanding == 0)
+	if (wm->outstanding == 0)
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, true);
 
-	if (queue[reader].len == 0)
+	if (wm->queue[wm->reader].len == 0)
 		return 0;
 
-	bytes = queue[reader].len;
-	memcpy(wm->event_buf, queue[reader].data, bytes);
-	queue[reader].len = 0;
+	bytes = wm->queue[wm->reader].len;
+	memcpy(wm->event_buf, wm->queue[wm->reader].data, bytes);
+	wm->queue[wm->reader].len = 0;
 
-	reader++;
-	outstanding--;
-	if (reader == QUEUE_SIZE)
-		reader = 0;
+	wm->reader++;
+	wm->outstanding--;
+	if (wm->reader == QUEUE_SIZE)
+		wm->reader = 0;
 
 	if (wm->event_buf[0] == '\0')
 		bytes = 0;
@@ -322,7 +351,7 @@ int wiiuse_io_write(struct wiimote_t *wm, byte *buf, int len)
 {
 	IOReturn ret;
 
-	ret = [cchan writeAsync: buf length: len refcon: nil];
+	ret = [wm->cchan writeAsync: buf length: len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;

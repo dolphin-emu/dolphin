@@ -36,8 +36,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer()
 }
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD, bool ready)
-	: m_BD(_BD)
-	, m_HIDControlChannel_Connected(false)
+	: m_HIDControlChannel_Connected(false)
 	, m_HIDControlChannel_ConnectedWait(false)
 	, m_HIDControlChannel_Config(false)
 	, m_HIDControlChannel_ConfigWait(false)
@@ -45,6 +44,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDInterruptChannel_ConnectedWait(false)
 	, m_HIDInterruptChannel_Config(false)
 	, m_HIDInterruptChannel_ConfigWait(false)
+	, m_BD(_BD)
 	, m_Name("Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
 {
@@ -55,7 +55,6 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	m_ConnectionState = (ready) ? CONN_READY : CONN_INACTIVE;
 	m_ConnectionHandle = 0x100 + _Number;
 	memset(m_LinkKey, 0xA0 + _Number, 16);
-
 
 	bdaddr_t _nullBD = BDADDR_ANY;
 	if (memcmp(&m_BD, &_nullBD, sizeof(bdaddr_t))==0)

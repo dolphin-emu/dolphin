@@ -155,6 +155,15 @@ typedef struct wiimote_t {
 		WCONST IOBluetoothDevice *btd;
 		WCONST IOBluetoothL2CAPChannel *ichan;
 		WCONST IOBluetoothL2CAPChannel *cchan;
+	#define QUEUE_SIZE 64
+		WCONST struct buffer {
+			char data[MAX_PAYLOAD];
+			int len;
+		} queue[QUEUE_SIZE];
+		WCONST int reader;
+		WCONST int writer;
+		WCONST int outstanding;
+		WCONST int watermark;
 	#elif defined(__linux__) && HAVE_BLUEZ
 		WCONST bdaddr_t bdaddr;			/**< bt address	(linux)				*/
 		WCONST char bdaddr_str[18];		/**< readable bt address			*/
