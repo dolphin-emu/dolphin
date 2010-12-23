@@ -151,6 +151,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 			// TODO: Not sure whether there's more formats to check for here - maybe GX_TF_Z8 and GX_TF_Z16?
 			if (PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): Reinterpret RGB8 color as RGBA6
 			{
+				// NOTE: color is passed in ARGB order, but EFB uses RGBA
 				u32 srcr8 = (color & 0xFF0000) >> 16;
 				u32 srcg8 = (color & 0xFF00) >> 8;
 				u32 srcb8 =  color & 0xFF;
@@ -166,14 +167,20 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 			}
 			else // (2): convert RGBA8 color to RGBA6
 			{
-				color = ((color & 0xFCFCFCFC) >> 2) << 2;
-				color |= (color >> 6) & 0x3030303;
+				color &= 0xFCFCFCFC;
+				color |= (color >> 6) & 0x03030303;
 			}
 		}
-		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			z >>=8;
-			z = z | (z>>16);
+			z >>= 8;
+			u32 dstr5 = (color & 0xFF0000) >> 19;
+			u32 dstg6 = (color & 0xFF00) >> 10;
+			u32 dstb5 = (color & 0xFF) >> 3;
+			u32 dstr8 = (dstr5 << 3) | (dstr5 >> 2);
+			u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
+			u32 dstb8 = (dstb5 << 3) | (dstb5 >> 2);
+			color = (dstr8 << 16) | (dstg8 << 8) | dstb8;
 		}
 		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
