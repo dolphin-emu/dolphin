@@ -216,7 +216,7 @@ void CLogWindow::LoadSettings()
 	m_FontChoice->SetSelection(font);
 	if (m_FontChoice->GetSelection() < (int)LogFont.size())
 		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[m_FontChoice->GetSelection()]));
-	ini.Get("Options", "WriteToFile", &m_writeFile, true);
+	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	m_writeFileCB->SetValue(m_writeFile);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	m_writeConsoleCB->SetValue(m_writeConsole);

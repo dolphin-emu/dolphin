@@ -84,7 +84,7 @@ void VideoConfig::Load(const char *ini_file)
 	
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 0);
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, 1); // integral
 	
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 	
@@ -98,7 +98,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 
 	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
-	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
+	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
 	iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false);
 	
