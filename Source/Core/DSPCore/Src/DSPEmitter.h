@@ -52,6 +52,8 @@ public:
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
 	void Update_SR_Register64_Carry(Gen::X64Reg val = Gen::EAX);
 	void Update_SR_Register64_Carry2(Gen::X64Reg val = Gen::EAX);
+	void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
+	void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
 
 	// Register helpers
 	void setCompileSR(u16 bit);
@@ -147,11 +149,31 @@ public:
 	void ilrri(const UDSPInstruction opc);
 
 	// Arithmetic
+	void clr(const UDSPInstruction opc);
+	void clrl(const UDSPInstruction opc);
+	void andcf(const UDSPInstruction opc);
+	void andf(const UDSPInstruction opc);
 	void tst(const UDSPInstruction opc);
+	void tstaxh(const UDSPInstruction opc);
+	void cmp(const UDSPInstruction opc);
+	void cmpar(const UDSPInstruction opc);
+	void cmpi(const UDSPInstruction opc);
+	void cmpis(const UDSPInstruction opc);
+	void xorr(const UDSPInstruction opc);
+	void andr(const UDSPInstruction opc);
+	void orr(const UDSPInstruction opc);
+	void andc(const UDSPInstruction opc);
+	void orc(const UDSPInstruction opc);
+	void xorc(const UDSPInstruction opc);
+	void notc(const UDSPInstruction opc);
+	void xori(const UDSPInstruction opc);
+	void andi(const UDSPInstruction opc);
+	void ori(const UDSPInstruction opc);
 	void addr(const UDSPInstruction opc);
 	void addax(const UDSPInstruction opc);
 	void add(const UDSPInstruction opc);
 	void addp(const UDSPInstruction opc);
+	void addaxl(const UDSPInstruction opc);
 	void addi(const UDSPInstruction opc);
 	void addis(const UDSPInstruction opc);
 	void incm(const UDSPInstruction opc);
@@ -171,7 +193,15 @@ public:
 	void lsr16(const UDSPInstruction opc);
 	void asr16(const UDSPInstruction opc);
 	void lsl(const UDSPInstruction opc);
+	void lsr(const UDSPInstruction opc);
 	void asl(const UDSPInstruction opc);
+	void asr(const UDSPInstruction opc);
+	void lsrn(const UDSPInstruction opc);
+	void asrn(const UDSPInstruction opc);
+	void lsrnrx(const UDSPInstruction opc);
+	void asrnrx(const UDSPInstruction opc);
+	void lsrnr(const UDSPInstruction opc);
+	void asrnr(const UDSPInstruction opc);
 
 	// Multipliers
 	void get_multiply_prod();
@@ -192,6 +222,8 @@ public:
 	void mulcac(const UDSPInstruction opc);
 	void mulcmv(const UDSPInstruction opc);
 	void mulcmvz(const UDSPInstruction opc);
+	void maddx(const UDSPInstruction opc);
+	void msubx(const UDSPInstruction opc);
 	void maddc(const UDSPInstruction opc);
 	void msubc(const UDSPInstruction opc);
 	void madd(const UDSPInstruction opc);
@@ -223,11 +255,13 @@ private:
 	void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
 	void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
 	void set_long_prod();
+	void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
 	void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
-	void get_acc_m(int _reg);
+	void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX);
+	void set_acc_m(int _reg);
 	void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
-	void get_ax_l(int _reg);
-	void get_ax_h(int _reg);
+	void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
+	void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
 	void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };
 

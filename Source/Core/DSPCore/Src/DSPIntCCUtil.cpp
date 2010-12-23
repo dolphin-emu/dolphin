@@ -111,8 +111,8 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 	}
 }
 
-void Update_SR_LZ(bool value) {
-
+void Update_SR_LZ(bool value)
+{
 	if (value == true) 
 		g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO; 
 	else

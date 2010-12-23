@@ -407,16 +407,14 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 	u8 rreg = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_prod_round_prodl();
-	get_long_prod_round_prodl();
-	PUSH(64, R(RAX));
-	mul(opc);
+	get_long_prod_round_prodl(RDX);
 //	dsp_set_long_acc(rreg, acc);
-	POP(64, R(RAX));
-	set_long_acc(rreg);
+	set_long_acc(rreg, RDX);
+	mul(opc);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
 	{
-		Update_SR_Register64();
+		Update_SR_Register64(RDX);
 	}
 #else
 	Default(opc);
@@ -673,38 +671,50 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 // Multiply one part of secondary accumulator $ax0 (selected by S) by
 // one part of secondary accumulator $ax1 (selected by T) (treat them both as
 // signed) and add result to product register.
-//void DSPEmitter::maddx(const UDSPInstruction opc)
-//{
-//	u8 treg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::maddx(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
-//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-//	s64 prod = dsp_multiply_add(val1, val2);
-//	
-//	zeroWriteBackLog();
-
-//	dsp_set_long_prod(prod);
-//}
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
+	//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
+	//	s64 prod = dsp_multiply_add(val1, val2);
+	multiply_add();
+	//	dsp_set_long_prod(prod);
+	set_long_prod();
+#else
+	Default(opc);
+#endif
+}
 
 // MSUBX $(0x18+S*2), $(0x19+T*2)
 // 1110 01st xxxx xxxx
 // Multiply one part of secondary accumulator $ax0 (selected by S) by
 // one part of secondary accumulator $ax1 (selected by T) (treat them both as
 // signed) and subtract result from product register.
-//void DSPEmitter::msubx(const UDSPInstruction opc)
-//{
-//	u8 treg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::msubx(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
-//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-//	s64 prod = dsp_multiply_sub(val1, val2);
-
-//	zeroWriteBackLog();
-
-//	dsp_set_long_prod(prod);
-//}
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
+	//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
+	//	s64 prod = dsp_multiply_sub(val1, val2);
+	multiply_sub();
+	//	dsp_set_long_prod(prod);
+	set_long_prod();
+#else
+	Default(opc);
+#endif
+}
 
 // MADDC $acS.m, $axT.h
 // 1110 10st xxxx xxxx

@@ -186,7 +186,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 	// TODO: ToMask flushes flags set by TEST,
 	// needs another CMP here.
 	CMP(16, R(ECX), Imm16(0));
-	FixupBranch neg = J_CC(CC_L);
+	FixupBranch negative = J_CC(CC_L);
 
 	JumpTarget loop_pos = GetCodePtr();
 
@@ -211,7 +211,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 	FixupBranch end_pos = J();
 
 	// else, IX0 < 0
-	SetJumpTarget(neg);
+	SetJumpTarget(negative);
 	JumpTarget loop_neg = GetCodePtr();
 
 	// dsp_decrement
@@ -269,7 +269,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	// TODO: ToMask flushes flags set by TEST,
 	// needs another CMP here.
 	CMP(16, R(ECX), Imm16(0));
-	FixupBranch neg = J_CC(CC_L);
+	FixupBranch negative = J_CC(CC_L);
 
 	JumpTarget loop_pos = GetCodePtr();
 
@@ -282,7 +282,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	FixupBranch end_pos = J();
 
 	// else, IX0 < 0
-	SetJumpTarget(neg);
+	SetJumpTarget(negative);
 	JumpTarget loop_neg = GetCodePtr();
 
 	// dsp_increment
@@ -512,7 +512,7 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 {
 #ifdef _M_X64
 	//s64 prod = dsp_get_long_prod();
-	get_long_prod();
+	get_long_prod(long_prod);
 
 	//if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
 	TEST(32, R(long_prod), Imm32(0x10000));
@@ -555,6 +555,28 @@ void DSPEmitter::set_long_prod()
 }
 
 // Returns s64 in RAX
+// Clobbers RSI
+void DSPEmitter::round_long_acc(X64Reg long_acc)
+{
+#ifdef _M_X64
+	//if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
+	TEST(32, R(long_acc), Imm32(0x10000));
+	FixupBranch jump = J_CC(CC_Z);
+	ADD(64, R(long_acc), Imm32(0x8000));
+	MOV(64, R(ESI), Imm64(~0xffff));
+	AND(64, R(long_acc), R(RSI));
+	FixupBranch ret = J();
+	//else prod = (prod + 0x7fff) & ~0xffff;
+	SetJumpTarget(jump);
+	ADD(64, R(long_acc), Imm32(0x7fff));
+	MOV(64, R(RSI), Imm64(~0xffff));
+	AND(64, R(long_acc), R(RSI));
+	SetJumpTarget(ret);
+	//return prod;
+#endif
+}
+
+// Returns s64 in RAX
 void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 {
 #ifdef _M_X64
@@ -591,12 +613,22 @@ void DSPEmitter::set_long_acc(int _reg, X64Reg acc)
 }
 
 // Returns s16 in AX
-void DSPEmitter::get_acc_m(int _reg)
+void DSPEmitter::get_acc_m(int _reg, X64Reg acm)
 {
 //	return g_dsp.r[DSP_REG_ACM0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+	MOVSX(64, 16, acm, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+#endif
+}
+
+// Returns s16 in AX
+void DSPEmitter::set_acc_m(int _reg)
+{
+	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
+#ifdef _M_X64
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2), R(RAX));
 #endif
 }
 
@@ -613,22 +645,22 @@ void DSPEmitter::get_long_acx(int _reg, X64Reg acx)
 }
 
 // Returns s16 in EAX
-void DSPEmitter::get_ax_l(int _reg)
+void DSPEmitter::get_ax_l(int _reg, X64Reg axl)
 {
 //	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
+	MOVSX(64, 16, axl, MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
 #endif
 }
 
 // Returns s16 in EAX
-void DSPEmitter::get_ax_h(int _reg)
+void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
 {
 //	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
 #ifdef _M_X64
 	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, RAX, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
+	MOVSX(64, 16, axh, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
 #endif
 }
 
