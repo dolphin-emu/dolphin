@@ -132,8 +132,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 //			g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO; 
 //		else
 //			g_dsp.r[DSP_REG_SR] &= ~SR_LOGIC_ZERO;
-		AND(16, R(RAX), Imm16(imm));
-		CMP(16, R(RAX), Imm16(0));
+		TEST(16, R(RAX), Imm16(imm));
 		FixupBranch notLogicZero = J_CC(CC_NE);
 		OR(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
@@ -1500,7 +1499,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	get_long_acc(0, RDX);
 //	acc &= 0x000000FFFFFFFFFFULL;
 	SHL(64, R(RDX), Imm8(24));
-	SAR(64, R(RDX), Imm8(24));
+	SHR(64, R(RDX), Imm8(24));
 
 	//	if ((accm & 0x3f) == 0)
 	//		shift = 0;
@@ -1647,10 +1646,10 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SHL(64, R(RDX), R(RCX));
+	SAR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
-	SAR(64, R(RDX), R(RCX));
+	SHL(64, R(RDX), R(RCX));
 	SetJumpTarget(noShift);
 	SetJumpTarget(exit);
 
@@ -1708,10 +1707,10 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SHL(64, R(RDX), R(RCX));
+	SAR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
-	SAR(64, R(RDX), R(RCX));
+	SHL(64, R(RDX), R(RCX));
 	SetJumpTarget(noShift);
 	SetJumpTarget(exit);
 
@@ -1770,13 +1769,12 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SHL(64, R(RDX), R(RCX));
+	SAR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
-	SAR(64, R(RDX), R(RCX));
+	SHL(64, R(RDX), R(RCX));
 	SetJumpTarget(noShift);
 	SetJumpTarget(exit);
-
 
 //	dsp_set_long_acc(dreg, (s64)acc);
 	set_long_acc(dreg, RDX);
@@ -1830,10 +1828,10 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SHL(64, R(RDX), R(RCX));
+	SAR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
-	SAR(64, R(RDX), R(RCX));
+	SHL(64, R(RDX), R(RCX));
 	SetJumpTarget(noShift);
 	SetJumpTarget(exit);
 
