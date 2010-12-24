@@ -62,6 +62,11 @@ HINSTANCE hid_lib = NULL;
 
 static int initialized = 0;
 
+// VID = Nintendo, PID = Wiimote
+static int VIDLength = 3;
+static int VID[3] = {0x057E, 0x0001, 0x0002};
+static int PID[3] = {0x0306, 0x0002, 0x00F7};
+
 inline void init_lib()
 {
 	if (!initialized)
@@ -160,9 +165,25 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 		attr.Size = sizeof(attr);
 		i = HidD_GetAttributes(dev, &attr);
 
-		if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
+		bool foundWiimote = false;
+		if((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID))
+		{
+			foundWiimote = true;
+		}
+		else
+		{
+			for (int i = 0; i < VIDLength; i++)
+			{
+				if (attr.VendorID == VID[i] && attr.ProductID == PID[i])
+				{
+					foundWiimote = true;
+					break;
+				}
+			}
+		}
 
-
+		if (foundWiimote)
+		{
 			//this is a wiimote
 			wm[wiimotes]->dev_handle = dev;
 
@@ -189,7 +210,9 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 			NOTICE_LOG(WIIMOTE, "Connected to wiimote [id %i].", wm[wiimotes]->unid);
 			++wiimotes;
 
-		} else {
+		}
+		else
+		{
 			// not a wiimote 
 			CloseHandle(dev);
 		}
@@ -379,7 +402,25 @@ int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lP
 				HidD_GetAttributes(dev, &attr);
 
 				//Checking PID&VID
-				if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
+				bool foundWiimote = false;
+				if((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID))
+				{
+					foundWiimote = true;
+				}
+				else
+				{
+					for (int i = 0; i < VIDLength; i++)
+					{
+						if (attr.VendorID == VID[i] && attr.ProductID == PID[i])
+						{
+							foundWiimote = true;
+							break;
+						}
+					}
+				}
+
+				if (foundWiimote)
+				{
 					CloseHandle(dev);
 					return 1;
 				}
