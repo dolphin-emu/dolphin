@@ -94,8 +94,8 @@ public:
 	static int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
 
 	// Floating point versions of the above - only use them if really necessary
-	static float EFBToScaledXf(float x) { return x * (float)GetTargetWidth() / (float)EFB_WIDTH; }
-	static float EFBToScaledYf(float y) { return y * (float)GetTargetHeight() / (float)EFB_HEIGHT; }
+	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
+	static float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
 
 	// Returns the offset at which the EFB will be drawn onto the backbuffer
 	// NOTE: Never calculate this manually (e.g. to "increase accuracy"), since you might end up getting off-by-one errors.

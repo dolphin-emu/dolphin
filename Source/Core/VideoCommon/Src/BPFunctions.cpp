@@ -156,13 +156,13 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 				u32 srcg8 = (color & 0xFF00) >> 8;
 				u32 srcb8 =  color & 0xFF;
 				u32 dstr6 = srcr8 >> 2;
-				u32 dstg6 = ((srcr8 & 0xFF) << 4) | (srcg8 >> 4);
-				u32 dstb6 = ((srcg8 & 0xFFFF) << 2) | (srcb8 >> 6);
-				u32 dsta6 = srcb8 & 0xFFFFFF;
-				u32 dstr8 = (dstr6 << 2) | (dstr6>>4);
-				u32 dstg8 = (dstg6 << 2) | (dstg6>>4);
-				u32 dstb8 = (dstb6 << 2) | (dstb6>>4);
-				u32 dsta8 = (dsta6 << 2) | (dsta6>>4);
+				u32 dstg6 = ((srcr8 & 0x3) << 4) | (srcg8 >> 4);
+				u32 dstb6 = ((srcg8 & 0xF) << 2) | (srcb8 >> 6);
+				u32 dsta6 = srcb8 & 0x3F;
+				u32 dstr8 = (dstr6 << 2) | (dstr6 >> 4);
+				u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
+				u32 dstb8 = (dstb6 << 2) | (dstb6 >> 4);
+				u32 dsta8 = (dsta6 << 2) | (dsta6 >> 4);
 				color = (dsta8 << 24) | (dstr8 << 16) | (dstg8 << 8) | dstb8;
 			}
 			else // (2): convert RGBA8 color to RGBA6

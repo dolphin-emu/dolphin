@@ -355,7 +355,6 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	// TODO: sampleStride scaling might be slightly off
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
@@ -420,7 +419,6 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
     float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	// TODO: sampleStride scaling might be slightly off
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
