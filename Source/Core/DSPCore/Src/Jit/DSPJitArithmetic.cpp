@@ -1115,22 +1115,20 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 res = acc - 1;
-	SUB(64, R(RAX), Imm8(1));
+	SUB(64, R(RAX), Imm32(1));
 //	dsp_set_long_acc(dreg, res);
-	set_long_acc(dreg);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -1, res));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
 	{
-		MOV(8, R(RDX), Imm8(1));
-		NEG(8, R(RDX));
+		MOV(64, R(RDX), Imm64(-1));
 		MOV(64, R(RSI), R(RAX));
 		set_long_acc(dreg, RSI);
 		Update_SR_Register64_Carry2();
 	}
 	else
 	{
-		set_long_acc(dreg, RAX);
+		set_long_acc(dreg);
 	}
 #else
 	Default(opc);
@@ -1282,7 +1280,6 @@ void DSPEmitter::mov(const UDSPInstruction opc)
 // flags out: --xx xx00
 void DSPEmitter::lsl16(const UDSPInstruction opc)
 {
-	Default(opc); return; // TODO: Breaks ZTP Wii
 #ifdef _M_X64
 	u8 areg = (opc >> 8) & 0x1;
 //	s64 acc = dsp_get_long_acc(areg);

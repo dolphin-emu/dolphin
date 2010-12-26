@@ -269,11 +269,11 @@ const DSPOPCTemplate opcodes[] =
 	{"MULMV",	0x9600, 0xf600, DSPInterpreter::mulmv,   &DSPEmitter::mulmv,  1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
 
 	//a-b
-	{"MULX",	0xa000, 0xe700, DSPInterpreter::mulx,    NULL,                1, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}},                           true, false, false, false, true},
+	{"MULX",	0xa000, 0xe700, DSPInterpreter::mulx,    &DSPEmitter::mulx,   1, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}},                           true, false, false, false, true},
 	{"ABS",		0xa100, 0xf700, DSPInterpreter::abs,     &DSPEmitter::abs,    1, 1, {{P_ACC,    1, 0, 11, 0x0800}},                                                         true, false, false, false, true},
-	{"MULXMVZ",	0xa200, 0xe600, DSPInterpreter::mulxmvz, NULL,                1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
-	{"MULXAC",	0xa400, 0xe600, DSPInterpreter::mulxac,  NULL,                1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
-	{"MULXMV",	0xa600, 0xe600, DSPInterpreter::mulxmv,  NULL,                1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
+	{"MULXMVZ",	0xa200, 0xe600, DSPInterpreter::mulxmvz, &DSPEmitter::mulxmvz,1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
+	{"MULXAC",	0xa400, 0xe600, DSPInterpreter::mulxac,  &DSPEmitter::mulxac, 1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
+	{"MULXMV",	0xa600, 0xe600, DSPInterpreter::mulxmv,  &DSPEmitter::mulxmv, 1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true},
 	{"TST",		0xb100, 0xf700, DSPInterpreter::tst,     &DSPEmitter::tst,    1, 1, {{P_ACC,    1, 0, 11, 0x0800}},                                                         true, false, false, false, true},
 
 	//c-d
@@ -292,9 +292,9 @@ const DSPOPCTemplate opcodes[] =
 	//f
 	{"LSL16",	0xf000, 0xfe00, DSPInterpreter::lsl16,   &DSPEmitter::lsl16,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true},
 	{"MADD",	0xf200, 0xfe00, DSPInterpreter::madd,    &DSPEmitter::madd,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false, false, true},
-	{"LSR16",	0xf400, 0xfe00, DSPInterpreter::lsr16,   &DSPEmitter::lsl16,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true},
+	{"LSR16",	0xf400, 0xfe00, DSPInterpreter::lsr16,   &DSPEmitter::lsr16,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true},
 	{"MSUB",	0xf600, 0xfe00, DSPInterpreter::msub,    &DSPEmitter::msub,   1, 2, {{P_REG18, 1, 0,  8, 0x0100},  {P_REG1A, 1, 0, 8, 0x0100}},                             true, false, false, false, true},
-	{"ADDPAXZ",	0xf800, 0xfc00, DSPInterpreter::addpaxz, NULL,                1, 2, {{P_ACC,   1, 0,  9, 0x0200},  {P_AX, 1, 0, 8, 0x0100}},                                true, false, false, false, true},
+	{"ADDPAXZ",	0xf800, 0xfc00, DSPInterpreter::addpaxz, &DSPEmitter::addpaxz,1, 2, {{P_ACC,   1, 0,  9, 0x0200},  {P_AX, 1, 0, 8, 0x0100}},                                true, false, false, false, true},
 	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl,    &DSPEmitter::clrl,   1, 1, {{P_ACCL,  1, 0, 11, 0x0800}},                                                          true, false, false, false, true},
 	{"MOVPZ",	0xfe00, 0xfe00, DSPInterpreter::movpz,   &DSPEmitter::movpz,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true},
 };

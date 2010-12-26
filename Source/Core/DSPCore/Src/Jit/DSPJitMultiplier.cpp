@@ -27,50 +27,6 @@
 #include "ABI.h"
 using namespace Gen;
 
-// Only MULX family instructions have unsigned/mixed support.
-// Returns s64 in EAX
-// In: RSI = u16 a, RDI = u16 b, RCX = u8 sign
-void DSPEmitter::get_multiply_prod()
-{
-#ifdef _M_X64
-//	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
-	MOV(16, R(RDX), MDisp(R11, DSP_REG_SR * 2)); // TODO check 16bit
-	AND(16, R(RDX), Imm16(SR_MUL_UNSIGNED));
-	TEST(16, R(RDX), R(RDX));
-	FixupBranch sign3 = J_CC(CC_Z);
-	TEST(32, R(ECX), Imm32(1));
-	FixupBranch sign1 = J_CC(CC_Z);
-//		prod = (u32)(a * b);
-	MOV(64, R(EAX), R(RDI));
-	MUL(16, R(ESI));
-	FixupBranch mult2 = J();
-	SetJumpTarget(sign1);
-	TEST(32, R(ECX), Imm32(2));
-	FixupBranch sign2 = J_CC(CC_Z);
-//	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
-//		prod = a * (s16)b;
-	MOVSX(64, 16, RDI, R(RDI));
-	MOV(64, R(EAX), R(RDI));
-	MUL(16, R(ESI));
-//	else
-	SetJumpTarget(sign2);
-	SetJumpTarget(sign3);
-//		prod = (s16)a * (s16)b; //signed
-	MOV(64, R(EAX), R(RDI));
-	IMUL(64, R(ESI));
-
-//	Conditionally multiply by 2.
-	SetJumpTarget(mult2);
-//	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)	
-	TEST(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_MUL_MODIFY));
-	FixupBranch noMult2 = J_CC(CC_NZ);
-//		prod <<= 1;
-	SHL(64, R(EAX), Imm8(1));
-	SetJumpTarget(noMult2);
-//	return prod;
-#endif
-}
-
 // Returns s64 in RAX
 // In: RSI = s16 a, RDI = s16 b
 void DSPEmitter::multiply()
@@ -115,8 +71,12 @@ void DSPEmitter::multiply_sub()
 //	return prod;
 }
 
-//inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
-//{
+// Only MULX family instructions have unsigned/mixed support.
+// Returns s64 in EAX
+// In: RSI = s16 a, RDI = s16 b
+// Returns s64 in RAX
+void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
+{
 //	s64 result;
 
 //	if ((axh0==0) && (axh1==0))
@@ -128,8 +88,57 @@ void DSPEmitter::multiply_sub()
 //	else
 //		result = dsp_multiply(val1, val2, 0); // unsigned support OFF if both ax?.h regs are used
 
-//	return result;
-//}
+
+//	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
+	TEST(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_MUL_UNSIGNED));
+	FixupBranch unsignedMul = J_CC(CC_NZ);
+	//		prod = (s16)a * (s16)b; //signed
+	MOVSX(64, 16, RAX, R(RDI));
+	IMUL(64, R(RSI));
+	FixupBranch signedMul = J();
+
+	SetJumpTarget(unsignedMul);
+	if ((axh0==0) && (axh1==0))
+	{
+		// unsigned support ON if both ax?.l regs are used
+//		prod = (u32)(a * b);
+		MOVZX(64, 16, RSI, R(RSI));
+		MOVZX(64, 16, RAX, R(RDI));
+		MUL(64, R(RSI));
+	}
+	else if ((axh0==0) && (axh1==1))
+	{
+		// mixed support ON (u16)axl.0  * (s16)axh.1
+//		prod = a * (s16)b;
+		MOVZX(64, 16, RAX, R(RSI));
+		IMUL(64, R(RDI));
+	}
+	else if ((axh0==1) && (axh1==0))
+	{
+		// mixed support ON (u16)axl.1  * (s16)axh.0
+//		prod = (s16)a * b;
+		MOVZX(64, 16, RAX, R(RDI));
+		IMUL(64, R(RSI));
+	}
+	else
+	{
+		// unsigned support OFF if both ax?.h regs are used
+//		prod = (s16)a * (s16)b; //signed
+		MOVSX(64, 16, RAX, R(RDI));
+		IMUL(64, R(RSI));
+	}
+
+	SetJumpTarget(signedMul);
+
+	//	Conditionally multiply by 2.
+//	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)	
+	TEST(16, MDisp(R11, DSP_REG_SR * 2), Imm16(SR_MUL_MODIFY));
+	FixupBranch noMult2 = J_CC(CC_NZ);
+//		prod <<= 1;
+	SHL(64, R(RAX), Imm8(1));
+	SetJumpTarget(noMult2);
+//	return prod;
+}
 
 //----
 
@@ -262,22 +271,41 @@ void DSPEmitter::movpz(const UDSPInstruction opc)
 // in accumulator register. Low 16-bits of $acD ($acD.l) are set (round) to 0.
 
 // flags out: --xx xx0x
-//void DSPEmitter::addpaxz(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 8) & 0x1;
-//	u8 sreg = (opc >> 9) & 0x1;
+void DSPEmitter::addpaxz(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+
+//	s64 ax = dsp_get_long_acx(sreg);
+	get_long_acx(sreg, RCX);
+	MOV(64, R(RDI), R(RCX));
+//	s64 res = prod + (ax & ~0xffff);
+	MOV(64, R(RDX), Imm64(~0xffff));
+	AND(64, R(RDI), R(RDX));
+//	s64 prod = dsp_get_long_prod_round_prodl();
+	get_long_prod_round_prodl();
+	ADD(64, R(RAX), R(RDI));
 
 //	s64 oldprod = dsp_get_long_prod();
-//	s64 prod = dsp_get_long_prod_round_prodl();
-//	s64 ax = dsp_get_long_acx(sreg);
-//	s64 res = prod + (ax & ~0xffff);
-
-//	zeroWriteBackLog();
-
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry(oldprod, res), false); 
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		get_long_prod(RDX);
+		MOV(64, R(RSI), R(RAX));
+		set_long_acc(dreg, RSI);
+		Update_SR_Register64_Carry();
+	}
+	else
+	{
+		set_long_acc(dreg, RAX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 //----
 
@@ -427,19 +455,25 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 // 101s t000 xxxx xxxx
 // Multiply one part $ax0 by one part $ax1.
 // Part is selected by S and T bits. Zero selects low part, one selects high part.
-//void DSPEmitter::mulx(const UDSPInstruction opc)
-//{
-//	u8 treg = ((opc >> 11) & 0x1);
-//	u8 sreg = ((opc >> 12) & 0x1);
+void DSPEmitter::mulx(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 treg = ((opc >> 11) & 0x1);
+	u8 sreg = ((opc >> 12) & 0x1);
 
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
 //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
-
-//	zeroWriteBackLog();
-
+	multiply_mulx(sreg, treg);
 //	dsp_set_long_prod(prod);
-//}
+	set_long_prod();
+#else
+	Default(opc);
+#endif
+}
 
 // MULXAC $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
@@ -448,23 +482,37 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 // T bits. Zero selects low part, one selects high part.
 
 // flags out: --xx xx0x
-//void DSPEmitter::mulxac(const UDSPInstruction opc)
-//{
-//	u8 rreg = (opc >> 8) & 0x1;
-//	u8 treg = (opc >> 11) & 0x1;
-//	u8 sreg = (opc >> 12) & 0x1;
+void DSPEmitter::mulxac(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
+	get_long_acc(rreg, RCX);
+	get_long_prod();
+	ADD(64, R(RCX), R(RAX));
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
 //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
-//	
-//	zeroWriteBackLog();
+	multiply_mulx(sreg, treg);
 
 //	dsp_set_long_prod(prod);
+	set_long_prod();
 //	dsp_set_long_acc(rreg, acc);
+	set_long_acc(rreg, RCX);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64(RCX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // MULXMV $ax0.S, $ax1.T, $acR
 // 101s t11r xxxx xxxx
@@ -473,23 +521,35 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 // T bits. Zero selects low part, one selects high part.
 
 // flags out: --xx xx0x
-//void DSPEmitter::mulxmv(const UDSPInstruction opc)
-//{
-//	u8 rreg = ((opc >> 8) & 0x1);
-//	u8 treg = (opc >> 11) & 0x1;
-//	u8 sreg = (opc >> 12) & 0x1;
+void DSPEmitter::mulxmv(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 rreg = ((opc >> 8) & 0x1);
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_prod();
+	get_long_prod(RCX);
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
 //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
-
-//	zeroWriteBackLog();
+	multiply_mulx(sreg, treg);
 
 //	dsp_set_long_prod(prod);
+	set_long_prod();
 //	dsp_set_long_acc(rreg, acc);
+	set_long_acc(rreg, RCX);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64(RCX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 // MULXMV $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
@@ -499,23 +559,35 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 // one selects high part.
 
 // flags out: --xx xx0x
-//void DSPEmitter::mulxmvz(const UDSPInstruction opc)
-//{
-//	u8 rreg  = (opc >> 8) & 0x1;
-//	u8 treg = (opc >> 11) & 0x1;
-//	u8 sreg = (opc >> 12) & 0x1;
+void DSPEmitter::mulxmvz(const UDSPInstruction opc)
+{
+#ifdef _M_X64
+	u8 rreg  = (opc >> 8) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 //	s64 acc = dsp_get_long_prod_round_prodl();
+	get_long_prod_round_prodl(RCX);
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	MOVSX(64, 16, RSI, MDisp(R11, (DSP_REG_AXL0 + sreg*2) * 2));
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	MOVSX(64, 16, RDI, MDisp(R11, (DSP_REG_AXL1 + treg*2) * 2));
 //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
-
-//	zeroWriteBackLog();
+	multiply_mulx(sreg, treg);
 
 //	dsp_set_long_prod(prod);
+	set_long_prod();
 //	dsp_set_long_acc(rreg, acc);
+	set_long_acc(rreg, RCX);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
-//}
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+	{
+		Update_SR_Register64(RCX);
+	}
+#else
+	Default(opc);
+#endif
+}
 
 //----
 

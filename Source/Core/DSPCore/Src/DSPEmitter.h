@@ -204,20 +204,25 @@ public:
 	void asrnr(const UDSPInstruction opc);
 
 	// Multipliers
-	void get_multiply_prod();
 	void multiply();
 	void multiply_add();
 	void multiply_sub();
+	void multiply_mulx(u8 axh0, u8 axh1);
 	void clrp(const UDSPInstruction opc);
 	void tstprod(const UDSPInstruction opc);
 	void movp(const UDSPInstruction opc);
 	void movnp(const UDSPInstruction opc);
 	void movpz(const UDSPInstruction opc);
+	void addpaxz(const UDSPInstruction opc);
 	void mulaxh(const UDSPInstruction opc);
 	void mul(const UDSPInstruction opc);
 	void mulac(const UDSPInstruction opc);
 	void mulmv(const UDSPInstruction opc);
 	void mulmvz(const UDSPInstruction opc);
+	void mulx(const UDSPInstruction opc);
+	void mulxac(const UDSPInstruction opc);
+	void mulxmv(const UDSPInstruction opc);
+	void mulxmvz(const UDSPInstruction opc);
 	void mulc(const UDSPInstruction opc);
 	void mulcac(const UDSPInstruction opc);
 	void mulcmv(const UDSPInstruction opc);
