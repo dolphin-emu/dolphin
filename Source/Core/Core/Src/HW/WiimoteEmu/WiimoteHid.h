@@ -159,6 +159,27 @@ struct wm_turntable_extension
 	};
 };
 
+struct wm_motionplus_data
+{
+	u8 yaw1;
+	
+	u8 roll1;
+	
+	u8 pitch1;
+
+	u8 yaw2 : 6;
+	u8 yaw_slow : 1;
+	u8 pitch_slow : 1;
+
+	u8 roll2 : 6;
+	u8 roll_slow : 1;
+	u8 extension_connected : 1;
+
+	u8 pitch2 : 6;
+	u8 is_mp_data : 1;
+	u8 zero : 1;
+};
+
 struct wm_report
 {
 	u8 wm;

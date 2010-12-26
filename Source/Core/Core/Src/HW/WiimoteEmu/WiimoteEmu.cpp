@@ -72,7 +72,7 @@ const ReportFeatures reporting_mode_features[] =
 
 void EmulateShake( AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
-	  , unsigned int* const shake_step )
+	  , u8* const shake_step )
 {
 	static const double shake_data[] = { -2.5f, -5.0f, -2.5f, 0.0f, 2.5f, 5.0f, 2.5f, 0.0f };
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
@@ -183,6 +183,8 @@ void Wiimote::Reset()
 
 	m_rumble_on = false;
 	m_speaker_mute = false;
+	m_motion_plus_present = false;
+	m_motion_plus_active = false;
 
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
@@ -196,19 +198,12 @@ void Wiimote::Reset()
 	memcpy(m_eeprom + 0x16D0, eeprom_data_16D0, sizeof(eeprom_data_16D0));
 
 	// set up the register
-	m_register.clear();
-	m_register[0xa20000].resize(WIIMOTE_REG_SPEAKER_SIZE,0);
-	m_register[0xa40000].resize(WIIMOTE_REG_EXT_SIZE,0);
-	m_register[0xa60000].resize(WIIMOTE_REG_EXT_SIZE,0);
-	m_register[0xB00000].resize(WIIMOTE_REG_IR_SIZE,0);
+	memset(&m_reg_speaker, 0, sizeof(m_reg_speaker));
+	memset(&m_reg_ir, 0, sizeof(m_reg_ir));
+	memset(&m_reg_ext, 0, sizeof(m_reg_ext));
+	memset(&m_reg_motion_plus, 0, sizeof(m_reg_motion_plus));
 
-	m_reg_speaker		= (SpeakerReg*)&m_register[0xa20000][0];
-	m_reg_ext			= (ExtensionReg*)&m_register[0xa40000][0];
-	m_reg_motion_plus	= &m_register[0xa60000][0];
-	m_reg_ir			= (IrReg*)&m_register[0xB00000][0];
-
-	// testing
-	//memcpy(m_reg_motion_plus + 0xfa, motion_plus_id, sizeof(motion_plus_id));
+	memcpy(&m_reg_motion_plus.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
 
 	// status
 	memset(&m_status, 0, sizeof(m_status));
@@ -269,6 +264,8 @@ Wiimote::Wiimote( const unsigned int index )
 	m_extension->attachments.push_back(new WiimoteEmu::Drums());
 	m_extension->attachments.push_back(new WiimoteEmu::Turntable());
 
+	m_extension->settings.push_back(new ControlGroup::Setting("Motion Plus", 0, 0, 1));
+
 	// rumble
 	groups.push_back(m_rumble = new ControlGroup("Rumble"));
 	m_rumble->controls.push_back(new ControlGroup::Output("Motor"));
@@ -326,6 +323,9 @@ bool Wiimote::Step()
 {
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
+
+	// TODO: change this a bit
+	m_motion_plus_present = m_extension->settings[0]->value != 0;
 
 	// no rumble if no focus
 	if (false == has_focus)
@@ -517,9 +517,9 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 	//		x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
 	}
 	// Fill report with valid data when full handshake was done
-	if (m_reg_ir->data[0x30])
+	if (m_reg_ir.data[0x30])
 	// ir mode
-	switch (m_reg_ir->mode)
+	switch (m_reg_ir.mode)
 	{
 	// basic
 	case 1 :
@@ -579,9 +579,46 @@ void Wiimote::GetExtData(u8* const data)
 
 	// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
 	// i think it should be unencrpyted in the register, encrypted when read.
-	memcpy(m_reg_ext->controller_data, data, sizeof(wm_extension));
+	memcpy(m_reg_ext.controller_data, data, sizeof(wm_extension));
 
-	if (0xAA == m_reg_ext->encryption)
+	// motionplus pass-through modes
+	if (m_motion_plus_active)
+	{
+		switch (m_reg_motion_plus.ext_identifier[0x4])
+		{
+		// nunchuck pass-through mode
+		// Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
+		// Bit 0 of byte 4 is moved to bit 7 of byte 5
+		// Bit 3 of byte 5 is moved to bit 4 of byte 5, overwriting it
+		// Bit 1 of byte 5 is moved to bit 3 of byte 5
+		// Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it 
+		case 0x5:
+			//data[5] & (1 << 7)
+			//data[4] & (1 << 0)
+			//data[5] & (1 << 3)
+			//data[5] & (1 << 1)
+			//data[5] & (1 << 0)
+			break;
+
+		// classic controller/musical instrument pass-through mode
+		// Bit 0 of Byte 4 is overwritten
+		// Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting
+		case 0x7:
+			//data[4] & (1 << 0)
+			//data[5] & (1 << 0)
+			//data[5] & (1 << 1)
+			break;
+
+		// unknown pass-through mode
+		default:
+			break;
+		}
+
+		((wm_motionplus_data*)data)->is_mp_data = 0;
+		((wm_motionplus_data*)data)->extension_connected = m_extension->active_extension;
+	}
+
+	if (0xAA == m_reg_ext.encryption)
 		wiimote_encrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
 }
 
@@ -894,110 +931,6 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_dpad, 3, "Right");	// Right
 #endif
 
-}
-
-// TODO: i need to test this
-void Wiimote::Register::Read( size_t address, void* dst, size_t length )
-{
-	const_iterator i = begin();
-	const const_iterator e = end();
-	while (length)
-	{
-		const std::vector<u8>* block = NULL;
-		size_t addr_start = 0;
-		size_t addr_end = address+length;
-
-		// find block and start of next block
-		for ( ; i!=e; ++i )
-			// if address is inside or after this block
-			if ( address >= i->first )
-			{
-				block = &i->second;
-				addr_start = i->first;
-			}
-			// if address is before this block
-			else
-			{
-				// how far til the start of the next block
-				addr_end = std::min( i->first, addr_end );
-				break;
-			}
-
-		// read bytes from a mapped block
-		if (block)
-		{
-			// offset of wanted data in the vector
-			const size_t offset = std::min( address - addr_start, block->size() );
-			// how much data we can read depending on the vector size and how much we want
-			const size_t amt = std::min( block->size()-offset, length );
-
-			memcpy( dst, &block->operator[](offset), amt );
-			
-			address += amt;
-			dst = ((u8*)dst) + amt;
-			length -= amt;
-		}
-
-		// read zeros for unmapped regions
-		const size_t amt = addr_end - address;
-
-		memset( dst, 0, amt );
-
-		address += amt;
-		dst = ((u8*)dst) + amt;
-		length -= amt;
-	}
-}
-
-// TODO: i need to test this
-void Wiimote::Register::Write( size_t address, const void* src, size_t length )
-{
-	iterator i = begin();
-	const const_iterator e = end();
-	while (length)
-	{
-		std::vector<u8>* block = NULL;
-		size_t addr_start = 0;
-		size_t addr_end = address+length;
-
-		// find block and start of next block
-		for ( ; i!=e; ++i )
-			// if address is inside or after this block
-			if ( address >= i->first )
-			{
-				block = &i->second;
-				addr_start = i->first;
-			}
-			// if address is before this block
-			else
-			{
-				// how far til the start of the next block
-				addr_end = std::min( i->first, addr_end );
-				break;
-			}
-
-		// write bytes to a mapped block
-		if (block)
-		{
-			// offset of wanted data in the vector
-			const size_t offset = std::min( address - addr_start, block->size() );
-			// how much data we can read depending on the vector size and how much we want
-			const size_t amt = std::min( block->size()-offset, length );
-
-			memcpy( &block->operator[](offset), src, amt );
-			
-			address += amt;
-			src = ((u8*)src) + amt;
-			length -= amt;
-		}
-
-		// do nothing for unmapped regions
-		const size_t amt = addr_end - address;
-
-		address += amt;
-		src = ((u8*)src) + amt;
-		length -= amt;
-	}
 }
 
 }

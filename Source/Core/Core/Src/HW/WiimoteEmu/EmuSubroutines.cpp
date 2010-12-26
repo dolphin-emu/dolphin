@@ -215,11 +215,11 @@ void Wiimote::HandleExtensionSwap()
 			// set the wanted extension
 			m_extension->active_extension = m_extension->switch_extension;
 
-		// update status struct
-		m_status.extension = m_extension->active_extension ? 1 : 0;
+		// set register, I hate this
+		const std::vector<u8> &reg = ((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->reg;
+		memset(&m_reg_ext, 0, WIIMOTE_REG_EXT_SIZE);
+		memcpy(&m_reg_ext, &reg[0], reg.size());
 
-		// set register, I hate this line
-		m_register[0xa40000] = ((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->reg;
 	}
 }
 
@@ -231,6 +231,9 @@ void Wiimote::HandleExtensionSwap()
 void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
 	HandleExtensionSwap();
+
+	// update status struct
+	m_status.extension = (m_extension->active_extension || m_motion_plus_active) ? 1 : 0;
 
 	// set up report
 	u8 data[8];
@@ -267,7 +270,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 	u32 address = swap24(wd->address);
 
 	// ignore the 0x010000 bit
-	address &= 0xFEFFFF;
+	address &= ~0x010000;
 
 	if (wd->size > 16)
 	{
@@ -301,6 +304,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			}
 		}
 		break;
+		
 	case WM_SPACE_REGS1 :
 	case WM_SPACE_REGS2 :
 		{
@@ -310,36 +314,72 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			if (0xA4 == (address >> 16))
 				address &= 0xFF00FF;
 
-			// write to the register
-			m_register.Write(address, wd->data, wd->size);
+			const u8 region_offset = (u8)address;
+			void *region_ptr = NULL;
+			int region_size = 0;
 
 			switch (address >> 16)
 			{
 			// speaker
 			case 0xa2 :
-				//PanicAlert("Write to speaker!!");
+				region_ptr = &m_reg_speaker;
+				region_size = WIIMOTE_REG_SPEAKER_SIZE;
 				break;
+
 			// extension register
 			case 0xa4 :
+				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_size = WIIMOTE_REG_EXT_SIZE;
+				break;
+
+			// motion plus
+			case 0xa6 :
+				if (false == m_motion_plus_active)
 				{
-					// Run the key generation on all writes in the key area, it doesn't matter 
-					// that we send it parts of a key, only the last full key will have an effect
-					// I might have f'ed this up
-					if ( address >= 0xa40040 && address <= 0xa4004c )
-						wiimote_gen_key(&m_ext_key, m_reg_ext->encryption_key);
-					//else if ( address >= 0xa40020 && address < 0xa40040 )
-					//	PanicAlert("Writing to extension calibration data! Extension may misbehave");
+					region_ptr = &m_reg_motion_plus;
+					region_size = WIIMOTE_REG_EXT_SIZE;
 				}
 				break;
+
 			// ir
 			case 0xB0 :
-				if (5 == m_reg_ir->mode)
-					PanicAlert("IR Full Mode is Unsupported!");
+				region_ptr = &m_reg_ir;
+				region_size = WIIMOTE_REG_IR_SIZE;
+
+				//if (5 == m_reg_ir->mode)
+				//	PanicAlert("IR Full Mode is Unsupported!");
 				break;
 			}
 
+			if (region_ptr && (region_offset + wd->size <= region_size))
+			{
+				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
+			}
+			else
+				return;	// TODO: generate a writedata error reply
+
+			if (&m_reg_ext == region_ptr)
+			{
+				// Run the key generation on all writes in the key area, it doesn't matter 
+				// that we send it parts of a key, only the last full key will have an effect
+				if (address >= 0xa40040 && address <= 0xa4004c)
+					wiimote_gen_key(&m_ext_key, m_reg_ext.encryption_key);
+			}
+			else if (&m_reg_motion_plus == region_ptr)
+			{
+				// activate/deactivate motion plus
+				if (0x55 == m_reg_motion_plus.activated)
+				{
+					// maybe hacky
+					m_reg_motion_plus.activated = 0;
+					m_motion_plus_active ^= 1;
+
+					RequestStatus();
+				}
+			}
 		}
 		break;
+
 	default:
 		PanicAlert("WriteData: unimplemented parameters!");
 		break;
@@ -366,7 +406,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 	}
 
 	ReadRequest rr;
-	u8* block = new u8[size];
+	u8 *const block = new u8[size];
 
 	switch (rd->space)
 	{
@@ -391,15 +431,16 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			{
 				// reading the whole mii block :/
 				std::ifstream file;
-				file.open( (std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.open((std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
 				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
 
 			// read mem to be sent to wii
-			memcpy( block, m_eeprom + address, size);
+			memcpy(block, m_eeprom + address, size);
 		}
 		break;
+
 	case WM_SPACE_REGS1 :
 	case WM_SPACE_REGS2 :
 		{
@@ -409,44 +450,58 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			if (0xA4 == (address >> 16))
 				address &= 0xFF00FF;
 
-			// read block to send to wii
-			m_register.Read( address, block, size );
+			const u8 region_offset = (u8)address;
+			void *region_ptr = NULL;
+			int region_size = 0;
 
 			switch (address >> 16)
 			{
 			// speaker
-			case 0xa2 :
-				//PanicAlert("read from speaker!!");
+			case 0xa2:
+				region_ptr = &m_reg_speaker;
+				region_size = WIIMOTE_REG_SPEAKER_SIZE;
 				break;
+
 			// extension
-			case 0xa4 :
-				{
-					// Encrypt data read from extension register
-					// Check if encrypted reads is on
-					if (0xaa == m_reg_ext->encryption)
-						wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+			case 0xa4:
+				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_size = WIIMOTE_REG_EXT_SIZE;
+				break;
 
-					//if ( address >= 0xa40008 && address < 0xa40020 )
-					//	PanicAlert("Reading extension data from register");
+			// motion plus
+			case 0xa6:
+				// reading from 0xa6 returns error when mplus is activated
+				if (false == m_motion_plus_active)
+				{
+					region_ptr = &m_reg_motion_plus;
+					region_size = WIIMOTE_REG_EXT_SIZE;
 				}
 				break;
-			// motion plus
-			case 0xa6 :
-				{
-					// emulated motion plus is not yet supported
-					// return read error
-					size = 0;
 
-					// motion plus crap copied from old wiimote plugin
-					//block[0xFC] = 0xA6;
-					//block[0xFD] = 0x20;
-					//block[0xFE] = 0x00;
-					//block[0xFF] = 0x05;
-				}
+			// ir
+			case 0xb0:
+				region_ptr = &m_reg_ir;
+				region_size = WIIMOTE_REG_IR_SIZE;
 				break;
 			}
-		} 
+
+			if (region_ptr && (region_offset + size <= region_size))
+			{
+				memcpy(block, (u8*)region_ptr + region_offset, size);
+			}
+			else
+				size = 0;	// generate read error
+
+			if (&m_reg_ext == region_ptr)
+			{
+				// Encrypt data read from extension register
+				// Check if encrypted reads is on
+				if (0xaa == m_reg_ext.encryption)
+					wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+			}
+		}
 		break;
+
 	default :
 		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x)!", size, rd->space);
 		break;

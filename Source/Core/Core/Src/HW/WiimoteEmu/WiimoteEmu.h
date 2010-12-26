@@ -46,7 +46,7 @@ extern const ReportFeatures reporting_mode_features[];
 
 void EmulateShake(AccelData* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
-	  , unsigned int* const shake_step);
+	  , u8* const shake_step);
 
 void EmulateTilt(AccelData* const accel
 	 , ControllerEmu::Tilt* const tilt_group
@@ -129,43 +129,36 @@ private:
 #endif
 
 	// control groups
-	Buttons*				m_buttons;
-	Buttons*				m_dpad;
-	Buttons*				m_shake;
-	Cursor*					m_ir;
-	Tilt*					m_tilt;
-	Force*					m_swing;
-	ControlGroup*			m_rumble;
-	Extension*				m_extension;
-	ControlGroup*			m_options;
+	Buttons		*m_buttons, *m_dpad, *m_shake;
+	Cursor*			m_ir;
+	Tilt*			m_tilt;
+	Force*			m_swing;
+	ControlGroup*	m_rumble;
+	Extension*		m_extension;
+	ControlGroup*	m_options;
+	
 	// WiiMote accel data
-	AccelData				m_accel;
+	AccelData		m_accel;
 
 	// wiimote index, 0-3
-	const unsigned int		m_index;
+	const u8	m_index;
 
-	double					ir_sin,ir_cos; //for the low pass filter
+	double		ir_sin, ir_cos; //for the low pass filter
 	
 	UDPWrapper* m_udp;
 
-	bool		m_rumble_on;
-	bool		m_speaker_mute;
+	bool	m_rumble_on;
+	bool	m_speaker_mute;
+	bool	m_motion_plus_present;
+	bool	m_motion_plus_active;
 
-	bool		m_reporting_auto;
-	u8			m_reporting_mode;
-	u16			m_reporting_channel;
+	bool	m_reporting_auto;
+	u8		m_reporting_mode;
+	u16		m_reporting_channel;
 
-	unsigned int			m_shake_step[3];
+	u8		m_shake_step[3];
 
 	wm_status_report		m_status;
-
-	class Register : public std::map< size_t, std::vector<u8> >
-	{
-	public:
-		void Write( size_t address, const void* src, size_t length );
-		void Read( size_t address, void* dst, size_t length );
-
-	} m_register;
 
 	// read data request queue
 	// maybe it isn't actualy a queue
@@ -187,16 +180,30 @@ private:
 	}	m_channel_status;
 #endif
 
+	wiimote_key		m_ext_key;
+
 	u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
 
-	u8*		m_reg_motion_plus;
+	struct MotionPlusReg
+	{
+		u8 unknown[0xF0];
+
+		// address 0xF0
+		u8	activated;
+
+		u8 unknown2[9];
+
+		// address 0xFA
+		u8	ext_identifier[6];
+
+	}	m_reg_motion_plus;
 
 	struct IrReg
 	{
 		u8	data[0x33];
 		u8	mode;
 
-	}	*m_reg_ir;
+	}	m_reg_ir;
 
 	struct ExtensionReg
 	{
@@ -221,7 +228,7 @@ private:
 		// address 0xFA
 		u8	constant_id[6];
 
-	}	*m_reg_ext;
+	}	m_reg_ext;
 
 	struct SpeakerReg
 	{
@@ -231,9 +238,7 @@ private:
 		u8		volume;
 		u8		unk[4];
 
-	}	*m_reg_speaker;
-
-	wiimote_key		m_ext_key;
+	}	m_reg_speaker;
 };
 
 }

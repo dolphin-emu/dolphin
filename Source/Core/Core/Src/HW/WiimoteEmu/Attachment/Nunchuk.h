@@ -30,7 +30,7 @@ private:
 	Buttons*		m_buttons;
 	AnalogStick*	m_stick;
 
-	unsigned int	m_shake_step[3];
+	u8	m_shake_step[3];
 	
 	UDPWrapper* const m_udpWrap;
 };
