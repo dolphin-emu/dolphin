@@ -299,7 +299,7 @@ void DSPEmitter::Compile(int start_addr)
 			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST2*2));
 #endif
 			CMP(32, R(EAX), Imm32(0));
-			FixupBranch rLoopAddressExit = J_CC(CC_LE);
+			FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
 		
 #ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST3])));
@@ -307,7 +307,7 @@ void DSPEmitter::Compile(int start_addr)
 			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST3*2));
 #endif
 			CMP(32, R(EAX), Imm32(0));
-			FixupBranch rLoopCounterExit = J_CC(CC_LE);
+			FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
 
 			if (!opcode->branch)
 			{
@@ -322,7 +322,7 @@ void DSPEmitter::Compile(int start_addr)
 
 			// These functions branch and therefore only need to be called in the
 			// end of each block and in this order
-			ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
+			HandleLoop();
 			//		ABI_RestoreStack(0);
 			ABI_PopAllCalleeSavedRegsAndAdjustStack();
 			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)

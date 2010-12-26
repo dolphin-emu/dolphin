@@ -184,10 +184,10 @@ const DSPOPCTemplate opcodes[] =
 	{"ILRRN",	0x021c, 0xfefc, DSPInterpreter::ilrrn,   NULL,                1, 2, {{P_ACCM, 1, 0, 8, 0x0100},    {P_PRG, 1, 0, 0, 0x0003}},                               false, false, false, false, false},
 
 	// LOOPS
-	{"LOOP",	0x0040, 0xffe0, DSPInterpreter::loop,    NULL,                1, 1, {{P_REG, 1, 0, 0, 0x001f}},                                                             false, true, false, true, false},
-	{"BLOOP",	0x0060, 0xffe0, DSPInterpreter::bloop,   NULL,                2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_ADDR_I, 2, 1, 0, 0xffff}},                            false, true, false, true, false},
-	{"LOOPI",	0x1000, 0xff00, DSPInterpreter::loopi,   NULL,                1, 1, {{P_IMM, 1, 0, 0, 0x00ff}},                                                             false, true, false, true, false},
-	{"BLOOPI",	0x1100, 0xff00, DSPInterpreter::bloopi,  NULL,                2, 2, {{P_IMM, 1, 0, 0, 0x00ff},     {P_ADDR_I, 2, 1, 0, 0xffff}},                            false, true, false, true, false},
+	{"LOOP",	0x0040, 0xffe0, DSPInterpreter::loop,    &DSPEmitter::loop,   1, 1, {{P_REG, 1, 0, 0, 0x001f}},                                                             false, true, false, true, false},
+	{"BLOOP",	0x0060, 0xffe0, DSPInterpreter::bloop,   &DSPEmitter::bloop,  2, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_ADDR_I, 2, 1, 0, 0xffff}},                            false, true, false, true, false},
+	{"LOOPI",	0x1000, 0xff00, DSPInterpreter::loopi,   &DSPEmitter::loopi,  1, 1, {{P_IMM, 1, 0, 0, 0x00ff}},                                                             false, true, false, true, false},
+	{"BLOOPI",	0x1100, 0xff00, DSPInterpreter::bloopi,  &DSPEmitter::bloopi, 2, 2, {{P_IMM, 1, 0, 0, 0x00ff},     {P_ADDR_I, 2, 1, 0, 0xffff}},                            false, true, false, true, false},
 
 	// load and store value pointed by indexing reg and increment; LRR/SRR variants
 	{"LRR",		0x1800, 0xff80, DSPInterpreter::lrr,     &DSPEmitter::lrr,    1, 2, {{P_REG, 1, 0, 0, 0x001f},     {P_PRG, 1, 0, 5, 0x0060}},                               false, false, false, false, false},

@@ -284,3 +284,216 @@ void DSPEmitter::callr(const UDSPInstruction opc)
 {
 	ReJitConditional<r_callr>(opc, *this);
 }
+
+// LOOP handling: Loop stack is used to control execution of repeated blocks of
+// instructions. Whenever there is value on stack $st2 and current PC is equal
+// value at $st2, then value at stack $st3 is decremented. If value is not zero
+// then PC is modified with value from call stack $st0. Otherwise values from
+// call stack $st0 and both loop stacks $st2 and $st3 are popped and execution
+// continues at next opcode.
+void DSPEmitter::HandleLoop()
+{
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
+	MOVZX(32, 16, ECX, M(&(g_dsp.r[DSP_REG_ST3])));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST2*2));
+	MOVZX(32, 16, ECX, MDisp(R11,DSP_REG_ST3*2));
+#endif
+
+	CMP(32, R(RCX), Imm32(0));
+	FixupBranch rLoopCntG = J_CC(CC_LE, true);
+	CMP(16, R(RAX), Imm16(compilePC - 1));
+	FixupBranch rLoopAddrG = J_CC(CC_NE, true);
+
+#ifdef _M_IX86 // All32
+	SUB(16, M(&(g_dsp.r[DSP_REG_ST3])), Imm16(1));
+	CMP(16, M(&(g_dsp.r[DSP_REG_ST3])), Imm16(0));
+#else
+	SUB(16, MDisp(R11,DSP_REG_ST3*2), Imm16(1));
+	CMP(16, MDisp(R11,DSP_REG_ST3*2), Imm16(0));
+#endif
+	
+	FixupBranch loadStack = J_CC(CC_LE, true);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&(g_dsp.r[DSP_REG_ST0])));
+	MOV(16, M(&g_dsp.pc), R(RCX));
+#else
+	MOVZX(32, 16, RCX, MDisp(R11,DSP_REG_ST0*2));
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), R(RCX));
+#endif
+	FixupBranch loopUpdated = J(true);
+
+	SetJumpTarget(loadStack);
+	dsp_reg_load_stack(0);
+	dsp_reg_load_stack(2);
+	dsp_reg_load_stack(3);
+
+	SetJumpTarget(loopUpdated);
+	SetJumpTarget(rLoopAddrG);
+	SetJumpTarget(rLoopCntG);
+
+}
+
+// LOOP $R
+// 0000 0000 010r rrrr
+// Repeatedly execute following opcode until counter specified by value
+// from register $R reaches zero. Each execution decrement counter. Register
+// $R remains unchanged. If register $R is set to zero at the beginning of loop
+// then looped instruction will not get executed.
+// Actually, this instruction simply prepares the loop stacks for the above.
+// The looping hardware takes care of the rest.
+void DSPEmitter::loop(const UDSPInstruction opc)
+{
+	u16 reg = opc & 0x1f;
+//	u16 cnt = g_dsp.r[reg];
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EDX, M(&(g_dsp.r[reg])));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EDX, MDisp(R11,reg*2));
+#endif
+	u16 loop_pc = compilePC + 1;
+
+	CMP(16, R(EDX), Imm16(0));
+	FixupBranch cnt = J_CC(CC_Z, true);
+	dsp_reg_store_stack(3);
+	MOV(16, R(RDX), Imm16(compilePC + 1));
+	dsp_reg_store_stack(0);
+	MOV(16, R(RDX), Imm16(loop_pc));
+	dsp_reg_store_stack(2);
+
+	SetJumpTarget(cnt);
+#ifdef _M_IX86 // All32
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+#endif
+}
+
+// LOOPI #I
+// 0001 0000 iiii iiii
+// Repeatedly execute following opcode until counter specified by
+// immediate value I reaches zero. Each execution decrement counter. If
+// immediate value I is set to zero at the beginning of loop then looped
+// instruction will not get executed.
+// Actually, this instruction simply prepares the loop stacks for the above.
+// The looping hardware takes care of the rest.
+void DSPEmitter::loopi(const UDSPInstruction opc)
+{
+	u16 cnt = opc & 0xff;
+	u16 loop_pc = compilePC + 1;
+
+	if (cnt) 
+	{
+		MOV(16, R(RDX), Imm16(compilePC + 1));
+		dsp_reg_store_stack(0);
+		MOV(16, R(RDX), Imm16(loop_pc));
+		dsp_reg_store_stack(2);
+		MOV(16, R(RDX), Imm16(cnt));
+		dsp_reg_store_stack(3);
+
+#ifdef _M_IX86 // All32
+		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+#endif
+	}
+}
+
+
+// BLOOP $R, addrA
+// 0000 0000 011r rrrr
+// aaaa aaaa aaaa aaaa
+// Repeatedly execute block of code starting at following opcode until
+// counter specified by value from register $R reaches zero. Block ends at
+// specified address addrA inclusive, ie. opcode at addrA is the last opcode
+// included in loop. Counter is pushed on loop stack $st3, end of block address
+// is pushed on loop stack $st2 and repeat address is pushed on call stack $st0.
+// Up to 4 nested loops are allowed.
+void DSPEmitter::bloop(const UDSPInstruction opc)
+{
+	u16 reg = opc & 0x1f;
+//	u16 cnt = g_dsp.r[reg];
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EDX, M(&(g_dsp.r[reg])));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EDX, MDisp(R11,reg*2));
+#endif
+	u16 loop_pc = dsp_imem_read(compilePC + 1);
+
+	CMP(16, R(EDX), Imm16(0));
+	FixupBranch cnt = J_CC(CC_Z, true);
+	dsp_reg_store_stack(3);
+	MOV(16, R(RDX), Imm16(compilePC + 2));
+	dsp_reg_store_stack(0);
+	MOV(16, R(RDX), Imm16(loop_pc));
+	dsp_reg_store_stack(2);
+#ifdef _M_IX86 // All32
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MDisp(RAX,0), Imm16(compilePC + 2));
+#endif
+	FixupBranch exit = J();
+
+	SetJumpTarget(cnt);
+	//		g_dsp.pc = loop_pc;
+	//		dsp_skip_inst();
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), Imm16(loop_pc + opTable[loop_pc]->size));
+#endif
+	SetJumpTarget(exit);
+}
+
+// BLOOPI #I, addrA
+// 0001 0001 iiii iiii
+// aaaa aaaa aaaa aaaa
+// Repeatedly execute block of code starting at following opcode until
+// counter specified by immediate value I reaches zero. Block ends at specified
+// address addrA inclusive, ie. opcode at addrA is the last opcode included in
+// loop. Counter is pushed on loop stack $st3, end of block address is pushed
+// on loop stack $st2 and repeat address is pushed on call stack $st0. Up to 4
+// nested loops are allowed.
+void DSPEmitter::bloopi(const UDSPInstruction opc)
+{
+	u16 cnt = opc & 0xff;
+//	u16 loop_pc = dsp_fetch_code();
+	u16 loop_pc = dsp_imem_read(compilePC + 1);
+
+	if (cnt) 
+	{
+		MOV(16, R(RDX), Imm16(compilePC + 2));
+		dsp_reg_store_stack(0);
+		MOV(16, R(RDX), Imm16(loop_pc));
+		dsp_reg_store_stack(2);
+		MOV(16, R(RDX), Imm16(cnt));
+		dsp_reg_store_stack(3);
+
+#ifdef _M_IX86 // All32
+		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		MOV(16, MDisp(RAX,0), Imm16(compilePC + 2));
+#endif
+	}
+	else
+	{
+//		g_dsp.pc = loop_pc;
+//		dsp_skip_inst();
+#ifdef _M_IX86 // All32
+		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+#else
+		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+		MOV(16, MatR(RAX), Imm16(loop_pc + opTable[loop_pc]->size));
+#endif
+	}
+}

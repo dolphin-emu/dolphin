@@ -104,8 +104,8 @@ public:
 	// Command helpers
 	void dsp_reg_stack_push(int stack_reg);
 	void dsp_reg_stack_pop(int stack_reg);
-	void dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg);
-	void dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg);
+	void dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
+	void dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
 	void dsp_reg_store_stack_imm(int stack_reg, u16 val);
 	void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
 	void dsp_op_write_reg_imm(int reg, u16 val);
@@ -127,10 +127,15 @@ public:
 	void nx(const UDSPInstruction opc);
 
 	// Branch
+	void HandleLoop();
 	void jcc(const UDSPInstruction opc);
 	void jmprcc(const UDSPInstruction opc);
 	void call(const UDSPInstruction opc);
 	void callr(const UDSPInstruction opc);
+	void loop(const UDSPInstruction opc);
+	void loopi(const UDSPInstruction opc);
+	void bloop(const UDSPInstruction opc);
+	void bloopi(const UDSPInstruction opc);
 
 	// Load/Store
 	void srs(const UDSPInstruction opc);
