@@ -681,7 +681,7 @@ bool MathOperation(u32& ret, const u32 left, const u32 right, const u8 type)
 
 		// 8 : asr (arithmetic shift right)
 	case 0x8 :
-		ret = (left >> right) | (left & 0x80000000);
+		ret = (s32)left >> right;
 		break;
 
 		// TODO: these float ops good?

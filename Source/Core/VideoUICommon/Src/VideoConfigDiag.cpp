@@ -349,7 +349,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - info
 	{
-	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_advanced, wxT("Overlay Information"));
+	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_advanced, wxT("Information"));
 	szr_advanced->Add(group_info, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxGridSizer* const szr_info = new wxGridSizer(2, 5, 5);
 	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -359,6 +359,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_info->Add(new SettingCheckBox(page_advanced, wxT("Projection Stats"), proj_stats_tooltip, vconfig.bOverlayProjStats));
 	szr_info->Add(new SettingCheckBox(page_advanced, wxT("Texture Format"), texfmt_tooltip, vconfig.bTexFmtOverlayEnable));
 	szr_info->Add(new SettingCheckBox(page_advanced, wxT("EFB Copy Regions"), efb_copy_regions_tooltip, vconfig.bShowEFBCopyRegions));
+	szr_info->Add(new SettingCheckBox(page_advanced, wxT("Show Shader Errors"), wxT(""), vconfig.bShowShaderErrors));
 	}
 	
 	// - XFB

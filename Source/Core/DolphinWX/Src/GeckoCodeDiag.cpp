@@ -41,19 +41,20 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	sizer_infobox->Add(m_infobox.listbox_codes, 1, wxEXPAND, 5);
 
 	// button sizer
-	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
 	wxButton* const btn_download = new wxButton(this, -1, wxT("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
 	_connect_macro_(btn_download, CodeConfigPanel::DownloadCodes, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	sizer_buttons->Add(btn_download, 0, wxEXPAND);
+	sizer_buttons->AddStretchSpacer(1);
+	sizer_buttons->Add(btn_download, 1, wxEXPAND);
 
 	// horizontal sizer
-	wxBoxSizer* const sizer_horz = new wxBoxSizer(wxHORIZONTAL);
-	sizer_horz->Add(sizer_infobox, 1, wxEXPAND);
-	sizer_horz->Add(sizer_buttons, 1, wxLEFT | wxALIGN_BOTTOM, 5);
+	wxBoxSizer* const sizer_vert = new wxBoxSizer(wxVERTICAL);
+	sizer_vert->Add(sizer_infobox, 1, wxEXPAND);
+	sizer_vert->Add(sizer_buttons, 0, wxEXPAND | wxTOP, 5);
 	
 	wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
 	sizer_main->Add(m_listbox_gcodes, 1, wxALL | wxEXPAND, 5);
-	sizer_main->Add(sizer_horz, 0, wxALL | wxEXPAND, 5);
+	sizer_main->Add(sizer_vert, 0, wxALL | wxEXPAND, 5);
 
 	SetSizerAndFit(sizer_main);
 }
@@ -196,8 +197,14 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			{
 				// read new code
 			case 0 :
-				gcode.name = line;	// TODO: parse creator name in []s
+			{
+				std::istringstream ss(line);
+				std::getline(ss, gcode.name, '[');	// stop at [ character (begining of contributer name)
+				gcode.name = StripSpaces(gcode.name);
+				// read the code creator name
+				std::getline(ss, gcode.creator, ']');
 				read_state = 1;
+			}
 				break;
 
 				// read code lines
@@ -240,15 +247,36 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 		if (gcodes.size())
 		{
-			PanicAlert("Downloaded %lu codes.",
-				(unsigned long)gcodes.size());
+			unsigned long added_count = 0;
 
 			// append the codes to the code list
 			std::vector<GeckoCode>::const_iterator
 				gcodes_iter = gcodes.begin(),
 				gcodes_end = gcodes.end();
 			for (; gcodes_iter!= gcodes_end; ++gcodes_iter)
-				m_gcodes.push_back(*gcodes_iter);
+			{
+				// only add codes which do not already exist
+				std::vector<GeckoCode>::const_iterator
+					existing_gcodes_iter = m_gcodes.begin(),
+					existing_gcodes_end = m_gcodes.end();
+				for (;; ++existing_gcodes_iter)
+				{
+					if (existing_gcodes_end == existing_gcodes_iter)
+					{
+						m_gcodes.push_back(*gcodes_iter);
+						++added_count;
+						break;
+					}
+
+					// code with this name+creator exists
+					if (existing_gcodes_iter->name == gcodes_iter->name &&
+						existing_gcodes_iter->creator == gcodes_iter->creator)
+						break;
+				}
+			}
+
+			PanicAlert("Downloaded %lu codes. (added %lu)",
+				(unsigned long)gcodes.size(), added_count);
 
 			// refresh the list
 			UpdateCodeList();
