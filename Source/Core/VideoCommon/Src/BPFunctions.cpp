@@ -136,6 +136,8 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 
 void OnPixelFormatChange(const BPCmd &bp)
 {
+	int convtype = -1;
+
 	/*
 	 * When changing the EFB format, the pixel data won't get converted to the new format but stays the same.
 	 * Since we are always using an RGBA8 buffer though, this causes issues in some games.
@@ -145,14 +147,13 @@ void OnPixelFormatChange(const BPCmd &bp)
 		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
 		return;
 
-	int new_format = bpmem.zcontrol.pixel_format;
-	int old_format = Renderer::GetPrevPixelFormat();
+	unsigned int new_format = bpmem.zcontrol.pixel_format;
+	unsigned int old_format = Renderer::GetPrevPixelFormat();
 
 	// no need to reinterpret pixel data in these cases
 	if (new_format == old_format || old_format == (unsigned int)-1)
 		goto skip;
 
-	int convtype = -1;
 	switch (old_format)
 	{
 		case PIXELFMT_RGB8_Z24:

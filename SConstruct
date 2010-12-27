@@ -121,7 +121,7 @@ if sys.platform == 'darwin':
     ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
     system = '/System/Library/Frameworks'
     env['CCFLAGS'] += ccld
-    env['CCFLAGS'] += ['-msse3']
+    env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
     env['CC'] = "gcc-4.2 -ObjC"
