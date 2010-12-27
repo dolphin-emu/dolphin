@@ -644,6 +644,11 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
+	// Fake the DMA taking time to complete. The delay is not accurate, but
+	// seems like a good estimate
+	CoreTiming::ScheduleEvent_Threadsafe(
+		g_arDMA.Cnt.count, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
 	{
@@ -679,8 +684,6 @@ void Do_ARAM_DMA()
 			g_arDMA.Cnt.count -= 8;
 		}
 	}
-
-	GenerateDSPInterrupt(INT_ARAM);
 }
 
 

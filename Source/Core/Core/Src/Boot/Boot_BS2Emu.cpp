@@ -81,6 +81,8 @@ bool CBoot::EmulatedBS2_GC()
 	Memory::Write_U32(0x4c000064, 0x80000C00);	// write default Syscall Handler:   rfi
 
 	Memory::Write_U64((u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);	// preset time base ticks
+	// HIO checks this
+	//Memory::Write_U16(0x8200,     0x000030e6);	// Console type
 
 	Memory::Write_U32(((1 & 0x3f) << 26) | 1, 0x81300000);		// HLE OSReport for Apploader
 
