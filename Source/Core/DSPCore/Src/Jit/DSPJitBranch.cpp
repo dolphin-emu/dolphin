@@ -185,7 +185,7 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
 #endif
 	ReJitConditional<r_jcc>(opc, *this);
 #endif
@@ -218,7 +218,8 @@ void DSPEmitter::jmprcc(const UDSPInstruction opc)
 void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
-	emitter.ABI_CallFunctionCC16((void *)dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 2);
+	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 2));
+	emitter.dsp_reg_store_stack(DSP_STACK_C);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
 
@@ -230,7 +231,7 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MDisp(RAX,0), Imm16(dest));
+	emitter.MOV(16, MatR(RAX), Imm16(dest));
 
 	// Jump directly to the called block if it has already been compiled.
 	// TODO: Subtract cycles from cyclesLeft
@@ -255,7 +256,7 @@ void DSPEmitter::call(const UDSPInstruction opc)
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
 #endif
 	ReJitConditional<r_call>(opc, *this);
 }
@@ -263,7 +264,8 @@ void DSPEmitter::call(const UDSPInstruction opc)
 void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
-	emitter.ABI_CallFunctionCC16((void *)dsp_reg_store_stack, DSP_STACK_C, emitter.compilePC + 1);
+	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 1));
+	emitter.dsp_reg_store_stack(DSP_STACK_C);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
@@ -271,7 +273,7 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(64, R(RSI), ImmPtr(&g_dsp.r[reg]));
 	emitter.MOV(16, R(RSI), MatR(RSI));
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MDisp(RAX,0), R(RSI));
+	emitter.MOV(16, MatR(RAX), R(RSI));
 #endif
 }
 // Generic callr implementation
@@ -282,7 +284,111 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 // register $R.
 void DSPEmitter::callr(const UDSPInstruction opc)
 {
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
+#endif
 	ReJitConditional<r_callr>(opc, *this);
+}
+
+void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
+{
+#ifdef _M_IX86 // All32
+	emitter.MOV(16, M(&g_dsp.pc), Imm16(emitter.compilePC + 1));
+#else
+	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	emitter.MOV(16, MatR(RAX), Imm16(emitter.compilePC + 1));
+#endif
+}
+
+// Generic jmpr implementation
+// JMPcc $R
+// 0001 0111 rrr0 cccc
+// Jump to address; set program counter to a value from register $R.
+void DSPEmitter::ifcc(const UDSPInstruction opc)
+{
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), Imm16((compilePC + 1) + opTable[compilePC + 1]->size));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), Imm16((compilePC + 1) + opTable[compilePC + 1]->size));
+#endif
+	ReJitConditional<r_ifcc>(opc, *this);
+}
+
+void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
+{
+	emitter.dsp_reg_load_stack(DSP_STACK_C);
+#ifdef _M_IX86 // All32
+	emitter.MOV(16, M(&g_dsp.pc), R(DX));
+#else
+	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	emitter.MOV(16, MatR(RAX), R(DX));
+#endif
+}
+
+// Generic ret implementation
+// RETcc
+// 0000 0010 1101 cccc
+// Return from subroutine if condition cc has been met. Pops stored PC
+// from call stack $st0 and sets $pc to this location.
+void DSPEmitter::ret(const UDSPInstruction opc)
+{
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
+#endif
+	ReJitConditional<r_ret>(opc, *this);
+}
+
+// RTI
+// 0000 0010 1111 1111
+// Return from exception. Pops stored status register $sr from data stack
+// $st1 and program counter PC from call stack $st0 and sets $pc to this
+// location.
+void DSPEmitter::rti(const UDSPInstruction opc)
+{
+//	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
+	dsp_reg_load_stack(DSP_STACK_D);
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[DSP_REG_SR]), R(DX));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, MDisp(R11,DSP_REG_SR*2), R(DX));
+#endif
+//	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
+	dsp_reg_load_stack(DSP_STACK_C);
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), R(DX));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), R(DX));
+#endif
+}
+
+// HALT
+// 0000 0000 0020 0001 
+// Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
+void DSPEmitter::halt(const UDSPInstruction opc)
+{
+#ifdef _M_IX86 // All32
+	OR(16, M(&g_dsp.cr), Imm16(4));
+#else
+	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
+	OR(16, MatR(RAX), Imm16(4));
+#endif
+	//	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
+	dsp_reg_load_stack(DSP_STACK_C);
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), R(DX));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), R(DX));
+#endif
 }
 
 // LOOP handling: Loop stack is used to control execution of repeated blocks of
@@ -370,7 +476,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
 #endif
 }
 
@@ -400,7 +506,7 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
 #else
 		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		MOV(16, MDisp(RAX,0), Imm16(compilePC + 1));
+		MOV(16, MatR(RAX), Imm16(compilePC + 1));
 #endif
 	}
 }
@@ -438,7 +544,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MDisp(RAX,0), Imm16(compilePC + 2));
+	MOV(16, MatR(RAX), Imm16(compilePC + 2));
 #endif
 	FixupBranch exit = J();
 
@@ -482,7 +588,7 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
 #else
 		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		MOV(16, MDisp(RAX,0), Imm16(compilePC + 2));
+		MOV(16, MatR(RAX), Imm16(compilePC + 2));
 #endif
 	}
 	else

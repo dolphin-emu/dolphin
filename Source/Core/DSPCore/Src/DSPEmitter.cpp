@@ -99,7 +99,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MDisp(RAX,0), Imm16(compilePC));
+	MOV(16, MatR(RAX), Imm16(compilePC));
 #endif
 
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
@@ -316,7 +316,7 @@ void DSPEmitter::Compile(int start_addr)
 				MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
 #else
 				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-				MOV(16, MDisp(RAX,0), Imm16(compilePC));
+				MOV(16, MatR(RAX), Imm16(compilePC));
 #endif
 			}
 
@@ -354,7 +354,7 @@ void DSPEmitter::Compile(int start_addr)
 				MOV(16, R(AX), M(&g_dsp.pc));
 #else
 				MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-				MOV(16, R(AX), MDisp(RAX,0));
+				MOV(16, R(AX), MatR(RAX));
 #endif
 				CMP(16, R(AX), Imm16(compilePC));
 				FixupBranch rNoBranch = J_CC(CC_Z);
@@ -388,7 +388,7 @@ void DSPEmitter::Compile(int start_addr)
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
 #else
 		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-		MOV(16, MDisp(RAX,0), Imm16(compilePC));
+		MOV(16, MatR(RAX), Imm16(compilePC));
 #endif
 	}
 
