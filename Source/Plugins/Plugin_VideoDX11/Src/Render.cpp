@@ -559,7 +559,16 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 
 		float val = *(float*)map.pData;
-		u32 ret = ((u32)(val * 0xffffff));
+		u32 ret = 0;
+		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		{
+			// if Z is in 16 bit format yo must return a 16 bit integer
+			ret = ((u32)(val * 0xffff));
+		}
+		else
+		{
+			ret = ((u32)(val * 0xffffff));
+		}
 		D3D::context->Unmap(read_tex, 0);
 
 		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
@@ -574,12 +583,28 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-		u32 ret = *(u32*)map.pData;
+		u32 ret = 0;
+		if(map.pData)
+			ret = *(u32*)map.pData;
 		D3D::context->Unmap(read_tex, 0);
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
 		PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		{
+			ret = RGBA8ToRGBA6ToRGBA8(ret);
+		}
+		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		{
+			ret = RGBA8ToRGB565ToRGB8(ret);
+		}			
+		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+		{
+			ret |= 0xFF000000;
+		}
+
 		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
 		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
@@ -775,7 +800,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
@@ -880,7 +905,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma);
 	}
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)

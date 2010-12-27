@@ -99,15 +99,15 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 	return &m_overlappingXFBArray[0];
 }
 
-void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManagerBase::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	if (g_ActiveConfig.bUseRealXFB)
-		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		g_framebuffer_manager->CopyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
 	else
-		CopyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+		CopyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
 }
 
-void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
@@ -162,7 +162,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// Copy EFB data to XFB and restore render target again
-	vxfb->xfbSource->CopyEFB();
+	vxfb->xfbSource->CopyEFB(Gamma);
 
 	g_renderer->RestoreAPIState();
 }

@@ -67,7 +67,8 @@ namespace D3D
 					   int DestWidth,
 					   int DestHeight,
 					   IDirect3DPixelShader9 *PShader,
-					   IDirect3DVertexShader9 *Vshader);
+					   IDirect3DVertexShader9 *Vshader,
+					   float Gamma = 1.0f);
 	void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 							const MathUtil::Rectangle<float> *rSource,
 							int SourceWidth,
@@ -76,7 +77,8 @@ namespace D3D
 							int DestWidth,
 							int DestHeight,
 							IDirect3DPixelShader9 *PShader,
-							IDirect3DVertexShader9 *Vshader);
+							IDirect3DVertexShader9 *Vshader,
+							float Gamma = 1.0f);
 	void drawClearQuad(u32 Color, float z, IDirect3DPixelShader9 *PShader, IDirect3DVertexShader9 *Vshader);
 	void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2);
 

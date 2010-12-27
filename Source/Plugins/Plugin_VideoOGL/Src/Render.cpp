@@ -443,7 +443,7 @@ Renderer::Renderer()
 	glLoadIdentity();
 
 	glShadeModel(GL_SMOOTH);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
@@ -725,7 +725,16 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-			return z >> 8;
+			if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			{
+				// if Z is in 16 bit format yo must return a 16 bit integer
+				z = z >> 16;
+			}
+			else
+			{
+				z = z >> 8;
+			}
+			return z;
 		}
 
 	case POKE_Z:
@@ -759,6 +768,19 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
 			PixelEngine::UPEAlphaReadReg alpha_read_mode;
 			PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+
+			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+			{
+				color = RGBA8ToRGBA6ToRGBA8(color);
+			}
+			else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			{
+				color = RGBA8ToRGB565ToRGB8(color);
+			}			
+			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+			{
+				color |= 0xFF000000;
+			}
 			if(alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
 			else if(alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
 			else /*if(alpha_read_mode.ReadMode == 0)*/ return (color & 0x00FFFFFF); // GX_READ_00
@@ -926,7 +948,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{

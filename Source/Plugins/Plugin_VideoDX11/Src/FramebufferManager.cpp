@@ -144,7 +144,7 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	// TODO
 	PanicAlert("CopyToRealXFB not implemented, yet\n");
@@ -187,7 +187,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 	PanicAlert("RealXFB not implemented, yet\n");
 }
 
-void XFBSource::CopyEFB()
+void XFBSource::CopyEFB(float Gamma)
 {
 	// Copy EFB data to XFB and restore render target again
 	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)texWidth, (float)texHeight);
@@ -199,7 +199,7 @@ void XFBSource::CopyEFB()
 	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), sourceRc.AsRECT(),
 		Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
 		PixelShaderCache::GetColorCopyProgram(true), VertexShaderCache::GetSimpleVertexShader(),
-		VertexShaderCache::GetSimpleInputLayout());
+		VertexShaderCache::GetSimpleInputLayout(),Gamma);
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());

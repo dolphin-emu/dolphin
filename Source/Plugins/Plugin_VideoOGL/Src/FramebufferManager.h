@@ -58,7 +58,7 @@ struct XFBSource : public XFBSourceBase
 	XFBSource(GLuint tex) : texture(tex) {}
 	~XFBSource() { glDeleteTextures(1, &texture); }
 
-	void CopyEFB();
+	void CopyEFB(float Gamma);
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
@@ -99,7 +99,7 @@ private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
 
 	static int m_targetWidth;
 	static int m_targetHeight;

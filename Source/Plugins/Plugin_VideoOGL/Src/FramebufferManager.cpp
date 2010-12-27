@@ -260,7 +260,7 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 	}
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* xfb_in_ram = Memory_GetPtr(xfbAddr);
 	if (!xfb_in_ram)
@@ -322,7 +322,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
 }
 
-void XFBSource::CopyEFB()
+void XFBSource::CopyEFB(float Gamma)
 {
 	// Copy EFB data to XFB and restore render target again
 

@@ -99,12 +99,14 @@ const char simple_shader_code[] = {
 	"{\n"
 	"float4 vPosition : POSITION;\n"
 	"float2 vTexCoord : TEXCOORD0;\n"
+	"float  vTexCoord1 : TEXCOORD1;\n"
 	"};\n"
-	"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0)\n"
+	"VSOUTPUT main(float4 inPosition : POSITION,float3 inTEX0 : TEXCOORD0)\n"
 	"{\n"
 	"VSOUTPUT OUT;\n"
 	"OUT.vPosition = inPosition;\n"
-	"OUT.vTexCoord = inTEX0;\n"
+	"OUT.vTexCoord = inTEX0.xy;\n"
+	"OUT.vTexCoord1 = inTEX0.z;\n"
 	"return OUT;\n"
 	"}\n"
 };
@@ -129,7 +131,8 @@ void VertexShaderCache::Init()
 	const D3D11_INPUT_ELEMENT_DESC simpleelems[2] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		
 	};
 	const D3D11_INPUT_ELEMENT_DESC clearelems[2] =
 	{

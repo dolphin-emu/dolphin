@@ -63,11 +63,14 @@ void CreateRgbToYuyvProgram()
 	"uniform sampler samp0 : register(s0);\n"	
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
-	"  in float2 uv0 : TEXCOORD0)\n"
+	"  in float2 uv0 : TEXCOORD0,\n"
+	"  in float uv1 : TEXCOORD1)\n"
 	"{\n"		
 	"  float2 uv1 = float2((uv0.x + 1.0f)/ blkDims.z, uv0.y / blkDims.w);\n"
 	"  float3 c0 = tex2D(samp0, uv0.xy / blkDims.zw).rgb;\n"
 	"  float3 c1 = tex2D(samp0, uv1).rgb;\n"
+	"  c0 = pow(c0,uv1.xxx);\n"
+	"  c1 = pow(c1,uv1.xxx);\n"
 	"  float3 y_const = float3(0.257f,0.504f,0.098f);\n"
 	"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
 	"  float3 v_const = float3(0.439f,-0.368f,-0.071f);\n"
@@ -204,7 +207,7 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
-				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
+				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter,float Gamma)
 {
 	HRESULT hr;		
 	u32 index =0;
@@ -376,7 +379,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0,1.0f);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	g_renderer->RestoreAPIState();
@@ -439,7 +442,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0,1.0f);
 	u64 hash = 0;
 	if (g_ActiveConfig.bEFBCopyCacheEnable)
 	{
@@ -454,7 +457,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	return hash;
 }
 
-void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
 {
 	TextureConversionShader::SetShaderParameters(
 		(float)dstWidth, 
@@ -466,7 +469,7 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		(float)Renderer::GetFullTargetWidth(),
 		(float)Renderer::GetFullTargetHeight());
 	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
+	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false,Gamma);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	g_renderer->RestoreAPIState();

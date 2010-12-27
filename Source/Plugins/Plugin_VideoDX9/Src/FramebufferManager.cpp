@@ -183,7 +183,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
 }
 
-void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
 	u8* xfb_in_ram = Memory_GetPtr(xfbAddr);
 	if (!xfb_in_ram)
@@ -193,10 +193,10 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 	}
 
 	TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
-	TextureConverter::EncodeToRamYUYV(GetEFBColorTexture(), targetRc, xfb_in_ram, fbWidth, fbHeight);
+	TextureConverter::EncodeToRamYUYV(GetEFBColorTexture(), targetRc, xfb_in_ram, fbWidth, fbHeight,Gamma);
 }
 
-void XFBSource::CopyEFB()
+void XFBSource::CopyEFB(float Gamma)
 {
 	// Copy EFB data to XFB and restore render target again
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
@@ -230,7 +230,8 @@ void XFBSource::CopyEFB()
 		texWidth, 
 		texHeight, 
 		PixelShaderCache::GetColorCopyProgram( g_ActiveConfig.iMultisampleMode), 
-		VertexShaderCache::GetSimpleVertexShader( g_ActiveConfig.iMultisampleMode));
+		VertexShaderCache::GetSimpleVertexShader( g_ActiveConfig.iMultisampleMode),
+		Gamma);
 
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);

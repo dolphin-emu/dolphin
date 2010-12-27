@@ -124,20 +124,21 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	switch(SSAAMode % MAX_SSAA_SHADERS)
 	{
 	case 0: // 1 Sample
-		WRITE(p, "in float2 uv0 : TEXCOORD0){\n"
-		         "float4 texcol = tex2D(samp0,uv0);\n");
+		WRITE(p, "in float2 uv0 : TEXCOORD0,\n"
+		         "in float uv1 : TEXCOORD1){\n"
+		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
 		break;
 	case 1: // 1 Samples SSAA
 		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
-		         "in float4 uv1 : TEXCOORD1){\n"
+		         "in float uv1 : TEXCOORD1){\n"
 		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
 		break;
 	case 2: // 4 Samples SSAA
 		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
-		         "in float4 uv1 : TEXCOORD1,\n"
+		         "in float uv1 : TEXCOORD1,\n"
 		         "in float4 uv2 : TEXCOORD2,\n"
 		         "in float4 uv3 : TEXCOORD3){\n"
-		         "float4 texcol = (tex2D(samp0,uv1.xy) + tex2D(samp0,uv1.wz) + tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz))*0.25f;\n");
+		         "float4 texcol = (tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz) + tex2D(samp0,uv3.xy) + tex2D(samp0,uv3.wz))*0.25f;\n");
 		break;
 	}
 
@@ -155,9 +156,17 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		         "texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n");
 		break;
 	}
+	//Apply Gamma Correction
+	if((depthConversionType % PixelShaderCache::NUM_DEPTH_CONVERSION_TYPES) == PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE)
+	{
+		WRITE(p, "texcol = pow(texcol,uv1.xxxx);\n");		
+	}
 
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
-		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");
+	{
+		
+		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");		
+	}
 	else
 		WRITE(p, "ocol0 = texcol;\n");
 

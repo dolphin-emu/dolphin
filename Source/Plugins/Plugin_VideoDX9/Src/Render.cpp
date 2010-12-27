@@ -643,10 +643,19 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			val +=	((float)(z & 0xFF)) * ffrac;
 			break;
 		};
-		z = ((u32)(val * 0xffffff));
+		
 
 		pSystemBuf->UnlockRect();
 		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		{
+			// if Z is in 16 bit format yo must return a 16 bit integer
+			z = ((u32)(val * 0xffff));
+		}
+		else
+		{
+			z = ((u32)(val * 0xffffff));
+		}
 		return z;
 	}
 	else if(type == PEEK_COLOR)
@@ -669,9 +678,21 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
 		PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		{
+			ret = RGBA8ToRGBA6ToRGBA8(ret);
+		}
+		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		{
+			ret = RGBA8ToRGB565ToRGB8(ret);
+		}			
+		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+		{
+			ret |= 0xFF000000;
+		}
 		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
 		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
-		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
+		else return (ret & 0x00FFFFFF); // GX_READ_00
 	}
 	else //if(type == POKE_COLOR)
 	{
@@ -865,7 +886,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
@@ -1015,7 +1036,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode));
+		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode),Gamma);
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);

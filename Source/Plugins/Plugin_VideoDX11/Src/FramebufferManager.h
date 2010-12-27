@@ -62,7 +62,7 @@ struct XFBSource : public XFBSourceBase
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
-	void CopyEFB();
+	void CopyEFB(float Gamma);
 
 	D3DTexture2D* const tex;
 };
@@ -87,7 +87,7 @@ private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
 
 	static struct Efb
 	{
