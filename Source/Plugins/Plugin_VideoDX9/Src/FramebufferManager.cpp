@@ -45,6 +45,9 @@ FramebufferManager::FramebufferManager()
     s_efb.color_OffScreenReadBuffer = NULL;
     s_efb.depth_OffScreenReadBuffer = NULL;
 
+    s_efb.color_reinterpret_texture = NULL;
+    s_efb.color_reinterpret_surface = NULL;
+
     s_efb.color_surface_Format = D3DFMT_FORCE_DWORD;
     s_efb.depth_surface_Format = D3DFMT_FORCE_DWORD;
     s_efb.depth_ReadBuffer_Format = D3DFMT_FORCE_DWORD;
@@ -62,6 +65,7 @@ FramebufferManager::FramebufferManager()
 		hr = s_efb.color_texture->GetSurfaceLevel(0, &s_efb.color_surface);
 	}
 	CHECK(hr, "Create color texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+
 	hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, s_efb.color_surface_Format, 
 										  D3DPOOL_DEFAULT, &s_efb.colorRead_texture, NULL);
 	CHECK(hr, "Create Color Read Texture (hr=%#x)", hr);
@@ -130,6 +134,15 @@ FramebufferManager::FramebufferManager()
 	// Create an offscreen surface that we can lock to retrieve the data
 	hr = D3D::dev->CreateOffscreenPlainSurface(4, 4, s_efb.depth_ReadBuffer_Format, D3DPOOL_SYSTEMMEM, &s_efb.depth_OffScreenReadBuffer, NULL);
 	CHECK(hr, "Create depth offscreen surface (hr=%#x)", hr);
+
+	// create resources for ReinterpretPixelData
+	hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb.color_surface_Format,
+										 D3DPOOL_DEFAULT, &s_efb.color_reinterpret_texture, NULL);
+	if (s_efb.color_reinterpret_texture)
+	{
+		hr = s_efb.color_reinterpret_texture->GetSurfaceLevel(0, &s_efb.color_reinterpret_surface);
+	}
+	CHECK(hr, "Create color reinterpret texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 }
 
 FramebufferManager::~FramebufferManager()
@@ -144,6 +157,8 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(s_efb.colorRead_texture);
 	SAFE_RELEASE(s_efb.depth_texture);
 	SAFE_RELEASE(s_efb.depthRead_texture);
+	SAFE_RELEASE(s_efb.color_reinterpret_texture);
+	SAFE_RELEASE(s_efb.color_reinterpret_surface);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)

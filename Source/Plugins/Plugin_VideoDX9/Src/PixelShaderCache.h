@@ -71,6 +71,8 @@ public:
 	};
 	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram(int SSAAMode, int depthConversionType);
 	static LPDIRECT3DPIXELSHADER9 GetClearProgram();	
+	static LPDIRECT3DPIXELSHADER9 ReinterpRGBA6ToRGB8();
+	static LPDIRECT3DPIXELSHADER9 ReinterpRGB8ToRGBA6();
 };
 
 

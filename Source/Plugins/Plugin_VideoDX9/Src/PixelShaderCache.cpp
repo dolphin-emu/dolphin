@@ -52,7 +52,9 @@ enum
 };
 
 static LPDIRECT3DPIXELSHADER9 s_CopyProgram[NUM_COPY_TYPES][PixelShaderCache::NUM_DEPTH_CONVERSION_TYPES][MAX_SSAA_SHADERS];
-static LPDIRECT3DPIXELSHADER9 s_ClearProgram = 0;
+static LPDIRECT3DPIXELSHADER9 s_ClearProgram = NULL;
+static LPDIRECT3DPIXELSHADER9 s_rgba6_to_rgb8 = NULL;
+static LPDIRECT3DPIXELSHADER9 s_rgb8_to_rgba6 = NULL;
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram(int SSAAMode)
 {
@@ -72,6 +74,51 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorCopyProgram(int SSAAMode)
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetClearProgram()
 {
 	return s_ClearProgram;
+}
+
+static LPDIRECT3DPIXELSHADER9 s_rgb8 = NULL;
+static LPDIRECT3DPIXELSHADER9 s_rgba6 = NULL;
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGBA6ToRGB8()
+{
+	const char code[] =
+	{
+		"uniform sampler samp0 : register(s0);\n"
+		"void main(\n"
+		"			out float4 ocol0 : COLOR0,\n"
+		"			in float2 uv0 : TEXCOORD0){\n"
+		"	ocol0 = tex2D(samp0,uv0);\n"
+		"	float4 src6 = trunc(ocol0 * 63.f);\n"
+		"	ocol0.r = src6.r*4.f + trunc(src6.g/16.f);\n" // dst8r = (src6r<<2)|(src6g>>4);
+		"	ocol0.g = frac(src6.g/16.f)*16.f*16.f+trunc(src6.b/4.f);\n" // dst8g = ((src6g&0xF)<<4)|(src6b>>2);
+		"	ocol0.b = frac(src6.b/4.f)*4.f*64.f+src6.a;\n" // dst8b = ((src6b&0x3)<<6)|src6a;
+		"	ocol0.a = 255.f;\n"
+		"	ocol0 /= 255.f;\n"
+		"}\n"
+	};
+	if (!s_rgba6_to_rgb8) s_rgba6_to_rgb8 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
+	return s_rgba6_to_rgb8;
+}
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
+{
+	const char code[] =
+	{
+		"uniform sampler samp0 : register(s0);\n"
+		"void main(\n"
+		"			out float4 ocol0 : COLOR0,\n"
+		"			in float2 uv0 : TEXCOORD0){\n"
+		"	ocol0 = tex2D(samp0,uv0);\n"
+		"	float4 src8 = trunc(ocol0*255.f);\n"
+		"	ocol0.r = (src8.r/4.f);\n" // dst6r = src8r>>2;
+		"	ocol0.g = frac(src8.r/4.f)*4.f*16.f + (src8.g/16.f);\n" // dst6g = ((src8r&0x3)<<4)|(src8g>>4);
+		"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + (src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
+		"	ocol0.a = frac(src8.b/64.f)*64.f;\n" // dst6a = src8b&0x3F;
+		"	ocol0 /= 63.f;\n"
+		"}\n"
+	};
+	if (!s_rgb8_to_rgba6) s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
+	return s_rgb8_to_rgba6;
 }
 
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
@@ -253,7 +300,7 @@ void PixelShaderCache::Shutdown()
 		for(int depthType = 0; depthType < NUM_DEPTH_CONVERSION_TYPES; depthType++)
 			for(int ssaaMode = 0; ssaaMode < MAX_SSAA_SHADERS; ssaaMode++)
 				if(s_CopyProgram[copyMatrixType][depthType][ssaaMode]
-				&& (copyMatrixType == 0 || s_CopyProgram[copyMatrixType][depthType][ssaaMode] != s_CopyProgram[copyMatrixType-1][depthType][ssaaMode]))
+					&& (copyMatrixType == 0 || s_CopyProgram[copyMatrixType][depthType][ssaaMode] != s_CopyProgram[copyMatrixType-1][depthType][ssaaMode]))
 					s_CopyProgram[copyMatrixType][depthType][ssaaMode]->Release();
 
 	for(int copyMatrixType = 0; copyMatrixType < NUM_COPY_TYPES; copyMatrixType++)
@@ -261,9 +308,13 @@ void PixelShaderCache::Shutdown()
 			for(int ssaaMode = 0; ssaaMode < MAX_SSAA_SHADERS; ssaaMode++)
 				s_CopyProgram[copyMatrixType][depthType][ssaaMode] = NULL;
 
-	if (s_ClearProgram)	s_ClearProgram->Release();
-	s_ClearProgram = NULL;	
-	
+	if (s_ClearProgram) s_ClearProgram->Release();
+	s_ClearProgram = NULL;
+	if (s_rgb8_to_rgba6) s_rgb8_to_rgba6->Release();
+	s_rgb8_to_rgba6 = NULL;
+	if (s_rgba6_to_rgb8) s_rgba6_to_rgb8->Release();
+	s_rgba6_to_rgb8 = NULL;
+
 	Clear();
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();

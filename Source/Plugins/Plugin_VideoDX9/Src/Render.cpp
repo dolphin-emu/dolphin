@@ -843,6 +843,29 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	RestoreAPIState();
 }
 
+void Renderer::ReinterpretPixelData(unsigned int convtype)
+{
+	RECT source;
+	SetRect(&source, 0, 0, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight());
+
+	LPDIRECT3DPIXELSHADER9 pixel_shader;
+	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6();
+	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8();
+	else
+	{
+		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+		return;
+	}
+
+	// convert data and set the target texture as our new EFB
+	g_renderer->ResetAPIState();
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorReinterpretSurface());
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture(), &source, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(0));
+	FramebufferManager::SwapReinterpretTexture();
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	g_renderer->RestoreAPIState();
+}
+
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	if (bpmem.blendmode.logicopenable && !forceUpdate)

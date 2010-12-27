@@ -863,6 +863,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	SetScissorRect();
 }
 
+void Renderer::ReinterpretPixelData(unsigned int convtype)
+{
+	// TODO
+}
+
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	// blend mode bit mask

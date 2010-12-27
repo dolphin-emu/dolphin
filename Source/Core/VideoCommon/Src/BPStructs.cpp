@@ -422,7 +422,12 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
+		break;
+
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
+		OnPixelFormatChange(bp);
+		break;
+
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale
 	case BPMEM_IREF:          /* 24 RID

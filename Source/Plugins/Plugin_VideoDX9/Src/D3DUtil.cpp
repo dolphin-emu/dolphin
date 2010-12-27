@@ -397,7 +397,7 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	float u2=((float)rSource->right) * sw;
 	float v1=((float)rSource->top) * sh;
 	float v2=((float)rSource->bottom) * sh;
-	float g = 1.0/Gamma;
+	float g = 1.0f/Gamma;
 
 	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
 		{-1.0f - dw,-1.0f + dh, 0.0f,1.0f, u1, v2, sw, sh, g},
@@ -432,7 +432,7 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 	float u2= rSource->right * sw;
 	float v1= rSource->top * sh;
 	float v2= rSource->bottom * sh;
-	float g = 1.0/Gamma;
+	float g = 1.0f/Gamma;
 
 	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
 		{ rDest->left  - dw , rDest->top    + dh, 1.0f,1.0f, u1, v2, sw, sh, g},

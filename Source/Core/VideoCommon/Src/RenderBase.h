@@ -110,6 +110,7 @@ public:
 	virtual void RenderText(const char* pstr, int left, int top, u32 color) = 0;
 
 	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
+	virtual void ReinterpretPixelData(unsigned int convtype) = 0;
 	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
@@ -124,6 +125,9 @@ public:
 	virtual void UpdateViewport() = 0;
 
 	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;
+
+	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
+	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
 
 protected:
 
@@ -159,6 +163,9 @@ protected:
 
 	static bool s_skipSwap;
 	static bool XFBWrited;
+
+private:
+	static unsigned int prev_efb_format;
 };
 
 extern Renderer *g_renderer;

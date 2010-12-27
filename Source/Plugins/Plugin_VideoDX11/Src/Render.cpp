@@ -744,6 +744,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	RestoreAPIState();
 }
 
+void Renderer::ReinterpretPixelData(unsigned int convtype)
+{
+	// TODO
+}
+
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	if (bpmem.blendmode.logicopenable && !forceUpdate)

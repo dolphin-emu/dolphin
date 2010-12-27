@@ -75,6 +75,7 @@ wxString force_filtering_tooltip = wxT("Forces bilinear texture filtering even i
 wxString _3d_vision_tooltip = wxT("");
 wxString internal_res_tooltip = wxT("Specifies the resolution used to render at. A high resolution will improve visual quality but is also quite heavy on performance and might cause glitches in certain games.\nFractional: Uses your display resolution directly instead of the native resolution. The quality scales with your display/window size, as does the performance impact.\nIntegral: This is like Fractional, but rounds up to an integer multiple of the native resolution. Should give a more accurate look but is usually slower.\nThe other options are fixed resolutions for choosing a visual quality independent of your display size.");
 wxString efb_access_tooltip = wxT("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\nbut enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily.");
+wxString efb_emulate_format_changes_tooltip = wxT("Enables reinterpreting the data inside the EFB when the pixel format changes.\nSome games depend on this function for certain effects, so enable it if you're having glitches.\nDepending on how the game uses this function, the speed hits caused by this option range from none to critical.");
 wxString efb_copy_tooltip = wxT("Enables emulation of Embedded Frame Buffer copies, if the game uses them.\nGames often need this for post-processing or other things, but if you can live without it, you can sometimes get a big speedup.");
 wxString efb_copy_texture_tooltip = wxT("Emulate frame buffer copies directly to textures.\nThis is not so accurate, but it's good enough for the way many games use framebuffer copies.");
 wxString efb_copy_ram_tooltip = wxT("Fully emulate embedded frame buffer copies.\nThis is more accurate than EFB Copy to Texture, and some games need this to work properly, but it can also be very slow.");
@@ -243,6 +244,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	group_efb->Add(new SettingCheckBox(page_general, wxT("Enable CPU Access"), efb_access_tooltip, vconfig.bEFBAccessEnable), 0, wxBOTTOM | wxLEFT, 5);
+	SettingCheckBox *emulate_efb_format_changes = new SettingCheckBox(page_general, wxT("Emulate format changes"), efb_emulate_format_changes_tooltip, vconfig.bEFBEmulateFormatChanges);
+	group_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
+
+	if (!vconfig.backend_info.bSupportsFormatReinterpretation)
+	{
+		emulate_efb_format_changes->SetValue(false);
+		emulate_efb_format_changes->Disable();
+	}
 
 	// EFB copy
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Copy"));

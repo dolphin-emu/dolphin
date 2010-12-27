@@ -119,6 +119,7 @@ struct VideoConfig
 	bool bDlistCachingEnable;
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
+	bool bEFBEmulateFormatChanges;
 	bool bOSDHotKey;
 	bool bHack;
 	bool bCopyEFBToTexture;	
@@ -159,6 +160,7 @@ struct VideoConfig
 		bool bSupports3DVision;
 		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
+		bool bSupportsFormatReinterpretation;
 	} backend_info;
 };
 

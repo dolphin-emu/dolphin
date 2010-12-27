@@ -85,6 +85,18 @@ public:
 	static LPDIRECT3DSURFACE9 GetEFBColorReadSurface() { return s_efb.color_ReadBuffer; }
 	static LPDIRECT3DSURFACE9 GetEFBDepthReadSurface() { return s_efb.depth_ReadBuffer; }
 
+	static LPDIRECT3DTEXTURE9 GetEFBColorReinterpretTexture() { return s_efb.color_reinterpret_texture; }
+	static LPDIRECT3DSURFACE9 GetEFBColorReinterpretSurface() { return s_efb.color_reinterpret_surface; }
+	static void SwapReinterpretTexture()
+	{
+		LPDIRECT3DSURFACE9 swapsurf = GetEFBColorReinterpretSurface();
+		LPDIRECT3DTEXTURE9 swaptex = GetEFBColorReinterpretTexture();
+		s_efb.color_reinterpret_surface = GetEFBColorRTSurface();
+		s_efb.color_reinterpret_texture = GetEFBColorTexture();
+		s_efb.color_surface = swapsurf;
+		s_efb.color_texture = swaptex;
+	}
+
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
@@ -97,6 +109,9 @@ private:
 		LPDIRECT3DTEXTURE9 colorRead_texture;//1 pixel texture for temporal data store
 		LPDIRECT3DTEXTURE9 depth_texture;//Texture thats contains the depth data of the render target
 		LPDIRECT3DTEXTURE9 depthRead_texture;//4 pixel texture for temporal data store
+
+		LPDIRECT3DTEXTURE9 color_reinterpret_texture;//buffer used for ReinterpretPixelData
+		LPDIRECT3DSURFACE9 color_reinterpret_surface;//corresponding surface
 
 		LPDIRECT3DSURFACE9 depth_surface;//Depth Surface
 		LPDIRECT3DSURFACE9 color_surface;//Color Surface

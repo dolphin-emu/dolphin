@@ -134,6 +134,63 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	}
 }
 
+void OnPixelFormatChange(const BPCmd &bp)
+{
+	/*
+	 * When changing the EFB format, the pixel data won't get converted to the new format but stays the same.
+	 * Since we are always using an RGBA8 buffer though, this causes issues in some games.
+	 * Thus, we reinterpret the old EFB data with the new format here.
+	 */
+	if (!g_ActiveConfig.bEFBEmulateFormatChanges ||
+		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
+		return;
+
+	int new_format = bpmem.zcontrol.pixel_format;
+	int old_format = Renderer::GetPrevPixelFormat();
+
+	// no need to reinterpret pixel data in these cases
+	if (new_format == old_format || old_format == (unsigned int)-1)
+		goto skip;
+
+	int convtype = -1;
+	switch (old_format)
+	{
+		case PIXELFMT_RGB8_Z24:
+		case PIXELFMT_Z24:
+			// Z24 and RGB8_Z24 are treated equal, so just return in this case
+			if (new_format == PIXELFMT_RGB565_Z16 || new_format == PIXELFMT_Z24)
+				goto skip;
+
+			if (new_format == PIXELFMT_RGBA6_Z24)
+				convtype = 0;
+			else if (new_format == PIXELFMT_RGB565_Z16)
+				convtype = 1;
+			break;
+
+		case PIXELFMT_RGBA6_Z24:
+			if (new_format == PIXELFMT_RGB8_Z24 ||
+				new_format == PIXELFMT_Z24)
+				convtype = 2;
+			else if (new_format == PIXELFMT_RGB565_Z16)
+				convtype = 3;
+			break;
+
+		case PIXELFMT_RGB565_Z16:
+			if (new_format == PIXELFMT_RGB8_Z24 ||
+				new_format == PIXELFMT_Z24)
+				convtype = 4;
+			else if (new_format == PIXELFMT_RGB565_Z16)
+				convtype = 5;
+			break;
+
+		default:
+			PanicAlert("Unhandled EFB format change: %d to %d\n", old_format, new_format);
+			goto skip;
+	}
+	g_renderer->ReinterpretPixelData(convtype);
+skip:
+	Renderer::StorePixelFormat(new_format);
+}
 
 void RestoreRenderState(const BPCmd &bp)
 {

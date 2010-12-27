@@ -158,6 +158,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bAllowSignedBytes = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
+	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 }
 
 void DllConfig(void *_hParent)
