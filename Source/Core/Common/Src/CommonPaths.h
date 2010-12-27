@@ -75,6 +75,8 @@
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
+	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
+				DIR_SEP USERDATA_DIR DIR_SEP
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"

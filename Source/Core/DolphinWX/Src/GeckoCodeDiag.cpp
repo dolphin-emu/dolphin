@@ -198,11 +198,12 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				// read new code
 			case 0 :
 			{
-				std::istringstream ss(line);
-				std::getline(ss, gcode.name, '[');	// stop at [ character (begining of contributer name)
+				std::istringstream ssline(line);
+				// stop at [ character (begining of contributer name)
+				std::getline(ssline, gcode.name, '[');
 				gcode.name = StripSpaces(gcode.name);
 				// read the code creator name
-				std::getline(ss, gcode.creator, ']');
+				std::getline(ssline, gcode.creator, ']');
 				read_state = 1;
 			}
 				break;

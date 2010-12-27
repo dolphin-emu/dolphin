@@ -280,27 +280,21 @@ bool DolphinApp::OnInit()
 			delete [] tmpChar;
 		}
 	}
-#endif
-
-#ifdef __APPLE__
-	const char *AppSupportDir = File::GetUserPath(D_USER_IDX);
-
-	if (!File::Exists(AppSupportDir))
-	{
-		// Fresh run: create Dolphin dir and copy contents of User within the bundle to App Support
-		File::CopyDir(std::string(File::GetBundleDirectory() + DIR_SEP USERDATA_DIR DIR_SEP).c_str(), AppSupportDir);
-	}
-	else if (!File::IsDirectory(AppSupportDir))
-		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-#elif !defined _WIN32
+#else
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
-	File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
-	File::CopyDir(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP, File::GetUserPath(D_GAMECONFIG_IDX));
-	File::CopyDir(SHARED_USER_DIR MAPS_DIR DIR_SEP, File::GetUserPath(D_MAPS_IDX));
-	File::CopyDir(SHARED_USER_DIR SHADERS_DIR DIR_SEP, File::GetUserPath(D_SHADERS_IDX));
-	File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
-	File::CopyDir(SHARED_USER_DIR OPENCL_DIR DIR_SEP, File::GetUserPath(D_OPENCL_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR CONFIG_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_CONFIG_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_GAMECONFIG_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_MAPS_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_SHADERS_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_WIIUSER_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP).c_str(),
+		File::GetUserPath(D_OPENCL_IDX));
 
 	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
 		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
