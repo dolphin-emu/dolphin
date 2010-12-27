@@ -25,7 +25,7 @@
 
 bool textureChanged[8];
 const bool renderFog = false;
-
+int prev_pix_format = -1;
 namespace BPFunctions
 {
 // ----------------------------------------------
@@ -92,26 +92,22 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	for the EFB format, which causes some problems:
 	- We're using an alpha channel although the game doesn't (1)
 	- If the actual EFB format is PIXELFMT_RGBA6_Z24, we are using more bits per channel than the native HW (2)
-	- When doing a z copy (EFB copy target format GX_TF_Z24X8 (and possibly others?)), the native HW assumes that the EFB format is RGB8 when clearing.
-		Thus the RGBA6 values get overwritten with plain RGB8 data without any kind of conversion. (3)
-	- When changing EFB formats, the EFB contents will NOT get converted to the new format;
-		this currently isn't implemented in any HW accelerated plugin and might cause issues. (4)
+	- When doing a z copy EFB copy target format GX_TF_Z24X8 , the native HW don't worry about hthe color efb format because it only uses the depth part
+	- When changing EFB formats the efb must be cleared (3) 
 	- Possible other oddities should be noted here as well
 
 	To properly emulate the above points, we're doing the following:
 	(1)
 		- disable alpha channel writing of any kind of rendering if the actual EFB format doesn't use an alpha channel
 		- NOTE: Always make sure that the EFB has been cleared to an alpha value of 0xFF in this case!
+		- in a dition to the previus make sure we always return 0xFF in alpha when reading the efb content if the efb format has no alpha
 		- Same for color channels, these need to be cleared to 0x00 though.
 	(2)
 		- just scale down the RGBA8 color to RGBA6 and upscale it to RGBA8 again
-	(3)
-		- more tricky, doing some bit magic here to properly reinterpret the data
-	(4) TODO
-		- generally delay ClearScreen calls as long as possible (until any other EFB access)
-		- when the pixel format changes:
-			- call ClearScreen if it's still being delayed, reinterpret the color for the new format though
-			- otherwise convert EFB contents to the new pixel format
+	(3) - when the pixel format changes:
+		- call ClearScreen using the correct alpha format for the previus pixel format
+		
+			
 */
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
@@ -119,72 +115,43 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = bpmem.blendmode.alphaupdate;
 	bool zEnable = bpmem.zmode.updateenable;
-
+	u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+	u32 z = bpmem.clearZValue;
+	if(prev_pix_format == -1)
+	{
+		prev_pix_format = bpmem.zcontrol.pixel_format;
+	}
 	// (1): Disable unused color channels
 	switch (bpmem.zcontrol.pixel_format)
 	{
-		case PIXELFMT_RGBA6_Z24:
-			if (colorEnable && PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): alpha update forced
-				alphaEnable = true;
-			break;
-
 		case PIXELFMT_RGB8_Z24:
 		case PIXELFMT_RGB565_Z16:
-			alphaEnable = false;
+			alphaEnable = true;
+			color |= (prev_pix_format == PIXELFMT_RGBA6_Z24)? 0x0 : 0xFF000000;//(3)
 			break;
 
 		case PIXELFMT_Z24:
 			alphaEnable = colorEnable = false;
 			break;
-
-		default:
-			// TODO?
+		default:			
 			break;
 	}
 
 	if (colorEnable || alphaEnable || zEnable)
 	{
-		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-		u32 z = bpmem.clearZValue;
 		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
 		{
-			// TODO: Not sure whether there's more formats to check for here - maybe GX_TF_Z8 and GX_TF_Z16?
-			if (PE_copy.tp_realFormat() == GX_TF_Z24X8) // (3): Reinterpret RGB8 color as RGBA6
-			{
-				// NOTE: color is passed in ARGB order, but EFB uses RGBA
-				u32 srcr8 = (color & 0xFF0000) >> 16;
-				u32 srcg8 = (color & 0xFF00) >> 8;
-				u32 srcb8 =  color & 0xFF;
-				u32 dstr6 = srcr8 >> 2;
-				u32 dstg6 = ((srcr8 & 0x3) << 4) | (srcg8 >> 4);
-				u32 dstb6 = ((srcg8 & 0xF) << 2) | (srcb8 >> 6);
-				u32 dsta6 = srcb8 & 0x3F;
-				u32 dstr8 = (dstr6 << 2) | (dstr6 >> 4);
-				u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
-				u32 dstb8 = (dstb6 << 2) | (dstb6 >> 4);
-				u32 dsta8 = (dsta6 << 2) | (dsta6 >> 4);
-				color = (dsta8 << 24) | (dstr8 << 16) | (dstg8 << 8) | dstb8;
-			}
-			else // (2): convert RGBA8 color to RGBA6
-			{
-				color &= 0xFCFCFCFC;
-				color |= (color >> 6) & 0x03030303;
-			}
+			color = RGBA8ToRGBA6ToRGBA8(color);
 		}
 		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			z >>= 8;
-			u32 dstr5 = (color & 0xFF0000) >> 19;
-			u32 dstg6 = (color & 0xFF00) >> 10;
-			u32 dstb5 = (color & 0xFF) >> 3;
-			u32 dstr8 = (dstr5 << 3) | (dstr5 >> 2);
-			u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
-			u32 dstb8 = (dstb5 << 3) | (dstb5 >> 2);
-			color = (dstr8 << 16) | (dstg8 << 8) | dstb8;
+			color = RGBA8ToRGB565ToRGB8(color);
 		}
 		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
+	prev_pix_format = bpmem.zcontrol.pixel_format;
 }
+
 
 void RestoreRenderState(const BPCmd &bp)
 {
