@@ -155,6 +155,7 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
+	ini.Set("Core", "BBA_MAC",			m_bba_mac);
 	char sidevicenum[16];
 	for (int i = 0; i < 4; ++i)
 	{
@@ -279,6 +280,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
 		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
+		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
 		ini.Get("Core", "ProfiledReJIT",&m_LocalCoreStartupParameter.bJITProfiledReJIT,			false);
 		ini.Get("Core", "TimeProfiling",&m_LocalCoreStartupParameter.bJITILTimeProfiling,		false);
 		ini.Get("Core", "OutputIR",		&m_LocalCoreStartupParameter.bJITILOutputIR,			false);

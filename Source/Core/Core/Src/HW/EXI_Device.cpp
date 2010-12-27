@@ -130,7 +130,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_ETH:
-		return new CEXIETHERNET();
+		return new CEXIETHERNET(SConfig::GetInstance().m_bba_mac);
 		break;
 
 	case EXIDEVICE_AM_BASEBOARD:

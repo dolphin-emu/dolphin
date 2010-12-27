@@ -17,6 +17,7 @@
 
 #include "StringUtil.h"
 #include "../Memmap.h"
+//#pragma optimize("",off)
 // GROSS CODE ALERT: headers need to be included in the following order
 #include "TAP_Win32.h"
 #include "../EXI_Device.h"
@@ -67,16 +68,19 @@ bool IsTAPDevice(const char *guid)
 		else
 		{
 			len = sizeof(component_id);
-			status = RegQueryValueEx(unit_key, component_id_string, NULL, &data_type, (LPBYTE)component_id, &len);
+			status = RegQueryValueEx(unit_key, component_id_string, NULL,
+				&data_type, (LPBYTE)component_id, &len);
 
 			if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
 			{
 				len = sizeof(net_cfg_instance_id);
-				status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, NULL, &data_type, (LPBYTE)net_cfg_instance_id, &len);
+				status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, NULL,
+					&data_type, (LPBYTE)net_cfg_instance_id, &len);
 
 				if (status == ERROR_SUCCESS && data_type == REG_SZ)
 				{
-					if (!strcmp(component_id, TAP_COMPONENT_ID) && !strcmp(net_cfg_instance_id, guid))
+					if (!strcmp(component_id, TAP_COMPONENT_ID) &&
+						!strcmp(net_cfg_instance_id, guid))
 					{
 						RegCloseKey(unit_key);
 						RegCloseKey(netcard_key);
@@ -93,20 +97,20 @@ bool IsTAPDevice(const char *guid)
 	return false;
 }
 
-bool GetGUID(char *name, int name_size)
+bool GetGUIDs(std::vector<std::string>& guids)
 {
 	LONG status;
 	HKEY control_net_key;
 	DWORD len;
 	int i = 0;
-	bool stop = false;
+	bool found_all = false;
 
 	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &control_net_key);
 
 	if (status != ERROR_SUCCESS)
 		return false;
 	
-	while (!stop)
+	while (!found_all)
 	{
 		char enum_name[256];
 		char connection_string[256];
@@ -116,21 +120,25 @@ bool GetGUID(char *name, int name_size)
 		const char name_string[] = "Name";
 
 		len = sizeof(enum_name);
-		status = RegEnumKeyEx(control_net_key, i, enum_name, &len, NULL, NULL, NULL, NULL);
+		status = RegEnumKeyEx(control_net_key, i, enum_name,
+			&len, NULL, NULL, NULL, NULL);
 
 		if (status == ERROR_NO_MORE_ITEMS)
 			break;
 		else if (status != ERROR_SUCCESS)
 			return false;
 
-		snprintf(connection_string, sizeof(connection_string), "%s\\%s\\Connection", NETWORK_CONNECTIONS_KEY, enum_name);
+		snprintf(connection_string, sizeof(connection_string),
+			"%s\\%s\\Connection", NETWORK_CONNECTIONS_KEY, enum_name);
 
-		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string, 0, KEY_READ, &connection_key);
+		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string,
+			0, KEY_READ, &connection_key);
 
 		if (status == ERROR_SUCCESS)
 		{
 			len = sizeof(name_data);
-			status = RegQueryValueEx(connection_key, name_string, NULL, &name_type, (LPBYTE)name_data, &len);
+			status = RegQueryValueEx(connection_key, name_string, NULL,
+				&name_type, (LPBYTE)name_data, &len);
 
 			if (status != ERROR_SUCCESS || name_type != REG_SZ)
 			{
@@ -140,8 +148,8 @@ bool GetGUID(char *name, int name_size)
 			{
 				if (IsTAPDevice(enum_name))
 				{
-					snprintf(name, name_size, "%s", enum_name);
-					stop = true;
+					guids.push_back(enum_name);
+					//found_all = true;
 				}
 			}
 
@@ -152,9 +160,28 @@ bool GetGUID(char *name, int name_size)
 
 	RegCloseKey(control_net_key);
 
-	if (!stop)
-		return false;
+	//if (!found_all)
+		//return false;
 
+	return true;
+}
+
+bool OpenTAP(HANDLE& adapter, const std::string device_guid)
+{
+	char device_path[256];
+
+	/* Open Windows TAP-Win32 adapter */
+	snprintf(device_path, sizeof(device_path), "%s%s%s",
+		USERMODEDEVICEDIR, device_guid.c_str(), TAPSUFFIX);
+
+	adapter = CreateFile(device_path, GENERIC_READ | GENERIC_WRITE, 0, 0,
+		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
+
+	if (adapter == INVALID_HANDLE_VALUE)
+	{
+		INFO_LOG(SP1, "Failed to open TAP at %s", device_path);
+		return false;
+	}
 	return true;
 }
 
@@ -162,14 +189,14 @@ bool GetGUID(char *name, int name_size)
 
 bool CEXIETHERNET::deactivate()
 {
-	DEBUGPRINT("Deactivating BBA...");
+	INFO_LOG(SP1, "Deactivating BBA...");
 	if (!isActivated())
 		return true;
 	CloseHandle(mHRecvEvent);
 	mHRecvEvent = INVALID_HANDLE_VALUE;
 	CloseHandle(mHAdapter);
 	mHAdapter = INVALID_HANDLE_VALUE;
-	DEBUGPRINT("Success!");
+	INFO_LOG(SP1, "Success!");
 	return true;
 }
 
@@ -183,89 +210,80 @@ bool CEXIETHERNET::activate()
 	if (isActivated())
 		return true;
 
-	DEBUGPRINT("Activating BBA...");
+	INFO_LOG(SP1, "Activating BBA...");
 
 	DWORD len;
-	char device_path[256];
-	char device_guid[0x100];
+	std::vector<std::string> device_guids;
 
-	if (!Win32TAPHelper::GetGUID(device_guid, sizeof(device_guid)))
+	if (!Win32TAPHelper::GetGUIDs(device_guids))
 	{
-		DEBUGPRINT("Failed to find a TAP GUID");
+		INFO_LOG(SP1, "Failed to find a TAP GUID");
 		return false;
 	}
 
-	/* Open Windows TAP-Win32 adapter */
-	snprintf(device_path, sizeof(device_path), "%s%s%s", USERMODEDEVICEDIR, device_guid, TAPSUFFIX);
-
-	mHAdapter = CreateFile (
-		device_path,
-		GENERIC_READ | GENERIC_WRITE,
-		0,
-		0,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
-		0 );
-
+	for (int i = 0; i < device_guids.size(); i++)
+	{
+		if (Win32TAPHelper::OpenTAP(mHAdapter, device_guids.at(i)))
+		{
+			ERROR_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
+			i = device_guids.size();
+		}
+	}
 	if (mHAdapter == INVALID_HANDLE_VALUE)
 	{
-		DEBUGPRINT("Failed to open TAP at %s", device_path);
+		INFO_LOG(SP1, "Failed to open any TAP");
 		return false;
 	}
 
 	/* get driver version info */
+	ULONG info[3];
+	if (DeviceIoControl (mHAdapter, TAP_IOCTL_GET_VERSION,
+		&info, sizeof (info), &info, sizeof (info), &len, NULL))
 	{
-		ULONG info[3];
-		if (DeviceIoControl (mHAdapter, TAP_IOCTL_GET_VERSION,
-			&info, sizeof (info), &info, sizeof (info), &len, NULL))
-		{
-			DEBUGPRINT("TAP-Win32 Driver Version %d.%d %s",
-				info[0], info[1], (info[2] ? "(DEBUG)" : ""));
-		}
-		if ( !(info[0] > TAP_WIN32_MIN_MAJOR
-			|| (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)) )
-		{
-			DEBUGPRINT("ERROR:  This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver.",
-				TAP_WIN32_MIN_MAJOR,
-				TAP_WIN32_MIN_MINOR);
-			return false;
-		}
+		INFO_LOG(SP1, "TAP-Win32 Driver Version %d.%d %s",
+			info[0], info[1], (info[2] ? "(DEBUG)" : ""));
+	}
+	if ( !(info[0] > TAP_WIN32_MIN_MAJOR
+		|| (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)) )
+	{
+		PanicAlert("ERROR:  This version of Dolphin requires a TAP-Win32 driver"
+			" that is at least version %d.%d -- If you recently upgraded your Dolphin"
+			" distribution, a reboot is probably required at this point to get"
+			" Windows to see the new driver.",
+			TAP_WIN32_MIN_MAJOR, TAP_WIN32_MIN_MINOR);
+		return false;
 	}
 
 	/* get driver MTU */
+	if (!DeviceIoControl(mHAdapter, TAP_IOCTL_GET_MTU,
+		&mMtu, sizeof (mMtu), &mMtu, sizeof (mMtu), &len, NULL))
 	{
-		if (!DeviceIoControl(mHAdapter, TAP_IOCTL_GET_MTU,
-			&mMtu, sizeof (mMtu), &mMtu, sizeof (mMtu), &len, NULL))
-		{
-			DEBUGPRINT("Couldn't get device MTU");
-			return false;
-		}
-		DEBUGPRINT("TAP-Win32 MTU=%d (ignored)", mMtu);
+		INFO_LOG(SP1, "Couldn't get device MTU");
+		return false;
 	}
+	INFO_LOG(SP1, "TAP-Win32 MTU=%d (ignored)", mMtu);
 
 	/* set driver media status to 'connected' */
+	ULONG status = TRUE;
+	if (!DeviceIoControl(mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS,
+		&status, sizeof (status), &status, sizeof (status), &len, NULL))
 	{
-		ULONG status = TRUE;
-		if (!DeviceIoControl (mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS,
-			&status, sizeof (status), &status, sizeof (status), &len, NULL))
-		{
-			DEBUGPRINT("WARNING: The TAP-Win32 driver rejected a TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
-			return false;
-		}
-		else
-		{
-			DEBUGPRINT("TAP-WIN32 status as Connected");
-		}
+		INFO_LOG(SP1, "WARNING: The TAP-Win32 driver rejected a"
+			"TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
+		return false;
 	}
 
 	//set up recv event
-	mHRecvEvent = CreateEvent(NULL, false, false, NULL);
-	memset((void*)&mReadOverlapped, 0 , sizeof(mReadOverlapped));
+	if ((mHRecvEvent = CreateEvent(NULL, false, false, NULL)) == NULL)
+	{
+		INFO_LOG(SP1, "Failed to create recv event:%x", GetLastError());
+		return false;
+	}
+	ZeroMemory(&mReadOverlapped, sizeof(mReadOverlapped));
 	resume();
 
-	DEBUGPRINT("Success!");
+	INFO_LOG(SP1, "Success!");
 	return true;
-	//TODO: Activate Device!
 }
 
 bool CEXIETHERNET::CheckRecieved()
@@ -273,40 +291,65 @@ bool CEXIETHERNET::CheckRecieved()
 	if (!isActivated())
 		return false;
 
-	// I have no idea o_O
 	return false;
+}
+
+// Required for lwip...not sure why
+void fixup_ip_checksum(u16 *dataptr, u16 len)
+{
+	u32 acc = 0;
+	u16 *data = dataptr;
+	u16 *chksum = &dataptr[5];
+
+	*chksum = 0;
+
+	while (len > 1) {
+		u16 s = *data++;
+		acc += Common::swap16(s);
+		len -= 2;
+	}
+	acc = (acc >> 16) + (acc & 0xffff);
+	acc += (acc >> 16);
+	*chksum = Common::swap16(~acc);
 }
 
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 {
-	if (!isActivated())
-		activate();
-
-	DEBUGPRINT("Packet (%i): %s", size, ArrayToString(etherpckt, size).c_str());
+	fixup_ip_checksum((u16*)etherpckt +	7, 20);
+	INFO_LOG(SP1, "Packet (%zu):\n%s", size, ArrayToString(etherpckt, size, 0, 16).c_str());
 
 	DWORD numBytesWrit;
 	OVERLAPPED overlap;
-	memset((void*)&overlap, 0, sizeof(overlap));
-	//ZERO_OBJECT(overlap);
+	ZeroMemory(&overlap, sizeof(overlap));
 	//overlap.hEvent = mHRecvEvent;
 	if (!WriteFile(mHAdapter, etherpckt, size, &numBytesWrit, &overlap))
 	{
 		// Fail Boat
 		DWORD res = GetLastError();
-		DEBUGPRINT("Failed to send packet with error 0x%X", res);
+		INFO_LOG(SP1, "Failed to send packet with error 0x%X", res);
 	}
 	if (numBytesWrit != size)
 	{
-		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!", size, numBytesWrit);
+		INFO_LOG(SP1, "BBA sendPacket %i only got %i bytes sent!", size, numBytesWrit);
 		return false;
 	}
 	recordSendComplete();
-	//exit(0);
 	return true;
 }
 
 bool CEXIETHERNET::handleRecvdPacket()
 {
+	static u32 mPacketsRecvd = 0;
+	INFO_LOG(SP1, "handleRecvdPacket Packet %i (%i):\n%s", mPacketsRecvd, mRecvBufferLength,
+		ArrayToString(mRecvBuffer, mRecvBufferLength, 0, 16).c_str());
+
+	static u8 broadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	if (memcmp(mRecvBuffer, broadcast, 6) && memcmp(mRecvBuffer, mac_address, 6))
+	{
+		INFO_LOG(SP1, "dropping packet - not for us");
+		goto wait_for_next;
+	}
+
 	int rbwpp = (int)(mCbw.p_write() + CB_OFFSET);  // read buffer write page pointer
 	u32 available_bytes_in_cb;
 	if (rbwpp < mRBRPP)
@@ -316,9 +359,8 @@ bool CEXIETHERNET::handleRecvdPacket()
 	else //rbwpp > mRBRPP
 		available_bytes_in_cb = CB_SIZE - rbwpp + (mRBRPP - CB_OFFSET);
 
-	//DUMPWORD(rbwpp);
-	//DUMPWORD(mRBRPP);
-	//DUMPWORD(available_bytes_in_cb);
+	INFO_LOG(SP1, "rbwpp %i mRBRPP %04x available_bytes_in_cb %i",
+		rbwpp, mRBRPP, available_bytes_in_cb);
 
 	_dbg_assert_(SP1, available_bytes_in_cb <= CB_SIZE);
 	if (available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
@@ -327,23 +369,24 @@ bool CEXIETHERNET::handleRecvdPacket()
 	mCbw.write(mRecvBuffer, mRecvBufferLength);
 	mCbw.align();
 	rbwpp = (int)(mCbw.p_write() + CB_OFFSET);
-	//DUMPWORD(rbwpp);
+	
+	INFO_LOG(SP1, "rbwpp %i", rbwpp);
 
-	//mPacketsRcvd++;
+	mPacketsRecvd++;
 	mRecvBufferLength = 0;
 
-	if (mBbaMem[0x08] & BBA_INTERRUPT_RECV) 
+	if ((mBbaMem[BBA_IMR] & INT_R) && !(mBbaMem[BBA_IR] & INT_R))
 	{
-		if (!(mBbaMem[0x09] & BBA_INTERRUPT_RECV)) 
+		if (mBbaMem[2])
 		{
-			mBbaMem[0x09] |= BBA_INTERRUPT_RECV;
-			DEBUGPRINT("BBA Recv interrupt raised");
-			//interrupt.raiseEXI("BBA Recv");
+			mBbaMem[BBA_IR] |= INT_R;
+			INFO_LOG(SP1, "BBA Recv interrupt raised");
 			m_bInterruptSet = true;
 		}
 	}
 
-	if (mBbaMem[BBA_NCRA] & BBA_NCRA_SR)
+wait_for_next:
+	if (mBbaMem[BBA_NCRA] & NCRA_SR)
 		startRecv();
 
 	return true;
@@ -351,10 +394,10 @@ bool CEXIETHERNET::handleRecvdPacket()
 
 bool CEXIETHERNET::resume()
 {
-	if(!isActivated())
+	if (!isActivated())
 		return true;
 
-	DEBUGPRINT("BBA resume");
+	INFO_LOG(SP1, "BBA resume");
 	//mStop = false;
 
 	RegisterWaitForSingleObject(&mHReadWait, mHRecvEvent, ReadWaitCallback,
@@ -362,10 +405,10 @@ bool CEXIETHERNET::resume()
 
 	mReadOverlapped.hEvent = mHRecvEvent;
 
-	if (mBbaMem[BBA_NCRA] & BBA_NCRA_SR)
+	if (mBbaMem[BBA_NCRA] & NCRA_SR)
 		startRecv();
 
-	DEBUGPRINT("BBA resume complete");
+	INFO_LOG(SP1, "BBA resume complete");
 	return true;
 }
 
@@ -374,11 +417,11 @@ bool CEXIETHERNET::startRecv()
 	if (!isActivated())
 		return false;// Should actually be an assert
 
-	DEBUGPRINT("startRecv... ");
+	INFO_LOG(SP1, "startRecv... ");
 
 	if (mWaiting)
 	{
-		DEBUGPRINT("already waiting");
+		INFO_LOG(SP1, "already waiting");
 		return true;
 	}
 
@@ -388,7 +431,7 @@ bool CEXIETHERNET::startRecv()
 	if (res)
 	{
 		// Operation completed immediately
-		DEBUGPRINT("completed, res %i", res);
+		INFO_LOG(SP1, "completed, res %i", res);
 		mWaiting = true;
 	}
 	else
@@ -397,7 +440,7 @@ bool CEXIETHERNET::startRecv()
 		if (res == ERROR_IO_PENDING)
 		{
 			//'s ok :)
-			DEBUGPRINT("pending");
+			INFO_LOG(SP1, "pending");
 			// WaitCallback will be called
 			mWaiting = true;
 		}
@@ -415,19 +458,15 @@ VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFir
 {
 	static int sNumber = 0;
 	int cNumber = sNumber++;
-	DEBUGPRINT("WaitCallback %i", cNumber);
-
-	if (TimerFired)
-		return;
-
+	INFO_LOG(SP1, "WaitCallback %i", cNumber);
+	__assume(!TimerFired);
 	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
-	if(self->mHAdapter == INVALID_HANDLE_VALUE)
-		return;
+	__assume(self->mHAdapter != INVALID_HANDLE_VALUE);
 	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
 		&self->mRecvBufferLength, false);
 	self->mWaiting = false;
 	self->handleRecvdPacket();
-	DEBUGPRINT("WaitCallback %i done", cNumber);
+	INFO_LOG(SP1, "WaitCallback %i done", cNumber);
 }
 
 union bba_descr
@@ -440,7 +479,7 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 {
 	if (size < SIZEOF_ETH_HEADER)
 	{
-		DEBUGPRINT("Packet too small: %i bytes", size);
+		INFO_LOG(SP1, "Packet too small: %i bytes", size);
 		return false;
 	}
 
@@ -451,12 +490,12 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 	//since neither tmbinc, riptool.dol, or libogc does...
 	if (mCbw.p_write() + SIZEOF_RECV_DESCRIPTOR >= CB_SIZE)
 	{
-		DEBUGPRINT("The descriptor won't fit");
+		INFO_LOG(SP1, "The descriptor won't fit");
 		return false;
 	}
 	if (size >= CB_SIZE) 
 	{
-		DEBUGPRINT("Packet too big: %i bytes", size);
+		INFO_LOG(SP1, "Packet too big: %i bytes", size);
 		return false;
 	}
 
@@ -482,7 +521,7 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 	descr.next_packet_ptr = npp >> 8;
 	//DWORD swapped = swapw(descr.word);
 	//next_packet_ptr:12, packet_len:12, status:8;
-	DEBUGPRINT("Writing descriptor 0x%08X @ 0x%04X: next 0x%03X len 0x%03X status 0x%02X",
+	INFO_LOG(SP1, "Writing descriptor 0x%08X @ 0x%04X: next 0x%03X len 0x%03X status 0x%02X",
 		descr.word, mCbw.p_write() + CB_OFFSET, descr.next_packet_ptr,
 		descr.packet_len, descr.status);
 
@@ -490,3 +529,4 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 
 	return true;
 }
+//#pragma optimize("",on)
