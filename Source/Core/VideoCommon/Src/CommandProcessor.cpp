@@ -118,6 +118,7 @@ volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
+volatile bool OnOverflow = false;
 
 void FifoCriticalEnter()
 {
@@ -667,6 +668,26 @@ void STACKALIGN GatherPipeBursted()
 			m_CPStatusReg.OverflowHiWatermark = true;
 			if (m_CPCtrlReg.FifoOverflowIntEnable)
 				UpdateInterruptsScMode();
+		}
+	}
+	else
+	{
+		if(fifo.CPReadWriteDistance	== fifo.CPEnd - fifo.CPBase - 32)
+		{
+			if(!OnOverflow)
+				NOTICE_LOG(COMMANDPROCESSOR,"FIFO is almost in overflown, BreakPoint: %i", fifo.bFF_Breakpoint);
+			OnOverflow = true;
+			while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
+			fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase - 64)
+			Common::YieldCPU();
+			
+				
+				
+			
+		}
+		else
+		{
+			OnOverflow = false;
 		}
 	}
 	

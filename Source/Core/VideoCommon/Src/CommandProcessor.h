@@ -35,6 +35,7 @@ extern volatile bool interruptSet;
 extern volatile bool interruptWaiting;
 extern volatile bool interruptTokenWaiting;
 extern volatile bool interruptFinishWaiting;
+extern volatile bool OnOverflow;
 
 // internal hardware addresses
 enum
