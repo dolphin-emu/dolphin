@@ -18,37 +18,41 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <stdio.h>
-	#include <fcntl.h>
-	#include <sys/ioctl.h>
-	#include <net/if.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #ifdef __linux__
-	#include <linux/if_tun.h>
+#include <linux/if_tun.h>
 #else
-	#include <net/if_tun.h>
+#include <net/if_tun.h>
 #endif
-	#include <assert.h>
-	int fd = -1;
+#include <assert.h>
+	
+int fd = -1;
+	
 bool CEXIETHERNET::deactivate()
 {
 	close(fd);
 	fd = -1;
 	return true;
 }
+
 bool CEXIETHERNET::isActivated()
 { 
 	return fd != -1 ? true : false;
 }
 
-bool CEXIETHERNET::activate() {
+bool CEXIETHERNET::activate()
+{
 #ifdef __linux__
 	if(isActivated())
 		return true;
 	if( (fd = open("/dev/net/tun", O_RDWR)) < 0)
 	{
-		DEBUGPRINT("Couldn't Open device\n");
+		INFO_LOG(SP1, "Couldn't Open device\n");
 		return false;
 	}
 	struct ifreq ifr;
@@ -63,22 +67,22 @@ bool CEXIETHERNET::activate() {
 	{
 		close(fd);
 		fd = -1;
-		DEBUGPRINT(" Error with IOCTL: 0x%X\n", err);
+		INFO_LOG(SP1, " Error with IOCTL: 0x%X\n", err);
 		return false;
 	}
 	ioctl( fd, TUNSETNOCSUM, 1 );
 	/*int flags;
 	if ((flags = fcntl( fd, F_GETFL)) < 0) 
 	{
-		DEBUGPRINT("getflags on tun device: %s", strerror (errno));
+		INFO_LOG(SP1, "getflags on tun device: %s", strerror (errno));
 	}
 	flags |= O_NONBLOCK;
 	if (fcntl( fd, F_SETFL, flags ) < 0) 
 	{
-		DEBUGPRINT("set tun device flags: %s", strerror (errno));
+		INFO_LOG(SP1, "set tun device flags: %s", strerror (errno));
 	}*/
 
-	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
+	INFO_LOG(SP1, "Returned Socket name is: %s\n", ifr.ifr_name);
 	system("brctl addif pan0 Dolphin");
 	system("ifconfig Dolphin 0.0.0.0 promisc up");
 	resume();
@@ -87,6 +91,7 @@ bool CEXIETHERNET::activate() {
 	return false;
 #endif
 }
+
 bool CEXIETHERNET::CheckRecieved()
 {
 	if(!isActivated())
@@ -119,22 +124,25 @@ bool CEXIETHERNET::CheckRecieved()
 	if ( retval > 0 ) {
 		if ( FD_ISSET(fd, &mask) )
 		{
-			DEBUGPRINT("\t\t\t\tWe have data!\n");
+			INFO_LOG(SP1, "\t\t\t\tWe have data!\n");
 			return true;
 		}
 	}
 	return false;
 }
-bool CEXIETHERNET::resume() {
+
+bool CEXIETHERNET::resume()
+{
 	if(!isActivated())
 		return true;
-	DEBUGPRINT("BBA resume\n");
-	if(mBbaMem[BBA_NCRA] & BBA_NCRA_SR) {
+	INFO_LOG(SP1, "BBA resume\n");
+	if(mBbaMem[BBA_NCRA] & NCRA_SR) {
 		startRecv();
 	}
-	DEBUGPRINT("BBA resume complete\n");
+	INFO_LOG(SP1, "BBA resume complete\n");
 	return true;
 }
+
 THREAD_RETURN CpuThread(void *pArg)
 {
 	CEXIETHERNET* self = (CEXIETHERNET*)pArg;
@@ -144,7 +152,7 @@ THREAD_RETURN CpuThread(void *pArg)
 		{
 			u8 B[1514];
 			self->mRecvBufferLength = read(fd, B, 1500);
-			//DEBUGPRINT("read return of 0x%x\n", self->mRecvBufferLength);
+			//INFO_LOG(SP1, "read return of 0x%x\n", self->mRecvBufferLength);
 			if (self->mRecvBufferLength == 0xffffffff)
 			{
 				//Fail Boat
@@ -162,10 +170,10 @@ THREAD_RETURN CpuThread(void *pArg)
 			}
 			else
 			{
-				DEBUGPRINT("Unknown read return of 0x%x\n", self->mRecvBufferLength);
+				INFO_LOG(SP1, "Unknown read return of 0x%x\n", self->mRecvBufferLength);
 				exit(0);
 			}
-			DEBUGPRINT("Received %d bytes of data\n", self->mRecvBufferLength);
+			INFO_LOG(SP1, "Received %d bytes of data\n", self->mRecvBufferLength);
 			self->mWaiting = false;
 			self->handleRecvdPacket();
 			return 0;
@@ -174,12 +182,14 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
 	return 0;
 }
-bool CEXIETHERNET::startRecv() {
-	DEBUGPRINT("Start Receive!\n");
+
+bool CEXIETHERNET::startRecv()
+{
+	INFO_LOG(SP1, "Start Receive!\n");
 	//exit(0);
-		DEBUGPRINT("startRecv... ");
+		INFO_LOG(SP1, "startRecv... ");
 	if(mWaiting) {
-		DEBUGPRINT("already waiting\n");
+		INFO_LOG(SP1, "already waiting\n");
 		return true;
 	}
 	Common::Thread *cpuThread = new Common::Thread(CpuThread, (void*)this);
@@ -188,28 +198,29 @@ bool CEXIETHERNET::startRecv() {
 		
 	return true; 
 }
+
 bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
 {
 	if(!isActivated())
 		return false;
-	DEBUGPRINT( "Packet: 0x");
+	INFO_LOG(SP1,  "Packet: 0x");
 	for(int a = 0; a < size; ++a)
 	{
-		DEBUGPRINT( "%02X ", etherpckt[a]);
+		INFO_LOG(SP1,  "%02X ", etherpckt[a]);
 	}
-	DEBUGPRINT( " : Size: %d\n", size);
+	INFO_LOG(SP1,  " : Size: %d\n", size);
 	int numBytesWrit = write(fd, etherpckt, size);
 	if(numBytesWrit != size)
 	{
-		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!errno: %d\n", size, numBytesWrit, errno);
+		INFO_LOG(SP1, "BBA sendPacket %i only got %i bytes sent!errno: %d\n", size, numBytesWrit, errno);
 		return false;
 	}
 	recordSendComplete();
 	return true;
 }
+
 bool CEXIETHERNET::handleRecvdPacket() 
 {
-
 	int rbwpp = mCbw.p_write() + CB_OFFSET;	//read buffer write page pointer
 	u32 available_bytes_in_cb;
 	if(rbwpp < mRBRPP)
@@ -235,31 +246,34 @@ bool CEXIETHERNET::handleRecvdPacket()
 	//mPacketsRcvd++;
 	mRecvBufferLength = 0;
 
-	if(mBbaMem[BBA_IMR] & BBA_INTERRUPT_RECV) 
+	if(mBbaMem[BBA_IMR] & INT_R) 
 	{
-		if(!(mBbaMem[BBA_IR] & BBA_INTERRUPT_RECV)) 
+		if(!(mBbaMem[BBA_IR] & INT_R)) 
 		{
-			mBbaMem[BBA_IR] |= BBA_INTERRUPT_RECV;
-			DEBUGPRINT("BBA Recv interrupt raised\n");
+			mBbaMem[BBA_IR] |= INT_R;
+			INFO_LOG(SP1, "BBA Recv interrupt raised\n");
 			m_bInterruptSet = true;
 		}
 	}
 
-	if(mBbaMem[BBA_NCRA] & BBA_NCRA_SR) 
+	if(mBbaMem[BBA_NCRA] & NCRA_SR) 
 	{
 		startRecv();
 	}
 
 	return true;
 }
+
 union bba_descr {
 	struct { u32 next_packet_ptr:12, packet_len:12, status:8; };
 	u32 word;
 };
-bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
+
+bool CEXIETHERNET::cbwriteDescriptor(u32 size)
+{
 	if(size < SIZEOF_ETH_HEADER) 
 	{
-		DEBUGPRINT("Packet too small: %i bytes\n", size);
+		INFO_LOG(SP1, "Packet too small: %i bytes\n", size);
 		return false;
 	}
 
@@ -269,12 +283,12 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
 	//since neither tmbinc, riptool.dol, or libogc does...
 	if(mCbw.p_write() + SIZEOF_RECV_DESCRIPTOR >= CB_SIZE) 
 	{
-		DEBUGPRINT("The descriptor won't fit\n");
+		INFO_LOG(SP1, "The descriptor won't fit\n");
 		return false;
 	}
 	if(size >= CB_SIZE) 
 	{
-		DEBUGPRINT("Packet too big: %i bytes\n", size);
+		INFO_LOG(SP1, "Packet too big: %i bytes\n", size);
 		return false;
 	}
 
@@ -297,7 +311,7 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
 	descr.next_packet_ptr = npp >> 8;
 	//DWORD swapped = swapw(descr.word);
 	//next_packet_ptr:12, packet_len:12, status:8;
-	DEBUGPRINT("Writing descriptor 0x%08X @ 0x%04X: next 0x%03X len 0x%03X status 0x%02X\n",
+	INFO_LOG(SP1, "Writing descriptor 0x%08X @ 0x%04lX: next 0x%03X len 0x%03X status 0x%02X\n",
 		descr.word, mCbw.p_write() + CB_OFFSET, descr.next_packet_ptr,
 		descr.packet_len, descr.status);
 	mCbw.write(&descr.word, SIZEOF_RECV_DESCRIPTOR);

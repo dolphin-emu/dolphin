@@ -34,7 +34,7 @@ CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr) :
 	
 	int x = 0;
 	u8 new_addr[6] = { 0 };
-	for (int i = 0; i < mac_addr.size() && x < 12; i++)
+	for (int i = 0; i < (int)mac_addr.size() && x < 12; i++)
 	{
 		char c = mac_addr.at(i);
 		if (c >= '0' && c <= '9') {
@@ -214,7 +214,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
 			//_dbg_assert_(SP1, data == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 			if (data != (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8)
 			{
-				ERROR_LOG(SP1, "BBA RWP ASSERT data %x p_write %x", data, mCbw.p_write());
+				ERROR_LOG(SP1, "BBA RWP ASSERT data %x p_write %lx", data, mCbw.p_write());
 			}
 			break;
 		case BBA_RRP:	// RRP - Receive Buffer Read Page Pointer
@@ -298,7 +298,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
 			break;
 		case 0x03: // status TODO more fields
 			mBbaMem[mReadP] = m_bInterruptSet ? 0x80 : 0;
-			INFO_LOG(SP1, "\tStatus", mBbaMem[mReadP]);
+			INFO_LOG(SP1, "\tStatus %x", mBbaMem[mReadP]);
 			break;
 		case BBA_LTPS:
 			INFO_LOG(SP1, "\tLPTS");
