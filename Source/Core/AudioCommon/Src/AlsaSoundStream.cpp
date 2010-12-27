@@ -123,6 +123,7 @@ bool AlsaSound::AlsaInit()
 		return false;
 	}
 
+	dir = 0;
 	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &sample_rate, &dir);
 	if (err < 0) 
 	{

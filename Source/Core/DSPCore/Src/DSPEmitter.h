@@ -259,7 +259,7 @@ private:
 
 	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
-	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
+	void ToMask(Gen::X64Reg value_reg = Gen::EDI);
 	void dsp_increment_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void dsp_decrement_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);

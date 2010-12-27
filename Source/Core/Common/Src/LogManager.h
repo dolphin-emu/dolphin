@@ -89,6 +89,7 @@ public:
 	void setLevel(LogTypes::LOG_LEVELS level) {
 		m_level = level;
 	}
+	bool hasListeners() const { return listeners.size() > 0; }
 
 private:
 	char m_fullName[128];

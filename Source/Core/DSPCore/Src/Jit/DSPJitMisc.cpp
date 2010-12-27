@@ -370,7 +370,6 @@ void DSPEmitter::nx(const UDSPInstruction opc)
 void DSPEmitter::dar(const UDSPInstruction opc)
 {
 	//	g_dsp.r[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
-	zeroWriteBackLog(opc);
 	decrement_addr_reg(opc & 0x3);
 
 }
@@ -381,7 +380,6 @@ void DSPEmitter::dar(const UDSPInstruction opc)
 void DSPEmitter::iar(const UDSPInstruction opc)
 {
 	//	g_dsp.r[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
-	zeroWriteBackLog(opc);
 	increment_addr_reg(opc & 0x3);
 }
 
@@ -393,7 +391,6 @@ void DSPEmitter::subarn(const UDSPInstruction opc)
 {
 	//	u8 dreg = opc & 0x3;
 	//	g_dsp.r[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
-	zeroWriteBackLog(opc);
 	decrease_addr_reg(opc & 0x3);
 }
 
@@ -408,7 +405,6 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 	//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 	
 	// From looking around it is always called with the matching index register
-	zeroWriteBackLog(opc);
 	increase_addr_reg(opc & 0x3);
 }
 
@@ -448,7 +444,6 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
 
-	zeroWriteBackLog(opc);
 	clrCompileSR(1 << bit);
 }
 
@@ -460,10 +455,10 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
 
-	zeroWriteBackLog(opc);
 	setCompileSR(1 << bit);
 }
 
+// 1000 1bbb xxxx xxxx, bbb >= 010
 // This is a bunch of flag setters, flipping bits in SR. So far so good,
 // but it's harder to know exactly what effect they have.
 void DSPEmitter::srbith(const UDSPInstruction opc)

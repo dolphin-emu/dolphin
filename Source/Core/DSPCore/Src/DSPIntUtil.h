@@ -68,10 +68,10 @@ inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
 	u16 m = ToMask(wr) | 1;
     u16 nar = ar+ix;
     if (ix >= 0) {
-        if((ar&m)+(ix&m) -m-1 >= 0)
+        if((ar&m) + (int)(ix&m) -(int)m-1 >= 0)
             nar -= wr+1;
     } else {
-        if((ar&m)+(ix&m) -m-1 < m-wr)
+        if((ar&m) + (int)(ix&m) -(int)m-1 < m-wr)
             nar += wr+1;
     }
     return nar;
@@ -82,13 +82,12 @@ inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix)
 	u16 ar = g_dsp.r[reg];
 	u16 wr = g_dsp.r[reg+8]; 
     u16 m = ToMask(wr) | 1;
-    ix = -ix-1;
-    u16 nar = ar+ix+1;
-    if (ix-1 >= 0) {
-        if((ar&m)+(ix&m) -m >= 0)
+    u16 nar = ar-ix;
+    if ((u16)ix > 0x8000) { // equiv: ix < 0 && ix != -0x8000
+        if((ar&m) - (int)(ix&m) >= 0)
             nar -= wr+1;
     } else {
-        if((ar&m)+(ix&m) -m < m-wr)
+        if((ar&m) - (int)(ix&m) < m-wr)
             nar += wr+1;
     }
     return nar;

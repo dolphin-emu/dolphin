@@ -57,8 +57,12 @@ inline u32 AtomicLoad(volatile u32& src) {
 	return src; // 32-bit reads are always atomic.
 }
 inline u32 AtomicLoadAcquire(volatile u32& src) {
-	__sync_synchronize(); // TODO: May not be necessary.
-	return src;
+	//keep the compiler from caching any memory references
+	u32 result = src; // 32-bit reads are always atomic.
+	//__sync_synchronize(); // TODO: May not be necessary.
+	// Compiler instruction only. x86 loads always have acquire semantics.
+	__asm__ __volatile__ ( "":::"memory" );
+	return result;
 }
 
 inline void AtomicOr(volatile u32& target, u32 value) {

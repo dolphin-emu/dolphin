@@ -37,8 +37,8 @@ const DSPOPCTemplate opcodes[] =
 
 	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar,     &DSPEmitter::dar,    1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false},
 	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar,     &DSPEmitter::iar,    1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false},
-	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn,  NULL/*&DSPEmitter::subarn*/, 1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false},
-	{"ADDARN",	0x0010, 0xfff0, DSPInterpreter::addarn,  NULL/*&DSPEmitter::addarn*/, 1, 2, {{P_REG, 1, 0, 0, 0x0003},     {P_REG04, 1, 0, 2, 0x000c}},                             false, false, false, false, false},
+	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn,  &DSPEmitter::subarn, 1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false},
+	{"ADDARN",	0x0010, 0xfff0, DSPInterpreter::addarn,  &DSPEmitter::addarn, 1, 2, {{P_REG, 1, 0, 0, 0x0003},     {P_REG04, 1, 0, 2, 0x000c}},                             false, false, false, false, false},
 
 	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt,    NULL,                1, 0, {},                                                                                     false, true, true, false, false},
 
