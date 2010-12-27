@@ -663,13 +663,9 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (bpmem.blendmode.colorupdate &&
-		(bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16))
+	if (bpmem.blendmode.colorupdate)
 		ColorMask = GL_TRUE;
-	if (bpmem.blendmode.alphaupdate &&
-		(bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		AlphaMask = GL_TRUE;
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
@@ -727,7 +723,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 			if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 			{
-				// if Z is in 16 bit format yo must return a 16 bit integer
+				// if Z is in 16 bit format you must return a 16 bit integer
 				z = z >> 16;
 			}
 			else
@@ -736,10 +732,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			}
 			return z;
 		}
-
-	case POKE_Z:
-		// TODO: Implement
-		break;
 
 	case PEEK_COLOR: // GXPeekARGB
 		{
@@ -775,8 +767,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			}
 			else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 			{
-				color = RGBA8ToRGB565ToRGB8(color);
-			}			
+				color = RGBA8ToRGB565ToRGBA8(color);
+			}
 			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 			{
 				color |= 0xFF000000;
@@ -787,13 +779,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 
 	case POKE_COLOR:
+	case POKE_Z:
 		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
 		// the exact location. Note: EFB pokes are susceptible to Z-buffering
 		// and perhaps blending.
 		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
 
-		// TODO: Implement POKE_Z and POKE_COLOR
 	default:
 		break;
 	}

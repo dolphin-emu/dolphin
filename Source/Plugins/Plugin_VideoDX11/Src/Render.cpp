@@ -466,7 +466,7 @@ void Renderer::SetColorMask()
 	UINT8 color_mask = 0;
 	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24 || bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 || bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16))
+	if (bpmem.blendmode.colorupdate)
 		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
 	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
 }
@@ -562,7 +562,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		u32 ret = 0;
 		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			// if Z is in 16 bit format yo must return a 16 bit integer
+			// if Z is in 16 bit format you must return a 16 bit integer
 			ret = ((u32)(val * 0xffff));
 		}
 		else
@@ -598,7 +598,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			ret = RGBA8ToRGB565ToRGB8(ret);
+			ret = RGBA8ToRGB565ToRGBA8(ret);
 		}			
 		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 		{

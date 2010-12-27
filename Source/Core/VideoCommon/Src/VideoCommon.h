@@ -163,7 +163,7 @@ inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 	return color;
 }
 
-inline u32 RGBA8ToRGB565ToRGB8(u32 src)
+inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
 {
 	u32 color = src;
 	u32 dstr5 = (color & 0xFF0000) >> 19;
@@ -172,9 +172,13 @@ inline u32 RGBA8ToRGB565ToRGB8(u32 src)
 	u32 dstr8 = (dstr5 << 3) | (dstr5 >> 2);
 	u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
 	u32 dstb8 = (dstb5 << 3) | (dstb5 >> 2);
-	color = (dstr8 << 16) | (dstg8 << 8) | dstb8;
+	color = 0xFF000000 | (dstr8 << 16) | (dstg8 << 8) | dstb8;
 	return color;
 }
 
+inline u32 Z24ToZ16ToZ24(u32 src)
+{
+	return (src & 0xFFFF00) | (src >> 16);
+}
 
 #endif  // _VIDEOCOMMON_H

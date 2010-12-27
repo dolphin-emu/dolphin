@@ -545,10 +545,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			else// alpha
 			{
 				colmat[15] = 1;
-				if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
-				{
-					fConstAdd[3] = 1;
-				}
 				cbufid = 1;
 			}
 
@@ -575,18 +571,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		case 3: // RA8
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
 			cbufid = 3;
-			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
-			{
-				fConstAdd[3] = 1;
-			}
 			break;
 
 		case 7: // A8
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
-			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
-			{
-				fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = fConstAdd[3] = 1;
-			}
 			cbufid = 4;
 			break;
 
@@ -620,10 +608,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		case 6: // RGBA8
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
 			cbufid = 10;
-			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
-			{
-				fConstAdd[3] = 1;
-			}
 			break;
 
 		default:
@@ -633,8 +617,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			break;
 		}
 	}
-	
-	
 
 	const unsigned int tex_w = (abs(source_rect.GetWidth()) >> (int)bScaleByHalf);
 	const unsigned int tex_h = (abs(source_rect.GetHeight()) >> (int)bScaleByHalf);

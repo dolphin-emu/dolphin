@@ -477,7 +477,7 @@ void Renderer::SetColorMask()
 	DWORD color_mask = 0;
 	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		color_mask = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16 || bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24|| bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+	if (bpmem.blendmode.colorupdate)
 		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
@@ -649,7 +649,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			// if Z is in 16 bit format yo must return a 16 bit integer
+			// if Z is in 16 bit format you must return a 16 bit integer
 			z = ((u32)(val * 0xffff));
 		}
 		else
@@ -684,8 +684,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
-			ret = RGBA8ToRGB565ToRGB8(ret);
-		}			
+			ret = RGBA8ToRGB565ToRGBA8(ret);
+		}
 		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 		{
 			ret |= 0xFF000000;
