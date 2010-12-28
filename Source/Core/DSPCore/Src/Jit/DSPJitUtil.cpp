@@ -420,10 +420,12 @@ void DSPEmitter::dmem_read()
 	CMP(16, R(ECX), Imm16(0x0fff));
 	FixupBranch dram = J_CC(CC_A);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
-	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
 #ifdef _M_X64
+	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
+	MOVZX(64, 16, RCX, R(RCX));
 	MOV(64, R(ESI), ImmPtr(g_dsp.dram));
 #else
+	AND(32, R(ECX), Imm32(DSP_DRAM_MASK));
 	MOV(32, R(ESI), ImmPtr(g_dsp.dram));
 #endif
 	MOV(16, R(EAX), MComplex(ESI, ECX, 2, 0));
@@ -434,10 +436,12 @@ void DSPEmitter::dmem_read()
 	CMP(16, R(ECX), Imm16(0x1fff));
 	FixupBranch ifx = J_CC(CC_A);
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
-	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
 #ifdef _M_X64
+	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
+	MOVZX(64, 16, RCX, R(RCX));
 	MOV(64, R(ESI), ImmPtr(g_dsp.coef));
 #else
+	AND(32, R(ECX), Imm32(DSP_COEF_MASK));
 	MOV(32, R(ESI), ImmPtr(g_dsp.coef));
 #endif
 	MOV(16, R(EAX), MComplex(ESI,ECX,2,0));

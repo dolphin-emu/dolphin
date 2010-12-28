@@ -124,11 +124,6 @@ void DSPEmitter::lrr(const UDSPInstruction opc)
 	u8 dreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, R(ECX));
-#else
-	MOVZX(64, 16, ECX, R(ECX));
-#endif
 	dmem_read();
 	dsp_op_write_reg(dreg, EAX);
 	dsp_conditional_extend_accum(dreg);
@@ -145,11 +140,6 @@ void DSPEmitter::lrrd(const UDSPInstruction opc)
 	u8 dreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, R(ECX));
-#else
-	MOVZX(64, 16, ECX, R(ECX));
-#endif
 	dmem_read();
 	dsp_op_write_reg(dreg, EAX);
 	dsp_conditional_extend_accum(dreg);
@@ -167,11 +157,6 @@ void DSPEmitter::lrri(const UDSPInstruction opc)
 	u8 dreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, R(ECX));
-#else
-	MOVZX(64, 16, ECX, R(ECX));
-#endif
 	dmem_read();
 	dsp_op_write_reg(dreg, EAX);
 	dsp_conditional_extend_accum(dreg);
@@ -183,16 +168,17 @@ void DSPEmitter::lrri(const UDSPInstruction opc)
 // Move value from data memory pointed by addressing register $S to register $D.
 // Add indexing register $(0x4+S) to register $S. 
 // FIXME: Perform additional operation depending on destination register.
-//void DSPEmitter::lrrn(const UDSPInstruction opc)
-//{
-//	u8 sreg = (opc >> 5) & 0x3;
-//	u8 dreg = opc & 0x1f;
+void DSPEmitter::lrrn(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x3;
+	u8 dreg = opc & 0x1f;
 
-//	u16 val = dsp_dmem_read(dsp_op_read_reg(sreg));
-//	dsp_op_write_reg(dreg, val);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[sreg] = dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-//}
+	dsp_op_read_reg(sreg, ECX);
+	dmem_read();
+	dsp_op_write_reg(dreg, EAX);
+	dsp_conditional_extend_accum(dreg);
+	increase_addr_reg(sreg);
+}
 
 // SRR @$D, $S
 // 0001 1010 0dds ssss
@@ -261,15 +247,21 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Add DSP_REG_IX0 register to register $D.
 // FIXME: Perform additional operation depending on source register.
-//void DSPEmitter::srrn(const UDSPInstruction opc)
-//{
-//	u8 dreg = (opc >> 5) & 0x3;
-//	u8 sreg = opc & 0x1f;
+void DSPEmitter::srrn(const UDSPInstruction opc)
+{
+	u8 dreg = (opc >> 5) & 0x3;
+	u8 sreg = opc & 0x1f;
 
-//	u16 val = dsp_op_read_reg(sreg);
-//	dsp_dmem_write(g_dsp.r[dreg], val);
-//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
-//}
+	dsp_op_read_reg(sreg, ECX);
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r[dreg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, RAX, MDisp(R11,dreg*2));
+#endif
+	dmem_write();
+	increase_addr_reg(dreg);
+}
 
 // ILRR $acD.m, @$arS
 // 0000 001d 0001 00ss
@@ -353,15 +345,25 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 // Move value from instruction memory pointed by addressing register
 // $arS to mid accumulator register $acD.m. Add corresponding indexing
 // register $ixS to addressing register $arS.
-//void DSPEmitter::ilrrn(const UDSPInstruction opc)
-//{
-//	u16 reg  = opc & 0x3;
-//	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
+void DSPEmitter::ilrrn(const UDSPInstruction opc)
+{
+	u16 reg  = opc & 0x3;
+	u16 dreg = DSP_REG_ACM0 + ((opc >> 8) & 1);
 
-//	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-//	dsp_conditional_extend_accum(dreg);
-//	g_dsp.r[reg] = dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]);
-//}
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, ECX, M(&g_dsp.r[reg]));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, RCX, MDisp(R11,reg*2));
+#endif
+	imem_read();
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, MDisp(R11,dreg*2), R(RAX));
+#endif
+	dsp_conditional_extend_accum(dreg);
+	increase_addr_reg(reg);
+}
 
-//}  // namespace
-//

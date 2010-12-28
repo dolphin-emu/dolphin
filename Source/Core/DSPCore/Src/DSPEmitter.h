@@ -150,12 +150,15 @@ public:
 	void lrr(const UDSPInstruction opc);
 	void lrrd(const UDSPInstruction opc);
 	void lrri(const UDSPInstruction opc);
+	void lrrn(const UDSPInstruction opc);
 	void srr(const UDSPInstruction opc);
 	void srrd(const UDSPInstruction opc);
 	void srri(const UDSPInstruction opc);
+	void srrn(const UDSPInstruction opc);
 	void ilrr(const UDSPInstruction opc);
 	void ilrrd(const UDSPInstruction opc);
 	void ilrri(const UDSPInstruction opc);
+	void ilrrn(const UDSPInstruction opc);
 
 	// Arithmetic
 	void clr(const UDSPInstruction opc);
