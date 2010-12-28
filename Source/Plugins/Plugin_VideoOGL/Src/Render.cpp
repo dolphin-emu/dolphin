@@ -1350,10 +1350,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 	g_Config.iSaveTargetId = 0;
 
-	bool last_copy_efb_to_Texture = g_ActiveConfig.bCopyEFBToTexture;
-	UpdateActiveConfig();
-	if (last_copy_efb_to_Texture != g_ActiveConfig.bCopyEFBToTexture)
+	// reload textures if these settings changed
+	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+		TextureCache::Invalidate(false);
+
+	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
 		TextureCache::ClearRenderTargets();
+
+	UpdateActiveConfig();
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();

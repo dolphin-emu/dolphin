@@ -870,7 +870,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
-	
+
 	if (bpmem.blendmode.subtract && bpmem.blendmode.blendenable)
 	{
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
@@ -1158,6 +1158,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
+
+	// reload textures if these settings changed
+	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+		TextureCache::Invalidate(false);
 
 	// Enable any configuration changes
 	UpdateActiveConfig();
