@@ -829,38 +829,49 @@ void Renderer::UpdateViewport()
 	glDepthRange(GLNear, GLFar);
 }
 
-// TODO: Clearing RGB or alpha only isn't implemented, yet!
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	// Update the view port for clearing the picture
-	TargetRectangle targetRc = ConvertEFBRectangle(rc);
-	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	ResetAPIState();
 
-	// Always set the scissor in case it was set by the game and has not been reset
-	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
+	if (colorEnable) ColorMask = GL_TRUE;
+	if (alphaEnable) AlphaMask = GL_TRUE;
+	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 
-	VertexShaderManager::SetViewportChanged();
-
-	GLbitfield bits = 0;
-	if (colorEnable)
-	{
-		bits |= GL_COLOR_BUFFER_BIT;
-		glClearColor(
-			((color >> 16) & 0xFF) / 255.0f,
-			((color >> 8) & 0xFF) / 255.0f,
-			(color & 0xFF) / 255.0f,
-			((color >> 24) & 0xFF) / 255.0f
-			);
-	}
 	if (zEnable)
 	{
-		bits |= GL_DEPTH_BUFFER_BIT;
-		glClearDepth((z & 0xFFFFFF) / float(0xFFFFFF));
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_ALWAYS);
+	}
+	else
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_NEVER);
 	}
 
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-	glClear(bits);
-	SetScissorRect();
+	glEnable(GL_SCISSOR_TEST);
+
+	// Update the viewport and scissor rect for clearing the picture
+	TargetRectangle targetRc = ConvertEFBRectangle(rc);
+	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	glDepthRange(0.0, 1.0);
+
+	glColor4f((float)((color >> 16) & 0xFF) / 255.0f,
+				(float)((color >> 8) & 0xFF) / 255.0f,
+				(float)(color & 0xFF) / 255.0f,
+				(float)((color >> 24) & 0xFF) / 255.0f);
+	float zval = -1.f + 2.f * (float)(z & 0xFFFFFF) / float(0xFFFFFF); // convert range [0;1] to [-1;1]
+	glBegin(GL_QUADS);
+	glVertex3f(-1.f, -1.f, zval);
+	glVertex3f(-1.f,  1.f, zval);
+	glVertex3f( 1.f,  1.f, zval);
+	glVertex3f( 1.f, -1.f, zval);
+	glEnd();
+
+	RestoreAPIState();
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
@@ -1386,17 +1397,13 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-
-	UpdateViewport();
-
-	if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
-	if (bpmem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
-	if (bpmem.zmode.updateenable)   glDepthMask(GL_TRUE);
-
 	glEnable(GL_SCISSOR_TEST);
+	SetGenerationMode();
 	SetScissorRect();
 	SetColorMask();
+	SetDepthMode();
 	SetBlendMode(true);
+	UpdateViewport();
 
 	VertexShaderCache::SetCurrentShader(0);
 	PixelShaderCache::SetCurrentShader(0);
