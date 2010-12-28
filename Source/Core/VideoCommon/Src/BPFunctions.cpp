@@ -159,7 +159,7 @@ void OnPixelFormatChange(const BPCmd &bp)
 		case PIXELFMT_RGB8_Z24:
 		case PIXELFMT_Z24:
 			// Z24 and RGB8_Z24 are treated equal, so just return in this case
-			if (new_format == PIXELFMT_RGB565_Z16 || new_format == PIXELFMT_Z24)
+			if (new_format == PIXELFMT_RGB8_Z24 || new_format == PIXELFMT_Z24)
 				goto skip;
 
 			if (new_format == PIXELFMT_RGBA6_Z24)
@@ -185,8 +185,12 @@ void OnPixelFormatChange(const BPCmd &bp)
 			break;
 
 		default:
-			PanicAlert("Unhandled EFB format change: %d to %d\n", old_format, new_format);
-			goto skip;
+			break;
+	}
+	if (convtype == (unsigned int)-1)
+	{
+		PanicAlert("Unhandled EFB format change: %d to %d\n", old_format, new_format);
+		goto skip;
 	}
 	g_renderer->ReinterpretPixelData(convtype);
 skip:
