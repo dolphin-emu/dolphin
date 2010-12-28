@@ -53,6 +53,8 @@
 #include "HW/VideoInterface.h"
 #include "HW/SystemTimers.h"
 
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
 
@@ -390,7 +392,14 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// Load and Init Wiimotes - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
+	{
 		Wiimote::Initialize(g_pWindowHandle);
+
+		// activate wiimotes which don't have source set to "None"
+		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+			if (g_wiimote_sources[i])
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+	}
 
 	// The hardware is initialized.
 	g_bHwInit = true;

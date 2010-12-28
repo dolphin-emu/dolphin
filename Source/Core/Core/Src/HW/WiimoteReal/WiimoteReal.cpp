@@ -266,7 +266,7 @@ void LoadSettings()
 		secname += (char)('1' + i);
 		IniFile::Section& sec = *inifile.GetOrCreateSection(secname.c_str());
 
-		sec.Get("Source", &g_wiimote_sources[i], WIIMOTE_SRC_EMU);
+		sec.Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
 	}
 }
 

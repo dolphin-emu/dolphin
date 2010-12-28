@@ -57,7 +57,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			tmpBD.b[0] = BT_DINF[6 + (i * WIIMOTESIZE)];
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, !i));
+			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
 		while (i < 4)
@@ -73,7 +73,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			memcpy((BT_DINF+7 + (i * WIIMOTESIZE)), wmName, 20);
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, !i));
+			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
 		if (BT_DINF[0] != maxWM)
