@@ -125,7 +125,6 @@ void CEXIETHERNET::recordSendComplete()
 	}
 	// TODO why did sonic put this here?
 	//startRecv();
-	mPacketsSent++;
 }
 
 bool CEXIETHERNET::checkRecvBuffer()

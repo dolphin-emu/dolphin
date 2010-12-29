@@ -232,8 +232,6 @@ enum
 	EXPECT_ID
 };
 
-static u32 mPacketsSent = 0;
-
 class CEXIETHERNET : public IEXIDevice
 {
 public:

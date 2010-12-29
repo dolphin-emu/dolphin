@@ -8,6 +8,7 @@ files = [
 	'BannerLoaderWii.cpp',
 	'Blob.cpp',
 	'CompressedBlob.cpp',
+	'CISOBlob.cpp',
 	'DriveBlob.cpp',
 	'DiscScrubber.cpp',
 	'FileBlob.cpp',

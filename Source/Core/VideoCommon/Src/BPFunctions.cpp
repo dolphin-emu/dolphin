@@ -187,7 +187,7 @@ void OnPixelFormatChange(const BPCmd &bp)
 		default:
 			break;
 	}
-	if (convtype == (unsigned int)-1)
+	if (convtype == -1)
 	{
 		PanicAlert("Unhandled EFB format change: %d to %d\n", old_format, new_format);
 		goto skip;
