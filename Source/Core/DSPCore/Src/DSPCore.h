@@ -180,17 +180,50 @@
 #define EXP_6			6 // 0x000c
 #define EXP_INT			7 // 0x000e external int (message from cpu)
 
+typedef struct {
+	u16 ar[4];
+	u16 ix[4];
+	u16 wr[4];
+	u16 st[4];
+	u16 cr;
+	u16 sr;
+	union {
+		u64 val;
+		struct {
+			u16 l;
+			u16 m;
+			u16 h;
+			u16 m2;//if this gets in the way, drop it.
+		};
+	} prod;
+	union {
+		u32 val;
+		struct {
+			u16 l;
+			u16 h;
+		};
+	} ax[2];
+	union {
+		u64 val;
+		struct {
+			u16 l;
+			u16 m;
+			u16 h;
+		};
+	} ac[2];
+} DSP_Regs;
+
 // All the state of the DSP should be in this struct. Any DSP state that is not filled on init
 // should be moved here.
 struct SDSP
 {
-	u16 r[32];
+	DSP_Regs _r;
 	u16 pc;
 #if PROFILE
 	u16 err_pc;
 #endif
 	
-	// This is NOT the same cr as r[DSP_REG_CR].
+	// This is NOT the same cr as r.cr.
 	// This register is shared with the main emulation, see DSP.cpp
 	// The plugin has control over 0x0C07 of this reg.
 	// Bits are defined in a struct in DSP.cpp.
@@ -264,5 +297,8 @@ void DSPCore_SetState(DSPCoreState new_state);
 DSPCoreState DSPCore_GetState();
 
 void DSPCore_Step();
+
+u16 DSPCore_ReadRegister(int reg);
+void DSPCore_WriteRegister(int reg, u16 val);
 
 #endif // _DSPCORE_H

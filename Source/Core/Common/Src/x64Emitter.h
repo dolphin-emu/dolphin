@@ -187,6 +187,24 @@ inline OpArg ImmPtr(void* imm) {return Imm64((u64)imm);}
 #else
 inline OpArg ImmPtr(void* imm) {return Imm32((u32)imm);}
 #endif
+inline u32 PtrOffset(void* ptr, void* base) {
+#ifdef _M_X64
+	s64 distance = (s64)ptr-(s64)base;
+	if (distance >= 0x80000000LL ||
+	    distance < -0x80000000LL) {
+		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
+		return 0;
+	}
+	return distance;
+#else
+	return (u32)ptr-(u32)base;
+#endif
+}
+
+//usage: int a[]; ARRAY_OFFSET(a,10)
+#define ARRAY_OFFSET(array,index) ((u64)&(array)[index]-(u64)&(array)[0])
+//usage: struct {int e;} s; STRUCT_OFFSET(s,e)
+#define STRUCT_OFFSET(str,elem) ((u64)&(str).elem-(u64)&(str))
 
 struct FixupBranch
 {

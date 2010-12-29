@@ -14,9 +14,11 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "../DSPMemoryMap.h"
 #include "../DSPEmitter.h"
 #include "../DSPStacks.h"
+#include "DSPJitUtil.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
@@ -41,9 +43,9 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 	//emitter.INT3();
 	FixupBranch skipCode2;
 #ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+	emitter.MOV(16, R(EAX), M(&g_dsp._r.sr));
 #else
-	emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r[DSP_REG_SR]));
+	emitter.MOV(64, R(RAX), ImmPtr(&g_dsp._r.sr));
 	emitter.MOV(16, R(EAX), MatR(RAX));
 #endif
 	switch(cond)
@@ -66,9 +68,9 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		skipCode2 = emitter.J_CC(CC_NE);
 		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
 #ifdef _M_IX86 // All32
-		emitter.MOV(16, R(EAX), M(&g_dsp.r[DSP_REG_SR]));
+		emitter.MOV(16, R(EAX), M(&g_dsp._r.sr));
 #else
-		emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r[DSP_REG_SR]));
+		emitter.MOV(64, R(RAX), ImmPtr(&g_dsp._r.sr));
 		emitter.MOV(16, R(EAX), MatR(RAX));
 #endif
 		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
@@ -194,13 +196,14 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
+	u16 *regp = reg_ptr(reg);
 	//reg can only be DSP_REG_ARx and DSP_REG_IXx now,
 	//no need to handle DSP_REG_STx.
 #ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
+	emitter.MOV(16, R(EAX), M(regp));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(64, R(RSI), ImmPtr(&g_dsp.r[reg]));
+	emitter.MOV(64, R(RSI), ImmPtr(regp));
 	emitter.MOV(16, R(RSI), MatR(RSI));
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), R(RSI));
@@ -264,13 +267,14 @@ void DSPEmitter::call(const UDSPInstruction opc)
 void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
+	u16 *regp = reg_ptr(reg);
 	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 1));
 	emitter.dsp_reg_store_stack(DSP_STACK_C);
 #ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(&g_dsp.r[reg]));
+	emitter.MOV(16, R(EAX), M(regp));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(64, R(RSI), ImmPtr(&g_dsp.r[reg]));
+	emitter.MOV(64, R(RSI), ImmPtr(regp));
 	emitter.MOV(16, R(RSI), MatR(RSI));
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), R(RSI));
@@ -355,10 +359,10 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	dsp_reg_load_stack(DSP_STACK_D);
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r[DSP_REG_SR]), R(DX));
+	MOV(16, M(&g_dsp._r.sr), R(DX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,DSP_REG_SR*2), R(DX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, sr)), R(DX));
 #endif
 //	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 	dsp_reg_load_stack(DSP_STACK_C);
@@ -400,12 +404,12 @@ void DSPEmitter::halt(const UDSPInstruction opc)
 void DSPEmitter::HandleLoop()
 {
 #ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
-	MOVZX(32, 16, ECX, M(&(g_dsp.r[DSP_REG_ST3])));
+	MOVZX(32, 16, EAX, M(&g_dsp._r.st[2]));
+	MOVZX(32, 16, ECX, M(&g_dsp._r.st[3]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST2*2));
-	MOVZX(32, 16, ECX, MDisp(R11,DSP_REG_ST3*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[2])));
+	MOVZX(32, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[3])));
 #endif
 
 	CMP(32, R(RCX), Imm32(0));
@@ -414,19 +418,19 @@ void DSPEmitter::HandleLoop()
 	FixupBranch rLoopAddrG = J_CC(CC_NE, true);
 
 #ifdef _M_IX86 // All32
-	SUB(16, M(&(g_dsp.r[DSP_REG_ST3])), Imm16(1));
-	CMP(16, M(&(g_dsp.r[DSP_REG_ST3])), Imm16(0));
+	SUB(16, M(&(g_dsp._r.st[3])), Imm16(1));
+	CMP(16, M(&(g_dsp._r.st[3])), Imm16(0));
 #else
-	SUB(16, MDisp(R11,DSP_REG_ST3*2), Imm16(1));
-	CMP(16, MDisp(R11,DSP_REG_ST3*2), Imm16(0));
+	SUB(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[3])), Imm16(1));
+	CMP(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[3])), Imm16(0));
 #endif
 	
 	FixupBranch loadStack = J_CC(CC_LE, true);
 #ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&(g_dsp.r[DSP_REG_ST0])));
+	MOVZX(32, 16, ECX, M(&(g_dsp._r.st[0])));
 	MOV(16, M(&g_dsp.pc), R(RCX));
 #else
-	MOVZX(32, 16, RCX, MDisp(R11,DSP_REG_ST0*2));
+	MOVZX(32, 16, RCX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[0])));
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	MOV(16, MatR(RAX), R(RCX));
 #endif
@@ -454,12 +458,13 @@ void DSPEmitter::HandleLoop()
 void DSPEmitter::loop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
+	u16 *regp = reg_ptr(reg);
 //	u16 cnt = g_dsp.r[reg];
 #ifdef _M_IX86 // All32
-	MOVZX(32, 16, EDX, M(&(g_dsp.r[reg])));
+	MOVZX(32, 16, EDX, M(regp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11,reg*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVZX(32, 16, EDX, MDisp(R11,PtrOffset(regp, &g_dsp._r)));
 #endif
 	u16 loop_pc = compilePC + 1;
 
@@ -524,12 +529,13 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 void DSPEmitter::bloop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
+	u16* regp = reg_ptr(reg);
 //	u16 cnt = g_dsp.r[reg];
 #ifdef _M_IX86 // All32
-	MOVZX(32, 16, EDX, M(&(g_dsp.r[reg])));
+	MOVZX(32, 16, EDX, M(regp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11,reg*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVZX(32, 16, EDX, MDisp(R11,PtrOffset(regp, &g_dsp._r)));
 #endif
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 

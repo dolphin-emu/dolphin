@@ -123,7 +123,7 @@ void ret(const UDSPInstruction opc)
 // location.
 void rti(const UDSPInstruction opc)
 {
-	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
+	g_dsp._r.sr = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 
 }
@@ -147,9 +147,9 @@ void halt(const UDSPInstruction opc)
 void HandleLoop()
 {
 	// Handle looping hardware. 
-	const u16 rCallAddress = g_dsp.r[DSP_REG_ST0];
-	const u16 rLoopAddress = g_dsp.r[DSP_REG_ST2];
-	u16& rLoopCounter = g_dsp.r[DSP_REG_ST3];
+	const u16 rCallAddress = g_dsp._r.st[0];
+	const u16 rLoopAddress = g_dsp._r.st[2];
+	u16& rLoopCounter = g_dsp._r.st[3];
 
 	if (rLoopAddress > 0 && rLoopCounter > 0)
 	{
@@ -184,7 +184,7 @@ void HandleLoop()
 void loop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
-	u16 cnt = g_dsp.r[reg];
+	u16 cnt = dsp_op_read_reg(reg);
 	u16 loop_pc = g_dsp.pc;
 
 	if (cnt)
@@ -229,7 +229,7 @@ void loopi(const UDSPInstruction opc)
 void bloop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
-	u16 cnt = g_dsp.r[reg];
+	u16 cnt = dsp_op_read_reg(reg);
 	u16 loop_pc = dsp_fetch_code();
 
 	if (cnt)

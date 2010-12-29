@@ -112,6 +112,35 @@ void DSPEmitter::checkExceptions(u32 retval)
 	SetJumpTarget(skipCheck);
 }
 
+static bool checkExtendedExclude(UDSPInstruction inst)
+{
+	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
+
+	// Call extended
+	if (!tinst->extended)
+		return false;
+	if ((inst >> 12) != 0x3)
+		return false;
+/*
+	if((inst & 0x00ff) == 0x00c0) {
+	    fprintf(stderr,"blocking %04x\n", inst);
+		return true;
+	}
+*/
+	return false;
+}
+
+static bool checkMainExclude(UDSPInstruction inst)
+{
+/*
+	if((inst & 0xfffc) == 0x1fcc)
+		return true;
+*/
+//	if((inst & 0xfffc) == 0x1fcc)
+//		return true;
+	return false;
+}
+
 void DSPEmitter::Default(UDSPInstruction inst)
 {
 	if (opTable[inst]->reads_pc)
@@ -139,18 +168,20 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	// Call extended
 	if (tinst->extended) {
 		if ((inst >> 12) == 0x3) {
-			if (! extOpTable[inst & 0x7F]->jitFunc) {
+			if (! extOpTable[inst & 0x7F]->jitFunc || checkExtendedExclude(inst)) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
+				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
 				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
 				ext_is_jit = true;
 			}
 		} else {
-			if (!extOpTable[inst & 0xFF]->jitFunc) {
+			if (!extOpTable[inst & 0xFF]->jitFunc || checkExtendedExclude(inst)) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
+				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
 				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
@@ -160,8 +191,9 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	}
 	
 	// Main instruction
-	if (!opTable[inst]->jitFunc) {
+	if (!opTable[inst]->jitFunc || checkMainExclude(inst)) {
 		Default(inst);
+		INFO_LOG(DSPLLE,"Instruction not JITed(main part): %04x\n",inst);
 	}
 	else
 	{
@@ -239,7 +271,7 @@ void DSPEmitter::Compile(int start_addr)
 #ifdef _M_IX86 // All32
 	TEST(16, M(&g_dsp.cr), Imm16(CR_EXTERNAL_INT));
 	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	TEST(16, M(&g_dsp.r[DSP_REG_SR]), Imm16(SR_EXT_INT_ENABLE));
+	TEST(16, M(&g_dsp._r.sr), Imm16(SR_EXT_INT_ENABLE));
 	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
 	OR(8, M(&g_dsp.exceptions), Imm8(1 << EXP_INT));
 	AND(16, M(&g_dsp.cr), Imm16(~CR_EXTERNAL_INT));
@@ -250,8 +282,8 @@ void DSPEmitter::Compile(int start_addr)
 	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
 	TEST(16, MatR(RAX), Imm16(CR_EXTERNAL_INT));
 	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	MOV(64, R(RAX), ImmPtr(&g_dsp.r));
-	TEST(16, MDisp(RAX,DSP_REG_SR*2), Imm16(SR_EXT_INT_ENABLE));
+	MOV(64, R(RAX), ImmPtr(&g_dsp._r.sr));
+	TEST(16, MatR(RAX), Imm16(SR_EXT_INT_ENABLE));
 	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
 	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
 	OR(8, MatR(RAX), Imm8(1 << EXP_INT));
@@ -293,18 +325,18 @@ void DSPEmitter::Compile(int start_addr)
 		if (DSPAnalyzer::code_flags[compilePC-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
 #ifdef _M_IX86 // All32
-			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
+			MOVZX(32, 16, EAX, M(&(g_dsp._r.st[2])));
 #else
-			MOV(64, R(R11), ImmPtr(&g_dsp.r));
-			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST2*2));
+			MOV(64, R(R11), ImmPtr(&g_dsp._r));
+			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[2])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
 		
 #ifdef _M_IX86 // All32
-			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST3])));
+			MOVZX(32, 16, EAX, M(&g_dsp._r.st[3]));
 #else
-			MOVZX(32, 16, EAX, MDisp(R11,DSP_REG_ST3*2));
+			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[3])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
@@ -447,7 +479,7 @@ void DSPEmitter::CompileDispatcher()
 	// Using R12 here since it is callee save register on both
 	// linux and windows 64.
 	MOV(64, R(R12), ImmPtr(&cyclesLeft));
-	MOV(32, R(R12), MDisp(R12,0));
+	MOV(32, R(R12), MatR(R12));
 	MOV(64, R(RBX), ImmPtr(blocks));
 #endif
 
@@ -458,7 +490,7 @@ void DSPEmitter::CompileDispatcher()
 	TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
 #else
 	MOV(64, R(R11), ImmPtr(&g_dsp.cr));
-	TEST(8, MDisp(R11,0), Imm8(CR_HALT));
+	TEST(8, MatR(R11), Imm8(CR_HALT));
 #endif
 	FixupBranch halt = J_CC(CC_NE);
 
@@ -466,7 +498,7 @@ void DSPEmitter::CompileDispatcher()
 	MOVZX(32, 16, ECX, M(&g_dsp.pc));
 #else
 	MOV(64, R(RCX), ImmPtr(&g_dsp.pc));
-	MOVZX(64, 16, RCX, MDisp(RCX,0));
+	MOVZX(64, 16, RCX, MatR(RCX));
 #endif
 
 	// Execute block. Cycles executed returned in EAX.

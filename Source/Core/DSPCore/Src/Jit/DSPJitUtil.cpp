@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DSP_JIT_UTIL_H
-#define _DSP_JIT_UTIL_H
-
 #include "../DSPMemoryMap.h"
 #include "../DSPHWInterface.h"
 #include "../DSPEmitter.h"
@@ -30,6 +27,10 @@ using namespace Gen;
 // clobbers RCX
 void DSPEmitter::ToMask(X64Reg value_reg)
 {
+	//microbenchmarking results(1 000 000 000 iterations):
+	//             cpu\variant| 1     | 2
+	//intel mobile C2D@2.5GHz | 5.5s  | 4.0s
+	//amd athlon64x2@3GHz     | 6.1s  | 6.4s
 #if 0
 	MOV(16, R(CX), R(value_reg));
 	SHR(16, R(CX), Imm8(8));
@@ -77,12 +78,12 @@ void DSPEmitter::increment_addr_reg(int reg)
 
 	//	s16 tmp = g_dsp.r[reg];
 #ifdef _M_IX86 // All32
-	MOV(16, R(AX), M(&g_dsp.r[reg]));
-	MOV(16, R(DX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	MOV(16, R(AX), M(&g_dsp._r.ar[reg]));
+	MOV(16, R(DX), M(&g_dsp._r.wr[reg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(AX), MDisp(R11,reg*2));
-	MOV(16, R(DX), MDisp(R11,(DSP_REG_WR0 + reg)*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, R(AX), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])));
+	MOV(16, R(DX), MDisp(R11,STRUCT_OFFSET(g_dsp._r, wr[reg])));
 #endif
 
 	MOV(16,R(DI), R(AX));
@@ -102,10 +103,10 @@ void DSPEmitter::increment_addr_reg(int reg)
 
 	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r[reg]), R(AX));
+	MOV(16, M(&g_dsp._r.ar[reg]), R(AX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,reg*2), R(AX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])), R(AX));
 #endif
 }
 
@@ -126,12 +127,12 @@ void DSPEmitter::decrement_addr_reg(int reg)
 
 	//	s16 ar = g_dsp.r[reg];
 #ifdef _M_IX86 // All32
-	MOV(16, R(AX), M(&g_dsp.r[reg]));
-	MOVZX(32, 16, EDX, M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	MOV(16, R(AX), M(&g_dsp._r.ar[reg]));
+	MOVZX(32, 16, EDX, M(&g_dsp._r.wr[reg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(AX), MDisp(R11,reg*2));
-	MOVZX(32, 16, EDX, MDisp(R11,(DSP_REG_WR0 + reg)*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, R(AX), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])));
+	MOVZX(32, 16, EDX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, wr[reg])));
 #endif
 
 	// ToMask(WR0), calculating it into EDI
@@ -158,10 +159,10 @@ void DSPEmitter::decrement_addr_reg(int reg)
 
 	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r[reg]), R(AX));
+	MOV(16, M(&g_dsp._r.ar[reg]), R(AX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,reg*2), R(AX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])), R(AX));
 #endif
 }
 
@@ -189,14 +190,14 @@ void DSPEmitter::increase_addr_reg(int reg)
 	 */
 
 #ifdef _M_IX86 // All32
-	MOV(16, R(SI), M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	MOV(16, R(AX), M(&g_dsp.r[reg]));
-	MOVZX(32, 16, EDX, M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	MOV(16, R(SI), M(&g_dsp._r.ix[reg]));
+	MOV(16, R(AX), M(&g_dsp._r.ar[reg]));
+	MOVZX(32, 16, EDX, M(&g_dsp._r.wr[reg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(SI), MDisp(R11,(DSP_REG_IX0 + reg)*2));
-	MOV(16, R(AX), MDisp(R11,reg*2));
-	MOVZX(32, 16, EDX, MDisp(R11,(DSP_REG_WR0 + reg)*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, R(SI), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ix[reg])));
+	MOV(16, R(AX), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])));
+	MOVZX(32, 16, EDX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, wr[reg])));
 #endif
 
 	// ToMask(WR0), calculating it into EDI
@@ -239,10 +240,10 @@ void DSPEmitter::increase_addr_reg(int reg)
 
 	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+	MOV(16, M(&g_dsp._r.ar[reg]), R(EAX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,reg*2), R(EAX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])), R(EAX));
 #endif
 }
 
@@ -270,14 +271,14 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	 */
 
 #ifdef _M_IX86 // All32
-	MOV(16, R(SI), M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	MOV(16, R(AX), M(&g_dsp.r[reg]));
-	MOVZX(32, 16, EDX, M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	MOV(16, R(SI), M(&g_dsp._r.ix[reg]));
+	MOV(16, R(AX), M(&g_dsp._r.ar[reg]));
+	MOVZX(32, 16, EDX, M(&g_dsp._r.wr[reg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(SI), MDisp(R11,(DSP_REG_IX0 + reg)*2));
-	MOV(16, R(AX), MDisp(R11,reg*2));
-	MOVZX(32, 16, EDX, MDisp(R11,(DSP_REG_WR0 + reg)*2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, R(SI), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ix[reg])));
+	MOV(16, R(AX), MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])));
+	MOVZX(32, 16, EDX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, wr[reg])));
 #endif
 
 	// ToMask(WR0), calculating it into EDI
@@ -318,10 +319,10 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r[reg]), R(EAX));
+	MOV(16, M(&g_dsp._r.ar[reg]), R(EAX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,reg*2), R(EAX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp._r, ar[reg])), R(EAX));
 #endif
 }
 
@@ -492,20 +493,34 @@ void DSPEmitter::dmem_read_imm(u16 address)
 void DSPEmitter::get_long_prod(X64Reg long_prod)
 {
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];	
-	MOVSX(64, 8, long_prod, MDisp(R11,DSP_REG_PRODH*2));
+#if 0
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];
+	MOVSX(64, 8, long_prod, MDisp(R11,STRUCT_OFFSET(g_dsp._r, prod.h)));
 	//val <<= 32;
 	SHL(64, R(long_prod), Imm8(16));
 	//s64 low_prod  = g_dsp.r[DSP_REG_PRODM];
-	OR(16, R(long_prod), MDisp(R11,DSP_REG_PRODM*2));
+	OR(16, R(long_prod), MDisp(R11,STRUCT_OFFSET(g_dsp._r, prod.m)));
 	//low_prod += g_dsp.r[DSP_REG_PRODM2];
-	ADD(16, R(long_prod), MDisp(R11,DSP_REG_PRODM2*2));
+	ADD(16, R(long_prod), MDisp(R11,STRUCT_OFFSET(g_dsp._r, prod.m2)));
 	//low_prod <<= 16;
 	SHL(64, R(long_prod), Imm8(16));
 	//low_prod |= g_dsp.r[DSP_REG_PRODL];
-	OR(16, R(long_prod), MDisp(R11,DSP_REG_PRODL*2));
+	OR(16, R(long_prod), MDisp(R11,STRUCT_OFFSET(g_dsp._r, prod.l)));
 	//return val;
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];
+	MOV(64, R(long_prod), MDisp(R11,STRUCT_OFFSET(g_dsp._r, prod.val)));
+	MOV(64, R(R11), R(long_prod));
+	SHL(64, R(long_prod), Imm8(64-40));//sign extend
+	SAR(64, R(long_prod), Imm8(64-40));
+	SHR(64, R(R11), Imm8(48));
+	SHL(64, R(R11), Imm8(16));
+	ADD(64, R(long_prod), R(R11));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+
+#endif
 #endif
 }
 
@@ -540,20 +555,28 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 void DSPEmitter::set_long_prod()
 {
 #ifdef _M_X64
+#if 0
 	//	g_dsp.r[DSP_REG_PRODL] = (u16)val;
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, DSP_REG_PRODL * 2), R(AX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, prod.l)), R(AX));
 	//	val >>= 16;
 	SAR(64, R(RAX), Imm8(16));
 	//	g_dsp.r[DSP_REG_PRODM] = (u16)val;
-	MOV(16, MDisp(R11, DSP_REG_PRODM * 2), R(AX));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, prod.m)), R(AX));
 	//	val >>= 16;
 	SAR(64, R(RAX), Imm8(16));
 	//	g_dsp.r[DSP_REG_PRODH] = (u8)val;
 	MOVSX(64, 8, RAX, R(AL));
-	MOV(8, MDisp(R11, DSP_REG_PRODH * 2), R(AL));
+	MOV(8, MDisp(R11, STRUCT_OFFSET(g_dsp._r, prod.h)), R(AL));
 	//	g_dsp.r[DSP_REG_PRODM2] = 0;
-	MOV(16, MDisp(R11, DSP_REG_PRODM2 * 2), Imm16(0));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, prod.m2)), Imm16(0));
+#else
+	MOV(64, R(R11), Imm64(0x000000ffffffffffULL));
+	AND(64, R(RAX), R(R11));
+	//	g_dsp.r[DSP_REG_PRODL] = (u16)val;
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(64, MDisp(R11, STRUCT_OFFSET(g_dsp._r, prod.val)), R(RAX));
+#endif
 #endif
 }
 
@@ -583,15 +606,23 @@ void DSPEmitter::round_long_acc(X64Reg long_acc)
 void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 {
 #ifdef _M_X64
+#if 0
 //	s64 high = (s64)(s8)g_dsp.r[DSP_REG_ACH0 + reg] << 32;
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 8, acc, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 8, acc, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].h)));
 	SHL(64, R(acc), Imm8(16));
 //	u32 mid_low = ((u32)g_dsp.r[DSP_REG_ACM0 + reg] << 16) | g_dsp.r[DSP_REG_ACL0 + reg];
-	OR(16, R(acc), MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+	OR(16, R(acc), MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].m)));
 	SHL(64, R(acc), Imm8(16));
-	OR(16, R(acc), MDisp(R11, (DSP_REG_ACL0 + _reg) * 2));
+	OR(16, R(acc), MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].l)));
 //	return high | mid_low;
+#else
+//	s64 high = (s64)(s8)g_dsp.r[DSP_REG_ACH0 + reg] << 32;
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(64, R(acc), MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].val)));
+	SHL(64, R(acc), Imm8(64-40));//sign extend
+	SAR(64, R(acc), Imm8(64-40));
+#endif
 #endif
 }
 
@@ -600,18 +631,26 @@ void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 void DSPEmitter::set_long_acc(int _reg, X64Reg acc)
 {
 #ifdef _M_X64
+#if 0
 //	g_dsp.r[DSP_REG_ACL0 + _reg] = (u16)val;
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, (DSP_REG_ACL0 + _reg) * 2), R(acc));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].l)), R(acc));
 //	val >>= 16;
 	SHR(64, R(acc), Imm8(16));
 //	g_dsp.r[DSP_REG_ACM0 + _reg] = (u16)val;
-	MOV(16, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2), R(acc));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].m)), R(acc));
 //	val >>= 16;
 	SHR(64, R(acc), Imm8(16));
 //	g_dsp.r[DSP_REG_ACH0 + _reg] = (u16)(s16)(s8)(u8)val;
 	MOVSX(64, 8, acc, R(acc));
-	MOV(16, MDisp(R11, (DSP_REG_ACH0 + _reg) * 2), R(acc));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].h)), R(acc));
+#else
+	SHL(64, R(acc), Imm8(64-40));//sign extend
+	SAR(64, R(acc), Imm8(64-40));
+//	g_dsp.r[DSP_REG_ACL0 + _reg] = (u16)val;
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(64, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].val)), R(acc));
+#endif
 #endif
 }
 
@@ -620,8 +659,8 @@ void DSPEmitter::get_acc_m(int _reg, X64Reg acm)
 {
 //	return g_dsp.r[DSP_REG_ACM0 + _reg];
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, acm, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 16, acm, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].m)));
 #endif
 }
 
@@ -630,8 +669,8 @@ void DSPEmitter::set_acc_m(int _reg)
 {
 	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, (DSP_REG_ACM0 + _reg) * 2), R(RAX));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ac[_reg].m)), R(RAX));
 #endif
 }
 
@@ -640,10 +679,15 @@ void DSPEmitter::get_long_acx(int _reg, X64Reg acx)
 {
 //	return ((u32)g_dsp.r[DSP_REG_AXH0 + _reg] << 16) | g_dsp.r[DSP_REG_AXL0 + _reg];
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, acx, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
+#if 0
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 16, acx, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ax[_reg].h)));
 	SHL(64, R(acx), Imm8(16));
-	OR(16, R(acx), MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
+	OR(16, R(acx), MDisp(R11, STRUCT_OFFSET(g_dsp._r, ax[_reg].l)));
+#else
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 32, acx, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ax[_reg].val)));
+#endif
 #endif
 }
 
@@ -652,8 +696,8 @@ void DSPEmitter::get_ax_l(int _reg, X64Reg axl)
 {
 //	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, axl, MDisp(R11, (DSP_REG_AXL0 + _reg) * 2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 16, axl, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ax[_reg].l)));
 #endif
 }
 
@@ -662,9 +706,7 @@ void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
 {
 //	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
 #ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, axh, MDisp(R11, (DSP_REG_AXH0 + _reg) * 2));
+	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOVSX(64, 16, axh, MDisp(R11, STRUCT_OFFSET(g_dsp._r, ax[_reg].h)));
 #endif
 }
-
-#endif

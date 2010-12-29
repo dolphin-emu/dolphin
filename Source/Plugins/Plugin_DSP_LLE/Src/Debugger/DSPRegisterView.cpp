@@ -26,7 +26,7 @@ wxString CRegTable::GetValue(int row, int col)
 		switch (col)
 		{
 		case 0: return wxString::FromAscii(pdregname(row));
-		case 1: return wxString::Format(wxT("0x%04x"), g_dsp.r[row]);
+		case 1: return wxString::Format(wxT("0x%04x"), DSPCore_ReadRegister(row));
 		default: return wxString::FromAscii("");
 		}
 	}
@@ -48,8 +48,8 @@ void CRegTable::UpdateCachedRegs()
 
 	for (int i = 0; i < 32; ++i)
 	{
-		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != g_dsp.r[i]);
-		m_CachedRegs[i] = g_dsp.r[i];
+		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != DSPCore_ReadRegister(i));
+		m_CachedRegs[i] = DSPCore_ReadRegister(i);
 	}
 }
 

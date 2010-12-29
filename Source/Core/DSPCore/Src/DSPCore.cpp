@@ -88,10 +88,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom);
 	LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef);
 
-	for (int i = 0; i < 32; i++)
-	{
-		g_dsp.r[i] = 0;
-	}
+	memset(&g_dsp._r,0,sizeof(g_dsp._r));
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -116,13 +113,13 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	// Copied from a real console after the custom UCode has been loaded.
 	// These are the indexing wrapping registers.
-	g_dsp.r[DSP_REG_WR0] = 0xffff;
-	g_dsp.r[DSP_REG_WR1] = 0xffff;
-	g_dsp.r[DSP_REG_WR2] = 0xffff;
-	g_dsp.r[DSP_REG_WR3] = 0xffff;
+	g_dsp._r.wr[0] = 0xffff;
+	g_dsp._r.wr[1] = 0xffff;
+	g_dsp._r.wr[2] = 0xffff;
+	g_dsp._r.wr[3] = 0xffff;
 
-	g_dsp.r[DSP_REG_SR] |= SR_INT_ENABLE;
-	g_dsp.r[DSP_REG_SR] |= SR_EXT_INT_ENABLE;
+	g_dsp._r.sr |= SR_INT_ENABLE;
+	g_dsp._r.sr |= SR_EXT_INT_ENABLE;
 
 	g_dsp.cr = 0x804;
 	gdsp_ifx_init();
@@ -162,10 +159,10 @@ void DSPCore_Reset()
 {
     g_dsp.pc = DSP_RESET_VECTOR;
 
-	g_dsp.r[DSP_REG_WR0] = 0xffff;
-	g_dsp.r[DSP_REG_WR1] = 0xffff;
-	g_dsp.r[DSP_REG_WR2] = 0xffff;
-	g_dsp.r[DSP_REG_WR3] = 0xffff;
+	g_dsp._r.wr[0] = 0xffff;
+	g_dsp._r.wr[1] = 0xffff;
+	g_dsp._r.wr[2] = 0xffff;
+	g_dsp._r.wr[3] = 0xffff;
 	
 }
 
@@ -191,27 +188,27 @@ void DSPCore_CheckExternalInterrupt()
 }
 
 
-void DSPCore_CheckExceptions() 
+void DSPCore_CheckExceptions()
 {
 	// Early out to skip the loop in the common case.
 	if (g_dsp.exceptions == 0)
-		return;	
+		return;
 
 	for (int i = 7; i > 0; i--) {
-		// Seems exp int are not masked by sr_int_enable 
+		// Seems exp int are not masked by sr_int_enable
 		if (g_dsp.exceptions & (1 << i)) {
 			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT)) {
-				
+
 				// store pc and sr until RTI
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[DSP_REG_SR]);
-				
-				g_dsp.pc = i * 2; 
+				dsp_reg_store_stack(DSP_STACK_D, g_dsp._r.sr);
+
+				g_dsp.pc = i * 2;
 				g_dsp.exceptions &= ~(1 << i);
 				if (i == 7)
-					g_dsp.r[DSP_REG_SR] &= ~SR_EXT_INT_ENABLE;
+					g_dsp._r.sr &= ~SR_EXT_INT_ENABLE;
 				else
-					g_dsp.r[DSP_REG_SR] &= ~SR_INT_ENABLE;
+					g_dsp._r.sr &= ~SR_INT_ENABLE;
 				break;
 			} else {
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -296,3 +293,106 @@ void CompileCurrent()
 	jit->Compile(g_dsp.pc);
 }
 
+u16 DSPCore_ReadRegister(int reg) {
+	switch(reg) {
+	case DSP_REG_AR0:
+	case DSP_REG_AR1:
+	case DSP_REG_AR2:
+	case DSP_REG_AR3:
+		return g_dsp._r.ar[reg - DSP_REG_AR0];
+	case DSP_REG_IX0:
+	case DSP_REG_IX1:
+	case DSP_REG_IX2:
+	case DSP_REG_IX3:
+		return g_dsp._r.ix[reg - DSP_REG_IX0];
+	case DSP_REG_WR0:
+	case DSP_REG_WR1:
+	case DSP_REG_WR2:
+	case DSP_REG_WR3:
+		return g_dsp._r.wr[reg - DSP_REG_WR0];
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		return g_dsp._r.st[reg - DSP_REG_ST0];
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		return g_dsp._r.ac[reg - DSP_REG_ACH0].h;
+	case DSP_REG_CR:     return g_dsp._r.cr;
+	case DSP_REG_SR:     return g_dsp._r.sr;
+	case DSP_REG_PRODL:  return g_dsp._r.prod.l;
+	case DSP_REG_PRODM:  return g_dsp._r.prod.m;
+	case DSP_REG_PRODH:  return g_dsp._r.prod.h;
+	case DSP_REG_PRODM2: return g_dsp._r.prod.m2;
+	case DSP_REG_AXL0:
+	case DSP_REG_AXL1:
+		return g_dsp._r.ax[reg - DSP_REG_AXL0].l;
+	case DSP_REG_AXH0:
+	case DSP_REG_AXH1:
+		return g_dsp._r.ax[reg - DSP_REG_AXH0].h;
+	case DSP_REG_ACL0:
+	case DSP_REG_ACL1:
+		return g_dsp._r.ac[reg - DSP_REG_ACL0].l;
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		return g_dsp._r.ac[reg - DSP_REG_ACM0].m;
+	default:
+		_assert_msg_(DSP_CORE, 0, "cannot happen");
+		return 0;
+	}
+}
+
+void DSPCore_WriteRegister(int reg, u16 val) {
+	switch(reg) {
+	case DSP_REG_AR0:
+	case DSP_REG_AR1:
+	case DSP_REG_AR2:
+	case DSP_REG_AR3:
+		g_dsp._r.ar[reg - DSP_REG_AR0] = val;
+		break;
+	case DSP_REG_IX0:
+	case DSP_REG_IX1:
+	case DSP_REG_IX2:
+	case DSP_REG_IX3:
+		g_dsp._r.ix[reg - DSP_REG_IX0] = val;
+		break;
+	case DSP_REG_WR0:
+	case DSP_REG_WR1:
+	case DSP_REG_WR2:
+	case DSP_REG_WR3:
+		g_dsp._r.wr[reg - DSP_REG_WR0] = val;
+		break;
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		g_dsp._r.st[reg - DSP_REG_ST0] = val;
+		break;
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		g_dsp._r.ac[reg - DSP_REG_ACH0].h = val;
+		break;
+	case DSP_REG_CR:     g_dsp._r.cr = val; break;
+	case DSP_REG_SR:     g_dsp._r.sr = val; break;
+	case DSP_REG_PRODL:  g_dsp._r.prod.l = val; break;
+	case DSP_REG_PRODM:  g_dsp._r.prod.m = val; break;
+	case DSP_REG_PRODH:  g_dsp._r.prod.h = val; break;
+	case DSP_REG_PRODM2: g_dsp._r.prod.m2 = val; break;
+	case DSP_REG_AXL0:
+	case DSP_REG_AXL1:
+		g_dsp._r.ax[reg - DSP_REG_AXL0].l = val;
+		break;
+	case DSP_REG_AXH0:
+	case DSP_REG_AXH1:
+		g_dsp._r.ax[reg - DSP_REG_AXH0].h = val;
+		break;
+	case DSP_REG_ACL0:
+	case DSP_REG_ACL1:
+		g_dsp._r.ac[reg - DSP_REG_ACL0].l = val;
+		break;
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		g_dsp._r.ac[reg - DSP_REG_ACM0].m = val;
+		break;
+	}
+}

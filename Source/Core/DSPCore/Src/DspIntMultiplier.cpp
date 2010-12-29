@@ -32,15 +32,15 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 {
 	s64 prod;
 
-	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
+	if ((sign == 1) && (g_dsp._r.sr & SR_MUL_UNSIGNED)) //unsigned
 		prod = (u32)(a * b);
-	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
+	else if ((sign == 2) && (g_dsp._r.sr & SR_MUL_UNSIGNED)) //mixed
 		prod = a * (s16)b;
 	else
 		prod = (s16)a * (s16)b; //signed
 
 	// Conditionally multiply by 2.
-	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
+	if ((g_dsp._r.sr & SR_MUL_MODIFY) == 0)
 		prod <<= 1;
 
 	return prod;
@@ -95,10 +95,10 @@ void clrp(const UDSPInstruction opc)
 {
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_PRODL] = 0x0000;
-	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
-	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
-	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
+	g_dsp._r.prod.l = 0x0000;
+	g_dsp._r.prod.m = 0xfff0;
+	g_dsp._r.prod.h = 0x00ff;
+	g_dsp._r.prod.m2 = 0x0010;
 }
 
 // TSTPROD
