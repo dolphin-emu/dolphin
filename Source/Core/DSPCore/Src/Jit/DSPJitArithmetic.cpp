@@ -93,17 +93,17 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 		get_acc_m(reg);
 //		Update_SR_LZ(((val & imm) == imm) ? true : false);
 //		if ((val & imm) == imm) 
-//			g_dsp._r.sr |= SR_LOGIC_ZERO; 
+//			g_dsp.r.sr |= SR_LOGIC_ZERO;
 //		else
-//			g_dsp._r.sr &= ~SR_LOGIC_ZERO;
+//			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
 		AND(16, R(RAX), Imm16(imm));
 		CMP(16, R(RAX), Imm16(imm));
-		MOV(64, R(R11), ImmPtr(&g_dsp._r));
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
-		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, sr)), Imm16(SR_LOGIC_ZERO));
+		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
 		SetJumpTarget(notLogicZero);
-		AND(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, sr)), Imm16(~SR_LOGIC_ZERO));
+		AND(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(~SR_LOGIC_ZERO));
 		SetJumpTarget(exit);
 	}
 #else
@@ -131,16 +131,16 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 		get_acc_m(reg);
 //		Update_SR_LZ(((val & imm) == 0) ? true : false);
 //		if ((val & imm) == 0) 
-//			g_dsp._r.sr |= SR_LOGIC_ZERO; 
+//			g_dsp.r.sr |= SR_LOGIC_ZERO;
 //		else
-//			g_dsp._r.sr &= ~SR_LOGIC_ZERO;
+//			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
 		TEST(16, R(RAX), Imm16(imm));
-		MOV(64, R(R11), ImmPtr(&g_dsp._r));
+		MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
-		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, sr)), Imm16(SR_LOGIC_ZERO));
+		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
 		SetJumpTarget(notLogicZero);
-		AND(16, MDisp(R11, STRUCT_OFFSET(g_dsp._r, sr)), Imm16(~SR_LOGIC_ZERO));
+		AND(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(~SR_LOGIC_ZERO));
 		SetJumpTarget(exit);
 	}
 #else
@@ -237,7 +237,7 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
 //		s64 sr = dsp_get_long_acc(sreg);
 		get_long_acc(sreg, RCX);
 		MOV(64, R(RAX), R(RCX));
-//		s64 rr = (s16)g_dsp._r.axh[rreg];
+//		s64 rr = (s16)g_dsp.r.axh[rreg];
 		get_ax_h(rreg, RDX);
 //		rr <<= 16;
 		SHL(64, R(RDX), Imm8(16));
@@ -326,11 +326,11 @@ void DSPEmitter::xorr(const UDSPInstruction opc)
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
-//	u16 accm = g_dsp._r.acm[dreg] ^ g_dsp._r.axh[sreg];
+//	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.axh[sreg];
 	get_acc_m(dreg, RAX);
 	get_ax_h(sreg, RDX);
 	XOR(64, R(RAX), R(RDX));
-//	g_dsp._r.acm[dreg] = accm;
+//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -355,11 +355,11 @@ void DSPEmitter::andr(const UDSPInstruction opc)
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
-	//	u16 accm = g_dsp._r.acm[dreg] & g_dsp._r.axh[sreg];
+	//	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.axh[sreg];
 	get_acc_m(dreg, RAX);
 	get_ax_h(sreg, RDX);
 	AND(64, R(RAX), R(RDX));
-	//	g_dsp._r.acm[dreg] = accm;
+	//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 	//	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -384,11 +384,11 @@ void DSPEmitter::orr(const UDSPInstruction opc)
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
-	//	u16 accm = g_dsp._r.acm[dreg] | g_dsp._r.axh[sreg];
+	//	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.axh[sreg];
 	get_acc_m(dreg, RAX);
 	get_ax_h(sreg, RDX);
 	OR(64, R(RAX), R(RDX));
-	//	g_dsp._r.acm[dreg] = accm;
+	//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 	//	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -412,11 +412,11 @@ void DSPEmitter::andc(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
-//	u16 accm = g_dsp._r.acm[dreg] & g_dsp._r.acm[1 - dreg];
+//	u16 accm = g_dsp.r.acm[dreg] & g_dsp.r.acm[1 - dreg];
 	get_acc_m(dreg, RAX);
 	get_acc_m(1 - dreg, RDX);
 	AND(64, R(RAX), R(RDX));
-	//	g_dsp._r.acm[dreg] = accm;
+	//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 	//	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -440,11 +440,11 @@ void DSPEmitter::orc(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
-	//	u16 accm = g_dsp._r.acm[dreg] | g_dsp._r.acm[1 - dreg];
+	//	u16 accm = g_dsp.r.acm[dreg] | g_dsp.r.acm[1 - dreg];
 	get_acc_m(dreg, RAX);
 	get_acc_m(1 - dreg, RDX);
 	OR(64, R(RAX), R(RDX));
-	//	g_dsp._r.acm[dreg] = accm;
+	//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 	//	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -467,11 +467,11 @@ void DSPEmitter::xorc(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
-	//	u16 accm = g_dsp._r.acm[dreg] ^ g_dsp._r.acm[1 - dreg];
+	//	u16 accm = g_dsp.r.acm[dreg] ^ g_dsp.r.acm[1 - dreg];
 	get_acc_m(dreg, RAX);
 	get_acc_m(1 - dreg, RDX);
 	XOR(64, R(RAX), R(RDX));
-	//	g_dsp._r.acm[dreg] = accm;
+	//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 	//	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -494,10 +494,10 @@ void DSPEmitter::notc(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 	u8 dreg = (opc >> 8) & 0x1;
-//	u16 accm = g_dsp._r.acm[dreg] ^ 0xffff;
+//	u16 accm = g_dsp.r.acm[dreg] ^ 0xffff;
 	get_acc_m(dreg, RAX);
 	XOR(16, R(RAX), Imm16(0xffff));
-//	g_dsp._r.acm[dreg] = accm;
+//	g_dsp.r.acm[dreg] = accm;
 	set_acc_m(dreg);
 //	Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
@@ -523,11 +523,11 @@ void DSPEmitter::xori(const UDSPInstruction opc)
 	u8 reg  = (opc >> 8) & 0x1;
 //	u16 imm = dsp_fetch_code();
 	u16 imm = dsp_imem_read(compilePC+1);
-//	g_dsp._r.acm[reg] ^= imm;
+//	g_dsp.r.acm[reg] ^= imm;
 	get_acc_m(reg, RAX);
 	XOR(16, R(RAX), Imm16(imm));
 	set_acc_m(reg);
-//	Update_SR_Register16((s16)g_dsp._r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
+//	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
 	{
 		get_long_acc(reg, RSI);
@@ -550,11 +550,11 @@ void DSPEmitter::andi(const UDSPInstruction opc)
 	u8 reg  = (opc >> 8) & 0x1;
 //	u16 imm = dsp_fetch_code();
 	u16 imm = dsp_imem_read(compilePC+1);
-//	g_dsp._r.acm[reg] &= imm;
+//	g_dsp.r.acm[reg] &= imm;
 	get_acc_m(reg, RAX);
 	AND(16, R(RAX), Imm16(imm));
 	set_acc_m(reg);
-//	Update_SR_Register16((s16)g_dsp._r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
+//	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
 	{
 		get_long_acc(reg, RSI);
@@ -577,11 +577,11 @@ void DSPEmitter::ori(const UDSPInstruction opc)
 	u8 reg  = (opc >> 8) & 0x1;
 	//	u16 imm = dsp_fetch_code();
 	u16 imm = dsp_imem_read(compilePC+1);
-	//	g_dsp._r.acm[reg] |= imm;
+	//	g_dsp.r.acm[reg] |= imm;
 	get_acc_m(reg, RAX);
 	OR(16, R(RAX), Imm16(imm));
 	set_acc_m(reg);
-	//	Update_SR_Register16((s16)g_dsp._r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
+	//	Update_SR_Register16((s16)g_dsp.r.acm[reg], false, false, isOverS32(dsp_get_long_acc(reg)));
 	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
 	{
 		get_long_acc(reg, RSI);
@@ -606,12 +606,12 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 	u16 *sregp = reg_ptr(sreg);
 
-	MOV(64, R(R11), ImmPtr(&g_dsp._r));
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp._r)));
+	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc + ax;
@@ -941,8 +941,8 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	MOV(64, R(R11), ImmPtr(&g_dsp._r));
-	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp._r)));
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc - ax;
@@ -1212,9 +1212,9 @@ void DSPEmitter::movr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 	u16 *sregp = reg_ptr(sreg);
 
-//	s64 acc = (s16)g_dsp._r[sreg];
-	MOV(64, R(R11), ImmPtr(&g_dsp._r));
-	MOVSX(64, 16, RAX, MDisp(R11, PtrOffset(sregp,&g_dsp._r)));
+//	s64 acc = (s16)g_dsp.r[sreg];
+	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RAX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
 //	acc <<= 16;
 	SHL(64, R(RAX), Imm8(16));
 //	acc &= ~0xffff;
@@ -1618,7 +1618,7 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 	u8 sreg = (opc >> 9) & 0x1;
 
 //	s16 shift;
-//	u16 axh = g_dsp._r.axh[sreg];
+//	u16 axh = g_dsp.r.axh[sreg];
 	get_ax_h(sreg);
 //	u64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, RDX);
@@ -1682,7 +1682,7 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
 	u8 sreg = (opc >> 9) & 0x1;
 
 //	s16 shift;
-//	u16 axh = g_dsp._r.axh[sreg];
+//	u16 axh = g_dsp.r.axh[sreg];
 	get_ax_h(sreg);
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, RDX);

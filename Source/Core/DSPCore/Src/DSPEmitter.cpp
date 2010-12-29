@@ -34,35 +34,6 @@ const u8 *stubEntryPoint;
 u16 blocksCompiled;
 u16 unresolvedCalls;
 
-static bool checkExtendedExclude(UDSPInstruction inst)
-{
-	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
-
-	// Call extended
-	if (!tinst->extended)
-		return false;
-	if ((inst >> 12) != 0x3)
-		return false;
-	/*
-	if((inst & 0x00ff) == 0x00c0) {
-	fprintf(stderr,"blocking %04x\n", inst);
-	return true;
-	}
-	*/
-	return false;
-}
-
-static bool checkMainExclude(UDSPInstruction inst)
-{
-	/*
-	if((inst & 0xfffc) == 0x1fcc)
-	return true;
-	*/
-	//	if((inst & 0xfffc) == 0x1fcc)
-	//		return true;
-	return false;
-}
-
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
 	m_compiledCode = NULL;
@@ -167,7 +138,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	// Call extended
 	if (tinst->extended) {
 		if ((inst >> 12) == 0x3) {
-			if (! extOpTable[inst & 0x7F]->jitFunc || checkExtendedExclude(inst)) {
+			if (! extOpTable[inst & 0x7F]->jitFunc) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
 				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
@@ -177,7 +148,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 				ext_is_jit = true;
 			}
 		} else {
-			if (!extOpTable[inst & 0xFF]->jitFunc || checkExtendedExclude(inst)) {
+			if (!extOpTable[inst & 0xFF]->jitFunc) {
 				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
 				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
@@ -190,7 +161,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	}
 	
 	// Main instruction
-	if (!opTable[inst]->jitFunc || checkMainExclude(inst)) {
+	if (!opTable[inst]->jitFunc) {
 		Default(inst);
 		INFO_LOG(DSPLLE,"Instruction not JITed(main part): %04x\n",inst);
 	}
@@ -270,7 +241,7 @@ void DSPEmitter::Compile(int start_addr)
 #ifdef _M_IX86 // All32
 	TEST(16, M(&g_dsp.cr), Imm16(CR_EXTERNAL_INT));
 	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	TEST(16, M(&g_dsp._r.sr), Imm16(SR_EXT_INT_ENABLE));
+	TEST(16, M(&g_dsp.r.sr), Imm16(SR_EXT_INT_ENABLE));
 	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
 	OR(8, M(&g_dsp.exceptions), Imm8(1 << EXP_INT));
 	AND(16, M(&g_dsp.cr), Imm16(~CR_EXTERNAL_INT));
@@ -281,7 +252,7 @@ void DSPEmitter::Compile(int start_addr)
 	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
 	TEST(16, MatR(RAX), Imm16(CR_EXTERNAL_INT));
 	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	MOV(64, R(RAX), ImmPtr(&g_dsp._r.sr));
+	MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
 	TEST(16, MatR(RAX), Imm16(SR_EXT_INT_ENABLE));
 	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
 	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
@@ -324,18 +295,18 @@ void DSPEmitter::Compile(int start_addr)
 		if (DSPAnalyzer::code_flags[compilePC-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
 #ifdef _M_IX86 // All32
-			MOVZX(32, 16, EAX, M(&(g_dsp._r.st[2])));
+			MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
 #else
-			MOV(64, R(R11), ImmPtr(&g_dsp._r));
-			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[2])));
+			MOV(64, R(R11), ImmPtr(&g_dsp.r));
+			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[2])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
-		
+
 #ifdef _M_IX86 // All32
-			MOVZX(32, 16, EAX, M(&g_dsp._r.st[3]));
+			MOVZX(32, 16, EAX, M(&g_dsp.r.st[3]));
 #else
-			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp._r, st[3])));
+			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[3])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE, true);

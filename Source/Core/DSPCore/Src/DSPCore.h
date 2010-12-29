@@ -217,7 +217,7 @@ typedef struct {
 // should be moved here.
 struct SDSP
 {
-	DSP_Regs _r;
+	DSP_Regs r;
 	u16 pc;
 #if PROFILE
 	u16 err_pc;

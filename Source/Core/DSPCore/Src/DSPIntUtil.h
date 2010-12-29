@@ -40,12 +40,12 @@
 
 inline void dsp_SR_set_flag(int flag)
 {
-	g_dsp._r.sr |= flag;
+	g_dsp.r.sr |= flag;
 }
 
 inline bool dsp_SR_is_flag_set(int flag)
 {
-	return (g_dsp._r.sr & flag) != 0;
+	return (g_dsp.r.sr & flag) != 0;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -63,8 +63,8 @@ inline u16 ToMask(u16 a)
 
 inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
 {
-	u16 ar = g_dsp._r.ar[reg];
-	u16 wr = g_dsp._r.wr[reg]; 
+	u16 ar = g_dsp.r.ar[reg];
+	u16 wr = g_dsp.r.wr[reg];
 	u16 m = ToMask(wr) | 1;
     u16 nar = ar+ix;
     if (ix >= 0) {
@@ -79,8 +79,8 @@ inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
 
 inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix) 
 {
-	u16 ar = g_dsp._r.ar[reg];
-	u16 wr = g_dsp._r.wr[reg]; 
+	u16 ar = g_dsp.r.ar[reg];
+	u16 wr = g_dsp.r.wr[reg];
     u16 m = ToMask(wr) | 1;
     u16 nar = ar-ix;
     if ((u16)ix > 0x8000) { // equiv: ix < 0 && ix != -0x8000
@@ -120,38 +120,38 @@ inline u16 dsp_op_read_reg(int reg)
 	case DSP_REG_AR1:
 	case DSP_REG_AR2:
 	case DSP_REG_AR3:
-		return g_dsp._r.ar[reg - DSP_REG_AR0];
+		return g_dsp.r.ar[reg - DSP_REG_AR0];
 	case DSP_REG_IX0:
 	case DSP_REG_IX1:
 	case DSP_REG_IX2:
 	case DSP_REG_IX3:
-		return g_dsp._r.ix[reg - DSP_REG_IX0];
+		return g_dsp.r.ix[reg - DSP_REG_IX0];
 	case DSP_REG_WR0:
 	case DSP_REG_WR1:
 	case DSP_REG_WR2:
 	case DSP_REG_WR3:
-		return g_dsp._r.wr[reg - DSP_REG_WR0];
+		return g_dsp.r.wr[reg - DSP_REG_WR0];
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
-		return g_dsp._r.ac[reg - DSP_REG_ACH0].h;
-	case DSP_REG_CR:     return g_dsp._r.cr;
-	case DSP_REG_SR:     return g_dsp._r.sr;
-	case DSP_REG_PRODL:  return g_dsp._r.prod.l;
-	case DSP_REG_PRODM:  return g_dsp._r.prod.m;
-	case DSP_REG_PRODH:  return g_dsp._r.prod.h;
-	case DSP_REG_PRODM2: return g_dsp._r.prod.m2;
+		return g_dsp.r.ac[reg - DSP_REG_ACH0].h;
+	case DSP_REG_CR:     return g_dsp.r.cr;
+	case DSP_REG_SR:     return g_dsp.r.sr;
+	case DSP_REG_PRODL:  return g_dsp.r.prod.l;
+	case DSP_REG_PRODM:  return g_dsp.r.prod.m;
+	case DSP_REG_PRODH:  return g_dsp.r.prod.h;
+	case DSP_REG_PRODM2: return g_dsp.r.prod.m2;
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:
-		return g_dsp._r.ax[reg - DSP_REG_AXL0].l;
+		return g_dsp.r.ax[reg - DSP_REG_AXL0].l;
 	case DSP_REG_AXH0:
 	case DSP_REG_AXH1:
-		return g_dsp._r.ax[reg - DSP_REG_AXH0].h;
+		return g_dsp.r.ax[reg - DSP_REG_AXH0].h;
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
-		return g_dsp._r.ac[reg - DSP_REG_ACL0].l;
+		return g_dsp.r.ac[reg - DSP_REG_ACL0].l;
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		return g_dsp._r.ac[reg - DSP_REG_ACM0].m;
+		return g_dsp.r.ac[reg - DSP_REG_ACM0].m;
 	default:
 		_assert_msg_(DSP_INT, 0, "cannot happen");
 		return 0;
@@ -165,7 +165,7 @@ inline void dsp_op_write_reg(int reg, u16 val)
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
 		// sign extend from the bottom 8 bits.
-		g_dsp._r.ac[reg-DSP_REG_ACH0].h = (u16)(s16)(s8)(u8)val;
+		g_dsp.r.ac[reg-DSP_REG_ACH0].h = (u16)(s16)(s8)(u8)val;
 		break;
 
 	// Stack registers.
@@ -180,41 +180,41 @@ inline void dsp_op_write_reg(int reg, u16 val)
 	case DSP_REG_AR1:
 	case DSP_REG_AR2:
 	case DSP_REG_AR3:
-		g_dsp._r.ar[reg - DSP_REG_AR0] = val;
+		g_dsp.r.ar[reg - DSP_REG_AR0] = val;
 		break;
 	case DSP_REG_IX0:
 	case DSP_REG_IX1:
 	case DSP_REG_IX2:
 	case DSP_REG_IX3:
-		g_dsp._r.ix[reg - DSP_REG_IX0] = val;
+		g_dsp.r.ix[reg - DSP_REG_IX0] = val;
 		break;
 	case DSP_REG_WR0:
 	case DSP_REG_WR1:
 	case DSP_REG_WR2:
 	case DSP_REG_WR3:
-		g_dsp._r.wr[reg - DSP_REG_WR0] = val;
+		g_dsp.r.wr[reg - DSP_REG_WR0] = val;
 		break;
-	case DSP_REG_CR:     g_dsp._r.cr = val; break;
-	case DSP_REG_SR:     g_dsp._r.sr = val; break;
-	case DSP_REG_PRODL:  g_dsp._r.prod.l = val; break;
-	case DSP_REG_PRODM:  g_dsp._r.prod.m = val; break;
-	case DSP_REG_PRODH:  g_dsp._r.prod.h = val; break;
-	case DSP_REG_PRODM2: g_dsp._r.prod.m2 = val; break;
+	case DSP_REG_CR:     g_dsp.r.cr = val; break;
+	case DSP_REG_SR:     g_dsp.r.sr = val; break;
+	case DSP_REG_PRODL:  g_dsp.r.prod.l = val; break;
+	case DSP_REG_PRODM:  g_dsp.r.prod.m = val; break;
+	case DSP_REG_PRODH:  g_dsp.r.prod.h = val; break;
+	case DSP_REG_PRODM2: g_dsp.r.prod.m2 = val; break;
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:
-		g_dsp._r.ax[reg - DSP_REG_AXL0].l = val;
+		g_dsp.r.ax[reg - DSP_REG_AXL0].l = val;
 		break;
 	case DSP_REG_AXH0:
 	case DSP_REG_AXH1:
-		g_dsp._r.ax[reg - DSP_REG_AXH0].h = val;
+		g_dsp.r.ax[reg - DSP_REG_AXH0].h = val;
 		break;
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
-		g_dsp._r.ac[reg - DSP_REG_ACL0].l = val;
+		g_dsp.r.ac[reg - DSP_REG_ACL0].l = val;
 		break;
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		g_dsp._r.ac[reg - DSP_REG_ACM0].m = val;
+		g_dsp.r.ac[reg - DSP_REG_ACM0].m = val;
 		break;
 	}
 }
@@ -225,12 +225,12 @@ inline void dsp_conditional_extend_accum(int reg)
 	{
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		if (g_dsp._r.sr & SR_40_MODE_BIT)
+		if (g_dsp.r.sr & SR_40_MODE_BIT)
 		{
 			// Sign extend into whole accum.
-			u16 val = g_dsp._r.ac[reg-DSP_REG_ACM0].m;
-			g_dsp._r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) ? 0xFFFF : 0x0000;
-			g_dsp._r.ac[reg - DSP_REG_ACM0].l = 0;
+			u16 val = g_dsp.r.ac[reg-DSP_REG_ACM0].m;
+			g_dsp.r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) ? 0xFFFF : 0x0000;
+			g_dsp.r.ac[reg - DSP_REG_ACM0].l = 0;
 		}
 	}
 }
@@ -245,12 +245,12 @@ inline s64 dsp_get_long_prod()
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	s64 val   = (s8)(u8)g_dsp._r.prod.h;
+	s64 val   = (s8)(u8)g_dsp.r.prod.h;
 	val <<= 32;
-	s64 low_prod  = g_dsp._r.prod.m;
-	low_prod += g_dsp._r.prod.m2;
+	s64 low_prod  = g_dsp.r.prod.m;
+	low_prod += g_dsp.r.prod.m2;
 	low_prod <<= 16;
-	low_prod |= g_dsp._r.prod.l;
+	low_prod |= g_dsp.r.prod.l;
 	val += low_prod;
 	return val;
 }
@@ -275,12 +275,12 @@ inline void dsp_set_long_prod(s64 val)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	g_dsp._r.prod.l = (u16)val;
+	g_dsp.r.prod.l = (u16)val;
 	val >>= 16;
-	g_dsp._r.prod.m = (u16)val;
+	g_dsp.r.prod.m = (u16)val;
 	val >>= 16;
-	g_dsp._r.prod.h = /*(s16)(s8)*/(u8)val;//todo: check expansion
-	g_dsp._r.prod.m2 = 0;
+	g_dsp.r.prod.h = /*(s16)(s8)*/(u8)val;//todo: check expansion
+	g_dsp.r.prod.m2 = 0;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -293,8 +293,8 @@ inline s64 dsp_get_long_acc(int reg)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	s64 high = (s64)(s8)g_dsp._r.ac[reg].h << 32;
-	u32 mid_low = ((u32)g_dsp._r.ac[reg].m << 16) | g_dsp._r.ac[reg].l;
+	s64 high = (s64)(s8)g_dsp.r.ac[reg].h << 32;
+	u32 mid_low = ((u32)g_dsp.r.ac[reg].m << 16) | g_dsp.r.ac[reg].l;
 	return high | mid_low;
 }
 
@@ -304,11 +304,11 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	g_dsp._r.ac[_reg].l = (u16)val;
+	g_dsp.r.ac[_reg].l = (u16)val;
 	val >>= 16;
-	g_dsp._r.ac[_reg].m = (u16)val;
+	g_dsp.r.ac[_reg].m = (u16)val;
 	val >>= 16;
-	g_dsp._r.ac[_reg].h = (u16)(s16)(s8)(u8)val;
+	g_dsp.r.ac[_reg].h = (u16)(s16)(s8)(u8)val;
 }
 
 inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
@@ -328,17 +328,17 @@ inline s64 dsp_round_long_acc(s64 val)
 
 inline s16 dsp_get_acc_l(int _reg)
 {
-	return g_dsp._r.ac[_reg].l;
+	return g_dsp.r.ac[_reg].l;
 }
 
 inline s16 dsp_get_acc_m(int _reg)
 {
-	return g_dsp._r.ac[_reg].m;
+	return g_dsp.r.ac[_reg].m;
 }
 
 inline s16 dsp_get_acc_h(int _reg)
 {
-	return g_dsp._r.ac[_reg].h;
+	return g_dsp.r.ac[_reg].h;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -351,17 +351,17 @@ inline s32 dsp_get_long_acx(int _reg)
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	return ((u32)g_dsp._r.ax[_reg].h << 16) | g_dsp._r.ax[_reg].l;
+	return ((u32)g_dsp.r.ax[_reg].h << 16) | g_dsp.r.ax[_reg].l;
 }
 
 inline s16 dsp_get_ax_l(int _reg)
 {
-	return (s16)g_dsp._r.ax[_reg].l;
+	return (s16)g_dsp.r.ax[_reg].l;
 }
 
 inline s16 dsp_get_ax_h(int _reg)
 {
-	return (s16)g_dsp._r.ax[_reg].h;
+	return (s16)g_dsp.r.ax[_reg].h;
 }
 
 #endif

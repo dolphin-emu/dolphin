@@ -70,7 +70,7 @@ void ir(const UDSPInstruction opc) {
 void nr(const UDSPInstruction opc) {
 	u8 reg = opc & 0x3;	
 	
-	writeToBackLog(0, reg, dsp_increase_addr_reg(reg, (s16)g_dsp._r.ix[reg]));
+	writeToBackLog(0, reg, dsp_increase_addr_reg(reg, (s16)g_dsp.r.ix[reg]));
 }
 
 // MV $axD.D, $acS.S
@@ -84,11 +84,11 @@ void mv(const UDSPInstruction opc)
 	switch(sreg) {
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
-		writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp._r.ac[sreg-DSP_REG_ACL0].l);
+		writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r.ac[sreg-DSP_REG_ACL0].l);
 		break;
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp._r.ac[sreg-DSP_REG_ACM0].m);
+		writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r.ac[sreg-DSP_REG_ACM0].m);
 		break;
 	}
 }
@@ -105,11 +105,11 @@ void s(const UDSPInstruction opc)
 	switch(sreg) {
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
-		dsp_dmem_write(g_dsp._r.ar[dreg], g_dsp._r.ac[sreg-DSP_REG_ACL0].l);
+		dsp_dmem_write(g_dsp.r.ar[dreg], g_dsp.r.ac[sreg-DSP_REG_ACL0].l);
 		break;
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		dsp_dmem_write(g_dsp._r.ar[dreg], g_dsp._r.ac[sreg-DSP_REG_ACM0].m);
+		dsp_dmem_write(g_dsp.r.ar[dreg], g_dsp.r.ac[sreg-DSP_REG_ACM0].m);
 		break;
 	}
 	writeToBackLog(0, dreg,	dsp_increment_addr_reg(dreg));
@@ -127,14 +127,14 @@ void sn(const UDSPInstruction opc)
 	switch(sreg) {
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
-		dsp_dmem_write(g_dsp._r.ar[dreg], g_dsp._r.ac[sreg-DSP_REG_ACL0].l);
+		dsp_dmem_write(g_dsp.r.ar[dreg], g_dsp.r.ac[sreg-DSP_REG_ACL0].l);
 		break;
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
-		dsp_dmem_write(g_dsp._r.ar[dreg], g_dsp._r.ac[sreg-DSP_REG_ACM0].m);
+		dsp_dmem_write(g_dsp.r.ar[dreg], g_dsp.r.ac[sreg-DSP_REG_ACM0].m);
 		break;
 	}
-	writeToBackLog(0, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp._r.ix[dreg]));
+	writeToBackLog(0, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r.ix[dreg]));
 }
 
 // L $axD.D, @$arS
@@ -146,9 +146,9 @@ void l(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 	
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp._r.sr & SR_40_MODE_BIT)) 
+	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT)) 
 	{
-		u16 val = dsp_dmem_read(g_dsp._r.ar[sreg]);
+		u16 val = dsp_dmem_read(g_dsp.r.ar[sreg]);
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
@@ -156,7 +156,7 @@ void l(const UDSPInstruction opc)
 	}
 	else
 	{
-		writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[sreg]));
+		writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[sreg]));
 		writeToBackLog(1, sreg, dsp_increment_addr_reg(sreg));
 	}
 }
@@ -170,18 +170,18 @@ void ln(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp._r.sr & SR_40_MODE_BIT)) 
+	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT)) 
 	{
-		u16 val = dsp_dmem_read(g_dsp._r.ar[sreg]);
+		u16 val = dsp_dmem_read(g_dsp.r.ar[sreg]);
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
-		writeToBackLog(3, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp._r.ix[sreg]));
+		writeToBackLog(3, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp.r.ix[sreg]));
 	}
 	else
 	{
-		writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[sreg]));
-		writeToBackLog(1, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp._r.ix[sreg]));
+		writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[sreg]));
+		writeToBackLog(1, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp.r.ix[sreg]));
 	}
 }
 
@@ -195,9 +195,9 @@ void ls(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[3], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[3], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[0]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[0]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0)); 
 }
@@ -214,11 +214,11 @@ void lsn(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[3], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[3], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[0]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[0]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp._r.ix[0]));
+	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r.ix[0]));
 }
 
 // LSM $axD.D, $acS.m
@@ -232,10 +232,10 @@ void lsm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[3], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[3], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[0]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[0]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
@@ -251,11 +251,11 @@ void lsnm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[3], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[3], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[0]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp._r.ix[0]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[0]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
+	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r.ix[0]));
 }
 
 // SL $acS.m, $axD.D
@@ -268,9 +268,9 @@ void sl(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[0], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[0], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[3]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[3]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0)); 
 }
@@ -286,11 +286,11 @@ void sln(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[0], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[0], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[3]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[3]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp._r.ix[0]));
+	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r.ix[0]));
 }
 
 // SLM $acS.m, $axD.D
@@ -304,10 +304,10 @@ void slm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[0], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[0], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[3]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
@@ -322,11 +322,11 @@ void slnm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1;
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
-	dsp_dmem_write(g_dsp._r.ar[0], g_dsp._r.ac[sreg].m);
+	dsp_dmem_write(g_dsp.r.ar[0], g_dsp.r.ac[sreg].m);
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp._r.ar[3]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp._r.ix[0]));
+	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r.ar[3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
+	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r.ix[0]));
 }
 
 // LD $ax0.d, $ax1.r, @$arS
@@ -345,21 +345,21 @@ void ld(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
-		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[sreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[sreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		if (IsSameMemArea(g_dsp.r.ar[sreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[sreg]));
 		else
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[3]));
 
 		writeToBackLog(2, sreg,	dsp_increment_addr_reg(sreg));
 	} else {
-		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[dreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		if (IsSameMemArea(g_dsp.r.ar[dreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 		else
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[3]));
 
 		writeToBackLog(2, dreg,	dsp_increment_addr_reg(dreg));
 	}
@@ -376,23 +376,23 @@ void ldn(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
-		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[sreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[sreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		if (IsSameMemArea(g_dsp.r.ar[sreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[sreg]));
 		else
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[3]));
 
-		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp._r.ix[sreg]));
+		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp.r.ix[sreg]));
 	} else {
-		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[dreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		if (IsSameMemArea(g_dsp.r.ar[dreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 		else
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[3]));
 
-		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp._r.ix[dreg]));
+		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r.ix[dreg]));
 	}
 
 	writeToBackLog(3, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
@@ -407,27 +407,27 @@ void ldm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
-		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[sreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[sreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		if (IsSameMemArea(g_dsp.r.ar[sreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[sreg]));
 		else
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[3]));
 
 		writeToBackLog(2, sreg,	dsp_increment_addr_reg(sreg));
 	} else {
-		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[dreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		if (IsSameMemArea(g_dsp.r.ar[dreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 		else
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[3]));
 
 		writeToBackLog(2, dreg,	dsp_increment_addr_reg(dreg));
 	}
 
 	writeToBackLog(3, DSP_REG_AR3,
-		       dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
+		       dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
 }
 
 // LDNM $ax0.d, $ax1.r, @$arS
@@ -439,27 +439,27 @@ void ldnm(const UDSPInstruction opc)
 	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
-		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[sreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[sreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[sreg]));
+		if (IsSameMemArea(g_dsp.r.ar[sreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[sreg]));
 		else
-			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r.ar[3]));
 
-		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp._r.ix[sreg]));
+		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp.r.ix[sreg]));
 	} else {
-		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		writeToBackLog(0, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 
-		if (IsSameMemArea(g_dsp._r.ar[dreg], g_dsp._r.ar[3]))
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[dreg]));
+		if (IsSameMemArea(g_dsp.r.ar[dreg], g_dsp.r.ar[3]))
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[dreg]));
 		else
-			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp._r.ar[3]));
+			writeToBackLog(1, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r.ar[3]));
 
-		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp._r.ix[dreg]));
+		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r.ix[dreg]));
 	}
 
 	writeToBackLog(3, DSP_REG_AR3,
-		       dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp._r.ix[3]));
+		       dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r.ix[3]));
 }
 
 

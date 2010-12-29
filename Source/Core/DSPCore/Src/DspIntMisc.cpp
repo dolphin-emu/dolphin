@@ -86,7 +86,7 @@ void nx(const UDSPInstruction opc)
 // Decrement address register $arD.
 void dar(const UDSPInstruction opc)
 {
-	g_dsp._r.ar[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
+	g_dsp.r.ar[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
 }
 
 // IAR $arD
@@ -94,7 +94,7 @@ void dar(const UDSPInstruction opc)
 // Increment address register $arD.
 void iar(const UDSPInstruction opc)
 {
-	g_dsp._r.ar[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
+	g_dsp.r.ar[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
 }
 
 // SUBARN $arD  
@@ -104,7 +104,7 @@ void iar(const UDSPInstruction opc)
 void subarn(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
-	g_dsp._r.ar[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp._r.ix[dreg]);
+	g_dsp.r.ar[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r.ix[dreg]);
 }
 
 // ADDARN $arD, $ixS
@@ -115,7 +115,7 @@ void addarn(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
 	u8 sreg = (opc >> 2) & 0x3;
-	g_dsp._r.ar[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp._r.ix[sreg]);
+	g_dsp.r.ar[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r.ix[sreg]);
 }
 
 //----
@@ -127,7 +127,7 @@ void addarn(const UDSPInstruction opc)
 void sbclr(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
-	g_dsp._r.sr &= ~(1 << bit);
+	g_dsp.r.sr &= ~(1 << bit);
 }
 
 // SBSET #I
@@ -137,7 +137,7 @@ void sbclr(const UDSPInstruction opc)
 void sbset(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
-	g_dsp._r.sr |= (1 << bit);
+	g_dsp.r.sr |= (1 << bit);
 }
 
 // This is a bunch of flag setters, flipping bits in SR. So far so good,
@@ -149,29 +149,29 @@ void srbith(const UDSPInstruction opc)
 	{
 	// M0/M2 change the multiplier mode (it can multiply by 2 for free).
 	case 0xa:  // M2
-		g_dsp._r.sr &= ~SR_MUL_MODIFY;
+		g_dsp.r.sr &= ~SR_MUL_MODIFY;
 		break;
 	case 0xb:  // M0
-		g_dsp._r.sr |= SR_MUL_MODIFY;
+		g_dsp.r.sr |= SR_MUL_MODIFY;
 		break;
 
 	// If set, treat multiplicands as unsigned.
 	// If clear, treat them as signed.
 	case 0xc:  // CLR15
-		g_dsp._r.sr &= ~SR_MUL_UNSIGNED;
+		g_dsp.r.sr &= ~SR_MUL_UNSIGNED;
 		break;
 	case 0xd:  // SET15
-		g_dsp._r.sr |= SR_MUL_UNSIGNED;
+		g_dsp.r.sr |= SR_MUL_UNSIGNED;
 		break;
 
 	// Automatic 40-bit sign extension when loading ACx.M.
     // SET40 changes something very important: see the LRI instruction above.
 	case 0xe:  // SET16 (CLR40)
-		g_dsp._r.sr &= ~SR_40_MODE_BIT;
+		g_dsp.r.sr &= ~SR_40_MODE_BIT;
 		break;
 
 	case 0xf:  // SET40
-		g_dsp._r.sr |= SR_40_MODE_BIT;
+		g_dsp.r.sr |= SR_40_MODE_BIT;
 		break;
 
 	default:

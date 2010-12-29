@@ -123,7 +123,7 @@ void ret(const UDSPInstruction opc)
 // location.
 void rti(const UDSPInstruction opc)
 {
-	g_dsp._r.sr = dsp_reg_load_stack(DSP_STACK_D);
+	g_dsp.r.sr = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 
 }
@@ -147,9 +147,9 @@ void halt(const UDSPInstruction opc)
 void HandleLoop()
 {
 	// Handle looping hardware. 
-	const u16 rCallAddress = g_dsp._r.st[0];
-	const u16 rLoopAddress = g_dsp._r.st[2];
-	u16& rLoopCounter = g_dsp._r.st[3];
+	const u16 rCallAddress = g_dsp.r.st[0];
+	const u16 rLoopAddress = g_dsp.r.st[2];
+	u16& rLoopCounter = g_dsp.r.st[3];
 
 	if (rLoopAddress > 0 && rLoopCounter > 0)
 	{

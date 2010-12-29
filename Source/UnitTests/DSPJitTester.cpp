@@ -58,12 +58,110 @@ void DSPJitTester::ResetJit()
 {
 	jit.ClearCodeSpace();
 }
+
+static u16 GetRegister(SDSP const &dsp, int reg) {
+	switch(reg) {
+	case DSP_REG_AR0:
+	case DSP_REG_AR1:
+	case DSP_REG_AR2:
+	case DSP_REG_AR3:
+		return dsp.r.ar[reg - DSP_REG_AR0];
+	case DSP_REG_IX0:
+	case DSP_REG_IX1:
+	case DSP_REG_IX2:
+	case DSP_REG_IX3:
+		return dsp.r.ix[reg - DSP_REG_IX0];
+	case DSP_REG_WR0:
+	case DSP_REG_WR1:
+	case DSP_REG_WR2:
+	case DSP_REG_WR3:
+		return dsp.r.wr[reg - DSP_REG_WR0];
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		return dsp.r.st[reg - DSP_REG_ST0];
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		return dsp.r.ac[reg - DSP_REG_ACH0].h;
+	case DSP_REG_CR:     return dsp.r.cr;
+	case DSP_REG_SR:     return dsp.r.sr;
+	case DSP_REG_PRODL:  return dsp.r.prod.l;
+	case DSP_REG_PRODM:  return dsp.r.prod.m;
+	case DSP_REG_PRODH:  return dsp.r.prod.h;
+	case DSP_REG_PRODM2: return dsp.r.prod.m2;
+	case DSP_REG_AXL0:
+	case DSP_REG_AXL1:
+		return dsp.r.ax[reg - DSP_REG_AXL0].l;
+	case DSP_REG_AXH0:
+	case DSP_REG_AXH1:
+		return dsp.r.ax[reg - DSP_REG_AXH0].h;
+	case DSP_REG_ACL0:
+	case DSP_REG_ACL1:
+		return dsp.r.ac[reg - DSP_REG_ACL0].l;
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		return dsp.r.ac[reg - DSP_REG_ACM0].m;
+	default:
+		_assert_msg_(DSP_CORE, 0, "cannot happen");
+		return 0;
+	}
+}
+
+static void SetRegister(SDSP &dsp, int reg, u16 val) {
+	switch(reg) {
+	case DSP_REG_AR0:
+	case DSP_REG_AR1:
+	case DSP_REG_AR2:
+	case DSP_REG_AR3:
+		dsp.r.ar[reg - DSP_REG_AR0] = val; break;
+	case DSP_REG_IX0:
+	case DSP_REG_IX1:
+	case DSP_REG_IX2:
+	case DSP_REG_IX3:
+		dsp.r.ix[reg - DSP_REG_IX0] = val; break;
+	case DSP_REG_WR0:
+	case DSP_REG_WR1:
+	case DSP_REG_WR2:
+	case DSP_REG_WR3:
+		dsp.r.wr[reg - DSP_REG_WR0] = val; break;
+	case DSP_REG_ST0:
+	case DSP_REG_ST1:
+	case DSP_REG_ST2:
+	case DSP_REG_ST3:
+		dsp.r.st[reg - DSP_REG_ST0] = val; break;
+	case DSP_REG_ACH0:
+	case DSP_REG_ACH1:
+		dsp.r.ac[reg - DSP_REG_ACH0].h = val; break;
+	case DSP_REG_CR:     dsp.r.cr = val; break;
+	case DSP_REG_SR:     dsp.r.sr = val; break;
+	case DSP_REG_PRODL:  dsp.r.prod.l = val; break;
+	case DSP_REG_PRODM:  dsp.r.prod.m = val; break;
+	case DSP_REG_PRODH:  dsp.r.prod.h = val; break;
+	case DSP_REG_PRODM2: dsp.r.prod.m2 = val; break;
+	case DSP_REG_AXL0:
+	case DSP_REG_AXL1:
+		dsp.r.ax[reg - DSP_REG_AXL0].l = val; break;
+	case DSP_REG_AXH0:
+	case DSP_REG_AXH1:
+		dsp.r.ax[reg - DSP_REG_AXH0].h = val; break;
+	case DSP_REG_ACL0:
+	case DSP_REG_ACL1:
+		dsp.r.ac[reg - DSP_REG_ACL0].l = val; break;
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		dsp.r.ac[reg - DSP_REG_ACM0].m = val; break;
+	default:
+		_assert_msg_(DSP_CORE, 0, "cannot happen");
+	}
+}
+
 bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 {
 	bool equal = true;
 	for (int i = 0; i < DSP_REG_NUM; i++)
 	{
-		if (((u16*)&int_dsp._r)[i] != ((u16*)&jit_dsp._r)[i])
+	    if (GetRegister(int_dsp,i) != GetRegister(jit_dsp, i))
 		{
 			if (equal)
 			{
@@ -77,7 +175,7 @@ bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 			}
 			equal = false;
 			if (be_verbose || failed_only)
-				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, ((u16*)&int_dsp._r)[i], ((u16*)&jit_dsp._r)[i]);
+				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, GetRegister(int_dsp,i), GetRegister(jit_dsp, i));
 		}
 	}
 
@@ -126,8 +224,8 @@ void DSPJitTester::DumpJittedCode()
 void DSPJitTester::DumpRegs(SDSP& dsp)
 {
 	for (int i = 0; i < DSP_REG_NUM; i++)
-		if (((u16*)&dsp._r)[i])
-			printf("%s=0x%04x ", regnames[i].name, ((u16*)&dsp._r)[i]);
+		if (GetRegister(dsp,i))
+			printf("%s=0x%04x ", regnames[i].name, GetRegister(dsp,i));
 }
 void DSPJitTester::Initialize()
 {
@@ -145,7 +243,7 @@ int DSPJitTester::TestOne(TestDataIterator it, SDSP& dsp)
 		it++;
 		for (TestData::size_type i = 0; i < data.size(); i++)
 		{
-			((u16*)&dsp._r)[reg] = data.at(i);
+			SetRegister(dsp, reg, data.at(i));
 			failed += TestOne(it, dsp);
 		}
 	}
