@@ -18,6 +18,7 @@
 #include "../DSPMemoryMap.h"
 #include "../DSPEmitter.h"
 #include "../DSPStacks.h"
+#include "../DSPAnalyzer.h"
 #include "DSPJitUtil.h"
 #include "x64Emitter.h"
 #include "ABI.h"
@@ -146,31 +147,66 @@ void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	//}
 }
 
+void WriteBranchExit(DSPEmitter& emitter)
+{
+	//		ABI_RestoreStack(0);
+	emitter.ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
+	{
+		emitter.MOV(16, R(EAX), Imm16(0x1000));
+	}
+	else
+	{
+		emitter.MOV(16, R(EAX), Imm16(emitter.blockSize[emitter.startAddr]));
+	}
+	emitter.RET();
+}
+
 void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
 
-	// Jump directly to the called block if it has already been compiled.
-	// TODO: Subtract cycles from cyclesLeft
-	if (emitter.blockLinks[dest])
-	{
-		emitter.JMPptr(M(&emitter.blockLinks[dest]));
-	}
+	// Jump directly to the called block if it has already been compiled. (Not working)
+	//if (emitter.blockLinks[dest])
+	//{
+	//	// Check if we have enough cycles to execute the next block
+	//	emitter.MOV(16, R(ESI), M(&cyclesLeft));
+	//	emitter.CMP(16, R(ESI),Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+	//	FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+	//	emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
+	//	emitter.MOV(16, M(&cyclesLeft), R(ESI));
+	//	emitter.JMPptr(M(&emitter.blockLinks[dest]));
+	//	emitter.ClearCallFlag();
+
+	//	emitter.SetJumpTarget(notEnoughCycles);
+	//}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), Imm16(dest));
 
-	// Jump directly to the next block if it has already been compiled.
-	// TODO: Subtract cycles from cyclesLeft
-	if (emitter.blockLinks[dest])
-	{
-		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
-		emitter.JMPptr(R(RAX));
-		emitter.ClearCallFlag();
-	}
+	// Jump directly to the next block if it has already been compiled. (Not working)
+	//if (emitter.blockLinks[dest])
+	//{
+	//	// Check if we have enough cycles to execute the next block
+	//	emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
+	//	emitter.MOV(16, R(RAX), MatR(R12));
+	//	emitter.CMP(16,R(RAX),Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+	//	FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+	//	emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
+	//	emitter.MOV(16, MatR(R12), R(RAX));
+
+	//	emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
+	//	emitter.JMPptr(R(RAX));
+	//	emitter.ClearCallFlag();
+
+	//	emitter.SetJumpTarget(notEnoughCycles);
+	//}
 #endif
+	WriteBranchExit(emitter);
 }
 // Generic jmp implementation
 // Jcc addressA
@@ -178,19 +214,16 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // aaaa aaaa aaaa aaaa
 // Jump to addressA if condition cc has been met. Set program counter to
 // address represented by value that follows this "jmp" instruction.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::jcc(const UDSPInstruction opc)
 {
-	// Disabled as jcc has issues in games
-	Default(opc); return;
-#if 0
 #ifdef _M_IX86 // All32
-	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MatR(RAX), Imm16(compilePC + 1));
+	MOV(16, MatR(RAX), Imm16(compilePC + 2));
 #endif
 	ReJitConditional<r_jcc>(opc, *this);
-#endif
 }
 
 void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
@@ -208,13 +241,21 @@ void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), R(RSI));
 #endif
+	WriteBranchExit(emitter);
 }
 // Generic jmpr implementation
 // JMPcc $R
 // 0001 0111 rrr0 cccc
 // Jump to address; set program counter to a value from register $R.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::jmprcc(const UDSPInstruction opc)
 {
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.pc), Imm16(compilePC + 1));
+#else
+	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
+	MOV(16, MatR(RAX), Imm16(compilePC + 1));
+#endif
 	ReJitConditional<r_jmprcc>(opc, *this);
 }
 
@@ -227,24 +268,43 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
 
 	// Jump directly to the called block if it has already been compiled.
-	// TODO: Subtract cycles from cyclesLeft
 	if (emitter.blockLinks[dest])
 	{
+		// Check if we have enough cycles to execute the next block
+		emitter.MOV(16, R(ESI), M(&cyclesLeft));
+		emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+		emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
+		emitter.MOV(16, M(&cyclesLeft), R(ESI));
 		emitter.JMPptr(M(&emitter.blockLinks[dest]));
+		emitter.ClearCallFlag();
+
+		emitter.SetJumpTarget(notEnoughCycles);
 	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), Imm16(dest));
 
 	// Jump directly to the called block if it has already been compiled.
-	// TODO: Subtract cycles from cyclesLeft
 	if (emitter.blockLinks[dest])
 	{
+		// Check if we have enough cycles to execute the next block
+		emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
+		emitter.MOV(16, R(RAX), MatR(R12));
+		emitter.CMP(16,R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+		emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
+		emitter.MOV(16, MatR(R12), R(RAX));
 		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
 		emitter.JMPptr(R(RAX));
 		emitter.ClearCallFlag();
+
+		emitter.SetJumpTarget(notEnoughCycles);
 	}
 #endif
+	WriteBranchExit(emitter);
 }
 // Generic call implementation
 // CALLcc addressA
@@ -253,13 +313,14 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to $st0. Set program counter to address
 // represented by value that follows this "call" instruction.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::call(const UDSPInstruction opc)
 {
 #ifdef _M_IX86 // All32
-	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 2));
 #else
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	MOV(16, MatR(RAX), Imm16(compilePC + 1));
+	MOV(16, MatR(RAX), Imm16(compilePC + 2));
 #endif
 	ReJitConditional<r_call>(opc, *this);
 }
@@ -279,6 +340,7 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), R(RSI));
 #endif
+	WriteBranchExit(emitter);
 }
 // Generic callr implementation
 // CALLRcc $R
@@ -286,6 +348,7 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 // Call function if condition cc has been met. Push program counter of 
 // instruction following "call" to call stack $st0. Set program counter to 
 // register $R.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::callr(const UDSPInstruction opc)
 {
 #ifdef _M_IX86 // All32
@@ -306,11 +369,11 @@ void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(16, MatR(RAX), Imm16(emitter.compilePC + 1));
 #endif
 }
-
-// Generic jmpr implementation
-// JMPcc $R
-// 0001 0111 rrr0 cccc
-// Jump to address; set program counter to a value from register $R.
+// Generic if implementation
+// IFcc
+// 0000 0010 0111 cccc
+// Execute following opcode if the condition has been met.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::ifcc(const UDSPInstruction opc)
 {
 #ifdef _M_IX86 // All32
@@ -320,6 +383,7 @@ void DSPEmitter::ifcc(const UDSPInstruction opc)
 	MOV(16, MatR(RAX), Imm16((compilePC + 1) + opTable[compilePC + 1]->size));
 #endif
 	ReJitConditional<r_ifcc>(opc, *this);
+	WriteBranchExit(*this);
 }
 
 void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
@@ -331,6 +395,7 @@ void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), R(DX));
 #endif
+	WriteBranchExit(emitter);
 }
 
 // Generic ret implementation
@@ -338,6 +403,7 @@ void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
 // 0000 0010 1101 cccc
 // Return from subroutine if condition cc has been met. Pops stored PC
 // from call stack $st0 and sets $pc to this location.
+// NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::ret(const UDSPInstruction opc)
 {
 #ifdef _M_IX86 // All32
@@ -563,6 +629,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	MOV(16, MatR(RAX), Imm16(loop_pc + opTable[loop_pc]->size));
 #endif
+	WriteBranchExit(*this);
 	SetJumpTarget(exit);
 }
 
@@ -607,5 +674,6 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
 		MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 		MOV(16, MatR(RAX), Imm16(loop_pc + opTable[loop_pc]->size));
 #endif
+		WriteBranchExit(*this);
 	}
 }

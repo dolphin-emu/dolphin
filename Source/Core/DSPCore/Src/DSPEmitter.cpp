@@ -26,14 +26,42 @@
 #include "ABI.h"
 
 #define MAX_BLOCK_SIZE 250
-#define DSP_IDLE_SKIP_CYCLES 1000
+#define DSP_IDLE_SKIP_CYCLES 0x1000
 
 using namespace Gen;
 
 const u8 *stubEntryPoint;
 u16 blocksCompiled;
 u16 unresolvedCalls;
-int startAddr;
+
+static bool checkExtendedExclude(UDSPInstruction inst)
+{
+	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
+
+	// Call extended
+	if (!tinst->extended)
+		return false;
+	if ((inst >> 12) != 0x3)
+		return false;
+	/*
+	if((inst & 0x00ff) == 0x00c0) {
+	fprintf(stderr,"blocking %04x\n", inst);
+	return true;
+	}
+	*/
+	return false;
+}
+
+static bool checkMainExclude(UDSPInstruction inst)
+{
+	/*
+	if((inst & 0xfffc) == 0x1fcc)
+	return true;
+	*/
+	//	if((inst & 0xfffc) == 0x1fcc)
+	//		return true;
+	return false;
+}
 
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
@@ -110,35 +138,6 @@ void DSPEmitter::checkExceptions(u32 retval)
 	RET();
 
 	SetJumpTarget(skipCheck);
-}
-
-static bool checkExtendedExclude(UDSPInstruction inst)
-{
-	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
-
-	// Call extended
-	if (!tinst->extended)
-		return false;
-	if ((inst >> 12) != 0x3)
-		return false;
-/*
-	if((inst & 0x00ff) == 0x00c0) {
-	    fprintf(stderr,"blocking %04x\n", inst);
-		return true;
-	}
-*/
-	return false;
-}
-
-static bool checkMainExclude(UDSPInstruction inst)
-{
-/*
-	if((inst & 0xfffc) == 0x1fcc)
-		return true;
-*/
-//	if((inst & 0xfffc) == 0x1fcc)
-//		return true;
-	return false;
 }
 
 void DSPEmitter::Default(UDSPInstruction inst)
@@ -359,11 +358,11 @@ void DSPEmitter::Compile(int start_addr)
 			ABI_PopAllCalleeSavedRegsAndAdjustStack();
 			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 			{
-				MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+				MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 			}
 			else
 			{
-				MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+				MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 			}	
 			RET();
 
@@ -379,7 +378,7 @@ void DSPEmitter::Compile(int start_addr)
 			{
 				break;
 			}
-			else
+			else if (!opcode->jitFunc)
 			{
 				//look at g_dsp.pc if we actually branched
 #ifdef _M_IX86 // All32
@@ -396,11 +395,11 @@ void DSPEmitter::Compile(int start_addr)
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 				{
-					MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+					MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 				}
 				else
 				{
-					MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+					MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 				}	
 				RET();
 
@@ -443,11 +442,11 @@ void DSPEmitter::Compile(int start_addr)
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
-		MOV(32,R(EAX),Imm32(DSP_IDLE_SKIP_CYCLES));
+		MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 	}
 	else
 	{
-		MOV(32,R(EAX),Imm32(blockSize[start_addr]));
+		MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 	}	
 	RET();
 }
@@ -473,13 +472,13 @@ void DSPEmitter::CompileDispatcher()
 
 	// Cache pointers into registers
 #ifdef _M_IX86
-	MOV(32, R(ESI), M(&cyclesLeft));
+	MOV(16, R(ESI), M(&cyclesLeft));
 	MOV(32, R(EBX), ImmPtr(blocks));
 #else
 	// Using R12 here since it is callee save register on both
 	// linux and windows 64.
 	MOV(64, R(R12), ImmPtr(&cyclesLeft));
-	MOV(32, R(R12), MatR(R12));
+	MOV(16, R(R12), MatR(R12));
 	MOV(64, R(RBX), ImmPtr(blocks));
 #endif
 
@@ -510,9 +509,9 @@ void DSPEmitter::CompileDispatcher()
 
 	// Decrement cyclesLeft
 #ifdef _M_IX86
-	SUB(32, R(ESI), R(EAX));
+	SUB(16, R(ESI), R(EAX));
 #else
-	SUB(32, R(R12), R(EAX));
+	SUB(16, R(R12), R(EAX));
 #endif
 
 	J_CC(CC_A, dispatcherLoop);

@@ -37,7 +37,7 @@
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_STOP;
-int cyclesLeft = 0;
+u16 cyclesLeft = 0;
 DSPEmitter *jit = NULL;
 Common::Event step_event;
 

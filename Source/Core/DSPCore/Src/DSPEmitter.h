@@ -249,12 +249,13 @@ public:
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
 	u16 compilePC;
+	u16 startAddr;
 	CompiledCode *blockLinks;
+	u16 *blockSize;
 
 private:
 	CompiledCode *blocks;
 	const u8 *blockLinkEntry;
-	u16 *blockSize;
 	u16 compileSR;
 
 	// The index of the last stored ext value (compile time).

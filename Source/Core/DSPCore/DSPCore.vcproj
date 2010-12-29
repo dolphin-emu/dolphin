@@ -490,6 +490,10 @@
 				RelativePath=".\Src\Jit\DSPJitUtil.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\Jit\DSPJitUtil.h"
+				>
+			</File>			
 		</Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"
