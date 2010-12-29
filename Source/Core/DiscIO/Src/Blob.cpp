@@ -21,6 +21,7 @@
 #include "Blob.h"
 #include "CompressedBlob.h"
 #include "FileBlob.h"
+#include "CISOBlob.h"
 #include "DriveBlob.h"
 
 namespace DiscIO
@@ -129,6 +130,9 @@ IBlobReader* CreateBlobReader(const char* filename)
 
 	if (IsCompressedBlob(filename))
 		return CompressedBlobReader::Create(filename);
+
+	if (IsCISOBlob(filename))
+		return CISOFileReader::Create(filename);
 
 	// Still here? Assume plain file - since we know it exists due to the File::Exists check above.
 	return PlainFileReader::Create(filename);

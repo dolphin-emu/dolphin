@@ -566,6 +566,7 @@ void CGameListCtrl::ScanForISOs()
 	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
 	{
 		Extensions.push_back("*.iso");
+		Extensions.push_back("*.ciso");
 		Extensions.push_back("*.gcz");
 	}
 	if (SConfig::GetInstance().m_ListWad)
