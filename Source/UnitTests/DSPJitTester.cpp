@@ -63,7 +63,7 @@ bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 	bool equal = true;
 	for (int i = 0; i < DSP_REG_NUM; i++)
 	{
-		if (int_dsp.r[i] != jit_dsp.r[i])
+		if (((u16*)&int_dsp._r)[i] != ((u16*)&jit_dsp._r)[i])
 		{
 			if (equal)
 			{
@@ -77,7 +77,7 @@ bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 			}
 			equal = false;
 			if (be_verbose || failed_only)
-				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, int_dsp.r[i], jit_dsp.r[i]);
+				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, ((u16*)&int_dsp._r)[i], ((u16*)&jit_dsp._r)[i]);
 		}
 	}
 
@@ -126,8 +126,8 @@ void DSPJitTester::DumpJittedCode()
 void DSPJitTester::DumpRegs(SDSP& dsp)
 {
 	for (int i = 0; i < DSP_REG_NUM; i++)
-		if (dsp.r[i])
-			printf("%s=0x%04x ", regnames[i].name, dsp.r[i]);
+		if (((u16*)&dsp._r)[i])
+			printf("%s=0x%04x ", regnames[i].name, ((u16*)&dsp._r)[i]);
 }
 void DSPJitTester::Initialize()
 {
@@ -145,7 +145,7 @@ int DSPJitTester::TestOne(TestDataIterator it, SDSP& dsp)
 		it++;
 		for (TestData::size_type i = 0; i < data.size(); i++)
 		{
-			dsp.r[reg] = data.at(i);
+			((u16*)&dsp._r)[reg] = data.at(i);
 			failed += TestOne(it, dsp);
 		}
 	}

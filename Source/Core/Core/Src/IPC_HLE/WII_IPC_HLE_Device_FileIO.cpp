@@ -240,7 +240,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
-		    m_FileLength = File::GetSize(m_pFileHandle);
+		    m_FileLength = (u32)File::GetSize(m_pFileHandle);
             u32 Position = (u32)ftello(m_pFileHandle);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
