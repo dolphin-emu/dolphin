@@ -29,14 +29,17 @@ D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;
 D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
 D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA = NULL;
 D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW = NULL;
+int d3dx_dll_ref = 0;
 
 CREATEDXGIFACTORY PCreateDXGIFactory = NULL;
 HINSTANCE hDXGIDll = NULL;
+int dxgi_dll_ref = 0;
 
 typedef HRESULT (WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 D3D11CREATEDEVICE PD3D11CreateDevice = NULL;
 D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = NULL;
 HINSTANCE hD3DDll = NULL;
+int d3d_dll_ref = 0;
 
 namespace D3D
 {
@@ -65,11 +68,14 @@ bool bFrameInProgress = false;
 
 HRESULT LoadDXGI()
 {
+	if (dxgi_dll_ref++ > 0) return S_OK;
+
 	if (hDXGIDll) return S_OK;
 	hDXGIDll = LoadLibraryA("dxgi.dll");
 	if (!hDXGIDll)
 	{
 		MessageBoxA(NULL, "Failed to load dxgi.dll", "Critical error", MB_OK | MB_ICONERROR);
+		--dxgi_dll_ref;
 		return E_FAIL;
 	}
 	PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
@@ -80,11 +86,14 @@ HRESULT LoadDXGI()
 
 HRESULT LoadD3D()
 {
+	if (d3d_dll_ref++ > 0) return S_OK;
+
 	if (hD3DDll) return S_OK;
 	hD3DDll = LoadLibraryA("d3d11.dll");
 	if (!hD3DDll)
 	{
 		MessageBoxA(NULL, "Failed to load d3d11.dll", "Critical error", MB_OK | MB_ICONERROR);
+		--d3d_dll_ref;
 		return E_FAIL;
 	}
 	PD3D11CreateDevice = (D3D11CREATEDEVICE)GetProcAddress(hD3DDll, "D3D11CreateDevice");
@@ -98,6 +107,7 @@ HRESULT LoadD3D()
 
 HRESULT LoadD3DX()
 {
+	if (d3dx_dll_ref++ > 0) return S_OK;
 	if (hD3DXDll) return S_OK;
 
 	// try to load D3DX11 first to check whether we have proper runtime support
@@ -135,6 +145,9 @@ HRESULT LoadD3DX()
 
 void UnloadDXGI()
 {
+	if (!dxgi_dll_ref) return;
+	if (--dxgi_dll_ref != 0) return;
+
 	if(hDXGIDll) FreeLibrary(hDXGIDll);
 	hDXGIDll = NULL;
 	PCreateDXGIFactory = NULL;
@@ -142,6 +155,9 @@ void UnloadDXGI()
 
 void UnloadD3DX()
 {
+	if (!d3dx_dll_ref) return;
+	if (--d3dx_dll_ref != 0) return;
+
 	if(hD3DXDll) FreeLibrary(hD3DXDll);
 	hD3DXDll = NULL;
 	PD3DX11FilterTexture = NULL;
@@ -151,6 +167,9 @@ void UnloadD3DX()
 
 void UnloadD3D()
 {
+	if (!d3d_dll_ref) return;
+	if (--d3d_dll_ref != 0) return;
+
 	if(hD3DDll) FreeLibrary(hD3DDll);
 	hD3DDll = NULL;
 	PD3D11CreateDevice = NULL;

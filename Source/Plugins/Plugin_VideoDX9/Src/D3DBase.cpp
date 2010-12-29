@@ -26,10 +26,12 @@ HINSTANCE hD3DXDll = NULL;
 D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA = NULL;
 D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA = NULL;
 D3DXCOMPILESHADERTYPE PD3DXCompileShader = NULL;
+int d3dx_dll_ref = 0;
 
 typedef IDirect3D9* (WINAPI* DIRECT3DCREATE9)(UINT);
 DIRECT3DCREATE9 PDirect3DCreate9 = NULL;
 HINSTANCE hD3DDll = NULL;
+int d3d_dll_ref = 0;
 
 namespace D3D
 {
@@ -93,6 +95,8 @@ bool IsATIDevice()
 
 HRESULT Init()
 {
+	if (d3d_dll_ref++ > 0) return S_OK;
+
 	hD3DDll = LoadLibraryA("d3d9.dll");
 	if (!hD3DDll)
 	{
@@ -105,15 +109,20 @@ HRESULT Init()
 	// Create the D3D object, which is needed to create the D3DDevice.
 	D3D = PDirect3DCreate9(D3D_SDK_VERSION);
 	if (!D3D)
+	{
+		--d3d_dll_ref;
 		return E_FAIL;
+	}
 	Enumerate();
 	return S_OK;
 }
 
 void Shutdown()
 {
-	if(D3D)
-		D3D->Release();
+	if (!d3d_dll_ref) return;
+	if (--d3d_dll_ref != 0) return;
+
+	if (D3D) D3D->Release();
 	D3D = NULL;
 
 	if (hD3DDll) FreeLibrary(hD3DDll);
@@ -278,6 +287,8 @@ void Enumerate()
 // we're first trying to load the dll Dolphin was compiled with, otherwise the most up-to-date one
 HRESULT LoadD3DX9()
 {
+	if (d3dx_dll_ref++ > 0) return S_OK;
+
 	HRESULT hr = E_FAIL;
 	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx9_%d.dll", D3DX_SDK_VERSION).c_str());
 	if (hD3DXDll != NULL)
@@ -326,6 +337,7 @@ HRESULT LoadD3DX9()
 	return S_OK;
 
 fail:
+	--d3dx_dll_ref;
 	FreeLibrary(hD3DXDll);
 	PD3DXCompileShader = NULL;
 	PD3DXSaveSurfaceToFileA = NULL;
@@ -335,6 +347,9 @@ fail:
 
 void UnloadD3DX9()
 {
+	if (!d3dx_dll_ref) return;
+	if (--d3dx_dll_ref != 0) return;
+
 	FreeLibrary(hD3DXDll);
 	PD3DXCompileShader = NULL;
 	PD3DXSaveSurfaceToFileA = NULL;

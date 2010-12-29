@@ -165,10 +165,7 @@ void DllConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-
-	// If not initialized, only init D3D so we can enumerate resolutions.
-	if (!s_PluginInitialized)
-		D3D::Init();
+	D3D::Init();
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
@@ -190,8 +187,7 @@ void DllConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
-	if (!s_PluginInitialized)
-		D3D::Shutdown();
+	D3D::Shutdown();
 #endif
 }
 

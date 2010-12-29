@@ -167,7 +167,7 @@ void DllConfig(void *_hParent)
 	if (SUCCEEDED(hr)) hr = D3D::LoadD3D();
 	if (FAILED(hr))
 	{
-		if (!s_PluginInitialized) D3D::UnloadDXGI();
+		D3D::UnloadDXGI();
 		return;
 	}
 
@@ -212,11 +212,8 @@ void DllConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
-	if (!s_PluginInitialized)
-	{
-		D3D::UnloadDXGI();
-		D3D::UnloadD3D();
-	}
+	D3D::UnloadDXGI();
+	D3D::UnloadD3D();
 #endif
 }
 

@@ -158,7 +158,7 @@ bool XAudio2::Start()
 void XAudio2::SetVolume(int volume)
 {
 	//linear 1- .01
-	m_volume = (float)volume / 100.0;
+	m_volume = (float)volume / 100.f;
 
 	if (pMasteringVoice)
 		pMasteringVoice->SetVolume(m_volume);
