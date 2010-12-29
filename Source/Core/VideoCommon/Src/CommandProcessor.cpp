@@ -461,6 +461,12 @@ void Write16(const u16 _Value, const u32 _Address)
 			fifo.bFF_HiWatermarkInt = tmpCtrl.FifoOverflowIntEnable;
 			fifo.bFF_LoWatermarkInt = tmpCtrl.FifoUnderflowIntEnable;
 
+			if(tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable)
+			{
+				*(g_VideoInitialize.Fifo_CPUWritePointer) = fifo.CPWritePointer;
+				*(g_VideoInitialize.Fifo_CPUBase) = fifo.CPBase;
+				*(g_VideoInitialize.Fifo_CPUEnd) = fifo.CPEnd;
+			}
 			// If overflown happens process the fifo to LoWatemark
 			if (bProcessFifoToLoWatemark)
 				ProcessFifoToLoWatemark();
