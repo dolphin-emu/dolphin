@@ -98,7 +98,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
 		AND(16, R(RAX), Imm16(imm));
 		CMP(16, R(RAX), Imm16(imm));
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
 		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
@@ -135,7 +135,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 //		else
 //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
 		TEST(16, R(RAX), Imm16(imm));
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
 		OR(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
@@ -606,12 +606,12 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 	u16 *sregp = reg_ptr(sreg);
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
+	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc + ax;
@@ -941,8 +941,8 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RDX, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
 //	s64 res = acc - ax;
@@ -1213,8 +1213,8 @@ void DSPEmitter::movr(const UDSPInstruction opc)
 	u16 *sregp = reg_ptr(sreg);
 
 //	s64 acc = (s16)g_dsp.r[sreg];
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVSX(64, 16, RAX, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVSX(64, 16, RAX, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 //	acc <<= 16;
 	SHL(64, R(RAX), Imm8(16));
 //	acc &= ~0xffff;

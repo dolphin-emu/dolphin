@@ -265,6 +265,9 @@ private:
 	// Counts down.
 	// int cycles;
 
+	void LoadDSPRegs();
+	void SaveDSPRegs();
+
 	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI);

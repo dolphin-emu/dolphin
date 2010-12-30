@@ -33,6 +33,7 @@ using namespace Gen;
 const u8 *stubEntryPoint;
 u16 blocksCompiled;
 u16 unresolvedCalls;
+u16 unresolvedCallsThisBlock;
 
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
@@ -105,7 +106,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	MOV(32,R(EAX),Imm32(retval));
+	MOV(32, R(EAX), Imm32(retval));
 	RET();
 
 	SetJumpTarget(skipCheck);
@@ -127,7 +128,9 @@ void DSPEmitter::Default(UDSPInstruction inst)
 	}
 
 	// Fall back to interpreter
+	SaveDSPRegs();
 	ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
+	LoadDSPRegs();
 }
 
 void DSPEmitter::EmitInstruction(UDSPInstruction inst)
@@ -140,8 +143,10 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 		if ((inst >> 12) == 0x3) {
 			if (! extOpTable[inst & 0x7F]->jitFunc) {
 				// Fall back to interpreter
+				SaveDSPRegs();
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
-				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
+				LoadDSPRegs();
+				INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
 				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
@@ -150,8 +155,10 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 		} else {
 			if (!extOpTable[inst & 0xFF]->jitFunc) {
 				// Fall back to interpreter
+				SaveDSPRegs();
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
-				INFO_LOG(DSPLLE,"Instruction not JITed(ext part): %04x\n",inst);
+				LoadDSPRegs();
+				INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
 				ext_is_jit = false;
 			} else {
 				(this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
@@ -163,7 +170,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	// Main instruction
 	if (!opTable[inst]->jitFunc) {
 		Default(inst);
-		INFO_LOG(DSPLLE,"Instruction not JITed(main part): %04x\n",inst);
+		INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x\n", inst);
 	}
 	else
 	{
@@ -175,7 +182,9 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 		if (!ext_is_jit) {
 			//need to call the online cleanup function because
 			//the writeBackLog gets populated at runtime
+			SaveDSPRegs();
 			ABI_CallFunction((void*)::applyWriteBackLog);
+			LoadDSPRegs();
 		} else {
 			popExtValueToReg();
 		}
@@ -189,8 +198,7 @@ void DSPEmitter::unknown_instruction(UDSPInstruction inst)
 
 void DSPEmitter::ClearCallFlag()
 {
-	DSPAnalyzer::code_flags[startAddr] &= ~DSPAnalyzer::CODE_CALL;
-	--unresolvedCalls;
+	--unresolvedCallsThisBlock;
 }
 
 void DSPEmitter::Compile(int start_addr)
@@ -198,11 +206,12 @@ void DSPEmitter::Compile(int start_addr)
 	// Remember the current block address for later
 	startAddr = start_addr;
 	blocksCompiled++;
+	unresolvedCallsThisBlock = 0;
 
-	// If the number of unresolved calls exceeds 50, there is a critical
+	// If the number of unresolved calls exceeds 8, there is a critical
 	// block that probably cannot be resolved.  If this occurs, quit linking
 	// blocks. Currently occurs in the zelda ucode.
-	if (unresolvedCalls <= 50)
+	if (unresolvedCalls <= 8)
 	{
 		// After every 10 blocks, clear out the blocks that have unresolved
 		// calls, and reattempt relinking.
@@ -219,6 +228,7 @@ void DSPEmitter::Compile(int start_addr)
 			}
 			// Reset and reattempt relinking
 			blocksCompiled = 0;
+			unresolvedCalls = 0;
 		}
 	}
 
@@ -269,6 +279,8 @@ void DSPEmitter::Compile(int start_addr)
 	bool fixup_pc = false;
 	blockSize[start_addr] = 0;
 
+	LoadDSPRegs();
+
 	while (compilePC < start_addr + MAX_BLOCK_SIZE)
 	{
 		checkExceptions(blockSize[start_addr]);
@@ -277,10 +289,11 @@ void DSPEmitter::Compile(int start_addr)
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 
 		// Scan for CALL's to delay block link.  TODO: Scan for J_CC after it is jitted.
-		if (opcode->jitFunc && (opcode->opcode >= 0x02b0 && opcode->opcode <= 0x02bf))
+		if (opcode->jitFunc &&
+			((opcode->opcode >= 0x0290 && opcode->opcode <= 0x029f) ||
+			(opcode->opcode >= 0x02b0 && opcode->opcode <= 0x02bf)))
 		{
-			DSPAnalyzer::code_flags[start_addr] |= DSPAnalyzer::CODE_CALL;
-			++unresolvedCalls;
+			++unresolvedCallsThisBlock;
 		}
 
 		EmitInstruction(inst);
@@ -298,15 +311,15 @@ void DSPEmitter::Compile(int start_addr)
 			MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
 #else
 			MOV(64, R(R11), ImmPtr(&g_dsp.r));
-			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[2])));
+			MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[2])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
-
+		
 #ifdef _M_IX86 // All32
 			MOVZX(32, 16, EAX, M(&g_dsp.r.st[3]));
 #else
-			MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[3])));
+			MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[3])));
 #endif
 			CMP(32, R(EAX), Imm32(0));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
@@ -398,8 +411,17 @@ void DSPEmitter::Compile(int start_addr)
 
 	// Mark this block as a linkable destination if it does not contain
 	// any unresolved CALL's
-	if (!(DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_CALL))
+	if (unresolvedCallsThisBlock == 0)
+	{
+		DSPAnalyzer::code_flags[start_addr] &= ~DSPAnalyzer::CODE_CALL;
 		blockLinks[start_addr] = (CompiledCode)blockLinkEntry;
+	}
+	else
+	{
+		DSPAnalyzer::code_flags[start_addr] |= DSPAnalyzer::CODE_CALL;
+		blockLinks[start_addr] = 0;
+		++unresolvedCalls;
+	}
 
 	if (blockSize[start_addr] == 0) 
 	{
@@ -408,6 +430,8 @@ void DSPEmitter::Compile(int start_addr)
 		ERROR_LOG(DSPLLE, "Block at 0x%04x has zero size", start_addr);
 		blockSize[start_addr] = 1;
 	}
+
+	SaveDSPRegs();
 
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
@@ -459,8 +483,8 @@ void DSPEmitter::CompileDispatcher()
 #ifdef _M_IX86
 	TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.cr));
-	TEST(8, MatR(R11), Imm8(CR_HALT));
+	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
+	TEST(8, MatR(RAX), Imm8(CR_HALT));
 #endif
 	FixupBranch halt = J_CC(CC_NE);
 

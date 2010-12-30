@@ -168,43 +168,43 @@ void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
 
-	// Jump directly to the called block if it has already been compiled. (Not working)
-	//if (emitter.blockLinks[dest])
-	//{
-	//	// Check if we have enough cycles to execute the next block
-	//	emitter.MOV(16, R(ESI), M(&cyclesLeft));
-	//	emitter.CMP(16, R(ESI),Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-	//	FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+	// Jump directly to the called block if it has already been compiled.
+	if (emitter.blockLinks[dest])
+	{
+		// Check if we have enough cycles to execute the next block
+		emitter.MOV(16, R(ESI), M(&cyclesLeft));
+		emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
-	//	emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
-	//	emitter.MOV(16, M(&cyclesLeft), R(ESI));
-	//	emitter.JMPptr(M(&emitter.blockLinks[dest]));
-	//	emitter.ClearCallFlag();
+		emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
+		emitter.MOV(16, M(&cyclesLeft), R(ESI));
+		emitter.JMPptr(M(&emitter.blockLinks[dest]));
+		emitter.ClearCallFlag();
 
-	//	emitter.SetJumpTarget(notEnoughCycles);
-	//}
+		emitter.SetJumpTarget(notEnoughCycles);
+	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), Imm16(dest));
 
-	// Jump directly to the next block if it has already been compiled. (Not working)
-	//if (emitter.blockLinks[dest])
-	//{
-	//	// Check if we have enough cycles to execute the next block
-	//	emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
-	//	emitter.MOV(16, R(RAX), MatR(R12));
-	//	emitter.CMP(16,R(RAX),Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-	//	FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+	// Jump directly to the next block if it has already been compiled.
+	if (emitter.blockLinks[dest])
+	{
+		// Check if we have enough cycles to execute the next block
+		//emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
+		//emitter.MOV(16, R(RAX), MatR(R12));
+		//emitter.CMP(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		//FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
-	//	emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
-	//	emitter.MOV(16, MatR(R12), R(RAX));
+		//emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
+		//emitter.MOV(16, MatR(R12), R(RAX));
 
-	//	emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
-	//	emitter.JMPptr(R(RAX));
-	//	emitter.ClearCallFlag();
+		//emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
+		//emitter.JMPptr(R(RAX));
+		//emitter.ClearCallFlag();
 
-	//	emitter.SetJumpTarget(notEnoughCycles);
-	//}
+		//emitter.SetJumpTarget(notEnoughCycles);
+	}
 #endif
 	WriteBranchExit(emitter);
 }
@@ -271,16 +271,16 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 	if (emitter.blockLinks[dest])
 	{
 		// Check if we have enough cycles to execute the next block
-		emitter.MOV(16, R(ESI), M(&cyclesLeft));
-		emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+		//emitter.MOV(16, R(ESI), M(&cyclesLeft));
+		//emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		//FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
-		emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
-		emitter.MOV(16, M(&cyclesLeft), R(ESI));
-		emitter.JMPptr(M(&emitter.blockLinks[dest]));
-		emitter.ClearCallFlag();
+		//emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
+		//emitter.MOV(16, M(&cyclesLeft), R(ESI));
+		//emitter.JMPptr(M(&emitter.blockLinks[dest]));
+		//emitter.ClearCallFlag();
 
-		emitter.SetJumpTarget(notEnoughCycles);
+		//emitter.SetJumpTarget(notEnoughCycles);
 	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
@@ -292,7 +292,7 @@ void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 		// Check if we have enough cycles to execute the next block
 		emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
 		emitter.MOV(16, R(RAX), MatR(R12));
-		emitter.CMP(16,R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+		emitter.CMP(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
 		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
 		emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
@@ -427,8 +427,8 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 #ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r.sr), R(DX));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp.r, sr)), R(DX));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), R(DX));
 #endif
 //	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 	dsp_reg_load_stack(DSP_STACK_C);
@@ -473,9 +473,9 @@ void DSPEmitter::HandleLoop()
 	MOVZX(32, 16, EAX, M(&g_dsp.r.st[2]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.st[3]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[2])));
-	MOVZX(32, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[3])));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[2])));
+	MOVZX(32, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[3])));
 #endif
 
 	CMP(32, R(RCX), Imm32(0));
@@ -487,8 +487,8 @@ void DSPEmitter::HandleLoop()
 	SUB(16, M(&(g_dsp.r.st[3])), Imm16(1));
 	CMP(16, M(&(g_dsp.r.st[3])), Imm16(0));
 #else
-	SUB(16, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[3])), Imm16(1));
-	CMP(16, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[3])), Imm16(0));
+	SUB(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[3])), Imm16(1));
+	CMP(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[3])), Imm16(0));
 #endif
 	
 	FixupBranch loadStack = J_CC(CC_LE, true);
@@ -496,7 +496,7 @@ void DSPEmitter::HandleLoop()
 	MOVZX(32, 16, ECX, M(&(g_dsp.r.st[0])));
 	MOV(16, M(&g_dsp.pc), R(RCX));
 #else
-	MOVZX(32, 16, RCX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, st[0])));
+	MOVZX(32, 16, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[0])));
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	MOV(16, MatR(RAX), R(RCX));
 #endif
@@ -529,8 +529,8 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, EDX, M(regp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11,PtrOffset(regp, &g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EDX, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
 #endif
 	u16 loop_pc = compilePC + 1;
 
@@ -600,8 +600,8 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, EDX, M(regp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11,PtrOffset(regp, &g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EDX, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
 #endif
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 

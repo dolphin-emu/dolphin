@@ -156,7 +156,7 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 //	g_dsp.r[DSP_REG_PRODL] = 0x0000;
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, prod.l)), Imm16(0x0000));
 //	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
 	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, prod.m)), Imm16(0xfff0));
@@ -317,7 +317,7 @@ void DSPEmitter::mulaxh(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 //	s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[0].h)));
 	MOV(64, R(RDI), R(RSI));
 	multiply();
@@ -340,7 +340,7 @@ void DSPEmitter::mul(const UDSPInstruction opc)
 	u8 sreg  = (opc >> 11) & 0x1;
 
 //	u16 axl = dsp_get_ax_l(sreg);
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[sreg].l)));
 //	u16 axh = dsp_get_ax_h(sreg);
 	MOVSX(64, 16, RDI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[sreg].h)));
@@ -464,7 +464,7 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 	u16 *sregp = reg_ptr(DSP_REG_AXL0 + sreg*2);
 	u16 *tregp = reg_ptr(DSP_REG_AXL1 + treg*2);
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	MOVSX(64, 16, RSI, MDisp(R11, PtrOffset(sregp,&g_dsp.r)));
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -611,7 +611,7 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 	u8 sreg = (opc >> 12) & 0x1;
 
 //	u16 accm = dsp_get_acc_m(sreg);
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, ESI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 //	u16 axh = dsp_get_ax_h(treg);
 	MOVSX(64, 16, EDI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[treg].h)));
@@ -720,7 +720,7 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 	u8 treg  = (opc >> 11) & 0x1;
 	u8 sreg  = (opc >> 12) & 0x1;
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_prod_round_prodl();
 	get_long_prod_round_prodl();
 	PUSH(64, R(RAX));
@@ -760,7 +760,7 @@ void DSPEmitter::maddx(const UDSPInstruction opc)
 	u16 *sregp = reg_ptr(DSP_REG_AXL0 + sreg*2);
 	u16 *tregp = reg_ptr(DSP_REG_AXL1 + treg*2);
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	MOVSX(64, 16, RSI, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 	//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -787,7 +787,7 @@ void DSPEmitter::msubx(const UDSPInstruction opc)
 	u16 *sregp = reg_ptr(DSP_REG_AXL0 + sreg*2);
 	u16 *tregp = reg_ptr(DSP_REG_AXL1 + treg*2);
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	//	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	MOVSX(64, 16, RSI, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 	//	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -812,7 +812,7 @@ void DSPEmitter::maddc(const UDSPInstruction opc)
 	u8 treg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	u16 accm = dsp_get_acc_m(sreg);
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 //	u16 axh = dsp_get_ax_h(treg);
@@ -838,7 +838,7 @@ void DSPEmitter::msubc(const UDSPInstruction opc)
 	u8 sreg = (opc >> 9) & 0x1;
 
 //	u16 accm = dsp_get_acc_m(sreg);
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 //	u16 axh = dsp_get_ax_h(treg);
 	MOVSX(64, 16, RDI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[treg].h)));
@@ -861,7 +861,7 @@ void DSPEmitter::madd(const UDSPInstruction opc)
 #ifdef _M_X64
 	u8 sreg = (opc >> 8) & 0x1;
 
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	u16 axl = dsp_get_ax_l(sreg);
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[sreg].l)));
 //	u16 axh = dsp_get_ax_h(sreg);
@@ -886,7 +886,7 @@ void DSPEmitter::msub(const UDSPInstruction opc)
 	u8 sreg = (opc >> 8) & 0x1;
 //	
 //	u16 axl = dsp_get_ax_l(sreg);
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOVSX(64, 16, RSI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[sreg].l)));
 //	u16 axh = dsp_get_ax_h(sreg);
 	MOVSX(64, 16, RDI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ax[sreg].h)));

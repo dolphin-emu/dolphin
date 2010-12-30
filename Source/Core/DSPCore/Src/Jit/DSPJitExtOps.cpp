@@ -98,9 +98,9 @@ void DSPEmitter::s(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
 	MOVZX(32, 16, ECX, M(sregp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-	MOVZX(64, 16, ECX, MDisp(R11,PtrOffset(sregp, &g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+	MOVZX(64, 16, ECX, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 #endif
 	//	u16 val = g_dsp.r[src];
 	dmem_write();
@@ -133,9 +133,9 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
 	MOVZX(32, 16, ECX, M(sregp));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-	MOVZX(64, 16, ECX, MDisp(R11,PtrOffset(sregp,&g_dsp.r)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+	MOVZX(64, 16, ECX, MDisp(R11, PtrOffset(sregp, &g_dsp.r)));
 #endif
 	dmem_write();
 	increase_addr_reg(dreg);
@@ -160,8 +160,8 @@ void DSPEmitter::l(const UDSPInstruction opc)
 #ifdef _M_IX86 // All32
 		MOV(16, R(EAX), M(&g_dsp.r.sr));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r.sr));
-		MOV(16, R(EAX), MatR(R11));
+		MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
+		MOV(16, R(RAX), MatR(RAX));
 #endif
 		SHL(32, R(EAX), Imm8(16));
 		OR(32, R(EBX), R(EAX));
@@ -189,8 +189,8 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 #ifdef _M_IX86 // All32
 		MOV(16, R(EAX), M(&g_dsp.r.sr));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r.sr));
-		MOV(16, R(EAX), MatR(R11));
+		MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
+		MOV(16, R(RAX), MatR(RAX));
 #endif
 		SHL(32, R(EAX), Imm8(16));
 		OR(32, R(EBX), R(EAX));
@@ -212,9 +212,9 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[3]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -239,9 +239,9 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[3]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -265,9 +265,9 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[3]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -292,9 +292,9 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[3]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -317,9 +317,9 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[0]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[0])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[0])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -343,9 +343,9 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[0]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[0])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[0])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -369,9 +369,9 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[0]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[0])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[0])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -395,9 +395,9 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[0]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ac[sreg].m));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, EAX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[0])));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[0])));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[sreg].m)));
 #endif
 	dmem_write();
 
@@ -431,9 +431,9 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -455,16 +455,16 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
 		CMP(16, R(ESI), R(EDI));
-		FixupBranch not_equal = J_CC(CC_NE);
+		FixupBranch not_equal = J_CC(CC_NE, true);
 		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
-		FixupBranch after = J(); // else
+		FixupBranch after = J(true); // else
 		SetJumpTarget(not_equal);
 		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
 		SetJumpTarget(after);
@@ -491,9 +491,9 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -514,9 +514,9 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -550,9 +550,9 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -573,9 +573,9 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -609,9 +609,9 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[sreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -632,9 +632,9 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 		MOV(16, R(ESI), M(&g_dsp.r.ar[dreg]));
 		MOV(16, R(EDI), M(&g_dsp.r.ar[3]));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, R(ESI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-		MOV(16, R(EDI), MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[3])));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, R(ESI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
+		MOV(16, R(EDI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[3])));
 #endif
 		SHR(16, R(ESI), Imm8(10));
 		SHR(16, R(EDI), Imm8(10));
@@ -661,7 +661,7 @@ void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
 	MOVZX(32, 16, EBX, M(sregp));
 #else
 	MOV(64, R(RBX), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EBX, MDisp(RBX,PtrOffset(sregp,&g_dsp.r)));
+	MOVZX(32, 16, EBX, MDisp(RBX, PtrOffset(sregp, &g_dsp.r)));
 #endif
 	storeIndex = dreg;
 }
@@ -671,8 +671,8 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[sreg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
 #endif
 	dmem_read();
 	MOVZX(32, 16, EBX, R(EAX));
@@ -685,11 +685,11 @@ void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[sreg]));
 #else
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, ECX, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ar[sreg])));
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(64, 16, ECX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[sreg])));
 #endif
 	dmem_read();
-	SHL(32,R(EAX),Imm8(16));
+	SHL(32, R(EAX), Imm8(16));
 	OR(32, R(EBX), R(EAX));
 
 	storeIndex2 = dreg;
@@ -708,8 +708,8 @@ void DSPEmitter::popExtValueToReg() {
 #ifdef _M_IX86 // All32
 		MOV(16, M(dregp), R(EBX));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,PtrOffset(dregp,&g_dsp.r)), R(EBX));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, MDisp(R11, PtrOffset(dregp, &g_dsp.r)), R(EBX));
 #endif
 		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1) {
 			TEST(32, R(EBX), Imm32(SR_40_MODE_BIT << 16));
@@ -719,17 +719,17 @@ void DSPEmitter::popExtValueToReg() {
 			// Sign extend into whole accum.
 			//u16 val = g_dsp.r[reg];
 			MOVSX(32, 16, EAX, R(EBX));
-			SHR(32,R(EAX),Imm8(16));
+			SHR(32, R(EAX), Imm8(16));
 			//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = (val & 0x8000) ? 0xFFFF : 0x0000;
 			//g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;
 #ifdef _M_IX86 // All32
-			MOV(16,M(&g_dsp.r.ac[storeIndex - DSP_REG_ACM0].h),
+			MOV(16, M(&g_dsp.r.ac[storeIndex - DSP_REG_ACM0].h),
 			    R(EAX));
-			MOV(16,M(&g_dsp.r.ac[storeIndex - DSP_REG_ACM0].l),
+			MOV(16, M(&g_dsp.r.ac[storeIndex - DSP_REG_ACM0].l),
 			    Imm16(0));
 #else
-			MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[storeIndex - DSP_REG_ACM0].h)), R(EAX));
-			MOV(16, MDisp(R11,STRUCT_OFFSET(g_dsp.r, ac[storeIndex - DSP_REG_ACM0].l)), Imm16(0));
+			MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[storeIndex - DSP_REG_ACM0].h)), R(EAX));
+			MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[storeIndex - DSP_REG_ACM0].l)), Imm16(0));
 #endif
 			//}
 			SetJumpTarget(not_40bit);
@@ -739,13 +739,13 @@ void DSPEmitter::popExtValueToReg() {
 	storeIndex = -1;
 
 	if (storeIndex2 != -1) {
-		SHR(32,R(EBX),Imm8(16));
+		SHR(32, R(EBX), Imm8(16));
 		u16 *dregp = reg_ptr(storeIndex2);
 #ifdef _M_IX86 // All32
 		MOV(16, M(dregp), R(EBX));
 #else
-		MOV(64, R(R11), ImmPtr(&g_dsp.r));
-		MOV(16, MDisp(R11,PtrOffset(dregp, &g_dsp.r)), R(EBX));
+		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+		MOV(16, MDisp(R11, PtrOffset(dregp, &g_dsp.r)), R(EBX));
 #endif
 	}
 	storeIndex2 = -1;
@@ -767,10 +767,18 @@ void DSPEmitter::zeroWriteBackLog(const UDSPInstruction opc)
 
 	if ((opc >> 12) == 0x3) {
 		if (! extOpTable[opc & 0x7F]->jitFunc)
+		{
+			SaveDSPRegs();
 			ABI_CallFunction((void*)::zeroWriteBackLog);
+			LoadDSPRegs();
+		}
 	} else {
 		if (! extOpTable[opc & 0xFF]->jitFunc)
+		{
+			SaveDSPRegs();
 			ABI_CallFunction((void*)::zeroWriteBackLog);
+			LoadDSPRegs();
+		}
 	}
 	return;
 }
