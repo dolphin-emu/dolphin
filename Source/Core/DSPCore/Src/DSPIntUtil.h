@@ -52,55 +52,74 @@ inline bool dsp_SR_is_flag_set(int flag)
 // --- AR increments, decrements
 // ---------------------------------------------------------------------------------------
 
-// NextPowerOf2()-1
-inline u16 ToMask(u16 a)
+inline u16 dsp_increase_addr_reg(u16 reg, s16 _ix)
 {
-	a = a | (a >> 8);
-	a = a | (a >> 4);
-	a = a | (a >> 2);
-	return a | (a >> 1);
+	u32 ar = g_dsp.r.ar[reg];
+	u32 wr = g_dsp.r.wr[reg];
+	s32 ix = _ix;
+	
+	u32 mx = (wr | 1) << 1;
+	u32 nar = ar + ix;
+	u32 dar = (nar ^ ar ^ ix) & mx;
+
+	if (ix >= 0)
+	{
+		if (dar > wr) //overflow
+			nar -= wr + 1;
+	}
+	else
+	{
+		if ((((nar + wr + 1) ^ nar) & dar) <= wr) //underflow or below min for mask
+			nar += wr + 1;
+	}
+	return nar;
 }
 
-inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
+inline u16 dsp_decrease_addr_reg(u16 reg, s16 _ix) 
 {
-	u16 ar = g_dsp.r.ar[reg];
-	u16 wr = g_dsp.r.wr[reg];
-	u16 m = ToMask(wr) | 1;
-    u16 nar = ar+ix;
-    if (ix >= 0) {
-        if((ar&m) + (int)(ix&m) -(int)m-1 >= 0)
-            nar -= wr+1;
-    } else {
-        if((ar&m) + (int)(ix&m) -(int)m-1 < m-wr)
-            nar += wr+1;
-    }
-    return nar;
-}
+	u32 ar = g_dsp.r.ar[reg];
+	u32 wr = g_dsp.r.wr[reg];
+	s32 ix = _ix;
 
-inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix) 
-{
-	u16 ar = g_dsp.r.ar[reg];
-	u16 wr = g_dsp.r.wr[reg];
-    u16 m = ToMask(wr) | 1;
-    u16 nar = ar-ix;
-    if ((u16)ix > 0x8000) { // equiv: ix < 0 && ix != -0x8000
-        if((ar&m) - (int)(ix&m) >= 0)
-            nar -= wr+1;
-    } else {
-        if((ar&m) - (int)(ix&m) < m-wr)
-            nar += wr+1;
-    }
-    return nar;
+	u32 mx = (wr | 1) << 1;
+	u32 nar = ar - ix;
+	u32 dar = (nar ^ ar ^ ~ix) & mx;
+
+	if ((u32)ix > 0xFFFF8000) //(ix < 0 && ix != -0x8000)
+	{
+		if (dar > wr) //overflow
+			nar -= wr + 1;
+	}
+	else
+	{
+		if ((((nar + wr + 1) ^ nar) & dar) <= wr) //underflow or below min for mask
+			nar += wr + 1;
+	}
+	return nar;
 }
 
 inline u16 dsp_increment_addr_reg(u16 reg) 
 {
-    return dsp_increase_addr_reg(reg, 1);
+	u32 ar = g_dsp.r.ar[reg];
+	u32 wr = g_dsp.r.wr[reg];
+
+	u32 nar = ar + 1;
+	
+	if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
+		nar -= wr + 1;
+	return nar;
 }
 
 inline u16 dsp_decrement_addr_reg(u16 reg) 
 {
-    return dsp_decrease_addr_reg(reg, 1);
+	u32 ar = g_dsp.r.ar[reg];
+	u32 wr = g_dsp.r.wr[reg];
+	
+	u32 nar = ar + wr;
+
+	if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
+		nar -= wr + 1;
+	return nar;
 }
 
 
