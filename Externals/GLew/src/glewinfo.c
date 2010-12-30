@@ -120,6 +120,15 @@ static void _glewInfo_GL_VERSION_1_2 (void)
 
 #endif /* GL_VERSION_1_2 */
 
+#ifdef GL_VERSION_1_2_1
+
+static void _glewInfo_GL_VERSION_1_2_1 (void)
+{
+  glewPrintExt("GL_VERSION_1_2_1", GLEW_VERSION_1_2_1, GLEW_VERSION_1_2_1, GLEW_VERSION_1_2_1);
+}
+
+#endif /* GL_VERSION_1_2_1 */
+
 #ifdef GL_VERSION_1_3
 
 static void _glewInfo_GL_VERSION_1_3 (void)
@@ -3862,7 +3871,6 @@ static void _glewInfo_GL_EXT_vertex_array (void)
   glewInfoFunc("glColorPointerEXT", glColorPointerEXT == NULL);
   glewInfoFunc("glDrawArraysEXT", glDrawArraysEXT == NULL);
   glewInfoFunc("glEdgeFlagPointerEXT", glEdgeFlagPointerEXT == NULL);
-  glewInfoFunc("glGetPointervEXT", glGetPointervEXT == NULL);
   glewInfoFunc("glIndexPointerEXT", glIndexPointerEXT == NULL);
   glewInfoFunc("glNormalPointerEXT", glNormalPointerEXT == NULL);
   glewInfoFunc("glTexCoordPointerEXT", glTexCoordPointerEXT == NULL);
@@ -4227,6 +4235,15 @@ static void _glewInfo_GL_MESA_ycbcr_texture (void)
 }
 
 #endif /* GL_MESA_ycbcr_texture */
+
+#ifdef GL_NVX_gpu_memory_info
+
+static void _glewInfo_GL_NVX_gpu_memory_info (void)
+{
+  glewPrintExt("GL_NVX_gpu_memory_info", GLEW_NVX_gpu_memory_info, glewIsSupported("GL_NVX_gpu_memory_info"), glewGetExtension("GL_NVX_gpu_memory_info"));
+}
+
+#endif /* GL_NVX_gpu_memory_info */
 
 #ifdef GL_NV_blend_square
 
@@ -7075,6 +7092,9 @@ static void glewInfo (void)
 #ifdef GL_VERSION_1_2
   _glewInfo_GL_VERSION_1_2();
 #endif /* GL_VERSION_1_2 */
+#ifdef GL_VERSION_1_2_1
+  _glewInfo_GL_VERSION_1_2_1();
+#endif /* GL_VERSION_1_2_1 */
 #ifdef GL_VERSION_1_3
   _glewInfo_GL_VERSION_1_3();
 #endif /* GL_VERSION_1_3 */
@@ -7897,6 +7917,9 @@ static void glewInfo (void)
 #ifdef GL_MESA_ycbcr_texture
   _glewInfo_GL_MESA_ycbcr_texture();
 #endif /* GL_MESA_ycbcr_texture */
+#ifdef GL_NVX_gpu_memory_info
+  _glewInfo_GL_NVX_gpu_memory_info();
+#endif /* GL_NVX_gpu_memory_info */
 #ifdef GL_NV_blend_square
   _glewInfo_GL_NV_blend_square();
 #endif /* GL_NV_blend_square */
