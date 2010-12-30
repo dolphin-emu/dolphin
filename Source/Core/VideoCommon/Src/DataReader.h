@@ -64,6 +64,32 @@ __forceinline u32 DataReadU32()
 	return tmp;
 }
 
+template<unsigned int N>
+void DataReadU32xN(u32 *bufx16)
+{
+	memcpy(bufx16, g_pVideoData, sizeof(u32) * N);
+	if (N >= 1) bufx16[0] = Common::swap32(bufx16[0]);
+	if (N >= 2) bufx16[1] = Common::swap32(bufx16[1]);
+	if (N >= 3) bufx16[2] = Common::swap32(bufx16[2]);
+	if (N >= 4) bufx16[3] = Common::swap32(bufx16[3]);
+	if (N >= 5) bufx16[4] = Common::swap32(bufx16[4]);
+	if (N >= 6) bufx16[5] = Common::swap32(bufx16[5]);
+	if (N >= 7) bufx16[6] = Common::swap32(bufx16[6]);
+	if (N >= 8) bufx16[7] = Common::swap32(bufx16[7]);
+	if (N >= 9) bufx16[8] = Common::swap32(bufx16[8]);
+	if (N >= 10) bufx16[9] = Common::swap32(bufx16[9]);
+	if (N >= 11) bufx16[10] = Common::swap32(bufx16[10]);
+	if (N >= 12) bufx16[11] = Common::swap32(bufx16[11]);
+	if (N >= 13) bufx16[12] = Common::swap32(bufx16[12]);
+	if (N >= 14) bufx16[13] = Common::swap32(bufx16[13]);
+	if (N >= 15) bufx16[14] = Common::swap32(bufx16[14]);
+	if (N >= 16) bufx16[15] = Common::swap32(bufx16[15]);
+	g_pVideoData += (sizeof(u32) * N);
+}
+
+typedef void (*DataReadU32xNfunc)(u32 *buf);
+extern DataReadU32xNfunc DataReadU32xFuncs[16];
+
 __forceinline u32 DataReadU32Unswapped()
 {
 	u32 tmp = *(u32*)g_pVideoData;

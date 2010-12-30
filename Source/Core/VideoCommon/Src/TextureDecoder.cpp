@@ -32,6 +32,7 @@
 
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
+#include <emmintrin.h>
 #elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
 #endif
@@ -209,43 +210,6 @@ inline u32 decode5A3(u16 val)
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-inline u32 decode5A3rgba(u16 val)
-{
-    int r,g,b,a;
-    if ((val & 0x8000))
-    {
-        a = 0xFF;
-		r = Convert5To8((val >> 10) & 0x1F);
-		g = Convert5To8((val >> 5) & 0x1F);
-		b = Convert5To8(val & 0x1F);
-	}
-    else
-    {
-		a = Convert3To8((val >> 12) & 0x7);
-		r = Convert4To8((val >> 8) & 0xF);
-		g = Convert4To8((val >> 4) & 0xF);
-		b = Convert4To8(val & 0xF);
-    }
-    return (a << 24) | (b << 16) | (g << 8) | r;
-}
-
-inline u32 decode565RGBA(u16 val)
-{
-    int r,g,b,a;
-    r=Convert5To8((val>>11) & 0x1f);
-    g=Convert6To8((val>>5 ) & 0x3f);
-    b=Convert5To8((val    ) & 0x1f);
-    a=0xFF;
-    return  r | (g<<8) | (b << 16) | (a << 24);
-}
-
-inline u32 decodeIA8Swapped(u16 val)
-{
-    int a = val & 0xFF;
-    int i = val >> 8;
-    return i | (i<<8) | (i<<16) | (a<<24);
-}
-
 inline u32 decode5A3RGBA(u16 val)
 {
     int r,g,b,a;
@@ -264,6 +228,23 @@ inline u32 decode5A3RGBA(u16 val)
         b=Convert4To8((val    ) & 0xf);
     }
     return r | (g<<8) | (b << 16) | (a << 24);
+}
+
+inline u32 decode565RGBA(u16 val)
+{
+    int r,g,b,a;
+    r=Convert5To8((val>>11) & 0x1f);
+    g=Convert6To8((val>>5 ) & 0x3f);
+    b=Convert5To8((val    ) & 0x1f);
+    a=0xFF;
+    return  r | (g<<8) | (b << 16) | (a << 24);
+}
+
+inline u32 decodeIA8Swapped(u16 val)
+{
+    int a = val & 0xFF;
+    int i = val >> 8;
+    return i | (i<<8) | (i<<16) | (a<<24);
 }
 
 
@@ -293,8 +274,8 @@ inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
     for (int x = 0; x < 4; x++)
     {
         u8 val = src[x];
-        *dst++ = decode5A3rgba(Common::swap16(tlut[val >> 4]));
-        *dst++ = decode5A3rgba(Common::swap16(tlut[val & 0xF]));
+        *dst++ = decode5A3RGBA(Common::swap16(tlut[val >> 4]));
+        *dst++ = decode5A3RGBA(Common::swap16(tlut[val & 0xF]));
     }
 }
 
@@ -348,7 +329,7 @@ inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
     for (int x = 0; x < 8; x++)
     {
         u8 val = src[x];
-        *dst++ = decode5A3rgba(Common::swap16(tlut[val]));
+        *dst++ = decode5A3RGBA(Common::swap16(tlut[val]));
     }
 }
 
@@ -422,7 +403,7 @@ inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
     for (int x = 0; x < 4; x++)
     {
         u16 val = Common::swap16(src[x]);
-		*dst++ = decode5A3rgba(Common::swap16(tlut[(val & 0x3FFF)]));
+		*dst++ = decode5A3RGBA(Common::swap16(tlut[(val & 0x3FFF)]));
     }
 }
 
@@ -481,23 +462,43 @@ inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 
 inline void decodebytesRGB5A3(u32 *dst, const u16 *src)
 {
+#if 0
     for (int x = 0; x < 4; x++)
         dst[x] = decode5A3(Common::swap16(src[x]));
+#else
+    dst[0] = decode5A3(Common::swap16(src[0]));
+    dst[1] = decode5A3(Common::swap16(src[1]));
+    dst[2] = decode5A3(Common::swap16(src[2]));
+    dst[3] = decode5A3(Common::swap16(src[3]));
+#endif
 }
 
 inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
 {
+#if 0
     for (int x = 0; x < 4; x++)
-        dst[x] = decode5A3rgba(Common::swap16(src[x]));
+        dst[x] = decode5A3RGBA(Common::swap16(src[x]));
+#else
+    dst[0] = decode5A3RGBA(Common::swap16(src[0]));
+    dst[1] = decode5A3RGBA(Common::swap16(src[1]));
+    dst[2] = decode5A3RGBA(Common::swap16(src[2]));
+    dst[3] = decode5A3RGBA(Common::swap16(src[3]));
+#endif
 }
 
 // This one is used by many video formats. It'd therefore be good if it was fast.
 // Needs more speed.
 inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 {
-    for (int x = 0; x < 4; x++) {
+#if 0
+    for (int x = 0; x < 4; x++)
         dst[x] = Common::swap32((src2[x] << 16) | src[x]);
-    }
+#else
+    dst[0] = Common::swap32((src2[0] << 16) | src[0]);
+    dst[1] = Common::swap32((src2[1] << 16) | src[1]);
+    dst[2] = Common::swap32((src2[2] << 16) | src[2]);
+    dst[3] = Common::swap32((src2[3] << 16) | src[3]);
+#endif
 
 	// This can probably be done in a few SSE pack/unpack instructions + pshufb
 	// some unpack instruction x2:
@@ -508,11 +509,18 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 	// and we are done.
 }
 
-inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 *src2)
+inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
-	for (int x = 0; x < 4; x++) {
+#if 0
+    for (int x = 0; x < 4; x++) {
 		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);		
-    }	 
+	}
+#else
+    dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
+    dst[1] =  ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00)>>8)  | (src2[1] << 8);
+    dst[2] =  ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00)>>8)  | (src2[2] << 8);
+    dst[3] =  ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00)>>8)  | (src2[3] << 8);
+#endif
 }
 
 inline u32 makecol(int r, int g, int b, int a)
@@ -919,7 +927,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 
 
-PC_TexFormat TexDecoder_Decode_RGBA(u32 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
     switch (texformat)
     {
@@ -966,9 +974,52 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 *dst, const u8 *src, int width, int heig
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						for (int ix = 0; ix < 8; ix++)
-							memset(dst + (y + iy)*width+x+ ix, (src + ix)[0], 4);
+#if _M_SSE >= 0x401
+
+                    for (int iy = 0; iy < 4; ++iy, src += 8)
+                    {
+                        __m128i *quaddst = (__m128i *)(dst + (y + iy)*width + x);
+                        const __m128i m0 = _mm_or_si128(
+                            _mm_or_si128(
+                                _mm_and_si128(_mm_set1_epi8(src[0]), _mm_set_epi32(0, 0, 0, (int)0xffffffffU)),
+                                _mm_and_si128(_mm_set1_epi8(src[1]), _mm_set_epi32(0, 0, (int)0xffffffffU, 0))
+                            ),
+                            _mm_or_si128(
+                                _mm_and_si128(_mm_set1_epi8(src[2]), _mm_set_epi32(0, (int)0xffffffffU, 0, 0)),
+                                _mm_and_si128(_mm_set1_epi8(src[3]), _mm_set_epi32((int)0xffffffffU, 0, 0, 0))
+                            )
+                        );
+                        _mm_store_si128(quaddst, m0);
+
+                        const __m128i m1 = _mm_or_si128(
+                            _mm_or_si128(
+                                _mm_and_si128(_mm_set1_epi8(src[4]), _mm_set_epi32(0, 0, 0, (int)0xffffffffU)),
+                                _mm_and_si128(_mm_set1_epi8(src[5]), _mm_set_epi32(0, 0, (int)0xffffffffU, 0))
+                            ),
+                            _mm_or_si128(
+                                _mm_and_si128(_mm_set1_epi8(src[6]), _mm_set_epi32(0, (int)0xffffffffU, 0, 0)),
+                                _mm_and_si128(_mm_set1_epi8(src[7]), _mm_set_epi32((int)0xffffffffU, 0, 0, 0))
+                            )
+                        );
+                        _mm_store_si128(quaddst+1, m1);
+                    }
+#else
+                    for (int iy = 0; iy < 4; ++iy, src += 8)
+                    {
+                        u32 *  newdst = dst + (y + iy)*width+x;
+                        const u8 *  newsrc = src;
+                        u8 srcval;
+
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                        srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+                    }
+#endif
 		}
 		break;
     case GX_TF_C8:
@@ -1014,8 +1065,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 *dst, const u8 *src, int width, int heig
 					{
 						u32 *ptr = dst + (y + iy) * width + x;
 						u16 *s = (u16 *)src;
-						for(int j = 0; j < 4; j++)
-							*ptr++ = decodeIA8Swapped(*s++);
+						ptr[0] = decodeIA8Swapped(s[0]);
+						ptr[1] = decodeIA8Swapped(s[1]);
+						ptr[2] = decodeIA8Swapped(s[2]);
+						ptr[3] = decodeIA8Swapped(s[3]);
 					}
 
         }
@@ -1058,7 +1111,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 *dst, const u8 *src, int width, int heig
 		}
 		break;
     case GX_TF_RGB5A3:
-        {
+        {   // JSD: speed critical for Mario Kart Wii intro movie (at least)
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)

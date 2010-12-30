@@ -307,8 +307,7 @@ u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 					u32 xf_address = Cmd2 & 0xFFFF;
 					// TODO - speed this up. pshufb?
 					u32 data_buffer[16];
-					for (int i = 0; i < transfer_size; i++)
-						data_buffer[i] = DataReadU32();
+					DataReadU32xFuncs[transfer_size-1](data_buffer);
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);
 					num_xf_reg++;
@@ -462,8 +461,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					NewRegion->hash = 0;					
 					dl->InsertRegion(NewRegion);
 					u32 *data_buffer = (u32*)NewRegion->start_address;
-					for (int i = 0; i < transfer_size; i++)
-						data_buffer[i] = DataReadU32();
+					DataReadU32xFuncs[transfer_size-1](data_buffer);
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);
 					// Compile
