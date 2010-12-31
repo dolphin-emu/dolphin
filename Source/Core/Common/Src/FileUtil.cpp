@@ -362,13 +362,14 @@ u64 GetSize(const int fd)
 // Overloaded GetSize, accepts FILE*
 u64 GetSize(FILE *f)
 {
-	off_t pos = ftello(f);
+	// can't use off_t here because it can be 32-bit
+	u64 pos = ftello(f);
 	if (fseeko(f, 0, SEEK_END) != 0) {
 		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
 			  f, GetLastErrorMsg());
 		return 0;
 	}
-	off_t size = ftello(f);
+	u64 size = ftello(f);
 	if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0)) {
 		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
 			  f, GetLastErrorMsg());
