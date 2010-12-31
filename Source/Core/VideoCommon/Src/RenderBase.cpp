@@ -90,7 +90,7 @@ Renderer::~Renderer()
 	prev_efb_format = (unsigned int)-1;
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
+void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
 	if (!fbWidth || !fbHeight)
 		return;

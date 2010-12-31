@@ -282,7 +282,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0));	
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0), Gamma);
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then read back the results.
 	// TODO: make this less slow.

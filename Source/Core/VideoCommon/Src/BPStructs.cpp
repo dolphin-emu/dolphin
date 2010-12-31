@@ -38,6 +38,14 @@ u32 mapTexAddress;
 bool mapTexFound;
 int numWrites;
 
+static const float s_gammaLUT[] = 
+{
+	1.0f,
+	1.7f,
+	2.2f,
+	1.0f
+};
+
 void BPInit()
 {
 	memset(&bpmem, 0, sizeof(bpmem));
@@ -48,9 +56,9 @@ void BPInit()
 	mapTexFound = false;
 }
 
-void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight)
+void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight, float gamma)
 {
-	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc);
+	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
 }
 
 void BPWritten(const BPCmd& bp)
@@ -272,7 +280,8 @@ void BPWritten(const BPCmd& bp)
 				RenderToXFB(bp, rc, yScale, xfbLines, 
 									 bpmem.copyTexDest << 5, 
 									 bpmem.copyMipMapStrideChannels << 4,
-									 (u32)xfbLines);
+									 (u32)xfbLines,
+									 s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
