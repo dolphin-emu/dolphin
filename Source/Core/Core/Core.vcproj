@@ -69,6 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="setupapi.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
 			/>
@@ -139,6 +140,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="setupapi.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
 			/>
@@ -213,6 +215,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="setupapi.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
 			/>
@@ -364,6 +367,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="setupapi.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
 			/>
@@ -437,6 +441,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="setupapi.lib"
 				OutputFile="$(OutDir)/Core.lib"
 				AdditionalLibraryDirectories="&quot;..\..\..\Externals\LZO\$(OutDir)\lzo.lib&quot;"
 			/>
