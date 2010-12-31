@@ -42,74 +42,74 @@ namespace WiimoteReal
 
 class Wiimote
 {
-	friend class WiimoteEmu::Wiimote;
-	public:
-		Wiimote(const unsigned int _index);
-		~Wiimote();
+friend class WiimoteEmu::Wiimote;
+public:
+	Wiimote(const unsigned int _index);
+	~Wiimote();
 
-		void ControlChannel(const u16 channel, const void* const data, const u32 size);
-		void InterruptChannel(const u16 channel, const void* const data, const u32 size);
-		void Update();
+	void ControlChannel(const u16 channel, const void* const data, const u32 size);
+	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
+	void Update();
 
-		u8* ProcessReadQueue();
+	u8* ProcessReadQueue();
 
-		bool Read();
-		bool Write();
-		bool Connect();
-		bool IsConnected();
-		void Disconnect();
-		void DisableDataReporting();
-		void Rumble();
-		void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
+	bool Read();
+	bool Write();
+	bool Connect();
+	bool IsConnected();
+	void Disconnect();
+	void DisableDataReporting();
+	void Rumble();
+	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
 
-		// Pointer to data, and size of data
-		typedef std::pair<u8*,u8> Report;
+	// Pointer to data, and size of data
+	typedef std::pair<u8*,u8> Report;
 
-		const unsigned int	index;
+	const unsigned int	index;
 
 #if defined(__APPLE__)
-		IOBluetoothDevice *btd;
-		IOBluetoothL2CAPChannel *ichan;
-		IOBluetoothL2CAPChannel *cchan;
-		#define QUEUE_SIZE 64
-		struct qbuffer
-		{
-			char data[MAX_PAYLOAD];
-			int len;
-		} queue[QUEUE_SIZE];
-		int reader;
-		int writer;
-		int outstanding;
-		int watermark;
+	IOBluetoothDevice *btd;
+	IOBluetoothL2CAPChannel *ichan;
+	IOBluetoothL2CAPChannel *cchan;
+#define QUEUE_SIZE 64
+	struct qbuffer
+	{
+		char data[MAX_PAYLOAD];
+		int len;
+	} queue[QUEUE_SIZE];
+	int reader;
+	int writer;
+	int outstanding;
+	int watermark;
 #elif defined(__linux__) && HAVE_BLUEZ
-		bdaddr_t bdaddr;					// Bluetooth address
-		int out_sock;						// Output socket
-		int in_sock;						// Input socket
+	bdaddr_t bdaddr;					// Bluetooth address
+	int out_sock;						// Output socket
+	int in_sock;						// Input socket
 #elif defined(_WIN32)
-		char devicepath[255];				// Unique wiimote reference
-		//ULONGLONG btaddr;					// Bluetooth address
-		HANDLE dev_handle;					// HID handle
-		OVERLAPPED hid_overlap;				// Overlap handle
-		enum win_bt_stack_t stack;			// Type of bluetooth stack to use
+	char devicepath[255];				// Unique wiimote reference
+	//ULONGLONG btaddr;					// Bluetooth address
+	HANDLE dev_handle;					// HID handle
+	OVERLAPPED hid_overlap;				// Overlap handle
+	enum win_bt_stack_t stack;			// Type of bluetooth stack to use
 #endif
-		unsigned char leds;					// Currently lit leds
+	unsigned char leds;					// Currently lit leds
 
-	protected:
-		u8	*m_last_data_report;
-		u16	m_channel;
+protected:
+	u8	*m_last_data_report;
+	u16	m_channel;
 
-	private:
-		void ClearReadQueue();
-		void RealDisconnect();
-		bool SendRequest(unsigned char report_type, unsigned char* data, int length);
-		bool Handshake();
-		void SetLEDs(int leds);
-		unsigned char *IORead();
-		int IOWrite(unsigned char* buf, int len);
+private:
+	void ClearReadQueue();
+	void RealDisconnect();
+	bool SendRequest(unsigned char report_type, unsigned char* data, int length);
+	bool Handshake();
+	void SetLEDs(int leds);
+	unsigned char *IORead();
+	int IOWrite(unsigned char* buf, int len);
 
-		bool						m_connected;
-		Common::FifoQueue<u8*>		m_read_reports;
-		Common::FifoQueue<Report>	m_write_reports;
+	bool						m_connected;
+	Common::FifoQueue<u8*>		m_read_reports;
+	Common::FifoQueue<Report>	m_write_reports;
 };
 
 extern Common::CriticalSection	g_refresh_critsec;

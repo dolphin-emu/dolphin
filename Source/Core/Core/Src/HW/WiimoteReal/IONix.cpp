@@ -223,7 +223,7 @@ unsigned char *Wiimote::IORead()
 
 	// Read the pending message into the buffer
 	unsigned char *buffer = new unsigned char[MAX_PAYLOAD];
-	r = read(in_sock, buffer, sizeof(buffer));
+	r = read(in_sock, buffer, sizeof(unsigned char) * MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data

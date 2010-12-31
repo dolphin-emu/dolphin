@@ -51,11 +51,11 @@ Wiimote *g_wiimotes[MAX_WIIMOTES];
 Wiimote::Wiimote(const unsigned int _index)
 	: index(_index)
 #if defined(__linux__) && HAVE_BLUEZ
-	  , out_sock(-1), in_sock(-1)
+	, out_sock(-1), in_sock(-1)
 #elif defined(_WIN32)
-		  , dev_handle(0), stack(MSBT_STACK_UNKNOWN)
+	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-		  , leds(0) , m_last_data_report(NULL) , m_channel(0) , m_connected(false)
+	, leds(0), m_last_data_report(NULL), m_channel(0), m_connected(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
