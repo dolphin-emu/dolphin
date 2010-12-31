@@ -143,11 +143,11 @@ void DumpEfb(const char* filename)
     for (int y = 0; y < EFB_HEIGHT; y++)
         for (int x = 0; x < EFB_WIDTH; x++) {
             EfbInterface::GetColor(x, y, sample);
-            // rgba to bgra
-            *(writePtr++) = sample[2];
+            // ABGR to BGRA
             *(writePtr++) = sample[1];
-            *(writePtr++) = sample[0];
+            *(writePtr++) = sample[2];
             *(writePtr++) = sample[3];
+            *(writePtr++) = sample[0];
         }
 
     (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);

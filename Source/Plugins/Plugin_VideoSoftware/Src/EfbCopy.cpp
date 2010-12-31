@@ -58,7 +58,7 @@ namespace EfbCopy
 
     void ClearEfb()
     {
-        u32 clearColor = (bpmem.clearcolorAR & 0xff) | Common::swap16(bpmem.clearcolorGB) << 8 | (bpmem.clearcolorAR & 0xff00) << 16;
+        u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 | (bpmem.clearcolorAR & 0xff00) >> 8;
 
         int left   = bpmem.copyTexSrcXY.x;
 	    int top    = bpmem.copyTexSrcXY.y;

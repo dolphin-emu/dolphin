@@ -35,25 +35,34 @@ class Tev
 		signed t : 24;
 	};
 
-    // color order: RGBA
-    s16 Reg[4][4];    
+    // color order: ABGR
+    s16 Reg[4][4];
     s16 KonstantColors[4][4];
-    s16 FixedConstants[9];
     s16 TexColor[4];
     s16 RasColor[4];
     s16 StageKonst[4];
     s16 Zero16[4];
-    u8 AlphaBump;
+    
+	s16 FixedConstants[9];
+	u8 AlphaBump;
     u8 IndirectTex[4][4];
 	TextureCoordinateType TexCoord;
 
     s16 *m_ColorInputLUT[16][3];
-    s16 *m_AlphaInputLUT[8];        // values must point to RGBA color
+    s16 *m_AlphaInputLUT[8];        // values must point to ABGR color
     s16 *m_KonstLUT[32][4];
     u8 *m_RasColorLUT[8];
     s16 m_BiasLUT[4];
     u8 m_ScaleLShiftLUT[4];
     u8 m_ScaleRShiftLUT[4];
+
+	// enumeration for color input LUT
+	enum
+	{
+		BLU_INP,
+		GRN_INP,
+		RED_INP		
+	};
 
 	enum BufferBase
 	{
@@ -73,7 +82,7 @@ class Tev
 
 public:
 	s32 Position[3];
-    u8 Color[2][4];
+    u8 Color[2][4]; // must be RGBA for correct swap table ordering
     TextureCoordinateType Uv[8];
     s32 IndirectLod[4];
 	bool IndirectLinear[4];
@@ -86,7 +95,7 @@ public:
 
     void SetRegColor(int reg, int comp, bool konst, s16 color);
 
-    enum { RED_C, GRN_C, BLU_C, ALP_C };
+	enum { ALP_C, BLU_C, GRN_C, RED_C };
 };
 
 #endif

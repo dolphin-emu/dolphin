@@ -47,31 +47,31 @@ void Tev::Init()
     for (int i = 0; i < 4; i++)
         Zero16[i] = 0;
 
-    m_ColorInputLUT[0][0] = &Reg[0][RED_C]; m_ColorInputLUT[0][1] = &Reg[0][GRN_C]; m_ColorInputLUT[0][2] = &Reg[0][BLU_C]; // prev.rgb
-    m_ColorInputLUT[1][0] = &Reg[0][ALP_C]; m_ColorInputLUT[1][1] = &Reg[0][ALP_C]; m_ColorInputLUT[1][2] = &Reg[0][ALP_C]; // prev.aaa
-    m_ColorInputLUT[2][0] = &Reg[1][RED_C]; m_ColorInputLUT[2][1] = &Reg[1][GRN_C]; m_ColorInputLUT[2][2] = &Reg[1][BLU_C]; // c0.rgb
-    m_ColorInputLUT[3][0] = &Reg[1][ALP_C]; m_ColorInputLUT[3][1] = &Reg[1][ALP_C]; m_ColorInputLUT[3][2] = &Reg[1][ALP_C]; // c0.aaa
-    m_ColorInputLUT[4][0] = &Reg[2][RED_C]; m_ColorInputLUT[4][1] = &Reg[2][GRN_C]; m_ColorInputLUT[4][2] = &Reg[2][BLU_C]; // c1.rgb
-    m_ColorInputLUT[5][0] = &Reg[2][ALP_C]; m_ColorInputLUT[5][1] = &Reg[2][ALP_C]; m_ColorInputLUT[5][2] = &Reg[2][ALP_C]; // c1.aaa
-    m_ColorInputLUT[6][0] = &Reg[3][RED_C]; m_ColorInputLUT[6][1] = &Reg[3][GRN_C]; m_ColorInputLUT[6][2] = &Reg[3][BLU_C]; // c2.rgb
-    m_ColorInputLUT[7][0] = &Reg[3][ALP_C]; m_ColorInputLUT[7][1] = &Reg[3][ALP_C]; m_ColorInputLUT[7][2] = &Reg[3][ALP_C]; // c2.aaa
-    m_ColorInputLUT[8][0] = &TexColor[RED_C]; m_ColorInputLUT[8][1] = &TexColor[GRN_C]; m_ColorInputLUT[8][2] = &TexColor[BLU_C]; // tex.rgb
-    m_ColorInputLUT[9][0] = &TexColor[ALP_C]; m_ColorInputLUT[9][1] = &TexColor[ALP_C]; m_ColorInputLUT[9][2] = &TexColor[ALP_C]; // tex.aaa
-    m_ColorInputLUT[10][0] = &RasColor[RED_C]; m_ColorInputLUT[10][1] = &RasColor[GRN_C]; m_ColorInputLUT[10][2] = &RasColor[BLU_C]; // ras.rgb
-    m_ColorInputLUT[11][0] = &RasColor[ALP_C]; m_ColorInputLUT[11][1] = &RasColor[ALP_C]; m_ColorInputLUT[11][2] = &RasColor[ALP_C]; // ras.rgb
-    m_ColorInputLUT[12][0] = &FixedConstants[8]; m_ColorInputLUT[12][1] = &FixedConstants[8]; m_ColorInputLUT[12][2] = &FixedConstants[8]; // one
-    m_ColorInputLUT[13][0] = &FixedConstants[4]; m_ColorInputLUT[13][1] = &FixedConstants[4]; m_ColorInputLUT[13][2] = &FixedConstants[4]; // half
-    m_ColorInputLUT[14][0] = &StageKonst[0]; m_ColorInputLUT[14][1] = &StageKonst[1]; m_ColorInputLUT[14][2] = &StageKonst[2]; // konst
-    m_ColorInputLUT[15][0] = &FixedConstants[0]; m_ColorInputLUT[15][1] = &FixedConstants[0]; m_ColorInputLUT[15][2] = &FixedConstants[0]; // zero
+    m_ColorInputLUT[0][RED_INP] = &Reg[0][RED_C]; m_ColorInputLUT[0][GRN_INP] = &Reg[0][GRN_C]; m_ColorInputLUT[0][BLU_INP] = &Reg[0][BLU_C]; // prev.rgb
+    m_ColorInputLUT[1][RED_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][GRN_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][BLU_INP] = &Reg[0][ALP_C]; // prev.aaa
+    m_ColorInputLUT[2][RED_INP] = &Reg[1][RED_C]; m_ColorInputLUT[2][GRN_INP] = &Reg[1][GRN_C]; m_ColorInputLUT[2][BLU_INP] = &Reg[1][BLU_C]; // c0.rgb
+    m_ColorInputLUT[3][RED_INP] = &Reg[1][ALP_C]; m_ColorInputLUT[3][GRN_INP] = &Reg[1][ALP_C]; m_ColorInputLUT[3][BLU_INP] = &Reg[1][ALP_C]; // c0.aaa
+    m_ColorInputLUT[4][RED_INP] = &Reg[2][RED_C]; m_ColorInputLUT[4][GRN_INP] = &Reg[2][GRN_C]; m_ColorInputLUT[4][BLU_INP] = &Reg[2][BLU_C]; // c1.rgb
+    m_ColorInputLUT[5][RED_INP] = &Reg[2][ALP_C]; m_ColorInputLUT[5][GRN_INP] = &Reg[2][ALP_C]; m_ColorInputLUT[5][BLU_INP] = &Reg[2][ALP_C]; // c1.aaa
+    m_ColorInputLUT[6][RED_INP] = &Reg[3][RED_C]; m_ColorInputLUT[6][GRN_INP] = &Reg[3][GRN_C]; m_ColorInputLUT[6][BLU_INP] = &Reg[3][BLU_C]; // c2.rgb
+    m_ColorInputLUT[7][RED_INP] = &Reg[3][ALP_C]; m_ColorInputLUT[7][GRN_INP] = &Reg[3][ALP_C]; m_ColorInputLUT[7][BLU_INP] = &Reg[3][ALP_C]; // c2.aaa
+    m_ColorInputLUT[8][RED_INP] = &TexColor[RED_C]; m_ColorInputLUT[8][GRN_INP] = &TexColor[GRN_C]; m_ColorInputLUT[8][BLU_INP] = &TexColor[BLU_C]; // tex.rgb
+    m_ColorInputLUT[9][RED_INP] = &TexColor[ALP_C]; m_ColorInputLUT[9][GRN_INP] = &TexColor[ALP_C]; m_ColorInputLUT[9][BLU_INP] = &TexColor[ALP_C]; // tex.aaa
+    m_ColorInputLUT[10][RED_INP] = &RasColor[RED_C]; m_ColorInputLUT[10][GRN_INP] = &RasColor[GRN_C]; m_ColorInputLUT[10][BLU_INP] = &RasColor[BLU_C]; // ras.rgb
+    m_ColorInputLUT[11][RED_INP] = &RasColor[ALP_C]; m_ColorInputLUT[11][GRN_INP] = &RasColor[ALP_C]; m_ColorInputLUT[11][BLU_INP] = &RasColor[ALP_C]; // ras.rgb
+    m_ColorInputLUT[12][RED_INP] = &FixedConstants[8]; m_ColorInputLUT[12][GRN_INP] = &FixedConstants[8]; m_ColorInputLUT[12][BLU_INP] = &FixedConstants[8]; // one
+    m_ColorInputLUT[13][RED_INP] = &FixedConstants[4]; m_ColorInputLUT[13][GRN_INP] = &FixedConstants[4]; m_ColorInputLUT[13][BLU_INP] = &FixedConstants[4]; // half
+    m_ColorInputLUT[14][RED_INP] = &StageKonst[RED_C]; m_ColorInputLUT[14][GRN_INP] = &StageKonst[GRN_C]; m_ColorInputLUT[14][BLU_INP] = &StageKonst[BLU_C]; // konst
+    m_ColorInputLUT[15][RED_INP] = &FixedConstants[0]; m_ColorInputLUT[15][GRN_INP] = &FixedConstants[0]; m_ColorInputLUT[15][BLU_INP] = &FixedConstants[0]; // zero
 
-    m_AlphaInputLUT[0] = &Reg[0][ALP_C]; // prev.a
-    m_AlphaInputLUT[1] = &Reg[1][ALP_C]; // c0.a
-    m_AlphaInputLUT[2] = &Reg[2][ALP_C]; // c1.a
-    m_AlphaInputLUT[3] = &Reg[3][ALP_C]; // c2.a
-    m_AlphaInputLUT[4] = &TexColor[ALP_C]; // tex.a
-    m_AlphaInputLUT[5] = &RasColor[ALP_C]; // ras.a
-    m_AlphaInputLUT[6] = &StageKonst[ALP_C]; // konst.a
-    m_AlphaInputLUT[7] = &Zero16[ALP_C]; // zero
+    m_AlphaInputLUT[0] = Reg[0]; // prev
+    m_AlphaInputLUT[1] = Reg[1]; // c0
+    m_AlphaInputLUT[2] = Reg[2]; // c1
+    m_AlphaInputLUT[3] = Reg[3]; // c2
+    m_AlphaInputLUT[4] = TexColor; // tex
+    m_AlphaInputLUT[5] = RasColor; // ras
+    m_AlphaInputLUT[6] = StageKonst; // konst
+    m_AlphaInputLUT[7] = Zero16; // zero
 
     for (int comp = 0; comp < 4; comp++)
     {
@@ -140,21 +140,21 @@ inline void Tev::SetRasColor(int colorChan, int swaptable)
     case 0: // Color0
         {
             u8 *color = Color[0];
-            RasColor[0] = color[bpmem.tevksel[swaptable].swap1];
-            RasColor[1] = color[bpmem.tevksel[swaptable].swap2];
+            RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
+            RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
             swaptable++;
-            RasColor[2] = color[bpmem.tevksel[swaptable].swap1];
-            RasColor[3] = color[bpmem.tevksel[swaptable].swap2];
+            RasColor[BLU_C] = color[bpmem.tevksel[swaptable].swap1];
+            RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
         }
         break;
     case 1: // Color1
         {
             u8 *color = Color[1];
-            RasColor[0] = color[bpmem.tevksel[swaptable].swap1];
-            RasColor[1] = color[bpmem.tevksel[swaptable].swap2];
+            RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
+            RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
             swaptable++;
-            RasColor[2] = color[bpmem.tevksel[swaptable].swap1];
-            RasColor[3] = color[bpmem.tevksel[swaptable].swap2];
+            RasColor[BLU_C] = color[bpmem.tevksel[swaptable].swap1];
+            RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
         }
         break;
      case 5: // alpha bump
@@ -199,7 +199,7 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc)
         result = result << m_ScaleLShiftLUT[cc.shift];
         result = result >> m_ScaleRShiftLUT[cc.shift];        
 
-        Reg[cc.dest][RED_C + i] = result;
+        Reg[cc.dest][BLU_C + i] = result;
     }
 }
 
@@ -215,74 +215,74 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
     switch(cmp) {
     case TEVCMP_R8_GT:        
         {
-            a = *m_ColorInputLUT[cc.a][RED_C] & 0xff;
-            b = *m_ColorInputLUT[cc.b][RED_C] & 0xff;
+            a = *m_ColorInputLUT[cc.a][RED_INP] & 0xff;
+            b = *m_ColorInputLUT[cc.b][RED_INP] & 0xff;
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
             }
         }
         break;
 
     case TEVCMP_R8_EQ:
         {
-            a = *m_ColorInputLUT[cc.a][RED_C] & 0xff;
-            b = *m_ColorInputLUT[cc.b][RED_C] & 0xff;
+            a = *m_ColorInputLUT[cc.a][RED_INP] & 0xff;
+            b = *m_ColorInputLUT[cc.b][RED_INP] & 0xff;
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
             }
         }
         break;
     case TEVCMP_GR16_GT:
         {
-            a = ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_C] & 0xff);
-            b = ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_C] & 0xff);
+            a = ((*m_ColorInputLUT[cc.a][GRN_INP] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
+            b = ((*m_ColorInputLUT[cc.b][GRN_INP] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
             }
         }
         break;
     case TEVCMP_GR16_EQ:
         {
-            a = ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_C] & 0xff);
-            b = ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_C] & 0xff);
+            a = ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
+            b = ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
             }
         }
         break;
     case TEVCMP_BGR24_GT:
         {
-            a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_C] & 0xff);
-            b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_C] & 0xff);
+            a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
+            b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
             }
         }
         break;
     case TEVCMP_BGR24_EQ:
         {
-            a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_C] & 0xff);
-            b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_C] & 0xff);
+            a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
+            b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
             for (int i = 0; i < 3; i++)
             {
                 InputReg.c = *m_ColorInputLUT[cc.c][i];
                 InputReg.d = *m_ColorInputLUT[cc.d][i];
-                Reg[cc.dest][RED_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
+                Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
             }
         }
         break;
@@ -293,7 +293,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
             InputReg.b = *m_ColorInputLUT[cc.b][i];
             InputReg.c = *m_ColorInputLUT[cc.c][i];
             InputReg.d = *m_ColorInputLUT[cc.d][i];
-            Reg[cc.dest][RED_C + i] = InputReg.d + ((InputReg.a > InputReg.b) ? InputReg.c : 0);
+            Reg[cc.dest][BLU_C + i] = InputReg.d + ((InputReg.a > InputReg.b) ? InputReg.c : 0);
         }
         break;
     case TEVCMP_RGB8_EQ: 
@@ -303,7 +303,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
             InputReg.b = *m_ColorInputLUT[cc.b][i];
             InputReg.c = *m_ColorInputLUT[cc.c][i];
             InputReg.d = *m_ColorInputLUT[cc.d][i];
-            Reg[cc.dest][RED_C + i] = InputReg.d + ((InputReg.a == InputReg.b) ? InputReg.c : 0);
+            Reg[cc.dest][BLU_C + i] = InputReg.d + ((InputReg.a == InputReg.b) ? InputReg.c : 0);
         }
         break;
     }          
@@ -313,10 +313,10 @@ void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac)
 {
     InputRegType InputReg;
 
-    InputReg.a = *m_AlphaInputLUT[ac.a];
-    InputReg.b = *m_AlphaInputLUT[ac.b];
-    InputReg.c = *m_AlphaInputLUT[ac.c];
-    InputReg.d = *m_AlphaInputLUT[ac.d];
+    InputReg.a = m_AlphaInputLUT[ac.a][ALP_C];
+    InputReg.b = m_AlphaInputLUT[ac.b][ALP_C];
+    InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
+    InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
 
     u16 c = InputReg.c + (InputReg.c >> 7); 
 
@@ -479,13 +479,13 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
             AlphaBump = 0;
             break;
          case ITBA_S:
-            AlphaBump = indmap[ALP_C];
+			AlphaBump = indmap[TextureSampler::ALP_SMP];
             break;
         case ITBA_T:
-            AlphaBump = indmap[BLU_C];
+            AlphaBump = indmap[TextureSampler::BLU_SMP];
             break;
         case ITBA_U:
-            AlphaBump = indmap[GRN_C];
+            AlphaBump = indmap[TextureSampler::GRN_SMP];
             break;
     }
 
@@ -499,27 +499,27 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     // format
     switch(indirect.fmt) {
         case ITF_8:
-            indcoord[0] = indmap[ALP_C] + bias[0];
-            indcoord[1] = indmap[BLU_C] + bias[1];
-            indcoord[2] = indmap[GRN_C] + bias[2];
+            indcoord[0] = indmap[TextureSampler::ALP_SMP] + bias[0];
+            indcoord[1] = indmap[TextureSampler::BLU_SMP] + bias[1];
+            indcoord[2] = indmap[TextureSampler::GRN_SMP] + bias[2];
             AlphaBump = AlphaBump & 0xf8;
             break;
         case ITF_5:
-            indcoord[0] = (indmap[ALP_C] & 0x1f) + bias[0];
-            indcoord[1] = (indmap[BLU_C] & 0x1f) + bias[1];
-            indcoord[2] = (indmap[GRN_C] & 0x1f) + bias[2];
+            indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x1f) + bias[0];
+            indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x1f) + bias[1];
+            indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x1f) + bias[2];
             AlphaBump = AlphaBump & 0xe0;
             break;
         case ITF_4:
-            indcoord[0] = (indmap[ALP_C] & 0x0f) + bias[0];
-            indcoord[1] = (indmap[BLU_C] & 0x0f) + bias[1];
-            indcoord[2] = (indmap[GRN_C] & 0x0f) + bias[2];
+            indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x0f) + bias[0];
+            indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x0f) + bias[1];
+            indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x0f) + bias[2];
             AlphaBump = AlphaBump & 0xf0;
             break;
         case ITF_3:
-            indcoord[0] = (indmap[ALP_C] & 0x07) + bias[0];
-            indcoord[1] = (indmap[BLU_C] & 0x07) + bias[1];
-            indcoord[2] = (indmap[GRN_C] & 0x07) + bias[2];
+            indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x07) + bias[0];
+            indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x07) + bias[1];
+            indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x07) + bias[2];
             AlphaBump = AlphaBump & 0xf8;
             break;
         default:
@@ -601,7 +601,10 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
         if (g_Config.bDumpTevStages)
         {
-            u8 stage[4] = {(u8)IndirectTex[stageNum][3], (u8)IndirectTex[stageNum][2], (u8)IndirectTex[stageNum][1], 255};
+			u8 stage[4] = { IndirectTex[stageNum][TextureSampler::ALP_SMP],
+							IndirectTex[stageNum][TextureSampler::BLU_SMP],
+							IndirectTex[stageNum][TextureSampler::GRN_SMP],
+							255};
 			DebugUtil::DrawTempBuffer(stage, INDIRECT + stageNum);
         }
 #endif
@@ -626,7 +629,8 @@ void Tev::Draw()
         // sample texture
         if (order.getEnable(stageOdd))
         {
-            u8 texel[4];
+            // RGBA
+			u8 texel[4];
     
 			TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
 
@@ -637,11 +641,11 @@ void Tev::Draw()
 
             int swaptable = ac.tswap * 2;            
 
-            TexColor[0] = texel[bpmem.tevksel[swaptable].swap1];
-            TexColor[1] = texel[bpmem.tevksel[swaptable].swap2];
+            TexColor[RED_C] = texel[bpmem.tevksel[swaptable].swap1];
+            TexColor[GRN_C] = texel[bpmem.tevksel[swaptable].swap2];
             swaptable++;
-            TexColor[2] = texel[bpmem.tevksel[swaptable].swap1];
-            TexColor[3] = texel[bpmem.tevksel[swaptable].swap2];
+            TexColor[BLU_C] = texel[bpmem.tevksel[swaptable].swap1];
+            TexColor[ALP_C] = texel[bpmem.tevksel[swaptable].swap2];
         }
 
         // set konst for this stage
@@ -687,14 +691,14 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
         if (g_Config.bDumpTevStages)
         {
-            u8 stage[4] = {(u8)Reg[0][0], (u8)Reg[0][1], (u8)Reg[0][2], (u8)Reg[0][3]};
+            u8 stage[4] = {(u8)Reg[0][RED_C], (u8)Reg[0][GRN_C], (u8)Reg[0][BLU_C], (u8)Reg[0][ALP_C]};
 			DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
         }
 #endif
     }
     
     // convert to 8 bits per component
-    u8 output[4] = {(u8)Reg[0][0], (u8)Reg[0][1], (u8)Reg[0][2], (u8)Reg[0][3]};
+    u8 output[4] = {(u8)Reg[0][ALP_C], (u8)Reg[0][BLU_C], (u8)Reg[0][GRN_C], (u8)Reg[0][RED_C]};
 
     if (!AlphaTest(output[ALP_C]))
         return;

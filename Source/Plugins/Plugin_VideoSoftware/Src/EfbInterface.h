@@ -24,7 +24,9 @@ namespace EfbInterface
 {
     const int DEPTH_BUFFER_START = EFB_WIDTH * EFB_HEIGHT * 3;
 
-    // color order is RGBA
+	enum { ALP_C, BLU_C, GRN_C, RED_C };
+
+    // color order is ABGR in order to emulate RGBA on little-endian hardware
 
     // does full blending of an incoming pixel
     void BlendTev(u16 x, u16 y, u8 *color);
@@ -44,7 +46,7 @@ namespace EfbInterface
     u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
     void UpdateColorTexture();
-    extern u8 efbColorTexture[EFB_WIDTH*EFB_HEIGHT*4]; // rgba format
+    extern u8 efbColorTexture[EFB_WIDTH*EFB_HEIGHT*4]; // RGBA format
 }
     
 #endif

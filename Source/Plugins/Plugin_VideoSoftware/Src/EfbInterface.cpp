@@ -53,8 +53,8 @@ namespace EfbInterface
             {
 				u32 a32 = a;
 				u32 *dst = (u32*)&efb[offset];
-				u32 val = *dst & 0xff03ffff;
-				val |= (a32 << 16) & 0xfc0000;
+				u32 val = *dst & 0xffffffc0;
+				val |= (a32 >> 2) & 0x0000003f;
 				*dst = val;
             }
             break;        
@@ -73,7 +73,7 @@ namespace EfbInterface
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= src & 0x00ffffff;
+				val |= src >> 8;
 				*dst = val;
             }
             break;
@@ -81,10 +81,10 @@ namespace EfbInterface
             {
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
-				u32 val = *dst & 0xfffc0000;
-				val |= (src >> 2) & 0x3f;
-				val |= (src >> 4) & 0xfc0;
-				val |= (src >> 6) & 0x3f000;
+				u32 val = *dst & 0xff00003f;
+				val |= (src >> 4) & 0x00000fc0;	// blue
+				val |= (src >> 6) & 0x0003f000;	// green
+				val |= (src >> 8) & 0x00fc0000;	// red
 				*dst = val;
             }
             break;
@@ -94,7 +94,7 @@ namespace EfbInterface
                 u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= src & 0x00ffffff;
+				val |= src >> 8;
 				*dst = val;
             }
             break;
@@ -113,7 +113,7 @@ namespace EfbInterface
                 u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= src & 0x00ffffff;
+				val |= src >> 8;
 				*dst = val;
             }
             break;
@@ -122,10 +122,10 @@ namespace EfbInterface
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= (src >> 2) & 0x3f;
-				val |= (src >> 4) & 0xfc0;
-				val |= (src >> 6) & 0x3f000;
-				val |= (src >> 8) & 0xfc0000;
+				val |= (src >> 2) & 0x0000003f;	// alpha
+				val |= (src >> 4) & 0x00000fc0;	// blue
+				val |= (src >> 6) & 0x0003f000;	// green
+				val |= (src >> 8) & 0x00fc0000;	// red
 				*dst = val;
             }
             break;
@@ -135,7 +135,7 @@ namespace EfbInterface
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= src & 0x00ffffff;
+				val |= src >> 8;
 				*dst = val;
             }
             break;
@@ -153,17 +153,17 @@ namespace EfbInterface
             {
     			u32 src = *(u32*)&efb[offset];
 				u32 *dst = (u32*)color;
-				u32 val = 0xff000000 | (src & 0x00ffffff);
+				u32 val = 0xff | ((src & 0x00ffffff) << 8);
 				*dst = val;
             }
             break;
         case PIXELFMT_RGBA6_Z24:
             {
 				u32 src = *(u32*)&efb[offset];
-				color[0] = Convert6To8(src & 0x3f);
-				color[1] = Convert6To8((src >> 6) & 0x3f);
-				color[2] = Convert6To8((src >> 12) & 0x3f);
-				color[3] = Convert6To8((src >> 18) & 0x3f);
+				color[ALP_C] = Convert6To8(src & 0x3f);
+				color[BLU_C] = Convert6To8((src >> 6) & 0x3f);
+				color[GRN_C] = Convert6To8((src >> 12) & 0x3f);
+				color[RED_C] = Convert6To8((src >> 18) & 0x3f);
             }
             break;
         case PIXELFMT_RGB565_Z16:
@@ -171,7 +171,7 @@ namespace EfbInterface
                 INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)&efb[offset];
 				u32 *dst = (u32*)color;
-				u32 val = 0xff000000 | (src & 0x00ffffff);
+				u32 val = 0xff | ((src & 0x00ffffff) << 8);
 				*dst = val;
             }
             break;
@@ -247,25 +247,25 @@ namespace EfbInterface
                 return 0xffffffff - *(u32*)dstClr;                     
             case 4:  // srcalpha
                 {
-                    u8 alpha = srcClr[3];
+                    u8 alpha = srcClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 5:  // invsrcalpha
                 {
-                    u8 alpha = 0xff - srcClr[3];
+                    u8 alpha = 0xff - srcClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 6:  // dstalpha
                 {
-                    u8 alpha = dstClr[3];
+                    u8 alpha = dstClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 7:  // invdstalpha
                 {
-                    u8 alpha = 0xff - dstClr[3];
+                    u8 alpha = 0xff - dstClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
@@ -287,25 +287,25 @@ namespace EfbInterface
                 return 0xffffffff - *(u32*)srcClr;            
             case 4:  // srcalpha
                 {
-                    u8 alpha = srcClr[3];
+                    u8 alpha = srcClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 5:  // invsrcalpha
                 {
-                    u8 alpha = 0xff - srcClr[3];
+                    u8 alpha = 0xff - srcClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 6:  // dstalpha
                 {
-                    u8 alpha = dstClr[3] & 0xff;
+                    u8 alpha = dstClr[ALP_C] & 0xff;
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
             case 7:  // invdstalpha
                 {
-                    u8 alpha = 0xff - dstClr[3];
+                    u8 alpha = 0xff - dstClr[ALP_C];
                     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
                     return factor;
                 }
@@ -421,7 +421,7 @@ namespace EfbInterface
             dstClrPtr = color;
 
         if (bpmem.dstalpha.enable)
-            dstClrPtr[3] = bpmem.dstalpha.alpha;
+            dstClrPtr[ALP_C] = bpmem.dstalpha.alpha;
 
 		if (bpmem.blendmode.colorupdate)
         {
@@ -431,7 +431,7 @@ namespace EfbInterface
                 SetPixelColorOnly(offset, dstClrPtr);
         }
         else if (bpmem.blendmode.alphaupdate)
-            SetPixelAlphaOnly(offset, dstClrPtr[3]);
+            SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
 
         // branchless bounding box update
         PixelEngine::pereg.boxLeft = PixelEngine::pereg.boxLeft>x?x:PixelEngine::pereg.boxLeft;
@@ -451,7 +451,7 @@ namespace EfbInterface
                 SetPixelColorOnly(offset, color);
         }
         else if (bpmem.blendmode.alphaupdate)
-            SetPixelAlphaOnly(offset, color[3]);                
+            SetPixelAlphaOnly(offset, color[ALP_C]);
     }
 
     void SetDepth(u16 x, u16 y, u32 depth)
@@ -486,13 +486,13 @@ namespace EfbInterface
         u32 textureAddress = 0;
         u32 efbOffset = 0;
         
-        for (u16 y = 0; y < EFB_HEIGHT; y++)        
+        for (u16 y = 0; y < EFB_HEIGHT; y++)
         {
             for (u16 x = 0; x < EFB_WIDTH; x++)
             {
                 GetPixelColor(efbOffset, colorPtr);
-                efbOffset += 3;				 
-				texturePtr[textureAddress++] = color;
+                efbOffset += 3;
+				texturePtr[textureAddress++] = Common::swap32(color);  // ABGR->RGBA
             }
         }
     }

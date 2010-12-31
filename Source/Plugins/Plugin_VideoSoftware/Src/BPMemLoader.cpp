@@ -23,6 +23,7 @@
 #include "EfbCopy.h"
 #include "Rasterizer.h"
 #include "PixelEngine.h"
+#include "Tev.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"
 
 
@@ -55,7 +56,7 @@ void LoadBPReg(u32 value)
 void BPWritten(int address, int newvalue)
 {
     switch (address)
-	{	
+	{
     case BPMEM_SCISSORTL:
     case BPMEM_SCISSORBR:
     case BPMEM_SCISSOROFFSET:
@@ -124,8 +125,8 @@ void BPWritten(int address, int newvalue)
             ColReg& reg = bpmem.tevregs[regNum].low;
             bool konst = reg.type;
 
-            Rasterizer::SetTevReg(regNum, 3, konst, reg.b); // A
-            Rasterizer::SetTevReg(regNum, 0, konst, reg.a); // R
+			Rasterizer::SetTevReg(regNum, Tev::ALP_C, konst, reg.b); // A
+            Rasterizer::SetTevReg(regNum, Tev::RED_C, konst, reg.a); // R
 
 			break;
 		}
@@ -139,8 +140,8 @@ void BPWritten(int address, int newvalue)
             ColReg& reg = bpmem.tevregs[regNum].high;
             bool konst = reg.type;
 
-            Rasterizer::SetTevReg(regNum, 1, konst, reg.b); // G
-            Rasterizer::SetTevReg(regNum, 2, konst, reg.a); // B
+            Rasterizer::SetTevReg(regNum, Tev::GRN_C, konst, reg.b); // G
+            Rasterizer::SetTevReg(regNum, Tev::BLU_C, konst, reg.a); // B
 
 			break;
 		}
