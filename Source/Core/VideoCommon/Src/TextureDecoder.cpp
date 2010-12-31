@@ -1106,6 +1106,55 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
     case GX_TF_IA8:
         {
+#if _M_SSE >= 0x301
+            const __m128i kMask_xf0 = _mm_set_epi32(0x00000000L, 0x00000000L, 0xff00ff00L, 0xff00ff00L);
+            const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
+            const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
+            const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
+
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+					{
+                        // Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
+
+                        // Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+                        const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+
+                        // Logical shift all 16-bit words right by 8 bits (0000 0000 hgfe dcba) to (0000 0000 0h0f 0d0b)
+                        // This gets us only the I components.
+                        const __m128i i0 = _mm_srli_epi16(r0, 8);
+
+                        // Now join up the I components from their original positions but mask out the A components.
+                        // (0000 0000 hgfe dcba) &      kMask_xFF00      -> (0000 0000 h0f0 d0b0)
+                        // (0000 0000 h0f0 d0b0) | (0000 0000 0h0f 0d0b) -> (0000 0000 hhff ddbb)
+                        const __m128i i1 = _mm_or_si128(_mm_and_si128(r0, kMask_xf0), i0);
+
+                        // Shuffle low 64-bits with itself to expand from (0000 0000 hhff ddbb) to (hhhh ffff dddd bbbb)
+                        const __m128i i2 = _mm_unpacklo_epi8(i1, i1);
+                        // (hhhh ffff dddd bbbb) & kMask_x0fff -> (0hhh 0fff 0ddd 0bbb)
+                        const __m128i i3 = _mm_and_si128(i2, kMask_x0fff);
+
+                        // Now that we have the I components in 32-bit word form, time work out the A components into
+                        // their final positions.
+
+                        // (0000 0000 hgfe dcba) &      kMask_x00FF      -> (0000 0000 0g0e 0c0a)
+                        const __m128i a0 = _mm_and_si128(r0, kMask_x0f);
+                        // (0000 0000 0g0e 0c0a) -> (00gg 00ee 00cc 00aa)
+                        const __m128i a1 = _mm_unpacklo_epi8(a0, a0);
+                        // (00gg 00ee 00cc 00aa) << 16 -> (gg00 ee00 cc00 aa00)
+                        const __m128i a2 = _mm_slli_epi32(a1, 16);
+                        // (gg00 ee00 cc00 aa00) & kMask_xf000 -> (g000 e000 c000 a000)
+                        const __m128i a3 = _mm_and_si128(a2, kMask_xf000);
+
+                        // Simply OR up i3 and a3 now and that's our result:
+                        // (0hhh 0fff 0ddd 0bbb) | (g000 e000 c000 a000) -> (ghhh efff cddd abbb)
+                        const __m128i r1 = _mm_or_si128(i3, a3);
+
+                        // write out the 128-bit result:
+                        _mm_store_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
+					}
+#else
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
@@ -1117,7 +1166,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						ptr[2] = decodeIA8Swapped(s[2]);
 						ptr[3] = decodeIA8Swapped(s[3]);
 					}
-
+#endif
         }
 		break;
     case GX_TF_C14X2: 
