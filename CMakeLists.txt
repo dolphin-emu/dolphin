@@ -124,7 +124,7 @@ else()
 	message("ao NOT found, disabling ao sound backend")
 endif(AO_FOUND)
 
-check_lib(BLUEZ bluez QUIET)
+#check_lib(BLUEZ bluez QUIET)
 if(BLUEZ_FOUND)
 	add_definitions(-DHAVE_BLUEZ=1)
 	message("bluez found, enabling bluetooth support")
@@ -221,7 +221,6 @@ include_directories(Source/Core/InputCommon/Src)
 include_directories(Source/Core/InputUICommon/Src)
 include_directories(Source/Core/VideoCommon/Src)
 include_directories(Source/Core/VideoUICommon/Src)
-include_directories(Source/Core/wiiuse/Src)
 
 
 ########################################
@@ -232,7 +231,7 @@ include_directories(Source/Core/wiiuse/Src)
 #   - make sure to tell cmake to link them statically or dynamically (most
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
-#     Externals/WiiUse/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
+#     Externals/CLRun/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)

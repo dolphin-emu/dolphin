@@ -9,7 +9,6 @@ set(LIBS	core
 			lua
 			z
 			sfml-network
-			wiiuse
 			SDL
 			GL
 			${XRANDR_LIBRARIES}

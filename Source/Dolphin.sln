@@ -251,11 +251,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLRun", "..\Externals\CLRun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SVNRevGen", "Core\Common\SVNRevGen.vcproj", "{B807E8DB-4241-4754-BC2A-2F435BCA881A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wiiuse", "Core\wiiuse\wiiuse.vcproj", "{52F70249-373A-4401-A70A-FF22760EC1B8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoUICommon", "Core\VideoUICommon\VideoUICommon.vcproj", "{56C4B06E-F2C9-4729-A15A-DD327A9AA465}"
 	ProjectSection(ProjectDependencies) = postProject
 		{05C75041-D67D-4903-A362-8395A7B35C75} = {05C75041-D67D-4903-A362-8395A7B35C75}

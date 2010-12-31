@@ -11,7 +11,7 @@ files = [
 
 libs = [
 	'core', 'lzo2', 'discio', 'bdisasm',
-	'inputcommon', 'common', 'lua', 'z', 'sfml-network', 'wiiuse',
+	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	]
 
 if env['HAVE_WX']:
