@@ -309,7 +309,7 @@ unsigned char *Wiimote::IORead()
 
 	// This needs to be done even if ReadFile fails, essential during init
 	// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-	memmove(buffer + 1, buffer, sizeof(buffer) - 1);
+	memmove(buffer + 1, buffer, sizeof(unsigned char) * MAX_PAYLOAD - 1);
 	buffer[0] = 0xa1;
 
 	ResetEvent(hid_overlap.hEvent);
