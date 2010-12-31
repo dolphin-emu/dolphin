@@ -314,6 +314,11 @@ static int ConnectWiimotes(Wiimote** wm)
 
 		if (wm[i]->Connect())
 			++connected;
+		else
+		{
+			delete wm[i];
+			wm[i] = NULL;
+		}
 	}
 
 	return connected;

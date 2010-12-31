@@ -70,8 +70,6 @@ void AboutDolphin::CreateGUIControls()
 		"\n"
 		"Thanks to hcs/destop for their GC ADPCM decoder.\n"
 		"\n"
-		"Thanks to Michael Laforest for the Wiiuse library.\n"
-		"\n"
 		"We are not affiliated with Nintendo in any way.\n"
 		"Gamecube and Wii are trademarks of Nintendo.\n"
 		"The emulator is for educational purposes only\n"
