@@ -972,38 +972,85 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
        break;
 	case GX_TF_I8:  // speed critical
 		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-#if _M_SSE >= 0x401
+#if _M_SSE >= 0x301
+            // JSD: It doesn't get any faster than this, folks.
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
+                {
+                    __m128i *quaddst;
 
-                    for (int iy = 0; iy < 4; ++iy, src += 8)
-                    {
-                        __m128i *quaddst = (__m128i *)(dst + (y + iy)*width + x);
-                        const __m128i m0 = _mm_or_si128(
-                            _mm_or_si128(
-                                _mm_and_si128(_mm_set1_epi8(src[0]), _mm_set_epi32(0, 0, 0, (int)0xffffffffU)),
-                                _mm_and_si128(_mm_set1_epi8(src[1]), _mm_set_epi32(0, 0, (int)0xffffffffU, 0))
-                            ),
-                            _mm_or_si128(
-                                _mm_and_si128(_mm_set1_epi8(src[2]), _mm_set_epi32(0, (int)0xffffffffU, 0, 0)),
-                                _mm_and_si128(_mm_set1_epi8(src[3]), _mm_set_epi32((int)0xffffffffU, 0, 0, 0))
-                            )
-                        );
-                        _mm_store_si128(quaddst, m0);
+                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+                    const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+                    const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
-                        const __m128i m1 = _mm_or_si128(
-                            _mm_or_si128(
-                                _mm_and_si128(_mm_set1_epi8(src[4]), _mm_set_epi32(0, 0, 0, (int)0xffffffffU)),
-                                _mm_and_si128(_mm_set1_epi8(src[5]), _mm_set_epi32(0, 0, (int)0xffffffffU, 0))
-                            ),
-                            _mm_or_si128(
-                                _mm_and_si128(_mm_set1_epi8(src[6]), _mm_set_epi32(0, (int)0xffffffffU, 0, 0)),
-                                _mm_and_si128(_mm_set1_epi8(src[7]), _mm_set_epi32((int)0xffffffffU, 0, 0, 0))
-                            )
-                        );
-                        _mm_store_si128(quaddst+1, m1);
-                    }
+                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+                    const __m128i rgba0 = _mm_unpacklo_epi8(r1, r1);
+                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+                    const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
+
+                    // Store (dddd cccc bbbb aaaa) out:
+                    quaddst = (__m128i *)(dst + (y + 0)*width + x);
+                    _mm_store_si128(quaddst, rgba0);
+                    // Store (hhhh gggg ffff eeee) out:
+                    _mm_store_si128(quaddst+1, rgba1);
+
+                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+                    src += 8;
+                    const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
+                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+                    const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
+
+                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+                    const __m128i rgba2 = _mm_unpacklo_epi8(r3, r3);
+                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+                    const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
+
+                    // Store (dddd cccc bbbb aaaa) out:
+                    quaddst = (__m128i *)(dst + (y + 1)*width + x);
+                    _mm_store_si128(quaddst, rgba2);
+                    // Store (hhhh gggg ffff eeee) out:
+                    _mm_store_si128(quaddst+1, rgba3);
+
+                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+                    src += 8;
+                    const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
+                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+                    const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
+
+                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+                    const __m128i rgba4 = _mm_unpacklo_epi8(r5, r5);
+                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+                    const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
+
+                    // Store (dddd cccc bbbb aaaa) out:
+                    quaddst = (__m128i *)(dst + (y + 2)*width + x);
+                    _mm_store_si128(quaddst, rgba4);
+                    // Store (hhhh gggg ffff eeee) out:
+                    _mm_store_si128(quaddst+1, rgba5);
+
+                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+                    src += 8;
+                    const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
+                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+                    const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
+
+                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+                    const __m128i rgba6 = _mm_unpacklo_epi8(r7, r7);
+                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+                    const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
+
+                    // Store (dddd cccc bbbb aaaa) out:
+                    quaddst = (__m128i *)(dst + (y + 3)*width + x);
+                    _mm_store_si128(quaddst, rgba6);
+                    // Store (hhhh gggg ffff eeee) out:
+                    _mm_store_si128(quaddst+1, rgba7);
+
+                    src += 8;
+                }
 #else
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 4; ++iy, src += 8)
                     {
                         u32 *  newdst = dst + (y + iy)*width+x;
@@ -1111,11 +1158,220 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		}
 		break;
     case GX_TF_RGB5A3:
-        {   // JSD: speed critical for Mario Kart Wii intro movie (at least)
+        {
+#if _M_SSE >= 0x301
+            // These constants are used to apply the (x & mask) operation after x has been right-shifted
+            // out of its place.
+            const __m128i kMask_x1f = _mm_set_epi32(0x0000001fL, 0x0000001fL, 0x0000001fL, 0x0000001fL);
+            const __m128i kMask_x0f = _mm_set_epi32(0x0000000fL, 0x0000000fL, 0x0000000fL, 0x0000000fL);
+            const __m128i kMask_x07 = _mm_set_epi32(0x00000007L, 0x00000007L, 0x00000007L, 0x00000007L);
+
+            // This is the hard-coded 0xFF alpha constant that is ORed in place after the RGB are calculated
+            // for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
+            const __m128i aVxff00   = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
+
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                    {
+                        u32 *newdst = dst+(y+iy)*width+x;
+                        const u16 *newsrc = (const u16*)src;
+
+                        // TODO: weak point
+                        const u16 val0 = Common::swap16(newsrc[0]);
+                        const u16 val1 = Common::swap16(newsrc[1]);
+                        const u16 val2 = Common::swap16(newsrc[2]);
+                        const u16 val3 = Common::swap16(newsrc[3]);
+
+                        // Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
+                        if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
+                        {
+                            // SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
+
+                            const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+
+                            // Swizzle bits: 00012345 -> 12345123
+
+                            //r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
+                            const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
+                            const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2) );
+
+                            //newdst[0] = r0 | (_______) | (________) | (________);
+                            __m128i final = rV;
+
+                            //g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
+                            const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
+                            const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2) );
+
+                            //newdst[0] = r0 | (g0 << 8) | (________) | (________);
+                            final = _mm_or_si128(
+                                final,
+                                _mm_slli_epi32(gV, 8)
+                            );
+
+                            //b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
+                            const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
+                            const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
+
+                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
+                            final = _mm_or_si128(
+                                final,
+                                _mm_slli_epi32(bV, 16)
+                            );
+
+                            // Alphas are ORed in as a constant __m128i.
+                            //a0 = 0xFF;
+
+                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+                            final = _mm_or_si128(
+                                final,
+                                aVxff00
+                            );
+
+                            // write the final result:
+                            _mm_store_si128( (__m128i*)newdst, final );
+                        }
+                        else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
+                        {
+                            // SSE2 case #2: all 4 pixels are in RGBA4443.
+
+                            const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+
+                            // Swizzle bits: 00001234 -> 12341234
+
+                            //r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
+                            const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
+                            const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 4), tmprV );
+
+                            //newdst[0] = r0 | (_______) | (________) | (________);
+                            __m128i final = rV;
+
+                            //g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
+                            const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
+                            const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 4), tmpgV );
+
+                            //newdst[0] = r0 | (g0 << 8) | (________) | (________);
+                            final = _mm_or_si128(
+                                final,
+                                _mm_slli_epi32(gV, 8)
+                            );
+
+                            //b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
+                            const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
+                            const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 4), tmpbV );
+
+                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
+                            final = _mm_or_si128(
+                                final,
+                                _mm_slli_epi32(bV, 16)
+                            );
+
+                            //a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
+                            const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
+                            const __m128i aV = _mm_or_si128(
+                                _mm_slli_epi16(tmpaV, 5),
+                                _mm_or_si128(
+                                    _mm_slli_epi16(tmpaV, 2),
+                                    _mm_srli_epi16(tmpaV, 1)
+                                )
+                            );
+
+                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+                            final = _mm_or_si128(
+                                final,
+                                _mm_slli_epi32(aV, 24)
+                            );
+
+                            // write the final result:
+                            _mm_store_si128( (__m128i*)newdst, final );
+                        }
+                        else
+                        {
+                            // Horrific fallback case, but hey at least it's inlined :D
+                            // Maybe overkill? I see slight improvements on my machine as far as RDTSC
+                            // counts and it's all done in registers (on x64). No temp memory moves!
+                            int r0,g0,b0,a0;
+                            int r1,g1,b1,a1;
+                            int r2,g2,b2,a2;
+                            int r3,g3,b3,a3;
+
+                            // Normal operation, no parallelism to take advantage of:
+                            if (val0 & 0x8000)
+                            {
+                                // Swizzle bits: 00012345 -> 12345123
+                                r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
+                                g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
+                                b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
+                                a0 = 0xFF;
+                            }
+                            else
+                            {
+                                a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
+                                // Swizzle bits: 00001234 -> 12341234
+                                r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
+                                g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
+                                b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
+                            }
+                            newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+
+                            if (val1 & 0x8000)
+                            {
+                                // Swizzle bits: 00012345 -> 12345123
+                                r1 = (((val1>>10) & 0x1f) << 3) | (((val1>>10) & 0x1f) >> 2);
+                                g1 = (((val1>>5 ) & 0x1f) << 3) | (((val1>>5 ) & 0x1f) >> 2);
+                                b1 = (((val1    ) & 0x1f) << 3) | (((val1    ) & 0x1f) >> 2);
+                                a1 = 0xFF;
+                            }
+                            else
+                            {
+                                a1 = (((val1>>12) & 0x7) << 5) | (((val1>>12) & 0x7) << 2) | (((val1>>12) & 0x7) >> 1);
+                                r1 = (((val1>>8 ) & 0xf) << 4) | ((val1>>8 ) & 0xf);
+                                g1 = (((val1>>4 ) & 0xf) << 4) | ((val1>>4 ) & 0xf);
+                                b1 = (((val1    ) & 0xf) << 4) | ((val1    ) & 0xf);
+                            }
+                            newdst[1] = r1 | (g1 << 8) | (b1 << 16) | (a1 << 24);
+
+                            if (val2 & 0x8000)
+                            {
+                                // Swizzle bits: 00012345 -> 12345123
+                                r2 = (((val2>>10) & 0x1f) << 3) | (((val2>>10) & 0x1f) >> 2);
+                                g2 = (((val2>>5 ) & 0x1f) << 3) | (((val2>>5 ) & 0x1f) >> 2);
+                                b2 = (((val2    ) & 0x1f) << 3) | (((val2    ) & 0x1f) >> 2);
+                                a2 = 0xFF;
+                            }
+                            else
+                            {
+                                a2 = (((val2>>12) & 0x7) << 5) | (((val2>>12) & 0x7) << 2) | (((val2>>12) & 0x7) >> 1);
+                                r2 = (((val2>>8 ) & 0xf) << 4) | ((val2>>8 ) & 0xf);
+                                g2 = (((val2>>4 ) & 0xf) << 4) | ((val2>>4 ) & 0xf);
+                                b2 = (((val2    ) & 0xf) << 4) | ((val2    ) & 0xf);
+                            }
+                            newdst[2] = r2 | (g2 << 8) | (b2 << 16) | (a2 << 24);
+
+                            if (val3 & 0x8000)
+                            {
+                                // Swizzle bits: 00012345 -> 12345123
+                                r3 = (((val3>>10) & 0x1f) << 3) | (((val3>>10) & 0x1f) >> 2);
+                                g3 = (((val3>>5 ) & 0x1f) << 3) | (((val3>>5 ) & 0x1f) >> 2);
+                                b3 = (((val3    ) & 0x1f) << 3) | (((val3    ) & 0x1f) >> 2);
+                                a3 = 0xFF;
+                            }
+                            else
+                            {
+                                a3 = (((val3>>12) & 0x7) << 5) | (((val3>>12) & 0x7) << 2) | (((val3>>12) & 0x7) >> 1);
+                                r3 = (((val3>>8 ) & 0xf) << 4) | ((val3>>8 ) & 0xf);
+                                g3 = (((val3>>4 ) & 0xf) << 4) | ((val3>>4 ) & 0xf);
+                                b3 = (((val3    ) & 0xf) << 4) | ((val3    ) & 0xf);
+                            }
+                            newdst[3] = r3 | (g3 << 8) | (b3 << 16) | (a3 << 24);
+                        }
+                    }
+#else
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)
                         decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
+#endif
         }
         break;
     case GX_TF_RGBA8:  // speed critical
@@ -1126,7 +1382,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0; iy < 4; iy++)
 						decodebytesARGB8_4ToRgba(dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
 					src += 64;
-				}			
+				}
 		}
         break;
     case GX_TF_CMPR:  // speed critical
