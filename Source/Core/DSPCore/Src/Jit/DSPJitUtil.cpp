@@ -163,7 +163,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 		CMP(32, R(ECX), R(EDX));
 		FixupBranch done3 = J_CC(CC_A);
 			//nar += wr + 1;
-			LEA(16, DI, MComplex(DI, DX, 1, 1));
+			LEA(32, EDI, MComplex(EDI, EDX, 1, 1));
 
 	SetJumpTarget(done);
 	SetJumpTarget(done2);
@@ -230,7 +230,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 		CMP(32, R(ECX), R(EDX));
 		FixupBranch done3 = J_CC(CC_A);
 			//nar += wr + 1;
-			LEA(16, DI, MComplex(DI, DX, 1, 1));
+			LEA(32, EDI, MComplex(EDI, EDX, 1, 1));
 
 	SetJumpTarget(done);
 	SetJumpTarget(done2);

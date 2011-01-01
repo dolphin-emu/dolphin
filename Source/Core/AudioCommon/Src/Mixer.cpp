@@ -119,7 +119,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples)
 	if (m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-		while (Common::AtomicLoad(m_numSamples) + RESERVED_SAMPLES >= MAX_SAMPLES)
+		while (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
 		{
 			if (g_dspInitialize.pEmulatorState)
 			{
