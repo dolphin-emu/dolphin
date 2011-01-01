@@ -382,7 +382,7 @@ void addr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 acc = dsp_get_long_acc(dreg);
-	s64 ax;
+	s64 ax = 0;
 	switch(sreg) {
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:
@@ -581,7 +581,7 @@ void subr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 acc = dsp_get_long_acc(dreg);
-	s64 ax;
+	s64 ax = 0;
 	switch(sreg) {
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:
@@ -758,7 +758,7 @@ void movr(const UDSPInstruction opc)
 	u8 areg = (opc >> 8) & 0x1;
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
  		
-	s64 ax;
+	s64 ax = 0;
 	switch(sreg) {
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:

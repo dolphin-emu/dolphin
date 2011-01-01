@@ -21,7 +21,9 @@
 #include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
 #include "../DSPAnalyzer.h"
+#ifdef _M_X64
 #include "DSPJitUtil.h"
+#endif
 #include "x64Emitter.h"
 #include "ABI.h"
 using namespace Gen;

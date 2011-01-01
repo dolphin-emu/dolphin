@@ -486,7 +486,7 @@ void DSPEmitter::CompileDispatcher()
 	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
 	TEST(8, MatR(RAX), Imm8(CR_HALT));
 #endif
-	FixupBranch halt = J_CC(CC_NE);
+	FixupBranch _halt = J_CC(CC_NE);
 
 #ifdef _M_IX86
 	MOVZX(32, 16, ECX, M(&g_dsp.pc));
@@ -512,7 +512,7 @@ void DSPEmitter::CompileDispatcher()
 	J_CC(CC_A, dispatcherLoop);
 	
 	// DSP gave up the remaining cycles.
-	SetJumpTarget(halt);
+	SetJumpTarget(_halt);
 	//MOV(32, M(&cyclesLeft), Imm32(0));
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();

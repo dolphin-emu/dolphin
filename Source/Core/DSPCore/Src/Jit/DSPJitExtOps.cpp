@@ -79,7 +79,7 @@ void DSPEmitter::s(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
-	u16 *sregp;
+	u16 *sregp = 0;
 	switch(sreg) {
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
@@ -115,7 +115,7 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 {
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
-	u16 *sregp;
+	u16 *sregp = 0;
 	switch(sreg) {
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:

@@ -464,13 +464,13 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 	ADD(64, R(long_prod), Imm32(0x8000));
 	MOV(64, R(ESI), Imm64(~0xffff));
 	AND(64, R(long_prod), R(RSI));
-	FixupBranch ret = J();
+	FixupBranch _ret = J();
 	//else prod = (prod + 0x7fff) & ~0xffff;
 	SetJumpTarget(jump);
 	ADD(64, R(long_prod), Imm32(0x7fff));
 	MOV(64, R(RSI), Imm64(~0xffff));
 	AND(64, R(long_prod), R(RSI));
-	SetJumpTarget(ret);
+	SetJumpTarget(_ret);
 	//return prod;
 #endif
 }
@@ -517,13 +517,13 @@ void DSPEmitter::round_long_acc(X64Reg long_acc)
 	ADD(64, R(long_acc), Imm32(0x8000));
 	MOV(64, R(ESI), Imm64(~0xffff));
 	AND(64, R(long_acc), R(RSI));
-	FixupBranch ret = J();
+	FixupBranch _ret = J();
 	//else prod = (prod + 0x7fff) & ~0xffff;
 	SetJumpTarget(jump);
 	ADD(64, R(long_acc), Imm32(0x7fff));
 	MOV(64, R(RSI), Imm64(~0xffff));
 	AND(64, R(long_acc), R(RSI));
-	SetJumpTarget(ret);
+	SetJumpTarget(_ret);
 	//return prod;
 #endif
 }
