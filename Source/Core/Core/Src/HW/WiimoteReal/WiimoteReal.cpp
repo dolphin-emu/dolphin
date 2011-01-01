@@ -55,7 +55,7 @@ Wiimote::Wiimote(const unsigned int _index)
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-	, leds(0), m_last_data_report(NULL), m_channel(0), m_connected(false)
+	, leds(0), m_channel(0), m_connected(false)
 {
 #ifdef __APPLE__
 	memset(queue, 0, sizeof queue);
@@ -67,6 +67,7 @@ Wiimote::Wiimote(const unsigned int _index)
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 #endif
 
+	ClearReadQueue();
 	DisableDataReporting();
 }
 
@@ -106,15 +107,16 @@ void Wiimote::DisableDataReporting()
 
 void Wiimote::ClearReadQueue()
 {
-	if (m_last_data_report)
+	Report rpt;
+
+	if (m_last_data_report.first)
 	{
-		delete[] m_last_data_report;
-		m_last_data_report = NULL;
+		delete[] m_last_data_report.first;
+		m_last_data_report.first = NULL;
 	}
 
-	u8 *rpt;
 	while (m_read_reports.Pop(rpt))
-		delete[] rpt;
+		delete[] rpt.first;
 }
 
 void Wiimote::ControlChannel(const u16 channel, const void* const data, const u32 size)
@@ -148,7 +150,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 	m_channel = channel;	// this right?
 
-	Wiimote::Report rpt;
+	Report rpt;
 	rpt.first = new u8[size];
 	rpt.second = (u8)size;
 	memcpy(rpt.first, (u8*)data, size);
@@ -159,10 +161,10 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	//if (WM_REPORT_MODE == ((u8*)data)[1])
 	//{
 	//	// also delete the last data report
-	//	if (m_last_data_report)
+	//	if (m_last_data_report.first)
 	//	{
-	//		delete[] m_last_data_report;
-	//		m_last_data_report = NULL;
+	//		delete[] m_last_data_report.first;
+	//		m_last_data_report.first = NULL;
 	//	}
 
 	//	// nice var names :p, this seems to be this one
@@ -175,18 +177,18 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 bool Wiimote::Read()
 {
-	u8* rpt;
-	if ((rpt = IORead()))
-	{
-		if (m_channel)
-		{
-			// Add it to queue
-			m_read_reports.Push(rpt);
-		}
+	Report rpt;
 
+	rpt.first = new unsigned char[MAX_PAYLOAD];
+	rpt.second = IORead(rpt.first);
+
+	if (rpt.second > 0 && m_channel > 0) {
+		// Add it to queue
+		m_read_reports.Push(rpt);
 		return true;
 	}
 
+	delete rpt.first;
 	return false;
 }
 
@@ -205,13 +207,13 @@ bool Wiimote::Write()
 }
 
 // Returns the next report that should be sent
-u8* Wiimote::ProcessReadQueue()
+Report Wiimote::ProcessReadQueue()
 {
 	// Pop through the queued reports
-	u8* rpt = m_last_data_report;
+	Report rpt = m_last_data_report;
 	while (m_read_reports.Pop(rpt))
 	{
-		if (rpt[1] >= WM_REPORT_CORE)
+		if (rpt.first[1] >= WM_REPORT_CORE)
 			// A data report
 			m_last_data_report = rpt;
 		else
@@ -226,15 +228,16 @@ u8* Wiimote::ProcessReadQueue()
 void Wiimote::Update()
 {
 	// Pop through the queued reports
-	u8* const rpt = ProcessReadQueue();
+	Report const rpt = ProcessReadQueue();
 
 	// Send the report
-	if (rpt && m_channel)
-		Core::Callback_WiimoteInterruptChannel(index, m_channel, rpt, MAX_PAYLOAD);
+	if (rpt.first != NULL && m_channel > 0)
+		Core::Callback_WiimoteInterruptChannel(index, m_channel,
+			rpt.first, rpt.second);
 
 	// Delete the data if it isn't also the last data rpt
 	if (rpt != m_last_data_report)
-		delete[] rpt;
+		delete[] rpt.first;
 }
 
 void Wiimote::Disconnect()

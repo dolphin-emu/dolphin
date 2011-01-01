@@ -148,7 +148,7 @@ libs = [
 if sys.platform == 'win32':
 	files += [ "HW/BBA-TAP/TAP_Win32.cpp", "stdafx.cpp", "HW/WiimoteReal/IOWin.cpp" ]
 elif sys.platform == 'darwin':
-	files += [ "HW/BBA-TAP/TAP_Apple.cpp", "HW/WiimoteReal/IOOsx.mm" ]
+	files += [ "HW/BBA-TAP/TAP_Apple.cpp", "HW/WiimoteReal/IOdarwin.mm" ]
 else:
 	files += [ "HW/BBA-TAP/TAP_Unix.cpp", "HW/WiimoteReal/IONix.cpp" ]
 

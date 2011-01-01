@@ -255,18 +255,17 @@ void Wiimote::RealDisconnect()
 	ResetEvent(&hid_overlap);
 }
 
-unsigned char *Wiimote::IORead()
+int Wiimote::IORead(unsigned char* buf)
 {
 	DWORD b, r;
 
 	init_lib();
 
 	if (!IsConnected())
-		return NULL;
+		return 0;
 
-	unsigned char *buffer = new unsigned char[MAX_PAYLOAD];
-	*buffer = 0;
-	if (!ReadFile(dev_handle, buffer, sizeof(unsigned char) * MAX_PAYLOAD, &b, &hid_overlap))
+	*buf = 0;
+	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD, &b, &hid_overlap))
 	{
 		// Partial read
 		b = GetLastError();
@@ -275,8 +274,7 @@ unsigned char *Wiimote::IORead()
 		{
 			// Remote disconnect
 			RealDisconnect();
-			delete[] buffer;
-			return NULL;
+			return 0;
 		}
 
 		r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
@@ -284,36 +282,33 @@ unsigned char *Wiimote::IORead()
 		{
 			// Timeout - cancel and continue
 
-			if (*buffer)
+			if (*buf)
 				WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
 						WIIMOTE_DEFAULT_TIMEOUT);
 
 			CancelIo(dev_handle);
 			ResetEvent(hid_overlap.hEvent);
-			delete[] buffer;
-			return NULL;
+			return 0;
 		}
 		else if (r == WAIT_FAILED)
 		{
 			WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
-			delete[] buffer;
-			return NULL;
+			return 0;
 		}
 
 		if (!GetOverlappedResult(dev_handle, &hid_overlap, &b, 0))
 		{
-			delete[] buffer;
-			return NULL;
+			return 0;
 		}
 	}
 
 	// This needs to be done even if ReadFile fails, essential during init
 	// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-	memmove(buffer + 1, buffer, sizeof(unsigned char) * MAX_PAYLOAD - 1);
-	buffer[0] = 0xa1;
+	memmove(buf + 1, buf, MAX_PAYLOAD - 1);
+	buf[0] = 0xa1;
 
 	ResetEvent(hid_overlap.hEvent);
-	return buffer;
+	return MAX_PAYLOAD;	// XXX
 }
 
 int Wiimote::IOWrite(unsigned char* buf, int len)
@@ -324,7 +319,7 @@ int Wiimote::IOWrite(unsigned char* buf, int len)
 	init_lib();
 
 	if (!IsConnected())
-		return NULL;
+		return 0;
 
 	switch (stack)
 	{

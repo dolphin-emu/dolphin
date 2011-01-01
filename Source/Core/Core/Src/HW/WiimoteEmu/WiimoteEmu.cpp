@@ -695,7 +695,8 @@ void Wiimote::Update()
 		g_refresh_critsec.Enter();
 		if (g_wiimotes[m_index])
 		{
-			u8* const real_data = g_wiimotes[m_index]->ProcessReadQueue();
+			Report rpt = g_wiimotes[m_index]->ProcessReadQueue();
+			const u8 *real_data = rpt.first;
 			if (real_data)
 			{
 				switch (real_data[1])
@@ -757,11 +758,12 @@ void Wiimote::Update()
 				// copy over report from real-wiimote
 				if (-1 == rptf_size)
 				{
-					memcpy(data, real_data, MAX_PAYLOAD);
-					rptf_size = MAX_PAYLOAD;
+					memcpy(data, real_data, rpt.second);
+					rptf_size = rpt.second;
 				}
 
-				if (real_data != g_wiimotes[m_index]->m_last_data_report)
+				if (real_data != g_wiimotes[m_index]->\
+					m_last_data_report.first)
 					delete[] real_data;
 			}
 		}

@@ -37,6 +37,9 @@ enum
 	WIIMOTE_SRC_HYBRID = 3,	// emu + real
 };
 
+// Pointer to data, and size of data
+typedef std::pair<u8*,u8> Report;
+
 namespace WiimoteReal
 {
 
@@ -51,7 +54,7 @@ public:
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
 	void Update();
 
-	u8* ProcessReadQueue();
+	Report ProcessReadQueue();
 
 	bool Read();
 	bool Write();
@@ -61,9 +64,6 @@ public:
 	void DisableDataReporting();
 	void Rumble();
 	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
-
-	// Pointer to data, and size of data
-	typedef std::pair<u8*,u8> Report;
 
 	const unsigned int	index;
 
@@ -95,7 +95,7 @@ public:
 	unsigned char leds;					// Currently lit leds
 
 protected:
-	u8	*m_last_data_report;
+	Report	m_last_data_report;
 	u16	m_channel;
 
 private:
@@ -104,11 +104,11 @@ private:
 	bool SendRequest(unsigned char report_type, unsigned char* data, int length);
 	bool Handshake();
 	void SetLEDs(int leds);
-	unsigned char *IORead();
+	int IORead(unsigned char* buf);
 	int IOWrite(unsigned char* buf, int len);
 
-	bool						m_connected;
-	Common::FifoQueue<u8*>		m_read_reports;
+	bool				m_connected;
+	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 };
 

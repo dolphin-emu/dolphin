@@ -196,14 +196,14 @@ void Wiimote::RealDisconnect()
 	in_sock = -1;
 }
 
-unsigned char *Wiimote::IORead()
+int Wiimote::IORead(unsigned char *buf)
 {
 	struct timeval tv;
 	fd_set fds;
 	int r;
 
 	if (!IsConnected())
-		return NULL;
+		return 0;
 
 	// Block select for 1/2000th of a second
 	tv.tv_sec = 0;
@@ -215,15 +215,14 @@ unsigned char *Wiimote::IORead()
 	if (select(in_sock + 1, &fds, NULL, NULL, &tv) == -1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
-		return NULL;
+		return 0;
 	}
 
 	if (!FD_ISSET(in_sock, &fds))
-		return NULL;
+		return 0;
 
 	// Read the pending message into the buffer
-	unsigned char *buffer = new unsigned char[MAX_PAYLOAD];
-	r = read(in_sock, buffer, sizeof(unsigned char) * MAX_PAYLOAD);
+	r = read(in_sock, buf, MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data
@@ -237,17 +236,15 @@ unsigned char *Wiimote::IORead()
 			RealDisconnect();
 		}
 
-		delete[] buffer;
-		return NULL;
+		return 0;
 	}
 	if (!r)
 	{
 		// Disconnect
 		RealDisconnect();
-		delete[] buffer;
-		return NULL;
+		return 0;
 	}
-	return buffer;
+	return r;
 }
 
 int Wiimote::IOWrite(unsigned char* buf, int len)

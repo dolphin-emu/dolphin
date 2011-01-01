@@ -138,7 +138,7 @@ if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
 		Src/HW/WiimoteReal/IOWin.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Apple.cpp Src/HW/WiimoteReal/IOOsx.mm)
+	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Apple.cpp Src/HW/WiimoteReal/IOdarwin.mm)
 elseif(UNIX)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Unix.cpp)
 	if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND BLUEZ_FOUND)
