@@ -45,8 +45,7 @@ static int s_nMaxVertexInstructions;
 
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	float f[4] = { f1, f2, f3, f4 };
-	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
+	glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
 }
 
 void SetVSConstant4fv(unsigned int const_number, const float *f)
@@ -56,21 +55,43 @@ void SetVSConstant4fv(unsigned int const_number, const float *f)
 
 void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	for (unsigned int i = 0; i < count; i++,f+=4)
-		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, f);
+    if(GLEW_EXT_gpu_program_parameters)
+    {
+       glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, f);
+    }
+    else
+    {
+        for (unsigned int i = 0; i < count; i++,f+=4)
+            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, f);
+    }
 }
 
 void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	for (unsigned int i = 0; i < count; i++)
+   if(GLEW_EXT_gpu_program_parameters)
 	{
-		float buf[4];
-		buf[0] = *f++;
-		buf[1] = *f++;
-		buf[2] = *f++;
-		buf[3] = 0.f;
-		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, buf);
-	}
+        float buf[4 * C_VENVCONST_END];
+        for (unsigned int i = 0; i < count; i++)
+	    {
+		    buf[4*i  ] = *f++;
+    		buf[4*i+1] = *f++;
+	    	buf[4*i+2] = *f++;
+	    	buf[4*i+3] = 0.f;
+	    }
+        glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, buf);
+    }
+    else
+    {
+        for (unsigned int i = 0; i < count; i++)
+	    {
+		    float buf[4];
+		    buf[0] = *f++;
+		    buf[1] = *f++;
+		    buf[2] = *f++;
+		    buf[3] = 0.f;
+		    glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, buf);
+	    }
+    }
 }
 
 
