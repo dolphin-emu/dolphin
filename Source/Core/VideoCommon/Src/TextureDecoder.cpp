@@ -1038,11 +1038,11 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
 
 						// Write row 0:
-						_mm_store_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
-						_mm_store_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
 						// Write row 1:
-						_mm_store_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
-						_mm_store_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 					}
 #if 0
 			// Reference C implementation:
@@ -1087,9 +1087,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 					// Store (dddd cccc bbbb aaaa) out:
 					quaddst = (__m128i *)(dst + (y + 0)*width + x);
-					_mm_store_si128(quaddst, rgba0);
+					_mm_storeu_si128(quaddst, rgba0);
 					// Store (hhhh gggg ffff eeee) out:
-					_mm_store_si128(quaddst+1, rgba1);
+					_mm_storeu_si128(quaddst+1, rgba1);
 
 					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 					src += 8;
@@ -1104,9 +1104,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 					// Store (dddd cccc bbbb aaaa) out:
 					quaddst = (__m128i *)(dst + (y + 1)*width + x);
-					_mm_store_si128(quaddst, rgba2);
+					_mm_storeu_si128(quaddst, rgba2);
 					// Store (hhhh gggg ffff eeee) out:
-					_mm_store_si128(quaddst+1, rgba3);
+					_mm_storeu_si128(quaddst+1, rgba3);
 
 					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 					src += 8;
@@ -1121,9 +1121,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 					// Store (dddd cccc bbbb aaaa) out:
 					quaddst = (__m128i *)(dst + (y + 2)*width + x);
-					_mm_store_si128(quaddst, rgba4);
+					_mm_storeu_si128(quaddst, rgba4);
 					// Store (hhhh gggg ffff eeee) out:
-					_mm_store_si128(quaddst+1, rgba5);
+					_mm_storeu_si128(quaddst+1, rgba5);
 
 					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 					src += 8;
@@ -1138,9 +1138,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 					// Store (dddd cccc bbbb aaaa) out:
 					quaddst = (__m128i *)(dst + (y + 3)*width + x);
-					_mm_store_si128(quaddst, rgba6);
+					_mm_storeu_si128(quaddst, rgba6);
 					// Store (hhhh gggg ffff eeee) out:
-					_mm_store_si128(quaddst+1, rgba7);
+					_mm_storeu_si128(quaddst+1, rgba7);
 
 					src += 8;
 				}
@@ -1250,7 +1250,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i r1 = _mm_or_si128(i3, a3);
 
 						// write out the 128-bit result:
-						_mm_store_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
+						_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
 					}
 #if 0
 			// Reference C implementation:
@@ -1376,7 +1376,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							);
 
 							// write the final result:
-							_mm_store_si128( (__m128i*)newdst, final );
+							_mm_storeu_si128( (__m128i*)newdst, final );
 						}
 						else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
 						{
@@ -1430,7 +1430,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							);
 
 							// write the final result:
-							_mm_store_si128( (__m128i*)newdst, final );
+							_mm_storeu_si128( (__m128i*)newdst, final );
 						}
 						else
 						{
@@ -1552,13 +1552,13 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					//           (RGBAf RGBAe RGBAd RGBAc)
 
 					// Loads the 1st half of AR components ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
-					const __m128i ar0 = _mm_load_si128((__m128i*)src);
+					const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
 					// Loads the 2nd half of AR components ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
-					const __m128i ar1 = _mm_load_si128((__m128i*)src+1);
+					const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
 					// Loads the 1st half of GB components ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
-					const __m128i gb0 = _mm_load_si128((__m128i*)src+2);
+					const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
 					// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
-					const __m128i gb1 = _mm_load_si128((__m128i*)src+3);
+					const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
 
 					// Expand the AR components to fill out 32-bit words:
 					// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 3][A 3][R 3][R 3] [A 2][A 2][R 2][R 2] [A 1][A 1][R 1][R 1] [A 0][A 0][R 0][R 0])
@@ -1613,13 +1613,13 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 					// Write em out!
 					__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
-					_mm_store_si128(dst128, rgba00);
+					_mm_storeu_si128(dst128, rgba00);
 					dst128 = (__m128i*)( dst + (y + 1) * width + x );
-					_mm_store_si128(dst128, rgba01);
+					_mm_storeu_si128(dst128, rgba01);
 					dst128 = (__m128i*)( dst + (y + 2) * width + x );
-					_mm_store_si128(dst128, rgba10);
+					_mm_storeu_si128(dst128, rgba10);
 					dst128 = (__m128i*)( dst + (y + 3) * width + x );
-					_mm_store_si128(dst128, rgba11);
+					_mm_storeu_si128(dst128, rgba11);
 				}
 #if 0
 			// Reference C implementation.

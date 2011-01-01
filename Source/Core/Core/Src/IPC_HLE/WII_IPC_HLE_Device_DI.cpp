@@ -27,6 +27,7 @@
 #include "../VolumeHandler.h"
 #include "VolumeCreator.h"
 #include "Filesystem.h"
+#include "LogManager.h"
 
 #include "../../DiscIO/Src/FileMonitor.h"
 
@@ -211,17 +212,21 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			u32 Size = Memory::Read_U32(_BufferIn + 0x04);
 			u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
 
-			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
-			if (pFilename != NULL)
+			// Don't do anything if the log is unselected
+			if (LogManager::GetInstance()->isEnable(LogTypes::FILEMON))
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%llx) - (DVDAddr: 0x%llx, Size: 0x%x)",
-					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
-				FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
-			}
-			else
-			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%llx, Size: 0x%x)",
-					DVDAddress, Size);
+				const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
+				if (pFilename != NULL)
+				{
+					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%llx) - (DVDAddr: 0x%llx, Size: 0x%x)",
+						pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
+					FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
+				}
+				else
+				{
+					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%llx, Size: 0x%x)",
+						DVDAddress, Size);
+				}
 			}
 
 			if (Size > _BufferOutSize)
