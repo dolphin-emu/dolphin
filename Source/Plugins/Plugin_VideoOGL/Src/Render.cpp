@@ -851,28 +851,20 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 		glDepthFunc(GL_NEVER);
 	}
 
-	glEnable(GL_SCISSOR_TEST);
-
-	// Update the viewport and scissor rect for clearing the picture
+	// Update viewport for clearing the picture
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);
 	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-	glDepthRange(0.0, 1.0);
+	glDepthRange(0.0, (float)(z & 0xFFFFFF) / float(0xFFFFFF));
 
 	glColor4f((float)((color >> 16) & 0xFF) / 255.0f,
 				(float)((color >> 8) & 0xFF) / 255.0f,
 				(float)(color & 0xFF) / 255.0f,
 				(float)((color >> 24) & 0xFF) / 255.0f);
-	float zval = -1.f + 2.f * (float)(z & 0xFFFFFF) / float(0xFFFFFF); // convert range [0;1] to [-1;1]
-	if(zval > 1.0f)
-		zval = 1.0f;
-	if(zval < -1.0f)
-		zval = -1.0f;
 	glBegin(GL_QUADS);
-	glVertex3f(-1.f, -1.f, zval);
-	glVertex3f(-1.f,  1.f, zval);
-	glVertex3f( 1.f,  1.f, zval);
-	glVertex3f( 1.f, -1.f, zval);
+	glVertex3f(-1.f, -1.f, 1.f);
+	glVertex3f(-1.f,  1.f, 1.f);
+	glVertex3f( 1.f,  1.f, 1.f);
+	glVertex3f( 1.f, -1.f, 1.f);
 	glEnd();
 
 	RestoreAPIState();
