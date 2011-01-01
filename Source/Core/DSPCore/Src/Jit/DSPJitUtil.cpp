@@ -23,316 +23,225 @@
 
 using namespace Gen;
 
-// Performs the hashing required by increment/increase/decrease_addr_reg
-// clobbers RCX
-void DSPEmitter::ToMask(X64Reg value_reg)
-{
-	//microbenchmarking results(1 000 000 000 iterations):
-	//             cpu\variant| 1     | 2
-	//intel mobile C2D@2.5GHz | 5.5s  | 4.0s
-	//amd athlon64x2@3GHz     | 6.1s  | 6.4s
-#if 0
-	MOV(16, R(CX), R(value_reg));
-	SHR(16, R(CX), Imm8(8));
-	OR(16, R(value_reg), R(CX));
-	MOV(16, R(CX), R(value_reg));
-	SHR(16, R(CX), Imm8(4));
-	OR(16, R(value_reg), R(CX));
-	MOV(16, R(CX), R(value_reg));
-	SHR(16, R(CX), Imm8(2));
-	OR(16, R(value_reg), R(CX));
-	MOV(16, R(CX), R(value_reg));
-	SHR(16, R(CX), Imm8(1));
-	OR(16, R(value_reg), R(CX));
-	MOVZX(32, 16, value_reg, R(value_reg));
-#else
-	BSR(16, CX, R(value_reg));
-	FixupBranch undef = J_CC(CC_Z); //CX is written, but undefined
+// addr math
+//
+// These functions detect overflow by checking if
+// the bit past the top of the mask(WR) has changed in AR.
+// They detect values under the minimum for a mask by adding wr + 1
+// and checking if the bit past the top of the mask doesn't change.
+// Both are done while ignoring changes due to values/holes in IX
+// above the mask.
 
-	MOV(32, R(value_reg), Imm32(2));
-	SHL(32, R(value_reg), R(CL));
-	SUB(32, R(value_reg), Imm32(1));
-	//don't waste an instruction on jumping over an effective noop
 
-	SetJumpTarget(undef);
-#endif
-	OR(16, R(value_reg), Imm16(1));
-}
-
-// EAX = g_dsp.r[reg]
-// EDX = g_dsp.r[DSP_REG_WR0 + reg]
-//clobbers RCX
+// EAX = g_dsp.r.ar[reg]
+// EDX = g_dsp.r.wr[reg]
+// EDI = temp
+// ECX = temp
 void DSPEmitter::increment_addr_reg(int reg)
 {
-	/*
-	u16 ar = g_dsp.r[reg];
-	u16 wr = g_dsp.r[reg+8];
-	u16 nar = ar+1;
-	//this works, because nar^ar will have all the bits from the highest
-	//changed bit downwards set(true only for +1!)
-	//based on an idea by Mylek
-	if((nar^ar)>=((wr<<1)|3))
-		nar -= wr+1;
-	*/
-
-	//	s16 tmp = g_dsp.r[reg];
 #ifdef _M_IX86 // All32
 	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[reg]));
-	MOV(16, R(DX), M(&g_dsp.r.wr[reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
-	MOV(16, R(DX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, wr[reg])));
-#endif
-
-	MOV(32, R(EDI), R(EAX));
-	ADD(32, R(EAX), Imm32(1));
-	XOR(32, R(EDI), R(EAX));
-
-	MOVZX(32, 16, ESI, R(DX));
-	SHL(32, R(ESI), Imm8(1));
-	OR(32, R(ESI), Imm32(3));
-	CMP(32, R(EDI), R(ESI));
-	FixupBranch nowrap = J_CC(CC_B);
-
-	SUB(16, R(AX), R(DX));
-	SUB(16, R(AX), Imm16(1));
-
-	SetJumpTarget(nowrap);
-
-	//	g_dsp.r[reg] = tmp;
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ar[reg]), R(AX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(AX));
-#endif
-}
-
-// EAX = g_dsp.r[reg]
-// EDX = g_dsp.r[DSP_REG_WR0 + reg]
-//clobbers RCX
-void DSPEmitter::decrement_addr_reg(int reg)
-{
-	/*
-	u16 ar = g_dsp.r[reg];
-	u16 wr = g_dsp.r[reg+8];
-	u16 m = ToMask(wr) | 1;
-	u16 nar = ar-1;
-	if((ar&m) - 1 < m-wr)
-		nar += wr+1;
-	return nar;
-	 */
-
-	//	s16 ar = g_dsp.r[reg];
-#ifdef _M_IX86 // All32
-	MOV(16, R(AX), M(&g_dsp.r.ar[reg]));
 	MOVZX(32, 16, EDX, M(&g_dsp.r.wr[reg]));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(AX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
+	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
 	MOVZX(32, 16, EDX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, wr[reg])));
 #endif
 
-	// ToMask(WR0), calculating it into EDI
-	//u16 m = ToMask(wr) | 1;
-	MOV(32, R(EDI), R(EDX));
-	ToMask(DI);
+	//u32 nar = ar + 1;
+	MOV(32, R(EDI), R(EAX));
+	ADD(32, R(EAX), Imm8(1));
 
-	//u16 nar = ar-1;
-	MOV(16, R(CX), R(AX));
-	SUB(16, R(AX), Imm16(1));
+	// if ((nar ^ ar) > ((wr | 1) << 1))
+	//		nar -= wr + 1;
+	XOR(32, R(EDI), R(EAX));
+	LEA(32, ECX, MComplex(EDX, EDX, 1, 0));
+	OR(32, R(ECX), Imm8(2));
+	CMP(32, R(EDI), R(ECX));
+	FixupBranch nowrap = J_CC(CC_BE);
+		SUB(16, R(AX), R(DX));
+		SUB(16, R(AX), Imm8(1));
+	SetJumpTarget(nowrap);
+	// g_dsp.r.ar[reg] = nar;
 
-	//(ar&m) - 1
-	AND(32, R(ECX), R(EDI)); //extension of ECX to 32 bit
-	SUB(32, R(ECX), Imm32(1));
-
-	//m-wr
-	SUB(32, R(EDI), R(EDX));
-	CMP(32, R(ECX), R(EDI));
-	FixupBranch out1 = J_CC(CC_GE);
-	ADD(16, R(AX), R(DX));
-	ADD(16, R(AX), Imm16(1));
-
-	SetJumpTarget(out1);
-
-	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r.ar[reg]), R(AX));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(AX));
+#endif
+}
+
+// EAX = g_dsp.r.ar[reg]
+// EDX = g_dsp.r.wr[reg]
+// EDI = temp
+// ECX = temp
+void DSPEmitter::decrement_addr_reg(int reg)
+{
+#ifdef _M_IX86 // All32
+	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[reg]));
+	MOVZX(32, 16, EDX, M(&g_dsp.r.wr[reg]));
+#else
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
+	MOVZX(32, 16, EDX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, wr[reg])));
+#endif
+
+	// u32 nar = ar + wr;
+	// edi = nar
+	LEA(32, EDI, MComplex(EAX, EDX, 1, 0));
+
+	// if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
+	//		nar -= wr + 1;
+	XOR(32, R(EAX), R(EDI));
+	LEA(32, ECX, MComplex(EDX, EDX, 1, 0));
+	OR(32, R(ECX), Imm8(2));
+	AND(32, R(EAX), R(ECX));
+	CMP(32, R(EAX), R(EDX));
+	FixupBranch nowrap = J_CC(CC_BE);
+		SUB(16, R(DI), R(DX));
+		SUB(16, R(DI), Imm8(1));
+	SetJumpTarget(nowrap);		
+	// g_dsp.r.ar[reg] = nar;
+
+#ifdef _M_IX86 // All32
+	MOV(16, M(&g_dsp.r.ar[reg]), R(DI));
+#else
+	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(DI));
 #endif
 }
 
 // Increase addr register according to the correspond ix register
-// EAX = g_dsp.r[reg]
-// ECX = g_dsp.r[DSP_REG_IX0 + reg]
-// EDX = g_dsp.r[DSP_REG_WR0 + reg]
-// EDI = tomask(EDX)
+// EAX = g_dsp.r.ar[reg]
+// EDX = g_dsp.r.wr[reg]
+// ESI = g_dsp.r.ix[reg]
+// ECX = temp
+// EDI = temp
 void DSPEmitter::increase_addr_reg(int reg)
-{
-	/*
-	u16 ar = g_dsp.r[reg];
-	u16 wr = g_dsp.r[reg+8];
-	u16 ix = g_dsp.r[reg+4];
-	u16 m = ToMask(wr) | 1;
-	u16 nar = ar+ix;
-	if ((s16)ix >= 0) {
-		if((ar&m) + (ix&m) -(int)m-1 >= 0)
-			nar -= wr+1;
-	} else {
-		if((ar&m) + (ix&m) -(int)m-1 < m-wr)
-			nar += wr+1;
-	}
-	return nar;
-	 */
-
+{	
 #ifdef _M_IX86 // All32
-	MOV(16, R(SI), M(&g_dsp.r.ix[reg]));
-	MOV(16, R(AX), M(&g_dsp.r.ar[reg]));
+	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[reg]));
 	MOVZX(32, 16, EDX, M(&g_dsp.r.wr[reg]));
+	MOVSX(32, 16, ESI, M(&g_dsp.r.ix[reg]));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(SI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ix[reg])));
-	MOV(16, R(AX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
+	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
 	MOVZX(32, 16, EDX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, wr[reg])));
+	MOVSX(32, 16, ESI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ix[reg])));
 #endif
+	
+	//u32 nar = ar + ix;
+	//edi = nar
+	LEA(32, EDI, MComplex(EAX, ESI, 1, 0));
 
-	// ToMask(WR0), calculating it into EDI
-	//u16 m = ToMask(wr) | 1;
-	MOV(32, R(EDI), R(EDX));
-	ToMask(DI);
+	//u32 dar = (nar ^ ar ^ ix) & ((wr | 1) << 1);
+	//eax = dar
+	XOR(32, R(EAX), R(ESI));
+	XOR(32, R(EAX), R(EDI));	
+	LEA(32, ECX, MComplex(EDX, EDX, 1, 0));
+	OR(32, R(ECX), Imm8(2));
+	AND(32, R(EAX), R(ECX));
 
-	//u16 nar = ar+ix;
-	MOV(16, R(CX), R(AX));
-	ADD(16, R(AX), R(SI));
+	//if (ix >= 0)
+	TEST(32, R(ESI), R(ESI));
+	FixupBranch negative = J_CC(CC_S);
+		//if (dar > wr)
+		CMP(32, R(EAX), R(EDX));
+		FixupBranch done = J_CC(CC_BE);
+			//nar -= wr + 1;
+			SUB(16, R(DI), R(DX));
+			SUB(16, R(DI), Imm8(1));
+			FixupBranch done2 = J();
 
-	TEST(16, R(SI), Imm16(0x8000));
-	FixupBranch negative = J_CC(CC_NZ);
-
-	//(ar&m) + (ix&m) -(int)m-1
-	AND(32, R(ECX), R(EDI)); //extension of ECX to 32 bit
-	AND(32, R(ESI), R(EDI)); //extension of ESI to 32 bit
-	ADD(32, R(ECX), R(ESI));
-	SUB(32, R(ECX), R(EDI));
-	SUB(32, R(ECX), Imm32(1));
-
-	CMP(32, R(ECX), Imm32(0));
-	FixupBranch out1 = J_CC(CC_L);
-	SUB(16, R(AX), R(DX));
-	SUB(16, R(AX), Imm16(1));
-	FixupBranch out2 = J();
-
+	//else
 	SetJumpTarget(negative);
+		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
+		LEA(32, ECX, MComplex(EDI, EDX, 1, 1));
+		XOR(32, R(ECX), R(EDI));
+		AND(32, R(ECX), R(EAX));
+		CMP(32, R(ECX), R(EDX));
+		FixupBranch done3 = J_CC(CC_A);
+			//nar += wr + 1;
+			LEA(16, DI, MComplex(DI, DX, 1, 1));
 
-	//(ar&m) + (ix&m) -(int)m-1
-	AND(32, R(ECX), R(EDI)); //extension of ECX to 32 bit
-	AND(32, R(ESI), R(EDI)); //extension of ESI to 32 bit
-	ADD(32, R(ECX), R(ESI));
-	SUB(32, R(ECX), R(EDI));
-	SUB(32, R(ECX), Imm32(1));
-	//m-wr
-	SUB(32, R(EDI), R(EDX));
-	CMP(32, R(ECX), R(EDI));
-	FixupBranch out3 = J_CC(CC_GE);
-	ADD(16, R(AX), R(DX));
-	ADD(16, R(AX), Imm16(1));
+	SetJumpTarget(done);
+	SetJumpTarget(done2);
+	SetJumpTarget(done3);
+	// g_dsp.r.ar[reg] = nar;
 
-	SetJumpTarget(out1);
-	SetJumpTarget(out2);
-	SetJumpTarget(out3);
-
-	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ar[reg]), R(EAX));
+	MOV(16, M(&g_dsp.r.ar[reg]), R(DI));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(EAX));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(DI));
 #endif
 }
 
 // Decrease addr register according to the correspond ix register
-// EAX = g_dsp.r[reg]
-// ECX = g_dsp.r[DSP_REG_IX0 + reg]
-// EDX = g_dsp.r[DSP_REG_WR0 + reg]
-// EDI = tomask(EDX)
+// EAX = g_dsp.r.ar[reg]
+// EDX = g_dsp.r.wr[reg]
+// ESI = g_dsp.r.ix[reg]
+// ECX = temp
+// EDI = temp
 void DSPEmitter::decrease_addr_reg(int reg)
 {
-	/*
-	u16 ar = g_dsp.r[reg];
-	u16 wr = g_dsp.r[reg+8];
-	u16 ix = g_dsp.r[reg+4];
-	u16 m = ToMask(wr) | 1;
-	u16 nar = ar-ix;   //!!
-	if ((u16)ix > 0x8000) { // equiv: ix < 0 && ix != -0x8000  //!!
-		if((ar&m) - (int)(ix&m) >= 0)  //!!
-			nar -= wr+1;
-	} else {
-		if((ar&m) - (int)(ix&m) < m-wr) //!!
-			nar += wr+1;
-	}
-	return nar;
-	 */
-
 #ifdef _M_IX86 // All32
-	MOV(16, R(SI), M(&g_dsp.r.ix[reg]));
-	MOV(16, R(AX), M(&g_dsp.r.ar[reg]));
+	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[reg]));
 	MOVZX(32, 16, EDX, M(&g_dsp.r.wr[reg]));
+	MOVSX(32, 16, ESI, M(&g_dsp.r.ix[reg]));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(SI), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ix[reg])));
-	MOV(16, R(AX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
+	MOVZX(32, 16, EAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
 	MOVZX(32, 16, EDX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, wr[reg])));
+	MOVSX(32, 16, ESI, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ix[reg])));
 #endif
 
-	// ToMask(WR0), calculating it into EDI
-	//u16 m = ToMask(wr) | 1;
-	MOV(32, R(EDI), R(EDX));
-	ToMask(DI);
+	NOT(32, R(ESI)); //esi = ~ix
 
-	//u16 nar = ar-ix;
-	MOV(16, R(CX), R(AX));
-	SUB(16, R(AX), R(SI));
+	//u32 nar = ar - ix; (ar + ~ix + 1)
+	LEA(32, EDI, MComplex(EAX, ESI, 1, 1));
 
-	CMP(16, R(SI), Imm16(0x8000));
-	FixupBranch negative = J_CC(CC_BE);
+	//u32 dar = (nar ^ ar ^ ~ix) & ((wr | 1) << 1);
+	//eax = dar
+	XOR(32, R(EAX), R(ESI));
+	XOR(32, R(EAX), R(EDI));
+	LEA(32, ECX, MComplex(EDX, EDX, 1, 0));
+	OR(32, R(ECX), Imm8(2));
+	AND(32, R(EAX), R(ECX));
 
-	//(ar&m) + (ix&m)
-	AND(32, R(ECX), R(EDI));
-	AND(32, R(ESI), R(EDI));
-	SUB(32, R(ECX), R(ESI));
+	//if ((u32)ix > 0xFFFF8000)  ==> (~ix < 0x00007FFF)
+	CMP(32, R(ESI), Imm32(0x00007FFF));
+	FixupBranch positive = J_CC(CC_AE);
+		//if (dar > wr)
+		CMP(32, R(EAX), R(EDX));
+		FixupBranch done = J_CC(CC_BE);
+			//nar -= wr + 1;
+			SUB(16, R(DI), R(DX));
+			SUB(16, R(DI), Imm8(1));
+			FixupBranch done2 = J();
 
-	CMP(32, R(ECX), Imm32(0));
-	FixupBranch out1 = J_CC(CC_L);
-	SUB(16, R(AX), R(DX));
-	SUB(16, R(AX), Imm16(1));
-	FixupBranch out2 = J();
+	//else
+	SetJumpTarget(positive);
+		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
+		LEA(32, ECX, MComplex(EDI, EDX, 1, 1));
+		XOR(32, R(ECX), R(EDI));
+		AND(32, R(ECX), R(EAX));
+		CMP(32, R(ECX), R(EDX));
+		FixupBranch done3 = J_CC(CC_A);
+			//nar += wr + 1;
+			LEA(16, DI, MComplex(DI, DX, 1, 1));
 
-	SetJumpTarget(negative);
+	SetJumpTarget(done);
+	SetJumpTarget(done2);
+	SetJumpTarget(done3);
+	//return nar
 
-	//(ar&m) + (ix&m)
-	AND(32, R(ECX), R(EDI));
-	AND(32, R(ESI), R(EDI));
-	SUB(32, R(ECX), R(ESI));
-
-	//m-wr
-	SUB(32, R(EDI), R(EDX));
-	CMP(32, R(ECX), R(EDI));
-	FixupBranch out3 = J_CC(CC_GE);
-	ADD(16, R(AX), R(DX));
-	ADD(16, R(AX), Imm16(1));
-
-	SetJumpTarget(out1);
-	SetJumpTarget(out2);
-	SetJumpTarget(out3);
-
-	//	g_dsp.r[reg] = tmp;
 #ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ar[reg]), R(EAX));
+	MOV(16, M(&g_dsp.r.ar[reg]), R(DI));
 #else
 	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(EAX));
+	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])), R(DI));
 #endif
 }
 

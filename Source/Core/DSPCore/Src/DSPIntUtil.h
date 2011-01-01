@@ -105,7 +105,7 @@ inline u16 dsp_increment_addr_reg(u16 reg)
 
 	u32 nar = ar + 1;
 	
-	if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
+	if ((nar ^ ar) > ((wr | 1) << 1))
 		nar -= wr + 1;
 	return nar;
 }
