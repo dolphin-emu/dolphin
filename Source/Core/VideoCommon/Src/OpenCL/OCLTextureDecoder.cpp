@@ -20,8 +20,6 @@
 #include "OpenCL.h"
 #include "FileUtil.h"
 
-#include "svnrev.h"
-
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,6 +82,8 @@ sDecoderParameter g_DecodeParametersRGBA[] = {
 bool g_Inited = false;
 cl_mem g_clsrc, g_cldst;                    // texture buffer memory objects
 
+#define HEADER_SIZE	32
+
 void TexDecoder_OpenCL_Initialize()
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
@@ -101,8 +101,10 @@ void TexDecoder_OpenCL_Initialize()
 		size_t *binary_sizes = NULL;
 		char **binaries = NULL;		
 		char filename[1024];
+		char dolphin_rev[HEADER_SIZE];
 
 		sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
+		snprintf(dolphin_rev, HEADER_SIZE, "%-31s", svn_rev_str);
 
 		FILE *input = NULL;
 
@@ -114,22 +116,19 @@ void TexDecoder_OpenCL_Initialize()
 		else
 		{
 			binary_size = File::GetSize(input);
-			header = new char[10];
+			header = new char[HEADER_SIZE];
 			binary = new char[binary_size];
-			fread(header, sizeof(char), 10, input);
-			binary_size = fread(binary, sizeof(char), binary_size - 10, input);
+			fread(header, sizeof(char), HEADER_SIZE, input);
+			binary_size = fread(binary, sizeof(char),
+				binary_size - HEADER_SIZE, input);
 			fclose(input);
 		}
 
 		if (binary_size > 0)
 		{
-			if (binary_size > 10)
+			if (binary_size > HEADER_SIZE)
 			{
-				header[9] = '\0';
-				std::string current_rev = SVN_REV_STR;
-				std::string file_rev = header;
-
-				if (!current_rev.compare(0, 9, file_rev))
+				if (strncmp(header, dolphin_rev, HEADER_SIZE) == 0)
 				{
 					g_program = clCreateProgramWithBinary(OpenCL::GetContext(), 1, &OpenCL::device_id, &binary_size, (const unsigned char**)&binary, NULL, &err);
 					if (err != CL_SUCCESS)
@@ -188,7 +187,7 @@ void TexDecoder_OpenCL_Initialize()
 			{
 				if( binary_sizes[i] != 0 )
 				{
-					binaries[i] = (char *)malloc(sizeof(char)*binary_sizes[i] + 10);
+					binaries[i] = (char *)malloc(HEADER_SIZE + binary_sizes[i]);
 				}
 				else
 				{
@@ -204,10 +203,9 @@ void TexDecoder_OpenCL_Initialize()
 			if (!err)
 			{
 				sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
-				const char *current_rev = SVN_REV_STR + '\0';
-
 				FILE *output = NULL;
 				output = fopen(filename, "wb");
+
 				if (output == NULL)
 				{
 					binary_size = 0;
@@ -215,7 +213,7 @@ void TexDecoder_OpenCL_Initialize()
 				else
 				{
 					// Supporting one OpenCL device for now
-					fwrite(current_rev, sizeof(char), 10, output);
+					fwrite(dolphin_rev, sizeof(char), HEADER_SIZE, output);
 					fwrite(binaries[0], sizeof(char), binary_sizes[0], output);
 					fclose(output);
 				}
