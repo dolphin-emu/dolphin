@@ -56,39 +56,39 @@ u8 texMem[TMEM_SIZE];
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
 {
-    switch (format & 0x3f) {
-    case GX_TF_I4: return 1;   
-    case GX_TF_I8: return 2;
-    case GX_TF_IA4: return 2;
-    case GX_TF_IA8: return 4;
-    case GX_TF_RGB565: return 4;
-    case GX_TF_RGB5A3: return 4;
-    case GX_TF_RGBA8: return 8;
-    case GX_TF_C4: return 1;
-    case GX_TF_C8: return 2;
-    case GX_TF_C14X2: return 4;
-    case GX_TF_CMPR: return 1;
+	switch (format & 0x3f) {
+	case GX_TF_I4: return 1;   
+	case GX_TF_I8: return 2;
+	case GX_TF_IA4: return 2;
+	case GX_TF_IA8: return 4;
+	case GX_TF_RGB565: return 4;
+	case GX_TF_RGB5A3: return 4;
+	case GX_TF_RGBA8: return 8;
+	case GX_TF_C4: return 1;
+	case GX_TF_C8: return 2;
+	case GX_TF_C14X2: return 4;
+	case GX_TF_CMPR: return 1;
 	case GX_CTF_R4:    return 1;   
-    case GX_CTF_RA4:   return 2;
-    case GX_CTF_RA8:   return 4;
-    case GX_CTF_YUVA8: return 8;
-    case GX_CTF_A8:    return 2;
-    case GX_CTF_R8:    return 2;
-    case GX_CTF_G8:    return 2;
-    case GX_CTF_B8:    return 2;
-    case GX_CTF_RG8:   return 4;
-    case GX_CTF_GB8:   return 4;
+	case GX_CTF_RA4:   return 2;
+	case GX_CTF_RA8:   return 4;
+	case GX_CTF_YUVA8: return 8;
+	case GX_CTF_A8:    return 2;
+	case GX_CTF_R8:    return 2;
+	case GX_CTF_G8:    return 2;
+	case GX_CTF_B8:    return 2;
+	case GX_CTF_RG8:   return 4;
+	case GX_CTF_GB8:   return 4;
 
-    case GX_TF_Z8:     return 2;
-    case GX_TF_Z16:    return 4;
+	case GX_TF_Z8:     return 2;
+	case GX_TF_Z16:    return 4;
 	case GX_TF_Z24X8:  return 8;
 
-    case GX_CTF_Z4:    return 1;   
-    case GX_CTF_Z8M:   return 2;
-    case GX_CTF_Z8L:   return 2;
-    case GX_CTF_Z16L:  return 4;
-    default: return 1;
-    }
+	case GX_CTF_Z4:    return 1;   
+	case GX_CTF_Z8M:   return 2;
+	case GX_CTF_Z8L:   return 2;
+	case GX_CTF_Z16L:  return 4;
+	default: return 1;
+	}
 }
 
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
@@ -98,28 +98,28 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 
 int TexDecoder_GetBlockWidthInTexels(u32 format)
 {
-    switch (format)
+	switch (format)
 	{
-    case GX_TF_I4: return 8;   
-    case GX_TF_I8: return 8;
-    case GX_TF_IA4: return 8;
-    case GX_TF_IA8: return 4;
-    case GX_TF_RGB565: return 4;
-    case GX_TF_RGB5A3: return 4;
-    case GX_TF_RGBA8: return  4;
-    case GX_TF_C4: return 8;
-    case GX_TF_C8: return 8;
-    case GX_TF_C14X2: return 4;
-    case GX_TF_CMPR: return 8;
+	case GX_TF_I4: return 8;   
+	case GX_TF_I8: return 8;
+	case GX_TF_IA4: return 8;
+	case GX_TF_IA8: return 4;
+	case GX_TF_RGB565: return 4;
+	case GX_TF_RGB5A3: return 4;
+	case GX_TF_RGBA8: return  4;
+	case GX_TF_C4: return 8;
+	case GX_TF_C8: return 8;
+	case GX_TF_C14X2: return 4;
+	case GX_TF_CMPR: return 8;
 	case GX_CTF_R4: return 8;
-    case GX_CTF_RA4: return 8;
-    case GX_CTF_RA8: return 4;
-    case GX_CTF_A8: return 8;
-    case GX_CTF_R8: return 8;
-    case GX_CTF_G8: return 8;
-    case GX_CTF_B8: return 8;
-    case GX_CTF_RG8: return 4;
-    case GX_CTF_GB8: return 4;
+	case GX_CTF_RA4: return 8;
+	case GX_CTF_RA8: return 4;
+	case GX_CTF_A8: return 8;
+	case GX_CTF_R8: return 8;
+	case GX_CTF_G8: return 8;
+	case GX_CTF_B8: return 8;
+	case GX_CTF_RG8: return 4;
+	case GX_CTF_GB8: return 4;
 	case GX_TF_Z8: return 8;
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
@@ -127,36 +127,36 @@ int TexDecoder_GetBlockWidthInTexels(u32 format)
 	case GX_CTF_Z8M: return 8;
 	case GX_CTF_Z8L: return 8;
 	case GX_CTF_Z16L: return 4;
-    default:
+	default:
 		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
 		return 8;
-    }
+	}
 }
 
 int TexDecoder_GetBlockHeightInTexels(u32 format)
 {
-    switch (format)
+	switch (format)
 	{
-    case GX_TF_I4: return 8;   
-    case GX_TF_I8: return 4;
-    case GX_TF_IA4: return 4;
-    case GX_TF_IA8: return 4;
-    case GX_TF_RGB565: return 4;
-    case GX_TF_RGB5A3: return 4;
-    case GX_TF_RGBA8: return  4;
-    case GX_TF_C4: return 8;
-    case GX_TF_C8: return 4;
-    case GX_TF_C14X2: return 4;
-    case GX_TF_CMPR: return 8;
+	case GX_TF_I4: return 8;   
+	case GX_TF_I8: return 4;
+	case GX_TF_IA4: return 4;
+	case GX_TF_IA8: return 4;
+	case GX_TF_RGB565: return 4;
+	case GX_TF_RGB5A3: return 4;
+	case GX_TF_RGBA8: return  4;
+	case GX_TF_C4: return 8;
+	case GX_TF_C8: return 4;
+	case GX_TF_C14X2: return 4;
+	case GX_TF_CMPR: return 8;
 	case GX_CTF_R4: return 8;
-    case GX_CTF_RA4: return 4;
-    case GX_CTF_RA8: return 4;
-    case GX_CTF_A8: return 4;
-    case GX_CTF_R8: return 4;
-    case GX_CTF_G8: return 4;
-    case GX_CTF_B8: return 4;
-    case GX_CTF_RG8: return 4;
-    case GX_CTF_GB8: return 4;
+	case GX_CTF_RA4: return 4;
+	case GX_CTF_RA8: return 4;
+	case GX_CTF_A8: return 4;
+	case GX_CTF_R8: return 4;
+	case GX_CTF_G8: return 4;
+	case GX_CTF_B8: return 4;
+	case GX_CTF_RG8: return 4;
+	case GX_CTF_GB8: return 4;
 	case GX_TF_Z8: return 4;
 	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 4;
@@ -164,119 +164,119 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
 	case GX_CTF_Z8M: return 4;
 	case GX_CTF_Z8L: return 4;
 	case GX_CTF_Z16L: return 4;
-    default:
+	default:
 		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
 		return 4;
-    }
+	}
 }
 
 //returns bytes
 int TexDecoder_GetPaletteSize(int format)
 {
-    switch (format)
+	switch (format)
 	{
 	case GX_TF_C4: return 16 * 2;
-    case GX_TF_C8: return 256 * 2;
-    case GX_TF_C14X2: return 16384 * 2;
-    default:
-        return 0;
-    }
+	case GX_TF_C8: return 256 * 2;
+	case GX_TF_C14X2: return 16384 * 2;
+	default:
+		return 0;
+	}
 }
 
 inline u32 decodeIA8(u16 val)
 {
-    int a = val >> 8;
-    int i = val & 0xFF;
-    return (a << 24) | (i << 16) | (i << 8) | i;
+	int a = val >> 8;
+	int i = val & 0xFF;
+	return (a << 24) | (i << 16) | (i << 8) | i;
 }
 
 inline u32 decode5A3(u16 val)
 {
-    int r,g,b,a;
-    if ((val & 0x8000))
-    {
-        a = 0xFF;
+	int r,g,b,a;
+	if ((val & 0x8000))
+	{
+		a = 0xFF;
 		r = Convert5To8((val >> 10) & 0x1F);
 		g = Convert5To8((val >> 5) & 0x1F);
 		b = Convert5To8(val & 0x1F);
 	}
-    else
-    {
+	else
+	{
 		a = Convert3To8((val >> 12) & 0x7);
 		r = Convert4To8((val >> 8) & 0xF);
 		g = Convert4To8((val >> 4) & 0xF);
 		b = Convert4To8(val & 0xF);
-    }
-    return (a << 24) | (r << 16) | (g << 8) | b;
+	}
+	return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
 inline u32 decode5A3RGBA(u16 val)
 {
-    int r,g,b,a;
-    if ((val&0x8000))
-    {
-        r=Convert5To8((val>>10) & 0x1f);
-        g=Convert5To8((val>>5 ) & 0x1f);
-        b=Convert5To8((val    ) & 0x1f);
-        a=0xFF;
+	int r,g,b,a;
+	if ((val&0x8000))
+	{
+		r=Convert5To8((val>>10) & 0x1f);
+		g=Convert5To8((val>>5 ) & 0x1f);
+		b=Convert5To8((val    ) & 0x1f);
+		a=0xFF;
 	}
-    else
-    {
-        a=Convert3To8((val>>12) & 0x7);
-        r=Convert4To8((val>>8 ) & 0xf);
-        g=Convert4To8((val>>4 ) & 0xf);
-        b=Convert4To8((val    ) & 0xf);
-    }
-    return r | (g<<8) | (b << 16) | (a << 24);
+	else
+	{
+		a=Convert3To8((val>>12) & 0x7);
+		r=Convert4To8((val>>8 ) & 0xf);
+		g=Convert4To8((val>>4 ) & 0xf);
+		b=Convert4To8((val    ) & 0xf);
+	}
+	return r | (g<<8) | (b << 16) | (a << 24);
 }
 
 inline u32 decode565RGBA(u16 val)
 {
-    int r,g,b,a;
-    r=Convert5To8((val>>11) & 0x1f);
-    g=Convert6To8((val>>5 ) & 0x3f);
-    b=Convert5To8((val    ) & 0x1f);
-    a=0xFF;
-    return  r | (g<<8) | (b << 16) | (a << 24);
+	int r,g,b,a;
+	r=Convert5To8((val>>11) & 0x1f);
+	g=Convert6To8((val>>5 ) & 0x3f);
+	b=Convert5To8((val    ) & 0x1f);
+	a=0xFF;
+	return  r | (g<<8) | (b << 16) | (a << 24);
 }
 
 inline u32 decodeIA8Swapped(u16 val)
 {
-    int a = val & 0xFF;
-    int i = val >> 8;
-    return i | (i<<8) | (i<<16) | (a<<24);
+	int a = val & 0xFF;
+	int i = val >> 8;
+	return i | (i<<8) | (i<<16) | (a<<24);
 }
 
 
 
 struct DXTBlock
 {
-    u16 color1;
-    u16 color2;
-    u8 lines[4];
+	u16 color1;
+	u16 color2;
+	u8 lines[4];
 };
 
 //inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
 inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 {
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 4; x++)
-    {
-        u8 val = src[x];
-        *dst++ = decode5A3(Common::swap16(tlut[val >> 4]));
-        *dst++ = decode5A3(Common::swap16(tlut[val & 0xF]));
-    }
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u8 val = src[x];
+		*dst++ = decode5A3(Common::swap16(tlut[val >> 4]));
+		*dst++ = decode5A3(Common::swap16(tlut[val & 0xF]));
+	}
 }
 
 inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
 {
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 4; x++)
-    {
-        u8 val = src[x];
-        *dst++ = decode5A3RGBA(Common::swap16(tlut[val >> 4]));
-        *dst++ = decode5A3RGBA(Common::swap16(tlut[val & 0xF]));
-    }
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u8 val = src[x];
+		*dst++ = decode5A3RGBA(Common::swap16(tlut[val >> 4]));
+		*dst++ = decode5A3RGBA(Common::swap16(tlut[val & 0xF]));
+	}
 }
 
 inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
@@ -315,22 +315,22 @@ inline void decodebytesC4RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 //inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
 inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 { 
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 8; x++)
-    {
-        u8 val = src[x];
-        *dst++ = decode5A3(Common::swap16(tlut[val]));
-    }
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 8; x++)
+	{
+		u8 val = src[x];
+		*dst++ = decode5A3(Common::swap16(tlut[val]));
+	}
 }
 
 inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
 { 
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 8; x++)
-    {
-        u8 val = src[x];
-        *dst++ = decode5A3RGBA(Common::swap16(tlut[val]));
-    }
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 8; x++)
+	{
+		u8 val = src[x];
+		*dst++ = decode5A3RGBA(Common::swap16(tlut[val]));
+	}
 }
 
 inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
@@ -389,22 +389,22 @@ inline void decodebytesC8_To_Raw16_SSSE3(u16* dst, const u8* src, int tlutaddr)
 
 inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
 {
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 4; x++)
-    {
-        u16 val = Common::swap16(src[x]);
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u16 val = Common::swap16(src[x]);
 		*dst++ = decode5A3(Common::swap16(tlut[(val & 0x3FFF)]));
-    }
+	}
 }
 
 inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
 {
-    u16 *tlut = (u16*)(texMem + tlutaddr);
-    for (int x = 0; x < 4; x++)
-    {
-        u16 val = Common::swap16(src[x]);
+	u16 *tlut = (u16*)(texMem + tlutaddr);
+	for (int x = 0; x < 4; x++)
+	{
+		u16 val = Common::swap16(src[x]);
 		*dst++ = decode5A3RGBA(Common::swap16(tlut[(val & 0x3FFF)]));
-    }
+	}
 }
 
 inline void decodebytesC14X2_To_Raw16(u16* dst, const u16* src, int tlutaddr)
@@ -463,26 +463,26 @@ inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 inline void decodebytesRGB5A3(u32 *dst, const u16 *src)
 {
 #if 0
-    for (int x = 0; x < 4; x++)
-        dst[x] = decode5A3(Common::swap16(src[x]));
+	for (int x = 0; x < 4; x++)
+		dst[x] = decode5A3(Common::swap16(src[x]));
 #else
-    dst[0] = decode5A3(Common::swap16(src[0]));
-    dst[1] = decode5A3(Common::swap16(src[1]));
-    dst[2] = decode5A3(Common::swap16(src[2]));
-    dst[3] = decode5A3(Common::swap16(src[3]));
+	dst[0] = decode5A3(Common::swap16(src[0]));
+	dst[1] = decode5A3(Common::swap16(src[1]));
+	dst[2] = decode5A3(Common::swap16(src[2]));
+	dst[3] = decode5A3(Common::swap16(src[3]));
 #endif
 }
 
 inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
 {
 #if 0
-    for (int x = 0; x < 4; x++)
-        dst[x] = decode5A3RGBA(Common::swap16(src[x]));
+	for (int x = 0; x < 4; x++)
+		dst[x] = decode5A3RGBA(Common::swap16(src[x]));
 #else
-    dst[0] = decode5A3RGBA(Common::swap16(src[0]));
-    dst[1] = decode5A3RGBA(Common::swap16(src[1]));
-    dst[2] = decode5A3RGBA(Common::swap16(src[2]));
-    dst[3] = decode5A3RGBA(Common::swap16(src[3]));
+	dst[0] = decode5A3RGBA(Common::swap16(src[0]));
+	dst[1] = decode5A3RGBA(Common::swap16(src[1]));
+	dst[2] = decode5A3RGBA(Common::swap16(src[2]));
+	dst[3] = decode5A3RGBA(Common::swap16(src[3]));
 #endif
 }
 
@@ -491,13 +491,13 @@ inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
 inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 {
 #if 0
-    for (int x = 0; x < 4; x++)
-        dst[x] = Common::swap32((src2[x] << 16) | src[x]);
+	for (int x = 0; x < 4; x++)
+		dst[x] = Common::swap32((src2[x] << 16) | src[x]);
 #else
-    dst[0] = Common::swap32((src2[0] << 16) | src[0]);
-    dst[1] = Common::swap32((src2[1] << 16) | src[1]);
-    dst[2] = Common::swap32((src2[2] << 16) | src[2]);
-    dst[3] = Common::swap32((src2[3] << 16) | src[3]);
+	dst[0] = Common::swap32((src2[0] << 16) | src[0]);
+	dst[1] = Common::swap32((src2[1] << 16) | src[1]);
+	dst[2] = Common::swap32((src2[2] << 16) | src[2]);
+	dst[3] = Common::swap32((src2[3] << 16) | src[3]);
 #endif
 
 	// This can probably be done in a few SSE pack/unpack instructions + pshufb
@@ -512,111 +512,111 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
 #if 0
-    for (int x = 0; x < 4; x++) {
+	for (int x = 0; x < 4; x++) {
 		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);		
 	}
 #else
-    dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
-    dst[1] =  ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00)>>8)  | (src2[1] << 8);
-    dst[2] =  ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00)>>8)  | (src2[2] << 8);
-    dst[3] =  ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00)>>8)  | (src2[3] << 8);
+	dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
+	dst[1] =  ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00)>>8)  | (src2[1] << 8);
+	dst[2] =  ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00)>>8)  | (src2[2] << 8);
+	dst[3] =  ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00)>>8)  | (src2[3] << 8);
 #endif
 }
 
 inline u32 makecol(int r, int g, int b, int a)
 {
-    return (a << 24)|(r << 16)|(g << 8)|b;
+	return (a << 24)|(r << 16)|(g << 8)|b;
 }
 
 inline u32 makeRGBA(int r, int g, int b, int a)
 {
-    return (a<<24)|(b<<16)|(g<<8)|r;
+	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.
-    u16 c1 = Common::swap16(src->color1);
-    u16 c2 = Common::swap16(src->color2);
+	u16 c1 = Common::swap16(src->color1);
+	u16 c2 = Common::swap16(src->color2);
 	int blue1 = Convert5To8(c1 & 0x1F);
 	int blue2 = Convert5To8(c2 & 0x1F);
 	int green1 = Convert6To8((c1 >> 5) & 0x3F);
 	int green2 = Convert6To8((c2 >> 5) & 0x3F);
 	int red1 = Convert5To8((c1 >> 11) & 0x1F);
 	int red2 = Convert5To8((c2 >> 11) & 0x1F);
-    int colors[4];
+	int colors[4];
 	colors[0] = makecol(red1, green1, blue1, 255);
-    colors[1] = makecol(red2, green2, blue2, 255);
-    if (c1 > c2)
-    {
-        int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
-        int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
-        int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
-        colors[2] = makecol(red1 + red3, green1 + green3, blue1 + blue3, 255);
-        colors[3] = makecol(red2 - red3, green2 - green3, blue2 - blue3, 255); 
-    }
-    else
-    {
-        colors[2] = makecol((red1 + red2 + 1) / 2, // Average
-                            (green1 + green2 + 1) / 2,
-                            (blue1 + blue2 + 1) / 2, 255);
-        colors[3] = makecol(red2, green2, blue2, 0);  // Color2 but transparent
-    }
+	colors[1] = makecol(red2, green2, blue2, 255);
+	if (c1 > c2)
+	{
+		int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+		int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+		int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
+		colors[2] = makecol(red1 + red3, green1 + green3, blue1 + blue3, 255);
+		colors[3] = makecol(red2 - red3, green2 - green3, blue2 - blue3, 255); 
+	}
+	else
+	{
+		colors[2] = makecol((red1 + red2 + 1) / 2, // Average
+							(green1 + green2 + 1) / 2,
+							(blue1 + blue2 + 1) / 2, 255);
+		colors[3] = makecol(red2, green2, blue2, 0);  // Color2 but transparent
+	}
 
-    for (int y = 0; y < 4; y++)
-    { 
-        int val = src->lines[y];
-        for (int x = 0; x < 4; x++)
-        {
-            dst[x] = colors[(val >> 6) & 3];
-            val <<= 2;
-        }
-        dst += pitch;
-    }
+	for (int y = 0; y < 4; y++)
+	{ 
+		int val = src->lines[y];
+		for (int x = 0; x < 4; x++)
+		{
+			dst[x] = colors[(val >> 6) & 3];
+			val <<= 2;
+		}
+		dst += pitch;
+	}
 }
 
 void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.
-    u16 c1 = Common::swap16(src->color1);
-    u16 c2 = Common::swap16(src->color2);
+	u16 c1 = Common::swap16(src->color1);
+	u16 c2 = Common::swap16(src->color2);
 	int blue1 = Convert5To8(c1 & 0x1F);
 	int blue2 = Convert5To8(c2 & 0x1F);
 	int green1 = Convert6To8((c1 >> 5) & 0x3F);
 	int green2 = Convert6To8((c2 >> 5) & 0x3F);
 	int red1 = Convert5To8((c1 >> 11) & 0x1F);
 	int red2 = Convert5To8((c2 >> 11) & 0x1F);
-    int colors[4];
+	int colors[4];
 	colors[0] = makeRGBA(red1, green1, blue1, 255);
-    colors[1] = makeRGBA(red2, green2, blue2, 255);
-    if (c1 > c2)
-    {
-        int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
-        int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
-        int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
-        colors[2] = makeRGBA(red1 + red3, green1 + green3, blue1 + blue3, 255);
-        colors[3] = makeRGBA(red2 - red3, green2 - green3, blue2 - blue3, 255); 
-    }
-    else
-    {
-        colors[2] = makeRGBA((red1 + red2 + 1) / 2, // Average
-                            (green1 + green2 + 1) / 2,
-                            (blue1 + blue2 + 1) / 2, 255);
-        colors[3] = makeRGBA(red2, green2, blue2, 0);  // Color2 but transparent
-    }
+	colors[1] = makeRGBA(red2, green2, blue2, 255);
+	if (c1 > c2)
+	{
+		int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+		int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+		int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
+		colors[2] = makeRGBA(red1 + red3, green1 + green3, blue1 + blue3, 255);
+		colors[3] = makeRGBA(red2 - red3, green2 - green3, blue2 - blue3, 255); 
+	}
+	else
+	{
+		colors[2] = makeRGBA((red1 + red2 + 1) / 2, // Average
+							(green1 + green2 + 1) / 2,
+							(blue1 + blue2 + 1) / 2, 255);
+		colors[3] = makeRGBA(red2, green2, blue2, 0);  // Color2 but transparent
+	}
 
-    for (int y = 0; y < 4; y++)
-    { 
-        int val = src->lines[y];
-        for (int x = 0; x < 4; x++)
-        {
-            dst[x] = colors[(val >> 6) & 3];
-            val <<= 2;
-        }
-        dst += pitch;
-    }
+	for (int y = 0; y < 4; y++)
+	{ 
+		int val = src->lines[y];
+		for (int x = 0; x < 4; x++)
+		{
+			dst[x] = colors[(val >> 6) & 3];
+			val <<= 2;
+		}
+		dst += pitch;
+	}
 }
 
 #if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
@@ -641,44 +641,44 @@ static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
 	case 0: return PC_TEX_FMT_IA8;    // IA8
 	case 1: return PC_TEX_FMT_RGB565; // RGB565
 	case 2: return PC_TEX_FMT_BGRA32; // RGB5A3: This TLUT format requires
-		                              // extra work to decode.
+									  // extra work to decode.
 	}
 	return PC_TEX_FMT_NONE; // Error
 }
 
 PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 {
-    switch (texformat)
-    {
-    case GX_TF_C4:
+	switch (texformat)
+	{
+	case GX_TF_C4:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_I4:
+	case GX_TF_I4:
 		return PC_TEX_FMT_IA8;
 	case GX_TF_I8:  // speed critical
 		return PC_TEX_FMT_IA8;
-    case GX_TF_C8:
+	case GX_TF_C8:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_IA4:
-        return PC_TEX_FMT_IA4_AS_IA8;
-    case GX_TF_IA8:
-        return PC_TEX_FMT_IA8;
-    case GX_TF_C14X2: 
+	case GX_TF_IA4:
+		return PC_TEX_FMT_IA4_AS_IA8;
+	case GX_TF_IA8:
+		return PC_TEX_FMT_IA8;
+	case GX_TF_C14X2: 
 		return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_RGB565:
+	case GX_TF_RGB565:
 		return PC_TEX_FMT_RGB565;
-    case GX_TF_RGB5A3:
-        return PC_TEX_FMT_BGRA32;
-    case GX_TF_RGBA8:  // speed critical
-        return PC_TEX_FMT_BGRA32;
-    case GX_TF_CMPR:  // speed critical
-        // The metroid games use this format almost exclusively.
+	case GX_TF_RGB5A3:
+		return PC_TEX_FMT_BGRA32;
+	case GX_TF_RGBA8:  // speed critical
+		return PC_TEX_FMT_BGRA32;
+	case GX_TF_CMPR:  // speed critical
+		// The metroid games use this format almost exclusively.
 		{
 			return PC_TEX_FMT_BGRA32;
 		}
-    }
+	}
 
 	// The "copy" texture formats, too?
-    return PC_TEX_FMT_NONE;
+	return PC_TEX_FMT_NONE;
 }
 
 //switch endianness, unswizzle
@@ -687,26 +687,26 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 //need to add DXT support too
 PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-    switch (texformat)
-    {
-    case GX_TF_C4:
+	switch (texformat)
+	{
+	case GX_TF_C4:
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 8)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+		}
 		else
 		{
-            for (int y = 0; y < height; y += 8)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
 		}
-        return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_I4:
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+	case GX_TF_I4:
 		{
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0; x < width; x += 8)
@@ -717,8 +717,8 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
 							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
 						}
-        }
-       return PC_TEX_FMT_I4_AS_I8;
+		}
+	   return PC_TEX_FMT_I4_AS_I8;
 	case GX_TF_I8:  // speed critical
 		{
 			for (int y = 0; y < height; y += 4)
@@ -727,15 +727,15 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 						memcpy(dst + (y + iy)*width+x, src, 8);
 		}
 		return PC_TEX_FMT_I8;
-    case GX_TF_C8:
+	case GX_TF_C8:
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+		}
 		else
 		{
 
@@ -747,28 +747,25 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 						for (int iy = 0; iy < 4; iy++, src += 8)
 							decodebytesC8_To_Raw16_SSSE3((u16*)dst + (y + iy) * width + x, src, tlutaddr);
 			} else
-
 #endif
-
 			{
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0; x < width; x += 8)
 						for (int iy = 0; iy < 4; iy++, src += 8)
 							decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
-
 			}
 		}
-        return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_IA4:
-        {
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+	case GX_TF_IA4:
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
 					for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesIA4((u16*)dst + (y + iy) * width + x, src);
-        }
+						decodebytesIA4((u16*)dst + (y + iy) * width + x, src);
+		}
 		return PC_TEX_FMT_IA4_AS_IA8;
-    case GX_TF_IA8:
-        {
+	case GX_TF_IA8:
+		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
@@ -779,26 +776,26 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 							*ptr++ = Common::swap16(*s++);
 					}
 
-        }
+		}
 		return PC_TEX_FMT_IA8;
-    case GX_TF_C14X2: 
+	case GX_TF_C14X2: 
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+		}
 		else
 		{
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_RGB565:
+	case GX_TF_RGB565:
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
@@ -811,17 +808,17 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					}
 		}
 		return PC_TEX_FMT_RGB565;
-    case GX_TF_RGB5A3:
-        {
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-                        decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src);
-        }
-        return PC_TEX_FMT_BGRA32;
-    case GX_TF_RGBA8:  // speed critical
-        {
+	case GX_TF_RGB5A3:
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						//decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
+						decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src);
+		}
+		return PC_TEX_FMT_BGRA32;
+	case GX_TF_RGBA8:  // speed critical
+		{
 
 #if _M_SSE >= 0x301
 
@@ -876,17 +873,17 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					}
 			}
 		}
-        return PC_TEX_FMT_BGRA32;
-    case GX_TF_CMPR:  // speed critical
-        // The metroid games use this format almost exclusively.
+		return PC_TEX_FMT_BGRA32;
+	case GX_TF_CMPR:  // speed critical
+		// The metroid games use this format almost exclusively.
 		{
 #if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
-            // 11111111 22222222 55555555 66666666
-            // 33333333 44444444 77777777 88888888
+			// 11111111 22222222 55555555 66666666
+			// 33333333 44444444 77777777 88888888
 			for (int y = 0; y < height; y += 8)
 			{
-                for (int x = 0; x < width; x += 8)
-                {
+				for (int x = 0; x < width; x += 8)
+				{
 					copyDXTBlock(dst+(y/2)*width+x*2, src);
 					src += 8;
 					copyDXTBlock(dst+(y/2)*width+x*2+8, src);
@@ -901,25 +898,25 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 #else
 			for (int y = 0; y < height; y += 8)
 			{
-                for (int x = 0; x < width; x += 8)
-                {
-                    decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                }
+				for (int x = 0; x < width; x += 8)
+				{
+					decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+				}
 			}
 #endif
 			return PC_TEX_FMT_BGRA32;
 		}
-    }
+	}
 
 	// The "copy" texture formats, too?
-    return PC_TEX_FMT_NONE;
+	return PC_TEX_FMT_NONE;
 }
 
 
@@ -929,34 +926,126 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-    switch (texformat)
-    {
-    case GX_TF_C4:
+	switch (texformat)
+	{
+	case GX_TF_C4:
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 8)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src, tlutaddr);
+		}
 		else if(tlutfmt == 0)
 		{
-            for (int y = 0; y < height; y += 8)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
 		}
 		else
 		{
 			for (int y = 0; y < height; y += 8)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
 		}
 		break;
-    case GX_TF_I4:
+	case GX_TF_I4:
 		{
+			// JSD optimized with SSE2 intrinsics.
+			// Produces a ~76% speed increase over reference C implementation.
+			const __m128i kMask_x0f = _mm_set_epi32(0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL);
+			const __m128i kMask_xf0 = _mm_set_epi32(0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L);
+			const __m128i kMask_x00000000ffffffff = _mm_set_epi32(0x00000000L, 0xffffffffL, 0x00000000L, 0xffffffffL);
+			const __m128i kMask_xffffffff00000000 = _mm_set_epi32(0xffffffffL, 0x00000000L, 0xffffffffL, 0x00000000L);
+
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy += 2, src += 8)
+					{
+						// Expand [BA] to [BB][BB][BB][BB] [AA][AA][AA][AA], where [BA] is a single byte and A and B are 4-bit values.
+
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						// dcba is row #0 and hgfe is row #1. We process two rows at once with each loop iteration, hence iy += 2.
+						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+						const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
+
+						// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
+						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) >> 4 [16]   -> (0HhH0GgG 0FfF0EeE 0DdD0CcC 0BbB0AaA)
+						const __m128i i1 = _mm_srli_epi16(r1, 4);
+						// (0HhH0GgG 0FfF0EeE 0DdD0CcC 0BbB0AaA) & kMask_x0f -> (0H0H0G0G 0F0F0E0E 0D0D0C0C 0B0B0A0A)
+						const __m128i i12 = _mm_and_si128(i1, kMask_x0f);
+						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) & kMask_xf0 -> (H0H0G0G0 F0F0E0E0 D0D0C0C0 B0B0A0A0)
+						const __m128i i13 = _mm_and_si128(r1, kMask_xf0);
+						// (0H0H0G0G 0F0F0E0E 0D0D0C0C 0B0B0A0A) | (H0H0G0G0 F0F0E0E0 D0D0C0C0 B0B0A0A0) -> (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA)
+						const __m128i i14 = _mm_or_si128(i12, i13);
+
+						// Shuffle low 64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA)
+						const __m128i i15 = _mm_unpacklo_epi8(i14, i14);
+						// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA)
+						const __m128i i151 = _mm_unpacklo_epi8(i15, i15);
+						// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (DDDDDDDD DDDDDDDD CCCCCCCC CCCCCCCC)
+						const __m128i i152 = _mm_unpackhi_epi8(i15, i15);
+
+						// Shuffle hi  64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE)
+						const __m128i i16 = _mm_unpackhi_epi8(i14, i14);
+						// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (FFFFFFFF FFFFFFFF EEEEEEEE EEEEEEEE)
+						const __m128i i161 = _mm_unpacklo_epi8(i16, i16);
+						// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (HHHHHHHH HHHHHHHH GGGGGGGG GGGGGGGG)
+						const __m128i i162 = _mm_unpackhi_epi8(i16, i16);
+
+						// Now find the lo 4 bits of each input 8-bit word:
+						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) & kMask_x0f -> (0h0h0g0g 0f0f0e0e 0d0d0c0c 0b0b0a0a)
+						const __m128i i2 = _mm_and_si128(r1, kMask_x0f);
+						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) << 4 [16]   -> (hHh0gGg0 fFf0eEe0 dDd0cCc0 bBb0aAa0)
+						const __m128i i21 = _mm_slli_epi16(r1, 4);
+						// (hHh0gGg0 fFf0eEe0 dDd0cCc0 bBb0aAa0) & kMask_xf0 -> (h0h0g0g0 f0f0e0e0 d0d0c0c0 b0b0a0a0)
+						const __m128i i22 = _mm_and_si128(i21, kMask_xf0);
+
+						// (0h0h0g0g 0f0f0e0e 0d0d0c0c 0b0b0a0a) | (h0h0g0g0 f0f0e0e0 d0d0c0c0 b0b0a0a0) -> (hhhhgggg ffffeeee ddddcccc bbbbaaaa)
+						const __m128i i23 = _mm_or_si128(i2, i22);
+
+						// Shuffle low 64-bits with itself to expand from (hhhhgggg ffffeeee ddddcccc bbbbaaaa) to (dddddddd cccccccc bbbbbbbb aaaaaaaa)
+						const __m128i i25 = _mm_unpacklo_epi8(i23, i23);
+						// (dddddddd cccccccc bbbbbbbb aaaaaaaa) -> (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa)
+						const __m128i i251 = _mm_unpacklo_epi8(i25, i25);
+						// (dddddddd cccccccc bbbbbbbb aaaaaaaa) -> (dddddddd dddddddd cccccccc cccccccc)
+						const __m128i i252 = _mm_unpackhi_epi8(i25, i25);
+
+						// Shuffle hi  64-bits with itself to expand from (hhhhgggg ffffeeee ddddcccc bbbbaaaa) to (hhhhhhhh gggggggg ffffffff eeeeeeee)
+						const __m128i i26 = _mm_unpackhi_epi8(i23, i23);
+						// (hhhhhhhh gggggggg ffffffff eeeeeeee) -> (ffffffff ffffffff eeeeeeee eeeeeeee)
+						const __m128i i261 = _mm_unpacklo_epi8(i26, i26);
+						// (hhhhhhhh gggggggg ffffffff eeeeeeee) -> (hhhhhhhh hhhhhhhh gggggggg gggggggg)
+						const __m128i i262 = _mm_unpackhi_epi8(i26, i26);
+
+						// Now create the final output m128is to write to memory:
+
+						// _mm_and_si128(i151, kMask_x00000000ffffffff) takes i151 and masks off 1st and 3rd 32-bit words
+						// (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA) -> (00000000 BBBBBBBB 00000000 AAAAAAAA)
+						// _mm_and_si128(i251, kMask_xffffffff00000000) takes i251 and masks off 2nd and 4th 32-bit words
+						// (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa) -> (bbbbbbbb 00000000 aaaaaaaa 00000000)
+						// And last but not least, _mm_or_si128 ORs those two together, giving us the interleaving we desire:
+						// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
+						const __m128i o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
+						const __m128i o2 = _mm_or_si128(_mm_and_si128(i152, kMask_x00000000ffffffff), _mm_and_si128(i252, kMask_xffffffff00000000));
+
+						// These two are for the next row; same pattern as above. We batched up two rows because our input was 64 bits.
+						const __m128i o3 = _mm_or_si128(_mm_and_si128(i161, kMask_x00000000ffffffff), _mm_and_si128(i261, kMask_xffffffff00000000));
+						const __m128i o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
+
+						// Write row 0:
+						_mm_store_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
+						_mm_store_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
+						// Write row 1:
+						_mm_store_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
+						_mm_store_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
+					}
+#if 0
+			// Reference C implementation:
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0; x < width; x += 8)
 					for (int iy = 0; iy < 8; iy++, src += 4)
@@ -964,120 +1053,128 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							int val = src[ix];
 							u8 i1 = Convert4To8(val >> 4);
-							u8 i2 = Convert4To8(val & 0xF);							
+							u8 i2 = Convert4To8(val & 0xF);
 							memset(dst+(y + iy) * width + x + ix * 2 , i1,4);
-							memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);							
+							memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);
 						}
-        }
-       break;
+#endif
+		}
+	   break;
 	case GX_TF_I8:  // speed critical
 		{
-#if _M_SSE >= 0x301
-            // JSD: It doesn't get any faster than this, folks.
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-                {
-                    __m128i *quaddst;
+			// JSD optimized with SSE2 intrinsics.
+			// Produces an ~86% speed increase over reference C implementation.
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+				{
+					// Each loop iteration processes 4 rows from 4 64-bit reads.
 
-                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-                    const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
-                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-                    const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
+					// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
+					// _mm_stream instead of _mm_store on my AMD Phenom II x410 made performance significantly WORSE, so I
+					// went with _mm_stores. Perhaps there is some edge case here creating the terrible performance or we're
+					// not aligned to 16-byte boundaries. I don't know.
+					__m128i *quaddst;
 
-                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-                    const __m128i rgba0 = _mm_unpacklo_epi8(r1, r1);
-                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-                    const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
+					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+					const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+					const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
-                    // Store (dddd cccc bbbb aaaa) out:
-                    quaddst = (__m128i *)(dst + (y + 0)*width + x);
-                    _mm_store_si128(quaddst, rgba0);
-                    // Store (hhhh gggg ffff eeee) out:
-                    _mm_store_si128(quaddst+1, rgba1);
+					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+					const __m128i rgba0 = _mm_unpacklo_epi8(r1, r1);
+					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+					const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
 
-                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-                    src += 8;
-                    const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
-                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-                    const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
+					// Store (dddd cccc bbbb aaaa) out:
+					quaddst = (__m128i *)(dst + (y + 0)*width + x);
+					_mm_store_si128(quaddst, rgba0);
+					// Store (hhhh gggg ffff eeee) out:
+					_mm_store_si128(quaddst+1, rgba1);
 
-                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-                    const __m128i rgba2 = _mm_unpacklo_epi8(r3, r3);
-                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-                    const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
+					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+					src += 8;
+					const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
+					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+					const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
 
-                    // Store (dddd cccc bbbb aaaa) out:
-                    quaddst = (__m128i *)(dst + (y + 1)*width + x);
-                    _mm_store_si128(quaddst, rgba2);
-                    // Store (hhhh gggg ffff eeee) out:
-                    _mm_store_si128(quaddst+1, rgba3);
+					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+					const __m128i rgba2 = _mm_unpacklo_epi8(r3, r3);
+					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+					const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
 
-                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-                    src += 8;
-                    const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
-                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-                    const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
+					// Store (dddd cccc bbbb aaaa) out:
+					quaddst = (__m128i *)(dst + (y + 1)*width + x);
+					_mm_store_si128(quaddst, rgba2);
+					// Store (hhhh gggg ffff eeee) out:
+					_mm_store_si128(quaddst+1, rgba3);
 
-                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-                    const __m128i rgba4 = _mm_unpacklo_epi8(r5, r5);
-                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-                    const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
+					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+					src += 8;
+					const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
+					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+					const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
 
-                    // Store (dddd cccc bbbb aaaa) out:
-                    quaddst = (__m128i *)(dst + (y + 2)*width + x);
-                    _mm_store_si128(quaddst, rgba4);
-                    // Store (hhhh gggg ffff eeee) out:
-                    _mm_store_si128(quaddst+1, rgba5);
+					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+					const __m128i rgba4 = _mm_unpacklo_epi8(r5, r5);
+					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+					const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
 
-                    // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-                    src += 8;
-                    const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
-                    // Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-                    const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
+					// Store (dddd cccc bbbb aaaa) out:
+					quaddst = (__m128i *)(dst + (y + 2)*width + x);
+					_mm_store_si128(quaddst, rgba4);
+					// Store (hhhh gggg ffff eeee) out:
+					_mm_store_si128(quaddst+1, rgba5);
 
-                    // Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-                    const __m128i rgba6 = _mm_unpacklo_epi8(r7, r7);
-                    // Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-                    const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
+					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+					src += 8;
+					const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
+					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+					const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
 
-                    // Store (dddd cccc bbbb aaaa) out:
-                    quaddst = (__m128i *)(dst + (y + 3)*width + x);
-                    _mm_store_si128(quaddst, rgba6);
-                    // Store (hhhh gggg ffff eeee) out:
-                    _mm_store_si128(quaddst+1, rgba7);
+					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+					const __m128i rgba6 = _mm_unpacklo_epi8(r7, r7);
+					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+					const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
 
-                    src += 8;
-                }
-#else
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 4; ++iy, src += 8)
-                    {
-                        u32 *  newdst = dst + (y + iy)*width+x;
-                        const u8 *  newsrc = src;
-                        u8 srcval;
+					// Store (dddd cccc bbbb aaaa) out:
+					quaddst = (__m128i *)(dst + (y + 3)*width + x);
+					_mm_store_si128(quaddst, rgba6);
+					// Store (hhhh gggg ffff eeee) out:
+					_mm_store_si128(quaddst+1, rgba7);
 
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                        srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-                    }
+					src += 8;
+				}
+#if 0
+			// Reference C implementation
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; ++iy, src += 8)
+					{
+						u32 *  newdst = dst + (y + iy)*width+x;
+						const u8 *  newsrc = src;
+						u8 srcval;
+
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+						srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+					}
 #endif
 		}
 		break;
-    case GX_TF_C8:
+	case GX_TF_C8:
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+		}
 		else if(tlutfmt == 0)
 		{
 
@@ -1095,66 +1192,68 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);			
 
 		}
-        break;
-    case GX_TF_IA4:
-        {
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesIA4RGBA(dst + (y + iy) * width + x, src);
-        }
 		break;
-    case GX_TF_IA8:
-        {
-#if _M_SSE >= 0x301
-            const __m128i kMask_xf0 = _mm_set_epi32(0x00000000L, 0x00000000L, 0xff00ff00L, 0xff00ff00L);
-            const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
-            const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
-            const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
+	case GX_TF_IA4:
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesIA4RGBA(dst + (y + iy) * width + x, src);
+		}
+		break;
+	case GX_TF_IA8:
+		{
+			// JSD optimized with SSE2 intrinsics.
+			// Produces an ~80% speed improvement over reference C implementation.
+			const __m128i kMask_xf0 = _mm_set_epi32(0x00000000L, 0x00000000L, 0xff00ff00L, 0xff00ff00L);
+			const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
+			const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
+			const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
 
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
 					{
-                        // Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
+						// Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
 
-                        // Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-                        const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+						// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
 
-                        // Logical shift all 16-bit words right by 8 bits (0000 0000 hgfe dcba) to (0000 0000 0h0f 0d0b)
-                        // This gets us only the I components.
-                        const __m128i i0 = _mm_srli_epi16(r0, 8);
+						// Logical shift all 16-bit words right by 8 bits (0000 0000 hgfe dcba) to (0000 0000 0h0f 0d0b)
+						// This gets us only the I components.
+						const __m128i i0 = _mm_srli_epi16(r0, 8);
 
-                        // Now join up the I components from their original positions but mask out the A components.
-                        // (0000 0000 hgfe dcba) &      kMask_xFF00      -> (0000 0000 h0f0 d0b0)
-                        // (0000 0000 h0f0 d0b0) | (0000 0000 0h0f 0d0b) -> (0000 0000 hhff ddbb)
-                        const __m128i i1 = _mm_or_si128(_mm_and_si128(r0, kMask_xf0), i0);
+						// Now join up the I components from their original positions but mask out the A components.
+						// (0000 0000 hgfe dcba) &      kMask_xFF00      -> (0000 0000 h0f0 d0b0)
+						// (0000 0000 h0f0 d0b0) | (0000 0000 0h0f 0d0b) -> (0000 0000 hhff ddbb)
+						const __m128i i1 = _mm_or_si128(_mm_and_si128(r0, kMask_xf0), i0);
 
-                        // Shuffle low 64-bits with itself to expand from (0000 0000 hhff ddbb) to (hhhh ffff dddd bbbb)
-                        const __m128i i2 = _mm_unpacklo_epi8(i1, i1);
-                        // (hhhh ffff dddd bbbb) & kMask_x0fff -> (0hhh 0fff 0ddd 0bbb)
-                        const __m128i i3 = _mm_and_si128(i2, kMask_x0fff);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hhff ddbb) to (hhhh ffff dddd bbbb)
+						const __m128i i2 = _mm_unpacklo_epi8(i1, i1);
+						// (hhhh ffff dddd bbbb) & kMask_x0fff -> (0hhh 0fff 0ddd 0bbb)
+						const __m128i i3 = _mm_and_si128(i2, kMask_x0fff);
 
-                        // Now that we have the I components in 32-bit word form, time work out the A components into
-                        // their final positions.
+						// Now that we have the I components in 32-bit word form, time work out the A components into
+						// their final positions.
 
-                        // (0000 0000 hgfe dcba) &      kMask_x00FF      -> (0000 0000 0g0e 0c0a)
-                        const __m128i a0 = _mm_and_si128(r0, kMask_x0f);
-                        // (0000 0000 0g0e 0c0a) -> (00gg 00ee 00cc 00aa)
-                        const __m128i a1 = _mm_unpacklo_epi8(a0, a0);
-                        // (00gg 00ee 00cc 00aa) << 16 -> (gg00 ee00 cc00 aa00)
-                        const __m128i a2 = _mm_slli_epi32(a1, 16);
-                        // (gg00 ee00 cc00 aa00) & kMask_xf000 -> (g000 e000 c000 a000)
-                        const __m128i a3 = _mm_and_si128(a2, kMask_xf000);
+						// (0000 0000 hgfe dcba) &      kMask_x00FF      -> (0000 0000 0g0e 0c0a)
+						const __m128i a0 = _mm_and_si128(r0, kMask_x0f);
+						// (0000 0000 0g0e 0c0a) -> (00gg 00ee 00cc 00aa)
+						const __m128i a1 = _mm_unpacklo_epi8(a0, a0);
+						// (00gg 00ee 00cc 00aa) << 16 -> (gg00 ee00 cc00 aa00)
+						const __m128i a2 = _mm_slli_epi32(a1, 16);
+						// (gg00 ee00 cc00 aa00) & kMask_xf000 -> (g000 e000 c000 a000)
+						const __m128i a3 = _mm_and_si128(a2, kMask_xf000);
 
-                        // Simply OR up i3 and a3 now and that's our result:
-                        // (0hhh 0fff 0ddd 0bbb) | (g000 e000 c000 a000) -> (ghhh efff cddd abbb)
-                        const __m128i r1 = _mm_or_si128(i3, a3);
+						// Simply OR up i3 and a3 now and that's our result:
+						// (0hhh 0fff 0ddd 0bbb) | (g000 e000 c000 a000) -> (ghhh efff cddd abbb)
+						const __m128i r1 = _mm_or_si128(i3, a3);
 
-                        // write out the 128-bit result:
-                        _mm_store_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
+						// write out the 128-bit result:
+						_mm_store_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
 					}
-#else
+#if 0
+			// Reference C implementation:
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
@@ -1167,33 +1266,33 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						ptr[3] = decodeIA8Swapped(s[3]);
 					}
 #endif
-        }
+		}
 		break;
-    case GX_TF_C14X2: 
+	case GX_TF_C14X2:
 		if (tlutfmt == 2)
-        {
+		{
 			// Special decoding is required for TLUT format 5A3
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
-        }
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+		}
 		else if (tlutfmt == 0)
 		{
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
 		}
 		else
 		{
 			for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
 		}
 		break;
-    case GX_TF_RGB565:
+	case GX_TF_RGB565:
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
@@ -1206,225 +1305,324 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					}
 		}
 		break;
-    case GX_TF_RGB5A3:
-        {
-#if _M_SSE >= 0x301
-            // These constants are used to apply the (x & mask) operation after x has been right-shifted
-            // out of its place.
-            const __m128i kMask_x1f = _mm_set_epi32(0x0000001fL, 0x0000001fL, 0x0000001fL, 0x0000001fL);
-            const __m128i kMask_x0f = _mm_set_epi32(0x0000000fL, 0x0000000fL, 0x0000000fL, 0x0000000fL);
-            const __m128i kMask_x07 = _mm_set_epi32(0x00000007L, 0x00000007L, 0x00000007L, 0x00000007L);
+	case GX_TF_RGB5A3:
+		{
+			// JSD optimized with SSE2 intrinsics in 2 out of 4 cases.
+			// Produces a ~25% speed improvement over reference C implementation.
+			const __m128i kMask_x1f = _mm_set_epi32(0x0000001fL, 0x0000001fL, 0x0000001fL, 0x0000001fL);
+			const __m128i kMask_x0f = _mm_set_epi32(0x0000000fL, 0x0000000fL, 0x0000000fL, 0x0000000fL);
+			const __m128i kMask_x07 = _mm_set_epi32(0x00000007L, 0x00000007L, 0x00000007L, 0x00000007L);
 
-            // This is the hard-coded 0xFF alpha constant that is ORed in place after the RGB are calculated
-            // for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
-            const __m128i aVxff00   = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
+			// This is the hard-coded 0xFF alpha constant that is ORed in place after the RGB are calculated
+			// for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
+			const __m128i aVxff00   = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
 
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                    {
-                        u32 *newdst = dst+(y+iy)*width+x;
-                        const u16 *newsrc = (const u16*)src;
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+					{
+						u32 *newdst = dst+(y+iy)*width+x;
+						const u16 *newsrc = (const u16*)src;
 
-                        // TODO: weak point
-                        const u16 val0 = Common::swap16(newsrc[0]);
-                        const u16 val1 = Common::swap16(newsrc[1]);
-                        const u16 val2 = Common::swap16(newsrc[2]);
-                        const u16 val3 = Common::swap16(newsrc[3]);
+						// TODO: weak point
+						const u16 val0 = Common::swap16(newsrc[0]);
+						const u16 val1 = Common::swap16(newsrc[1]);
+						const u16 val2 = Common::swap16(newsrc[2]);
+						const u16 val3 = Common::swap16(newsrc[3]);
 
-                        // Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
-                        if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
-                        {
-                            // SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
+						// Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
+						if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
+						{
+							// SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
 
-                            const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+							const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
 
-                            // Swizzle bits: 00012345 -> 12345123
+							// Swizzle bits: 00012345 -> 12345123
 
-                            //r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
-                            const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
-                            const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2) );
+							//r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
+							const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
+							const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2) );
 
-                            //newdst[0] = r0 | (_______) | (________) | (________);
-                            __m128i final = rV;
+							//newdst[0] = r0 | (_______) | (________) | (________);
+							__m128i final = rV;
 
-                            //g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
-                            const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
-                            const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2) );
+							//g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
+							const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
+							const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2) );
 
-                            //newdst[0] = r0 | (g0 << 8) | (________) | (________);
-                            final = _mm_or_si128(
-                                final,
-                                _mm_slli_epi32(gV, 8)
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (________) | (________);
+							final = _mm_or_si128(
+								final,
+								_mm_slli_epi32(gV, 8)
+							);
 
-                            //b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
-                            const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
-                            const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
+							//b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
+							const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
+							const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
 
-                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
-                            final = _mm_or_si128(
-                                final,
-                                _mm_slli_epi32(bV, 16)
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
+							final = _mm_or_si128(
+								final,
+								_mm_slli_epi32(bV, 16)
+							);
 
-                            // Alphas are ORed in as a constant __m128i.
-                            //a0 = 0xFF;
+							// Alphas are ORed in as a constant __m128i.
+							//a0 = 0xFF;
 
-                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-                            final = _mm_or_si128(
-                                final,
-                                aVxff00
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+							final = _mm_or_si128(
+								final,
+								aVxff00
+							);
 
-                            // write the final result:
-                            _mm_store_si128( (__m128i*)newdst, final );
-                        }
-                        else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
-                        {
-                            // SSE2 case #2: all 4 pixels are in RGBA4443.
+							// write the final result:
+							_mm_store_si128( (__m128i*)newdst, final );
+						}
+						else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
+						{
+							// SSE2 case #2: all 4 pixels are in RGBA4443.
 
-                            const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+							const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
 
-                            // Swizzle bits: 00001234 -> 12341234
+							// Swizzle bits: 00001234 -> 12341234
 
-                            //r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
-                            const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
-                            const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 4), tmprV );
+							//r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
+							const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
+							const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 4), tmprV );
 
-                            //newdst[0] = r0 | (_______) | (________) | (________);
-                            __m128i final = rV;
+							//newdst[0] = r0 | (_______) | (________) | (________);
+							__m128i final = rV;
 
-                            //g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
-                            const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
-                            const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 4), tmpgV );
+							//g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
+							const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
+							const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 4), tmpgV );
 
-                            //newdst[0] = r0 | (g0 << 8) | (________) | (________);
-                            final = _mm_or_si128(
-                                final,
-                                _mm_slli_epi32(gV, 8)
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (________) | (________);
+							final = _mm_or_si128(
+								final,
+								_mm_slli_epi32(gV, 8)
+							);
 
-                            //b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
-                            const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
-                            const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 4), tmpbV );
+							//b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
+							const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
+							const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 4), tmpbV );
 
-                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
-                            final = _mm_or_si128(
-                                final,
-                                _mm_slli_epi32(bV, 16)
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (________);
+							final = _mm_or_si128(
+								final,
+								_mm_slli_epi32(bV, 16)
+							);
 
-                            //a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
-                            const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
-                            const __m128i aV = _mm_or_si128(
-                                _mm_slli_epi16(tmpaV, 5),
-                                _mm_or_si128(
-                                    _mm_slli_epi16(tmpaV, 2),
-                                    _mm_srli_epi16(tmpaV, 1)
-                                )
-                            );
+							//a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
+							const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
+							const __m128i aV = _mm_or_si128(
+								_mm_slli_epi16(tmpaV, 5),
+								_mm_or_si128(
+									_mm_slli_epi16(tmpaV, 2),
+									_mm_srli_epi16(tmpaV, 1)
+								)
+							);
 
-                            //newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-                            final = _mm_or_si128(
-                                final,
-                                _mm_slli_epi32(aV, 24)
-                            );
+							//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+							final = _mm_or_si128(
+								final,
+								_mm_slli_epi32(aV, 24)
+							);
 
-                            // write the final result:
-                            _mm_store_si128( (__m128i*)newdst, final );
-                        }
-                        else
-                        {
-                            // Horrific fallback case, but hey at least it's inlined :D
-                            // Maybe overkill? I see slight improvements on my machine as far as RDTSC
-                            // counts and it's all done in registers (on x64). No temp memory moves!
-                            int r0,g0,b0,a0;
-                            int r1,g1,b1,a1;
-                            int r2,g2,b2,a2;
-                            int r3,g3,b3,a3;
+							// write the final result:
+							_mm_store_si128( (__m128i*)newdst, final );
+						}
+						else
+						{
+							// Horrific fallback case, but hey at least it's inlined :D
+							// Maybe overkill? I see slight improvements on my machine as far as RDTSC
+							// counts and it's all done in registers (on x64). No temp memory moves!
+							int r0,g0,b0,a0;
+							int r1,g1,b1,a1;
+							int r2,g2,b2,a2;
+							int r3,g3,b3,a3;
 
-                            // Normal operation, no parallelism to take advantage of:
-                            if (val0 & 0x8000)
-                            {
-                                // Swizzle bits: 00012345 -> 12345123
-                                r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
-                                g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
-                                b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
-                                a0 = 0xFF;
-                            }
-                            else
-                            {
-                                a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
-                                // Swizzle bits: 00001234 -> 12341234
-                                r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
-                                g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
-                                b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
-                            }
-                            newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+							// Normal operation, no parallelism to take advantage of:
+							if (val0 & 0x8000)
+							{
+								// Swizzle bits: 00012345 -> 12345123
+								r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
+								g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
+								b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
+								a0 = 0xFF;
+							}
+							else
+							{
+								a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
+								// Swizzle bits: 00001234 -> 12341234
+								r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
+								g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
+								b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
+							}
+							newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
 
-                            if (val1 & 0x8000)
-                            {
-                                // Swizzle bits: 00012345 -> 12345123
-                                r1 = (((val1>>10) & 0x1f) << 3) | (((val1>>10) & 0x1f) >> 2);
-                                g1 = (((val1>>5 ) & 0x1f) << 3) | (((val1>>5 ) & 0x1f) >> 2);
-                                b1 = (((val1    ) & 0x1f) << 3) | (((val1    ) & 0x1f) >> 2);
-                                a1 = 0xFF;
-                            }
-                            else
-                            {
-                                a1 = (((val1>>12) & 0x7) << 5) | (((val1>>12) & 0x7) << 2) | (((val1>>12) & 0x7) >> 1);
-                                r1 = (((val1>>8 ) & 0xf) << 4) | ((val1>>8 ) & 0xf);
-                                g1 = (((val1>>4 ) & 0xf) << 4) | ((val1>>4 ) & 0xf);
-                                b1 = (((val1    ) & 0xf) << 4) | ((val1    ) & 0xf);
-                            }
-                            newdst[1] = r1 | (g1 << 8) | (b1 << 16) | (a1 << 24);
+							if (val1 & 0x8000)
+							{
+								// Swizzle bits: 00012345 -> 12345123
+								r1 = (((val1>>10) & 0x1f) << 3) | (((val1>>10) & 0x1f) >> 2);
+								g1 = (((val1>>5 ) & 0x1f) << 3) | (((val1>>5 ) & 0x1f) >> 2);
+								b1 = (((val1    ) & 0x1f) << 3) | (((val1    ) & 0x1f) >> 2);
+								a1 = 0xFF;
+							}
+							else
+							{
+								a1 = (((val1>>12) & 0x7) << 5) | (((val1>>12) & 0x7) << 2) | (((val1>>12) & 0x7) >> 1);
+								r1 = (((val1>>8 ) & 0xf) << 4) | ((val1>>8 ) & 0xf);
+								g1 = (((val1>>4 ) & 0xf) << 4) | ((val1>>4 ) & 0xf);
+								b1 = (((val1    ) & 0xf) << 4) | ((val1    ) & 0xf);
+							}
+							newdst[1] = r1 | (g1 << 8) | (b1 << 16) | (a1 << 24);
 
-                            if (val2 & 0x8000)
-                            {
-                                // Swizzle bits: 00012345 -> 12345123
-                                r2 = (((val2>>10) & 0x1f) << 3) | (((val2>>10) & 0x1f) >> 2);
-                                g2 = (((val2>>5 ) & 0x1f) << 3) | (((val2>>5 ) & 0x1f) >> 2);
-                                b2 = (((val2    ) & 0x1f) << 3) | (((val2    ) & 0x1f) >> 2);
-                                a2 = 0xFF;
-                            }
-                            else
-                            {
-                                a2 = (((val2>>12) & 0x7) << 5) | (((val2>>12) & 0x7) << 2) | (((val2>>12) & 0x7) >> 1);
-                                r2 = (((val2>>8 ) & 0xf) << 4) | ((val2>>8 ) & 0xf);
-                                g2 = (((val2>>4 ) & 0xf) << 4) | ((val2>>4 ) & 0xf);
-                                b2 = (((val2    ) & 0xf) << 4) | ((val2    ) & 0xf);
-                            }
-                            newdst[2] = r2 | (g2 << 8) | (b2 << 16) | (a2 << 24);
+							if (val2 & 0x8000)
+							{
+								// Swizzle bits: 00012345 -> 12345123
+								r2 = (((val2>>10) & 0x1f) << 3) | (((val2>>10) & 0x1f) >> 2);
+								g2 = (((val2>>5 ) & 0x1f) << 3) | (((val2>>5 ) & 0x1f) >> 2);
+								b2 = (((val2    ) & 0x1f) << 3) | (((val2    ) & 0x1f) >> 2);
+								a2 = 0xFF;
+							}
+							else
+							{
+								a2 = (((val2>>12) & 0x7) << 5) | (((val2>>12) & 0x7) << 2) | (((val2>>12) & 0x7) >> 1);
+								r2 = (((val2>>8 ) & 0xf) << 4) | ((val2>>8 ) & 0xf);
+								g2 = (((val2>>4 ) & 0xf) << 4) | ((val2>>4 ) & 0xf);
+								b2 = (((val2    ) & 0xf) << 4) | ((val2    ) & 0xf);
+							}
+							newdst[2] = r2 | (g2 << 8) | (b2 << 16) | (a2 << 24);
 
-                            if (val3 & 0x8000)
-                            {
-                                // Swizzle bits: 00012345 -> 12345123
-                                r3 = (((val3>>10) & 0x1f) << 3) | (((val3>>10) & 0x1f) >> 2);
-                                g3 = (((val3>>5 ) & 0x1f) << 3) | (((val3>>5 ) & 0x1f) >> 2);
-                                b3 = (((val3    ) & 0x1f) << 3) | (((val3    ) & 0x1f) >> 2);
-                                a3 = 0xFF;
-                            }
-                            else
-                            {
-                                a3 = (((val3>>12) & 0x7) << 5) | (((val3>>12) & 0x7) << 2) | (((val3>>12) & 0x7) >> 1);
-                                r3 = (((val3>>8 ) & 0xf) << 4) | ((val3>>8 ) & 0xf);
-                                g3 = (((val3>>4 ) & 0xf) << 4) | ((val3>>4 ) & 0xf);
-                                b3 = (((val3    ) & 0xf) << 4) | ((val3    ) & 0xf);
-                            }
-                            newdst[3] = r3 | (g3 << 8) | (b3 << 16) | (a3 << 24);
-                        }
-                    }
-#else
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
+							if (val3 & 0x8000)
+							{
+								// Swizzle bits: 00012345 -> 12345123
+								r3 = (((val3>>10) & 0x1f) << 3) | (((val3>>10) & 0x1f) >> 2);
+								g3 = (((val3>>5 ) & 0x1f) << 3) | (((val3>>5 ) & 0x1f) >> 2);
+								b3 = (((val3    ) & 0x1f) << 3) | (((val3    ) & 0x1f) >> 2);
+								a3 = 0xFF;
+							}
+							else
+							{
+								a3 = (((val3>>12) & 0x7) << 5) | (((val3>>12) & 0x7) << 2) | (((val3>>12) & 0x7) >> 1);
+								r3 = (((val3>>8 ) & 0xf) << 4) | ((val3>>8 ) & 0xf);
+								g3 = (((val3>>4 ) & 0xf) << 4) | ((val3>>4 ) & 0xf);
+								b3 = (((val3    ) & 0xf) << 4) | ((val3    ) & 0xf);
+							}
+							newdst[3] = r3 | (g3 << 8) | (b3 << 16) | (a3 << 24);
+						}
+					}
+#if 0
+			// Reference C implementation:
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
 #endif
-        }
-        break;
-    case GX_TF_RGBA8:  // speed critical
-        {
+		}
+		break;
+	case GX_TF_RGBA8:  // speed critical
+		{
+			// JSD optimized with SSE2 intrinsics.
+			// Produces a ~68% improvement in speed over reference C implementation.
+			const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
+			const __m128i kMask_xf000 = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
+			const __m128i kMask_x0ff0 = _mm_set_epi32(0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L);
+
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4, src += 64)
+				{
+					// Input is divided up into 16-bit words. The texels are split up into AR and GB components where all
+					// AR components come grouped up first in 32 bytes followed by the GB components in 32 bytes. We are
+					// processing 16 texels per each loop iteration, numbered from 0-f.
+					//
+					// Convention is:
+					//   one byte is [component-name texel-number]
+					//    __m128i is (4-bytes 4-bytes 4-bytes 4-bytes)
+					//
+					// Input  is ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
+					//           ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
+					//           ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
+					//           ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
+					//
+					// Output is (RGBA3 RGBA2 RGBA1 RGBA0)
+					//           (RGBA7 RGBA6 RGBA5 RGBA4)
+					//           (RGBAb RGBAa RGBA9 RGBA8)
+					//           (RGBAf RGBAe RGBAd RGBAc)
+
+					// Loads the 1st half of AR components ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
+					const __m128i ar0 = _mm_load_si128((__m128i*)src);
+					// Loads the 2nd half of AR components ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
+					const __m128i ar1 = _mm_load_si128((__m128i*)src+1);
+					// Loads the 1st half of GB components ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
+					const __m128i gb0 = _mm_load_si128((__m128i*)src+2);
+					// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
+					const __m128i gb1 = _mm_load_si128((__m128i*)src+3);
+
+					// Expand the AR components to fill out 32-bit words:
+					// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 3][A 3][R 3][R 3] [A 2][A 2][R 2][R 2] [A 1][A 1][R 1][R 1] [A 0][A 0][R 0][R 0])
+					const __m128i aarr00 = _mm_unpacklo_epi8(ar0, ar0);
+					// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 7][A 7][R 7][R 7] [A 6][A 6][R 6][R 6] [A 5][A 5][R 5][R 5] [A 4][A 4][R 4][R 4])
+					const __m128i aarr01 = _mm_unpackhi_epi8(ar0, ar0);
+					// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A b][A b][R b][R b] [A a][A a][R a][R a] [A 9][A 9][R 9][R 9] [A 8][A 8][R 8][R 8])
+					const __m128i aarr10 = _mm_unpacklo_epi8(ar1, ar1);
+					// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A f][A f][R f][R f] [A e][A e][R e][R e] [A d][A d][R d][R d] [A c][A c][R c][R c])
+					const __m128i aarr11 = _mm_unpackhi_epi8(ar1, ar1);
+
+					// Move A right 16 bits and mask off everything but the lowest  8 bits to get A in its final place:
+					const __m128i ___a00 = _mm_and_si128(_mm_srli_epi32(aarr00, 16), kMask_x000f);
+					// Move R left  16 bits and mask off everything but the highest 8 bits to get R in its final place:
+					const __m128i r___00 = _mm_and_si128(_mm_slli_epi32(aarr00, 16), kMask_xf000);
+					// OR the two together to get R and A in their final places:
+					const __m128i r__a00 = _mm_or_si128(r___00, ___a00);
+
+					const __m128i ___a01 = _mm_and_si128(_mm_srli_epi32(aarr01, 16), kMask_x000f);
+					const __m128i r___01 = _mm_and_si128(_mm_slli_epi32(aarr01, 16), kMask_xf000);
+					const __m128i r__a01 = _mm_or_si128(r___01, ___a01);
+
+					const __m128i ___a10 = _mm_and_si128(_mm_srli_epi32(aarr10, 16), kMask_x000f);
+					const __m128i r___10 = _mm_and_si128(_mm_slli_epi32(aarr10, 16), kMask_xf000);
+					const __m128i r__a10 = _mm_or_si128(r___10, ___a10);
+
+					const __m128i ___a11 = _mm_and_si128(_mm_srli_epi32(aarr11, 16), kMask_x000f);
+					const __m128i r___11 = _mm_and_si128(_mm_slli_epi32(aarr11, 16), kMask_xf000);
+					const __m128i r__a11 = _mm_or_si128(r___11, ___a11);
+
+					// Expand the GB components to fill out 32-bit words:
+					// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 3][G 3][B 3][B 3] [G 2][G 2][B 2][B 2] [G 1][G 1][B 1][B 1] [G 0][G 0][B 0][B 0])
+					const __m128i ggbb00 = _mm_unpacklo_epi8(gb0, gb0);
+					// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 7][G 7][B 7][B 7] [G 6][G 6][B 6][B 6] [G 5][G 5][B 5][B 5] [G 4][G 4][B 4][B 4])
+					const __m128i ggbb01 = _mm_unpackhi_epi8(gb0, gb0);
+					// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G b][G b][B b][B b] [G a][G a][B a][B a] [G 9][G 9][B 9][B 9] [G 8][G 8][B 8][B 8])
+					const __m128i ggbb10 = _mm_unpacklo_epi8(gb1, gb1);
+					// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G f][G f][B f][B f] [G e][G e][B e][B e] [G d][G d][B d][B d] [G c][G c][B c][B c])
+					const __m128i ggbb11 = _mm_unpackhi_epi8(gb1, gb1);
+
+					// G and B are already in perfect spots in the center, just remove the extra copies in the 1st and 4th positions:
+					const __m128i _gb_00 = _mm_and_si128(ggbb00, kMask_x0ff0);
+					const __m128i _gb_01 = _mm_and_si128(ggbb01, kMask_x0ff0);
+					const __m128i _gb_10 = _mm_and_si128(ggbb10, kMask_x0ff0);
+					const __m128i _gb_11 = _mm_and_si128(ggbb11, kMask_x0ff0);
+
+					// Now join up R__A and _GB_ to get RGBA!
+					const __m128i rgba00 = _mm_or_si128(r__a00, _gb_00);
+					const __m128i rgba01 = _mm_or_si128(r__a01, _gb_01);
+					const __m128i rgba10 = _mm_or_si128(r__a10, _gb_10);
+					const __m128i rgba11 = _mm_or_si128(r__a11, _gb_11);
+
+					// Write em out!
+					__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
+					_mm_store_si128(dst128, rgba00);
+					dst128 = (__m128i*)( dst + (y + 1) * width + x );
+					_mm_store_si128(dst128, rgba01);
+					dst128 = (__m128i*)( dst + (y + 2) * width + x );
+					_mm_store_si128(dst128, rgba10);
+					dst128 = (__m128i*)( dst + (y + 3) * width + x );
+					_mm_store_si128(dst128, rgba11);
+				}
+#if 0
+			// Reference C implementation.
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 				{
@@ -1432,31 +1630,32 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						decodebytesARGB8_4ToRgba(dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
 					src += 64;
 				}
+#endif
 		}
-        break;
-    case GX_TF_CMPR:  // speed critical
-        // The metroid games use this format almost exclusively.
+		break;
+	case GX_TF_CMPR:  // speed critical
+		// The metroid games use this format almost exclusively.
 		{
 			for (int y = 0; y < height; y += 8)
 			{
-                for (int x = 0; x < width; x += 8)
-                {
-                    decodeDXTBlockRGBA((u32*)dst + y * width + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlockRGBA((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                }
+				for (int x = 0; x < width; x += 8)
+				{
+					decodeDXTBlockRGBA((u32*)dst + y * width + x, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlockRGBA((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
+										src += sizeof(DXTBlock);
+				}
 			}
 			break;
 		}
-    }
+	}
 
 	// The "copy" texture formats, too?
-    return PC_TEX_FMT_RGBA32;
+	return PC_TEX_FMT_RGBA32;
 }
 
 
@@ -1470,15 +1669,15 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly)
 {
-    PC_TexFormat retval = PC_TEX_FMT_NONE;
+	PC_TexFormat retval = PC_TEX_FMT_NONE;
 
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if (g_Config.bEnableOpenCL)
-	    retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
+		retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
 #endif
 
-    if(retval == PC_TEX_FMT_NONE)
-        retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst,src,width,height,texformat,tlutaddr,tlutfmt) : TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
+	if(retval == PC_TEX_FMT_NONE)
+		retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst,src,width,height,texformat,tlutaddr,tlutfmt) : TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
 
 	if ((!TexFmt_Overlay_Enable)|| (retval == PC_TEX_FMT_NONE))
 		return retval;
@@ -1558,294 +1757,294 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt)
 {
-    /* General formula for computing texture offset
-    // 
-    u16 sBlk = s / blockWidth;
-    u16 tBlk = t / blockHeight;
-    u16 widthBlks = (width / blockWidth) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
-    u16 blkS = s & (blockWidth - 1);
-    u16 blkT =  t & (blockHeight - 1);
-    u32 blkOff = blkT * blockWidth + blkS;    
-    */
+	/* General formula for computing texture offset
+	// 
+	u16 sBlk = s / blockWidth;
+	u16 tBlk = t / blockHeight;
+	u16 widthBlks = (width / blockWidth) + 1;
+	u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
+	u16 blkS = s & (blockWidth - 1);
+	u16 blkT =  t & (blockHeight - 1);
+	u32 blkOff = blkT * blockWidth + blkS;    
+	*/
 
-    switch (texformat)
-    {
-    case GX_TF_C4:
-        {
-		    u16 sBlk = s >> 3;
-            u16 tBlk = t >> 3;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5;
-            u16 blkS = s & 7;
-            u16 blkT =  t & 7;
-            u32 blkOff = (blkT << 3) + blkS;
-            
-            int rs = (blkOff & 1)?0:4;
-            u32 offset = base + (blkOff >> 1);            
-
-            u8 val = (*(src + offset) >> rs) & 0xF;
-            u16 *tlut = (u16*)(texMem + tlutaddr);
-
-            switch (tlutfmt)
-            {
-            case 0:
-                *((u32*)dst) = decodeIA8Swapped(tlut[val]);
-                break;
-            case 1:                
-                *((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-                break;
-            case 2:
-                *((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-                break;
-            }
-        }
-        break;
-    case GX_TF_I4:
+	switch (texformat)
+	{
+	case GX_TF_C4:
 		{
 			u16 sBlk = s >> 3;
-            u16 tBlk = t >> 3;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5;
-            u16 blkS = s & 7;
-            u16 blkT =  t & 7;
-            u32 blkOff = (blkT << 3) + blkS;
-            
-            int rs = (blkOff & 1)?0:4;
-            u32 offset = base + (blkOff >> 1);            
+			u16 tBlk = t >> 3;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5;
+			u16 blkS = s & 7;
+			u16 blkT =  t & 7;
+			u32 blkOff = (blkT << 3) + blkS;
+			
+			int rs = (blkOff & 1)?0:4;
+			u32 offset = base + (blkOff >> 1);            
 
-            u8 val = (*(src + offset) >> rs) & 0xF;
-            val = Convert4To8(val);
+			u8 val = (*(src + offset) >> rs) & 0xF;
+			u16 *tlut = (u16*)(texMem + tlutaddr);
+
+			switch (tlutfmt)
+			{
+			case 0:
+				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
+				break;
+			case 1:                
+				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
+				break;
+			case 2:
+				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
+				break;
+			}
+		}
+		break;
+	case GX_TF_I4:
+		{
+			u16 sBlk = s >> 3;
+			u16 tBlk = t >> 3;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5;
+			u16 blkS = s & 7;
+			u16 blkT =  t & 7;
+			u32 blkOff = (blkT << 3) + blkS;
+			
+			int rs = (blkOff & 1)?0:4;
+			u32 offset = base + (blkOff >> 1);            
+
+			u8 val = (*(src + offset) >> rs) & 0xF;
+			val = Convert4To8(val);
 			dst[0] = val;
-            dst[1] = val;
-            dst[2] = val;
-            dst[3] = val;
-        }
-       break;
+			dst[1] = val;
+			dst[2] = val;
+			dst[3] = val;
+		}
+	   break;
 	case GX_TF_I8:
 		{
-            u16 sBlk = s >> 3;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5;
-            u16 blkS = s & 7;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 3) + blkS;
-            
-            u8 val = *(src + base + blkOff);
-            dst[0] = val;
-            dst[1] = val;
-            dst[2] = val;
-            dst[3] = val;
+			u16 sBlk = s >> 3;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5;
+			u16 blkS = s & 7;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 3) + blkS;
+			
+			u8 val = *(src + base + blkOff);
+			dst[0] = val;
+			dst[1] = val;
+			dst[2] = val;
+			dst[3] = val;
 		}
 		break;
-    case GX_TF_C8:
-        {
-		    u16 sBlk = s >> 3;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5;
-            u16 blkS = s & 7;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 3) + blkS;
-            
-            u8 val = *(src + base + blkOff);
-            u16 *tlut = (u16*)(texMem + tlutaddr);
+	case GX_TF_C8:
+		{
+			u16 sBlk = s >> 3;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5;
+			u16 blkS = s & 7;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 3) + blkS;
+			
+			u8 val = *(src + base + blkOff);
+			u16 *tlut = (u16*)(texMem + tlutaddr);
 
-            switch (tlutfmt)
-            {
-            case 0:
-                *((u32*)dst) = decodeIA8Swapped(tlut[val]);
-                break;
-            case 1:                
-                *((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-                break;
-            case 2:
-                *((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-                break;
-            }
-        }
-        break;
-    case GX_TF_IA4:
-        {
-            u16 sBlk = s >> 3;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5;
-            u16 blkS = s & 7;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 3) + blkS;
-            
-            u8 val = *(src + base + blkOff);
-            const u8 a = Convert4To8(val>>4);
-            const u8 l = Convert4To8(val&0xF);
-            dst[0] = l;
-            dst[1] = l;
-            dst[2] = l;
-            dst[3] = a;
-        }
+			switch (tlutfmt)
+			{
+			case 0:
+				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
+				break;
+			case 1:                
+				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
+				break;
+			case 2:
+				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
+				break;
+			}
+		}
 		break;
-    case GX_TF_IA8:
-        {
-			u16 sBlk = s >> 2;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 2) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 4;
-            u16 blkS = s & 3;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 2) + blkS;
-            
-            u32 offset = (base + blkOff) << 1;
-            const u16* valAddr = (u16*)(src + offset);
-
-            *((u32*)dst) = decodeIA8Swapped(*valAddr);
-        }
+	case GX_TF_IA4:
+		{
+			u16 sBlk = s >> 3;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5;
+			u16 blkS = s & 7;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 3) + blkS;
+			
+			u8 val = *(src + base + blkOff);
+			const u8 a = Convert4To8(val>>4);
+			const u8 l = Convert4To8(val&0xF);
+			dst[0] = l;
+			dst[1] = l;
+			dst[2] = l;
+			dst[3] = a;
+		}
 		break;
-    case GX_TF_C14X2: 
-        {
-            u16 sBlk = s >> 2;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 2) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 4;
-            u16 blkS = s & 3;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 2) + blkS;
-            
-            u32 offset = (base + blkOff) << 1;
-            const u16* valAddr = (u16*)(src + offset);
-
-            u16 val = Common::swap16(*valAddr) & 0x3FFF;
-            u16 *tlut = (u16*)(texMem + tlutaddr);
-
-            switch (tlutfmt)
-            {
-            case 0:
-                *((u32*)dst) = decodeIA8Swapped(tlut[val]);
-                break;
-            case 1:                
-                *((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-                break;
-            case 2:
-                *((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-                break;
-            }
-        }
-		break;
-    case GX_TF_RGB565:
+	case GX_TF_IA8:
 		{
 			u16 sBlk = s >> 2;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 2) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 4;
-            u16 blkS = s & 3;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 2) + blkS;
-            
-            u32 offset = (base + blkOff) << 1;
-            const u16* valAddr = (u16*)(src + offset);
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 2) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 4;
+			u16 blkS = s & 3;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 2) + blkS;
+			
+			u32 offset = (base + blkOff) << 1;
+			const u16* valAddr = (u16*)(src + offset);
 
-            *((u32*)dst) = decode565RGBA(Common::swap16(*valAddr));
+			*((u32*)dst) = decodeIA8Swapped(*valAddr);
 		}
 		break;
-    case GX_TF_RGB5A3:
-        {
-            u16 sBlk = s >> 2;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 2) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 4;
-            u16 blkS = s & 3;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 2) + blkS;
-
-            u32 offset = (base + blkOff) << 1;
-            const u16* valAddr = (u16*)(src + offset);
-
-            *((u32*)dst) = decode5A3RGBA(Common::swap16(*valAddr));
-        }
-        break;
-    case GX_TF_RGBA8:
-        {
-			u16 sBlk = s >> 2;
-            u16 tBlk = t >> 2;
-            u16 widthBlks = (imageWidth >> 2) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 5; // shift by 5 is correct
-            u16 blkS = s & 3;
-            u16 blkT =  t & 3;
-            u32 blkOff = (blkT << 2) + blkS;
-
-            u32 offset = (base + blkOff) << 1 ;
-            const u8* valAddr = src + offset;
-
-            dst[3] = valAddr[0];
-            dst[0] = valAddr[1];
-            dst[1] = valAddr[32];
-            dst[2] = valAddr[33];
-        }
-        break;
-    case GX_TF_CMPR:
+	case GX_TF_C14X2: 
 		{
-            u16 sDxt = s >> 2;
-            u16 tDxt = t >> 2;
+			u16 sBlk = s >> 2;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 2) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 4;
+			u16 blkS = s & 3;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 2) + blkS;
+			
+			u32 offset = (base + blkOff) << 1;
+			const u16* valAddr = (u16*)(src + offset);
 
-            u16 sBlk = sDxt >> 1;
-            u16 tBlk = tDxt >> 1;
-            u16 widthBlks = (imageWidth >> 3) + 1;
-            u32 base = (tBlk * widthBlks + sBlk) << 2;
-            u16 blkS = sDxt & 1;
-            u16 blkT =  tDxt & 1;
-            u32 blkOff = (blkT << 1) + blkS;
+			u16 val = Common::swap16(*valAddr) & 0x3FFF;
+			u16 *tlut = (u16*)(texMem + tlutaddr);
 
-            u32 offset = (base + blkOff) << 3;
-
-            const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
-	            
-            u16 c1 = Common::swap16(dxtBlock->color1);
-            u16 c2 = Common::swap16(dxtBlock->color2);
-            int blue1 = Convert5To8(c1 & 0x1F);
-            int blue2 = Convert5To8(c2 & 0x1F);
-            int green1 = Convert6To8((c1 >> 5) & 0x3F);
-            int green2 = Convert6To8((c2 >> 5) & 0x3F);
-            int red1 = Convert5To8((c1 >> 11) & 0x1F);
-            int red2 = Convert5To8((c2 >> 11) & 0x1F);
-
-            u16 ss = s & 3;
-            u16 tt = t & 3;
-
-            int colorSel = dxtBlock->lines[tt];
-            int rs = 6 - (ss << 1);
-            colorSel = (colorSel >> rs) & 3;
-            colorSel |= c1 > c2?0:4;
-
-            u32 color = 0;
-            
-            switch (colorSel)
-            {
-                case 0:
-                case 4:
-                    color = makeRGBA(red1, green1, blue1, 255);
-                    break;
-                case 1:
-                case 5:
-                    color = makeRGBA(red2, green2, blue2, 255);
-                    break;
-                case 2:
-                    color = makeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
-                    break;
-                case 3:
-                    color = makeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
-                    break;
-                case 6:
-                    color = makeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
-                    break;
-                case 7:
-                    color = makeRGBA(red2, green2, blue2, 0);
-                    break;
-            }
-
-            *((u32*)dst) = color;
+			switch (tlutfmt)
+			{
+			case 0:
+				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
+				break;
+			case 1:                
+				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
+				break;
+			case 2:
+				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
+				break;
+			}
 		}
-        break;
-    }
+		break;
+	case GX_TF_RGB565:
+		{
+			u16 sBlk = s >> 2;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 2) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 4;
+			u16 blkS = s & 3;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 2) + blkS;
+			
+			u32 offset = (base + blkOff) << 1;
+			const u16* valAddr = (u16*)(src + offset);
+
+			*((u32*)dst) = decode565RGBA(Common::swap16(*valAddr));
+		}
+		break;
+	case GX_TF_RGB5A3:
+		{
+			u16 sBlk = s >> 2;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 2) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 4;
+			u16 blkS = s & 3;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 2) + blkS;
+
+			u32 offset = (base + blkOff) << 1;
+			const u16* valAddr = (u16*)(src + offset);
+
+			*((u32*)dst) = decode5A3RGBA(Common::swap16(*valAddr));
+		}
+		break;
+	case GX_TF_RGBA8:
+		{
+			u16 sBlk = s >> 2;
+			u16 tBlk = t >> 2;
+			u16 widthBlks = (imageWidth >> 2) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 5; // shift by 5 is correct
+			u16 blkS = s & 3;
+			u16 blkT =  t & 3;
+			u32 blkOff = (blkT << 2) + blkS;
+
+			u32 offset = (base + blkOff) << 1 ;
+			const u8* valAddr = src + offset;
+
+			dst[3] = valAddr[0];
+			dst[0] = valAddr[1];
+			dst[1] = valAddr[32];
+			dst[2] = valAddr[33];
+		}
+		break;
+	case GX_TF_CMPR:
+		{
+			u16 sDxt = s >> 2;
+			u16 tDxt = t >> 2;
+
+			u16 sBlk = sDxt >> 1;
+			u16 tBlk = tDxt >> 1;
+			u16 widthBlks = (imageWidth >> 3) + 1;
+			u32 base = (tBlk * widthBlks + sBlk) << 2;
+			u16 blkS = sDxt & 1;
+			u16 blkT =  tDxt & 1;
+			u32 blkOff = (blkT << 1) + blkS;
+
+			u32 offset = (base + blkOff) << 3;
+
+			const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
+				
+			u16 c1 = Common::swap16(dxtBlock->color1);
+			u16 c2 = Common::swap16(dxtBlock->color2);
+			int blue1 = Convert5To8(c1 & 0x1F);
+			int blue2 = Convert5To8(c2 & 0x1F);
+			int green1 = Convert6To8((c1 >> 5) & 0x3F);
+			int green2 = Convert6To8((c2 >> 5) & 0x3F);
+			int red1 = Convert5To8((c1 >> 11) & 0x1F);
+			int red2 = Convert5To8((c2 >> 11) & 0x1F);
+
+			u16 ss = s & 3;
+			u16 tt = t & 3;
+
+			int colorSel = dxtBlock->lines[tt];
+			int rs = 6 - (ss << 1);
+			colorSel = (colorSel >> rs) & 3;
+			colorSel |= c1 > c2?0:4;
+
+			u32 color = 0;
+			
+			switch (colorSel)
+			{
+				case 0:
+				case 4:
+					color = makeRGBA(red1, green1, blue1, 255);
+					break;
+				case 1:
+				case 5:
+					color = makeRGBA(red2, green2, blue2, 255);
+					break;
+				case 2:
+					color = makeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
+					break;
+				case 3:
+					color = makeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
+					break;
+				case 6:
+					color = makeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
+					break;
+				case 7:
+					color = makeRGBA(red2, green2, blue2, 0);
+					break;
+			}
+
+			*((u32*)dst) = color;
+		}
+		break;
+	}
 }
 
 
