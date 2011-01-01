@@ -49,8 +49,9 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
 			wm = WiimoteReal::g_wiimotes[i];
 	}
+
 	if (wm == NULL) {
-		WARN_LOG(WIIMOTE, "Received packet for unknown wiimote");
+		ERROR_LOG(WIIMOTE, "Received packet for unknown wiimote");
 		return;
 	}
 
@@ -60,25 +61,14 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 		return;
 	}
 
-	if (wm->queue[wm->writer].len != 0) {
+	if (wm->inputlen != 0) {
 		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, queue full",
 				wm->index + 1);
 		return;
 	}
 
-	memcpy(wm->queue[wm->writer].data, data, length);
-	wm->queue[wm->writer].len = length;
-
-	wm->writer++;
-	wm->outstanding++;
-	if (wm->writer == QUEUE_SIZE)
-		wm->writer = 0;
-
-	if (wm->outstanding > wm->watermark) {
-		wm->watermark = wm->outstanding;
-		WARN_LOG(WIIMOTE, "New queue watermark %i for wiimote %i",
-				wm->watermark, wm->index + 1);
-	}
+	memcpy(wm->input, data, length);
+	wm->inputlen = length;
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
@@ -96,19 +86,20 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
 			wm = WiimoteReal::g_wiimotes[i];
 	}
+
 	if (wm == NULL) {
-		WARN_LOG(WIIMOTE, "Received packet for unknown wiimote");
+		ERROR_LOG(WIIMOTE, "Channel for unknown wiimote was closed");
 		return;
 	}
 
-	WARN_LOG(WIIMOTE, "L2CAP channel was closed for wiimote %i",
-		wm->index + 1);
+	WARN_LOG(WIIMOTE, "Connection to wiimote %i closed", wm->index + 1);
 
-	if (l2capChannel == wm->cchan)
-		wm->cchan = nil;
+	[wm->btd closeConnection];
 
-	if (l2capChannel == wm->ichan)
-		wm->ichan = nil;
+	wm->btd = NULL;
+	wm->cchan = NULL;
+	wm->ichan = NULL;
+	wm->m_connected = false;
 }
 @end
 
@@ -163,25 +154,18 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 		found_devices == 1 ? '\0' : 's');
 
 	en = [[bti foundDevices] objectEnumerator];
-	for (int i = 0; (i < found_devices) && (found_wiimotes < max_wiimotes); i++) {
-		IOBluetoothDevice *tmp_btd = [en nextObject];
+	for (int i = 0; i < found_devices; i++)
+	{
+		// Find an unused slot
+		for (int k = 0; k < MAX_WIIMOTES; k++) {
+			if (wm[k] != NULL ||
+				!(g_wiimote_sources[k] & WIIMOTE_SRC_REAL))
+				continue;
 
-		bool new_wiimote = true;
-		// Determine if this wiimote has already been found.
-		for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j) {
-			if (wm[j] && [tmp_btd isEqual: wm[j]->btd] == TRUE)
-				new_wiimote = false;
-		}
-
-		if (new_wiimote) {
-			// Find an unused slot
-			unsigned int k = 0;
-			for ( ; k < MAX_WIIMOTES &&
-					!(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k)
-			{};
 			wm[k] = new Wiimote(k);
-			wm[k]->btd = tmp_btd;
+			wm[k]->btd = [en nextObject];
 			found_wiimotes++;
+			break;
 		}
 	}
 
@@ -232,11 +216,12 @@ void Wiimote::RealDisconnect()
 
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
-	m_connected = false;
-
-	[cchan closeChannel];
-	[ichan closeChannel];
 	[btd closeConnection];
+
+	btd = NULL;
+	cchan = NULL;
+	ichan = NULL;
+	m_connected = false;
 }
 
 int Wiimote::IORead(unsigned char *buf)
@@ -246,23 +231,14 @@ int Wiimote::IORead(unsigned char *buf)
 	if (!IsConnected())
 		return 0;
 
-	if (outstanding == 0)
+	if (inputlen == 0) {
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, true);
-
-	if (queue[reader].len == 0)
 		return 0;
+	}
 
-	bytes = queue[reader].len;
-	memcpy(buf, queue[reader].data, bytes);
-	queue[reader].len = 0;
-
-	reader++;
-	outstanding--;
-	if (reader == QUEUE_SIZE)
-		reader = 0;
-
-	if (buf[0] == '\0')
-		bytes = 0;
+	bytes = inputlen;
+	memcpy(buf, input, bytes);
+	inputlen = 0;
 
 	return bytes;
 }
@@ -270,6 +246,9 @@ int Wiimote::IORead(unsigned char *buf)
 int Wiimote::IOWrite(unsigned char *buf, int len)
 {
 	IOReturn ret;
+
+	if (!IsConnected())
+		return 0;
 
 	ret = [cchan writeAsync: buf length: len refcon: nil];
 

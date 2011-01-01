@@ -71,16 +71,8 @@ public:
 	IOBluetoothDevice *btd;
 	IOBluetoothL2CAPChannel *ichan;
 	IOBluetoothL2CAPChannel *cchan;
-#define QUEUE_SIZE 64
-	struct qbuffer
-	{
-		char data[MAX_PAYLOAD];
-		int len;
-	} queue[QUEUE_SIZE];
-	int reader;
-	int writer;
-	int outstanding;
-	int watermark;
+	char input[MAX_PAYLOAD];
+	int inputlen;
 #elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr_t bdaddr;					// Bluetooth address
 	int out_sock;						// Output socket
@@ -94,6 +86,7 @@ public:
 #endif
 	unsigned char leds;					// Currently lit leds
 
+	bool	m_connected;
 protected:
 	Report	m_last_data_report;
 	u16	m_channel;
@@ -107,7 +100,6 @@ private:
 	int IORead(unsigned char* buf);
 	int IOWrite(unsigned char* buf, int len);
 
-	bool				m_connected;
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 };

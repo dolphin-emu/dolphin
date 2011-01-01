@@ -36,9 +36,9 @@ void Wiimote::RealDisconnect()
 	return;
 }
 
-u8 *Wiimote::IORead()
+int Wiimote::IORead(unsigned char* buf)
 {
-	return NULL;
+	return 0;
 }
 
 int Wiimote::IOWrite(unsigned char* buf, int len)
