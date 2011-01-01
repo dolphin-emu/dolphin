@@ -864,6 +864,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 				(float)(color & 0xFF) / 255.0f,
 				(float)((color >> 24) & 0xFF) / 255.0f);
 	float zval = -1.f + 2.f * (float)(z & 0xFFFFFF) / float(0xFFFFFF); // convert range [0;1] to [-1;1]
+	if(zval > 1.0f)
+		zval = 1.0f;
+	if(zval < -1.0f)
+		zval = -1.0f;
 	glBegin(GL_QUADS);
 	glVertex3f(-1.f, -1.f, zval);
 	glVertex3f(-1.f,  1.f, zval);
