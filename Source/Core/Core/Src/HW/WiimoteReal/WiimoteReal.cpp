@@ -57,7 +57,13 @@ Wiimote::Wiimote(const unsigned int _index)
 #endif
 	, leds(0), m_last_data_report(NULL), m_channel(0), m_connected(false)
 {
-#if defined(__linux__) && HAVE_BLUEZ
+#ifdef __APPLE__
+	memset(queue, 0, sizeof queue);
+	reader = 0;
+	writer = 0;
+	outstanding = 0;
+	watermark = 0;
+#elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 #endif
 
