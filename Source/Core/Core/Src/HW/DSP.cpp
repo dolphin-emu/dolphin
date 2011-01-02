@@ -213,6 +213,11 @@ static u16 g_AR_REFRESH;
 
 Common::PluginDSP *dsp_plugin;
 
+static int dsp_slice = 0;
+static bool dsp_is_lle = false;
+
+//time given to lle dsp on every read of the high bits in a mailbox
+static const int DSP_MAIL_SLICE=12;
 
 void DoState(PointerWrap &p)
 {
@@ -243,6 +248,10 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 void Init()
 {
 	dsp_plugin = CPluginManager::GetInstance().GetDSP();
+	PLUGIN_INFO DSPType;
+	dsp_plugin->GetInfo(DSPType);
+	std::string DSPName(DSPType.Name);
+	dsp_is_lle = (DSPName.find("LLE") != std::string::npos) || (DSPName.find("lle") != std::string::npos);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
@@ -288,6 +297,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
+		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
+			CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_MAIL_SLICE);
+			dsp_slice -= DSP_MAIL_SLICE;
+		}
 		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
 		break;
 
@@ -296,6 +309,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
+		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
+			CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_MAIL_SLICE);
+			dsp_slice -= DSP_MAIL_SLICE;
+		}
 		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
 		break;
 
@@ -608,6 +625,19 @@ void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+}
+
+// called whenever SystemTimers thinks the dsp deserves a few more cycles
+void UpdateDSPSlice(int cycles) {
+	if (dsp_is_lle) {
+		//use up the rest of the slice(if any)
+		CPluginManager::GetInstance().GetDSP()->DSP_Update(dsp_slice);
+		dsp_slice %= 6;
+		//note the new budget
+		dsp_slice += cycles;
+	} else {
+		CPluginManager::GetInstance().GetDSP()->DSP_Update(cycles);
+	}
 }
 
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)

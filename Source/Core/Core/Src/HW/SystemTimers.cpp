@@ -158,7 +158,9 @@ void AICallback(u64 userdata, int cyclesLate)
 // DSP/CPU timeslicing.
 void DSPCallback(u64 userdata, int cyclesLate)
 {
-	CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_PERIOD + cyclesLate);
+	//splits up the cycle budget in case lle is used
+	//for hle, just gives all of the slice to hle
+	DSP::UpdateDSPSlice(DSP_PERIOD - cyclesLate);
 	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
 }
 
