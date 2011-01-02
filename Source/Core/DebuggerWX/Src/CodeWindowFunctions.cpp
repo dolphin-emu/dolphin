@@ -200,7 +200,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_PROFILEBLOCKS:
-		jit->ClearCache();
+		if (jit != NULL) jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		break;
 	case IDM_WRITEPROFILE:

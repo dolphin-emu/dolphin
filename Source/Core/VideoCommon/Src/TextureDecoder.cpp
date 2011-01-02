@@ -1294,6 +1294,77 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_RGB565:
 		{
+			// JSD optimized with SSE2 intrinsics.
+			// Produces an ~78% speed improvement over reference C implementation.
+			const __m128i kMaskR0 = _mm_set_epi32(0x000000F8, 0x000000F8, 0x000000F8, 0x000000F8);
+			const __m128i kMaskG0 = _mm_set_epi32(0x0000FC00, 0x0000FC00, 0x0000FC00, 0x0000FC00);
+			const __m128i kMaskG1 = _mm_set_epi32(0x00000300, 0x00000300, 0x00000300, 0x00000300);
+			const __m128i kMaskB0 = _mm_set_epi32(0x00F80000, 0x00F80000, 0x00F80000, 0x00F80000);
+			const __m128i kAlpha  = _mm_set_epi32(0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000);
+
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+					{
+						__m128i *dxtsrc = (__m128i *)src;
+						// Load 4x 16-bit colors: (0000 0000 hgfe dcba)
+						// where hg, fe, ba, and dc are 16-bit colors in big-endian order
+						const __m128i rgb565x4 = _mm_loadl_epi64(dxtsrc);
+
+						// The big-endian 16-bit colors `ba` and `dc` look like 0b_RRRrrGGG_gggBBBbb in a little endian xmm register
+						// Unpack `hgfe dcba` to `hhgg ffee ddcc bbaa`, where each 32-bit word is now 0b_RRRrrGGG_gggBBBbb_RRRrrGGG_gggBBBbb
+						const __m128i c0 = _mm_unpacklo_epi8(rgb565x4, rgb565x4);
+
+						// swizzle 0b_RRRrrGGg_gggBBBbb_RRRrrGGg_gggBBBbb
+						//      to 0b_11111111_BBBbbBBB_GGggggGG_RRRrrRRR
+
+						// 0b_RRRrrGGg_gggBBBbb_RRRrrGGg_gggBBBbb >> 8 [32] =
+						// 0b_00000000_RRRrrGGg_gggBBBbb_RRRrrGGg &
+						// 0b_00000000_00000000_00000000_11111000 =
+						// 0b_00000000_00000000_00000000_RRRrr000
+						const __m128i r0 = _mm_and_si128(_mm_srli_epi32(c0, 8), kMaskR0);
+						// 0b_00000000_00000000_00000000_RRRrr000 >> 5 [32] =
+						// 0b_00000000_00000000_00000000_00000RRR
+						const __m128i r1 = _mm_srli_epi32(r0, 5);
+
+						// 0b_RRRrrGGg_gggBBBbb_RRRrrGGg_gggBBBbb << 5 [32] =
+						// 0b_GGggggBB_BbbRRRrr_GGggggBB_Bbb00000 &
+						// 0b_00000000_00000000_11111100_00000000 = 
+						// 0b_00000000_00000000_GGgggg00_00000000
+						const __m128i gtmp = _mm_slli_epi32(c0, 5);
+						const __m128i g0 = _mm_and_si128(gtmp, kMaskG0);
+						// 0b_GGggggBB_BbbRRRrr_GGggggBB_Bbb00000 >> 6 [32] =
+						// 0b_000000GG_ggggBBBb_bRRRrrGG_ggggBBBb &
+						// 0b_00000000_00000000_00000011_00000000 =
+						// 0b_00000000_00000000_000000GG_00000000 =
+						const __m128i g1 = _mm_and_si128(_mm_srli_epi32(gtmp, 6), kMaskG1);
+
+						// 0b_RRRrrGGg_gggBBBbb_RRRrrGGg_gggBBBbb << 3 [32] =
+						// 0b_rrGGgggg_BBBbbRRR_rrGGgggg_BBBbb000 &
+						// 0b_00000000_11111000_00000000_00000000 =
+						// 0b_00000000_BBBbb000_00000000_00000000
+						const __m128i b0 = _mm_and_si128(_mm_slli_epi32(c0, 3), kMaskB0);
+						// 0b_00000000_BBBbb000_00000000_00000000 >> 5 [16] =
+						// 0b_00000000_00000BBB_00000000_00000000
+						const __m128i b1 = _mm_srli_epi16(b0, 5);
+
+						// OR together the final RGB bits and the alpha component:
+						const __m128i abgr888x4 = _mm_or_si128(
+							_mm_or_si128(
+								_mm_or_si128(r0, r1),
+								_mm_or_si128(g0, g1)
+							),
+							_mm_or_si128(
+								_mm_or_si128(b0, b1),
+								kAlpha
+							)
+						);
+
+						__m128i *ptr = (__m128i *)(dst + (y + iy) * width + x);
+						_mm_storeu_si128(ptr, abgr888x4);
+					}
+#if 0
+			// Reference C implementation.
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
@@ -1303,6 +1374,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						for(int j = 0; j < 4; j++)
 							*ptr++ = decode565RGBA(Common::swap16(*s++));
 					}
+#endif
 		}
 		break;
 	case GX_TF_RGB5A3:
