@@ -112,6 +112,18 @@ bool CoreAudioSound::Start()
 	return true;
 }
 
+void CoreAudioSound::SetVolume(int volume)
+{
+	OSStatus err;
+
+	err = AudioUnitSetParameter(audioUnit,
+					kHALOutputParam_Volume,
+					kAudioUnitParameterFlag_Output, 0,
+					volume / 100., 0);
+	if (err != noErr)
+		ERROR_LOG(AUDIO, "error setting volume");
+}
+
 void CoreAudioSound::SoundLoop()
 {
 }
@@ -121,22 +133,16 @@ void CoreAudioSound::Stop()
 	OSStatus err;
 
 	err = AudioOutputUnitStop(audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
 		ERROR_LOG(AUDIO, "error stopping audiounit");
-		return;
-	}
 
 	err = AudioUnitUninitialize(audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
 		ERROR_LOG(AUDIO, "error uninitializing audiounit");
-		return;
-	}
 
 	err = CloseComponent(audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
 		ERROR_LOG(AUDIO, "error closing audio component");
-		return;
-	}
 }
 
 void CoreAudioSound::Update()

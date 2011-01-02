@@ -64,7 +64,6 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableJIT->SetToolTip(wxT("Enables dynamic recompilation of DSP code.\n")
 		wxT("Changing this will have no effect while the emulator is running!"));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
-	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound, OpenAL, and PulseAudio."));
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
@@ -151,7 +150,8 @@ bool DSPConfigDialogLLE::SupportsVolumeChanges(std::string backend)
 	//       but getting the backend from string etc. is probably
 	//       too much just to enable/disable a stupid slider...
 	return (backend == BACKEND_DIRECTSOUND ||
-		    backend == BACKEND_OPENAL ||
+			backend == BACKEND_COREAUDIO ||
+			backend == BACKEND_OPENAL ||
 			backend == BACKEND_XAUDIO2 ||
 			backend == BACKEND_PULSEAUDIO);
 }
