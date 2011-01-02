@@ -114,9 +114,8 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		switch(_Mode)
 		{
 		case ISFS_OPEN_READ:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
+		// "r+b" is technically wrong, but OPEN_WRITE should not truncate the file as "wb" does.
 		case ISFS_OPEN_WRITE:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
-			// MK Wii gets here corrupting its saves (truncating rksys.dat), however using rb+ mode works fine
-			// TODO : figure it properly...
 		case ISFS_OPEN_RW:		m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		default: PanicAlert("FileIO: Unknown open mode : 0x%02x", _Mode); break;
 		}
@@ -181,15 +180,22 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
 {    
-    u32 ReturnValue = 0;
+    u32 ReturnValue = FS_EACCESS;
     u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
     u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
     if (m_pFileHandle != NULL)
     {
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
-        ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);		
-        if ((ReturnValue != Size) && ferror(m_pFileHandle)) ReturnValue = FS_EACCESS;
+		if (m_Mode == ISFS_OPEN_WRITE) 
+		{
+			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on write-only file %s", Size, Address, m_Name.c_str());
+		}
+		else 
+		{
+			INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
+			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);		
+			if ((ReturnValue != Size) && ferror(m_pFileHandle)) ReturnValue = FS_EACCESS;
+		}
     }
     else
     {
@@ -202,7 +208,7 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
 {        
-	u32 ReturnValue = 0;
+	u32 ReturnValue = FS_EACCESS;
 	u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
 	u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
@@ -210,13 +216,20 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 
 	if (m_pFileHandle)
 	{
-		size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
+		if (m_Mode == ISFS_OPEN_READ) 
+		{
+			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to write 0x%x bytes from 0x%08x to read-only file %s", Size, Address, m_Name.c_str());
+		}
+		else 
+		{
+			size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
-		_dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
+			_dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
 #else
-		(void)Result;
+			(void)Result;
 #endif
-	        ReturnValue = (Result == 1) ? Size : FS_EACCESS;
+			ReturnValue = (Result == 1) ? Size : FS_EACCESS;
+		}
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
