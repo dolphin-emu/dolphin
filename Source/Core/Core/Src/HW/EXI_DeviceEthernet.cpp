@@ -213,7 +213,8 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
 			//_dbg_assert_(SP1, data == (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8);
 			if (data != (u32)((u16)mCbw.p_write() + CB_OFFSET) >> 8)
 			{
-				ERROR_LOG(SP1, "BBA RWP ASSERT data %x p_write %lx", data, mCbw.p_write());
+				ERROR_LOG(SP1, "BBA RWP ASSERT data %x p_write %lx",
+					data, (unsigned long)mCbw.p_write());
 			}
 			break;
 		case BBA_RRP:	// RRP - Receive Buffer Read Page Pointer

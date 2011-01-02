@@ -312,7 +312,7 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 	//DWORD swapped = swapw(descr.word);
 	//next_packet_ptr:12, packet_len:12, status:8;
 	INFO_LOG(SP1, "Writing descriptor 0x%08X @ 0x%04lX: next 0x%03X len 0x%03X status 0x%02X\n",
-		descr.word, mCbw.p_write() + CB_OFFSET, descr.next_packet_ptr,
+		descr.word, (unsigned long)mCbw.p_write() + CB_OFFSET, descr.next_packet_ptr,
 		descr.packet_len, descr.status);
 	mCbw.write(&descr.word, SIZEOF_RECV_DESCRIPTOR);
 
