@@ -141,7 +141,7 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 		bool found = false;
 		for(int i = 0; i < MAX_WIIMOTES; i++)
 		{
-			if(wm[i] && memcmp(wm[i]->devicepath, detail_data->DevicePath, 197) == 0)
+			if(wm[i] && strcmp(wm[i]->devicepath, detail_data->DevicePath) == 0)
 			{
 				found = true;
 				break;
