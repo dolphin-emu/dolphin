@@ -71,6 +71,9 @@ const char *PixelShaderVersionString();
 const char *VertexShaderVersionString();
 void ShowD3DError(HRESULT err);
 
+// returns true if size was changed
+bool FixTextureSize(int& width, int& height);
+
 // The following are "filtered" versions of the corresponding D3Ddev-> functions.
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);

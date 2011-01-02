@@ -181,4 +181,13 @@ inline u32 Z24ToZ16ToZ24(u32 src)
 	return (src & 0xFFFF00) | (src >> 16);
 }
 
+// returns the exponent of the smallest power of two which is greater than val
+static unsigned int GetPow2(unsigned int val)
+{
+	unsigned int ret = 0;
+	for (; val; val >>= 1)
+		++ret;
+	return ret;
+}
+
 #endif  // _VIDEOCOMMON_H

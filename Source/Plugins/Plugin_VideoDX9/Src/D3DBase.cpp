@@ -20,6 +20,7 @@
 #include "Render.h"
 #include "XFStructs.h"
 #include "StringUtil.h"
+#include "VideoCommon.h"
 
 // D3DX
 HINSTANCE hD3DXDll = NULL;
@@ -432,6 +433,29 @@ void Close()
 const D3DCAPS9 &GetCaps()
 {
 	return caps;
+}
+
+// returns true if size was changed
+bool FixTextureSize(int& width, int& height)
+{
+	int oldw = width, oldh = height;
+
+	// conditional nonpow2 support should work fine for us
+	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) && !(caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL))
+	{
+		// all texture dimensions need to be powers of two
+		width = GetPow2(width);
+		height = GetPow2(height);
+	}
+	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
+	{
+		width = height = max(width, height);
+	}
+
+	width = min(width, (int)caps.MaxTextureWidth);
+	height = min(height, (int)caps.MaxTextureHeight);
+
+	return (width != oldw) || (height != oldh);
 }
 
 const char *VertexShaderVersionString()

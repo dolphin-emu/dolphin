@@ -83,7 +83,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 		texture->GetSurfaceLevel(0, &Rendersurf);
 		D3D::dev->SetDepthStencilSurface(NULL);
 		D3D::dev->SetRenderTarget(0, Rendersurf);
-		
+
 		D3DVIEWPORT9 vp;
 
 		// Stretch picture with increased internal resolution

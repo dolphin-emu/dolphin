@@ -33,25 +33,6 @@ FramebufferManager::Efb FramebufferManager::s_efb;
 
 FramebufferManager::FramebufferManager()
 {
-    s_efb.color_texture = NULL;
-    s_efb.colorRead_texture = NULL;
-    s_efb.depth_texture = NULL;
-    s_efb.depthRead_texture = NULL;
-
-    s_efb.depth_surface = NULL;
-    s_efb.color_surface = NULL;
-    s_efb.color_ReadBuffer = NULL;
-    s_efb.depth_ReadBuffer = NULL;
-    s_efb.color_OffScreenReadBuffer = NULL;
-    s_efb.depth_OffScreenReadBuffer = NULL;
-
-    s_efb.color_reinterpret_texture = NULL;
-    s_efb.color_reinterpret_surface = NULL;
-
-    s_efb.color_surface_Format = D3DFMT_FORCE_DWORD;
-    s_efb.depth_surface_Format = D3DFMT_FORCE_DWORD;
-    s_efb.depth_ReadBuffer_Format = D3DFMT_FORCE_DWORD;
-
 	// Simplest possible setup to start with.
 	int target_width = Renderer::GetFullTargetWidth();
 	int target_height = Renderer::GetFullTargetHeight();

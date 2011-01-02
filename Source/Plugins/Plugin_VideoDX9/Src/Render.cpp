@@ -283,13 +283,16 @@ Renderer::Renderer()
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
 	CalculateXYScale(dst_rect);
-	
+
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	int SupersampleCoeficient = s_LastAA + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize(SupersampleCoeficient);
-	
+
+	// Make sure to use valid texture sizes
+	D3D::FixTextureSize(s_Fulltarget_width, s_Fulltarget_height);
+
 	s_bLastFrameDumped = false;
 	s_bAVIDumping = false;
 
@@ -317,8 +320,8 @@ Renderer::Renderer()
 	
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	vp.X = (s_Fulltarget_width - s_target_width) / 2;
-	vp.Y = (s_Fulltarget_height - s_target_height) / 2;
+	vp.X = TargetStrideX();
+	vp.Y = TargetStrideY();
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
 	D3D::dev->SetViewport(&vp);
@@ -766,18 +769,24 @@ void Renderer::UpdateViewport()
 	}
 	if (sizeChanged)
 	{
-		D3DCAPS9 caps = D3D::GetCaps();
-		// Make sure that the requested size is actually supported by the GFX driver
-		if (Renderer::GetFullTargetWidth() > (int)caps.MaxTextureWidth || Renderer::GetFullTargetHeight() > (int)caps.MaxTextureHeight)
-		{
-			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d, keeping the %dx%d EFB now\n", Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), old_fulltarget_w, old_fulltarget_h);
+		const int ideal_width = s_Fulltarget_width;
+		const int ideal_height = s_Fulltarget_height;
 
-			// Fix the viewport to fit to the old EFB size
-			X *= (old_fulltarget_w-1) / (Renderer::GetFullTargetWidth()-1);
-			Y *= (old_fulltarget_h-1) / (Renderer::GetFullTargetHeight()-1);
-			Width *= (old_fulltarget_w-1) / (Renderer::GetFullTargetWidth()-1);
-			Height *= (old_fulltarget_h-1) / (Renderer::GetFullTargetHeight()-1);
+		// Make sure that the requested size is actually supported by the GFX driver
+		D3D::FixTextureSize(s_Fulltarget_width, s_Fulltarget_height);
+
+		// If the new EFB size is big enough for the requested viewport, we just recreate the internal buffer.
+		// Otherwise we use a hack to make the viewport fit into the smaller buffer by rendering at a lower resolution.
+		if (s_Fulltarget_width < ideal_width || s_Fulltarget_height < ideal_height)
+		{
+			// HACK: Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
+			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d, keeping the %dx%d EFB now\n", ideal_width, ideal_height, old_fulltarget_w, old_fulltarget_h);
+
+			// Modify the viewport to fit to the old EFB size (effectively makes us render at a lower resolution)
+			X = X * old_fulltarget_w / ideal_width;
+			Y = Y * old_fulltarget_h / ideal_height;
+			Width = Width * old_fulltarget_w / ideal_width;
+			Height = Height * old_fulltarget_h / ideal_height;
 
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;
@@ -786,7 +795,7 @@ void Renderer::UpdateViewport()
 		{
 			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-			
+
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager;
 

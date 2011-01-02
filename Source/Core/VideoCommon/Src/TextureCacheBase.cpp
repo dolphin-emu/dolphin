@@ -27,15 +27,6 @@ TextureCache *g_texture_cache;
 u8 *TextureCache::temp;
 TextureCache::TexCache TextureCache::textures;
 
-// returns the exponent of the smallest power of two which is greater than val
-unsigned int GetPow2(unsigned int val)
-{
-	unsigned int ret = 0;
-	for (; val; val >>= 1)
-		++ret;
-	return ret;
-}
-
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
 	if (0 == addr)

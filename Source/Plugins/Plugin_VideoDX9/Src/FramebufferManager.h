@@ -105,6 +105,13 @@ private:
 
 	static struct Efb
 	{
+		Efb() : color_texture(NULL), colorRead_texture(NULL), depth_texture(NULL), depthRead_texture(NULL),
+				color_reinterpret_texture(NULL), color_reinterpret_surface(NULL),
+				depth_surface(NULL), color_surface(NULL), color_ReadBuffer(NULL), depth_ReadBuffer(NULL),
+				color_OffScreenReadBuffer(NULL), depth_OffScreenReadBuffer(NULL),
+				color_surface_Format(D3DFMT_UNKNOWN), depth_surface_Format(D3DFMT_UNKNOWN),
+				depth_ReadBuffer_Format(D3DFMT_UNKNOWN) {}
+
 		LPDIRECT3DTEXTURE9 color_texture;//Texture thats contains the color data of the render target
 		LPDIRECT3DTEXTURE9 colorRead_texture;//1 pixel texture for temporal data store
 		LPDIRECT3DTEXTURE9 depth_texture;//Texture thats contains the depth data of the render target

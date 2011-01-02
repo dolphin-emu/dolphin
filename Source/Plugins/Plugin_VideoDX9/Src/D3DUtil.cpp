@@ -192,9 +192,6 @@ const int TS[6][2] =
 	{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
 };
 
-static LPDIRECT3DPIXELSHADER9 ps_old = NULL;
-static LPDIRECT3DVERTEXSHADER9 vs_old = NULL;
-
 void RestoreShaders()
 {
 	D3D::SetTexture(0, 0);
@@ -337,22 +334,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 		dev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, dwNumTriangles);
 	RestoreRenderStates();
 	return S_OK;
-}
-
-void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v1, float u2, float v2)
-{ 
-	struct Q2DVertex { float x,y,z,rhw;u32 color;float u,v,w,h; } coords[4] = {
-		{x1-0.5f, y1-0.5f, 0, 1, color, u1, v1},
-		{x2-0.5f, y1-0.5f, 0, 1, color, u2, v1},
-		{x2-0.5f, y2-0.5f, 0, 1, color, u2, v2},
-		{x1-0.5f, y2-0.5f, 0, 1, color, u1, v2},
-	};
-	dev->SetPixelShader(0);
-	dev->SetVertexShader(0);
-	dev->SetVertexDeclaration(NULL);
-	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
-	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
-	RestoreShaders();
 }
 
 /* Explanation of texture copying via drawShadedTexQuad and drawShadedTexSubQuad:
