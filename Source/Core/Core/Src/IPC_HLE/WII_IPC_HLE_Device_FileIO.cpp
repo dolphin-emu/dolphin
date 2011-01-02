@@ -148,34 +148,42 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	u32 ReturnValue		= FS_INVALID_ARGUMENT;
 	s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
+	u64 fileSize		= File::GetSize(m_pFileHandle);
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), File::GetSize(m_pFileHandle));
-
-	/* TODO: Check if the new changes and the removed hack
-	         "magically" fixes Zelda - Twilight Princess as well */
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
 
 	// Set seek mode
 	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
 
 	if (Mode >= 0 && Mode <= 2)
 	{
-        if (fseeko(m_pFileHandle, SeekPosition, seek_mode[Mode]) == 0)
+		// POSIX allows seek past EOF, the Wii does not. 
+		// TODO: Can we check this without tell'ing/seek'ing twice?
+		u64 curPos = ftello(m_pFileHandle);
+		if (fseeko(m_pFileHandle, SeekPosition, seek_mode[Mode]) == 0)
 		{
-		    ReturnValue = (u32)ftello(m_pFileHandle);
-        }
+			u64 newPos = ftello(m_pFileHandle);
+			if (newPos > fileSize) 
+			{
+				ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek past EOF - %s", m_Name.c_str());
+				fseeko(m_pFileHandle, curPos, SEEK_SET);
+			}
+			else
+				ReturnValue = (u32)newPos;
+		}
 		else
 		{
-            ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed - %s", m_Name.c_str());
-        }
+			ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed - %s", m_Name.c_str());
+		}
 	}
 	else
 	{
 		PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
 	}
 
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-    return true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
