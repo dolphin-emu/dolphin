@@ -124,7 +124,7 @@ else()
 	message("ao NOT found, disabling ao sound backend")
 endif(AO_FOUND)
 
-#check_lib(BLUEZ bluez QUIET)
+check_lib(BLUEZ bluez QUIET)
 if(BLUEZ_FOUND)
 	add_definitions(-DHAVE_BLUEZ=1)
 	message("bluez found, enabling bluetooth support")
