@@ -123,6 +123,18 @@ void AnalyzeRange(int start_addr, int end_addr)
 			code_flags[last_arithmetic] |= CODE_UPDATE_SR;
 		}
 
+		// If an instruction potentially raises exceptions, mark the following
+		// instruction as needing to check for exceptions
+		if (opcode->opcode == 0x00c0 || 
+			opcode->opcode == 0x1800 || 
+			opcode->opcode == 0x1880 || 
+			opcode->opcode == 0x1900 || 
+			opcode->opcode == 0x1980 || 
+			opcode->opcode == 0x2000 ||
+			opcode->extended
+			)
+		code_flags[addr + opcode->size] |= CODE_CHECK_INT;
+
 		addr += opcode->size;
 	}
 

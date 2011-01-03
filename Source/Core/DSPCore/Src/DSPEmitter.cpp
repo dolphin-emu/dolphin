@@ -210,34 +210,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
 	blockLinkEntry = GetCodePtr();
 
-//	ASM version of DSPCore_CheckExternalInterrupt.
-#ifdef _M_IX86 // All32
-	TEST(16, M(&g_dsp.cr), Imm16(CR_EXTERNAL_INT));
-	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	TEST(16, M(&g_dsp.r.sr), Imm16(SR_EXT_INT_ENABLE));
-	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
-	OR(8, M(&g_dsp.exceptions), Imm8(1 << EXP_INT));
-	AND(16, M(&g_dsp.cr), Imm16(~CR_EXTERNAL_INT));
-	SetJumpTarget(externalInterruptDisabled);
-	SetJumpTarget(noExternalInterrupt);
-#else
-	/* // TODO: Needs to be optimised
-	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
-	TEST(16, MatR(RAX), Imm16(CR_EXTERNAL_INT));
-	FixupBranch noExternalInterrupt = J_CC(CC_Z);
-	MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
-	TEST(16, MatR(RAX), Imm16(SR_EXT_INT_ENABLE));
-	FixupBranch externalInterruptDisabled = J_CC(CC_Z);
-	MOV(64, R(RAX), ImmPtr(&g_dsp.exceptions));
-	OR(8, MatR(RAX), Imm8(1 << EXP_INT));
-	MOV(64, R(RAX), ImmPtr(&g_dsp.cr));
-	AND(16, MatR(RAX), Imm16(~CR_EXTERNAL_INT));
-	SetJumpTarget(externalInterruptDisabled);
-	SetJumpTarget(noExternalInterrupt);
-	*/
-	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
-#endif
-
 	compilePC = start_addr;
 	bool fixup_pc = false;
 	blockSize[start_addr] = 0;
@@ -246,7 +218,8 @@ void DSPEmitter::Compile(u16 start_addr)
 
 	while (compilePC < start_addr + MAX_BLOCK_SIZE)
 	{
-		checkExceptions(blockSize[start_addr]);
+		if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_CHECK_INT)
+			checkExceptions(blockSize[start_addr]);
 
 		UDSPInstruction inst = dsp_imem_read(compilePC);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);

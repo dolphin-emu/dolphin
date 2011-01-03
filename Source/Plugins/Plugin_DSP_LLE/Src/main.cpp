@@ -278,6 +278,15 @@ u16 DSP_WriteControlRegister(u16 _uFlag)
 		}
 	}
 	DSPInterpreter::WriteCR(_uFlag);
+
+	// Check if the CPU has set an external interrupt (CR_EXTERNAL_INT)
+	// and immediately process it, if it has.
+	if (_uFlag & 2)
+	{
+		DSPCore_CheckExternalInterrupt();
+		DSPCore_CheckExceptions();
+	}
+
 	return DSPInterpreter::ReadCR();
 }
 
