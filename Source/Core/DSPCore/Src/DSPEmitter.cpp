@@ -31,9 +31,6 @@
 using namespace Gen;
 
 const u8 *stubEntryPoint;
-u16 blocksCompiled;
-u16 unresolvedCalls;
-u16 unresolvedCallsThisBlock;
 
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
@@ -59,8 +56,6 @@ DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
-	blocksCompiled = 0;
-	unresolvedCalls = 0;
 }
 
 DSPEmitter::~DSPEmitter() 
@@ -79,8 +74,6 @@ void DSPEmitter::ClearIRAM() {
 		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
-	blocksCompiled = 0;
-	unresolvedCalls = 0;
 }
 
 // Must go out of block if exception is detected
@@ -196,41 +189,11 @@ void DSPEmitter::unknown_instruction(UDSPInstruction inst)
 	PanicAlert("unknown_instruction %04x - Fix me ;)", inst);
 }
 
-void DSPEmitter::ClearCallFlag()
-{
-	--unresolvedCallsThisBlock;
-}
-
-void DSPEmitter::Compile(int start_addr)
+void DSPEmitter::Compile(u16 start_addr)
 {
 	// Remember the current block address for later
 	startAddr = start_addr;
-	blocksCompiled++;
-	unresolvedCallsThisBlock = 0;
-
-	// If the number of unresolved calls exceeds 8, there is a critical
-	// block that probably cannot be resolved.  If this occurs, quit linking
-	// blocks. Currently occurs in the zelda ucode.
-	if (unresolvedCalls <= 8)
-	{
-		// After every 10 blocks, clear out the blocks that have unresolved
-		// calls, and reattempt relinking.
-		if (blocksCompiled >= 10 && unresolvedCalls > 0)
-		{
-			for(int i = 0x0000; i < MAX_BLOCKS; ++i)
-			{
-				if (DSPAnalyzer::code_flags[i] & DSPAnalyzer::CODE_CALL)
-				{
-					blocks[i] = (CompiledCode)stubEntryPoint;
-					blockLinks[i] = 0;
-					blockSize[i] = 0;
-				}
-			}
-			// Reset and reattempt relinking
-			blocksCompiled = 0;
-			unresolvedCalls = 0;
-		}
-	}
+	unresolvedJumps[start_addr].clear();
 
 	const u8 *entryPoint = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
@@ -288,18 +251,13 @@ void DSPEmitter::Compile(int start_addr)
 		UDSPInstruction inst = dsp_imem_read(compilePC);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 
-		// Scan for CALL's to delay block link.  TODO: Scan for J_CC after it is jitted.
-		if (opcode->jitFunc &&
-			((opcode->opcode >= 0x0290 && opcode->opcode <= 0x029f) ||
-			(opcode->opcode >= 0x02b0 && opcode->opcode <= 0x02bf)))
-		{
-			++unresolvedCallsThisBlock;
-		}
-
 		EmitInstruction(inst);
 
 		blockSize[start_addr]++;
 		compilePC += opcode->size;
+
+		// If the block was trying to link into itself, remove the link
+		unresolvedJumps[start_addr].remove(compilePC);
 
 		fixup_pc = true;
 
@@ -411,16 +369,26 @@ void DSPEmitter::Compile(int start_addr)
 
 	// Mark this block as a linkable destination if it does not contain
 	// any unresolved CALL's
-	if (unresolvedCallsThisBlock == 0)
+	if (unresolvedJumps[start_addr].empty())
 	{
-		DSPAnalyzer::code_flags[start_addr] &= ~DSPAnalyzer::CODE_CALL;
 		blockLinks[start_addr] = (CompiledCode)blockLinkEntry;
-	}
-	else
-	{
-		DSPAnalyzer::code_flags[start_addr] |= DSPAnalyzer::CODE_CALL;
-		blockLinks[start_addr] = 0;
-		++unresolvedCalls;
+
+		for(u16 i = 0x0000; i < 0xffff; ++i)
+		{
+			if (!unresolvedJumps[i].empty())
+			{
+				// Check if there were any blocks waiting for this block to be linkable
+				int size = unresolvedJumps[i].size();
+				unresolvedJumps[i].remove(start_addr);
+				if (unresolvedJumps[i].size() < size)
+				{
+					// Mark the block to be recompiled again
+					blocks[i] = (CompiledCode)stubEntryPoint;
+					blockLinks[i] = 0;
+					blockSize[i] = 0;
+				}
+			}
+		}
 	}
 
 	if (blockSize[start_addr] == 0) 

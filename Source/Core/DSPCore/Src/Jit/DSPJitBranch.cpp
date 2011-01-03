@@ -162,49 +162,58 @@ void WriteBranchExit(DSPEmitter& emitter)
 	emitter.RET();
 }
 
+void WriteBlockLink(DSPEmitter& emitter, u16 dest)
+{
+	// Jump directly to the called block if it has already been compiled.
+	if (!(dest >= emitter.startAddr && dest <= emitter.compilePC))
+	{
+		if (emitter.blockLinks[dest] != 0 )
+		{
+#ifdef _M_IX86 // All32
+			// Check if we have enough cycles to execute the next block
+			emitter.MOV(16, R(ESI), M(&cyclesLeft));
+			emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+			emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
+			emitter.MOV(16, M(&cyclesLeft), R(ESI));
+			emitter.JMPptr(M(&emitter.blockLinks[dest]));
+
+			emitter.SetJumpTarget(notEnoughCycles);
+#else
+			// Check if we have enough cycles to execute the next block
+			emitter.CMP(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
+
+			emitter.SUB(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr]));
+			emitter.MOV(64, R(RAX), ImmPtr((void *)emitter.blockLinks[dest]));
+			emitter.JMPptr(R(RAX));
+
+			emitter.SetJumpTarget(notEnoughCycles);
+#endif
+		}
+		else
+		{
+			// The destination has not been compiled yet.  Add it to the list
+			// of blocks that this block is waiting on.
+			emitter.unresolvedJumps[emitter.startAddr].push_back(dest);
+		}
+	}
+}
+
 void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
+	const DSPOPCTemplate *opcode = GetOpTemplate(opc);
+
+	// If the block is unconditional, attempt to link block
+	if (opcode->uncond_branch)
+		WriteBlockLink(emitter, dest);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
-
-	// Jump directly to the called block if it has already been compiled.
-	if (emitter.blockLinks[dest])
-	{
-		// Check if we have enough cycles to execute the next block
-		emitter.MOV(16, R(ESI), M(&cyclesLeft));
-		emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
-
-		emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
-		emitter.MOV(16, M(&cyclesLeft), R(ESI));
-		emitter.JMPptr(M(&emitter.blockLinks[dest]));
-		emitter.ClearCallFlag();
-
-		emitter.SetJumpTarget(notEnoughCycles);
-	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), Imm16(dest));
-
-	// Jump directly to the next block if it has already been compiled.
-	if (emitter.blockLinks[dest])
-	{
-		// Check if we have enough cycles to execute the next block
-		//emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
-		//emitter.MOV(16, R(RAX), MatR(R12));
-		//emitter.CMP(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-		//FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
-
-		//emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
-		//emitter.MOV(16, MatR(R12), R(RAX));
-
-		//emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
-		//emitter.JMPptr(R(RAX));
-		//emitter.ClearCallFlag();
-
-		//emitter.SetJumpTarget(notEnoughCycles);
-	}
 #endif
 	WriteBranchExit(emitter);
 }
@@ -261,48 +270,19 @@ void DSPEmitter::jmprcc(const UDSPInstruction opc)
 
 void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 {
-	u16 dest = dsp_imem_read(emitter.compilePC + 1);
 	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 2));
 	emitter.dsp_reg_store_stack(DSP_STACK_C);
+	u16 dest = dsp_imem_read(emitter.compilePC + 1);
+	const DSPOPCTemplate *opcode = GetOpTemplate(opc);
+
+	// If the block is unconditional, attempt to link block
+	if (opcode->uncond_branch)
+		WriteBlockLink(emitter, dest);
 #ifdef _M_IX86 // All32
 	emitter.MOV(16, M(&(g_dsp.pc)), Imm16(dest));
-
-	// Jump directly to the called block if it has already been compiled.
-	if (emitter.blockLinks[dest])
-	{
-		// Check if we have enough cycles to execute the next block
-		//emitter.MOV(16, R(ESI), M(&cyclesLeft));
-		//emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-		//FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
-
-		//emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
-		//emitter.MOV(16, M(&cyclesLeft), R(ESI));
-		//emitter.JMPptr(M(&emitter.blockLinks[dest]));
-		//emitter.ClearCallFlag();
-
-		//emitter.SetJumpTarget(notEnoughCycles);
-	}
 #else
 	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	emitter.MOV(16, MatR(RAX), Imm16(dest));
-
-	// Jump directly to the called block if it has already been compiled.
-	if (emitter.blockLinks[dest])
-	{
-		// Check if we have enough cycles to execute the next block
-		emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
-		emitter.MOV(16, R(RAX), MatR(R12));
-		emitter.CMP(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
-		FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
-
-		emitter.SUB(16, R(RAX), Imm16(emitter.blockSize[emitter.startAddr]));
-		emitter.MOV(16, MatR(R12), R(RAX));
-		emitter.MOV(64, R(RAX), ImmPtr((void *)(emitter.blockLinks[dest])));
-		emitter.JMPptr(R(RAX));
-		emitter.ClearCallFlag();
-
-		emitter.SetJumpTarget(notEnoughCycles);
-	}
 #endif
 	WriteBranchExit(emitter);
 }

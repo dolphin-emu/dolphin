@@ -18,6 +18,8 @@
 #ifndef _DSPEMITTER_H
 #define _DSPEMITTER_H
 
+#include <list>
+
 #include "DSPCommon.h"
 #include "x64Emitter.h"
 
@@ -41,7 +43,7 @@ public:
 
 	void CompileDispatcher();
 	const u8 *CompileStub();
-	void Compile(int start_addr);
+	void Compile(u16 start_addr);
 	void ClearCallFlag();
 
 	void Default(UDSPInstruction inst);
@@ -252,6 +254,7 @@ public:
 	u16 startAddr;
 	CompiledCode *blockLinks;
 	u16 *blockSize;
+	std::list<u16> unresolvedJumps[0x10000];
 
 private:
 	CompiledCode *blocks;
