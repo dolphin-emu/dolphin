@@ -65,7 +65,7 @@ FramebufferManager::FramebufferManager()
 	D3D11_TEXTURE2D_DESC texdesc;
 	HRESULT hr;
 
-	// create framebuffer color texture
+	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB color texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
@@ -76,13 +76,13 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetRTV(), "EFB color texture render target view");
 
-	// create a staging texture for Renderer::AccessEFB
+	// AccessEFB - Sysmem buffer used to retrieve the pixel data from color_tex
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.color_staging_buf);
 	CHECK(hr==S_OK, "create EFB color staging buffer (hr=%#x)", hr);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
 
-	// EFB depth buffer
+	// EFB depth buffer - primary depth buffer
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, target_width, target_height, 1, 1, D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
@@ -92,7 +92,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetSRV(), "EFB depth texture shader resource view");
 
-	// render target for depth buffer access in Renderer::AccessEFB
+	// Render buffer for AccessEFB (depth data)
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, D3D11_BIND_RENDER_TARGET);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth read texture (hr=%#x)", hr);
@@ -101,7 +101,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetTex(), "EFB depth read texture (used in Renderer::AccessEFB)");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
 
-	// staging texture to which we copy the data from m_efb.depth_read_texture
+	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.depth_staging_buf);
 	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
@@ -109,7 +109,7 @@ FramebufferManager::FramebufferManager()
 
 	if (g_ActiveConfig.iMultisampleMode)
 	{
-		// create framebuffer resolve textures (color+depth)
+		// Framebuffer resolve textures (color+depth)
 		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1);
 		hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 		m_efb.resolved_color_tex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM);

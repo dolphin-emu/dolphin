@@ -74,6 +74,10 @@ void ShowD3DError(HRESULT err);
 // returns true if size was changed
 bool FixTextureSize(int& width, int& height);
 
+// returns true if format is supported
+bool CheckTextureSupport(DWORD usage, D3DFORMAT tex_format);
+bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format);
+
 // The following are "filtered" versions of the corresponding D3Ddev-> functions.
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);

@@ -444,8 +444,8 @@ bool FixTextureSize(int& width, int& height)
 	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) && !(caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL))
 	{
 		// all texture dimensions need to be powers of two
-		width = GetPow2(width);
-		height = GetPow2(height);
+		width = (int)MakePow2((u32)width);
+		height = (int)MakePow2((u32)height);
 	}
 	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
 	{
@@ -456,6 +456,17 @@ bool FixTextureSize(int& width, int& height)
 	height = min(height, (int)caps.MaxTextureHeight);
 
 	return (width != oldw) || (height != oldh);
+}
+
+// returns true if format is supported
+bool CheckTextureSupport(DWORD usage, D3DFORMAT tex_format)
+{
+	return D3D_OK == D3D->CheckDeviceFormat(cur_adapter, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, usage, D3DRTYPE_TEXTURE, tex_format);
+}
+
+bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format)
+{
+	return D3D_OK == D3D->CheckDepthStencilMatch(cur_adapter, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, target_format, depth_format);
 }
 
 const char *VertexShaderVersionString()
