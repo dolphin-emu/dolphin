@@ -77,7 +77,7 @@ FramebufferManager::FramebufferManager()
 	// check format support
 	for (int i = 0; i < sizeof(DepthTexFormats)/sizeof(D3DFORMAT); ++i)
 	{
-		if (D3D::CheckDepthStencilSupport(s_efb.color_surface_Format, DepthTexFormats[i]))
+		if (D3D::CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthTexFormats[i]))
 		{
 			s_efb.depth_surface_Format = DepthTexFormats[i];
 			break;
