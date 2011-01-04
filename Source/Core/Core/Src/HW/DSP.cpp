@@ -217,7 +217,7 @@ static int dsp_slice = 0;
 static bool dsp_is_lle = false;
 
 //time given to lle dsp on every read of the high bits in a mailbox
-static const int DSP_MAIL_SLICE=12;
+static const int DSP_MAIL_SLICE=72;
 
 void DoState(PointerWrap &p)
 {
