@@ -211,14 +211,18 @@ void DSP_DebugBreak()
 void Initialize(void *init)
 {
 	g_InitMixer = false;
-    bool bCanWork = true;
-    g_dspInitialize = *(DSPInitialize*)init;
+	bool bCanWork = true;
+	char irom_file[MAX_PATH];
+	char coef_file[MAX_PATH];
+	g_dspInitialize = *(DSPInitialize*)init;
 
 	g_Config.Load();
 
-	std::string irom_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM;
-	std::string coef_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF;
-	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str(), AudioCommon::UseJIT());
+	snprintf(irom_file, MAX_PATH, "%s%s",
+		File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_IROM);
+	snprintf(coef_file, MAX_PATH, "%s%s",
+		File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_COEF);
+	bCanWork = DSPCore_Init(irom_file, coef_file, AudioCommon::UseJIT());
 
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	DSPCore_Reset();
