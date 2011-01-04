@@ -1707,6 +1707,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_CMPR:  // speed critical
 		// The metroid games use this format almost exclusively.
 		{
+#if 0
 			// JSD optimized with SSE2 intrinsics.
 			// Produces a ~40% improvement in speed over reference C implementation.
 			for (int y = 0; y < height; y += 8)
@@ -2099,7 +2100,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					}
 				}
 			}
-#if 0
+#endif
+#if 1
 			for (int y = 0; y < height; y += 8)
 			{
 				for (int x = 0; x < width; x += 8)
