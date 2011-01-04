@@ -219,9 +219,15 @@ void Initialize(void *init)
 	g_Config.Load();
 
 	snprintf(irom_file, MAX_PATH, "%s%s",
-		File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_IROM);
+		File::GetSysDirectory().c_str(), GC_SYS_DIR DIR_SEP DSP_IROM);
+	if (!File::Exists(irom_file))
+		snprintf(irom_file, MAX_PATH, "%s%s",
+			File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_IROM);
 	snprintf(coef_file, MAX_PATH, "%s%s",
-		File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_COEF);
+		File::GetSysDirectory().c_str(), GC_SYS_DIR DIR_SEP DSP_COEF);
+	if (!File::Exists(coef_file))
+		snprintf(coef_file, MAX_PATH, "%s%s",
+			File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_COEF);
 	bCanWork = DSPCore_Init(irom_file, coef_file, AudioCommon::UseJIT());
 
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
