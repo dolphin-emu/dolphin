@@ -513,6 +513,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		return 0;
 	}
 
+	// if depth textures aren't supported by the hardware, just return
+	if (type == PEEK_Z)
+		if (FramebufferManager::GetEFBDepthTexture() == NULL)
+			return 0;
+
 	// We're using three surfaces here:
 	// - pEFBSurf: EFB Surface. Source surface when peeking, destination surface when poking.
 	// - pBufferRT: A render target surface. When peeking, we render a textured quad to this surface.
@@ -646,7 +651,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			val +=	((float)(z & 0xFF)) * ffrac;
 			break;
 		};
-		
+
 
 		pSystemBuf->UnlockRect();
 		// TODO: in RE0 this value is often off by one, which causes lighting to disappear

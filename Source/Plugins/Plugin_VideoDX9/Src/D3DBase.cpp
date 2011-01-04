@@ -82,6 +82,22 @@ LPDIRECT3DVERTEXDECLARATION9 m_VtxDecl;
 LPDIRECT3DPIXELSHADER9 m_PixelShader;
 LPDIRECT3DVERTEXSHADER9 m_VertexShader;
 
+// Z buffer formats to be used for EFB depth surface
+D3DFORMAT DepthFormats[] = {
+	FOURCC_INTZ,
+	FOURCC_DF24,
+	FOURCC_RAWZ,
+	FOURCC_DF16,
+	D3DFMT_D24X8,
+	D3DFMT_D24X4S4,
+	D3DFMT_D24S8,
+	D3DFMT_D24FS8,
+	D3DFMT_D32,		// too much precision, but who cares
+	D3DFMT_D16,		// much lower precision, but better than nothing
+	D3DFMT_D15S1,
+};
+
+
 void Enumerate();
 
 int GetNumAdapters() { return numAdapters; }
@@ -467,6 +483,24 @@ bool CheckTextureSupport(DWORD usage, D3DFORMAT tex_format)
 bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format)
 {
 	return D3D_OK == D3D->CheckDepthStencilMatch(cur_adapter, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, target_format, depth_format);
+}
+
+D3DFORMAT GetSupportedDepthTextureFormat()
+{
+	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+		if (D3D::CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthFormats[i]))
+			return DepthFormats[i];
+
+	return D3DFMT_UNKNOWN;
+}
+
+D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
+{
+	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+		if (D3D::CheckDepthStencilSupport(target_format, DepthFormats[i]))
+			return DepthFormats[i];
+
+	return D3DFMT_UNKNOWN;
 }
 
 const char *VertexShaderVersionString()

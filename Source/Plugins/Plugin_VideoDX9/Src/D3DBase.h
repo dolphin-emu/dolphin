@@ -78,6 +78,9 @@ bool FixTextureSize(int& width, int& height);
 bool CheckTextureSupport(DWORD usage, D3DFORMAT tex_format);
 bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format);
 
+D3DFORMAT GetSupportedDepthTextureFormat();
+D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format);
+
 // The following are "filtered" versions of the corresponding D3Ddev-> functions.
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);

@@ -39,6 +39,7 @@ FramebufferManager::Efb FramebufferManager::s_efb;
 
 FramebufferManager::FramebufferManager()
 {
+	bool depth_textures_supported = true;
 	int target_width = Renderer::GetFullTargetWidth();
 	int target_height = Renderer::GetFullTargetHeight();
 	s_efb.color_surface_Format = D3DFMT_A8R8G8B8;
@@ -59,35 +60,17 @@ FramebufferManager::FramebufferManager()
 	hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, s_efb.color_surface_Format, D3DPOOL_SYSTEMMEM, &s_efb.color_OffScreenReadBuffer, NULL);
 	CHECK(hr, "Create offscreen color surface (hr=%#x)", hr);
 
-	// Select a Z-buffer format with hardware support
-	D3DFORMAT DepthTexFormats[] = {
-		FOURCC_INTZ,
-		FOURCC_DF24,
-		FOURCC_RAWZ,
-		FOURCC_DF16,
-		D3DFMT_D24X8,
-		D3DFMT_D24X4S4,
-		D3DFMT_D24S8,
-		D3DFMT_D24FS8,
-		D3DFMT_D32,		// too much precision, but who cares
-		D3DFMT_D16,		// much lower precision, but better than nothing
-		D3DFMT_D15S1,
-	};
-
-	// check format support
-	for (int i = 0; i < sizeof(DepthTexFormats)/sizeof(D3DFORMAT); ++i)
-	{
-		if (D3D::CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthTexFormats[i]))
-		{
-			s_efb.depth_surface_Format = DepthTexFormats[i];
-			break;
-		}
-	}
+	// Select a Z-buffer texture format with hardware support
+	s_efb.depth_surface_Format = D3D::GetSupportedDepthTextureFormat();
 	if (s_efb.depth_surface_Format == D3DFMT_UNKNOWN)
 	{
-		PanicAlert("No supported depth format found, disabling depth buffers.\nExpect glitches.");
+		// workaround for Intel GPUs etc: only create a depth _surface_
+		depth_textures_supported = false;
+		s_efb.depth_surface_Format = D3D::GetSupportedDepthSurfaceFormat(s_efb.color_surface_Format);
+		ERROR_LOG(VIDEO, "No supported depth texture format found, disabling Z peeks for EFB access.");
 	}
-	else
+
+	if (depth_textures_supported)
 	{
 		// EFB depth buffer - primary depth buffer
 		hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_DEPTHSTENCIL, s_efb.depth_surface_Format, 
@@ -96,6 +79,7 @@ FramebufferManager::FramebufferManager()
 		CHECK(hr, "Framebuffer depth texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 
 		// Render buffer for AccessEFB (depth data)
+		D3DFORMAT DepthTexFormats[2];
 		if (s_efb.depth_surface_Format == FOURCC_RAWZ || s_efb.depth_surface_Format == D3DFMT_D24X8)
 			DepthTexFormats[0] = D3DFMT_A8R8G8B8;
 		else
@@ -119,6 +103,12 @@ FramebufferManager::FramebufferManager()
 		// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_ReadBuffer
 		hr = D3D::dev->CreateOffscreenPlainSurface(4, 4, s_efb.depth_ReadBuffer_Format, D3DPOOL_SYSTEMMEM, &s_efb.depth_OffScreenReadBuffer, NULL);
 		CHECK(hr, "Create depth offscreen surface (hr=%#x)", hr);
+	}
+	else if (s_efb.depth_surface_Format)
+	{
+		// just create a depth surface
+		hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb.depth_surface_Format, D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb.depth_surface, NULL);
+		CHECK(hr, "Framebuffer depth surface (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 	}
 
 	// ReinterpretPixelData - EFB color data will be copy-converted to this texture and the buffers are swapped then
