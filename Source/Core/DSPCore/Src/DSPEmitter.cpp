@@ -351,7 +351,7 @@ void DSPEmitter::Compile(u16 start_addr)
 			if (!unresolvedJumps[i].empty())
 			{
 				// Check if there were any blocks waiting for this block to be linkable
-				int size = unresolvedJumps[i].size();
+				unsigned int size = unresolvedJumps[i].size();
 				unresolvedJumps[i].remove(start_addr);
 				if (unresolvedJumps[i].size() < size)
 				{

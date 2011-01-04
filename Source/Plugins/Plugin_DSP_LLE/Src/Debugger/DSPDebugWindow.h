@@ -33,10 +33,6 @@
 #include <wx/sizer.h>
 #include <wx/listctrl.h>
 #include <wx/statline.h>
-#if defined(__APPLE__)
-//id is an objective-c++ type, wx team need to change this
-#define id toolid
-#endif
 #include <wx/aui/aui.h>
 
 #include "disassemble.h"
