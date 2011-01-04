@@ -47,9 +47,10 @@ CoreAudioSound::~CoreAudioSound()
 bool CoreAudioSound::Start()
 {
 	OSStatus err;
-	UInt32 enableIO;
 	AURenderCallbackStruct callback_struct;
 	AudioStreamBasicDescription format;
+	ComponentDescription desc;
+	UInt32 enableIO = 1;
 
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
@@ -69,7 +70,6 @@ bool CoreAudioSound::Start()
 		return false;
 	}
 
-	enableIO = 1;
 	AudioUnitSetProperty(audioUnit,
 				kAudioOutputUnitProperty_EnableIO,
 				kAudioUnitScope_Output, 0, &enableIO,

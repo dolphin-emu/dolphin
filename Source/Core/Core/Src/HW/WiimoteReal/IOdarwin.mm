@@ -92,14 +92,9 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 		return;
 	}
 
-	WARN_LOG(WIIMOTE, "Connection to wiimote %i closed", wm->index + 1);
+	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->index + 1);
 
-	[wm->btd closeConnection];
-
-	wm->btd = NULL;
-	wm->cchan = NULL;
-	wm->ichan = NULL;
-	wm->m_connected = false;
+	wm->RealDisconnect();
 }
 @end
 
@@ -181,7 +176,8 @@ bool Wiimote::Connect()
 {
 	ConnectBT *cbt = [[ConnectBT alloc] init];
 
-	if (IsConnected()) return false;
+	if (IsConnected())
+		return false;
 
 	[btd openL2CAPChannelSync: &cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
@@ -200,7 +196,6 @@ bool Wiimote::Connect()
 	m_connected = true;
 
 	Handshake();
-
 	SetLEDs(WIIMOTE_LED_1 << index);
 
 	[cbt release];

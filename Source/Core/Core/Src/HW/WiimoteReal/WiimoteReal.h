@@ -64,6 +64,7 @@ public:
 	void DisableDataReporting();
 	void Rumble();
 	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
+	void RealDisconnect();
 
 	const unsigned int	index;
 
@@ -86,20 +87,19 @@ public:
 #endif
 	unsigned char leds;					// Currently lit leds
 
-	bool	m_connected;
 protected:
 	Report	m_last_data_report;
 	u16	m_channel;
 
 private:
 	void ClearReadQueue();
-	void RealDisconnect();
 	bool SendRequest(unsigned char report_type, unsigned char* data, int length);
 	bool Handshake();
 	void SetLEDs(int leds);
 	int IORead(unsigned char* buf);
 	int IOWrite(unsigned char* buf, int len);
 
+	bool				m_connected;
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 };

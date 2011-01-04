@@ -27,9 +27,6 @@
 class CoreAudioSound : public SoundStream
 {
 #ifdef __APPLE__
-	ComponentDescription desc;
-	AudioUnit audioUnit;
-
 public:
 	CoreAudioSound(CMixer *mixer);
 	virtual ~CoreAudioSound();
@@ -49,6 +46,9 @@ public:
 	virtual void Update();
 
 	void RenderSamples(void *target, UInt32 size);
+
+private:
+	AudioUnit audioUnit;
 #else
 public:
 	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
