@@ -13,9 +13,9 @@
 namespace Gecko
 {
 
-static const wxString wxstr_name(wxT("Name: ")),
-	wxstr_notes(wxT("Notes: ")),
-	wxstr_creator(wxT("Creator: "));
+static const wxString wxstr_name(_("Name: ")),
+	wxstr_notes(_("Notes: ")),
+	wxstr_creator(_("Creator: "));
 
 CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
@@ -42,7 +42,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* const btn_download = new wxButton(this, -1, wxT("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	wxButton* const btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
 	_connect_macro_(btn_download, CodeConfigPanel::DownloadCodes, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);

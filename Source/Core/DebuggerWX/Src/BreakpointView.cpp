@@ -46,11 +46,11 @@ void CBreakPointView::Update()
 {
 	ClearAll();
 
-	InsertColumn(0, wxT("Active"), wxLIST_FORMAT_LEFT, 50);
-	InsertColumn(1, wxT("Type"), wxLIST_FORMAT_LEFT, 50);
-	InsertColumn(2, wxT("Function"), wxLIST_FORMAT_CENTER, 200);
-    InsertColumn(3, wxT("Address"), wxLIST_FORMAT_LEFT, 100);
-    InsertColumn(4, wxT("Flags"), wxLIST_FORMAT_CENTER, 100);
+	InsertColumn(0, _("Active"), wxLIST_FORMAT_LEFT, 50);
+	InsertColumn(1, _("Type"), wxLIST_FORMAT_LEFT, 50);
+	InsertColumn(2, _("Function"), wxLIST_FORMAT_CENTER, 200);
+    InsertColumn(3, _("Address"), wxLIST_FORMAT_LEFT, 100);
+    InsertColumn(4, _("Flags"), wxLIST_FORMAT_CENTER, 100);
 
     char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
@@ -156,16 +156,16 @@ CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, c
 
 void CBreakPointBar::PopulateBar()
 {
-	InsertItem(IDM_DELETE, _T("Delete"), 0);
-	InsertItem(IDM_CLEAR, _T("Clear all"), 0);
+	InsertItem(IDM_DELETE, _("Delete"), 0);
+	InsertItem(IDM_CLEAR, _("Clear all"), 0);
 
-	InsertItem(IDM_ADD_BREAKPOINT, _T("Add BP..."), 1);
-	InsertItem(IDM_ADD_BREAKPOINTMANY, _T("Add BPs..."), 1);
+	InsertItem(IDM_ADD_BREAKPOINT, _("Add BP..."), 1);
+	InsertItem(IDM_ADD_BREAKPOINTMANY, _("Add BPs..."), 1);
 
     // just add memory breakpoints if you can use them
     if (Memory::AreMemoryBreakpointsActivated())
     {
-		InsertItem(IDM_ADD_MEMORYCHECK, _T("Add MC..."), 2);
-		InsertItem(IDM_ADD_MEMORYCHECKMANY, _T("Add MCs..."), 2);
+		InsertItem(IDM_ADD_MEMORYCHECK, _("Add MC..."), 2);
+		InsertItem(IDM_ADD_MEMORYCHECKMANY, _("Add MCs..."), 2);
     }
 }

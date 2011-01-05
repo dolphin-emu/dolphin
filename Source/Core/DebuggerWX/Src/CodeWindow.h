@@ -49,7 +49,7 @@ class CCodeWindow
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
-			const wxString& name = wxT("Code")
+			const wxString& name = _("Code")
 			);
 
 		void Load();

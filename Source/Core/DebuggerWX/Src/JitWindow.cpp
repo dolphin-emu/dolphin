@@ -81,9 +81,9 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBig->Add(sizerSplit, 2, wxEXPAND);
 //	sizerBig->Add(memview, 5, wxEXPAND);
 //	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _T("&Refresh")));
+	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
 //	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
-//	sizerRight->Add(new wxButton(this, IDM_SETPC, _T("S&et PC")));
+//	sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
 
 	SetSizer(sizerBig);
 
@@ -252,13 +252,13 @@ JitBlockList::JitBlockList(wxWindow* parent, const wxWindowID id,
 
 void JitBlockList::Init()
 {
-	InsertColumn(COLUMN_ADDRESS, _T("Address"));
-	InsertColumn(COLUMN_PPCSIZE, _T("PPC Size"));
-	InsertColumn(COLUMN_X86SIZE, _T("x86 Size"));
-	InsertColumn(COLUMN_NAME, _T("Symbol"));
-	InsertColumn(COLUMN_FLAGS, _T("Flags"));
-	InsertColumn(COLUMN_NUMEXEC, _T("NumExec"));
-	InsertColumn(COLUMN_COST, _T("Cost"));
+	InsertColumn(COLUMN_ADDRESS, _("Address"));
+	InsertColumn(COLUMN_PPCSIZE, _("PPC Size"));
+	InsertColumn(COLUMN_X86SIZE, _("x86 Size"));
+	InsertColumn(COLUMN_NAME, _("Symbol"));
+	InsertColumn(COLUMN_FLAGS, _("Flags"));
+	InsertColumn(COLUMN_NUMEXEC, _("NumExec"));
+	InsertColumn(COLUMN_COST, _("Cost"));
 }
 
 void JitBlockList::Update()

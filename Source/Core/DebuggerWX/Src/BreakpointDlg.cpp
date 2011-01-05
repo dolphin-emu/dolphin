@@ -54,7 +54,7 @@ void BreakPointDlg::CreateGUIControls()
 
 	m_pButtonOK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(192,64), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
 
-	m_pButtonCancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(112,64), wxSize(73,25), 0, wxDefaultValidator, wxT("Cancel"));
+	m_pButtonCancel = new wxButton(this, ID_CANCEL, _("Cancel"), wxPoint(112,64), wxSize(73,25), 0, wxDefaultValidator, _("Cancel"));
 
 	m_pEditAddress = new wxTextCtrl(this, ID_ADDRESS, wxT("80000000"), wxPoint(56,24), wxSize(197,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 }

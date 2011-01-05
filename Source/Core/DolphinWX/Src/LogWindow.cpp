@@ -72,14 +72,14 @@ void CLogWindow::CreateGUIControls()
 {
 	// Verbosity
 	wxArrayString wxLevels, wxLevelsUse;
-	wxLevels.Add(wxT("Notice"));
-	wxLevels.Add(wxT("Error"));
-	wxLevels.Add(wxT("Warning"));
-	wxLevels.Add(wxT("Info"));
-	wxLevels.Add(wxT("Debug"));
+	wxLevels.Add(_("Notice"));
+	wxLevels.Add(_("Error"));
+	wxLevels.Add(_("Warning"));
+	wxLevels.Add(_("Info"));
+	wxLevels.Add(_("Debug"));
 	for (int i = 0; i < MAX_LOGLEVEL; ++i)
 	   	wxLevelsUse.Add(wxString::Format(wxT("%s"), wxLevels.Item(i).c_str()));
-	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"),
+	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, _("Verbosity"),
 		   	wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
 		   	wxRA_SPECIFY_ROWS, wxDefaultValidator);
 	// Don't take up so much space
@@ -89,24 +89,24 @@ void CLogWindow::CreateGUIControls()
 	m_FontChoice = new wxChoice(this, IDM_FONT,
 		   	wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 
-	m_FontChoice->Append(wxT("Default font"));
-	m_FontChoice->Append(wxT("Monospaced font"));
-	m_FontChoice->Append(wxT("Selected font"));
+	m_FontChoice->Append(_("Default font"));
+	m_FontChoice->Append(_("Monospaced font"));
+	m_FontChoice->Append(_("Selected font"));
 	m_FontChoice->SetSelection(0);
 	DefaultFont = GetFont();
-	MonoSpaceFont.SetNativeFontInfoUserDesc(wxT("lucida console windows-1252"));
+	MonoSpaceFont.SetNativeFontInfoUserDesc(_("lucida console windows-1252"));
 	LogFont.push_back(DefaultFont);
 	LogFont.push_back(MonoSpaceFont);
 	LogFont.push_back(DebuggerFont);
 
 	// Options
-	wxCheckBox * m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, wxT("Word Wrap"));
+	wxCheckBox * m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, _("Word Wrap"));
 	m_writeFileCB = new wxCheckBox(this, IDM_WRITEFILE,
-		   	wxT("Write to File"), wxDefaultPosition, wxDefaultSize, 0);
+		   	_("Write to File"), wxDefaultPosition, wxDefaultSize, 0);
 	m_writeConsoleCB = new wxCheckBox(this, IDM_WRITECONSOLE,
-		   	wxT("Write to Console"), wxDefaultPosition, wxDefaultSize, 0);
+		   	_("Write to Console"), wxDefaultPosition, wxDefaultSize, 0);
 	m_writeWindowCB = new wxCheckBox(this, IDM_WRITEWINDOW,
-		   	wxT("Write to Window ->"), wxDefaultPosition, wxDefaultSize, 0);
+		   	_("Write to Window ->"), wxDefaultPosition, wxDefaultSize, 0);
 
 	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxDefaultSize);
 
@@ -121,12 +121,12 @@ void CLogWindow::CreateGUIControls()
 	sRight = new wxBoxSizer(wxVERTICAL);			// right sizer
 	sRightBottom = new wxBoxSizer(wxHORIZONTAL);	// submit row
 	// Left side: buttons (-submit), options, and log type selection
-	wxStaticBoxSizer* sbLeftOptions = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Options"));
+	wxStaticBoxSizer* sbLeftOptions = new wxStaticBoxSizer(wxVERTICAL, this, _("Options"));
 
 	wxBoxSizer* sLogCtrl = new wxBoxSizer(wxHORIZONTAL);
-	sLogCtrl->Add(new wxButton(this, IDM_TOGGLEALL, wxT("Toggle all"),
+	sLogCtrl->Add(new wxButton(this, IDM_TOGGLEALL, _("Toggle all"),
 			   	wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
-	sLogCtrl->Add(new wxButton(this, IDM_CLEARLOG, wxT("Clear"),
+	sLogCtrl->Add(new wxButton(this, IDM_CLEARLOG, _("Clear"),
 			   	wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
 
 	sbLeftOptions->Add(m_FontChoice, 0, (wxDOWN), 1);
@@ -168,11 +168,11 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 void CLogWindow::OnSize(wxSizeEvent& event)
 {
 	if (!Parent->g_pCodeWindow &&
-		   	Parent->m_Mgr->GetPane(wxT("Pane 1")).IsShown())
+		   	Parent->m_Mgr->GetPane(_("Pane 1")).IsShown())
 	{
-		x = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
-		y = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
-		winpos = Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
+		x = Parent->m_Mgr->GetPane(_("Pane 1")).rect.GetWidth();
+		y = Parent->m_Mgr->GetPane(_("Pane 1")).rect.GetHeight();
+		winpos = Parent->m_Mgr->GetPane(_("Pane 1")).dock_direction;
 	}
 	event.Skip();
 }
@@ -493,27 +493,27 @@ void CLogWindow::UpdateLog()
 	{
 		switch (msgQueue.front().first)
 		{
-			// red
+			
 			case ERROR_LEVEL:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
 				break;
-				// yellow
+				
 			case WARNING_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0)));
+				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
 				break;
-				// green
+				
 			case NOTICE_LEVEL:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
 				break;
-				// cyan
+				
 			case INFO_LEVEL:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
 				break;
-				// light gray
+				
 			case DEBUG_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(211, 211, 211)));
+				m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
 				break;
-				// white
+				
 			default:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
 				break;

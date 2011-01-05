@@ -143,7 +143,7 @@ void CBreakPointWindow::OnAddBreakPointMany()
 		std::vector<std::string> lines;
 		if (!ini.GetLines("BreakPoints", lines))
 		{
-			wxMessageBox(_T("You have no [BreakPoints] line in your file"));
+			wxMessageBox(_("You have no [BreakPoints] line in your file"));
 			return;
 		}
 
@@ -161,7 +161,7 @@ void CBreakPointWindow::OnAddBreakPointMany()
 	}
 	else
 	{
-		wxMessageBox(_T("Couldn't find GameConfig/BreakPoints.ini file"));
+		wxMessageBox(_("Couldn't find GameConfig/BreakPoints.ini file"));
 	}
 
 }
@@ -188,7 +188,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 		std::vector<std::string> lines;
 		if (!ini.GetLines("MemoryChecks", lines))
 		{
-			wxMessageBox(_T("You have no [MemoryChecks] line in your file"));
+			wxMessageBox(_("You have no [MemoryChecks] line in your file"));
 			return;
 		}
 
@@ -259,7 +259,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 	}
 	else
 	{
-		wxMessageBox(_T("You have no ") + wxString::FromAscii(File::GetUserPath(D_GAMECONFIG_IDX)) + _T("MemoryChecks.ini file"));
+		wxMessageBox(_("You have no ") + wxString::FromAscii(File::GetUserPath(D_GAMECONFIG_IDX)) + _("MemoryChecks.ini file"));
 	}
 }
 

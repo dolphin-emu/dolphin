@@ -9,27 +9,27 @@
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
-	wxDialog(parent, -1, wxT("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
+	wxDialog(parent, -1, _("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
 	wrp(_wrp)
 {
 	wxBoxSizer *const outer_sizer = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *const sizer1 = new wxBoxSizer(wxVERTICAL);
-	wxStaticBoxSizer *const sizer2 = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Update"));
+	wxStaticBoxSizer *const sizer2 = new wxStaticBoxSizer(wxVERTICAL, this, _("Update"));
 
 	outer_sizer->Add(sizer1, 0, wxTOP | wxLEFT | wxRIGHT | wxEXPAND, 5);
 	outer_sizer->Add(sizer2, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
 
-	enable = new wxCheckBox(this,wxID_ANY,wxT("Enable"));
-	butt = new wxCheckBox(this,wxID_ANY,wxT("Buttons"));
-	accel = new wxCheckBox(this,wxID_ANY,wxT("Acceleration"));
-	point = new wxCheckBox(this,wxID_ANY,wxT("IR Pointer"));
-	nun = new wxCheckBox(this,wxID_ANY,wxT("Nunchuk"));
-	nunaccel = new wxCheckBox(this,wxID_ANY,wxT("Nunchuk Acceleration"));
+	enable = new wxCheckBox(this,wxID_ANY,_("Enable"));
+	butt = new wxCheckBox(this,wxID_ANY,_("Buttons"));
+	accel = new wxCheckBox(this,wxID_ANY,_("Acceleration"));
+	point = new wxCheckBox(this,wxID_ANY,_("IR Pointer"));
+	nun = new wxCheckBox(this,wxID_ANY,_("Nunchuk"));
+	nunaccel = new wxCheckBox(this,wxID_ANY,_("Nunchuk Acceleration"));
 
 	wxButton *const ok_butt = new wxButton(this,wxID_ANY,wxT("OK"));
 	
 	wxBoxSizer *const port_sizer = new wxBoxSizer(wxHORIZONTAL);
-	port_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("UDP Port:")), 0, wxALIGN_CENTER);
+	port_sizer->Add(new wxStaticText(this, wxID_ANY, _("UDP Port:")), 0, wxALIGN_CENTER);
 	port_tbox = new wxTextCtrl(this, wxID_ANY, wxString::FromUTF8(wrp->port.c_str()));
 	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND , 5);
 

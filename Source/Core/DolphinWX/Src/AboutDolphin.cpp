@@ -39,7 +39,7 @@ AboutDolphin::~AboutDolphin()
 
 void AboutDolphin::CreateGUIControls()
 {
-	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"),
+	m_Close = new wxButton(this, wxID_CLOSE, _("Close"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);

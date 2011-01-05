@@ -32,7 +32,7 @@ class BreakPointDlg : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		BreakPointDlg(CBreakPointWindow *, wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("BreakPoint"),
+		BreakPointDlg(CBreakPointWindow *, wxWindow *parent, wxWindowID id = 1, const wxString &title = _("BreakPoint"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 			long style = wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX);
 		virtual ~BreakPointDlg();

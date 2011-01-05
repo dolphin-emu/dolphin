@@ -44,7 +44,7 @@ class CISOProperties : public wxDialog
 		CISOProperties(const std::string fileName,
 			wxWindow* parent,
 			wxWindowID id = 1,
-			const wxString& title = wxT("Properties"),
+			const wxString& title = _("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);

@@ -29,6 +29,7 @@ public:
 	void OnEndSession();
 	int OnExit();
 	CFrame* GetCFrame();
+	void InitLanguageSupport();
 
 private:
 	DECLARE_EVENT_TABLE()
@@ -36,6 +37,7 @@ private:
 	wxTimer *m_afterinit;
 	bool LoadFile;
 	wxString FileToLoad;
+	wxLocale *m_locale;
 
 	void AfterInit(wxTimerEvent& WXUNUSED(event));
 };

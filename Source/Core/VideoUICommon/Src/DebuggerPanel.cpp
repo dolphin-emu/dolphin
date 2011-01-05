@@ -106,24 +106,24 @@ struct PauseEventMap
 };
 
 static PauseEventMap pauseEventMap[] = {
-	{NEXT_FRAME,				wxT("Frame")},
-	{NEXT_FLUSH,				wxT("Flush")},
+	{NEXT_FRAME,				_("Frame")},
+	{NEXT_FLUSH,				_("Flush")},
 
-	{NEXT_PIXEL_SHADER_CHANGE,	wxT("Pixel Shader")},
-	{NEXT_VERTEX_SHADER_CHANGE,	wxT("Vertex Shader")},
-	{NEXT_TEXTURE_CHANGE,		wxT("Texture")},
-	{NEXT_NEW_TEXTURE,			wxT("New Texture")},
+	{NEXT_PIXEL_SHADER_CHANGE,	_("Pixel Shader")},
+	{NEXT_VERTEX_SHADER_CHANGE,	_("Vertex Shader")},
+	{NEXT_TEXTURE_CHANGE,		_("Texture")},
+	{NEXT_NEW_TEXTURE,			_("New Texture")},
 
-	{NEXT_XFB_CMD,				wxT("XFB Cmd")},
-	{NEXT_EFB_CMD,				wxT("EFB Cmd")},
+	{NEXT_XFB_CMD,				_("XFB Cmd")},
+	{NEXT_EFB_CMD,				_("EFB Cmd")},
 
-	{NEXT_MATRIX_CMD,			wxT("Matrix Cmd")},
-	{NEXT_VERTEX_CMD,			wxT("Vertex Cmd")},
-	{NEXT_TEXTURE_CMD,			wxT("Texture Cmd")},
-	{NEXT_LIGHT_CMD,			wxT("Light Cmd")},
-	{NEXT_FOG_CMD,				wxT("Fog Cmd")},
+	{NEXT_MATRIX_CMD,			_("Matrix Cmd")},
+	{NEXT_VERTEX_CMD,			_("Vertex Cmd")},
+	{NEXT_TEXTURE_CMD,			_("Texture Cmd")},
+	{NEXT_LIGHT_CMD,			_("Light Cmd")},
+	{NEXT_FOG_CMD,				_("Fog Cmd")},
 
-	{NEXT_SET_TLUT,				wxT("TLUT Cmd")},
+	{NEXT_SET_TLUT,				_("TLUT Cmd")},
 
 	{NEXT_ERROR,				wxT("Error")}
 };
@@ -139,12 +139,12 @@ void GFXDebuggerPanel::CreateGUIControls()
 	// MainPanel
 	m_MainPanel = new wxPanel(this, ID_MAINPANEL, wxDefaultPosition, wxDefaultSize);
 
-	m_pButtonPause = new wxButton(m_MainPanel, ID_PAUSE, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Pause"));
-	m_pButtonPauseAtNext = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT, wxT("Pause At Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Pause At Next"));
-	m_pButtonPauseAtNextFrame = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT_FRAME, wxT("Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Next Frame"));
-	m_pButtonCont = new wxButton(m_MainPanel, ID_CONT, wxT("Continue"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Continue"));
+	m_pButtonPause = new wxButton(m_MainPanel, ID_PAUSE, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Pause"));
+	m_pButtonPauseAtNext = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT, _("Pause At Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Pause At Next"));
+	m_pButtonPauseAtNextFrame = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT_FRAME, _("Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Next Frame"));
+	m_pButtonCont = new wxButton(m_MainPanel, ID_CONT, _("Continue"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Continue"));
 
-	m_pPauseAtList = new wxChoice(m_MainPanel, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, wxT("PauseAtList"));
+	m_pPauseAtList = new wxChoice(m_MainPanel, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)
 	{
 		m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -152,25 +152,25 @@ void GFXDebuggerPanel::CreateGUIControls()
 
 	m_pPauseAtList->SetSelection(0);
 
-	m_pButtonDump = new wxButton(m_MainPanel, ID_DUMP, wxT("Dump"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Dump"));
-	m_pButtonUpdateScreen = new wxButton(m_MainPanel, ID_UPDATE_SCREEN, wxT("Update Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Update Screen"));
-	m_pButtonClearScreen = new wxButton(m_MainPanel, ID_CLEAR_SCREEN, wxT("Clear Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear Screen"));
-	m_pButtonClearTextureCache = new wxButton(m_MainPanel, ID_CLEAR_TEXTURE_CACHE, wxT("Clear Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear Textures"));
-	m_pButtonClearVertexShaderCache = new wxButton(m_MainPanel, ID_CLEAR_VERTEX_SHADER_CACHE, wxT("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear V Shaders"));
-	m_pButtonClearPixelShaderCache = new wxButton(m_MainPanel, ID_CLEAR_PIXEL_SHADER_CACHE, wxT("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear P Shaders"));
-	m_pCount = new wxTextCtrl(m_MainPanel, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, wxT("Count"));
+	m_pButtonDump = new wxButton(m_MainPanel, ID_DUMP, _("Dump"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Dump"));
+	m_pButtonUpdateScreen = new wxButton(m_MainPanel, ID_UPDATE_SCREEN, _("Update Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Update Screen"));
+	m_pButtonClearScreen = new wxButton(m_MainPanel, ID_CLEAR_SCREEN, _("Clear Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear Screen"));
+	m_pButtonClearTextureCache = new wxButton(m_MainPanel, ID_CLEAR_TEXTURE_CACHE, _("Clear Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear Textures"));
+	m_pButtonClearVertexShaderCache = new wxButton(m_MainPanel, ID_CLEAR_VERTEX_SHADER_CACHE, _("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear V Shaders"));
+	m_pButtonClearPixelShaderCache = new wxButton(m_MainPanel, ID_CLEAR_PIXEL_SHADER_CACHE, _("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear P Shaders"));
+	m_pCount = new wxTextCtrl(m_MainPanel, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _("Count"));
 
-	m_pDumpList = new wxChoice(m_MainPanel, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL,0,wxDefaultValidator, wxT("DumpList"));
-	m_pDumpList->Insert(wxT("Pixel Shader"),0);
-	m_pDumpList->Append(wxT("Vertex Shader"));
-	m_pDumpList->Append(wxT("Pixel Shader Constants"));
-	m_pDumpList->Append(wxT("Vertex Shader Constants"));
-	m_pDumpList->Append(wxT("Textures"));
-	m_pDumpList->Append(wxT("Frame Buffer"));
-	m_pDumpList->Append(wxT("Geometry data"));
-	m_pDumpList->Append(wxT("Vertex Description"));
-	m_pDumpList->Append(wxT("Vertex Matrices"));
-	m_pDumpList->Append(wxT("Statistics"));
+	m_pDumpList = new wxChoice(m_MainPanel, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL,0,wxDefaultValidator, _("DumpList"));
+	m_pDumpList->Insert(_("Pixel Shader"),0);
+	m_pDumpList->Append(_("Vertex Shader"));
+	m_pDumpList->Append(_("Pixel Shader Constants"));
+	m_pDumpList->Append(_("Vertex Shader Constants"));
+	m_pDumpList->Append(_("Textures"));
+	m_pDumpList->Append(_("Frame Buffer"));
+	m_pDumpList->Append(_("Geometry data"));
+	m_pDumpList->Append(_("Vertex Description"));
+	m_pDumpList->Append(_("Vertex Matrices"));
+	m_pDumpList->Append(_("Statistics"));
 	m_pDumpList->SetSelection(0);
 
 	// Layout everything on m_MainPanel

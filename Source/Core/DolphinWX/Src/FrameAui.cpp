@@ -78,11 +78,11 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 	else
 	{
 		if (GetNotebookCount() == 1)
-			wxMessageBox(wxT("At least one pane must remain open."),
-					wxT("Notice"), wxOK, this);
+			wxMessageBox(_("At least one pane must remain open."),
+					_("Notice"), wxOK, this);
 		else if (nb->GetPageCount() != 0 && !nb->GetPageText(0).IsSameAs(wxT("<>")))
-			wxMessageBox(wxT("You can't close panes that have pages in them."),
-					wxT("Notice"), wxOK, this);
+			wxMessageBox(_("You can't close panes that have pages in them."),
+					_("Notice"), wxOK, this);
 		else
 		{
 			// Detach and delete the empty notebook
@@ -335,7 +335,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	wxMenu* MenuPopup = new wxMenu;
 
 	wxMenuItem* Item =  new wxMenuItem(MenuPopup, wxID_ANY,
-			wxT("Select floating windows"));
+			_("Select floating windows"));
 	MenuPopup->Append(Item);
 	Item->Enable(false);
 	MenuPopup->Append(new wxMenuItem(MenuPopup));
@@ -378,20 +378,20 @@ void CFrame::TogglePane()
 	{
 		if (NB->GetPageCount() == 0)
 		{
-			m_LogWindow->x = m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
-			m_LogWindow->y = m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
-			m_LogWindow->winpos = m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
-			m_Mgr->GetPane(wxT("Pane 1")).Hide();
+			m_LogWindow->x = m_Mgr->GetPane(_("Pane 1")).rect.GetWidth();
+			m_LogWindow->y = m_Mgr->GetPane(_("Pane 1")).rect.GetHeight();
+			m_LogWindow->winpos = m_Mgr->GetPane(_("Pane 1")).dock_direction;
+			m_Mgr->GetPane(_("Pane 1")).Hide();
 		}
 		else
 		{
-			m_Mgr->GetPane(wxT("Pane 1")).BestSize(m_LogWindow->x, m_LogWindow->y)
+			m_Mgr->GetPane(_("Pane 1")).BestSize(m_LogWindow->x, m_LogWindow->y)
 				.MinSize(m_LogWindow->x, m_LogWindow->y)
 				.Direction(m_LogWindow->winpos).Show();
 			m_Mgr->Update();
 
 			// Reset the minimum size of the pane
-			m_Mgr->GetPane(wxT("Pane 1")).MinSize(-1, -1);
+			m_Mgr->GetPane(_("Pane 1")).MinSize(-1, -1);
 		}
 		m_Mgr->Update();
 	}
@@ -464,14 +464,14 @@ void CFrame::OnDropDownSettingsToolbar(wxAuiToolBarEvent& event)
 		wxMenu* menuPopup = new wxMenu;
 
 		wxMenuItem* Item =  new wxMenuItem(menuPopup, IDM_PERSPECTIVES_ADD_PANE,
-				wxT("Add new pane"));
+				_("Add new pane"));
 		menuPopup->Append(Item);
 		menuPopup->Append(new wxMenuItem(menuPopup));
-		Item = new wxMenuItem(menuPopup, IDM_TAB_SPLIT, wxT("Tab split"),
+		Item = new wxMenuItem(menuPopup, IDM_TAB_SPLIT, _("Tab split"),
 				wxT(""), wxITEM_CHECK);
 		menuPopup->Append(Item);
 		Item->Check(m_bTabSplit);
-		Item = new wxMenuItem(menuPopup, IDM_NO_DOCKING, wxT("No docking"),
+		Item = new wxMenuItem(menuPopup, IDM_NO_DOCKING, _("No docking"),
 				wxT(""), wxITEM_CHECK);
 		menuPopup->Append(Item);
 		Item->Check(m_bNoDocking);
@@ -500,7 +500,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 		// create the popup menu
 		wxMenu* menuPopup = new wxMenu;
 		wxMenuItem* Item = new wxMenuItem(menuPopup, IDM_ADD_PERSPECTIVE,
-				wxT("Create new perspective"));
+				_("Create new perspective"));
 		menuPopup->Append(Item);
 
 		if (Perspectives.size() > 0)
@@ -536,8 +536,8 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 		case IDM_SAVE_PERSPECTIVE:
 			if (Perspectives.size() == 0)
 			{
-				wxMessageBox(wxT("Please create a perspective before saving"),
-						wxT("Notice"), wxOK, this);
+				wxMessageBox(_("Please create a perspective before saving"),
+						_("Notice"), wxOK, this);
 				return;
 			}
 			SaveIniPerspectives();
@@ -564,8 +564,8 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 		case IDM_ADD_PERSPECTIVE:
 			{
 				wxTextEntryDialog dlg(this,
-						wxT("Enter a name for the new perspective:"),
-						wxT("Create new perspective"));
+						_("Enter a name for the new perspective:"),
+						_("Create new perspective"));
 				wxString DefaultValue = wxString::Format(wxT("Perspective %d"),
 						Perspectives.size() + 1);
 				dlg.SetValue(DefaultValue);
@@ -577,16 +577,16 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 						return;
 					else if (dlg.GetValue().Find(wxT(",")) != -1)
 					{
-						wxMessageBox(wxT("The name can not contain the character ','"),
-								wxT("Notice"), wxOK, this);
+						wxMessageBox(_("The name can not contain the character ','"),
+								_("Notice"), wxOK, this);
 						wxString Str = dlg.GetValue();
 						Str.Replace(wxT(","), wxT(""), true);
 						dlg.SetValue(Str);
 					}
 					else if (dlg.GetValue().IsSameAs(wxT("")))
 					{
-						wxMessageBox(wxT("The name can not be empty"),
-								wxT("Notice"), wxOK, this);
+						wxMessageBox(_("The name can not be empty"),
+								_("Notice"), wxOK, this);
 						dlg.SetValue(DefaultValue);
 					}
 					else

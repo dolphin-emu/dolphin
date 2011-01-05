@@ -58,7 +58,7 @@ void LuaStop(int uid, bool ok)
 }
 
 wxLuaWindow::wxLuaWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) :
-	wxFrame(parent, wxID_ANY, _T("Lua Script Console"), pos, size, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+	wxFrame(parent, wxID_ANY, _("Lua Script Console"), pos, size, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
 {
 	LuaWindow_InitFirstTime();
 
@@ -107,11 +107,11 @@ void wxLuaWindow::InitGUIControls()
 	m_Tab_Log->Layout();
 
 	// Button Strip
-	m_Button_Close = new wxButton(this, ID_BUTTON_CLOSE, _T("Close"), wxDefaultPosition, wxDefaultSize);
-	m_Button_LoadScript = new wxButton(this, ID_BUTTON_LOAD, _T("Load Script..."), wxDefaultPosition, wxDefaultSize);
-	m_Button_Run = new wxButton(this, ID_BUTTON_RUN, _T("Run"), wxDefaultPosition, wxDefaultSize);
-	m_Button_Stop = new wxButton(this, ID_BUTTON_STOP, _T("Stop"), wxDefaultPosition, wxDefaultSize);
-	m_Button_Clear = new wxButton(this, ID_BUTTON_CLEAR, _T("Clear"), wxDefaultPosition, wxDefaultSize);
+	m_Button_Close = new wxButton(this, ID_BUTTON_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize);
+	m_Button_LoadScript = new wxButton(this, ID_BUTTON_LOAD, _("Load Script..."), wxDefaultPosition, wxDefaultSize);
+	m_Button_Run = new wxButton(this, ID_BUTTON_RUN, _("Run"), wxDefaultPosition, wxDefaultSize);
+	m_Button_Stop = new wxButton(this, ID_BUTTON_STOP, _("Stop"), wxDefaultPosition, wxDefaultSize);
+	m_Button_Clear = new wxButton(this, ID_BUTTON_CLEAR, _("Clear"), wxDefaultPosition, wxDefaultSize);
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 
 	m_Button_Run->Disable();
@@ -135,7 +135,7 @@ void wxLuaWindow::InitGUIControls()
 void wxLuaWindow::OnEvent_ScriptLoad_Press(wxCommandEvent&  WXUNUSED(event)) 
 {
 	wxString path = wxFileSelector(
-		_T("Select the script to load"),
+		_("Select the script to load"),
 		wxEmptyString, wxEmptyString, wxEmptyString,
 		wxString::Format
 		(
@@ -160,7 +160,7 @@ void wxLuaWindow::OnEvent_ScriptLoad_Press(wxCommandEvent&  WXUNUSED(event))
 
 void wxLuaWindow::OnEvent_ScriptRun_Press(wxCommandEvent&  WXUNUSED(event)) 
 {
-	m_TextCtrl_Log->AppendText(wxT("Running script...\n"));
+	m_TextCtrl_Log->AppendText(_("Running script...\n"));
 	bScriptRunning = true;
 	m_Button_LoadScript->Disable();
 	m_Button_Run->Disable();

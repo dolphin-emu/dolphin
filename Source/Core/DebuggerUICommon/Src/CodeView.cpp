@@ -362,8 +362,8 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 #endif
 	menu->Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
 	menu->AppendSeparator();
-	menu->Append(IDM_RUNTOHERE, _T("&Run To Here"));
-	menu->Append(IDM_ADDFUNCTION, _T("&Add function"));
+	menu->Append(IDM_RUNTOHERE, _("&Run To Here"));
+	menu->Append(IDM_ADDFUNCTION, _("&Add function"));
 	menu->Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
 	menu->Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
 	menu->Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));
@@ -411,8 +411,8 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	wxPen selPen(_T("#808080")); // gray
 	nullPen.SetStyle(wxTRANSPARENT);
 	currentPen.SetStyle(wxSOLID);
-	wxBrush currentBrush(_T("#FFEfE8")); // the ... ? ... is light gray
-	wxBrush pcBrush(_T("#70FF70")); // the selected code line is green	
+	wxBrush currentBrush(_T("#FFEfE8")); // light gray
+	wxBrush pcBrush(_T("#70FF70")); // green	
 	wxBrush bpBrush(_T("#FF3311")); // red
 
 	wxBrush bgBrush(bgColor);

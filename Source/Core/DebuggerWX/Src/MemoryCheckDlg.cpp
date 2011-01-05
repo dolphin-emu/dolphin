@@ -44,25 +44,25 @@ void MemoryCheckDlg::CreateGUIControls()
 	SetSize(8,8,415,122);
 	Center();
 	
-	m_pButtonCancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(248,64), wxSize(73,25), 0, wxDefaultValidator, wxT("Cancel"));
+	m_pButtonCancel = new wxButton(this, ID_CANCEL, _("Cancel"), wxPoint(248,64), wxSize(73,25), 0, wxDefaultValidator, _("Cancel"));
 
 	m_pButtonOK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(328,64), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
 
-	m_pReadFlag = new wxCheckBox(this, ID_READ_FLAG, wxT("Read"), wxPoint(336,33), wxSize(57,15), 0, wxDefaultValidator, wxT("Read"));
+	m_pReadFlag = new wxCheckBox(this, ID_READ_FLAG, _("Read"), wxPoint(336,33), wxSize(57,15), 0, wxDefaultValidator, _("Read"));
 
-	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, wxT("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
+	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, _("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
 
-	new wxStaticBox(this, ID_WXSTATICBOX2, wxT("Break On"), wxPoint(328,0), wxSize(73,57));
+	new wxStaticBox(this, ID_WXSTATICBOX2, _("Break On"), wxPoint(328,0), wxSize(73,57));
 
-	new wxStaticText(this, ID_WXSTATICTEXT2, wxT("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
+	new wxStaticText(this, ID_WXSTATICTEXT2, _("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
 
-	new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
+	new wxStaticText(this, ID_WXSTATICTEXT1, _("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
 
 	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT("80000000"), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 
 	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT("80000000"), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
 
-	new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address Range"), wxPoint(0,0), wxSize(321,57));
+	new wxStaticBox(this, ID_WXSTATICBOX1, _("Address Range"), wxPoint(0,0), wxSize(321,57));
 }
 
 void MemoryCheckDlg::OnClose(wxCloseEvent& /*event*/)

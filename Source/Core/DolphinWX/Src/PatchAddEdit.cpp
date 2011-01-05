@@ -99,7 +99,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	sbEntry->Add(sEntryAddRemove, 0, wxEXPAND);
 	sEditPatch->Add(sbEntry, 0, wxEXPAND|wxALL, 5);
 	wxBoxSizer* sEditPatchButtons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxButton* bOK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxButton* bCancel = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	sEditPatchButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sEditPatchButtons->Add(bOK, 0, wxALL, 5);

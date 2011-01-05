@@ -171,11 +171,8 @@ CPanel::CPanel(
 							// The Wiimote has been disconnected, we offer reconnect here.
 							wxMessageDialog *dlg = new wxMessageDialog(
 								this,
-								wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
-								wxT("Maybe this game doesn't support multi-wiimote,\n")
-								wxT("or maybe it is due to idle time out or other reason.\n\n")
-								wxT("Do you want to reconnect immediately?"), wiimote_num),
-								wxT("Reconnect Wiimote Confirm"),
+								wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
+								_("Reconnect Wiimote Confirm"),
 								wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
 								wxDefaultPosition);
 
@@ -409,17 +406,17 @@ CFrame::CFrame(wxFrame* parent,
 	if (g_pCodeWindow)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(wxT("Pane 0")).Caption(wxT("Pane 0"))
+				.Name(_("Pane 0")).Caption(_("Pane 0"))
 				.CenterPane().PaneBorder(false).Show());
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 	else
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(wxT("Pane 0")).Caption(wxT("Pane 0")).PaneBorder(false)
+				.Name(_("Pane 0")).Caption(_("Pane 0")).PaneBorder(false)
 				.CaptionVisible(false).Layer(0).Center().Show());
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-				.Name(wxT("Pane 1")).Caption(wxT("Logging")).CaptionVisible(true)
+				.Name(_("Pane 1")).Caption(_("Logging")).CaptionVisible(true)
 				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
@@ -659,7 +656,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 #ifdef __WXGTK__
 	case IDM_PANIC:
 		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
-					wxT("Warning"), event.GetInt() ? wxYES_NO : wxOK, this));
+					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, this));
 		panic_event.Set();
 		break;
 #endif
@@ -825,7 +822,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			GetMenuBar()->Check(IDM_CONNECT_WIIMOTE1 + WiimoteId, !bNoWiimoteMsg);
 			GetUsbPointer()->AccessWiiMote(WiimoteId | 0x100)->Activate(!bNoWiimoteMsg);
 			wxString msg(wxString::Format(wxT("Wiimote %i %s"), WiimoteId + 1,
-						bNoWiimoteMsg ?  wxT("Disconnected") : wxT("Connected")));
+						bNoWiimoteMsg ?  _("Disconnected") : _("Connected")));
 			Core::DisplayMessage(msg.ToAscii(), 3000);
 		}
 

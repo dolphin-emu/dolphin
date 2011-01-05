@@ -90,19 +90,19 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, _T("")));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
-	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
+	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set &Value")));
 
 	sizerRight->AddSpacer(5);
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _T("&Dump MRAM")));
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _T("&Dump EXRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
 
-	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Search"));
+	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
-	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _T("Search")));
+	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
 	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, _T("&Ascii ")));
-	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _T("&Hex")));
+	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("&Hex")));
 	sizerRight->Add(sizerSearchType);
-	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Data Type"));
+	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 
 	sizerDataTypes->SetMinSize(74, 40);
 	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, _T("&U8")));
@@ -411,7 +411,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			if(k == size)
 			{
 				//Match was found
-				wxMessageBox(_T("A match was found. Placing viewer at the offset."));
+				wxMessageBox(_("A match was found. Placing viewer at the offset."));
 				wxChar tmpwxstr[128] = {0};
 				wxSprintf(tmpwxstr, _T("%08x"), i);
 				wxString tmpwx(tmpwxstr);
@@ -422,7 +422,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 				return;
 			}
 		}
-		wxMessageBox(_T("No match was found."));
+		wxMessageBox(_("No match was found."));
 	}
 }
 

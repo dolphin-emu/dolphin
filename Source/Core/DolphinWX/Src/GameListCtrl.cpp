@@ -250,7 +250,7 @@ void CGameListCtrl::Update()
 		InitBitmaps();
 
 		// add columns
-		InsertColumn(COLUMN_PLATFORM, _(""));
+		InsertColumn(COLUMN_PLATFORM, _T(""));
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
@@ -258,7 +258,7 @@ void CGameListCtrl::Update()
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
-		InsertColumn(COLUMN_COUNTRY, _(""));
+		InsertColumn(COLUMN_COUNTRY, _T(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
 
@@ -300,12 +300,12 @@ void CGameListCtrl::Update()
 			SConfig::GetInstance().m_ListPal))
 		{
 			errorString = wxT("Dolphin could not find any GC/Wii ISOs. ")
-					wxT("Doubleclick here to browse for files...");
+					      wxT("Doubleclick here to browse for files...");
 		}
 		else
 		{
 			errorString = wxT("Dolphin is currently set to hide all games. ")
-				wxT("Doubleclick here to show all games...");
+				          wxT("Doubleclick here to show all games...");
 		}
 		InsertColumn(0, _("No ISOs or WADS found"));
 		long index = InsertItem(0, errorString);
@@ -577,8 +577,8 @@ void CGameListCtrl::ScanForISOs()
 
 	if (rFilenames.size() > 0)
 	{
-		wxProgressDialog dialog(_T("Scanning for ISOs"),
-					_T("Scanning..."),
+		wxProgressDialog dialog(_("Scanning for ISOs"),
+					_("Scanning..."),
 					(int)rFilenames.size(), // range
 					this, // parent
 					wxPD_APP_MODAL |
@@ -914,7 +914,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				toolTip = new wxEmuStateTip(this, wxString(temp, *wxConvCurrent), &toolTip);
 			}
 			else
-				toolTip = new wxEmuStateTip(this, wxT("Not Set"), &toolTip);
+				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
 
 			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(subitem),
 						my, GetColumnWidth(subitem), Rect.GetHeight()));
@@ -1099,7 +1099,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		if (!iso)
 			return;
 		if (wxMessageBox(wxT("Are you sure you want to delete this file?\n")
-					wxT("It will be gone forever!"),
+					     wxT("It will be gone forever!"),
 					wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());
@@ -1109,7 +1109,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		if (wxMessageBox(wxT("Are you sure you want to delete these files?\n")
-					wxT("They will be gone forever!"),
+					     wxT("They will be gone forever!"),
 					wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			int selected = GetSelectedItemCount();
@@ -1141,8 +1141,8 @@ void CGameListCtrl::OnInstallWAD(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	wxProgressDialog dialog(_T("Installing WAD to Wii Menu..."),
-		_T("Working..."),
+	wxProgressDialog dialog(_("Installing WAD to Wii Menu..."),
+		_("Working..."),
 		1000, // range
 		this, // parent
 		wxPD_APP_MODAL |
@@ -1287,12 +1287,12 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		{
 			wxString FileType;
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
-				FileType = wxT("All Wii ISO files (iso)|*.iso");
+				FileType = _("All Wii ISO files (iso)|*.iso");
 			else
-				FileType = wxT("All Gamecube GCM files (gcm)|*.gcm");
+				FileType = _("All Gamecube GCM files (gcm)|*.gcm");
 
 			path = wxFileSelector(
-					_T("Save decompressed GCM/ISO"),
+					_("Save decompressed GCM/ISO"),
 					wxString(FilePath.c_str(), *wxConvCurrent),
 					wxString(FileName.c_str(), *wxConvCurrent) + FileType.After('*'),
 					wxEmptyString,
@@ -1309,7 +1309,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		else
 		{
 			path = wxFileSelector(
-					_T("Save compressed GCM/ISO"),
+					_("Save compressed GCM/ISO"),
 					wxString(FilePath.c_str(), *wxConvCurrent),
 					wxString(FileName.c_str(), *wxConvCurrent) + _T(".gcz"),
 					wxEmptyString,
@@ -1331,8 +1331,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 				wxYES_NO) == wxNO);
 
 	wxProgressDialog dialog(iso->IsCompressed() ?
-			_T("Decompressing ISO") : _T("Compressing ISO"),
-			_T("Working..."),
+			_("Decompressing ISO") : _("Compressing ISO"),
+			_("Working..."),
 			1000, // range
 			this, // parent
 			wxPD_APP_MODAL |

@@ -131,7 +131,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
-	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
+	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));  //wxWHITE
 	attr->SetFont(DebuggerFont);
 
 	switch (col) {

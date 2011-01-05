@@ -27,7 +27,7 @@ class CPatchAddEdit : public wxDialog
 	public:
 		CPatchAddEdit(int _selection, wxWindow* parent,
 			wxWindowID id = 1,
-			const wxString& title = wxT("Edit Patch"),
+			const wxString& title = _("Edit Patch"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);

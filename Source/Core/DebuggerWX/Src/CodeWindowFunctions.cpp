@@ -161,14 +161,14 @@ void CCodeWindow::Save()
 void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
-	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
-	// pSymbolsMenu->Append(IDM_CLEANSYMBOLS, _T("&Clean symbols (zz)"));
-	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Generate symbol map"));
+	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"));
+	// pSymbolsMenu->Append(IDM_CLEANSYMBOLS, _("&Clean symbols (zz)"));
+	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
-	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
+	pSymbolsMenu->Append(IDM_LOADMAPFILE, _("&Load symbol map"));
+	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"),
+	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
 		wxString::FromAscii("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
@@ -177,18 +177,18 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 		);
 
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
-	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
+	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _("&Create signature file..."));
+	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("&Use signature file..."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
-	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _T("&Rename symbols from file..."));
-	pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
+	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _("&Patch HLE functions"));
+	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename symbols from file..."));
+	pMenuBar->Append(pSymbolsMenu, _("&Symbols"));
 
 	wxMenu *pProfilerMenu = new wxMenu;
-	pProfilerMenu->Append(IDM_PROFILEBLOCKS, _T("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
+	pProfilerMenu->Append(IDM_PROFILEBLOCKS, _("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
 	pProfilerMenu->AppendSeparator();
-	pProfilerMenu->Append(IDM_WRITEPROFILE, _T("&Write to profile.txt, show"));
-	pMenuBar->Append(pProfilerMenu, _T("&Profiler"));
+	pProfilerMenu->Append(IDM_WRITEPROFILE, _("&Write to profile.txt, show"));
+	pMenuBar->Append(pProfilerMenu, _("&Profiler"));
 }
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
@@ -274,7 +274,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_RENAME_SYMBOLS:
 		{
 			wxString path = wxFileSelector(
-				_T("Apply signature file"), wxEmptyString,
+				_("Apply signature file"), wxEmptyString,
 				wxEmptyString, wxEmptyString,
 				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
 				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);

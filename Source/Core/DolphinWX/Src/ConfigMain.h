@@ -33,7 +33,7 @@ public:
 
 	CConfigMain(wxWindow* parent,
 		wxWindowID id = 1,
-		const wxString& title = wxT("Dolphin Configuration"),
+		const wxString& title = _("Dolphin Configuration"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_DIALOG_STYLE);

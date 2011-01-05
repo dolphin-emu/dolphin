@@ -188,14 +188,14 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 {
 	static const wxChar* hkText[] =
 	{
-		wxT("Toggle Fullscreen"),
-		wxT("Play/Pause"),
-		wxT("Stop"),
-		wxT("Take Screenshot"),
-		wxT("Connect Wiimote 1"),
-		wxT("Connect Wiimote 2"),
-		wxT("Connect Wiimote 3"),
-		wxT("Connect Wiimote 4")
+		_("Toggle Fullscreen"),
+		_("Play/Pause"),
+		_("Stop"),
+		_("Take Screenshot"),
+		_("Connect Wiimote 1"),
+		_("Connect Wiimote 2"),
+		_("Connect Wiimote 3"),
+		_("Connect Wiimote 4")
 	};
 
 	// Configuration controls sizes
@@ -203,14 +203,14 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-	wxStaticBoxSizer *sHotkeys = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Hotkeys"));
+	wxStaticBoxSizer *sHotkeys = new wxStaticBoxSizer(wxVERTICAL, this, _("Hotkeys"));
 
 	// Header line
 	wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
-	wxStaticText *StaticTextHeader = new wxStaticText(this, wxID_ANY, wxT("Action"));
+	wxStaticText *StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Action"));
 	HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
 	HeaderSizer->AddStretchSpacer();
-	StaticTextHeader = new wxStaticText(this, wxID_ANY, wxT("Key"), wxDefaultPosition, size);
+	StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Key"), wxDefaultPosition, size);
 	HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
 	sHotkeys->Add(HeaderSizer, 0, wxEXPAND | wxALL, 1);
 
@@ -234,7 +234,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		sHotkeys->Add(sHotkey, 0, wxEXPAND | wxALL, 1);
 	}
 
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+	m_Close = new wxButton(this, ID_CLOSE, _("Close"));
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_Close, 0, (wxLEFT), 5);	

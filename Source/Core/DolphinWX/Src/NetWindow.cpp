@@ -44,7 +44,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxPanel* const panel = new wxPanel(this);
 
 	// top row
-	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, wxT("Nickname :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"), wxDefaultPosition, wxDefaultSize);
 	
 	std::string nickname;
 	netplay_section.Get("Nickname", &nickname, "Player");
@@ -58,14 +58,14 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// tabs
 	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	wxPanel* const connect_tab = new wxPanel(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	notebook->AddPage(connect_tab, wxT("Connect"));
+	notebook->AddPage(connect_tab, _("Connect"));
 	wxPanel* const host_tab = new wxPanel(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	notebook->AddPage(host_tab, wxT("Host"));
+	notebook->AddPage(host_tab, _("Host"));
 
 
 	// connect tab
 	{
-	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, wxT("Address :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"), wxDefaultPosition, wxDefaultSize);
 	
 	std::string address;
 	netplay_section.Get("Address", &address, "localhost");
@@ -78,7 +78,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	netplay_section.Get("ConnectPort", &port, "2626");	
 	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, wxString::FromAscii(port.c_str()));
 
-	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, wxT("Connect"));
+	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, _("Connect"));
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
@@ -142,7 +142,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	}
 
 	// bottom row
-	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, wxT("Quit"));
+	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, _("Quit"));
 	_connect_macro_(quit_btn, NetPlaySetupDiag::OnQuit, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	// main sizer
@@ -257,7 +257,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 
 	// top crap
 	m_game_btn = new wxButton(panel, wxID_ANY
-		, wxString(m_selected_game.c_str(), *wxConvCurrent).Prepend(wxT(" Game : ")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+		, wxString(m_selected_game.c_str(), *wxConvCurrent).Prepend(_(" Game : ")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 	
 	if (is_hosting)
 		_connect_macro_(m_game_btn, NetPlayDiag::OnChangeGame, wxEVT_COMMAND_BUTTON_CLICKED, this);
@@ -274,7 +274,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	_connect_macro_(m_chat_msg_text, NetPlayDiag::OnChat, wxEVT_COMMAND_TEXT_ENTER, this);
 
-	wxButton* const chat_msg_btn = new wxButton(panel, wxID_ANY, wxT("Send"));
+	wxButton* const chat_msg_btn = new wxButton(panel, wxID_ANY, _("Send"));
 	_connect_macro_(chat_msg_btn, NetPlayDiag::OnChat, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* const chat_msg_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -287,12 +287,12 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 
 	m_player_lbox = new wxListBox(panel, wxID_ANY, wxDefaultPosition, wxSize(192,-1));
 
-	wxStaticBoxSizer* const player_szr = new wxStaticBoxSizer(wxVERTICAL, panel, wxT("Players"));
+	wxStaticBoxSizer* const player_szr = new wxStaticBoxSizer(wxVERTICAL, panel, _("Players"));
 	player_szr->Add(m_player_lbox, 1, wxEXPAND);
 	// player list
 	if (is_hosting)
 	{
-		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, wxT("Configure Pads"));
+		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
 		_connect_macro_(player_config_btn, NetPlayDiag::OnConfigPads, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		player_szr->Add(player_config_btn, 0, wxEXPAND | wxTOP, 5);
 	}
@@ -302,19 +302,19 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	mid_szr->Add(player_szr, 0, wxEXPAND);
 
 	// bottom crap
-	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, wxT("Quit"));
+	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, _("Quit"));
 	_connect_macro_(quit_btn, NetPlayDiag::OnQuit, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* const bottom_szr = new wxBoxSizer(wxHORIZONTAL);
 	if (is_hosting)
 	{
-		wxButton* const start_btn = new wxButton(panel, wxID_ANY, wxT("Start"));
+		wxButton* const start_btn = new wxButton(panel, wxID_ANY, _("Start"));
 		_connect_macro_(start_btn, NetPlayDiag::OnStart, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		bottom_szr->Add(start_btn);
-		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, wxT("Stop"));
+		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, _("Stop"));
 		_connect_macro_(stop_btn, NetPlayDiag::OnStop, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		bottom_szr->Add(stop_btn);
-		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, wxT("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
+		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, 20);
 		_connect_macro_(padbuf_spin, NetPlayDiag::OnAdjustBuffer, wxEVT_COMMAND_SPINCTRL_UPDATED, this);
@@ -439,7 +439,7 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 		// update selected game :/
 		{
 		m_selected_game.assign(event.GetString().mb_str());
-		m_game_btn->SetLabel(event.GetString().Prepend(wxT(" Game : ")));
+		m_game_btn->SetLabel(event.GetString().Prepend(_(" Game : ")));
 		}
 		break;
 	case NP_GUI_EVT_START_GAME :
@@ -504,7 +504,7 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 }
 
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
-	: wxDialog(parent, wxID_ANY, wxT("Change Game"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Change Game"), wxDefaultPosition, wxDefaultSize)
 	, m_game_name(game_name)
 {
 	wxPanel* const panel = new wxPanel(this);
@@ -518,7 +518,7 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	while (std::getline(ss,game))
 		m_game_lbox->Append(wxString(game.c_str(), *wxConvCurrent));
 
-	wxButton* const ok_btn = new wxButton(panel, wxID_ANY, wxT("Change"));
+	wxButton* const ok_btn = new wxButton(panel, wxID_ANY, _("Change"));
 	_connect_macro_(ok_btn, ChangeGameDiag::OnPick, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
@@ -540,7 +540,7 @@ void ChangeGameDiag::OnPick(wxCommandEvent&)
 }
 
 PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
-	: wxDialog(parent, wxID_ANY, wxT("Configure Pads"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
 	, m_mapping(map)
 {
 	wxPanel* const panel = new wxPanel(this);
@@ -551,17 +551,17 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 
 	// labels
 	wxBoxSizer* const label_szr = new wxBoxSizer(wxVERTICAL);
-	label_szr->Add(new wxStaticText(panel,wxID_ANY, wxT("Local")), 0, wxALIGN_TOP);
+	label_szr->Add(new wxStaticText(panel,wxID_ANY, _("Local")), 0, wxALIGN_TOP);
 	label_szr->AddStretchSpacer(1);
-	label_szr->Add(new wxStaticText(panel,wxID_ANY, wxT("In-Game")), 0, wxALIGN_BOTTOM);
+	label_szr->Add(new wxStaticText(panel,wxID_ANY, _("In-Game")), 0, wxALIGN_BOTTOM);
 
 	h_szr->Add(label_szr, 1, wxTOP | wxBOTTOM | wxEXPAND, 20);
 
 	// set up choices
 	wxString pad_names[5];
-	pad_names[0] = wxT("None");
+	pad_names[0] = _("None");
 	for (unsigned int i=1; i<5; ++i)
-		pad_names[i] = wxString(wxT("Pad ")) + (wxChar)(wxT('0')+i);
+		pad_names[i] = wxString(_("Pad ")) + (wxChar)(wxT('0')+i);
 
 	for (unsigned int i=0; i<4; ++i)
 	{

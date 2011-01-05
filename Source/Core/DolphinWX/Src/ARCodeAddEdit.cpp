@@ -40,7 +40,7 @@ CARCodeAddEdit::~CARCodeAddEdit()
 void CARCodeAddEdit::CreateGUIControls(int _selection)
 {
 	ActionReplay::ARCode tempEntries;
-	wxString currentName = wxT("Insert name here..");
+	wxString currentName = _("Insert name here..");
 	
 	if (_selection == -1)
 	{
@@ -65,7 +65,7 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EntrySelection->SetValue((int)(arCodes.size() - _selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
-	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxButton* bOK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxButton* bCancel = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);

@@ -140,7 +140,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
-			wxMessageBox(wxString::Format(_("Could not create %s"), wxString::From8BitData(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+			wxMessageBox(wxString::Format(wxT("Could not create %s"), wxString::From8BitData(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	}
 
 	// Disk header and apploader
@@ -149,46 +149,46 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		m_Country->SetValue(wxT("EUROPE"));
+		m_Country->SetValue(_("EUROPE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
-		m_Country->SetValue(wxT("FRANCE"));
+		m_Country->SetValue(_("FRANCE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
-		m_Country->SetValue(wxT("ITALY"));
+		m_Country->SetValue(_("ITALY"));
 		break;
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
-		m_Country->SetValue(wxT("RUSSIA"));
+		m_Country->SetValue(_("RUSSIA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(wxT("USA"));
+		m_Country->SetValue(_("USA"));
 		m_Lang->SetSelection(0);
 		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		m_Country->SetValue(wxT("JAPAN"));
+		m_Country->SetValue(_("JAPAN"));
 		m_Lang->SetSelection(-1);
 		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
-		m_Country->SetValue(wxT("KOREA"));
+		m_Country->SetValue(_("KOREA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
-		m_Country->SetValue(wxT("TAIWAN"));
+		m_Country->SetValue(_("TAIWAN"));
 		m_Lang->SetSelection(-1);
 		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_SDK:
-		m_Country->SetValue(wxT("No Country (SDK)"));
+		m_Country->SetValue(_("No Country (SDK)"));
 		break;
 	default:
-		m_Country->SetValue(wxT("UNKNOWN"));
+		m_Country->SetValue(_("UNKNOWN"));
 		break;
 	}
 	wxString temp = _T("0x") + wxString::From8BitData(OpenISO->GetMakerID().c_str());
 	m_MakerID->SetValue(temp);
 	m_Date->SetValue(wxString::From8BitData(OpenISO->GetApploaderDate().c_str()));
-	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
+	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	ChangeBannerDetails((int)SConfig::GetInstance().m_InterfaceLanguage);
@@ -284,7 +284,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
 	m_geckocode_panel = new Gecko::CodeConfigPanel(m_Notebook);
-	m_Notebook->AddPage(m_geckocode_panel, wxT("Gecko Codes"));
+	m_Notebook->AddPage(m_geckocode_panel, _("Gecko Codes"));
 	m_Information = new wxPanel(m_Notebook, ID_INFORMATION, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Information, _("Info"));
 	m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM, wxDefaultPosition, wxDefaultSize);
@@ -305,15 +305,15 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	MMU->SetToolTip(wxT("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
+	MMU->SetToolTip(_("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
 	MMUBAT = new wxCheckBox(m_GameConfig, ID_MMUBAT, _("Enable BAT"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	MMUBAT->SetToolTip(wxT("Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"));
+	MMUBAT->SetToolTip(_("Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"));
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	TLBHack->SetToolTip(wxT("Fast version of the MMU.  Does not work for every game."));
+	TLBHack->SetToolTip(_("Fast version of the MMU.  Does not work for every game."));
 	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	AlternateRFI->SetToolTip(wxT("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
+	AlternateRFI->SetToolTip(_("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	FastDiscSpeed->SetToolTip(wxT("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
+	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
@@ -343,7 +343,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	UseZTPSpeedupHack->SetToolTip(wxT("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
+	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	DListCache = new wxCheckBox(m_GameConfig, ID_DLISTCACHE, _("DList Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Hack
 	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
@@ -527,7 +527,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Filesystem tree
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	m_Treectrl->AssignImageList(m_iconList);
-	RootId = m_Treectrl->AddRoot(wxT("Disc"), 0, 0, 0);
+	RootId = m_Treectrl->AddRoot(_("Disc"), 0, 0, 0);
 
 	wxBoxSizer* sTreePage;
 	sTreePage = new wxBoxSizer(wxVERTICAL);
@@ -576,7 +576,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString dirHome;
 
-	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format(_("%s.png"), m_GameID->GetLabel().c_str()),
+	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format(wxT("%s.png"), m_GameID->GetLabel().c_str()),
 		_("*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize);
 	if (dialog.ShowModal() == wxID_OK)
 	{
@@ -616,7 +616,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
 	
 	Path = wxFileSelector(
-		wxT("Export File"),
+		_("Export File"),
 		wxEmptyString, File, wxEmptyString,
 		wxString::Format
 		(
@@ -690,9 +690,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
 	}
 
-	wxString dialogTitle = index[0] ? _T("Extracting Directory") : _T("Extracting All Files");
+	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
 	wxProgressDialog dialog(dialogTitle,
-					_T("Extracting..."),
+					_("Extracting..."),
 					index[1], // range
 					this, // parent
 					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
@@ -704,9 +704,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
-		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), dialogTitle.c_str(),
+		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
+		if (!dialog.Update(i, wxString::Format(wxT("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
 			break;
 
 		if (fst[i]->IsDirectory())
@@ -746,7 +746,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 void CISOProperties::OnExtractDir(wxCommandEvent& event)
 {
 	wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-	wxString Path = wxDirSelector(wxT("Choose the folder where to extract to"));
+	wxString Path = wxDirSelector(_("Choose the folder where to extract to"));
 
 	if (!Path || !Directory)
 		return;
@@ -785,7 +785,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 {
 	std::vector<const DiscIO::SFileInfo *> fst;
 	DiscIO::IFileSystem *FS = 0;
-	wxString Path = wxDirSelector(wxT("Choose the folder to extract to"));
+	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 
 	if (Path.empty())
 		return;

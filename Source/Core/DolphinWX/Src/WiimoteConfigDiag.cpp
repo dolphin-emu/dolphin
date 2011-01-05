@@ -6,7 +6,7 @@
 
 const wxString& ConnectedWiimotesString()
 {
-	static wxString str = wxT("Connected to . Wiimotes");
+	static wxString str = _("Connected to . Wiimotes");
 	str[13] = wxChar(wxT('0') + WiimoteReal::Initialize());
 	return str;
 }
@@ -16,34 +16,34 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	, m_index(index)
 {
 	// input source
-	const wxString src_choices[] = { wxT("None"),
-		wxT("Emulated Wiimote"), wxT("Real Wiimote"), wxT("Hybrid Wiimote") };
+	const wxString src_choices[] = { _("None"),
+		_("Emulated Wiimote"), _("Real Wiimote"), _("Hybrid Wiimote") };
 
 	wxChoice* const input_src_choice = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
 		sizeof(src_choices)/sizeof(*src_choices), src_choices);
 	input_src_choice->Select(g_wiimote_sources[m_index]);
 	_connect_macro_(input_src_choice, WiimoteConfigPage::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
 
-	wxStaticBoxSizer* const input_src_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Input Source"));
+	wxStaticBoxSizer* const input_src_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Input Source"));
 	input_src_sizer->Add(input_src_choice, 1, wxEXPAND | wxALL, 5);
 
 	// emulated wiimote
-	wxButton* const configure_wiimote_emu_btn = new wxButton(this, -1, wxT("Configure"));
-	wxStaticBoxSizer* const wiimote_emu_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Emulated Wiimote"));
+	wxButton* const configure_wiimote_emu_btn = new wxButton(this, -1, _("Configure"));
+	wxStaticBoxSizer* const wiimote_emu_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Emulated Wiimote"));
 	wiimote_emu_sizer->Add(configure_wiimote_emu_btn, 1, wxEXPAND | wxALL, 5);
 	_connect_macro_(configure_wiimote_emu_btn, WiimoteConfigDiag::ConfigEmulatedWiimote, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 
 	// real wiimote
 	connected_wiimotes_txt = new wxStaticText(this, -1, ConnectedWiimotesString());
 
-	wxButton* const refresh_btn = new wxButton(this, -1, wxT("Refresh"), wxDefaultPosition);
+	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"), wxDefaultPosition);
 	_connect_macro_(refresh_btn, WiimoteConfigDiag::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 
-	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Real Wiimote"));
+	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimote"));
 	wiimote_real_sizer->AddStretchSpacer(1);
 	wiimote_real_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER | wxBOTTOM | wxLEFT | wxRIGHT, 5);
 #ifdef _WIN32
-	wxButton* const pairup_btn = new wxButton(this, -1, wxT("Pair Up"), wxDefaultPosition);
+	wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
 	_connect_macro_(pairup_btn, WiimoteConfigDiag::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
 	wiimote_real_sizer->Add(pairup_btn, 0, wxALIGN_CENTER | wxBOTTOM, 5);
 #endif
@@ -64,7 +64,7 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 }
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
-	: wxDialog(parent, -1, wxT("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);

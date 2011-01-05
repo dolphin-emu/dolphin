@@ -54,7 +54,7 @@ public:
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL,
-		const wxString& name = wxT("Log")
+		const wxString& name = _("Log")
 		);
 	~CLogWindow();
 

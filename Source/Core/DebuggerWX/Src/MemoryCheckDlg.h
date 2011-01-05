@@ -35,7 +35,7 @@ class MemoryCheckDlg : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		MemoryCheckDlg(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Memory Check"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MemoryCheckDlg_STYLE);
+		MemoryCheckDlg(wxWindow *parent, wxWindowID id = 1, const wxString &title = _("Memory Check"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MemoryCheckDlg_STYLE);
 		virtual ~MemoryCheckDlg();
 	
 	private:

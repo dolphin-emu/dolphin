@@ -132,7 +132,7 @@ class ExtensionButton : public wxButton
 {
 public:
 	ExtensionButton( wxWindow* const parent, ControllerEmu::Extension* const ext )
-		: wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+		: wxButton( parent, -1, _("Configure"), wxDefaultPosition )
 		, extension(ext) {}
 
 	ControllerEmu::Extension* const	extension;
@@ -151,7 +151,7 @@ class UDPConfigButton : public wxButton
 public:
 	UDPWrapper* const wrapper;
 	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp)
-		: wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+		: wxButton( parent, -1, _("Configure"), wxDefaultPosition )
 		, wrapper(udp)
 	{}
 };

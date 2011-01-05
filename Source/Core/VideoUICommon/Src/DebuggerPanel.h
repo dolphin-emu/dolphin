@@ -30,7 +30,7 @@ public:
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL,
-		const wxString &title = wxT("GFX Debugger"));
+		const wxString &title = _("GFX Debugger"));
 
 	virtual ~GFXDebuggerPanel();
 

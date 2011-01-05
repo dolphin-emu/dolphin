@@ -115,7 +115,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	// Toolbar
 	EVT_MENU(IDM_STEP,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEPOVER,				CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_TOGGLE_BREAKPOINT,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_TOGGLE_BREAKPOINT,		CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_SKIP,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_SETPC,					CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_GOTOPC,				CCodeWindow::OnCodeStep)
@@ -428,85 +428,85 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
 
-	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
-		, wxString::FromAscii("This is necessary to get break points"
+	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"), 
+		wxString::FromAscii("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
-		" slow, perhaps slower than 1 fps.")
-		, wxITEM_CHECK);
+		" slow, perhaps slower than 1 fps."), 
+		wxITEM_CHECK);
 	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
 	pCoreMenu->AppendSeparator();
 
-	pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking off"),
-		_T("Provide safer execution by not linking the JIT blocks."),
+	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),
+		_("Provide safer execution by not linking the JIT blocks."), 
 		wxITEM_CHECK);
 
-	pCoreMenu->Append(IDM_JITNOBLOCKCACHE, _T("&Disable JIT Cache"),
-		_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
-		_T(" [This option must be selected before a game is started.]"),
+	pCoreMenu->Append(IDM_JITNOBLOCKCACHE, _("&Disable JIT Cache"),
+		_("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.\n[This option must be selected before a game is started.]"), 
 		wxITEM_CHECK);
-	pCoreMenu->Append(IDM_CLEARCODECACHE, _T("&Clear JIT cache"));
+	pCoreMenu->Append(IDM_CLEARCODECACHE, _("&Clear JIT cache"));
 
 	pCoreMenu->AppendSeparator();
-	pCoreMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
-	pCoreMenu->Append(IDM_SEARCHINSTRUCTION, _T("&Search for an op"));
+	pCoreMenu->Append(IDM_LOGINSTRUCTIONS, _("&Log JIT instruction coverage"));
+	pCoreMenu->Append(IDM_SEARCHINSTRUCTION, _("&Search for an op"));
 
 	pCoreMenu->AppendSeparator();
-	pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
-		_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
+	pCoreMenu->Append(IDM_JITOFF, _("&JIT off (JIT core)"),
+		_("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
 		wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"),
+	pCoreMenu->Append(IDM_JITLSOFF, _("&JIT LoadStore off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"),
+	pCoreMenu->Append(IDM_JITLSLBZXOFF, _("    &JIT LoadStore lbzx off"),
 			wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"),
+	pCoreMenu->Append(IDM_JITLSLXZOFF, _("    &JIT LoadStore lXz off"),
 			wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSLWZOFF, _T("        &JIT LoadStore lwz off"),
+	pCoreMenu->Append(IDM_JITLSLWZOFF, _("&JIT LoadStore lwz off"),
 			wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSFOFF, _T("&JIT LoadStore Floating off"),
+	pCoreMenu->Append(IDM_JITLSFOFF, _("&JIT LoadStore Floating off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITLSPOFF, _T("&JIT LoadStore Paired off"),
+	pCoreMenu->Append(IDM_JITLSPOFF, _("&JIT LoadStore Paired off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"),
+	pCoreMenu->Append(IDM_JITFPOFF, _("&JIT FloatingPoint off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"),
+	pCoreMenu->Append(IDM_JITIOFF, _("&JIT Integer off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"),
+	pCoreMenu->Append(IDM_JITPOFF, _("&JIT Paired off"),
 		   	wxEmptyString, wxITEM_CHECK);
-	pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"),
+	pCoreMenu->Append(IDM_JITSROFF, _("&JIT SystemRegisters off"),
 		   	wxEmptyString, wxITEM_CHECK);
 
-	pMenuBar->Append(pCoreMenu, _T("&JIT"));
+	pMenuBar->Append(pCoreMenu, _("&JIT"));
 
 
 	// Debug Menu
 	wxMenu* pDebugMenu = new wxMenu;
 
-	pDebugMenu->Append(IDM_STEP, _T("Step &Into\tF11"));
-	pDebugMenu->Append(IDM_STEPOVER, _T("Step &Over\tF10"));
-	pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _T("Toggle &Breakpoint\tF9"));
+	pDebugMenu->Append(IDM_STEP, _("Step &Into\tF11"));
+	pDebugMenu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
+	pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
 
-	pMenuBar->Append(pDebugMenu, _T("&Debug"));
+	pMenuBar->Append(pDebugMenu, _("&Debug"));
 
 	CreateMenuSymbols(pMenuBar);
 }
 
 void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 {
-	wxMenuItem* boottopause = pMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
-		wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
+	wxMenuItem* boottopause = pMenu->Append(IDM_BOOTTOPAUSE, _("Boot to pause"),
+		_("Start the game directly instead of booting to pause"), 
+		wxITEM_CHECK);
 	boottopause->Check(bBootToPause);
 
-	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
-		, wxString::FromAscii(
+	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"), 
+		wxString::FromAscii(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
 		" convenient if you are bug-testing with a certain game and want to rebuild"
 		" and retry it several times, either with changes to Dolphin or if you are"
-		" developing a homebrew game.]")
-		, wxITEM_CHECK);
+		" developing a homebrew game.]"), 
+		wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);
 
-	pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	pMenu->Append(IDM_FONTPICKER, _("&Font..."), wxEmptyString, wxITEM_NORMAL);
 }
 
 // CPU Mode and JIT Menu
@@ -582,7 +582,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		case IDM_SEARCHINSTRUCTION:
 		{
 			wxString str;
-			str = wxGetTextFromUser(_(""), wxT("Op?"), wxEmptyString, this);
+			str = wxGetTextFromUser(_T(""), wxT("Op?"), wxEmptyString, this);
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4)
 		   	{
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
@@ -646,12 +646,12 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step]);
-	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
-	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
+	toolBar->AddTool(IDM_STEP,		_("Step"),			m_Bitmaps[Toolbar_Step]);
+	toolBar->AddTool(IDM_STEPOVER,	_("Step Over"),     m_Bitmaps[Toolbar_StepOver]);
+	toolBar->AddTool(IDM_SKIP,		_("Skip"),			m_Bitmaps[Toolbar_Skip]);
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,    _T("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
-	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
+	toolBar->AddTool(IDM_GOTOPC,    _("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_SETPC,		_("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
 

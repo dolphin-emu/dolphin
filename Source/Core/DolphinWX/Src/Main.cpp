@@ -43,6 +43,8 @@
 #include "BootManager.h"
 #include "Frame.h"
 
+#include <wx/intl.h>
+
 // ------------
 //  Main window
 
@@ -89,6 +91,8 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 
 bool DolphinApp::OnInit()
 {
+	InitLanguageSupport();
+
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool BatchMode = false;
@@ -137,28 +141,28 @@ bool DolphinApp::OnInit()
 	{
 		{
 			wxCMD_LINE_SWITCH, _("h"), _("help"), 
-			wxT("Show this help message"),
+			_("Show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
-			wxCMD_LINE_SWITCH, _("d"), _("debugger"), wxT("Opens the debugger")
+			wxCMD_LINE_SWITCH, _("d"), _("debugger"), _("Opens the debugger")
 		},
 		{
-			wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens the logger")
+			wxCMD_LINE_SWITCH, _("l"), _("logger"), _("Opens the logger")
 		},
 		{
-			wxCMD_LINE_OPTION, _("e"), _("exec"), wxT("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
+			wxCMD_LINE_OPTION, _("e"), _("exec"), _("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, _("b"), _("batch"), wxT("Exit Dolphin with emulator")
+			wxCMD_LINE_SWITCH, _("b"), _("batch"), _("Exit Dolphin with emulator")
 		},
 		{
-			wxCMD_LINE_OPTION, _("V"), _("video_plugin"), wxT("Specify a video plugin"),
+			wxCMD_LINE_OPTION, _("V"), _("video_plugin"), _("Specify a video plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
+			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), _("Specify an audio plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -179,18 +183,18 @@ bool DolphinApp::OnInit()
 	LoadFile = parser.Found("exec", &FileToLoad);
 	BatchMode = parser.Found("batch");
 #else
-	UseDebugger = parser.Found(wxT("debugger"));
-	UseLogger = parser.Found(wxT("logger"));
-	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
-	BatchMode = parser.Found(wxT("batch"));
+	UseDebugger = parser.Found(_("debugger"));
+	UseLogger = parser.Found(_("logger"));
+	LoadFile = parser.Found(_("exec"), &FileToLoad);
+	BatchMode = parser.Found(_("batch"));
 #endif
 
 #if wxCHECK_VERSION(2, 9, 0)
 	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
 	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
 #else
-	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
-	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
+	selectVideoPlugin = parser.Found(_("video_plugin"), &videoPluginFilename);
+	selectAudioPlugin = parser.Found(_("audio_plugin"), &audioPluginFilename);
 #endif
 #endif // wxUSE_CMDLINE_PARSER
 
@@ -403,6 +407,49 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	}
 }
 
+void DolphinApp::InitLanguageSupport()
+{
+	int language = 0;
+
+	const wxLanguage langIds[] =
+	{
+		wxLANGUAGE_DEFAULT,
+		wxLANGUAGE_GERMAN,
+		wxLANGUAGE_FRENCH,
+		wxLANGUAGE_SPANISH,
+		wxLANGUAGE_ITALIAN,
+		wxLANGUAGE_DUTCH,
+	};
+
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	ini.Get("Interface", "Language", &language, 0);
+
+	// Load language if possible, fall back to system default otherwise
+	if(wxLocale::IsAvailable(langIds[language]))
+	{
+		m_locale = new wxLocale(langIds[language]);
+
+#ifdef _WIN32
+		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+#endif
+
+		m_locale->AddCatalog(wxT("dolphin-emu"));
+
+		if(!m_locale->IsOk())
+		{
+			PanicAlert("Error loading selected language.  Falling back to system default.\n");
+			delete m_locale;
+			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		}
+	}
+	else
+	{
+		PanicAlert("The selected language is not supported by your system.  Falling back to system default.\n");
+		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+}
+
 void DolphinApp::OnEndSession()
 {
 	SConfig::GetInstance().SaveSettings();
@@ -418,6 +465,8 @@ int DolphinApp::OnExit()
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
+
+	delete m_locale;
 
 	return wxApp::OnExit();
 }
