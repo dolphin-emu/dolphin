@@ -55,7 +55,7 @@ void WriteProfileResults(const char *filename) {
 	for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 	{
 		const JitBlock *block = jit->GetBlockCache()->GetBlock(i);
-		u64 cost = (block->originalSize / 4) * block->runCount;		// rough heuristic. mem instructions should cost more.
+		u64 cost = block->originalSize * (block->runCount / 4);		// rough heuristic. mem instructions should cost more.
 #ifdef _WIN32
 		u64 timecost = block->ticCounter;					// Indeed ;)
 #endif
