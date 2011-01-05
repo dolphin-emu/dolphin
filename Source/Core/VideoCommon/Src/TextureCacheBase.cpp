@@ -428,8 +428,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			switch(copyfmt) 
 			{
 			case 0: // Z4
-				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1;
-				break;
 			case 1: // Z8
 			case 8: // Z8
 				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
@@ -469,7 +467,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		{
 			switch (copyfmt)
 			{
-			case 0: // Z4
+			case 0: // Z4				
+				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1;
+				break;
 			case 1: // Z8
 			case 8: // Z8
 				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
