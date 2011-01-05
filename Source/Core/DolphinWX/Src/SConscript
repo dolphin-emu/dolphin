@@ -77,7 +77,6 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		index_hi = mo.find("/dolphin-emu.mo")
 		lang_name = mo[index_lo:index_hi]
 		install_loc = env['data_dir'] + "/" + lang_name + ".lproj/dolphin-emu.mo"
-		print install_loc
 		env.InstallAs(install_loc, mo)
 
 	from plistlib import writePlist
