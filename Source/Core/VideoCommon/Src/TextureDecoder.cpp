@@ -1707,18 +1707,20 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_CMPR:  // speed critical
 		// The metroid games use this format almost exclusively.
 		{
-#if 0
 			// JSD optimized with SSE2 intrinsics.
-			// Produces a ~40% improvement in speed over reference C implementation.
+			// Produces a ~40% improvement in speed over reference C implementation on an x86 Intel Core 2 Duo
+			// but also a -10% to 0% "improvement" on an x64 AMD Phenom II. Further optimization is required to
+			// ensure that all architectures and CPUs gain benefits.
 			for (int y = 0; y < height; y += 8)
 			{
 				for (int x = 0; x < width; x += 8)
 				{
+					u32 *dst32 = dst + y * width + x;
 					// We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
 					// This is ideal because a single DXT block contains 2 RGBA colors when decoded from their 16-bit.
 					// Two DXT blocks therefore contain 4 RGBA colors to be processed. The processing is parallelizable
 					// at this level, so we do.
-					for (int z = 0; z < 2; ++z, src += sizeof(struct DXTBlock) * 2)
+					for (int z = 0; z < 2; ++z, src += sizeof(struct DXTBlock) * 2, dst32 += (width * 4))
 					{
 						// JSD NOTE: You may see many strange patterns of behavior in the below code, but they
 						// are for performance reasons. Sometimes, calculating what should be obvious hard-coded
@@ -1731,7 +1733,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 						// Load 128 bits, i.e. two DXTBlocks (64-bits each)
 						const __m128i dxt = _mm_loadu_si128((__m128i *)(src + sizeof(struct DXTBlock) * 0));
-						__m128i *dst128 = (__m128i *)( dst + (y + z*4) * width + x );
 						__m128i argb888x4;
 						const __m128i allFF = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL);
 						const __m128i lowMask = _mm_srli_si128( allFF, 8 );
@@ -1799,7 +1800,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i rgbdelta = _mm_or_si128(_mm_srli_si128(_mm_slli_si128(rgbdelta0, 8), 8), rgbdelta1);
 						const __m128i rgb20 = _mm_add_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0)), rgbdelta);
 						const __m128i rgb30 = _mm_sub_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), rgbdelta);
-						const __m128i rgb31 = _mm_and_si128(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), _mm_srli_epi32( allFF, 8 ) /*_mm_set_epi32(0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF)*/ );
+						// _mm_srli_epi32( allFF, 8 ) == _mm_set_epi32(0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF)
+						// Make this color fully transparent:
+						const __m128i rgb31 = _mm_and_si128(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), _mm_srli_epi32( allFF, 8 ) );
 
 						// Create an array for color lookups for DXT0 so we can use the 2-bit indices:
 						const __m128i rgb01230 = _mm_or_si128(
@@ -1817,6 +1820,11 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							_mm_slli_si128(_mm_srli_si128(rgb31, 4), 8 + 4)
 						);
 
+						// Copy the color arrays from the XMM registers to local variables in RAM:
+						__declspec(align(16)) u32 colors0A[4], colors0B[4];
+						_mm_store_si128((__m128i *)colors0A, rgb01230);
+						_mm_store_si128((__m128i *)colors0B, rgb01450);
+
 						// Create an array for color lookups for DXT1 so we can use the 2-bit indices:
 						const __m128i rgb01231 = _mm_or_si128(
 							_mm_or_si128(
@@ -1832,6 +1840,11 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							),
 							_mm_slli_si128(_mm_srli_si128(rgb31, 8 + 4), 8 + 4)
 						);
+
+						// Copy the color arrays from the XMM registers to aligned local variables in RAM:
+						__declspec(align(16)) u32 colors1A[4], colors1B[4];
+						_mm_store_si128((__m128i *)colors1A, rgb01231);
+						_mm_store_si128((__m128i *)colors1B, rgb01451);
 
 						// The #ifdef CHECKs here and below are to compare correctness of output against the reference code.
 						// Don't use them in a normal build.
@@ -1853,24 +1866,36 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 						// Compare rgb0 to rgb1:
 						// Each 32-bit word will contain either 0xFFFFFFFF or 0x00000000 for true/false.
-						const __m128i cmprgb0rgb1 = _mm_cmpgt_epi32(rgb0, rgb1);
+						//const __m128i cmprgb0rgb1 = _mm_cmpgt_epi32(rgb0, rgb1);
+						const __m128i c0cmp = _mm_srli_epi32(_mm_slli_epi32(_mm_srli_epi64(c0, 8), 16), 16);
+						const __m128i c0shr = _mm_srli_epi64(c0cmp, 32);
+						const __m128i cmprgb0rgb1 = _mm_cmpgt_epi32(c0cmp, c0shr);
 
-						// The 2-bit indices read from each DXT block:
-						u32 dxt0sel = dxt.m128i_u32[1];
-						u32 dxt1sel = dxt.m128i_u32[3];
+						// Copy the 2-bit indices from each DXT block:
+						__declspec(align(16)) u32 dxttmp[4];
+						_mm_store_si128((__m128i *)dxttmp, dxt);
+
+						u32 dxt0sel = dxttmp[1];
+						u32 dxt1sel = dxttmp[3];
+
+						// Copy the comparison results:
+						__declspec(align(16)) u16 cmptmp[8];
+						_mm_store_si128((__m128i *)cmptmp, cmprgb0rgb1);
 
 						// Per each row written we alternate storing RGBA values from DXT0 and DXT1.
 
+						__m128i *dst128 = (__m128i *)( dst + (y + z*4) * width + x );
+
 						// Row 0:
 						__m128i col0, col1;
-						if (cmprgb0rgb1.m128i_u32[0])
+						if (cmptmp[0])
 						{
 							// rgb0a > rgb1a
 							col0 = _mm_set_epi32(
-								rgb01230.m128i_u32[(dxt0sel >> ((0*8)+0)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((0*8)+2)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((0*8)+4)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((0*8)+6)) & 3]
+								colors0A[(dxt0sel >> ((0*8)+0)) & 3],
+								colors0A[(dxt0sel >> ((0*8)+2)) & 3],
+								colors0A[(dxt0sel >> ((0*8)+4)) & 3],
+								colors0A[(dxt0sel >> ((0*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 0), col0);
 #ifdef CHECK
@@ -1881,10 +1906,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// rgb0a <= rgb1a
 							col0 = _mm_set_epi32(
-								rgb01450.m128i_u32[(dxt0sel >> ((0*8)+0)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((0*8)+2)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((0*8)+4)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((0*8)+6)) & 3]
+								colors0B[(dxt0sel >> ((0*8)+0)) & 3],
+								colors0B[(dxt0sel >> ((0*8)+2)) & 3],
+								colors0B[(dxt0sel >> ((0*8)+4)) & 3],
+								colors0B[(dxt0sel >> ((0*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 0), col0);
 #ifdef CHECK
@@ -1892,14 +1917,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 #endif
 						}
 
-						if (cmprgb0rgb1.m128i_u32[2])
+						if (cmptmp[4])
 						{
 							// (rgb0b > rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01231.m128i_u32[(dxt1sel >> ((0*8)+0)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((0*8)+2)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((0*8)+4)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((0*8)+6)) & 3]
+								colors1A[(dxt1sel >> ((0*8)+0)) & 3],
+								colors1A[(dxt1sel >> ((0*8)+2)) & 3],
+								colors1A[(dxt1sel >> ((0*8)+4)) & 3],
+								colors1A[(dxt1sel >> ((0*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 0) + 1, col1);
 #ifdef CHECK
@@ -1910,10 +1935,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// (rgb0b <= rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01451.m128i_u32[(dxt1sel >> ((0*8)+0)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((0*8)+2)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((0*8)+4)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((0*8)+6)) & 3]
+								colors1B[(dxt1sel >> ((0*8)+0)) & 3],
+								colors1B[(dxt1sel >> ((0*8)+2)) & 3],
+								colors1B[(dxt1sel >> ((0*8)+4)) & 3],
+								colors1B[(dxt1sel >> ((0*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 0) + 1, col1);
 #ifdef CHECK
@@ -1922,14 +1947,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 
 						// Row 1:
-						if (cmprgb0rgb1.m128i_u32[0])
+						if (cmptmp[0])
 						{
 							// rgb0a > rgb1a
 							col0 = _mm_set_epi32(
-								rgb01230.m128i_u32[(dxt0sel >> ((1*8)+0)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((1*8)+2)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((1*8)+4)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((1*8)+6)) & 3]
+								colors0A[(dxt0sel >> ((1*8)+0)) & 3],
+								colors0A[(dxt0sel >> ((1*8)+2)) & 3],
+								colors0A[(dxt0sel >> ((1*8)+4)) & 3],
+								colors0A[(dxt0sel >> ((1*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 1), col0);
 #ifdef CHECK
@@ -1940,10 +1965,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// rgb0a <= rgb1a
 							col0 = _mm_set_epi32(
-								rgb01450.m128i_u32[(dxt0sel >> ((1*8)+0)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((1*8)+2)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((1*8)+4)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((1*8)+6)) & 3]
+								colors0B[(dxt0sel >> ((1*8)+0)) & 3],
+								colors0B[(dxt0sel >> ((1*8)+2)) & 3],
+								colors0B[(dxt0sel >> ((1*8)+4)) & 3],
+								colors0B[(dxt0sel >> ((1*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 1), col0);
 #ifdef CHECK
@@ -1951,14 +1976,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 #endif
 						}
 
-						if (cmprgb0rgb1.m128i_u32[2])
+						if (cmptmp[4])
 						{
 							// (rgb0b > rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01231.m128i_u32[(dxt1sel >> ((1*8)+0)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((1*8)+2)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((1*8)+4)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((1*8)+6)) & 3]
+								colors1A[(dxt1sel >> ((1*8)+0)) & 3],
+								colors1A[(dxt1sel >> ((1*8)+2)) & 3],
+								colors1A[(dxt1sel >> ((1*8)+4)) & 3],
+								colors1A[(dxt1sel >> ((1*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 1) + 1, col1);
 #ifdef CHECK
@@ -1969,10 +1994,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// (rgb0b <= rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01451.m128i_u32[(dxt1sel >> ((1*8)+0)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((1*8)+2)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((1*8)+4)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((1*8)+6)) & 3]
+								colors1B[(dxt1sel >> ((1*8)+0)) & 3],
+								colors1B[(dxt1sel >> ((1*8)+2)) & 3],
+								colors1B[(dxt1sel >> ((1*8)+4)) & 3],
+								colors1B[(dxt1sel >> ((1*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 1) + 1, col1);
 #ifdef CHECK
@@ -1981,14 +2006,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 
 						// Row 2:
-						if (cmprgb0rgb1.m128i_u32[0])
+						if (cmptmp[0])
 						{
 							// rgb0a > rgb1a
 							col0 = _mm_set_epi32(
-								rgb01230.m128i_u32[(dxt0sel >> ((2*8)+0)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((2*8)+2)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((2*8)+4)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((2*8)+6)) & 3]
+								colors0A[(dxt0sel >> ((2*8)+0)) & 3],
+								colors0A[(dxt0sel >> ((2*8)+2)) & 3],
+								colors0A[(dxt0sel >> ((2*8)+4)) & 3],
+								colors0A[(dxt0sel >> ((2*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 2), col0);
 #ifdef CHECK
@@ -1999,10 +2024,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// rgb0a <= rgb1a
 							col0 = _mm_set_epi32(
-								rgb01450.m128i_u32[(dxt0sel >> ((2*8)+0)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((2*8)+2)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((2*8)+4)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((2*8)+6)) & 3]
+								colors0B[(dxt0sel >> ((2*8)+0)) & 3],
+								colors0B[(dxt0sel >> ((2*8)+2)) & 3],
+								colors0B[(dxt0sel >> ((2*8)+4)) & 3],
+								colors0B[(dxt0sel >> ((2*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 2), col0);
 #ifdef CHECK
@@ -2010,14 +2035,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 #endif
 						}
 
-						if (cmprgb0rgb1.m128i_u32[2])
+						if (cmptmp[4])
 						{
 							// (rgb0b > rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01231.m128i_u32[(dxt1sel >> ((2*8)+0)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((2*8)+2)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((2*8)+4)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((2*8)+6)) & 3]
+								colors1A[(dxt1sel >> ((2*8)+0)) & 3],
+								colors1A[(dxt1sel >> ((2*8)+2)) & 3],
+								colors1A[(dxt1sel >> ((2*8)+4)) & 3],
+								colors1A[(dxt1sel >> ((2*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 2) + 1, col1);
 #ifdef CHECK
@@ -2028,10 +2053,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// (rgb0b <= rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01451.m128i_u32[(dxt1sel >> ((2*8)+0)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((2*8)+2)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((2*8)+4)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((2*8)+6)) & 3]
+								colors1B[(dxt1sel >> ((2*8)+0)) & 3],
+								colors1B[(dxt1sel >> ((2*8)+2)) & 3],
+								colors1B[(dxt1sel >> ((2*8)+4)) & 3],
+								colors1B[(dxt1sel >> ((2*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 2) + 1, col1);
 #ifdef CHECK
@@ -2040,14 +2065,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 
 						// Row 3:
-						if (cmprgb0rgb1.m128i_u32[0])
+						if (cmptmp[0])
 						{
 							// rgb0a > rgb1a
 							col0 = _mm_set_epi32(
-								rgb01230.m128i_u32[(dxt0sel >> ((3*8)+0)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((3*8)+2)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((3*8)+4)) & 3],
-								rgb01230.m128i_u32[(dxt0sel >> ((3*8)+6)) & 3]
+								colors0A[(dxt0sel >> ((3*8)+0)) & 3],
+								colors0A[(dxt0sel >> ((3*8)+2)) & 3],
+								colors0A[(dxt0sel >> ((3*8)+4)) & 3],
+								colors0A[(dxt0sel >> ((3*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 3), col0);
 #ifdef CHECK
@@ -2058,10 +2083,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// rgb0a <= rgb1a
 							col0 = _mm_set_epi32(
-								rgb01450.m128i_u32[(dxt0sel >> ((3*8)+0)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((3*8)+2)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((3*8)+4)) & 3],
-								rgb01450.m128i_u32[(dxt0sel >> ((3*8)+6)) & 3]
+								colors0B[(dxt0sel >> ((3*8)+0)) & 3],
+								colors0B[(dxt0sel >> ((3*8)+2)) & 3],
+								colors0B[(dxt0sel >> ((3*8)+4)) & 3],
+								colors0B[(dxt0sel >> ((3*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 3), col0);
 #ifdef CHECK
@@ -2069,14 +2094,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 #endif
 						}
 
-						if (cmprgb0rgb1.m128i_u32[2])
+						if (cmptmp[4])
 						{
 							// (rgb0b > rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01231.m128i_u32[(dxt1sel >> ((3*8)+0)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((3*8)+2)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((3*8)+4)) & 3],
-								rgb01231.m128i_u32[(dxt1sel >> ((3*8)+6)) & 3]
+								colors1A[(dxt1sel >> ((3*8)+0)) & 3],
+								colors1A[(dxt1sel >> ((3*8)+2)) & 3],
+								colors1A[(dxt1sel >> ((3*8)+4)) & 3],
+								colors1A[(dxt1sel >> ((3*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 3) + 1, col1);
 #ifdef CHECK
@@ -2087,10 +2112,10 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						{
 							// (rgb0b <= rgb1b)
 							col1 = _mm_set_epi32(
-								rgb01451.m128i_u32[(dxt1sel >> ((3*8)+0)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((3*8)+2)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((3*8)+4)) & 3],
-								rgb01451.m128i_u32[(dxt1sel >> ((3*8)+6)) & 3]
+								colors1B[(dxt1sel >> ((3*8)+0)) & 3],
+								colors1B[(dxt1sel >> ((3*8)+2)) & 3],
+								colors1B[(dxt1sel >> ((3*8)+4)) & 3],
+								colors1B[(dxt1sel >> ((3*8)+6)) & 3]
 							);
 							_mm_store_si128(dst128 + ((width / 4) * 3) + 1, col1);
 #ifdef CHECK
@@ -2100,8 +2125,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					}
 				}
 			}
-#endif
-#if 1
+#if 0
 			for (int y = 0; y < height; y += 8)
 			{
 				for (int x = 0; x < width; x += 8)
