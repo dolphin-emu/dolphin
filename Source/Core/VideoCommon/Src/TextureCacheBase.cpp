@@ -469,6 +469,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			{
 			case 0: // Z4				
 				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1;
+				cbufid = 20;
 				break;
 			case 1: // Z8
 			case 8: // Z8

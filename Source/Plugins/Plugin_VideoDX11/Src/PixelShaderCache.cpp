@@ -123,8 +123,8 @@ const char depth_matrix_program[] = {
 	" in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
 	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
-	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,256.0f*256.0f*16.0f));\n"
-	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * 255.0f) / 255.0f;\n"
+	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
+	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
@@ -143,8 +143,8 @@ const char depth_matrix_program_msaa[] = {
 	"for(int i = 0; i < samples; ++i)\n"
 	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
 	"texcol /= samples;\n"
-	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,256.0f*256.0f*16.0f));\n"
-	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * 255.0f) / 255.0f;\n"
+	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,16.0f));\n"
+	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };

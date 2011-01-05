@@ -43,7 +43,8 @@
 namespace DX11
 {
 
-ID3D11Buffer* efbcopycbuf[20] = {};
+#define MAX_COPY_BUFFERS 21
+ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {};
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -165,7 +166,7 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-	for (unsigned int k = 0; k < 20; ++k)
+	for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
 		SAFE_RELEASE(efbcopycbuf[k]);
 }
 

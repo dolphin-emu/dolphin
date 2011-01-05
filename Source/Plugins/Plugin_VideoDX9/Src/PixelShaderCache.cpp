@@ -195,8 +195,8 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		break;
 	case PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT:		
 	case PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT:
-		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,256.0f*256.0f*16.0f));\n"
-		         "texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * 255.0f) / 255.0f;\n");
+		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
+		         "texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
 		break;
 	}
 	//Apply Gamma Correction
