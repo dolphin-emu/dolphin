@@ -71,6 +71,15 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	env.Install(env['data_dir'],
 		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
+	mo_files = Glob('#Data/Languages/*/dolphin-emu.mo', strings=True)
+	for mo in mo_files:
+		index_lo = mo.find("Languages/") + len("Languages/")
+		index_hi = mo.find("/dolphin-emu.mo")
+		lang_name = mo[index_lo:index_hi]
+		install_loc = env['data_dir'] + "/" + lang_name + ".lproj/dolphin-emu.mo"
+		print install_loc
+		env.InstallAs(install_loc, mo)
+
 	from plistlib import writePlist
 	def createPlist(target, source, env):
 		for srcNode in source:
