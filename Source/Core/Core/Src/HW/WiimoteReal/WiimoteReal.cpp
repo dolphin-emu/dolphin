@@ -543,8 +543,10 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 		// hopefully this is alright
 		while (wiimote->Write()) {}
 
+#ifndef __APPLE__
 		// sleep if there was nothing to read
 		if (false == wiimote->Read())
+#endif
 			Common::SleepCurrentThread(1);
 	}
 

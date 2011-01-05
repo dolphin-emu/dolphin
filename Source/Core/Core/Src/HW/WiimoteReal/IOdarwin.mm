@@ -70,7 +70,7 @@ extern "C" OSErr UpdateSystemActivity(UInt8 activity);
 	memcpy(wm->input, data, length);
 	wm->inputlen = length;
 
-	CFRunLoopStop(CFRunLoopGetCurrent());
+	(void)wm->Read();
 
 	(void)UpdateSystemActivity(1);
 }
@@ -125,7 +125,7 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 	}
 
 	sbt = [[SearchBT alloc] init];
-	sbt->maxDevices = max_wiimotes;
+	sbt->maxDevices = max_wiimotes - found_wiimotes;
 	bti = [[IOBluetoothDeviceInquiry alloc] init];
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: 5];
@@ -225,11 +225,6 @@ int Wiimote::IORead(unsigned char *buf)
 
 	if (!IsConnected())
 		return 0;
-
-	if (inputlen == 0) {
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, true);
-		return 0;
-	}
 
 	bytes = inputlen;
 	memcpy(buf, input, bytes);
