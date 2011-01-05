@@ -193,14 +193,10 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	{
 	case PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE:
 		break;
-	case PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT:
-		// this is probably wrong. but it works better than the 24-bit conversion we used to generate in this case.
-		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (65535.0f/65536.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
-		         "texcol = float4((EncodedDepth.rgb * (65536.0f/65535.0f)),1.0f);\n");
-		break;
+	case PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT:		
 	case PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT:
-		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
-		         "texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n");
+		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,256.0f*256.0f*16.0f));\n"
+		         "texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * 255.0f) / 255.0f;\n");
 		break;
 	}
 	//Apply Gamma Correction

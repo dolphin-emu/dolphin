@@ -360,7 +360,6 @@ void BPWritten(const BPCmd& bp)
 	// ----------------------------------
 	// Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8 sample_pattern[12][2],u8 vf,u8 vfilter[7])
 	// Fields: Destination, Frame2Field, Gamma, Source
-	// TODO: We might have to implement the gamma one, some games might need this, if they are too dark to see.
 	// ----------------------------------
 	case BPMEM_DISPLAYCOPYFILER:   // if (aa) { use sample_pattern } else { use 666666 }
 	case BPMEM_DISPLAYCOPYFILER+1: // if (aa) { use sample_pattern } else { use 666666 }
