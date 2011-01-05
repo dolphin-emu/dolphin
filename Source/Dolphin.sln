@@ -656,13 +656,10 @@ Global
 		{56C4B06E-F2C9-4729-A15A-DD327A9AA465}.Release|x64.ActiveCfg = Release|x64
 		{56C4B06E-F2C9-4729-A15A-DD327A9AA465}.Release|x64.Build.0 = Release|x64
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|Win32.Build.0 = Debug|Win32
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|x64.ActiveCfg = Debug|Win32
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|Win32.ActiveCfg = Debug|Win32
-		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|Win32.Build.0 = Debug|Win32
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|x64.ActiveCfg = Debug|Win32
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|Win32.ActiveCfg = Release|Win32
-		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|Win32.Build.0 = Release|Win32
 		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
