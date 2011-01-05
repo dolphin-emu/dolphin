@@ -1821,7 +1821,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						);
 
 						// Copy the color arrays from the XMM registers to local variables in RAM:
-						__declspec(align(16)) u32 colors0A[4], colors0B[4];
+						GC_ALIGNED16(u32 colors0A[4]);
+						GC_ALIGNED16(u32 colors0B[4]);
 						_mm_store_si128((__m128i *)colors0A, rgb01230);
 						_mm_store_si128((__m128i *)colors0B, rgb01450);
 
@@ -1842,7 +1843,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						);
 
 						// Copy the color arrays from the XMM registers to aligned local variables in RAM:
-						__declspec(align(16)) u32 colors1A[4], colors1B[4];
+						GC_ALIGNED16(u32 colors1A[4]);
+						GC_ALIGNED16(u32 colors1B[4]);
 						_mm_store_si128((__m128i *)colors1A, rgb01231);
 						_mm_store_si128((__m128i *)colors1B, rgb01451);
 
@@ -1872,14 +1874,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i cmprgb0rgb1 = _mm_cmpgt_epi32(c0cmp, c0shr);
 
 						// Copy the 2-bit indices from each DXT block:
-						__declspec(align(16)) u32 dxttmp[4];
+						GC_ALIGNED16(u32 dxttmp[4]);
 						_mm_store_si128((__m128i *)dxttmp, dxt);
 
 						u32 dxt0sel = dxttmp[1];
 						u32 dxt1sel = dxttmp[3];
 
 						// Copy the comparison results:
-						__declspec(align(16)) u16 cmptmp[8];
+						GC_ALIGNED16(u16 cmptmp[8]);
 						_mm_store_si128((__m128i *)cmptmp, cmprgb0rgb1);
 
 						// Per each row written we alternate storing RGBA values from DXT0 and DXT1.
