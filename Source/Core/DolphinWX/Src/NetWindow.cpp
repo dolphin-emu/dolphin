@@ -71,7 +71,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	netplay_section.Get("Address", &address, "localhost");
 	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, wxString::FromAscii(address.c_str()));
 
-	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, wxT("Port :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"), wxDefaultPosition, wxDefaultSize);
 	
 	// string? w/e
 	std::string port;
@@ -82,15 +82,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
-		, wxT("ALERT:\n\nNetPlay will currently only work properly when using the following settings:")
-			wxT("\n - Dual Core [OFF]")
-			wxT("\n - Audio Throttle [OFF]")
-			wxT("\n - DSP-HLE with \"Null Audio\" or DSP-LLE")
-			wxT("\n - Manually set the exact number of controllers that will be used to [Standard Controller]")
-			wxT("\n\nAll players should try to use the same Dolphin version and settings.")
-			wxT("\nDisable all memory cards or send them to all players before starting.")
-			wxT("\nWiimote support has not been implemented.")
-			wxT("\n\nYou must forward TCP port to host!!")
+		, _("ALERT:\n\nNetPlay will currently only work properly when using the following settings:\n - Dual Core [OFF]\n - Audio Throttle [OFF]\n - DSP-HLE with \"Null Audio\" or DSP-LLE\n - Manually set the exact number of controllers that will be used to [Standard Controller]\n\nAll players should try to use the same Dolphin version and settings.\nDisable all memory cards or send them to all players before starting.\nWiimote support has not been implemented.\n\nYou must forward TCP port to host!!")
 		, wxDefaultPosition, wxDefaultSize);
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -111,14 +103,14 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	// host tab
 	{
-	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, wxT("Port :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"), wxDefaultPosition, wxDefaultSize);
 	
 	// string? w/e
 	std::string port;
 	netplay_section.Get("HostPort", &port, "2626");	
 	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, wxString::FromAscii(port.c_str()));
 
-	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, wxT("Host"));
+	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, _("Host"));
 	_connect_macro_(host_btn, NetPlaySetupDiag::OnHost, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	m_game_lbox = new wxListBox(host_tab, wxID_ANY);
@@ -281,7 +273,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	chat_msg_szr->Add(m_chat_msg_text, 1);
 	chat_msg_szr->Add(chat_msg_btn, 0);
 
-	wxStaticBoxSizer* const chat_szr = new wxStaticBoxSizer(wxVERTICAL, panel, wxT("Chat"));
+	wxStaticBoxSizer* const chat_szr = new wxStaticBoxSizer(wxVERTICAL, panel, _("Chat"));
 	chat_szr->Add(m_chat_text, 1, wxEXPAND);
 	chat_szr->Add(chat_msg_szr, 0, wxEXPAND | wxTOP, 5);
 
@@ -478,7 +470,7 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 	{
 		m_selected_game = std::string(game_name.mb_str());
 		::netplay_ptr->ChangeGame(m_selected_game);
-		m_game_btn->SetLabel(game_name.Prepend(wxT(" Game : ")));
+		m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 	}
 }
 

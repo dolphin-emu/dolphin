@@ -205,7 +205,7 @@ void CFrame::CreateMenu()
 		int sysmenuVersion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetTitleVersion();
 		char sysmenuRegion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetCountryChar();
 		
-		toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(wxT("Load Wii System Menu (%d %c)"), sysmenuVersion, sysmenuRegion));
+		toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu (%d %c)"), sysmenuVersion, sysmenuRegion));
 	}
 	else
 	{
@@ -330,7 +330,7 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_WIIMOTE2_CONNECT:
 		case HK_WIIMOTE3_CONNECT:
 		case HK_WIIMOTE4_CONNECT:
-			Label = wxString::Format(wxT("Connect Wiimote %i\t"),
+			Label = wxString::Format(_("Connect Wiimote %i\t"),
 					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
 	}
@@ -1413,7 +1413,7 @@ void CFrame::UpdateGUI()
 		{
 			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, wxT(" Play "));
+			m_ToolBar->SetToolLabel(IDM_PLAY, _(" Play "));
 		}
 	}
 	

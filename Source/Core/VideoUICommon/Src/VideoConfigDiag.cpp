@@ -433,7 +433,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		wxChoice *const choice_ppshader = new wxChoice(page_advanced, -1, wxDefaultPosition);
 		choice_ppshader->SetToolTip(ppshader_tooltip);
-		choice_ppshader->AppendString(wxT("(off)"));
+		choice_ppshader->AppendString(_("(off)"));
 
 		std::vector<std::string>::const_iterator
 			it = vconfig.backend_info.PPShaders.begin(),

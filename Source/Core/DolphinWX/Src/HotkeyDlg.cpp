@@ -180,7 +180,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
-	ClickedButton->SetLabel(wxT("<Press Key>"));
+	ClickedButton->SetLabel(_("<Press Key>"));
 	DoGetButtons(ClickedButton->GetId());
 }
 

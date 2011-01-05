@@ -194,13 +194,13 @@ void CMemcardManager::CreateGUIControls()
 	for (int slot = SLOT_A; slot < SLOT_B + 1; slot++)
 	{
 		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
-			wxString::Format(wxT("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
+			wxString::Format(_("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
 		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
-			wxString::Format(wxT("%sImport GCI%s"), ARROWS));
+			wxString::Format(_("%sImport GCI%s"), ARROWS));
 		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
-			wxString::Format(wxT("%sExport GCI%s"), ARROWS));
+			wxString::Format(_("%sExport GCI%s"), ARROWS));
 		m_Delete[slot]		= new wxButton(this, ID_DELETE_A + slot,
-			wxString::Format(wxT("%sDelete%s"), ARROWS));
+			wxString::Format(_("%sDelete%s"), ARROWS));
 
 
 		m_PrevPage[slot] = new wxButton(this, ID_PREVPAGE_A + slot, _("Prev Page"));
@@ -223,7 +223,7 @@ void CMemcardManager::CreateGUIControls()
 	
 		m_MemcardList[slot]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
-		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(wxT("Memory Card %c"), 'A' + slot));
+		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Memory Card %c"), 'A' + slot));
 		sMemcard[slot]->Add(m_MemcardPath[slot], 0, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(m_MemcardList[slot], 1, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(sPages[slot], 0, wxEXPAND|wxALL, 1);
@@ -769,7 +769,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	}
 
 	m_MemcardList[card]->Show();
-	wxLabel.Printf(wxT("%d Free Blocks; %d Free Dir Entries"),
+	wxLabel.Printf(_("%d Free Blocks; %d Free Dir Entries"),
 		memoryCard[card]->GetFreeBlocks(), DIRLEN - nFiles);
 	t_Status[card]->SetLabel(wxLabel);
 
@@ -792,7 +792,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
 		int slot = GetId() - ID_MEMCARDLIST_A;
-		popupMenu->Append(ID_COPYFROM_A + slot, wxString::Format(wxT("Copy to Memcard %c"), 'B' - slot));
+		popupMenu->Append(ID_COPYFROM_A + slot, wxString::Format(_("Copy to Memcard %c"), 'B' - slot));
 		popupMenu->Append(ID_DELETE_A + slot, _("Delete Save"));
 		popupMenu->Append(ID_SAVEIMPORT_A + slot, _("Import Save"));
 		popupMenu->Append(ID_SAVEEXPORT_A + slot, _("Export Save"));
@@ -805,7 +805,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->Append(ID_FIXCHECKSUM_A + slot, _("Fix Checksums"));
 		popupMenu->Append(ID_PREVPAGE_A + slot, _("Previous Page"));
 		popupMenu->Append(ID_NEXTPAGE_A + slot, _("Next Page"));
-		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(wxT("Set as default Memcard %c"), 'A' + slot));
+		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(_("Set as default Memcard %c"), 'A' + slot));
 		popupMenu->AppendCheckItem(ID_USEPAGES, _("Enable pages"));
 	
 		popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);

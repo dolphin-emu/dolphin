@@ -140,7 +140,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
-			wxMessageBox(wxString::Format(wxT("Could not create %s"), wxString::From8BitData(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+			wxMessageBox(wxString::Format(_("Could not create %s"), wxString::From8BitData(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	}
 
 	// Disk header and apploader
@@ -202,7 +202,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		for (u32 i = 0; i < WiiDisc.size(); i++)
 		{
 			WiiPartition partition = WiiDisc.at(i);
-			wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(RootId, wxString::Format(wxT("Partition %i"), i), 0, 0, 0);
+			wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0, 0);
 			CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);	
 			if (i == 1)
 				m_Treectrl->Expand(PartitionRoot);
@@ -706,7 +706,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	{
 		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(wxT("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
+		if (!dialog.Update(i, wxString::Format(_("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
 			break;
 
 		if (fst[i]->IsDirectory())

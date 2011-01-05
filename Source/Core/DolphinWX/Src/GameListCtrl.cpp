@@ -299,13 +299,11 @@ void CGameListCtrl::Update()
 			SConfig::GetInstance().m_ListUsa  &&
 			SConfig::GetInstance().m_ListPal))
 		{
-			errorString = wxT("Dolphin could not find any GC/Wii ISOs. ")
-					      wxT("Doubleclick here to browse for files...");
+			errorString = _("Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for files...");
 		}
 		else
 		{
-			errorString = wxT("Dolphin is currently set to hide all games. ")
-				          wxT("Doubleclick here to show all games...");
+			errorString = _("Dolphin is currently set to hide all games.  Doubleclick here to show all games...");
 		}
 		InsertColumn(0, _("No ISOs or WADS found"));
 		long index = InsertItem(0, errorString);
@@ -1098,8 +1096,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		const GameListItem *iso = GetSelectedISO();
 		if (!iso)
 			return;
-		if (wxMessageBox(wxT("Are you sure you want to delete this file?\n")
-					     wxT("It will be gone forever!"),
+		if (wxMessageBox(_("Are you sure you want to delete this file?  It will be gone forever!"),
 					wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());
@@ -1108,8 +1105,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 	}
 	else
 	{
-		if (wxMessageBox(wxT("Are you sure you want to delete these files?\n")
-					     wxT("They will be gone forever!"),
+		if (wxMessageBox(_("Are you sure you want to delete these files?\nThey will be gone forever!"),
 					wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			int selected = GetSelectedItemCount();

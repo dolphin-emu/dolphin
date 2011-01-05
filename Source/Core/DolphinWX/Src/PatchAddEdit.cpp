@@ -40,7 +40,7 @@ CPatchAddEdit::~CPatchAddEdit()
 
 void CPatchAddEdit::CreateGUIControls(int _selection)
 {
-	wxString currentName = wxT("<Insert name here>");
+	wxString currentName = _("<Insert name here>");
 
 	if (_selection == -1)
 	{
@@ -82,7 +82,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEditPatchName->Add(EditPatchName, 1, wxEXPAND|wxALL, 5);
 	sEditPatch->Add(sEditPatchName, 0, wxEXPAND);
-	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(wxT("Entry 1/%d"), (int)tempEntries.size()));
+	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Entry 1/%d"), (int)tempEntries.size()));
 	currentItem = 1;
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 	sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
@@ -195,7 +195,7 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 
 void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
 {
-	sbEntry->GetStaticBox()->SetLabel(wxString::Format(wxT("Entry %d/%d"), currentItem,
+	sbEntry->GetStaticBox()->SetLabel(wxString::Format(_("Entry %d/%d"), currentItem,
 									  (int)tempEntries.size()));
 	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), pE.address));
 	EditPatchType->SetSelection(pE.type);

@@ -566,7 +566,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 				wxTextEntryDialog dlg(this,
 						_("Enter a name for the new perspective:"),
 						_("Create new perspective"));
-				wxString DefaultValue = wxString::Format(wxT("Perspective %d"),
+				wxString DefaultValue = wxString::Format(_("Perspective %d"),
 						Perspectives.size() + 1);
 				dlg.SetValue(DefaultValue);
 				bool DlgOk = false; int Return = 0;
@@ -770,7 +770,7 @@ void CFrame::ReloadPanes()
 	// Create new panes with notebooks
 	for (u32 i = 0; i < Perspectives[ActivePerspective].Width.size() - 1; i++)
 	{
-		wxString PaneName = wxString::Format(wxT("Pane %i"), i + 1);
+		wxString PaneName = wxString::Format(_("Pane %i"), i + 1);
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Hide()
 				.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking).Position(i)
 				.Name(PaneName).Caption(PaneName));
@@ -928,7 +928,7 @@ void CFrame::SaveIniPerspectives()
 void CFrame::AddPane()
 {
 	int PaneNum = GetNotebookCount() + 1;
-	wxString PaneName = wxString::Format(wxT("Pane %i"), PaneNum);
+	wxString PaneName = wxString::Format(_("Pane %i"), PaneNum);
 	m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
 		.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking)
 		.Name(PaneName).Caption(PaneName)

@@ -511,7 +511,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser( wxWindow* const parent, w
 	wxButton* const select_button = new wxButton( parent, -1, _("Select"));
 	_connect_macro_(select_button, ControlDialog::SetSelectedControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 
-	wxButton* const or_button = new  wxButton( parent, -1, wxT("| OR"), wxDefaultPosition );
+	wxButton* const or_button = new  wxButton( parent, -1, _("| OR"), wxDefaultPosition );
 	_connect_macro_(or_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 
 	control_lbox = new wxListBox(parent, -1, wxDefaultPosition, wxSize(-1, 64));
@@ -524,9 +524,9 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser( wxWindow* const parent, w
 	if (control_reference->is_input)
 	{
 		// TODO: check if && is good on other OS
-		wxButton* const and_button = new  wxButton( parent, -1, wxT("&& AND"), wxDefaultPosition );
-		wxButton* const not_button = new  wxButton( parent, -1, wxT("! NOT"), wxDefaultPosition );
-		wxButton* const add_button = new  wxButton( parent, -1, wxT("^ ADD"), wxDefaultPosition );
+		wxButton* const and_button = new  wxButton( parent, -1, _("&& AND"), wxDefaultPosition );
+		wxButton* const not_button = new  wxButton( parent, -1, _("! NOT"), wxDefaultPosition );
+		wxButton* const add_button = new  wxButton( parent, -1, _("^ ADD"), wxDefaultPosition );
 
 		_connect_macro_(and_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 		_connect_macro_(not_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
