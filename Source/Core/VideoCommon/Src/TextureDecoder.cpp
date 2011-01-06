@@ -1739,7 +1739,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i dxt = _mm_loadu_si128((__m128i *)src);
 
 						// Copy the 2-bit indices from each DXT block:
-						__declspec(align(16)) u32 dxttmp[4];
+						GC_ALIGNED16( u32 dxttmp[4] );
 						_mm_store_si128((__m128i *)dxttmp, dxt);
 
 						u32 dxt0sel = dxttmp[1];
