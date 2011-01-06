@@ -53,6 +53,13 @@ extern CFrame* main_frame;
 #define EXIDEV_BBA_STR		"BBA"
 #define EXIDEV_AM_BB_STR	"AM-Baseboard"
 
+#ifdef WIN32
+//only used with xgettext to be picked up as translatable string.
+//win32 does not have wx on its path, the provided wxALL_FILES 
+//translation does not work there.
+#define unusedALL_FILES wxTRANSLATE("All files (*.*)|*.*");
+#endif
+
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
@@ -684,13 +691,13 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticText* DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, _("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
-		wxString::Format(wxT("All GC/Wii images (gcm, iso, ciso, gcz)|*.gcm;*.iso;*.ciso;*.gcz|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
+		_("All GC/Wii images (gcm, iso, ciso, gcz)") + wxString::Format(wxT("|*.gcm;*.iso;*.ciso;*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	wxStaticText* DVDRootText = new wxStaticText(PathsPage, ID_DVDROOT_TEXT, _("DVD Root:"), wxDefaultPosition, wxDefaultSize);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	wxStaticText* ApploaderPathText = new wxStaticText(PathsPage, ID_APPLOADERPATH_TEXT, _("Apploader:"), wxDefaultPosition, wxDefaultSize);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
-		wxString::Format(wxT("apploader (.img)|*.img|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
+		_("apploader (.img)") + wxString::Format(wxT("|*.img|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 
 	// Populate the settings
@@ -930,13 +937,13 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		wxString::From8BitData(File::GetUserPath(D_GCUSER_IDX)),
 		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
 		wxEmptyString,
-		_("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
+		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))).mb_str());
 
 	if (!filename.empty())
 	{
 		// also check that the path isn't used for the other memcard...
 		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
-		: SConfig::GetInstance().m_strMemoryCardA) != 0)
+			: SConfig::GetInstance().m_strMemoryCardA) != 0)
 		{
 			strMemcard = filename;
 

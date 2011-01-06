@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd ${0/gettextize/}/..
+SRCDIR=Source
+CPP_FILE_LIST=$(find $SRCDIR \( -name '*.cpp' -o -name '*.h' -o -name '*.c' \) -a ! \
+	-path '*Debug*')
+xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE -p ./Languages -o dolphin-emu.pot $CPP_FILE_LIST \
+	--package-name="Dolphin Emu" --package-version="2.0"

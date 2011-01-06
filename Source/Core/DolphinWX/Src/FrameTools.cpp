@@ -106,7 +106,7 @@ void CFrame::CreateMenu()
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	fileMenu->Append(wxID_OPEN, _("&Open...\tCtrl+O"));
+	fileMenu->Append(wxID_OPEN, _("&Open...") + wxString(wxT("\tCtrl+O")));
 	fileMenu->Append(IDM_CHANGEDISC, _("Change &Disc..."));
 
 	wxMenu *externalDrive = new wxMenu;
@@ -123,7 +123,7 @@ void CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(wxID_EXIT, _("E&xit\tAlt+F4"));
+	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString(wxT("\tAlt+F4")));
 	m_MenuBar->Append(fileMenu, _("&File"));
 
 	// Emulation menu
@@ -156,7 +156,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _("Save State..."));
-	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State\tShift+F12"));
+	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State") + wxString(wxT("\tShift+F12")));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOADSTATEFILE, _("Load State..."));
@@ -165,14 +165,14 @@ void CFrame::CreateMenu()
 	if (g_pCodeWindow)
 		loadMenu->Append(IDM_LOADLASTSTATE, _("Last Saved State"));
 	else
-		loadMenu->Append(IDM_LOADLASTSTATE, _("Last Saved State\tF11"));
+		loadMenu->Append(IDM_LOADLASTSTATE, _("Last Saved State") + wxString(wxT("\tF11")));
 	
-	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State\tF12"));
+	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tF12")));
 	loadMenu->AppendSeparator();
 
 	for (int i = 1; i <= 8; i++) {
-		loadMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(wxT("Slot %i\tF%i"), i, i));
-		saveMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(wxT("Slot %i\tShift+F%i"), i, i));
+		loadMenu->Append(IDM_LOADSLOT1 + i - 1, _("Slot") + wxString::Format(wxT(" %i\tF%i"), i, i));
+		saveMenu->Append(IDM_SAVESLOT1 + i - 1, _("Slot") + wxString::Format(wxT(" %i\tShift+F%i"), i, i));
 	}
 	m_MenuBar->Append(emulationMenu, _("&Emulation"));
 
@@ -235,17 +235,17 @@ void CFrame::CreateMenu()
 		viewMenu->Check(IDM_CONSOLEWINDOW, g_pCodeWindow->bShowOnStart[1]);
 
 		const wxString MenuText[] = {
-			_("&Registers"),
-			_("&Breakpoints"),
-			_("&Memory"),
-			_("&JIT"),
-			_("&Sound"),
-			_("&Video")
+			wxTRANSLATE("&Registers"),
+			wxTRANSLATE("&Breakpoints"),
+			wxTRANSLATE("&Memory"),
+			wxTRANSLATE("&JIT"),
+			wxTRANSLATE("&Sound"),
+			wxTRANSLATE("&Video")
 		};
 
 		for (int i = IDM_REGISTERWINDOW; i <= IDM_VIDEOWINDOW; i++)
 		{
-			viewMenu->AppendCheckItem(i, MenuText[i - IDM_REGISTERWINDOW]);
+			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTERWINDOW]));
 			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOGWINDOW]);
 		}
 
@@ -312,25 +312,25 @@ wxString CFrame::GetMenuLabel(int Id)
 	switch (Id)
 	{
 		case HK_FULLSCREEN:
-			Label = _("&Fullscreen\t");
+			Label = _("&Fullscreen");
 			break;
 		case HK_PLAY_PAUSE:
 			if (Core::GetState() == Core::CORE_RUN)
-				Label = _("&Pause\t");
+				Label = _("&Pause");
 			else
-				Label = _("&Play\t");
+				Label = _("&Play");
 			break;
 		case HK_STOP:
-			Label = _("&Stop\t");
+			Label = _("&Stop");
 			break;
 		case HK_SCREENSHOT:
-			Label = _("Take Screenshot\t");
+			Label = _("Take Screenshot");
 			break;
 		case HK_WIIMOTE1_CONNECT:
 		case HK_WIIMOTE2_CONNECT:
 		case HK_WIIMOTE3_CONNECT:
 		case HK_WIIMOTE4_CONNECT:
-			Label = wxString::Format(_("Connect Wiimote %i\t"),
+			Label = wxString::Format(_("Connect Wiimote %i"),
 					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
 	}
@@ -339,6 +339,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 	wxString Hotkey = InputCommon::WXKeyToString
 		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id]);
+	if (Modifier.Len() + Hotkey.Len() > 0)
+		Label += '\t';
 
 	return Label + Modifier + (Modifier.Len() ? _T("+") : _T("")) + Hotkey;
 }
@@ -586,12 +588,8 @@ void CFrame::DoOpen(bool Boot)
 	wxString path = wxFileSelector(
 			_("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("All GC/Wii files (elf, dol, gcm, iso, ciso, wad)|*.elf;*.dol;*.gcm;*.iso;*.ciso;*.gcz;*.wad|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
+			_("All GC/Wii files (elf, dol, gcm, iso, ciso, wad)") +
+				wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.ciso;*.gcz;*.wad|%s"), wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
@@ -650,12 +648,8 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	wxString path = wxFileSelector(
 			_("Select The Recording File"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
+			_("Dolphin TAS Movies (*.dtm)") + 
+				wxString::Format(wxT("|*.dtm|%s"), wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
@@ -1000,12 +994,8 @@ void CFrame::DoRecordingSave()
 	wxString path = wxFileSelector(
 			_("Select The Recording File"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("Dolphin TAS Movies (*.dtm)|*.dtm|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
+			_("Dolphin TAS Movies (*.dtm)") + 
+				wxString::Format(wxT("|*.dtm|%s"), wxGetTranslation(wxALL_FILES)),
 			wxFD_SAVE | wxFD_PREVIEW,
 			this);
 
@@ -1252,12 +1242,8 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 	wxString path = wxFileSelector(
 		_("Select the state to load"),
 		wxEmptyString, wxEmptyString, wxEmptyString,
-		wxString::Format
-		(
-		_T("All Save States (sav, s##)|*.sav;*.s??|All files (%s)|%s"),
-		wxFileSelectorDefaultWildcardStr,
-		wxFileSelectorDefaultWildcardStr
-		),
+		_("All Save States (sav, s##)") + 
+			wxString::Format(wxT("|*.sav;*.s??|%s"), wxGetTranslation(wxALL_FILES)),
 		wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 		this);
 
@@ -1270,12 +1256,8 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 	wxString path = wxFileSelector(
 		_("Select the state to save"),
 		wxEmptyString, wxEmptyString, wxEmptyString,
-		wxString::Format
-		(
-		_T("All Save States (sav, s##)|*.sav;*.s??|All files (%s)|%s"),
-		wxFileSelectorDefaultWildcardStr,
-		wxFileSelectorDefaultWildcardStr
-		),
+		_("All Save States (sav, s##)") + 
+			wxString::Format(wxT("|*.sav;*.s??|%s"), wxGetTranslation(wxALL_FILES)),
 		wxFD_SAVE,
 		this);
 
@@ -1413,7 +1395,7 @@ void CFrame::UpdateGUI()
 		{
 			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _(" Play "));
+			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
 		}
 	}
 	

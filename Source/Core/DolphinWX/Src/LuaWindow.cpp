@@ -101,7 +101,7 @@ void wxLuaWindow::InitGUIControls()
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 	sTabLog->Add(HStrip1, 0, wxALL, 5);
-	sTabLog->Add(m_TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+	sTabLog->Add(m_TextCtrl_Log, 1, wxALL|wxEXPAND, 5); 
 
 	m_Tab_Log->SetSizer(sTabLog);
 	m_Tab_Log->Layout();

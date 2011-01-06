@@ -216,30 +216,30 @@ const std::string& GameListItem::GetName(int index) const
 const std::string GameListItem::GetWiiFSPath() const
 {
 	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	std::string ret;
 
-	std::string ret("NULL");
-	if (Iso != NULL)
+	if (Iso == NULL)
+		return ret;
+
+	if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
 	{
-		if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
-		{
-			char Path[250];
-			u64 Title;
+		char Path[250];
+		u64 Title;
 
-			Iso->GetTitleID((u8*)&Title);
-			Title = Common::swap64(Title);
+		Iso->GetTitleID((u8*)&Title);
+		Title = Common::swap64(Title);
 
-			sprintf(Path, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX), (u32)(Title>>32), (u32)Title);
+		sprintf(Path, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX), (u32)(Title>>32), (u32)Title);
 
-			if (!File::Exists(Path))
-				File::CreateFullPath(Path);
+		if (!File::Exists(Path))
+			File::CreateFullPath(Path);
 
-			if (Path[0] == '.')
-				ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
-			else
-				ret = std::string(Path);
-		}
-		delete Iso;
+		if (Path[0] == '.')
+			ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+		else
+			ret = std::string(Path);
 	}
+	delete Iso;
 
 	return ret;
 }

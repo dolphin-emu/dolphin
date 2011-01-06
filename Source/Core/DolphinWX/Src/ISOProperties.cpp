@@ -577,7 +577,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 	wxString dirHome;
 
 	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format(wxT("%s.png"), m_GameID->GetLabel().c_str()),
-		_("*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize);
+		wxALL_FILES_PATTERN, wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize);
 	if (dialog.ShowModal() == wxID_OK)
 	{
 		m_Banner->GetBitmap().ConvertToImage().SaveFile(dialog.GetPath());
@@ -618,12 +618,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	Path = wxFileSelector(
 		_("Export File"),
 		wxEmptyString, File, wxEmptyString,
-		wxString::Format
-		(
-			wxT("All files (%s)|%s"),
-			wxFileSelectorDefaultWildcardStr,
-			wxFileSelectorDefaultWildcardStr
-		),
+		wxGetTranslation(wxALL_FILES),
 		wxFD_SAVE,
 		this);
 
@@ -746,7 +741,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 void CISOProperties::OnExtractDir(wxCommandEvent& event)
 {
 	wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-	wxString Path = wxDirSelector(_("Choose the folder where to extract to"));
+	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 
 	if (!Path || !Directory)
 		return;
@@ -1051,10 +1046,10 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	{
 		SaveGameConfig();
 
-		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("ini"));
+		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("ini"));
 		if(filetype == NULL) // From extension failed, trying with MIME type now
 		{
-			filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_("text/plain"));
+			filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"));
 			if(filetype == NULL) // MIME type failed, aborting mission
 			{
 				PanicAlert("Filetype 'ini' is unknown! Will not open!");

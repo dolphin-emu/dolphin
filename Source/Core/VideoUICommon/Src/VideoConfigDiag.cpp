@@ -162,7 +162,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	const wxString ar_choices[] = { _("Auto [recommended]"),
 		_("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
-	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect Ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	wxChoice* const choice_aspect = new SettingChoice(page_general,
 		vconfig.iAspectRatio, ar_tooltip, sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
 	szr_basic->Add(choice_aspect, 1, 0, 0);
@@ -289,7 +289,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - safe texture cache
 	{
-	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Accurate texture cache"));
+	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Accurate Texture Cache"));
 	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	SettingCheckBox* stc_enable = new SettingCheckBox(page_general, _("Enable"), stc_tooltip, vconfig.bSafeTextureCache);

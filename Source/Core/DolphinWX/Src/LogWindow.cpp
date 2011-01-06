@@ -94,7 +94,7 @@ void CLogWindow::CreateGUIControls()
 	m_FontChoice->Append(_("Selected font"));
 	m_FontChoice->SetSelection(0);
 	DefaultFont = GetFont();
-	MonoSpaceFont.SetNativeFontInfoUserDesc(_("lucida console windows-1252"));
+	MonoSpaceFont.SetNativeFontInfoUserDesc(_T("lucida console windows-1252"));
 	LogFont.push_back(DefaultFont);
 	LogFont.push_back(MonoSpaceFont);
 	LogFont.push_back(DebuggerFont);
@@ -168,11 +168,11 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 void CLogWindow::OnSize(wxSizeEvent& event)
 {
 	if (!Parent->g_pCodeWindow &&
-		   	Parent->m_Mgr->GetPane(_("Pane 1")).IsShown())
+		   	Parent->m_Mgr->GetPane(wxT("Pane 1")).IsShown())
 	{
-		x = Parent->m_Mgr->GetPane(_("Pane 1")).rect.GetWidth();
-		y = Parent->m_Mgr->GetPane(_("Pane 1")).rect.GetHeight();
-		winpos = Parent->m_Mgr->GetPane(_("Pane 1")).dock_direction;
+		x = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
+		y = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
+		winpos = Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
 	}
 	event.Skip();
 }
@@ -184,9 +184,9 @@ void CLogWindow::SaveSettings()
 
 	if (!Parent->g_pCodeWindow)
 	{
-			ini.Set("LogWindow", "x", x);
-			ini.Set("LogWindow", "y", y);
-			ini.Set("LogWindow", "pos", winpos);
+		ini.Set("LogWindow", "x", x);
+		ini.Set("LogWindow", "y", y);
+		ini.Set("LogWindow", "pos", winpos);
 	}
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());

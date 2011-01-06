@@ -406,17 +406,17 @@ CFrame::CFrame(wxFrame* parent,
 	if (g_pCodeWindow)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(_("Pane 0")).Caption(_("Pane 0"))
+				.Name(_T("Pane 0")).Caption(_T("Pane 0"))
 				.CenterPane().PaneBorder(false).Show());
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 	else
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(_("Pane 0")).Caption(_("Pane 0")).PaneBorder(false)
+				.Name(_T("Pane 0")).Caption(_T("Pane 0")).PaneBorder(false)
 				.CaptionVisible(false).Layer(0).Center().Show());
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-				.Name(_("Pane 1")).Caption(_("Logging")).CaptionVisible(true)
+				.Name(_T("Pane 1")).Caption(_("Logging")).CaptionVisible(true)
 				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}

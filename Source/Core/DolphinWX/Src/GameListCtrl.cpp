@@ -1045,8 +1045,9 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
-	if (iso->GetWiiFSPath() != "NULL")
-		WxUtils::Explore(iso->GetWiiFSPath().c_str());
+	std::string path = iso->GetWiiFSPath();
+	if (!path.empty())
+		WxUtils::Explore(path.c_str());
 }
 
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
@@ -1283,22 +1284,16 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		{
 			wxString FileType;
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
-				FileType = _("All Wii ISO files (iso)|*.iso");
+				FileType = _("All Wii ISO files (iso)") + wxString(wxT("|*.iso"));
 			else
-				FileType = _("All Gamecube GCM files (gcm)|*.gcm");
+				FileType = _("All Gamecube GCM files (gcm)") + wxString(wxT("|*.gcm"));
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),
 					wxString(FilePath.c_str(), *wxConvCurrent),
 					wxString(FileName.c_str(), *wxConvCurrent) + FileType.After('*'),
 					wxEmptyString,
-					FileType +
-					wxString::Format
-					(
-					 _T("|All files (%s)|%s"),
-					 wxFileSelectorDefaultWildcardStr,
-					 wxFileSelectorDefaultWildcardStr
-					),
+					FileType + wxT("|") + wxGetTranslation(wxALL_FILES),
 					wxFD_SAVE,
 					this);
 		}
@@ -1309,12 +1304,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 					wxString(FilePath.c_str(), *wxConvCurrent),
 					wxString(FileName.c_str(), *wxConvCurrent) + _T(".gcz"),
 					wxEmptyString,
-					wxString::Format
-					(
-					 _T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
-					 wxFileSelectorDefaultWildcardStr,
-					 wxFileSelectorDefaultWildcardStr
-					),
+					_("All compressed GC/Wii ISO files (gcz)") + 
+						wxString::Format(wxT("|*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
 					wxFD_SAVE,
 					this);
 		}

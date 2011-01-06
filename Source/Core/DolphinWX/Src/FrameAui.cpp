@@ -378,20 +378,20 @@ void CFrame::TogglePane()
 	{
 		if (NB->GetPageCount() == 0)
 		{
-			m_LogWindow->x = m_Mgr->GetPane(_("Pane 1")).rect.GetWidth();
-			m_LogWindow->y = m_Mgr->GetPane(_("Pane 1")).rect.GetHeight();
-			m_LogWindow->winpos = m_Mgr->GetPane(_("Pane 1")).dock_direction;
-			m_Mgr->GetPane(_("Pane 1")).Hide();
+			m_LogWindow->x = m_Mgr->GetPane(_T("Pane 1")).rect.GetWidth();
+			m_LogWindow->y = m_Mgr->GetPane(_T("Pane 1")).rect.GetHeight();
+			m_LogWindow->winpos = m_Mgr->GetPane(_T("Pane 1")).dock_direction;
+			m_Mgr->GetPane(_T("Pane 1")).Hide();
 		}
 		else
 		{
-			m_Mgr->GetPane(_("Pane 1")).BestSize(m_LogWindow->x, m_LogWindow->y)
+			m_Mgr->GetPane(_T("Pane 1")).BestSize(m_LogWindow->x, m_LogWindow->y)
 				.MinSize(m_LogWindow->x, m_LogWindow->y)
 				.Direction(m_LogWindow->winpos).Show();
 			m_Mgr->Update();
 
 			// Reset the minimum size of the pane
-			m_Mgr->GetPane(_("Pane 1")).MinSize(-1, -1);
+			m_Mgr->GetPane(_T("Pane 1")).MinSize(-1, -1);
 		}
 		m_Mgr->Update();
 	}
@@ -770,7 +770,7 @@ void CFrame::ReloadPanes()
 	// Create new panes with notebooks
 	for (u32 i = 0; i < Perspectives[ActivePerspective].Width.size() - 1; i++)
 	{
-		wxString PaneName = wxString::Format(_("Pane %i"), i + 1);
+		wxString PaneName = wxString::Format(_T("Pane %i"), i + 1);
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Hide()
 				.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking).Position(i)
 				.Name(PaneName).Caption(PaneName));
@@ -928,7 +928,7 @@ void CFrame::SaveIniPerspectives()
 void CFrame::AddPane()
 {
 	int PaneNum = GetNotebookCount() + 1;
-	wxString PaneName = wxString::Format(_("Pane %i"), PaneNum);
+	wxString PaneName = wxString::Format(_T("Pane %i"), PaneNum);
 	m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
 		.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking)
 		.Name(PaneName).Caption(PaneName)
