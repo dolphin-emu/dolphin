@@ -371,12 +371,10 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		true, bScaleByHalf > 0 && !bFromZBuffer);
 
-	u64 hash = 0;
+	u64 hash = GetHash64(dest_ptr, size_in_bytes,
+			g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (g_ActiveConfig.bEFBCopyCacheEnable)
 	{
-		hash = GetHash64(dest_ptr, size_in_bytes,
-			g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
 		// If the texture in RAM is already in the texture cache,
 		// do not copy it again as it has not changed.
 		if (TextureCache::Find(address, hash))
