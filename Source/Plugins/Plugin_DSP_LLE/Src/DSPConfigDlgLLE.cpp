@@ -34,21 +34,21 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	// Load config settings
 	g_Config.Load();
 
-	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_OK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
-	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
-	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
+	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, _("Sound Settings"));
+	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
 
 	// Create items
-	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableJIT = new wxCheckBox(this, ID_ENABLE_JIT, wxT("Enable JIT Dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
+	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, _("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, _("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableJIT = new wxCheckBox(this, ID_ENABLE_JIT, _("Enable JIT Dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, _("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20), wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 
 	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	m_volumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
+	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(_("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
 
 	// Update values
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
@@ -56,14 +56,10 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableJIT->SetValue(ac_Config.m_EnableJIT ? true : false);
 
 	// Add tooltips
-	m_buttonEnableDTKMusic->SetToolTip(wxT("This is used to play music tracks, like BGM."));
-	m_buttonEnableThrottle->SetToolTip(wxT("This is used to control game speed by sound throttle.\n")
-		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
-		wxT("But sometimes enabling this could cause constant noise.\n")
-		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
-	m_buttonEnableJIT->SetToolTip(wxT("Enables dynamic recompilation of DSP code.\n")
-		wxT("Changing this will have no effect while the emulator is running!"));
-	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
+	m_buttonEnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
+	m_buttonEnableThrottle->SetToolTip(_("This is used to control game speed by sound throttle.\nDisabling this could cause abnormal game speed, such as too fast.\nBut sometimes enabling this could cause constant noise.\n\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
+	m_buttonEnableJIT->SetToolTip(_("Enables dynamic recompilation of DSP code.\nChanging this will have no effect while the emulator is running!"));
+	m_BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);

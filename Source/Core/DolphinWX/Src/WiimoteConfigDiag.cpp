@@ -75,7 +75,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 		m_pad_notebook->AddPage(wpage, wxString(wxT("Wiimote ")) + wxChar('1'+i));
 	}
 
-	wxButton* const ok_button = new wxButton(this, -1, wxT("OK"), wxDefaultPosition);
+	wxButton* const ok_button = new wxButton(this, -1, _("OK"), wxDefaultPosition);
 	_connect_macro_(ok_button, WiimoteConfigDiag::Save, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);

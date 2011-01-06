@@ -8,10 +8,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-06 14:53+0100\n"
+"POT-Creation-Date: 2011-01-06 12:03-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -45,6 +46,11 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:197
 #, c-format
 msgid "%1$sCopy%1$s"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:51
+#, c-format
+msgid "%d %%"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:771
@@ -385,6 +391,11 @@ msgstr ""
 msgid "At least one pane must remain open."
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:54
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:46
+msgid "Audio Backend"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:213
 msgid "Auto"
 msgstr ""
@@ -397,8 +408,8 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
 msgstr ""
 
@@ -469,9 +480,9 @@ msgid ""
 "This is the more accurate behavior but reduces performance."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:69
-#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:569
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:103
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:569
+#: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:69
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:41
 msgid "Cancel"
 msgstr ""
@@ -496,6 +507,12 @@ msgstr ""
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:75
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:77
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:62
+msgid "Changing this will have no effect while the emulator is running!"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:276
@@ -553,11 +570,11 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:129
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:237
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:274
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:110
+#: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:459
 msgid "Close"
 msgstr ""
@@ -608,9 +625,9 @@ msgstr ""
 msgid "Config..."
 msgstr ""
 
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:31
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:135
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:154
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:31
 msgid "Configure"
 msgstr ""
 
@@ -1055,6 +1072,11 @@ msgstr ""
 msgid "Enable AR Logging"
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:46
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:44
+msgid "Enable Audio Throttle"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid "Enable BAT"
 msgstr ""
@@ -1076,6 +1098,11 @@ msgstr ""
 msgid "Enable Copy to EFB"
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:44
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:43
+msgid "Enable DTK Music"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
 msgid "Enable Display List Caching"
 msgstr ""
@@ -1092,6 +1119,10 @@ msgstr ""
 msgid "Enable EFB To Texture"
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:42
+msgid "Enable HLE Audio"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
 msgid "Enable Hotkeys"
 msgstr ""
@@ -1102,6 +1133,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:405
 msgid "Enable Idle Skipping (speedup)"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:45
+msgid "Enable JIT Dynarec"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:307
@@ -1162,6 +1197,12 @@ msgid ""
 "Enhances visual quality of textures that are at oblique viewing angles."
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:61
+msgid ""
+"Enables dynamic recompilation of DSP code.\n"
+"Changing this will have no effect while the emulator is running!"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:79
 msgid ""
 "Enables emulation of Embedded Frame Buffer copies, if the game uses them.\n"
@@ -1217,8 +1258,8 @@ msgid "Equal"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1093
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
 msgstr ""
 
@@ -1548,8 +1589,8 @@ msgstr ""
 msgid "In-Game"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:289
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:78
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:289
 msgid "Info"
 msgstr ""
 
@@ -1739,8 +1780,8 @@ msgstr ""
 msgid "Log"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:124
 #: Source/Core/DolphinWX/Src/Frame.cpp:419
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:124
 msgid "Logging"
 msgstr ""
 
@@ -1887,9 +1928,9 @@ msgstr ""
 msgid "NP Up"
 msgstr ""
 
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:59
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:60
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:450
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:59
 msgid "Name:"
 msgstr ""
 
@@ -1939,8 +1980,8 @@ msgid "No docking"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:350
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:554
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:19
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:554
 msgid "None"
 msgstr ""
 
@@ -1952,8 +1993,8 @@ msgstr ""
 msgid "Not Equal"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:915
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:361
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:915
 msgid "Not Set"
 msgstr ""
 
@@ -1992,6 +2033,12 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:27
 msgid "Nunchuk Acceleration"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:78
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:35
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:37
+msgid "OK"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:212
@@ -2214,8 +2261,8 @@ msgid ""
 "performance."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:359
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:927
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:359
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:39
 msgid "Refresh"
 msgstr ""
@@ -2224,10 +2271,10 @@ msgstr ""
 msgid "Refresh game list"
 msgstr ""
 
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:689
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
 msgid "Remove"
 msgstr ""
 
@@ -2289,9 +2336,13 @@ msgstr ""
 msgid "Safe"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:384
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:49
+msgid "Sample Rate"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:949
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:995
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:384
 msgid "Save"
 msgstr ""
 
@@ -2617,6 +2668,11 @@ msgstr ""
 msgid "Sonic and the Black Knight"
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:38
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:39
+msgid "Sound Settings"
+msgstr ""
+
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:31
 msgid "Space"
 msgstr ""
@@ -2678,8 +2734,8 @@ msgstr ""
 msgid "State"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:113
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:306
 msgid "Stop"
@@ -2710,9 +2766,9 @@ msgstr ""
 msgid "Tab split"
 msgstr ""
 
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:365
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 msgid "Take Screenshot"
 msgstr ""
 
@@ -2760,6 +2816,25 @@ msgstr ""
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:73
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:60
+msgid ""
+"This is used to control game speed by sound throttle.\n"
+"Disabling this could cause abnormal game speed, such as too fast.\n"
+"But sometimes enabling this could cause constant noise.\n"
+"\n"
+"Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:72
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:59
+msgid "This is used to play music tracks, like BGM."
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:71
+msgid "This is usually used to play voice and sound effects."
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:344
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
@@ -2772,13 +2847,13 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "Toggle Fullscreen"
 msgstr ""
 
@@ -2893,6 +2968,11 @@ msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:381
 msgid "Virtual"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:39
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:40
+msgid "Volume"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:67
