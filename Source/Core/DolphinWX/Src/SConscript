@@ -75,9 +75,9 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	for mo in mo_files:
 		index_lo = mo.find("Languages/") + len("Languages/")
 		index_hi = mo.find("/dolphin-emu.mo")
-		lang_name = mo[index_lo:index_hi]
-		install_loc = env['data_dir'] + "/" + lang_name + ".lproj/dolphin-emu.mo"
-		env.InstallAs(install_loc, mo)
+		lang = mo[index_lo:index_hi]
+		lproj = env['data_dir'] + '/' + lang + ".lproj/dolphin-emu.mo"
+		env.InstallAs(lproj, mo)
 
 	from plistlib import writePlist
 	def createPlist(target, source, env):

@@ -21,10 +21,8 @@
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
 #include "OpenCL.h"
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 #include "OpenCL/OCLTextureDecoder.h"
 #include "VideoConfig.h"
-#endif
 
 #include "LookUpTables.h"
 
@@ -1733,7 +1731,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i dxt = _mm_loadu_si128((__m128i *)(src + sizeof(struct DXTBlock) * 0));
 						__m128i argb888x4;
 						const __m128i allFF = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL);
-						const __m128i lowMask = _mm_srli_si128( allFF, 8 );
 						__m128i c1 = _mm_unpackhi_epi16(dxt, dxt);
 						c1 = _mm_slli_si128(c1, 8);
 						const __m128i c0 = _mm_or_si128(c1, _mm_srli_si128(_mm_slli_si128(_mm_unpacklo_epi16(dxt, dxt), 8), 8));
@@ -2039,10 +2036,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 {
 	PC_TexFormat retval = PC_TEX_FMT_NONE;
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if (g_Config.bEnableOpenCL)
 		retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
-#endif
 
 	if(retval == PC_TEX_FMT_NONE)
 		retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst,src,width,height,texformat,tlutaddr,tlutfmt) : TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);

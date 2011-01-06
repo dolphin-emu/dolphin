@@ -1,0 +1,5 @@
+# -*- python -*-
+
+Import('env')
+
+env['CPPPATH'] += ['#Externals/CLRun/include']

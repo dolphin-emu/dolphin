@@ -86,7 +86,6 @@ cl_mem g_clsrc, g_cldst;                    // texture buffer memory objects
 
 void TexDecoder_OpenCL_Initialize()
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!g_Inited)
 	{
 		if(!OpenCL::Initialize())
@@ -240,12 +239,10 @@ void TexDecoder_OpenCL_Initialize()
 
 		g_Inited = true;
 	}
-#endif
 }
 
 void TexDecoder_OpenCL_Shutdown()
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL && !defined(DEBUG_OPENCL)
 	if (g_program)
 		clReleaseProgram(g_program);
 
@@ -264,12 +261,10 @@ void TexDecoder_OpenCL_Shutdown()
 		clReleaseMemObject(g_cldst);
 
 	g_Inited = false;
-#endif
 }
 
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt, bool rgba)
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	cl_int err;
 	sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];
 	if(!g_Inited || !decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
@@ -310,7 +305,4 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 #endif
 
 	return decoder.format;
-#else
-	return PC_TEX_FMT_NONE;
-#endif
 }

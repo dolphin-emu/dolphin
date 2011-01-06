@@ -269,10 +269,6 @@ else:
         print "Must have CgGL to build"
         Exit(1)
 
-    env['HAVE_OPENCL'] = int(conf.CheckPKG('OpenCL') and \
-                         conf.CheckCXXHeader("CL/cl.h"))
-    conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
-
     # PGO - Profile Guided Optimization
     if env['pgo'] == 'generate':
         env['CCFLAGS'] += ['-fprofile-generate']
@@ -337,7 +333,7 @@ env['LIBPATH'].insert(0, env['local_libs'])
 
 dirs = [
     'Externals/Bochs_disasm',
-    #'Externals/CLRun',
+    'Externals/CLRun',
     'Externals/Lua',
     'Externals/GLew',
     'Externals/LZO',
@@ -364,7 +360,6 @@ dirs = [
     'Source/Plugins/Plugin_DSP_LLE/Src',
     #'Source/Plugins/Plugin_VideoDX11/Src',
     #'Source/Plugins/Plugin_VideoDX9/Src',
-    #'Source/Plugins/Plugin_VideoMerge/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/UnitTests',

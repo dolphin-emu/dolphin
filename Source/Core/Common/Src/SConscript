@@ -5,7 +5,6 @@ import os
 import sys
 from SconsTests import utils
 
-Execute(Delete(File('#Source/Core/Common/Src/svnrev.h').abspath))
 utils.GenerateRevFile(env['flavor'], Dir('#Source/Core/Common/Src').abspath +
     os.sep + 'svnrev_template.h', 'svnrev.h')
 

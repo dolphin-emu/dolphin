@@ -43,10 +43,8 @@
 #include "DataReader.h"
 
 #include "OpenCL.h"
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 #include "OpenCL/OCLTextureDecoder.h"
 #include "VideoConfig.h"
-#endif
 
 u8* g_pVideoData = 0;
 DataReadU32xNfunc DataReadU32xFuncs[16] = {
@@ -403,25 +401,21 @@ void OpcodeDecoder_Init()
 {	
 	g_pVideoData = FAKE_GetFifoStartPtr();
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if (g_Config.bEnableOpenCL)
 	{
 	    OpenCL::Initialize();
 	    TexDecoder_OpenCL_Initialize();
 	}
-#endif
 }
 
 
 void OpcodeDecoder_Shutdown()
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if (g_Config.bEnableOpenCL)
 	{
 	    TexDecoder_OpenCL_Shutdown();
 	    OpenCL::Destroy();
 	}
-#endif
 }
 
 void OpcodeDecoder_Run(bool skipped_frame)

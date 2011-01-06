@@ -43,8 +43,7 @@ __m128i _b1[256];
 __m128i _b2[256];
 
 }  // namespace
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
-bool Inited = false;
+	bool Inited = false;
 
 	cl_kernel To_kernel;
 	cl_program To_program;
@@ -110,7 +109,7 @@ void InitKernels()
 	To_kernel = OpenCL::CompileKernel(To_program, "ConvertToXFB");
 	Inited = true;
 }
-#endif
+
 void InitXFBConvTables() 
 {
 	for (int i = 0; i < 256; i++)
@@ -138,7 +137,6 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 	}	
 		const unsigned char *src = _pXFB;
 	u32 numBlocks = ((width * height) / 2) / 2;
-	#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!Inited)
 		InitKernels();
 	int err;
@@ -209,29 +207,6 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
             }
 			clReleaseMemObject(_dst);
 			clReleaseMemObject(_src);
-	#else
-	for (u32 i = 0; i < numBlocks; i++)
-	{
-		__m128i y1 = _y[src[0]];
-		__m128i u  = _u[src[1]];
-		__m128i y2 = _y[src[2]];
-		__m128i v  = _v[src[3]];
-		__m128i y1_2 = _y[src[4+0]];
-		__m128i u_2  = _u[src[4+1]];
-		__m128i y2_2 = _y[src[4+2]];
-		__m128i v_2  = _v[src[4+3]];
-
-		__m128i c1 = _mm_srai_epi32(_mm_add_epi32(y1, _mm_add_epi32(u, v)), 16);
-		__m128i c2 = _mm_srai_epi32(_mm_add_epi32(y2, _mm_add_epi32(u, v)), 16);
-		__m128i c3 = _mm_srai_epi32(_mm_add_epi32(y1_2, _mm_add_epi32(u_2, v_2)), 16);
-		__m128i c4 = _mm_srai_epi32(_mm_add_epi32(y2_2, _mm_add_epi32(u_2, v_2)), 16);
-
-		__m128i four_dest = _mm_packus_epi16(_mm_packs_epi32(c1, c2), _mm_packs_epi32(c3, c4));
-		_mm_store_si128((__m128i *)dst, four_dest);
-		dst += 4;
-		src += 8;
-	}
-	#endif
 }
 
 
@@ -243,7 +218,6 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 	if (((size_t)dst & 0xF) != 0) {
 		PanicAlert("ConvertToXFB - unaligned XFB");
 	}
-	#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!Inited)
 		InitKernels();
 
@@ -315,33 +289,4 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
             }
 			clReleaseMemObject(_dst);
 			clReleaseMemObject(_src);
-	#else
-	for (u32 i = 0; i < numBlocks; i++)
-	{
-		__m128i yuyv0 = _mm_srai_epi32(
-			_mm_add_epi32(
-				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
-				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
-		src += 8;
-		__m128i yuyv1 = _mm_srai_epi32(
-			_mm_add_epi32(
-				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
-				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
-		src += 8;
-		__m128i yuyv2 = _mm_srai_epi32(
-			_mm_add_epi32(
-				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
-				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
-		src += 8;
-		__m128i yuyv3 = _mm_srai_epi32(
-			_mm_add_epi32(
-				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
-				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
-		src += 8;
-		__m128i four_dest = _mm_packus_epi16(_mm_packs_epi32(yuyv0, yuyv1), _mm_packs_epi32(yuyv2, yuyv3));
-		_mm_store_si128((__m128i *)dst, four_dest);
-		dst += 4;
-	}
-	#endif
 }
-

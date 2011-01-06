@@ -21,18 +21,12 @@
 #include "Common.h"
 #include "Timer.h"
 
-#ifndef __APPLE__
-#include "clrun.h"
-#endif
-
 namespace OpenCL
 {
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 cl_device_id device_id = NULL;
 cl_context g_context = NULL;
 cl_command_queue g_cmdq = NULL;
-#endif
 
 bool g_bInitialized = false;
 
@@ -41,7 +35,6 @@ bool Initialize()
 	if(g_bInitialized)
 		return true;
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(g_context)
 		return false;
 	int err;			// error code returned from api calls
@@ -127,12 +120,8 @@ bool Initialize()
 
 	g_bInitialized = true;
 	return true;
-#else
-	return false;
-#endif
 }
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 cl_context GetContext()
 {
 	return g_context;
@@ -204,11 +193,9 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 		(float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);
 	return kernel;
 }
-#endif
 
 void Destroy()
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if (g_cmdq)
 	{
 		clReleaseCommandQueue(g_cmdq);
@@ -220,13 +207,10 @@ void Destroy()
 		g_context = NULL;
 	}		
 	g_bInitialized = false;
-#endif
 }
 
 void HandleCLError(cl_int error, const char* str)
 {
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
-
 	const char* name;
 	switch(error)
 	{
@@ -284,6 +268,5 @@ void HandleCLError(cl_int error, const char* str)
 	if(!str)
 		str = "";
 	ERROR_LOG(COMMON, "OpenCL error: %s %s (%d)", str, name, error);
-#endif
 	}
 }

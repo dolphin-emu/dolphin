@@ -20,46 +20,21 @@
 
 #include "Common.h"
 
-// The CLRun library provides the headers and all the imports
-#ifndef __APPLE__
-#define HAVE_OPENCL 1
-#endif
-
-// We detect the presence of the 10.6 SDK, which has the OpenCL headers,
-// by looking for the new blocks feature in the 10.6 version of gcc.
-// This allows us to have the 10.5 SDK first in the search path.
-#if defined __APPLE__ && defined __BLOCKS__
-#define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER WEAK_IMPORT_ATTRIBUTE
-#define HAVE_OPENCL 1
-#endif
-
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
-
 #ifdef __APPLE__
+#define AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER WEAK_IMPORT_ATTRIBUTE
 #include <OpenCL/cl.h>
 #else
+// The CLRun library provides the headers and all the imports.
 #include <CL/cl.h>
-#endif
-
-#else
-
-typedef void *cl_context;
-typedef void *cl_command_queue;
-typedef void *cl_program;
-typedef void *cl_kernel;
-typedef void *cl_mem;
-typedef void *cl_int;
-
+#include <clrun.h>
 #endif
 
 namespace OpenCL
 {
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 extern cl_device_id device_id;
 extern cl_context g_context;
 extern cl_command_queue g_cmdq;
-#endif
 
 bool Initialize();
 
