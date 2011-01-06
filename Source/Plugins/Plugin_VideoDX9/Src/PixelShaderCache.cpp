@@ -50,8 +50,14 @@ enum
 	COPY_TYPE_MATRIXCOLOR,
 	NUM_COPY_TYPES
 };
+enum
+{
+	DEPTH_CONVERSION_TYPE_NONE,
+	DEPTH_CONVERSION_TYPE_ON,
+	NUM_DEPTH_CONVERSION_TYPES
+};
 
-static LPDIRECT3DPIXELSHADER9 s_CopyProgram[NUM_COPY_TYPES][PixelShaderCache::NUM_DEPTH_CONVERSION_TYPES][MAX_SSAA_SHADERS];
+static LPDIRECT3DPIXELSHADER9 s_CopyProgram[NUM_COPY_TYPES][NUM_DEPTH_CONVERSION_TYPES][MAX_SSAA_SHADERS];
 static LPDIRECT3DPIXELSHADER9 s_ClearProgram = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgba6_to_rgb8 = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgb8_to_rgba6 = NULL;
@@ -61,9 +67,9 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram(int SSAAMode)
 	return s_CopyProgram[COPY_TYPE_MATRIXCOLOR][DEPTH_CONVERSION_TYPE_NONE][SSAAMode % MAX_SSAA_SHADERS];
 }
 
-LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetDepthMatrixProgram(int SSAAMode, int depthConversionType)
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetDepthMatrixProgram(int SSAAMode, bool depthConversion)
 {
-	return s_CopyProgram[COPY_TYPE_MATRIXCOLOR][depthConversionType % NUM_DEPTH_CONVERSION_TYPES][SSAAMode % MAX_SSAA_SHADERS];
+	return s_CopyProgram[COPY_TYPE_MATRIXCOLOR][depthConversion ? DEPTH_CONVERSION_TYPE_ON : DEPTH_CONVERSION_TYPE_NONE][SSAAMode % MAX_SSAA_SHADERS];
 }
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorCopyProgram(int SSAAMode)
@@ -189,25 +195,19 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		break;
 	}
 
-	switch(depthConversionType % PixelShaderCache::NUM_DEPTH_CONVERSION_TYPES)
+	if(depthConversionType != DEPTH_CONVERSION_TYPE_NONE)
 	{
-	case PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE:
-		break;
-	case PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT:		
-	case PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT:
 		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
 		         "texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
-		break;
 	}
-	//Apply Gamma Correction
-	if((depthConversionType % PixelShaderCache::NUM_DEPTH_CONVERSION_TYPES) == PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE)
+	else
 	{
+		//Apply Gamma Correction
 		WRITE(p, "texcol = pow(texcol,uv1.xxxx);\n");		
 	}
 
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
 	{
-		
 		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");		
 	}
 	else

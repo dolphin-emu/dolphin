@@ -80,6 +80,7 @@ FramebufferManager::FramebufferManager()
 
 		// Render buffer for AccessEFB (depth data)
 		D3DFORMAT DepthTexFormats[2];
+		// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
 		if (s_efb.depth_surface_Format == FOURCC_RAWZ || s_efb.depth_surface_Format == D3DFMT_D24X8)
 			DepthTexFormats[0] = D3DFMT_A8R8G8B8;
 		else

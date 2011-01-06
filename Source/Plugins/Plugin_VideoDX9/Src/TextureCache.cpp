@@ -131,18 +131,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
 		int SSAAMode = g_ActiveConfig.iMultisampleMode;
 
-		int depthConversionType;
-		if(bformat == FOURCC_RAWZ || bformat == D3DFMT_D24X8 || !bFromZBuffer)
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE;
-		else if(bformat == FOURCC_DF16)
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT;
-		else
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT;
-
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
 			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
 			virtualW, virtualH,
-			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, depthConversionType),
+			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
+			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, bFromZBuffer && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
 
 		Rendersurf->Release();

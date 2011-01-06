@@ -3153,7 +3153,7 @@ msgid "Stop"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
-msgid "Strech to Window"
+msgid "Stretch to Window"
 msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75

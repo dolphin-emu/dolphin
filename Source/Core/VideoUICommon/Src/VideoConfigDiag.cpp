@@ -160,7 +160,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// aspect-ratio
 	{
 	const wxString ar_choices[] = { _("Auto [recommended]"),
-		_("Force 16:9"), _("Force 4:3"), _("Strech to Window") };
+		_("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	wxChoice* const choice_aspect = new SettingChoice(page_general,

@@ -559,6 +559,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	RectToLock.top = targetPixelRc.top;	
 	if (type == PEEK_Z)
 	{
+		// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
 		if (FramebufferManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_D24X8)
 			return 0;
 
@@ -599,13 +600,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
 		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
-		int depthConversionType;
-		if(bformat == FOURCC_RAWZ)
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_NONE;
-		else if(bformat == FOURCC_DF16)
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_16BIT;
-		else
-			depthConversionType = PixelShaderCache::DEPTH_CONVERSION_TYPE_24BIT;
 
 		D3D::drawShadedTexQuad(
 			read_texture,
@@ -613,7 +607,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			Renderer::GetFullTargetWidth(),
 			Renderer::GetFullTargetHeight(),
 			4, 4,
-			PixelShaderCache::GetDepthMatrixProgram(0, depthConversionType),
+			PixelShaderCache::GetDepthMatrixProgram(0, bformat != FOURCC_RAWZ),
 			VertexShaderCache::GetSimpleVertexShader(0));
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
