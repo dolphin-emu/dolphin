@@ -18,6 +18,8 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 
+#include "CPUDetect.h"
+
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
@@ -237,13 +239,15 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 					}
 				} else {
 #if _M_SSE >= 0x301
-					// Note: Should we use CPUDetect.h and bSSSE3?
 					// Uses SSSE3 intrinsics to optimize RGBA -> BGRA swizzle:
-					ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
-#else
-					// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
-					ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+					if (cpu_info.bSSSE3) {
+						ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+					} else
 #endif
+					// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
+					{
+						ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+					}
 #if 0
 					for (int y = 0; y < height; y++)
 					{
@@ -323,13 +327,15 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		else
 		{
 #if _M_SSE >= 0x301
-			// Note: Should we use CPUDetect.h and bSSSE3?
 			// Uses SSSE3 intrinsics to optimize RGBA -> BGRA swizzle:
-			ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
-#else
-			// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
-			ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+			if (cpu_info.bSSSE3) {
+				ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+			} else
 #endif
+			// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
+			{
+				ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+			}
 #if 0
 			for (int y = 0; y < height; y++)
 			{
