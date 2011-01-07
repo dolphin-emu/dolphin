@@ -1654,9 +1654,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		{
 			// JSD optimized with SSE2 intrinsics.
 			// Produces a ~68% improvement in speed over reference C implementation.
-			const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
-			const __m128i kMask_xf000 = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
-			const __m128i kMask_x0ff0 = _mm_set_epi32(0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L);
 
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4, src += 64)
@@ -1687,57 +1684,77 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
 					// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
 					const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
+					__m128i rgba00, rgba01, rgba10, rgba11;
+#if _M_SSE >= 0x301
+					// SSSE3 Implementation is about 25% faster than SSE2 version
+					if (cpu_info.bSSSE3)
+					{
+						const __m128i mask6xx7 = _mm_set_epi8(6, 128, 128, 7, 4, 128, 128, 5, 2, 128, 128, 3, 0, 128, 128, 1);
+						const __m128i maskExxF = _mm_set_epi8(14, 128, 128, 15, 12, 128, 128, 13, 10, 128, 128, 11, 8, 128, 128, 9);
+						const __m128i maskx76x = _mm_set_epi8(128, 7, 6, 128, 128, 5, 4, 128, 128, 3, 2, 128, 128, 1, 0, 128);
+						const __m128i maskxFEx = _mm_set_epi8(128, 15, 14, 128, 128, 13, 12, 128, 128, 11, 10, 128, 128, 9, 8, 128);
 
-					// Expand the AR components to fill out 32-bit words:
-					// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 3][A 3][R 3][R 3] [A 2][A 2][R 2][R 2] [A 1][A 1][R 1][R 1] [A 0][A 0][R 0][R 0])
-					const __m128i aarr00 = _mm_unpacklo_epi8(ar0, ar0);
-					// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 7][A 7][R 7][R 7] [A 6][A 6][R 6][R 6] [A 5][A 5][R 5][R 5] [A 4][A 4][R 4][R 4])
-					const __m128i aarr01 = _mm_unpackhi_epi8(ar0, ar0);
-					// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A b][A b][R b][R b] [A a][A a][R a][R a] [A 9][A 9][R 9][R 9] [A 8][A 8][R 8][R 8])
-					const __m128i aarr10 = _mm_unpacklo_epi8(ar1, ar1);
-					// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A f][A f][R f][R f] [A e][A e][R e][R e] [A d][A d][R d][R d] [A c][A c][R c][R c])
-					const __m128i aarr11 = _mm_unpackhi_epi8(ar1, ar1);
+						rgba00 = _mm_or_si128(_mm_shuffle_epi8(ar0, mask6xx7), _mm_shuffle_epi8(gb0, maskx76x));
+						rgba01 = _mm_or_si128(_mm_shuffle_epi8(ar0, maskExxF), _mm_shuffle_epi8(gb0, maskxFEx));
+						rgba10 = _mm_or_si128(_mm_shuffle_epi8(ar1, mask6xx7), _mm_shuffle_epi8(gb1, maskx76x));
+						rgba11 = _mm_or_si128(_mm_shuffle_epi8(ar1, maskExxF), _mm_shuffle_epi8(gb1, maskxFEx));
+					}
+#endif
+					{
+						const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
+						const __m128i kMask_xf000 = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
+						const __m128i kMask_x0ff0 = _mm_set_epi32(0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L);
+						// Expand the AR components to fill out 32-bit words:
+						// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 3][A 3][R 3][R 3] [A 2][A 2][R 2][R 2] [A 1][A 1][R 1][R 1] [A 0][A 0][R 0][R 0])
+						const __m128i aarr00 = _mm_unpacklo_epi8(ar0, ar0);
+						// ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0]) -> ([A 7][A 7][R 7][R 7] [A 6][A 6][R 6][R 6] [A 5][A 5][R 5][R 5] [A 4][A 4][R 4][R 4])
+						const __m128i aarr01 = _mm_unpackhi_epi8(ar0, ar0);
+						// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A b][A b][R b][R b] [A a][A a][R a][R a] [A 9][A 9][R 9][R 9] [A 8][A 8][R 8][R 8])
+						const __m128i aarr10 = _mm_unpacklo_epi8(ar1, ar1);
+						// ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8]) -> ([A f][A f][R f][R f] [A e][A e][R e][R e] [A d][A d][R d][R d] [A c][A c][R c][R c])
+						const __m128i aarr11 = _mm_unpackhi_epi8(ar1, ar1);
 
-					// Move A right 16 bits and mask off everything but the lowest  8 bits to get A in its final place:
-					const __m128i ___a00 = _mm_and_si128(_mm_srli_epi32(aarr00, 16), kMask_x000f);
-					// Move R left  16 bits and mask off everything but the highest 8 bits to get R in its final place:
-					const __m128i r___00 = _mm_and_si128(_mm_slli_epi32(aarr00, 16), kMask_xf000);
-					// OR the two together to get R and A in their final places:
-					const __m128i r__a00 = _mm_or_si128(r___00, ___a00);
+						// Move A right 16 bits and mask off everything but the lowest  8 bits to get A in its final place:
+						const __m128i ___a00 = _mm_and_si128(_mm_srli_epi32(aarr00, 16), kMask_x000f);
+						// Move R left  16 bits and mask off everything but the highest 8 bits to get R in its final place:
+						const __m128i r___00 = _mm_and_si128(_mm_slli_epi32(aarr00, 16), kMask_xf000);
+						// OR the two together to get R and A in their final places:
+						const __m128i r__a00 = _mm_or_si128(r___00, ___a00);
 
-					const __m128i ___a01 = _mm_and_si128(_mm_srli_epi32(aarr01, 16), kMask_x000f);
-					const __m128i r___01 = _mm_and_si128(_mm_slli_epi32(aarr01, 16), kMask_xf000);
-					const __m128i r__a01 = _mm_or_si128(r___01, ___a01);
+						const __m128i ___a01 = _mm_and_si128(_mm_srli_epi32(aarr01, 16), kMask_x000f);
+						const __m128i r___01 = _mm_and_si128(_mm_slli_epi32(aarr01, 16), kMask_xf000);
+						const __m128i r__a01 = _mm_or_si128(r___01, ___a01);
 
-					const __m128i ___a10 = _mm_and_si128(_mm_srli_epi32(aarr10, 16), kMask_x000f);
-					const __m128i r___10 = _mm_and_si128(_mm_slli_epi32(aarr10, 16), kMask_xf000);
-					const __m128i r__a10 = _mm_or_si128(r___10, ___a10);
+						const __m128i ___a10 = _mm_and_si128(_mm_srli_epi32(aarr10, 16), kMask_x000f);
+						const __m128i r___10 = _mm_and_si128(_mm_slli_epi32(aarr10, 16), kMask_xf000);
+						const __m128i r__a10 = _mm_or_si128(r___10, ___a10);
 
-					const __m128i ___a11 = _mm_and_si128(_mm_srli_epi32(aarr11, 16), kMask_x000f);
-					const __m128i r___11 = _mm_and_si128(_mm_slli_epi32(aarr11, 16), kMask_xf000);
-					const __m128i r__a11 = _mm_or_si128(r___11, ___a11);
+						const __m128i ___a11 = _mm_and_si128(_mm_srli_epi32(aarr11, 16), kMask_x000f);
+						const __m128i r___11 = _mm_and_si128(_mm_slli_epi32(aarr11, 16), kMask_xf000);
+						const __m128i r__a11 = _mm_or_si128(r___11, ___a11);
 
-					// Expand the GB components to fill out 32-bit words:
-					// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 3][G 3][B 3][B 3] [G 2][G 2][B 2][B 2] [G 1][G 1][B 1][B 1] [G 0][G 0][B 0][B 0])
-					const __m128i ggbb00 = _mm_unpacklo_epi8(gb0, gb0);
-					// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 7][G 7][B 7][B 7] [G 6][G 6][B 6][B 6] [G 5][G 5][B 5][B 5] [G 4][G 4][B 4][B 4])
-					const __m128i ggbb01 = _mm_unpackhi_epi8(gb0, gb0);
-					// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G b][G b][B b][B b] [G a][G a][B a][B a] [G 9][G 9][B 9][B 9] [G 8][G 8][B 8][B 8])
-					const __m128i ggbb10 = _mm_unpacklo_epi8(gb1, gb1);
-					// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G f][G f][B f][B f] [G e][G e][B e][B e] [G d][G d][B d][B d] [G c][G c][B c][B c])
-					const __m128i ggbb11 = _mm_unpackhi_epi8(gb1, gb1);
+						// Expand the GB components to fill out 32-bit words:
+						// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 3][G 3][B 3][B 3] [G 2][G 2][B 2][B 2] [G 1][G 1][B 1][B 1] [G 0][G 0][B 0][B 0])
+						const __m128i ggbb00 = _mm_unpacklo_epi8(gb0, gb0);
+						// ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0]) -> ([G 7][G 7][B 7][B 7] [G 6][G 6][B 6][B 6] [G 5][G 5][B 5][B 5] [G 4][G 4][B 4][B 4])
+						const __m128i ggbb01 = _mm_unpackhi_epi8(gb0, gb0);
+						// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G b][G b][B b][B b] [G a][G a][B a][B a] [G 9][G 9][B 9][B 9] [G 8][G 8][B 8][B 8])
+						const __m128i ggbb10 = _mm_unpacklo_epi8(gb1, gb1);
+						// ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8]) -> ([G f][G f][B f][B f] [G e][G e][B e][B e] [G d][G d][B d][B d] [G c][G c][B c][B c])
+						const __m128i ggbb11 = _mm_unpackhi_epi8(gb1, gb1);
 
-					// G and B are already in perfect spots in the center, just remove the extra copies in the 1st and 4th positions:
-					const __m128i _gb_00 = _mm_and_si128(ggbb00, kMask_x0ff0);
-					const __m128i _gb_01 = _mm_and_si128(ggbb01, kMask_x0ff0);
-					const __m128i _gb_10 = _mm_and_si128(ggbb10, kMask_x0ff0);
-					const __m128i _gb_11 = _mm_and_si128(ggbb11, kMask_x0ff0);
+						// G and B are already in perfect spots in the center, just remove the extra copies in the 1st and 4th positions:
+						const __m128i _gb_00 = _mm_and_si128(ggbb00, kMask_x0ff0);
+						const __m128i _gb_01 = _mm_and_si128(ggbb01, kMask_x0ff0);
+						const __m128i _gb_10 = _mm_and_si128(ggbb10, kMask_x0ff0);
+						const __m128i _gb_11 = _mm_and_si128(ggbb11, kMask_x0ff0);
 
-					// Now join up R__A and _GB_ to get RGBA!
-					const __m128i rgba00 = _mm_or_si128(r__a00, _gb_00);
-					const __m128i rgba01 = _mm_or_si128(r__a01, _gb_01);
-					const __m128i rgba10 = _mm_or_si128(r__a10, _gb_10);
-					const __m128i rgba11 = _mm_or_si128(r__a11, _gb_11);
+						// Now join up R__A and _GB_ to get RGBA!
+						rgba00 = _mm_or_si128(r__a00, _gb_00);
+						rgba01 = _mm_or_si128(r__a01, _gb_01);
+						rgba10 = _mm_or_si128(r__a10, _gb_10);
+						rgba11 = _mm_or_si128(r__a11, _gb_11);
+					}
 
 					// Write em out!
 					__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
@@ -1838,6 +1855,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						// OR in the fixed alpha component
 						// _mm_slli_epi32( allFFs128, 24 ) == _mm_set_epi32(0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000)
 						argb888x4 = _mm_or_si128(_mm_or_si128(argb888x4, _mm_slli_epi32( allFFs128, 24 ) ), _mm_or_si128(b0, b1));
+						const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
+						const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
 
 						__m128i rgb2, rgb3;
 
@@ -1845,8 +1864,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						if (cmp0 != 0)
 						{
 							// calculate RGB2 and RGB3:
-							const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
-							const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
 							const __m128i rrggbb0 = _mm_and_si128(_mm_unpacklo_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbb1 = _mm_and_si128(_mm_unpacklo_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
@@ -1861,14 +1878,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							const __m128i rgbdeltadup = _mm_packus_epi16(rrggbbdelta, rrggbbdelta);
 							const __m128i rgbdelta = _mm_srli_si128(_mm_slli_si128(rgbdeltadup, 8), 8);
 
-							rgb2 = _mm_and_si128(_mm_add_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0)), rgbdelta), _mm_srli_si128(allFFs128, 8));
-							rgb3 = _mm_and_si128(_mm_sub_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), rgbdelta), _mm_srli_si128(allFFs128, 8));
+							rgb2 = _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta), _mm_srli_si128(allFFs128, 8));
+							rgb3 = _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta), _mm_srli_si128(allFFs128, 8));
 						}
 						else
 						{
 							// calculate RGB2 and RGB3:
-							const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
-							const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
 							const __m128i rrggbb0 = _mm_and_si128(_mm_unpacklo_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbb1 = _mm_and_si128(_mm_unpacklo_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
@@ -1883,8 +1898,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						if (cmp1 != 0)
 						{
 							// calculate RGB2 and RGB3:
-							const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
-							const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
 							const __m128i rrggbb01 = _mm_and_si128(_mm_unpackhi_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbb11 = _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
@@ -1899,14 +1912,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							__m128i rgbdelta1 = _mm_packus_epi16(rrggbbdelta1, rrggbbdelta1);
 							rgbdelta1 = _mm_slli_si128(rgbdelta1, 8);
 
-							rgb2 = _mm_or_si128(rgb2, _mm_and_si128(_mm_add_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0)), rgbdelta1), _mm_slli_si128(allFFs128, 8)));
-							rgb3 = _mm_or_si128(rgb3, _mm_and_si128(_mm_sub_epi8(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), rgbdelta1), _mm_slli_si128(allFFs128, 8)));
+							rgb2 = _mm_or_si128(rgb2, _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
+							rgb3 = _mm_or_si128(rgb3, _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
 						}
 						else
 						{
 							// calculate RGB2 and RGB3:
-							const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
-							const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
 							const __m128i rrggbb01 = _mm_and_si128(_mm_unpackhi_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbb11 = _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
 							const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
@@ -1917,7 +1928,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 							// _mm_srli_epi32( allFFs128, 8 ) == _mm_set_epi32(0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF)
 							// Make this color fully transparent:
-							rgb3 = _mm_or_si128(rgb3, _mm_and_si128(_mm_and_si128(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1)), _mm_srli_epi32( allFFs128, 8 ) ), _mm_slli_si128(allFFs128, 8)));
+							rgb3 = _mm_or_si128(rgb3, _mm_and_si128(_mm_and_si128(rgb1, _mm_srli_epi32( allFFs128, 8 ) ), _mm_slli_si128(allFFs128, 8)));
 						}
 
 						// Create an array for color lookups for DXT0 so we can use the 2-bit indices:
