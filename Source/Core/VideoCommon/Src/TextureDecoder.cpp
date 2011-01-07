@@ -1068,104 +1068,108 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
 				{
-#if _M_SSE >= 0x401
-					// SSE4 intrinsics: About 5-10% faster than SSE2 version
-					for (int iy = 0; iy < 4; ++iy, src+=8)
+#if _M_SSE >= 0x301
+					if (cpu_info.bSSSE3)
 					{
-						const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
+						// SSSE3 intrinsics: About 5-10% faster than SSE2 version
+						for (int iy = 0; iy < 4; ++iy, src+=8)
+						{
+							const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
 
-						const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
-						__m128i *quaddst, r, rgba0, rgba1;
-						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						r = _mm_loadl_epi64((const __m128i *)src);
-						// Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
-						rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
-						rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
+							const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
+							__m128i *quaddst, r, rgba0, rgba1;
+							// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+							r = _mm_loadl_epi64((const __m128i *)src);
+							// Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
+							rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
+							rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
 
-						quaddst = (__m128i *)(dst + (y + iy)*width + x);
-						_mm_storeu_si128(quaddst, rgba0);
-						_mm_storeu_si128(quaddst+1, rgba1);
-					}
-#else
-					// JSD optimized with SSE2 intrinsics.
-					// Produces an ~86% speed increase over reference C implementation.
-					// Each loop iteration processes 4 rows from 4 64-bit reads.
-
-					// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
-					// _mm_stream instead of _mm_store on my AMD Phenom II x410 made performance significantly WORSE, so I
-					// went with _mm_stores. Perhaps there is some edge case here creating the terrible performance or we're
-					// not aligned to 16-byte boundaries. I don't know.
-					__m128i *quaddst;
-
-					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-					const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
-					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-					const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
-
-					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-					const __m128i rgba0 = _mm_unpacklo_epi8(r1, r1);
-					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-					const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
-
-					// Store (dddd cccc bbbb aaaa) out:
-					quaddst = (__m128i *)(dst + (y + 0)*width + x);
-					_mm_storeu_si128(quaddst, rgba0);
-					// Store (hhhh gggg ffff eeee) out:
-					_mm_storeu_si128(quaddst+1, rgba1);
-
-					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-					src += 8;
-					const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
-					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-					const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
-
-					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-					const __m128i rgba2 = _mm_unpacklo_epi8(r3, r3);
-					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-					const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
-
-					// Store (dddd cccc bbbb aaaa) out:
-					quaddst = (__m128i *)(dst + (y + 1)*width + x);
-					_mm_storeu_si128(quaddst, rgba2);
-					// Store (hhhh gggg ffff eeee) out:
-					_mm_storeu_si128(quaddst+1, rgba3);
-
-					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-					src += 8;
-					const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
-					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-					const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
-
-					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-					const __m128i rgba4 = _mm_unpacklo_epi8(r5, r5);
-					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-					const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
-
-					// Store (dddd cccc bbbb aaaa) out:
-					quaddst = (__m128i *)(dst + (y + 2)*width + x);
-					_mm_storeu_si128(quaddst, rgba4);
-					// Store (hhhh gggg ffff eeee) out:
-					_mm_storeu_si128(quaddst+1, rgba5);
-
-					// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-					src += 8;
-					const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
-					// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-					const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
-
-					// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
-					const __m128i rgba6 = _mm_unpacklo_epi8(r7, r7);
-					// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
-					const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
-
-					// Store (dddd cccc bbbb aaaa) out:
-					quaddst = (__m128i *)(dst + (y + 3)*width + x);
-					_mm_storeu_si128(quaddst, rgba6);
-					// Store (hhhh gggg ffff eeee) out:
-					_mm_storeu_si128(quaddst+1, rgba7);
-
-					src += 8;
+							quaddst = (__m128i *)(dst + (y + iy)*width + x);
+							_mm_storeu_si128(quaddst, rgba0);
+							_mm_storeu_si128(quaddst+1, rgba1);
+						}
+					} else
 #endif
+					{
+						// JSD optimized with SSE2 intrinsics.
+						// Produces an ~86% speed increase over reference C implementation.
+						// Each loop iteration processes 4 rows from 4 64-bit reads.
+
+						// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
+						// _mm_stream instead of _mm_store on my AMD Phenom II x410 made performance significantly WORSE, so I
+						// went with _mm_stores. Perhaps there is some edge case here creating the terrible performance or we're
+						// not aligned to 16-byte boundaries. I don't know.
+						__m128i *quaddst;
+
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+						const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
+
+						// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+						const __m128i rgba0 = _mm_unpacklo_epi8(r1, r1);
+						// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+						const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
+
+						// Store (dddd cccc bbbb aaaa) out:
+						quaddst = (__m128i *)(dst + (y + 0)*width + x);
+						_mm_storeu_si128(quaddst, rgba0);
+						// Store (hhhh gggg ffff eeee) out:
+						_mm_storeu_si128(quaddst+1, rgba1);
+
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						src += 8;
+						const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+						const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
+
+						// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+						const __m128i rgba2 = _mm_unpacklo_epi8(r3, r3);
+						// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+						const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
+
+						// Store (dddd cccc bbbb aaaa) out:
+						quaddst = (__m128i *)(dst + (y + 1)*width + x);
+						_mm_storeu_si128(quaddst, rgba2);
+						// Store (hhhh gggg ffff eeee) out:
+						_mm_storeu_si128(quaddst+1, rgba3);
+
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						src += 8;
+						const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+						const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
+
+						// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+						const __m128i rgba4 = _mm_unpacklo_epi8(r5, r5);
+						// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+						const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
+
+						// Store (dddd cccc bbbb aaaa) out:
+						quaddst = (__m128i *)(dst + (y + 2)*width + x);
+						_mm_storeu_si128(quaddst, rgba4);
+						// Store (hhhh gggg ffff eeee) out:
+						_mm_storeu_si128(quaddst+1, rgba5);
+
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						src += 8;
+						const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+						const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
+
+						// Shuffle low 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (dddd cccc bbbb aaaa)
+						const __m128i rgba6 = _mm_unpacklo_epi8(r7, r7);
+						// Shuffle hi 64-bits with itself to expand from (hhgg ffee ddcc bbaa) to (hhhh gggg ffff eeee)
+						const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
+
+						// Store (dddd cccc bbbb aaaa) out:
+						quaddst = (__m128i *)(dst + (y + 3)*width + x);
+						_mm_storeu_si128(quaddst, rgba6);
+						// Store (hhhh gggg ffff eeee) out:
+						_mm_storeu_si128(quaddst+1, rgba7);
+
+						src += 8;
+					}
 				}
 #if 0
 			// Reference C implementation
