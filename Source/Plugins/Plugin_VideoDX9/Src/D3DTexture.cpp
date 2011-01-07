@@ -18,8 +18,86 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 
+#if _M_SSE >= 0x401
+#include <smmintrin.h>
+#include <emmintrin.h>
+#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+#include <tmmintrin.h>
+#endif
+
 namespace D3D
 {
+
+void ConvertRGBA_BGRA_SSE2(u32 *dst, const int dstPitch, u32 *pIn, const int width, const int height, const int pitch)
+{
+	// Converts RGBA to BGRA:
+	// TODO: this would be totally unnecessary if we just change the TextureDecoder_RGBA to decode
+	// to BGRA instead.
+	for (int y = 0; y < height; y++, pIn += pitch)
+	{
+		u8 *pIn8 = (u8 *)pIn;
+		u8 *pBits = (u8 *)((u8*)dst + (y * dstPitch));
+
+		// Batch up loads/stores into 16 byte chunks to use SSE2 efficiently:
+		int sse2blocks = (width * 4) / 16;
+		int sse2remainder = (width * 4) & 15;
+
+		// Do conversions in batches of 16 bytes:
+		if (sse2blocks > 0)
+		{
+			// Generate a constant of all FF bytes:
+			const __m128i allFFs128 = _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
+			__m128i *src128 = (__m128i *)pIn8;
+			__m128i *dst128 = (__m128i *)pBits;
+
+			// Increment by 16 bytes at a time:
+			for (int i = 0; i < sse2blocks; ++i, ++dst128, ++src128)
+			{
+				// Load up 4 colors simultaneously:
+				__m128i rgba = _mm_loadu_si128(src128);
+				// Swap the R and B components:
+				// Isolate the B component and shift it left 16 bits:
+				// ABGR
+				const __m128i bMask = _mm_srli_epi32(allFFs128, 24);
+				const __m128i bNew = _mm_slli_epi32(_mm_and_si128(rgba, bMask), 16);
+				// Isolate the R component and shift it right 16 bits:
+				const __m128i rMask = _mm_slli_epi32(bMask, 16);
+				const __m128i rNew = _mm_srli_epi32(_mm_and_si128(rgba, rMask), 16);
+				// Now mask off the old R and B components from the rgba data to get 0g0a:
+				const __m128i _g_a = _mm_or_si128(
+					_mm_and_si128(
+						rgba,
+						_mm_or_si128(
+							_mm_slli_epi32(bMask, 8),
+							_mm_slli_epi32(rMask, 8)
+						)
+					),
+					_mm_or_si128(rNew, bNew)
+				);
+				// Finally, OR up all the individual components to get BGRA:
+				const __m128i bgra = _mm_or_si128(_g_a, _mm_or_si128(rNew, bNew));
+				_mm_storeu_si128(dst128, bgra);
+			}
+		}
+
+		// Take the remainder colors at the end of the row that weren't able to
+		// be included into the last 16 byte chunk:
+		if (sse2remainder > 0)
+		{
+			for (int x = (sse2blocks * 16); x < (width * 4); x += 4)
+			{
+				pBits[x + 0] = pIn8[x + 2];
+				pBits[x + 1] = pIn8[x + 1];
+				pBits[x + 2] = pIn8[x + 0];
+				pBits[x + 3] = pIn8[x + 3];
+			}
+		}
+	}
+
+	// Memory fence to make sure the stores are good:
+	_mm_mfence();
+}
+
 
 LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int levels)
 {
@@ -116,6 +194,10 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 						pIn += pitch;
 					}
 				} else {
+#if 1
+					// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
+					ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+#else
 					for (int y = 0; y < height; y++)
 					{
 						u8 *pIn8 = (u8 *)pIn;
@@ -128,6 +210,7 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 						}
 						pIn += pitch;
 					}
+#endif
 				}
 			}
 		}
@@ -192,6 +275,10 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		}
 		else
 		{
+#if 1
+			// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
+			ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+#else
 			for (int y = 0; y < height; y++)
 			{
 				u8 *pIn8 = (u8 *)pIn;
@@ -205,6 +292,7 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 				}
 				pIn += pitch;
 			}
+#endif
 		}
 		break;
 	case D3DFMT_L8:
