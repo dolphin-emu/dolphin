@@ -98,6 +98,48 @@ void ConvertRGBA_BGRA_SSE2(u32 *dst, const int dstPitch, u32 *pIn, const int wid
 	_mm_mfence();
 }
 
+void ConvertRGBA_BGRA_SSSE3(u32 *dst, const int dstPitch, u32 *pIn, const int width, const int height, const int pitch)
+{
+	__m128i mask = _mm_set_epi8(15, 12, 13, 14, 11, 8, 9, 10, 7, 4, 5, 6, 3, 0, 1, 2);
+	for (int y = 0; y < height; y++, pIn += pitch)
+	{
+		u8 *pIn8 = (u8 *)pIn;
+		u8 *pBits = (u8 *)((u8*)dst + (y * dstPitch));
+
+		// Batch up loads/stores into 16 byte chunks to use SSE2 efficiently:
+		int ssse3blocks = (width * 4) / 16;
+		int ssse3remainder = (width * 4) & 15;
+
+		// Do conversions in batches of 16 bytes:
+		if (ssse3blocks > 0)
+		{
+			__m128i *src128 = (__m128i *)pIn8;
+			__m128i *dst128 = (__m128i *)pBits;
+
+			// Increment by 16 bytes at a time:
+			for (int i = 0; i < ssse3blocks; ++i, ++dst128, ++src128)
+			{
+				_mm_storeu_si128(dst128, _mm_shuffle_epi8(_mm_loadu_si128(src128), mask));
+			}
+		}
+
+		// Take the remainder colors at the end of the row that weren't able to
+		// be included into the last 16 byte chunk:
+		if (ssse3remainder > 0)
+		{
+			for (int x = (ssse3blocks * 16); x < (width * 4); x += 4)
+			{
+				pBits[x + 0] = pIn8[x + 2];
+				pBits[x + 1] = pIn8[x + 1];
+				pBits[x + 2] = pIn8[x + 0];
+				pBits[x + 3] = pIn8[x + 3];
+			}
+		}
+	}
+
+	// Memory fence to make sure the stores are good:
+	_mm_mfence();
+}
 
 LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int levels)
 {
@@ -194,10 +236,15 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 						pIn += pitch;
 					}
 				} else {
-#if 1
+#if _M_SSE >= 0x301
+					// Note: Should we use CPUDetect.h and bSSSE3?
+					// Uses SSSE3 intrinsics to optimize RGBA -> BGRA swizzle:
+					ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+#else
 					// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
 					ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
-#else
+#endif
+#if 0
 					for (int y = 0; y < height; y++)
 					{
 						u8 *pIn8 = (u8 *)pIn;
@@ -275,10 +322,15 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		}
 		else
 		{
-#if 1
+#if _M_SSE >= 0x301
+			// Note: Should we use CPUDetect.h and bSSSE3?
+			// Uses SSSE3 intrinsics to optimize RGBA -> BGRA swizzle:
+			ConvertRGBA_BGRA_SSSE3((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
+#else
 			// Uses SSE2 intrinsics to optimize RGBA -> BGRA swizzle:
 			ConvertRGBA_BGRA_SSE2((u32 *)Lock.pBits, Lock.Pitch, pIn, width, height, pitch);
-#else
+#endif
+#if 0
 			for (int y = 0; y < height; y++)
 			{
 				u8 *pIn8 = (u8 *)pIn;
