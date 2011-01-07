@@ -60,8 +60,8 @@ union UPEAlphaReadReg
 	u16 Hex;
 	struct
 	{
-		u16 ReadMode		: 3;
-		u16					: 13;
+		u16 ReadMode		: 2;
+		u16					: 14;
 	};
 };
 

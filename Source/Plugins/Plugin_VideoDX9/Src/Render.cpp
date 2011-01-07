@@ -691,7 +691,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
-		PixelEngine::Read16((u16&)alpha_read_mode, PE_DSTALPHACONF);
+		PixelEngine::Read16((u16&)alpha_read_mode, PE_ALPHAREAD);
 		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
 		{
 			ret = RGBA8ToRGBA6ToRGBA8(ret);
