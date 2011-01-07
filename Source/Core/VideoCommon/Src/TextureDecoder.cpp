@@ -1065,11 +1065,30 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	   break;
 	case GX_TF_I8:  // speed critical
 		{
-			// JSD optimized with SSE2 intrinsics.
-			// Produces an ~86% speed increase over reference C implementation.
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
 				{
+#if _M_SSE >= 0x401
+					// SSE4 intrinsics: About 5-10% faster than SSE2 version
+					for (int iy = 0; iy < 4; ++iy, src+=8)
+					{
+						const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
+
+						const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
+						__m128i *quaddst, r, rgba0, rgba1;
+						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						r = _mm_loadl_epi64((const __m128i *)src);
+						// Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
+						rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
+						rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
+
+						quaddst = (__m128i *)(dst + (y + iy)*width + x);
+						_mm_storeu_si128(quaddst, rgba0);
+						_mm_storeu_si128(quaddst+1, rgba1);
+					}
+#else
+					// JSD optimized with SSE2 intrinsics.
+					// Produces an ~86% speed increase over reference C implementation.
 					// Each loop iteration processes 4 rows from 4 64-bit reads.
 
 					// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
@@ -1146,6 +1165,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					_mm_storeu_si128(quaddst+1, rgba7);
 
 					src += 8;
+#endif
 				}
 #if 0
 			// Reference C implementation
