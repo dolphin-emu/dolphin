@@ -114,13 +114,42 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	}
 }
 
+void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+{
+	switch (g_ActiveConfig.iEFBScale)
+	{
+		case 3: // 2x
+			scaledX = x * 2;
+			scaledY = y * 2;
+			break;
+		case 4: // 3x
+			scaledX = x * 3;
+			scaledY = y * 3;
+			break;
+		case 5: // 0.75x
+			scaledX = (x * 3) / 4;
+			scaledY = (y * 3) / 4;
+			break;
+		case 6: // 0.5x
+			scaledX = x / 2;
+			scaledY = y / 2;
+			break;
+		case 7: // 0.375x
+			scaledX = (x * 3) / 8;
+			scaledY = (y * 3) / 8;
+			break;
+		default:
+			scaledX = x;
+			scaledY = y;
+	};
+}
+
 // return true if target size changed
 bool Renderer::CalculateTargetSize(int multiplier)
 {
 	int newEFBWidth, newEFBHeight;
 	switch (s_LastEFBScale)
 	{
-		default:
 		case 0: // fractional
 			newEFBWidth = (int)(EFB_WIDTH * xScale);
 			newEFBHeight = (int)(EFB_HEIGHT * yScale);
@@ -129,25 +158,9 @@ bool Renderer::CalculateTargetSize(int multiplier)
 			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
 			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
 			break;
-		case 2: // 1x
-		case 3: // 2x
-		case 4: // 3x
-			newEFBWidth = EFB_WIDTH * (g_ActiveConfig.iEFBScale - 1);
-			newEFBHeight = EFB_HEIGHT * (g_ActiveConfig.iEFBScale - 1);
-			break;
-		case 5: // 0.75x
-			newEFBWidth = (EFB_WIDTH * 3) / 4;
-			newEFBHeight = (EFB_HEIGHT * 3) / 4;
-			break;
-		case 6: // 0.5x
-			newEFBWidth = EFB_WIDTH / 2;
-			newEFBHeight = EFB_HEIGHT / 2;
-			break;
-		case 7: // 0.375x
-			newEFBWidth = (EFB_WIDTH * 3) / 8;
-			newEFBHeight = (EFB_HEIGHT * 3) / 8;
-			break;
-	};
+		default:
+			CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
+	}
 
 	newEFBWidth *= multiplier;
 	newEFBHeight *= multiplier;

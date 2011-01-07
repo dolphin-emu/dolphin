@@ -669,11 +669,31 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-void CFrame::OnSizeRequest(int& x, int& y, int& width, int& height)
+void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	wxMutexGuiEnter();
 	m_RenderParent->GetSize(&width, &height);
 	m_RenderParent->GetPosition(&x, &y);
+	wxMutexGuiLeave();
+}
+
+void CFrame::OnRenderWindowSizeRequest(int& width, int& height)
+{
+	wxMutexGuiEnter();
+
+	if (IsFullScreen())
+	{
+		m_RenderParent->GetSize(&width, &height);
+	}
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		m_RenderParent->SetClientSize(width, height);
+	}
+	else
+	{
+		m_RenderParent->GetParent()->SetClientSize(width, height);
+	}
+
 	wxMutexGuiLeave();
 }
 

@@ -317,7 +317,7 @@ Renderer::Renderer()
 	int x, y, w_temp, h_temp;
 	s_blendMode = 0;
 
-	g_VideoInitialize.pRequestWindowSize(x, y, w_temp, h_temp);
+	g_VideoInitialize.pGetWindowSize(x, y, w_temp, h_temp);
 
 	D3D::Create(EmuWindow::GetWnd());
 
@@ -410,6 +410,19 @@ bool Renderer::CheckForResize()
 	}
 
 	return false;
+}
+
+void Renderer::SetWindowSize(int width, int height)
+{
+	if (width < 1)
+		width = 1;
+	if (height < 1)
+		height = 1;
+
+	// Scale the window size by the EFB scale.
+	CalculateTargetScale(width, height, width, height);
+
+	g_VideoInitialize.pRequestWindowSize(width, height);
 }
 
 bool Renderer::SetScissorRect()
@@ -957,7 +970,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Enable any configuration changes
 	UpdateActiveConfig();
-	const bool WindowResized = CheckForResize();
+
+	if (g_ActiveConfig.bAdjustWindowSize)
+		SetWindowSize(fbWidth, fbHeight);
+
+	const bool windowResized = CheckForResize();
 
 	bool xfbchanged = false;
 
@@ -993,7 +1010,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::Present();
 
 	// resize the back buffers NOW to avoid flickering
-	if (xfbchanged || WindowResized ||
+	if (xfbchanged ||
+		windowResized ||
 		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{

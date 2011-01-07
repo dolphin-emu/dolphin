@@ -19,7 +19,8 @@ typedef void            (*TProcessFifoEvents)(void);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
-typedef void			(*TRequestWindowSize)(int& x, int& y, int& width, int& height);
+typedef void			(*TGetWindowSize)(int& x, int& y, int& width, int& height);
+typedef void			(*TRequestWindowSize)(int& width, int& height);
 typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
@@ -87,6 +88,7 @@ typedef struct
 	TGetMemoryPointer				pGetMemoryPointer;
 	TVideoLog						pLog;
 	TSysMessage						pSysMessage;
+	TGetWindowSize					pGetWindowSize;
 	TRequestWindowSize              pRequestWindowSize;
 	TCopiedToXFB					pCopiedToXFB;
 	TPeekMessages					pPeekMessages;

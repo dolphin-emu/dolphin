@@ -44,6 +44,8 @@ public:
 	void UpdateViewport();
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
+
+	void SetWindowSize(int width, int height);
 };
 
 }

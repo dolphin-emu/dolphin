@@ -93,7 +93,7 @@ void Host_UpdateMemoryView(){}
 
 void Host_SetDebugMode(bool){}
 
-void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
+void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
 	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;

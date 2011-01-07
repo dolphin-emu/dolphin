@@ -602,9 +602,14 @@ void Host_UpdateMemoryView()
 void Host_SetDebugMode(bool)
 {}
 
-void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
+void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
-	main_frame->OnSizeRequest(x, y, width, height);
+	main_frame->GetRenderWindowSize(x, y, width, height);
+}
+
+void Host_RequestRenderWindowSize(int& width, int& height)
+{
+	main_frame->OnRenderWindowSizeRequest(width, height);
 }
 
 void Host_SetWaitCursor(bool enable)

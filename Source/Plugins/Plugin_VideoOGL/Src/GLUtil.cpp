@@ -313,7 +313,7 @@ THREAD_RETURN XEventThread(void *pArg)
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight)
 {
 	int _tx, _ty, _twidth,  _theight;
-	g_VideoInitialize.pRequestWindowSize(_tx, _ty, _twidth, _theight);
+	g_VideoInitialize.pGetWindowSize(_tx, _ty, _twidth, _theight);
 
 	// Control window size and picture scaling
 	s_backbuffer_width = _twidth;
@@ -488,7 +488,7 @@ bool OpenGL_MakeCurrent()
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
 #if defined(HAVE_WX) && (HAVE_WX)
-	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
+	g_VideoInitialize.pGetWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 #endif
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);

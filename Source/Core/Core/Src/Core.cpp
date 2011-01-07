@@ -80,7 +80,8 @@ volatile u32 DrawnFrame = 0;
 u32 DrawnVideo = 0;
 
 // Function forwarding
-void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height);
+void Callback_VideoGetWindowSize(int& x, int& y, int& width, int& height);
+void Callback_VideoRequestWindowSize(int& width, int& height);
 void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
 void Callback_VideoCopiedToXFB(bool video_update);
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
@@ -342,6 +343,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pWindowHandle				= _CoreParameter.hMainWindow;
 	VideoInitialize.pLog						= Callback_VideoLog;
 	VideoInitialize.pSysMessage					= Host_SysMessage;
+	VideoInitialize.pGetWindowSize				= Callback_VideoGetWindowSize;
 	VideoInitialize.pRequestWindowSize			= Callback_VideoRequestWindowSize;
 	VideoInitialize.pCopiedToXFB				= Callback_VideoCopiedToXFB;
 	VideoInitialize.pPeekMessages				= NULL;
@@ -717,10 +719,18 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	Frame::FrameUpdate();
 }
 
-// Ask the host for the desired window size
-void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
+// Ask the host for the window size
+void Callback_VideoGetWindowSize(int& x, int& y, int& width, int& height)
 {
-	Host_RequestWindowSize(x, y, width, height);
+	Host_GetRenderWindowSize(x, y, width, height);
+}
+
+// Suggest to the host that it sets the window to the given size.
+// The host may or may not decide to do this depending on fullscreen or not.
+// Sets width and height to the actual size of the window.
+void Callback_VideoRequestWindowSize(int& width, int& height)
+{
+	Host_RequestRenderWindowSize(width, height);
 }
 
 // Callback_DSPLog

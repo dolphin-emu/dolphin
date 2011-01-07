@@ -104,7 +104,7 @@ void UpdateFPSDisplay(const char *text)
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight)
 {
 	int xPos, yPos;
-	g_VideoInitialize.pRequestWindowSize(xPos, yPos, _twidth, _theight);
+	g_VideoInitialize.pGetWindowSize(xPos, yPos, _twidth, _theight);
 
 #if defined(_WIN32)
 	EmuWindow::SetSize(_twidth, _theight);
@@ -308,7 +308,7 @@ bool OpenGL_MakeCurrent()
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
-	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
+	g_VideoInitialize.pGetWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif

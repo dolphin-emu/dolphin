@@ -44,6 +44,7 @@ public:
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
 	static bool CheckForResize();
+	static void SetWindowSize(int width, int height);
 };
 
 }

@@ -1235,7 +1235,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 #endif
 
 	// Finish up the current frame, print some stats
+
+	if (g_ActiveConfig.bAdjustWindowSize)
+		SetWindowSize(fbWidth, fbHeight);
+
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
+	
 	bool xfbchanged = false;
 
 	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
@@ -1590,6 +1595,19 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 #endif
 
 	return result;
+}
+
+void Renderer::SetWindowSize(int width, int height)
+{
+	if (width < 1)
+		width = 1;
+	if (height < 1)
+		height = 1;
+
+	// Scale the window size by the EFB scale.
+	CalculateTargetScale(width, height, width, height);
+
+	g_VideoInitialize.pRequestWindowSize(width, height);
 }
 
 }

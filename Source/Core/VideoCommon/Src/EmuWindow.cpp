@@ -323,7 +323,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	// 3. Request window sizes which actually make the client area map to a common resolution
 	HWND Ret;
 	int x=0, y=0, width=640, height=480;
-	g_VideoInitialize.pRequestWindowSize(x, y, width, height);
+	g_VideoInitialize.pGetWindowSize(x, y, width, height);
 
 	 // TODO: Don't show if fullscreen
 	Ret = OpenWindow(hParent, hInstance, width, height, title);

@@ -256,7 +256,7 @@ Renderer::Renderer()
 	// Multisample Anti-aliasing hasn't been implemented yet use supersamling instead
 	int backbuffer_ms_mode = 0;
 
-	g_VideoInitialize.pRequestWindowSize(x, y, w_temp, h_temp);
+	g_VideoInitialize.pGetWindowSize(x, y, w_temp, h_temp);
 
 	for (fullScreenRes = 0; fullScreenRes < (int)D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{
@@ -421,6 +421,19 @@ bool Renderer::CheckForResize()
 	}
 	
 	return false;
+}
+
+void Renderer::SetWindowSize(int width, int height)
+{
+	if (width < 1)
+		width = 1;
+	if (height < 1)
+		height = 1;
+
+	// Scale the window size by the EFB scale.
+	CalculateTargetScale(width, height, width, height);
+
+	g_VideoInitialize.pRequestWindowSize(width, height);
 }
 
 bool Renderer::SetScissorRect()
@@ -1174,7 +1187,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Enable any configuration changes
 	UpdateActiveConfig();
-	const bool WindowResized = CheckForResize();
+
+	if (g_ActiveConfig.bAdjustWindowSize)
+		SetWindowSize(fbWidth, fbHeight);
+
+	const bool windowResized = CheckForResize();
 
 	bool xfbchanged = false;
 
@@ -1191,7 +1208,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
 
-	if (xfbchanged || WindowResized || s_LastEFBScale != g_ActiveConfig.iEFBScale || s_LastAA != newAA)
+	if (xfbchanged || windowResized || s_LastEFBScale != g_ActiveConfig.iEFBScale || s_LastAA != newAA)
 	{
 		s_LastAA = newAA;
 
@@ -1206,7 +1223,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-		if (WindowResized)
+		if (windowResized)
 		{
 			SetupDeviceObjects();
 		}

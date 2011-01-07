@@ -134,6 +134,7 @@ protected:
 	static Common::CriticalSection s_criticalScreenshot;
 	static std::string s_sScreenshotName;
 
+	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
 	static bool CalculateTargetSize(int multiplier = 1);
 	static void CalculateXYScale(const TargetRectangle& dst_rect);
 
