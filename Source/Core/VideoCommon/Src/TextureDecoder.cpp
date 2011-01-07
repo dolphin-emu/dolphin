@@ -1031,9 +1031,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						// (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa) -> (bbbbbbbb 00000000 aaaaaaaa 00000000)
 						// And last but not least, _mm_or_si128 ORs those two together, giving us the interleaving we desire:
 						// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
+						__m128i o1, o2, o3, o4;
 #if _M_SSE >= 0x401
 						// SSE4 gives 5-10% improvement in I4 texture decode when this runs:
-						__m128i o1, o2, o3, o4;
 						if (cpu_info.bSSE4_1) {
 							o1 = _mm_blend_epi16(i251, i151, 0x33); // 0x33 = 00110011
 							o2 = _mm_blend_epi16(i252, i152, 0x33);
