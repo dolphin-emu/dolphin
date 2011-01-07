@@ -1033,30 +1033,30 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
 #if _M_SSE >= 0x401
 						// SSE4 gives 5-10% improvement in I4 texture decode when this runs:
+						__m128i o1, o2, o3, o4;
 						if (cpu_info.bSSE4_1) {
-							const __m128i o1 = _mm_blend_epi16(i251, i151, 0x33); // 0x33 = 00110011
-							const __m128i o2 = _mm_blend_epi16(i252, i152, 0x33);
-							const __m128i o3 = _mm_blend_epi16(i261, i161, 0x33);
-							const __m128i o4 = _mm_blend_epi16(i262, i162, 0x33);
+							o1 = _mm_blend_epi16(i251, i151, 0x33); // 0x33 = 00110011
+							o2 = _mm_blend_epi16(i252, i152, 0x33);
+							o3 = _mm_blend_epi16(i261, i161, 0x33);
+							o4 = _mm_blend_epi16(i262, i162, 0x33);
 						} else
 #endif
 						{
 							const __m128i kMask_x00000000ffffffff = _mm_set_epi32(0x00000000L, 0xffffffffL, 0x00000000L, 0xffffffffL);
 							const __m128i kMask_xffffffff00000000 = _mm_set_epi32(0xffffffffL, 0x00000000L, 0xffffffffL, 0x00000000L);
-							const __m128i o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
-							const __m128i o2 = _mm_or_si128(_mm_and_si128(i152, kMask_x00000000ffffffff), _mm_and_si128(i252, kMask_xffffffff00000000));
+							o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
+							o2 = _mm_or_si128(_mm_and_si128(i152, kMask_x00000000ffffffff), _mm_and_si128(i252, kMask_xffffffff00000000));
 
 							// These two are for the next row; same pattern as above. We batched up two rows because our input was 64 bits.
-							const __m128i o3 = _mm_or_si128(_mm_and_si128(i161, kMask_x00000000ffffffff), _mm_and_si128(i261, kMask_xffffffff00000000));
-							const __m128i o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
-
-							// Write row 0:
-							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
-							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
-							// Write row 1:
-							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
-							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
+							o3 = _mm_or_si128(_mm_and_si128(i161, kMask_x00000000ffffffff), _mm_and_si128(i261, kMask_xffffffff00000000));
+							o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
 						}
+						// Write row 0:
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
+						// Write row 1:
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
+						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 					}
 #if 0
 			// Reference C implementation:
