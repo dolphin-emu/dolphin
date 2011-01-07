@@ -43,7 +43,7 @@
 namespace DX11
 {
 
-#define MAX_COPY_BUFFERS 21
+#define MAX_COPY_BUFFERS 24
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {};
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -120,7 +120,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 	// set transformation
 	if (NULL == efbcopycbuf[cbufid])
 	{
-		const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
+		const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = colmat;
 		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);

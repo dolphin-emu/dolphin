@@ -285,7 +285,7 @@ Renderer::Renderer()
 	CalculateXYScale(dst_rect);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
-	int SupersampleCoeficient = s_LastAA + 1;
+	int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize(SupersampleCoeficient);
@@ -604,10 +604,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
 
-		float colmat[16] = {0.0f};
-		float fConstAdd[4] = {0.0f};
+		float colmat[28] = {0.0f};
 		colmat[0] = colmat[5] = colmat[10] = 1.0f;
-		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
+		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBDepthTexture();
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
@@ -1080,7 +1079,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode),Gamma);
+		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_ActiveConfig.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),Gamma);		
+		
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
@@ -1216,7 +1216,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		CalculateXYScale(dst_rect);
 		
-		int SupersampleCoeficient = s_LastAA + 1;
+		int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		CalculateTargetSize(SupersampleCoeficient);

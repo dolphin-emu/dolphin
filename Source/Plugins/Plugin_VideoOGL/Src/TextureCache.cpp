@@ -297,8 +297,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		glViewport(0, 0, virtualW, virtualH);
 
 		PixelShaderCache::SetCurrentShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
-		const float* const fConstAdd = colmat + 16;		// fConstAdd is the last 4 floats of colmat
-		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
+		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		GL_REPORT_ERRORD();
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);

@@ -395,10 +395,10 @@ void PixelShaderManager::SetFogParamChanged()
     s_bFogParamChanged = true;
 }
 
-void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
+void PixelShaderManager::SetColorMatrix(const float* pmatrix)
 {
-	SetMultiPSConstant4fv(C_COLORMATRIX,4,pmatrix);
-    SetPSConstant4fv(C_COLORMATRIX+4, pfConstAdd);
+	SetMultiPSConstant4fv(C_COLORMATRIX,7,pmatrix);
+	s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
 }
 
 void PixelShaderManager::InvalidateXFRange(int start, int end)

@@ -51,7 +51,7 @@ public:
 	static void SetTexCoordChanged(u8 texmapid);
 	static void SetFogColorChanged();
 	static void SetFogParamChanged();
-	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
+	static void SetColorMatrix(const float* pmatrix);
 	static void InvalidateXFRange(int start, int end);
 	static void SetMaterialColor(int index, u32 data);
 };

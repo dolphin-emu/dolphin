@@ -170,7 +170,7 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 
 	WRITE(p, "uniform sampler samp0 : register(s0);\n");
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
-		WRITE(p, "uniform float4 cColMatrix[5] : register(c%d);\n", C_COLORMATRIX);
+		WRITE(p, "uniform float4 cColMatrix[7] : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "void main(\n"
 	         "out float4 ocol0 : COLOR0,\n");
 
@@ -208,6 +208,9 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
 	{
+		if(depthConversionType == DEPTH_CONVERSION_TYPE_NONE)
+			WRITE(p, "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n");		
+
 		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");		
 	}
 	else
@@ -235,8 +238,7 @@ void PixelShaderCache::Init()
 	}
 
 	int shaderModel = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
-	bool canUseColorMatrix = (C_COLORMATRIX + 5 <= maxConstants);
+	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
 
 	// other screen copy/convert programs
 	for(int copyMatrixType = 0; copyMatrixType < NUM_COPY_TYPES; copyMatrixType++)
@@ -252,11 +254,6 @@ void PixelShaderCache::Init()
 					// if it failed at a lower setting, it's going to fail here for the same reason it did there,
 					// so skip this attempt to avoid duplicate error messages.
 					s_CopyProgram[copyMatrixType][depthType][ssaaMode] = NULL;
-				}
-				else if(copyMatrixType == COPY_TYPE_MATRIXCOLOR && !canUseColorMatrix)
-				{
-					// color matrix not supported, so substitute the nearest equivalent program that doesn't use it.
-					s_CopyProgram[copyMatrixType][depthType][ssaaMode] = s_CopyProgram[COPY_TYPE_DIRECT][depthType][ssaaMode];
 				}
 				else
 				{
@@ -311,6 +308,7 @@ void PixelShaderCache::Shutdown()
 	if (s_rgba6_to_rgb8) s_rgba6_to_rgb8->Release();
 	s_rgba6_to_rgb8 = NULL;
 
+	
 	Clear();
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();

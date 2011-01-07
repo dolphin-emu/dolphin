@@ -31,16 +31,17 @@
 #define I_PLIGHTS	  "cLights"
 #define I_PMATERIALS   "cmtrl"
 
-#define C_COLORS		0
-#define C_KCOLORS		(C_COLORS + 4)
-#define C_ALPHA			(C_KCOLORS + 4)
-#define C_TEXDIMS		(C_ALPHA + 1)
-#define C_ZBIAS			(C_TEXDIMS + 8)
-#define C_INDTEXSCALE	(C_ZBIAS + 2)
-#define C_INDTEXMTX		(C_INDTEXSCALE + 2)
-#define C_FOG			(C_INDTEXMTX + 6)
-#define C_COLORMATRIX	(C_FOG + 2)
-#define C_PLIGHTS		(C_COLORMATRIX + 5)
+#define C_COLORMATRIX	0						// 0
+#define C_COLORS		0						// 0
+#define C_KCOLORS		(C_COLORS + 4)			// 4
+#define C_ALPHA			(C_KCOLORS + 4)			// 8
+#define C_TEXDIMS		(C_ALPHA + 1)			// 9
+#define C_ZBIAS			(C_TEXDIMS + 8)			//17
+#define C_INDTEXSCALE	(C_ZBIAS + 2)			//19
+#define C_INDTEXMTX		(C_INDTEXSCALE + 2)		//21
+#define C_FOG			(C_INDTEXMTX + 6)		//27
+
+#define C_PLIGHTS		(C_FOG + 2)
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11 + 2)

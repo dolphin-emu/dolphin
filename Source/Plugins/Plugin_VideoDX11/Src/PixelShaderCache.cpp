@@ -86,12 +86,13 @@ const char color_copy_program_code_msaa[] = {
 const char color_matrix_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2D Tex0 : register(t0);\n"
-	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n" 
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
 	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
+	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
@@ -99,7 +100,7 @@ const char color_matrix_program_code[] = {
 const char color_matrix_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
-	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n" 
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
@@ -110,6 +111,7 @@ const char color_matrix_program_code_msaa[] = {
 	"for(int i = 0; i < samples; ++i)\n"
 	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
 	"texcol /= samples;\n"
+	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
@@ -117,7 +119,7 @@ const char color_matrix_program_code_msaa[] = {
 const char depth_matrix_program[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2D Tex0 : register(t0);\n"
-	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
@@ -132,7 +134,7 @@ const char depth_matrix_program[] = {
 const char depth_matrix_program_msaa[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
-	"uniform float4 cColMatrix[5] : register(c0);\n"
+	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
@@ -214,16 +216,15 @@ unsigned int ps_constant_offset_table[] = {
 	76, 80,							// C_INDTEXSCALE, 8
 	84, 88, 92, 96, 100, 104,		// C_INDTEXMTX, 24
 	108, 112,						// C_FOG, 8
-	116, 120, 124, 128, 132,		// C_COLORMATRIX, 20	
-	136, 140, 144, 148, 152,		// C_PLIGHTS0, 20
-	156, 160, 164, 168, 172,		// C_PLIGHTS1, 20
-	176, 180, 184, 188, 192,		// C_PLIGHTS2, 20		
-	196, 200, 204, 208, 212,		// C_PLIGHTS3, 20
-	216, 220, 224, 228, 232,		// C_PLIGHTS4, 20
-	236, 240, 244, 248, 252,		// C_PLIGHTS5, 20
-	256, 260, 264, 268, 272,		// C_PLIGHTS6, 20
-	276, 280, 284, 288, 292,		// C_PLIGHTS7, 20	
-	296, 300, 304, 308,				// C_PMATERIALS, 16
+	116, 120, 124, 128, 132,		// C_PLIGHTS0, 20
+	136, 140, 144, 148, 152,		// C_PLIGHTS1, 20
+	156, 160, 164, 168, 172,		// C_PLIGHTS2, 20
+	176, 180, 184, 188, 192,		// C_PLIGHTS3, 20		
+	196, 200, 204, 208, 212,		// C_PLIGHTS4, 20
+	216, 220, 224, 228, 232,		// C_PLIGHTS5, 20
+	236, 240, 244, 248, 252,		// C_PLIGHTS6, 20
+	256, 260, 264, 268, 272,		// C_PLIGHTS7, 20
+	276, 280, 284, 288, 			// C_PMATERIALS, 16	
 };
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
