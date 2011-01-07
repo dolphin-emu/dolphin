@@ -1698,7 +1698,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						rgba01 = _mm_or_si128(_mm_shuffle_epi8(ar0, maskExxF), _mm_shuffle_epi8(gb0, maskxFEx));
 						rgba10 = _mm_or_si128(_mm_shuffle_epi8(ar1, mask6xx7), _mm_shuffle_epi8(gb1, maskx76x));
 						rgba11 = _mm_or_si128(_mm_shuffle_epi8(ar1, maskExxF), _mm_shuffle_epi8(gb1, maskxFEx));
-					}
+					} else
 #endif
 					{
 						const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
@@ -1855,20 +1855,21 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						// OR in the fixed alpha component
 						// _mm_slli_epi32( allFFs128, 24 ) == _mm_set_epi32(0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000)
 						argb888x4 = _mm_or_si128(_mm_or_si128(argb888x4, _mm_slli_epi32( allFFs128, 24 ) ), _mm_or_si128(b0, b1));
+						// calculate RGB2 and RGB3:
 						const __m128i rgb0 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(2, 2, 0, 0));
 						const __m128i rgb1 = _mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(3, 3, 1, 1));
+						const __m128i rrggbb0 = _mm_and_si128(_mm_unpacklo_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
+						const __m128i rrggbb1 = _mm_and_si128(_mm_unpacklo_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
+						const __m128i rrggbb01 = _mm_and_si128(_mm_unpackhi_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
+						const __m128i rrggbb11 = _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
 
 						__m128i rgb2, rgb3;
 
 						// if (rgb0 > rgb1):
 						if (cmp0 != 0)
 						{
-							// calculate RGB2 and RGB3:
-							const __m128i rrggbb0 = _mm_and_si128(_mm_unpacklo_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbb1 = _mm_and_si128(_mm_unpacklo_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
-
 							// RGB2a = ((RGB1 - RGB0) >> 1) - ((RGB1 - RGB0) >> 3)  using arithmetic shifts to extend sign (not logical shifts)
+							const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
 							const __m128i rrggbbsubshr1 = _mm_srai_epi16(rrggbbsub, 1);
 							const __m128i rrggbbsubshr3 = _mm_srai_epi16(rrggbbsub, 3);
 							const __m128i shr1subshr3 = _mm_sub_epi16(rrggbbsubshr1, rrggbbsubshr3);
@@ -1883,10 +1884,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 						else
 						{
-							// calculate RGB2 and RGB3:
-							const __m128i rrggbb0 = _mm_and_si128(_mm_unpacklo_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbb1 = _mm_and_si128(_mm_unpacklo_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
 							// RGB2b = avg(RGB0, RGB1)
 							const __m128i rrggbb21  = _mm_avg_epu16(rrggbb0, rrggbb1);
 							const __m128i rgb210 = _mm_srli_si128(_mm_packus_epi16(rrggbb21, rrggbb21), 8);
@@ -1897,12 +1894,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						// if (rgb0 > rgb1):
 						if (cmp1 != 0)
 						{
-							// calculate RGB2 and RGB3:
-							const __m128i rrggbb01 = _mm_and_si128(_mm_unpackhi_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbb11 = _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
-
 							// RGB2a = ((RGB1 - RGB0) >> 1) - ((RGB1 - RGB0) >> 3)  using arithmetic shifts to extend sign (not logical shifts)
+							const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
 							const __m128i rrggbbsubshr11 = _mm_srai_epi16(rrggbbsub1, 1);
 							const __m128i rrggbbsubshr31 = _mm_srai_epi16(rrggbbsub1, 3);
 							const __m128i shr1subshr31 = _mm_sub_epi16(rrggbbsubshr11, rrggbbsubshr31);
@@ -1917,10 +1910,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 						else
 						{
-							// calculate RGB2 and RGB3:
-							const __m128i rrggbb01 = _mm_and_si128(_mm_unpackhi_epi8(rgb0, rgb0), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbb11 = _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16( allFFs128, 8 ));
-							const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
 							// RGB2b = avg(RGB0, RGB1)
 							const __m128i rrggbb211 = _mm_avg_epu16(rrggbb01, rrggbb11);
 							const __m128i rgb211 = _mm_slli_si128(_mm_packus_epi16(rrggbb211, rrggbb211), 8);
