@@ -56,5 +56,6 @@ void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
 
 void Host_SysMessage(const char *fmt, ...);
 void Host_SetWiiMoteConnectionState(int _State);
+void Host_ConnectWiimote(int wm_idx, bool connect);
 
 #endif

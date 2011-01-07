@@ -9,10 +9,15 @@
 
 #define WIIMOTE_INI_NAME	"WiimoteNew"
 
-//extern InputPlugin g_plugin;
-extern unsigned int g_wiimote_sources[MAX_WIIMOTES];
+enum
+{
+	WIIMOTE_SRC_NONE = 0,
+	WIIMOTE_SRC_EMU = 1,
+	WIIMOTE_SRC_REAL = 2,
+	WIIMOTE_SRC_HYBRID = 3,	// emu + real
+};
 
-//extern SWiimoteInitialize g_WiimoteInitialize;
+extern unsigned int g_wiimote_sources[MAX_WIIMOTES];
 
 namespace Wiimote
 {

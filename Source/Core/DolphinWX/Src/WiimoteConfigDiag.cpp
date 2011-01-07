@@ -1,13 +1,14 @@
 
 #include "WiimoteConfigDiag.h"
 #include "HW/Wiimote.h"
+#include "Frame.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 const wxString& ConnectedWiimotesString()
 {
-	static wxString str = _("Connected to . Wiimotes");
-	str[13] = wxChar(wxT('0') + WiimoteReal::Initialize());
+	static wxString str;
+	str.Printf(_("Connected to %i Wiimotes"), WiimoteReal::Initialize());
 	return str;
 }
 
@@ -129,6 +130,9 @@ void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
 {
 	// should be kinda fine, maybe should just set when user clicks OK, w/e change it later
 	g_wiimote_sources[m_index] = event.GetInt();
+
+	// Connect or disconnect emulated wiimotes (maybe do this in when OK is clicked too?).
+	CFrame::ConnectWiimote(m_index, WIIMOTE_SRC_EMU & g_wiimote_sources[m_index]);
 }
 
 void WiimoteConfigDiag::Save(wxCommandEvent&)

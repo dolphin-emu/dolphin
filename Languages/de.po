@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-06 12:03-0600\n"
+"POT-Creation-Date: 2011-01-07 08:58-0600\n"
 "PO-Revision-Date: 2011-01-06 12:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -26,7 +26,7 @@ msgstr "(zu viele zum anzeigen)"
 msgid " Game : "
 msgstr "Spiel:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:109
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:110
 msgid " Graphics Configuration"
 msgstr "Grafik Einstellungen"
 
@@ -215,11 +215,11 @@ msgstr "Ansicht"
 msgid "&Wiimote Settings"
 msgstr "&Wiimote Einstellungen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:436
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:438
 msgid "(off)"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:219
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:220
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D Vision [Benötigt Vollbild]"
 
@@ -268,7 +268,7 @@ msgid "Acceleration"
 msgstr "Beschleunigung"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:292
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:293
 msgid "Accurate Texture Cache"
 msgstr "Genauer Texture Cache"
 
@@ -276,7 +276,7 @@ msgstr "Genauer Texture Cache"
 msgid "Action"
 msgstr "Aktion"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:146
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:147
 msgid "Adapter:"
 msgstr "Adapter:"
 
@@ -311,7 +311,7 @@ msgstr "Adresse:"
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Einstellung des benötigten Drucks um Analoge Tasten zu aktivieren."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:342
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:343
 msgid "Advanced"
 msgstr "Erweitert"
 
@@ -332,8 +332,8 @@ msgstr ""
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Alle Gamecube GCM Dateien (gcm)|*.gcm"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1245
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1259
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1249
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1263
 msgid "All Save States (sav, s##)"
 msgstr ""
 
@@ -373,11 +373,11 @@ msgstr ""
 msgid "Alternate RFI"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:186
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:187
 msgid "Anisotropic Filtering:"
 msgstr "Anisotropischer Filter:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:191
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:192
 msgid "Anti-Aliasing:"
 msgstr "Anti-Aliasing:"
 
@@ -403,7 +403,7 @@ msgstr ""
 "Soll die Datei gelöscht werden? Löschen kann nicht Rückgängig gemacht werden."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:644
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
 msgid "Aspect Ratio:"
 msgstr "Seitenverhältnis:"
 
@@ -420,7 +420,7 @@ msgstr ""
 msgid "Auto"
 msgstr "Automatisch"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:162
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
 msgid "Auto [recommended]"
 msgstr "Automatisch [empfohlen]"
 
@@ -441,7 +441,7 @@ msgstr "Banner Details"
 msgid "Banner:"
 msgstr "Banner:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:126
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:127
 msgid "Basic"
 msgstr ""
 
@@ -597,7 +597,7 @@ msgstr "Lösche"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:274
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:110
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:459
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:461
 msgid "Close"
 msgstr "Schließen"
 
@@ -647,7 +647,7 @@ msgstr "Einstellungen"
 msgid "Config..."
 msgstr "Einstellung..."
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:31
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:32
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:135
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:154
 msgid "Configure"
@@ -706,16 +706,16 @@ msgstr "Wiimote 3 Verbinden"
 msgid "Connect Wiimote 4"
 msgstr "Wiimote 4 Verbinden"
 
-#: Source/Core/DolphinWX/Src/Frame.cpp:825
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1216
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1215
 msgid "Connected"
 msgstr "Verbunden"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:9
-msgid "Connected to . Wiimotes"
-msgstr "Verbunden mit Wiimotes"
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:11
+#, c-format
+msgid "Connected to %i Wiimotes"
+msgstr "Verbunden mit %i Wiimotes"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:643
+#: Source/Core/DolphinWX/Src/Main.cpp:648
 msgid "Connecting..."
 msgstr "Verbinden..."
 
@@ -731,7 +731,7 @@ msgstr "Strg"
 msgid "Convert to GCI"
 msgstr "Zu GCI Convertieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:257
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:258
 msgid "Copy"
 msgstr "Kopie"
 
@@ -789,7 +789,7 @@ msgstr ""
 msgid "Creator: "
 msgstr "Ersteller:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:424
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:425
 msgid "Crop"
 msgstr "Zuschneiden"
 
@@ -883,19 +883,19 @@ msgstr "Gerät"
 msgid "Device Settings"
 msgstr "Geräte Einstellungen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
 msgid "Disable Dest. Alpha Pass"
 msgstr "Dest. Alpha Pass Abschalten"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
 msgid "Disable Fog"
 msgstr "Nebel Abschalten"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:353
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:354
 msgid "Disable Lighting"
 msgstr "Beleuchtung Abschalten"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:354
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
 msgid "Disable Textures"
 msgstr "Texturen Abschalten"
 
@@ -935,8 +935,7 @@ msgstr ""
 msgid "Disc"
 msgstr "Disc"
 
-#: Source/Core/DolphinWX/Src/Frame.cpp:825
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1216
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1215
 msgid "Disconnected"
 msgstr "Nicht Verbunden"
 
@@ -973,7 +972,7 @@ msgstr "Dolphin Konfiguration"
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:67
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
 msgid "Dolphin Wiimote Configuration"
 msgstr "Dolphin Wiimote Konfiguration"
 
@@ -1003,15 +1002,15 @@ msgstr "Runter"
 msgid "Download Codes (WiiRD Database)"
 msgstr "Codes Herunterladen (WiiRD Database)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:412
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
 msgid "Dump EFB Target"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
 msgid "Dump Frames"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:410
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:411
 msgid "Dump Textures"
 msgstr ""
 
@@ -1028,15 +1027,15 @@ msgstr "Holländisch"
 msgid "E&xit"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:226
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:227
 msgid "EFB"
 msgstr "EFB"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
 msgid "EFB Copy Regions"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:212
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:213
 msgid "EFB Scaled Copy"
 msgstr "EFB Scaled Copy"
 
@@ -1069,7 +1068,7 @@ msgstr "Aktuelle Perspektive bearbeiten"
 msgid "Edit..."
 msgstr "Bearbeiten..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:247
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:248
 msgid "Emulate format changes"
 msgstr "Formatänderung Emulieren"
 
@@ -1080,8 +1079,8 @@ msgid ""
 "framebuffer copies."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:20
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:32
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:33
 msgid "Emulated Wiimote"
 msgstr "Emulierte Wiimote"
 
@@ -1094,9 +1093,9 @@ msgid "Emulator Display Settings"
 msgstr "Emulator Anzeige Einstellungen"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:260
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:295
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:379
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:261
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:296
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:380
 msgid "Enable"
 msgstr "Aktivieren"
 
@@ -1118,7 +1117,7 @@ msgid "Enable Block Merging"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:246
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:247
 msgid "Enable CPU Access"
 msgstr "CPU-Zugriff Aktivieren"
 
@@ -1135,7 +1134,7 @@ msgstr "Copy to EFB Aktivieren"
 msgid "Enable DTK Music"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
 msgid "Enable Display List Caching"
 msgstr ""
 
@@ -1156,7 +1155,7 @@ msgstr "EFB To Texture Aktivieren"
 msgid "Enable HLE Audio"
 msgstr "Tastenkürzel Aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
 msgid "Enable Hotkeys"
 msgstr "Tastenkürzel Aktivieren"
 
@@ -1177,7 +1176,7 @@ msgstr "Dual Core Aktivieren"
 msgid "Enable MMU"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:425
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
 msgid "Enable OpenCL"
 msgstr "OpenCL Aktivieren"
 
@@ -1194,11 +1193,11 @@ msgstr "Bildschirmschoner Erlauben"
 msgid "Enable WideScreen"
 msgstr "Breitbild Aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:352
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:353
 msgid "Enable Wireframe"
 msgstr "Drahtgitter Aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:267
 msgid "Enable cache"
 msgstr "Cache Aktivieren"
 
@@ -1279,7 +1278,7 @@ msgstr "Ende"
 msgid "English"
 msgstr "Englisch"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:181
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:182
 msgid "Enhancements"
 msgstr "Erweiterungen"
 
@@ -1393,7 +1392,7 @@ msgstr "FRANKREICH"
 msgid "FST Size:"
 msgstr "FST Größe:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:311
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:312
 msgid "Fast"
 msgstr "Schnell"
 
@@ -1423,15 +1422,15 @@ msgstr "Erster Block"
 msgid "Fix Checksums"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
 msgid "Force 16:9"
 msgstr "16:9 Erzwingen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
 msgid "Force 4:3"
 msgstr "4:3 Erzwingen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
 msgid "Force Bi/Trilinear Filtering"
 msgstr "Erzwinge Bi/Trilineare Filterung"
 
@@ -1458,7 +1457,7 @@ msgstr ""
 "Verbessert Textur-Qualität (besonders bei hoher interner Auflösung) aber "
 "verursacht Fehler in einigen Spielen."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:233
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:234
 msgid "Fractional"
 msgstr "Fractional"
 
@@ -1470,7 +1469,7 @@ msgstr ""
 msgid "Framelimit :"
 msgstr "Framelimit :"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
 msgid "Free Look"
 msgstr "Frei Umsehen"
 
@@ -1534,7 +1533,7 @@ msgid "Gecko Codes"
 msgstr "Gecko Codes"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:394
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:121
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:122
 msgid "General"
 msgstr "Generell"
 
@@ -1590,7 +1589,7 @@ msgstr "Hotkey Konfiguration"
 msgid "Hotkeys"
 msgstr "Tastenkürzel"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:20
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
 msgid "Hybrid Wiimote"
 msgstr "Gemischte Wiimote"
 
@@ -1657,7 +1656,7 @@ msgstr "In-Game"
 msgid "Info"
 msgstr "Info"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:361
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:362
 msgid "Information"
 msgstr "Informationen"
 
@@ -1665,7 +1664,7 @@ msgstr "Informationen"
 msgid "Input"
 msgstr "Eingabe"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:27
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:28
 msgid "Input Source"
 msgstr "Eingabequelle"
 
@@ -1697,7 +1696,7 @@ msgstr "Zum Wii-Menü hinzufügen."
 msgid "Installing WAD to Wii Menu..."
 msgstr "WAD ins Wii-Menü installieren..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:233
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:234
 msgid "Integral [recommended]"
 msgstr "Integral [empfohlen]"
 
@@ -1801,11 +1800,11 @@ msgstr "Kleiner Als"
 msgid "Load"
 msgstr "Laden"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:411
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:412
 msgid "Load Hi-Res Textures"
 msgstr "Hochauflösende Texturen Laden"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:211
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:212
 msgid "Load Native Mipmaps"
 msgstr "Native Mipmaps Laden"
 
@@ -1895,7 +1894,7 @@ msgstr "Menü"
 msgid "Metroid Other M"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:419
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:420
 msgid "Misc"
 msgstr "Sonstiges"
 
@@ -2055,12 +2054,12 @@ msgid "No docking"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:350
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:19
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:20
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:554
 msgid "None"
 msgstr "Keine"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:306
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:307
 msgid "Normal"
 msgstr "Normal"
 
@@ -2073,7 +2072,7 @@ msgstr "Ungleich"
 msgid "Not Set"
 msgstr "Nicht Festgelegt"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:642
+#: Source/Core/DolphinWX/Src/Main.cpp:647
 msgid "Not connected"
 msgstr "Nicht Verbunden"
 
@@ -2110,7 +2109,7 @@ msgstr "Nunchuk"
 msgid "Nunchuk Acceleration"
 msgstr "Nunchuck Beschleunigung"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:78
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:79
 #: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:35
 #: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:37
 msgid "OK"
@@ -2172,7 +2171,7 @@ msgstr "Bild Ab"
 msgid "Page Up"
 msgstr "Bild Hoch"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:46
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:47
 msgid "Pair Up"
 msgstr "Verbinden"
 
@@ -2193,8 +2192,8 @@ msgstr "Patches"
 msgid "Paths"
 msgstr "Pfade"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1388
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1389
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1392
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1393
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "Pause"
@@ -2208,17 +2207,17 @@ msgstr "Perfekt"
 msgid "Perspective %d"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
 msgid "Pixel Depth"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:213
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
 msgid "Pixel Lighting"
 msgstr "Pixel Lighting"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:362
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1398
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1401
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
 msgid "Play"
 msgstr "Start"
 
@@ -2255,7 +2254,7 @@ msgstr "Plus-Minus"
 msgid "Port :"
 msgstr "Port:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:432
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:434
 msgid "Post-Processing Shader:"
 msgstr ""
 
@@ -2283,7 +2282,7 @@ msgstr "Profil"
 msgid "Projection Hack for: "
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:368
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
 msgid "Projection Stats"
 msgstr "Projektions Statistik"
 
@@ -2304,7 +2303,7 @@ msgstr "Beenden"
 msgid "R Button"
 msgstr "R Taste"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:264
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:265
 msgid "RAM"
 msgstr "RAM"
 
@@ -2316,12 +2315,12 @@ msgstr "RUSSLAND"
 msgid "Range"
 msgstr "Weite"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:382
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
 msgid "Real"
 msgstr "Echt"
 
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:20
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:42
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:43
 msgid "Real Wiimote"
 msgstr "Echte Wiimote"
 
@@ -2342,7 +2341,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:927
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:359
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:39
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:40
 msgid "Refresh"
 msgstr "Neu Laden"
 
@@ -2373,7 +2372,7 @@ msgstr "Im Hauptfenster Rendern"
 msgid "Render to main window."
 msgstr "Im Hauptfenster Rendern."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:347
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:348
 msgid "Rendering"
 msgstr "Rendern"
 
@@ -2413,7 +2412,7 @@ msgstr "Script ausführen...\n"
 msgid "Sa&ve State"
 msgstr "Status Speichern"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:300
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:301
 msgid "Safe"
 msgstr "Sicher"
 
@@ -2453,7 +2452,7 @@ msgstr "Aktuelle Perspektive speichern"
 msgid "Save decompressed GCM/ISO"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:239
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:240
 msgid "Scale:"
 msgstr "Skalierung:"
 
@@ -2530,11 +2529,11 @@ msgstr "Datei zum Speichern auswählen."
 msgid "Select the script to load"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1243
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1247
 msgid "Select the state to load"
 msgstr "Status zum Laden auswählen"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1257
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1261
 msgid "Select the state to save"
 msgstr "Status zum Speichern auswählen"
 
@@ -2616,7 +2615,7 @@ msgstr "Werkzeugleiste Anzeigen"
 msgid "Show Drives"
 msgstr "Treiber Anzeigen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:366
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:367
 msgid "Show FPS"
 msgstr "FPS Anzeigen"
 
@@ -2656,7 +2655,7 @@ msgstr ""
 msgid "Show Regions"
 msgstr "Regionen Anzeigen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
 msgid "Show Shader Errors"
 msgstr "Shader Fehler Anzeigen"
 
@@ -2855,7 +2854,7 @@ msgstr "Status"
 msgid "Stop"
 msgstr "Stop"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
 msgid "Stretch to Window"
 msgstr "An Fenster Anpassen"
 
@@ -2890,11 +2889,11 @@ msgstr "Screenshot Speichern"
 msgid "Test"
 msgstr "Testen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:262
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:263
 msgid "Texture"
 msgstr "Textur"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
 msgid "Texture Format"
 msgstr "Textur Format"
 
@@ -3061,11 +3060,11 @@ msgstr ""
 "Vervessert die sichtbare Qualität in Spielen, die EFB-Copies benutzen, "
 "erheblich. Kann in einigen Spielen aber zu Fehlern führen."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:405
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:406
 msgid "Utility"
 msgstr "Utility"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:176
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:177
 msgid "V-Sync"
 msgstr "V-Sync"
 
@@ -3081,7 +3080,7 @@ msgstr "Wert:"
 msgid "Value: "
 msgstr "Wert:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:367
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:368
 msgid "Various Statistics"
 msgstr "Diverse Statistiken"
 
@@ -3093,7 +3092,7 @@ msgstr ""
 msgid "Video"
 msgstr "Video"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:381
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:382
 msgid "Virtual"
 msgstr "Virtuell"
 
@@ -3110,12 +3109,12 @@ msgstr ""
 "Auf Vertical Blanks warten.\n"
 "Reduziert Tearing aber kann die Performance verschlechtern."
 
-#: Source/Core/DolphinWX/Src/Frame.cpp:659
+#: Source/Core/DolphinWX/Src/Frame.cpp:660
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:77
 msgid "Warning"
 msgstr "Warnung"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:105
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
 "texture, which is a very time-consuming task.\n"
@@ -3138,7 +3137,7 @@ msgstr ""
 "die Beschleunigung; Texture Cache auf \"sicher\"  könnte sogar langsamer "
 "sein!)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:174
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:175
 msgid "Widescreen Hack"
 msgstr ""
 
@@ -3175,7 +3174,7 @@ msgstr ""
 "oder die Wiimote war zulange Inaktiv oder andere Ursachen.\n"
 "Soll die Wiimote sofort wieder verbunden werden?"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:644
+#: Source/Core/DolphinWX/Src/Main.cpp:649
 msgid "Wiimote Connected"
 msgstr "Wiimote Verbunden"
 
@@ -3242,7 +3241,7 @@ msgstr "In Datei Schreiben"
 msgid "Write to Window ->"
 msgstr "In Fenster schreiben ->"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:376
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:377
 msgid "XFB"
 msgstr "XFB"
 

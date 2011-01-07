@@ -21,6 +21,7 @@
 #include "IniFile.h"
 #include "StringUtil.h"
 #include "Timer.h"
+#include "../../Host.h"
 
 #include "WiimoteReal.h"
 
@@ -537,6 +538,8 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 	// rumble briefly
 	wiimote->Rumble();
 
+	Host_ConnectWiimote(wiimote->index, true);
+
 	// main loop
 	while (g_run_wiimote_thread && wiimote->IsConnected())
 	{
@@ -549,6 +552,8 @@ THREAD_RETURN WiimoteThreadFunc(void* arg)
 #endif
 			Common::SleepCurrentThread(1);
 	}
+
+	Host_ConnectWiimote(wiimote->index, false);
 
 #ifdef __APPLE__
 	[pool release];

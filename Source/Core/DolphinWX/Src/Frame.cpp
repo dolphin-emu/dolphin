@@ -640,6 +640,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		if (GetStatusBar() != NULL)
 		{
 			GetStatusBar()->SetStatusText(event.GetString(), event.GetInt());
+			UpdateGUI();
 		}
 		break;
 
@@ -838,12 +839,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
-			bNoWiimoteMsg = GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-			GetMenuBar()->Check(IDM_CONNECT_WIIMOTE1 + WiimoteId, !bNoWiimoteMsg);
-			GetUsbPointer()->AccessWiiMote(WiimoteId | 0x100)->Activate(!bNoWiimoteMsg);
-			wxString msg(wxString::Format(wxT("Wiimote %i %s"), WiimoteId + 1,
-						bNoWiimoteMsg ?  _("Disconnected") : _("Connected")));
-			Core::DisplayMessage(msg.ToAscii(), 3000);
+			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+			ConnectWiimote(WiimoteId, connect);
 		}
 
 		// Send the OSD hotkeys to the video plugin

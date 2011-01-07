@@ -658,3 +658,8 @@ bool Host_RendererHasFocus()
 {
 	return main_frame->RendererHasFocus();
 }
+
+void Host_ConnectWiimote(int wm_idx, bool connect)
+{
+	CFrame::ConnectWiimote(wm_idx, connect);
+}

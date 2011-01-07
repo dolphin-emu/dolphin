@@ -131,6 +131,7 @@ class CFrame : public CRenderFrame
 		bool RendererHasFocus();
 		void DoFullscreen(bool bF);
 		void ToggleDisplayMode (bool bFullscreen);
+		static void ConnectWiimote(int wm_idx, bool connect);
 
 		#ifdef __WXGTK__
 		Common::Event panic_event;

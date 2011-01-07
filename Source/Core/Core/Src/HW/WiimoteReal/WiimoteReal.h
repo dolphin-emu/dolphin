@@ -29,14 +29,6 @@
 
 #include "../../InputCommon/Src/InputConfig.h"
 
-enum
-{
-	WIIMOTE_SRC_NONE = 0,
-	WIIMOTE_SRC_EMU = 1,
-	WIIMOTE_SRC_REAL = 2,
-	WIIMOTE_SRC_HYBRID = 3,	// emu + real
-};
-
 // Pointer to data, and size of data
 typedef std::pair<u8*,u8> Report;
 
