@@ -411,14 +411,14 @@ void DolphinApp::InitLanguageSupport()
 {
 	int language = 0;
 
+	// keep those in sync with CConfigMain::InitializeGUILists
 	const wxLanguage langIds[] =
 	{
 		wxLANGUAGE_DEFAULT,
+		wxLANGUAGE_ENGLISH,
 		wxLANGUAGE_GERMAN,
 		wxLANGUAGE_FRENCH,
-		wxLANGUAGE_SPANISH,
 		wxLANGUAGE_ITALIAN,
-		wxLANGUAGE_DUTCH,
 	};
 
 	IniFile ini;
@@ -426,7 +426,7 @@ void DolphinApp::InitLanguageSupport()
 	ini.Get("Interface", "Language", &language, 0);
 
 	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(langIds[language]))
+	if(language >= 0 && language < sizeof(langIds) / sizeof(wxLanguage) && wxLocale::IsAvailable(langIds[language]))
 	{
 		m_locale = new wxLocale(langIds[language]);
 
@@ -438,14 +438,14 @@ void DolphinApp::InitLanguageSupport()
 
 		if(!m_locale->IsOk())
 		{
-			PanicAlert("Error loading selected language.  Falling back to system default.\n");
+			PanicAlert("Error loading selected language. Falling back to system default.\n");
 			delete m_locale;
 			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 		}
 	}
 	else
 	{
-		PanicAlert("The selected language is not supported by your system.  Falling back to system default.\n");
+		PanicAlert("The selected language is not supported by your system. Falling back to system default.\n");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
 }

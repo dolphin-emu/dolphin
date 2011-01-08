@@ -65,7 +65,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 			indexOne = 0;
 			break;
 		default:
-			indexOne = SConfig::GetInstance().m_InterfaceLanguage;
+			indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
 	switch (other.GetCountry())
@@ -75,10 +75,10 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 			indexOther = 0;
 			break;
 		default:
-			indexOther = SConfig::GetInstance().m_InterfaceLanguage;
+			indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
-	switch(currentColumn)
+	switch (currentColumn)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
 			return strcasecmp(one.GetName(indexOne).c_str(),
@@ -453,15 +453,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			break;
 		default:
 			m_gameList.append(StringFromFormat("%s (E)\n",
-				rISOFile.GetName(SConfig::GetInstance().m_InterfaceLanguage).c_str()));
+				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()));
 			SetItem(_Index, COLUMN_TITLE,
 					wxString::From8BitData(
-						rISOFile.GetName(SConfig::GetInstance().m_InterfaceLanguage).c_str()),
+						rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
 					-1);
 			SetItem(_Index, COLUMN_NOTES,
 					wxString::From8BitData(company.size() ?
 						company.c_str() :
-						rISOFile.GetDescription(SConfig::GetInstance().m_InterfaceLanguage).c_str()),
+						rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
 					-1);
 			break;
 		}
@@ -716,7 +716,7 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 			indexOne = 0;
 			break;
 		default:
-			indexOne = SConfig::GetInstance().m_InterfaceLanguage;
+			indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
 	switch (iso2->GetCountry())
@@ -726,7 +726,7 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 			indexOther = 0;
 			break;
 		default:
-			indexOther = SConfig::GetInstance().m_InterfaceLanguage;
+			indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
 	switch(sortData)

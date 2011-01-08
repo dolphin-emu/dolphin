@@ -222,7 +222,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
 		ini.Get("Interface", "MainWindowWidth",		&m_LocalCoreStartupParameter.iWidth,			800);
 		ini.Get("Interface", "MainWindowHeight",	&m_LocalCoreStartupParameter.iHeight,			600);
-		ini.Get("Interface", "Language",			(int*)&m_InterfaceLanguage,						0);
+		ini.Get("Interface", "Language",			&m_InterfaceLanguage,							0);
 		ini.Get("Interface", "ShowToolbar",			&m_InterfaceToolbar,							true);
 		ini.Get("Interface", "ShowStatusbar",		&m_InterfaceStatusbar,							true);
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);

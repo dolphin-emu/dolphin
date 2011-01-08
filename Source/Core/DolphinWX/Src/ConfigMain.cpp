@@ -230,20 +230,16 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_Themes.Add(wxT("Vista"));
 	arrayStringFor_Themes.Add(wxT("X-Plastik"));
 	arrayStringFor_Themes.Add(wxT("KDE"));
-
-	// GUI language arrayStrings
-	arrayStringFor_InterfaceLang.Add(_("English"));
-	arrayStringFor_InterfaceLang.Add(_("German"));
-	arrayStringFor_InterfaceLang.Add(_("French"));
-	arrayStringFor_InterfaceLang.Add(_("Spanish"));
-	arrayStringFor_InterfaceLang.Add(_("Italian"));
-	arrayStringFor_InterfaceLang.Add(_("Dutch"));
-	
 	
 	// Gamecube page
 	// GC Language arrayStrings
-	arrayStringFor_GCSystemLang = arrayStringFor_InterfaceLang;
-	
+	arrayStringFor_GCSystemLang.Add(_("English"));
+	arrayStringFor_GCSystemLang.Add(_("German"));
+	arrayStringFor_GCSystemLang.Add(_("French"));
+	arrayStringFor_GCSystemLang.Add(_("Spanish"));
+	arrayStringFor_GCSystemLang.Add(_("Italian"));
+	arrayStringFor_GCSystemLang.Add(_("Dutch"));
+
 	
 	// Wii page
 	// Sensorbar Position
@@ -255,12 +251,20 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
 	
 	// Wii Language arrayStrings
-	arrayStringFor_WiiSystemLang = arrayStringFor_InterfaceLang;
+	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
 	arrayStringFor_WiiSystemLang.Insert(_("Japanese"), 0);
 	arrayStringFor_WiiSystemLang.Add(_("Simplified Chinese"));
 	arrayStringFor_WiiSystemLang.Add(_("Traditional Chinese"));
 	arrayStringFor_WiiSystemLang.Add(_("Korean"));
-	
+
+	// GUI language arrayStrings
+	// keep those in sync with DolphinApp::InitLanguageSupport
+	arrayStringFor_InterfaceLang.Add(_("<System>"));
+	arrayStringFor_InterfaceLang.Add(_("English"));
+	arrayStringFor_InterfaceLang.Add(_("German"));
+	arrayStringFor_InterfaceLang.Add(_("French"));
+	arrayStringFor_InterfaceLang.Add(_("Italian"));
+
 }
 
 void CConfigMain::InitializeGUIValues()
@@ -873,10 +877,9 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		main_frame->InitBitmaps();
 		break;
 	case ID_INTERFACE_LANG:
-		if (SConfig::GetInstance().m_InterfaceLanguage !=
-				(INTERFACE_LANGUAGE)InterfaceLang->GetSelection())
+		if (SConfig::GetInstance().m_InterfaceLanguage != InterfaceLang->GetSelection())
 			SuccessAlert("You must restart Dolphin in order for the change to take effect.");
-		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
+		SConfig::GetInstance().m_InterfaceLanguage = InterfaceLang->GetSelection();
 		bRefreshList = true;
 		break;
 	case ID_HOTKEY_CONFIG:

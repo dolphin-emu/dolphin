@@ -112,7 +112,6 @@ bool CBannerLoaderGC::GetName(std::string _rName[])
 		{
 			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-			// u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
 			for (int i = 0; i < 6; i++)
 			{
 				char tempBuffer[65] = {0};
