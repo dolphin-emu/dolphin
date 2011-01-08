@@ -335,7 +335,10 @@ if(NOT DISABLE_WX)
 		include(${wxWidgets_USE_FILE})
 
 		if(UNIX AND NOT APPLE)
-			check_lib(GTK2 gtk+-2.0 REQUIRED)
+			include(FindGTK2)
+			if(GTK2_FOUND)
+				include_directories(${GTK2_INCLUDE_DIRS})
+			endif()
 		endif()
 
 		message("wxWidgets found, enabling GUI build")

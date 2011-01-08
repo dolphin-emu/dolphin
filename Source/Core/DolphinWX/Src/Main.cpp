@@ -424,6 +424,7 @@ void DolphinApp::InitLanguageSupport()
 		wxLANGUAGE_POLISH,
 		wxLANGUAGE_RUSSIAN
 	};
+
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	ini.Get("Interface", "Language", &language, 0);
