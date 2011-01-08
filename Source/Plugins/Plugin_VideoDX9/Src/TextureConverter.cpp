@@ -362,7 +362,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
 		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
-		(float)(Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight) + Renderer::TargetStrideY()),
+		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
 		Renderer::EFBToScaledXf(sampleStride),
 		Renderer::EFBToScaledYf(sampleStride),
 		(float)Renderer::GetFullTargetWidth(),
@@ -426,7 +426,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
 		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
-		(float)(Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight) + Renderer::TargetStrideY()),
+		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
 		Renderer::EFBToScaledXf(sampleStride),
 		Renderer::EFBToScaledYf(sampleStride),
 		(float)SourceW,
