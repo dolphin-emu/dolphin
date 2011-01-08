@@ -957,27 +957,21 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_I4:
 		{
-			// JSD optimized with SSE2 intrinsics.
-			// Produces a ~76% speed increase over reference C implementation.
 			const __m128i kMask_x0f = _mm_set_epi32(0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL);
 			const __m128i kMask_xf0 = _mm_set_epi32(0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L);
-
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy += 2, src += 8)
-					{
-						// Expand [BA] to [BB][BB][BB][BB] [AA][AA][AA][AA], where [BA] is a single byte and A and B are 4-bit values.
-						// Load 64 bits with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						// dcba is row #0 and hgfe is row #1. We process two rows at once with each loop iteration, hence iy += 2.
-						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
-						__m128i o1, o2, o3, o4;
 #if _M_SSE >= 0x301
-						if (cpu_info.bSSSE3) {
-							const __m128i mask9180 = _mm_set_epi8(9,9,9,9,1,1,1,1,8,8,8,8,0,0,0,0);
-							const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
-							const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
-							const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
-
+			// xsacha optimized with SSSE3 intrinsics
+			// Produces a ~40% speed improvement over SSE2 implementation
+			if (cpu_info.bSSSE3) {
+				const __m128i mask9180 = _mm_set_epi8(9,9,9,9,1,1,1,1,8,8,8,8,0,0,0,0);
+				const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
+				const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
+				const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
+				for (int y = 0; y < height; y += 8)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 8; iy += 2, src += 8)
+						{
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
 							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
 							// (00000000 00000000 HhGgFfEe DdCcBbAa) -> (00000000 00000000 HHGGFFEE DDCCBBAA)
 							const __m128i i1 = _mm_and_si128(r0, kMask_xf0);
@@ -994,9 +988,24 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							const __m128i o2 = _mm_shuffle_epi8(base, maskB3A2);
 							const __m128i o3 = _mm_shuffle_epi8(base, maskD5C4);
 							const __m128i o4 = _mm_shuffle_epi8(base, maskF7E6);
-						} else
+
+							// Write row 0:
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
+							// Write row 1:
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
+						}
+			} else
 #endif
+			// JSD optimized with SSE2 intrinsics.
+			// Produces a ~76% speed improvement over reference C implementation.
+			{
+				for (int y = 0; y < height; y += 8)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 8; iy += 2, src += 8)
 						{
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
 							// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 							const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
@@ -1040,20 +1049,20 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
 							const __m128i kMask_x00000000ffffffff = _mm_set_epi32(0x00000000L, 0xffffffffL, 0x00000000L, 0xffffffffL);
 							const __m128i kMask_xffffffff00000000 = _mm_set_epi32(0xffffffffL, 0x00000000L, 0xffffffffL, 0x00000000L);
-							o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
-							o2 = _mm_or_si128(_mm_and_si128(i152, kMask_x00000000ffffffff), _mm_and_si128(i252, kMask_xffffffff00000000));
+							const __m128i o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
+							const __m128i o2 = _mm_or_si128(_mm_and_si128(i152, kMask_x00000000ffffffff), _mm_and_si128(i252, kMask_xffffffff00000000));
 
 							// These two are for the next row; same pattern as above. We batched up two rows because our input was 64 bits.
-							o3 = _mm_or_si128(_mm_and_si128(i161, kMask_x00000000ffffffff), _mm_and_si128(i261, kMask_xffffffff00000000));
-							o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
+							const __m128i o3 = _mm_or_si128(_mm_and_si128(i161, kMask_x00000000ffffffff), _mm_and_si128(i261, kMask_xffffffff00000000));
+							const __m128i o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff), _mm_and_si128(i262, kMask_xffffffff00000000));
+							// Write row 0:
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
+							// Write row 1:
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
+							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 						}
-						// Write row 0:
-						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x ), o1 );
-						_mm_storeu_si128( (__m128i*)( dst+(y + iy) * width + x + 4 ), o2 );
-						// Write row 1:
-						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
-						_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
-					}
+			}
 #if 0
 			// Reference C implementation:
 			for (int y = 0; y < height; y += 8)
@@ -1072,13 +1081,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	   break;
 	case GX_TF_I8:  // speed critical
 		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-				{
 #if _M_SSE >= 0x301
-					if (cpu_info.bSSSE3)
+			if (cpu_info.bSSSE3)
+			{
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
 					{
-						// SSSE3 intrinsics: About 5-10% faster than SSE2 version
+						// xsacha optimized with SSSE3 intrinsics
+						// Produces a ~10% speed improvement over SSE2 implementation
 						for (int iy = 0; iy < 4; ++iy, src+=8)
 						{
 							const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
@@ -1095,11 +1105,15 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							_mm_storeu_si128(quaddst, rgba0);
 							_mm_storeu_si128(quaddst+1, rgba1);
 						}
-					} else
+				}
+			} else
 #endif
+			// JSD optimized with SSE2 intrinsics.
+			// Produces an ~86% speed improvement over reference C implementation.
+			{
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
 					{
-						// JSD optimized with SSE2 intrinsics.
-						// Produces an ~86% speed increase over reference C implementation.
 						// Each loop iteration processes 4 rows from 4 64-bit reads.
 
 						// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
@@ -1177,7 +1191,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 
 						src += 8;
 					}
-				}
+			}
 #if 0
 			// Reference C implementation
 			for (int y = 0; y < height; y += 4)
@@ -1238,7 +1252,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_IA8:
 		{
 #if _M_SSE >= 0x301
-			// SSSE3 implementation is approximately 50% faster than SSE2 version.
+			// xsacha optimized with SSSE3 intrinsics.
+			// Produces an ~50% speed improvement over SSE2 implementation.
 			if (cpu_info.bSSSE3)
 			{
 				for (int y = 0; y < height; y += 4)
@@ -1254,9 +1269,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						}
 			} else
 #endif
+			// JSD optimized with SSE2 intrinsics.
+			// Produces an ~80% speed improvement over reference C implementation.
 			{
-				// JSD optimized with SSE2 intrinsics.
-				// Produces an ~80% speed improvement over reference C implementation.
 				const __m128i kMask_xf0 = _mm_set_epi32(0x00000000L, 0x00000000L, 0xff00ff00L, 0xff00ff00L);
 				const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
 				const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
@@ -1431,25 +1446,24 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_RGB5A3:
 		{
-			// JSD optimized with SSE2 intrinsics in 2 out of 4 cases.
-			// Produces a ~25% speed improvement over reference C implementation.
 			const __m128i kMask_x1f = _mm_set_epi32(0x0000001fL, 0x0000001fL, 0x0000001fL, 0x0000001fL);
 			const __m128i kMask_x0f = _mm_set_epi32(0x0000000fL, 0x0000000fL, 0x0000000fL, 0x0000000fL);
 			const __m128i kMask_x07 = _mm_set_epi32(0x00000007L, 0x00000007L, 0x00000007L, 0x00000007L);
-
 			// This is the hard-coded 0xFF alpha constant that is ORed in place after the RGB are calculated
 			// for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
 			const __m128i aVxff00   = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
-			for (int y = 0; y < height; y += 4)
+
+			// xsacha optimized with SSSE3 intrinsics (2 in 4 cases)
+			// Produces a ~18% speed improvement over SSE2 implementation
+#if _M_SSE >= 0x301
+			if (cpu_info.bSSSE3)
+			{
+				for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
 					{
 						u32 *newdst = dst+(y+iy)*width+x;
-#if _M_SSE >= 0x301
-						// Produces a ~40% speed improvement over reference C implementation
-						if (cpu_info.bSSSE3)
-						{
-							const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
+						const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
 							const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)src),mask);
 							int cmp = _mm_movemask_epi8(valV); //MSB: 0x2 = val0; 0x20=val1; 0x200 = val2; 0x2000=val3
 							if ((cmp&0x2222)==0x2222) // SSSE3 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
@@ -1529,9 +1543,17 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 									newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
 								}
 							}
-						} else
+					}
+			} else
 #endif
+			// JSD optimized with SSE2 intrinsics (2 in 4 cases)
+			// Produces a ~25% speed improvement over reference C implementation.
+			{
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 4)
+						for (int iy = 0; iy < 4; iy++, src += 8)
 						{
+							u32 *newdst = dst+(y+iy)*width+x;
 							const u16 *newsrc = (const u16*)src;
 
 							// TODO: weak point
@@ -1686,7 +1708,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 								newdst[3] = r3 | (g3 << 8) | (b3 << 16) | (a3 << 24);
 							}
 						}
-					}
+				}
 #if 0
 			// Reference C implementation:
 			for (int y = 0; y < height; y += 4)
@@ -1698,43 +1720,19 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_RGBA8:  // speed critical
 		{
-			// JSD optimized with SSE2 intrinsics.
-			// Produces a ~68% improvement in speed over reference C implementation.
-
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4, src += 64)
-				{
-					// Input is divided up into 16-bit words. The texels are split up into AR and GB components where all
-					// AR components come grouped up first in 32 bytes followed by the GB components in 32 bytes. We are
-					// processing 16 texels per each loop iteration, numbered from 0-f.
-					//
-					// Convention is:
-					//   one byte is [component-name texel-number]
-					//    __m128i is (4-bytes 4-bytes 4-bytes 4-bytes)
-					//
-					// Input  is ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
-					//           ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
-					//           ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
-					//           ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
-					//
-					// Output is (RGBA3 RGBA2 RGBA1 RGBA0)
-					//           (RGBA7 RGBA6 RGBA5 RGBA4)
-					//           (RGBAb RGBAa RGBA9 RGBA8)
-					//           (RGBAf RGBAe RGBAd RGBAc)
-
-					// Loads the 1st half of AR components ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
-					const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
-					// Loads the 2nd half of AR components ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
-					const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
-					// Loads the 1st half of GB components ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
-					const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
-					// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
-					const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
-					__m128i rgba00, rgba01, rgba10, rgba11;
 #if _M_SSE >= 0x301
-					// SSSE3 Implementation is about 25% faster than SSE2 version
-					if (cpu_info.bSSSE3)
+			// xsacha optimized with SSSE3 instrinsics
+			// Produces a ~25% speed improvement over SSE2 implementation
+			if (cpu_info.bSSSE3)
+			{
+				__m128i rgba00, rgba01, rgba10, rgba11;
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 4, src += 64)
 					{
+						const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
+						const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
+						const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
+						const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
 						const __m128i mask6xx7 = _mm_set_epi8(6, 128, 128, 7, 4, 128, 128, 5, 2, 128, 128, 3, 0, 128, 128, 1);
 						const __m128i maskExxF = _mm_set_epi8(14, 128, 128, 15, 12, 128, 128, 13, 10, 128, 128, 11, 8, 128, 128, 9);
 						const __m128i maskx76x = _mm_set_epi8(128, 7, 6, 128, 128, 5, 4, 128, 128, 3, 2, 128, 128, 1, 0, 128);
@@ -1744,9 +1742,51 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						rgba01 = _mm_or_si128(_mm_shuffle_epi8(ar0, maskExxF), _mm_shuffle_epi8(gb0, maskxFEx));
 						rgba10 = _mm_or_si128(_mm_shuffle_epi8(ar1, mask6xx7), _mm_shuffle_epi8(gb1, maskx76x));
 						rgba11 = _mm_or_si128(_mm_shuffle_epi8(ar1, maskExxF), _mm_shuffle_epi8(gb1, maskxFEx));
-					} else
+						// Write em out!
+						__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
+						_mm_storeu_si128(dst128, rgba00);
+						dst128 = (__m128i*)( dst + (y + 1) * width + x );
+						_mm_storeu_si128(dst128, rgba01);
+						dst128 = (__m128i*)( dst + (y + 2) * width + x );
+						_mm_storeu_si128(dst128, rgba10);
+						dst128 = (__m128i*)( dst + (y + 3) * width + x );
+						_mm_storeu_si128(dst128, rgba11);
+					}
+			} else
 #endif
+			// JSD optimized with SSE2 intrinsics
+			// Produces a ~68% speed improvement over reference C implementation.
+			{
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 4, src += 64)
 					{
+						// Input is divided up into 16-bit words. The texels are split up into AR and GB components where all
+						// AR components come grouped up first in 32 bytes followed by the GB components in 32 bytes. We are
+						// processing 16 texels per each loop iteration, numbered from 0-f.
+						//
+						// Convention is:
+						//   one byte is [component-name texel-number]
+						//    __m128i is (4-bytes 4-bytes 4-bytes 4-bytes)
+						//
+						// Input  is ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
+						//           ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
+						//           ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
+						//           ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
+						//
+						// Output is (RGBA3 RGBA2 RGBA1 RGBA0)
+						//           (RGBA7 RGBA6 RGBA5 RGBA4)
+						//           (RGBAb RGBAa RGBA9 RGBA8)
+						//           (RGBAf RGBAe RGBAd RGBAc)
+
+						// Loads the 1st half of AR components ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
+						const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
+						// Loads the 2nd half of AR components ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
+						const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
+						// Loads the 1st half of GB components ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
+						const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
+						// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
+						const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
+						__m128i rgba00, rgba01, rgba10, rgba11;
 						const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
 						const __m128i kMask_xf000 = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
 						const __m128i kMask_x0ff0 = _mm_set_epi32(0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L, 0x00FFFF00L);
@@ -1800,18 +1840,17 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						rgba01 = _mm_or_si128(r__a01, _gb_01);
 						rgba10 = _mm_or_si128(r__a10, _gb_10);
 						rgba11 = _mm_or_si128(r__a11, _gb_11);
+						// Write em out!
+						__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
+						_mm_storeu_si128(dst128, rgba00);
+						dst128 = (__m128i*)( dst + (y + 1) * width + x );
+						_mm_storeu_si128(dst128, rgba01);
+						dst128 = (__m128i*)( dst + (y + 2) * width + x );
+						_mm_storeu_si128(dst128, rgba10);
+						dst128 = (__m128i*)( dst + (y + 3) * width + x );
+						_mm_storeu_si128(dst128, rgba11);
 					}
-
-					// Write em out!
-					__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
-					_mm_storeu_si128(dst128, rgba00);
-					dst128 = (__m128i*)( dst + (y + 1) * width + x );
-					_mm_storeu_si128(dst128, rgba01);
-					dst128 = (__m128i*)( dst + (y + 2) * width + x );
-					_mm_storeu_si128(dst128, rgba10);
-					dst128 = (__m128i*)( dst + (y + 3) * width + x );
-					_mm_storeu_si128(dst128, rgba11);
-				}
+			}
 #if 0
 			// Reference C implementation.
 			for (int y = 0; y < height; y += 4)
