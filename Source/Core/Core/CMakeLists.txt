@@ -153,6 +153,10 @@ if(PORTAUDIO_FOUND)
 	set(LIBS ${LIBS} portaudio)
 endif(PORTAUDIO_FOUND)
 
+if(OPROFILE_FOUND)
+	set(LIBS ${LIBS} opagent bfd)
+endif(OPROFILE_FOUND)
+
 add_library(core STATIC ${SRCS})
 target_link_libraries(core ${LIBS})
 

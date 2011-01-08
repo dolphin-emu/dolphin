@@ -204,6 +204,17 @@ else()
 	set(PORTAUDIO_FOUND FALSE)
 endif(PORTAUDIO)
 
+option(OPROFILING "Enable profiling" OFF)
+if(OPROFILING)
+	check_lib(OPROFILE opagent opagent.h)
+	check_lib(BFD bfd bfd.h)
+	if(OPROFILE_FOUND AND BFD_FOUND)
+		message("oprofile found, enabling profiling support")
+		add_definitions(-DUSE_OPROFILE=1)
+	else()
+		message(FATAL_ERROR "oprofile or bfd not found. Can't build profiling support.")
+	endif()
+endif()
 
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
