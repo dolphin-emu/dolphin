@@ -1451,7 +1451,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						u32 *newdst = dst+(y+iy)*width+x;
 #if _M_SSE >= 0x301
 						// Produces a ~40% speed improvement over reference C implementation
-						if (cpu_info.bSSE3)
+						if (cpu_info.bSSSE3)
 						{
 							const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
 							const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)src),mask);
@@ -1510,7 +1510,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							else
 							{
 								// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-								unsigned __int32 *vals = (unsigned __int32*) &valV;
+								u32 *vals = (u32*) &valV;
 								int r,g,b,a;
 								for (int i=0; i < 4; ++i)
 								{
@@ -1867,7 +1867,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						u32 dxt1sel = dxttmp[3];
 
 						__m128i argb888x4;
-						const __m128i lowMask = _mm_srli_si128( allFFs128, 8 );
 						__m128i c1 = _mm_unpackhi_epi16(dxt, dxt);
 						c1 = _mm_slli_si128(c1, 8);
 						const __m128i c0 = _mm_or_si128(c1, _mm_srli_si128(_mm_slli_si128(_mm_unpacklo_epi16(dxt, dxt), 8), 8));
@@ -1889,7 +1888,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i gtmp = _mm_srli_epi32(c0, 3);
 						const __m128i g0 = _mm_and_si128(gtmp, low6mask);
 						// low3mask == _mm_set_epi32(0x00000300, 0x00000300, 0x00000300, 0x00000300)
-						const __m128i low3mask = _mm_slli_epi32(_mm_srli_epi32(allFFs128, 32 - 3), 8);
 						const __m128i g1 = _mm_and_si128(_mm_srli_epi32(gtmp, 6), _mm_set_epi32(0x00000300, 0x00000300, 0x00000300, 0x00000300));
 						argb888x4 = _mm_or_si128(g0, g1);
 						// red:
