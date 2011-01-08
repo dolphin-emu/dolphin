@@ -263,8 +263,11 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("English"));
 	arrayStringFor_InterfaceLang.Add(_("German"));
 	arrayStringFor_InterfaceLang.Add(_("French"));
+	arrayStringFor_InterfaceLang.Add(_("Spanish"));
 	arrayStringFor_InterfaceLang.Add(_("Italian"));
-
+	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmål"));
+	arrayStringFor_InterfaceLang.Add(_("Polish"));
+	arrayStringFor_InterfaceLang.Add(_("Russian"));
 }
 
 void CConfigMain::InitializeGUIValues()

@@ -427,6 +427,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, vconfig.bDlistCachingEnable));
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, vconfig.bOSDHotKey));
 	szr_misc->Add(new SettingCheckBox(page_advanced, wxT("Adjust window size"), adjust_window_size_tooltip, vconfig.bAdjustWindowSize));
+	szr_misc->AddSpacer(0);
 
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())

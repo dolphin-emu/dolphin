@@ -409,7 +409,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 
 void DolphinApp::InitLanguageSupport()
 {
-	int language = 0;
+	unsigned int language = 0;
 
 	// keep those in sync with CConfigMain::InitializeGUILists
 	const wxLanguage langIds[] =
@@ -418,9 +418,12 @@ void DolphinApp::InitLanguageSupport()
 		wxLANGUAGE_ENGLISH,
 		wxLANGUAGE_GERMAN,
 		wxLANGUAGE_FRENCH,
+		wxLANGUAGE_SPANISH,
 		wxLANGUAGE_ITALIAN,
+		wxLANGUAGE_NORWEGIAN_BOKMAL,
+		wxLANGUAGE_POLISH,
+		wxLANGUAGE_RUSSIAN
 	};
-
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	ini.Get("Interface", "Language", &language, 0);

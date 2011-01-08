@@ -101,10 +101,14 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
 }
 
+void Host_RequestRenderWindowSize(int& width, int& height) {}
+
 bool Host_RendererHasFocus()
 {
 	return rendererHasFocus;
 }
+
+void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
 void Host_SetWaitCursor(bool enable){}
 
