@@ -967,81 +967,77 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0; iy < 8; iy += 2, src += 8)
 					{
 						// Expand [BA] to [BB][BB][BB][BB] [AA][AA][AA][AA], where [BA] is a single byte and A and B are 4-bit values.
-
-						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
+						// Load 64 bits with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 						// dcba is row #0 and hgfe is row #1. We process two rows at once with each loop iteration, hence iy += 2.
 						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
-						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
-						const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
-
-						// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
-						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) >> 4 [16]   -> (0HhH0GgG 0FfF0EeE 0DdD0CcC 0BbB0AaA)
-						const __m128i i1 = _mm_srli_epi16(r1, 4);
-						// (0HhH0GgG 0FfF0EeE 0DdD0CcC 0BbB0AaA) & kMask_x0f -> (0H0H0G0G 0F0F0E0E 0D0D0C0C 0B0B0A0A)
-						const __m128i i12 = _mm_and_si128(i1, kMask_x0f);
-						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) & kMask_xf0 -> (H0H0G0G0 F0F0E0E0 D0D0C0C0 B0B0A0A0)
-						const __m128i i13 = _mm_and_si128(r1, kMask_xf0);
-						// (0H0H0G0G 0F0F0E0E 0D0D0C0C 0B0B0A0A) | (H0H0G0G0 F0F0E0E0 D0D0C0C0 B0B0A0A0) -> (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA)
-						const __m128i i14 = _mm_or_si128(i12, i13);
-
-						// Shuffle low 64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA)
-						const __m128i i15 = _mm_unpacklo_epi8(i14, i14);
-						// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA)
-						const __m128i i151 = _mm_unpacklo_epi8(i15, i15);
-						// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (DDDDDDDD DDDDDDDD CCCCCCCC CCCCCCCC)
-						const __m128i i152 = _mm_unpackhi_epi8(i15, i15);
-
-						// Shuffle hi  64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE)
-						const __m128i i16 = _mm_unpackhi_epi8(i14, i14);
-						// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (FFFFFFFF FFFFFFFF EEEEEEEE EEEEEEEE)
-						const __m128i i161 = _mm_unpacklo_epi8(i16, i16);
-						// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (HHHHHHHH HHHHHHHH GGGGGGGG GGGGGGGG)
-						const __m128i i162 = _mm_unpackhi_epi8(i16, i16);
-
-						// Now find the lo 4 bits of each input 8-bit word:
-						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) & kMask_x0f -> (0h0h0g0g 0f0f0e0e 0d0d0c0c 0b0b0a0a)
-						const __m128i i2 = _mm_and_si128(r1, kMask_x0f);
-						// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) << 4 [16]   -> (hHh0gGg0 fFf0eEe0 dDd0cCc0 bBb0aAa0)
-						const __m128i i21 = _mm_slli_epi16(r1, 4);
-						// (hHh0gGg0 fFf0eEe0 dDd0cCc0 bBb0aAa0) & kMask_xf0 -> (h0h0g0g0 f0f0e0e0 d0d0c0c0 b0b0a0a0)
-						const __m128i i22 = _mm_and_si128(i21, kMask_xf0);
-
-						// (0h0h0g0g 0f0f0e0e 0d0d0c0c 0b0b0a0a) | (h0h0g0g0 f0f0e0e0 d0d0c0c0 b0b0a0a0) -> (hhhhgggg ffffeeee ddddcccc bbbbaaaa)
-						const __m128i i23 = _mm_or_si128(i2, i22);
-
-						// Shuffle low 64-bits with itself to expand from (hhhhgggg ffffeeee ddddcccc bbbbaaaa) to (dddddddd cccccccc bbbbbbbb aaaaaaaa)
-						const __m128i i25 = _mm_unpacklo_epi8(i23, i23);
-						// (dddddddd cccccccc bbbbbbbb aaaaaaaa) -> (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa)
-						const __m128i i251 = _mm_unpacklo_epi8(i25, i25);
-						// (dddddddd cccccccc bbbbbbbb aaaaaaaa) -> (dddddddd dddddddd cccccccc cccccccc)
-						const __m128i i252 = _mm_unpackhi_epi8(i25, i25);
-
-						// Shuffle hi  64-bits with itself to expand from (hhhhgggg ffffeeee ddddcccc bbbbaaaa) to (hhhhhhhh gggggggg ffffffff eeeeeeee)
-						const __m128i i26 = _mm_unpackhi_epi8(i23, i23);
-						// (hhhhhhhh gggggggg ffffffff eeeeeeee) -> (ffffffff ffffffff eeeeeeee eeeeeeee)
-						const __m128i i261 = _mm_unpacklo_epi8(i26, i26);
-						// (hhhhhhhh gggggggg ffffffff eeeeeeee) -> (hhhhhhhh hhhhhhhh gggggggg gggggggg)
-						const __m128i i262 = _mm_unpackhi_epi8(i26, i26);
-
-						// Now create the final output m128is to write to memory:
-
-						// _mm_and_si128(i151, kMask_x00000000ffffffff) takes i151 and masks off 1st and 3rd 32-bit words
-						// (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA) -> (00000000 BBBBBBBB 00000000 AAAAAAAA)
-						// _mm_and_si128(i251, kMask_xffffffff00000000) takes i251 and masks off 2nd and 4th 32-bit words
-						// (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa) -> (bbbbbbbb 00000000 aaaaaaaa 00000000)
-						// And last but not least, _mm_or_si128 ORs those two together, giving us the interleaving we desire:
-						// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
 						__m128i o1, o2, o3, o4;
-#if _M_SSE >= 0x401
-						// SSE4 gives 5-10% improvement in I4 texture decode when this runs:
-						if (cpu_info.bSSE4_1) {
-							o1 = _mm_blend_epi16(i251, i151, 0x33); // 0x33 = 00110011
-							o2 = _mm_blend_epi16(i252, i152, 0x33);
-							o3 = _mm_blend_epi16(i261, i161, 0x33);
-							o4 = _mm_blend_epi16(i262, i162, 0x33);
+#if _M_SSE >= 0x301
+						if (cpu_info.bSSSE3) {
+							const __m128i mask9180 = _mm_set_epi8(9,9,9,9,1,1,1,1,8,8,8,8,0,0,0,0);
+							const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
+							const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
+							const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
+
+							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
+							// (00000000 00000000 HhGgFfEe DdCcBbAa) -> (00000000 00000000 HHGGFFEE DDCCBBAA)
+							const __m128i i1 = _mm_and_si128(r0, kMask_xf0);
+							const __m128i i11 = _mm_or_si128(i1, _mm_srli_epi16(i1, 4));
+
+							// Now we do same as above for the second half of the byte
+							const __m128i i2 = _mm_and_si128(r0, kMask_x0f);
+							const __m128i i22 = _mm_or_si128(i2, _mm_slli_epi16(i2,4));
+
+							// Combine both sides
+							const __m128i base = _mm_unpacklo_epi64(i11,i22);
+							// Achieve the pattern visible in the masks.
+							const __m128i o1 = _mm_shuffle_epi8(base, mask9180);
+							const __m128i o2 = _mm_shuffle_epi8(base, maskB3A2);
+							const __m128i o3 = _mm_shuffle_epi8(base, maskD5C4);
+							const __m128i o4 = _mm_shuffle_epi8(base, maskF7E6);
 						} else
 #endif
 						{
+							// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
+							const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
+
+							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
+							// (HhHhGgGg FfFfEeEe DdDdCcCc BbBbAaAa) & kMask_xf0 -> (H0H0G0G0 F0F0E0E0 D0D0C0C0 B0B0A0A0)
+							const __m128i i1 = _mm_and_si128(r1, kMask_xf0);
+							// -> (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA)
+							const __m128i i11 = _mm_or_si128(i1, _mm_srli_epi16(i1, 4));
+
+							// Shuffle low 64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA)
+							const __m128i i15 = _mm_unpacklo_epi8(i11, i11);
+							// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA)
+							const __m128i i151 = _mm_unpacklo_epi8(i15, i15);
+							// (DDDDDDDD CCCCCCCC BBBBBBBB AAAAAAAA) -> (DDDDDDDD DDDDDDDD CCCCCCCC CCCCCCCC)
+							const __m128i i152 = _mm_unpackhi_epi8(i15, i15);
+
+							// Shuffle hi  64-bits with itself to expand from (HHHHGGGG FFFFEEEE DDDDCCCC BBBBAAAA) to (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE)
+							const __m128i i16 = _mm_unpackhi_epi8(i11, i11);
+							// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (FFFFFFFF FFFFFFFF EEEEEEEE EEEEEEEE)
+							const __m128i i161 = _mm_unpacklo_epi8(i16, i16);
+							// (HHHHHHHH GGGGGGGG FFFFFFFF EEEEEEEE) -> (HHHHHHHH HHHHHHHH GGGGGGGG GGGGGGGG)
+							const __m128i i162 = _mm_unpackhi_epi8(i16, i16);
+
+							// Now find the lo 4 bits of each input 8-bit word:
+							const __m128i i2 = _mm_and_si128(r1, kMask_x0f);
+							const __m128i i22 = _mm_or_si128(i2, _mm_slli_epi16(i2,4));
+
+							const __m128i i25 = _mm_unpacklo_epi8(i22, i22);
+							const __m128i i251 = _mm_unpacklo_epi8(i25, i25);
+							const __m128i i252 = _mm_unpackhi_epi8(i25, i25);
+
+							const __m128i i26 = _mm_unpackhi_epi8(i22, i22);
+							const __m128i i261 = _mm_unpacklo_epi8(i26, i26);
+							const __m128i i262 = _mm_unpackhi_epi8(i26, i26);
+
+							// _mm_and_si128(i151, kMask_x00000000ffffffff) takes i151 and masks off 1st and 3rd 32-bit words
+							// (BBBBBBBB BBBBBBBB AAAAAAAA AAAAAAAA) -> (00000000 BBBBBBBB 00000000 AAAAAAAA)
+							// _mm_and_si128(i251, kMask_xffffffff00000000) takes i251 and masks off 2nd and 4th 32-bit words
+							// (bbbbbbbb bbbbbbbb aaaaaaaa aaaaaaaa) -> (bbbbbbbb 00000000 aaaaaaaa 00000000)
+							// And last but not least, _mm_or_si128 ORs those two together, giving us the interleaving we desire:
+							// (00000000 BBBBBBBB 00000000 AAAAAAAA) | (bbbbbbbb 00000000 aaaaaaaa 00000000) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
 							const __m128i kMask_x00000000ffffffff = _mm_set_epi32(0x00000000L, 0xffffffffL, 0x00000000L, 0xffffffffL);
 							const __m128i kMask_xffffffff00000000 = _mm_set_epi32(0xffffffffL, 0x00000000L, 0xffffffffL, 0x00000000L);
 							o1 = _mm_or_si128(_mm_and_si128(i151, kMask_x00000000ffffffff), _mm_and_si128(i251, kMask_xffffffff00000000));
