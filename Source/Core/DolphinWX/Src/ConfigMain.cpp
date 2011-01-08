@@ -261,13 +261,14 @@ void CConfigMain::InitializeGUILists()
 	// keep those in sync with DolphinApp::InitLanguageSupport
 	arrayStringFor_InterfaceLang.Add(_("<System>"));
 	arrayStringFor_InterfaceLang.Add(_("English"));
-	arrayStringFor_InterfaceLang.Add(_("German"));
 	arrayStringFor_InterfaceLang.Add(_("French"));
-	arrayStringFor_InterfaceLang.Add(_("Spanish"));
+	arrayStringFor_InterfaceLang.Add(_("German"));
+	arrayStringFor_InterfaceLang.Add(_("Hebrew"));
 	arrayStringFor_InterfaceLang.Add(_("Italian"));
 	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmål"));
 	arrayStringFor_InterfaceLang.Add(_("Polish"));
 	arrayStringFor_InterfaceLang.Add(_("Russian"));
+	arrayStringFor_InterfaceLang.Add(_("Spanish"));
 }
 
 void CConfigMain::InitializeGUIValues()
