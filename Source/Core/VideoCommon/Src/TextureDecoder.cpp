@@ -957,8 +957,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_I4:
 		{
-			const __m128i kMask_x0f = _mm_set_epi32(0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL, 0x0f0f0f0fL);
-			const __m128i kMask_xf0 = _mm_set_epi32(0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L, 0xf0f0f0f0L);
+			const __m128i kMask_x0f = _mm_set1_epi32(0x0f0f0f0fL);
+			const __m128i kMask_xf0 = _mm_set1_epi32(0xf0f0f0f0L);
 #if _M_SSE >= 0x301
 			// xsacha optimized with SSSE3 intrinsics
 			// Produces a ~40% speed improvement over SSE2 implementation
@@ -1082,13 +1082,13 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_I8:  // speed critical
 		{
 #if _M_SSE >= 0x301
+			// xsacha optimized with SSSE3 intrinsics
+			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0; x < width; x += 8)
 					{
-						// xsacha optimized with SSSE3 intrinsics
-						// Produces a ~10% speed improvement over SSE2 implementation
 						for (int iy = 0; iy < 4; ++iy, src+=8)
 						{
 							const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
@@ -1364,11 +1364,11 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		{
 			// JSD optimized with SSE2 intrinsics.
 			// Produces an ~78% speed improvement over reference C implementation.
-			const __m128i kMaskR0 = _mm_set_epi32(0x000000F8, 0x000000F8, 0x000000F8, 0x000000F8);
-			const __m128i kMaskG0 = _mm_set_epi32(0x0000FC00, 0x0000FC00, 0x0000FC00, 0x0000FC00);
-			const __m128i kMaskG1 = _mm_set_epi32(0x00000300, 0x00000300, 0x00000300, 0x00000300);
-			const __m128i kMaskB0 = _mm_set_epi32(0x00F80000, 0x00F80000, 0x00F80000, 0x00F80000);
-			const __m128i kAlpha  = _mm_set_epi32(0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000);
+			const __m128i kMaskR0 = _mm_set1_epi32(0x000000F8);
+			const __m128i kMaskG0 = _mm_set1_epi32(0x0000FC00);
+			const __m128i kMaskG1 = _mm_set1_epi32(0x00000300);
+			const __m128i kMaskB0 = _mm_set1_epi32(0x00F80000);
+			const __m128i kAlpha  = _mm_set1_epi32(0xFF000000);
 
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
@@ -1446,16 +1446,16 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_RGB5A3:
 		{
-			const __m128i kMask_x1f = _mm_set_epi32(0x0000001fL, 0x0000001fL, 0x0000001fL, 0x0000001fL);
-			const __m128i kMask_x0f = _mm_set_epi32(0x0000000fL, 0x0000000fL, 0x0000000fL, 0x0000000fL);
-			const __m128i kMask_x07 = _mm_set_epi32(0x00000007L, 0x00000007L, 0x00000007L, 0x00000007L);
+			const __m128i kMask_x1f = _mm_set1_epi32(0x0000001fL);
+			const __m128i kMask_x0f = _mm_set1_epi32(0x0000000fL);
+			const __m128i kMask_x07 = _mm_set1_epi32(0x00000007L);
 			// This is the hard-coded 0xFF alpha constant that is ORed in place after the RGB are calculated
 			// for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
-			const __m128i aVxff00   = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
+			const __m128i aVxff00   = _mm_set1_epi32(0xFF000000L);
 
-			// xsacha optimized with SSSE3 intrinsics (2 in 4 cases)
-			// Produces a ~18% speed improvement over SSE2 implementation
 #if _M_SSE >= 0x301
+			// xsacha optimized with SSSE3 intrinsics (2 in 4 cases)
+			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
 				for (int y = 0; y < height; y += 4)
@@ -1562,12 +1562,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							const u16 val2 = Common::swap16(newsrc[2]);
 							const u16 val3 = Common::swap16(newsrc[3]);
 
+							const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+
 							// Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
 							if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
 							{
 								// SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
-
-								const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
 
 								// Swizzle bits: 00012345 -> 12345123
 
@@ -1593,8 +1593,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) == 0x0000)
 							{
 								// SSE2 case #2: all 4 pixels are in RGBA4443.
-
-								const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
 
 								// Swizzle bits: 00001234 -> 12341234
 
@@ -1629,83 +1627,29 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							}
 							else
 							{
-								// Horrific fallback case, but hey at least it's inlined :D
-								// Maybe overkill? I see slight improvements on my machine as far as RDTSC
-								// counts and it's all done in registers (on x64). No temp memory moves!
-								int r0,g0,b0,a0;
-								int r1,g1,b1,a1;
-								int r2,g2,b2,a2;
-								int r3,g3,b3,a3;
-
-								// Normal operation, no parallelism to take advantage of:
-								if (val0 & 0x8000)
+								// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
+								u32 *vals = (u32*) &valV;
+								int r,g,b,a;
+								for (int i=0; i < 4; ++i)
 								{
-									// Swizzle bits: 00012345 -> 12345123
-									r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
-									g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
-									b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
-									a0 = 0xFF;
+									if (vals[i] & 0x8000)
+									{
+										// Swizzle bits: 00012345 -> 12345123
+										r = (((vals[i]>>10) & 0x1f) << 3) | (((vals[i]>>10) & 0x1f) >> 2);
+										g = (((vals[i]>>5 ) & 0x1f) << 3) | (((vals[i]>>5 ) & 0x1f) >> 2);
+										b = (((vals[i]    ) & 0x1f) << 3) | (((vals[i]    ) & 0x1f) >> 2);
+										a = 0xFF;
+									}
+									else
+									{
+										a = (((vals[i]>>12) & 0x7) << 5) | (((vals[i]>>12) & 0x7) << 2) | (((vals[i]>>12) & 0x7) >> 1);
+										// Swizzle bits: 00001234 -> 12341234
+										r = (((vals[i]>>8 ) & 0xf) << 4) | ((vals[i]>>8 ) & 0xf);
+										g = (((vals[i]>>4 ) & 0xf) << 4) | ((vals[i]>>4 ) & 0xf);
+										b = (((vals[i]    ) & 0xf) << 4) | ((vals[i]    ) & 0xf);
+									}
+									newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
 								}
-								else
-								{
-									a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
-									// Swizzle bits: 00001234 -> 12341234
-									r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
-									g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
-									b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
-								}
-								newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-
-								if (val1 & 0x8000)
-								{
-									// Swizzle bits: 00012345 -> 12345123
-									r1 = (((val1>>10) & 0x1f) << 3) | (((val1>>10) & 0x1f) >> 2);
-									g1 = (((val1>>5 ) & 0x1f) << 3) | (((val1>>5 ) & 0x1f) >> 2);
-									b1 = (((val1    ) & 0x1f) << 3) | (((val1    ) & 0x1f) >> 2);
-									a1 = 0xFF;
-								}
-								else
-								{
-									a1 = (((val1>>12) & 0x7) << 5) | (((val1>>12) & 0x7) << 2) | (((val1>>12) & 0x7) >> 1);
-									r1 = (((val1>>8 ) & 0xf) << 4) | ((val1>>8 ) & 0xf);
-									g1 = (((val1>>4 ) & 0xf) << 4) | ((val1>>4 ) & 0xf);
-									b1 = (((val1    ) & 0xf) << 4) | ((val1    ) & 0xf);
-								}
-								newdst[1] = r1 | (g1 << 8) | (b1 << 16) | (a1 << 24);
-
-								if (val2 & 0x8000)
-								{
-									// Swizzle bits: 00012345 -> 12345123
-									r2 = (((val2>>10) & 0x1f) << 3) | (((val2>>10) & 0x1f) >> 2);
-									g2 = (((val2>>5 ) & 0x1f) << 3) | (((val2>>5 ) & 0x1f) >> 2);
-									b2 = (((val2    ) & 0x1f) << 3) | (((val2    ) & 0x1f) >> 2);
-									a2 = 0xFF;
-								}
-								else
-								{
-									a2 = (((val2>>12) & 0x7) << 5) | (((val2>>12) & 0x7) << 2) | (((val2>>12) & 0x7) >> 1);
-									r2 = (((val2>>8 ) & 0xf) << 4) | ((val2>>8 ) & 0xf);
-									g2 = (((val2>>4 ) & 0xf) << 4) | ((val2>>4 ) & 0xf);
-									b2 = (((val2    ) & 0xf) << 4) | ((val2    ) & 0xf);
-								}
-								newdst[2] = r2 | (g2 << 8) | (b2 << 16) | (a2 << 24);
-
-								if (val3 & 0x8000)
-								{
-									// Swizzle bits: 00012345 -> 12345123
-									r3 = (((val3>>10) & 0x1f) << 3) | (((val3>>10) & 0x1f) >> 2);
-									g3 = (((val3>>5 ) & 0x1f) << 3) | (((val3>>5 ) & 0x1f) >> 2);
-									b3 = (((val3    ) & 0x1f) << 3) | (((val3    ) & 0x1f) >> 2);
-									a3 = 0xFF;
-								}
-								else
-								{
-									a3 = (((val3>>12) & 0x7) << 5) | (((val3>>12) & 0x7) << 2) | (((val3>>12) & 0x7) >> 1);
-									r3 = (((val3>>8 ) & 0xf) << 4) | ((val3>>8 ) & 0xf);
-									g3 = (((val3>>4 ) & 0xf) << 4) | ((val3>>4 ) & 0xf);
-									b3 = (((val3    ) & 0xf) << 4) | ((val3    ) & 0xf);
-								}
-								newdst[3] = r3 | (g3 << 8) | (b3 << 16) | (a3 << 24);
 							}
 						}
 				}
@@ -1722,27 +1666,24 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		{
 #if _M_SSE >= 0x301
 			// xsacha optimized with SSSE3 instrinsics
-			// Produces a ~25% speed improvement over SSE2 implementation
+			// Produces a ~30% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
-				__m128i rgba00, rgba01, rgba10, rgba11;
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0; x < width; x += 4, src += 64)
 					{
+						const __m128i mask0312 = _mm_set_epi8(12,15,13,14,8,11,9,10,4,7,5,6,0,3,1,2);
 						const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
 						const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
 						const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
 						const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
-						const __m128i mask6xx7 = _mm_set_epi8(6, 128, 128, 7, 4, 128, 128, 5, 2, 128, 128, 3, 0, 128, 128, 1);
-						const __m128i maskExxF = _mm_set_epi8(14, 128, 128, 15, 12, 128, 128, 13, 10, 128, 128, 11, 8, 128, 128, 9);
-						const __m128i maskx76x = _mm_set_epi8(128, 7, 6, 128, 128, 5, 4, 128, 128, 3, 2, 128, 128, 1, 0, 128);
-						const __m128i maskxFEx = _mm_set_epi8(128, 15, 14, 128, 128, 13, 12, 128, 128, 11, 10, 128, 128, 9, 8, 128);
 
-						rgba00 = _mm_or_si128(_mm_shuffle_epi8(ar0, mask6xx7), _mm_shuffle_epi8(gb0, maskx76x));
-						rgba01 = _mm_or_si128(_mm_shuffle_epi8(ar0, maskExxF), _mm_shuffle_epi8(gb0, maskxFEx));
-						rgba10 = _mm_or_si128(_mm_shuffle_epi8(ar1, mask6xx7), _mm_shuffle_epi8(gb1, maskx76x));
-						rgba11 = _mm_or_si128(_mm_shuffle_epi8(ar1, maskExxF), _mm_shuffle_epi8(gb1, maskxFEx));
-						// Write em out!
+
+						const __m128i rgba00 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar0,gb0),mask0312);
+						const __m128i rgba01 = _mm_shuffle_epi8(_mm_unpackhi_epi8(ar0,gb0),mask0312);
+						const __m128i rgba10 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar1,gb1),mask0312);
+						const __m128i rgba11 = _mm_shuffle_epi8(_mm_unpackhi_epi8(ar1,gb1),mask0312);
+
 						__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
 						_mm_storeu_si128(dst128, rgba00);
 						dst128 = (__m128i*)( dst + (y + 1) * width + x );
