@@ -34,59 +34,42 @@ void* AllocateExecutableMemory(size_t size, bool low)
 {
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+#else
+	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
+		MAP_ANON | MAP_PRIVATE
+#if defined __linux__ && defined __x86_64__
+		| (low ? MAP_32BIT : 0)
+#endif
+		, -1, 0);
+#endif
 
+	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
+	//	(unsigned long)size);
+	
+	if (ptr == NULL)
+		PanicAlert("Failed to allocate executable memory");
 	if ((u64)ptr >= 0x80000000)
-	{
 		PanicAlert("Executable memory ended up above 2GB!");
-		// If this happens, we have to implement a free ram search scheme. ector knows how.
-	}
 
 	return ptr;
-
-#else
-	void* retval = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-		MAP_ANON | MAP_PRIVATE
-#ifdef __x86_64__
-		 | (low ? MAP_32BIT : 0)
-#endif
-         , -1, 0);  // | MAP_FIXED
-	// printf("Mapped executable memory at %p (size %i)\n", retval, size);
-	
-	if (!retval)
-	{
-		PanicAlert("Failed to allocate executable memory, errno=%i", errno);
-	}
-
-	return retval;
-#endif
-
 }
 
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
-
-	if (!ptr)
-	{
-		PanicAlert("Failed to allocate raw memory");
-	}
-
-	return ptr;
-
 #else
-	void* retval = mmap(0, size, PROT_READ | PROT_WRITE,
-			MAP_ANON | MAP_PRIVATE, -1, 0); // | MAP_FIXED
-	// printf("Mapped memory at %p (size %i)\n", retval, size);
-
-	if (!retval)
-	{
-		PanicAlert("Failed to allocate raw memory, errno=%i", errno);
-	}
-
-	return retval;
+	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE,
+			MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
 
+	// printf("Mapped memory at %p (size %ld)\n", ptr,
+	//	(unsigned long)size);
+
+	if (ptr == NULL)
+		PanicAlert("Failed to allocate raw memory");
+
+	return ptr;
 }
 
 void FreeMemoryPages(void* ptr, size_t size)
@@ -125,27 +108,25 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #endif
 }
 
-
 std::string MemUsage()
 {
-	#ifdef _WIN32
+#ifdef _WIN32
 	DWORD processID = GetCurrentProcessId();
-    HANDLE hProcess;
-    PROCESS_MEMORY_COUNTERS pmc;
+	HANDLE hProcess;
+	PROCESS_MEMORY_COUNTERS pmc;
 	std::string Ret;
 
-    // Print information about the memory usage of the process.
+	// Print information about the memory usage of the process.
 
-    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-    if (NULL == hProcess) return "MemUsage Error";
+	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+	if (NULL == hProcess) return "MemUsage Error";
 
-    if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
+	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
 		Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());
 
-    CloseHandle(hProcess);
+	CloseHandle(hProcess);
 	return Ret;
-
-	#else
+#else
 	return "";
-	#endif
+#endif
 }

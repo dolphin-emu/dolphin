@@ -27,14 +27,13 @@
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
 // Multiple views can mirror the same section of the block, which makes it very convient for emulating
 // memory mirrors.
-// Pass ensure_low_mem = true to CreateView if you want arbitrarily positioned views to end up in the low 2GB.
 
 class MemArena
 {
 public:
 	void GrabLowMemSpace(size_t size);
 	void ReleaseSpace();
-	void* CreateView(s64 offset, size_t size, bool ensure_low_mem = false);
+	void* CreateView(s64 offset, size_t size);
 	void* CreateViewAt(s64 offset, size_t size, void* base);
 	void ReleaseView(void* view, size_t size);
 

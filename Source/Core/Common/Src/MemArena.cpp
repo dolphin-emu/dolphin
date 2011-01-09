@@ -58,19 +58,12 @@ void MemArena::ReleaseSpace()
 }
 
 
-void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
+void* MemArena::CreateView(s64 offset, size_t size)
 {
 #ifdef _WIN32
 	return MapViewOfFile(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size);
 #else
-	void* ptr = mmap(0, size,
-			PROT_READ | PROT_WRITE,
-			MAP_SHARED
-#ifdef __x86_64__
-			| (ensure_low_mem ? MAP_32BIT : 0)
-#endif
-			, fd, offset);
-	return ptr;
+	return mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
 #endif
 }
 

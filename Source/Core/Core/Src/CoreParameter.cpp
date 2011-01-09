@@ -91,27 +91,11 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;
 	bJITLoadStoreFloatingOff = false;
-	bJITLoadStorePairedOff = false;
+	bJITLoadStorePairedOff = false;		// XXX not 64-bit clean
 	bJITFloatingPointOff = false;
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
-#ifdef __APPLE__
-	// These are required for the JIT cores to work in OSX
-	// Older revs (~4854) Only required LoadStorePaired to be turned off
-	// Newer revs (~4890) require both turned off
-	#ifdef _M_X64
-	// These work fine in 32bit OSX
-	// Since the reason why 64bit OSX fails out is due to casting (u32)(u64)
-	// Since all 64bit applications are above the 32bit memory boundary
-	bJITLoadStorePairedOff = true;
-	#endif
-	//#elif defined(__linux__)
-	// Similar to OSX, something with LoadStorePaired seems to cause
-	// crashes on linux. Only Win32 seems to be forgiving enough to 
-	// not do anything funny...(FIXME)
-	//	bJITLoadStorePairedOff = true;
-#endif
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";

@@ -14,6 +14,10 @@ libs = [
 	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	]
 
+wxlibs = [ ]
+
+ldflags = [ ]
+
 if env['HAVE_WX']:
 	files += [
 		'AboutDolphin.cpp',
@@ -46,7 +50,7 @@ if env['HAVE_WX']:
 		'WxUtils.cpp',
 		]
 
-	wxlibs = [ 'debwx', 'debugger_ui_util', 'inputuicommon' ]
+	wxlibs += [ 'debwx', 'debugger_ui_util', 'inputuicommon' ]
 else:
 	files += [
 		'MainNoGUI.cpp',
@@ -57,14 +61,15 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
+	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
 	exeNoGUI = '#' + env['prefix'] + '/DolphinNoGUI'
 elif sys.platform == 'darwin' and env['HAVE_WX']:
 	wxlibs += env['wxconfiglibs']
+	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
 	exeGUI = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
-		'Library/Frameworks/Cg.framework',
-		'#Externals/Cg/Cg.framework/Cg')
+		'Library/Frameworks', '#Externals/Cg/Cg.framework')
 
 	env.Install(env['data_dir'], '#Data/Sys')
 	env.Install(env['data_dir'], '#Data/User')
@@ -104,7 +109,10 @@ else:
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
+libs = wxlibs + libs + env['LIBS']
+linkflags = ldflags + env['LINKFLAGS']
+
 if env['HAVE_WX']:
-	env.Program(exeGUI, files, LIBS = wxlibs + libs + env['LIBS'])
+	env.Program(exeGUI, files, LIBS = libs, LINKFLAGS = linkflags)
 else:
-	env.Program(exeNoGUI, files, LIBS = libs + env['LIBS'])
+	env.Program(exeNoGUI, files, LIBS = libs, LINKFLAGS = linkflags)
