@@ -113,7 +113,7 @@ enum DSTALPHA_MODE
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
-const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,u32 maxUniforms, u32 components);
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
 
 extern PIXELSHADERUID last_pixel_shader_uid;

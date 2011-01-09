@@ -215,7 +215,7 @@ void PixelShaderManager::SetConstants()
         s_bFogParamChanged = false;
     }
 
-	if (g_ActiveConfig.bEnablePixelLigting && nLightsChanged[0] >= 0) // config check added because the code in here was crashing for me inside SetPSConstant4f
+	if (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting && nLightsChanged[0] >= 0) // config check added because the code in here was crashing for me inside SetPSConstant4f
 	{
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;

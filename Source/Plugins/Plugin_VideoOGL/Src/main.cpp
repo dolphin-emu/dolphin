@@ -199,6 +199,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bAllowSignedBytes = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
+	g_Config.backend_info.bSupportsPixelLighting = true;
 }
 
 void DllConfig(void *_hParent)

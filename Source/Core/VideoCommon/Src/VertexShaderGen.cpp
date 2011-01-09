@@ -45,7 +45,7 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 			(u32)xfregs.colChans[i].alpha.hex :
 			(u32)xfregs.colChans[i].alpha.matsource) << 15;
 	}
-	uid->values[2] |= g_ActiveConfig.bEnablePixelLigting << 31;
+	uid->values[2] |= (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 	u32 *pcurvalue = &uid->values[3];
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
@@ -116,11 +116,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		for (int i = 0; i < xfregs.numTexGens; ++i)
 			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
 		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGens);
-		if(g_ActiveConfig.bEnablePixelLigting)
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLigting)
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
 				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
@@ -479,7 +479,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-	if(g_ActiveConfig.bEnablePixelLigting)
+	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGens < 7) {
 			WRITE(p, "o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");

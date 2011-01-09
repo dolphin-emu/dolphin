@@ -159,6 +159,9 @@ void InitBackendInfo()
 	g_Config.backend_info.bAllowSignedBytes = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
+	int shaderModel = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 }
 
 void DllConfig(void *_hParent)

@@ -354,7 +354,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	}
 
 	// Need to compile a new shader
-	const char* code = GeneratePixelShaderCode(dstAlphaMode, API_D3D11, 65536, components);
+	const char* code = GeneratePixelShaderCode(dstAlphaMode, API_D3D11, components);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))

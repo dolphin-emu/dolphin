@@ -94,9 +94,9 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGBA6ToRGB8()
 		"			out float4 ocol0 : COLOR0,\n"
 		"			in float2 uv0 : TEXCOORD0){\n"
 		"	ocol0 = tex2D(samp0,uv0);\n"
-		"	float4 src6 = trunc(ocol0 * 63.f);\n"
-		"	ocol0.r = src6.r*4.f + trunc(src6.g/16.f);\n" // dst8r = (src6r<<2)|(src6g>>4);
-		"	ocol0.g = frac(src6.g/16.f)*16.f*16.f+trunc(src6.b/4.f);\n" // dst8g = ((src6g&0xF)<<4)|(src6b>>2);
+		"	float4 src6 = floor(ocol0 * 63.f);\n"
+		"	ocol0.r = src6.r*4.f + floor(src6.g/16.f);\n" // dst8r = (src6r<<2)|(src6g>>4);
+		"	ocol0.g = frac(src6.g/16.f)*16.f*16.f+floor(src6.b/4.f);\n" // dst8g = ((src6g&0xF)<<4)|(src6b>>2);
 		"	ocol0.b = frac(src6.b/4.f)*4.f*64.f+src6.a;\n" // dst8b = ((src6b&0x3)<<6)|src6a;
 		"	ocol0.a = 255.f;\n"
 		"	ocol0 /= 255.f;\n"
@@ -108,6 +108,7 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGBA6ToRGB8()
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 {
+	/* old code here for reference
 	const char code[] =
 	{
 		"uniform sampler samp0 : register(s0);\n"
@@ -121,6 +122,19 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 		"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + (src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
 		"	ocol0.a = frac(src8.b/64.f)*64.f;\n" // dst6a = src8b&0x3F;
 		"	ocol0 /= 63.f;\n"
+		"}\n"
+	};
+	*/
+	const char code[] =
+	{
+		"uniform sampler samp0 : register(s0);\n"
+		"void main(\n"
+					"out float4 ocol0 : COLOR0,\n"
+					"in float2 uv0 : TEXCOORD0){\n"
+			"float4 temp1 = float4(1.0f/4.0f,1.0f/16.0f,1.0f/64.0f,0.0f);\n"
+			"float4 temp2 = float4(1.0f,64.0f,255.0f,1.0f/63.0f);\n"
+			"float4 src8 = floor(tex2D(samp0,uv0)*temp2.z) * temp1;\n"
+			"ocol0 = (frac(src8.wxyz) * temp2.xyyy + src8) * temp2.w;\n"
 		"}\n"
 	};
 	if (!s_rgb8_to_rgba6) s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
@@ -345,11 +359,10 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		return (entry.shader != NULL);
 	}
 
-	int shaderModel = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
-
+	
+	
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, maxConstants, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);

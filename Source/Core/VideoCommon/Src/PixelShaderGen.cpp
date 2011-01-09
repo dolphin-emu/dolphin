@@ -64,7 +64,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
 				   ((u32)enableZTexture << 4);
 
-	if(g_ActiveConfig.bEnablePixelLigting)
+	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		for (int i = 0; i < 2; ++i) {
 			uid->values[3 + i] = xfregs.colChans[i].color.enablelighting ?
@@ -75,7 +75,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 				(u32)xfregs.colChans[i].alpha.matsource) << 15;
 		}
 	}
-	uid->values[4] |= g_ActiveConfig.bEnablePixelLigting << 31;
+	uid->values[4] |= (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 
 	int hdr = 5;
 	u32 *pcurvalue = &uid->values[hdr];
@@ -160,7 +160,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, API_TYPE ApiType,int maxUniforms);
+static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
@@ -442,7 +442,7 @@ char *GeneratePixelLightShader(char *p, int index, const LitChannel& chan, const
 
 
 
-const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,u32 maxUniforms, u32 components)
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -504,13 +504,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "uniform float4 "I_ALPHA"[1] : register(c%d);\n", C_ALPHA);
 	WRITE(p, "uniform float4 "I_TEXDIMS"[8] : register(c%d);\n", C_TEXDIMS);
 	WRITE(p, "uniform float4 "I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
-	if(C_INDTEXSCALE + 2 <= maxUniforms)
-		WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
-	if(C_INDTEXMTX + 6 <= maxUniforms)
-		WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
-	if(C_FOG + 2 <= maxUniforms)
-		WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
-	if(g_ActiveConfig.bEnablePixelLigting && C_PLIGHTS + 40 <= maxUniforms && C_PMATERIALS + 4 <= maxUniforms)
+	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
+	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
+	WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
+
+	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		WRITE(p,"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n");
 		WRITE(p,"typedef struct { Light lights[8]; } s_"I_PLIGHTS";\n");
@@ -543,13 +541,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(g_ActiveConfig.bEnablePixelLigting)
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);		
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLigting)
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
 				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
@@ -591,7 +589,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float2 wrappedcoord, tempcoord;\n"
 			"  float4 cc0, cc1, cc2, cprev,crastemp,ckonsttemp;\n\n");
 	
-	if(g_ActiveConfig.bEnablePixelLigting && C_PLIGHTS + 40 <= maxUniforms && C_PMATERIALS + 4 <= maxUniforms)
+	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGens < 7) 
 		{
@@ -751,7 +749,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			int texcoord = bpmem.tevindref.getTexCoord(i);
 
-			if (texcoord < numTexgen && C_INDTEXSCALE + 2 <= maxUniforms)
+			if (texcoord < numTexgen)
 				WRITE(p, "tempcoord = uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
 			else
 				WRITE(p, "tempcoord = float2(0.0f, 0.0f);\n");
@@ -773,7 +771,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	for (int i = 0; i < numStages; i++)
-		WriteStage(p, i, ApiType,maxUniforms); //build the equation for this stage
+		WriteStage(p, i, ApiType); //build the equation for this stage
 
 	if(numStages)
 	{
@@ -838,8 +836,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
 		else
 		{
-			if(C_FOG + 2 <= maxUniforms)
-				WriteFog(p);
+			WriteFog(p);
 			WRITE(p, "  ocol0 = prev;\n");
 		}
 
@@ -907,7 +904,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-static void WriteStage(char *&p, int n, API_TYPE ApiType,int maxUniforms)
+static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
 	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -941,18 +938,18 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType,int maxUniforms)
 		// multiply by offset matrix and scale
 		if (bpmem.tevind[n].mid != 0)
 		{
-			if (bpmem.tevind[n].mid <= 3 && C_INDTEXMTX + 6 <= maxUniforms)
+			if (bpmem.tevind[n].mid <= 3)
 			{
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				WRITE(p, "float2 indtevtrans%d = float2(dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
 					n, mtxidx, n, mtxidx+1, n);
 			}
-			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord && C_INDTEXMTX + 6 <= maxUniforms)
+			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
-			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord && C_INDTEXMTX + 6 <= maxUniforms)
+			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);

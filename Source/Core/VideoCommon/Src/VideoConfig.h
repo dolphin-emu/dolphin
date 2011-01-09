@@ -162,6 +162,7 @@ struct VideoConfig
 		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
+		bool bSupportsPixelLighting;
 	} backend_info;
 };
 
