@@ -24,15 +24,20 @@
 #include "StringUtil.h"
 #include "FileSearch.h"
 #include "FileUtil.h"
+#include "NandPaths.h"
 
 #include "../VolumeHandler.h"
 
 #define MAX_NAME				(12)
 
+static Common::replace_v replacements;
+
 
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{}
+{
+	Common::ReadReplacements(replacements);
+}
 
 CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs()
 {}
@@ -98,7 +103,7 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 }
 
 bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress) 
-{ 
+{
 	u32 ReturnValue = FS_RESULT_OK;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 	
@@ -115,20 +120,20 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	case IOCTLV_READ_DIR:
 		{
 			// the wii uses this function to define the type (dir or file)
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(
+			std::string DirName(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(
 				CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
 
-			INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
-			if (!File::Exists(Filename.c_str()))
+			if (!File::Exists(DirName.c_str()))
 			{
-				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", DirName.c_str());
 				ReturnValue = FS_DIRFILE_NOT_FOUND;
 				break;
 			}
 
 			// AyuanX: what if we return "found one successfully" if it is a file?
-			else if (!File::IsDirectory(Filename.c_str()))
+			else if (!File::IsDirectory(DirName.c_str()))
 			{
 				// It's not a directory, so error.
 				// Games don't usually seem to care WHICH error they get, as long as it's <0
@@ -139,7 +144,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			// make a file search
 			CFileSearch::XStringVector Directories;
-			Directories.push_back(Filename);
+			Directories.push_back(DirName);
 
 			CFileSearch::XStringVector Extensions;
 			Extensions.push_back("*.*");
@@ -150,8 +155,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found",
-					(unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found", (u32)numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -169,16 +173,24 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					if (i >= MaxEntries)
 						break;
 
-					std::string filename, ext;
-					SplitPath(FileSearch.GetFileNames()[i], NULL, &filename, &ext);
-					std::string CompleteFilename = filename + ext;
+					std::string name, ext;
+					SplitPath(FileSearch.GetFileNames()[i], NULL, &name, &ext);
+					std::string FileName = name + ext;
 
-					strcpy(pFilename, CompleteFilename.c_str());
-					pFilename += CompleteFilename.length();
+					// Decode entities of invalid file system characters so that
+					// games (such as HB:HBP) will be able to find what they expect.
+					for (Common::replace_v::const_iterator it = replacements.begin(); it != replacements.end(); ++it)
+					{
+						for (size_t j = 0; (j = FileName.find(it->second, j)) != FileName.npos; ++j)
+							FileName.replace(j, it->second.length(), 1, it->first);
+					}
+
+					strcpy(pFilename, FileName.c_str());
+					pFilename += FileName.length();
 					*pFilename++ = 0x00;  // termination
 					numFiles++;
 
-					INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", CompleteFilename.c_str());
+					INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", FileName.c_str());
 				}
 
 				Memory::Write_U32((u32)numFiles, CommandBuffer.PayloadBuffer[1].m_Address);
