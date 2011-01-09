@@ -217,7 +217,47 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\de.po"
+			>
+		</File>
+		<File
+			RelativePath=".\en.po"
+			>
+		</File>
+		<File
+			RelativePath=".\es.po"
+			>
+		</File>
+		<File
 			RelativePath=".\fr.po"
+			>
+		</File>
+		<File
+			RelativePath=".\he.po"
+			>
+		</File>
+		<File
+			RelativePath=".\it.po"
+			>
+		</File>
+		<File
+			RelativePath=".\ko.po"
+			>
+		</File>
+		<File
+			RelativePath=".\nb.po"
+			>
+		</File>
+		<File
+			RelativePath=".\pl.po"
+			>
+		</File>
+		<File
+			RelativePath=".\ru.po"
+			>
+		</File>
+		<File
+			RelativePath=".\zh_CN.po"
 			>
 		</File>
 	</Files>
