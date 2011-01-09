@@ -1,7 +1,6 @@
 # wxAdv28
 set(SRCS	src/common/accesscmn.cpp
 			src/common/datavcmn.cpp
-			src/common/dummy.cpp
 			src/common/taskbarcmn.cpp
 			src/generic/aboutdlgg.cpp
 			src/generic/animateg.cpp
@@ -26,6 +25,7 @@ set(SRCS	src/common/accesscmn.cpp
 			src/msw/joystick.cpp
 			src/msw/sound.cpp
 			src/msw/taskbar.cpp)
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wxAdv28 STATIC ${SRCS})
 
 
@@ -35,8 +35,8 @@ set(SRCS	src/aui/auibar.cpp
 			src/aui/dockart.cpp
 			src/aui/floatpane.cpp
 			src/aui/framemanager.cpp
-			src/aui/tabmdi.cpp
-			src/common/dummy.cpp)
+			src/aui/tabmdi.cpp)
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wxAui STATIC ${SRCS})
 
 
@@ -52,7 +52,6 @@ set(SRCS	src/common/appbase.cpp
 			src/common/datetime.cpp
 			src/common/datstrm.cpp
 			src/common/dircmn.cpp
-			src/common/dummy.cpp
 			src/common/dynarray.cpp
 			src/common/dynlib.cpp
 			src/common/dynload.cpp
@@ -130,6 +129,7 @@ set(SRCS	src/common/appbase.cpp
 			src/msw/utils.cpp
 			src/msw/utilsexc.cpp
 			src/msw/volume.cpp)
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wxBase28 STATIC ${SRCS})
 
 
@@ -163,7 +163,6 @@ set(SRCS	src/common/accesscmn.cpp
 			src/common/docview.cpp
 			src/common/dpycmn.cpp
 			src/common/dseldlg.cpp
-			src/common/dummy.cpp
 			src/common/effects.cpp
 			src/common/event.cpp
 			src/common/evtloopcmn.cpp
@@ -374,8 +373,11 @@ set(SRCS	src/common/accesscmn.cpp
 			src/msw/ole/dropsrc.cpp
 			src/msw/ole/droptgt.cpp
 			src/msw/ole/oleutils.cpp
-			src/msw/ole/uuid.cpp
-			src/png/png.c
+			src/msw/ole/uuid.cpp)
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
+
+# These shouldn't link against the precompiled header
+set(SRCS ${SRCS}	src/png/png.c
 			src/png/pngerror.c
 			src/png/pnggccrd.c
 			src/png/pngget.c
@@ -393,4 +395,6 @@ set(SRCS	src/common/accesscmn.cpp
 			src/png/pngwrite.c
 			src/png/pngwtran.c
 			src/png/pngwutil.c)
+
+
 add_library(wxCore28 STATIC ${SRCS})

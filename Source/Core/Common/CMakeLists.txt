@@ -30,16 +30,18 @@ set(SRCS	Src/ABI.cpp
 			Src/Version.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp
-			Src/Crypto/aes_cbc.c
-			Src/Crypto/aes_core.c
+			Src/Crypto/aes_cbc.cpp
+			Src/Crypto/aes_core.cpp
 			Src/Crypto/bn.cpp
 			Src/Crypto/ec.cpp
 			Src/Crypto/md5.cpp
 			Src/Crypto/sha1.cpp)
 
 if(WIN32)
-	set(SRCS ${SRCS} Src/ExtendedTrace.cpp Src/stdafx.cpp)
+	set(SRCS ${SRCS} Src/ExtendedTrace.cpp)
 endif(WIN32)
+
+enable_precompiled_headers(Src/stdafx.h Src/stdafx.cpp SRCS)
 
 add_library(common STATIC ${SRCS})
 target_link_libraries(common ${CMAKE_DL_LIBS})

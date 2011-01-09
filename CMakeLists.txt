@@ -23,13 +23,42 @@ add_definitions(-DLIBS_DIR="${plugindir}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries/plugins)
 
+# Precompiled header support for MSVC:
+# Call this after setting the source list (and don't add the source file used to generate the pch file, this will be done here automatically)
+function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIABLE_NAME)
+	if(MSVC)
+		set(files ${${SOURCE_VARIABLE_NAME}})
+
+		# Generate precompiled header translation unit
+		get_filename_component(pch_basename ${PRECOMPILED_HEADER} NAME_WE)
+		set(pch_abs ${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER})
+		set(pch_unity ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_FILE})
+		set_source_files_properties(${pch_unity}  PROPERTIES COMPILE_FLAGS "/Yc\"${pch_abs}\"")
+
+		# Update properties of source files to use the precompiled header.
+		# Additionally, force the inclusion of the precompiled header at beginning of each source file.
+		foreach(source_file ${files} )
+			set_source_files_properties(${source_file} PROPERTIES COMPILE_FLAGS "/Yu\"${pch_abs}\" /FI\"${pch_abs}\"")
+		endforeach(source_file)
+
+		# Finally, update the source file collection to contain the precompiled header translation unit
+		set(${SOURCE_VARIABLE_NAME} ${pch_unity} ${${SOURCE_VARIABLE_NAME}} PARENT_SCOPE)
+	endif(MSVC)
+endfunction(enable_precompiled_headers)
+
+
 include(FindSubversion OPTIONAL) # for revision info
 if(Subversion_FOUND AND NOT DOLPHIN_WC_REVISION)
 	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
 endif()
 
 # Various compile flags
-add_definitions(-msse2 -Wall)
+add_definitions(-msse2)
+
+# Enabling all warnings in MSVC spams too much
+if(NOT MSVC)
+	add_definitions(-Wall)
+endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
 add_definitions(-fno-strict-aliasing -fno-exceptions)
@@ -60,8 +89,6 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif(WIN32)
-
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -361,6 +388,8 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
 	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
+
+add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
 # Start compiling our code
