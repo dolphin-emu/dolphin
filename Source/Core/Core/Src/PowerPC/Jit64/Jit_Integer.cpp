@@ -100,11 +100,6 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	{
 		// a == 0, which for these instructions imply value = 0
 		gpr.SetImmediate32(d, value);
-#ifdef __APPLE__
-// XXX soren
-		// FIXME: Seems to be required on OS X (see r5799)
-		gpr.StoreFromRegister(d);
-#endif
 	}
 	else
 	{
@@ -143,20 +138,12 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 			if (!js.isLastInstruction) {
 				if ((js.next_inst.OPCD == 14) && (js.next_inst.RD == d) && (js.next_inst.RA == d)) {      // addi
 					gpr.SetImmediate32(d, ((u32)inst.SIMM_16 << 16) + (u32)(s32)js.next_inst.SIMM_16);
-#ifdef __APPLE__
-					// FIXME: Seems to be required on OS X (see r5799)
-					gpr.StoreFromRegister(d);
-#endif
 					js.downcountAmount++;
 					js.skipnext = true;
 					break;
 				}
 				else if ((js.next_inst.OPCD == 24) && (js.next_inst.RA == d) && (js.next_inst.RS == d))	{ // ori
 					gpr.SetImmediate32(d, ((u32)inst.SIMM_16 << 16) | (u32)js.next_inst.UIMM);
-#ifdef __APPLE__
-					// FIXME: Seems to be required on OS X (see r5799)
-					gpr.StoreFromRegister(d);
-#endif
 					js.downcountAmount++;
 					js.skipnext = true;
 					break;
