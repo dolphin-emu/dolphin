@@ -35,7 +35,6 @@
 
 using namespace Gen;
 
-
 void CommonAsmRoutines::GenFifoWrite(int size) 
 {
 	// Assume value in ABI_PARAM1
@@ -58,9 +57,10 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	POP(ESI);
 	RET();
 }
+
 void CommonAsmRoutines::GenFifoFloatWrite() 
 {
-	int temp32;
+	static int temp32;
 
 	// Assume value in XMM0
 	PUSH(ESI);
@@ -77,6 +77,7 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	POP(ESI);
 	RET();
 }
+
 void CommonAsmRoutines::GenFifoXmm64Write() 
 {
 	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
