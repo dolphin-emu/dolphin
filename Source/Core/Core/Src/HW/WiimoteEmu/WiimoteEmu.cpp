@@ -890,7 +890,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 	// TODO: finish this
 
 	// Buttons
-#ifdef __linux__
+#if defined HAVE_X11 && HAVE_X11
 	set_control(m_buttons, 0, "Click 1");		// A
 	set_control(m_buttons, 1, "Click 3");		// B
 #else

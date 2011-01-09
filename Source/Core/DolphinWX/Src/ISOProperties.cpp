@@ -1248,10 +1248,10 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		|| OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
 		|| OpenGameListItem->GetPlatform() == GameListItem::WII_WAD)
 	{
-#ifdef __linux__
-		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#else
+#ifdef _WIN32
 		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+#else
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
 #endif
 		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
 

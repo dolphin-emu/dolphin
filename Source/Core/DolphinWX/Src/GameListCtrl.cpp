@@ -399,10 +399,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 	int ImageIndex = -1;
-#ifdef __linux__
-	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#else
+#ifdef _WIN32
 	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+#else
+	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
 #endif
 	GameListItem& rISOFile = m_ISOFiles[_Index];
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
@@ -597,13 +597,11 @@ void CGameListCtrl::ScanForISOs()
 			sprintf(tempstring,"Scanning %s", FileName.c_str());
 			msg = wxString(tempstring, *wxConvCurrent);
 
-// With wxWidgets 2.9.1, each Update() sleeps for several seconds
-#if !wxCHECK_VERSION(2, 9, 1) || wxCHECK_VERSION(2, 9, 2) 
 			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
 			if (!Cont)
 				break;
-#endif
+
 			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{

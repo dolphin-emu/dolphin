@@ -156,7 +156,7 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 
 void DSPDebuggerLLE::Refresh()
 {
-#ifdef __linux__
+#if defined HAVE_X11 && HAVE_X11
 	if (!wxIsMainThread())
 		wxMutexGuiEnter();
 #endif
@@ -165,7 +165,7 @@ void DSPDebuggerLLE::Refresh()
 	UpdateRegisterFlags();
 	UpdateState();
 	m_mgr.Update();
-#ifdef __linux__
+#if defined HAVE_X11 && HAVE_X11
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();
 #endif
