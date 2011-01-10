@@ -20,39 +20,26 @@
 
 #include "VideoConfig.h"
 #include "MathUtil.h"
+#include "Thread.h"
 #include "pluginspecs_video.h"
 
 #ifdef _WIN32
-
 #define GLEW_STATIC
-
 #include <GL/glew.h>
 #include <GL/wglew.h>
-
-#else
-
-#if defined(USE_WX) && USE_WX
-#include <GL/glew.h>
-#include "wx/wx.h"
-#include "wx/glcanvas.h"
-
-#elif defined(HAVE_X11) && HAVE_X11
+#elif defined HAVE_X11 && HAVE_X11
 #include <GL/glxew.h>
+#include <GL/gl.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-#include "Thread.h"
-
-#elif defined(__APPLE__)
+#elif defined __APPLE__
 #include <GL/glew.h>
-#include "cocoaGL.h"
-#endif // end USE_WX
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
+#import <AppKit/AppKit.h>
 #endif
 
+#if defined USE_WX && USE_WX
+#include "wx/wx.h"
+#include "wx/glcanvas.h"
 #endif
 
 #ifndef GL_DEPTH24_STENCIL8_EXT // allows FBOs to support stencils

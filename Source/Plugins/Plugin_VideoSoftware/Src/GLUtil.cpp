@@ -94,8 +94,8 @@ unsigned int Callback_PeekMessages()
 // Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf(temp, "SVN R%s: SW: %s", svn_rev_str, text);
+	char temp[100];
+	snprintf(temp, sizeof temp, "%s | Software | %s", svn_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 

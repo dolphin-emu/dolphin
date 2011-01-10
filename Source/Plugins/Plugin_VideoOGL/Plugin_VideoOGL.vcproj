@@ -770,10 +770,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\GLWindow.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\TextureConverter.cpp"
 				>
 			</File>

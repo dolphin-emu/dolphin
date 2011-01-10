@@ -37,11 +37,9 @@ files = [
 if env['HAVE_WX']:
 	files += [ 'VideoConfigDialog.cpp' ]
 
-if sys.platform == 'darwin' and not env['HAVE_WX']:
-	files += [ 'cocoaGL.m' ]
-elif sys.platform == 'win32':
+if sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
-	
+
 libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
 
 env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

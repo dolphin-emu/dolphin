@@ -45,7 +45,7 @@ void OpenGL_SwapBuffers()
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SwapBuffers();
 #elif defined(__APPLE__)
-	cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
+        [GLWin.cocoaCtx flushBuffer];
 #elif defined(_WIN32)
 	SwapBuffers(hDC);
 #elif defined(HAVE_X11) && HAVE_X11
@@ -68,7 +68,8 @@ void OpenGL_SetWindowText(const char *text)
 #if defined(USE_WX) && USE_WX
 	// GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(__APPLE__)
-	cocoaGLSetTitle(GLWin.cocoaWin, text);
+	[GLWin.cocoaWin setTitle: [[[NSString alloc]
+		initWithCString: text] autorelease]];
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
 	SetWindowTextA(EmuWindow::GetWnd(), text);
@@ -101,8 +102,8 @@ unsigned int Callback_PeekMessages()
 // Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf(temp, "SVN R%s: GL: %s", svn_rev_str, text);
+	char temp[100];
+	snprintf(temp, sizeof temp, "%s | OpenGL | %s", svn_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 
@@ -330,8 +331,29 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	GLWin.glCanvas->Show(true);
 
 #elif defined(__APPLE__)
-	GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
-	GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
+	NSOpenGLPixelFormatAttribute attr[2] = { NSOpenGLPFADoubleBuffer, 0 };
+	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
+		initWithAttributes: attr];
+	if (fmt == nil) {
+		printf("failed to create pixel format\n");
+		return false;
+	}
+
+	GLWin.cocoaCtx = [[NSOpenGLContext alloc]
+		initWithFormat: fmt shareContext: nil];
+	[fmt release];
+	if (GLWin.cocoaCtx == nil) {
+		printf("failed to create context\n");
+		return false;
+	}
+
+        GLWin.cocoaWin = [[NSWindow alloc]
+		initWithContentRect: NSMakeRect(50, 50, _twidth, _theight)
+		styleMask: NSTitledWindowMask | NSResizableWindowMask
+		backing: NSBackingStoreBuffered defer: FALSE];
+        [GLWin.cocoaWin setReleasedWhenClosed: YES];
+        [GLWin.cocoaWin makeKeyAndOrderFront: nil];
+	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
 
 #elif defined(_WIN32)
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
@@ -474,7 +496,7 @@ bool OpenGL_MakeCurrent()
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(__APPLE__)
-	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
+	[GLWin.cocoaCtx makeCurrentContext];
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
@@ -503,8 +525,18 @@ void OpenGL_Update()
 	s_backbuffer_height = height;
 
 #elif defined(__APPLE__)
+	int width, height;
 
-	// Is anything needed here?
+	width = [[GLWin.cocoaWin contentView] frame].size.width;
+	height = [[GLWin.cocoaWin contentView] frame].size.height;
+	if (width == s_backbuffer_width && height == s_backbuffer_height)
+		return;
+
+	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
+	[GLWin.cocoaCtx update];
+	[GLWin.cocoaCtx makeCurrentContext];
+	s_backbuffer_width = width;
+	s_backbuffer_height = height;
 
 #elif defined(_WIN32)
 	RECT rcWindow;
@@ -541,9 +573,9 @@ void OpenGL_Shutdown()
 #if defined(USE_WX) && USE_WX
 	delete GLWin.glCanvas;
 #elif defined(__APPLE__)
-	cocoaGLDeleteWindow(GLWin.cocoaWin);
-	cocoaGLDelete(GLWin.cocoaCtx);
-
+        [GLWin.cocoaWin close];
+        [GLWin.cocoaCtx clearDrawable];
+        [GLWin.cocoaCtx release];
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{
