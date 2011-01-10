@@ -638,38 +638,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// EFB data successfully retrieved, now get the pixel data
 		D3DLOCKED_RECT drect;
 		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
-
-		float val = 0.0f;
-		u32 z = 0;
-
-		switch (FramebufferManager::GetEFBDepthReadSurfaceFormat())
-		{
-		case D3DFMT_R32F:
-			val = ((float*)drect.pBits)[6];
-			break;
-		default:
-			float ffrac = 1.0f/255.0f;
-			z = ((u32*)drect.pBits)[6];
-			val =	((float)((z>>16) & 0xFF)) * ffrac;
-			ffrac*= 1 / 255.0f;
-			val +=	((float)((z>>8) & 0xFF)) * ffrac;
-			ffrac*= 1 / 255.0f;
-			val +=	((float)(z & 0xFF)) * ffrac;
-			break;
-		};
-
-
+		u32 z = ((u32*)drect.pBits)[6];	// 24 bit depth value
 		pSystemBuf->UnlockRect();
-		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
-		{
-			// if Z is in 16 bit format you must return a 16 bit integer
-			z = ((u32)(val * 0xffff));
+
+		// if Z is in 16 bit format you must return a 16 bit integer
+		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16) {
+			z >>= 8;
 		}
-		else
-		{
-			z = ((u32)(val * 0xffffff));
-		}
+
 		return z;
 	}
 	else if(type == PEEK_COLOR)
@@ -683,15 +659,16 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		RectToLock.left = 0;
 		RectToLock.right = 1;
 		RectToLock.top = 0;
+
 		D3DLOCKED_RECT drect;
 		pSystemBuf->LockRect(&drect, &RectToLock, D3DLOCK_READONLY);
-
 		u32 ret = ((u32*)drect.pBits)[0];
 		pSystemBuf->UnlockRect();
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
 		PixelEngine::Read16((u16&)alpha_read_mode, PE_ALPHAREAD);
+
 		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
 		{
 			ret = RGBA8ToRGBA6ToRGBA8(ret);
@@ -704,6 +681,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		{
 			ret |= 0xFF000000;
 		}
+
 		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
 		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else return (ret & 0x00FFFFFF); // GX_READ_00
