@@ -40,6 +40,23 @@
 
 extern CFrame* main_frame;
 
+// keep these in sync with CConfigMain::InitializeGUILists
+static const wxLanguage langIds[] =
+{
+	wxLANGUAGE_DEFAULT,
+	wxLANGUAGE_CHINESE_SIMPLIFIED,
+	wxLANGUAGE_ENGLISH,
+	wxLANGUAGE_FRENCH,
+	wxLANGUAGE_GERMAN,
+	wxLANGUAGE_HEBREW,
+	wxLANGUAGE_ITALIAN,
+	wxLANGUAGE_KOREAN,
+	wxLANGUAGE_NORWEGIAN_BOKMAL,
+	wxLANGUAGE_POLISH,
+	wxLANGUAGE_RUSSIAN,
+	wxLANGUAGE_SPANISH,
+};
+
 // Strings for Device Selections
 #define DEV_NONE_STR		"<Nothing>"
 #define DEV_DUMMY_STR		"Dummy"
@@ -258,7 +275,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_WiiSystemLang.Add(_("Korean"));
 
 	// GUI language arrayStrings
-	// keep those in sync with DolphinApp::InitLanguageSupport
+	// keep these in sync with the langIds array at the beginning of this file
 	arrayStringFor_InterfaceLang.Add(_("<System>"));
 	arrayStringFor_InterfaceLang.Add(_("Chinese (Simplified)"));
 	arrayStringFor_InterfaceLang.Add(_("English"));
@@ -309,8 +326,12 @@ void CConfigMain::InitializeGUIValues()
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
-	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
-
+	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
+		if (langIds[i] == SConfig::GetInstance().m_InterfaceLanguage)
+		{
+			InterfaceLang->SetSelection(i);
+			break;
+		}
 
 	// Gamecube - IPL
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
@@ -883,9 +904,9 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		main_frame->InitBitmaps();
 		break;
 	case ID_INTERFACE_LANG:
-		if (SConfig::GetInstance().m_InterfaceLanguage != InterfaceLang->GetSelection())
+		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
 			SuccessAlert("You must restart Dolphin in order for the change to take effect.");
-		SConfig::GetInstance().m_InterfaceLanguage = InterfaceLang->GetSelection();
+		SConfig::GetInstance().m_InterfaceLanguage = langIds[InterfaceLang->GetSelection()];
 		bRefreshList = true;
 		break;
 	case ID_HOTKEY_CONFIG:

@@ -12,11 +12,4 @@ PO_FILES=$(find ./Languages -name '*.po')
 for PO in $PO_FILES
 do
 	msgmerge --quiet --update --backup=none -s $PO $POTFILE
-
-	LANGUAGE=$(echo $PO | sed -e 's/^.*\/Languages\///' -e 's/\.po$//')
-
-	if [ ! -d ./Data/Languages/$LANGUAGE ]; then
-		mkdir ./Data/Languages/$LANGUAGE
-	fi
-	msgfmt -o ./Data/Languages/$LANGUAGE/$(basename ${POTFILE/pot/mo}) $PO
 done

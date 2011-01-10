@@ -411,32 +411,14 @@ void DolphinApp::InitLanguageSupport()
 {
 	unsigned int language = 0;
 
-	// keep those in sync with CConfigMain::InitializeGUILists
-	const wxLanguage langIds[] =
-	{
-		wxLANGUAGE_DEFAULT,
-		wxLANGUAGE_CHINESE_SIMPLIFIED,
-		wxLANGUAGE_ENGLISH,
-		wxLANGUAGE_FRENCH,
-		wxLANGUAGE_GERMAN,
-		wxLANGUAGE_HEBREW,
-		wxLANGUAGE_ITALIAN,
-		wxLANGUAGE_KOREAN,
-		wxLANGUAGE_NORWEGIAN_BOKMAL,
-		wxLANGUAGE_POLISH,
-		wxLANGUAGE_RUSSIAN,
-		wxLANGUAGE_SPANISH,
-
-	};
-
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("Interface", "Language", &language, 0);
+	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
-	if(language >= 0 && language < sizeof(langIds) / sizeof(wxLanguage) && wxLocale::IsAvailable(langIds[language]))
+	if(wxLocale::IsAvailable(language))
 	{
-		m_locale = new wxLocale(langIds[language]);
+		m_locale = new wxLocale(language);
 
 #ifdef _WIN32
 		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));

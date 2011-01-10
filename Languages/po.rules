@@ -7,7 +7,7 @@
 		<CustomBuildRule
 			Name="msgfmt"
 			DisplayName="Compile Locale"
-			CommandLine="msgfmt [AllOptions] [AdditionalOptions] [inputs]"
+			CommandLine="..\Externals\gettext\msgfmt [AllOptions] [AdditionalOptions] [inputs]"
 			Outputs="[$OutputName]"
 			FileExtensions="*.po"
 			ExecutionDescription="Compiling $(InputName) locale"
