@@ -2,7 +2,7 @@
 # Copyright (C) 2003-2011
 # This file is distributed under the same license as the dolphin-emu package.
 # thegfw <thegfw@gmail.com>, 2011
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
