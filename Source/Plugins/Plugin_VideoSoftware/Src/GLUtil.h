@@ -31,7 +31,7 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 
-#else // linux basic definitions
+#else
 
 #if defined(USE_WX) && USE_WX
 #include <GL/glew.h>
@@ -47,13 +47,13 @@
 #include <GL/glew.h>
 #endif // end USE_WX
 
-#if defined(__APPLE__) 
+#ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
 
-#endif // linux basic definitions
+#endif
 
 #ifndef GL_DEPTH24_STENCIL8_EXT // allows FBOs to support stencils
 #define GL_DEPTH_STENCIL_EXT 0x84F9
@@ -69,8 +69,8 @@
 typedef struct {
 #if defined(USE_WX) && USE_WX
 	wxGLCanvas *glCanvas;
-	wxPanel *panel;
 	wxGLContext *glCtxt;
+	wxPanel *panel;
 #elif defined(HAVE_X11) && HAVE_X11
 	int screen;
 	Window win;
@@ -79,8 +79,8 @@ typedef struct {
 	GLXContext ctx;
 	XSetWindowAttributes attr;
 	int x, y;
-#endif 
 	unsigned int width, height;
+#endif 
 } GLWindow;
 
 extern GLWindow GLWin;

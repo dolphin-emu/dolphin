@@ -118,19 +118,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
 #if defined(USE_WX) && USE_WX
-
-	int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
-
-	wxSize size(_twidth, _theight);
-
 	GLWin.panel = (wxPanel *)g_VideoInitialize.pWindowHandle;
-
-	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, args,
-			wxPoint(0,0), size, wxSUNKEN_BORDER);
+	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, NULL,
+		wxPoint(0, 0), wxSize(_twidth, _theight));
 	GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
-	GLWin.glCanvas->Show(TRUE);
-
-	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+	GLWin.glCanvas->Show(true);
 
 #elif defined(_WIN32)
 	// Create rendering window in Windows
@@ -318,9 +310,17 @@ bool OpenGL_MakeCurrent()
 void OpenGL_Update()
 {
 #if defined(USE_WX) && USE_WX
-	GLWin.glCanvas->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
-	s_backbuffer_width = GLWin.width;
-	s_backbuffer_height = GLWin.height;
+	int width, height;
+
+	GLWin.panel->GetSize(&width, &height);
+	if (width == s_backbuffer_width && height == s_backbuffer_height)
+		return;
+
+	GLWin.glCanvas->SetSize(0, 0, width, height);
+	GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
+	s_backbuffer_width = width;
+	s_backbuffer_height = height;
+
 #elif defined(_WIN32)
 	RECT rcWindow;
 	if (!EmuWindow::GetParentWnd())
