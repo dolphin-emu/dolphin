@@ -15,10 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+
 #ifndef _DATAREADER_H
 #define _DATAREADER_H
 
 extern u8* g_pVideoData;
+
+#if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+#include <tmmintrin.h>
+#endif
 
 __forceinline void DataSkip(u32 skip)
 {
@@ -64,6 +70,49 @@ __forceinline u32 DataReadU32()
 	return tmp;
 }
 
+typedef void (*DataReadU32xNfunc)(u32 *buf);
+extern DataReadU32xNfunc DataReadU32xFuncs[16];
+
+#if _M_SSE >= 0x301
+
+const __m128i mask1 = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,0,1,2,3);
+const __m128i mask2 = _mm_set_epi8(15,14,13,12,11,10,9,8,4,5,6,7,0,1,2,3);
+const __m128i mask3 = _mm_set_epi8(15,14,13,12,8,9,10,11,4,5,6,7,0,1,2,3);
+const __m128i mask4 = _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
+
+template<unsigned int N>
+void DataReadU32xN_SSSE3(u32 *bufx16)
+{
+	__m128i* store = (__m128i *)bufx16;
+	__m128i* load =  (__m128i *)g_pVideoData;
+	switch(N)
+	{
+		case 13: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 9:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 5:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 1:  _mm_storeu_si128(store,   _mm_shuffle_epi8(_mm_loadu_si128(load),   mask1));
+			break;
+		case 14: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 10: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 6:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 2:  _mm_storeu_si128(store,   _mm_shuffle_epi8(_mm_loadu_si128(load),   mask2));
+			break;
+		case 15: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 11: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 7:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 3:  _mm_storeu_si128(store,   _mm_shuffle_epi8(_mm_loadu_si128(load),   mask3));
+			break;
+		case 16: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 12: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 8:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
+		case 4:  _mm_storeu_si128(store,   _mm_shuffle_epi8(_mm_loadu_si128(load),   mask4));
+			break;
+	}
+	g_pVideoData += (sizeof(u32) * N);
+}
+
+#endif
+
 template<unsigned int N>
 void DataReadU32xN(u32 *bufx16)
 {
@@ -86,9 +135,6 @@ void DataReadU32xN(u32 *bufx16)
 	if (N >= 16) bufx16[15] = Common::swap32(bufx16[15]);
 	g_pVideoData += (sizeof(u32) * N);
 }
-
-typedef void (*DataReadU32xNfunc)(u32 *buf);
-extern DataReadU32xNfunc DataReadU32xFuncs[16];
 
 __forceinline u32 DataReadU32Unswapped()
 {

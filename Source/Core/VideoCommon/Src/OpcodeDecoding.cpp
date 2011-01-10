@@ -30,6 +30,7 @@
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
 #include "CommandProcessor.h"
+#include "CPUDetect.h"
 
 #include "VertexLoaderManager.h"
 
@@ -47,6 +48,27 @@
 #include "VideoConfig.h"
 
 u8* g_pVideoData = 0;
+#if _M_SSE >= 0x301
+DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
+	DataReadU32xN_SSSE3<1>,
+	DataReadU32xN_SSSE3<2>,
+	DataReadU32xN_SSSE3<3>,
+	DataReadU32xN_SSSE3<4>,
+	DataReadU32xN_SSSE3<5>,
+	DataReadU32xN_SSSE3<6>,
+	DataReadU32xN_SSSE3<7>,
+	DataReadU32xN_SSSE3<8>,
+	DataReadU32xN_SSSE3<9>,
+	DataReadU32xN_SSSE3<10>,
+	DataReadU32xN_SSSE3<11>,
+	DataReadU32xN_SSSE3<12>,
+	DataReadU32xN_SSSE3<13>,
+	DataReadU32xN_SSSE3<14>,
+	DataReadU32xN_SSSE3<15>,
+	DataReadU32xN_SSSE3<16>
+};
+#endif
+
 DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<1>,
 	DataReadU32xN<2>,
@@ -250,7 +272,6 @@ static void Decode()
             u32 Cmd2 = DataReadU32();
             int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 			u32 xf_address = Cmd2 & 0xFFFF;
-			// TODO - speed this up. pshufb?
 			u32 data_buffer[16];
 			DataReadU32xFuncs[transfer_size-1](data_buffer);
 
@@ -400,6 +421,13 @@ static void DecodeSemiNop()
 void OpcodeDecoder_Init()
 {	
 	g_pVideoData = FAKE_GetFifoStartPtr();
+
+#if _M_SSE >= 0x301
+	if (cpu_info.bSSSE3)
+	{
+		*DataReadU32xFuncs = *DataReadU32xFuncs_SSSE3;
+	}
+#endif
 
 	if (g_Config.bEnableOpenCL)
 	{

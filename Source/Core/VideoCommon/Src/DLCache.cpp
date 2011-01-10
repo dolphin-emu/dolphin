@@ -305,7 +305,6 @@ u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 					u32 Cmd2 = DataReadU32();
 					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 					u32 xf_address = Cmd2 & 0xFFFF;
-					// TODO - speed this up. pshufb?
 					u32 data_buffer[16];
 					DataReadU32xFuncs[transfer_size-1](data_buffer);
 					LoadXFReg(transfer_size, xf_address, data_buffer);
@@ -453,7 +452,6 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					u32 Cmd2 = DataReadU32();
 					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 					u32 xf_address = Cmd2 & 0xFFFF;
-					// TODO - speed this up. pshufb?
 					ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
 					NewRegion->MustClean = true;
 					NewRegion->size = transfer_size * 4;
