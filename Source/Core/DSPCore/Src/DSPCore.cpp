@@ -174,10 +174,6 @@ void DSPCore_SetException(u8 level)
 // Comming from the CPU
 void DSPCore_CheckExternalInterrupt()
 {
-	// check if there is an external interrupt
-	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
-		return;
-
 	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
 		return;
 
@@ -291,6 +287,23 @@ void DSPCore_Step()
 void CompileCurrent()
 {
 	jit->Compile(g_dsp.pc);
+
+	bool retry = true;
+
+	while (retry)
+	{
+		retry = false;
+		for(u16 i = 0x0000; i < 0xffff; ++i)
+		{
+			if (!jit->unresolvedJumps[i].empty())
+			{
+				u16 addrToCompile = jit->unresolvedJumps[i].front();
+				jit->Compile(addrToCompile);
+				if (!jit->unresolvedJumps[i].empty())
+					retry = true;
+			}
+		}
+	}
 }
 
 u16 DSPCore_ReadRegister(int reg) {

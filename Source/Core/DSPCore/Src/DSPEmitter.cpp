@@ -30,8 +30,6 @@
 
 using namespace Gen;
 
-const u8 *stubEntryPoint;
-
 DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
 {
 	m_compiledCode = NULL;

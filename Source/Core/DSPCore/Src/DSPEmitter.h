@@ -250,6 +250,7 @@ public:
 
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
+	const u8 *stubEntryPoint;
 	u16 compilePC;
 	u16 startAddr;
 	CompiledCode *blockLinks;
