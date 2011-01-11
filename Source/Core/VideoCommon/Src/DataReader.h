@@ -74,40 +74,17 @@ typedef void (*DataReadU32xNfunc)(u32 *buf);
 extern DataReadU32xNfunc DataReadU32xFuncs[16];
 
 #if _M_SSE >= 0x301
-
-const __m128i mask1 = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,0,1,2,3);
-const __m128i mask2 = _mm_set_epi8(15,14,13,12,11,10,9,8,4,5,6,7,0,1,2,3);
-const __m128i mask3 = _mm_set_epi8(15,14,13,12,8,9,10,11,4,5,6,7,0,1,2,3);
-const __m128i mask4 = _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
+const __m128i bs_mask = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 
 template<unsigned int N>
 void DataReadU32xN_SSSE3(u32 *bufx16)
 {
 	memcpy(bufx16, g_pVideoData, sizeof(u32) * N);
 	__m128i* buf = (__m128i *)bufx16;
-	switch(N)
-	{
-		case 13: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 9:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 5:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 1:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask1));
-			break;
-		case 14: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 10: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 6:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 2:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask2));
-			break;
-		case 15: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 11: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 7:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 3:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask3));
-			break;
-		case 16: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 12: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 8:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
-		case 4:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4));
-			break;
-	}
+	if (N>12) { _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), bs_mask)); buf++; }
+	if (N>8)  { _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), bs_mask)); buf++; }
+	if (N>4)  { _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), bs_mask)); buf++; }
+	_mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), bs_mask));
 	g_pVideoData += (sizeof(u32) * N);
 }
 
