@@ -519,6 +519,7 @@ void OpenGL_Update()
 	if (width == s_backbuffer_width && height == s_backbuffer_height)
 		return;
 
+	GLWin.glCanvas->SetFocus();
 	GLWin.glCanvas->SetSize(0, 0, width, height);
 	GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
 	s_backbuffer_width = width;
