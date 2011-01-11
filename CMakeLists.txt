@@ -366,7 +366,7 @@ if(NOT DISABLE_WX)
 			# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
 			# users have complained that pkg-config does not find
 			# gdk-pixbuf-2.0
-			if(${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}
+			if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
 					VERSION_EQUAL 2.8.2)
 				check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
 			else()
