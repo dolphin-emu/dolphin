@@ -47,8 +47,7 @@ void AboutDolphin::CreateGUIControls()
 	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO,
 		wxBitmap(iDolphinLogo), wxDefaultPosition, wxDefaultSize, 0);
 
-	std::string Text = std::string("") +
-		"Dolphin SVN revision " + svn_rev_str + "\n"
+	std::string Text = std::string(svn_rev_str) + "\n"
 		"Copyright (c) 2003-2010+ Dolphin Team\n"
 		"\n"
 		"Dolphin is a Gamecube/Wii emulator, which was\n"

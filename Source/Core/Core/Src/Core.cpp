@@ -413,10 +413,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 	CBoot::BootUp();
 
-	if (g_pUpdateFPSDisplay != NULL)
-		g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
-	Host_UpdateTitle(("Loading " + _CoreParameter.m_strFilename).c_str());
-
 	// Setup our core, but can't use dynarec if we are compare server
 	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
@@ -435,10 +431,6 @@ THREAD_RETURN EmuThread(void *pArg)
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Video thread");
 
-		if (g_pUpdateFPSDisplay != NULL)
-			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
-		Host_UpdateTitle(("Loaded " + _CoreParameter.m_strFilename).c_str());
-
 		// Update the window again because all stuff is initialized
 		Host_UpdateDisasmDialog();
 		Host_UpdateMainFrame();
@@ -454,10 +446,6 @@ THREAD_RETURN EmuThread(void *pArg)
 
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Emuthread - Idle");
-
-		if (g_pUpdateFPSDisplay != NULL)
-			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
-		Host_UpdateTitle(("Loaded " + _CoreParameter.m_strFilename).c_str());
 
 		// Update the window again because all stuff is initialized
 		Host_UpdateDisasmDialog();
