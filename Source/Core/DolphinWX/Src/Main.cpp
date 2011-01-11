@@ -104,98 +104,58 @@ bool DolphinApp::OnInit()
 	wxString audioPluginFilename;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
-#if wxCHECK_VERSION(2, 9, 0)
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
 		{
-			wxCMD_LINE_SWITCH, "h", "help", "Show this help message",
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
-		},
-		{
-			wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger"
-		},
-		{
-			wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger"
-		},
-		{
-			wxCMD_LINE_OPTION, "e", "exec", "Loads the specified file (DOL, ELF, WAD, GCM, ISO)",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator"
-		},
-		{
-			wxCMD_LINE_OPTION, "V", "video_plugin","Specify a video plugin",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_NONE
-		}
-	};
-#else
-	wxCmdLineEntryDesc cmdLineDesc[] =
-	{
-		{
-			wxCMD_LINE_SWITCH, _T("h"), _T("help"), 
+			wxCMD_LINE_SWITCH, _("h"), _("help"),
 			_("Show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
-			wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _("Opens the debugger")
+			wxCMD_LINE_SWITCH, _("d"), _("debugger"),
+			_("Opens the debugger")
 		},
 		{
-			wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _("Opens the logger")
+			wxCMD_LINE_SWITCH, _("l"), _("logger"),
+			_("Opens the logger")
 		},
 		{
-			wxCMD_LINE_OPTION, _T("e"), _T("exec"), _("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
+			wxCMD_LINE_OPTION, _("e"), _("exec"),
+			_("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, _T("b"), _T("batch"), _("Exit Dolphin with emulator")
+			wxCMD_LINE_SWITCH, _("b"), _("batch"),
+			_("Exit Dolphin with emulator")
 		},
 		{
-			wxCMD_LINE_OPTION, _T("V"), _T("video_plugin"), _("Specify a video plugin"),
+			wxCMD_LINE_OPTION, _("V"), _("video_plugin"),
+			_("Specify a video plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, _T("A"), _T("audio_plugin"), _("Specify an audio plugin"),
+			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"),
+			_("Specify an audio plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_NONE
 		}
 	};
-#endif
+
 	// Gets the command line parameters
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-
 	if (parser.Parse() != 0)
 	{
 		return false;
 	} 
-#if wxCHECK_VERSION(2, 9, 0)
-	UseDebugger = parser.Found("debugger");
-	UseLogger = parser.Found("logger");
-	LoadFile = parser.Found("exec", &FileToLoad);
-	BatchMode = parser.Found("batch");
-#else
+
 	UseDebugger = parser.Found(_T("debugger"));
 	UseLogger = parser.Found(_T("logger"));
 	LoadFile = parser.Found(_T("exec"), &FileToLoad);
 	BatchMode = parser.Found(_T("batch"));
-#endif
-
-#if wxCHECK_VERSION(2, 9, 0)
-	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
-	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-#else
 	selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
 	selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
-#endif
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32

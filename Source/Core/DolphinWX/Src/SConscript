@@ -69,7 +69,9 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	exeGUI = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
-		'Library/Frameworks', '#Externals/Cg/Cg.framework')
+		'Library/Frameworks/Cg.framework',
+		source = [ '#Externals/Cg/Cg.framework/Cg',
+		'#Externals/Cg/Cg.framework/Resources' ])
 
 	env.Install(env['data_dir'], '#Data/Sys')
 	env.Install(env['data_dir'], '#Data/User')
@@ -82,12 +84,12 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		for po in po_files:
 			index_lo = po.find('Languages/') + len('Languages/')
 			index_hi = po.find('.po')
-			lang = po[index_lo:index_hi]
-			mo_dir = env['build_dir'] + '/Languages/' + lang + '.lproj'
+			lproj = os.sep + po[index_lo:index_hi] + '.lproj'
+			mo_dir = env['build_dir'] + '/Languages' + lproj
 			mo_file = mo_dir + '/dolphin-emu.mo'
 			env.Command('#' + mo_file, po, 'mkdir -p ' + mo_dir +
-				' && msgfmt -o ' + mo_file  + ' ' + po)
-			env.Install(env['data_dir'] + '/' + lang + '.lproj', '#' + mo_file)
+				' && ' + msgfmt + ' -o ' + mo_file + ' ' + po)
+			env.Install(env['data_dir'] + lproj, '#' + mo_file)
 
 	from plistlib import writePlist
 	def createPlist(target, source, env):
