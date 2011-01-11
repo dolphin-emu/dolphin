@@ -241,8 +241,8 @@ void SConfig::LoadSettings()
 		ini.Get("Display", "Fullscreen",			&m_LocalCoreStartupParameter.bFullscreen,		false);
 		ini.Get("Display", "FullscreenResolution",	&m_LocalCoreStartupParameter.strFullscreenResolution, "640x480");
 		ini.Get("Display", "RenderToMain",			&m_LocalCoreStartupParameter.bRenderToMain,		false);
-		ini.Get("Display", "RenderWindowXPos",		&m_LocalCoreStartupParameter.iRenderWindowXPos,	0);
-		ini.Get("Display", "RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	0);
+		ini.Get("Display", "RenderWindowXPos",		&m_LocalCoreStartupParameter.iRenderWindowXPos,	-1);
+		ini.Get("Display", "RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	-1);
 		ini.Get("Display", "RenderWindowWidth",		&m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
 		ini.Get("Display", "RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
 		ini.Get("Display", "ProgressiveScan",		&m_LocalCoreStartupParameter.bProgressive, false);

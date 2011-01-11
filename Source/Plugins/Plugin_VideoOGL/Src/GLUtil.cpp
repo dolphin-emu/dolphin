@@ -66,7 +66,7 @@ u32 OpenGL_GetBackbufferHeight()
 void OpenGL_SetWindowText(const char *text)
 {
 #if defined(USE_WX) && USE_WX
-	// GLWin.frame->SetTitle(wxString::FromAscii(text));
+	// Handled by Host_UpdateTitle()
 #elif defined(__APPLE__)
 	[GLWin.cocoaWin setTitle: [[[NSString alloc]
 		initWithCString: text] autorelease]];

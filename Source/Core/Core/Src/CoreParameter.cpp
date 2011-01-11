@@ -54,7 +54,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false), 
   bAutoHideCursor(false), bUsePanicHandlers(true),
-  iRenderWindowXPos(0), iRenderWindowYPos(0),
+  iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false),

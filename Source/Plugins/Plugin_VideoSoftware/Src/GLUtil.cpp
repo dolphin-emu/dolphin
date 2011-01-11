@@ -61,7 +61,7 @@ u32 OpenGL_GetBackbufferHeight()
 void OpenGL_SetWindowText(const char *text)
 {
 #if defined(USE_WX) && USE_WX
-	// GLWin.frame->SetTitle(wxString::FromAscii(text));
+	// Handled by Host_UpdateTitle()
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
 	SetWindowTextA(EmuWindow::GetWnd(), text);

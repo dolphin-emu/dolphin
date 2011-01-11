@@ -69,9 +69,10 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 	exeGUI = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
-		'Library/Frameworks/Cg.framework',
-		source = [ '#Externals/Cg/Cg.framework/Cg',
-		'#Externals/Cg/Cg.framework/Resources' ])
+		'Library/Frameworks/Cg.framework', source = [
+		'#Externals/Cg/Cg.framework/Cg',
+		'#Externals/Cg/Cg.framework/Resources'
+		])
 
 	env.Install(env['data_dir'], '#Data/Sys')
 	env.Install(env['data_dir'], '#Data/User')
@@ -80,7 +81,7 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 
 	msgfmt = env.WhereIs('msgfmt')
 	if not msgfmt == None:
-		po_files = Glob('#Languages/*.po', strings=True)
+		po_files = Glob('#Languages/*.po', strings = True)
 		for po in po_files:
 			index_lo = po.find('Languages/') + len('Languages/')
 			index_hi = po.find('.po')
@@ -108,6 +109,9 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		LSMinimumSystemVersion = '10.5.4',
 		LSRequiresCarbon = True,
 		)))
+
+	env.Command('dummy', '#' + env['prefix'],
+		"find $SOURCES -name .svn -exec rm -rf {} +")
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]

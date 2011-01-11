@@ -122,8 +122,8 @@ unsigned int Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf_s(temp, 512, "SVN R%s: DX11: %s", svn_rev_str, text);
+	char temp[100];
+	sprintf_s(temp, sizeof temp, "%s | DX11 | %s", svn_rev_str, text);
 	SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 

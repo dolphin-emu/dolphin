@@ -785,9 +785,17 @@ void CFrame::StartGame(const std::string& filename)
 	{
 		wxPoint position(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+#ifdef __APPLE__
+		// On OS X, the render window's title bar is not visible,
+		// and the window therefore not easily moved, when the
+		// position is 0,0. Weed out the 0's from existing configs.
+		if (position == wxPoint(0, 0))
+			position = wxDefaultPosition;
+#endif
+
+		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
 		m_RenderFrame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
 				wxCloseEventHandler(CFrame::OnRenderParentClose),

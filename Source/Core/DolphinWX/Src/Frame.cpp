@@ -645,7 +645,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATETITLE:
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && m_RenderFrame)
+		if (m_RenderFrame != NULL)
 			m_RenderFrame->SetTitle(event.GetString());
 		break;
 
