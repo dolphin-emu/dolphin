@@ -455,7 +455,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
 					NewRegion->MustClean = true;
 					NewRegion->size = transfer_size * 4;
-					NewRegion->start_address = (u8*) new u8[NewRegion->size+0xf];  // alignment
+					NewRegion->start_address = (u8*) new u8[NewRegion->size+15+12];  // alignment and guaranteed space
 					NewRegion->hash = 0;					
 					dl->InsertRegion(NewRegion);
 					u32 *data_buffer = (u32*)(u8*)(((size_t)NewRegion->start_address+0xf)&~0xf);

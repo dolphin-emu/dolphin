@@ -272,9 +272,8 @@ static void Decode()
             u32 Cmd2 = DataReadU32();
             int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 			u32 xf_address = Cmd2 & 0xFFFF;
-			u32 data_buffer[16];
+			GC_ALIGNED128(u32 data_buffer[16]);
 			DataReadU32xFuncs[transfer_size-1](data_buffer);
-
             LoadXFReg(transfer_size, xf_address, data_buffer);
 
 			INCSTAT(stats.thisFrame.numXFLoads);
