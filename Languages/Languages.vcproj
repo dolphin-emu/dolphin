@@ -79,6 +79,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\el.po"
+			>
+		</File>
+		<File
 			RelativePath=".\en.po"
 			>
 		</File>
@@ -99,11 +103,19 @@
 			>
 		</File>
 		<File
+			RelativePath=".\ja.po"
+			>
+		</File>
+		<File
 			RelativePath=".\ko.po"
 			>
 		</File>
 		<File
 			RelativePath=".\nb.po"
+			>
+		</File>
+		<File
+			RelativePath=".\nl.po"
 			>
 		</File>
 		<File

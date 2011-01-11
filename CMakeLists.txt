@@ -362,9 +362,18 @@ if(NOT DISABLE_WX)
 		include(${wxWidgets_USE_FILE})
 
 		if(UNIX AND NOT APPLE)
-			include(FindGTK2)
-			if(GTK2_FOUND)
-				include_directories(${GTK2_INCLUDE_DIRS})
+			# There is a bug in the FindGTK module in cmake version 2.8.2 that
+			# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
+			# users have complained that pkg-config does not find
+			# gdk-pixbuf-2.0
+			if(${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}
+					VERSION_EQUAL 2.8.2)
+				check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
+			else()
+				include(FindGTK2 REQUIRED)
+				if(GTK2_FOUND)
+					include_directories(${GTK2_INCLUDE_DIRS})
+				endif()
 			endif()
 		endif()
 
