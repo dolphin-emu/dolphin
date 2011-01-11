@@ -211,8 +211,9 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 
 	if(depthConversionType != DEPTH_CONVERSION_TYPE_NONE)
 	{
+		// Here, we need to downscale texcol a bit since frac(1.0) will indeed return 0.0f, ceil() takes care of restoring the precision
 		WRITE(p, "float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
-		         "texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
+		         "texcol = ceil(EncodedDepth * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
 	}
 	else
 	{
