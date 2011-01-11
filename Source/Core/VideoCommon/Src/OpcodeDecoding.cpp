@@ -364,8 +364,7 @@ static void DecodeSemiNop()
             u32 Cmd2 = DataReadU32();
             int transfer_size = ((Cmd2 >> 16) & 15) + 1;
             u32 address = Cmd2 & 0xFFFF;
-			// TODO - speed this up. pshufb?
-            u32 data_buffer[16];
+            GC_ALIGNED128(u32 data_buffer[16]);
             DataReadU32xFuncs[transfer_size-1](data_buffer);
             LoadXFReg(transfer_size, address, data_buffer);
             INCSTAT(stats.thisFrame.numXFLoads);

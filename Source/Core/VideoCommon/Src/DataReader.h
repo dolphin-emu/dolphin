@@ -83,35 +83,29 @@ const __m128i mask4 = _mm_set_epi8(12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3);
 template<unsigned int N>
 void DataReadU32xN_SSSE3(u32 *bufx16)
 {
-	__m128i* store = (__m128i *)bufx16;
-	__m128i* load =  (__m128i *)g_pVideoData;
+	memcpy(bufx16, g_pVideoData, sizeof(u32) * N);
+	__m128i* buf = (__m128i *)bufx16;
 	switch(N)
 	{
-		case 13: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 9:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 5:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 1:	// 1 U32 left:
-			((u32 *)store)[0] = Common::swap32(((u32 *)load)[0]);
+		case 13: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 9:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 5:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 1:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask1));
 			break;
-		case 14: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 10: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 6:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 2:	// 2 U32s left:
-			((u32 *)store)[0] = Common::swap32(((u32 *)load)[0]);
-			((u32 *)store)[1] = Common::swap32(((u32 *)load)[1]);
+		case 14: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 10: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 6:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 2:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask2));
 			break;
-		case 15: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 11: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 7:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 3:	// 3 U32s left:
-			((u32 *)store)[0] = Common::swap32(((u32 *)load)[0]);
-			((u32 *)store)[1] = Common::swap32(((u32 *)load)[1]);
-			((u32 *)store)[2] = Common::swap32(((u32 *)load)[2]);
+		case 15: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 11: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 7:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 3:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask3));
 			break;
-		case 16: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 12: _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 8:  _mm_storeu_si128(store++, _mm_shuffle_epi8(_mm_loadu_si128(load++), mask4));
-		case 4:  _mm_storeu_si128(store,   _mm_shuffle_epi8(_mm_loadu_si128(load),   mask4));
+		case 16: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 12: _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 8:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4)); buf++;
+		case 4:  _mm_store_si128(buf, _mm_shuffle_epi8(_mm_load_si128(buf), mask4));
 			break;
 	}
 	g_pVideoData += (sizeof(u32) * N);

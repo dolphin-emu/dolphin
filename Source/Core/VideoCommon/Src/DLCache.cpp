@@ -305,7 +305,7 @@ u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 					u32 Cmd2 = DataReadU32();
 					int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 					u32 xf_address = Cmd2 & 0xFFFF;
-					u32 data_buffer[16];
+					GC_ALIGNED128(u32 data_buffer[16]);
 					DataReadU32xFuncs[transfer_size-1](data_buffer);
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);
@@ -455,10 +455,10 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 					ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
 					NewRegion->MustClean = true;
 					NewRegion->size = transfer_size * 4;
-					NewRegion->start_address = (u8*) new u8[NewRegion->size]; 
+					NewRegion->start_address = (u8*) new u8[NewRegion->size+0xf];  // alignment
 					NewRegion->hash = 0;					
 					dl->InsertRegion(NewRegion);
-					u32 *data_buffer = (u32*)NewRegion->start_address;
+					u32 *data_buffer = (u32*)(u8*)(((size_t)NewRegion->start_address+0xf)&~0xf);
 					DataReadU32xFuncs[transfer_size-1](data_buffer);
 					LoadXFReg(transfer_size, xf_address, data_buffer);
 					INCSTAT(stats.thisFrame.numXFLoads);

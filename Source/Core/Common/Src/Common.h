@@ -82,6 +82,7 @@ private:
 	#define GC_ALIGNED16(x) __declspec(align(16)) x
 	#define GC_ALIGNED32(x) __declspec(align(32)) x
 	#define GC_ALIGNED64(x) __declspec(align(64)) x
+	#define GC_ALIGNED128(x) __declspec(align(128)) x
 	#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
 	#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
@@ -129,6 +130,7 @@ private:
 #define GC_ALIGNED16(x) __attribute__((aligned(16))) x
 #define GC_ALIGNED32(x) __attribute__((aligned(32))) x
 #define GC_ALIGNED64(x) __attribute__((aligned(64))) x
+#define GC_ALIGNED128(x) __attribute__((aligned(128))) x
 #define GC_ALIGNED16_DECL(x) __attribute__((aligned(16))) x
 #define GC_ALIGNED64_DECL(x) __attribute__((aligned(64))) x
 #endif
