@@ -19,6 +19,9 @@
 #include "Atomic.h"
 #include "Mixer.h"
 #include "AudioCommon.h"
+#include "CPUDetect.h"
+
+static const __m128i sr_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
 
 // Executed from sound stream thread
 unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
@@ -53,8 +56,22 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		// Do re-sampling if needed
 		if (m_sampleRate == 32000)
 		{
-			for (unsigned int i = 0; i < numLeft * 2; i++)
-				samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
+#if _M_SSE >= 0x301
+			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
+			{
+				for (unsigned int i = 0; i < numLeft * 2; i += 8)
+				{
+					_mm_storeu_si128((__m128i *)&samples[i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&m_buffer[(m_indexR + i) & INDEX_MASK]), sr_mask));
+				}
+			}
+			else
+#endif
+			{
+				for (unsigned int i = 0; i < numLeft * 2; i++)
+				{
+					samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
+				}
+			}
 			m_indexR += numLeft * 2;
 		}
 		else //linear interpolation
