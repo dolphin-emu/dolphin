@@ -151,7 +151,8 @@ bool BootCore(const std::string& _rFilename)
 	// Init the core
 	if (!Core::Init())
 	{
-		PanicAlert(_wxt("Couldn't init the core.\nCheck your configuration."));
+		PanicAlert("%s", _wxt("Couldn't init the core.\n"
+					"Check your configuration."));
 		return false;
 	}
 
