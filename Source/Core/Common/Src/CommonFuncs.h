@@ -122,14 +122,6 @@ inline T max(const T& a, const T& b) {return a > b ? a : b;}
 // Defined in Misc.cpp.
 const char* GetLastErrorMsg();
 
-#if defined(HAVE_WX) && HAVE_WX
-// This should be used to mark c strings as translatable in PanicAlerts but only in
-// wxWidgets portions of the code.
-#define _wxt(a) (std::string(wxString(wxGetTranslation(wxT(a))).To8BitData()).c_str())
-#else
-#define _wxt(a) a
-#endif
-
 namespace Common
 {
 inline u8 swap8(u8 _data) {return _data;}

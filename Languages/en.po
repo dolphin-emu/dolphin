@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 07:13-0600\n"
+"POT-Creation-Date: 2011-01-12 12:07-0600\n"
 "PO-Revision-Date: 2011-01-06 14:53+0100\n"
 "Last-Translator: BhaaL <bhaal@0x1337.org>\n"
 "Language-Team: \n"
@@ -52,7 +52,7 @@ msgstr ""
 msgid "%d %%"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:771
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:768
 #, c-format
 msgid "%d Free Blocks; %d Free Dir Entries"
 msgstr ""
@@ -441,7 +441,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
 msgstr ""
@@ -466,7 +466,7 @@ msgstr ""
 msgid "Bleach Versus Crusade"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:637
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
 msgid "Blocks"
 msgstr ""
 
@@ -582,7 +582,7 @@ msgstr ""
 msgid "Choose a default ISO:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1127
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1126
 msgid "Choose a directory to add"
 msgstr ""
 
@@ -644,7 +644,7 @@ msgstr ""
 msgid "Command"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:632
 msgid "Comment"
 msgstr ""
 
@@ -742,7 +742,7 @@ msgstr ""
 msgid "Connected to %i Wiimotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:607
+#: Source/Core/DolphinWX/Src/Main.cpp:605
 msgid "Connecting..."
 msgstr ""
 
@@ -762,7 +762,7 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 #, c-format
 msgid "Copy to Memcard %c"
 msgstr ""
@@ -875,8 +875,8 @@ msgstr ""
 msgid "Date:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:535
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:569
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr ""
 
@@ -918,7 +918,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:792
 msgid "Delete Save"
 msgstr ""
 
@@ -1258,7 +1258,7 @@ msgid ""
 "Compatible)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
 msgid "Enable pages"
 msgstr ""
 
@@ -1342,7 +1342,7 @@ msgstr ""
 msgid "Equal"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
@@ -1372,7 +1372,7 @@ msgstr ""
 msgid "Export Recording..."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
 msgid "Export Save"
 msgstr ""
 
@@ -1380,11 +1380,11 @@ msgstr ""
 msgid "Export Wii save (Experimental)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
 msgid "Export all saves"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 msgid "Export save as..."
 msgstr ""
 
@@ -1495,11 +1495,11 @@ msgstr ""
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:638
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
 msgid "First Block"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Fix Checksums"
 msgstr ""
 
@@ -1569,7 +1569,7 @@ msgid ""
 "work properly, but it can also be very slow."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:541
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:540
 msgid "GCI File(*.gci)"
 msgstr ""
 
@@ -1725,7 +1725,7 @@ msgstr ""
 msgid "ITALY"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 msgid "Icon"
 msgstr ""
 
@@ -1741,7 +1741,7 @@ msgid ""
 "you also have to disable Audio Throttle in DSP to make it effective."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:796
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:793
 msgid "Import Save"
 msgstr ""
 
@@ -1992,8 +1992,8 @@ msgstr ""
 msgid "MMU Speed Hack"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr ""
 
@@ -2149,8 +2149,8 @@ msgstr ""
 msgid "Name: "
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:566
 msgid "Native GCI files(*.gci)"
 msgstr ""
 
@@ -2163,7 +2163,7 @@ msgid "New Scan"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:207
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:806
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Next Page"
 msgstr ""
 
@@ -2214,7 +2214,7 @@ msgstr ""
 msgid "Not Set"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:606
+#: Source/Core/DolphinWX/Src/Main.cpp:604
 msgid "Not connected"
 msgstr ""
 
@@ -2426,7 +2426,7 @@ msgstr ""
 msgid "Prev Page"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:802
 msgid "Previous Page"
 msgstr ""
 
@@ -2588,7 +2588,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:539
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:538
 msgid "Save GCI as..."
 msgstr ""
 
@@ -2657,7 +2657,7 @@ msgid ""
 "When in doubt, use the first one"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:528
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:527
 msgid "Select a save file to import"
 msgstr ""
 
@@ -2736,7 +2736,7 @@ msgstr ""
 msgid "Set as &default ISO"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:807
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr ""
@@ -2843,23 +2843,23 @@ msgid ""
 "This is only useful for debugging purposes."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Show save banner"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
 msgid "Show save blocks"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:818
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save comment"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:819
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
 msgid "Show save icon"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:814
 msgid "Show save title"
 msgstr ""
 
@@ -3031,11 +3031,11 @@ msgstr ""
 msgid "Texture Format"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:516
 msgid "The checksum was successfully fixed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 msgid "The chosen directory is already in the list"
 msgstr ""
 
@@ -3122,7 +3122,7 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:631
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
 msgstr ""
@@ -3271,7 +3271,7 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:590
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:589
 #, c-format
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
@@ -3326,7 +3326,7 @@ msgid ""
 "Do you want to reconnect immediately?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:608
+#: Source/Core/DolphinWX/Src/Main.cpp:606
 msgid "Wiimote Connected"
 msgstr ""
 

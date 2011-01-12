@@ -117,6 +117,14 @@ private:
 #include "config.h"	// SCons autoconfiguration defines
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
+// This should be used to mark c strings as translatable in PanicAlerts but only in
+// wxWidgets portions of the code.
+#define _wxt(a) (std::string(wxString(wxGetTranslation(wxT(a))).To8BitData()).c_str())
+#else
+#define _wxt(a) a
+#endif
+
 // Windows compatibility
 #ifndef _WIN32
 #include <limits.h>

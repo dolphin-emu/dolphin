@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 07:13-0600\n"
+"POT-Creation-Date: 2011-01-12 12:07-0600\n"
 "PO-Revision-Date: 2011-01-11 13:38+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
@@ -54,7 +54,7 @@ msgstr "%1$sΑντιγραφή%1$s"
 msgid "%d %%"
 msgstr "%d %%"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:771
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:768
 #, c-format
 msgid "%d Free Blocks; %d Free Dir Entries"
 msgstr "%d Ελεύθερα μπλοκ; %d Ελεύθερες Θέσεις Φακέλων"
@@ -472,7 +472,7 @@ msgstr "Αυτόματο [προτείνεται]"
 msgid "Back"
 msgstr "Πίσω"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
 msgstr "Πανό"
@@ -497,7 +497,7 @@ msgstr "Βασικές Ρυθμίσεις"
 msgid "Bleach Versus Crusade"
 msgstr "Bleach Versus Crusade"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:637
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
 msgid "Blocks"
 msgstr "Μπλοκ"
 
@@ -617,7 +617,7 @@ msgstr "Επιλέξτε έναν φάκελο ρίζας DVD:"
 msgid "Choose a default ISO:"
 msgstr "Επιλέξτε ένα προεπιλεγμένο ISO:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1127
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1126
 msgid "Choose a directory to add"
 msgstr "Επιλέξτε έναν φάκελο για προσθήκη"
 
@@ -681,7 +681,7 @@ msgstr "Κωδικός: "
 msgid "Command"
 msgstr "Εντολή"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:632
 msgid "Comment"
 msgstr "Σχόλιο"
 
@@ -779,7 +779,7 @@ msgstr "Συνδεδεμένο"
 msgid "Connected to %i Wiimotes"
 msgstr "Συνδεδεμένα %i Wiimote"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:607
+#: Source/Core/DolphinWX/Src/Main.cpp:605
 msgid "Connecting..."
 msgstr "Γίνεται Σύνδεση..."
 
@@ -799,7 +799,7 @@ msgstr "Μετατροπή σε GCI"
 msgid "Copy"
 msgstr "Αντιγραφή"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 #, c-format
 msgid "Copy to Memcard %c"
 msgstr "Αντιγραφή στην κάρτα μνήμης %c"
@@ -916,8 +916,8 @@ msgstr "Μέγεθος Δεδομένων"
 msgid "Date:"
 msgstr "Ημερομηνία:"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:535
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:569
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Αρχεία Datel MaxDrive/Pro(*.sav)"
 
@@ -959,7 +959,7 @@ msgstr "Προεπιλεγμένη γραμματοσειρά"
 msgid "Delete"
 msgstr "Διαγραφή"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:792
 msgid "Delete Save"
 msgstr "Διαγραφή Αποθήκευσης"
 
@@ -1316,7 +1316,7 @@ msgstr ""
 "Ενεργοποιεί τη γρήγορη πρόσβαση δίσκου. Απαραίτητο για μερικά παιχνίδια. "
 "(ΕΝΕΡΓΟ = Γρήγορο, ΑΝΕΝΕΡΓΟ = Συμβατό)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
 msgid "Enable pages"
 msgstr "Ενεργοποίηση σελίδων"
 
@@ -1423,7 +1423,7 @@ msgstr "Εγγραφή 1/%d"
 msgid "Equal"
 msgstr "Ίσο"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
@@ -1454,7 +1454,7 @@ msgstr "Εξαγωγή Αρχείου"
 msgid "Export Recording..."
 msgstr "Εξαγωγή Εγγραφής..."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
 msgid "Export Save"
 msgstr "Εξαγωγή Αποθήκευσης"
 
@@ -1462,11 +1462,11 @@ msgstr "Εξαγωγή Αποθήκευσης"
 msgid "Export Wii save (Experimental)"
 msgstr "Εξαγωγή Αποθήκευσης Wii (Πειραματικό)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
 msgid "Export all saves"
 msgstr "Εξαγωγή όλων των αποθηκεύσεων"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 msgid "Export save as..."
 msgstr "Εξαγωγή αποθήκευσης ως..."
 
@@ -1580,11 +1580,11 @@ msgstr "Αρχεία δίσκου"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:638
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
 msgid "First Block"
 msgstr "Πρώτο Μπλοκ"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Fix Checksums"
 msgstr "Επιδιόρθωση Checksum"
 
@@ -1664,7 +1664,7 @@ msgstr ""
 "το απαιτούν για να λειτουργήσουν πιο σωστά, αλλά μπορεί να είναι και πολύ "
 "αργό."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:541
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:540
 msgid "GCI File(*.gci)"
 msgstr "Αρχεία GCI(*.gci)"
 
@@ -1822,7 +1822,7 @@ msgstr "Φάκελοι ISO"
 msgid "ITALY"
 msgstr "ΙΤΑΛΙΑ"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 msgid "Icon"
 msgstr "Εικονίδιο"
 
@@ -1844,7 +1844,7 @@ msgstr ""
 "θα πρέπει επίσης να απενεργοποιήσετε το Throttle Ήχου στο DSP για να έχει "
 "αποτέλεσμα."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:796
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:793
 msgid "Import Save"
 msgstr "Εισαγωγή Αποθήκευσης"
 
@@ -2106,8 +2106,8 @@ msgstr "M Button"
 msgid "MMU Speed Hack"
 msgstr "MMU Speed Hack"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "Αρχεία MadCatz Gameshark (*.gcs)"
 
@@ -2266,8 +2266,8 @@ msgstr "Όνομα:"
 msgid "Name: "
 msgstr "Όνομα: "
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:566
 msgid "Native GCI files(*.gci)"
 msgstr "Αρχεία Native GCI (*.gci)"
 
@@ -2280,7 +2280,7 @@ msgid "New Scan"
 msgstr "Νέα Ανίχνευση"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:207
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:806
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Next Page"
 msgstr "Επόμενη Σελίδα"
 
@@ -2331,7 +2331,7 @@ msgstr "Όχι ίσο"
 msgid "Not Set"
 msgstr "Μη Ορισμένο"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:606
+#: Source/Core/DolphinWX/Src/Main.cpp:604
 msgid "Not connected"
 msgstr "Μη Συνδεδεμένο"
 
@@ -2543,7 +2543,7 @@ msgstr "Post-Processing Shader:"
 msgid "Prev Page"
 msgstr "Προηγούμενη Σελίδα"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:802
 msgid "Previous Page"
 msgstr "Προηγούμενη Σελίδα"
 
@@ -2710,7 +2710,7 @@ msgstr "Ρυθμός Δειγματοληψίας"
 msgid "Save"
 msgstr "Αποθήκ."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:539
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:538
 msgid "Save GCI as..."
 msgstr "Αποθήκευση GCI ως..."
 
@@ -2781,7 +2781,7 @@ msgstr ""
 "Επιλέξτε έναν προσαρμογέα υλικού για χρήση.\n"
 "Αν δεν είστε σίγουροι, χρησιμοποιείστε τον πρώτο"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:528
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:527
 msgid "Select a save file to import"
 msgstr "Επιλέξτε ένα αρχείο αποθήκευσης για εισαγωγή"
 
@@ -2869,7 +2869,7 @@ msgstr "Ορισμός της κονσόλας ως NTSC-J"
 msgid "Set as &default ISO"
 msgstr "Ορισμός ως προεπιλεγμένο &ISO"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:807
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "Ορισμός ως προεπιλεγμένη Κάρτα Μνήμης %c"
@@ -2982,23 +2982,23 @@ msgstr ""
 "Εμφάνιση στατιστικών projection.\n"
 "Αυτό είναι χρήσιμο μόνο για debugging."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Show save banner"
 msgstr "Εμφάνιση αποθηκευμένου πανό"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
 msgid "Show save blocks"
 msgstr "Εμφάνιση μπλοκ αποθήκευσης"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:818
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save comment"
 msgstr "Εμφάνιση αποθηκευμένου σχολίου"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:819
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
 msgid "Show save icon"
 msgstr "Εμφάνιση αποθηκευμένου εικονιδίου"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:814
 msgid "Show save title"
 msgstr "Εμφάνιση αποθηκευμένου τίτλου"
 
@@ -3183,11 +3183,11 @@ msgstr "Υφή"
 msgid "Texture Format"
 msgstr "Format Υφής"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:516
 msgid "The checksum was successfully fixed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 msgid "The chosen directory is already in the list"
 msgstr "Ο επιλεγμένος φάκελος βρίσκεται ήδη στη λίστα"
 
@@ -3292,7 +3292,7 @@ msgid "This will let you Manually Edit the INI config file"
 msgstr ""
 "Αυτό θα σας επιτρέψει να επεξεργαστείτε χειροκίνητα το αρχείο ρυθμίσεων INI"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:631
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
 msgstr "Τίτλος"
@@ -3447,7 +3447,7 @@ msgstr ""
 msgid "Warning"
 msgstr "Προειδοποίηση"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:590
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:589
 #, c-format
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
@@ -3519,7 +3519,7 @@ msgstr ""
 "ή πιθανόν να οφείλεται σε χρόνο αδράνειας ή κάποιον άλλο λόγο.\n"
 "Θέλετε να γίνει άμεση επανασύνδεση;"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:608
+#: Source/Core/DolphinWX/Src/Main.cpp:606
 msgid "Wiimote Connected"
 msgstr "Συνδεδεμένο Wiimote"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 07:13-0600\n"
+"POT-Creation-Date: 2011-01-12 12:07-0600\n"
 "PO-Revision-Date: 2011-01-10 15:49+0900\n"
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
@@ -54,7 +54,7 @@ msgstr ""
 msgid "%d %%"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:771
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:768
 #, c-format
 msgid "%d Free Blocks; %d Free Dir Entries"
 msgstr ""
@@ -449,7 +449,7 @@ msgstr "自動 [推奨]"
 msgid "Back"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
 msgstr "バナー"
@@ -474,7 +474,7 @@ msgstr "基本設定"
 msgid "Bleach Versus Crusade"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:637
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
 msgid "Blocks"
 msgstr "ブロック数"
 
@@ -592,7 +592,7 @@ msgstr "DVDルートフォルダを選択"
 msgid "Choose a default ISO:"
 msgstr "デフォルトとして設定するタイトルを選択"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1127
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1126
 msgid "Choose a directory to add"
 msgstr "追加したいフォルダを選択"
 
@@ -654,7 +654,7 @@ msgstr "コード："
 msgid "Command"
 msgstr "Command"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:632
 msgid "Comment"
 msgstr "コメント"
 
@@ -752,7 +752,7 @@ msgstr ""
 msgid "Connected to %i Wiimotes"
 msgstr "%i 個のWii リモコンを検出"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:607
+#: Source/Core/DolphinWX/Src/Main.cpp:605
 msgid "Connecting..."
 msgstr "接続中..."
 
@@ -772,7 +772,7 @@ msgstr "GCIファイルに変換"
 msgid "Copy"
 msgstr "Copy"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 #, c-format
 msgid "Copy to Memcard %c"
 msgstr ""
@@ -886,8 +886,8 @@ msgstr "データサイズ"
 msgid "Date:"
 msgstr "発売日"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:535
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:569
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr ""
 
@@ -929,7 +929,7 @@ msgstr "既定のフォント"
 msgid "Delete"
 msgstr "削除"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:792
 msgid "Delete Save"
 msgstr "このセーブデータを削除"
 
@@ -1275,7 +1275,7 @@ msgstr ""
 "ディスクの読み取り速度を向上させます。\n"
 "[有効＝ロード時間短縮／無効＝互換性・安定性重視]"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
 msgid "Enable pages"
 msgstr "ページ分けして表示"
 
@@ -1366,7 +1366,7 @@ msgstr ""
 msgid "Equal"
 msgstr "に一致する"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
@@ -1397,7 +1397,7 @@ msgstr ""
 msgid "Export Recording..."
 msgstr "録画ファイルのエクスポート"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
 msgid "Export Save"
 msgstr "セーブデータをエクスポート"
 
@@ -1405,11 +1405,11 @@ msgstr "セーブデータをエクスポート"
 msgid "Export Wii save (Experimental)"
 msgstr "セーブデータをエクスポート (実験的)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
 msgid "Export all saves"
 msgstr "全てのセーブデータをエクスポート"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 #, fuzzy
 msgid "Export save as..."
 msgstr "セーブデータの保存先を選択"
@@ -1521,11 +1521,11 @@ msgstr "構造"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:638
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
 msgid "First Block"
 msgstr "ブロック開始位置"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Fix Checksums"
 msgstr "チェックサムを修正"
 
@@ -1595,7 +1595,7 @@ msgid ""
 "work properly, but it can also be very slow."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:541
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:540
 msgid "GCI File(*.gci)"
 msgstr "GCI ファイル (*.gci)"
 
@@ -1753,7 +1753,7 @@ msgstr "フォルダ一覧"
 msgid "ITALY"
 msgstr "イタリア"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 msgid "Icon"
 msgstr "アイコン"
 
@@ -1772,7 +1772,7 @@ msgstr ""
 "サウンドプラグイン設定で「Audio Throttle」の設定を無効にしないと効果が現れま"
 "せん"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:796
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:793
 msgid "Import Save"
 msgstr "セーブデータをインポート"
 
@@ -2031,8 +2031,8 @@ msgstr ""
 msgid "MMU Speed Hack"
 msgstr "MMU Speed Hack"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr ""
 
@@ -2189,8 +2189,8 @@ msgstr "名前"
 msgid "Name: "
 msgstr "名前："
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:566
 msgid "Native GCI files(*.gci)"
 msgstr ""
 
@@ -2203,7 +2203,7 @@ msgid "New Scan"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:207
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:806
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Next Page"
 msgstr "次のページ"
 
@@ -2254,7 +2254,7 @@ msgstr "に一致しない"
 msgid "Not Set"
 msgstr "未確認"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:606
+#: Source/Core/DolphinWX/Src/Main.cpp:604
 #, fuzzy
 msgid "Not connected"
 msgstr "接続"
@@ -2468,7 +2468,7 @@ msgstr ""
 msgid "Prev Page"
 msgstr "前のページ"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:802
 msgid "Previous Page"
 msgstr "前のページ"
 
@@ -2630,7 +2630,7 @@ msgstr "サンプルレート"
 msgid "Save"
 msgstr "保存"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:539
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:538
 #, fuzzy
 msgid "Save GCI as..."
 msgstr "セーブデータの保存先を選択"
@@ -2700,7 +2700,7 @@ msgid ""
 "When in doubt, use the first one"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:528
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:527
 msgid "Select a save file to import"
 msgstr ""
 
@@ -2779,7 +2779,7 @@ msgstr "コンソールを日本向けに設定"
 msgid "Set as &default ISO"
 msgstr "既定のタイトルとして設定(&D)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:807
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "%c を既定のメモリカードとして設定"
@@ -2892,23 +2892,23 @@ msgstr ""
 "画面上に射影統計値を表示します\n"
 "[ デバッグ用の設定項目 ]"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Show save banner"
 msgstr "バナー欄を表示"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
 msgid "Show save blocks"
 msgstr "ブロック数欄を表示"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:818
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save comment"
 msgstr "コメント欄を表示"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:819
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
 msgid "Show save icon"
 msgstr "アイコン欄を表示"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:814
 msgid "Show save title"
 msgstr "タイトル欄を表示"
 
@@ -3082,11 +3082,11 @@ msgstr ""
 msgid "Texture Format"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:516
 msgid "The checksum was successfully fixed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 msgid "The chosen directory is already in the list"
 msgstr "選択したフォルダはすでにリストに存在します！"
 
@@ -3184,7 +3184,7 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "このゲームの設定をテキストで編集します"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:631
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
 msgstr "タイトル"
@@ -3335,7 +3335,7 @@ msgstr ""
 msgid "Warning"
 msgstr "警告"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:590
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:589
 #, c-format
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
@@ -3399,7 +3399,7 @@ msgstr ""
 "もしくはしばらく入力がなかったため節電状態に入ったのかもしれません\n"
 "再接続しますか？"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:608
+#: Source/Core/DolphinWX/Src/Main.cpp:606
 #, fuzzy
 msgid "Wiimote Connected"
 msgstr "Wii リモコンの振動を有効化"

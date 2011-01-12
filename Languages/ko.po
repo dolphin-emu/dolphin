@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 07:13-0600\n"
+"POT-Creation-Date: 2011-01-12 12:07-0600\n"
 "PO-Revision-Date: 2011-01-10 23:31+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
@@ -54,7 +54,7 @@ msgstr "%1$s복사%1$s"
 msgid "%d %%"
 msgstr "%d %%"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:771
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:768
 #, c-format
 msgid "%d Free Blocks; %d Free Dir Entries"
 msgstr "%d 빈 블럭들; %d 빈 디렉토리 목록"
@@ -465,7 +465,7 @@ msgstr "자동 [권장]"
 msgid "Back"
 msgstr "뒤로"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
 msgstr "       배너"
@@ -490,7 +490,7 @@ msgstr "기본 세팅들"
 msgid "Bleach Versus Crusade"
 msgstr "Bleach Versus Crusade"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:637
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
 msgid "Blocks"
 msgstr "블럭들"
 
@@ -610,7 +610,7 @@ msgstr "DVD 루트 디렉토리 선택:"
 msgid "Choose a default ISO:"
 msgstr "디폴트 ISO 선택:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1127
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1126
 msgid "Choose a directory to add"
 msgstr "추가할 디렉토리 선택"
 
@@ -673,7 +673,7 @@ msgstr "코드:"
 msgid "Command"
 msgstr "명령"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:632
 msgid "Comment"
 msgstr "주석"
 
@@ -771,7 +771,7 @@ msgstr "연결된"
 msgid "Connected to %i Wiimotes"
 msgstr "%i개의 위모트들에 연결된"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:607
+#: Source/Core/DolphinWX/Src/Main.cpp:605
 msgid "Connecting..."
 msgstr "연결중..."
 
@@ -791,7 +791,7 @@ msgstr "GCI 로 변환"
 msgid "Copy"
 msgstr "복사"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 #, c-format
 msgid "Copy to Memcard %c"
 msgstr "Memcard %c 에 복사"
@@ -907,8 +907,8 @@ msgstr "데이터 크기"
 msgid "Date:"
 msgstr "날짜:"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:535
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:569
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 파일들(*.sav)"
 
@@ -950,7 +950,7 @@ msgstr "기본 폰트"
 msgid "Delete"
 msgstr "삭제"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:792
 msgid "Delete Save"
 msgstr "저장 지우기"
 
@@ -1305,7 +1305,7 @@ msgid ""
 msgstr ""
 "빠른 디스크 엑세스 켜기. 일부 게임들에서 요구됨. (켬 = 빠른, 끔 = 호환성)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
 msgid "Enable pages"
 msgstr "페이지들 켜기"
 
@@ -1407,7 +1407,7 @@ msgstr "엔트리 1/%d"
 msgid "Equal"
 msgstr "같은"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
@@ -1438,7 +1438,7 @@ msgstr "파일 내보내기"
 msgid "Export Recording..."
 msgstr "기록 내보내기(저장)..."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:794
 msgid "Export Save"
 msgstr "저장 내보내기"
 
@@ -1446,11 +1446,11 @@ msgstr "저장 내보내기"
 msgid "Export Wii save (Experimental)"
 msgstr "Wii 저장 내보내기 (실험적)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
 msgid "Export all saves"
 msgstr "모든 저장들을 내보내기"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 msgid "Export save as..."
 msgstr "저장을 ...로 내보내기"
 
@@ -1564,11 +1564,11 @@ msgstr "파일시스템"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:638
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:635
 msgid "First Block"
 msgstr "첫번째 블럭"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Fix Checksums"
 msgstr "체크섬들 고침"
 
@@ -1646,7 +1646,7 @@ msgstr ""
 "이것은 EFB Copy to Texture 보다 더 정확하다, 그리고 일부 게임들은 올바르게 작"
 "동하기위해 이것이 필요하다, 하지만 또한 매우 느릴 수도 있다."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:541
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:540
 msgid "GCI File(*.gci)"
 msgstr "GCI 파일(*.gci)"
 
@@ -1804,7 +1804,7 @@ msgstr "ISO 디렉토리들"
 msgid "ITALY"
 msgstr "이탈리아"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 msgid "Icon"
 msgstr "아이콘"
 
@@ -1824,7 +1824,7 @@ msgstr ""
 "프레임한계를 게임 풀 스피드 (NTSC:60, PAL:50)보다 더 높게 설정하면,\n"
 "당신은 또한 그것이 효과를 내기위해서 DSP에서 오디오 병목을 꺼야한다."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:796
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:793
 msgid "Import Save"
 msgstr "저장을 가져오기"
 
@@ -2086,8 +2086,8 @@ msgstr "M 버튼"
 msgid "MMU Speed Hack"
 msgstr "MMU 스피드 핵"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:534
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:568
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz 게임샤크 파일들(*.gcs)"
 
@@ -2246,8 +2246,8 @@ msgstr "이름:"
 msgid "Name: "
 msgstr "이름:"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:567
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:566
 msgid "Native GCI files(*.gci)"
 msgstr "네이티브 GCI 파일들(*.gci)"
 
@@ -2260,7 +2260,7 @@ msgid "New Scan"
 msgstr "새로운 스캔"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:207
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:806
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Next Page"
 msgstr "다음 페이지"
 
@@ -2311,7 +2311,7 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "세팅 안함"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:606
+#: Source/Core/DolphinWX/Src/Main.cpp:604
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -2523,7 +2523,7 @@ msgstr "후-처리 쉐이더:"
 msgid "Prev Page"
 msgstr "이전 페이지"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:805
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:802
 msgid "Previous Page"
 msgstr "이전 페이지"
 
@@ -2690,7 +2690,7 @@ msgstr "샘플 레이트"
 msgid "Save"
 msgstr "저장"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:539
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:538
 msgid "Save GCI as..."
 msgstr "GCI 를 ...로 저장"
 
@@ -2761,7 +2761,7 @@ msgstr ""
 "사용할 하드웨어 어댑터를 선택하세요.\n"
 "의심 스러울 때는, 처음 것을 사용"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:528
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:527
 msgid "Select a save file to import"
 msgstr "가져올 세이브 파일을 선택"
 
@@ -2845,7 +2845,7 @@ msgstr "콘솔을 NTSC-J 로 세팅"
 msgid "Set as &default ISO"
 msgstr "디폴트 ISO로 세팅(&d)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:807
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:804
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "기본 메모리카드 %c 로 세팅"
@@ -2958,23 +2958,23 @@ msgstr ""
 "프로젝션 통계들을 보여주기.\n"
 "이것은 디버깅 목적들로만 유용하다."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Show save banner"
 msgstr "저장 배너 보기"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
 msgid "Show save blocks"
 msgstr "저장 블럭들 보기"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:818
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save comment"
 msgstr "저장 주석 보기"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:819
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
 msgid "Show save icon"
 msgstr "저장 아이콘 보기"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:817
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:814
 msgid "Show save title"
 msgstr "저장 타이틀 보기"
 
@@ -3158,11 +3158,11 @@ msgstr "텍스쳐"
 msgid "Texture Format"
 msgstr "텍스쳐 포멧"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:516
 msgid "The checksum was successfully fixed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1133
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1132
 msgid "The chosen directory is already in the list"
 msgstr "선택된 디렉토리는 이미 리스트에 있다"
 
@@ -3259,7 +3259,7 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "이것은 수동으로 INI 환경파일을 수정하게 해줄겁니다"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:634
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:631
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
 msgstr "    제목"
@@ -3414,7 +3414,7 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:590
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:589
 #, c-format
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
@@ -3482,7 +3482,7 @@ msgstr ""
 "혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
 "당신은 즉시 재연결 하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:608
+#: Source/Core/DolphinWX/Src/Main.cpp:606
 msgid "Wiimote Connected"
 msgstr "위모트가 연결됨"
 

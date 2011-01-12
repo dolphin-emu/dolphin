@@ -998,8 +998,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		}
 		else
 		{
-			PanicAlert("%s", _wxt("Cannot use that file as a memory card.\n"
-				"Are you trying to use the same file in both slots?"));
+			PanicAlert("%s", _wxt("Cannot use that file as a memory card.\nAre you trying to use the same file in both slots?"));
 		}
 	}
 }

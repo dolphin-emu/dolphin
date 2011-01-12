@@ -475,8 +475,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		PanicAlert(E_SAVEFAILED);
 		break;
 	case DELETE_FAIL:
-		PanicAlert("%s", _wxt("Order of files in the File Directory do not match the block order\n"
-				"Right click and export all of the saves,\nand import the the saves to a new memcard\n"));
+		PanicAlert("%s", _wxt("Order of files in the File Directory do not match the block order\nRight click and export all of the saves,\nand import the the saves to a new memcard\n"));
 		break;
 	default:
 		PanicAlert(E_UNK);
@@ -587,9 +586,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		SplitPath(mpath, &path1, &path2, NULL);
 		path1 += path2;
 		File::CreateDir(path1.c_str());
-		if(PanicYesNo(_wxt("Warning: This will overwrite any existing saves "
-					"that are in the folder:\n%s\nand have the same name"
-					" as a file on your memcard\nContinue?"), path1.c_str()))
+		if(PanicYesNo(_wxt("Warning: This will overwrite any existing saves that are in the folder:\n%s\nand have the same name as a file on your memcard\nContinue?"), path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
 			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, ".", &path1), -1);
