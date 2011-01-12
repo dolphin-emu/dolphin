@@ -28,6 +28,7 @@ public:
 	bool OnInit();
 	void OnEndSession();
 	int OnExit();
+	void OnFatalException();
 	CFrame* GetCFrame();
 	void InitLanguageSupport();
 

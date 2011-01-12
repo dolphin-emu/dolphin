@@ -175,6 +175,8 @@ bool DolphinApp::OnInit()
 #ifdef _WIN32
 	EXTENDEDTRACEINITIALIZE(".");
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+#else
+	wxHandleFatalExceptions(true);
 #endif
 
 	// TODO: if First Boot
@@ -421,6 +423,11 @@ int DolphinApp::OnExit()
 	delete m_locale;
 
 	return wxApp::OnExit();
+}
+
+void DolphinApp::OnFatalException()
+{
+	WiimoteReal::Shutdown();
 }
 
 
