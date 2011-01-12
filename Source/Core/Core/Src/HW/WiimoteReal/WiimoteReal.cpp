@@ -58,8 +58,8 @@ Wiimote::Wiimote(const unsigned int _index)
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-	, leds(0)
-	, m_last_data_report(Report(NULL, 0)), m_channel(0), m_connected(false)
+	, leds(0), m_last_data_report(Report((u8 *)NULL, 0))
+	, m_channel(0), m_connected(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
