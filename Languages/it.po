@@ -753,12 +753,12 @@ msgstr "Connetti"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:693
 msgid "Connect USB Keyboard"
-msgstr "Collega tastiera USB "
+msgstr "Collega tastiera USB"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:333
 #, fuzzy, c-format
 msgid "Connect Wiimote %i"
-msgstr "Collega Wiimote %i\t"
+msgstr "Collega Wiimote %i"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
 msgid "Connect Wiimote 1"
@@ -2052,7 +2052,7 @@ msgstr "Carica Script..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:162
 msgid "Load State..."
-msgstr "Carica 'Stato'..."
+msgstr "Carica stato..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:208
 #, c-format
@@ -2096,7 +2096,7 @@ msgstr "Logging"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:259
 msgid "Lost connection to server!"
-msgstr "Connsessione al server persa!"
+msgstr "Connessione al server persa!"
 
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:61
 msgid "Lua Script Console"
@@ -2371,7 +2371,7 @@ msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:27
 msgid "Nunchuk Acceleration"
-msgstr "Accelerazione Nunchuck"
+msgstr "Accelerazione Nunchuk"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:79
 #: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:35
@@ -2613,7 +2613,7 @@ msgstr "Wiimote Reale"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:175
 msgid "Reconnect Wiimote Confirm"
-msgstr "Conferma di Wiimote Ricollegato"
+msgstr "Conferma Ricollegamento Wiimote"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
@@ -3213,7 +3213,7 @@ msgstr "Il nome non può contenere il carattere ','"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
 msgid "The save you are trying to copy has an invalid file size"
-msgstr "Il salvataggio che si sta provando a copiare ha una dimensione non valida"
+msgstr "Il file di salvataggio che si sta provando a copiare ha una dimensione non valida"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:46
 msgid "The server and client's NetPlay versions are incompatible!"
