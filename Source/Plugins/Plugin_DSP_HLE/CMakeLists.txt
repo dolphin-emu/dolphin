@@ -21,7 +21,7 @@ if(wxWidgets_FOUND)
 endif(wxWidgets_FOUND)
 
 add_library(Plugin_DSP_HLE MODULE ${SRCS})
-target_link_libraries(Plugin_DSP_HLE common audiocommon ${wxWidgets_LIBRARIES})
+target_link_libraries(Plugin_DSP_HLE audiocommon common ${wxWidgets_LIBRARIES})
 install(TARGETS Plugin_DSP_HLE
 		LIBRARY DESTINATION ${plugindir}
 		RUNTIME DESTINATION ${plugindir})
