@@ -25,7 +25,7 @@
 #include <tmmintrin.h>
 #endif
 
-static const __m128i sr_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+static const __m128i sr_mask = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 
 // Executed from sound stream thread
 unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
@@ -71,9 +71,10 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 			else
 #endif
 			{
-				for (unsigned int i = 0; i < numLeft * 2; i++)
+				for (unsigned int i = 0; i < numLeft * 2; i+=2)
 				{
-					samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
+					samples[i] = Common::swap16(m_buffer[(m_indexR + i + 1) & INDEX_MASK]);
+					samples[i+1] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
 				}
 			}
 			m_indexR += numLeft * 2;
@@ -96,12 +97,12 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
 				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
 				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;	
-				samples[i]   = sampleL;			
+				samples[i+1] = sampleL;			
 				
 				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
 				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
 				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
-				samples[i+1] = sampleR;
+				samples[i] = sampleR;
 
 				frac += ratio;
 				m_indexR += 2 * (u16)(frac >> 16);
