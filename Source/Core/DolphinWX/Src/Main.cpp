@@ -107,34 +107,34 @@ bool DolphinApp::OnInit()
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
 		{
-			wxCMD_LINE_SWITCH, _("h"), _("help"),
+			wxCMD_LINE_SWITCH, wxS("h"), wxS("help"),
 			_("Show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
-			wxCMD_LINE_SWITCH, _("d"), _("debugger"),
+			wxCMD_LINE_SWITCH, wxS("d"), wxS("debugger"),
 			_("Opens the debugger")
 		},
 		{
-			wxCMD_LINE_SWITCH, _("l"), _("logger"),
+			wxCMD_LINE_SWITCH, wxS("l"), wxS("logger"),
 			_("Opens the logger")
 		},
 		{
-			wxCMD_LINE_OPTION, _("e"), _("exec"),
+			wxCMD_LINE_OPTION, wxS("e"), wxS("exec"),
 			_("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, _("b"), _("batch"),
+			wxCMD_LINE_SWITCH, wxS("b"), wxS("batch"),
 			_("Exit Dolphin with emulator")
 		},
 		{
-			wxCMD_LINE_OPTION, _("V"), _("video_plugin"),
+			wxCMD_LINE_OPTION, wxS("V"), wxS("video_plugin"),
 			_("Specify a video plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"),
+			wxCMD_LINE_OPTION, wxS("A"), wxS("audio_plugin"),
 			_("Specify an audio plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -150,12 +150,14 @@ bool DolphinApp::OnInit()
 		return false;
 	} 
 
-	UseDebugger = parser.Found(_T("debugger"));
-	UseLogger = parser.Found(_T("logger"));
-	LoadFile = parser.Found(_T("exec"), &FileToLoad);
-	BatchMode = parser.Found(_T("batch"));
-	selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
-	selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
+	UseDebugger = parser.Found(wxT("debugger"));
+	UseLogger = parser.Found(wxT("logger"));
+	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
+	BatchMode = parser.Found(wxT("batch"));
+	selectVideoPlugin = parser.Found(wxT("video_plugin"),
+		&videoPluginFilename);
+	selectAudioPlugin = parser.Found(wxT("audio_plugin"),
+		&audioPluginFilename);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
