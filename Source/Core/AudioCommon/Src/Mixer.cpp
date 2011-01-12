@@ -21,6 +21,10 @@
 #include "AudioCommon.h"
 #include "CPUDetect.h"
 
+#if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+#include <tmmintrin.h>
+#endif
+
 static const __m128i sr_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
 
 // Executed from sound stream thread
