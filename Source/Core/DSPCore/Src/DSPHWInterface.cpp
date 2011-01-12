@@ -281,7 +281,7 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 	{
 		for (u32 i = 0; i < size; i += 16)
 		{
-			_mm_store_si128((__m128i *)&dst[dsp_addr + i], _mm_shuffle_epi8(_mm_load_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]), s_mask));
+			_mm_storeu_si128((__m128i *)&dst[dsp_addr + i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]), s_mask));
 		}
 	}
 	else
@@ -305,7 +305,7 @@ void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 	{
 		for (u32 i = 0; i < size; i += 16)
 		{
-			_mm_store_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF], _mm_shuffle_epi8(_mm_load_si128((__m128i *)&src[dsp_addr + i]), s_mask));
+			_mm_storeu_si128((__m128i *)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&src[dsp_addr + i]), s_mask));
 		}
 	}
 	else
