@@ -40,16 +40,16 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			switch (error)
 			{
 			case CON_ERR_SERVER_FULL :
-				PanicAlert("The server is full!");
+				PanicAlert("%s", _wxt("The server is full!"));
 				break;
 			case CON_ERR_VERSION_MISMATCH :
-				PanicAlert("The server and client's NetPlay versions are incompatible!");
+				PanicAlert("%s", _wxt("The server and client's NetPlay versions are incompatible!"));
 				break;
 			case CON_ERR_GAME_RUNNING :
-				PanicAlert("The server responded: the game is currently running!");
+				PanicAlert("%s", _wxt("The server responded: the game is currently running!"));
 				break;
 			default :
-				PanicAlert("The server sent an unknown error message!");
+				PanicAlert("%s", _wxt("The server sent an unknown error message!"));
 				break;
 			}
 			m_socket.Close();
@@ -77,7 +77,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 		}
 	}
 	else
-		PanicAlert("Failed to Connect!");
+		PanicAlert("%s", _wxt("Failed to Connect!"));
 
 }
 
@@ -207,7 +207,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_DISABLE_GAME :
 		{
-			PanicAlert("Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game.");
+			PanicAlert("%s", _wxt("Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game."));
 			CritLocker game_lock(m_crit.game);	// lock game state
 			m_is_running = false;
 			NetPlay_Disable();
@@ -229,7 +229,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		break;
 
 	default :
-		PanicAlert("Unknown message received with id : %d", mid);
+		PanicAlert(_wxt("Unknown message received with id : %d"), mid);
 		break;
 
 	}
@@ -256,7 +256,7 @@ void NetPlayClient::Entry()
 				m_is_running = false;
 				NetPlay_Disable();
 				AppendChatGUI("< LOST CONNECTION TO SERVER >");
-				PanicAlert("Lost connection to server!");
+				PanicAlert("%s", _wxt("Lost connection to server!"));
 				m_do_loop = false;
 				break;
 			}

@@ -182,9 +182,9 @@ bool DolphinApp::OnInit()
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
-		PanicAlert("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+		PanicAlert("%s", _wxt("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-				"Sayonara!\n");
+				"Sayonara!\n"));
 		return false;
 	}
 

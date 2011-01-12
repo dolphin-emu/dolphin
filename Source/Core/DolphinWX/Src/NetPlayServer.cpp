@@ -257,7 +257,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 {
 	if (m_is_running)
 	{
-		PanicAlert("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
+		PanicAlert("%s", _wxt("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game."));
 		CritLocker game_lock(m_crit.game);	// lock game state
 		m_is_running = false;
 		NetPlay_Disable();
@@ -501,7 +501,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 		break;
 
 	default :
-		PanicAlert("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
+		PanicAlert(_wxt("Unknown message with id:%d received from player:%d Kicking player!"), mid, player.pid);
 		// unknown message, kick the client
 		return 1;
 		break;

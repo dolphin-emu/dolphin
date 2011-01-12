@@ -99,6 +99,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\hu.po"
+			>
+		</File>
+		<File
 			RelativePath=".\it.po"
 			>
 		</File>

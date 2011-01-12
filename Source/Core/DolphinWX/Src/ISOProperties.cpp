@@ -553,7 +553,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
-		PanicAlert("Could not save %s", GameIniFile.c_str());
+		PanicAlert(_wxt("Could not save %s"), GameIniFile.c_str());
 
 	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
 }
@@ -801,7 +801,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	}
 
 	if (!ret)
-		PanicAlert("Failed to extract to %s!", (const char *)Path.mb_str());
+		PanicAlert(_wxt("Failed to extract to %s!"), (const char *)Path.mb_str());
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)
@@ -1052,17 +1052,17 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 			filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"));
 			if(filetype == NULL) // MIME type failed, aborting mission
 			{
-				PanicAlert("Filetype 'ini' is unknown! Will not open!");
+				PanicAlert("%s", _wxt("Filetype 'ini' is unknown! Will not open!"));
 				return;
 			}
 		}
 		wxString OpenCommand;
 		OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(GameIniFile.c_str()));
 		if(OpenCommand.IsEmpty())
-			PanicAlert("Couldn't find open command for extension 'ini'!");
+			PanicAlert("%s", _wxt("Couldn't find open command for extension 'ini'!"));
 		else
 			if(wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
-				PanicAlert("wxExecute returned -1 on application run!");
+				PanicAlert("%s", _wxt("wxExecute returned -1 on application run!"));
 
 		GameIni.Load(GameIniFile.c_str());
 		LoadGameConfig();

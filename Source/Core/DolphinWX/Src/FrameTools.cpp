@@ -524,7 +524,7 @@ void CFrame::InitBitmaps()
 	}
 	break;
 
-	default: PanicAlert("Theme selection went wrong");
+	default: PanicAlert("%s", _wxt("Theme selection went wrong"));
 	}
 
 	// Update in case the bitmap has been updated
@@ -597,7 +597,7 @@ void CFrame::DoOpen(bool Boot)
 
 	if (currentDir != currentDir2)
 	{
-		PanicAlert("Current dir changed from %s to %s after wxFileSelector!",
+		PanicAlert(_wxt("Current dir changed from %s to %s after wxFileSelector!"),
 				currentDir.c_str(), currentDir2.c_str());
 		File::SetCurrentDir(currentDir.c_str());
 	}
