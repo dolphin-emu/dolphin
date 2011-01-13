@@ -208,7 +208,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		{
 			m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 			m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint);
-			m_CPStatusReg.CommandIdle = fifo.CPCmdIdle;
+			m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance;
 			m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 			m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
 		}
@@ -278,15 +278,15 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		return;
 
 	case FIFO_READ_POINTER_LO:
-		_rReturnValue = ReadLow (fifo.CPReadPointer);
+		//_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		//_rReturnValue = ReadLow (fifo.CPWritePointer);
+		_rReturnValue = ReadLow (fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_HI:
-		_rReturnValue = ReadHigh(fifo.CPReadPointer);
+		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-	    //_rReturnValue = ReadHigh(fifo.CPWritePointer);
+	    _rReturnValue = ReadHigh(fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
 
@@ -471,8 +471,6 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (bProcessFifoToLoWatemark)
 				ProcessFifoToLoWatemark();
 			
-			if (bProcessFifoAllDistance)
-				ProcessFifoAllDistance();
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
@@ -496,7 +494,10 @@ void Write16(const u16 _Value, const u32 _Address)
 					bProcessFifoToLoWatemark = true;
 
 				if (tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
-					bProcessFifoAllDistance = true;
+					ProcessFifoAllDistance();
+
+				if (!tmpCtrl.ClearFifoUnderflow && !tmpCtrl.ClearFifoOverflow)
+					ProcessFifoAllDistance();
 			}
 			else
 			{
@@ -904,7 +905,7 @@ void ProcessFifoAllDistance()
 
 void ProcessFifoEvents()
 {
-	if (g_VideoInitialize.bOnThread || interruptWaiting || interruptFinishWaiting || interruptTokenWaiting)
+	if (g_VideoInitialize.bOnThread && (interruptWaiting || interruptFinishWaiting || interruptTokenWaiting))
 	g_VideoInitialize.pProcessFifoEvents();
 }
 
