@@ -114,7 +114,7 @@ int RegisterEvent(const char *name, TimedCallback callback)
 void UnregisterAllEvents()
 {
 	if (first)
-		PanicAlert("Cannot unregister events with events pending");
+		PanicAlertT("Cannot unregister events with events pending");
 	event_types.clear();
 }
 
@@ -162,7 +162,7 @@ void DoState(PointerWrap &p)
 		{
 		ClearPendingEvents();
 		if (first)
-			PanicAlert("Clear failed.");
+			PanicAlertT("Clear failed.");
 		int more_events = 0;
 		Event *prev = 0;
 		while (true) {
@@ -532,7 +532,7 @@ std::string GetScheduledEventsSummary()
 	{
 		unsigned int t = ptr->type;
 		if (t >= event_types.size())
-			PanicAlert("Invalid event type %i", t);
+			PanicAlertT("Invalid event type %i", t);
 		const char *name = event_types[ptr->type].name;
 		if (!name)
 			name = "[unknown]";

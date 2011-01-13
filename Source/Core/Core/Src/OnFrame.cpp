@@ -226,7 +226,7 @@ bool BeginRecordingInput(int controllers)
 	
 	g_recordfd = fopen(filename, "wb");
 	if(!g_recordfd) {
-		PanicAlert("Error opening file %s for recording", filename);
+		PanicAlertT("Error opening file %s for recording", filename);
 		return false;
 	}
 	
@@ -292,7 +292,7 @@ bool PlayInput(const char *filename)
 	fread(&header, sizeof(DTMHeader), 1, g_recordfd);
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
-		PanicAlert("Invalid recording file");
+		PanicAlertT("Invalid recording file");
 		goto cleanup;
 	}
 	
@@ -339,7 +339,7 @@ void LoadInput(const char *filename)
 	fclose(t_record);
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
-		PanicAlert("Savestate movie %s is corrupted, movie recording stopping...", filename);
+		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
 		EndPlayInput();
 		return;
 	}

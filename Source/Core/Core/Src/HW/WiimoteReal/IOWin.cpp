@@ -59,7 +59,7 @@ inline void init_lib()
 		hid_lib = LoadLibrary(_T("hid.dll"));
 		if (!hid_lib)
 		{
-			PanicAlert("Failed to load hid.dll");
+			PanicAlertT("Failed to load hid.dll");
 			exit(EXIT_FAILURE);
 		}
 
@@ -68,7 +68,7 @@ inline void init_lib()
 		HidD_SetOutputReport = (PHidD_SetOutputReport)GetProcAddress(hid_lib, "HidD_SetOutputReport");
 		if (!HidD_GetHidGuid || !HidD_GetAttributes || !HidD_SetOutputReport)
 		{
-			PanicAlert("Failed to load hid.dll");
+			PanicAlertT("Failed to load hid.dll");
 			exit(EXIT_FAILURE);
 		}
 

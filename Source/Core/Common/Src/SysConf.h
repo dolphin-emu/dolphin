@@ -95,7 +95,7 @@ public:
 	{
 		if (!m_IsValid)
 		{
-			PanicAlert("Trying to read from invalid SYSCONF");
+			PanicAlertT("Trying to read from invalid SYSCONF");
 			return 0;
 		}
 
@@ -107,7 +107,7 @@ public:
 		}
 		if (index == m_Entries.size() - 1)
 		{
-			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return 0;
 		}
 
@@ -118,7 +118,7 @@ public:
 	{
 		if (!m_IsValid)
 		{
-			PanicAlert("Trying to read from invalid SYSCONF");
+			PanicAlertT("Trying to read from invalid SYSCONF");
 			return 0;
 		}
 
@@ -130,7 +130,7 @@ public:
 		}
 		if (index == m_Entries.size() - 1)
 		{
-			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return 0;
 		}
 
@@ -150,7 +150,7 @@ public:
 		}
 		if (index == m_Entries.size() - 1)
 		{
-			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return false;
 		}
 
@@ -171,7 +171,7 @@ public:
 		}
 		if (index == m_Entries.size() - 1)
 		{
-			PanicAlert("Section %s not found in SYSCONF", sectionName);
+			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return false;
 		}
 

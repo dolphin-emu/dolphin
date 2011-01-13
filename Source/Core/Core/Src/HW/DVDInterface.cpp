@@ -311,7 +311,7 @@ void InsertDiscCallback(u64 userdata, int cyclesLate)
 	{
 		// Put back the old one
 		VolumeHandler::SetVolumeName(SavedFileName);
-		PanicAlert("Invalid file");
+		PanicAlertT("Invalid file");
 	}
 	SetLidOpen(false);
 	SetDiscInside(VolumeHandler::IsValid());
@@ -641,7 +641,7 @@ void ExecuteCommand(UDICR& _DICR)
 					// Here is the actual Disk Reading
 					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
 					{
-						PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+						PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 					}
 				}
 				break;
@@ -651,7 +651,7 @@ void ExecuteCommand(UDICR& _DICR)
 				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[2].Hex == m_DILENGTH.Length);
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
-					PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+					PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address))
 				break;
 
@@ -892,7 +892,7 @@ void ExecuteCommand(UDICR& _DICR)
 		break;
 
 	default:
-		PanicAlert("Unknown DVD command %08x - fatal error", m_DICMDBUF[0].Hex);
+		PanicAlertT("Unknown DVD command %08x - fatal error", m_DICMDBUF[0].Hex);
 		_dbg_assert_(DVDINTERFACE, 0);
 		break;
 	}

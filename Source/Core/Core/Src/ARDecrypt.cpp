@@ -480,7 +480,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 
 	if ((ret=alphatobin(uCodes, vCodes, (int)vCodes.size())))
 	{
-		PanicAlert("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s", vCodes[ret].c_str());
+		PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s", vCodes[ret].c_str());
 		batchdecrypt(uCodes, (u16)vCodes.size()<<1);
 	}
 	else if (!batchdecrypt(uCodes, (u16)vCodes.size()<<1))

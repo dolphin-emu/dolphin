@@ -50,7 +50,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 		size_t read_bytes = fread(rom, 1, size_in_bytes, pFile);
 		if (read_bytes != size_in_bytes)
 		{
-			PanicAlert("ROM %s too short : %i/%i", fname, (int)read_bytes, (int)size_in_bytes);
+			PanicAlertT("ROM %s too short : %i/%i", fname, (int)read_bytes, (int)size_in_bytes);
 			fclose(pFile);
 			return false;
 		}
@@ -62,7 +62,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 
 		return true;
 	}
-	PanicAlert("Failed to load DSP Rom : %s",fname);
+	PanicAlertT("Failed to load DSP Rom : %s",fname);
 	// Always keep ROMs write protected.
 	WriteProtectMemory(g_dsp.irom, size_in_bytes, false);
 	return false;

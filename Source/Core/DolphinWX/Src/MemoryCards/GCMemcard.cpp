@@ -71,7 +71,7 @@ GCMemcard::GCMemcard(const char *filename)
 	fail = false;
 	if (!mcd)
 	{
-		if (!AskYesNo("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
+		if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
 		{
 			fail = true;
 			return;
@@ -83,7 +83,7 @@ GCMemcard::GCMemcard(const char *filename)
 			return;
 		}
 		mcdFile = mcd;
-		Format(!AskYesNo("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
+		Format(!AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
 		fclose(mcd);
 		mcd = fopen(filename, "r+b");
 	}
@@ -95,7 +95,7 @@ GCMemcard::GCMemcard(const char *filename)
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
 			fail = true;
-			PanicAlert("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
+			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
 	}
@@ -104,31 +104,31 @@ GCMemcard::GCMemcard(const char *filename)
 	if (fread(&hdr, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
 	{
 		fail = true;
-		PanicAlert("Failed to read header correctly\n(0x0000-0x1FFF)");
+		PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
 		return;
 	}
 	if (fread(&dir, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
 	{
 		fail = true;
-		PanicAlert("Failed to read directory correctly\n(0x2000-0x3FFF)");
+		PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
 		return;
 	}
 	if (fread(&dir_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
 	{
 		fail = true;
-		PanicAlert("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
+		PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
 		return;
 	}
 	if (fread(&bat, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
 	{
 		fail = true;
-		PanicAlert("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
+		PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
 		return;
 	}
 	if (fread(&bat_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
 	{
 		fail = true;
-		PanicAlert("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
+		PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
 		return;
 	}
 
@@ -139,7 +139,7 @@ GCMemcard::GCMemcard(const char *filename)
 		// header checksum error!
 		// invalid files do not always get here
 		fail = true;
-		PanicAlert("Header checksum failed");
+		PanicAlertT("Header checksum failed");
 		return;
 	}
 
@@ -149,7 +149,7 @@ GCMemcard::GCMemcard(const char *filename)
 		{
 			// backup is also wrong!
 			fail = true;
-			PanicAlert("Directory checksum failed\n and Directory backup checksum failed");
+			PanicAlertT("Directory checksum failed\n and Directory backup checksum failed");
 			return;
 		}
 		else
@@ -169,7 +169,7 @@ GCMemcard::GCMemcard(const char *filename)
 		{
 			// backup is also wrong!
 			fail = true;
-			PanicAlert("Block Allocation Table checksum failed");
+			PanicAlertT("Block Allocation Table checksum failed");
 			return;
 		}
 		else
@@ -211,13 +211,13 @@ GCMemcard::GCMemcard(const char *filename)
 		if (mc_data_size != read)
 		{
 			fail = true;
-			PanicAlert("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
+			PanicAlertT("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
 		}
 		break;
 	}
 	default:
 		fail = true;
-		PanicAlert("Memcard failed to load\n Card size is invalid (%04X)", sizeMb);
+		PanicAlertT("Memcard failed to load\n Card size is invalid (%04X)", sizeMb);
 	}
 }
 

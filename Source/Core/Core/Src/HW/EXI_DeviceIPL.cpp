@@ -275,7 +275,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
 				if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
 				{
-					PanicAlert("Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash.",
+					PanicAlertT("Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash.",
 						(position >= 0x001FCF00)?"ANSI":"SJIS");
 					m_FontsLoaded = true; // Don't be a nag :p
 				}

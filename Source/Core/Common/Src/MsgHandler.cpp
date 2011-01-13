@@ -25,15 +25,25 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
 static bool AlertEnabled = true;
 
+const char* DefaultStringTranslator(const char* text);
+static StringTranslator str_translator = DefaultStringTranslator;
+
 /* Select which of these functions that are used for message boxes. If
-   wxWidgets is enabled we will use wxMsgAlert() that is defined in main.cpp */
+   wxWidgets is enabled we will use wxMsgAlert() that is defined in Main.cpp */
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
 	msg_handler = handler;
 }
 
+// Select translation function.  For wxWidgets use wxStringTranslator in Main.cpp
+void RegisterStringTranslator(StringTranslator translator)
+{
+	str_translator = translator;
+}
+
 // enable/disable the alert handler
-void SetEnableAlert(bool enable) {
+void SetEnableAlert(bool enable)
+{
 	AlertEnabled = enable;
 }
 
@@ -45,9 +55,11 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	char buffer[2048];
 	bool ret = true;
 
+	const char *tr_format = str_translator(format);
+
 	va_list args;
 	va_start(args, format);
-	CharArrayFromFormatV(buffer, 2047, format, args);
+	CharArrayFromFormatV(buffer, 2047, tr_format, args);
 	va_end(args);
 
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
@@ -74,3 +86,10 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
     return true;
 #endif
 }
+
+// Default (non) translator
+const char* DefaultStringTranslator(const char* text)
+{
+	return text;
+}
+

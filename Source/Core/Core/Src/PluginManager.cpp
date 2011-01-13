@@ -92,20 +92,20 @@ bool CPluginManager::InitPlugins()
 	// Update pluginglobals.
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.size() == 0)
 	{
-		PanicAlert("Bad gameini filename");
+		PanicAlertT("Bad gameini filename");
 	}
 	strcpy(m_PluginGlobals->game_ini, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	strcpy(m_PluginGlobals->unique_id, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
 	INFO_LOG(CONSOLE, "Before GetVideo\n");
 
 	if (!GetVideo()) {
-		PanicAlert("Can't init Video Plugin");
+		PanicAlertT("Can't init Video Plugin");
 		return false;
 	}
 	INFO_LOG(CONSOLE, "After GetVideo\n");
 
 	if (!GetDSP()) {
-		PanicAlert("Can't init DSP Plugin");
+		PanicAlertT("Can't init DSP Plugin");
 		return false;
 	}
 
@@ -147,7 +147,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 {
 	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
-		PanicAlert("Can't find plugin %s", _rFilename);
+		PanicAlertT("Can't find plugin %s", _rFilename);
 		return;
 	}
 
@@ -158,7 +158,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 		if (plugin->GetInfo(m_PluginInfo))
 			m_Valid = true;
 		else
-			PanicAlert("Could not get info about plugin %s", _rFilename);
+			PanicAlertT("Could not get info about plugin %s", _rFilename);
 		// We are now done with this plugin and will call FreeLibrary()
 		delete plugin;
 	}
@@ -195,7 +195,7 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 void *CPluginManager::LoadPlugin(const char *_rFilename)
 {
 	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str())) {
-		PanicAlert("Error loading plugin %s: can't find file. Please re-select your plugins.", _rFilename);
+		PanicAlertT("Error loading plugin %s: can't find file. Please re-select your plugins.", _rFilename);
 		return NULL;
 	}
 	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
@@ -203,7 +203,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 	CPluginInfo *info = NULL;
 	GetPluginInfo(info, _rFilename);
 	if (!info) {
-		PanicAlert("Error loading %s: can't read info", _rFilename);
+		PanicAlertT("Error loading %s: can't read info", _rFilename);
 		return NULL;
 	}
 	
@@ -221,14 +221,14 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		break;
 	
 	default:
-		PanicAlert("Trying to load unsupported type %d", type);
+		PanicAlertT("Trying to load unsupported type %d", type);
 		return NULL;
 	}
 	
 	// Check that the plugin has all the common and all the type specific functions
 	if (!plugin->IsValid())
 	{
-		PanicAlert("Can't open %s, it has a missing function", _rFilename);
+		PanicAlertT("Can't open %s, it has a missing function", _rFilename);
 		delete plugin;
 		return NULL;
 	}
@@ -354,7 +354,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 {
 	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
-		PanicAlert("Can't find plugin %s", _rFilename);
+		PanicAlertT("Can't find plugin %s", _rFilename);
 		return;
 	}
 	
@@ -371,7 +371,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		break;
 
 	default:
-		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename);
+		PanicAlertT("Type %d config not supported in plugin %s", Type, _rFilename);
 		break;
 	}
 }

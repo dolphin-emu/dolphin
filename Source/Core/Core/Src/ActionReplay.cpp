@@ -193,9 +193,9 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 			bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
    			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
 			if (!(success_addr | success_val)) {
-				PanicAlert("Action Replay Error: invalid AR code line: %s", line.c_str());
-				if (!success_addr) PanicAlert("The address is invalid");
-				if (!success_val) PanicAlert("The value is invalid");
+				PanicAlertT("Action Replay Error: invalid AR code line: %s", line.c_str());
+				if (!success_addr) PanicAlertT("The address is invalid");
+				if (!success_val) PanicAlertT("The value is invalid");
 			}
 			else
 				currentCode.ops.push_back(op);
@@ -353,7 +353,7 @@ bool RunCode(const ARCode &arcode)
 		if (addr >= 0x00002000 && addr < 0x00003000)
 		{
 			LogInfo("This action replay simulator does not support codes that modify Action Replay itself.");
-			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
+			PanicAlertT("This action replay simulator does not support codes that modify Action Replay itself.");
 			return false;
 		}
 
@@ -385,7 +385,7 @@ bool RunCode(const ARCode &arcode)
 				case ZCODE_ROW: // Executes all codes in the same row
 					// Todo: Set register 1BB4 to 1
 					LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not supported)");
-					PanicAlert("Zero 3 code not supported");
+					PanicAlertT("Zero 3 code not supported");
 					return false;
 					break;
 
@@ -407,7 +407,7 @@ bool RunCode(const ARCode &arcode)
 
 				default: 
 					LogInfo("ZCode: Unknown");
-					PanicAlert("Zero code unknown to dolphin: %08x", zcode); 
+					PanicAlertT("Zero code unknown to dolphin: %08x", zcode); 
 					return false;
 					break;
 			}
@@ -448,7 +448,7 @@ ARCode GetARCode(size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("GetARCode: Index is greater than "
+		PanicAlertT("GetARCode: Index is greater than "
 			"ar code list size %lu", (unsigned long)index);
 		return ARCode();
 	}
@@ -459,7 +459,7 @@ void SetARCode_IsActive(bool active, size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("SetARCode_IsActive: Index is greater than "
+		PanicAlertT("SetARCode_IsActive: Index is greater than "
 			"ar code list size %lu", (unsigned long)index);
 		return;
 	}
@@ -546,7 +546,7 @@ bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size "
+		PanicAlertT("Action Replay Error: Invalid size "
 			"(%08x : address = %08x) in Ram Write And Fill (%s)",
 			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
@@ -606,7 +606,7 @@ bool Subtype_WriteToPointer(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size "
+		PanicAlertT("Action Replay Error: Invalid size "
 			"(%08x : address = %08x) in Write To Pointer (%s)",
 			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
@@ -666,7 +666,7 @@ bool Subtype_AddCode(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size "
+		PanicAlertT("Action Replay Error: Invalid size "
 			"(%08x : address = %08x) in Add Code (%s)",
 			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
@@ -681,7 +681,7 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr addr, const u32 data)
 	// u8  mcode_type = (data & 0xFF0000) >> 16;
 	// u8  mcode_count = (data & 0xFF00) >> 8;
 	// u8  mcode_number = data & 0xFF;
-	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", current_code->name.c_str());
+	PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", current_code->name.c_str());
 	return false;
 }
 
@@ -753,7 +753,7 @@ bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)", size, new_addr, current_code->name.c_str());
+		PanicAlertT("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)", size, new_addr, current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -800,7 +800,7 @@ bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data)
 	else
 	{
 		LogInfo("Bad Value");
-		PanicAlert("Action Replay Error: Invalid value (%08x) in Memory Copy (%s)", (data & ~0x7FFF), current_code->name.c_str());
+		PanicAlertT("Action Replay Error: Invalid value (%08x) in Memory Copy (%s)", (data & ~0x7FFF), current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -836,7 +836,7 @@ bool NormalCode(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 0: Invalid Subtype %08x (%s)", addr.subtype, current_code->name.c_str());
+		PanicAlertT("Action Replay: Normal Code 0: Invalid Subtype %08x (%s)", addr.subtype, current_code->name.c_str());
 		return false;
 		break;
 	}
@@ -870,7 +870,7 @@ bool ConditionalCode(const ARAddr addr, const u32 data, int* const pSkipCount)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay: Conditional Code: Invalid Size %08x (%s)", addr.size, current_code->name.c_str());
+		PanicAlertT("Action Replay: Conditional Code: Invalid Size %08x (%s)", addr.size, current_code->name.c_str());
 		return false;
 		break;
 	}
@@ -894,7 +894,7 @@ bool ConditionalCode(const ARAddr addr, const u32 data, int* const pSkipCount)
 
 		default:
 			LogInfo("Bad Subtype");
-			PanicAlert("Action Replay: Normal Code %i: Invalid subtype %08x (%s)", 1, addr.subtype, current_code->name.c_str());
+			PanicAlertT("Action Replay: Normal Code %i: Invalid subtype %08x (%s)", 1, addr.subtype, current_code->name.c_str());
 			return false;
 			break;
 		}
@@ -943,7 +943,7 @@ bool CompareValues(const u32 val1, const u32 val2, const int type)
 		break;
 
 	default: LogInfo("Unknown Compare type");
-		PanicAlert("Action Replay: Invalid Normal Code Type %08x (%s)", type, current_code->name.c_str());
+		PanicAlertT("Action Replay: Invalid Normal Code Type %08x (%s)", type, current_code->name.c_str());
 		return false;
 		break;
 	}

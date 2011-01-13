@@ -108,7 +108,7 @@ void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
 	LONG off_high = (LONG)(offset >> 32);
 	SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
 	if (!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, NULL))
-		PanicAlert("Disc Read Error");
+		PanicAlertT("Disc Read Error");
 #else
 	fseeko(file_, m_blocksize*block_num, SEEK_SET);
 	fread(lpSector, 1, m_blocksize, file_);
@@ -127,7 +127,7 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *o
 	SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
 	if (!ReadFile(hDisc, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, NULL))
 	{
-		PanicAlert("Disc Read Error");
+		PanicAlertT("Disc Read Error");
 		return false;
 	}
 #else

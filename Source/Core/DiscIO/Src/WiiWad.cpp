@@ -78,7 +78,7 @@ u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset
         if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
         {
 			ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
-            PanicAlert("WiiWAD: Could not read from file");
+            PanicAlertT("WiiWAD: Could not read from file");
         }
         return pTmpBuffer;
     }

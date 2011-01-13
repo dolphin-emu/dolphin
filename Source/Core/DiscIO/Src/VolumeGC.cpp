@@ -57,7 +57,7 @@ std::string CVolumeGC::GetUniqueID() const
 	char id[6];
 	if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id)))
 	{
-		PanicAlert("Failed to read unique ID from disc image");
+		PanicAlertT("Failed to read unique ID from disc image");
 		return NO_UID;
 	}
 

@@ -120,7 +120,7 @@ THREAD_RETURN innerFlush(void *pArgs)
 
 	if (!pFile) // Note - pFile changed inside above if
 	{
-		PanicAlert("Could not write memory card file %s.\n\n"
+		PanicAlertT("Could not write memory card file %s.\n\n"
 			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
 		delete data;
 		return 0;

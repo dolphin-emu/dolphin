@@ -47,7 +47,7 @@ bool SysConf::LoadFromFile(const char *filename)
 		return false; //most likely: file does not exist
 	if (size != SYSCONF_SIZE)
 	{
-		PanicAlert("Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04llx)", 
+		PanicAlertT("Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04llx)", 
 			SYSCONF_SIZE, size);
 		return false;
 	}
@@ -117,7 +117,7 @@ bool SysConf::LoadFromFileInternal(FILE *f)
 			curEntry.dataLength = 4;
 			break;
 		default:
-			PanicAlert("Unknown entry type %i in SYSCONF (%s@%x)!",
+			PanicAlertT("Unknown entry type %i in SYSCONF (%s@%x)!",
 				curEntry.type, curEntry.name, curEntry.offset);
 			return false;
 		}

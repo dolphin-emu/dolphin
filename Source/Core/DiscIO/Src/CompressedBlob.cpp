@@ -158,7 +158,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 
 	if (IsCompressedBlob(infile))
 	{
-		PanicAlert("%s is already compressed! Cannot compress it further.", infile);
+		PanicAlertT("%s is already compressed! Cannot compress it further.", infile);
 		return false;
 	}
 
@@ -166,7 +166,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	{
 		if (!DiscScrubber::SetupScrub(infile, block_size))
 		{
-			PanicAlert("%s failed to be scrubbed. Probably the image is corrupt.", infile);
+			PanicAlertT("%s failed to be scrubbed. Probably the image is corrupt.", infile);
 			return false;
 		}
 
@@ -299,7 +299,7 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 {
 	if (!IsCompressedBlob(infile))
 	{
-		PanicAlert("File not compressed");
+		PanicAlertT("File not compressed");
 		return false;
 	}
 

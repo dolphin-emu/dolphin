@@ -117,7 +117,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		// "r+b" is technically wrong, but OPEN_WRITE should not truncate the file as "wb" does.
 		case ISFS_OPEN_WRITE:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		case ISFS_OPEN_RW:		m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
-		default: PanicAlert("FileIO: Unknown open mode : 0x%02x", _Mode); break;
+		default: PanicAlertT("FileIO: Unknown open mode : 0x%02x", _Mode); break;
 		}
 	}
 	else

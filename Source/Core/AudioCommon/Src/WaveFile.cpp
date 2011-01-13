@@ -41,14 +41,14 @@ bool WaveFileWriter::Start(const char *filename)
 	// Check if the file is already open
 	if (file)
 	{
-		PanicAlert("The file %s was alrady open, the file header will not be written.", filename);
+		PanicAlertT("The file %s was alrady open, the file header will not be written.", filename);
 		return false;
 	}
 
 	file = fopen(filename, "wb");
 	if (!file)
 	{
-		PanicAlert("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
+		PanicAlertT("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
 		return false;
 	}
 
@@ -108,7 +108,7 @@ void WaveFileWriter::Write4(const char *ptr)
 void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
 {
 	if (!file)
-		PanicAlert("WaveFileWriter - file not open.");
+		PanicAlertT("WaveFileWriter - file not open.");
 	if (skip_silence) {
 		bool all_zero = true;
 		for (int i = 0; i < count * 2; i++)
@@ -122,7 +122,7 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
 void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, int count)
 {
 	if (!file)
-		PanicAlert("WaveFileWriter - file not open.");
+		PanicAlertT("WaveFileWriter - file not open.");
 
 	if (count > BUF_SIZE * 2)
 		PanicAlert("WaveFileWriter - buffer too small (count = %i).", count);

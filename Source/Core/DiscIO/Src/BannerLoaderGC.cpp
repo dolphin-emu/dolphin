@@ -37,7 +37,7 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 			_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
 			m_BNRType = getBannerType();
 			if (m_BNRType == BANNER_UNKNOWN)
-				PanicAlert("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
+				PanicAlertT("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
 					_rFileSystem.GetVolume()->GetName().c_str());
 			else m_IsValid = true;
 		}

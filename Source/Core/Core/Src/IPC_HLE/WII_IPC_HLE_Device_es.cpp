@@ -299,7 +299,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					memcpy(pDest, pSrc, Size);
 					rContent.m_Position += Size;
 				} else {
-					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
+					PanicAlertT("IOCTL_ES_READCONTENT - bad destination");
 				}
             }
 
@@ -459,7 +459,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             {
                 if (TitleID == TITLEID_SYSMENU)
                 {
-                    PanicAlert("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
+                    PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
                 }
                 ViewCount = 0;
             }
@@ -500,7 +500,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			else
 			{
-				PanicAlert("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+				PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 			}
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
@@ -714,7 +714,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				IOSv = TitleID & 0xffff;
 			}
 			if (!bSuccess)
-				PanicAlert("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
+				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it

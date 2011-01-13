@@ -53,7 +53,7 @@ bool DSound::CreateBuffer()
 	else
 	{
 		// Failed.
-		PanicAlert("Sound buffer creation failed: %s", DXGetErrorString(res)); 
+		PanicAlertT("Sound buffer creation failed: %s", DXGetErrorString(res)); 
 		dsBuffer = NULL;
 		return false;
 	}

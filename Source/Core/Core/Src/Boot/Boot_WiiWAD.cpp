@@ -107,7 +107,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 
 	FILE* pTMDFile = fopen(TMDFileName.c_str(), "wb");
 	if (pTMDFile == NULL) {
-		PanicAlert("WAD installation failed: error creating %s", TMDFileName.c_str());
+		PanicAlertT("WAD installation failed: error creating %s", TMDFileName.c_str());
 		return false;
 	}
 
@@ -136,7 +136,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 			FILE* pAPPFile = fopen(APPFileName, "wb");
 			if (pAPPFile == NULL)
 			{
-				PanicAlert("WAD installation failed: error creating %s", APPFileName);
+				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
 				return false;
 			}
 			
@@ -162,7 +162,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 
 	FILE* pTicketFile = fopen(TicketFileName, "wb");
 	if (pTicketFile == NULL) {
-		PanicAlert("WAD installation failed: error creating %s", TicketFileName);
+		PanicAlertT("WAD installation failed: error creating %s", TicketFileName);
 		return false;
 	} 
 

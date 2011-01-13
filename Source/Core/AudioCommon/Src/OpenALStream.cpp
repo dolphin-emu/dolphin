@@ -51,19 +51,19 @@ bool OpenALStream::Start()
 			else
 			{
 				alcCloseDevice(pDevice);
-				PanicAlert("OpenAL: can't create context "
+				PanicAlertT("OpenAL: can't create context "
 					"for device %s", defDevName);
 			}
 		}
 		else
 		{
-			PanicAlert("OpenAL: can't open device %s", defDevName);
+			PanicAlertT("OpenAL: can't open device %s", defDevName);
 		}
 		delete pDeviceList;
 	}
 	else
 	{
-		PanicAlert("OpenAL: can't find sound devices");
+		PanicAlertT("OpenAL: can't find sound devices");
 	}
 
 	return bReturn;

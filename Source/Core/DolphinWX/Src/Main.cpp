@@ -56,6 +56,7 @@ END_EVENT_TABLE()
 
 #include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
+const char *wxStringTranslator(const char *);
 
 CFrame* main_frame = NULL;
 
@@ -170,6 +171,7 @@ bool DolphinApp::OnInit()
 #ifndef _WIN32
 	RegisterMsgAlertHandler(&wxMsgAlert);
 #endif
+	RegisterStringTranslator(&wxStringTranslator);
 
 	// "ExtendedTrace" looks freakin dangerous!!!
 #ifdef _WIN32
@@ -182,7 +184,9 @@ bool DolphinApp::OnInit()
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
-		PanicAlert("%s", _wxt("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\nUnfortunately your CPU does not support them, so Dolphin will not run.\n\nSayonara!\n"));
+		PanicAlertT("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+				"Sayonara!\n");
 		return false;
 	}
 
@@ -200,12 +204,12 @@ bool DolphinApp::OnInit()
 		FILE* workingDir = fopen(tmp, "r");
 		if (!workingDir)
 		{
-			if (PanicYesNo("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
+			if (PanicYesNoT("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
 			{
 				FILE* portable = fopen((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str(), "w");
 				if (!portable)
 				{
-					PanicAlert("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
+					PanicAlertT("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
 				}
 				else
 				{
@@ -216,11 +220,11 @@ bool DolphinApp::OnInit()
 			{
 				char CWD[1024];
 				sprintf(CWD, "%s", (const char*)wxGetCwd().mb_str());
-				if (PanicYesNo("Set install location to:\n %s ?", CWD))
+				if (PanicYesNoT("Set install location to:\n %s ?", CWD))
 				{
 					FILE* workingDirF = fopen(tmp, "w");
 					if (!workingDirF)
-						PanicAlert("Install directory could not be saved");
+						PanicAlertT("Install directory could not be saved");
 					else
 					{
 						fwrite(CWD, ((std::string)CWD).size()+1, 1, workingDirF);
@@ -229,7 +233,7 @@ bool DolphinApp::OnInit()
 					}
 				}
 				else
-					PanicAlert("Relaunch Dolphin from the install directory and save from there");
+					PanicAlertT("Relaunch Dolphin from the install directory and save from there");
 			}
 		}
 		else
@@ -390,14 +394,14 @@ void DolphinApp::InitLanguageSupport()
 
 		if(!m_locale->IsOk())
 		{
-			PanicAlert("Error loading selected language. Falling back to system default.\n");
+			PanicAlertT("Error loading selected language. Falling back to system default.\n");
 			delete m_locale;
 			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 		}
 	}
 	else
 	{
-		PanicAlert("The selected language is not supported by your system. Falling back to system default.\n");
+		PanicAlertT("The selected language is not supported by your system. Falling back to system default.\n");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
 }
@@ -467,6 +471,12 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 		return main_frame->bPanicResult;
 	}
 #endif
+}
+
+const char *wxStringTranslator(const char *text)
+{
+	printf("passing through here\n");
+	return std::string(wxString(wxGetTranslation(wxString::From8BitData(text))).To8BitData()).c_str();
 }
 
 // Accessor for the main window class

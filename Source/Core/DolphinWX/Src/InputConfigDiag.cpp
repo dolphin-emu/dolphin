@@ -623,7 +623,7 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
-		PanicAlert("%s", _wxt("You must enter a valid profile name."));
+		PanicAlertT("You must enter a valid profile name.");
 }
 
 void GamepadPage::DeleteProfile(wxCommandEvent&)
@@ -634,7 +634,7 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 	const char* const fnamecstr = fname.c_str();
 
 	if (File::Exists(fnamecstr) &&
-			AskYesNo(_wxt("Are you sure you want to delete \"%s\"?"),
+			AskYesNoT("Are you sure you want to delete \"%s\"?",
 			STR_FROM_WXSTR(profile_cbox->GetValue()).c_str()))
 	{
 		File::Delete(fnamecstr);

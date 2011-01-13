@@ -345,7 +345,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 	const u8* const memptr = Memory::GetPointer(0);
 	if (NULL == memptr)
 	{
-		PanicAlert("%s", _wxt("A game is not currently running."));
+		PanicAlertT("A game is not currently running.");
 	}
 	else
 	{
@@ -376,7 +376,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	const u8* const memptr = Memory::GetPointer(0);
 	if (NULL == memptr)
 	{
-		PanicAlert("%s", _wxt("A game is not currently running."));
+		PanicAlertT("A game is not currently running.");
 	}
 	else
 	{
@@ -431,7 +431,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 				if (!x_val.ToLong(&parsed_x_val, val_base))
 				{
-					PanicAlert("%s", _wxt("You must enter a valid decimal or hex value."));
+					PanicAlertT("You must enter a valid decimal or hex value.");
 					return;
 				}
 
@@ -598,14 +598,14 @@ void CreateCodeDialog::PressOK(wxCommandEvent&)
 	const wxString code_name = textctrl_name->GetValue();
 	if (code_name.empty())
 	{
-		PanicAlert("%s", _wxt("You must enter a name!"));
+		PanicAlertT("You must enter a name!");
 		return;
 	}
 
 	long code_value;
 	if (!textctrl_value->GetValue().ToLong(&code_value, 10 + checkbox_use_hex->GetValue()*6))
 	{
-		PanicAlert("%s", _wxt("Invalid Value!"));
+		PanicAlertT("Invalid Value!");
 		return;
 	}
 

@@ -213,7 +213,7 @@ void CopySettingsFile(std::string& DeviceName)
 	else
 	{
 		ERROR_LOG(WII_IPC_FILEIO, "Could not copy %s to %s", Source.c_str(), Target.c_str());
-		PanicAlert("Could not copy %s to %s", Source.c_str(), Target.c_str());
+		PanicAlertT("Could not copy %s to %s", Source.c_str(), Target.c_str());
 	}
 }
 

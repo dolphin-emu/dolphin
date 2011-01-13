@@ -294,7 +294,7 @@ void CMemcardManager::ChangePath(int slot)
 	if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
 	{
 		if(m_MemcardPath[slot]->GetPath().length())
-			PanicAlert("%s", _wxt("Memcard already opened"));
+			PanicAlertT("Memcard already opened");
 	}
 	else
 	{
@@ -420,7 +420,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 	switch (error)
 	{
 	case GCS:
-		SuccessAlert("%s", _wxt("File converted to .gci"));
+		SuccessAlertT("File converted to .gci");
 		break;
 	case SUCCESS:
 		if (slot != -1)
@@ -432,10 +432,10 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		}
 		break;
 	case NOMEMCARD:
-		PanicAlert("%s", _wxt("File is not recognized as a memcard"));
+		PanicAlertT("File is not recognized as a memcard");
 		break;
 	case OPENFAIL:
-		PanicAlert("%s", _wxt("File could not be opened\nor does not have a valid extension"));
+		PanicAlertT("File could not be opened\nor does not have a valid extension");
 		break;
 	case OUTOFBLOCKS:
 		if (slot == -1)
@@ -443,39 +443,40 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			PanicAlert(E_UNK);
 			break;
 		}
-		PanicAlert(_wxt("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
+		PanicAlertT("Only %d blocks available", memoryCard[slot]->GetFreeBlocks());
 		break;
 	case OUTOFDIRENTRIES:
-		PanicAlert("%s", _wxt("No free dir index entries"));
+		PanicAlertT("No free dir index entries");
 		break;
 	case LENGTHFAIL:
-		PanicAlert("%s", _wxt("Imported file has invalid length"));
+		PanicAlertT("Imported file has invalid length");
 		break;
 	case INVALIDFILESIZE:
-		PanicAlert("%s", _wxt("The save you are trying to copy has an invalid file size"));
+		PanicAlertT("The save you are trying to copy has an invalid file size");
 		break;
 	case TITLEPRESENT:
-		PanicAlert("%s", _wxt("Memcard already has a save for this title"));
+		PanicAlertT("Memcard already has a save for this title");
 		break;
 	case SAVFAIL:
-		PanicAlert("%s", _wxt("Imported file has sav extension\nbut does not have a correct header"));
+		PanicAlertT("Imported file has sav extension\nbut does not have a correct header");
 		break;
 	case GCSFAIL:
-		PanicAlert("%s", _wxt("Imported file has gsc extension\nbut does not have a correct header"));
+		PanicAlertT("Imported file has gsc extension\nbut does not have a correct header");
 		break;
 	case FAIL:
 		if (slot == -1)
 		{
-			PanicAlert("%s", _wxt("Export Failed"));
+			PanicAlertT("Export Failed");
 			return false;
 		}
-		PanicAlert("%s", _wxt("Invalid bat.map or dir entry"));
+		PanicAlertT("Invalid bat.map or dir entry");
 		break;
 	case WRITEFAIL:
 		PanicAlert(E_SAVEFAILED);
 		break;
 	case DELETE_FAIL:
-		PanicAlert("%s", _wxt("Order of files in the File Directory do not match the block order\nRight click and export all of the saves,\nand import the the saves to a new memcard\n"));
+		PanicAlertT("Order of files in the File Directory do not match the block order\n"
+				"Right click and export all of the saves,\nand import the the saves to a new memcard\n");
 		break;
 	default:
 		PanicAlert(E_UNK);
@@ -513,7 +514,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_FIXCHECKSUM_B:
 		if (memoryCard[slot]->FixChecksums() && memoryCard[slot]->Save())
 		{
-			SuccessAlert("%s", _wxt("The checksum was successfully fixed"));
+			SuccessAlertT("The checksum was successfully fixed");
 		}
 		else PanicAlert(E_SAVEFAILED);
 		break; 
@@ -586,7 +587,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		SplitPath(mpath, &path1, &path2, NULL);
 		path1 += path2;
 		File::CreateDir(path1.c_str());
-		if(PanicYesNo(_wxt("Warning: This will overwrite any existing saves that are in the folder:\n%s\nand have the same name as a file on your memcard\nContinue?"), path1.c_str()))
+		if(PanicYesNoT("Warning: This will overwrite any existing saves that are in the folder:\n"
+					"%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
 			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, ".", &path1), -1);

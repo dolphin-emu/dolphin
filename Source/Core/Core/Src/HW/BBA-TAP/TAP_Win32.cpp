@@ -246,7 +246,7 @@ bool CEXIETHERNET::activate()
 	if ( !(info[0] > TAP_WIN32_MIN_MAJOR
 		|| (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)) )
 	{
-		PanicAlert("ERROR:  This version of Dolphin requires a TAP-Win32 driver"
+		PanicAlertT("ERROR:  This version of Dolphin requires a TAP-Win32 driver"
 			" that is at least version %d.%d -- If you recently upgraded your Dolphin"
 			" distribution, a reboot is probably required at this point to get"
 			" Windows to see the new driver.",

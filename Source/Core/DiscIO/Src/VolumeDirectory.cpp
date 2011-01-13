@@ -308,13 +308,13 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 		std::string data;
 		if (!File::ReadFileToString(false, _rApploader.c_str(), data))
 		{
-			PanicAlert("Apploader unable to load from file");
+			PanicAlertT("Apploader unable to load from file");
 			return false;
 		}
 		m_apploaderSize = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) + Common::swap32(*(u32*)&data.data()[0x18]);
 		if (m_apploaderSize != data.size())
 		{
-			PanicAlert("Apploader is the wrong size...is it really an apploader?");
+			PanicAlertT("Apploader is the wrong size...is it really an apploader?");
 			return false;
 		}
 		m_apploader = new u8[m_apploaderSize];

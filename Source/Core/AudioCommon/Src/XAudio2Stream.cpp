@@ -48,7 +48,7 @@ struct StreamingVoiceContext : public IXAudio2VoiceCallback
 		// create source voice
 		HRESULT hr;
 		if(FAILED(hr = pXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)&wfx, XAUDIO2_VOICE_NOSRC, 1.0f, this)))
-			PanicAlert("XAudio2 CreateSourceVoice failed: %#X", hr); 
+			PanicAlertT("XAudio2 CreateSourceVoice failed: %#X", hr); 
 
 		pSourceVoice->FlushSourceBuffers();
 		pSourceVoice->Start();
@@ -130,7 +130,7 @@ bool XAudio2::Start()
 	HRESULT hr;
     if(FAILED(hr = XAudio2Create(&pXAudio2, 0, XAUDIO2_ANY_PROCESSOR))) //callback dosent seem to run on a speecific cpu anyways
     {
-        PanicAlert("XAudio2 init failed: %#X", hr);
+        PanicAlertT("XAudio2 init failed: %#X", hr);
         CoUninitialize();
 		return false;
     }
@@ -139,7 +139,7 @@ bool XAudio2::Start()
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
     if(FAILED(hr = pXAudio2->CreateMasteringVoice(&pMasteringVoice, 2, m_mixer->GetSampleRate())))
     {
-        PanicAlert("XAudio2 master voice creation failed: %#X", hr);
+        PanicAlertT("XAudio2 master voice creation failed: %#X", hr);
         safe_release(pXAudio2);
         CoUninitialize();
 		return false;

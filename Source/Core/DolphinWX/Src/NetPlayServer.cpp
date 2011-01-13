@@ -34,7 +34,7 @@ NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDia
 		// add self to player list
 		m_players[m_socket] = player;
 		m_local_player = &m_players[m_socket];
-		//PanicAlert("Listening");
+		//PanicAlertT("Listening");
 
 		UpdateGUI();
 
@@ -55,7 +55,7 @@ void NetPlayServer::Entry()
 		// update pings every so many seconds
 		if ((m_ping_timer.GetTimeElapsed() > (10 * 1000)) || m_update_pings)
 		{
-			//PanicAlert("sending pings");
+			//PanicAlertT("sending pings");
 
 			m_ping_key = Common::Timer::GetTimeMs();
 
@@ -257,7 +257,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 {
 	if (m_is_running)
 	{
-		PanicAlert("%s", _wxt("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game."));
+		PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
 		CritLocker game_lock(m_crit.game);	// lock game state
 		m_is_running = false;
 		NetPlay_Disable();
@@ -487,7 +487,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 			if (m_ping_key == ping_key)
 			{
-				//PanicAlert("good pong");
+				//PanicAlertT("good pong");
 				player.ping = ping;
 			}
 			UpdateGUI();
@@ -501,7 +501,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 		break;
 
 	default :
-		PanicAlert(_wxt("Unknown message with id:%d received from player:%d Kicking player!"), mid, player.pid);
+		PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
 		return 1;
 		break;

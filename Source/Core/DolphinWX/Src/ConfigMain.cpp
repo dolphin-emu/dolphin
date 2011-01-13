@@ -917,7 +917,7 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_INTERFACE_LANG:
 		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
-			SuccessAlert("%s", _wxt("You must restart Dolphin in order for the change to take effect."));
+			SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
 		SConfig::GetInstance().m_InterfaceLanguage = langIds[InterfaceLang->GetSelection()];
 		break;
 	case ID_HOTKEY_CONFIG:
@@ -1000,7 +1000,8 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		}
 		else
 		{
-			PanicAlert("%s", _wxt("Cannot use that file as a memory card.\nAre you trying to use the same file in both slots?"));
+			PanicAlertT("Cannot use that file as a memory card.\n"
+					"Are you trying to use the same file in both slots?");
 		}
 	}
 }

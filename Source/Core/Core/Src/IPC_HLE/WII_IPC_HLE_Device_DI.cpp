@@ -231,13 +231,13 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 			if (Size > _BufferOutSize)
 			{
-				PanicAlert("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
+				PanicAlertT("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 				Size = _BufferOutSize;
 			}
 
 			if (!VolumeHandler::ReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
-				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+				PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
 		}
 		break;
@@ -326,13 +326,13 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 			if (Size > _BufferOutSize)
 			{
-				PanicAlert("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
+				PanicAlertT("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 				Size = _BufferOutSize;
 			}
 
 			if (!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
-				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+				PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
 		}
 		break;
@@ -444,7 +444,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		ERROR_LOG(WII_IPC_DVD, "unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);
 
-        PanicAlert("unknown cmd 0x%08x", Command);
+        PanicAlertT("unknown cmd 0x%08x", Command);
 		break;
 	}
 

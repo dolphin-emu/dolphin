@@ -447,7 +447,7 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 		(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
 		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
-		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
+		PanicAlertT("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
 		ERROR_LOG(MEMMAP, "iCacheJIT: Reading Opcode from %x. Please report.", _Address);
 		return 0;
 	}
@@ -633,7 +633,7 @@ u8 *GetPointer(const u32 _Address)
 		else
 		{
 			if (!Core::g_CoreStartupParameter.bMMU &&
-				!PanicYesNo("Unknown pointer %#08x\nContinue?", _Address))
+				!PanicYesNoT("Unknown pointer %#08x\nContinue?", _Address))
 				Crash();
 			return 0;
 		}

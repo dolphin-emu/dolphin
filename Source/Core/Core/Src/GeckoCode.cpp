@@ -136,7 +136,7 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 		// code failed
 		if (false == result)
 		{
-			PanicAlert("GeckoCode failed to run (CT%i CST%i) (%s)"
+			PanicAlertT("GeckoCode failed to run (CT%i CST%i) (%s)"
 				"\n(either a bad code or the code type is not yet supported.)"
 				, code.type, code.subtype, gecko_code.name.c_str());
 			return false;

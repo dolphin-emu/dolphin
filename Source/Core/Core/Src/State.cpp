@@ -206,7 +206,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 				cur_len = IN_LEN;
 
 			if (lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
-				PanicAlert("Internal LZO Error - compression failed");
+				PanicAlertT("Internal LZO Error - compression failed");
 
 			// The size of the data to write is 'out_len'
 			fwrite(&out_len, sizeof(int), 1, f);
@@ -329,7 +329,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		buffer = new u8[sz];
 		if (!buffer)
 		{
-			PanicAlert("Error allocating buffer");
+			PanicAlertT("Error allocating buffer");
 			// Resume the clock
 			PowerPC::Start();
 			return;
@@ -347,7 +347,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
-				PanicAlert("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
+				PanicAlertT("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
 					"Try loading the state again", res, i, new_len);
 				fclose(f);
 				delete[] buffer;
@@ -432,7 +432,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 		lzo_uint i = 0;
 		buffer = new u8[sz];
 		if (!buffer) {
-			PanicAlert("Error allocating buffer");
+			PanicAlertT("Error allocating buffer");
 			return;
 		}
 		while (true)
@@ -448,7 +448,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
-				PanicAlert("Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
+				PanicAlertT("Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
 					"Try verifying the state again", res, i, new_len);
 				fclose(f);
 				delete [] buffer;
@@ -492,7 +492,7 @@ void State_Init()
 	ev_BufferVerify = CoreTiming::RegisterEvent("VerifyBufferState", &VerifyBufferStateCallback);
 
 	if (lzo_init() != LZO_E_OK)
-		PanicAlert("Internal LZO Error - lzo_init() failed");
+		PanicAlertT("Internal LZO Error - lzo_init() failed");
 }
 
 void State_Shutdown()

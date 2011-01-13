@@ -175,7 +175,7 @@ bool Init()
 {
 	if (g_EmuThread != NULL)
 	{
-		PanicAlert("Emu Thread already running");
+		PanicAlertT("Emu Thread already running");
 		return false;
 	}
 
@@ -277,7 +277,7 @@ THREAD_RETURN CpuThread(void *pArg)
 			// Let's run under memory watch
 			EMM::InstallExceptionHandler();
 		#else
-			PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
+			PanicAlertT("32-bit platforms do not support fastmem yet. Report this bug.");
 		#endif
 	}
 
@@ -536,7 +536,7 @@ void SetState(EState _State)
 		CCPU::EnableStepping(false);
 		break;
 	default:
-		PanicAlert("Invalid state");
+		PanicAlertT("Invalid state");
 		break;
 	}
 }

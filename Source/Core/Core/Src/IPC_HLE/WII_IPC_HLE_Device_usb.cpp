@@ -40,7 +40,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	u8 maxWM = 0;
 	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", BT_DINF, BTDINFSIZE))
 	{
-		PanicAlert("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
+		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
 	}
 	else
 	{
@@ -80,7 +80,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 		{
 			// save now so that when games load sysconf file it includes the new wiimotes
 			if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", BT_DINF, BTDINFSIZE) || !SConfig::GetInstance().m_SYSCONF->Save())
-				PanicAlert("Failed to write BT.DINF to SYSCONF");
+				PanicAlertT("Failed to write BT.DINF to SYSCONF");
 		}
 	}
 
@@ -1218,7 +1218,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 {
 	// Inquiry should not be called normally
-	PanicAlert("HCI_CMD_INQUIRY is called, please report!");
+	PanicAlertT("HCI_CMD_INQUIRY is called, please report!");
 
 	hci_inquiry_cp* pInquiry = (hci_inquiry_cp*)_Input;
 
@@ -1824,7 +1824,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 
 	ERROR_LOG(WII_IPC_WIIMOTE,"Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]); 
-	PanicAlert("Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
+	PanicAlertT("Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]);
 	return NULL;
 }
@@ -1838,7 +1838,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE, "Cant find WiiMote by connection handle %02x", _ConnectionHandle);
-	PanicAlert("Cant find WiiMote by connection handle %02x", _ConnectionHandle);
+	PanicAlertT("Cant find WiiMote by connection handle %02x", _ConnectionHandle);
 	return NULL;
 }
 

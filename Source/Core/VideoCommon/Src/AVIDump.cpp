@@ -68,7 +68,7 @@ bool AVIDump::CreateFile()
 	// Ask to delete file
 	if (File::Exists(movie_file_name))
 	{
-		if (AskYesNo("Delete the existing file '%s'?", movie_file_name))
+		if (AskYesNoT("Delete the existing file '%s'?", movie_file_name))
 			File::Delete(movie_file_name);
 	}
 

@@ -65,9 +65,9 @@ namespace AudioCommon
 				*/
 				return soundStream;
 			}
-			PanicAlert("Could not initialize backend %s.", backend.c_str());
+			PanicAlertT("Could not initialize backend %s.", backend.c_str());
 		}
-		PanicAlert("Sound backend %s is not valid.", backend.c_str());
+		PanicAlertT("Sound backend %s is not valid.", backend.c_str());
 
 		delete soundStream;
 		soundStream = NULL;

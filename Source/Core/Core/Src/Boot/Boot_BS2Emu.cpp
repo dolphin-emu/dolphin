@@ -199,7 +199,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		break;
 
 	default:
-		// PanicAlert("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
+		// PanicAlertT("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
 		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
 		break;
 	}
@@ -207,7 +207,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	FILE* pTmp = fopen(filename.c_str(), "rb");
 	if (!pTmp)
 	{
-		PanicAlert("SetupWiiMem: Cant find setting file");	
+		PanicAlertT("SetupWiiMem: Cant find setting file");	
 		return false;
 	}
 

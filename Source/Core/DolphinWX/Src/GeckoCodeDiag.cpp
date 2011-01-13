@@ -276,17 +276,17 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				}
 			}
 
-			PanicAlert(_wxt("Downloaded %lu codes. (added %lu)"),
+			PanicAlertT("Downloaded %lu codes. (added %lu)",
 				(unsigned long)gcodes.size(), added_count);
 
 			// refresh the list
 			UpdateCodeList();
 		}
 		else
-			PanicAlert("%s", _wxt("File contained no codes."));
+			PanicAlertT("File contained no codes.");
 	}
 	else
-		PanicAlert("%s", _wxt("Failed to download codes."));
+		PanicAlertT("Failed to download codes.");
 }
 
 }

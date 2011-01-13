@@ -174,13 +174,13 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 {
 	if (::netplay_ptr)
 	{
-		PanicAlert("%s", _wxt("A NetPlay window is already open!!"));
+		PanicAlertT("A NetPlay window is already open!!");
 		return;
 	}
 
 	if (-1 == m_game_lbox->GetSelection())
 	{
-		PanicAlert("%s", _wxt("You must choose a game!!"));
+		PanicAlertT("You must choose a game!!");
 		return;
 	}
 
@@ -199,7 +199,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	}
 	else
 	{
-		PanicAlert("%s", _wxt("Failed to Listen!!"));
+		PanicAlertT("Failed to Listen!!");
 		npd->Destroy();
 		// dialog will delete netplay
 		//delete ::netplay_ptr;
@@ -210,7 +210,7 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 {
 	if (::netplay_ptr)
 	{
-		PanicAlert("%s", _wxt("A NetPlay window is already open!!"));
+		PanicAlertT("A NetPlay window is already open!!");
 		return;
 	}
 
@@ -227,7 +227,7 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 	}
 	else
 	{
-		//PanicAlert("Failed to Connect!!");
+		//PanicAlertT("Failed to Connect!!");
 		npd->Destroy();
 		// dialog will delete netplay
 		//delete ::netplay_ptr;
@@ -373,7 +373,7 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	if (path.length())
 		::netplay_ptr->StartGame(path);
 	else
-		PanicAlert("%s", _wxt("Game not found!!"));
+		PanicAlertT("Game not found!!");
 }
 
 void NetPlayDiag::OnStop(wxCommandEvent&)
@@ -492,7 +492,8 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 	pmd->Destroy();
 
 	if (false == ((NetPlayServer*)::netplay_ptr)->SetPadMapping(pid, mapping))
-		PanicAlert("%s", _wxt("Could not set pads. The player left or the game is currently running!\n(setting pads while the game is running is not yet supported)"));
+		PanicAlertT("Could not set pads. The player left or the game is currently running!\n"
+				"(setting pads while the game is running is not yet supported)");
 }
 
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
