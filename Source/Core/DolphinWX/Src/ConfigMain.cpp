@@ -62,8 +62,6 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_SPANISH,
 };
 
-#define _trans(a) a
-
 // Strings for Device Selections
 #define DEV_NONE_STR		_trans("<Nothing>")
 #define DEV_DUMMY_STR		_trans("Dummy")

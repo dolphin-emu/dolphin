@@ -145,6 +145,10 @@ private:
 #define __chdir chdir
 #endif
 
+// Dummy macro for marking translatable strings that can not be immediately translated.
+// wxWidgets does not have a true dummy macro for this.
+#define _trans(a) a
+
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || defined __APPLE__
 #define _M_SSE 0x301
 #endif

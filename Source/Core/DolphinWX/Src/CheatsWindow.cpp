@@ -564,7 +564,7 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
 	sizer_value_label->Add(checkbox_use_hex, 0, 0, 0);
 
-	wxButton* const btn_ok = new wxButton(panel, -1, wxT("OK"));
+	wxButton* const btn_ok = new wxButton(panel, -1, _("OK"));
 	_connect_macro_(btn_ok, CreateCodeDialog::PressOK, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxButton* const btn_cancel = new wxButton(panel, -1, _("Cancel"));
 	_connect_macro_(btn_cancel, CreateCodeDialog::PressCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);

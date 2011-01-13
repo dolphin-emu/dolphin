@@ -26,7 +26,7 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	nun = new wxCheckBox(this,wxID_ANY,_("Nunchuk"));
 	nunaccel = new wxCheckBox(this,wxID_ANY,_("Nunchuk Acceleration"));
 
-	wxButton *const ok_butt = new wxButton(this,wxID_ANY,wxT("OK"));
+	wxButton *const ok_butt = new wxButton(this,wxID_ANY,_("OK"));
 	
 	wxBoxSizer *const port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(new wxStaticText(this, wxID_ANY, _("UDP Port:")), 0, wxALIGN_CENTER);

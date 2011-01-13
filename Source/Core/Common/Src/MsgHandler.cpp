@@ -49,11 +49,36 @@ void SetEnableAlert(bool enable)
 
 /* This is the first stop for gui alerts where the log is updated and the
    correct windows is shown */
-bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
+bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 {
 	// Read message and write it to the log
+	std::string caption;
 	char buffer[2048];
 	bool ret = true;
+
+	static std::string info_caption;
+	static std::string warn_caption;
+	static std::string ques_caption;
+
+	if (!info_caption.length())
+	{
+		info_caption = std::string(str_translator(_trans("Information")));
+		ques_caption = std::string(str_translator(_trans("Question")));
+		warn_caption = std::string(str_translator(_trans("Warning")));
+	}
+
+	switch(Style)
+	{
+		case INFORMATION:
+			caption = info_caption;
+			break;
+		case QUESTION:
+			caption = ques_caption;
+			break;
+		case WARNING:
+			caption = warn_caption;
+			break;
+	}
 
 	const char *tr_format = str_translator(format);
 
@@ -62,11 +87,11 @@ bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, .
 	CharArrayFromFormatV(buffer, 2047, tr_format, args);
 	va_end(args);
 
-	ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
+	ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
 	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
 	if (msg_handler && (AlertEnabled || Style == QUESTION)) {
-		ret = msg_handler(caption, buffer, yes_no, Style);
+		ret = msg_handler(caption.c_str(), buffer, yes_no, Style);
 	}
 	return ret;
 }

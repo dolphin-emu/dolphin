@@ -456,7 +456,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 	if (wxIsMainThread())
 #endif
 		return wxYES == wxMessageBox(wxString::FromUTF8(text), 
-				wxString::FromAscii(caption),
+				wxString::FromUTF8(caption),
 				(yes_no) ? wxYES_NO : wxOK, main_frame);
 #ifdef __WXGTK__
 	else

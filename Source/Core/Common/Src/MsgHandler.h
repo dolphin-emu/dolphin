@@ -32,34 +32,34 @@ typedef const char * (*StringTranslator)(const char* text);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 void RegisterStringTranslator(StringTranslator translator);
 
-extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
+extern bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 #ifdef __GNUC__
-	__attribute__((format(printf, 4, 5)))
+	__attribute__((format(printf, 3, 4)))
 #endif
 	;
 void SetEnableAlert(bool enable);
 
 #ifndef GEKKO
 #ifdef _WIN32
-	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
-	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, __VA_ARGS__) 
-	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, __VA_ARGS__) 
-	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, __VA_ARGS__) 
+	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, __VA_ARGS__) 
+	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__) 
+	#define PanicYesNo(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__) 
+	#define AskYesNo(format, ...) MsgAlert(true, QUESTION, format, __VA_ARGS__) 
 	// Use these macros (that do the same thing) if the message should be translated.
-	#define SuccessAlertT(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
-	#define PanicAlertT(format, ...) MsgAlert("Warning", false, WARNING, format, __VA_ARGS__) 
-	#define PanicYesNoT(format, ...) MsgAlert("Warning", true, WARNING, format, __VA_ARGS__) 
-	#define AskYesNoT(format, ...) MsgAlert("Question", true, QUESTION, format, __VA_ARGS__) 
+	#define SuccessAlertT(format, ...) MsgAlert(false, INFORMATION, format, __VA_ARGS__) 
+	#define PanicAlertT(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__) 
+	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__) 
+	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, __VA_ARGS__) 
 #else
-	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, ##__VA_ARGS__) 
-	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, ##__VA_ARGS__) 
-	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, ##__VA_ARGS__) 
-	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, ##__VA_ARGS__) 
+	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, ##__VA_ARGS__) 
+	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, ##__VA_ARGS__) 
+	#define PanicYesNo(format, ...) MsgAlert(true, WARNING, format, ##__VA_ARGS__) 
+	#define AskYesNo(format, ...) MsgAlert(true, QUESTION, format, ##__VA_ARGS__) 
 	// Use these macros (that do the same thing) if the message should be translated.
-	#define SuccessAlertT(format, ...) MsgAlert("Information", false, INFORMATION, format, ##__VA_ARGS__) 
-	#define PanicAlertT(format, ...) MsgAlert("Warning", false, WARNING, format, ##__VA_ARGS__) 
-	#define PanicYesNoT(format, ...) MsgAlert("Warning", true, WARNING, format, ##__VA_ARGS__) 
-	#define AskYesNoT(format, ...) MsgAlert("Question", true, QUESTION, format, ##__VA_ARGS__) 
+	#define SuccessAlertT(format, ...) MsgAlert(false, INFORMATION, format, ##__VA_ARGS__) 
+	#define PanicAlertT(format, ...) MsgAlert(false, WARNING, format, ##__VA_ARGS__) 
+	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, ##__VA_ARGS__) 
+	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, ##__VA_ARGS__) 
 #endif
 #else
 // GEKKO
