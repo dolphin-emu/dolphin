@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 19:58-0600\n"
-"PO-Revision-Date: 2011-01-10 21:50+0100\n"
+"POT-Creation-Date: 2011-01-13 09:29-0600\n"
+"PO-Revision-Date: 2011-01-11 13:50+0100\n"
 "Last-Translator: MADCreations <http://www.dpro.freehosting.org>\n"
-"Language-Team: \n"
+"Language-Team: DevPro Team. <Dpro.madcreations@gmail.com>\n"
 "Language: Dutch\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -88,6 +88,14 @@ msgstr ""
 #, fuzzy, c-format
 msgid "%s failed to open"
 msgstr "Kies een bestamd om te openen"
+
+#: Source/Core/DSPCore/Src/DSPCore.cpp:78
+#, c-format
+msgid ""
+"%s has an incorrect hash.\n"
+"Would you like to stop now to fix the problem?\n"
+"If you select \"No\", audio will be garbled."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
@@ -173,7 +181,7 @@ msgstr "&Volledig Scherm"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:185
 msgid "&Gamecube Pad Settings"
-msgstr "\t&Gamecube Gamepad Instellingen "
+msgstr "&Gamecube Gamepad Instellingen "
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:183
 msgid "&Graphics Settings"
@@ -863,7 +871,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:462
 msgid "Close"
-msgstr "Dicht"
+msgstr "Sluit"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:181
 msgid "Co&nfigure..."
@@ -975,7 +983,7 @@ msgid "Connected"
 msgstr "Verbonden"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:11
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to %i Wiimotes"
 msgstr "Verbonden met %i Wiimotes"
 
@@ -1344,9 +1352,10 @@ msgstr "Dolphin  en Google Code"
 msgid ""
 "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
 "files..."
-msgstr "Dolphin kan geen GC/Wii ISO's vinden. Dubbelklik om folders te zoeken"
+msgstr ""
+"Dolphin kan geen GC/Wii ISO's vinden. Dubbelklik om een folder te zoeken..."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:207
+#: Source/Core/DolphinWX/Src/Main.cpp:205
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
@@ -1362,7 +1371,7 @@ msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:55
 msgid "Down"
-msgstr "Beneden"
+msgstr "Omlaag"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:45
 msgid "Download Codes (WiiRD Database)"
@@ -1401,7 +1410,7 @@ msgstr "Nederlands"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:126
 msgid "E&xit"
-msgstr "S&uit"
+msgstr "Sl&uiten"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:227
 msgid "EFB"
@@ -1691,9 +1700,9 @@ msgid "Enter a name for the new perspective:"
 msgstr "Voeg een naam toe voor een nieuwe perspectief:"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:198
-#, fuzzy, c-format
+#, c-format
 msgid "Entry %d/%d"
-msgstr "Toegang 1/%d"
+msgstr "Toegang %d/%d"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:85
 #, c-format
@@ -1725,7 +1734,7 @@ msgid ""
 "Error loading plugin %s: can't find file. Please re-select your plugins."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:397
+#: Source/Core/DolphinWX/Src/Main.cpp:395
 msgid "Error loading selected language. Falling back to system default.\n"
 msgstr ""
 
@@ -1784,9 +1793,8 @@ msgid "Export all saves"
 msgstr "Export alle saves..."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:81
-#, fuzzy
 msgid "Export failed, try again?"
-msgstr "Export Bestand"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
@@ -1817,9 +1825,9 @@ msgid "Extract Partition..."
 msgstr "Partitie Uitpakken"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:704
-#, fuzzy, c-format
+#, c-format
 msgid "Extracting %s"
-msgstr "Uitpakken %S"
+msgstr "Uitpakken %s"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:688
 msgid "Extracting All Files"
@@ -1858,9 +1866,9 @@ msgstr ""
 msgid "Failed to extract to %s!"
 msgstr ""
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:65
+#: Source/Core/DSPCore/Src/DSPCore.cpp:63
 #, c-format
-msgid "Failed to load DSP Rom : %s"
+msgid "Failed to load DSP ROM: %s"
 msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:62
@@ -2001,7 +2009,7 @@ msgstr "Eerste Block"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Fix Checksums"
-msgstr "Fix Checksums"
+msgstr "Herstel Checksums"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
 msgid "Force 16:9"
@@ -2191,7 +2199,7 @@ msgstr "Hebreeuws"
 msgid "Help"
 msgstr "Help"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:187
+#: Source/Core/DolphinWX/Src/Main.cpp:185
 msgid ""
 "Hi,\n"
 "\n"
@@ -2370,7 +2378,7 @@ msgstr "Voeg naam hier toe"
 msgid "Install Wii Menu"
 msgstr "Installeer Wii-menu"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:227
+#: Source/Core/DolphinWX/Src/Main.cpp:225
 msgid "Install directory could not be saved"
 msgstr ""
 
@@ -2603,7 +2611,7 @@ msgstr "Locaal"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:459
 msgid "Lock threads to cores"
-msgstr "Lock onderwerpen aan kernen"
+msgstr "Lock threads to cores"
 
 #: Source/Core/DolphinWX/Src/LogWindow.h:57
 msgid "Log"
@@ -2851,7 +2859,7 @@ msgstr "Geen land (SDK)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:308
 msgid "No ISOs or WADS found"
-msgstr "Geen ISOs of WADS found"
+msgstr "Geen ISOs of WADS gevonden."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:540
 #, c-format
@@ -3112,7 +3120,7 @@ msgstr "Pools"
 msgid "Port :"
 msgstr "Poort :"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:212
+#: Source/Core/DolphinWX/Src/Main.cpp:210
 msgid ""
 "Portable Setting could not be saved\n"
 " Are you running Dolphin from read only media or from a directory that "
@@ -3172,11 +3180,6 @@ msgstr "R Knop"
 msgid "RAM"
 msgstr "RAM"
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:53
-#, c-format
-msgid "ROM %s too short : %i/%i"
-msgstr ""
-
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "RUSSIA"
 msgstr "RUSLAND"
@@ -3218,7 +3221,7 @@ msgstr "Vernieuw"
 msgid "Refresh game list"
 msgstr "Vernieuw de speellijst"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:236
+#: Source/Core/DolphinWX/Src/Main.cpp:234
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr ""
 
@@ -3476,7 +3479,7 @@ msgstr "Ingesteld als &standaard ISO"
 msgid "Set as default Memcard %c"
 msgstr "Ingesteld als standaard memcard% c"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:223
+#: Source/Core/DolphinWX/Src/Main.cpp:221
 #, c-format
 msgid ""
 "Set install location to:\n"
@@ -3872,7 +3875,7 @@ msgstr "De naam mag niet het volgende teken bevatten ','"
 msgid "The save you are trying to copy has an invalid file size"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:404
+#: Source/Core/DolphinWX/Src/Main.cpp:402
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default.\n"
@@ -4092,7 +4095,7 @@ msgstr "Gebruik EuRGB60 Mode (PAL60)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:453
 msgid "Use FPS  For Limiting"
-msgstr "Gebruik fps voor Beperking"
+msgstr "Gebruik fps voor Beperkingen."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:560
 msgid "Use Hex"
@@ -4465,19 +4468,3 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:514
 msgid "| OR"
 msgstr "| OF"
-
-#, fuzzy
-#~ msgid "audio_plugin"
-#~ msgstr "Geef een audio-plugin"
-
-#, fuzzy
-#~ msgid "batch"
-#~ msgstr "Patches"
-
-#, fuzzy
-#~ msgid "debugger"
-#~ msgstr "Open de debugger"
-
-#, fuzzy
-#~ msgid "video_plugin"
-#~ msgstr "Geef een video-plugin"

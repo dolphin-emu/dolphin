@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 19:58-0600\n"
-"PO-Revision-Date: 2011-01-09 11:06+0100\n"
+"POT-Creation-Date: 2011-01-13 09:29-0600\n"
+"PO-Revision-Date: 2011-01-12 21:01+0100\n"
 "Last-Translator: Krzysztof Baszczok <baszta2@gmail.com>\n"
-"Language-Team: \n"
+"Language-Team: Polish <baszta2@gmail.com>\n"
 "Language: Polish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -88,6 +88,14 @@ msgstr ""
 #, fuzzy, c-format
 msgid "%s failed to open"
 msgstr "Wybierz plik do otwarcia"
+
+#: Source/Core/DSPCore/Src/DSPCore.cpp:78
+#, c-format
+msgid ""
+"%s has an incorrect hash.\n"
+"Would you like to stop now to fix the problem?\n"
+"If you select \"No\", audio will be garbled."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
@@ -277,7 +285,7 @@ msgstr "<Brak rozdzielczości>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:68
 msgid "<Nothing>"
-msgstr ""
+msgstr "<Nic>"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:183
 msgid "<Press Key>"
@@ -290,18 +298,20 @@ msgstr "<System>"
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:177
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:213
 msgid "A NetPlay window is already open!!"
-msgstr ""
+msgstr "Okno NetPlay jest już otwarte!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:348
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:379
 msgid "A game is not currently running."
-msgstr ""
+msgstr "Gra nie jest aktualnie uruchomiona."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:118
 msgid ""
 "A supported bluetooth device was not found!\n"
 "(Only the Microsoft bluetooth stack is supported.)"
 msgstr ""
+"Wspierany adapter bluetooth nie został znaleziony!\n"
+"(Tylko Microsoft bluetooth stack jest wspierane)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:85
 msgid ""
@@ -339,7 +349,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:73
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
 msgid "AM-Baseboard"
-msgstr ""
+msgstr "AM-Baseboard"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:120
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:285
@@ -552,9 +562,9 @@ msgid "Apply"
 msgstr "Zastosuj"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:637
-#, fuzzy, c-format
+#, c-format
 msgid "Are you sure you want to delete \"%s\"?"
-msgstr "Czy jesteś pewny by usunąc ten plik? Przepadnie na zawsze!"
+msgstr "Czy jesteś pewny by usunąc \"%s\"?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1107
 msgid ""
@@ -726,6 +736,8 @@ msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
 msgstr ""
+"Tego pliku nie można użyć jako karty pamięci.\n"
+"Chcesz użyć tego samego pliku w obu slotach?"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1827
 #, c-format
@@ -793,7 +805,7 @@ msgstr "Menadżer cheatów"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
 msgid "Chinese (Simplified)"
-msgstr ""
+msgstr "Chiński uproszczony"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:740
 msgid "Choose a DVD root directory:"
@@ -845,6 +857,8 @@ msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
 msgstr ""
+"Klient rozłączony podczas uruchomionej gry! NetPlay wyłączony. Musisz "
+"ręcznie zatrzymać grę."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:129
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:237
@@ -1036,15 +1050,17 @@ msgid "Could not recognize ISO file %s"
 msgstr "Nie można utworzyć %s"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:556
-#, fuzzy, c-format
+#, c-format
 msgid "Could not save %s"
-msgstr "Nie można utworzyć %s"
+msgstr "Nie można zapisać %s"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:495
 msgid ""
 "Could not set pads. The player left or the game is currently running!\n"
 "(setting pads while the game is running is not yet supported)"
 msgstr ""
+"Nie można ustawić pada. Gracz odszedł lub gra jest uruchomiona!\n"
+"(Ustawienie padów podczas uruchomionej gry, nie jest jeszcze wspierane)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:123
 #, c-format
@@ -1057,13 +1073,15 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1062
 msgid "Couldn't find open command for extension 'ini'!"
-msgstr ""
+msgstr "Nie odnaleziono polecenia otwarcia dla rozszerzenia 'ini'!"
 
 #: Source/Core/DolphinWX/Src/BootManager.cpp:154
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
 msgstr ""
+"Nie można zainicjować rdzenia.\n"
+"Sprawdź konfigurację."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:171
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:491
@@ -1115,7 +1133,7 @@ msgstr "Obcięcie"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
-msgstr ""
+msgstr "Actualny folder zmieniono z %s na %s po wxFileSelector!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "DList Cache"
@@ -1340,7 +1358,7 @@ msgstr ""
 "Dolphin nie mógł znaleść żadnych obrazów GC/Wii ISO. Kliknij tutaj by "
 "przeglądać pliki..."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:207
+#: Source/Core/DolphinWX/Src/Main.cpp:205
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
@@ -1365,11 +1383,11 @@ msgstr "Ściągnij kody (baza WiiRD)"
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:279
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
-msgstr ""
+msgstr "Pobrano %lu kodów. (dodano %lu)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:69
 msgid "Dummy"
-msgstr ""
+msgstr "Atrapa"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
 msgid "Dump EFB Target"
@@ -1448,8 +1466,9 @@ msgid "Edit..."
 msgstr "Edytuj..."
 
 #: Source/Core/Core/Src/Core.cpp:178
+#, fuzzy
 msgid "Emu Thread already running"
-msgstr ""
+msgstr "Gra jest już uruchomiona!"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:248
 msgid "Emulate format changes"
@@ -1715,7 +1734,7 @@ msgid ""
 "Error loading plugin %s: can't find file. Please re-select your plugins."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:397
+#: Source/Core/DolphinWX/Src/Main.cpp:395
 msgid "Error loading selected language. Falling back to system default.\n"
 msgstr ""
 
@@ -1749,9 +1768,8 @@ msgid "Exit Dolphin with emulator"
 msgstr "Wyjście z Dolphina"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:469
-#, fuzzy
 msgid "Export Failed"
-msgstr "Eksportuj plik"
+msgstr "Eksportuj nieudany"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:619
 msgid "Export File"
@@ -1776,7 +1794,7 @@ msgstr "Eksportuj wszystkie zapisy"
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:81
 #, fuzzy
 msgid "Export failed, try again?"
-msgstr "Eksportuj plik"
+msgstr "Eksportuj nieudany"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
@@ -1833,34 +1851,36 @@ msgstr "Rozmiar FST:"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:80
 msgid "Failed to Connect!"
-msgstr ""
+msgstr "Połączenie nieudane!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:202
 msgid "Failed to Listen!!"
-msgstr ""
+msgstr "Nasłuchiwanie nieudane!"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:289
 msgid "Failed to download codes."
-msgstr ""
+msgstr "Pobieranie kodów nieudane!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:804
 #, c-format
 msgid "Failed to extract to %s!"
-msgstr ""
+msgstr "Wypakowanie do %s nie udało się!"
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:65
-#, c-format
-msgid "Failed to load DSP Rom : %s"
-msgstr ""
+#: Source/Core/DSPCore/Src/DSPCore.cpp:63
+#, fuzzy, c-format
+msgid "Failed to load DSP ROM: %s"
+msgstr "Pobieranie kodów nieudane!"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:62
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:71
+#, fuzzy
 msgid "Failed to load hid.dll"
-msgstr ""
+msgstr "Pobieranie kodów nieudane!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:157
+#, fuzzy
 msgid "Failed to read banner.bin"
-msgstr ""
+msgstr "Połączenie nieudane!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:131
 msgid ""
@@ -1875,9 +1895,9 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:311
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to read data from file %d"
-msgstr ""
+msgstr "Wypakowanie do %s nie udało się!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:119
 msgid ""
@@ -1913,13 +1933,14 @@ msgid "Failed to write BT.DINF to SYSCONF"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:249
+#, fuzzy
 msgid "Failed to write bkhdr"
-msgstr ""
+msgstr "Nasłuchiwanie nieudane!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:173
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to write header for %s"
-msgstr ""
+msgstr "Wypakowanie do %s nie udało się!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:282
 #, c-format
@@ -1946,17 +1967,19 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
 msgid "File contained no codes."
-msgstr ""
+msgstr "Plik nie zawiera kodów."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:423
 msgid "File converted to .gci"
-msgstr ""
+msgstr "Plik skonwertowany do .gci."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:438
 msgid ""
 "File could not be opened\n"
 "or does not have a valid extension"
 msgstr ""
+"Nie można otworzyć pliku\n"
+"lub posiada niewłaściwe rozszerzenie"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:98
 #, c-format
@@ -1967,7 +1990,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 msgid "File is not recognized as a memcard"
-msgstr ""
+msgstr "Plik nierozpoznany jako karta pamięci"
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:302
 msgid "File not compressed"
@@ -1984,7 +2007,7 @@ msgstr "System plików"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1055
 msgid "Filetype 'ini' is unknown! Will not open!"
-msgstr ""
+msgstr "Nieznany plik typu 'ini'! Nie otworzy się!"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:637
 msgid "First Block"
@@ -2088,15 +2111,15 @@ msgstr "ID gry:"
 
 #: Source/Core/DolphinWX/Src/NetPlay.cpp:261
 msgid "Game is already running!"
-msgstr ""
+msgstr "Gra jest już uruchomiona!"
 
 #: Source/Core/DolphinWX/Src/NetPlay.cpp:291
 msgid "Game isn't running!"
-msgstr ""
+msgstr "Gra nie jest uruchomiona!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:376
 msgid "Game not found!!"
-msgstr ""
+msgstr "Gry nie odnaleziono!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:301
 msgid "Game-Specific Settings"
@@ -2162,7 +2185,7 @@ msgstr "Większy niż"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "Greek"
-msgstr ""
+msgstr "Grecki"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
@@ -2180,7 +2203,7 @@ msgstr "Hebrajski"
 msgid "Help"
 msgstr "Pomoc"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:187
+#: Source/Core/DolphinWX/Src/Main.cpp:185
 msgid ""
 "Hi,\n"
 "\n"
@@ -2189,6 +2212,11 @@ msgid ""
 "\n"
 "Sayonara!\n"
 msgstr ""
+"Siema,\n"
+"Dolphin wymaga od procesora rozszerzeń SSE2.\n"
+"Niestety Twój procesor ich nie posiada, dlatego Dolphin nie ruszy.\n"
+"\n"
+"Pozdro i poćwicz!\n"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:497
 msgid "Hide Mouse Cursor"
@@ -2220,7 +2248,7 @@ msgstr "Skróty klawiszowe"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 msgid "Hungarian"
-msgstr ""
+msgstr "Węgierski"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
 msgid "Hybrid Wiimote"
@@ -2302,16 +2330,20 @@ msgid ""
 "Imported file has gsc extension\n"
 "but does not have a correct header"
 msgstr ""
+"Zaimportowany plik posiada rozszerzenie gsc\n"
+"lecz nie posiada właściwego nagłówka"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:452
 msgid "Imported file has invalid length"
-msgstr ""
+msgstr "Zaimportowany plik jest niewłąściwej wielkości"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:461
 msgid ""
 "Imported file has sav extension\n"
 "but does not have a correct header"
 msgstr ""
+"Zaimportowany plik posiada rozszerzenie sav\n"
+"lecz nie posiada właściwego nagłówka"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:364
 msgid "In Game"
@@ -2358,7 +2390,7 @@ msgstr "Wprowadź nazwę tutaj..."
 msgid "Install Wii Menu"
 msgstr "Zainstaluj Wii Menu"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:227
+#: Source/Core/DolphinWX/Src/Main.cpp:225
 msgid "Install directory could not be saved"
 msgstr ""
 
@@ -2420,11 +2452,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:608
 msgid "Invalid Value!"
-msgstr ""
+msgstr "Niewłaściwa wartość!"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:472
 msgid "Invalid bat.map or dir entry"
-msgstr ""
+msgstr "Niewłaściwe bat.map lub wejście folderu"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:535
 #, c-format
@@ -2432,8 +2464,9 @@ msgid "Invalid event type %i"
 msgstr ""
 
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:314
+#, fuzzy
 msgid "Invalid file"
-msgstr ""
+msgstr "Niewłaściwa wartość!"
 
 #: Source/Core/DiscIO/Src/BannerLoaderGC.cpp:40
 #, c-format
@@ -2448,8 +2481,9 @@ msgid "Invalid recording file"
 msgstr ""
 
 #: Source/Core/Core/Src/Core.cpp:539
+#, fuzzy
 msgid "Invalid state"
-msgstr ""
+msgstr "Niewłaściwa wartość!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
@@ -2602,7 +2636,7 @@ msgstr "Logging"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:259
 msgid "Lost connection to server!"
-msgstr ""
+msgstr "Połączenie z serwerem przerwane!"
 
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:61
 msgid "Lua Script Console"
@@ -2638,11 +2672,11 @@ msgstr "Twórca:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:458
 msgid "Memcard already has a save for this title"
-msgstr ""
+msgstr "Karta pamięci już posiada zapis dla tego tytułu"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:297
 msgid "Memcard already opened"
-msgstr ""
+msgstr "Karta pamięci już otwarta"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:220
 #, c-format
@@ -2676,9 +2710,8 @@ msgid "Metroid Other M"
 msgstr "Metroid Other M"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:76
-#, fuzzy
 msgid "Mic"
-msgstr "Różne"
+msgstr "Mikrofon"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:420
 msgid "Misc"
@@ -2850,7 +2883,7 @@ msgstr "Brak dokowania"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:449
 msgid "No free dir index entries"
-msgstr ""
+msgstr "Brak wolnych wejść folderów"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:533
 #, c-format
@@ -2934,7 +2967,7 @@ msgstr "Offset:"
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 #, c-format
 msgid "Only %d blocks available"
-msgstr ""
+msgstr "Dostępnych tylko %d bloków"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:358
 msgid "Open"
@@ -2984,12 +3017,17 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the the saves to a new memcard\n"
 msgstr ""
+"Kolejność plików w folderze niezgodna z kolejnościa bloków\n"
+"PPM i wyeksportuj wszystkie zapisy,\n"
+"następnie zaimportuj te zapisy do nowej karty pamięci\n"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:210
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "manually stop the game."
 msgstr ""
+"Inny klient rozłączony podczas uruchomionej gry! NetPlay wyłączony. Musisz "
+"ręcznie zatrzymać grę."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:502
 msgid "Output"
@@ -3098,7 +3136,7 @@ msgstr "Polski"
 msgid "Port :"
 msgstr "Port :"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:212
+#: Source/Core/DolphinWX/Src/Main.cpp:210
 msgid ""
 "Portable Setting could not be saved\n"
 " Are you running Dolphin from read only media or from a directory that "
@@ -3158,11 +3196,6 @@ msgstr "R Button"
 msgid "RAM"
 msgstr "RAM"
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:53
-#, c-format
-msgid "ROM %s too short : %i/%i"
-msgstr ""
-
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "RUSSIA"
 msgstr "Rosja"
@@ -3203,7 +3236,7 @@ msgstr "Odśwież"
 msgid "Refresh game list"
 msgstr "Odśwież listę gier"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:236
+#: Source/Core/DolphinWX/Src/Main.cpp:234
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr ""
 
@@ -3459,7 +3492,7 @@ msgstr "Ustaw jako domyślne ISO"
 msgid "Set as default Memcard %c"
 msgstr "Ustaw jako domyślną kartę pamięci %c"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:223
+#: Source/Core/DolphinWX/Src/Main.cpp:221
 #, c-format
 msgid ""
 "Set install location to:\n"
@@ -3711,7 +3744,7 @@ msgstr "Przyspiesz Disc Transfer Rate"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:71
 msgid "Standard Controller"
-msgstr ""
+msgstr "Kontroler standartowy"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:303
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:38
@@ -3808,7 +3841,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
 msgid "The checksum was successfully fixed"
-msgstr ""
+msgstr "Suma kontrolna poprawnie naprawiona"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1135
 msgid "The chosen directory is already in the list"
@@ -3847,9 +3880,9 @@ msgstr "Nazwa nie może zawierać znaku ','"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
 msgid "The save you are trying to copy has an invalid file size"
-msgstr ""
+msgstr "Zapis, który chcesz skopiować posiada niewłaściwą wielkość pliku."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:404
+#: Source/Core/DolphinWX/Src/Main.cpp:402
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default.\n"
@@ -3857,19 +3890,19 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:46
 msgid "The server and client's NetPlay versions are incompatible!"
-msgstr ""
+msgstr "Wersje NetPlay klienta i serwera są niekompatybilne!"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:43
 msgid "The server is full!"
-msgstr ""
+msgstr "Serwer pełny!"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:49
 msgid "The server responded: the game is currently running!"
-msgstr ""
+msgstr "Odpowiedź serwera: gra aktuapnie uruchomiona!"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:52
 msgid "The server sent an unknown error message!"
-msgstr ""
+msgstr "Serwer odesłał nieznany błąd!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:117
 #, c-format
@@ -3886,7 +3919,7 @@ msgstr "Styl"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:527
 msgid "Theme selection went wrong"
-msgstr ""
+msgstr "Wybór stylu nieudany"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:462
 msgid ""
@@ -4040,12 +4073,12 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:232
 #, c-format
 msgid "Unknown message received with id : %d"
-msgstr ""
+msgstr "Nieznana wiadomość o ID: %d"
 
 #: Source/Core/DolphinWX/Src/NetPlayServer.cpp:504
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
-msgstr ""
+msgstr "Nieznana wiadomość o ID: %d od gracza: %d Wylatuje!"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:636
 #, c-format
@@ -4184,6 +4217,10 @@ msgid ""
 "and have the same name as a file on your memcard\n"
 "Continue?"
 msgstr ""
+"Ostrzeżenie: Wszystkie zapisy zostaną nadpisane w folderze:\n"
+"%s\n"
+"i mają taką samą nazwę jak plik na Twojej karcie pamięci\n"
+"Kontynuować?"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:111
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:125
@@ -4344,23 +4381,23 @@ msgstr "Nie możesz zamknąć paneli jeśli są w nich strony."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:183
 msgid "You must choose a game!!"
-msgstr ""
+msgstr "Wybierz grę!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:601
 msgid "You must enter a name!"
-msgstr ""
+msgstr "Musisz wprowadzić nazwę!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
 msgid "You must enter a valid decimal or hex value."
-msgstr ""
+msgstr "Musisz wprowadzić poprawną wartość dziesiętną lub szestnastkową."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:626
 msgid "You must enter a valid profile name."
-msgstr ""
+msgstr "Musisz wprowadzić poprawną nazwę profilu."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:920
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr ""
+msgstr "Musisz ponownie uruchomić program w celu zaaplikowania zmian."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:172
 msgid ""
@@ -4414,8 +4451,9 @@ msgid "failed to read data from file: %s"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:98
+#, fuzzy
 msgid "failed to read header"
-msgstr ""
+msgstr "Pobieranie kodów nieudane!"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:450
 #, c-format
@@ -4434,24 +4472,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1065
 msgid "wxExecute returned -1 on application run!"
-msgstr ""
+msgstr "wxExecute zwrócił -1 przy uruchamianiu programu!"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:514
 msgid "| OR"
 msgstr "| OR"
-
-#, fuzzy
-#~ msgid "audio_plugin"
-#~ msgstr "Wybierz wtyczkę audio"
-
-#, fuzzy
-#~ msgid "batch"
-#~ msgstr "Patche"
-
-#, fuzzy
-#~ msgid "debugger"
-#~ msgstr "Otwiera debugera"
-
-#, fuzzy
-#~ msgid "video_plugin"
-#~ msgstr "Wybierz wtyczkę wideo"

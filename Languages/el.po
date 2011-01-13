@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 19:58-0600\n"
+"POT-Creation-Date: 2011-01-13 09:29-0600\n"
 "PO-Revision-Date: 2011-01-11 13:38+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
@@ -88,6 +88,14 @@ msgstr ""
 #, fuzzy, c-format
 msgid "%s failed to open"
 msgstr "Επιλέξτε ένα αρχείο για άνοιγμα"
+
+#: Source/Core/DSPCore/Src/DSPCore.cpp:78
+#, c-format
+msgid ""
+"%s has an incorrect hash.\n"
+"Would you like to stop now to fix the problem?\n"
+"If you select \"No\", audio will be garbled."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
@@ -1348,7 +1356,7 @@ msgstr ""
 "Το Dolphin δεν μπόρεσε να βρει GC/Wii ISO. Κάντε διπλό κλίκ εδώ για εύρεση "
 "αρχείων..."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:207
+#: Source/Core/DolphinWX/Src/Main.cpp:205
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
@@ -1729,7 +1737,7 @@ msgid ""
 "Error loading plugin %s: can't find file. Please re-select your plugins."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:397
+#: Source/Core/DolphinWX/Src/Main.cpp:395
 msgid "Error loading selected language. Falling back to system default.\n"
 msgstr ""
 
@@ -1862,9 +1870,9 @@ msgstr ""
 msgid "Failed to extract to %s!"
 msgstr ""
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:65
+#: Source/Core/DSPCore/Src/DSPCore.cpp:63
 #, c-format
-msgid "Failed to load DSP Rom : %s"
+msgid "Failed to load DSP ROM: %s"
 msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:62
@@ -2196,7 +2204,7 @@ msgstr "Εβραϊκά"
 msgid "Help"
 msgstr "Βοήθεια"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:187
+#: Source/Core/DolphinWX/Src/Main.cpp:185
 msgid ""
 "Hi,\n"
 "\n"
@@ -2377,7 +2385,7 @@ msgstr "Εισάγετε όνομα εδώ..."
 msgid "Install Wii Menu"
 msgstr "Εγκατάσταση Μενού Wii"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:227
+#: Source/Core/DolphinWX/Src/Main.cpp:225
 msgid "Install directory could not be saved"
 msgstr ""
 
@@ -3117,7 +3125,7 @@ msgstr "Πολωνέζικα"
 msgid "Port :"
 msgstr "Πόρτα :"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:212
+#: Source/Core/DolphinWX/Src/Main.cpp:210
 msgid ""
 "Portable Setting could not be saved\n"
 " Are you running Dolphin from read only media or from a directory that "
@@ -3177,11 +3185,6 @@ msgstr "R Button"
 msgid "RAM"
 msgstr "RAM"
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:53
-#, c-format
-msgid "ROM %s too short : %i/%i"
-msgstr ""
-
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "RUSSIA"
 msgstr "ΡΩΣΙΑ"
@@ -3223,7 +3226,7 @@ msgstr "Ανανέωση"
 msgid "Refresh game list"
 msgstr "Ανανέωση λίστας παιχνιδιών"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:236
+#: Source/Core/DolphinWX/Src/Main.cpp:234
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr ""
 
@@ -3483,7 +3486,7 @@ msgstr "Ορισμός ως προεπιλεγμένο &ISO"
 msgid "Set as default Memcard %c"
 msgstr "Ορισμός ως προεπιλεγμένη Κάρτα Μνήμης %c"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:223
+#: Source/Core/DolphinWX/Src/Main.cpp:221
 #, c-format
 msgid ""
 "Set install location to:\n"
@@ -3879,7 +3882,7 @@ msgstr "Το όνομα δεν μπορεί να περιέχει τον χαρ�
 msgid "The save you are trying to copy has an invalid file size"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:404
+#: Source/Core/DolphinWX/Src/Main.cpp:402
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default.\n"

@@ -167,10 +167,8 @@ bool DolphinApp::OnInit()
 	_CrtSetDbgFlag(tmpflag);
 #endif
 
-	// Register message box handler
-#ifndef _WIN32
+	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
-#endif
 	RegisterStringTranslator(&wxStringTranslator);
 
 	// "ExtendedTrace" looks freakin dangerous!!!
@@ -457,14 +455,14 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 #ifdef __WXGTK__
 	if (wxIsMainThread())
 #endif
-		return wxYES == wxMessageBox(wxString::FromAscii(text), 
+		return wxYES == wxMessageBox(wxString::FromUTF8(text), 
 				wxString::FromAscii(caption),
 				(yes_no) ? wxYES_NO : wxOK, main_frame);
 #ifdef __WXGTK__
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(wxString::FromAscii(text));
+		event.SetString(wxString::FromUTF8(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();
@@ -475,8 +473,10 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 
 const char *wxStringTranslator(const char *text)
 {
-	printf("passing through here\n");
-	return std::string(wxString(wxGetTranslation(wxString::From8BitData(text))).To8BitData()).c_str();
+	static char buffer[2048];
+	snprintf(buffer, 2048, "%s",
+			(const char *)wxString(wxGetTranslation(wxString::From8BitData(text))).ToUTF8());
+	return buffer;
 }
 
 // Accessor for the main window class

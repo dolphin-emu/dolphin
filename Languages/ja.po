@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-12 19:58-0600\n"
+"POT-Creation-Date: 2011-01-13 09:29-0600\n"
 "PO-Revision-Date: 2011-01-10 15:49+0900\n"
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
@@ -89,6 +89,14 @@ msgstr ""
 msgid "%s failed to open"
 msgstr "メモリーカードを選択"
 
+#: Source/Core/DSPCore/Src/DSPCore.cpp:78
+#, c-format
+msgid ""
+"%s has an incorrect hash.\n"
+"Would you like to stop now to fix the problem?\n"
+"If you select \"No\", audio will be garbled."
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
 msgid "%s is a 0 byte file"
@@ -107,7 +115,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:203
 #, c-format
 msgid "%sDelete%s"
-msgstr "削除"
+msgstr "%s削除%s"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:201
 #, c-format
@@ -1312,7 +1320,7 @@ msgstr ""
 "リストに何もありません。この文章をダブルクリックして GC/Wii のディスクイメー"
 "ジのあるフォルダを選択してください。"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:207
+#: Source/Core/DolphinWX/Src/Main.cpp:205
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
@@ -1672,7 +1680,7 @@ msgid ""
 "Error loading plugin %s: can't find file. Please re-select your plugins."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:397
+#: Source/Core/DolphinWX/Src/Main.cpp:395
 msgid "Error loading selected language. Falling back to system default.\n"
 msgstr ""
 
@@ -1731,9 +1739,8 @@ msgid "Export all saves"
 msgstr "全てのセーブデータをエクスポート"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:81
-#, fuzzy
 msgid "Export failed, try again?"
-msgstr "セーブデータをエクスポート"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 #, fuzzy
@@ -1806,9 +1813,9 @@ msgstr ""
 msgid "Failed to extract to %s!"
 msgstr ""
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:65
+#: Source/Core/DSPCore/Src/DSPCore.cpp:63
 #, c-format
-msgid "Failed to load DSP Rom : %s"
+msgid "Failed to load DSP ROM: %s"
 msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:62
@@ -2127,7 +2134,7 @@ msgstr "ヘブライ語"
 msgid "Help"
 msgstr "ヘルプ"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:187
+#: Source/Core/DolphinWX/Src/Main.cpp:185
 msgid ""
 "Hi,\n"
 "\n"
@@ -2305,7 +2312,7 @@ msgstr "ここにコードの効果などを書いてください"
 msgid "Install Wii Menu"
 msgstr "Wiiメニューをインストール"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:227
+#: Source/Core/DolphinWX/Src/Main.cpp:225
 msgid "Install directory could not be saved"
 msgstr ""
 
@@ -3042,7 +3049,7 @@ msgstr "ポーランド語"
 msgid "Port :"
 msgstr "ポート:"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:212
+#: Source/Core/DolphinWX/Src/Main.cpp:210
 msgid ""
 "Portable Setting could not be saved\n"
 " Are you running Dolphin from read only media or from a directory that "
@@ -3102,11 +3109,6 @@ msgstr ""
 msgid "RAM"
 msgstr ""
 
-#: Source/Core/DSPCore/Src/DSPCore.cpp:53
-#, c-format
-msgid "ROM %s too short : %i/%i"
-msgstr ""
-
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "RUSSIA"
 msgstr "ロシア"
@@ -3145,7 +3147,7 @@ msgstr "再更新"
 msgid "Refresh game list"
 msgstr "ゲームリストを再更新します"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:236
+#: Source/Core/DolphinWX/Src/Main.cpp:234
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr ""
 
@@ -3393,7 +3395,7 @@ msgstr "既定のタイトルとして設定(&D)"
 msgid "Set as default Memcard %c"
 msgstr "%c を既定のメモリカードとして設定"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:223
+#: Source/Core/DolphinWX/Src/Main.cpp:221
 #, c-format
 msgid ""
 "Set install location to:\n"
@@ -3777,7 +3779,7 @@ msgstr ""
 msgid "The save you are trying to copy has an invalid file size"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:404
+#: Source/Core/DolphinWX/Src/Main.cpp:402
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default.\n"
@@ -4418,16 +4420,8 @@ msgstr ""
 #~ msgid "b"
 #~ msgstr "b"
 
-#, fuzzy
-#~ msgid "batch"
-#~ msgstr "パッチ"
-
 #~ msgid "d"
 #~ msgstr "d"
-
-#, fuzzy
-#~ msgid "debugger"
-#~ msgstr "デバッグ"
 
 #~ msgid "e"
 #~ msgstr "e"
