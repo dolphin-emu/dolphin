@@ -24,6 +24,7 @@
    ====================================================================*/
 
 #include "Common.h"
+#include "Hash.h"
 #include "Thread.h"
 #include "DSPCore.h"
 #include "DSPEmitter.h"
@@ -47,25 +48,42 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 	const size_t size_in_bytes = size_in_words * sizeof(u16);
 	if (pFile)
 	{
-		size_t read_bytes = fread(rom, 1, size_in_bytes, pFile);
-		if (read_bytes != size_in_bytes)
-		{
-			PanicAlertT("ROM %s too short : %i/%i", fname, (int)read_bytes, (int)size_in_bytes);
-			fclose(pFile);
-			return false;
-		}
+		fread(rom, 1, size_in_bytes, pFile);
 		fclose(pFile);
 	
 		// Byteswap the rom.
 		for (int i = 0; i < size_in_words; i++)
 			rom[i] = Common::swap16(rom[i]);
 
+		// Always keep ROMs write protected.
+		WriteProtectMemory(rom, size_in_bytes, false);
 		return true;
 	}
-	PanicAlertT("Failed to load DSP Rom : %s",fname);
-	// Always keep ROMs write protected.
-	WriteProtectMemory(g_dsp.irom, size_in_bytes, false);
+
+	PanicAlertT("Failed to load DSP ROM: %s", fname);
 	return false;
+}
+
+// Returns false iff the hash fails and the user hits "Yes"
+static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
+{
+	static const u32 hash[] = { 0x66f334fe, 0xf3b93527 };
+	static const int size[] = { DSP_IROM_BYTE_SIZE, DSP_COEF_BYTE_SIZE };
+	const u16 *data[] = { g_dsp.irom, g_dsp.coef };
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (HashAdler32((u8*)data[i], size[i]) != hash[i])
+		{
+			if (AskYesNoT("%s has an incorrect hash.\n"
+				"Would you like to stop now to fix the problem?\n"
+				"If you select \"No\", audio will be garbled.",
+				(i == 0) ? irom_filename : coef_filename))
+				return false;
+		}
+	}
+
+	return true;
 }
 
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
@@ -80,13 +98,15 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
 	g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
 
-	// Fill roms with zeros. 
+	// Fill roms with zeros.
 	memset(g_dsp.irom, 0, DSP_IROM_BYTE_SIZE);
 	memset(g_dsp.coef, 0, DSP_COEF_BYTE_SIZE);
 
-	// Try to load real ROM contents. Failing this, only homebrew will work correctly with the DSP.
+	// Try to load real ROM contents.
 	LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom);
 	LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef);
+	if (!VerifyRoms(irom_filename, coef_filename))
+		return false;
 
 	memset(&g_dsp.r,0,sizeof(g_dsp.r));
 

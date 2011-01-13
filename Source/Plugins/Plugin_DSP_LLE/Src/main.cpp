@@ -235,8 +235,9 @@ void Initialize(void *init)
 
 	if (!bCanWork)
 	{
-		PanicAlert("DSPLLE: Failed to initialize plugin, exiting");
 		DSPCore_Shutdown();
+		// No way to shutdown Core from here? Hardcore shutdown!
+		exit(EXIT_FAILURE);
 		return;
 	}
 
