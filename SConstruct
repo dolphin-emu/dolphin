@@ -132,7 +132,7 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKSFLAGS'] = ['-Xarch_i386', '-Wl,-framework,QuickTime']
     env['LIBPATH'] += ['/usr/lib']
-    env['LIBS'] = ['iconv', 'SDL']
+    env['LIBS'] = ['iconv']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
     env['SHLINKFLAGS'] += ['-Wl,-undefined,dynamic_lookup']

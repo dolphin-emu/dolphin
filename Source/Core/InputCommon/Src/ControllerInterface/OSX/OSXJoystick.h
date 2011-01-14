@@ -7,7 +7,7 @@ namespace ciface
 namespace OSX
 {
 
-class Mouse : public ControllerInterface::Device
+class Joystick : public ControllerInterface::Device
 {
 	friend class ControllerInterface;
 	friend class ControllerInterface::ControlReference;
@@ -15,14 +15,14 @@ class Mouse : public ControllerInterface::Device
 protected:
 	class Input : public ControllerInterface::Device::Input
 	{
-		friend class Mouse;
+		friend class Joystick;
 	protected:
 		virtual ControlState GetState(IOHIDDeviceRef device) const = 0;
 	};
 
 	class Button : public Input
 	{
-		friend class Mouse;
+		friend class Joystick;
 	public:
 		std::string GetName() const;
 	protected:
@@ -35,7 +35,7 @@ protected:
 
 	class Axis : public Input
 	{
-		friend class Mouse;
+		friend class Joystick;
 	public:
 		enum direction {
 			positive = 0,
@@ -49,7 +49,7 @@ protected:
 		IOHIDElementRef		m_element;
 		std::string		m_name;
 		direction		m_direction;
-		float			m_range;
+		float			m_neutral;
 	};
 
 	bool UpdateInput();
@@ -62,7 +62,7 @@ protected:
 		const ControlState state);
 
 public:
-	Mouse(IOHIDDeviceRef device);
+	Joystick(IOHIDDeviceRef device);
 
 	std::string GetName() const;
 	std::string GetSource() const;

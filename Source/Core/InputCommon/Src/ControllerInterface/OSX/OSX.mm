@@ -4,7 +4,7 @@
 #include "../ControllerInterface.h"
 #include "OSX.h"
 #include "OSXKeyboard.h"
-#include "OSXMouse.h"
+#include "OSXJoystick.h"
 
 namespace ciface
 {
@@ -143,60 +143,23 @@ static void DeviceMatching_callback(void* inContext,
 
 	// Add to the devices vector if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
-		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard) ||
-		IOHIDDeviceConformsTo(inIOHIDDeviceRef,
-		kHIDPage_GenericDesktop, kHIDUsage_GD_Keypad))
-	{
+		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
 		devices->push_back(new Keyboard(inIOHIDDeviceRef));
-	}
-
-	// We can probably generalize this class for mouse and gamepad inputs
-	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
-		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse) /*||
-		IOHIDDeviceConformsTo(inIOHIDDeviceRef,
-		kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad)*/)
-	{
-		devices->push_back(new Mouse(inIOHIDDeviceRef));
-	}
+	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
+		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
+		return; // XXX devices->push_back(new Mouse(inIOHIDDeviceRef));
+	else 
+		devices->push_back(new Joystick(inIOHIDDeviceRef));
 }
 
 void Init(std::vector<ControllerInterface::Device*>& devices)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault,
 		kIOHIDOptionsTypeNone);
 	if (!HIDManager)
 		NSLog(@"Failed to create HID Manager reference");
 
-	// HID Manager will give us the following devices:
-	// Keyboard, Keypad, Mouse, GamePad
-	NSArray *matchingDevices =
-	[NSArray arrayWithObjects:
-	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop],
-		@kIOHIDDeviceUsagePageKey,
-	  [NSNumber numberWithInteger:kHIDUsage_GD_Keyboard],
-		@kIOHIDDeviceUsageKey, nil],
-	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop],
-		@kIOHIDDeviceUsagePageKey,
-	  [NSNumber numberWithInteger:kHIDUsage_GD_Keypad],
-		@kIOHIDDeviceUsageKey, nil],
-	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop],
-		@kIOHIDDeviceUsagePageKey,
-	  [NSNumber numberWithInteger:kHIDUsage_GD_Mouse],
-		@kIOHIDDeviceUsageKey, nil],
-	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop],
-		@kIOHIDDeviceUsagePageKey,
-	  [NSNumber numberWithInteger:kHIDUsage_GD_GamePad],
-		@kIOHIDDeviceUsageKey, nil],
-	 nil];
-	// Pass NULL to get all devices
-	IOHIDManagerSetDeviceMatchingMultiple(HIDManager,
-		(CFArrayRef)matchingDevices);
+	IOHIDManagerSetDeviceMatchingMultiple(HIDManager, NULL);
 
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager,
@@ -218,8 +181,6 @@ void Init(std::vector<ControllerInterface::Device*>& devices)
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, NULL, NULL);
 	IOHIDManagerUnscheduleFromRunLoop(HIDManager,
 		CFRunLoopGetCurrent(), OurRunLoop);
-
-	[pool release];
 }
 
 void DeInit()

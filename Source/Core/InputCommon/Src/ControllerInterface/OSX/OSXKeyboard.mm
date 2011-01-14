@@ -24,8 +24,6 @@ extern void DeviceElementDebugPrint(const void *, void *);
 Keyboard::Keyboard(IOHIDDeviceRef device)
 	: m_device(device)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device,
 		CFSTR(kIOHIDProductKey)) UTF8String];
 
@@ -33,7 +31,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 	// Now, filter on just the buttons we can handle sanely
 	NSDictionary *matchingElements =
 	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kIOHIDElementTypeInput_Button],
+	  [NSNumber numberWithInteger: kIOHIDElementTypeInput_Button],
 		@kIOHIDElementTypeKey,
 	  [NSNumber numberWithInteger: 0], @kIOHIDElementMinKey,
 	  [NSNumber numberWithInteger: 1], @kIOHIDElementMaxKey,
@@ -54,8 +52,6 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 		}
 		CFRelease(elements);
 	}
-
-	[pool release];
 }
 
 ControlState Keyboard::GetInputState(
@@ -99,30 +95,23 @@ int Keyboard::GetId() const
 Keyboard::Key::Key(IOHIDElementRef element)
 	: m_element(element)
 {
-	uint32_t keycode = IOHIDElementGetUsage(m_element);
+	uint32_t i, keycode;
 
-	for (uint32_t i = 0; i < sizeof(named_keys)/sizeof(*named_keys); i++)
-	{
+	m_name = "RESERVED";
+	keycode = IOHIDElementGetUsage(m_element);
+	for (i = 0; i < sizeof named_keys / sizeof *named_keys; i++)
 		if (named_keys[i].code == keycode)
-		{
 			m_name = named_keys[i].name;
-			return;
-		}
-	}
-
-	m_name = "RESERVED";	/* XXX */
 }
 
 ControlState Keyboard::Key::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
 
-	if (IOHIDDeviceGetValue(device, m_element, &value) ==
-		kIOReturnSuccess) {
-		return IOHIDValueGetIntegerValue(value) > 0;
-	}
-
-	return false;
+	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+		return IOHIDValueGetIntegerValue(value);
+	else
+		return 0;
 }
 
 std::string Keyboard::Key::GetName() const

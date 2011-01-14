@@ -22,8 +22,7 @@ elif sys.platform == 'darwin':
 	files += [
 		'ControllerInterface/OSX/OSX.mm',
 		'ControllerInterface/OSX/OSXKeyboard.mm',
-		'ControllerInterface/OSX/OSXMouse.mm',
-		'ControllerInterface/SDL/SDL.cpp',
+		'ControllerInterface/OSX/OSXJoystick.mm',
 		]
 elif env['HAVE_X11']:
 	files += [

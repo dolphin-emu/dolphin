@@ -2,7 +2,7 @@
 #include <IOKit/hid/IOHIDLib.h>
 
 #include "../ControllerInterface.h"
-#include "OSXMouse.h"
+#include "OSXJoystick.h"
 
 namespace ciface
 {
@@ -11,20 +11,18 @@ namespace OSX
 
 extern void DeviceElementDebugPrint(const void*, void*);
 
-Mouse::Mouse(IOHIDDeviceRef device)
+Joystick::Joystick(IOHIDDeviceRef device)
 	: m_device(device)
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device,
 		CFSTR(kIOHIDProductKey)) UTF8String];
 
 	// Buttons
 	NSDictionary *buttonDict =
 	 [NSDictionary dictionaryWithObjectsAndKeys:
-	  [NSNumber numberWithInteger:kIOHIDElementTypeInput_Button],
+	  [NSNumber numberWithInteger: kIOHIDElementTypeInput_Button],
 		@kIOHIDElementTypeKey,
-	  [NSNumber numberWithInteger:kHIDPage_Button],
+	  [NSNumber numberWithInteger: kHIDPage_Button],
 		@kIOHIDElementUsagePageKey,
 	  nil];
 
@@ -47,7 +45,7 @@ Mouse::Mouse(IOHIDDeviceRef device)
 	// Axes
 	NSDictionary *axisDict =
 	[NSDictionary dictionaryWithObjectsAndKeys:
-	 [NSNumber numberWithInteger:kIOHIDElementTypeInput_Misc],
+	 [NSNumber numberWithInteger: kIOHIDElementTypeInput_Misc],
 		@kIOHIDElementTypeKey,
 	 nil];
 
@@ -67,73 +65,72 @@ Mouse::Mouse(IOHIDDeviceRef device)
 		}
 		CFRelease(axes);
 	}
-
-	[pool release];
 }
 
-ControlState Mouse::GetInputState(
+ControlState Joystick::GetInputState(
 	const ControllerInterface::Device::Input* const input) const
 {
 	return ((Input*)input)->GetState(m_device);
 }
 
-void Mouse::SetOutputState(
+void Joystick::SetOutputState(
 	const ControllerInterface::Device::Output* const output,
 	const ControlState state)
 {
 }
 
-bool Mouse::UpdateInput()
+bool Joystick::UpdateInput()
 {
 	return true;
 }
 
-bool Mouse::UpdateOutput()
+bool Joystick::UpdateOutput()
 {
 	return true;
 }
 
-std::string Mouse::GetName() const
+std::string Joystick::GetName() const
 {
 	return m_device_name;
 }
 
-std::string Mouse::GetSource() const
+std::string Joystick::GetSource() const
 {
 	return "HID";
 }
 
-int Mouse::GetId() const
+int Joystick::GetId() const
 {
 	// Overload the "id" to identify devices by HID type when names collide
-	return kHIDUsage_GD_Mouse;
+	// XXX This class is now a catch-all, so query the usage page number
+	return kHIDUsage_GD_GamePad;
 }
 
 
-Mouse::Button::Button(IOHIDElementRef element)
+Joystick::Button::Button(IOHIDElementRef element)
 	: m_element(element)
 {
 	std::ostringstream s;
 	s << IOHIDElementGetUsage(m_element);
-	m_name = std::string("Click ") + s.str();
+	m_name = std::string("Button ") + s.str();
 }
 
-ControlState Mouse::Button::GetState(IOHIDDeviceRef device) const
+ControlState Joystick::Button::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
 	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
-		return IOHIDValueGetIntegerValue(value) > 0;
-
-	return false;
+		return IOHIDValueGetIntegerValue(value);
+	else
+		return 0;
 }
 
-std::string Mouse::Button::GetName() const
+std::string Joystick::Button::GetName() const
 {
 	return m_name;
 }
 
 
-Mouse::Axis::Axis(IOHIDElementRef element, direction dir)
+Joystick::Axis::Axis(IOHIDElementRef element, direction dir)
 	: m_element(element)
 	, m_direction(dir)
 {
@@ -141,54 +138,65 @@ Mouse::Axis::Axis(IOHIDElementRef element, direction dir)
 	std::string description("unk");
 
 	switch (IOHIDElementGetUsage(m_element)) {
-	default:
-		NSLog(@"Unknown axis type 0x%x, using it anyway...",
-			IOHIDElementGetUsage(m_element));
-		break;
 	case kHIDUsage_GD_X:
 		description = "X";
 		break;
 	case kHIDUsage_GD_Y:
 		description = "Y";
 		break;
+	case kHIDUsage_GD_Z:
+		description = "Z";
+		break;
+	case kHIDUsage_GD_Rx:
+		description = "Rx";
+		break;
+	case kHIDUsage_GD_Ry:
+		description = "Ry";
+		break;
+	case kHIDUsage_GD_Rz:
+		description = "Rz";
+		break;
 	case kHIDUsage_GD_Wheel:
 		description = "Wheel";
+		break;
+	case kHIDUsage_GD_Hatswitch:
+		description = "Hat";
 		break;
 	case kHIDUsage_Csmr_ACPan:
 		description = "Pan";
 		break;
+	default:
+		WARN_LOG(PAD, "Unknown axis type 0x%x, using it anyway...",
+			IOHIDElementGetUsage(m_element));
 	}
 
 	m_name = std::string("Axis ") + description;
 	m_name.append((m_direction == positive) ? "+" : "-");
 
-	// yeah, that factor is completely random :/
-	m_range = (float)IOHIDElementGetLogicalMax(m_element) / 1000.;
+	m_neutral = (IOHIDElementGetLogicalMax(m_element) -
+		IOHIDElementGetLogicalMin(m_element)) / 2.;
 }
 
-ControlState Mouse::Axis::GetState(IOHIDDeviceRef device) const
+ControlState Joystick::Axis::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
+
 	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
 	{
-		int int_value = IOHIDValueGetIntegerValue(value);
+		float position = IOHIDValueGetIntegerValue(value);
 
-		if (((int_value < 0) && (m_direction == positive)) ||
-			((int_value > 0) && (m_direction == negative)) ||
-			!int_value)
-			return false;
+		//NSLog(@"%s %f %f", m_name.c_str(), m_neutral, position);
 
-		float actual_value = abs(int_value) / m_range;
-
-		//NSLog(@"%s %i %f", m_name.c_str(), int_value, actual_value);
-
-		return actual_value;
-	}
-
-	return false;
+		if (m_direction == positive && position > m_neutral)
+			return (position - m_neutral) / m_neutral;
+		if (m_direction == negative && position < m_neutral)
+			return (m_neutral - position) / m_neutral;
+        }
+ 
+        return 0;
 }
 
-std::string Mouse::Axis::GetName() const
+std::string Joystick::Axis::GetName() const
 {
 	return m_name;
 }
