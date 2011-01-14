@@ -89,7 +89,10 @@ static const SPatch OSPatches[] =
 	//{ ".kill_infinites",				HLE_Misc::FZero_kill_infinites },
 	// special
 	//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
-	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB}, 
+	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},
+
+	// Name doesn't matter, installed in CBoot::BootUp()
+	{ "HBReload",					HLE_Misc::HBReload			},
 };
 
 static const SPatch OSBreakPoints[] =

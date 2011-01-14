@@ -662,11 +662,9 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 #endif
 
-#if defined(HAVE_X11) && HAVE_X11
 	case WM_USER_STOP:
 		DoStop();
 		break;
-#endif
 	}
 }
 

@@ -21,6 +21,8 @@
 
 #include "../PowerPC/PowerPC.h"
 #include "../HW/Memmap.h"
+#include "PluginSpecs.h"
+#include "../Host.h"
 
 namespace HLE_Misc
 {
@@ -272,6 +274,13 @@ f8 *= f1
 8006d6e4: blr	
 */
 	NPC = LR;
+}
+
+void HBReload()
+{
+	// There isn't much we can do. Just stop cleanly.
+	PowerPC::Pause();
+	Host_Message(WM_USER_STOP);
 }
 
 }
