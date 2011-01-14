@@ -25,7 +25,7 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
 static bool AlertEnabled = true;
 
-const char* DefaultStringTranslator(const char* text);
+std::string DefaultStringTranslator(const char* text);
 static StringTranslator str_translator = DefaultStringTranslator;
 
 /* Select which of these functions that are used for message boxes. If
@@ -62,9 +62,9 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 
 	if (!info_caption.length())
 	{
-		info_caption = std::string(str_translator(_trans("Information")));
-		ques_caption = std::string(str_translator(_trans("Question")));
-		warn_caption = std::string(str_translator(_trans("Warning")));
+		info_caption = str_translator(_trans("Information"));
+		ques_caption = str_translator(_trans("Question"));
+		warn_caption = str_translator(_trans("Warning"));
 	}
 
 	switch(Style)
@@ -80,11 +80,9 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 			break;
 	}
 
-	const char *tr_format = str_translator(format);
-
 	va_list args;
 	va_start(args, format);
-	CharArrayFromFormatV(buffer, 2047, tr_format, args);
+	CharArrayFromFormatV(buffer, 2047, str_translator(format).c_str(), args);
 	va_end(args);
 
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
@@ -113,7 +111,7 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
 }
 
 // Default (non) translator
-const char* DefaultStringTranslator(const char* text)
+std::string DefaultStringTranslator(const char* text)
 {
 	return text;
 }

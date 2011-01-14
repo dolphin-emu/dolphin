@@ -56,7 +56,7 @@ END_EVENT_TABLE()
 
 #include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
-const char *wxStringTranslator(const char *);
+std::string wxStringTranslator(const char *);
 
 CFrame* main_frame = NULL;
 
@@ -471,12 +471,9 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 #endif
 }
 
-const char *wxStringTranslator(const char *text)
+std::string wxStringTranslator(const char *text)
 {
-	static char buffer[2048];
-	snprintf(buffer, 2048, "%s",
-			(const char *)wxString(wxGetTranslation(wxString::From8BitData(text))).ToUTF8());
-	return buffer;
+	return (const char *)wxString(wxGetTranslation(wxString::From8BitData(text))).ToUTF8();
 }
 
 // Accessor for the main window class
