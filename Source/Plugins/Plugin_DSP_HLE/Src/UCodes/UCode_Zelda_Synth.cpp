@@ -119,29 +119,24 @@ void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 
 // A piece of code from LLE so we can see how the wrap register affects the sound
 
-// HORRIBLE UGLINESS, someone please fix.
-// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-inline u16 ToMask(u16 a)
+inline u16 AddValueToReg(u32 ar, s32 ix)
 {
-	a = a | (a >> 8);
-	a = a | (a >> 4);
-	a = a | (a >> 2);
-	return a | (a >> 1);
-}
+	u32 wr = 0x3f;
+	u32 mx = (wr | 1) << 1;
+	u32 nar = ar + ix;
+	u32 dar = (nar ^ ar ^ ix) & mx;
 
-inline s16 AddValueToReg(s16 reg, s32 value)
-{
-	s16 tmp = reg;
-	u16 tmb = ToMask(0x003f);
-
-	for(int i = 0; i < value; i++) {
-		if ((tmp & tmb) == tmb)
-			tmp ^= 0x003f;
-		else
-			tmp++;
+	if (ix >= 0)
+	{
+		if (dar > wr) //overflow
+			nar -= wr + 1;
 	}
-
-	return tmp;
+	else
+	{
+		if ((((nar + wr + 1) ^ nar) & dar) <= wr) //underflow or below min for mask
+			nar += wr + 1;
+	}
+	return nar;
 }
 
 void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
@@ -167,7 +162,7 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 	}
 
 	// TODO: Resample this!
-	WARN_LOG(DSPHLE, "Synthesizing the incomplete format 0x%04x", PB.Format);
+	INFO_LOG(DSPHLE, "Synthesizing the incomplete format 0x%04x", PB.Format);
 
 	u64 ACC0 = PB.CurSampleFrac << 6;
 

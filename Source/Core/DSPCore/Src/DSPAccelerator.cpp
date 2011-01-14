@@ -71,6 +71,7 @@ u16 dsp_read_aram_d3()
 	const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	u16 val = 0;
+
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
 		case 0x5:   // u8 reads
 			val = DSPHost_ReadHostMemory(Address);
@@ -81,14 +82,16 @@ u16 dsp_read_aram_d3()
 			Address++;
 			break;
 		default:
-			ERROR_LOG(DSPLLE, "dsp_read_aram_d3: Unseen Format %i", g_dsp.ifx_regs[DSP_FORMAT]);
+			ERROR_LOG(DSPLLE, "dsp_read_aram_d3() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
 			break;
 	}
+
 	if (Address >= EndAddress) 
 	{
-		// Set address back to start address.
+		// Set address back to start address. (never seen this here!)
 		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
 	}
+
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
 	g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
 	return val;
@@ -98,8 +101,8 @@ void dsp_write_aram_d3(u16 value)
 {
 	// Zelda ucode writes a bunch of zeros to ARAM through d3 during
 	// initialization.  Don't know if it ever does it later, too.
-	// const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL]; // Unused?
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
+
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
 		case 0xA:   // u16 writes
 			DSPHost_WriteHostMemory(value >> 8, Address*2);
@@ -107,9 +110,10 @@ void dsp_write_aram_d3(u16 value)
 			Address++;
 			break;
 		default:
-			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", g_dsp.ifx_regs[DSP_FORMAT]);
+			ERROR_LOG(DSPLLE, "dsp_write_aram_d3() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
 			break;
 	}
+
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
 	g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
 }
@@ -118,7 +122,6 @@ u16 dsp_read_accelerator()
 {
 	const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
-
 	u16 val;
 
 	// let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
@@ -139,42 +142,33 @@ u16 dsp_read_accelerator()
 		    Address++;
 		    break;
 	    case 0x19:  // 8-bit PCM audio
-		    val = DSPHost_ReadHostMemory(Address) << 8; // probably wrong
+		    val = DSPHost_ReadHostMemory(Address) << 8; 
 		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 		    g_dsp.ifx_regs[DSP_YN1] = val;
 		    Address++;
 			break;
 	    default:
-		    ERROR_LOG(DSPLLE, "Unknown DSP Format %x", g_dsp.ifx_regs[DSP_FORMAT]);
+		    ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
+		    Address++;
 		    val = 0;
+			break;
 	}
 
-	// TODO: Take GAIN into account, whatever it is.
+	// TODO: Take GAIN into account
 	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
 	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware), Megaman 9-10 (WiiWare)
-	if (g_dsp.ifx_regs[DSP_GAIN] > 0)
-	{
-		//NOTICE_LOG(DSPLLE,"format: 0x%04x - val: 0x%04x - gain: 0x%04x", g_dsp.ifx_regs[DSP_FORMAT], val, g_dsp.ifx_regs[DSP_GAIN]);
-	}
+	// games using pcm16: gc sega games, ...
 
 	// Check for loop.
+	// Somehow, YN1 and YN2 must be initialized with their "loop" values,
+	// so yeah, it seems likely that we should raise an exception to let
+	// the DSP program do that, at least if DSP_FORMAT == 0x0A.
 	if (Address >= EndAddress)
 	{
 		// Set address back to start address.
 		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
-
-		// Do we really need both? (nakee: seems to cause problems with some
-		// AX games)
-		//		DSPHost_InterruptRequest();
-		//		DSPCore_SetException(EXP_2);
 		DSPCore_SetException(EXP_ACCOV);
-
-		// Somehow, YN1 and YN2 must be initialized with their "loop" values,
-		// so yeah, it seems likely that we should raise an exception to let
-		// the DSP program do that, at least if DSP_FORMAT == 0x0A.
 	}
-	//else
-	//	DSPCore_SetException(EXP_6); // test! (bunch of NOPs there - helps "SMB S&R (wii)")
 
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
 	g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;

@@ -173,6 +173,7 @@ void movpz(const UDSPInstruction opc)
 // Adds secondary accumulator $axS to product register and stores result
 // in accumulator register. Low 16-bits of $acD ($acD.l) are set (round) to 0.
 //
+// TODO: ugly code and still small error here (+/- 1 in .m - randomly) 
 // flags out: --xx xx0x
 void addpaxz(const UDSPInstruction opc)
 {
@@ -367,7 +368,7 @@ void mulxmv(const UDSPInstruction opc)
 	Update_SR_Register64(dsp_get_long_acc(rreg));
 }
 
-// MULXMV $ax0.S, $ax1.T, $acR
+// MULXMVZ $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
 // Move product register to accumulator register $acR and clear (round) low part
 // of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1

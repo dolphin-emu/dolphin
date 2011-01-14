@@ -136,7 +136,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
 		    if (val & 0x1)
 			    DSPHost_InterruptRequest();
 			else 
-				WARN_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 		    break;
 
 	    case DSP_DMBH:

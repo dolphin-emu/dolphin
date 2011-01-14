@@ -191,7 +191,6 @@ void srri(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 
 	u16 val = dsp_op_read_reg(sreg);
-
 	dsp_dmem_write(g_dsp.r.ar[dreg], val);
 	g_dsp.r.ar[dreg] = dsp_increment_addr_reg(dreg);
 }
