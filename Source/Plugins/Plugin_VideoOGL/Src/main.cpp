@@ -58,6 +58,7 @@ Make AA apply instantly during gameplay if possible
 
 #ifdef _WIN32
 #include "EmuWindow.h"
+#include "IniFile.h"
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -100,43 +101,71 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 #ifdef _WIN32
 HINSTANCE g_hInstance;
 
-#if defined(HAVE_WX) && HAVE_WX
+wxLocale *InitLanguageSupport()
+{
+	wxLocale *m_locale;
+	unsigned int language = 0;
+
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
+
+	// Load language if possible, fall back to system default otherwise
+	if(wxLocale::IsAvailable(language))
+	{
+		m_locale = new wxLocale(language);
+
+		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+
+		m_locale->AddCatalog(wxT("dolphin-emu"));
+
+		if(!m_locale->IsOk())
+		{
+			PanicAlertT("Error loading selected language. Falling back to system default.");
+			delete m_locale;
+			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		}
+	}
+	else
+	{
+		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+	return m_locale;
+}
+
 class wxDLLApp : public wxApp
 {
-        bool OnInit()
-        {
-                return true;
-        }
+	bool OnInit()
+	{
+		return true;
+	}
 };
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
 // ------------------
 
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL,       // DLL module handle
-                                          DWORD dwReason,               // reason called
-                                          LPVOID lpvReserved)   // reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 {
-        switch (dwReason)
-        {
-        case DLL_PROCESS_ATTACH:
-                {
-#if defined(HAVE_WX) && HAVE_WX
-                        wxSetInstance((HINSTANCE)hinstDLL);
-                        wxInitialize();
-#endif
-                }
-                break; 
+	static wxLocale *m_locale;
+	switch (dwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+			{
+				wxSetInstance((HINSTANCE)hinstDLL);
+				wxInitialize();
+				m_locale = InitLanguageSupport();
+			}
+			break; 
 
-        case DLL_PROCESS_DETACH:
-#if defined(HAVE_WX) && HAVE_WX
-                wxUninitialize();
-#endif
-                break;
-        }
+		case DLL_PROCESS_DETACH:
+			wxUninitialize();
+			delete m_locale;
+			break;
+	}
 
-        g_hInstance = hinstDLL;
-        return TRUE;
+	g_hInstance = hinstDLL;
+	return TRUE;
 }
 #endif // _WIN32
 
@@ -149,7 +178,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #elif defined _DEBUG
 	sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin OpenGL");
+	sprintf(_PluginInfo->Name, _trans("Dolphin OpenGL"));
 #endif
 }
 
@@ -214,7 +243,7 @@ void DllConfig(void *_hParent)
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, _trans("OpenGL"), "gfx_opengl");
 	diag->ShowModal();
 	diag->Destroy();
 #endif

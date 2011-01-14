@@ -23,6 +23,7 @@
 #include "LogManager.h"
 #include "Thread.h"
 #include "ChunkFile.h"
+#include "IniFile.h"
 
 #include "Globals.h" // Local
 #include "DSPInterpreter.h"
@@ -56,7 +57,39 @@ volatile u32 cycle_count = 0;
 #ifdef _WIN32
 HINSTANCE g_hInstance;
 
-#if defined(HAVE_WX) && HAVE_WX
+wxLocale *InitLanguageSupport()
+{
+	wxLocale *m_locale;
+	unsigned int language = 0;
+
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
+
+	// Load language if possible, fall back to system default otherwise
+	if(wxLocale::IsAvailable(language))
+	{
+		m_locale = new wxLocale(language);
+
+		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+
+		m_locale->AddCatalog(wxT("dolphin-emu"));
+
+		if(!m_locale->IsOk())
+		{
+			PanicAlertT("Error loading selected language. Falling back to system default.");
+			delete m_locale;
+			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		}
+	}
+	else
+	{
+		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+	return m_locale;
+}
+
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -66,27 +99,23 @@ class wxDLLApp : public wxApp
 };
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
 
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
-					  DWORD dwReason,		// reason called
-					  LPVOID lpvReserved)	// reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 {
+	static wxLocale *m_locale;
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
 		{
-#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
 			wxInitialize();
-#endif
+			m_locale = InitLanguageSupport();
 		}
 		break; 
 
 	case DLL_PROCESS_DETACH:
-#if defined(HAVE_WX) && HAVE_WX
 		wxUninitialize();
-#endif
+		delete m_locale;
 		break;
 	}
 
@@ -102,12 +131,10 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 #ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (DebugFast)");
-#else
-#ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin");
-#else
+#elif defined _DEBUG
 	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (Debug)");
-#endif
+#else
+	sprintf(_PluginInfo->Name, _trans("Dolphin DSP-LLE Plugin"));
 #endif
 }
 

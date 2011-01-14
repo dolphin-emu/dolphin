@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-13 21:02-0600\n"
+"POT-Creation-Date: 2011-01-14 08:58-0600\n"
 "PO-Revision-Date: 2011-01-12 00:35+0100\n"
 "Last-Translator: JackyCola <jackycola@gmail.com>\n"
 "Language-Team: \n"
@@ -25,10 +25,6 @@ msgstr " (zu viele zum anzeigen)"
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:473
 msgid " Game : "
 msgstr "Spiel: "
-
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:110
-msgid " Graphics Configuration"
-msgstr "Grafik Einstellungen"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1221
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1249
@@ -263,7 +259,7 @@ msgstr "&Ansicht"
 msgid "&Wiimote Settings"
 msgstr "&Wiimote Einstellungen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:439
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:440
 msgid "(off)"
 msgstr "(aus)"
 
@@ -271,7 +267,7 @@ msgstr "(aus)"
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:220
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:221
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D Vision [Benötigt Vollbild]"
 
@@ -365,7 +361,7 @@ msgid "Acceleration"
 msgstr "Beschleunigung"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:293
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:294
 msgid "Accurate Texture Cache"
 msgstr "Genauer Texture Cache"
 
@@ -446,7 +442,7 @@ msgstr ""
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:147
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:148
 msgid "Adapter:"
 msgstr "Grafikkarte:"
 
@@ -481,7 +477,7 @@ msgstr "Adresse: "
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Einstellung des benötigten Drucks um Analoge Tasten zu aktivieren."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:343
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:344
 msgid "Advanced"
 msgstr "Erweitert"
 
@@ -539,11 +535,11 @@ msgstr ""
 msgid "Alternate RFI"
 msgstr "Alternative RFI"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:187
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:188
 msgid "Anisotropic Filtering:"
 msgstr "Anisotropische Filterung:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:192
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:193
 msgid "Anti-Aliasing:"
 msgstr "Anti-Aliasing:"
 
@@ -583,7 +579,7 @@ msgstr ""
 "Soll die Datei gelöscht werden? Löschen kann nicht Rückgängig gemacht werden."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
 msgid "Aspect Ratio:"
 msgstr "Seitenverhältnis:"
 
@@ -604,7 +600,7 @@ msgstr ""
 msgid "Auto"
 msgstr "Automatisch"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:163
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
 msgid "Auto [recommended]"
 msgstr "Automatisch [empfohlen]"
 
@@ -642,7 +638,7 @@ msgstr "Banner Details"
 msgid "Banner:"
 msgstr "Banner:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:127
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
 msgid "Basic"
 msgstr "Standard"
 
@@ -892,7 +888,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:274
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:110
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:462
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:463
 msgid "Close"
 msgstr "Schließen"
 
@@ -1026,7 +1022,7 @@ msgstr "Strg"
 msgid "Convert to GCI"
 msgstr "Zu GCI konvertieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:258
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:259
 msgid "Copy"
 msgstr "Kopie"
 
@@ -1148,7 +1144,7 @@ msgstr ""
 msgid "Creator: "
 msgstr "Ersteller: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:425
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
 msgid "Crop"
 msgstr "Abschneiden"
 
@@ -1276,25 +1272,33 @@ msgstr "Gerät"
 msgid "Device Settings"
 msgstr "Geräteeinstellungen"
 
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
+msgid "Direct3D11"
+msgstr ""
+
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:215
+msgid "Direct3D9"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:152
 msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:358
 msgid "Disable Dest. Alpha Pass"
 msgstr "Dest. Alpha Pass ausschalten"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
 msgid "Disable Fog"
 msgstr "kein Nebel"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:354
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
 msgid "Disable Lighting"
 msgstr "kein Lighting"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
 msgid "Disable Textures"
 msgstr "keine Texturen"
 
@@ -1363,6 +1367,11 @@ msgstr "Laufende Emulation stoppen?"
 msgid "Dolphin"
 msgstr "Dolphin"
 
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:110
+#, fuzzy, c-format
+msgid "Dolphin %s Graphics Configuration"
+msgstr "Grafik Einstellungen"
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:299
 msgid "Dolphin &Web Site"
 msgstr "Dolphin &Webseite"
@@ -1370,6 +1379,30 @@ msgstr "Dolphin &Webseite"
 #: Source/Core/DolphinWX/Src/ConfigMain.h:36
 msgid "Dolphin Configuration"
 msgstr "Dolphin Konfiguration"
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:150
+msgid "Dolphin DSP-HLE Plugin"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.h:32
+msgid "Dolphin DSP-HLE Plugin Settings"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:137
+msgid "Dolphin DSP-LLE Plugin"
+msgstr ""
+
+#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.h:32
+msgid "Dolphin DSP-LLE Plugin Settings"
+msgstr ""
+
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:164
+msgid "Dolphin Direct3D11"
+msgstr ""
+
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:163
+msgid "Dolphin Direct3D9"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:93
 #, fuzzy
@@ -1380,6 +1413,11 @@ msgstr "Dolphin Wiimote Einstellungen"
 #, fuzzy
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin Konfiguration"
+
+#: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:181
+#, fuzzy
+msgid "Dolphin OpenGL"
+msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:651
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1006
@@ -1434,15 +1472,15 @@ msgstr ""
 msgid "Dummy"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
 msgid "Dump EFB Target"
 msgstr "EFB-Target dumpen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
 msgid "Dump Frames"
 msgstr "Frames dumpen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:411
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:412
 msgid "Dump Textures"
 msgstr "Texturen dumpen"
 
@@ -1460,15 +1498,15 @@ msgstr "Holländisch"
 msgid "E&xit"
 msgstr "&Beenden"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:227
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:228
 msgid "EFB"
 msgstr "EFB"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
 msgid "EFB Copy Regions"
 msgstr "EFB Kopie-Regionen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:213
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
 msgid "EFB Scaled Copy"
 msgstr "EFB Scaled Copy"
 
@@ -1514,7 +1552,7 @@ msgstr "Bearbeiten..."
 msgid "Emu Thread already running"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:248
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:249
 msgid "Emulate format changes"
 msgstr "Formatänderungen emulieren"
 
@@ -1542,9 +1580,9 @@ msgid "Emulator Display Settings"
 msgstr "Anzeige Einstellungen"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:261
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:296
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:380
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:262
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:297
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:381
 msgid "Enable"
 msgstr "Aktivieren"
 
@@ -1566,7 +1604,7 @@ msgid "Enable Block Merging"
 msgstr "Blockvereinigung aktivieren"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:247
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:248
 msgid "Enable CPU Access"
 msgstr "CPU-Zugriff aktivieren"
 
@@ -1583,7 +1621,7 @@ msgstr "Copy to EFB aktivieren"
 msgid "Enable DTK Music"
 msgstr "DTK Musik aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
 msgid "Enable Display List Caching"
 msgstr "Anzeigeliste zwischenspeichern"
 
@@ -1603,7 +1641,7 @@ msgstr "EFB to Texture aktivieren"
 msgid "Enable HLE Audio"
 msgstr "HLE Audio aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:429
 msgid "Enable Hotkeys"
 msgstr "Tastenkürzel aktivieren"
 
@@ -1623,7 +1661,7 @@ msgstr "JIT Dynarec aktivieren"
 msgid "Enable MMU"
 msgstr "MMU aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
 msgid "Enable OpenCL"
 msgstr "OpenCL aktivieren"
 
@@ -1640,11 +1678,11 @@ msgstr "Bildschirmschoner erlauben"
 msgid "Enable WideScreen"
 msgstr "Breitbildmodus"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:353
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:354
 msgid "Enable Wireframe"
 msgstr "Drahtgitter aktivieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:267
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:268
 msgid "Enable cache"
 msgstr "Cache verwenden"
 
@@ -1739,7 +1777,7 @@ msgstr "Ende"
 msgid "English"
 msgstr "Englisch"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:182
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:183
 msgid "Enhancements"
 msgstr "Erweiterungen"
 
@@ -1783,7 +1821,12 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/Main.cpp:395
-msgid "Error loading selected language. Falling back to system default.\n"
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:79
+#: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:88
+#: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:80
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:81
+#: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:124
+msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 
 #: Source/Core/Core/Src/OnFrame.cpp:229
@@ -1993,7 +2036,7 @@ msgstr ""
 msgid "Failed to write header for file %d"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:312
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:313
 msgid "Fast"
 msgstr "Schnell"
 
@@ -2061,15 +2104,15 @@ msgstr "Erster Block"
 msgid "Fix Checksums"
 msgstr "Prüfsummen korrigieren"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Force 16:9"
 msgstr "16:9 erzwingen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Force 4:3"
 msgstr "4:3 erzwingen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:217
 msgid "Force Bi/Trilinear Filtering"
 msgstr "Erzwinge Bi/Trilineare Filterung"
 
@@ -2106,7 +2149,7 @@ msgstr ""
 msgid "Forward"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:234
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:235
 msgid "Fractional"
 msgstr "Fractional"
 
@@ -2118,7 +2161,7 @@ msgstr "Frames ü&berspringen"
 msgid "Framelimit :"
 msgstr "Framelimit:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:416
 msgid "Free Look"
 msgstr "Frei Umsehen"
 
@@ -2204,7 +2247,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:435
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:122
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:123
 msgid "General"
 msgstr "Allgemein"
 
@@ -2410,7 +2453,7 @@ msgstr "In-Game"
 msgid "Info"
 msgstr "Info"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:362
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:363
 #: Source/Core/Common/Src/MsgHandler.cpp:65
 msgid "Information"
 msgstr "Informationen"
@@ -2460,7 +2503,7 @@ msgstr ""
 msgid "Installing WAD to Wii Menu..."
 msgstr "WAD ins Wii-Menü installieren..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:234
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:235
 msgid "Integral [recommended]"
 msgstr "Integral [empfohlen]"
 
@@ -2641,11 +2684,11 @@ msgstr "Kleiner als"
 msgid "Load"
 msgstr "Laden"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:412
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
 msgid "Load Hi-Res Textures"
 msgstr "Hochauflösende Texturen laden"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:212
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:213
 msgid "Load Native Mipmaps"
 msgstr "Native Mipmaps laden"
 
@@ -2781,7 +2824,7 @@ msgstr "Metroid Other M"
 msgid "Mic"
 msgstr "Sonstiges"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:420
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:421
 msgid "Misc"
 msgstr "Sonstiges"
 
@@ -2974,7 +3017,7 @@ msgstr ""
 msgid "None"
 msgstr "Keine"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:307
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:308
 msgid "Normal"
 msgstr "Normal"
 
@@ -3081,6 +3124,11 @@ msgstr ""
 msgid "OpenAL: can't open device %s"
 msgstr ""
 
+#: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:246
+#, fuzzy
+msgid "OpenGL"
+msgstr "Öffnen"
+
 #: Source/Core/DolphinWX/Src/Main.cpp:117
 msgid "Opens the debugger"
 msgstr "Öffnet den Debugger"
@@ -3117,7 +3165,7 @@ msgstr "Au&fnahme abspielen..."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
-msgstr "Pad "
+msgstr "Päd "
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
 msgid "Page Down"
@@ -3163,11 +3211,11 @@ msgstr "Perfekt"
 msgid "Perspective %d"
 msgstr "Perspektive %d"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
 msgid "Pixel Depth"
 msgstr "Farbtiefe"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
 msgid "Pixel Lighting"
 msgstr "Pixel Lighting"
 
@@ -3221,7 +3269,7 @@ msgid ""
 "dolphin is not located in?"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:435
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:436
 msgid "Post-Processing Shader:"
 msgstr "Post-Processing Shader:"
 
@@ -3249,7 +3297,7 @@ msgstr "Profil"
 msgid "Projection Hack for: "
 msgstr "Projection-Hack für: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
 msgid "Projection Stats"
 msgstr "Projection Statistiken"
 
@@ -3285,7 +3333,7 @@ msgstr "R Taste"
 msgid "R-Analog"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:265
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
 msgid "RAM"
 msgstr "RAM"
 
@@ -3297,7 +3345,7 @@ msgstr "RUSSLAND"
 msgid "Range"
 msgstr "Weite"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:384
 msgid "Real"
 msgstr "Echt"
 
@@ -3358,7 +3406,7 @@ msgstr "Im Hauptfenster Rendern"
 msgid "Render to main window."
 msgstr "Im Hauptfenster Rendern."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:348
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:349
 msgid "Rendering"
 msgstr "Rendern"
 
@@ -3407,7 +3455,7 @@ msgstr "Russisch"
 msgid "Sa&ve State"
 msgstr "Status s&peichern"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:301
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:302
 msgid "Safe"
 msgstr "Sicher"
 
@@ -3451,7 +3499,7 @@ msgstr "Dekomprimierte GCM/ISO speichern"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:240
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:241
 msgid "Scale:"
 msgstr "Skalierung:"
 
@@ -3636,7 +3684,7 @@ msgstr "&Werkzeugleiste anzeigen"
 msgid "Show Drives"
 msgstr "Laufwerke anzeigen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:367
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:368
 msgid "Show FPS"
 msgstr "FPS anzeigen"
 
@@ -3676,7 +3724,7 @@ msgstr "Plattformen anzeigen"
 msgid "Show Regions"
 msgstr "Regionen anzeigen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:373
 msgid "Show Shader Errors"
 msgstr "Shaderfehler anzeigen"
 
@@ -3894,7 +3942,7 @@ msgstr "Status"
 msgid "Stop"
 msgstr "Stopp"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Stretch to Window"
 msgstr "An Fenstergröße anpassen"
 
@@ -3939,11 +3987,11 @@ msgstr "Screenshot erstellen"
 msgid "Test"
 msgstr "Testen"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:263
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:264
 msgid "Texture"
 msgstr "Textur"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
 msgid "Texture Format"
 msgstr "Texturformat"
 
@@ -3981,7 +4029,7 @@ msgstr ""
 msgid "The file %s was alrady open, the file header will not be written."
 msgstr ""
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:274
+#: Source/Core/Core/Src/Boot/Boot.cpp:279
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr ""
@@ -3999,9 +4047,14 @@ msgid "The save you are trying to copy has an invalid file size"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/Main.cpp:402
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:86
+#: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:95
+#: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:87
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:88
+#: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:131
 msgid ""
 "The selected language is not supported by your system. Falling back to "
-"system default.\n"
+"system default."
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:46
@@ -4132,7 +4185,7 @@ msgstr "Oben"
 msgid "Traditional Chinese"
 msgstr "Traditionelles Chinesisch"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:364
+#: Source/Core/Core/Src/Boot/Boot.cpp:369
 msgid "Tried to load an unknown file type."
 msgstr ""
 
@@ -4257,11 +4310,11 @@ msgstr ""
 "Verbessert erheblich die optische Qualität in Spielen, die EFB-Kopien "
 "benutzen. Kann in einigen Spielen aber zu Fehlern führen."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:406
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:407
 msgid "Utility"
 msgstr "Hilfsmittel"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:177
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:178
 msgid "V-Sync"
 msgstr "V-Sync"
 
@@ -4277,7 +4330,7 @@ msgstr "Wert:"
 msgid "Value: "
 msgstr "Wert: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:368
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
 msgid "Various Statistics"
 msgstr "Diverse Statistiken"
 
@@ -4289,7 +4342,7 @@ msgstr "Ausführung"
 msgid "Video"
 msgstr "Video"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:382
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
 msgid "Virtual"
 msgstr "Virtuell"
 
@@ -4319,15 +4372,15 @@ msgstr ""
 msgid "Warning"
 msgstr "Warnungen"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:233
+#: Source/Core/Core/Src/Boot/Boot.cpp:238
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr ""
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:283
+#: Source/Core/Core/Src/Boot/Boot.cpp:288
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr ""
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:181
+#: Source/Core/Core/Src/Boot/Boot.cpp:186
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr ""
 
@@ -4377,7 +4430,7 @@ msgstr ""
 "die Beschleunigung; Texture Cache auf \"sicher\"  könnte sogar langsamer "
 "sein als den Cache ganz zu deaktivieren!)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:175
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:176
 msgid "Widescreen Hack"
 msgstr "Breitbild Hack"
 
@@ -4509,7 +4562,7 @@ msgstr ""
 msgid "XAudio2 master voice creation failed: %#X"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:377
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
 msgid "XFB"
 msgstr "XFB"
 

@@ -29,7 +29,7 @@ class DSPConfigDialogHLE : public wxDialog
 public:
 	DSPConfigDialogHLE(wxWindow *parent,
 			 wxWindowID id = wxID_ANY,
-			 const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
+			 const wxString &title = _("Dolphin DSP-HLE Plugin Settings"),
 			 const wxPoint& pos = wxDefaultPosition,
 			 const wxSize& size = wxDefaultSize,
 			 long style = wxDEFAULT_DIALOG_STYLE);

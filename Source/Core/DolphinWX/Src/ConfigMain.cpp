@@ -1234,7 +1234,7 @@ void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::
 		if (rPluginInfo.Type == _PluginType)
 		{
 			wxString temp;
-			temp = wxString::FromAscii(rInfos[i].GetPluginInfo().Name);
+			temp = wxGetTranslation(wxString::From8BitData(rInfos[i].GetPluginInfo().Name));
 			int NewIndex = _pChoice->Append(temp, (void*)&rInfos[i]);
 
 			if (rInfos[i].GetFilename() == _SelectFilename)

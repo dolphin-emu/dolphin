@@ -687,7 +687,7 @@ ControlGroupBox::~ControlGroupBox()
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink)
-	: wxStaticBoxSizer(wxVERTICAL, parent, wxString::FromAscii(group->name))
+	: wxStaticBoxSizer(wxVERTICAL, parent, WXTSTR_FROM_CSTR(group->name))
 	, control_group(group)
 {
 
@@ -815,7 +815,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 				_connect_macro_(setting->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_SPINCTRL_UPDATED, eventsink);
 				options.push_back(setting);
 				wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-				szr->Add(new wxStaticText(parent, -1, wxString::FromAscii((*i)->name)), 0, wxCENTER|wxRIGHT, 3);
+				szr->Add(new wxStaticText(parent, -1, WXTSTR_FROM_CSTR((*i)->name)), 0, wxCENTER|wxRIGHT, 3);
 				szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
 				Add(szr, 0, wxALL|wxCENTER, 3);
 			}

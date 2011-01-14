@@ -52,51 +52,77 @@
 #include "XFBConvert.h"
 #include "render.h"
 #include "DLCache.h"
+#include "IniFile.h"
 
 HINSTANCE g_hInstance = NULL;
 
+wxLocale *InitLanguageSupport()
+{
+	wxLocale *m_locale;
+	unsigned int language = 0;
+
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
+
+	// Load language if possible, fall back to system default otherwise
+	if(wxLocale::IsAvailable(language))
+	{
+		m_locale = new wxLocale(language);
+
+		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+
+		m_locale->AddCatalog(wxT("dolphin-emu"));
+
+		if(!m_locale->IsOk())
+		{
+			PanicAlertT("Error loading selected language. Falling back to system default.");
+			delete m_locale;
+			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+		}
+	}
+	else
+	{
+		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+	return m_locale;
+}
+
+
 // This is used for the functions right below here which use wxwidgets
-#if defined(HAVE_WX) && HAVE_WX
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
 
 void *DllDebugger(void *_hParent, bool Show)
 {
-#if defined(HAVE_WX) && HAVE_WX
 	return new GFXDebuggerPanel((wxWindow*)_hParent);
-#else
-	return NULL;
-#endif
 }
 
-#if defined(HAVE_WX) && HAVE_WX
-	class wxDLLApp : public wxApp
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
 	{
-		bool OnInit()
-		{
-			return true;
-		}
-	};
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 {
+	static wxLocale *m_locale;
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
 		{
-#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
 			wxInitialize();
-#endif
+			m_locale = InitLanguageSupport();
 		}
 		break;
 	case DLL_PROCESS_DETACH:
-#if defined(HAVE_WX) && HAVE_WX
 		wxUninitialize();
-#endif
+		delete m_locale;
 		break;
 	}
 
@@ -134,7 +160,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #elif defined _DEBUG
 	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
 #else
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
+	sprintf_s(_PluginInfo->Name, 100, _trans("Dolphin Direct3D9"));
 #endif
 }
 
@@ -186,7 +212,7 @@ void DllConfig(void *_hParent)
 	}
 
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "Direct3D9", "gfx_dx9");
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, _trans("Direct3D9"), "gfx_dx9");
 	diag->ShowModal();
 	diag->Destroy();
 

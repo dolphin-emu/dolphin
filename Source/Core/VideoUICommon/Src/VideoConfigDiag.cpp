@@ -107,7 +107,8 @@ wxString cache_efb_copies_tooltip = _("When using EFB to RAM we very often need 
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
-		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(_(" Graphics Configuration")),
+		wxString::Format(_("Dolphin %s Graphics Configuration"),
+			wxGetTranslation(wxString::From8BitData(title.c_str()))),
 		wxDefaultPosition, wxDefaultSize)
 	, vconfig(g_Config)
 	, ininame(_ininame)
