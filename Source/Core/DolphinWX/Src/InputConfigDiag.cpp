@@ -71,7 +71,7 @@ PadSettingExtension::PadSettingExtension(wxWindow* const parent, ControllerEmu::
 		e = extension->attachments.end();
 
 	for (; i!=e; ++i)
-		((wxChoice*)wxcontrol)->Append(WXSTR_FROM_STR((*i)->GetName()));
+		((wxChoice*)wxcontrol)->Append(WXTSTR_FROM_CSTR((*i)->GetName().c_str()));
 
 	UpdateGUI();
 }
@@ -1015,8 +1015,6 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	m_update_timer = new wxTimer(this, -1);
 	Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(InputConfigDialog::UpdateBitmaps), (wxObject*)0, this);
 	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
-
-
 }
 
 bool InputConfigDialog::Destroy()

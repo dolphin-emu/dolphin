@@ -32,33 +32,33 @@ static const u16 guitar_strum_bitmasks[] =
 	Guitar::BAR_DOWN,
 };
 
-Guitar::Guitar() : Attachment( "Guitar" )
+Guitar::Guitar() : Attachment(_trans("Guitar"))
 {
 	// frets
-	groups.push_back( m_frets = new Buttons( "Frets" ) );
-	for ( unsigned int i = 0; i < sizeof(guitar_fret_names)/sizeof(*guitar_fret_names); ++i )
-		m_frets->controls.push_back( new ControlGroup::Input( guitar_fret_names[i] ) );
+	groups.push_back(m_frets = new Buttons(_trans("Frets")));
+	for (unsigned int i = 0; i < sizeof(guitar_fret_names)/sizeof(*guitar_fret_names); ++i)
+		m_frets->controls.push_back(new ControlGroup::Input(guitar_fret_names[i]));
 
 	// strum
-	groups.push_back( m_strum = new Buttons( "Strum" ) );
-	m_strum->controls.push_back( new ControlGroup::Input("Up") );
-	m_strum->controls.push_back( new ControlGroup::Input("Down") );
+	groups.push_back(m_strum = new Buttons(_trans("Strum")));
+	m_strum->controls.push_back(new ControlGroup::Input("Up"));
+	m_strum->controls.push_back(new ControlGroup::Input("Down"));
 
 	// buttons
-	groups.push_back( m_buttons = new Buttons( "Buttons" ) );
-	m_buttons->controls.push_back( new ControlGroup::Input("-") );
-	m_buttons->controls.push_back( new ControlGroup::Input("+") );
+	groups.push_back(m_buttons = new Buttons("Buttons"));
+	m_buttons->controls.push_back(new ControlGroup::Input("-"));
+	m_buttons->controls.push_back(new ControlGroup::Input("+"));
 
 	// stick
-	groups.push_back( m_stick = new AnalogStick( "Stick" ) );
+	groups.push_back(m_stick = new AnalogStick(_trans("Stick")));
 
 	// whammy
-	groups.push_back( m_whammy = new Triggers( "Whammy" ) );
-	m_whammy->controls.push_back( new ControlGroup::Input("Bar") );
+	groups.push_back(m_whammy = new Triggers(_trans("Whammy")));
+	m_whammy->controls.push_back(new ControlGroup::Input(_trans("Bar")));
 
 	// set up register
 	// id
-	memcpy( &reg[0xfa], guitar_id, sizeof(guitar_id) );
+	memcpy(&reg[0xfa], guitar_id, sizeof(guitar_id));
 }
 
 void Guitar::GetState(u8* const data, const bool focus)
@@ -71,7 +71,7 @@ void Guitar::GetState(u8* const data, const bool focus)
 	// stick
 	{
 	u8 x, y;
-	m_stick->GetState( &x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0 );
+	m_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
 
 	gdata->sx = x;
 	gdata->sy = y;
@@ -82,17 +82,17 @@ void Guitar::GetState(u8* const data, const bool focus)
 
 	// whammy bar
 	u8 whammy;
-	m_whammy->GetState( &whammy, 0x1F );
+	m_whammy->GetState(&whammy, 0x1F);
 	gdata->whammy = whammy;
 
 	if (focus)
 	{
 		// buttons
-		m_buttons->GetState( &gdata->bt, guitar_button_bitmasks );
+		m_buttons->GetState(&gdata->bt, guitar_button_bitmasks);
 		// frets
-		m_frets->GetState( &gdata->bt, guitar_fret_bitmasks );
+		m_frets->GetState(&gdata->bt, guitar_fret_bitmasks);
 		// strum
-		m_strum->GetState( &gdata->bt, guitar_strum_bitmasks );
+		m_strum->GetState(&gdata->bt, guitar_strum_bitmasks);
 	}
 
 	// flip button bits

@@ -238,25 +238,25 @@ Wiimote::Wiimote( const unsigned int index )
 		m_buttons->controls.push_back(new ControlGroup::Input( named_buttons[i]));
 
 	// ir
-	groups.push_back(m_ir = new Cursor("IR"));
+	groups.push_back(m_ir = new Cursor(_trans("IR")));
 
 	// swing
-	groups.push_back(m_swing = new Force("Swing"));
+	groups.push_back(m_swing = new Force(_trans("Swing")));
 
 	// tilt
-	groups.push_back(m_tilt = new Tilt("Tilt"));
+	groups.push_back(m_tilt = new Tilt(_trans("Tilt")));
 
 	// udp 
-	groups.push_back(m_udp = new UDPWrapper(m_index, "UDP Wiimote"));
+	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
 
 	// shake
-	groups.push_back(m_shake = new Buttons("Shake"));
+	groups.push_back(m_shake = new Buttons(_trans("Shake")));
 	m_shake->controls.push_back(new ControlGroup::Input("X"));
 	m_shake->controls.push_back(new ControlGroup::Input("Y"));
 	m_shake->controls.push_back(new ControlGroup::Input("Z"));
 
 	// extension
-	groups.push_back(m_extension = new Extension("Extension"));
+	groups.push_back(m_extension = new Extension(_trans("Extension")));
 	m_extension->attachments.push_back(new WiimoteEmu::None());
 	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp));
 	m_extension->attachments.push_back(new WiimoteEmu::Classic());
@@ -264,11 +264,11 @@ Wiimote::Wiimote( const unsigned int index )
 	m_extension->attachments.push_back(new WiimoteEmu::Drums());
 	m_extension->attachments.push_back(new WiimoteEmu::Turntable());
 
-	m_extension->settings.push_back(new ControlGroup::Setting("Motion Plus", 0, 0, 1));
+	m_extension->settings.push_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
 
 	// rumble
-	groups.push_back(m_rumble = new ControlGroup("Rumble"));
-	m_rumble->controls.push_back(new ControlGroup::Output("Motor"));
+	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
+	m_rumble->controls.push_back(new ControlGroup::Output(_trans("Motor")));
 
 	// dpad
 	groups.push_back(m_dpad = new Buttons("D-Pad"));
@@ -276,10 +276,10 @@ Wiimote::Wiimote( const unsigned int index )
 		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
 
 	// options
-	groups.push_back( m_options = new ControlGroup("Options"));
-	m_options->settings.push_back(new ControlGroup::Setting("Background Input", false));
-	m_options->settings.push_back(new ControlGroup::Setting("Sideways Wiimote", false));
-	m_options->settings.push_back(new ControlGroup::Setting("Upright Wiimote", false));
+	groups.push_back( m_options = new ControlGroup(_trans("Options")));
+	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.push_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
+	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 	
 #ifdef USE_WIIMOTE_EMU_SPEAKER
 	// set up speaker stuff

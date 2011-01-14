@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 08:58-0600\n"
+"POT-Creation-Date: 2011-01-14 12:21-0600\n"
 "PO-Revision-Date: 2011-01-12 12:19+0000\n"
 "Last-Translator: Soren Jorvang\n"
 "Language-Team: \n"
@@ -577,6 +577,7 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
 msgid "Background Input"
 msgstr ""
@@ -606,12 +607,20 @@ msgstr ""
 msgid "Banner:"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
+msgid "Bar"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
 msgid "Basic"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:444
 msgid "Basic Settings"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Bass"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
@@ -624,6 +633,18 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
 msgid "Blocks"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Blue"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Blue Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+msgid "Blue Right"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
@@ -824,6 +845,10 @@ msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
 msgid "Circle Stick"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
+msgid "Classic"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
@@ -1107,6 +1132,10 @@ msgstr ""
 msgid "Crop"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
+msgid "Crossfade"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
@@ -1228,6 +1257,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:560
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
 msgid "Device Settings"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
+msgid "Dial"
 msgstr ""
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
@@ -1411,6 +1444,10 @@ msgstr ""
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
+msgid "Drums"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:67
 msgid "Dummy"
 msgstr ""
@@ -1489,6 +1526,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:410
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:432
 msgid "Edit..."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+msgid "Effect"
 msgstr ""
 
 #: Source/Core/Core/Src/Core.cpp:178
@@ -1762,6 +1803,10 @@ msgstr ""
 msgid "Escape"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+msgid "Euphoria"
+msgstr ""
+
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
@@ -1805,6 +1850,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:259
+msgid "Extension"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
@@ -2077,6 +2126,10 @@ msgstr ""
 msgid "French"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
+msgid "Frets"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "FullScr"
 msgstr ""
@@ -2182,6 +2235,22 @@ msgstr ""
 msgid "Greek"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Green"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Green Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+msgid "Green Right"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
+msgid "Guitar"
+msgstr ""
+
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
 msgstr ""
@@ -2272,6 +2341,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "IPL Settings"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:241
+msgid "IR"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
@@ -2732,6 +2805,11 @@ msgstr ""
 msgid "Monospaced font"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:267
+msgid "Motion Plus"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
 msgstr ""
@@ -2942,6 +3020,7 @@ msgid "Number Of Codes: "
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
 msgid "Nunchuk"
 msgstr ""
 
@@ -3015,8 +3094,13 @@ msgid "Opens the logger"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Orange"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:478
@@ -3042,6 +3126,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
+msgid "Pads"
 msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
@@ -3234,6 +3322,18 @@ msgstr ""
 msgid "Reconnect Wiimote Confirm"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Red"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Red Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+msgid "Red Right"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
@@ -3301,6 +3401,7 @@ msgstr ""
 msgid "Right"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
 msgid "Rumble"
 msgstr ""
@@ -3519,6 +3620,10 @@ msgstr ""
 msgid "SetupWiiMem: Cant find setting file"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:253
+msgid "Shake"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Short Name:"
 msgstr ""
@@ -3659,6 +3764,10 @@ msgid ""
 "This is only useful for debugging purposes."
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
+msgid "Sideways Wiimote"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Simplified Chinese"
 msgstr ""
@@ -3774,6 +3883,10 @@ msgstr ""
 msgid "State"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
+msgid "Stick"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:113
@@ -3783,6 +3896,10 @@ msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Stretch to Window"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
+msgid "Strum"
 msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
@@ -3796,6 +3913,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:57
 msgid "Successfully imported save files"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:244
+msgid "Swing"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
@@ -3813,6 +3934,14 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:470
 msgid "Tab split"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
+msgid "Table Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
+msgid "Table Right"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
@@ -3986,6 +4115,10 @@ msgstr ""
 msgid "Threshold"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
+msgid "Tilt"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
@@ -4031,6 +4164,10 @@ msgid ""
 "Wiimote bt ids are not available"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+msgid "Turntable"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
 msgstr ""
@@ -4045,6 +4182,7 @@ msgid "UDP Port:"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "UDP Wiimote"
 msgstr ""
 
@@ -4099,6 +4237,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:100
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
 msgid "Update"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
+msgid "Upright Wiimote"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
@@ -4221,6 +4363,10 @@ msgstr ""
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:111
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:125
 msgid "WaveFileWriter - file not open."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+msgid "Whammy"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
@@ -4364,6 +4510,10 @@ msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
 msgid "XFB"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Yellow"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:84

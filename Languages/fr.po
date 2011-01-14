@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 08:58-0600\n"
-"PO-Revision-Date: 2011-01-13 13:04+0100\n"
+"POT-Creation-Date: 2011-01-14 12:21-0600\n"
+"PO-Revision-Date: 2011-01-14 12:35+0100\n"
 "Last-Translator: Pascal\n"
 "Language-Team: \n"
 "Language: French\n"
@@ -93,6 +93,9 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio will be garbled."
 msgstr ""
+"%s a un hachage incorrect.\n"
+"Voulez-vous arrêter maintenant pour corriger le problème ?\n"
+"Si vous sélectionnez \"Non\", le son sera déterioré."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
@@ -496,6 +499,7 @@ msgstr "Adresse :"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:778
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr ""
+"Ajuste le contrôle analogique de pression requise pour activer les boutons."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:344
 msgid "Advanced"
@@ -627,14 +631,14 @@ msgstr "Auto [recommandé]"
 msgid "Back"
 msgstr "Retour"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
 msgid "Background Input"
 msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:279
-#, fuzzy
 msgid "Backward"
-msgstr "Retour"
+msgstr "Arrière"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:289
 msgid "Bad File Header"
@@ -657,6 +661,11 @@ msgstr "Détails de la bannière"
 msgid "Banner:"
 msgstr "Bannière :"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
+#, fuzzy
+msgid "Bar"
+msgstr "Bannière"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
 msgid "Basic"
 msgstr "Paramètres de base"
@@ -664,6 +673,10 @@ msgstr "Paramètres de base"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:444
 msgid "Basic Settings"
 msgstr "Paramètres de base"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Bass"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Bleach Versus Crusade"
@@ -679,6 +692,20 @@ msgstr ""
 msgid "Blocks"
 msgstr "Blocs"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Blue"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Blue Left"
+msgstr "NP Gauche"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Blue Right"
+msgstr "NP Droite"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 msgid "Bottom"
 msgstr "Bas"
@@ -686,7 +713,7 @@ msgstr "Bas"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:244
 #, c-format
 msgid "Bound Controls: %u"
-msgstr ""
+msgstr "Contrôles liés : %u"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:362
 msgid "Broken"
@@ -719,7 +746,7 @@ msgstr "Boutons"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
-msgstr ""
+msgstr "Stick-C"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:456
 msgid "CPU Emulator Engine"
@@ -802,7 +829,7 @@ msgstr "Verr Maj"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
 msgid "Center"
-msgstr ""
+msgstr "Centre"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:514
 msgid "Change"
@@ -885,6 +912,10 @@ msgstr "Choisir le dossier de destination de l'extraction"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
 msgid "Circle Stick"
+msgstr "Stick circulaire"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
+msgid "Classic"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
@@ -1110,6 +1141,10 @@ msgid ""
 "Could not set pads. The player left or the game is currently running!\n"
 "(setting pads while the game is running is not yet supported)"
 msgstr ""
+"Impossible de définir les manettes. Le joueur a quitté le jeu ou le jeu est "
+"en cours d'exécution !\n"
+"(le paramétrage des manettes pendant l'émulation du jeu n'est pas encore "
+"pris en charge)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:123
 #, c-format
@@ -1181,6 +1216,10 @@ msgstr "Créateur"
 msgid "Crop"
 msgstr "Couper"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
+msgid "Crossfade"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
@@ -1188,7 +1227,7 @@ msgstr "Le dossier actuel a été changé de %s en %s après wxFileSelector !"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:86
 msgid "D-Pad"
-msgstr ""
+msgstr "Pad numérique"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "DList Cache"
@@ -1234,7 +1273,7 @@ msgstr "Fichiers Datel MaxDrive/Pro (*.sav)"
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:281
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:296
 msgid "Dead Zone"
-msgstr ""
+msgstr "Zone morte"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:79
 msgid "Debug"
@@ -1304,6 +1343,10 @@ msgstr "Appareil"
 msgid "Device Settings"
 msgstr "Paramètres de la console virtuelle"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
+msgid "Dial"
+msgstr ""
+
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
 msgid "Direct3D11"
 msgstr ""
@@ -1339,18 +1382,25 @@ msgid ""
 "Disable fog. Improves performance but causes glitches in games which rely on "
 "proper fog emulation."
 msgstr ""
+"Désactiver le brouillard / la fumée. Améliore les performances mais peut "
+"causer de petits pépins dans les jeux s'appuyant sur une émulation de "
+"brouillard/fumée correcte."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:85
 msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
 msgstr ""
+"Désactiver l'éclairage. Améliore les performances, mais peut faire "
+"disparaître l'éclairage dans les jeux qui l'utilisent."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:86
 msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
 msgstr ""
+"Désactiver le texturage.\n"
+"Utile uniquement à des fins de débuguage."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:88
 msgid ""
@@ -1431,14 +1481,12 @@ msgid "Dolphin Direct3D9"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:93
-#, fuzzy
 msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "Configuration de la Wiimote pour Dolphin"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1085
-#, fuzzy
 msgid "Dolphin GCPad Configuration"
-msgstr "Configuration de Dolphin"
+msgstr "Configuration de la manette GC pour Dolphin"
 
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:181
 #, fuzzy
@@ -1471,6 +1519,8 @@ msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
 msgstr ""
+"Dolphin n'a pas été configuré avec un emplacement d'installation,\n"
+"garder Dolphin comme application portable ?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:306
 msgid ""
@@ -1493,6 +1543,10 @@ msgstr "Télécharger des codes (base de données WiiRD)"
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr "Les codes %lu ont été téléchargés. (ajouté %lu)"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
+msgid "Drums"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:67
 msgid "Dummy"
@@ -1578,6 +1632,11 @@ msgstr "Modifier la perspective actuelle"
 msgid "Edit..."
 msgstr "Editer..."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#, fuzzy
+msgid "Effect"
+msgstr "Parfait"
+
 #: Source/Core/Core/Src/Core.cpp:178
 msgid "Emu Thread already running"
 msgstr "Thread d'émulation déjà en cours d'exécution"
@@ -1620,7 +1679,7 @@ msgstr "Activer la journalisation AR"
 #: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:46
 #: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:44
 msgid "Enable Audio Throttle"
-msgstr "Activer l'audio throttle"
+msgstr "Activer les sauts audio"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid "Enable BAT"
@@ -1658,7 +1717,7 @@ msgstr "Activer le Dual Core"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:445
 msgid "Enable Dual Core (speedup)"
-msgstr "Activer le Dual Core (+ rapide)"
+msgstr "Activer le Dual Core (plus rapide)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
 msgid "Enable EFB To Texture"
@@ -1678,7 +1737,7 @@ msgstr "Activer le saut d'inactivité"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:446
 msgid "Enable Idle Skipping (speedup)"
-msgstr "Activer le saut d'inactivité (+ rapide)"
+msgstr "Activer le saut d'inactivité (plus rapide)"
 
 #: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:45
 msgid "Enable JIT Dynarec"
@@ -1730,6 +1789,8 @@ msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
 msgstr ""
+"Activer ceci pour accélérer La légende de Zelda : Twilight Princess. "
+"Désactiver pour TOUS les autres jeux."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
 msgid ""
@@ -1751,6 +1812,8 @@ msgid ""
 "Enables dynamic recompilation of DSP code.\n"
 "Changing this will have no effect while the emulator is running!"
 msgstr ""
+"Activer la recompilation dynamique du code DSP.\n"
+"Ce changement n'a aucun effet pendant que l'émulation est en cours !"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -1774,6 +1837,8 @@ msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
 msgstr ""
+"Activer le Memory Management Unit (unité de gestion de la mémoire), requis "
+"pour certains jeux. (ON = Compatible, OFF = Vitesse)"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:50
 msgid "End"
@@ -1853,15 +1918,22 @@ msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
 "fonts correctly, or crash."
 msgstr ""
+"Erreur : essai d'accès aux polices %s mais elles ne sont pas chargées. Les "
+"jeux peuvent ne pas afficher les polices correctement, ou planter."
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:30
 msgid "Escape"
 msgstr "Echap"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+msgid "Euphoria"
+msgstr ""
+
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
 msgstr ""
+"Erreur d'exception : accès à un espace en-dessous de la mémoire. %08llx%08llx"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:58
 msgid "Execute"
@@ -1902,6 +1974,10 @@ msgstr "L'exportation a échoué. Essayer de nouveau ?"
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
 msgstr "Exporter l'enregistrement sous..."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:259
+msgid "Extension"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
 msgid "Extract All Files..."
@@ -1970,7 +2046,7 @@ msgid "Failed to extract to %s!"
 msgstr "Impossible d'extraire vers %s !"
 
 #: Source/Core/DSPCore/Src/DSPCore.cpp:63
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load DSP ROM: %s"
 msgstr "Impossible de charger la ROM DSP %s"
 
@@ -2177,7 +2253,7 @@ msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:278
 msgid "Forward"
-msgstr ""
+msgstr "Avant"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:235
 msgid "Fractional"
@@ -2200,6 +2276,10 @@ msgstr "Vue libre"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:466
 msgid "French"
 msgstr "Français"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
+msgid "Frets"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "FullScr"
@@ -2309,6 +2389,24 @@ msgstr "Plus grand que"
 msgid "Greek"
 msgstr "Grèque"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#, fuzzy
+msgid "Green"
+msgstr "Grèque"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Green Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Green Right"
+msgstr "NP Droite"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
+msgid "Guitar"
+msgstr ""
+
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
 msgstr "Appel de HCI_CMD_INQUIRY, veuillez nous le signaler !"
@@ -2322,9 +2420,8 @@ msgid "Hebrew"
 msgstr "Hébreu"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:312
-#, fuzzy
 msgid "Height"
-msgstr "Droite"
+msgstr "Hauteur"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:61
 msgid "Help"
@@ -2350,7 +2447,7 @@ msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:308
 msgid "Hide"
-msgstr ""
+msgstr "Cacher"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid "Hide Mouse Cursor"
@@ -2418,6 +2515,11 @@ msgstr "IOCTL_ES_READCONTENT - mauvaise destination"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "IPL Settings"
 msgstr "Paramètres IPL"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:241
+#, fuzzy
+msgid "IR"
+msgstr "R"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
 msgid "IR Pointer"
@@ -2678,7 +2780,7 @@ msgstr "Coréen"
 #. i18n:  Left
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:55
 msgid "L"
-msgstr ""
+msgstr "L"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:39
 msgid "L Button"
@@ -2687,7 +2789,7 @@ msgstr "Bouton L"
 #. i18n:  Left-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:59
 msgid "L-Analog"
-msgstr ""
+msgstr "L Analog."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:512
 msgid "Language:"
@@ -2754,6 +2856,8 @@ msgstr "Charger le Menu Système Wii (%d %c)"
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:96
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
 msgstr ""
+"Charger les textures en haute résolution depuis User/Load/Textures/<id du "
+"jeu>/"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:70
 msgid ""
@@ -2815,7 +2919,7 @@ msgstr "Fichiers MadCatz Gameshark (*.gcs)"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
 msgid "Main Stick"
-msgstr ""
+msgstr "Stick principal"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:456
 msgid "Maker ID:"
@@ -2891,7 +2995,7 @@ msgstr "Mixeur : échantillonnage non pris en charge"
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:240
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:294
 msgid "Modifier"
-msgstr ""
+msgstr "Modif."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:92
 msgid ""
@@ -2899,15 +3003,20 @@ msgid ""
 "This is only useful for debugging purposes."
 msgstr ""
 "Modifier les textures pour afficher le format qu'elles utilisent.\n"
-"Utile uniquement à des fins de débugguage."
+"Utile uniquement à des fins de débuguage."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:93
 msgid "Monospaced font"
 msgstr "Police mono-espacée."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:267
+msgid "Motion Plus"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
-msgstr ""
+msgstr "Vibreur"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:72
 msgid "Multiply"
@@ -3104,7 +3213,7 @@ msgstr "Notes :"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:589
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:75
 msgid "Notice"
-msgstr ""
+msgstr "Note"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:102
 msgid "Num Lock"
@@ -3115,6 +3224,7 @@ msgid "Number Of Codes: "
 msgstr "Nombre de codes"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
 msgid "Nunchuk"
 msgstr "Nunchuck"
 
@@ -3189,9 +3299,15 @@ msgid "Opens the logger"
 msgstr "Ouvrir le journaliseur"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
 msgstr "Options"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#, fuzzy
+msgid "Orange"
+msgstr "Etendue"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:478
 msgid ""
@@ -3222,7 +3338,11 @@ msgstr "Jouer l'enregistrement..."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
-msgstr "Manette"
+msgstr "Manette "
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
+msgid "Pads"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
 msgid "Page Down"
@@ -3371,7 +3491,7 @@ msgstr "Vider le cache"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:66
 msgid "Question"
-msgstr ""
+msgstr "Question"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:137
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:297
@@ -3381,7 +3501,7 @@ msgstr "Quitter"
 #. i18n:  Right
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:57
 msgid "R"
-msgstr ""
+msgstr "R"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:40
 msgid "R Button"
@@ -3390,7 +3510,7 @@ msgstr "Bouton R"
 #. i18n:  Right-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:61
 msgid "R-Analog"
-msgstr ""
+msgstr "R Analog."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
 msgid "RAM"
@@ -3417,6 +3537,20 @@ msgstr "Wiimote physique"
 msgid "Reconnect Wiimote Confirm"
 msgstr "Confirmation de reconnexion de la Wiimote"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Red"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Red Left"
+msgstr "NP Gauche"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Red Right"
+msgstr "Droite"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
@@ -3440,6 +3574,7 @@ msgstr "Rafraîchir la liste des jeux"
 #: Source/Core/DolphinWX/Src/Main.cpp:234
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr ""
+"Redémarrer Dolphin depuis le dossier d'installation et sauvegarder de là"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:730
@@ -3489,9 +3624,10 @@ msgstr "Entrée"
 msgid "Right"
 msgstr "Droite"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
 msgid "Rumble"
-msgstr ""
+msgstr "Rumble"
 
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:112
 msgid "Run"
@@ -3722,6 +3858,10 @@ msgstr ""
 msgid "SetupWiiMem: Cant find setting file"
 msgstr "SetupWiiMem: Impossible de trouver le fichier des paramètres"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:253
+msgid "Shake"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Short Name:"
 msgstr "Nom court :"
@@ -3865,6 +4005,13 @@ msgid ""
 "Show various statistics.\n"
 "This is only useful for debugging purposes."
 msgstr ""
+"Affiche diverses statistiques.\n"
+"Utile uniquement à des fins de débuguage."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
+#, fuzzy
+msgid "Sideways Wiimote"
+msgstr "Wiimote physique"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Simplified Chinese"
@@ -3949,7 +4096,7 @@ msgstr "Accélerer le taux de transfert du disque"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:243
 msgid "Square Stick"
-msgstr ""
+msgstr "Stick carré"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:69
 msgid "Standard Controller"
@@ -3959,7 +4106,7 @@ msgstr "Contrôleur standard"
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:38
 msgid "Start"
-msgstr "Démarrer"
+msgstr "Start"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:201
 msgid "Start &NetPlay"
@@ -3981,6 +4128,11 @@ msgstr "Démarrer la fenêtre de rendu en plein écran."
 msgid "State"
 msgstr "Etat"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
+#, fuzzy
+msgid "Stick"
+msgstr "Stick-C"
+
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:113
@@ -3991,6 +4143,10 @@ msgstr "Arrêter"
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Stretch to Window"
 msgstr "Etirer à la fenêtre"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
+msgid "Strum"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
 msgid "Subtract"
@@ -4004,6 +4160,10 @@ msgstr "Fichier exporté avec succès vers %s"
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:57
 msgid "Successfully imported save files"
 msgstr "Fichiers de sauvegarde importés avec succès"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:244
+msgid "Swing"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
@@ -4021,6 +4181,16 @@ msgstr "Tab"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:470
 msgid "Tab split"
 msgstr "Séparateur par tabulation"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
+#, fuzzy
+msgid "Table Left"
+msgstr "Activer les Cheats"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
+#, fuzzy
+msgid "Table Right"
+msgstr "Désactiver l'éclairage"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
@@ -4210,6 +4380,10 @@ msgstr ""
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
 msgid "Threshold"
+msgstr "Seuil"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
+msgid "Tilt"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
@@ -4240,7 +4414,7 @@ msgstr "Echec de chargement d'un type de fichier inconnu."
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:77
 msgid "Triggers"
-msgstr ""
+msgstr "Déclencheurs"
 
 #: Source/Core/Core/Src/PluginManager.cpp:224
 #, c-format
@@ -4259,6 +4433,11 @@ msgstr ""
 "Essai de lecture à partir d'un SYSCONF non valide\n"
 "Les IDs BT de la Wiimote ne sont pas disponibles"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#, fuzzy
+msgid "Turntable"
+msgstr "Activer"
+
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
 msgstr "Type"
@@ -4274,6 +4453,7 @@ msgid "UDP Port:"
 msgstr "Port UDP :"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "UDP Wiimote"
 msgstr "Wiimote UDP :"
 
@@ -4332,6 +4512,11 @@ msgstr "Haut"
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
 msgid "Update"
 msgstr "Mettre à jour"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
+#, fuzzy
+msgid "Upright Wiimote"
+msgstr "Wiimote UDP :"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
 msgid "Use EuRGB60 Mode (PAL60)"
@@ -4414,6 +4599,8 @@ msgid ""
 "Wait for vertical blanks.\n"
 "Reduces tearing but might also decrease performance"
 msgstr ""
+"Attendre les blancs verticaux.\n"
+"Réduit les sauts mais peut aussi baisser les performances"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:660
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:77
@@ -4464,6 +4651,10 @@ msgstr ""
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - fichier non ouvert."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+msgid "Whammy"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
@@ -4483,7 +4674,7 @@ msgstr "Hack écran large (16/9è)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:311
 msgid "Width"
-msgstr ""
+msgstr "Largeur"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:438
 msgid "Wii"
@@ -4510,9 +4701,8 @@ msgid "Wiimote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:76
-#, fuzzy
 msgid "Wiimote "
-msgstr "Wiimote"
+msgstr "Wiimote "
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:174
 #, c-format
@@ -4611,6 +4801,10 @@ msgstr "Echec de la création de la voix principale dans XAudio2 : %#X"
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
 msgid "XFB"
 msgstr "XFB"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Yellow"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:84
 msgid "You can't close panes that have pages in them."

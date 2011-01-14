@@ -27,7 +27,7 @@ static const u8 nunchuk_button_bitmasks[] =
 	Nunchuk::BUTTON_Z,
 };
 
-Nunchuk::Nunchuk(UDPWrapper *wrp) : Attachment("Nunchuk") , m_udpWrap(wrp)
+Nunchuk::Nunchuk(UDPWrapper *wrp) : Attachment(_trans("Nunchuk")) , m_udpWrap(wrp)
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));

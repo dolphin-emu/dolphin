@@ -21,31 +21,31 @@ static const u16 turntable_button_bitmasks[] =
 
 static const char* const turntable_button_names[] =
 {
-	"Green Left", "Red Left", "Blue Left",
-	"Green Right", "Red Right", "Blue Right",
-	"-", "+", "Euphoria",
+	_trans("Green Left"), _trans("Red Left"), _trans("Blue Left"),
+	_trans("Green Right"), _trans("Red Right"), _trans("Blue Right"),
+	"-", "+", _trans("Euphoria"),
 };
 
-Turntable::Turntable() : Attachment("Turntable")
+Turntable::Turntable() : Attachment(_trans("Turntable"))
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
 	for (unsigned int i = 0; i < sizeof(turntable_button_names)/sizeof(*turntable_button_names); ++i)
-		m_buttons->controls.push_back(new ControlGroup::Input( turntable_button_names[i]));
+		m_buttons->controls.push_back(new ControlGroup::Input(turntable_button_names[i]));
 
 	// turntables
-	groups.push_back(m_left_table = new Slider("Table Left"));
-	groups.push_back(m_right_table = new Slider("Table Right"));
+	groups.push_back(m_left_table = new Slider(_trans("Table Left")));
+	groups.push_back(m_right_table = new Slider(_trans("Table Right")));
 
 	// stick
 	groups.push_back(m_stick = new AnalogStick("Stick"));
 
 	// effect dial
-	groups.push_back(m_effect_dial = new Triggers("Effect"));
-	m_effect_dial->controls.push_back(new ControlGroup::Input("Dial"));
+	groups.push_back(m_effect_dial = new Triggers(_trans("Effect")));
+	m_effect_dial->controls.push_back(new ControlGroup::Input(_trans("Dial")));
 
 	// crossfade
-	groups.push_back(m_crossfade = new Slider("Crossfade"));
+	groups.push_back(m_crossfade = new Slider(_trans("Crossfade")));
 
 	// set up register
 	// id

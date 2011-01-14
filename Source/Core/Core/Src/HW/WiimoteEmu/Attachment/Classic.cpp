@@ -49,7 +49,7 @@ static const u16 classic_dpad_bitmasks[] =
 	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT 
 };
 
-Classic::Classic() : Attachment( "Classic" )
+Classic::Classic() : Attachment( _trans("Classic") )
 {
 	// buttons
 	groups.push_back( m_buttons = new Buttons( "Buttons" ) );

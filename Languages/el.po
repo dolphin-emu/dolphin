@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 08:58-0600\n"
+"POT-Creation-Date: 2011-01-14 12:21-0600\n"
 "PO-Revision-Date: 2011-01-11 13:38+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
@@ -610,6 +610,7 @@ msgstr "Αυτόματο [προτείνεται]"
 msgid "Back"
 msgstr "Πίσω"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
 msgid "Background Input"
 msgstr ""
@@ -640,6 +641,11 @@ msgstr "Λεπτομέρειες Πανό:"
 msgid "Banner:"
 msgstr "Πανό:"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
+#, fuzzy
+msgid "Bar"
+msgstr "Πανό"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
 msgid "Basic"
 msgstr "Βασικές"
@@ -647,6 +653,10 @@ msgstr "Βασικές"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:444
 msgid "Basic Settings"
 msgstr "Βασικές Ρυθμίσεις"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Bass"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Bleach Versus Crusade"
@@ -659,6 +669,20 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
 msgid "Blocks"
 msgstr "Μπλοκ"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Blue"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Blue Left"
+msgstr "NP Left"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Blue Right"
+msgstr "NP Right"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 msgid "Bottom"
@@ -864,6 +888,10 @@ msgstr "Επιλέξτε τον φάκελο προς αποσυμπίεση"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
 msgid "Circle Stick"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
+msgid "Classic"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
@@ -1151,6 +1179,10 @@ msgstr "Δημιουργός: "
 msgid "Crop"
 msgstr "Κόψιμο"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
+msgid "Crossfade"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
@@ -1274,6 +1306,10 @@ msgstr "Συσκευή"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
 msgid "Device Settings"
 msgstr "Ρυθμίσεις Συσκευής"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
+msgid "Dial"
+msgstr ""
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
 msgid "Direct3D11"
@@ -1471,6 +1507,10 @@ msgstr "Κατέβασμα Κωδικών (WiiRD Database)"
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
+msgid "Drums"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:67
 msgid "Dummy"
 msgstr ""
@@ -1550,6 +1590,11 @@ msgstr "Επεξεργασία τρέχουσας οπτικής"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:432
 msgid "Edit..."
 msgstr "Επεξεργασία..."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#, fuzzy
+msgid "Effect"
+msgstr "Τέλειο"
 
 #: Source/Core/Core/Src/Core.cpp:178
 msgid "Emu Thread already running"
@@ -1850,6 +1895,10 @@ msgstr ""
 msgid "Escape"
 msgstr "Έξοδος"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+msgid "Euphoria"
+msgstr ""
+
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
@@ -1896,6 +1945,10 @@ msgstr "Εξαγωγή Αρχείου"
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
 msgstr "Εξαγωγή αποθήκευσης ως..."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:259
+msgid "Extension"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
 msgid "Extract All Files..."
@@ -2176,6 +2229,10 @@ msgstr "Free Look"
 msgid "French"
 msgstr "Γαλλικά"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
+msgid "Frets"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "FullScr"
 msgstr "Πλήρης Οθόνη"
@@ -2285,6 +2342,23 @@ msgstr "Μεγαλύτερο από"
 msgid "Greek"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Green"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Green Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Green Right"
+msgstr "NP Right"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
+msgid "Guitar"
+msgstr ""
+
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
 msgstr ""
@@ -2379,6 +2453,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "IPL Settings"
 msgstr "Ρυθμίσεις IPL"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:241
+msgid "IR"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
 msgid "IR Pointer"
@@ -2858,6 +2936,11 @@ msgstr ""
 msgid "Monospaced font"
 msgstr "Ισοπλατής γραμματοσειρά"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:267
+msgid "Motion Plus"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
 msgstr ""
@@ -3068,6 +3151,7 @@ msgid "Number Of Codes: "
 msgstr "Αριθμός Κωδικών: "
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -3142,9 +3226,15 @@ msgid "Opens the logger"
 msgstr "Άνοιγμα της καταγραφής"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
 msgstr "Ρυθμίσεις"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#, fuzzy
+msgid "Orange"
+msgstr "Εύρος"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:478
 msgid ""
@@ -3170,6 +3260,10 @@ msgstr "Αναπα&ραγωγή Εγγραφής"
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
 msgstr "Χεριστήριο "
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
+msgid "Pads"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
 msgid "Page Down"
@@ -3361,6 +3455,20 @@ msgstr "Πραγματικό Wiimote"
 msgid "Reconnect Wiimote Confirm"
 msgstr "Επιβεβαίωση Επανασύνδεσης Wiimote"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Red"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Red Left"
+msgstr "NP Left"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Red Right"
+msgstr "Δεξιά"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
@@ -3433,6 +3541,7 @@ msgstr "Return"
 msgid "Right"
 msgstr "Δεξιά"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
 msgid "Rumble"
 msgstr ""
@@ -3662,6 +3771,10 @@ msgstr ""
 msgid "SetupWiiMem: Cant find setting file"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:253
+msgid "Shake"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Short Name:"
 msgstr "Σύντομο Όνομα:"
@@ -3810,6 +3923,11 @@ msgstr ""
 "Εμφάνιση διαφόρων στατιστικών.\n"
 "Αυτό είναι χρήσιμο μόνο για debugging."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
+#, fuzzy
+msgid "Sideways Wiimote"
+msgstr "Πραγματικό Wiimote"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Simplified Chinese"
 msgstr "Κινέζικα Απλοποιημένα"
@@ -3936,6 +4054,10 @@ msgstr "Εκκίνηση της αναπαραγωγής σε λειτουργί
 msgid "State"
 msgstr "Λειτ."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
+msgid "Stick"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:113
@@ -3946,6 +4068,10 @@ msgstr "Διακοπή"
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Stretch to Window"
 msgstr "Προσαρμογή στο Παράθυρο"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
+msgid "Strum"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
 msgid "Subtract"
@@ -3960,6 +4086,10 @@ msgstr ""
 #, fuzzy
 msgid "Successfully imported save files"
 msgstr "Επιλέξτε αρχείο αποθήκευσης"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:244
+msgid "Swing"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
@@ -3977,6 +4107,16 @@ msgstr "Tab"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:470
 msgid "Tab split"
 msgstr "Tab split"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
+#, fuzzy
+msgid "Table Left"
+msgstr "Ενεργοποίηση Cheat"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
+#, fuzzy
+msgid "Table Right"
+msgstr "Απενεργοποίηση Φωτισμού"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
@@ -4167,6 +4307,10 @@ msgstr ""
 msgid "Threshold"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
+msgid "Tilt"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
@@ -4212,6 +4356,11 @@ msgid ""
 "Wiimote bt ids are not available"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#, fuzzy
+msgid "Turntable"
+msgstr "Ενεργοποίηση"
+
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
 msgstr "Τύπος"
@@ -4226,6 +4375,7 @@ msgid "UDP Port:"
 msgstr "Πόρτα UDP:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "UDP Wiimote"
 msgstr "UDP Wiimote"
 
@@ -4281,6 +4431,11 @@ msgstr "Πάνω"
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
 msgid "Update"
 msgstr "Ενημέρωση"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
+#, fuzzy
+msgid "Upright Wiimote"
+msgstr "UDP Wiimote"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
 msgid "Use EuRGB60 Mode (PAL60)"
@@ -4408,6 +4563,10 @@ msgstr ""
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:111
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:125
 msgid "WaveFileWriter - file not open."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+msgid "Whammy"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
@@ -4571,6 +4730,10 @@ msgstr ""
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
 msgid "XFB"
 msgstr "XFB"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Yellow"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:84
 msgid "You can't close panes that have pages in them."

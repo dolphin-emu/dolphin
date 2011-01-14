@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 08:58-0600\n"
+"POT-Creation-Date: 2011-01-14 12:21-0600\n"
 "PO-Revision-Date: 2011-01-09 13:11+0100\n"
 "Last-Translator: Christer (Chriztr) <chriztr@gmail.com>\n"
 "Language-Team: Norwegian <e-k-nut@hotmail.com>\n"
@@ -614,6 +614,7 @@ msgstr "Automatisk [anbefalt]"
 msgid "Back"
 msgstr "Tilbake"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
 msgid "Background Input"
 msgstr ""
@@ -644,6 +645,11 @@ msgstr "Bannerdetaljer"
 msgid "Banner:"
 msgstr "Banner:"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
+#, fuzzy
+msgid "Bar"
+msgstr "Banner"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
 msgid "Basic"
 msgstr "Grunnleggende"
@@ -651,6 +657,10 @@ msgstr "Grunnleggende"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:444
 msgid "Basic Settings"
 msgstr "Grunnleggende Innstillinger"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Bass"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Bleach Versus Crusade"
@@ -663,6 +673,20 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:636
 msgid "Blocks"
 msgstr "Blokker"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Blue"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Blue Left"
+msgstr "NP Venstre"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Blue Right"
+msgstr "NP Høyre"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 msgid "Bottom"
@@ -868,6 +892,10 @@ msgstr "Velg mappen å ekstraktere til"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
 msgid "Circle Stick"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
+msgid "Classic"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
@@ -1152,6 +1180,10 @@ msgstr "Skaper:"
 msgid "Crop"
 msgstr "Krum"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
+msgid "Crossfade"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
@@ -1275,6 +1307,10 @@ msgstr "Innretning"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
 msgid "Device Settings"
 msgstr "Innstillinger for device"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
+msgid "Dial"
+msgstr ""
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
 msgid "Direct3D11"
@@ -1474,6 +1510,10 @@ msgstr "Last ned juksekoder (WiiRD Database)"
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
+msgid "Drums"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:67
 msgid "Dummy"
 msgstr ""
@@ -1554,6 +1594,11 @@ msgstr "Endre nåværende perspektiv"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:432
 msgid "Edit..."
 msgstr "Endre..."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#, fuzzy
+msgid "Effect"
+msgstr "Perfekt"
 
 #: Source/Core/Core/Src/Core.cpp:178
 msgid "Emu Thread already running"
@@ -1862,6 +1907,10 @@ msgstr ""
 msgid "Escape"
 msgstr "Escape"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+msgid "Euphoria"
+msgstr ""
+
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
@@ -1907,6 +1956,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "Export save as..."
 msgstr "Eksporter lagringsfil som..."
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:259
+msgid "Extension"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
 msgid "Extract All Files..."
@@ -2188,6 +2241,10 @@ msgstr "Fri Utkikk"
 msgid "French"
 msgstr "Fransk"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
+msgid "Frets"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "FullScr"
 msgstr "FullSkj"
@@ -2296,6 +2353,23 @@ msgstr "Større Enn"
 msgid "Greek"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+msgid "Green"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+msgid "Green Left"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Green Right"
+msgstr "NP Høyre"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
+msgid "Guitar"
+msgstr ""
+
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
 msgstr ""
@@ -2390,6 +2464,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "IPL Settings"
 msgstr "Innstillinger for IPL"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:241
+msgid "IR"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
 msgid "IR Pointer"
@@ -2879,6 +2957,11 @@ msgstr ""
 msgid "Monospaced font"
 msgstr "Mono-mellomrom tekst-font"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:267
+msgid "Motion Plus"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
 msgstr ""
@@ -3092,6 +3175,7 @@ msgid "Number Of Codes: "
 msgstr "Antall koder:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -3166,9 +3250,15 @@ msgid "Opens the logger"
 msgstr "Åpner loggeren"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
 msgstr "Alternativer"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#, fuzzy
+msgid "Orange"
+msgstr "Rekkevidde"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:478
 msgid ""
@@ -3194,6 +3284,10 @@ msgstr "Spi&llopptak..."
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
 msgstr "Kontroll"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
+msgid "Pads"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
 msgid "Page Down"
@@ -3387,6 +3481,20 @@ msgstr "Ekte Wiikontroll"
 msgid "Reconnect Wiimote Confirm"
 msgstr "Gjenntilkoble Wiikontroll bekreftelse"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Red"
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#, fuzzy
+msgid "Red Left"
+msgstr "NP Venstre"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
+#, fuzzy
+msgid "Red Right"
+msgstr "Høyre"
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
@@ -3460,6 +3568,7 @@ msgstr "Tilbake"
 msgid "Right"
 msgstr "Høyre"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
 msgid "Rumble"
 msgstr ""
@@ -3695,6 +3804,10 @@ msgstr ""
 msgid "SetupWiiMem: Cant find setting file"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:253
+msgid "Shake"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Short Name:"
 msgstr "Kortnavn:"
@@ -3844,6 +3957,11 @@ msgstr ""
 "Vis diverse statistikker.\n"
 "Dette er kun nyttig for feilsøking."
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
+#, fuzzy
+msgid "Sideways Wiimote"
+msgstr "Ekte Wiikontroll"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Simplified Chinese"
 msgstr "Simplifisert Kinesisk"
@@ -3972,6 +4090,10 @@ msgstr "Start renderingsvinduet i fullskermsmodus."
 msgid "State"
 msgstr "Save State"
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
+msgid "Stick"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:363
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:113
@@ -3982,6 +4104,10 @@ msgstr "Stopp"
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Stretch to Window"
 msgstr "Strekk til Vindu"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
+msgid "Strum"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
 msgid "Subtract"
@@ -3996,6 +4122,10 @@ msgstr ""
 #, fuzzy
 msgid "Successfully imported save files"
 msgstr "Velg lagringsfil"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:244
+msgid "Swing"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
@@ -4013,6 +4143,16 @@ msgstr "Tab"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:470
 msgid "Tab split"
 msgstr "Tab splitting"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
+#, fuzzy
+msgid "Table Left"
+msgstr "Aktiver Juksekoder"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
+#, fuzzy
+msgid "Table Right"
+msgstr "Deaktiver lyseffekter"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
@@ -4197,6 +4337,10 @@ msgstr "Dette lar deg manuelt endre INI-konfigurasjonsfilen"
 msgid "Threshold"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
+msgid "Tilt"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
@@ -4243,6 +4387,11 @@ msgid ""
 "Wiimote bt ids are not available"
 msgstr ""
 
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#, fuzzy
+msgid "Turntable"
+msgstr "Aktiver"
+
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
 msgstr "Type"
@@ -4257,6 +4406,7 @@ msgid "UDP Port:"
 msgstr "UDP Port:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "UDP Wiimote"
 msgstr "UDP Wii-kontroll"
 
@@ -4312,6 +4462,11 @@ msgstr "Opp"
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
 msgid "Update"
 msgstr "Oppdater"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
+#, fuzzy
+msgid "Upright Wiimote"
+msgstr "UDP Wii-kontroll"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
 msgid "Use EuRGB60 Mode (PAL60)"
@@ -4441,6 +4596,10 @@ msgstr ""
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:111
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:125
 msgid "WaveFileWriter - file not open."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+msgid "Whammy"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
@@ -4600,6 +4759,10 @@ msgstr ""
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
 msgid "XFB"
 msgstr "XFB"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
+msgid "Yellow"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:84
 msgid "You can't close panes that have pages in them."
