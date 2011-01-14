@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-13 14:46-0600\n"
+"POT-Creation-Date: 2011-01-13 21:02-0600\n"
 "PO-Revision-Date: 2011-01-13 10:57+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
@@ -40,7 +40,7 @@ msgstr ""
 " 이미 존재함.\n"
 "그것을 바꾸고 싶나요?"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:525
 msgid "! NOT"
 msgstr "! NOT"
 
@@ -127,7 +127,7 @@ msgstr "%sGCI 내보내기%s"
 msgid "%sImport GCI%s"
 msgstr "%sGCI 가져오기%s"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:527
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:524
 msgid "&& AND"
 msgstr "&& AND"
 
@@ -478,7 +478,7 @@ msgstr "추가..."
 msgid "Address :"
 msgstr "주소 :"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:781
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:778
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "버튼들 활성화에 요구되는 아날로그 컨트롤 압력을 조정하세요."
 
@@ -562,7 +562,7 @@ msgstr "어플로더:"
 msgid "Apply"
 msgstr "적용"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:637
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:634
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "\"%s\" 를 지우고 싶다고 확신합니까?"
@@ -607,6 +607,15 @@ msgstr "자동 [권장]"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:27
 msgid "Back"
+msgstr "뒤로"
+
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
+msgid "Background Input"
+msgstr ""
+
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:279
+#, fuzzy
+msgid "Backward"
 msgstr "뒤로"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:289
@@ -654,6 +663,11 @@ msgstr "블럭들"
 msgid "Bottom"
 msgstr "아래"
 
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:244
+#, c-format
+msgid "Bound Controls: %u"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:362
 msgid "Broken"
 msgstr "고장난"
@@ -679,8 +693,13 @@ msgid "Buffer:"
 msgstr "버퍼:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
 msgid "Buttons"
 msgstr "버튼들"
+
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
+msgid "C-Stick"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:456
 msgid "CPU Emulator Engine"
@@ -761,6 +780,10 @@ msgstr ""
 msgid "Caps Lock"
 msgstr "Caps Lock"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
+msgid "Center"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:514
 msgid "Change"
 msgstr "변경"
@@ -839,8 +862,12 @@ msgstr ""
 msgid "Choose the folder to extract to"
 msgstr "압축해제할 폴더를 선택"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:508
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:938
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
+msgid "Circle Stick"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:936
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:129
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:114
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:43
@@ -920,7 +947,7 @@ msgstr "환경설정..."
 msgid "Configure"
 msgstr "환경설정"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:117
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:118
 msgid "Configure Control"
 msgstr "컨트롤 설정"
 
@@ -982,7 +1009,7 @@ msgstr "연결된"
 msgid "Connected to %i Wiimotes"
 msgstr "%i개의 위모트들에 연결된"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:615
+#: Source/Core/DolphinWX/Src/Main.cpp:612
 msgid "Connecting..."
 msgstr "연결중..."
 
@@ -1134,6 +1161,10 @@ msgstr "자르기"
 msgid "Current dir changed from %s to %s after wxFileSelector!"
 msgstr "현재 디렉토리가 %s에서 wxFileSelector뒤에 %s로 변경됨!"
 
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:86
+msgid "D-Pad"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "DList Cache"
 msgstr "데이터리스트 캐쉬"
@@ -1173,6 +1204,14 @@ msgstr "날짜:"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 파일들(*.sav)"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:242
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:259
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:267
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:281
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:296
+msgid "Dead Zone"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:79
 msgid "Debug"
 msgstr "디버그"
@@ -1194,7 +1233,7 @@ msgstr "선택된 ISO들 압축해제..."
 msgid "Decompressing ISO"
 msgstr "ISO 압축해제하기"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:937
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:935
 msgid "Default"
 msgstr "기본"
 
@@ -1206,7 +1245,7 @@ msgstr "기본 ISO:"
 msgid "Default font"
 msgstr "기본 폰트"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:951
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:949
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:32
 msgid "Delete"
 msgstr "삭제"
@@ -1220,7 +1259,7 @@ msgstr "저장 지우기"
 msgid "Delete the existing file '%s'?"
 msgstr "세이브 파일 선택"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:506
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Detect"
 msgstr "감지"
 
@@ -1231,8 +1270,8 @@ msgid ""
 "buffer. Clamp."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:133
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:920
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:134
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:918
 msgid "Device"
 msgstr "다바이스"
 
@@ -1335,6 +1374,16 @@ msgstr "돌핀 웹 사이트(&W)"
 msgid "Dolphin Configuration"
 msgstr "돌핀 환경설정"
 
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:93
+#, fuzzy
+msgid "Dolphin Emulated Wiimote Configuration"
+msgstr "돌핀 위모트 환경설정"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1085
+#, fuzzy
+msgid "Dolphin GCPad Configuration"
+msgstr "돌핀 환경설정"
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:651
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1006
 msgid "Dolphin TAS Movies (*.dtm)"
@@ -1371,6 +1420,7 @@ msgstr ""
 "릭..."
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:55
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 msgid "Down"
 msgstr "다운"
 
@@ -2055,6 +2105,10 @@ msgid ""
 "Choose no for sjis (NTSC-J)"
 msgstr ""
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:278
+msgid "Forward"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:234
 msgid "Fractional"
 msgstr "부분의"
@@ -2197,6 +2251,11 @@ msgstr ""
 msgid "Hebrew"
 msgstr "히브리어"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:312
+#, fuzzy
+msgid "Height"
+msgstr "오른쪽"
+
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:61
 msgid "Help"
 msgstr "도움"
@@ -2216,6 +2275,10 @@ msgstr ""
 "불행하게도 당신의 CPU는 그들을 지원하지 않는다, 그래서 돌핀은 구동안한다.\n"
 "\n"
 "사요나라!\n"
+
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:308
+msgid "Hide"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid "Hide Mouse Cursor"
@@ -2363,7 +2426,7 @@ msgstr "정보"
 msgid "Information"
 msgstr "정보"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Input"
 msgstr "입력"
 
@@ -2532,9 +2595,19 @@ msgstr "        [ 키 ]"
 msgid "Korean"
 msgstr "한국어"
 
+#. i18n:  Left
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:55
+msgid "L"
+msgstr ""
+
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:39
 msgid "L Button"
 msgstr "L 버튼"
+
+#. i18n:  Left-Analog
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:59
+msgid "L-Analog"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:512
 msgid "Language:"
@@ -2550,10 +2623,11 @@ msgid "Last Saved State"
 msgstr "마지막 저장된 상태"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:52
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 msgid "Left"
 msgstr "왼쪽"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:715
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:712
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -2563,7 +2637,7 @@ msgstr ""
 "중-클릭 지우기.\n"
 "우-클릭 옵션들 더."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:720
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:717
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -2575,7 +2649,7 @@ msgstr ""
 msgid "Less Than"
 msgstr "보다 더 적은"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:949
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 msgid "Load"
 msgstr "로드"
 
@@ -2663,6 +2737,10 @@ msgstr "MMU 스피드 핵"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz 게임샤크 파일들(*.gcs)"
 
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
+msgid "Main Stick"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:456
 msgid "Maker ID:"
 msgstr "만든이 ID:"
@@ -2726,6 +2804,11 @@ msgstr "기타 세팅들"
 msgid "Mixer: Unsupported sample rate."
 msgstr ""
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:240
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:294
+msgid "Modifier"
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:92
 msgid ""
 "Modify textures to show the format they're using.\n"
@@ -2737,6 +2820,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:93
 msgid "Monospaced font"
 msgstr "단일띄어쓰기 폰트"
+
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
+msgid "Motor"
+msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:72
 msgid "Multiply"
@@ -2914,7 +3001,7 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "세팅 안함"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:614
+#: Source/Core/DolphinWX/Src/Main.cpp:611
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -3013,6 +3100,7 @@ msgid "Opens the logger"
 msgstr "로거를 연다"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
 msgstr "옵션들"
 
@@ -3031,7 +3119,7 @@ msgstr ""
 "게임이 구동되는 중에 다른 클라이언트가 연결해제됨!! 넷플레이 불가능됨. 수동으"
 "로 게임을 중지하라."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Output"
 msgstr "출력"
 
@@ -3165,7 +3253,7 @@ msgstr "이전 값"
 msgid "Print"
 msgstr "프린트"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:916
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:914
 msgid "Profile"
 msgstr "프로파일"
 
@@ -3194,9 +3282,19 @@ msgstr ""
 msgid "Quit"
 msgstr "종료"
 
+#. i18n:  Right
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:57
+msgid "R"
+msgstr ""
+
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:40
 msgid "R Button"
 msgstr "R 버튼"
+
+#. i18n:  Right-Analog
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:61
+msgid "R-Analog"
+msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:265
 msgid "RAM"
@@ -3206,7 +3304,7 @@ msgstr "램"
 msgid "RUSSIA"
 msgstr "러시아"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:549
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:546
 msgid "Range"
 msgstr "범위"
 
@@ -3233,7 +3331,7 @@ msgstr ""
 "이것은 렌더된 그림이 블럭이 덜지게 보이게 만든다 하지만 심하게 성능이 감소한"
 "다."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:928
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:926
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:359
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:40
 msgid "Refresh"
@@ -3278,7 +3376,7 @@ msgstr "렌더링"
 msgid "Required for using the Japanese ROM font."
 msgstr "일본 롬 폰트를 사용하기 위해서 요구된다."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:940
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:938
 msgid "Reset"
 msgstr "리셋"
 
@@ -3291,8 +3389,13 @@ msgid "Return"
 msgstr "Enter"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:54
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:277
 msgid "Right"
 msgstr "오른쪽"
+
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
+msgid "Rumble"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:112
 msgid "Run"
@@ -3322,8 +3425,8 @@ msgstr "안전한"
 msgid "Sample Rate"
 msgstr "샘플 레이트"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:950
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:996
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:948
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:994
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:384
 msgid "Save"
 msgstr "저장"
@@ -3392,7 +3495,7 @@ msgstr "하위폴더들 찾기"
 msgid "Section %s not found in SYSCONF"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:511
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:508
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:56
 msgid "Select"
 msgstr "선택"
@@ -3482,7 +3585,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사용하는 포트이다"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:509
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:506
 msgid "Set"
 msgstr "세팅"
 
@@ -3754,11 +3857,16 @@ msgstr "오디오 플러그인 명시"
 msgid "Speed up Disc Transfer Rate"
 msgstr "디스크 전송율 스피드 업"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:243
+msgid "Square Stick"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:69
 msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:303
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:38
 msgid "Start"
 msgstr "시작"
@@ -3831,7 +3939,7 @@ msgstr "탭 분리"
 msgid "Take Screenshot"
 msgstr "스크린샷 얻기"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:506
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Test"
 msgstr "테스트"
 
@@ -3996,6 +4104,11 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "이것은 수동으로 INI 환경파일을 수정하게 해줄겁니다"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
+msgid "Threshold"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
@@ -4020,6 +4133,10 @@ msgstr "전통 중국어"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:364
 msgid "Tried to load an unknown file type."
+msgstr ""
+
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:77
+msgid "Triggers"
 msgstr ""
 
 #: Source/Core/Core/Src/PluginManager.cpp:224
@@ -4099,6 +4216,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:53
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 msgid "Up"
 msgstr "위"
 
@@ -4265,6 +4383,10 @@ msgstr ""
 msgid "Widescreen Hack"
 msgstr "와이드스크린 핵"
 
+#: Source/Core/InputCommon/Src/ControllerEmu.cpp:311
+msgid "Width"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:438
 msgid "Wii"
 msgstr "Wii"
@@ -4289,6 +4411,11 @@ msgstr ""
 msgid "Wiimote"
 msgstr "위모트"
 
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:76
+#, fuzzy
+msgid "Wiimote "
+msgstr "위모트"
+
 #: Source/Core/DolphinWX/Src/Frame.cpp:174
 #, c-format
 msgid ""
@@ -4302,7 +4429,7 @@ msgstr ""
 "혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
 "당신은 즉시 재연결 하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:616
+#: Source/Core/DolphinWX/Src/Main.cpp:613
 msgid "Wiimote Connected"
 msgstr "위모트가 연결됨"
 
@@ -4403,7 +4530,7 @@ msgstr "이름을 넣어야한다!"
 msgid "You must enter a valid decimal or hex value."
 msgstr "유용한 십진수나 헥스 값을 넣어야한다."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:626
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623
 msgid "You must enter a valid profile name."
 msgstr "유용한 프로파일 이름을 넣어야한다."
 
@@ -4440,12 +4567,12 @@ msgstr ""
 msgid "Zero code unknown to dolphin: %08x"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:454
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:479
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:451
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:476
 msgid "[ waiting ]"
 msgstr "[ 대기 ]"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:529
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:526
 msgid "^ ADD"
 msgstr "^ ADD"
 
@@ -4486,6 +4613,6 @@ msgstr ""
 msgid "wxExecute returned -1 on application run!"
 msgstr "어플리케이션 구동상에 wxExecute가 -1을 돌려주었음!"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:514
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:511
 msgid "| OR"
 msgstr "| OR"

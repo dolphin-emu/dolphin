@@ -1082,7 +1082,7 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 		Pad::Initialize(GetHandle());
 #endif
 	}
-	InputConfigDialog *const m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, "Dolphin GCPad Configuration");
+	InputConfigDialog *const m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
 	m_ConfigFrame->ShowModal();
 	m_ConfigFrame->Destroy();
 	if (!was_init)				// if game isn't running

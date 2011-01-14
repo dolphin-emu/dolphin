@@ -46,43 +46,50 @@ const char* const named_buttons[] =
 	"X",
 	"Y",
 	"Z",
-	"Start",
+	_trans("Start"),
 };
 
 const char* const named_triggers[] =
 {
-	"L", "R", "L-Analog", "R-Analog"
+	// i18n:  Left
+	_trans("L"),
+	// i18n:  Right
+   	_trans("R"),
+	// i18n:  Left-Analog
+   	_trans("L-Analog"),
+	// i18n:  Right-Analog
+   	_trans("R-Analog")
 };
 
-GCPad::GCPad( const unsigned int index ) : m_index(index)
+GCPad::GCPad(const unsigned int index) : m_index(index)
 {
 
 	// buttons
-	groups.push_back( m_buttons = new Buttons( "Buttons" ) );
-	for ( unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i )
-		m_buttons->controls.push_back( new ControlGroup::Input( named_buttons[i] ) );
+	groups.push_back(m_buttons = new Buttons(_trans("Buttons")));
+	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i)
+		m_buttons->controls.push_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
-	groups.push_back( m_main_stick = new AnalogStick( "Main Stick" ) );
-	groups.push_back( m_c_stick = new AnalogStick( "C-Stick" ) );
+	groups.push_back(m_main_stick = new AnalogStick(_trans("Main Stick")));
+	groups.push_back(m_c_stick = new AnalogStick(_trans("C-Stick")));
 
 	// triggers
-	groups.push_back( m_triggers = new MixedTriggers( "Triggers" ) );
-	for ( unsigned int i=0; i < sizeof(named_triggers)/sizeof(*named_triggers); ++i )
-		m_triggers->controls.push_back( new ControlGroup::Input( named_triggers[i] ) );
+	groups.push_back(m_triggers = new MixedTriggers(_trans("Triggers")));
+	for (unsigned int i=0; i < sizeof(named_triggers)/sizeof(*named_triggers); ++i)
+		m_triggers->controls.push_back(new ControlGroup::Input(named_triggers[i]));
 
 	// rumble
-	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
-	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
+	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
+	m_rumble->controls.push_back(new ControlGroup::Output(_trans("Motor")));
 
 	// dpad
-	groups.push_back( m_dpad = new Buttons( "D-Pad" ) );
-	for ( unsigned int i=0; i < 4; ++i )
-		m_dpad->controls.push_back( new ControlGroup::Input( named_directions[i] ) );
+	groups.push_back(m_dpad = new Buttons(_trans("D-Pad")));
+	for (unsigned int i=0; i < 4; ++i)
+		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
 
 	// options
-	groups.push_back( m_options = new ControlGroup( "Options" ) );
-	m_options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
+	groups.push_back(m_options = new ControlGroup(_trans("Options")));
+	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
 
 }
 
@@ -91,37 +98,37 @@ std::string GCPad::GetName() const
 	return std::string("GCPad") + char('1'+m_index);
 }
 
-void GCPad::GetInput( SPADStatus* const pad )
+void GCPad::GetInput(SPADStatus* const pad)
 {
 	// if window has focus or background input enabled
-	if (Host_RendererHasFocus() || m_options[0].settings[0]->value )
+	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
 	{
 		// buttons
-		m_buttons->GetState( &pad->button, button_bitmasks );
+		m_buttons->GetState(&pad->button, button_bitmasks);
 
 		// TODO: set analog A/B analog to full or w/e, prolly not needed
 
 		// dpad
-		m_dpad->GetState( &pad->button, dpad_bitmasks );
+		m_dpad->GetState(&pad->button, dpad_bitmasks);
 
 		// sticks
-		m_main_stick->GetState( &pad->stickX, &pad->stickY, 0x80, 127 );
-		m_c_stick->GetState( &pad->substickX, &pad->substickY, 0x80, 127 );
+		m_main_stick->GetState(&pad->stickX, &pad->stickY, 0x80, 127);
+		m_c_stick->GetState(&pad->substickX, &pad->substickY, 0x80, 127);
 
 		// triggers
-		m_triggers->GetState( &pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF );
+		m_triggers->GetState(&pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF);
 	}
 	else
 	{
 		// center sticks
-		memset( &pad->stickX, 0x80, 4 );
+		memset(&pad->stickX, 0x80, 4);
 	}
 }
 
-void GCPad::SetOutput( const bool on )
+void GCPad::SetOutput(const bool on)
 {
 	// only rumble if window has focus or background input is enabled
-	m_rumble->controls[0]->control_ref->State( on && (Host_RendererHasFocus() || m_options[0].settings[0]->value) );
+	m_rumble->controls[0]->control_ref->State(on && (Host_RendererHasFocus() || m_options[0].settings[0]->value));
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)

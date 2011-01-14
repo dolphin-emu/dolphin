@@ -26,9 +26,9 @@ class GCPad : public ControllerEmu
 {
 public:
 
-	GCPad( const unsigned int index );
-	void GetInput( SPADStatus* const pad );
-	void SetOutput( const bool on );
+	GCPad(const unsigned int index);
+	void GetInput(SPADStatus* const pad);
+	void SetOutput(const bool on);
 	
 	std::string GetName() const;
 

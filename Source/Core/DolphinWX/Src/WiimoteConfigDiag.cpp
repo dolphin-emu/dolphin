@@ -3,7 +3,7 @@
 #include "HW/Wiimote.h"
 #include "Frame.h"
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
+#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
 const wxString& ConnectedWiimotesString()
 {
@@ -73,7 +73,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	{
 		WiimoteConfigPage* const wpage = new WiimoteConfigPage(m_pad_notebook, i);
 		//m_padpages.push_back(wpage);
-		m_pad_notebook->AddPage(wpage, wxString(wxT("Wiimote ")) + wxChar('1'+i));
+		m_pad_notebook->AddPage(wpage, wxString(_("Wiimote ")) + wxChar('1'+i));
 	}
 
 	wxButton* const ok_button = new wxButton(this, -1, _("OK"), wxDefaultPosition);
@@ -90,7 +90,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent&)
 {
-	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_plugin, "Dolphin Emulated Wiimote Configuration", m_pad_notebook->GetSelection());
+	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_plugin, _trans("Dolphin Emulated Wiimote Configuration"), m_pad_notebook->GetSelection());
 	m_emu_config_diag->ShowModal();
 	m_emu_config_diag->Destroy();
 }
@@ -137,7 +137,7 @@ void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
 
 void WiimoteConfigDiag::Save(wxCommandEvent&)
 {
-	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + WIIMOTE_INI_NAME ".ini" );
+	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + WIIMOTE_INI_NAME ".ini");
 
 	IniFile inifile;
 	inifile.Load(ini_filename);

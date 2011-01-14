@@ -74,7 +74,7 @@ class PadSettingSpin : public PadSetting
 public:
 	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting)
 		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
-			, wxSize( 54, -1 ), 0, setting->low, setting->high, setting->value * 100))
+			, wxSize(54, -1), 0, setting->low, setting->high, setting->value * 100))
 		, value(setting->value) {}
 
 	void UpdateGUI();
@@ -100,7 +100,7 @@ class ControlDialog : public wxDialog
 public:
 	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
 	
-	wxStaticBoxSizer* CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink );
+	wxStaticBoxSizer* CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink);
 
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
@@ -131,8 +131,8 @@ private:
 class ExtensionButton : public wxButton
 {
 public:
-	ExtensionButton( wxWindow* const parent, ControllerEmu::Extension* const ext )
-		: wxButton( parent, -1, _("Configure"), wxDefaultPosition )
+	ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext)
+		: wxButton(parent, -1, _("Configure"), wxDefaultPosition)
 		, extension(ext) {}
 
 	ControllerEmu::Extension* const	extension;
@@ -141,7 +141,7 @@ public:
 class ControlButton : public wxButton
 {
 public:
-	ControlButton( wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label = "" );
+	ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label = "");
 
 	ControllerInterface::ControlReference* const		control_reference;
 };
@@ -150,8 +150,8 @@ class UDPConfigButton : public wxButton
 {
 public:
 	UDPWrapper* const wrapper;
-	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp)
-		: wxButton( parent, -1, _("Configure"), wxDefaultPosition )
+	UDPConfigButton(wxWindow* const parent, UDPWrapper * udp)
+		: wxButton(parent, -1, _("Configure"), wxDefaultPosition)
 		, wrapper(udp)
 	{}
 };
@@ -159,7 +159,7 @@ public:
 class ControlGroupBox : public wxStaticBoxSizer
 {
 public:
-	ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink );
+	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink);
 	~ControlGroupBox();
 
 	std::vector<PadSetting*>		options;
@@ -172,7 +172,7 @@ public:
 class ControlGroupsSizer : public wxBoxSizer
 {
 public:
-	ControlGroupsSizer( ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL );
+	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
 };
 
 class InputConfigDialog;
@@ -183,31 +183,31 @@ class GamepadPage : public wxNotebookPage
 	friend class ControlDialog;
 
 public:
-	GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog );
+	GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog);
 
 	void UpdateGUI();
 
-	void RefreshDevices( wxCommandEvent& event );
+	void RefreshDevices(wxCommandEvent& event);
 
-	void LoadProfile( wxCommandEvent& event );
-	void SaveProfile( wxCommandEvent& event );
-	void DeleteProfile( wxCommandEvent& event );
+	void LoadProfile(wxCommandEvent& event);
+	void SaveProfile(wxCommandEvent& event);
+	void DeleteProfile(wxCommandEvent& event);
 
-	void ConfigControl( wxCommandEvent& event );
-	void ClearControl( wxCommandEvent& event );
-	void DetectControl( wxCommandEvent& event );
+	void ConfigControl(wxCommandEvent& event);
+	void ClearControl(wxCommandEvent& event);
+	void DetectControl(wxCommandEvent& event);
 
-	void ConfigExtension( wxCommandEvent& event );
+	void ConfigExtension(wxCommandEvent& event);
 
-	void ConfigUDPWii( wxCommandEvent& event );
+	void ConfigUDPWii(wxCommandEvent& event);
 
-	void SetDevice( wxCommandEvent& event );
+	void SetDevice(wxCommandEvent& event);
 
-	void ClearAll( wxCommandEvent& event );
-	void LoadDefaults( wxCommandEvent& event );
+	void ClearAll(wxCommandEvent& event);
+	void LoadDefaults(wxCommandEvent& event);
 
-	void AdjustControlOption( wxCommandEvent& event );
-	void AdjustSetting( wxCommandEvent& event );
+	void AdjustControlOption(wxCommandEvent& event);
+	void AdjustSetting(wxCommandEvent& event);
 
 	void GetProfilePath(std::string& path);
 
@@ -230,12 +230,12 @@ private:
 class InputConfigDialog : public wxDialog
 {
 public:
-	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num = 0);
+	InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num = 0);
 	//~InputConfigDialog();
 
 	bool Destroy();
 
-	void ClickSave( wxCommandEvent& event );
+	void ClickSave(wxCommandEvent& event);
 
 	void UpdateDeviceComboBox();
 	void UpdateProfileComboBox();

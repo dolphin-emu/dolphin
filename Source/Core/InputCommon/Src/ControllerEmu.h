@@ -67,7 +67,7 @@ public:
 		class Control
 		{
 		protected:
-			Control( ControllerInterface::ControlReference* const _ref, const char * const _name )
+			Control(ControllerInterface::ControlReference* const _ref, const char * const _name)
 				: control_ref(_ref), name(_name){}
 		public:
 
@@ -81,8 +81,8 @@ public:
 		{
 		public:
 
-			Input( const char * const _name )
-				: Control( new ControllerInterface::InputReference, _name ) {}
+			Input(const char * const _name)
+				: Control(new ControllerInterface::InputReference, _name) {}
 
 		};
 
@@ -90,8 +90,8 @@ public:
 		{
 		public:
 
-			Output( const char * const _name )
-				: Control( new ControllerInterface::OutputReference, _name ) {}
+			Output(const char * const _name)
+				: Control(new ControllerInterface::OutputReference, _name) {}
 
 		};
 
@@ -113,7 +113,7 @@ public:
 			const unsigned int	low, high;
 		};
 
-		ControlGroup( const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER ) : name(_name), type(_type) {}
+		ControlGroup(const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
 		virtual ~ControlGroup();
 	
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
@@ -132,7 +132,7 @@ public:
 	public:
 
 		template <typename C>
-		void GetState( C* const x, C* const y, const unsigned int base, const unsigned int range )
+		void GetState(C* const x, C* const y, const unsigned int base, const unsigned int range)
 		{
 			// this is all a mess
 
@@ -144,62 +144,62 @@ public:
 			ControlState m = controls[4]->control_ref->State();
 
 			// modifier code
-			if ( m )
+			if (m)
 			{
 				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
 				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
 			// deadzone / square stick code
-			if ( deadzone || square )
+			if (deadzone || square)
 			{
 				// this section might be all wrong, but its working good enough, i think
 
-				ControlState ang = atan2( yy, xx ); 
+				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2 );
+				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
 				// the amt a full stick would have that was ( user setting squareness) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be
-				ControlState stick_full = ( 1 + ( square_full - 1 ) * square );
+				ControlState stick_full = (1 + (square_full - 1) * square);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);
 
 				// dead zone code
-				dist = std::max( 0.0f, dist - deadzone * stick_full );
-				dist /= ( 1 - deadzone );
+				dist = std::max(0.0f, dist - deadzone * stick_full);
+				dist /= (1 - deadzone);
 
 				// square stick code
 				ControlState amt = dist / stick_full;
 				dist -= ((square_full - 1) * amt * square);
 
-				yy = std::max( -1.0f, std::min( 1.0f, ang_sin * dist ) );
-				xx = std::max( -1.0f, std::min( 1.0f, ang_cos * dist ) );
+				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 			}
 
-			*y = C( yy * range + base );
-			*x = C( xx * range + base );
+			*y = C(yy * range + base);
+			*x = C(xx * range + base);
 		}
 
-		AnalogStick( const char* const _name );
+		AnalogStick(const char* const _name);
 
 	};
 
 	class Buttons : public ControlGroup
 	{
 	public:
-		Buttons( const char* const _name );
+		Buttons(const char* const _name);
 
 		template <typename C>
-		void GetState( C* const buttons, const C* bitmasks )
+		void GetState(C* const buttons, const C* bitmasks)
 		{
 			std::vector<Control*>::iterator i = controls.begin(),
 				e = controls.end();
-			for ( ; i!=e; ++i, ++bitmasks )
-				if ( (*i)->control_ref->State() > settings[0]->value ) // threshold
+			for (; i!=e; ++i, ++bitmasks)
+				if ((*i)->control_ref->State() > settings[0]->value) // threshold
 					*buttons |= *bitmasks;
 		}
 
@@ -210,12 +210,12 @@ public:
 	public:
 
 		template <typename C, typename S>
-		void GetState( C* const digital, const C* bitmasks, S* analog, const unsigned int range )
+		void GetState(C* const digital, const C* bitmasks, S* analog, const unsigned int range)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size() / 2));
-			for ( unsigned int i=0; i<trig_count; ++i,++bitmasks,++analog )
+			for (unsigned int i=0; i<trig_count; ++i,++bitmasks,++analog)
 			{
-				if ( controls[i]->control_ref->State() > settings[0]->value ) //threshold
+				if (controls[i]->control_ref->State() > settings[0]->value) //threshold
 				{
 					*analog = range;
 					*digital |= *bitmasks;
@@ -226,7 +226,7 @@ public:
 			}
 		}
 
-		MixedTriggers( const char* const _name );
+		MixedTriggers(const char* const _name);
 
 	};
 
@@ -235,15 +235,15 @@ public:
 	public:
 
 		template <typename S>
-		void GetState( S* analog, const unsigned int range )
+		void GetState(S* analog, const unsigned int range)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size()));
 			const ControlState deadzone = settings[0]->value;
-			for ( unsigned int i=0; i<trig_count; ++i,++analog )
-				*analog = S( std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range );
+			for (unsigned int i=0; i<trig_count; ++i,++analog)
+				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
 		}
 
-		Triggers( const char* const _name );
+		Triggers(const char* const _name);
 
 	};
 
@@ -270,7 +270,7 @@ public:
 	class Force : public ControlGroup
 	{
 	public:
-		Force( const char* const _name );
+		Force(const char* const _name);
 
 		template <typename C, typename R>
 		void GetState(C* axis, const u8 base, const R range)
@@ -295,7 +295,7 @@ public:
 	class Tilt : public ControlGroup
 	{
 	public:
-		Tilt( const char* const _name );
+		Tilt(const char* const _name);
 
 		template <typename C, typename R>
 		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
@@ -310,40 +310,40 @@ public:
 			ControlState m = controls[4]->control_ref->State();
 
 			// modifier code
-			if ( m )
+			if (m)
 			{
 				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
 				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
 			// deadzone / circle stick code
-			if ( deadzone || circle )
+			if (deadzone || circle)
 			{
 				// this section might be all wrong, but its working good enough, i think
 
-				ControlState ang = atan2( yy, xx ); 
+				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2 );
+				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
-				// the amt a full stick would have that was ( user setting circular ) at current angle
+				// the amt a full stick would have that was (user setting circular) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be
 				ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);
 
 				// dead zone code
-				dist = std::max( 0.0f, dist - deadzone * stick_full );
+				dist = std::max(0.0f, dist - deadzone * stick_full);
 				dist /= (1 - deadzone);
 
 				// circle stick code
 				ControlState amt = dist / stick_full;
 				dist += (square_full - 1) * amt * circle;
 
-				yy = std::max( -1.0f, std::min( 1.0f, ang_sin * dist ) );
-				xx = std::max( -1.0f, std::min( 1.0f, ang_cos * dist ) );
+				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 			}
 
 			// this is kinda silly here
@@ -363,8 +363,8 @@ public:
 					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
 			}
 
-			*y = C( m_tilt[1] * range + base );
-			*x = C( m_tilt[0] * range + base );
+			*y = C(m_tilt[1] * range + base);
+			*x = C(m_tilt[0] * range + base);
 		}
 	private:
 		float	m_tilt[2];
@@ -376,7 +376,7 @@ public:
 		Cursor(const char* const _name);
 
 		template <typename C>
-		void GetState( C* const x, C* const y, C* const z, const bool adjusted = false )
+		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)
 		{
 			const float zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
 
@@ -401,9 +401,9 @@ public:
 				// adjust cursor according to settings
 				if (adjusted)
 				{
-					xx *= ( settings[1]->value * 2 );
-					yy *= ( settings[2]->value * 2 );
-					yy += ( settings[0]->value - 0.5f );
+					xx *= (settings[1]->value * 2);
+					yy *= (settings[2]->value * 2);
+					yy += (settings[0]->value - 0.5f);
 				}
 
 				*x = xx;
@@ -417,13 +417,13 @@ public:
 	class Extension : public ControlGroup
 	{
 	public:
-		Extension( const char* const _name )
-			: ControlGroup( _name, GROUP_TYPE_EXTENSION )
+		Extension(const char* const _name)
+			: ControlGroup(_name, GROUP_TYPE_EXTENSION)
 			, switch_extension(0)
 			, active_extension(0) {}
 		~Extension();
 
-		void GetState( u8* const data, const bool focus = true );
+		void GetState(u8* const data, const bool focus = true);
 
 		std::vector<ControllerEmu*>		attachments;
 
@@ -441,7 +441,7 @@ public:
 	virtual void SaveConfig(IniFile::Section *sec, const std::string& base = "");
 	void UpdateDefaultDevice();
 
-	void UpdateReferences( ControllerInterface& devi );
+	void UpdateReferences(ControllerInterface& devi);
 
 	std::vector< ControlGroup* >		groups;
 
