@@ -31,6 +31,7 @@ files = [
 	"Jit/DSPJitLoadStore.cpp",
 	"Jit/DSPJitMultiplier.cpp",
 	"Jit/DSPJitMisc.cpp",
+	"Jit/DSPJitRegCache.cpp",
 	]
 
 env.StaticLibrary(env['local_libs'] + 'dspcore', files)

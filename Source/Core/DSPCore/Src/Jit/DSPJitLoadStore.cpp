@@ -34,16 +34,9 @@ using namespace Gen;
 void DSPEmitter::srs(const UDSPInstruction opc)
 {
 	u8 reg   = ((opc >> 8) & 0x7) + 0x18;
-	u16 *regp = reg_ptr(reg);
 	//u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(regp));
-	MOVZX(32, 8, EAX, M(&g_dsp.r.cr));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RCX, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
-	MOVZX(64, 8, RAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, cr)));
-#endif
+	dsp_op_read_reg(reg, RCX, ZERO);
+	dsp_op_read_reg(DSP_REG_CR, RAX, ZERO);
 	SHL(16, R(EAX), Imm8(8));
 	OR(8, R(EAX), Imm8(opc & 0xFF));
 	dmem_write();
@@ -57,23 +50,12 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 void DSPEmitter::lrs(const UDSPInstruction opc)
 {
 	u8 reg   = ((opc >> 8) & 0x7) + 0x18;
-	u16 *regp = reg_ptr(reg);
 	//u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc & 0xFF);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 8, ECX, M(&g_dsp.r.cr));
+	dsp_op_read_reg(DSP_REG_CR, RCX, ZERO);
 	SHL(16, R(ECX), Imm8(8));
 	OR(8, R(ECX), Imm8(opc & 0xFF));
 	dmem_read();
-	MOV(16, M(regp), R(EAX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 8, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, cr)));
-	SHL(16, R(ECX), Imm8(8));
-	OR(8, R(ECX), Imm8(opc & 0xFF));
-	dmem_read();
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, PtrOffset(regp, &g_dsp.r)), R(RAX));
-#endif
+	dsp_op_write_reg(reg, RAX);
 	dsp_conditional_extend_accum(reg);
 }
 
@@ -194,12 +176,7 @@ void DSPEmitter::srr(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-#endif
+	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write();
 }
 
@@ -214,12 +191,7 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-#endif
+	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write();
 	decrement_addr_reg(dreg);
 }
@@ -235,12 +207,7 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-#endif
+	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write();
 	increment_addr_reg(dreg);
 }
@@ -256,12 +223,7 @@ void DSPEmitter::srrn(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 
 	dsp_op_read_reg(sreg, ECX);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EAX, M(&g_dsp.r.ar[dreg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RAX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[dreg])));
-#endif
+	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write();
 	increase_addr_reg(dreg);
 }
@@ -275,19 +237,9 @@ void DSPEmitter::ilrr(const UDSPInstruction opc)
 	u16 reg  = opc & 0x3;
 	u16 dreg = (opc >> 8) & 1;
 
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
-#endif
+	dsp_op_read_reg(reg, RCX, ZERO);
 	imem_read();
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ac[dreg].m), R(EAX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[dreg].m)), R(RAX));
-#endif
+	set_acc_m(dreg, R(RAX));
 	dsp_conditional_extend_accum(dreg);
 }
 
@@ -300,19 +252,9 @@ void DSPEmitter::ilrrd(const UDSPInstruction opc)
 	u16 reg  = opc & 0x3;
 	u16 dreg = (opc >> 8) & 1;
 
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
-#endif
+	dsp_op_read_reg(reg, RCX, ZERO);
 	imem_read();
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ac[dreg].m), R(EAX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[dreg].m)), R(RAX));
-#endif
+	set_acc_m(dreg, R(RAX));
 	dsp_conditional_extend_accum(dreg);
 	decrement_addr_reg(reg);
 }
@@ -326,19 +268,9 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 	u16 reg  = opc & 0x3;
 	u16 dreg = (opc >> 8) & 1;
 
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
-#endif
+	dsp_op_read_reg(reg, RCX, ZERO);
 	imem_read();
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ac[dreg].m), R(EAX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[dreg].m)), R(RAX));
-#endif
+	set_acc_m(dreg, R(RAX));
 	dsp_conditional_extend_accum(dreg);
 	increment_addr_reg(reg);
 }
@@ -353,19 +285,9 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
 	u16 reg  = opc & 0x3;
 	u16 dreg = (opc >> 8) & 1;
 
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, ECX, M(&g_dsp.r.ar[reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(64, 16, RCX, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ar[reg])));
-#endif
+	dsp_op_read_reg(reg, RCX, ZERO);
 	imem_read();
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.ac[dreg].m), R(EAX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[dreg].m)), R(RAX));
-#endif
+	set_acc_m(dreg, R(RAX));
 	dsp_conditional_extend_accum(dreg);
 	increase_addr_reg(reg);
 }

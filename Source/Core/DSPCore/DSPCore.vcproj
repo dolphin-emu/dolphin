@@ -487,13 +487,21 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Jit\DSPJitRegCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Jit\DSPJitRegCache.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Jit\DSPJitUtil.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\Jit\DSPJitUtil.h"
 				>
-			</File>			
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"

@@ -25,30 +25,17 @@
 
 using namespace Gen;
 
-const int GetCodeSize(void(*jitCode)(const UDSPInstruction, DSPEmitter&), const UDSPInstruction opc, DSPEmitter &emitter)
+template <void(*jitCode)(const UDSPInstruction, DSPEmitter&)>
+static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 {
-	u16 pc = g_dsp.pc;
-	const u8* ptr = emitter.GetCodePtr();
-	jitCode(opc, emitter);
-	//emitter.JMP(emitter.GetCodePtr());
-	int size = (int)(emitter.GetCodePtr() - ptr);
-	emitter.SetCodePtr((u8*)ptr);
-	g_dsp.pc = pc;
-	return size;
-}
-
-const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
-{
-	if (cond == 0xf) // Always true.
-		return NULL;
-	//emitter.INT3();
+	u8 cond = opc & 0xf;
+	if (cond == 0xf) {// Always true.
+		jitCode(opc,emitter);
+		return;
+	}
 	FixupBranch skipCode2;
-#ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(&g_dsp.r.sr));
-#else
-	emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
-	emitter.MOV(16, R(EAX), MatR(RAX));
-#endif
+	emitter.dsp_op_read_reg(DSP_REG_SR, RAX);
+	DSPJitRegCache c2(emitter.gpr);
 	switch(cond)
 	{
 	case 0x0: // GE - Greater Equal
@@ -61,19 +48,17 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		emitter.SHR(16, R(EAX), Imm8(1)); //SR_OVERFLOW flag
 		emitter.NOT(16, R(EAX));
 		emitter.XOR(16, R(EAX), R(EDX));
-		emitter.TEST(16, R(EAX), Imm16(1));
-		if (cond < 0x2)
+		if (cond < 0x2) {
+			emitter.TEST(16, R(EAX), Imm16(1));
 			break;
-		
+		}
+		c2 = emitter.gpr;
+		emitter.TEST(16, R(EAX), Imm16(1));
+
 		//LE: problem in here, half the tests fail
 		skipCode2 = emitter.J_CC(CC_NE);
 		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
-#ifdef _M_IX86 // All32
-		emitter.MOV(16, R(EAX), M(&g_dsp.r.sr));
-#else
-		emitter.MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
-		emitter.MOV(16, R(EAX), MatR(RAX));
-#endif
+		emitter.dsp_op_read_reg(DSP_REG_SR, RAX);
 		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
 		break;
 	case 0x4: // NZ - Not Zero
@@ -107,6 +92,7 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		emitter.SETcc(CC_E, R(EAX));
 		emitter.TEST(8, R(EAX), R(EAX));
 		break;
+		//c2 = emitter.gpr;
 		//emitter.TEST(16, R(EAX), Imm16(SR_OVER_S32 | SR_TOP2BITS));
 		//skipCode2 = emitter.J_CC((CCFlags)(CC_E + (cond & 1)));
 		//emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
@@ -120,36 +106,22 @@ const u8* CheckCondition(DSPEmitter& emitter, u8 cond, u8 skipCodeSize)
 		emitter.TEST(16, R(EAX), Imm16(SR_OVERFLOW));
 		break;
 	}
+	DSPJitRegCache c1(emitter.gpr);
 	FixupBranch skipCode = cond == 0xe ? emitter.J_CC(CC_E) : emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
-	const u8* res = emitter.GetCodePtr();
-	emitter.NOP(skipCodeSize);
+	jitCode(opc,emitter);
+	emitter.gpr.flushRegs(c1);
 	emitter.SetJumpTarget(skipCode);
-	if ((cond | 1) == 0x3) // || (cond | 1) == 0xb)
+	if ((cond | 1) == 0x3) {// || (cond | 1) == 0xb)
+		emitter.gpr.flushRegs(c2);
 		emitter.SetJumpTarget(skipCode2);
-	return res;
+	} else {
+		c2.drop();
+	}
 }
 
-template <void(*jitCode)(const UDSPInstruction, DSPEmitter&)>
-void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
+static void WriteBranchExit(DSPEmitter& emitter)
 {
-	static const int codeSize = GetCodeSize(jitCode, opc, emitter);
-	//emitter.INT3();
-	const u8* codePtr = CheckCondition(emitter, opc & 0xf, codeSize);
-	//const u8* afterSkip = emitter.GetCodePtr();
-	if (codePtr != NULL) 
-		emitter.SetCodePtr((u8*)codePtr);
-	jitCode(opc, emitter);
-	//if (codePtr != NULL) 
-	//{
-	//	emitter.JMP(afterSkip + 4 + sizeof(void*));
-	//	emitter.SetCodePtr((u8*)afterSkip);
-	//	emitter.ADD(16, M(&g_dsp.pc), Imm8(1)); //4 bytes + pointer
-	//}
-}
-
-void WriteBranchExit(DSPEmitter& emitter)
-{
-	//		ABI_RestoreStack(0);
+	emitter.SaveDSPRegs();
 	emitter.ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
@@ -162,13 +134,14 @@ void WriteBranchExit(DSPEmitter& emitter)
 	emitter.RET();
 }
 
-void WriteBlockLink(DSPEmitter& emitter, u16 dest)
+static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 {
 	// Jump directly to the called block if it has already been compiled.
 	if (!(dest >= emitter.startAddr && dest <= emitter.compilePC))
 	{
 		if (emitter.blockLinks[dest] != 0 )
 		{
+			emitter.gpr.flushRegs();
 #ifdef _M_IX86 // All32
 			// Check if we have enough cycles to execute the next block
 			emitter.MOV(16, R(ESI), M(&cyclesLeft));
@@ -177,20 +150,15 @@ void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 
 			emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
 			emitter.MOV(16, M(&cyclesLeft), R(ESI));
-			emitter.JMPptr(M(&emitter.blockLinks[dest]));
-
-			emitter.SetJumpTarget(notEnoughCycles);
 #else
 			// Check if we have enough cycles to execute the next block
 			emitter.CMP(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
 			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
 			emitter.SUB(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr]));
-			emitter.MOV(64, R(RAX), ImmPtr((void *)emitter.blockLinks[dest]));
-			emitter.JMPptr(R(RAX));
-
-			emitter.SetJumpTarget(notEnoughCycles);
 #endif
+			emitter.JMP(emitter.blockLinks[dest], true);
+			emitter.SetJumpTarget(notEnoughCycles);
 		}
 		else
 		{
@@ -238,17 +206,14 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
-	u16 *regp = reg_ptr(reg);
 	//reg can only be DSP_REG_ARx and DSP_REG_IXx now,
 	//no need to handle DSP_REG_STx.
+	emitter.dsp_op_read_reg(reg, RAX, NONE);
 #ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(regp));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(64, R(RSI), ImmPtr(regp));
-	emitter.MOV(16, R(RSI), MatR(RSI));
-	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MatR(RAX), R(RSI));
+	emitter.MOV(64, R(RSI), ImmPtr(&(g_dsp.pc)));
+	emitter.MOV(16, MatR(RSI), R(RAX));
 #endif
 	WriteBranchExit(emitter);
 }
@@ -308,17 +273,14 @@ void DSPEmitter::call(const UDSPInstruction opc)
 void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
-	u16 *regp = reg_ptr(reg);
 	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 1));
 	emitter.dsp_reg_store_stack(DSP_STACK_C);
+	emitter.dsp_op_read_reg(reg, RAX, NONE);
 #ifdef _M_IX86 // All32
-	emitter.MOV(16, R(EAX), M(regp));
 	emitter.MOV(16, M(&g_dsp.pc), R(EAX));
 #else
-	emitter.MOV(64, R(RSI), ImmPtr(regp));
-	emitter.MOV(16, R(RSI), MatR(RSI));
-	emitter.MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
-	emitter.MOV(16, MatR(RAX), R(RSI));
+	emitter.MOV(64, R(RSI), ImmPtr(&(g_dsp.pc)));
+	emitter.MOV(16, MatR(RSI), R(RAX));
 #endif
 	WriteBranchExit(emitter);
 }
@@ -404,12 +366,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 {
 //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	dsp_reg_load_stack(DSP_STACK_D);
-#ifdef _M_IX86 // All32
-	MOV(16, M(&g_dsp.r.sr), R(DX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, sr)), R(DX));
-#endif
+	dsp_op_write_reg(DSP_REG_SR, RDX);
 //	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 	dsp_reg_load_stack(DSP_STACK_C);
 #ifdef _M_IX86 // All32
@@ -504,14 +461,8 @@ void DSPEmitter::HandleLoop()
 void DSPEmitter::loop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
-	u16 *regp = reg_ptr(reg);
 //	u16 cnt = g_dsp.r[reg];
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EDX, M(regp));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
-#endif
+	dsp_op_read_reg(reg, RDX, ZERO);
 	u16 loop_pc = compilePC + 1;
 
 	CMP(16, R(EDX), Imm16(0));
@@ -575,14 +526,8 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 void DSPEmitter::bloop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
-	u16* regp = reg_ptr(reg);
 //	u16 cnt = g_dsp.r[reg];
-#ifdef _M_IX86 // All32
-	MOVZX(32, 16, EDX, M(regp));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOVZX(32, 16, EDX, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
-#endif
+	dsp_op_read_reg(reg, RDX, ZERO);
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 
 	CMP(16, R(EDX), Imm16(0));
@@ -609,7 +554,9 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	MOV(64, R(RAX), ImmPtr(&(g_dsp.pc)));
 	MOV(16, MatR(RAX), Imm16(loop_pc + opTable[loop_pc]->size));
 #endif
+	DSPJitRegCache c(gpr);
 	WriteBranchExit(*this);
+	gpr.flushRegs(c,false);
 	SetJumpTarget(exit);
 }
 

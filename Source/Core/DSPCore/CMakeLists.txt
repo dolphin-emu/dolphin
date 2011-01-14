@@ -18,6 +18,7 @@ set(SRCS	Src/assemble.cpp
 			Src/DSPInterpreter.cpp
 			Src/DSPCore.cpp
 			Src/DSPTables.cpp
+			Src/Jit/DSPJitRegCache.cpp
 			Src/Jit/DSPJitExtOps.cpp
 			Src/Jit/DSPJitBranch.cpp
 			Src/Jit/DSPJitCCUtil.cpp

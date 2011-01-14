@@ -22,6 +22,7 @@
 #include "DSPCore.h"
 #include "DSPInterpreter.h"
 #include "DSPAnalyzer.h"
+#include "Jit/DSPJitUtil.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
@@ -30,15 +31,16 @@
 
 using namespace Gen;
 
-DSPEmitter::DSPEmitter() : storeIndex(-1), storeIndex2(-1)
+DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 {
 	m_compiledCode = NULL;
 
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
 	blocks = new CompiledCode[MAX_BLOCKS];
-	blockLinks = new CompiledCode[MAX_BLOCKS];
-	blockSize = new u16[0x10000];
+	blockLinks = new Block[MAX_BLOCKS];
+	blockSize = new u16[MAX_BLOCKS];
+	unresolvedJumps = new std::list<u16>[MAX_BLOCKS];
 	
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;
@@ -93,12 +95,17 @@ void DSPEmitter::checkExceptions(u32 retval)
 	MOV(16, MatR(RAX), Imm16(compilePC));
 #endif
 
+	DSPJitRegCache c(gpr);
+
+	SaveDSPRegs();
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
 
 	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	MOV(32, R(EAX), Imm32(retval));
 	RET();
+
+	gpr.flushRegs(c,false);
 
 	SetJumpTarget(skipCheck);
 }
@@ -206,13 +213,13 @@ void DSPEmitter::Compile(u16 start_addr)
 		return;	
 	*/
 
+	LoadDSPRegs();
+
 	blockLinkEntry = GetCodePtr();
 
 	compilePC = start_addr;
 	bool fixup_pc = false;
 	blockSize[start_addr] = 0;
-
-	LoadDSPRegs();
 
 	while (compilePC < start_addr + MAX_BLOCK_SIZE)
 	{
@@ -266,8 +273,9 @@ void DSPEmitter::Compile(u16 start_addr)
 
 			// These functions branch and therefore only need to be called in the
 			// end of each block and in this order
+			DSPJitRegCache c(gpr);
 			HandleLoop();
-			//		ABI_RestoreStack(0);
+			SaveDSPRegs();
 			ABI_PopAllCalleeSavedRegsAndAdjustStack();
 			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 			{
@@ -276,8 +284,9 @@ void DSPEmitter::Compile(u16 start_addr)
 			else
 			{
 				MOV(16, R(EAX), Imm16(blockSize[start_addr]));
-			}	
+			}
 			RET();
+			gpr.flushRegs(c,false);
 
 			SetJumpTarget(rLoopAddressExit);
 			SetJumpTarget(rLoopCounterExit);
@@ -303,8 +312,9 @@ void DSPEmitter::Compile(u16 start_addr)
 				CMP(16, R(AX), Imm16(compilePC));
 				FixupBranch rNoBranch = J_CC(CC_Z);
 
+				DSPJitRegCache c(gpr);
 				//don't update g_dsp.pc -- the branch insn already did
-				//		ABI_RestoreStack(0);
+				SaveDSPRegs();
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 				{
@@ -313,8 +323,9 @@ void DSPEmitter::Compile(u16 start_addr)
 				else
 				{
 					MOV(16, R(EAX), Imm16(blockSize[start_addr]));
-				}	
+				}
 				RET();
+				gpr.flushRegs(c,false);
 
 				SetJumpTarget(rNoBranch);
 			}
@@ -342,7 +353,7 @@ void DSPEmitter::Compile(u16 start_addr)
 	// any unresolved CALL's
 	if (unresolvedJumps[start_addr].empty())
 	{
-		blockLinks[start_addr] = (CompiledCode)blockLinkEntry;
+		blockLinks[start_addr] = blockLinkEntry;
 
 		for(u16 i = 0x0000; i < 0xffff; ++i)
 		{
@@ -372,7 +383,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
 	SaveDSPRegs();
 
-	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
@@ -389,9 +399,7 @@ const u8 *DSPEmitter::CompileStub()
 {
 	const u8 *entryPoint = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-	//	ABI_AlignStack(0);
 	ABI_CallFunction((void *)&CompileCurrent);
-	//	ABI_RestoreStack(0);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	//MOVZX(32, 16, ECX, M(&g_dsp.pc));
 	XOR(32, R(EAX), R(EAX)); // Return 0 cycles executed

@@ -22,12 +22,14 @@
 
 #include "DSPCommon.h"
 #include "x64Emitter.h"
+#include "Jit/DSPJitRegCache.h"
 
 #define COMPILED_CODE_SIZE sizeof(void *) * 0x200000
 
 #define MAX_BLOCKS 0x10000
 
 typedef u32 (*CompiledCode)();
+typedef const u8 *Block;
 
 class DSPEmitter : public Gen::XCodeBlock, NonCopyable
 {
@@ -35,14 +37,14 @@ public:
 	DSPEmitter();
 	~DSPEmitter();
 
-	const u8 *m_compiledCode;
+	Block m_compiledCode;
 
 	void EmitInstruction(UDSPInstruction inst);
 	void unknown_instruction(UDSPInstruction inst);
 	void ClearIRAM();
 
 	void CompileDispatcher();
-	const u8 *CompileStub();
+	Block CompileStub();
 	void Compile(u16 start_addr);
 	void ClearCallFlag();
 
@@ -113,7 +115,7 @@ public:
 	void dsp_op_write_reg_imm(int reg, u16 val);
 	void dsp_conditional_extend_accum(int reg);
 	void dsp_conditional_extend_accum_imm(int reg, u16 val);
-	void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg);
+	void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
 
 	// Commands
 	void dar(const UDSPInstruction opc);
@@ -253,13 +255,18 @@ public:
 	const u8 *stubEntryPoint;
 	u16 compilePC;
 	u16 startAddr;
-	CompiledCode *blockLinks;
+	Block *blockLinks;
 	u16 *blockSize;
-	std::list<u16> unresolvedJumps[0x10000];
+	std::list<u16> *unresolvedJumps;
+
+	DSPJitRegCache gpr;
+
+	void LoadDSPRegs();
+	void SaveDSPRegs();
 
 private:
 	CompiledCode *blocks;
-	const u8 *blockLinkEntry;
+	Block blockLinkEntry;
 	u16 compileSR;
 
 	// The index of the last stored ext value (compile time).
@@ -269,8 +276,6 @@ private:
 	// Counts down.
 	// int cycles;
 
-	void LoadDSPRegs();
-	void SaveDSPRegs();
 
 	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
@@ -282,8 +287,12 @@ private:
 	void set_long_prod();
 	void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
 	void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
-	void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX);
-	void set_acc_m(int _reg);
+	void get_acc_h(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+	void set_acc_h(int _reg, Gen::OpArg arg = R(Gen::EAX));
+	void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+	void set_acc_m(int _reg, Gen::OpArg arg = R(Gen::EAX));
+	void get_acc_l(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+	void set_acc_l(int _reg, Gen::OpArg arg = R(Gen::EAX));
 	void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
 	void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
 	void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);

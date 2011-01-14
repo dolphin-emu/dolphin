@@ -195,16 +195,16 @@ inline u32 PtrOffset(void* ptr, void* base) {
 		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
 		return 0;
 	}
-	return distance;
+	return (u32)distance;
 #else
 	return (u32)ptr-(u32)base;
 #endif
 }
 
 //usage: int a[]; ARRAY_OFFSET(a,10)
-#define ARRAY_OFFSET(array,index) ((u64)&(array)[index]-(u64)&(array)[0])
+#define ARRAY_OFFSET(array,index) ((u32)((u64)&(array)[index]-(u64)&(array)[0]))
 //usage: struct {int e;} s; STRUCT_OFFSET(s,e)
-#define STRUCT_OFFSET(str,elem) ((u64)&(str).elem-(u64)&(str))
+#define STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
 
 struct FixupBranch
 {
