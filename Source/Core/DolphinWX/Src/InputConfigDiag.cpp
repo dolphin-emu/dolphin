@@ -983,7 +983,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	{
 		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_plugin, i, this);
 		m_padpages.push_back(gp);
-		m_pad_notebook->AddPage(gp, wxString::FromAscii(m_plugin.gui_name) + wxT(' ') + wxChar('1'+i));
+		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), WXTSTR_FROM_CSTR(m_plugin.gui_name), 1+i));
 	}
 
 	m_pad_notebook->SetSelection(tab_num);

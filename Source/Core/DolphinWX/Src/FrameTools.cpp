@@ -1220,7 +1220,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 	if (Core::isRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
+		wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
 					connect ? _("Connected") : _("Disconnected")));
 		Core::DisplayMessage(msg.ToAscii(), 3000);
 	}

@@ -26,7 +26,7 @@
 namespace Pad
 {
 
-static InputPlugin g_plugin("GCPadNew", "Pad", "GCPad");
+static InputPlugin g_plugin("GCPadNew", _trans("Pad"), "GCPad");
 InputPlugin *GetPlugin()
 {
 	return &g_plugin;

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 12:21-0600\n"
+"POT-Creation-Date: 2011-01-14 13:15-0600\n"
 "PO-Revision-Date: 2011-01-09 13:55-0800\n"
 "Last-Translator: thegfw <thegfw@gmail.com>\n"
 "Language-Team: \n"
@@ -259,7 +259,7 @@ msgstr "视图(&V)"
 msgid "&Wiimote Settings"
 msgstr "&Wiimote 设置"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:440
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:442
 msgid "(off)"
 msgstr "(关)"
 
@@ -267,7 +267,7 @@ msgstr "(关)"
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:221
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:223
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D Vision (需要全屏)"
 
@@ -360,7 +360,7 @@ msgid "Acceleration"
 msgstr "加速器"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:294
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:296
 msgid "Accurate Texture Cache"
 msgstr "准确纹理缓存"
 
@@ -441,7 +441,7 @@ msgstr ""
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:148
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:150
 msgid "Adapter:"
 msgstr "适配器:"
 
@@ -476,7 +476,7 @@ msgstr "地址 :"
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Adjust the analog control pressure required to activate buttons."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:344
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:346
 msgid "Advanced"
 msgstr "高级"
 
@@ -513,7 +513,7 @@ msgstr "所有压缩的 GC/Wii 镜像文件 (gcz)"
 msgid "All files (*.*)|*.*"
 msgstr "所有文件 (*.*)|*.*"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:77
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:79
 msgid ""
 "Allows the CPU to read or write to the EFB (render buffer).\n"
 "This is needed for certain gameplay functionality (e.g. star pointer in "
@@ -533,11 +533,11 @@ msgstr ""
 msgid "Alternate RFI"
 msgstr "Alternate RFI"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:188
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:190
 msgid "Anisotropic Filtering:"
 msgstr "各向异性过滤:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:193
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:195
 msgid "Anti-Aliasing:"
 msgstr "抗锯齿:"
 
@@ -575,7 +575,7 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "请确认真的要删除这些文件?这将是永久性的删除!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:169
 msgid "Aspect Ratio:"
 msgstr "高宽比:"
 
@@ -596,7 +596,7 @@ msgstr ""
 msgid "Auto"
 msgstr "自动"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:164
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
 msgid "Auto [recommended]"
 msgstr "自动 [推荐]"
 
@@ -640,7 +640,7 @@ msgstr "标志:"
 msgid "Bar"
 msgstr "标志"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:128
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:130
 msgid "Basic"
 msgstr "基本"
 
@@ -724,7 +724,7 @@ msgstr ""
 msgid "CPU Emulator Engine"
 msgstr "CPU 模拟引擎"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:72
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:74
 msgid ""
 "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
 "vertex.\n"
@@ -912,7 +912,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:274
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:110
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:463
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:465
 msgid "Close"
 msgstr "关闭"
 
@@ -1046,7 +1046,7 @@ msgstr "控制"
 msgid "Convert to GCI"
 msgstr "转换到 GCI"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:259
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:261
 msgid "Copy"
 msgstr "复制"
 
@@ -1167,7 +1167,7 @@ msgstr "Created by black_rider and published on ForumW.org > Web Developments"
 msgid "Creator: "
 msgstr "Creator: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
 msgid "Crop"
 msgstr "Crop"
 
@@ -1317,39 +1317,39 @@ msgid ""
 " and Directory backup checksum failed"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:358
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:360
 msgid "Disable Dest. Alpha Pass"
 msgstr "Disable Dest. Alpha Pass"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:359
 msgid "Disable Fog"
 msgstr "禁用雾化"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
 msgid "Disable Lighting"
 msgstr "禁用光线"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:358
 msgid "Disable Textures"
 msgstr "禁用材质"
 
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:89
+msgid ""
+"Disable fog. Improves performance but causes glitches in games which rely on "
+"proper fog emulation."
+msgstr ""
+"Disable fog. Improves performance but causes glitches in games which rely on "
+"proper fog emulation."
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:87
 msgid ""
-"Disable fog. Improves performance but causes glitches in games which rely on "
-"proper fog emulation."
-msgstr ""
-"Disable fog. Improves performance but causes glitches in games which rely on "
-"proper fog emulation."
-
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:85
-msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
 msgstr ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:86
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:88
 msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
@@ -1357,7 +1357,7 @@ msgstr ""
 "禁用材质.\n"
 "这个只对调试有用处."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:88
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:90
 msgid ""
 "Disables an alpha-setting pass.\n"
 "Breaks certain effects but might help performance."
@@ -1398,7 +1398,7 @@ msgstr "您确定是否停止当前模拟?"
 msgid "Dolphin"
 msgstr "Dolphin"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:110
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:112
 #, fuzzy, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr " 图形设置"
@@ -1503,19 +1503,19 @@ msgstr ""
 msgid "Dummy"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:416
 msgid "Dump EFB Target"
 msgstr "转储 EFB 目标"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:417
 msgid "Dump Frames"
 msgstr "转储框架"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:412
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
 msgid "Dump Textures"
 msgstr "转储材质"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:95
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:97
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
 msgstr "转储游戏材质到 User/Dump/Textures/<游戏 ID>/"
 
@@ -1529,15 +1529,15 @@ msgstr "荷兰"
 msgid "E&xit"
 msgstr "退出模拟(&X)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:228
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:230
 msgid "EFB"
 msgstr "EFB"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:374
 msgid "EFB Copy Regions"
 msgstr "EFB 复制范围"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
 msgid "EFB Scaled Copy"
 msgstr "EFB Scaled Copy"
 
@@ -1588,11 +1588,11 @@ msgstr "完美"
 msgid "Emu Thread already running"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:249
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:251
 msgid "Emulate format changes"
 msgstr "模拟格式修改"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:80
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:82
 msgid ""
 "Emulate frame buffer copies directly to textures.\n"
 "This is not so accurate, but it's good enough for the way many games use "
@@ -1616,9 +1616,9 @@ msgid "Emulator Display Settings"
 msgstr "模拟器显示设置"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:262
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:297
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:381
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:264
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:299
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
 msgid "Enable"
 msgstr "启用"
 
@@ -1640,7 +1640,7 @@ msgid "Enable Block Merging"
 msgstr "启用区块合并"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:248
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:250
 msgid "Enable CPU Access"
 msgstr "启用CPU访问"
 
@@ -1657,7 +1657,7 @@ msgstr "启用复制到EFB"
 msgid "Enable DTK Music"
 msgstr "启用 DTK 音乐"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:430
 msgid "Enable Display List Caching"
 msgstr "启用显示列表缓存"
 
@@ -1677,7 +1677,7 @@ msgstr "启用 EFB 到材质"
 msgid "Enable HLE Audio"
 msgstr "启用 HLE 音频"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:429
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:431
 msgid "Enable Hotkeys"
 msgstr "启用热键"
 
@@ -1697,7 +1697,7 @@ msgstr "Enable JIT Dynarec"
 msgid "Enable MMU"
 msgstr "启用 MMU"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:429
 msgid "Enable OpenCL"
 msgstr "启用 OpenCL"
 
@@ -1714,11 +1714,11 @@ msgstr "Enable Screen Saver (burn-in reduction)"
 msgid "Enable WideScreen"
 msgstr "启用宽屏"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:354
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
 msgid "Enable Wireframe"
 msgstr "启用线框"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:268
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:270
 msgid "Enable cache"
 msgstr "启用缓存"
 
@@ -1750,7 +1750,7 @@ msgstr ""
 "Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = "
 "Fast)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:68
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:70
 msgid ""
 "Enables anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles."
@@ -1766,7 +1766,7 @@ msgstr ""
 "Enables dynamic recompilation of DSP code.\n"
 "Changing this will have no effect while the emulator is running!"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:79
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:81
 msgid ""
 "Enables emulation of Embedded Frame Buffer copies, if the game uses them.\n"
 "Games often need this for post-processing or other things, but if you can "
@@ -1776,7 +1776,7 @@ msgstr ""
 "Games often need this for post-processing or other things, but if you can "
 "live without it, you can sometimes get a big speedup."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:78
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:80
 msgid ""
 "Enables reinterpreting the data inside the EFB when the pixel format "
 "changes.\n"
@@ -1810,7 +1810,7 @@ msgstr "End"
 msgid "English"
 msgstr "英语"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:183
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:185
 msgid "Enhancements"
 msgstr "增强"
 
@@ -2076,7 +2076,7 @@ msgstr ""
 msgid "Failed to write header for file %d"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:313
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:315
 msgid "Fast"
 msgstr "快速"
 
@@ -2084,7 +2084,7 @@ msgstr "快速"
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "MMU 快速版本.  任何游戏都不能工作"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:83
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:85
 msgid ""
 "Faster variants look at fewer pixels and thus have more potential for "
 "errors.\n"
@@ -2144,15 +2144,15 @@ msgstr "第一个区块"
 msgid "Fix Checksums"
 msgstr "修正校检和"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
 msgid "Force 16:9"
 msgstr "强制 16:9"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
 msgid "Force 4:3"
 msgstr "强制 4:3"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:217
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:219
 msgid "Force Bi/Trilinear Filtering"
 msgstr "强制双/三线过滤"
 
@@ -2160,7 +2160,7 @@ msgstr "强制双/三线过滤"
 msgid "Force Filtering"
 msgstr "强制过滤"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:66
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:68
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Note that this might cause graphical glitches"
@@ -2168,7 +2168,7 @@ msgstr ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Note that this might cause graphical glitches"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:74
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:76
 msgid ""
 "Forces bilinear texture filtering even if the game explicitly disabled it.\n"
 "Improves texture quality (especially when using a high internal resolution) "
@@ -2188,7 +2188,7 @@ msgstr ""
 msgid "Forward"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:235
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:237
 msgid "Fractional"
 msgstr "Fractional"
 
@@ -2200,7 +2200,7 @@ msgstr "帧数跳跃(&K)"
 msgid "Framelimit :"
 msgstr "帧限制 :"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:416
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:418
 msgid "Free Look"
 msgstr "Free Look"
 
@@ -2222,7 +2222,7 @@ msgstr "全屏"
 msgid "Fullscreen Display Resolution:"
 msgstr "全屏分辨率:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:81
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:83
 msgid ""
 "Fully emulate embedded frame buffer copies.\n"
 "This is more accurate than EFB Copy to Texture, and some games need this to "
@@ -2290,7 +2290,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:435
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:123
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:125
 msgid "General"
 msgstr "常规"
 
@@ -2515,7 +2515,7 @@ msgstr "进游戏"
 msgid "Info"
 msgstr "信息"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:363
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:365
 #: Source/Core/Common/Src/MsgHandler.cpp:65
 msgid "Information"
 msgstr "信息"
@@ -2565,7 +2565,7 @@ msgstr ""
 msgid "Installing WAD to Wii Menu..."
 msgstr "安装 WAD 到 Wii 菜单中..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:235
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:237
 msgid "Integral [recommended]"
 msgstr "Integral [recommended]"
 
@@ -2668,7 +2668,7 @@ msgstr "日语"
 msgid "KOREA"
 msgstr "韩国"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:82
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:84
 msgid ""
 "Keeps track of textures based on looking at the actual pixels in the "
 "texture.\n"
@@ -2745,11 +2745,11 @@ msgstr "小于"
 msgid "Load"
 msgstr "载入"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
 msgid "Load Hi-Res Textures"
 msgstr "Load Hi-Res Textures"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:213
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
 msgid "Load Native Mipmaps"
 msgstr "Load Native Mipmaps"
 
@@ -2766,11 +2766,11 @@ msgstr "Load State..."
 msgid "Load Wii System Menu (%d %c)"
 msgstr "载入 Wii 系统菜单(%d %c)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:96
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:98
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
 msgstr "Load high-resolution textures from User/Load/Textures/<game id>/"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:70
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:72
 msgid ""
 "Loads native mipmaps instead of generating them.\n"
 "Loading native mipmaps is the more accurate behavior, but might also "
@@ -2885,7 +2885,7 @@ msgstr "Metroid Other M"
 msgid "Mic"
 msgstr "其它"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:421
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:423
 msgid "Misc"
 msgstr "其它"
 
@@ -2902,7 +2902,7 @@ msgstr ""
 msgid "Modifier"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:92
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:94
 msgid ""
 "Modify textures to show the format they're using.\n"
 "This is only useful for debugging purposes."
@@ -3082,7 +3082,7 @@ msgstr ""
 msgid "None"
 msgstr "无"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:308
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:310
 msgid "Normal"
 msgstr "正常"
 
@@ -3235,6 +3235,11 @@ msgstr "输出"
 msgid "P&lay Recording..."
 msgstr "播放录制(&L)..."
 
+#: Source/Core/Core/Src/HW/GCPad.cpp:29
+#, fuzzy
+msgid "Pad"
+msgstr "手柄"
+
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:557
 msgid "Pad "
 msgstr "手柄"
@@ -3287,11 +3292,11 @@ msgstr "完美"
 msgid "Perspective %d"
 msgstr "Perspective %d"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:218
 msgid "Pixel Depth"
 msgstr "像素深度"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:217
 msgid "Pixel Lighting"
 msgstr "像素光线"
 
@@ -3345,7 +3350,7 @@ msgid ""
 "dolphin is not located in?"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:436
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:438
 msgid "Post-Processing Shader:"
 msgstr "Post-Processing Shader:"
 
@@ -3373,7 +3378,7 @@ msgstr "Profile"
 msgid "Projection Hack for: "
 msgstr "Projection Hack for: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
 msgid "Projection Stats"
 msgstr "Projection Stats"
 
@@ -3408,7 +3413,7 @@ msgstr "R 键"
 msgid "R-Analog"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:268
 msgid "RAM"
 msgstr "内存"
 
@@ -3420,7 +3425,7 @@ msgstr "俄语"
 msgid "Range"
 msgstr "范围"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:384
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:386
 msgid "Real"
 msgstr "真实"
 
@@ -3447,7 +3452,7 @@ msgstr "NP Left"
 msgid "Red Right"
 msgstr "Right"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:71
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
 "This makes the rendered picture look less blocky but also heavily decreases "
@@ -3478,7 +3483,7 @@ msgstr ""
 msgid "Remove"
 msgstr "移除"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:84
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:86
 msgid ""
 "Render the scene as a wireframe.\n"
 "This is only useful for debugging purposes."
@@ -3494,7 +3499,7 @@ msgstr "附加到主窗口"
 msgid "Render to main window."
 msgstr "附加到主窗口."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:349
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:351
 msgid "Rendering"
 msgstr "Rendering"
 
@@ -3544,7 +3549,7 @@ msgstr "俄语"
 msgid "Sa&ve State"
 msgstr "保存状态(&V)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:302
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:304
 msgid "Safe"
 msgstr "安全"
 
@@ -3588,7 +3593,7 @@ msgstr "保存解压缩的GCM/镜像"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:241
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:243
 msgid "Scale:"
 msgstr "Scale:"
 
@@ -3632,7 +3637,7 @@ msgstr "Select"
 msgid "Select The Recording File"
 msgstr "选择录制文件"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:64
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:66
 msgid ""
 "Select a hardware adapter to use.\n"
 "When in doubt, use the first one"
@@ -3678,7 +3683,7 @@ msgstr "选择要载入的状态"
 msgid "Select the state to save"
 msgstr "选择要保存的状态"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:65
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:67
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio (4:3)\n"
@@ -3775,7 +3780,7 @@ msgstr "显示工具栏(&T)"
 msgid "Show Drives"
 msgstr "显示驱动器"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:368
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
 msgid "Show FPS"
 msgstr "显示 FPS"
 
@@ -3815,7 +3820,7 @@ msgstr "显示平台"
 msgid "Show Regions"
 msgstr "显示国家"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:373
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:375
 msgid "Show Shader Errors"
 msgstr "显示阴影错误"
 
@@ -3851,7 +3856,7 @@ msgstr ""
 "mean that Dolphin\n"
 "suddenly crashes without any explanation at all."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:91
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:93
 msgid ""
 "Show projection statistics.\n"
 "This is only useful for debugging purposes."
@@ -3879,7 +3884,7 @@ msgstr "显示存档图标"
 msgid "Show save title"
 msgstr "显示存档标题"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:89
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:91
 msgid "Show the number of frames rendered per second."
 msgstr "Show the number of frames rendered per second."
 
@@ -3891,7 +3896,7 @@ msgstr "显示这个帮助消息"
 msgid "Show unknown"
 msgstr "显示未知"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:90
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:92
 msgid ""
 "Show various statistics.\n"
 "This is only useful for debugging purposes."
@@ -3958,7 +3963,7 @@ msgstr "空格"
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:76
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:78
 msgid ""
 "Specifies the resolution used to render at. A high resolution will improve "
 "visual quality but is also quite heavy on performance and might cause "
@@ -4041,7 +4046,7 @@ msgstr ""
 msgid "Stop"
 msgstr "停止"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
 msgid "Stretch to Window"
 msgstr "附加到窗口"
 
@@ -4104,11 +4109,11 @@ msgstr "屏幕截图(&T)"
 msgid "Test"
 msgstr "测试"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:264
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
 msgid "Texture"
 msgstr "材质"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:373
 msgid "Texture Format"
 msgstr "材质格式"
 
@@ -4426,7 +4431,7 @@ msgstr "使用警告程序"
 msgid "Use XFB"
 msgstr "使用 XFB"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:71
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:73
 msgid ""
 "Uses the high-resolution render buffer for EFB copies instead of scaling "
 "them down to native resolution.\n"
@@ -4438,11 +4443,11 @@ msgstr ""
 "Vastly improves visual quality in games which use EFB copies but might cause "
 "glitches in some games."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:407
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:409
 msgid "Utility"
 msgstr "Utility"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:178
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:180
 msgid "V-Sync"
 msgstr "垂直同步"
 
@@ -4458,7 +4463,7 @@ msgstr "值:"
 msgid "Value: "
 msgstr "值: "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
 msgid "Various Statistics"
 msgstr "各种统计数据"
 
@@ -4470,7 +4475,7 @@ msgstr "详细"
 msgid "Video"
 msgstr "视频"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:385
 msgid "Virtual"
 msgstr "虚拟"
 
@@ -4486,7 +4491,7 @@ msgstr "音量"
 msgid "WAD installation failed: error creating %s"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:67
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:69
 msgid ""
 "Wait for vertical blanks.\n"
 "Reduces tearing but might also decrease performance"
@@ -4538,7 +4543,7 @@ msgstr ""
 msgid "Whammy"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:108
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
 "texture, which is a very time-consuming task.\n"
@@ -4560,7 +4565,7 @@ msgstr ""
 "(NOTE: The safier the texture cache is adjusted the lower the speedup will "
 "be; accurate texture cache set to \"safe\" might actually be slower!)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:176
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:178
 msgid "Widescreen Hack"
 msgstr "宽屏破解"
 
@@ -4589,12 +4594,18 @@ msgid "WiiWAD: Could not read from file"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:371
+#: Source/Core/Core/Src/HW/Wiimote.cpp:15
 msgid "Wiimote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:76
 #, fuzzy
 msgid "Wiimote "
+msgstr "Wiimote"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1223
+#, fuzzy, c-format
+msgid "Wiimote %i %s"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:174
@@ -4691,7 +4702,7 @@ msgstr ""
 msgid "XAudio2 master voice creation failed: %#X"
 msgstr ""
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:378
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:380
 msgid "XFB"
 msgstr "XFB"
 

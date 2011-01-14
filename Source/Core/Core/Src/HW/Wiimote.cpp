@@ -12,7 +12,7 @@
 namespace Wiimote
 {
 
-static InputPlugin g_plugin(WIIMOTE_INI_NAME, "Wiimote", "Wiimote");
+static InputPlugin g_plugin(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
 InputPlugin *GetPlugin()
 {
 	return &g_plugin;
