@@ -353,7 +353,6 @@ dirs = [
     'Source/Core/DiscIO/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/InputCommon/Src',
-    'Source/Core/InputUICommon/Src',
     'Source/Core/VideoCommon/Src',
     'Source/Core/VideoUICommon/Src',
     'Source/DSPTool/Src',

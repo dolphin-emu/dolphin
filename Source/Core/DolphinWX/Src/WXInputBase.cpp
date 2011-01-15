@@ -32,8 +32,8 @@ const wxString WXKeyToString(int keycode)
 		case WXK_DELETE:			return _("Delete");
 
 		// Undocumented wx keycodes
-		case 167:					return _("Paragraph");
-		case 177:					return _("Plus-Minus");
+		case 167:				return _("Paragraph");
+		case 177:				return _("Plus-Minus");
 
 		case WXK_START:				return _("Start");
 		case WXK_LBUTTON:			return _("L Button");
@@ -103,34 +103,34 @@ const wxString WXKeyToString(int keycode)
 		case WXK_SCROLL:			return _("Scroll Lock");
 		case WXK_PAGEUP:			return _("Page Up");
 		case WXK_PAGEDOWN:			return _("Page Down");
-		case WXK_NUMPAD_SPACE:		return _("NP Space");
-		case WXK_NUMPAD_TAB:		return _("NP Tab");
-		case WXK_NUMPAD_ENTER:		return _("NP Enter");
+		case WXK_NUMPAD_SPACE:			return _("NP Space");
+		case WXK_NUMPAD_TAB:			return _("NP Tab");
+		case WXK_NUMPAD_ENTER:			return _("NP Enter");
 		case WXK_NUMPAD_F1:			return wxT("NP F1");
 		case WXK_NUMPAD_F2:			return wxT("NP F2");
 		case WXK_NUMPAD_F3:			return wxT("NP F3");
 		case WXK_NUMPAD_F4:			return wxT("NP F4");
-		case WXK_NUMPAD_HOME:		return _("NP Home");
-		case WXK_NUMPAD_LEFT:		return _("NP Left");
+		case WXK_NUMPAD_HOME:			return _("NP Home");
+		case WXK_NUMPAD_LEFT:			return _("NP Left");
 		case WXK_NUMPAD_UP:			return _("NP Up");
-		case WXK_NUMPAD_RIGHT:		return _("NP Right");
-		case WXK_NUMPAD_DOWN:		return _("NP Down");
-		case WXK_NUMPAD_PAGEUP:		return _("NP Page Up");
-		case WXK_NUMPAD_PAGEDOWN:	return _("NP Page Down");
-		case WXK_NUMPAD_END:		return _("NP End");
-		case WXK_NUMPAD_BEGIN:		return _("NP Begin");
-		case WXK_NUMPAD_INSERT:		return _("NP Insert");
-		case WXK_NUMPAD_DELETE:		return _("NP Delete");
-		case WXK_NUMPAD_EQUAL:		return _("NP Equal");
-		case WXK_NUMPAD_MULTIPLY:	return _("NP Multiply");
-		case WXK_NUMPAD_ADD:		return _("NP Add");
-		case WXK_NUMPAD_SEPARATOR:	return _("NP Separator");
-		case WXK_NUMPAD_SUBTRACT:	return _("NP Subtract");
-		case WXK_NUMPAD_DECIMAL:	return _("NP Decimal");
-		case WXK_NUMPAD_DIVIDE:		return _("NP Divide");
-		case WXK_WINDOWS_LEFT:		return _("Windows Left");
-		case WXK_WINDOWS_RIGHT:		return _("Windows Right");
-		case WXK_WINDOWS_MENU:		return _("Windows Menu");
+		case WXK_NUMPAD_RIGHT:			return _("NP Right");
+		case WXK_NUMPAD_DOWN:			return _("NP Down");
+		case WXK_NUMPAD_PAGEUP:			return _("NP Page Up");
+		case WXK_NUMPAD_PAGEDOWN:		return _("NP Page Down");
+		case WXK_NUMPAD_END:			return _("NP End");
+		case WXK_NUMPAD_BEGIN:			return _("NP Begin");
+		case WXK_NUMPAD_INSERT:			return _("NP Insert");
+		case WXK_NUMPAD_DELETE:			return _("NP Delete");
+		case WXK_NUMPAD_EQUAL:			return _("NP Equal");
+		case WXK_NUMPAD_MULTIPLY:		return _("NP Multiply");
+		case WXK_NUMPAD_ADD:			return _("NP Add");
+		case WXK_NUMPAD_SEPARATOR:		return _("NP Separator");
+		case WXK_NUMPAD_SUBTRACT:		return _("NP Subtract");
+		case WXK_NUMPAD_DECIMAL:		return _("NP Decimal");
+		case WXK_NUMPAD_DIVIDE:			return _("NP Divide");
+		case WXK_WINDOWS_LEFT:			return _("Windows Left");
+		case WXK_WINDOWS_RIGHT:			return _("Windows Right");
+		case WXK_WINDOWS_MENU:			return _("Windows Menu");
 		case WXK_COMMAND:			return _("Command");
 	}
 
@@ -152,7 +152,7 @@ const wxString WXKeymodToString(int modifier)
 		// wxWidgets can only use Alt/Ctrl/Shift as menu accelerators,
 		// so Meta (Command on OS X) is simply made equivalent to Ctrl.
 		case wxMOD_META:			return wxT("Ctrl");
-		default:					return wxT("");
+		default:				return wxT("");
 	}
 }
 

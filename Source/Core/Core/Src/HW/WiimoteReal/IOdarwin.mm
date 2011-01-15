@@ -211,12 +211,13 @@ void Wiimote::RealDisconnect()
 
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
+	m_connected = false;
+
 	[btd closeConnection];
 
 	btd = NULL;
 	cchan = NULL;
 	ichan = NULL;
-	m_connected = false;
 }
 
 int Wiimote::IORead(unsigned char *buf)

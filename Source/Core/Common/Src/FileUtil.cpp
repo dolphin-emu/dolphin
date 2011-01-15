@@ -598,15 +598,8 @@ std::string GetBundleDirectory()
 	CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
 	CFRelease(BundleRef);
 	CFRelease(BundlePath);
-#if defined(HAVE_WX) && HAVE_WX
+
 	return AppBundlePath;
-#else
-	std::string NoWxBundleDirectory;
-	NoWxBundleDirectory=AppBundlePath;
-	NoWxBundleDirectory+=DIR_SEP;
-	NoWxBundleDirectory+="Dolphin.app";
-	return NoWxBundleDirectory;
-#endif
 }
 #endif
 

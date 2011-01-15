@@ -371,6 +371,7 @@ unsigned int Initialize()
 
 	// Initialized
 	g_real_wiimotes_initialized = true;
+	atexit(WiimoteReal::Shutdown);
 
 	g_wiimotes_found = FindWiimotes(g_wiimotes, wanted_wiimotes);
 

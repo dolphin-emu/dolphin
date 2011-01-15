@@ -18,10 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
-#ifndef _WIN32
-#include <sys/param.h>
-#endif
+#include <getopt.h>
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -33,13 +30,12 @@
 #endif
 
 #ifdef __APPLE__
-#import "cocoaApp.h"
+#import <Cocoa/Cocoa.h>
 #endif
 
 #include "Core.h"
 #include "Host.h"
 #include "CPUDetect.h"
-#include "cmdline.h"
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/Wiimote.h"
@@ -49,11 +45,8 @@
 #include "LogManager.h"
 #include "BootManager.h"
 
-#if defined HAVE_X11 && HAVE_X11
-bool running = true;
-#endif
-
 bool rendererHasFocus = true;
+bool running = true;
 
 void Host_NotifyMapLoaded(){}
 
@@ -62,23 +55,19 @@ void Host_ShowJitResults(unsigned int address){}
 Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
-#if defined(HAVE_X11) && HAVE_X11
 	switch (Id)
 	{
 		case WM_USER_STOP:
 			running = false;
 			break;
 	}
-#endif
 }
 
 void Host_UpdateTitle(const char* title){};
 
 void Host_UpdateLogDisplay(){}
 
-
 void Host_UpdateDisasmDialog(){}
-
 
 void Host_UpdateMainFrame()
 {
@@ -87,9 +76,7 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateBreakPointView(){}
 
-
 void Host_UpdateMemoryView(){}
-
 
 void Host_SetDebugMode(bool){}
 
@@ -112,10 +99,9 @@ void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
 void Host_SetWaitCursor(bool enable){}
 
-
 void Host_UpdateStatusBar(const char* _pText, int Filed){}
 
-void Host_SysMessage(const char *fmt, ...) 
+void Host_SysMessage(const char *fmt, ...)
 {
 	va_list list;
 	char msg[512];
@@ -271,146 +257,143 @@ void X11_MainLoop()
 }
 #endif
 
-//for cocoa we need to hijack the main to get event
 #ifdef __APPLE__
+
+int cocoaArgc;
+char **cocoaArgv;
+int appleMain(int argc, char *argv[]);
 
 @interface CocoaThread : NSObject
 {
 	NSThread *Thread;
 }
 - (void)cocoaThreadStart;
-- (void)cocoaThreadRun:(id)sender;
-- (void)cocoaThreadQuit:(NSNotification*)note;
-- (bool)cocoaThreadRunning;
+- (void)cocoaThreadRun: (id) sender;
 @end
-
-static NSString *CocoaThreadHaveFinish = @"CocoaThreadHaveFinish";
-
-int cocoaArgc;
-char **cocoaArgv;
-int appleMain(int argc, char *argv[]);
 
 @implementation CocoaThread
-
+#define CocoaThreadHaveFinish @"CocoaThreadHaveFinish"
 - (void)cocoaThreadStart
 {
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(cocoaThreadQuit:) name:CocoaThreadHaveFinish object:nil];
-	[NSThread detachNewThreadSelector:@selector(cocoaThreadRun:) toTarget:self withObject:nil];
-
+	[NSThread detachNewThreadSelector: @selector(cocoaThreadRun:)
+		toTarget: self withObject: nil];
 }
 
-- (void)cocoaThreadRun:(id)sender
+- (void)cocoaThreadRun: (id) sender
 {
-
-	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	Thread = [NSThread currentThread];
-	//launch main
-	appleMain(cocoaArgc,cocoaArgv);
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:CocoaThreadHaveFinish object:nil];
+
+	appleMain(cocoaArgc, cocoaArgv);
 
 	[pool release];
-
 }
-
-- (void)cocoaThreadQuit:(NSNotification*)note
-{
-
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-}
-
-- (bool)cocoaThreadRunning
-{
-	if([Thread isFinished])
-		return false;
-	else 
-		return true;
-}
-
 @end
-
 
 int main(int argc, char *argv[])
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSEvent *event = [[NSEvent alloc] init];	
+	CocoaThread *thread = [[CocoaThread alloc] init];
+	ProcessSerialNumber psn;
 
 	cocoaArgc = argc;
 	cocoaArgv = argv;
 
-	cocoaCreateApp();
+	GetCurrentProcess(&psn);
+	TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+	SetFrontProcess(&psn);
 
-	CocoaThread *thread = [[CocoaThread alloc] init];
-	NSEvent *event = [[NSEvent alloc] init];	
-	
+	if (NSApp == nil) {
+		[NSApplication sharedApplication];
+		//TODO : Create menu
+		[NSApp finishLaunching];
+	}
+
 	[thread cocoaThreadStart];
 
-	//cocoa event loop
-	while(1)
+	while (1)
 	{
-		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
-		if(cocoaSendEvent(event))
-		{
+		event = [NSApp nextEventMatchingMask: NSKeyDownMask
+			untilDate: [NSDate distantFuture]
+			inMode: NSDefaultRunLoopMode dequeue: YES];
+
+		if (([event modifierFlags] & NSCommandKeyMask) == 0)
+			continue;
+
+		if ([[event characters] UTF8String][0] == 'q') {
 			Core::Stop();
 			break;
-		}
-		if(![thread cocoaThreadRunning])
-			break;
+		} else
+			[NSApp sendEvent: event];
 	}	
-
 
 	[event release];
 	[thread release];
 	[pool release];
 }
 
-
 int appleMain(int argc, char *argv[])
 #else
 int main(int argc, char* argv[])
 #endif
 {
-	gengetopt_args_info args_info;
+	int ch, help = 0;
+	struct option longopts[] = {
+		{ "exec",	no_argument,	NULL,	'e' },
+		{ "help",	no_argument,	NULL,	'h' },
+		{ "version",	no_argument,	NULL,	'v' },
+		{ NULL,		0,		NULL,	0 }
+	};
 
-	if (cmdline_parser(argc, argv, &args_info) != 0)
-		return(1);
-
-	if (args_info.inputs_num < 1)
-	{
-		fprintf(stderr, "Please supply at least one argument - the ISO to boot.\n");
-		return(1);
+	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1) {
+		switch (ch) {
+		case 'e':
+			break;
+		case 'h':
+		case '?':
+			help = 1;
+			break;
+		case 'v':
+			fprintf(stderr, "%s\n", svn_rev_str);
+			return 1;
+		}
 	}
-	std::string bootFile(args_info.inputs[0]);
+
+	if (help == 1 || argc == optind) {
+		fprintf(stderr, "%s\n\n", svn_rev_str);
+		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
+		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
+		fprintf(stderr, "  -e, --exec	Load the specified file\n");
+		fprintf(stderr, "  -h, --help	Show this help message\n");
+		fprintf(stderr, "  -v, --help	Print version and exit\n");
+		return 1;
+	}
 
 	updateMainFrameEvent.Init();
-
 	LogManager::Init();
 	SConfig::Init();
 	CPluginManager::Init();
-
 	CPluginManager::GetInstance().ScanForPlugins();
+	WiimoteReal::LoadSettings();
 
-#if defined HAVE_X11 && HAVE_X11
-	XInitThreads();
-#endif 
-
-	if (BootManager::BootCore(bootFile)) //no use running the loop when booting fails
+	// No use running the loop when booting fails
+	if (BootManager::BootCore(argv[optind]))
 	{
-#if defined(HAVE_X11) && HAVE_X11
+#if defined HAVE_X11 && HAVE_X11
+		XInitThreads();
 		X11_MainLoop();
 #else
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
 #endif
 	}
-	updateMainFrameEvent.Shutdown();
 
+	updateMainFrameEvent.Shutdown();
 	WiimoteReal::Shutdown();
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 
-	cmdline_parser_free (&args_info);
-	return(0);
+	return 0;
 }

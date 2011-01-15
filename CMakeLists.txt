@@ -256,7 +256,6 @@ include_directories(Source/Core/DiscIO/Src)
 include_directories(Source/Core/DolphinWX/Src)
 include_directories(Source/Core/DSPCore/Src)
 include_directories(Source/Core/InputCommon/Src)
-include_directories(Source/Core/InputUICommon/Src)
 include_directories(Source/Core/VideoCommon/Src)
 include_directories(Source/Core/VideoUICommon/Src)
 

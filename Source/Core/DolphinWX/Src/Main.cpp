@@ -321,6 +321,7 @@ bool DolphinApp::OnInit()
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
 	SetTopWindow(main_frame);
+	main_frame->SetMinSize(wxSize(400, 300));
 
 #if defined HAVE_X11 && HAVE_X11
 	XInitThreads();

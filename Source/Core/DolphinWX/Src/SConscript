@@ -54,19 +54,15 @@ if env['HAVE_WX']:
 else:
 	files += [
 		'MainNoGUI.cpp',
-		'cmdline.c',
 		]
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
-elif sys.platform == 'darwin' and not env['HAVE_WX']:
-	files += [ 'cocoaApp.m' ]
+elif sys.platform == 'darwin':
+	if env['HAVE_WX']:
+		wxlibs += env['wxconfiglibs']
 	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
-	exeNoGUI = '#' + env['prefix'] + '/DolphinNoGUI'
-elif sys.platform == 'darwin' and env['HAVE_WX']:
-	wxlibs += env['wxconfiglibs']
-	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
-	exeGUI = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
+	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework', source = [
@@ -115,15 +111,14 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]
-	exeGUI = env['binary_dir'] + '/dolphin-emu'
-	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
+	if env['HAVE_WX']:
+		exe = env['binary_dir'] + '/dolphin-emu'
+	else:
+		exe = env['binary_dir'] + '/dolphin-emu-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
 libs = wxlibs + libs + env['LIBS']
 linkflags = ldflags + env['LINKFLAGS']
 
-if env['HAVE_WX']:
-	env.Program(exeGUI, files, LIBS = libs, LINKFLAGS = linkflags)
-else:
-	env.Program(exeNoGUI, files, LIBS = libs, LINKFLAGS = linkflags)
+env.Program(exe, files, LIBS = libs, LINKFLAGS = linkflags)
