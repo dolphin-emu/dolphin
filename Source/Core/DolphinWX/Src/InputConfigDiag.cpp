@@ -19,10 +19,9 @@
 #include "UDPConfigDiag.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-#define WXSTR_FROM_STR(s)	(wxString::From8BitData((s).c_str()))
-#define WXTSTR_FROM_CSTR(s)	(wxGetTranslation(wxString::From8BitData(s)))
-// ToAscii was causing probs with some extended ascii characters, To8BitData seems to work
-#define STR_FROM_WXSTR(w)	(std::string((w).To8BitData()))
+#define WXSTR_FROM_STR(s)	(wxString::FromUTF8((s).c_str()))
+#define WXTSTR_FROM_CSTR(s)	(wxGetTranslation(wxString::FromUTF8(s)))
+#define STR_FROM_WXSTR(w)	(std::string((w).ToUTF8()))
 
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {

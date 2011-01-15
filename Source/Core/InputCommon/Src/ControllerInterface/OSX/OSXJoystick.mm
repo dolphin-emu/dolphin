@@ -173,8 +173,9 @@ Joystick::Axis::Axis(IOHIDElementRef element, direction dir)
 	m_name = std::string("Axis ") + description;
 	m_name.append((m_direction == positive) ? "+" : "-");
 
-	m_neutral = (IOHIDElementGetLogicalMax(m_element) -
+	m_neutral = (IOHIDElementGetLogicalMax(m_element) +
 		IOHIDElementGetLogicalMin(m_element)) / 2.;
+	m_scale = 1 / fabs(IOHIDElementGetLogicalMax(m_element) - m_neutral);
 }
 
 ControlState Joystick::Axis::GetState(IOHIDDeviceRef device) const
@@ -185,12 +186,10 @@ ControlState Joystick::Axis::GetState(IOHIDDeviceRef device) const
 	{
 		float position = IOHIDValueGetIntegerValue(value);
 
-		//NSLog(@"%s %f %f", m_name.c_str(), m_neutral, position);
-
 		if (m_direction == positive && position > m_neutral)
-			return (position - m_neutral) / m_neutral;
+			return (position - m_neutral) * m_scale;
 		if (m_direction == negative && position < m_neutral)
-			return (m_neutral - position) / m_neutral;
+			return (m_neutral - position) * m_scale;
         }
  
         return 0;

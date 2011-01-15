@@ -50,6 +50,7 @@ protected:
 		std::string		m_name;
 		direction		m_direction;
 		float			m_neutral;
+		float			m_scale;
 	};
 
 	bool UpdateInput();

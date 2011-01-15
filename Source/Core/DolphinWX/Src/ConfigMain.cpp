@@ -974,7 +974,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
 	std::string filename = std::string(wxFileSelector(
 		_("Choose a file to open"),
-		wxString::From8BitData(File::GetUserPath(D_GCUSER_IDX)),
+		wxString::FromUTF8(File::GetUserPath(D_GCUSER_IDX)),
 		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
 		wxEmptyString,
 		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))).mb_str());
@@ -1234,7 +1234,7 @@ void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::
 		if (rPluginInfo.Type == _PluginType)
 		{
 			wxString temp;
-			temp = wxGetTranslation(wxString::From8BitData(rInfos[i].GetPluginInfo().Name));
+			temp = wxGetTranslation(wxString::FromUTF8(rInfos[i].GetPluginInfo().Name));
 			int NewIndex = _pChoice->Append(temp, (void*)&rInfos[i]);
 
 			if (rInfos[i].GetFilename() == _SelectFilename)
