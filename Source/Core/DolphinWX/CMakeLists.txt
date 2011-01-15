@@ -43,18 +43,17 @@ if(wxWidgets_FOUND)
 				Src/UDPConfigDiag.cpp
 				Src/WiimoteConfigDiag.cpp
 				Src/MemoryCards/WiiSaveCrypted.cpp
+				Src/WXInputBase.cpp
 				Src/WxUtils.cpp)
 
 	set(WXLIBS	debwx
 				debugger_ui_util
-				inputuicommon
 				${wxWidgets_LIBRARIES}
 				${GTK2_LIBRARIES})
 
 else(wxWidgets_FOUND)
 	set(SRCS	${SRCS}
-				Src/MainNoGUI.cpp
-				Src/cmdline.c)
+				Src/MainNoGUI.cpp)
 endif()
 
 if(WIN32)

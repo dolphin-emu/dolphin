@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <queue>
+#include <stdlib.h>
 
 #include "Common.h"
 #include "IniFile.h"
@@ -371,7 +372,6 @@ unsigned int Initialize()
 
 	// Initialized
 	g_real_wiimotes_initialized = true;
-	atexit(WiimoteReal::Shutdown);
 
 	g_wiimotes_found = FindWiimotes(g_wiimotes, wanted_wiimotes);
 
@@ -379,6 +379,7 @@ unsigned int Initialize()
 			g_wiimotes_found, wanted_wiimotes);
 
 #ifndef _WIN32
+	atexit(WiimoteReal::Shutdown);
 	g_wiimotes_found = ConnectWiimotes(g_wiimotes);
 #endif
 

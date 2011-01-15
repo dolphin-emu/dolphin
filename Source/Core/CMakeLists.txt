@@ -5,7 +5,6 @@ add_subdirectory(Core)
 if(wxWidgets_FOUND)
 	add_subdirectory(DebuggerUICommon)
 	add_subdirectory(DebuggerWX)
-	add_subdirectory(InputUICommon)
 	add_subdirectory(VideoUICommon)
 endif()
 

@@ -257,87 +257,13 @@ void X11_MainLoop()
 }
 #endif
 
+int main(int argc, char* argv[])
+{
 #ifdef __APPLE__
-
-int cocoaArgc;
-char **cocoaArgv;
-int appleMain(int argc, char *argv[]);
-
-@interface CocoaThread : NSObject
-{
-	NSThread *Thread;
-}
-- (void)cocoaThreadStart;
-- (void)cocoaThreadRun: (id) sender;
-@end
-
-@implementation CocoaThread
-#define CocoaThreadHaveFinish @"CocoaThreadHaveFinish"
-- (void)cocoaThreadStart
-{
-	[NSThread detachNewThreadSelector: @selector(cocoaThreadRun:)
-		toTarget: self withObject: nil];
-}
-
-- (void)cocoaThreadRun: (id) sender
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	Thread = [NSThread currentThread];
-
-	appleMain(cocoaArgc, cocoaArgv);
-
-	[pool release];
-}
-@end
-
-int main(int argc, char *argv[])
-{
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSEvent *event = [[NSEvent alloc] init];	
-	CocoaThread *thread = [[CocoaThread alloc] init];
 	ProcessSerialNumber psn;
-
-	cocoaArgc = argc;
-	cocoaArgv = argv;
-
-	GetCurrentProcess(&psn);
-	TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-	SetFrontProcess(&psn);
-
-	if (NSApp == nil) {
-		[NSApplication sharedApplication];
-		//TODO : Create menu
-		[NSApp finishLaunching];
-	}
-
-	[thread cocoaThreadStart];
-
-	while (1)
-	{
-		event = [NSApp nextEventMatchingMask: NSKeyDownMask
-			untilDate: [NSDate distantFuture]
-			inMode: NSDefaultRunLoopMode dequeue: YES];
-
-		if (([event modifierFlags] & NSCommandKeyMask) == 0)
-			continue;
-
-		if ([[event characters] UTF8String][0] == 'q') {
-			Core::Stop();
-			break;
-		} else
-			[NSApp sendEvent: event];
-	}	
-
-	[event release];
-	[thread release];
-	[pool release];
-}
-
-int appleMain(int argc, char *argv[])
-#else
-int main(int argc, char* argv[])
 #endif
-{
 	int ch, help = 0;
 	struct option longopts[] = {
 		{ "exec",	no_argument,	NULL,	'e' },
@@ -380,7 +306,38 @@ int main(int argc, char* argv[])
 	// No use running the loop when booting fails
 	if (BootManager::BootCore(argv[optind]))
 	{
-#if defined HAVE_X11 && HAVE_X11
+#ifdef __APPLE__
+	GetCurrentProcess(&psn);
+	TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+	SetFrontProcess(&psn);
+
+	if (NSApp == nil) {
+		[NSApplication sharedApplication];
+		//TODO : Create menu
+		[NSApp finishLaunching];
+	}
+
+	while (running)
+	{
+		event = [NSApp nextEventMatchingMask: NSAnyEventMask
+			untilDate: [NSDate distantFuture]
+			inMode: NSDefaultRunLoopMode dequeue: YES];
+
+		if ([event type] == NSKeyDown &&
+			[event modifierFlags] & NSCommandKeyMask &&
+			[[event characters] UTF8String][0] == 'q')
+		{
+			Core::Stop();
+			break;
+		}
+
+		if ([event type] != NSKeyDown)
+			[NSApp sendEvent: event];
+	}	
+
+	[event release];
+	[pool release];
+#elif defined HAVE_X11 && HAVE_X11
 		XInitThreads();
 		X11_MainLoop();
 #else
