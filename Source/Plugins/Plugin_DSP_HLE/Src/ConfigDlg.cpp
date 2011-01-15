@@ -48,12 +48,12 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
 
 	wxStaticText *FrequencyText = new wxStaticText(this, wxID_ANY, _("Sample Rate"),
 		   	wxDefaultPosition, wxDefaultSize, 0);
-	m_FrequencySelection = new wxChoice(this, ID_FREQUENCY, wxDefaultPosition, wxSize(110, 20),
+	m_FrequencySelection = new wxChoice(this, ID_FREQUENCY, wxDefaultPosition, wxDefaultSize,
 			wxArrayRates, 0, wxDefaultValidator, wxEmptyString);
 
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, _("Audio Backend"),
 		   	wxDefaultPosition, wxDefaultSize, 0);
-	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20),
+	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxDefaultSize,
 			wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 
 	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100,
@@ -90,8 +90,8 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
 	sFrequency->Add(FrequencyText, 0, wxALIGN_LEFT|wxALL, 1);
 	sFrequency->Add(m_FrequencySelection, 0, wxALL, 1);
 
-	m_FrequencySelection->Append(wxString::FromAscii("48,000 Hz"));
-	m_FrequencySelection->Append(wxString::FromAscii("32,000 Hz"));
+	m_FrequencySelection->Append(_("48,000 Hz"));
+	m_FrequencySelection->Append(_("32,000 Hz"));
 	#ifdef __APPLE__
 	int num = m_FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency));
 	#else

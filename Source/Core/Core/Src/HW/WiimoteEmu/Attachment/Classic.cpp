@@ -49,35 +49,35 @@ static const u16 classic_dpad_bitmasks[] =
 	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT 
 };
 
-Classic::Classic() : Attachment( _trans("Classic") )
+Classic::Classic() : Attachment(_trans("Classic"))
 {
 	// buttons
-	groups.push_back( m_buttons = new Buttons( "Buttons" ) );
-	for ( unsigned int i = 0; i < sizeof(classic_button_names)/sizeof(*classic_button_names); ++i )
-		m_buttons->controls.push_back( new ControlGroup::Input( classic_button_names[i] ) );
+	groups.push_back(m_buttons = new Buttons("Buttons"));
+	for (unsigned int i = 0; i < sizeof(classic_button_names)/sizeof(*classic_button_names); ++i)
+		m_buttons->controls.push_back(new ControlGroup::Input(classic_button_names[i]));
 
 	// sticks
-	groups.push_back( m_left_stick = new AnalogStick( "Left Stick" ) );
-	groups.push_back( m_right_stick = new AnalogStick( "Right Stick" ) );
+	groups.push_back(m_left_stick = new AnalogStick(_trans("Left Stick")));
+	groups.push_back(m_right_stick = new AnalogStick(_trans("Right Stick")));
 
 	// triggers
-	groups.push_back( m_triggers = new MixedTriggers( "Triggers" ) );
-	for ( unsigned int i=0; i < sizeof(classic_trigger_names)/sizeof(*classic_trigger_names); ++i )
-		m_triggers->controls.push_back( new ControlGroup::Input( classic_trigger_names[i] ) );
+	groups.push_back(m_triggers = new MixedTriggers("Triggers"));
+	for (unsigned int i=0; i < sizeof(classic_trigger_names)/sizeof(*classic_trigger_names); ++i)
+		m_triggers->controls.push_back(new ControlGroup::Input(classic_trigger_names[i]));
 
 	// dpad
-	groups.push_back( m_dpad = new Buttons( "D-Pad" ) );
-	for ( unsigned int i=0; i < 4; ++i )
-		m_dpad->controls.push_back( new ControlGroup::Input( named_directions[i] ) );
+	groups.push_back(m_dpad = new Buttons("D-Pad"));
+	for (unsigned int i=0; i < 4; ++i)
+		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
 
 	// set up register
 	// calibration
-	memcpy( &reg[0x20], classic_calibration, sizeof(classic_calibration) );
+	memcpy(&reg[0x20], classic_calibration, sizeof(classic_calibration));
 	// id
-	memcpy( &reg[0xfa], classic_id, sizeof(classic_id) );
+	memcpy(&reg[0xfa], classic_id, sizeof(classic_id));
 }
 
-void Classic::GetState( u8* const data, const bool focus )
+void Classic::GetState(u8* const data, const bool focus)
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
 	ccdata->bt = 0;
@@ -87,7 +87,7 @@ void Classic::GetState( u8* const data, const bool focus )
 	// left stick
 	{
 	u8 x, y;
-	m_left_stick->GetState( &x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0 );
+	m_left_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
 
 	ccdata->lx = x;
 	ccdata->ly = y;
@@ -96,7 +96,7 @@ void Classic::GetState( u8* const data, const bool focus )
 	// right stick
 	{
 	u8 x, y;
-	m_right_stick->GetState( &x, &y, 0x10, focus ? 0x0F /*0x0C*/ : 0 );
+	m_right_stick->GetState(&x, &y, 0x10, focus ? 0x0F /*0x0C*/ : 0);
 
 	ccdata->rx1 = x;
 	ccdata->rx2 = x >> 1;
@@ -107,7 +107,7 @@ void Classic::GetState( u8* const data, const bool focus )
 	//triggers
 	{
 	u8 trigs[2];
-	m_triggers->GetState( &ccdata->bt, classic_trigger_bitmasks, trigs, focus ? 0x1F : 0 );
+	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs, focus ? 0x1F : 0);
 
 	ccdata->lt1 = trigs[0];
 	ccdata->lt2 = trigs[0] >> 3;
@@ -117,9 +117,9 @@ void Classic::GetState( u8* const data, const bool focus )
 	if (focus)
 	{
 		// buttons
-		m_buttons->GetState( &ccdata->bt, classic_button_bitmasks );
+		m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
 		// dpad
-		m_dpad->GetState( &ccdata->bt, classic_dpad_bitmasks );
+		m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
 	}
 
 	// flip button bits

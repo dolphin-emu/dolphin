@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 20:15-0600\n"
+"POT-Creation-Date: 2011-01-15 09:28-0600\n"
 "PO-Revision-Date: 2011-01-14 20:59+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
@@ -274,6 +274,10 @@ msgstr ""
 msgid "32 bit"
 msgstr ""
 
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:94
+msgid "32,000 Hz"
+msgstr ""
+
 #: Source/Core/Core/Src/Core.cpp:280
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr "32-비트 플랫폼들은 fastmem을 아직 지원안함. 이 버그를 리포트하라."
@@ -281,6 +285,10 @@ msgstr "32-비트 플랫폼들은 fastmem을 아직 지원안함. 이 버그를 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:223
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D 비전 (전체화면 필요)"
+
+#: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.cpp:93
+msgid "48,000 Hz"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:158
 msgid "8 bit"
@@ -358,10 +366,19 @@ msgstr ""
 "\n"
 "TCP 포트를 호스트에 전달해야합니다!!"
 
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:30
+msgid "ALSA"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:71
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:76
 msgid "AM-Baseboard"
 msgstr "AM-기반보드"
+
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:28
+#, fuzzy
+msgid "AOSound"
+msgstr "사운드(&S)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:120
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:285
@@ -474,7 +491,7 @@ msgid "Adapter:"
 msgstr "어댑터:"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:73
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:73
 msgid "Add"
 msgstr "추가"
 
@@ -639,7 +656,7 @@ msgstr "자동"
 msgid "Auto [recommended]"
 msgstr "자동 [권장]"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:27
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
 msgstr "뒤로"
 
@@ -791,9 +808,9 @@ msgid "Can't open %s, it has a missing function"
 msgstr "%s를 열수 없음, 그것은 놓친 함수를 가진다"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:103
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:569
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:69
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:41
 msgid "Cancel"
 msgstr "취소"
 
@@ -833,7 +850,7 @@ msgstr "%02x 연결핸들에 의해 위모트를 찾을 수 없음."
 msgid "Cant read from DVD_Plugin - DVD-Interface: Fatal Error"
 msgstr "DVD_플러그인에서 읽을 수 없음 - DVD-인터페이스: 치명적 에러"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:49
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:49
 msgid "Caps Lock"
 msgstr "Caps Lock"
 
@@ -929,9 +946,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:936
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:129
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:114
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:43
 msgid "Clear"
 msgstr "깨끗이"
 
@@ -968,7 +985,7 @@ msgstr "코드 정보"
 msgid "Code: "
 msgstr "코드:"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:134
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:134
 msgid "Command"
 msgstr "명령"
 
@@ -1070,7 +1087,7 @@ msgstr "연결된"
 msgid "Connected to %i Wiimotes"
 msgstr "%i개의 위모트들에 연결된"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:612
+#: Source/Core/DolphinWX/Src/Main.cpp:613
 msgid "Connecting..."
 msgstr "연결중..."
 
@@ -1078,7 +1095,7 @@ msgstr "연결중..."
 msgid "Console"
 msgstr "콘솔"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:46
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:46
 msgid "Control"
 msgstr "컨트롤"
 
@@ -1101,6 +1118,11 @@ msgstr "메모리카드 %c 에 복사"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:304
 msgid "Core"
+msgstr "코어"
+
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:26
+#, fuzzy
+msgid "CoreAudio"
 msgstr "코어"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE.cpp:216
@@ -1253,6 +1275,11 @@ msgstr "DSP 세팅들"
 msgid "DSPLLE on thread"
 msgstr "DSPLLE를 쓰레드상에"
 
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:27
+#, fuzzy
+msgid "DSound"
+msgstr "사운드(&S)"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
 msgid "DVD Root:"
 msgstr "DVD 루트:"
@@ -1286,7 +1313,7 @@ msgstr "데드 존"
 msgid "Debug"
 msgstr "디버그"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:76
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:76
 msgid "Decimal"
 msgstr "십진수의"
 
@@ -1316,7 +1343,7 @@ msgid "Default font"
 msgstr "기본 폰트"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:949
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:32
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:32
 msgid "Delete"
 msgstr "삭제"
 
@@ -1440,7 +1467,7 @@ msgstr "화면출력"
 msgid "Distance Alpha Pass"
 msgstr "디스턴스 알파 패스"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:77
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:77
 msgid "Divide"
 msgstr "나누기"
 
@@ -1541,7 +1568,7 @@ msgstr ""
 "돌핀이 현재 모든 게임들을 숨기게 세팅됨. 모든 게임들을 보려면 여기를 더블클"
 "릭..."
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:55
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 msgid "Down"
 msgstr "아래"
@@ -1862,7 +1889,7 @@ msgid ""
 msgstr ""
 "메모리 관리 유닛 켜기, 일부 게임들에서 요구된다. (켬 = 호환성, 끔 = 빠른)"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:50
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
 msgstr "끝"
 
@@ -1916,7 +1943,7 @@ msgid ""
 msgstr ""
 "플러그인 %s 로딩 에러: 파일을 찾을 수 없음. 플러그인을 다시 선택하세요."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:395
+#: Source/Core/DolphinWX/Src/Main.cpp:396
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:79
 #: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:88
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:80
@@ -1940,7 +1967,7 @@ msgstr ""
 "에러: %s 폰트들을 접근 시도함 하지만 그것들은 로드되지 않음. 게임들이 올바르"
 "게 폰트들을 보여주지 않을 수 있다, 혹은 깨짐."
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:30
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:30
 msgid "Escape"
 msgstr "Escape"
 
@@ -1953,7 +1980,7 @@ msgstr ""
 msgid "Exception handler - access below memory space. %08llx%08llx"
 msgstr "예외 핸들러 - 메모리 공간 아래를 접근. %08llx%08llx"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:58
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
 msgid "Execute"
 msgstr "실행"
 
@@ -2442,7 +2469,7 @@ msgstr "히브리어"
 msgid "Height"
 msgstr "높이"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:61
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:61
 msgid "Help"
 msgstr "도움"
 
@@ -2478,7 +2505,7 @@ msgstr ""
 "윈도우 위에 있을 때 커서를 숨겨라\n"
 "그리고 렌더링 윈도우는 초점을 가진다."
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:51
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
 msgid "Home"
 msgstr "홈"
 
@@ -2631,7 +2658,7 @@ msgstr "입력"
 msgid "Input Source"
 msgstr "소스 입력"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:60
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:60
 msgid "Insert"
 msgstr "삽입"
 
@@ -2803,7 +2830,7 @@ msgstr "한국어"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:39
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:39
 msgid "L Button"
 msgstr "L 버튼"
 
@@ -2825,10 +2852,15 @@ msgstr "마지막 덮어써진 상태"
 msgid "Last Saved State"
 msgstr "마지막 저장된 상태"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:52
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:52
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 msgid "Left"
 msgstr "왼쪽"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:60
+#, fuzzy
+msgid "Left Stick"
+msgstr "C-스틱"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:712
 msgid ""
@@ -2920,7 +2952,7 @@ msgstr "서버에 연결을 잃어버림!"
 msgid "Lua Script Console"
 msgstr "Lua 스크립트 콘솔"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:42
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:42
 msgid "M Button"
 msgstr "M 버튼"
 
@@ -2993,7 +3025,7 @@ msgstr ""
 "%s로\n"
 "오래된 파일을 이 새로운 위치로 복사하고 싶습니까?\n"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:47
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:47
 msgid "Menu"
 msgstr "메뉴"
 
@@ -3043,91 +3075,91 @@ msgstr ""
 msgid "Motor"
 msgstr "모터"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:72
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:72
 msgid "Multiply"
 msgstr "곱하기"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:126
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
 msgstr "NP 덧셈"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:121
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:121
 msgid "NP Begin"
 msgstr "NP 시작"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:129
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Decimal"
 msgstr "NP 십진수"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:123
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:123
 msgid "NP Delete"
 msgstr "NP 삭제"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:130
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:130
 msgid "NP Divide"
 msgstr "NP 나누기"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:117
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:117
 msgid "NP Down"
 msgstr "NP 아래"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:120
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:120
 msgid "NP End"
 msgstr "NP 끝"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:108
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:108
 msgid "NP Enter"
 msgstr "NP 엔터"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:124
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:124
 msgid "NP Equal"
 msgstr "NP 같은"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:113
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:113
 msgid "NP Home"
 msgstr "NP 홈"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:122
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:122
 msgid "NP Insert"
 msgstr "NP 삽입"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:114
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:114
 msgid "NP Left"
 msgstr "NP 왼쪽"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:125
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:125
 msgid "NP Multiply"
 msgstr "NP 곱셈"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:119
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:119
 msgid "NP Page Down"
 msgstr "NP 페이지 다운"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:118
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:118
 msgid "NP Page Up"
 msgstr "NP 페이지 업"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:116
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:116
 msgid "NP Right"
 msgstr "NP 오른쪽"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:127
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:127
 msgid "NP Separator"
 msgstr "NP 분리기"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:106
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:106
 msgid "NP Space"
 msgstr "NP 스페이스"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:128
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:128
 msgid "NP Subtract"
 msgstr "NP 뺄셈"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:107
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:107
 msgid "NP Tab"
 msgstr "NP 탭"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:115
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:115
 msgid "NP Up"
 msgstr "NP 위"
 
@@ -3178,6 +3210,10 @@ msgstr "국가 없음 (SDK)"
 msgid "No ISOs or WADS found"
 msgstr "ISO들이나 WADS가 없음"
 
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:25
+msgid "No audio output"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:540
 #, c-format
 msgid "No banner file found for title  %s"
@@ -3219,7 +3255,7 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "세팅 안함"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:611
+#: Source/Core/DolphinWX/Src/Main.cpp:612
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -3240,7 +3276,7 @@ msgstr "주목:"
 msgid "Notice"
 msgstr "알림"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:102
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:102
 msgid "Num Lock"
 msgstr "Num Lock"
 
@@ -3295,6 +3331,11 @@ msgstr "Wii &save 폴더 열기"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:358
 msgid "Open file..."
 msgstr "파일 열기..."
+
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:29
+#, fuzzy
+msgid "OpenAL"
+msgstr "열기"
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:54
 #, c-format
@@ -3370,11 +3411,11 @@ msgstr "패드"
 msgid "Pads"
 msgstr ""
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:105
 msgid "Page Down"
 msgstr "페이지 다운"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:104
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:104
 msgid "Page Up"
 msgstr "페이지 업"
 
@@ -3382,7 +3423,7 @@ msgstr "페이지 업"
 msgid "Pair Up"
 msgstr "연결하기"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:35
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:35
 msgid "Paragraph"
 msgstr "단락"
 
@@ -3399,9 +3440,9 @@ msgstr "패치들"
 msgid "Paths"
 msgstr "경로"
 
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1401
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "일시정지"
 
@@ -3452,7 +3493,7 @@ msgstr "저장하기전에 관점을 생성해 주세요."
 msgid "Plugins"
 msgstr "플러그인"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:36
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:36
 msgid "Plus-Minus"
 msgstr "플러스-마이너스"
 
@@ -3490,7 +3531,7 @@ msgstr "이전 페이지"
 msgid "Previous Value"
 msgstr "이전 값"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:57
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:57
 msgid "Print"
 msgstr "프린트"
 
@@ -3510,6 +3551,10 @@ msgstr "프로젝션 상태들"
 msgid "Properties"
 msgstr "속성"
 
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:31
+msgid "Pulse"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:290
 msgid "Purge Cache"
 msgstr "캐쉬 제거(Purge)"
@@ -3528,7 +3573,7 @@ msgstr "종료"
 msgid "R"
 msgstr "R"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:40
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:40
 msgid "R Button"
 msgstr "R 버튼"
 
@@ -3639,14 +3684,19 @@ msgstr "리셋"
 msgid "Results"
 msgstr "결과"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:29
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:29
 msgid "Return"
 msgstr "Enter"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:54
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:54
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:277
 msgid "Right"
 msgstr "오른쪽"
+
+#: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:61
+#, fuzzy
+msgid "Right Stick"
+msgstr "메인 스틱"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
@@ -3733,7 +3783,7 @@ msgstr "스캐닝..."
 msgid "ScrShot"
 msgstr "스크린샷"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:103
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:103
 msgid "Scroll Lock"
 msgstr "스크롤 락"
 
@@ -3752,7 +3802,7 @@ msgid "Section %s not found in SYSCONF"
 msgstr "섹션 %s가 SYSCONF에서 발견안됨"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:508
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:56
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:56
 msgid "Select"
 msgstr "선택"
 
@@ -3832,7 +3882,7 @@ msgstr "보내기"
 msgid "Sensor Bar Position:"
 msgstr "센서 바 위치:"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:74
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:74
 msgid "Separator"
 msgstr "분리자"
 
@@ -4054,7 +4104,7 @@ msgstr "GC BIOS 건너뜀"
 msgid "Slot"
 msgstr "슬롯"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:59
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:59
 msgid "Snapshot"
 msgstr "스냅샷"
 
@@ -4077,7 +4127,7 @@ msgstr "사운드 백엔드 %s는 유효하지 않음."
 msgid "Sound buffer creation failed: %s"
 msgstr "사운드 버퍼 생성 실패했음: %s"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:31
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:31
 msgid "Space"
 msgstr "스페이스"
 
@@ -4132,9 +4182,9 @@ msgstr "스퀘어 스틱"
 msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:303
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:38
 msgid "Start"
 msgstr "시작"
 
@@ -4178,7 +4228,7 @@ msgstr "윈도우로 늘림"
 msgid "Strum"
 msgstr ""
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:75
 msgid "Subtract"
 msgstr "빼기"
 
@@ -4204,7 +4254,7 @@ msgstr "시스템 언어:"
 msgid "TAIWAN"
 msgstr "타이완"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:28
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
 msgstr "탭"
 
@@ -4293,7 +4343,7 @@ msgstr "이른은 ',' 문자를 포함할 수 없다"
 msgid "The save you are trying to copy has an invalid file size"
 msgstr "복사시도하려는 그 저장은 무효한 파일 크기를 지닌다"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:402
+#: Source/Core/DolphinWX/Src/Main.cpp:403
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:86
 #: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:95
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:87
@@ -4531,7 +4581,7 @@ msgstr ""
 "알려지지않은 포인터 %#08x\n"
 "계속함?"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:53
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 msgid "Up"
 msgstr "위"
@@ -4762,7 +4812,7 @@ msgstr ""
 "혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
 "당신은 즉시 재연결 하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:613
+#: Source/Core/DolphinWX/Src/Main.cpp:614
 msgid "Wiimote Connected"
 msgstr "위모트가 연결됨"
 
@@ -4794,15 +4844,15 @@ msgstr "창모드에 대한 윈도우 높이"
 msgid "Window width for windowed mode"
 msgstr "창모드에 대한 윈도우 넓이"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:131
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:131
 msgid "Windows Left"
 msgstr "윈도우즈 왼쪽"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:133
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:133
 msgid "Windows Menu"
 msgstr "윈도우즈 메뉴"
 
-#: Source/Core/InputUICommon/Src/WXInputBase.cpp:132
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:132
 msgid "Windows Right"
 msgstr "윈도우즈 오른쪽"
 
@@ -4827,6 +4877,10 @@ msgstr "파일에 쓰기"
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:109
 msgid "Write to Window ->"
 msgstr "윈도우에 쓰기 ->"
+
+#: Source/Core/AudioCommon/Src/AudioCommonConfig.h:32
+msgid "XAudio2"
+msgstr ""
 
 #: Source/Core/AudioCommon/Src/XAudio2Stream.cpp:51
 #, c-format
