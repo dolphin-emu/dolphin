@@ -47,10 +47,11 @@ if env['HAVE_WX']:
 		'NetWindow.cpp',
 		'UDPConfigDiag.cpp',
 		'WiimoteConfigDiag.cpp',
+		'WXInputBase.cpp',
 		'WxUtils.cpp',
 		]
 
-	wxlibs += [ 'debwx', 'debugger_ui_util', 'inputuicommon' ]
+	wxlibs += [ 'debwx', 'debugger_ui_util' ]
 else:
 	files += [
 		'MainNoGUI.cpp',

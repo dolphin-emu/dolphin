@@ -21,6 +21,9 @@ files = [
 	'GLUtil.cpp'
 	]
 
-libs = [ 'videocommon', 'videouicommon', 'GLEW', 'SOIL', 'common' ]
+libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
+
+if env['HAVE_WX']:
+	libs += [ 'videouicommon' ]
 
 env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
