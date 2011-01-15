@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 13:15-0600\n"
+"POT-Creation-Date: 2011-01-14 20:15-0600\n"
 "PO-Revision-Date: 2011-01-09 13:11+0100\n"
 "Last-Translator: Christer (Chriztr) <chriztr@gmail.com>\n"
 "Language-Team: Norwegian <e-k-nut@hotmail.com>\n"
@@ -267,6 +267,14 @@ msgstr "Innstillinger for Wii-kontroll"
 msgid "(off)"
 msgstr "(av)"
 
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:159
+msgid "16 bit"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:160
+msgid "32 bit"
+msgstr ""
+
 #: Source/Core/Core/Src/Core.cpp:280
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr ""
@@ -274,6 +282,10 @@ msgstr ""
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:223
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "&3D Vision (Krever fullskjerm)"
+
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:158
+msgid "8 bit"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:43
 msgid "<Insert name here>"
@@ -480,6 +492,18 @@ msgstr "Adresse :"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:778
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Juster analogkontrolltrykket som kreves for å aktivere knapper"
+
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:432
+#, fuzzy
+msgid "Adjust window size"
+msgstr "Vindusstørrelse:"
+
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
+msgid ""
+"Adjusts the window to match the game's output resolution scaled by the EFB "
+"scale.\n"
+"It is best to set the aspect ratio to stretch when using this."
+msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:346
 msgid "Advanced"
@@ -4208,7 +4232,7 @@ msgstr ""
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:44
 #, c-format
-msgid "The file %s was alrady open, the file header will not be written."
+msgid "The file %s was already open, the file header will not be written."
 msgstr ""
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:279

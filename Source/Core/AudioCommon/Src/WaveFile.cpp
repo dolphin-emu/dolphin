@@ -41,7 +41,7 @@ bool WaveFileWriter::Start(const char *filename)
 	// Check if the file is already open
 	if (file)
 	{
-		PanicAlertT("The file %s was alrady open, the file header will not be written.", filename);
+		PanicAlertT("The file %s was already open, the file header will not be written.", filename);
 		return false;
 	}
 

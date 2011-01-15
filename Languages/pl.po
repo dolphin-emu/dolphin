@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-14 13:15-0600\n"
-"PO-Revision-Date: 2011-01-14 14:18+0100\n"
+"POT-Creation-Date: 2011-01-14 20:15-0600\n"
+"PO-Revision-Date: 2011-01-14 20:26+0100\n"
 "Last-Translator: Krzysztof Baszczok <baszta2@gmail.com>\n"
 "Language-Team: Polish <baszta2@gmail.com>\n"
 "Language: Polish\n"
@@ -267,6 +267,14 @@ msgstr "&Ustawienia Wiilota"
 msgid "(off)"
 msgstr "(wyłączone)"
 
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:159
+msgid "16 bit"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:160
+msgid "32 bit"
+msgstr ""
+
 #: Source/Core/Core/Src/Core.cpp:280
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr "32-bitowe platformy nie wspierają jeszcze fastmem. Raportuj błąd."
@@ -274,6 +282,10 @@ msgstr "32-bitowe platformy nie wspierają jeszcze fastmem. Raportuj błąd."
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:223
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "Wizja 3D (pełny ekran wymagany)"
+
+#: Source/Core/DolphinWX/Src/CheatsWindow.cpp:158
+msgid "8 bit"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:43
 msgid "<Insert name here>"
@@ -496,6 +508,18 @@ msgstr "Adres :"
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Reguluje siłę nacisku wymaganego do aktywacji przycisków."
 
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:432
+#, fuzzy
+msgid "Adjust window size"
+msgstr "Rozmiar okna:"
+
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
+msgid ""
+"Adjusts the window to match the game's output resolution scaled by the EFB "
+"scale.\n"
+"It is best to set the aspect ratio to stretch when using this."
+msgstr ""
+
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:346
 msgid "Advanced"
 msgstr "Zaawansowane"
@@ -654,9 +678,8 @@ msgid "Banner:"
 msgstr "Baner:"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
-#, fuzzy
 msgid "Bar"
-msgstr "Baner"
+msgstr "Wajcha"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:130
 msgid "Basic"
@@ -668,7 +691,7 @@ msgstr "Ustawienia podstawowe"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
 msgid "Bass"
-msgstr ""
+msgstr "Bass"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Bleach Versus Crusade"
@@ -684,17 +707,15 @@ msgstr "Bloki"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Blue"
-msgstr ""
+msgstr "Niebieski"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
-#, fuzzy
 msgid "Blue Left"
-msgstr "NP Left"
+msgstr "Niebieski lewo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
-#, fuzzy
 msgid "Blue Right"
-msgstr "NP Right"
+msgstr "Niebieski prawo"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 msgid "Bottom"
@@ -907,7 +928,7 @@ msgstr "Circle Stick"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
 msgid "Classic"
-msgstr ""
+msgstr "Classic"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:936
@@ -1208,7 +1229,7 @@ msgstr "Obcięcie"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
-msgstr ""
+msgstr "Suwak"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:600
 #, c-format
@@ -1337,15 +1358,15 @@ msgstr "Ustawienia urządzenia"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Dial"
-msgstr ""
+msgstr "Pokrętło"
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
 msgid "Direct3D11"
-msgstr ""
+msgstr "Direct3D11"
 
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:215
 msgid "Direct3D9"
-msgstr ""
+msgstr "Direct3D9"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:152
 msgid ""
@@ -1437,9 +1458,9 @@ msgid "Dolphin"
 msgstr "Dolphin"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:112
-#, fuzzy, c-format
+#, c-format
 msgid "Dolphin %s Graphics Configuration"
-msgstr "Ustawienia graficzne"
+msgstr "Ustawienia graficzne %s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:299
 msgid "Dolphin &Web Site"
@@ -1450,30 +1471,28 @@ msgid "Dolphin Configuration"
 msgstr "Konfiguracja Dolphin'a"
 
 #: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:150
-#, fuzzy
 msgid "Dolphin DSP-HLE Plugin"
-msgstr "Nie można zainicjować wtyczki DSP"
+msgstr "Wtyczka DSP-HLE"
 
 #: Source/Plugins/Plugin_DSP_HLE/Src/ConfigDlg.h:32
 msgid "Dolphin DSP-HLE Plugin Settings"
-msgstr ""
+msgstr "Ustawienia wtyczki DSP-HLE"
 
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:137
-#, fuzzy
 msgid "Dolphin DSP-LLE Plugin"
-msgstr "Nie można zainicjować wtyczki DSP"
+msgstr "Dolphin DSP-LLE Plugin"
 
 #: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.h:32
 msgid "Dolphin DSP-LLE Plugin Settings"
-msgstr ""
+msgstr "Ustawienia wtyczki DSP-LLE"
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:164
 msgid "Dolphin Direct3D11"
-msgstr ""
+msgstr "Dolphin Direct3D11"
 
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:163
 msgid "Dolphin Direct3D9"
-msgstr ""
+msgstr "Dolphin Direct3D9"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:93
 msgid "Dolphin Emulated Wiimote Configuration"
@@ -1484,9 +1503,8 @@ msgid "Dolphin GCPad Configuration"
 msgstr "Konfiguracja Dolphin GCPad"
 
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:181
-#, fuzzy
 msgid "Dolphin OpenGL"
-msgstr "Dolphin"
+msgstr "Dolphin OpenGL"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:651
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1006
@@ -1541,7 +1559,7 @@ msgstr "Pobrano %lu kodów. (dodano %lu)"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
 msgid "Drums"
-msgstr ""
+msgstr "Perkusja"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:67
 msgid "Dummy"
@@ -1627,9 +1645,8 @@ msgid "Edit..."
 msgstr "Edytuj..."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
-#, fuzzy
 msgid "Effect"
-msgstr "Perfekcyjnie"
+msgstr "Efekt"
 
 #: Source/Core/Core/Src/Core.cpp:178
 msgid "Emu Thread already running"
@@ -1907,9 +1924,8 @@ msgstr ""
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:80
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:81
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:124
-#, fuzzy
 msgid "Error loading selected language. Falling back to system default."
-msgstr "Błąd wczytywania wybranego języka. Ustawienia domyślne.\n"
+msgstr "Błąd wczytywania wybranego języka. Ustawienia domyślne."
 
 #: Source/Core/Core/Src/OnFrame.cpp:229
 #, c-format
@@ -1931,7 +1947,7 @@ msgstr "Escape"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Euphoria"
-msgstr ""
+msgstr "Euforia"
 
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
@@ -1980,7 +1996,7 @@ msgstr "Eksportuj zapis jako..."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:259
 msgid "Extension"
-msgstr ""
+msgstr "Rozszerzenie"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
 msgid "Extract All Files..."
@@ -2281,7 +2297,7 @@ msgstr "Francuski"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
 msgid "Frets"
-msgstr ""
+msgstr "Gryfy"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:364
 msgid "FullScr"
@@ -2394,22 +2410,20 @@ msgid "Greek"
 msgstr "Grecki"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
-#, fuzzy
 msgid "Green"
-msgstr "Grecki"
+msgstr "Zielony"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
 msgid "Green Left"
-msgstr ""
+msgstr "Zielony lewo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
-#, fuzzy
 msgid "Green Right"
-msgstr "NP Right"
+msgstr "Zielony prawo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
 msgid "Guitar"
-msgstr ""
+msgstr "Gitara"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1221
 msgid "HCI_CMD_INQUIRY is called, please report!"
@@ -2514,9 +2528,8 @@ msgid "IPL Settings"
 msgstr "Ustawienia IPL"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:241
-#, fuzzy
 msgid "IR"
-msgstr "R"
+msgstr "IR"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
 msgid "IR Pointer"
@@ -2694,9 +2707,9 @@ msgid "Intro"
 msgstr "Intro"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid Size(%x) or Magic word (%x)"
-msgstr "Niewłaściwy rozmiar (%x) lub magiczne słowo (%x)"
+msgstr "Niewłaściwy rozmiar (%x) lub Magic word (%x)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:608
 msgid "Invalid Value!"
@@ -3018,7 +3031,7 @@ msgstr "Nieproporcjonalna czcionka"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "Motion Plus"
-msgstr ""
+msgstr "Motion Plus"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
@@ -3293,9 +3306,8 @@ msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: nie można otworzyć urządzenia %s"
 
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:246
-#, fuzzy
 msgid "OpenGL"
-msgstr "Otwórz"
+msgstr "OpenGL"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:117
 msgid "Opens the debugger"
@@ -3312,9 +3324,8 @@ msgid "Options"
 msgstr "Opcje"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
-#, fuzzy
 msgid "Orange"
-msgstr "Zasięg"
+msgstr "Pomarańczowy"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:478
 msgid ""
@@ -3353,7 +3364,7 @@ msgstr "Pad "
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
 msgid "Pads"
-msgstr ""
+msgstr "Pady"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:105
 msgid "Page Down"
@@ -3550,17 +3561,15 @@ msgstr "Potwierdzenie ponownego połączenia Wiilota"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
-msgstr ""
+msgstr "Czerwony"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
-#, fuzzy
 msgid "Red Left"
-msgstr "NP Left"
+msgstr "Czerwony lewo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
-#, fuzzy
 msgid "Red Right"
-msgstr "Right"
+msgstr "Czerwony prawo"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:71
 msgid ""
@@ -3631,7 +3640,7 @@ msgstr "Enter"
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:54
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:277
 msgid "Right"
-msgstr "Right"
+msgstr "Prawo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
@@ -3863,7 +3872,7 @@ msgstr "SetupWiiMem: Nie można odnaleźć pliku konfiguracyjnego"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:253
 msgid "Shake"
-msgstr ""
+msgstr "Wstrząs"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Short Name:"
@@ -4011,9 +4020,8 @@ msgstr ""
 "Przydatne tylko do debugowania."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
-#, fuzzy
 msgid "Sideways Wiimote"
-msgstr "Prawdziwy Wiilot"
+msgstr "Willot bokiem"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Simplified Chinese"
@@ -4139,9 +4147,8 @@ msgid "State"
 msgstr "Stan"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
-#, fuzzy
 msgid "Stick"
-msgstr "C-Stick"
+msgstr "Gałka"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:363
@@ -4156,7 +4163,7 @@ msgstr "Rozciągnij do okna"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Strum"
-msgstr ""
+msgstr "Struny"
 
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:75
 msgid "Subtract"
@@ -4173,7 +4180,7 @@ msgstr "Importowanie zapisów zakończone powodzeniem"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:244
 msgid "Swing"
-msgstr ""
+msgstr "Zamach"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
@@ -4193,14 +4200,12 @@ msgid "Tab split"
 msgstr "Tab split"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
-#, fuzzy
 msgid "Table Left"
-msgstr "Włącz kody"
+msgstr "Talerz lewo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
-#, fuzzy
 msgid "Table Right"
-msgstr "Wyłącz błyski"
+msgstr "Talerz prawo"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
@@ -4252,8 +4257,8 @@ msgstr ""
 "inny program."
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:44
-#, c-format
-msgid "The file %s was alrady open, the file header will not be written."
+#, fuzzy, c-format
+msgid "The file %s was already open, the file header will not be written."
 msgstr "Plik %s jest już otwarty, nagłówek pliku nie zostanie zapisany."
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:279
@@ -4279,12 +4284,11 @@ msgstr "Zapis, który chcesz skopiować posiada niewłaściwą wielkość pliku.
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:87
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:88
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:131
-#, fuzzy
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
 msgstr ""
-"Wybrany język nie jest wspierany przez Twój system. Ustawienia domyślne.\n"
+"Wybrany język nie jest wspierany przez Twój system. Ustawienia domyślne."
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:46
 msgid "The server and client's NetPlay versions are incompatible!"
@@ -4395,7 +4399,7 @@ msgstr "Granica"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
 msgid "Tilt"
-msgstr ""
+msgstr "Przechylenie"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
@@ -4445,9 +4449,8 @@ msgstr ""
 "bt id Wiilota niedostępne"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
-#, fuzzy
 msgid "Turntable"
-msgstr "Włącz"
+msgstr "DJ Gramofon"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
@@ -4515,7 +4518,7 @@ msgstr ""
 #: Source/Core/InputUICommon/Src/WXInputBase.cpp:53
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 msgid "Up"
-msgstr "Up"
+msgstr "Góra"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:100
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
@@ -4523,9 +4526,8 @@ msgid "Update"
 msgstr "Aktualizuj"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
-#, fuzzy
 msgid "Upright Wiimote"
-msgstr "UDP Wiilot"
+msgstr "Willot pionowo"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
 msgid "Use EuRGB60 Mode (PAL60)"
@@ -4664,7 +4666,7 @@ msgstr "WaveFileWriter - plik nie jest otwarty."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
-msgstr ""
+msgstr "Tremolo"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:108
 msgid ""
@@ -4830,7 +4832,7 @@ msgstr "XFB"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
-msgstr ""
+msgstr "Żółty"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:84
 msgid "You can't close panes that have pages in them."

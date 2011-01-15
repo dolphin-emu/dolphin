@@ -13,9 +13,9 @@
 namespace Gecko
 {
 
-static const wxString wxstr_name(_("Name: ")),
-	wxstr_notes(_("Notes: ")),
-	wxstr_creator(_("Creator: "));
+static const wxString wxstr_name(wxTRANSLATE("Name: ")),
+	wxstr_notes(wxTRANSLATE("Notes: ")),
+	wxstr_creator(wxTRANSLATE("Creator: "));
 
 CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
@@ -24,9 +24,9 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	_connect_macro_(m_listbox_gcodes, CodeConfigPanel::UpdateInfoBox, wxEVT_COMMAND_LISTBOX_SELECTED, this);
 	_connect_macro_(m_listbox_gcodes, CodeConfigPanel::ToggleCode, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
 
-	m_infobox.label_name = new wxStaticText(this, -1, wxstr_name);
-	m_infobox.label_creator = new wxStaticText(this, -1, wxstr_creator);
-	m_infobox.label_notes = new wxStaticText(this, -1, wxstr_notes);
+	m_infobox.label_name = new wxStaticText(this, -1, wxGetTranslation(wxstr_name));
+	m_infobox.label_creator = new wxStaticText(this, -1, wxGetTranslation(wxstr_creator));
+	m_infobox.label_notes = new wxStaticText(this, -1, wxGetTranslation(wxstr_notes));
 	m_infobox.textctrl_notes = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(64, -1), wxTE_MULTILINE | wxTE_READONLY);
 	m_infobox.listbox_codes = new wxListBox(this, -1, wxDefaultPosition, wxSize(-1, 64));
 
@@ -101,7 +101,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 	if (sel > -1)
 	{
-		m_infobox.label_name->SetLabel(wxstr_name + wxString::FromAscii(m_gcodes[sel].name.c_str()));
+		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + wxString::FromAscii(m_gcodes[sel].name.c_str()));
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
@@ -112,7 +112,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 			m_infobox.textctrl_notes->AppendText(wxString::FromAscii(notes_iter->c_str()));
 		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
 
-		m_infobox.label_creator->SetLabel(wxstr_creator + wxString::FromAscii(m_gcodes[sel].creator.c_str()));
+		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + wxString::FromAscii(m_gcodes[sel].creator.c_str()));
 
 		// add codes to info listbox
 		std::vector<GeckoCode::Code>::const_iterator
@@ -123,9 +123,9 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 	}
 	else
 	{
-		m_infobox.label_name->SetLabel(wxstr_name);
+		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name));
 		m_infobox.textctrl_notes->Clear();
-		m_infobox.label_creator->SetLabel(wxstr_creator);
+		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator));
 	}
 }
 

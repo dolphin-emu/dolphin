@@ -155,9 +155,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	btnNextScan->Disable();
 
 	// data size radio buttons
-	size_radiobtn.rad_8 = new wxRadioButton(this, -1, wxT("8 bit"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	size_radiobtn.rad_16 = new wxRadioButton(this, -1, wxT("16 bit"));
-	size_radiobtn.rad_32 = new wxRadioButton(this, -1, wxT("32 bit"));
+	size_radiobtn.rad_8 = new wxRadioButton(this, -1, _("8 bit"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	size_radiobtn.rad_16 = new wxRadioButton(this, -1, _("16 bit"));
+	size_radiobtn.rad_32 = new wxRadioButton(this, -1, _("32 bit"));
 	size_radiobtn.rad_8->SetValue(true);
 
 	// data sizes groupbox
