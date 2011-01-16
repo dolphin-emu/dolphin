@@ -278,7 +278,7 @@ void DSPCore_Shutdown(); // Frees all allocated memory.
 
 void DSPCore_CheckExternalInterrupt();
 void DSPCore_CheckExceptions();
-void DSPCore_SetExternalInterrupt();
+void DSPCore_SetExternalInterrupt(bool val);
 
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);

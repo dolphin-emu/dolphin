@@ -41,6 +41,7 @@ DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 DSPEmitter *jit = NULL;
 Common::Event step_event;
+Common::CriticalSection ExtIntCriticalSection;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
@@ -192,9 +193,11 @@ void DSPCore_SetException(u8 level)
 }
 
 // Notify that an external interrupt is pending (used by thread mode)
-void DSPCore_SetExternalInterrupt()
+void DSPCore_SetExternalInterrupt(bool val)
 {
-	g_dsp.external_interrupt_waiting = true;
+	ExtIntCriticalSection.Enter();
+	g_dsp.external_interrupt_waiting = val;
+	ExtIntCriticalSection.Leave();
 }
 
 // Coming from the CPU
@@ -255,7 +258,7 @@ int DSPCore_RunCycles(int cycles)
 		{
 			DSPCore_CheckExternalInterrupt();
 			DSPCore_CheckExceptions();
-			g_dsp.external_interrupt_waiting = false;
+			DSPCore_SetExternalInterrupt(false);
 		}
 
 		return cyclesLeft;

@@ -156,7 +156,7 @@ int RunCyclesDebug(int cycles)
 	{
 		DSPCore_CheckExternalInterrupt();
 		DSPCore_CheckExceptions();
-		g_dsp.external_interrupt_waiting = false;
+		DSPCore_SetExternalInterrupt(false);
 	}
 
 	while (true)
@@ -220,7 +220,7 @@ int RunCycles(int cycles)
 	{
 		DSPCore_CheckExternalInterrupt();
 		DSPCore_CheckExceptions();
-		g_dsp.external_interrupt_waiting = false;
+		DSPCore_SetExternalInterrupt(false);
 	}
 
 	while (true)

@@ -321,8 +321,16 @@ u16 DSP_WriteControlRegister(u16 _uFlag)
 	// and immediately process it, if it has.
 	if (_uFlag & 2)
 	{
-		DSPCore_CheckExternalInterrupt();
-		DSPCore_CheckExceptions();
+		if (!g_dspInitialize.bOnThread)
+		{
+			DSPCore_CheckExternalInterrupt();
+			DSPCore_CheckExceptions();
+		}
+		else
+		{
+			DSPCore_SetExternalInterrupt(true);
+		}
+
 	}
 
 	return DSPInterpreter::ReadCR();
