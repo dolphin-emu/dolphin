@@ -47,6 +47,7 @@ files = [
 	"HW/EXI_DeviceMemoryCard.cpp",
 	"HW/EXI_DeviceMic.cpp",
 	"HW/EXI_DeviceEthernet.cpp",
+	"HW/EXI_DeviceGecko.cpp",
 	"HW/GPFifo.cpp",
 	"HW/GCPad.cpp",
 	"HW/Wiimote.cpp",

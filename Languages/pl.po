@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-16 08:55-0600\n"
-"PO-Revision-Date: 2011-01-15 18:06+0100\n"
+"POT-Creation-Date: 2011-01-16 14:18-0600\n"
+"PO-Revision-Date: 2011-01-16 15:54+0100\n"
 "Last-Translator: Krzysztof Baszczok <baszta2@gmail.com>\n"
 "Language-Team: Polish <baszta2@gmail.com>\n"
 "Language: Polish\n"
@@ -36,7 +36,7 @@ msgstr ""
 "już istnieje.\n"
 "Zastąpić?"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:524
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:525
 msgid "! NOT"
 msgstr "! NOT"
 
@@ -127,7 +127,7 @@ msgstr "%sEksportuj GCI%s"
 msgid "%sImport GCI%s"
 msgstr "%sImportuj GCI%s"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:523
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:524
 msgid "&& AND"
 msgstr "&& AND"
 
@@ -299,7 +299,7 @@ msgstr "8 bitów"
 msgid "<Insert name here>"
 msgstr "<Podaj nazwę>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:250
 msgid "<No resolutions found>"
 msgstr "<Brak rozdzielczości>"
 
@@ -311,7 +311,7 @@ msgstr "<Nic>"
 msgid "<Press Key>"
 msgstr "<Naciśnij klawisz>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:285
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:286
 msgid "<System>"
 msgstr "<System>"
 
@@ -502,7 +502,7 @@ msgstr "Dodaj łatkę"
 msgid "Add new pane"
 msgstr "Dodaj nowy panel"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:731
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:735
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
 msgid "Add..."
@@ -512,13 +512,13 @@ msgstr "Dodaj..."
 msgid "Address :"
 msgstr "Adres :"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:777
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:778
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Reguluje siłę nacisku wymaganego do aktywacji przycisków."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:432
 msgid "Adjust window size"
-msgstr "Dopasuj rozmiar okna:"
+msgstr "Dopasuj rozmiar okna"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
 msgid ""
@@ -528,13 +528,13 @@ msgid ""
 msgstr ""
 "Dostosowuje rozmiar okna do rozdzielczosci w grze zgodnie ze skala EFB.\n"
 "Dla lepszego efektu najlepiej ustawić proporcje ekranu na rozciągniete do "
-"okna gry używasz tej opcji."
+"okna, gdy używasz tej opcji."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:346
 msgid "Advanced"
 msgstr "Zaawansowane"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:456
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:457
 msgid "Advanced Settings"
 msgstr "Ustawienia zaawansowane"
 
@@ -542,7 +542,7 @@ msgstr "Ustawienia zaawansowane"
 msgid "All GC/Wii files (elf, dol, gcm, iso, ciso, wad)"
 msgstr "Wszystkie pliki GC/Wii (elf, dol, gcm, iso, ciso, wad)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:741
 msgid "All GC/Wii images (gcm, iso, ciso, gcz)"
 msgstr "Wszystkie obrazy GC/Wii (gcm, iso, ciso, gcz)"
 
@@ -563,7 +563,7 @@ msgstr "Wszystkie obrazy Wii (iso)"
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Spakowane obrazy GC/Wii (gcz)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:83
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
 msgid "All files (*.*)|*.*"
 msgstr "Wszystkie pliki (*.*)|*.*"
 
@@ -576,7 +576,7 @@ msgid ""
 "but enabling this option can also have a huge negative impact on performance "
 "if the game uses this functionality heavily."
 msgstr ""
-"Pozwala CPU na zapis/odczyt dla EFB (bufor renderu).\n"
+"Pozwala CPU na zapis/odczyt dla EFB (render buffer).\n"
 "Wymagane dla pewnych funkcji w grach (np. kursor gwiazdki w Super Mario "
 "Galaxy) oraz specjalnych efektów wizualnych (np. Monster Hunter Tri),\n"
 "ale włączenie tej opcji może mieć także negatywny wpływ na wydajność, jeśli "
@@ -602,7 +602,7 @@ msgstr "Apploader niewłaściwego rozmiaru... Czy to rzeczywiście apploader?"
 msgid "Apploader unable to load from file"
 msgstr "Apploader nie mógł wczytać z pliku"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:741
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:745
 msgid "Apploader:"
 msgstr "Apploader:"
 
@@ -610,7 +610,7 @@ msgstr "Apploader:"
 msgid "Apply"
 msgstr "Zastosuj"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:633
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:634
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Czy jesteś pewny by usunąc \"%s\"?"
@@ -627,7 +627,7 @@ msgstr ""
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Czy jesteś pewny by usunąc ten plik? Przepadnie na zawsze!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:169
 msgid "Aspect Ratio:"
 msgstr "Proporcje ekranu:"
@@ -645,7 +645,7 @@ msgstr "Audio Backend"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Błąd otwarcia urządzenia AO.\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:236
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:237
 msgid "Auto"
 msgstr "Auto"
 
@@ -695,7 +695,7 @@ msgstr "Wajcha"
 msgid "Basic"
 msgstr "Podstawowy"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:446
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:447
 msgid "Basic Settings"
 msgstr "Ustawienia podstawowe"
 
@@ -727,13 +727,13 @@ msgstr "Niebieski lewo"
 msgid "Blue Right"
 msgstr "Niebieski prawo"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:269
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Bottom"
 msgstr "Dół"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:243
-#, c-format
-msgid "Bound Controls: %u"
+#, fuzzy, c-format
+msgid "Bound Controls: %lu"
 msgstr "Bound Controls: %u"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:362
@@ -769,7 +769,7 @@ msgstr "Przyciski"
 msgid "C-Stick"
 msgstr "C-Stick"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:458
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:459
 msgid "CPU Emulator Engine"
 msgstr "Silnik emulacji CPU"
 
@@ -819,7 +819,7 @@ msgstr "Nie moża otworzyć %s"
 msgid "Cannot unregister events with events pending"
 msgstr "Nie można wyrejestrować zdarzeń podczas ich wykonywania"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1003
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -864,7 +864,7 @@ msgstr "Zmień &dysk"
 msgid "Change Game"
 msgstr "Zmień grę"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:413
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -895,23 +895,23 @@ msgstr "Szukaj cheatów"
 msgid "Cheats Manager"
 msgstr "Menadżer cheatów"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:286
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
 msgid "Chinese (Simplified)"
 msgstr "Chiński uproszczony"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:740
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:744
 msgid "Choose a DVD root directory:"
 msgstr "Wybierz folder źródłowy DVD"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:740
 msgid "Choose a default ISO:"
 msgstr "Wybierz domyślne ISO"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1129
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1135
 msgid "Choose a directory to add"
 msgstr "Wybierz folder do dodania"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:978
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:982
 msgid "Choose a file to open"
 msgstr "Wybierz plik do otwarcia"
 
@@ -919,7 +919,7 @@ msgstr "Wybierz plik do otwarcia"
 msgid "Choose a memory card:"
 msgstr "Wybierz kartę pamięci:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:746
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
@@ -940,8 +940,8 @@ msgstr "Circle Stick"
 msgid "Classic"
 msgstr "Classic"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:504
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:935
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:936
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:129
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:114
@@ -1010,8 +1010,8 @@ msgstr "Kompresowanie ISO"
 msgid "Config"
 msgstr "Konfig"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:775
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:779
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 msgid "Config..."
 msgstr "Konfiguracja..."
 
@@ -1040,7 +1040,7 @@ msgstr "Konfiguruj..."
 msgid "Confirm File Overwrite"
 msgstr "Potwierdź nadpis pliku"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:505
 msgid "Confirm On Stop"
 msgstr "Potwierdź przy wyjściu"
 
@@ -1049,7 +1049,7 @@ msgstr "Potwierdź przy wyjściu"
 msgid "Connect"
 msgstr "Połącz"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:695
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:699
 msgid "Connect USB Keyboard"
 msgstr "Podłącz klawiaturę USB"
 
@@ -1209,22 +1209,22 @@ msgstr "Utwórz kod AR"
 msgid "Create new perspective"
 msgstr "Utwórz nową perspektywę"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:411
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 msgid "Created by KDE-Look.org"
 msgstr "Utworzone przez KDE-Look.org"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:408
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:409
 msgid ""
 "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 msgstr ""
 "Utworzone przez  Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart."
 "com]"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:409
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:410
 msgid "Created by VistaIcons.com"
 msgstr "Utworzone przez VistaIcons.com"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:410
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:411
 msgid "Created by black_rider and published on ForumW.org > Web Developments"
 msgstr ""
 "Utworzone przez black_rider and published on ForumW.org > Web Developments"
@@ -1254,7 +1254,7 @@ msgstr "D-Pad"
 msgid "DList Cache"
 msgstr "DList Cache"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:777
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:369
 msgid "DSP"
 msgstr "DSP"
@@ -1263,15 +1263,15 @@ msgstr "DSP"
 msgid "DSP settings"
 msgstr "Ustawienia DSP"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:460
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:461
 msgid "DSPLLE on thread"
 msgstr "Wątek dla DSPLLE"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:739
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:743
 msgid "DVD Root:"
 msgstr "Źródło DVD:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:288
 msgid "Danish"
 msgstr "Duński"
 
@@ -1317,11 +1317,11 @@ msgstr "Wypakuj wybrane ISO..."
 msgid "Decompressing ISO"
 msgstr "Wypakowywanie ISO"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:934
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:935
 msgid "Default"
 msgstr "Domyślne"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:735
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:739
 msgid "Default ISO:"
 msgstr "Domyślne ISO:"
 
@@ -1329,7 +1329,7 @@ msgstr "Domyślne ISO:"
 msgid "Default font"
 msgstr "Domyślna czcionka"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:948
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:949
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:32
 msgid "Delete"
 msgstr "Usuń"
@@ -1343,7 +1343,7 @@ msgstr "Usuń zapis"
 msgid "Delete the existing file '%s'?"
 msgstr "Usunąć istniejący plik '%s'?"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Detect"
 msgstr "Wykryj"
 
@@ -1357,12 +1357,12 @@ msgstr ""
 "wyjściowym. Zapchało się."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:133
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:917
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:918
 msgid "Device"
 msgstr "Urządzenie"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:562
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:693
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:563
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:697
 msgid "Device Settings"
 msgstr "Ustawienia urządzenia"
 
@@ -1415,8 +1415,8 @@ msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
 msgstr ""
-"Wyłącz błyski. Zwiększa wydajność, ale powoduje zniknięcie błysków w grach, "
-"których tego używają."
+"Wyłącz lighting. Zwiększa wydajność, ale powoduje zniknięcie błysków w "
+"grach, których tego używają."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:88
 msgid ""
@@ -1447,7 +1447,7 @@ msgstr "Dłąd odczytu dysku"
 msgid "Disconnected"
 msgstr "rozlaczony"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:438
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:439
 msgid "Display"
 msgstr "Ekran"
 
@@ -1510,7 +1510,7 @@ msgstr "Konfiguracja emulowanego Wiilota"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1085
 msgid "Dolphin GCPad Configuration"
-msgstr "Konfiguracja Dolphin GCPad"
+msgstr "Konfiguracja GCPad'a"
 
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:181
 msgid "Dolphin OpenGL"
@@ -1523,7 +1523,7 @@ msgstr "Filmy TAS (*.dtm)"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
 msgid "Dolphin Wiimote Configuration"
-msgstr "Dolphin Wiilot konfiguracja"
+msgstr "Konfiguracja Wiilot'a"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:300
 msgid "Dolphin at &Google Code"
@@ -1534,7 +1534,7 @@ msgid ""
 "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
 "files..."
 msgstr ""
-"Dolphin nie mógł znaleść żadnych obrazów GC/Wii ISO. Kliknij tutaj by "
+"Program nie mógł znaleść żadnych obrazów GC/Wii ISO. Kliknij tutaj by "
 "przeglądać pliki..."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:205
@@ -1550,7 +1550,7 @@ msgid ""
 "Dolphin is currently set to hide all games.  Doubleclick here to show all "
 "games..."
 msgstr ""
-"Dolphin jest obecnie ustawiony by ukrywać wszystkie gry. Kliknij tutaj by "
+"Program jest obecnie ustawiony by ukrywać wszystkie gry. Kliknij tutaj by "
 "pokazać wszystkie gry..."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -1591,8 +1591,8 @@ msgstr "Zrzut tekstur"
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
 msgstr "Zrzuć tekstury gry do User/Dump/Textures/<game id>/"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:288
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:469
 msgid "Dutch"
 msgstr "Holenderski"
@@ -1684,7 +1684,7 @@ msgstr "Emulowany Wiilot"
 msgid "Emulation State: "
 msgstr "Stan emulacji:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:487
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:488
 msgid "Emulator Display Settings"
 msgstr "Ustawienia ekranu emulatora"
 
@@ -1717,7 +1717,7 @@ msgstr "Włącz łączenie bloków"
 msgid "Enable CPU Access"
 msgstr "Włącz dostęp CPU"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:449
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:450
 msgid "Enable Cheats"
 msgstr "Włącz kody"
 
@@ -1738,7 +1738,7 @@ msgstr "Włącz Display List Caching"
 msgid "Enable Dual Core"
 msgstr "Włącz 2 rdzenie"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:447
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:448
 msgid "Enable Dual Core (speedup)"
 msgstr "Włącz 2 rdzenie (przyspieszenie)"
 
@@ -1758,7 +1758,7 @@ msgstr "Włącz skróty klawiszowe"
 msgid "Enable Idle Skipping"
 msgstr "Włącz Idle Skipping"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:448
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:449
 msgid "Enable Idle Skipping (speedup)"
 msgstr "Włącz Idle Skipping (przyspieszenie)"
 
@@ -1774,12 +1774,12 @@ msgstr "Włącz MMU"
 msgid "Enable OpenCL"
 msgstr "Włącz OpenCL"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
 msgid "Enable Progressive Scan"
 msgstr "Włącz Progressive Scan"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:689
 msgid "Enable Screen Saver (burn-in reduction)"
 msgstr "Włącz wygaszacz ekranu (burn-in reduction)"
 
@@ -1812,7 +1812,7 @@ msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
 msgstr ""
-"Włącz to by przyspieszyc The Legend of Zelda: Twilight Princess. Wyłącz dla "
+"Włącz to by przyspieszyć The Legend of Zelda: Twilight Princess. Wyłącz dla "
 "KAŻDEJ innej gry."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
@@ -1847,7 +1847,7 @@ msgid ""
 "Games often need this for post-processing or other things, but if you can "
 "live without it, you can sometimes get a big speedup."
 msgstr ""
-"Włącza kopie emulacji Embedded Frame Buffer, jeśli gra z nich korzysta.\n"
+"Włącza emulację kopii Embedded Frame Buffer, jeśli gra z nich korzysta.\n"
 "Gry często wymagają tego do post-obliczeń lub innych rzeczy, jeśli możesz "
 "bez tego żyć, możliwy jest wzrost wydajności."
 
@@ -1877,8 +1877,8 @@ msgstr ""
 msgid "End"
 msgstr "Koniec"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:259
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:260
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:464
 msgid "English"
 msgstr "Angielski"
@@ -1905,7 +1905,7 @@ msgstr "Wejście 1/%d"
 msgid "Equal"
 msgstr "Równy"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1135
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1141
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:76
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
@@ -2291,7 +2291,7 @@ msgstr "Fractional"
 msgid "Frame S&kipping"
 msgstr "Frame S&kipping"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:451
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:452
 msgid "Framelimit :"
 msgstr "Limit ramek"
 
@@ -2299,8 +2299,8 @@ msgstr "Limit ramek"
 msgid "Free Look"
 msgstr "Free Look"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:261
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:466
 msgid "French"
 msgstr "Francuski"
@@ -2313,7 +2313,7 @@ msgstr "Gryfy"
 msgid "FullScr"
 msgstr "FullScr"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:488
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid "Fullscreen Display Resolution:"
 msgstr "Rozdzielczości pełnego ekranu"
 
@@ -2359,11 +2359,11 @@ msgstr "Specyficzne ustawienia gry"
 msgid "GameConfig"
 msgstr "Konfiguracja gry"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:439
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:440
 msgid "Gamecube"
 msgstr "Gamecube"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:982
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:986
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:219
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Karty pamięci GC (*.raw,*.gcp)"
@@ -2386,13 +2386,13 @@ msgstr ""
 "Błąd uruchomienia GeckoCode (CT%i CST%i) (%s)\n"
 "(zły kod albo typ kodu nie jest jeszcze wspierany)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:437
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:438
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:125
 msgid "General"
 msgstr "Główne"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:260
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:261
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:465
 msgid "German"
 msgstr "Niemiecki"
@@ -2402,7 +2402,7 @@ msgstr "Niemiecki"
 msgid "GetARCode: Index is greater than ar code list size %lu"
 msgstr "GetARCode: Indeks jest większy niż rozmiar listy kodów AR %lu"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:773
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:777
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 msgid "Graphics"
 msgstr "Grafika"
@@ -2415,7 +2415,7 @@ msgstr "Ustawienia graficzne"
 msgid "Greater Than"
 msgstr "Większy niż"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "Greek"
 msgstr "Grecki"
 
@@ -2443,7 +2443,7 @@ msgstr "HCI_CMD_INQUIRY wywołany, raportuj!"
 msgid "Header checksum failed"
 msgstr "Suma kontrolna nagłówka nie powiodła się"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Hebrew"
 msgstr "Hebrajski"
 
@@ -2474,11 +2474,11 @@ msgstr ""
 msgid "Hide"
 msgstr "Ukryj"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:497
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid "Hide Mouse Cursor"
 msgstr "Ukryj kursor myszy"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:398
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:399
 msgid ""
 "Hide the cursor when it is over the rendering window\n"
 " and the rendering window has focus."
@@ -2497,12 +2497,12 @@ msgstr "Host"
 msgid "Hotkey Configuration"
 msgstr "Konfiguracja skrótów klawiszowych"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:518
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:519
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
 msgid "Hotkeys"
 msgstr "Skróty klawiszowe"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 msgid "Hungarian"
 msgstr "Węgierski"
 
@@ -2533,7 +2533,7 @@ msgstr ""
 msgid "IOCTL_ES_READCONTENT - bad destination"
 msgstr "IOCTL_ES_READCONTENT - zła ścieżka"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:557
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
 msgid "IPL Settings"
 msgstr "Ustawienia IPL"
 
@@ -2545,7 +2545,7 @@ msgstr "IR"
 msgid "IR Pointer"
 msgstr "Wskaźnik IR"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:679
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
 msgid "IR Sensitivity:"
 msgstr "Czułość IR"
 
@@ -2553,7 +2553,7 @@ msgstr "Czułość IR"
 msgid "ISO Details"
 msgstr "Szczegóły ISO"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:728
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:732
 msgid "ISO Directories"
 msgstr "Foldery ISO"
 
@@ -2570,10 +2570,10 @@ msgid ""
 "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
 "option may fix the game."
 msgstr ""
-"Jeśli gra się zawiesza, działa tylko w Interpretatorze lub Dolphin się "
-"zawiesza, ta opcja może naprawić działanie gry."
+"Jeśli gra się zawiesza, działa tylko w Interpreter lub Dolphin się zawiesza, "
+"ta opcja może naprawić działanie gry."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:388
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:389
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50),\n"
 "you also have to disable Audio Throttle in DSP to make it effective."
@@ -2628,7 +2628,7 @@ msgstr "Info"
 msgid "Information"
 msgstr "Informacja"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Input"
 msgstr "Wejście"
 
@@ -2644,7 +2644,7 @@ msgstr "Wstaw"
 msgid "Insert Encrypted or Decrypted code here..."
 msgstr "Wprowadź zaszyfrowany/zdeszyfrowany kod tutaj..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:694
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:698
 msgid "Insert SD Card"
 msgstr "Włóż kartę SD"
 
@@ -2678,7 +2678,7 @@ msgstr "Instalacja WAD do Wii Menu..."
 msgid "Integral [recommended]"
 msgstr "Integral [zalecany]"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:503
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
 msgid "Interface Settings"
 msgstr "Ustawienia interfejsu"
 
@@ -2708,7 +2708,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Wewnętrzny błąd LZO - lzo_init() nie powiodło się"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:241
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:242
 msgid "Interpreter (VERY slow)"
 msgstr "Interpreter (BARDZO wolny)"
 
@@ -2757,8 +2757,8 @@ msgstr "Newłaściwy plik nagrania"
 msgid "Invalid state"
 msgstr "Niewłaściwy stan"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Italian"
 msgstr "Włoski"
@@ -2767,16 +2767,16 @@ msgstr "Włoski"
 msgid "JAPAN"
 msgstr "Japonia"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:242
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:243
 msgid "JIT Recompiler (recommended)"
 msgstr "Rekompilator JIT (zalecany)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:243
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:244
 msgid "JITIL experimental recompiler"
 msgstr "Eksperymentalny rekompilator JITIL"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:279
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 msgid "Japanese"
 msgstr "Japoński"
 
@@ -2797,8 +2797,8 @@ msgstr ""
 msgid "Key"
 msgstr "Klawisz"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:281
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:282
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 msgid "Korean"
 msgstr "Koreański"
 
@@ -2816,7 +2816,7 @@ msgstr "L Button"
 msgid "L-Analog"
 msgstr "L-Analog"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:514
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid "Language:"
 msgstr "Język:"
 
@@ -2838,7 +2838,7 @@ msgstr "Lewo"
 msgid "Left Stick"
 msgstr "Gałka lewa"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:711
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:712
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -2848,7 +2848,7 @@ msgstr ""
 "ŚPM by wyczyścic.\n"
 "PPM więcej opcji."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:716
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:717
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -2860,7 +2860,7 @@ msgstr ""
 msgid "Less Than"
 msgstr "Mniej niż"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:946
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 msgid "Load"
 msgstr "Wczytaj"
 
@@ -2896,9 +2896,9 @@ msgid ""
 "Loading native mipmaps is the more accurate behavior, but might also "
 "decrease performance (your mileage might vary though)."
 msgstr ""
-"Wczytuje natywne mipmapy zamiast je generować.\n"
+"Wczytuje natywne mipmapy zamiast ich generacji.\n"
 "Wczytywanie natywnych mipmap jest bardziej dokładnym zachowaniem, ale może "
-"zmniejszyć wydajność."
+"obniżyć wydajność."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:125
 msgid "Loads the specified file (DOL, ELF, WAD, GCM, ISO)"
@@ -2908,7 +2908,7 @@ msgstr "Wczytuje określony plik (DOL, ELF, WAD, GCM, ISO)"
 msgid "Local"
 msgstr "Lokalny"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:459
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:460
 msgid "Lock threads to cores"
 msgstr "Przypisz wątki do rdzeni"
 
@@ -3018,7 +3018,7 @@ msgstr "Mikrofon"
 msgid "Misc"
 msgstr "Różne"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:688
 msgid "Misc Settings"
 msgstr "Ustawienia różne"
 
@@ -3215,7 +3215,7 @@ msgstr "Żadne"
 msgid "Normal"
 msgstr "Normalny"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 msgid "Norwegian Bokmaal"
 msgstr "Norweski"
 
@@ -3276,7 +3276,7 @@ msgstr "Acelerator Nunchak'a"
 msgid "OK"
 msgstr "OK"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:235
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:236
 msgid "Off"
 msgstr "Wyłączone"
 
@@ -3359,7 +3359,7 @@ msgstr ""
 "Inny klient rozłączony podczas uruchomionej gry! NetPlay wyłączony. Musisz "
 "ręcznie zatrzymać grę."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Output"
 msgstr "Wyjście"
 
@@ -3404,7 +3404,7 @@ msgstr "Partycja %i"
 msgid "Patches"
 msgstr "Patche"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:441
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:442
 msgid "Paths"
 msgstr "Ścieżki"
 
@@ -3457,7 +3457,7 @@ msgstr "Potwierdź..."
 msgid "Please create a perspective before saving"
 msgstr "Proszę utworzyć perspektywę przed zapisem"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:442
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:443
 msgid "Plugins"
 msgstr "Wtyczki"
 
@@ -3465,7 +3465,7 @@ msgstr "Wtyczki"
 msgid "Plus-Minus"
 msgstr "Plus-Minus"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 msgid "Polish"
 msgstr "Polski"
 
@@ -3484,7 +3484,7 @@ msgstr ""
 "Uruchomiłeś program z dysku tylko do odczytu lub z folderu, w którym program "
 "się nie znajduje?"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 msgid "Portuguese (Brazilian)"
 msgstr ""
 
@@ -3508,7 +3508,7 @@ msgstr "Poprzednia wartość"
 msgid "Print"
 msgstr "Drukuj"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:913
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:914
 msgid "Profile"
 msgstr "Profil"
 
@@ -3559,7 +3559,7 @@ msgstr "RAM"
 msgid "RUSSIA"
 msgstr "Rosja"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:546
 msgid "Range"
 msgstr "Zasięg"
 
@@ -3594,10 +3594,11 @@ msgid ""
 "This makes the rendered picture look less blocky but also heavily decreases "
 "performance."
 msgstr ""
-"Redukuje ilośc aliasingu powodowanego przez rasteryzowana grafike 3D.\n"
-"Sprawia, że rendrowany obraz wygląda mniej kwadratowo ale obniża wydajność."
+"Redukuje ilośc aliasingu powodowanego przez rasteryzowaną grafikę 3D.\n"
+"Sprawia, że renderowany obraz wygląda mniej kwadratowo, ale bardzo obniża "
+"wydajność."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:925
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:926
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:359
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:40
 msgid "Refresh"
@@ -3612,7 +3613,7 @@ msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr "Uruchom ponownie program z folderu instalacyjnego o zapisz."
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:732
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
 msgid "Remove"
@@ -3626,11 +3627,11 @@ msgstr ""
 "Generuje scene jako wireframe.\n"
 "Przydatne tylko do debugowania."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
 msgid "Render to Main Window"
 msgstr "Generuj w oknie głównym"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:399
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:400
 msgid "Render to main window."
 msgstr "Generuj w oknie głównym"
 
@@ -3638,11 +3639,11 @@ msgstr "Generuj w oknie głównym"
 msgid "Rendering"
 msgstr "Rendering"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:401
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:402
 msgid "Required for using the Japanese ROM font."
 msgstr "Wymagane dla użycia ROMu japońskich czcionek"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:937
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:938
 msgid "Reset"
 msgstr "Reset"
 
@@ -3672,7 +3673,7 @@ msgstr "Wibracje"
 msgid "Run"
 msgstr "Odpal"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:391
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:392
 msgid "Run DSPLLE on a dedicated thread (not recommended)."
 msgstr "Wykonuj DSPLLE na osobnym wątku (niezalecane)."
 
@@ -3680,7 +3681,7 @@ msgstr "Wykonuj DSPLLE na osobnym wątku (niezalecane)."
 msgid "Running script...\n"
 msgstr "Wykonuję skrypt...\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
 msgid "Russian"
 msgstr "Rosyjski"
 
@@ -3696,8 +3697,8 @@ msgstr "Bezpieczny"
 msgid "Sample Rate"
 msgstr "Wskaźnik próbkowania"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:993
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:948
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:994
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:384
 msgid "Save"
 msgstr "Zapisz"
@@ -3756,7 +3757,7 @@ msgstr "Scroll Lock"
 msgid "Search Filter"
 msgstr "Filtr wyszukiwania"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:730
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:734
 msgid "Search Subfolders"
 msgstr "Przeszukuj podfoldery"
 
@@ -3766,7 +3767,7 @@ msgstr "Przeszukuj podfoldery"
 msgid "Section %s not found in SYSCONF"
 msgstr "Nie odnaleziono sekcji %s w SYSCONF"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:507
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:508
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:56
 msgid "Select"
 msgstr "Select"
@@ -3792,7 +3793,7 @@ msgstr "Wybierz plik zapisu do importowania"
 msgid "Select floating windows"
 msgstr "Select floating windows"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:394
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:395
 msgid "Select resolution for fullscreen mode"
 msgstr "Wybierz rozdzielczość pełnego ekranu"
 
@@ -3829,8 +3830,8 @@ msgid ""
 "Force 4:3: Stretch the picture to an aspect ratio of 4:3.\n"
 "Stretch to window: Stretch the picture to the window size."
 msgstr ""
-"Wybierz proporcje ekranu do rendrowania:\n"
-"Automatycznie: Natywne proporcje (4:3).\n"
+"Wybierz proporcje ekranu do rendringu:\n"
+"Auto: Natywne proporcje (4:3).\n"
 "Wymuś 16:9: Rozciąga obraz do proporcji 16:9.\n"
 "Wymuś 4:3: Rozciąga obraz do proporcji 4:3.\n"
 "Rozciągnij do okna: Rozciąga obraz do wymiaru okna."
@@ -3843,7 +3844,7 @@ msgstr "Wybrana czcionka"
 msgid "Send"
 msgstr "Wyślij"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:677
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Sensor Bar Position:"
 msgstr "Pozycja Sensor Bar'a"
 
@@ -3851,16 +3852,16 @@ msgstr "Pozycja Sensor Bar'a"
 msgid "Separator"
 msgstr "Separator"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:417
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:418
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr "Serial Port 1 - Port używany przez urządzenia takie jak net adapter"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:506
 msgid "Set"
 msgstr "Ustaw"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:501
 msgid "Set Console as NTSC-J"
 msgstr "Ustaw konsolę jako NTSC-J"
 
@@ -3929,7 +3930,7 @@ msgstr "Pokaż Francję"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:264
 msgid "Show GameCube"
-msgstr "Pokaż GC"
+msgstr "Pokaż GameCube"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:280
 msgid "Show Italy"
@@ -3979,11 +3980,11 @@ msgstr "Pokaż WAD"
 msgid "Show Wii"
 msgstr "Pokaż Wii"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:404
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:405
 msgid "Show a confirmation box before stopping a game."
 msgstr "Pokazuje okno potwierdzenia przed zatrzymaniem gry."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:405
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:406
 msgid ""
 "Show a message box when a potentially serious error has occured.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
@@ -4044,7 +4045,7 @@ msgstr ""
 msgid "Sideways Wiimote"
 msgstr "Willot bokiem"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:279
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:280
 msgid "Simplified Chinese"
 msgstr "Chiński uproszczony"
 
@@ -4056,7 +4057,7 @@ msgstr "Rozmiar"
 msgid "Skies of Arcadia"
 msgstr "Skies of Arcadia"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:457
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:458
 msgid "Skip GC BIOS"
 msgstr "Pomiń GC BIOS"
 
@@ -4092,8 +4093,8 @@ msgstr "Utworzenie bufora dźwięku nie powiodło się: %s"
 msgid "Space"
 msgstr "Space"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:467
 msgid "Spanish"
 msgstr "Hiszpański"
@@ -4113,12 +4114,12 @@ msgid ""
 "independent of your display size."
 msgstr ""
 "Określa rozdzielczość. Wyższa rozdzielczość poprawi jakość wizualną ale "
-"znacznie zaniży wydajność i może powodować błędy, w niektórych grach.\n"
-"Ułamkowy: Używa rozdzielczość ekranu zamiast natywnej. Jakość zależna jest "
-"od wielkości ekranu/okna, ma również wpływ na wydajność.Całkowy: Podobnie "
-"jak ułamkowy, ale zaokrągla do liczby całkowitej wielkorotność natywnej "
-"rozdzielczości. Powinno dawać bardziej dokładny wygląd, ale jest zazwyczaj "
-"wolniejszy.\n"
+"znacznie obniży wydajność i może powodować błędy, w niektórych grach.\n"
+"Fractional: Używa rozdzielczości ekranu zamiast natywnej. Jakość zależna "
+"jest od wielkości ekranu/okna, ma również wpływ na wydajność.\n"
+"Integral: Podobnie jak Fractional, ale zaokrągla do liczby całkowitej "
+"wielkorotność natywnej rozdzielczości. Powinno dać bardziej dokładny wygląd, "
+"ale jest zazwyczaj wolniejszy.\n"
 "Pozostałe opcje to ustawione rozdzielczoście niezależne od wielkości ekranu."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:134
@@ -4139,7 +4140,7 @@ msgstr "Square Stick"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:70
 msgid "Standard Controller"
-msgstr "Kontroler standardowy"
+msgstr "Standard Controller"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:303
@@ -4155,11 +4156,11 @@ msgstr "Start &NetPlay"
 msgid "Start Re&cording"
 msgstr "&Rozpocznij nagrywanie"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:496
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:497
 msgid "Start Renderer in Fullscreen"
-msgstr "Rozpocznij  na pełnym ekranie"
+msgstr "Rozpocznij na pełnym ekranie"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:397
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:398
 msgid "Start the rendering window in fullscreen mode."
 msgstr "Rozpocznij rendering w trybie pełnoekranowym."
 
@@ -4203,8 +4204,8 @@ msgstr "Importowanie zapisów zakończone powodzeniem"
 msgid "Swing"
 msgstr "Zamach"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:689
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:559
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:693
 msgid "System Language:"
 msgstr "Język systemu:"
 
@@ -4234,7 +4235,7 @@ msgstr "Talerz prawo"
 msgid "Take Screenshot"
 msgstr "Zrób zdjęcie"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Test"
 msgstr "Test"
 
@@ -4258,7 +4259,7 @@ msgstr "Nieprawidłowy adres"
 msgid "The checksum was successfully fixed"
 msgstr "Suma kontrolna poprawnie naprawiona"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1135
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1141
 msgid "The chosen directory is already in the list"
 msgstr "Wybrany folder jest już na liście"
 
@@ -4321,7 +4322,7 @@ msgstr "Serwer pełny!"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:49
 msgid "The server responded: the game is currently running!"
-msgstr "Odpowiedź serwera: gra aktuapnie uruchomiona!"
+msgstr "Odpowiedź serwera: gra aktualnie uruchomiona!"
 
 #: Source/Core/DolphinWX/Src/NetPlayClient.cpp:52
 msgid "The server sent an unknown error message!"
@@ -4336,7 +4337,7 @@ msgstr "Wskazany plik \"%s\" nie istnieje."
 msgid "The value is invalid"
 msgstr "Niewłaściwa wartość"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:508
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:509
 msgid "Theme"
 msgstr "Styl"
 
@@ -4357,7 +4358,7 @@ msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
 msgstr ""
-"Te ustawienia przewyższaja źródłowe ustawienia Dolphina.\n"
+"Te ustawienia przewyższaja źródłowe ustawienia programu.\n"
 "Nieokreślone ustawienia odczytywane są ze źródłowych."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:356
@@ -4368,7 +4369,7 @@ msgstr ""
 "Ten symulator action replay nie wspiera kodów, które modyfikują Action "
 "Replay'a."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:421
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:422
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Może powodować spowolnienie w Wii Menu i niektórych grach."
 
@@ -4381,10 +4382,11 @@ msgid ""
 "\n"
 "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
 msgstr ""
-"Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez "
-"spowalnianie dźwięku.\n"
+"Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez sound "
+"throttle(spowalnianie dźwięku).\n"
 "Wyłączenie tego może spowodować nienormalne działanie gry, np. zbyt szybkie "
 "działanie.\n"
+"Czasami powoduje stały szum.\n"
 "\n"
 "Skrót klawiszowy <TAB>: Przytrzymaj by natychmiastowo wyłączyc Audio "
 "Throttle."
@@ -4398,7 +4400,7 @@ msgstr "Jest to używane do odtwarzania muzyki, BGM."
 msgid "This is usually used to play voice and sound effects."
 msgstr "To zazwyczaj jest używane do odtwarza głosów i efektów dźwiękowych."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:387
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:388
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
 "cores.\n"
@@ -4416,7 +4418,7 @@ msgstr "Pozwala na ręczną edycję pliku konfiguracyjnego."
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
 msgid "Threshold"
-msgstr "Granica"
+msgstr "Threshold"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:247
 msgid "Tilt"
@@ -4436,11 +4438,11 @@ msgstr "Przełącz na pełny ekran"
 msgid "Toggle all"
 msgstr "Przełącz wszystko"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:271
 msgid "Top"
 msgstr "Góra"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:280
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:281
 msgid "Traditional Chinese"
 msgstr "Chiński tradycyjny"
 
@@ -4525,7 +4527,7 @@ msgstr "Nieznana wiadomość o ID: %d"
 #: Source/Core/DolphinWX/Src/NetPlayServer.cpp:504
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
-msgstr "Nieznana wiadomość o ID: %d od gracza: %d Wylatuje!"
+msgstr "Nieznana wiadomość o ID: %d od gracza: %d Gracz wylatuje!"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:636
 #, c-format
@@ -4550,11 +4552,11 @@ msgstr "Aktualizuj"
 msgid "Upright Wiimote"
 msgstr "Willot pionowo"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:686
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:690
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "Użyj trybu EuRGB60 (PAL60)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:453
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:454
 msgid "Use FPS  For Limiting"
 msgstr "Użyj limitu FPS"
 
@@ -4562,9 +4564,9 @@ msgstr "Użyj limitu FPS"
 msgid "Use Hex"
 msgstr "Użyj HEX"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:505
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
 msgid "Use Panic Handlers"
-msgstr "Użyj obsługi błędów"
+msgstr "Użyj Panic Handlers"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 msgid "Use XFB"
@@ -4608,7 +4610,7 @@ msgstr "Różne statystyki"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:82
 msgid "Verbosity"
-msgstr "Szczegółowość"
+msgstr "Verbosity"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:337
 msgid "Video"
@@ -4687,7 +4689,7 @@ msgstr "WaveFileWriter - plik nie jest otwarty."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
-msgstr "Tremolo"
+msgstr "Whammy"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:108
 msgid ""
@@ -4701,15 +4703,16 @@ msgid ""
 "(NOTE: The safier the texture cache is adjusted the lower the speedup will "
 "be; accurate texture cache set to \"safe\" might actually be slower!)"
 msgstr ""
-"Gdy w użyciu EFB do RAM bardzo często potrzebujemy zdekodować dane RAM do "
+"Gdy w użyciu EFB to RAM bardzo często potrzebujemy zdekodować dane RAM do "
 "tekstury VRAM, co jest bardzo czasochłonne.\n"
 "Z włączoną tą opcją, przeskakujemy dekodowanie tekstury jeśli nie uległa ona "
 "zmianie.\n"
-"To powoduje przyspieszenie, ale możliwe że powoduje błędy.\n"
+"To powoduje przyspieszenie, ale mogą wystąpić błędy.\n"
 "Jeśli masz problemy z tą opcją, spróbuj zwiększyć bezpieczeństwo cachu "
 "tekstur lub ją wyłącz.\n"
 "(Notka: Im bezpieczniejszy cache tekstur, tym mniejsze przyspieszenie "
-"wydajnościowe uzyskamy)"
+"wydajnościowe uzyskamy; accurate texture cache ustawiony na \"bezpieczny\" "
+"może być wolniejszy!)"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:178
 msgid "Widescreen Hack"
@@ -4719,7 +4722,7 @@ msgstr "Widescreen Hack"
 msgid "Width"
 msgstr "Szerokość"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:440
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:441
 msgid "Wii"
 msgstr "Wii"
 
@@ -4770,11 +4773,11 @@ msgstr ""
 msgid "Wiimote Connected"
 msgstr "Wiilot połączony"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
 msgid "Wiimote Motor"
 msgstr "Wiilot Motor"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:676
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:680
 msgid "Wiimote Settings"
 msgstr "Ustawienia Wiilota"
 
@@ -4782,21 +4785,21 @@ msgstr "Ustawienia Wiilota"
 msgid "Wiimote settings"
 msgstr "Ustawienia Wiilota"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:400
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:401
 msgid "Will enable progressive scan option if supported by software."
-msgstr "Włączy skanowanie progresywne jeśli wspierane przez program."
+msgstr "Włączy skanowanie progresywne jeśli jest wspierane przez program."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:491
 msgid "Window Size:"
 msgstr "Rozmiar okna:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:396
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:397
 msgid "Window height for windowed mode"
-msgstr "Wysokość okna dla trybu oknowego"
+msgstr "Wysokość okna dla trybu okna"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:395
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:396
 msgid "Window width for windowed mode"
-msgstr "Szerokość okna dla trybu oknowego"
+msgstr "Szerokość okna dla trybu okna"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:131
 msgid "Windows Left"
@@ -4871,11 +4874,11 @@ msgstr "Musisz wprowadzić nazwę!"
 msgid "You must enter a valid decimal or hex value."
 msgstr "Musisz wprowadzić poprawną wartość dziesiętną lub szestnastkową."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:622
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623
 msgid "You must enter a valid profile name."
 msgstr "Musisz wprowadzić poprawną nazwę profilu."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:920
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:924
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Musisz ponownie uruchomić program w celu zaaplikowania zmian."
 
@@ -4912,16 +4915,16 @@ msgstr "Kod 3 zero niewspierany"
 msgid "Zero code unknown to dolphin: %08x"
 msgstr "Kod zero nieznany dla programu: %08x"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:450
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:475
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:451
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:476
 msgid "[ waiting ]"
 msgstr "[ czekam ]"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:525
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:526
 msgid "^ ADD"
 msgstr "^ ADD"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:743
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
 msgid "apploader (.img)"
 msgstr "apploader (.img)"
 
@@ -4936,7 +4939,7 @@ msgstr "Odczyt z pliku %s nie powiódł się"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:98
 msgid "failed to read header"
-msgstr "Odczyt nagłówka nieudany"
+msgstr "Odczyt nagłówka nie powiódł się"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:450
 #, c-format
@@ -4957,7 +4960,7 @@ msgstr "nieznane polecenie 0x%08x"
 msgid "wxExecute returned -1 on application run!"
 msgstr "wxExecute zwrócił -1 przy uruchamianiu programu!"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:510
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:511
 msgid "| OR"
 msgstr "| OR"
 

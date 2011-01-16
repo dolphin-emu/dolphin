@@ -127,6 +127,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\pt_BR.po"
+			>
+		</File>
+		<File
 			RelativePath=".\ru.po"
 			>
 		</File>
