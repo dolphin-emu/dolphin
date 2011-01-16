@@ -60,10 +60,13 @@ else:
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	if env['HAVE_WX']:
-		wxlibs += env['wxconfiglibs']
 	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
+
+	if env['HAVE_WX']:
+		wxlibs += env['wxconfiglibs']
+	else:
+		exe += 'NoGUI'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework', source = [

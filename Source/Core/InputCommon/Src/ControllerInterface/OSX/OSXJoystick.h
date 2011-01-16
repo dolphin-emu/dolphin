@@ -53,6 +53,26 @@ protected:
 		float			m_scale;
 	};
 
+	class Hat : public Input
+	{
+		friend class Joystick;
+	public:
+		enum direction {
+			up = 0,
+			right,
+			down,
+			left
+		};
+		std::string GetName() const;
+	protected:
+		Hat(IOHIDElementRef element, direction dir);
+		ControlState GetState(IOHIDDeviceRef device) const;
+	private:
+		IOHIDElementRef		m_element;
+		std::string		m_name;
+		direction		m_direction;
+	};
+
 	bool UpdateInput();
 	bool UpdateOutput();
 
