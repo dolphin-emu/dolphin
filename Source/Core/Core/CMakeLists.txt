@@ -39,6 +39,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/EXI_DeviceAD16.cpp
 			Src/HW/EXI_DeviceAMBaseboard.cpp
 			Src/HW/EXI_DeviceEthernet.cpp
+			Src/HW/EXI_DeviceGecko.cpp
 			Src/HW/EXI_DeviceIPL.cpp
 			Src/HW/EXI_DeviceMemoryCard.cpp
 			Src/HW/EXI_DeviceMic.cpp
