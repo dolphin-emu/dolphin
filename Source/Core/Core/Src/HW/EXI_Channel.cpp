@@ -233,13 +233,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 				{
 					case EXI_READ: m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); break;
 					case EXI_WRITE: pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1); break;
-					case EXI_READWRITE:
-						ERROR_LOG(SP1, "RW UNSUPPORTED");
-/*						Only used by USBGecko?
-						pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1);
-						m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); */
-						break;
-
+					case EXI_READWRITE: pDevice->ImmReadWrite(m_ImmData, m_Control.TLEN + 1); break;
 					default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 				}
 				m_Control.TSTART = 0;

@@ -30,7 +30,8 @@ private:
 public:
 	// Immediate copy functions
 	virtual void ImmWrite(u32 _uData,  u32 _uSize);
-	virtual u32 ImmRead(u32 _uSize);
+	virtual u32  ImmRead(u32 _uSize);
+	virtual void ImmReadWrite(u32 &/*_uData*/, u32 /*_uSize*/) {}
 
 	// DMA copy functions
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
@@ -59,6 +60,7 @@ enum TEXIDevices
 	EXIDEVICE_MIC,
 	EXIDEVICE_ETH,
 	EXIDEVICE_AM_BASEBOARD,
+	EXIDEVICE_GECKO,
 	EXIDEVICE_NONE = (u8)-1
 };
 

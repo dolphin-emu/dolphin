@@ -24,13 +24,14 @@
 #include "EXI_DeviceMic.h"
 #include "EXI_DeviceEthernet.h"
 #include "EXI_DeviceAMBaseboard.h"
+#include "EXI_DeviceGecko.h"
 
 #include "../Core.h"
 #include "../ConfigManager.h"
 
 
 // --- interface IEXIDevice ---
-void IEXIDevice::ImmWrite(u32 _uData,  u32 _uSize)
+void IEXIDevice::ImmWrite(u32 _uData, u32 _uSize)
 {
 	while (_uSize--)
 	{
@@ -135,6 +136,10 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 
 	case EXIDEVICE_AM_BASEBOARD:
 		return new CEXIAMBaseboard();
+		break;
+
+	case EXIDEVICE_GECKO:
+		return new CEXIGecko();
 		break;
 
 	case EXIDEVICE_NONE:

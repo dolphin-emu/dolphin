@@ -25,7 +25,7 @@
 static Common::Thread *connectionThread = NULL;
 static std::queue<sf::SocketTCP> waiting_socks;
 static Common::CriticalSection cs_gba;
-volatile bool server_running;
+namespace { volatile bool server_running; }
 
 // --- GameBoy Advance "Link Cable" ---
 
@@ -36,6 +36,7 @@ THREAD_RETURN GBAConnectionWaiter(void*)
 	Common::SetCurrentThreadName("GBA Connection Waiter");
 
 	sf::SocketTCP server;
+	// "dolphin gba"
 	if (!server.Listen(0xd6ba))
 		return 0;
 	
@@ -101,11 +102,8 @@ void GBASockServer::Transfer(char* si_buffer)
 		if (!GetAvailableSock(client))
 			return;
 
-	current_data[0] = si_buffer[3];
-	current_data[1] = si_buffer[2];
-	current_data[2] = si_buffer[1];
-	current_data[3] = si_buffer[0];
-	current_data[4] = si_buffer[7];
+	for (int i = 0; i < 5; i++)
+		current_data[i] = si_buffer[i ^ 3];
 
 	u8 cmd = *current_data;
 
@@ -138,11 +136,8 @@ void GBASockServer::Transfer(char* si_buffer)
 				(unsigned int)num_received, (unsigned int)num_expecting);
 #endif
 
-	si_buffer[0] = current_data[3];
-	si_buffer[1] = current_data[2];
-	si_buffer[2] = current_data[1];
-	si_buffer[3] = current_data[0];
-	si_buffer[7] = current_data[4];
+	for (int i = 0; i < 5; i++)
+		si_buffer[i ^ 3] = current_data[i];
 }
 
 CSIDevice_GBA::CSIDevice_GBA(int _iDeviceNumber)

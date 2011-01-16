@@ -75,6 +75,7 @@ static const wxLanguage langIds[] =
 #define EXIDEV_MIC_STR		_trans("Mic")
 #define EXIDEV_BBA_STR		"BBA"
 #define EXIDEV_AM_BB_STR	_trans("AM-Baseboard")
+#define EXIDEV_GECKO_STR	"USBGecko"
 
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
@@ -564,7 +565,7 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTA_TEXT, wxT("Slot A"), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTB_TEXT, wxT("Slot B"), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
-	const wxString SlotDevices[] = {_(DEV_NONE_STR), _(DEV_DUMMY_STR), _(EXIDEV_MEMCARD_STR)
+	const wxString SlotDevices[] = {_(DEV_NONE_STR), _(DEV_DUMMY_STR), _(EXIDEV_MEMCARD_STR), _(EXIDEV_GECKO_STR)
 	#if HAVE_PORTAUDIO
 		, _(EXIDEV_MIC_STR)
 	#endif
@@ -591,13 +592,16 @@ void CConfigMain::CreateGUIControls()
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
 		case EXIDEVICE_MIC:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
 			break;
 		case EXIDEVICE_ETH:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
 			break;
 		case EXIDEVICE_AM_BASEBOARD:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[3]);
+			break;
+		case EXIDEVICE_GECKO:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
 			break;
 		case EXIDEVICE_DUMMY:
 		default:
@@ -1039,6 +1043,8 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 		tempType = EXIDEVICE_ETH;
 	else if (!deviceName.compare(EXIDEV_AM_BB_STR))
 		tempType = EXIDEVICE_AM_BASEBOARD;
+	else if (!deviceName.compare(EXIDEV_GECKO_STR))
+		tempType = EXIDEVICE_GECKO;
 	else if (!deviceName.compare(DEV_NONE_STR))
 		tempType = EXIDEVICE_NONE;
 	else
