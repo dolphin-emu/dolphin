@@ -50,8 +50,6 @@ public:
 
 	void Default(UDSPInstruction inst);
 
-	int STACKALIGN RunForCycles(int cycles);
-
 	// CC Util
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
 	void Update_SR_Register64_Carry(Gen::X64Reg val = Gen::EAX);
@@ -253,6 +251,7 @@ public:
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
 	const u8 *stubEntryPoint;
+	const u8 *returnDispatcher;
 	u16 compilePC;
 	u16 startAddr;
 	Block *blockLinks;

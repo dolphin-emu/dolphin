@@ -241,19 +241,14 @@ int DSPCore_RunCycles(int cycles)
 {
 	if (jit)
 	{
-		// DSPCore_CheckExceptions();
-		// DSPCore_CheckExternalInterrupt();
 		cyclesLeft = cycles;
-
 		CompiledCode pExecAddr = (CompiledCode)jit->enterDispatcher;
 		pExecAddr();
-
-		// To use the C++ dispatcher, uncomment the line below and comment out the two lines above
-		//jit->RunForCycles(cyclesLeft);
 		return cyclesLeft;
 	}
 
-	while (cycles > 0) {
+	while (cycles > 0)
+	{
 	reswitch:
 		switch (core_state)
 		{

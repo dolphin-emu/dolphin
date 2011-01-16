@@ -122,7 +122,6 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 static void WriteBranchExit(DSPEmitter& emitter)
 {
 	emitter.SaveDSPRegs();
-	emitter.ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		emitter.MOV(16, R(EAX), Imm16(0x1000));
@@ -131,7 +130,7 @@ static void WriteBranchExit(DSPEmitter& emitter)
 	{
 		emitter.MOV(16, R(EAX), Imm16(emitter.blockSize[emitter.startAddr]));
 	}
-	emitter.RET();
+	emitter.JMP(emitter.returnDispatcher, true);
 }
 
 static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
@@ -152,10 +151,11 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 			emitter.MOV(16, M(&cyclesLeft), R(ESI));
 #else
 			// Check if we have enough cycles to execute the next block
-			emitter.CMP(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+			emitter.MOV(64, R(R12), ImmPtr(&cyclesLeft));
+			emitter.CMP(16, MatR(R12), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
 			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
-			emitter.SUB(16, R(R12), Imm16(emitter.blockSize[emitter.startAddr]));
+			emitter.SUB(16, MatR(R12), Imm16(emitter.blockSize[emitter.startAddr]));
 #endif
 			emitter.JMP(emitter.blockLinks[dest], true);
 			emitter.SetJumpTarget(notEnoughCycles);

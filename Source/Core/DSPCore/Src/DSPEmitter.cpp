@@ -96,15 +96,10 @@ void DSPEmitter::checkExceptions(u32 retval)
 #endif
 
 	DSPJitRegCache c(gpr);
-
 	SaveDSPRegs();
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
-
-	//	ABI_RestoreStack(0);
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	MOV(32, R(EAX), Imm32(retval));
-	RET();
-
+	JMP(returnDispatcher, true);
 	gpr.flushRegs(c,false);
 
 	SetJumpTarget(skipCheck);
@@ -201,8 +196,6 @@ void DSPEmitter::Compile(u16 start_addr)
 	unresolvedJumps[start_addr].clear();
 
 	const u8 *entryPoint = AlignCode16();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-	//	ABI_AlignStack(0);
 
 	/*
 	// Check for other exceptions
@@ -276,7 +269,6 @@ void DSPEmitter::Compile(u16 start_addr)
 			DSPJitRegCache c(gpr);
 			HandleLoop();
 			SaveDSPRegs();
-			ABI_PopAllCalleeSavedRegsAndAdjustStack();
 			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 			{
 				MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
@@ -285,7 +277,7 @@ void DSPEmitter::Compile(u16 start_addr)
 			{
 				MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 			}
-			RET();
+			JMP(returnDispatcher, true);
 			gpr.flushRegs(c,false);
 
 			SetJumpTarget(rLoopAddressExit);
@@ -315,7 +307,6 @@ void DSPEmitter::Compile(u16 start_addr)
 				DSPJitRegCache c(gpr);
 				//don't update g_dsp.pc -- the branch insn already did
 				SaveDSPRegs();
-				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 				{
 					MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
@@ -324,7 +315,7 @@ void DSPEmitter::Compile(u16 start_addr)
 				{
 					MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 				}
-				RET();
+				JMP(returnDispatcher, true);
 				gpr.flushRegs(c,false);
 
 				SetJumpTarget(rNoBranch);
@@ -382,8 +373,6 @@ void DSPEmitter::Compile(u16 start_addr)
 	}
 
 	SaveDSPRegs();
-
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
@@ -392,18 +381,16 @@ void DSPEmitter::Compile(u16 start_addr)
 	{
 		MOV(16, R(EAX), Imm16(blockSize[start_addr]));
 	}	
-	RET();
+	JMP(returnDispatcher, true);
 }
 
 const u8 *DSPEmitter::CompileStub()
 {
 	const u8 *entryPoint = AlignCode16();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	ABI_CallFunction((void *)&CompileCurrent);
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	//MOVZX(32, 16, ECX, M(&g_dsp.pc));
 	XOR(32, R(EAX), R(EAX)); // Return 0 cycles executed
-	RET();
+	JMP(returnDispatcher);
 	return entryPoint;
 }
 
@@ -411,18 +398,6 @@ void DSPEmitter::CompileDispatcher()
 {
 	enterDispatcher = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-
-	// Cache pointers into registers
-#ifdef _M_IX86
-	MOV(16, R(ESI), M(&cyclesLeft));
-	MOV(32, R(EBX), ImmPtr(blocks));
-#else
-	// Using R12 here since it is callee save register on both
-	// linux and windows 64.
-	MOV(64, R(R12), ImmPtr(&cyclesLeft));
-	MOV(16, R(R12), MatR(R12));
-	MOV(64, R(RBX), ImmPtr(blocks));
-#endif
 
 	const u8 *dispatcherLoop = GetCodePtr();
 
@@ -444,16 +419,21 @@ void DSPEmitter::CompileDispatcher()
 
 	// Execute block. Cycles executed returned in EAX.
 #ifdef _M_IX86
-	CALLptr(MComplex(EBX, ECX, SCALE_4, 0));
+	MOV(32, R(EBX), ImmPtr(blocks));
+	JMPptr(MComplex(EBX, ECX, SCALE_4, 0));
 #else
-	CALLptr(MComplex(RBX, RCX, SCALE_8, 0));
+	MOV(64, R(RBX), ImmPtr(blocks));
+	JMPptr(MComplex(RBX, RCX, SCALE_8, 0));
 #endif
+
+	returnDispatcher = GetCodePtr();
 
 	// Decrement cyclesLeft
 #ifdef _M_IX86
-	SUB(16, R(ESI), R(EAX));
+	SUB(16, M(&cyclesLeft), R(EAX));
 #else
-	SUB(16, R(R12), R(EAX));
+	MOV(64, R(R12), ImmPtr(&cyclesLeft));
+	SUB(16, MatR(R12), R(EAX));
 #endif
 
 	J_CC(CC_A, dispatcherLoop);
@@ -463,36 +443,4 @@ void DSPEmitter::CompileDispatcher()
 	//MOV(32, M(&cyclesLeft), Imm32(0));
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
-}
-
-// Don't use the % operator in the inner loop. It's slow.
-int STACKALIGN DSPEmitter::RunForCycles(int cycles)
-{
-	while (!(g_dsp.cr & CR_HALT))
-	{
-		// Compile the block if needed
-		u16 block_addr = g_dsp.pc;
-		int block_size = blockSize[block_addr];
-		if (!block_size)
-		{
-			CompileCurrent();
-			block_size = blockSize[block_addr];
-		}
-		
-		// Execute the block if we have enough cycles
-		if (cycles > block_size)
-		{
-			cycles -= blocks[block_addr]();
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	// DSP gave up the remaining cycles.
-	if (g_dsp.cr & CR_HALT || cycles < 0)
-		return 0;
-
-	return cycles;
 }
