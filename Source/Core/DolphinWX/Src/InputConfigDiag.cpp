@@ -240,7 +240,8 @@ void ControlDialog::UpdateGUI()
 	textctrl->SetValue(WXSTR_FROM_STR(control_reference->expression));
 
 	// updates the "bound controls:" label
-	m_bound_label->SetLabel(wxString::Format(_("Bound Controls: %u"), control_reference->BoundCount()));
+	m_bound_label->SetLabel(wxString::Format(_("Bound Controls: %lu"),
+		(unsigned long)control_reference->BoundCount()));
 };
 
 void GamepadPage::UpdateGUI()
