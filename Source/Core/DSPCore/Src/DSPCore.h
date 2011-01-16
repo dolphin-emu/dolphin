@@ -231,6 +231,7 @@ struct SDSP
 
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions
+	bool external_interrupt_waiting;
 
 	// DSP hardware stacks. They're mapped to a bunch of registers, such that writes
 	// to them push and reads pop.
@@ -277,6 +278,7 @@ void DSPCore_Shutdown(); // Frees all allocated memory.
 
 void DSPCore_CheckExternalInterrupt();
 void DSPCore_CheckExceptions();
+void DSPCore_SetExternalInterrupt();
 
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);

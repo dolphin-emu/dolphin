@@ -191,7 +191,13 @@ void DSPCore_SetException(u8 level)
 	g_dsp.exceptions |= 1 << level;
 }
 
-// Comming from the CPU
+// Notify that an external interrupt is pending (used by thread mode)
+void DSPCore_SetExternalInterrupt()
+{
+	g_dsp.external_interrupt_waiting = true;
+}
+
+// Coming from the CPU
 void DSPCore_CheckExternalInterrupt()
 {
 	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
@@ -244,6 +250,14 @@ int DSPCore_RunCycles(int cycles)
 		cyclesLeft = cycles;
 		CompiledCode pExecAddr = (CompiledCode)jit->enterDispatcher;
 		pExecAddr();
+
+		if (g_dsp.external_interrupt_waiting)
+		{
+			DSPCore_CheckExternalInterrupt();
+			DSPCore_CheckExceptions();
+			g_dsp.external_interrupt_waiting = false;
+		}
+
 		return cyclesLeft;
 	}
 

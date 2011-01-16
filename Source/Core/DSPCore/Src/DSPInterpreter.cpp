@@ -150,8 +150,14 @@ int RunCyclesDebug(int cycles)
 		if (cycles < 0)
 			return 0;
 	}
-	
-	//DSPCore_CheckExternalInterrupt();
+
+	// In thread mode, process external interrupts
+	if (g_dsp.external_interrupt_waiting)
+	{
+		DSPCore_CheckExternalInterrupt();
+		DSPCore_CheckExceptions();
+		g_dsp.external_interrupt_waiting = false;
+	}
 
 	while (true)
 	{
@@ -209,7 +215,13 @@ int RunCycles(int cycles)
 			return 0;
 	}
 
-	//DSPCore_CheckExternalInterrupt();
+	// In thread mode, process external interrupts
+	if (g_dsp.external_interrupt_waiting)
+	{
+		DSPCore_CheckExternalInterrupt();
+		DSPCore_CheckExceptions();
+		g_dsp.external_interrupt_waiting = false;
+	}
 
 	while (true)
 	{
