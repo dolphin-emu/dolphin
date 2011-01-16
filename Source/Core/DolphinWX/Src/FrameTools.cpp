@@ -717,7 +717,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		    !RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 		{
-			m_RenderFrame->GetSize(&width, &height);
+			m_RenderFrame->GetClientSize(&width, &height);
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
 		}
