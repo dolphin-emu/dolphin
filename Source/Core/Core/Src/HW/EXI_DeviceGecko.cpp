@@ -17,17 +17,47 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceGecko.h"
+//#pragma optimize("",off)
+THREAD_RETURN ClientThreadFunc(void *arg)
+{
+	((GeckoSockServer*)arg)->ClientThread();
+	return 0;
+}
 
-#include "SFML/Network.hpp"
-#include "Thread.h"
-#include <queue>
+int							GeckoSockServer::client_count;
+Common::Thread				*GeckoSockServer::connectionThread = NULL;
+volatile bool				GeckoSockServer::server_running;
+std::queue<sf::SocketTCP>	GeckoSockServer::waiting_socks;
+Common::CriticalSection		GeckoSockServer::connection_lock;
 
-static Common::Thread *connectionThread = NULL;
-static std::queue<sf::SocketTCP> waiting_socks;
-static Common::CriticalSection cs_gecko;
-namespace { volatile bool server_running; }
+GeckoSockServer::GeckoSockServer()
+	: clientThread(NULL)
+	, client_running(false)
+{
+	if (!connectionThread)
+		connectionThread = new Common::Thread(&GeckoConnectionWaiter, (void*)0);
+}
 
-static THREAD_RETURN GeckoConnectionWaiter(void*)
+GeckoSockServer::~GeckoSockServer()
+{
+	if (client_running)
+	{
+		client_running = false;
+		clientThread->WaitForDeath();
+	}
+	delete clientThread;
+	clientThread = NULL;
+
+	if (--client_count <= 0)
+	{
+		server_running = false;
+		connectionThread->WaitForDeath();
+		delete connectionThread;
+		connectionThread = NULL;
+	}
+}
+
+THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
 {
 	server_running = true;
 
@@ -45,9 +75,9 @@ static THREAD_RETURN GeckoConnectionWaiter(void*)
 	{
 		if (server.Accept(new_client) == sf::Socket::Done)
 		{
-			cs_gecko.Enter();
+			connection_lock.Enter();
 			waiting_socks.push(new_client);
-			cs_gecko.Leave();
+			connection_lock.Leave();
 		}
 		SLEEP(1);
 	}
@@ -55,73 +85,79 @@ static THREAD_RETURN GeckoConnectionWaiter(void*)
 	return 0;
 }
 
-void GeckoConnectionWaiter_Shutdown()
-{
-	server_running = false;
-	if (connectionThread)
-	{
-		connectionThread->WaitForDeath();
-		delete connectionThread;
-		connectionThread = NULL;
-	}
-}
-
-static bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
+bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 {
 	bool sock_filled = false;
 
-	cs_gecko.Enter();
+	connection_lock.Enter();
 	if (waiting_socks.size())
 	{
 		sock_to_fill = waiting_socks.front();
+		if (clientThread)
+		{
+			if (client_running)
+			{
+				client_running = false;
+				clientThread->WaitForDeath();
+			}
+			delete clientThread;
+			clientThread = NULL;
+		}
+		clientThread = new Common::Thread(ClientThreadFunc, this);
+		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;
 	}
-	cs_gecko.Leave();
+	connection_lock.Leave();
 
 	return sock_filled;
 }
 
-GeckoSockServer::GeckoSockServer()
+void GeckoSockServer::ClientThread()
 {
-	if (!connectionThread)
-		connectionThread = new Common::Thread(GeckoConnectionWaiter, (void*)0);
-}
+	client_running = true;
 
-GeckoSockServer::~GeckoSockServer()
-{
+	Common::SetCurrentThreadName("Gecko Client");
+
+	client.SetBlocking(false);
+
+	while (client_running)
+	{
+		u8 data;
+		std::size_t	got = 0;
+
+		transfer_lock.Enter();
+		if (client.Receive((char*)&data, sizeof(data), got)
+			== sf::Socket::Disconnected)
+			client_running = false;
+		if (got)
+			recv_fifo.push(data);
+
+		if (send_fifo.size())
+		{
+			if (client.Send((char*)&send_fifo.front(), sizeof(u8))
+				== sf::Socket::Disconnected)
+				client_running = false;
+			send_fifo.pop();
+		}
+		transfer_lock.Leave();
+		SLEEP(1);
+	}
+
 	client.Close();
-}
-
-CEXIGecko::CEXIGecko()
-	: m_uPosition(0)
-	, recv_fifo(false)
-{
-}
-
-void CEXIGecko::SetCS(int cs)
-{
-	if (cs)
-		m_uPosition = 0;
-}
-
-bool CEXIGecko::IsPresent()
-{
-	return true;
 }
 
 void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 {
+	// We don't really care about _uSize
+	(void)_uSize;
+
 	if (!client.IsValid())
 		if (!GetAvailableSock(client))
-			{} ;// TODO nothing for now
+			return;
 
 	// for debug
 	u32 oldval = _uData;
-	// TODO do we really care about _uSize?
-
-	u8 data = 0;
-	std::size_t	got;
 
 	switch (_uData >> 28)
 	{
@@ -130,26 +166,31 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		break;
 	case CMD_LED_ON:
 		break;
-		// maybe should only | 2bytes?
+	
 	case CMD_INIT:
 		_uData = ident;
 		break;
+
 		// PC -> Gecko
+		// |= 0x08000000 if successful
 	case CMD_RECV:
-		// TODO recv
-		client.Receive((char*)&data, sizeof(data), got);
-		recv_fifo = !!got;
-		if (recv_fifo)
-			_uData = 0x08000000 | (data << 16);
+		transfer_lock.Enter();
+		if (recv_fifo.size())
+		{
+			_uData = 0x08000000 | (recv_fifo.front() << 16);
+			recv_fifo.pop();
+		}
+		transfer_lock.Leave();
 		break;
 		// Gecko -> PC
+		// |= 0x04000000 if successful
 	case CMD_SEND:
-		data = (_uData >> 20) & 0xff;
-		// TODO send
-		client.Send((char*)&data, sizeof(data));
-		// If successful
-		_uData |= 0x04000000;
+		transfer_lock.Enter();
+		send_fifo.push(_uData >> 20);
+		transfer_lock.Leave();
+		_uData = 0x04000000;
 		break;
+
 		// Check if ok for Gecko -> PC, or FIFO full
 		// |= 0x04000000 if FIFO is not full
 	case CMD_CHK_TX:
@@ -158,13 +199,14 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		// Check if data in FIFO for PC -> Gecko, or FIFO empty
 		// |= 0x04000000 if data in recv FIFO
 	case CMD_CHK_RX:
-		//_uData = recv_fifo ? 0x04000000 : 0;
-		_uData = 0x04000000;
+		transfer_lock.Enter();
+		_uData = recv_fifo.size() ? 0x04000000 : 0;
+		transfer_lock.Leave();
 		break;
+
 	default:
 		ERROR_LOG(EXPANSIONINTERFACE, "Uknown USBGecko command %x", _uData);
 		break;
 	}
-
-	if (_uData) { ERROR_LOG(EXPANSIONINTERFACE, "rw %x %08x %08x", oldval, _uData, _uSize); }
 }
+//#pragma optimize("",on)

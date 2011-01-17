@@ -19,6 +19,8 @@
 #define _EXIDEVICE_GECKO_H
 
 #include "SFML/Network.hpp"
+#include "Thread.h"
+#include <queue>
 
 class GeckoSockServer
 	: public sf::SocketTCP
@@ -26,9 +28,28 @@ class GeckoSockServer
 public:
 	GeckoSockServer();
 	~GeckoSockServer();
+	bool GetAvailableSock(sf::SocketTCP &sock_to_fill);
 
-//private:
+	// Client for this server object
 	sf::SocketTCP client;
+	void ClientThread();
+	Common::Thread *clientThread;
+	Common::CriticalSection transfer_lock;
+
+	std::queue<u8> send_fifo;
+	std::queue<u8> recv_fifo;
+
+private:
+	static int		client_count;
+	volatile bool	client_running;
+
+	// Only ever one server thread
+	static THREAD_RETURN GeckoConnectionWaiter(void*);
+
+	static volatile bool				server_running;
+	static Common::Thread				*connectionThread;
+	static std::queue<sf::SocketTCP>	waiting_socks;
+	static Common::CriticalSection		connection_lock;
 };
 
 class CEXIGecko
@@ -36,9 +57,8 @@ class CEXIGecko
 	, private GeckoSockServer
 {
 public:
-	CEXIGecko();
-	void SetCS(int _iCS);
-	bool IsPresent();
+	CEXIGecko() {}
+	bool IsPresent() { return true; }
 	void ImmReadWrite(u32 &_uData, u32 _uSize);
 
 private:
@@ -52,9 +72,6 @@ private:
 		CMD_CHK_TX	= 0xc,
 		CMD_CHK_RX	= 0xd,
 	};
-
-	u32 m_uPosition;
-	bool recv_fifo;
 
 	static const u32 ident = 0x04700000;
 };
