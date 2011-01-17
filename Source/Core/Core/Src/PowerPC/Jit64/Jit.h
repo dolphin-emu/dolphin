@@ -252,6 +252,8 @@ public:
 	void subfmex(UGeckoInstruction inst);
 	void subfzex(UGeckoInstruction inst);
 
+	void twx(UGeckoInstruction inst);
+
 	void lXXx(UGeckoInstruction inst);
 	
 	void stXx(UGeckoInstruction inst);
