@@ -60,12 +60,8 @@ THREAD_RETURN GBAConnectionWaiter(void*)
 void GBAConnectionWaiter_Shutdown()
 {
 	server_running = false;
-	if (connectionThread)
-	{
-		connectionThread->WaitForDeath();
-		delete connectionThread;
-		connectionThread = NULL;
-	}
+	delete connectionThread;
+	connectionThread = NULL;
 }
 
 bool GetAvailableSock(sf::SocketTCP& sock_to_fill)

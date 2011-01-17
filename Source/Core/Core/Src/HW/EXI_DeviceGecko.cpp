@@ -17,7 +17,7 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceGecko.h"
-//#pragma optimize("",off)
+
 THREAD_RETURN ClientThreadFunc(void *arg)
 {
 	((GeckoSockServer*)arg)->ClientThread();
@@ -40,18 +40,16 @@ GeckoSockServer::GeckoSockServer()
 
 GeckoSockServer::~GeckoSockServer()
 {
-	if (client_running)
-	{
-		client_running = false;
-		clientThread->WaitForDeath();
-	}
+	if (clientThread)
+		--client_count;
+
+	client_running = false;
 	delete clientThread;
 	clientThread = NULL;
 
-	if (--client_count <= 0)
+	if (client_count <= 0)
 	{
 		server_running = false;
-		connectionThread->WaitForDeath();
 		delete connectionThread;
 		connectionThread = NULL;
 	}
@@ -95,11 +93,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 		sock_to_fill = waiting_socks.front();
 		if (clientThread)
 		{
-			if (client_running)
-			{
-				client_running = false;
-				clientThread->WaitForDeath();
-			}
+			client_running = false;
 			delete clientThread;
 			clientThread = NULL;
 		}
@@ -209,4 +203,3 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		break;
 	}
 }
-//#pragma optimize("",on)
