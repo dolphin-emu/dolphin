@@ -145,10 +145,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		Frame::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 	else 
 	{
-		// Only pad 0 is allowed to autofire right now
-		if(Frame::IsAutoFiring() && ISIDevice::m_iDeviceNumber == 0)
-			Frame::ModifyController(&PadStatus, 0);
-
 		if(Frame::IsRecordingInput())
 			Frame::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
 	}

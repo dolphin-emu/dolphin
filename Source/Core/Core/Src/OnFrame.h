@@ -50,8 +50,7 @@ struct ControllerState {
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bAutoFire, g_bFirstKey, g_bPolled;
-extern u32 g_autoFirstKey, g_autoSecondKey;
+extern bool g_bFrameStep, g_bPolled;
 extern PlayMode g_playMode;
 
 extern unsigned int g_framesToSkip, g_frameSkipCounter;
@@ -102,17 +101,12 @@ bool IsPlayingInput();
 bool IsUsingPad(int controller);
 void ChangePads();
 
-void SetAutoHold(bool bEnabled, u32 keyToHold = 0);
-void SetAutoFire(bool bEnabled, u32 keyOne = 0, u32 keyTwo = 0);
-
 void SetFrameStepping(bool bEnabled);
 void SetFrameStopping(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
 int FrameSkippingFactor();
 void FrameSkipping();
-
-void ModifyController(SPADStatus *PadStatus, int controllerID);
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);

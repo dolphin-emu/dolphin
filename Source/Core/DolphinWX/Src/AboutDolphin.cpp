@@ -48,7 +48,7 @@ void AboutDolphin::CreateGUIControls()
 		wxBitmap(iDolphinLogo), wxDefaultPosition, wxDefaultSize, 0);
 
 	std::string Text = std::string(svn_rev_str) + "\n"
-		"Copyright (c) 2003-2010+ Dolphin Team\n"
+		"Copyright (c) 2003-2011+ Dolphin Team\n"
 		"\n"
 		"Dolphin is a Gamecube/Wii emulator, which was\n"
 		"originally written by F|RES and ector.\n"

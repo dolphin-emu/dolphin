@@ -30,8 +30,6 @@ namespace Frame {
 
 bool g_bFrameStep = false;
 bool g_bFrameStop = false;
-bool g_bAutoFire = false;
-u32 g_autoFirstKey = 0, g_autoSecondKey = 0;
 u32 g_rerecords = 0;
 bool g_bFirstKey = true;
 PlayMode g_playMode = MODE_NONE;
@@ -66,9 +64,6 @@ void FrameUpdate()
 	if(g_framesToSkip)
 		FrameSkipping();
 	
-	if (g_bAutoFire)
-		g_bFirstKey = !g_bFirstKey;
-	
 	g_bPolled = false;
 }
 
@@ -97,70 +92,14 @@ void SetPolledDevice()
 	g_bPolled = true;
 }
 
-void SetAutoHold(bool bEnabled, u32 keyToHold)
-{
-	g_bAutoFire = bEnabled;
-	if (bEnabled)
-		g_autoFirstKey = g_autoSecondKey = keyToHold;
-	else
-		g_autoFirstKey = g_autoSecondKey = 0;
-}
-
-void SetAutoFire(bool bEnabled, u32 keyOne, u32 keyTwo)
-{
-	g_bAutoFire = bEnabled;
-	if (bEnabled) {
-		g_autoFirstKey = keyOne;
-		g_autoSecondKey = keyTwo;
-	} else
-		g_autoFirstKey = g_autoSecondKey = 0;
-	
-	g_bFirstKey = true;
-}
-
-bool IsAutoFiring()
-{
-	return g_bAutoFire;
-}
-
 void SetFrameStepping(bool bEnabled)
 {
 	g_bFrameStep = bEnabled;
 }
-void SetFrameStopping(bool bEnabled) {
-	g_bFrameStop = bEnabled;
-}
 
-void ModifyController(SPADStatus *PadStatus, int controllerID)
+void SetFrameStopping(bool bEnabled)
 {
-	if(controllerID < 0)
-		return;
-	
-	u32 keyToPress = (g_bFirstKey) ? g_autoFirstKey : g_autoSecondKey;
-	
-	if (!keyToPress)
-		return;
-	
-	PadStatus->button |= keyToPress;
-	
-	switch(keyToPress) {
-		default:
-			return;
-		
-		case PAD_BUTTON_A:
-			PadStatus->analogA = 255;
-			break;
-		case PAD_BUTTON_B:
-			PadStatus->analogB = 255;
-			break;
-		
-		case PAD_TRIGGER_L:
-			PadStatus->triggerLeft = 255;
-			break;
-		case PAD_TRIGGER_R:
-			PadStatus->triggerRight = 255;
-			break;
-	}
+	g_bFrameStop = bEnabled;
 }
 
 void FrameSkipping()

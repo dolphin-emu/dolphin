@@ -114,7 +114,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 {
 	if (!client.IsValid())
 		if (!GetAvailableSock(client))
-			;// TODO nothing for now
+			{} ;// TODO nothing for now
 
 	// for debug
 	u32 oldval = _uData;
