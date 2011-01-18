@@ -908,12 +908,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 		set_control(m_shake, i, "Click 2");
 
 	// IR
-#ifndef __APPLE__
 	set_control(m_ir, 0, "Cursor Y-");
 	set_control(m_ir, 1, "Cursor Y+");
 	set_control(m_ir, 2, "Cursor X-");
 	set_control(m_ir, 3, "Cursor X+");
-#endif
 
 	// DPad
 #ifdef _WIN32

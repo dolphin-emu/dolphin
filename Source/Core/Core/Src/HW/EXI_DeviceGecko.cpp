@@ -150,9 +150,6 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		if (!GetAvailableSock(client))
 			return;
 
-	// for debug
-	u32 oldval = _uData;
-
 	switch (_uData >> 28)
 	{
 		// maybe do something fun later

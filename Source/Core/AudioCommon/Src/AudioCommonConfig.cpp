@@ -23,23 +23,17 @@ void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
 	file.Get("Config", "EnableJIT", &m_EnableJIT, true);
-	file.Get("Config", "Volume", &m_Volume, 100);
-#ifdef _WIN32
-	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
-	file.Get("Config", "Frequency", &sFrequency, "48,000 Hz");
-#elif defined __APPLE__
-	std::string temp;
-	file.Get("Config", "Backend", &temp, BACKEND_COREAUDIO);
-	strncpy(sBackend, temp.c_str(), 128);
-	file.Get("Config", "Frequency", &temp, "48,000 Hz");
-	strncpy(sFrequency, temp.c_str(), 128);
-#elif defined __linux__
+#if defined __linux__ && HAVE_ALSA
 	file.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
-	file.Get("Config", "Frequency", &sFrequency, "48,000 Hz");
+#elif defined __APPLE__
+	file.Get("Config", "Backend", &sBackend, BACKEND_COREAUDIO);
+#elif defined _WIN32
+	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
 #else
-	file.Get("Config", "Backend", &sBackend, BACKEND_OPENAL);
-	file.Get("Config", "Frequency", &sFrequency, "48,000 Hz");
+	file.Get("Config", "Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
+	file.Get("Config", "Frequency", &sFrequency, "48,000 Hz");
+	file.Get("Config", "Volume", &m_Volume, 100);
 }
 
 // Set the values for the file

@@ -92,11 +92,8 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id,
 
 	m_FrequencySelection->Append(_("48,000 Hz"));
 	m_FrequencySelection->Append(_("32,000 Hz"));
-	#ifdef __APPLE__
-	int num = m_FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency));
-	#else
-	int num = m_FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency.c_str()));
-	#endif
+	int num = m_FrequencySelection->\
+		FindString(wxString::FromAscii(ac_Config.sFrequency.c_str()));
 	m_FrequencySelection->SetSelection(num);
 
 	sbSettings->Add(sFrequency, 0, wxALL, 7);
@@ -127,11 +124,8 @@ void DSPConfigDialogHLE::AddBackend(const char* backend)
 {
 	// Update values
 	m_BackendSelection->Append(wxString::FromAscii(backend));
-#ifdef __APPLE__
-	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend));
-#else
-	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
-#endif
+	int num = m_BackendSelection->\
+		FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
 	m_BackendSelection->SetSelection(num);
 }
 
@@ -158,13 +152,8 @@ void DSPConfigDialogHLE::SettingsChanged(wxCommandEvent& event)
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 
-#ifdef __APPLE__
-	strncpy(ac_Config.sBackend, m_BackendSelection->GetStringSelection().mb_str(), 128);
-	strncpy(ac_Config.sFrequency, m_FrequencySelection->GetStringSelection().mb_str(), 128);
-#else
 	ac_Config.sBackend = m_BackendSelection->GetStringSelection().mb_str();
 	ac_Config.sFrequency = m_FrequencySelection->GetStringSelection().mb_str();
-#endif
 	ac_Config.Update();
 	g_Config.Save();
 

@@ -32,13 +32,16 @@ namespace {
 
 static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut)
 {
-	//
 	int FirstEquals = (int)line.find("=", 0);
 	int FirstCommentChar = -1;
+
 	// Comments
-	//if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find(";", FirstEquals > 0 ? FirstEquals : 0);}
-	if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find("#", FirstEquals > 0 ? FirstEquals : 0);}
-	if (FirstCommentChar < 0) {FirstCommentChar = (int)line.find("//", FirstEquals > 0 ? FirstEquals : 0);}
+	if (FirstCommentChar < 0)
+		FirstCommentChar =
+			(int)line.find(";", FirstEquals > 0 ? FirstEquals : 0);
+	if (FirstCommentChar < 0)
+		FirstCommentChar =
+			(int)line.find("#", FirstEquals > 0 ? FirstEquals : 0);
 
 	// Allow preservation of spacing before comment
 	if (FirstCommentChar > 0)

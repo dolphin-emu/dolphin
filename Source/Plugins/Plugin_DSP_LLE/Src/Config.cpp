@@ -25,11 +25,6 @@
 
 CConfig g_Config;
 
-CConfig::CConfig()
-{
-	Load();
-}
-
 void CConfig::Load()
 {
 	// first load defaults

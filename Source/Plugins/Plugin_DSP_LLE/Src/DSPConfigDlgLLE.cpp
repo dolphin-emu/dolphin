@@ -95,13 +95,10 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 void DSPConfigDialogLLE::AddBackend(const char* backend)
 {
 	// Update value
-    m_BackendSelection->Append(wxString::FromAscii(backend));
+	m_BackendSelection->Append(wxString::FromAscii(backend));
 
-#ifdef __APPLE__
-	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend));
-#else
-	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
-#endif
+	int num = m_BackendSelection->\
+		FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
 	m_BackendSelection->SetSelection(num);
 }
 
@@ -128,11 +125,7 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 	ac_Config.m_EnableJIT = m_buttonEnableJIT->GetValue();
 
-#ifdef __APPLE__
-	strncpy(ac_Config.sBackend, m_BackendSelection->GetStringSelection().mb_str(), 128);
-#else
 	ac_Config.sBackend = m_BackendSelection->GetStringSelection().mb_str();
-#endif
 	ac_Config.Update();
 	g_Config.Save();
 	

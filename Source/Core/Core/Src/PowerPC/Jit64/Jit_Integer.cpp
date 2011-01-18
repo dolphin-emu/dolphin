@@ -1497,7 +1497,6 @@ void Jit64::twx(UGeckoInstruction inst)
 	JITDISABLE(Integer)
 
 	s32 a = inst.RA;
-	s32 TO = inst.TO;
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);

@@ -22,8 +22,6 @@
 
 struct CConfig
 {   
-    CConfig();
-    
     void Load();
     void Save();
 };

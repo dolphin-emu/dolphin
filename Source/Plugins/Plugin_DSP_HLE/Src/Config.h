@@ -23,8 +23,6 @@
 struct CConfig
 {
 	bool m_EnableHLEAudio;
-
-	CConfig();
 	
 	void Load();
 	void Save();
