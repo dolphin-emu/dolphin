@@ -315,9 +315,9 @@ void VertexLoader::CompileVertexTranslator()
 		case FORMAT_UBYTE:	
 		case FORMAT_BYTE:
 			{
-				vtx_decl.normal_gl_type = (vtx_attr.NormalFormat == FORMAT_BYTE)? VAR_BYTE : VAR_UNSIGNED_BYTE;
+				vtx_decl.normal_gl_type = VAR_BYTE;
 				int native_size = 4;
-				if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.backend_info.bAllowSignedBytes)
+				if (!g_Config.backend_info.bAllowSignedBytes)
 				{
 					vtx_decl.normal_gl_type = VAR_SHORT;
 					native_size = 8;
@@ -335,7 +335,7 @@ void VertexLoader::CompileVertexTranslator()
 			}
 		case FORMAT_USHORT:
 		case FORMAT_SHORT:
-			vtx_decl.normal_gl_type = (vtx_attr.NormalFormat == FORMAT_SHORT)? VAR_SHORT : VAR_UNSIGNED_SHORT;
+			vtx_decl.normal_gl_type = VAR_SHORT;
 			vtx_decl.normal_gl_size = 4;
 			vtx_decl.normal_offset[0] = nat_offset;
 			nat_offset += 8;
