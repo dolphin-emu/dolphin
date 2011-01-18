@@ -145,6 +145,13 @@ TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type, unsigned 
     return pFunc;
 }
 
+// --- Expand s8 to s16
+
+inline s16 Expands8Tos16(s8 input)
+{
+	return (s16)((((s32)input) * 32767) / 127);
+}
+
 
 // --- Direct ---
 
@@ -159,12 +166,9 @@ void LOADERDECL VertexLoader_Normal::Normal_DirectByte()
 
 void LOADERDECL VertexLoader_Normal::Normal_DirectByte_Expand16()
 {
-	s8 temp = DataReadS8();
-	((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)temp) << 8) | (temp & 0x7F);
-	temp = DataReadS8();
-	((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)temp) << 8) | (temp & 0x7F);
-	temp = DataReadS8();
-	((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)temp) << 8) | (temp & 0x7F);
+	((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(DataReadS8());
+	((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(DataReadS8());
+	((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(DataReadS8());
 	((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
     VertexManager::s_pCurBufferPointer += 8;
 	LOG_NORM16();
@@ -205,12 +209,9 @@ void LOADERDECL VertexLoader_Normal::Normal_DirectByte3_Expand16()
 {
     for (int i = 0; i < 3; i++)
     {
-		s8 temp = DataReadS8();
-        ((u16*)VertexManager::s_pCurBufferPointer)[0] =  (((s16)temp) << 8) | (temp & 0x7F);
-		temp = DataReadS8();
-        ((u16*)VertexManager::s_pCurBufferPointer)[1] =  (((s16)temp) << 8) | (temp & 0x7F);
-		temp = DataReadS8();
-        ((u16*)VertexManager::s_pCurBufferPointer)[2] =  (((s16)temp) << 8) | (temp & 0x7F);
+		((u16*)VertexManager::s_pCurBufferPointer)[0] =  Expands8Tos16(DataReadS8());
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] =  Expands8Tos16(DataReadS8());
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] =  Expands8Tos16(DataReadS8());
         ((u16*)VertexManager::s_pCurBufferPointer)[3] = 0;
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
@@ -260,9 +261,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte_Expand16()
 {
     u8 Index = DataReadU8();
 	const s8* pData = (const s8 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-	((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[0]) << 8) | (pData[0] & 0x7F);	
-    ((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[1]) << 8) | (pData[1] & 0x7F);	
-    ((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[2]) << 8) | (pData[2] & 0x7F);	
+	((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[0]);
+    ((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[1]);
+    ((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[2]);
     ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
@@ -311,9 +312,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices1_Expand16()
 	const s8* pData = (const s8*)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
     for (int i = 0; i < 3; i++)
 	{
-        ((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[3 * i]) << 8) | (pData[3 * i] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[3 * i + 1]) << 8) | (pData[3 * i + 1] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[3 * i + 2]) << 8) | (pData[3 * i + 2] & 0x7F);
+        ((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[3 * i]);
+        ((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[3 * i + 1]);
+        ((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[3 * i + 2]);
         ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
@@ -369,9 +370,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices3_Expand16()
 	{
         u8 Index = DataReadU8();
 		const s8* pData = (const s8 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i);
-        ((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[0]) << 8) | (pData[0] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[1]) << 8) | (pData[1] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[2]) << 8) | (pData[2] & 0x7F);
+        ((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[0]);
+		((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[1]);
+		((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[2]);
         ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
@@ -426,9 +427,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte_Expand16()
 {
     u16 Index = DataReadU16();
 	const s8* pData = (const s8 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-    ((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[0]) << 8) | (pData[0] & 0x7F);
-    ((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[1]) << 8) | (pData[1] & 0x7F);
-    ((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[2]) << 8) | (pData[3] & 0x7F);
+    ((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[0]);
+    ((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[1]);
+    ((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[2]);
     ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
@@ -493,9 +494,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices1_Expand16()
 
     for (int i = 0; i < 3; i++)
     {
-        ((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[3 * i]) << 8) | (pData[3 * i] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[3 * i + 1]) << 8) | (pData[3 * i + 1] & 0x7F);
-        ((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[3 * i + 2]) << 8) | (pData[3 * i + 2] & 0x7F);
+        ((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[3 * i]);
+        ((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[3 * i + 1]);
+        ((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[3 * i + 2]);
         ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
@@ -553,9 +554,9 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices3_Expand16()
     {
         u16 Index = DataReadU16();
 		const s8* pData = (const s8 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i);
-        ((s16*)VertexManager::s_pCurBufferPointer)[0] = (((s16)pData[0]) << 8) | (pData[0] & 0x7F);
-		((s16*)VertexManager::s_pCurBufferPointer)[1] = (((s16)pData[1]) << 8) | (pData[1] & 0x7F);
-		((s16*)VertexManager::s_pCurBufferPointer)[2] = (((s16)pData[2]) << 8) | (pData[3] & 0x7F);
+        ((s16*)VertexManager::s_pCurBufferPointer)[0] = Expands8Tos16(pData[0]);
+		((s16*)VertexManager::s_pCurBufferPointer)[1] = Expands8Tos16(pData[1]);
+		((s16*)VertexManager::s_pCurBufferPointer)[2] = Expands8Tos16(pData[2]);
         ((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;
         VertexManager::s_pCurBufferPointer += 8;
         LOG_NORM16();
