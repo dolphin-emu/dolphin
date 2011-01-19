@@ -17,7 +17,7 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceGecko.h"
-#include "..\Core.h"
+#include "../Core.h"
 
 THREAD_RETURN ClientThreadFunc(void *arg)
 {
