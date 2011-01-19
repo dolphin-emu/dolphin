@@ -131,8 +131,8 @@ inline void ReadDirectS8()
 inline void ReadDirectS16()
 {
 	((float*)VertexManager::s_pCurBufferPointer)[0] = ((s16)DataReadU16()) * S16FRAC;
-    ((float*)VertexManager::s_pCurBufferPointer)[0] = ((s16)DataReadU16()) * S16FRAC;
-    ((float*)VertexManager::s_pCurBufferPointer)[0] = ((s16)DataReadU16()) * S16FRAC;
+    ((float*)VertexManager::s_pCurBufferPointer)[1] = ((s16)DataReadU16()) * S16FRAC;
+    ((float*)VertexManager::s_pCurBufferPointer)[2] = ((s16)DataReadU16()) * S16FRAC;
     VertexManager::s_pCurBufferPointer += 12;
     LOG_NORM16()
 }
