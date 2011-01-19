@@ -311,55 +311,16 @@ void VertexLoader::CompileVertexTranslator()
 		vtx_decl.normal_offset[0] = -1;
 		vtx_decl.normal_offset[1] = -1;
 		vtx_decl.normal_offset[2] = -1;
-		switch (vtx_attr.NormalFormat) {
-		case FORMAT_UBYTE:	
-		case FORMAT_BYTE:
-			{
-				vtx_decl.normal_gl_type = VAR_BYTE;
-				int native_size = 4;
-				if (!g_Config.backend_info.bAllowSignedBytes)
-				{
-					vtx_decl.normal_gl_type = VAR_SHORT;
-					native_size = 8;
-				}
-				vtx_decl.normal_gl_size = 4;
-				vtx_decl.normal_offset[0] = nat_offset;
-				nat_offset += native_size;
-				if (vtx_attr.NormalElements) {
-					vtx_decl.normal_offset[1] = nat_offset;
-					nat_offset += native_size;
-					vtx_decl.normal_offset[2] = nat_offset;
-					nat_offset += native_size;
-				}
-				break;
-			}
-		case FORMAT_USHORT:
-		case FORMAT_SHORT:
-			vtx_decl.normal_gl_type = VAR_SHORT;
-			vtx_decl.normal_gl_size = 4;
-			vtx_decl.normal_offset[0] = nat_offset;
-			nat_offset += 8;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = nat_offset;
-				nat_offset += 8;
-				vtx_decl.normal_offset[2] = nat_offset;
-				nat_offset += 8;
-			}
-			break;
-		case FORMAT_FLOAT:
-			vtx_decl.normal_gl_type = VAR_FLOAT;
-			vtx_decl.normal_gl_size = 3;
-			vtx_decl.normal_offset[0] = nat_offset;
+		vtx_decl.normal_gl_type = VAR_FLOAT;
+		vtx_decl.normal_gl_size = 3;
+		vtx_decl.normal_offset[0] = nat_offset;
+		nat_offset += 12;
+		if (vtx_attr.NormalElements) {
+			vtx_decl.normal_offset[1] = nat_offset;
 			nat_offset += 12;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = nat_offset;
-				nat_offset += 12;
-				vtx_decl.normal_offset[2] = nat_offset;
-				nat_offset += 12;
-			}
-			break;
-		default: _assert_(0); break;
-		}
+			vtx_decl.normal_offset[2] = nat_offset;
+			nat_offset += 12;
+		}	
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_NativeFmt->m_components |= VB_HAS_NRM0;
