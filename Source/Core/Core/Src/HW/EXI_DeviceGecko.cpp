@@ -17,6 +17,7 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceGecko.h"
+#include "..\Core.h"
 
 THREAD_RETURN ClientThreadFunc(void *arg)
 {
@@ -24,6 +25,7 @@ THREAD_RETURN ClientThreadFunc(void *arg)
 	return 0;
 }
 
+u16							GeckoSockServer::server_port;
 int							GeckoSockServer::client_count;
 Common::Thread				*GeckoSockServer::connectionThread = NULL;
 volatile bool				GeckoSockServer::server_running;
@@ -57,14 +59,22 @@ GeckoSockServer::~GeckoSockServer()
 
 THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
 {
-	server_running = true;
-
 	Common::SetCurrentThreadName("Gecko Connection Waiter");
 
 	sf::SocketTCP server;
-	// "dolphin gecko"
-	if (!server.Listen(0xd6ec))
+	server_port = 0xd6ec; // "dolphin gecko"
+	for (int bind_tries = 0; bind_tries <= 10 && !server_running; bind_tries++)
+	{
+		if (!(server_running = server.Listen(server_port)))
+			server_port++;
+	}
+
+	if (!server_running)
 		return 0;
+
+	Core::DisplayMessage(
+		StringFromFormat("USBGecko: listening on TCP port %u", server_port),
+		5000);
 
 	server.SetBlocking(false);
 

@@ -46,6 +46,7 @@ private:
 	// Only ever one server thread
 	static THREAD_RETURN GeckoConnectionWaiter(void*);
 
+	static u16							server_port;
 	static volatile bool				server_running;
 	static Common::Thread				*connectionThread;
 	static std::queue<sf::SocketTCP>	waiting_socks;
