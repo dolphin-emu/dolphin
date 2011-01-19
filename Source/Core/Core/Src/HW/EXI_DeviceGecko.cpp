@@ -73,7 +73,7 @@ THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
 		return 0;
 
 	Core::DisplayMessage(
-		StringFromFormat("USBGecko: listening on TCP port %u", server_port),
+		StringFromFormat("USBGecko: Listening on TCP port %u", server_port),
 		5000);
 
 	server.SetBlocking(false);
@@ -106,6 +106,8 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			client_running = false;
 			delete clientThread;
 			clientThread = NULL;
+			recv_fifo = std::queue<u8>();
+			send_fifo = std::queue<u8>();
 		}
 		clientThread = new Common::Thread(ClientThreadFunc, this);
 		client_count++;
@@ -157,15 +159,19 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	(void)_uSize;
 
 	if (!client.IsValid())
-		if (!GetAvailableSock(client))
-			return;
+		GetAvailableSock(client);
 
 	switch (_uData >> 28)
 	{
-		// maybe do something fun later
 	case CMD_LED_OFF:
+		Core::DisplayMessage(StringFromFormat(
+			"USBGecko: No LEDs for you!"),
+			3000);
 		break;
 	case CMD_LED_ON:
+		Core::DisplayMessage(StringFromFormat(
+			"USBGecko: A piercing blue light is now shining in your general direction"),
+			3000);
 		break;
 	
 	case CMD_INIT:
@@ -176,7 +182,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		// |= 0x08000000 if successful
 	case CMD_RECV:
 		transfer_lock.Enter();
-		if (recv_fifo.size())
+		if (!recv_fifo.empty())
 		{
 			_uData = 0x08000000 | (recv_fifo.front() << 16);
 			recv_fifo.pop();
@@ -201,7 +207,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		// |= 0x04000000 if data in recv FIFO
 	case CMD_CHK_RX:
 		transfer_lock.Enter();
-		_uData = recv_fifo.size() ? 0x04000000 : 0;
+		_uData = recv_fifo.empty() ? 0 : 0x04000000;
 		transfer_lock.Leave();
 		break;
 
