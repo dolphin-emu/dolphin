@@ -63,6 +63,11 @@ int maxSliceLength = MAX_SLICE_LENGTH;
 s64 globalTimer;
 s64 idledCycles;
 
+u32 fakeDecStartValue;
+u64 fakeDecStartTicks;
+u64 fakeTBStartValue;
+u64 fakeTBStartTicks;
+
 Common::CriticalSection externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
@@ -155,6 +160,10 @@ void DoState(PointerWrap &p)
 	p.Do(slicelength);
 	p.Do(globalTimer);
 	p.Do(idledCycles);
+	p.Do(fakeDecStartValue);
+	p.Do(fakeDecStartTicks);
+	p.Do(fakeTBStartValue);
+	p.Do(fakeTBStartTicks);
 	// OK, here we're gonna need to specialize depending on the mode.
 	// Should do something generic to serialize linked lists.
 	switch (p.GetMode()) {
@@ -540,6 +549,46 @@ std::string GetScheduledEventsSummary()
 		ptr = ptr->next;
 	}
 	return text;
+}
+
+u32 GetFakeDecStartValue()
+{
+	return fakeDecStartValue;
+}
+
+void SetFakeDecStartValue(u32 val)
+{
+	fakeDecStartValue = val;
+}
+
+u64 GetFakeDecStartTicks()
+{
+	return fakeDecStartTicks;
+}
+
+void SetFakeDecStartTicks(u64 val)
+{
+	fakeDecStartTicks = val;
+}
+
+u64 GetFakeTBStartValue()
+{
+	return fakeTBStartValue;
+}
+
+void SetFakeTBStartValue(u64 val)
+{
+	fakeTBStartValue = val;
+}
+
+u64 GetFakeTBStartTicks()
+{
+	return fakeTBStartTicks;
+}
+
+void SetFakeTBStartTicks(u64 val)
+{
+	fakeTBStartTicks = val;
 }
 
 }  // namespace

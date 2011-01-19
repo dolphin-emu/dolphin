@@ -83,6 +83,15 @@ void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted));
 
 std::string GetScheduledEventsSummary();
 
+u32 GetFakeDecStartValue();
+void SetFakeDecStartValue(u32 val);
+u64 GetFakeDecStartTicks();
+void SetFakeDecStartTicks(u64 val);
+u64 GetFakeTBStartValue();
+void SetFakeTBStartValue(u64 val);
+u64 GetFakeTBStartTicks();
+void SetFakeTBStartTicks(u64 val);
+
 extern int downcount;
 extern int slicelength;
 
