@@ -310,8 +310,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	MMUBAT->SetToolTip(_("Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"));
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack->SetToolTip(_("Fast version of the MMU.  Does not work for every game."));
-	AlternateRFI = new wxCheckBox(m_GameConfig, ID_RFI, _("Alternate RFI"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	AlternateRFI->SetToolTip(_("If a game hangs, works only in the Interpreter or Dolphin crashes, this option may fix the game."));
+	VBeam = new wxCheckBox(m_GameConfig, ID_RFI, _("Disable VBeam Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -375,7 +375,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(MMUBAT, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(AlternateRFI, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(VBeam, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
 	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
@@ -843,10 +843,10 @@ void CISOProperties::LoadGameConfig()
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "AlternateRFI", &bTemp))
-		AlternateRFI->Set3StateValue((wxCheckBoxState)bTemp);
+	if (GameIni.Get("Core", "VBeam", &bTemp))
+		VBeam->Set3StateValue((wxCheckBoxState)bTemp);
 	else
-		AlternateRFI->Set3StateValue(wxCHK_UNDETERMINED);
+		VBeam->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Core", "FastDiscSpeed", &bTemp))
 		FastDiscSpeed->Set3StateValue((wxCheckBoxState)bTemp);
@@ -959,10 +959,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
 
-	if (AlternateRFI->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "AlternateRFI");
+	if (VBeam->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "VBeam");
 	else
-		GameIni.Set("Core", "AlternateRFI", AlternateRFI->Get3StateValue());
+		GameIni.Set("Core", "VBeam", VBeam->Get3StateValue());
 
 	if (FastDiscSpeed->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "FastDiscSpeed");

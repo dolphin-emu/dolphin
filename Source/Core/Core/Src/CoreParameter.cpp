@@ -49,7 +49,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableCheats(false),
   bMergeBlocks(false),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bMMUBAT(false), iTLBHack(0), bAlternateRFI(false),
+  bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false), 
@@ -77,7 +77,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bMMU = false;
 	bMMUBAT = false;
 	iTLBHack = 0;
-	bAlternateRFI = false;
+	bVBeam = false;
 	bFastDiscSpeed = false;
 	bMergeBlocks = false;
 	SelectedLanguage = 0;

@@ -84,7 +84,7 @@ struct SCoreStartupParameter
 	bool bMMU;
 	bool bMMUBAT;
 	int iTLBHack;
-	bool bAlternateRFI;
+	bool bVBeam;
 	bool bFastDiscSpeed;
 
 	int SelectedLanguage;

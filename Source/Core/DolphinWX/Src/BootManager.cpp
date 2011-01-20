@@ -68,7 +68,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
-		bAlternateRFI, bFastDiscSpeed, bMergeBlocks;
+		bVBeam, bFastDiscSpeed, bMergeBlocks;
 	int iTLBHack;
 };
 static ConfigCache config_cache;
@@ -119,7 +119,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bMMU = StartUp.bMMU;
 		config_cache.bMMUBAT = StartUp.bMMUBAT;
 		config_cache.iTLBHack = StartUp.iTLBHack;
-		config_cache.bAlternateRFI = StartUp.bAlternateRFI;
+		config_cache.bVBeam = StartUp.bVBeam;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		// General settings
@@ -129,7 +129,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
 		game_ini.Get("Core", "BAT",					&StartUp.bMMUBAT, StartUp.bMMUBAT);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
-		game_ini.Get("Core", "AlternateRFI",		&StartUp.bAlternateRFI, StartUp.bAlternateRFI);
+		game_ini.Get("Core", "VBeam",				&StartUp.bVBeam, StartUp.bVBeam);
 		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		// Wii settings
@@ -180,7 +180,7 @@ void Stop()
 		StartUp.bMMU = config_cache.bMMU;
 		StartUp.bMMUBAT = config_cache.bMMUBAT;
 		StartUp.iTLBHack = config_cache.iTLBHack;
-		StartUp.bAlternateRFI = config_cache.bAlternateRFI;
+		StartUp.bVBeam = config_cache.bVBeam;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 	}

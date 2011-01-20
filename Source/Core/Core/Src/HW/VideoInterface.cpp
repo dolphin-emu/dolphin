@@ -832,7 +832,7 @@ void Update()
 	}
 
 	if (++m_VBeamPos > s_lineCount)
-		m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
+		m_VBeamPos = (NewVBeamPos > s_lineCount || Core::g_CoreStartupParameter.bVBeam) ? 1 : NewVBeamPos;
 
 	for (int i = 0; i < 4; i++)
 	{

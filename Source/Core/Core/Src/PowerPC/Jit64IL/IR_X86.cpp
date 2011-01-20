@@ -1859,10 +1859,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOV(32, M(&MSR), R(EAX));
 			// NPC = SRR0; 
 			Jit->MOV(32, R(EAX), M(&SRR0));
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bAlternateRFI)
-				Jit->WriteExitDestInOpArg(R(EAX));
-			else
-				Jit->WriteRfiExitDestInOpArg(R(EAX));
+			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
 		case FPExceptionCheckStart: {

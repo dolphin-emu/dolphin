@@ -70,10 +70,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 	OR(32, M(&MSR), R(EAX));
 	// NPC = SRR0;
 	MOV(32, R(EAX), M(&SRR0));
-	if (Core::g_CoreStartupParameter.bAlternateRFI)
-		WriteExitDestInEAX();
-	else
-		WriteRfiExitDestInEAX();
+	WriteRfiExitDestInEAX();
 }
 
 void Jit64::bx(UGeckoInstruction inst)

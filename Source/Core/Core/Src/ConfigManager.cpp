@@ -308,7 +308,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
-		ini.Get("Core", "AlternateRFI",		&m_LocalCoreStartupParameter.bAlternateRFI,		false);
+		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeam,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "BAT",				&m_LocalCoreStartupParameter.bMMUBAT,			false);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
