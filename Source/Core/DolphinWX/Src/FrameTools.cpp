@@ -769,15 +769,12 @@ void CFrame::StartGame(const std::string& filename)
 		m_ToolBar->EnableTool(IDM_PLAY, false);
 	GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 
-	// Game has been started, hide the game list
-	if (m_GameListCtrl->IsShown())
-	{
-		m_GameListCtrl->Disable();
-		m_GameListCtrl->Hide();
-	}
-
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
+		// Game has been started, hide the game list
+		m_GameListCtrl->Disable();
+		m_GameListCtrl->Hide();
+
 		m_RenderParent = m_Panel;
 		m_RenderFrame = this;
 	}
@@ -986,6 +983,13 @@ void CFrame::DoStop()
 
 		// Clear wiimote connection status from the status bar.
 		GetStatusBar()->SetStatusText(wxT(" "), 1);
+
+		// If batch mode was specified on the command-line, exit now.
+		if (m_bBatchMode)
+			Close(true);
+
+		m_GameListCtrl->Enable();
+		m_GameListCtrl->Show();
 	}
 }
 
@@ -1017,12 +1021,6 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	m_bGameLoading = false;
 	DoStop();
- 
-	// If batch mode was specified on the command-line, exit now.
-	if (m_bBatchMode)
-		Close(true);
-	else
-		UpdateGameList();
 }
 
 void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))

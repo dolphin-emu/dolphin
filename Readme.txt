@@ -1,9 +1,10 @@
 Dolphin-emu - The Gamecube / Wii Emulator
 ==========================================
-Homesite: http://dolphin-emu.com/
+Homesite: http://dolphin-emulator.com/
 Project Site: http://code.google.com/p/dolphin-emu
 
-About: Dolphin-emu is a emulator for Gamecube, Wii, Triforce that lets you run Wii/GCN/Tri games on your Windows/Linux/MacOSX PC system
+Dolphin-emu is a emulator for Gamecube, Wii, Triforce that lets
+you run Wii/GCN/Tri games on your Windows/Linux/Mac PC system.
 
 Open Source Release under GPL 2
 
@@ -11,27 +12,28 @@ Project Leaders: F|RES, ector
 
 Team members: http://code.google.com/p/dolphin-emu/people/
 
+Please read the FAQ before use:
 
-Please read the FAQ before use: http://code.google.com/p/dolphin-emu/wiki/Facts_And_Questions
+http://code.google.com/p/dolphin-emu/wiki/Facts_And_Questions
 
 System Requirements:
 * OS: Microsoft Windows (2000/XP/Vista or higher) or Linux or Apple Mac OS X.
-* Processor: Fast CPU with SSE2 supported (recommended at least 2Ghz). Dual Core for speed boost.
+* Processor: Fast CPU with SSE2 supported (recommended at least 2Ghz).
+  Dual Core for speed boost.
 * Graphics: Any graphics card that supports Direct3D 9 or OpenGL 2.1.
 
 [Command line usage]
-Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-V <str>] [-A <str>] [-P <str>] [-W <str>]
+Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]
   -h, --help                	Show this help message
   -d, --debugger            	Opens the debugger
   -l, --logger              	Opens the logger
   -e, --exec=<str>          	Loads the specified file (DOL, ELF, WAD, GCM, ISO)
+  -b, --batch             	Exit Dolphin with emulator
   -V, --video_plugin=<str>  	Specify a video plugin
   -A, --audio_plugin=<str>  	Specify an audio plugin
 
 [Libraries]
 Cg: Cg Shading API (http://developer.nvidia.com/object/cg_toolkit.html)
-WiiUse: Wiimote Bluetooth API (http://www.wiiuse.net/)
-SDL: Simple DirectMedia Layer API (http://www.libsdl.org/)
 *.pdb = Program Debug Database (use these symbols with a program debugger)
 
 [DSP Plugins]
