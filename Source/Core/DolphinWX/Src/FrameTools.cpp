@@ -986,10 +986,6 @@ void CFrame::DoStop()
 
 		// Clear wiimote connection status from the status bar.
 		GetStatusBar()->SetStatusText(wxT(" "), 1);
-
-		// If batch mode was specified on the command-line, exit now.
-		if (m_bBatchMode)
-			Close(true);
 	}
 }
 
@@ -1021,6 +1017,12 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	m_bGameLoading = false;
 	DoStop();
+ 
+	// If batch mode was specified on the command-line, exit now.
+	if (m_bBatchMode)
+		Close(true);
+	else
+		UpdateGameList();
 }
 
 void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))

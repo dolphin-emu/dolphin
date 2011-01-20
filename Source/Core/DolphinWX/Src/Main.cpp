@@ -327,29 +327,34 @@ bool DolphinApp::OnInit()
 	XInitThreads();
 #endif 
 
-	// Postpone final actions until event handler is running
+	// Postpone final actions until event handler is running.
+	// Updating the game list makes use of wxProgressDialog which may
+	// only be run after OnInit() when the event handler is running.
 	m_afterinit = new wxTimer(this, wxID_ANY);
 	m_afterinit->Start(1, wxTIMER_ONE_SHOT);
 
 	return true;
 }
 
+void DolphinApp::MacOpenFile(const wxString &fileName)
+{
+	FileToLoad = fileName;
+	LoadFile = true;
+
+	if (m_afterinit == NULL)
+		main_frame->BootGame(std::string(FileToLoad.mb_str()));
+}
+
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 {
 	delete m_afterinit;
-
-	// Updating the game list makes use of wxProgressDialog which may
-	// only be run after OnInit() when the event handler is running.
-	main_frame->UpdateGameList();
-
-	// Check the autoboot options:
+	m_afterinit = NULL;
 
 	// First check if we have an exec command line.
 	if (LoadFile && FileToLoad != wxEmptyString)
 	{
 		main_frame->BootGame(std::string(FileToLoad.mb_str()));
 	}
-
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
 	else if (main_frame->g_pCodeWindow)
@@ -370,6 +375,9 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 			}	
 		}
 	}
+	// No automatic start was requested; let the user make a selection.
+	else
+		main_frame->UpdateGameList();
 }
 
 void DolphinApp::InitLanguageSupport()

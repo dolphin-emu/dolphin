@@ -108,6 +108,12 @@ elif sys.platform == 'darwin':
 		CFBundleVersion = '3.0',
 		LSMinimumSystemVersion = '10.5.4',
 		LSRequiresCarbon = True,
+		CFBundleDocumentTypes = [
+			dict(CFBundleTypeExtensions =
+			('ciso', 'dol', 'elf', 'gcm', 'gcz', 'iso', 'wad'),
+			CFBundleTypeIconFile = 'Dolphin.icns',
+			CFBundleTypeName = 'Nintendo GC/Wii file',
+			CFBundleTypeRole = 'Viewer')]
 		)))
 
 	env.Command('dummy', '#' + env['prefix'],
