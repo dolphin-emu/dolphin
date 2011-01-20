@@ -21,6 +21,7 @@
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "DebuggerUIUtil.h"
+#include <wx/fontmap.h>
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200
@@ -48,12 +49,13 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogSection(1)
-#ifdef _WIN32
-	, m_SJISConv(wxFONTENCODING_SHIFT_JIS)
-#else
-	, m_SJISConv(wxFONTENCODING_EUC_JP)
-#endif
 {
+#ifdef _WIN32
+	m_SJISConv = new wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+#else
+	m_SJISConv = new wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#endif
+
 	m_LogManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);
@@ -157,6 +159,7 @@ CLogWindow::~CLogWindow()
 	}
 	m_LogTimer->Stop();
 	delete m_LogTimer;
+	delete m_SJISConv;
 }
 
 void CLogWindow::OnClose(wxCloseEvent& event)
@@ -537,6 +540,6 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 	m_LogSection.Enter();
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
+	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, *m_SJISConv)));
 	m_LogSection.Leave();
 }
