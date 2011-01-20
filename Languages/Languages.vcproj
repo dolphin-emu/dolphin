@@ -135,6 +135,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\tr.po"
+			>
+		</File>
+		<File
 			RelativePath=".\zh_CN.po"
 			>
 		</File>

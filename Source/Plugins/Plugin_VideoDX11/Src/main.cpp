@@ -161,7 +161,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #elif defined _DEBUG
 	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11 (Debug)");
 #else
-	sprintf_s(_PluginInfo->Name, 100, _trans("Dolphin Direct3D11"));
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11");
 #endif
 }
 

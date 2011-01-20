@@ -61,6 +61,7 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_PORTUGUESE_BRAZILIAN,
 	wxLANGUAGE_RUSSIAN,
 	wxLANGUAGE_SPANISH,
+	wxLANGUAGE_TURKISH,
 };
 
 // Strings for Device Selections
@@ -301,6 +302,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("Portuguese (Brazilian)"));
 	arrayStringFor_InterfaceLang.Add(_("Russian"));
 	arrayStringFor_InterfaceLang.Add(_("Spanish"));
+	arrayStringFor_InterfaceLang.Add(_("Turkish"));
 }
 
 void CConfigMain::InitializeGUIValues()
