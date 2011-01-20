@@ -123,6 +123,7 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ccld
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-mtune=core2', '-Xarch_x86_64', '-march=core2']
+    env['CCFLAGS'] += ['-mdynamic-no-pic']
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
     env['CC'] = "gcc-4.2 -ObjC"
@@ -135,7 +136,9 @@ if sys.platform == 'darwin':
     env['LIBS'] = ['iconv']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
+    env['SHCCFLAGS'] = env['CCFLAGS'] # Get rid of the -fPIC added in gcc.py
     env['SHLINKFLAGS'] += ['-Wl,-undefined,dynamic_lookup']
+    env['SHLINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
     if platform.mac_ver()[0] >= '10.6.0':
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
@@ -163,6 +166,7 @@ if sys.platform == 'darwin':
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKPATH'] += ['Externals/Cg']
     env['FRAMEWORKS'] += ['Cg']
+    env['shared_sdl'] = True
     env['shared_zlib'] = True
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'

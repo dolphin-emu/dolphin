@@ -572,7 +572,7 @@ void OpenGL_Update()
 void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
-	delete GLWin.glCanvas;
+	delete GLWin.glCtxt;
 #elif defined(__APPLE__)
         [GLWin.cocoaWin close];
         [GLWin.cocoaCtx clearDrawable];

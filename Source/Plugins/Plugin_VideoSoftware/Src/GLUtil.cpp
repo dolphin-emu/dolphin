@@ -383,7 +383,7 @@ void OpenGL_Update()
 void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
-	delete GLWin.glCanvas;
+	delete GLWin.glCtxt;
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{
