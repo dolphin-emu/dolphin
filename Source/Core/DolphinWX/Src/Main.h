@@ -38,6 +38,7 @@ private:
 	DECLARE_EVENT_TABLE()
 
 	wxTimer *m_afterinit;
+	bool BatchMode;
 	bool LoadFile;
 	wxString FileToLoad;
 	wxLocale *m_locale;

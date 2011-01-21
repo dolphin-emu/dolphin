@@ -96,7 +96,6 @@ bool DolphinApp::OnInit()
 
 	// Declarations and definitions
 	bool UseDebugger = false;
-	bool BatchMode = false;
 	bool UseLogger = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
@@ -350,6 +349,9 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	delete m_afterinit;
 	m_afterinit = NULL;
 
+	if (!BatchMode)
+		main_frame->UpdateGameList();
+
 	// First check if we have an exec command line.
 	if (LoadFile && FileToLoad != wxEmptyString)
 	{
@@ -375,9 +377,6 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 			}	
 		}
 	}
-	// No automatic start was requested; let the user make a selection.
-	else
-		main_frame->UpdateGameList();
 }
 
 void DolphinApp::InitLanguageSupport()

@@ -61,6 +61,7 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
 	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
+	libs += [ 'iconv' ]
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	if env['HAVE_WX']:

@@ -133,7 +133,6 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKSFLAGS'] = ['-Xarch_i386', '-Wl,-framework,QuickTime']
     env['LIBPATH'] += ['/usr/lib']
-    env['LIBS'] = ['iconv']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
     env['SHCCFLAGS'] = env['CCFLAGS'] # Get rid of the -fPIC added in gcc.py

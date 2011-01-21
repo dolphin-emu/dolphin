@@ -296,7 +296,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 bool OpenGL_MakeCurrent()
 {
 #if defined(USE_WX) && USE_WX
-	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+	return GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
@@ -383,6 +383,7 @@ void OpenGL_Update()
 void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
+	GLWin.glCanvas->Hide();
 	delete GLWin.glCtxt;
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
