@@ -140,6 +140,8 @@ if sys.platform == 'darwin':
     env['SHLINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
     if platform.mac_ver()[0] >= '10.6.0':
+        env['CC'] = "llvm-gcc-4.2 -ObjC"
+        env['CXX'] = "llvm-g++-4.2 -ObjC++"
         env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
         env['FRAMEWORKSFLAGS'] += ['-weak_framework', 'OpenCL']
 
