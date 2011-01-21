@@ -174,7 +174,7 @@ bool DolphinApp::OnInit()
 #ifdef _WIN32
 	EXTENDEDTRACEINITIALIZE(".");
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-#else
+#elif wxUSE_ON_FATAL_EXCEPTION
 	wxHandleFatalExceptions(true);
 #endif
 
