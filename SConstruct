@@ -121,29 +121,24 @@ if sys.platform == 'darwin':
     ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
     system = '/System/Library/Frameworks'
     env['CCFLAGS'] += ccld
+    env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
-    env['CCFLAGS'] += ['-mtune=core2', '-Xarch_x86_64', '-march=core2']
-    env['CCFLAGS'] += ['-mdynamic-no-pic']
+    env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
-    env['CC'] = "gcc-4.2 -ObjC"
-    env['CXX'] = "g++-4.2 -ObjC++"
+    env['CC'] = '/Developer/usr/bin/llvm-gcc -ObjC'
+    env['CXX'] = '/Developer/usr/bin/llvm-g++ -ObjC++'
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['FRAMEWORKSFLAGS'] = ['-Xarch_i386', '-Wl,-framework,QuickTime']
+    env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
+    env['FRAMEWORKSFLAGS'] += ['-Xarch_i386', '-Wl,-framework,QuickTime']
     env['LIBPATH'] += ['/usr/lib']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
     env['SHCCFLAGS'] = env['CCFLAGS'] # Get rid of the -fPIC added in gcc.py
     env['SHLINKFLAGS'] += ['-Wl,-undefined,dynamic_lookup']
     env['SHLINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
-
-    if platform.mac_ver()[0] >= '10.6.0':
-        env['CC'] = "llvm-gcc-4.2 -ObjC"
-        env['CXX'] = "llvm-g++-4.2 -ObjC++"
-        env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-        env['FRAMEWORKSFLAGS'] += ['-weak_framework', 'OpenCL']
 
     if env['nowx']:
         env['HAVE_WX'] = 0
