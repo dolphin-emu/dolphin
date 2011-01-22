@@ -52,7 +52,11 @@ template <typename I>
 std::string ThousandSeparate(I value, int spaces = 0)
 {
 	std::ostringstream oss;
+#ifdef __APPLE__
 	oss.imbue(std::locale());
+#else
+	oss.imbue(std::locale(""));
+#endif
 	oss << std::setw(spaces) << value;
 
 	return oss.str();
