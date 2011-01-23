@@ -3,10 +3,13 @@
 Import('env')
 import os
 import sys
-from SconsTests import utils
 
-utils.GenerateRevFile(env['flavor'], Dir('#Source/Core/Common/Src').abspath +
-    os.sep + 'svnrev_template.h', 'svnrev.h')
+def createVersion(env, target, source):
+	from SconsTests import utils
+	utils.GenerateRevFile(env['flavor'], source[0].path, target[0].path)
+
+env.Command('svnrev.h', 'svnrev_template.h',
+	[Delete('${TARGET.srcpath}'), createVersion])
 
 files = [
 	"ABI.cpp",

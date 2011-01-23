@@ -75,6 +75,10 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\da.po"
+			>
+		</File>
+		<File
 			RelativePath=".\de.po"
 			>
 		</File>
