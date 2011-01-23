@@ -66,6 +66,7 @@ static u32 TicksPerFrame = 0;
 static u32 s_lineCount = 0;
 static u32 s_upperFieldBegin = 0;
 static u32 s_lowerFieldBegin = 0;
+static int fields = 2;
 
 void DoState(PointerWrap &p)
 {
@@ -155,6 +156,8 @@ void Preset(bool _bNTSC)
 
 void Init()
 {
+	fields = Core::g_CoreStartupParameter.bVBeam?1:2;
+
 	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bNTSCJ;
 
 	for (int i = 0; i < 4; i++)
@@ -712,17 +715,24 @@ void UpdateParameters()
     switch (m_DisplayControlRegister.FMT)
     {
     case 0: // NTSC
-    case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / fields);
 		s_lineCount = NTSC_LINE_COUNT;
 		s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
+		break;
+
+    case 2: // PAL-M
+		TargetRefreshRate = NTSC_FIELD_RATE;
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / fields);
+		s_lineCount = PAL_LINE_COUNT;
+		s_upperFieldBegin = PAL_UPPER_BEGIN;
+		s_lowerFieldBegin = PAL_LOWER_BEGIN;
         break;
 
     case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / fields);
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
@@ -746,7 +756,7 @@ int GetTicksPerLine()
 	}
 	else
 	{
-		return TicksPerFrame / (s_lineCount * 2);
+		return TicksPerFrame / (s_lineCount * fields);
 	}
 }
 
@@ -823,7 +833,8 @@ void Update()
 	else if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
 	{
 		// Interlace Upper.  Do not EndField (swapBuffer) at the end of the upper field.
-		//EndField();
+		if (Core::g_CoreStartupParameter.bVBeam)
+			EndField();
 	}
 	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
 	{

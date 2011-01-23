@@ -167,7 +167,7 @@ class CISOProperties : public wxDialog
 			ID_MMU,
 			ID_MMUBAT,
 			ID_TLBHACK,
-			ID_RFI,
+			ID_VBEAM,
 			ID_DISCSPEED,
 			ID_MERGEBLOCKS,
 			ID_FORCEFILTERING,

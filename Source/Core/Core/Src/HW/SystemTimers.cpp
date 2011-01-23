@@ -161,7 +161,8 @@ void DSPCallback(u64 userdata, int cyclesLate)
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
+	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
@@ -258,7 +259,8 @@ void Init()
 		// PS: When this period is tweaked, the FreqDividerMote
 		// in WII_IPC_HLE_Device_usb.cpp should also be tweaked accordingly
 		// to guarantee WiiMote updates at a fixed 100Hz
-		IPC_HLE_PERIOD = GetTicksPerSecond() / 1500;
+		int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
+		IPC_HLE_PERIOD = GetTicksPerSecond() / (1500 * fields);
 	}
 	else
 	{
