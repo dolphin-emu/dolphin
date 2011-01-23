@@ -22,18 +22,22 @@
 
 namespace VertexFormatConverter
 {
+	// This fracs are fixed acording to format
+#define S8FRAC 0.015625f; // 1.0f / (1U << 6)
+#define S16FRAC 0.00006103515625f; // 1.0f / (1U << 14)
+
     void LoadNormal1_Byte(InputVertexData *dst, u8 *src)
     {
-        dst->normal[0].x = (float)(s8)src[0] / 128;
-        dst->normal[0].y = (float)(s8)src[1] / 128;
-        dst->normal[0].z = (float)(s8)src[2] / 128;
+        dst->normal[0].x = ((s8)src[0]) * S8FRAC;
+        dst->normal[0].y = ((s8)src[1]) * S8FRAC;
+        dst->normal[0].z = ((s8)src[2]) * S8FRAC;
     }
 
     void LoadNormal1_Short(InputVertexData *dst, u8 *src)
     {
-        dst->normal[0].x = (float)((s16*)src)[0] / 32768;
-        dst->normal[0].y = (float)((s16*)src)[1] / 32768;
-        dst->normal[0].z = (float)((s16*)src)[2] / 32768;
+        dst->normal[0].x = ((s16*)src)[0] * S16FRAC;
+        dst->normal[0].y = ((s16*)src)[1] * S16FRAC;
+        dst->normal[0].z = ((s16*)src)[2] * S16FRAC;
     }
 
     void LoadNormal1_Float(InputVertexData *dst, u8 *src)
@@ -47,9 +51,9 @@ namespace VertexFormatConverter
     {
         for (int i = 0, j = 0; i < 3; i++, j+=3)
         {
-            dst->normal[i].x = (float)(s8)src[j + 0] / 128;
-            dst->normal[i].y = (float)(s8)src[j + 1] / 128;
-            dst->normal[i].z = (float)(s8)src[j + 2] / 128;
+            dst->normal[i].x = ((s8)src[j + 0]) * S8FRAC;
+            dst->normal[i].y = ((s8)src[j + 1]) * S8FRAC;
+            dst->normal[i].z = ((s8)src[j + 2]) * S8FRAC;
         }
     }
 
@@ -57,9 +61,9 @@ namespace VertexFormatConverter
     {
         for (int i = 0, j = 0; i < 3; i++, j+=3)
         {
-            dst->normal[i].x = (float)((s16*)src)[j + 0] / 32768;
-            dst->normal[i].y = (float)((s16*)src)[j + 1] / 32768;
-            dst->normal[i].z = (float)((s16*)src)[j + 2] / 32768;
+            dst->normal[i].x = ((s16*)src)[j + 0] * S16FRAC;
+            dst->normal[i].y = ((s16*)src)[j + 1] * S16FRAC;
+            dst->normal[i].z = ((s16*)src)[j + 2] * S16FRAC;
         }
     }
 
