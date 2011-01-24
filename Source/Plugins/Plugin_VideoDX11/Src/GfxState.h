@@ -36,7 +36,6 @@ public:
 	void SetVShader(ID3D11VertexShader* shader, D3DBlob* bcode);
 	void SetPShader(ID3D11PixelShader* shader);
 	void SetInputElements(const D3D11_INPUT_ELEMENT_DESC* elems, UINT num);
-	void SetShaderResource(unsigned int stage, ID3D11ShaderResourceView* srv);
 
 	void ApplyState();            // apply current state
 	void Reset();
@@ -50,12 +49,7 @@ public:
 
 	void SetDstAlpha(bool enable);
 
-	// sampler states
-	void SetSamplerFilter(DWORD stage, D3D11_FILTER filter);
 
-	// TODO: add methods for changing the other states instead of modifying them directly
-
-	D3D11_SAMPLER_DESC samplerdesc[8];
 	D3D11_RASTERIZER_DESC rastdesc;
 	D3D11_DEPTH_STENCIL_DESC depthdesc;
 
@@ -78,7 +72,6 @@ private:
 	D3D11_INPUT_ELEMENT_DESC inp_elems[32];
 	int num_inp_elems;
 
-	ID3D11ShaderResourceView* shader_resources[8];
 	D3D11_BLEND_DESC blenddesc;
 
 	bool m_useDstAlpha;

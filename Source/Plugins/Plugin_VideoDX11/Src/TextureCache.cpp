@@ -53,7 +53,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::gfxstate->SetShaderResource(stage, texture->GetSRV());
+	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const char filename[])

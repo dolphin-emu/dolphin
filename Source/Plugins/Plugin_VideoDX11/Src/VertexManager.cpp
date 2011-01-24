@@ -139,8 +139,6 @@ void VertexManager::LoadBuffers()
 
 void VertexManager::Draw(UINT stride)
 {
-	D3D::gfxstate->ApplyState();
-
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
 	D3D::context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
@@ -232,9 +230,11 @@ void VertexManager::vFlush()
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 
+	D3D::gfxstate->ApplyState();
+	g_renderer->ApplyState();
 	LoadBuffers();
 	Draw(stride);
-
+	g_renderer->UnsetTextures();
 	D3D::gfxstate->Reset();
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);

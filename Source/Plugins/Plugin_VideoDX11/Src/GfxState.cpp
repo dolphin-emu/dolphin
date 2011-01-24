@@ -26,14 +26,6 @@ StateManager* stateman;
 
 EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(NULL), psbytecode(NULL), apply_called(false)
 {
-	for (unsigned int k = 0;k < 8;k++)
-	{
-		float border[4] = {0.f, 0.f, 0.f, 0.f};
-		shader_resources[k] = NULL;
-		samplerdesc[k] = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 16, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-		if(g_ActiveConfig.iMaxAnisotropy > 1) samplerdesc[k].Filter = D3D11_FILTER_ANISOTROPIC;
-	}
-
 	m_useDstAlpha = false;
 
 	memset(&blenddesc, 0, sizeof(blenddesc));
@@ -71,9 +63,6 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 
 EmuGfxState::~EmuGfxState()
 {
-	for (unsigned int k = 0;k < 8;k++)
-		SAFE_RELEASE(shader_resources[k]);
-
 	SAFE_RELEASE(vsbytecode);
 	SAFE_RELEASE(psbytecode);
 	SAFE_RELEASE(vertexshader);
@@ -117,13 +106,6 @@ void EmuGfxState::SetInputElements(const D3D11_INPUT_ELEMENT_DESC* elems, UINT n
 {
 	num_inp_elems = num;
 	memcpy(inp_elems, elems, num*sizeof(D3D11_INPUT_ELEMENT_DESC));
-}
-
-void EmuGfxState::SetShaderResource(unsigned int stage, ID3D11ShaderResourceView* srv)
-{
-	if (shader_resources[stage]) shader_resources[stage]->Release();
-	shader_resources[stage] = srv;
-	if (srv) srv->AddRef();
 }
 
 void EmuGfxState::ApplyState()
@@ -181,22 +163,6 @@ void EmuGfxState::ApplyState()
 	}
 	D3D::context->PSSetConstantBuffers(0, 1, &pscbuf);
 
-	ID3D11SamplerState* samplerstate[8];
-	for (unsigned int stage = 0; stage < 8; stage++)
-	{
-		if (shader_resources[stage])
-		{
-			if(g_ActiveConfig.iMaxAnisotropy > 1) samplerdesc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
-			hr = D3D::device->CreateSamplerState(&samplerdesc[stage], &samplerstate[stage]);
-			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
-			else SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "a sampler state of EmuGfxState");
-		}
-		else samplerstate[stage] = NULL;
-	}
-	D3D::context->PSSetSamplers(0, 8, samplerstate);
-	for (unsigned int stage = 0; stage < 8; stage++)
-		SAFE_RELEASE(samplerstate[stage]);
-
 	ID3D11BlendState* blstate;
 	hr = device->CreateBlendState(&blenddesc, &blstate);
 	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
@@ -221,7 +187,6 @@ void EmuGfxState::ApplyState()
 
 	context->PSSetShader(pixelshader, NULL, 0);
 	context->VSSetShader(vertexshader, NULL, 0);
-	context->PSSetShaderResources(0, 8, shader_resources);
 
 	stateman->Apply();
 	apply_called = true;
@@ -229,10 +194,6 @@ void EmuGfxState::ApplyState()
 
 void EmuGfxState::Reset()
 {
-	for (unsigned int k = 0;k < 8;k++)
-		SAFE_RELEASE(shader_resources[k]);
-
-	context->PSSetShaderResources(0, 8, shader_resources); // unbind all textures
 	if (apply_called)
 	{
 		stateman->PopBlendState();
@@ -343,11 +304,6 @@ void EmuGfxState::SetDstAlpha(bool enable)
 	SetSrcBlend(blenddesc.RenderTarget[0].SrcBlend);
 	SetDestBlend(blenddesc.RenderTarget[0].DestBlend);
 	SetBlendOp(blenddesc.RenderTarget[0].BlendOp);
-}
-
-void EmuGfxState::SetSamplerFilter(DWORD stage, D3D11_FILTER filter)
-{
-	samplerdesc[stage].Filter = filter;
 }
 
 template<typename T> AutoState<T>::AutoState(const T* object) : state(object)

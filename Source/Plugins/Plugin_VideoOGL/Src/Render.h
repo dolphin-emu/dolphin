@@ -24,6 +24,10 @@ public:
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
 
+	// No need to implement these in OGL
+	void ApplyState() {}
+	void UnsetTextures() {}
+
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugInfo();
 	void FlipImageData(u8 *data, int w, int h);

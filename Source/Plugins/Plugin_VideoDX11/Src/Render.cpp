@@ -64,6 +64,12 @@ ID3D11BlendState* resetblendstate = NULL;
 ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
 
+// GX pipeline state
+struct
+{
+	D3D11_SAMPLER_DESC sampdc[8];
+} gx_state;
+
 bool reset_called = false;
 
 // State translation lookup tables
@@ -338,9 +344,18 @@ Renderer::Renderer()
 
 	SetupDeviceObjects();
 
-	for (unsigned int stage = 0; stage < 8; stage++)
-		D3D::gfxstate->samplerdesc[stage].MaxAnisotropy = g_ActiveConfig.iMaxAnisotropy;
+	// Setup GX pipeline state
+	for (unsigned int k = 0;k < 8;k++)
+	{
+		float border[4] = {0.f, 0.f, 0.f, 0.f};
+		gx_state.sampdc[k] = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP,
+											0.f, 1 << g_ActiveConfig.iMaxAnisotropy,
+											D3D11_COMPARISON_ALWAYS, border,
+											-D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
+		if(g_ActiveConfig.iMaxAnisotropy != 0) gx_state.sampdc[k].Filter = D3D11_FILTER_ANISOTROPIC;
+	}
 
+	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
 	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
@@ -1073,6 +1088,32 @@ void Renderer::RestoreAPIState()
 	reset_called = false;
 }
 
+void Renderer::ApplyState()
+{
+	ID3D11SamplerState* samplerstate[8];
+	for (unsigned int stage = 0; stage < 8; stage++)
+	{
+		// TODO: unnecessary state changes, we should store a list of shader resources
+		//if (shader_resources[stage])
+		{
+			if(g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
+			HRESULT hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
+			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
+			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");
+		}
+		// else samplerstate[stage] = NULL;
+	}
+	D3D::context->PSSetSamplers(0, 8, samplerstate);
+	for (unsigned int stage = 0; stage < 8; stage++)
+		SAFE_RELEASE(samplerstate[stage]);
+}
+
+void Renderer::UnsetTextures()
+{
+	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
+	D3D::context->PSSetShaderResources(0, 8, shader_resources);
+}
+
 void Renderer::SetGenerationMode()
 {
 	// rastdesc.FrontCounterClockwise must be false for this to work
@@ -1137,45 +1178,45 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	// NOTE: since there's no "no filter" in DX11 we're using point filters in these cases
 	if (g_ActiveConfig.bForceFiltering)
 	{
-		D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_MIP_LINEAR);
+		gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	}
 	else if (tm0.min_filter & 4) // linear min filter
 	{
 		if (tm0.mag_filter) // linear mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
-			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT);
-			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_MIP_LINEAR);
+			if (mip == TEXF_NONE) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+			else if (mip == TEXF_POINT) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+			else if (mip == TEXF_LINEAR) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		}
 		else // point mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
-			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
-			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR);
+			if (mip == TEXF_NONE) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+			else if (mip == TEXF_POINT) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+			else if (mip == TEXF_LINEAR) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
 		}
 	}
 	else // point min filter
 	{
 		if (tm0.mag_filter) // linear mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT);
-			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT);
-			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR);
+			if (mip == TEXF_NONE) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+			else if (mip == TEXF_POINT) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+			else if (mip == TEXF_LINEAR) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
 		}
 		else // point mag filter
 		{
-			if (mip == TEXF_NONE) D3D::gfxstate->SetSamplerFilter(stage,		D3D11_FILTER_MIN_MAG_MIP_POINT);
-			else if (mip == TEXF_POINT) D3D::gfxstate->SetSamplerFilter(stage,  D3D11_FILTER_MIN_MAG_MIP_POINT);
-			else if (mip == TEXF_LINEAR) D3D::gfxstate->SetSamplerFilter(stage, D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR);
+			if (mip == TEXF_NONE) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			else if (mip == TEXF_POINT) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			else if (mip == TEXF_LINEAR) gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 		}
 	}
 
-	D3D::gfxstate->samplerdesc[stage].AddressU = d3dClamps[tm0.wrap_s];
-	D3D::gfxstate->samplerdesc[stage].AddressV = d3dClamps[tm0.wrap_t];
+	gx_state.sampdc[stage].AddressU = d3dClamps[tm0.wrap_s];
+	gx_state.sampdc[stage].AddressV = d3dClamps[tm0.wrap_t];
 
-	D3D::gfxstate->samplerdesc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
-	D3D::gfxstate->samplerdesc[stage].MaxLOD = (float)tm1.max_lod/16.f;
-	D3D::gfxstate->samplerdesc[stage].MinLOD = (float)tm1.min_lod/16.f;
+	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
+	gx_state.sampdc[stage].MaxLOD = (float)tm1.max_lod/16.f;
+	gx_state.sampdc[stage].MinLOD = (float)tm1.min_lod/16.f;
 }
 
 void Renderer::SetInterlacingMode()
