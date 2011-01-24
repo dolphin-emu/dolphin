@@ -70,7 +70,7 @@ elif sys.platform == 'darwin':
 		exe += 'NoGUI'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
-		'Library/Frameworks/Cg.framework', source = [
+		'Frameworks/Cg.framework', source = [
 		'#Externals/Cg/Cg.framework/Cg',
 		'#Externals/Cg/Cg.framework/Resources'
 		])
