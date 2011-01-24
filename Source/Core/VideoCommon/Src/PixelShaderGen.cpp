@@ -567,7 +567,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function
-			WRITE(p, "ocol0 = 0;\n");
+			WRITE(p, "ocol0 = float4(0.0f,0.0f,0.0f,0.0f);\n");
 			if(DepthTextureEnable)
 				WRITE(p, "depth = 1.f;\n");
 			WRITE(p, "discard;\n");
@@ -798,7 +798,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
 		p = pmainstart;
-		WRITE(p, "ocol0 = 0;\n");
+		WRITE(p, "ocol0 = float4(0.0f,0.0f,0.0f,0.0f);\n");
 		if(DepthTextureEnable)
 			WRITE(p, "depth = 1.f;\n");
 		WRITE(p, "discard;\n");
@@ -1305,7 +1305,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 	
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%sdiscard;%s}\n",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
+	WRITE(p, ")){ocol0 = float4(0.0f,0.0f,0.0f,0.0f);%sdiscard;%s}\n",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
 	return true;
 }
 
