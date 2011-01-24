@@ -170,7 +170,7 @@ void VertexManager::vFlush()
 
 	int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
-	
+
 	Draw(stride);
 
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
@@ -182,13 +182,9 @@ void VertexManager::vFlush()
 			goto shader_fail;
 		}
 		// update alpha only
-		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
-		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
-
+		g_renderer->ApplyState(true);
 		Draw(stride);
-
-		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
-		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+		g_renderer->RestoreState();
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

@@ -25,7 +25,7 @@ public:
 	void SetInterlacingMode();
 
 	// TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-	void ApplyState();
+	void ApplyState(bool bUseDstAlpha);
 	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);

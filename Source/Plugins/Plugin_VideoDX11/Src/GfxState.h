@@ -40,15 +40,6 @@ public:
 	void ApplyState();            // apply current state
 	void Reset();
 
-	// blend state
-	void SetAlphaBlendEnable(bool enable);
-	void SetRenderTargetWriteMask(UINT8 mask);
-	void SetSrcBlend(D3D11_BLEND val);
-	void SetDestBlend(D3D11_BLEND val);
-	void SetBlendOp(D3D11_BLEND_OP val);
-
-	void SetDstAlpha(bool enable);
-
 
 	float psconstants[C_PENVCONST_END*4];
 	float vsconstants[C_VENVCONST_END*4];
@@ -68,10 +59,6 @@ private:
 	ID3D11InputLayout* inp_layout;
 	D3D11_INPUT_ELEMENT_DESC inp_elems[32];
 	int num_inp_elems;
-
-	D3D11_BLEND_DESC blenddesc;
-
-	bool m_useDstAlpha;
 
 	bool apply_called;
 };

@@ -1261,6 +1261,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	XFBWrited = false;
 }
 
+void Renderer::ApplyState(bool bUseDstAlpha)
+{
+	if (bUseDstAlpha)
+	{
+		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
+		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
+	}
+}
+
+void Renderer::RestoreState()
+{
+	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+
+	// TODO: Enable this code. Caused glitches for me however (neobrain)
+//	for (unsigned int i = 0; i < 8; ++i)
+//		D3D::dev->SetTexture(i, NULL);
+}
+
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {

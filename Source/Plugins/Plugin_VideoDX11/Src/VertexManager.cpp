@@ -212,8 +212,6 @@ void VertexManager::vFlush()
 	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
 		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-	D3D::gfxstate->SetDstAlpha(useDstAlpha);
-
 	if (!PixelShaderCache::SetShader(
 		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
 		g_nativeVertexFmt->m_components))
@@ -231,13 +229,14 @@ void VertexManager::vFlush()
 	g_nativeVertexFmt->SetupVertexPointers();
 
 	D3D::gfxstate->ApplyState();
-	g_renderer->ApplyState();
+	g_renderer->ApplyState(useDstAlpha);
 	LoadBuffers();
 	Draw(stride);
-	g_renderer->RestoreState();
-	D3D::gfxstate->Reset();
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
+
+	g_renderer->RestoreState();
+	D3D::gfxstate->Reset();
 
 shader_fail:
 	ResetBuffer();

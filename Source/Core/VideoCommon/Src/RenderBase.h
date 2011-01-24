@@ -66,7 +66,7 @@ public:
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
 
-	virtual void ApplyState() = 0;
+	virtual void ApplyState(bool bUseDstAlpha) = 0;
 	virtual void RestoreState() = 0;
 
 	// Real internal resolution:

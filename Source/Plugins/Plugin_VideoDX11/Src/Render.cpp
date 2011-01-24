@@ -68,6 +68,7 @@ ID3D11RasterizerState* resetraststate = NULL;
 struct
 {
 	D3D11_SAMPLER_DESC sampdc[8];
+	D3D11_BLEND_DESC blenddc;
 	D3D11_DEPTH_STENCIL_DESC depthdc;
 	D3D11_RASTERIZER_DESC rastdc;
 } gx_state;
@@ -347,6 +348,18 @@ Renderer::Renderer()
 	SetupDeviceObjects();
 
 	// Setup GX pipeline state
+	memset(&gx_state.blenddc, 0, sizeof(gx_state.blenddc));
+	gx_state.blenddc.AlphaToCoverageEnable = FALSE;
+	gx_state.blenddc.IndependentBlendEnable = FALSE;
+	gx_state.blenddc.RenderTarget[0].BlendEnable = FALSE;
+	gx_state.blenddc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	gx_state.blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	gx_state.blenddc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	gx_state.blenddc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	gx_state.blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
 	memset(&gx_state.depthdc, 0, sizeof(gx_state.depthdc));
 	gx_state.depthdc.DepthEnable        = TRUE;
 	gx_state.depthdc.DepthWriteMask     = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -508,7 +521,7 @@ void Renderer::SetColorMask()
 		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
 	if (bpmem.blendmode.colorupdate)
 		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
-	D3D::gfxstate->SetRenderTargetWriteMask(color_mask);
+	gx_state.blenddc.RenderTarget[0].RenderTargetWriteMask = color_mask;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -789,6 +802,56 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	// TODO
 }
 
+void SetSrcBlend(D3D11_BLEND val)
+{
+	// Colors should blend against SRC_ALPHA
+	if (val == D3D11_BLEND_SRC1_ALPHA)
+		val = D3D11_BLEND_SRC_ALPHA;
+	else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
+		val = D3D11_BLEND_INV_SRC_ALPHA;
+
+	if (val == D3D11_BLEND_SRC_COLOR)
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	else if (val == D3D11_BLEND_INV_SRC_COLOR)
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	else if (val == D3D11_BLEND_DEST_COLOR)
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+	else if (val == D3D11_BLEND_INV_DEST_COLOR)
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
+	else
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = val;
+
+	gx_state.blenddc.RenderTarget[0].SrcBlend = val;
+}
+
+void SetDestBlend(D3D11_BLEND val)
+{
+	// Colors should blend against SRC_ALPHA
+	if (val == D3D11_BLEND_SRC1_ALPHA)
+		val = D3D11_BLEND_SRC_ALPHA;
+	else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
+		val = D3D11_BLEND_INV_SRC_ALPHA;
+
+	if (val == D3D11_BLEND_SRC_COLOR)
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	else if (val == D3D11_BLEND_INV_SRC_COLOR)
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	else if (val == D3D11_BLEND_DEST_COLOR)
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+	else if (val == D3D11_BLEND_INV_DEST_COLOR)
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
+	else
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = val;
+
+	gx_state.blenddc.RenderTarget[0].DestBlend = val;
+}
+
+void SetBlendOp(D3D11_BLEND_OP val)
+{
+	gx_state.blenddc.RenderTarget[0].BlendOp = val;
+	gx_state.blenddc.RenderTarget[0].BlendOpAlpha = val;
+}
+
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
@@ -796,19 +859,19 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (bpmem.blendmode.subtract)  // enable blending src 1 dst 1
 	{
-		D3D::gfxstate->SetAlphaBlendEnable(true);
-		D3D::gfxstate->SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
-		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[1]);
-		D3D::gfxstate->SetDestBlend(d3dDestFactors[1]);
+		gx_state.blenddc.RenderTarget[0].BlendEnable = true;
+		SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
+		SetSrcBlend(d3dSrcFactors[1]);
+		SetDestBlend(d3dDestFactors[1]);
 	}
 	else
 	{
-		D3D::gfxstate->SetAlphaBlendEnable(bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
+		gx_state.blenddc.RenderTarget[0].BlendEnable = bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0));
 		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
 		{
-			D3D::gfxstate->SetBlendOp(D3D11_BLEND_OP_ADD);
-			D3D::gfxstate->SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
-			D3D::gfxstate->SetDestBlend(d3dDestFactors[bpmem.blendmode.dstfactor]);
+			SetBlendOp(D3D11_BLEND_OP_ADD);
+			SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
+			SetDestBlend(d3dDestFactors[bpmem.blendmode.dstfactor]);
 		}
 	}
 }
@@ -1100,9 +1163,35 @@ void Renderer::RestoreAPIState()
 	reset_called = false;
 }
 
-void Renderer::ApplyState()
+void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	HRESULT hr;
+
+	if (bUseDstAlpha)
+	{
+		// Colors should blend against SRC1_ALPHA
+		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
+			gx_state.blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC1_ALPHA;
+		else if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_INV_SRC_ALPHA)
+			gx_state.blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_INV_SRC1_ALPHA;
+
+		// Colors should blend against SRC1_ALPHA
+		if (gx_state.blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_SRC_ALPHA)
+			gx_state.blenddc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC1_ALPHA;
+		else if (gx_state.blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_INV_SRC_ALPHA)
+			gx_state.blenddc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC1_ALPHA;
+
+		gx_state.blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		gx_state.blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		gx_state.blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	}
+
+	ID3D11BlendState* blstate;
+	hr = D3D::device->CreateBlendState(&gx_state.blenddc, &blstate);
+	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+	D3D::stateman->PushBlendState(blstate);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
+	SAFE_RELEASE(blstate);
 
 	ID3D11DepthStencilState* depth_state;
 	hr = D3D::device->CreateDepthStencilState(&gx_state.depthdc, &depth_state);
@@ -1137,6 +1226,13 @@ void Renderer::ApplyState()
 		SAFE_RELEASE(samplerstate[stage]);
 
 	D3D::stateman->Apply();
+
+	if (bUseDstAlpha)
+	{
+		// restore actual state
+		SetBlendMode(false);
+		SetLogicOpMode();
+	}
 }
 
 void Renderer::RestoreState()
@@ -1144,6 +1240,7 @@ void Renderer::RestoreState()
 	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);
 
+	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
 }
@@ -1175,10 +1272,10 @@ void Renderer::SetLogicOpMode()
 	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 	{
 		s_blendMode = 0;
-		D3D::gfxstate->SetAlphaBlendEnable(true);
-		D3D::gfxstate->SetBlendOp(d3dLogicOps[bpmem.blendmode.logicmode]);
-		D3D::gfxstate->SetSrcBlend(d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
-		D3D::gfxstate->SetDestBlend(d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
+		gx_state.blenddc.RenderTarget[0].BlendEnable = true;
+		SetBlendOp(d3dLogicOps[bpmem.blendmode.logicmode]);
+		SetSrcBlend(d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
+		SetDestBlend(d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
 	}
 	else
 	{

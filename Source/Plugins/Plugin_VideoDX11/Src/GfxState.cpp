@@ -26,20 +26,6 @@ StateManager* stateman;
 
 EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(NULL), psbytecode(NULL), apply_called(false)
 {
-	m_useDstAlpha = false;
-
-	memset(&blenddesc, 0, sizeof(blenddesc));
-	blenddesc.AlphaToCoverageEnable = FALSE;
-	blenddesc.IndependentBlendEnable = FALSE;
-	blenddesc.RenderTarget[0].BlendEnable = FALSE;
-	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	blenddesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-
 	pscbuf = NULL;
 	vscbuf = NULL;
 	vshaderchanged = false;
@@ -152,13 +138,6 @@ void EmuGfxState::ApplyState()
 	}
 	D3D::context->PSSetConstantBuffers(0, 1, &pscbuf);
 
-	ID3D11BlendState* blstate;
-	hr = device->CreateBlendState(&blenddesc, &blstate);
-	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-	stateman->PushBlendState(blstate);
-	SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
-	SAFE_RELEASE(blstate);
-
 	context->PSSetShader(pixelshader, NULL, 0);
 	context->VSSetShader(vertexshader, NULL, 0);
 
@@ -169,112 +148,8 @@ void EmuGfxState::Reset()
 {
 	if (apply_called)
 	{
-		stateman->PopBlendState();
 		apply_called = false;
 	}
-}
-
-void EmuGfxState::SetAlphaBlendEnable(bool enable)
-{
-	blenddesc.RenderTarget[0].BlendEnable = enable;
-}
-
-void EmuGfxState::SetRenderTargetWriteMask(UINT8 mask)
-{
-	blenddesc.RenderTarget[0].RenderTargetWriteMask = mask;
-}
-
-void EmuGfxState::SetSrcBlend(D3D11_BLEND val)
-{
-	// TODO: Check whether e.g. the dest color check is needed here
-	if (m_useDstAlpha)
-	{
-		// Colors should blend against SRC1_ALPHA
-		if (val == D3D11_BLEND_SRC_ALPHA)
-			val = D3D11_BLEND_SRC1_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC_ALPHA)
-			val = D3D11_BLEND_INV_SRC1_ALPHA;
-
-		blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	}
-	else
-	{
-		// Colors should blend against SRC_ALPHA
-		if (val == D3D11_BLEND_SRC1_ALPHA)
-			val = D3D11_BLEND_SRC_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
-			val = D3D11_BLEND_INV_SRC_ALPHA;
-
-		if (val == D3D11_BLEND_SRC_COLOR)
-			blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC_COLOR)
-			blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-		else if (val == D3D11_BLEND_DEST_COLOR)
-			blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-		else if (val == D3D11_BLEND_INV_DEST_COLOR)
-			blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
-		else
-			blenddesc.RenderTarget[0].SrcBlendAlpha = val;
-	}
-
-	blenddesc.RenderTarget[0].SrcBlend = val;
-}
-
-void EmuGfxState::SetDestBlend(D3D11_BLEND val)
-{
-	// TODO: Check whether e.g. the source color check is needed here
-	if (m_useDstAlpha)
-	{
-		// Colors should blend against SRC1_ALPHA
-		if (val == D3D11_BLEND_SRC_ALPHA)
-			val = D3D11_BLEND_SRC1_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC_ALPHA)
-			val = D3D11_BLEND_INV_SRC1_ALPHA;
-
-		blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	}
-	else
-	{
-		// Colors should blend against SRC_ALPHA
-		if (val == D3D11_BLEND_SRC1_ALPHA)
-			val = D3D11_BLEND_SRC_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
-			val = D3D11_BLEND_INV_SRC_ALPHA;
-
-		if (val == D3D11_BLEND_SRC_COLOR)
-			blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-		else if (val == D3D11_BLEND_INV_SRC_COLOR)
-			blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-		else if (val == D3D11_BLEND_DEST_COLOR)
-			blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-		else if (val == D3D11_BLEND_INV_DEST_COLOR)
-			blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
-		else
-			blenddesc.RenderTarget[0].DestBlendAlpha = val;
-	}
-
-	blenddesc.RenderTarget[0].DestBlend = val;
-}
-
-void EmuGfxState::SetBlendOp(D3D11_BLEND_OP val)
-{
-	blenddesc.RenderTarget[0].BlendOp = val;
-	if (m_useDstAlpha)
-	{
-		blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	}
-	else
-	{
-		blenddesc.RenderTarget[0].BlendOpAlpha = val;
-	}
-}
-
-void EmuGfxState::SetDstAlpha(bool enable)
-{
-	m_useDstAlpha = enable;
-	SetSrcBlend(blenddesc.RenderTarget[0].SrcBlend);
-	SetDestBlend(blenddesc.RenderTarget[0].DestBlend);
-	SetBlendOp(blenddesc.RenderTarget[0].BlendOp);
 }
 
 template<typename T> AutoState<T>::AutoState(const T* object) : state(object)

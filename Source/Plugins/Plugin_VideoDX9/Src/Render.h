@@ -24,9 +24,8 @@ public:
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
 
-	// No need to implement these in D3D9
-	void ApplyState() {}
-	void RestoreState() {}
+	void ApplyState(bool bUseDstAlpha);
+	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 
