@@ -26,7 +26,7 @@ public:
 
 	// No need to implement these in D3D9
 	void ApplyState() {}
-	void UnsetTextures() {}
+	void RestoreState() {}
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 

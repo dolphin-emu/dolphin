@@ -40,14 +40,6 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
-	memset(&depthdesc, 0, sizeof(depthdesc));
-	depthdesc.DepthEnable        = TRUE;
-	depthdesc.DepthWriteMask     = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthdesc.DepthFunc          = D3D11_COMPARISON_LESS;
-	depthdesc.StencilEnable      = FALSE;
-	depthdesc.StencilReadMask    = D3D11_DEFAULT_STENCIL_READ_MASK;
-	depthdesc.StencilWriteMask   = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-
 	// this probably must be changed once multisampling support gets added
 	rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0, false, true, false, false);
 
@@ -178,17 +170,9 @@ void EmuGfxState::ApplyState()
 	stateman->PushRasterizerState(raststate);
 	SAFE_RELEASE(raststate);
 
-	ID3D11DepthStencilState* depth_state;
-	hr = device->CreateDepthStencilState(&depthdesc, &depth_state);
-	if (SUCCEEDED(hr)) SetDebugObjectName((ID3D11DeviceChild*)depth_state, "a depth-stencil state of EmuGfxState");
-	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-	D3D::stateman->PushDepthState(depth_state);
-	SAFE_RELEASE(depth_state);
-
 	context->PSSetShader(pixelshader, NULL, 0);
 	context->VSSetShader(vertexshader, NULL, 0);
 
-	stateman->Apply();
 	apply_called = true;
 }
 
@@ -197,7 +181,6 @@ void EmuGfxState::Reset()
 	if (apply_called)
 	{
 		stateman->PopBlendState();
-		stateman->PopDepthState();
 		stateman->PopRasterizerState();
 		apply_called = false;
 	}

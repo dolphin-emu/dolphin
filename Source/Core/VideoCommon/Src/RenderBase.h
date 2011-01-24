@@ -67,7 +67,7 @@ public:
 	virtual void SetInterlacingMode() = 0;
 
 	virtual void ApplyState() = 0;
-	virtual void UnsetTextures() = 0;
+	virtual void RestoreState() = 0;
 
 	// Real internal resolution:
 	// D3D doesn't support viewports larger than the target size, so we need to resize the target to the viewport size for those.

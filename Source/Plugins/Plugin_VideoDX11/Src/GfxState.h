@@ -51,7 +51,6 @@ public:
 
 
 	D3D11_RASTERIZER_DESC rastdesc;
-	D3D11_DEPTH_STENCIL_DESC depthdesc;
 
 	float psconstants[C_PENVCONST_END*4];
 	float vsconstants[C_VENVCONST_END*4];

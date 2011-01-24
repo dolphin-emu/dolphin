@@ -26,7 +26,7 @@ public:
 
 	// No need to implement these in OGL
 	void ApplyState() {}
-	void UnsetTextures() {}
+	void RestoreState() {}
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugInfo();

@@ -234,7 +234,7 @@ void VertexManager::vFlush()
 	g_renderer->ApplyState();
 	LoadBuffers();
 	Draw(stride);
-	g_renderer->UnsetTextures();
+	g_renderer->RestoreState();
 	D3D::gfxstate->Reset();
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);

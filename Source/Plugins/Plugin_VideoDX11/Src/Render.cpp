@@ -68,6 +68,7 @@ ID3D11RasterizerState* resetraststate = NULL;
 struct
 {
 	D3D11_SAMPLER_DESC sampdc[8];
+	D3D11_DEPTH_STENCIL_DESC depthdc;
 } gx_state;
 
 bool reset_called = false;
@@ -345,6 +346,14 @@ Renderer::Renderer()
 	SetupDeviceObjects();
 
 	// Setup GX pipeline state
+	memset(&gx_state.depthdc, 0, sizeof(gx_state.depthdc));
+	gx_state.depthdc.DepthEnable        = TRUE;
+	gx_state.depthdc.DepthWriteMask     = D3D11_DEPTH_WRITE_MASK_ALL;
+	gx_state.depthdc.DepthFunc          = D3D11_COMPARISON_LESS;
+	gx_state.depthdc.StencilEnable      = FALSE;
+	gx_state.depthdc.StencilReadMask    = D3D11_DEFAULT_STENCIL_READ_MASK;
+	gx_state.depthdc.StencilWriteMask   = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+
 	for (unsigned int k = 0;k < 8;k++)
 	{
 		float border[4] = {0.f, 0.f, 0.f, 0.f};
@@ -1090,6 +1099,15 @@ void Renderer::RestoreAPIState()
 
 void Renderer::ApplyState()
 {
+	HRESULT hr;
+
+	ID3D11DepthStencilState* depth_state;
+	hr = D3D::device->CreateDepthStencilState(&gx_state.depthdc, &depth_state);
+	if (SUCCEEDED(hr)) D3D::SetDebugObjectName((ID3D11DeviceChild*)depth_state, "depth-stencil state used to emulate the GX pipeline");
+	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
+	D3D::stateman->PushDepthState(depth_state);
+	SAFE_RELEASE(depth_state);
+
 	ID3D11SamplerState* samplerstate[8];
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
@@ -1097,7 +1115,7 @@ void Renderer::ApplyState()
 		//if (shader_resources[stage])
 		{
 			if(g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
-			HRESULT hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
+			hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
 			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
 			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");
 		}
@@ -1106,12 +1124,16 @@ void Renderer::ApplyState()
 	D3D::context->PSSetSamplers(0, 8, samplerstate);
 	for (unsigned int stage = 0; stage < 8; stage++)
 		SAFE_RELEASE(samplerstate[stage]);
+
+	D3D::stateman->Apply();
 }
 
-void Renderer::UnsetTextures()
+void Renderer::RestoreState()
 {
 	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);
+
+	D3D::stateman->PopDepthState();
 }
 
 void Renderer::SetGenerationMode()
@@ -1124,15 +1146,15 @@ void Renderer::SetDepthMode()
 {
 	if (bpmem.zmode.testenable)
 	{
-		D3D::gfxstate->depthdesc.DepthEnable = TRUE;
-		D3D::gfxstate->depthdesc.DepthWriteMask = bpmem.zmode.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-		D3D::gfxstate->depthdesc.DepthFunc = d3dCmpFuncs[bpmem.zmode.func];
+		gx_state.depthdc.DepthEnable = TRUE;
+		gx_state.depthdc.DepthWriteMask = bpmem.zmode.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+		gx_state.depthdc.DepthFunc = d3dCmpFuncs[bpmem.zmode.func];
 	}
 	else
 	{
 		// if the test is disabled write is disabled too
-		D3D::gfxstate->depthdesc.DepthEnable = FALSE;
-		D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		gx_state.depthdc.DepthEnable = FALSE;
+		gx_state.depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	}
 }
 

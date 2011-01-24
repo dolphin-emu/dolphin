@@ -24,8 +24,9 @@ public:
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
 
+	// TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
 	void ApplyState();
-	void UnsetTextures();
+	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 
