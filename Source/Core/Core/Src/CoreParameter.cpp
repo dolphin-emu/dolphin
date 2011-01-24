@@ -189,7 +189,8 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			}
 			else if (!strcasecmp(Extension.c_str(), ".dol"))
 			{
-				bWii = CDolLoader::IsDolWii(m_strFilename.c_str());
+				CDolLoader dolfile(m_strFilename.c_str());
+				bWii = dolfile.IsWii();
 				Region = USA_DIR; 
 				m_BootType = BOOT_DOL;
 				bNTSC = true;

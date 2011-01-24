@@ -243,6 +243,7 @@ typedef unsigned int ppc_word;
 		case 1008: return "HID0";
 		case 1009: return "HID1";
 		case 1010: return "IABR";
+		case 1011: return "HID4";
 		case 1013: return "DABR";
 		case 1017: return "L2CR";
 		case 1019: return "ICTC";

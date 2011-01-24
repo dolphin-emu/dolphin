@@ -231,8 +231,9 @@ bool CBoot::BootUp()
 	// DOL
 	case SCoreStartupParameter::BOOT_DOL:
 	{
+		CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
 		// Check if we have gotten a Wii file or not
-		bool dolWii = CDolLoader::IsDolWii(_StartupPara.m_strFilename.c_str());
+		bool dolWii = dolLoader.IsWii();
 		if (dolWii != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting DOL in wrong console mode!");
@@ -261,7 +262,7 @@ bool CBoot::BootUp()
 
 		if (!BS2Success)
 		{
-			CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
+			dolLoader.Load();
 			PC = dolLoader.GetEntryPoint();
 		}
 
