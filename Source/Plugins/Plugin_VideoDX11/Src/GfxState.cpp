@@ -40,9 +40,6 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
-	// this probably must be changed once multisampling support gets added
-	rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0, false, true, false, false);
-
 	pscbuf = NULL;
 	vscbuf = NULL;
 	vshaderchanged = false;
@@ -162,14 +159,6 @@ void EmuGfxState::ApplyState()
 	SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
 	SAFE_RELEASE(blstate);
 
-	rastdesc.FillMode = (g_ActiveConfig.bWireFrame) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-	ID3D11RasterizerState* raststate;
-	hr = device->CreateRasterizerState(&rastdesc, &raststate);
-	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-	SetDebugObjectName((ID3D11DeviceChild*)raststate, "a rasterizer state of EmuGfxState");
-	stateman->PushRasterizerState(raststate);
-	SAFE_RELEASE(raststate);
-
 	context->PSSetShader(pixelshader, NULL, 0);
 	context->VSSetShader(vertexshader, NULL, 0);
 
@@ -181,7 +170,6 @@ void EmuGfxState::Reset()
 	if (apply_called)
 	{
 		stateman->PopBlendState();
-		stateman->PopRasterizerState();
 		apply_called = false;
 	}
 }

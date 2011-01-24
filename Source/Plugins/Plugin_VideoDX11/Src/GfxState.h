@@ -50,8 +50,6 @@ public:
 	void SetDstAlpha(bool enable);
 
 
-	D3D11_RASTERIZER_DESC rastdesc;
-
 	float psconstants[C_PENVCONST_END*4];
 	float vsconstants[C_VENVCONST_END*4];
 	bool vscbufchanged;

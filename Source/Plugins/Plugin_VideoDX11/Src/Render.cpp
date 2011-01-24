@@ -69,6 +69,7 @@ struct
 {
 	D3D11_SAMPLER_DESC sampdc[8];
 	D3D11_DEPTH_STENCIL_DESC depthdc;
+	D3D11_RASTERIZER_DESC rastdc;
 } gx_state;
 
 bool reset_called = false;
@@ -354,6 +355,9 @@ Renderer::Renderer()
 	gx_state.depthdc.StencilReadMask    = D3D11_DEFAULT_STENCIL_READ_MASK;
 	gx_state.depthdc.StencilWriteMask   = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
+	// TODO: Do we need to enable multisampling here?
+	gx_state.rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0, false, true, false, false);
+
 	for (unsigned int k = 0;k < 8;k++)
 	{
 		float border[4] = {0.f, 0.f, 0.f, 0.f};
@@ -375,7 +379,6 @@ Renderer::Renderer()
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
-	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
 
 	reset_called = false;
 }
@@ -1108,6 +1111,14 @@ void Renderer::ApplyState()
 	D3D::stateman->PushDepthState(depth_state);
 	SAFE_RELEASE(depth_state);
 
+	gx_state.rastdc.FillMode = (g_ActiveConfig.bWireFrame) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+	ID3D11RasterizerState* raststate;
+	hr = D3D::device->CreateRasterizerState(&gx_state.rastdc, &raststate);
+	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state used to emulate the GX pipeline");
+	D3D::stateman->PushRasterizerState(raststate);
+	SAFE_RELEASE(raststate);
+
 	ID3D11SamplerState* samplerstate[8];
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
@@ -1134,12 +1145,13 @@ void Renderer::RestoreState()
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);
 
 	D3D::stateman->PopDepthState();
+	D3D::stateman->PopRasterizerState();
 }
 
 void Renderer::SetGenerationMode()
 {
-	// rastdesc.FrontCounterClockwise must be false for this to work
-	D3D::gfxstate->rastdesc.CullMode = d3dCullModes[bpmem.genMode.cullmode];
+	// rastdc.FrontCounterClockwise must be false for this to work
+	gx_state.rastdc.CullMode = d3dCullModes[bpmem.genMode.cullmode];
 }
 
 void Renderer::SetDepthMode()
