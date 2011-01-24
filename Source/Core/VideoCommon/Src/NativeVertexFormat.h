@@ -94,7 +94,7 @@ public:
 	virtual ~NativeVertexFormat() {}
 
 	virtual void Initialize(const PortableVertexDeclaration &vtx_decl) = 0;
-	virtual void SetupVertexPointers() const = 0;
+	virtual void SetupVertexPointers() = 0;
 	virtual void EnableComponents(u32 components) {}
 
 	int GetVertexStride() const { return vertex_stride; }

@@ -36,7 +36,7 @@ public:
 	D3DVertexFormat() : d3d_decl(NULL) {}
 	~D3DVertexFormat();
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
-	virtual void SetupVertexPointers() const;
+	virtual void SetupVertexPointers();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	D3DVERTEXELEMENT9 elements[32];
@@ -185,7 +185,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 #endif
 }
 
-void D3DVertexFormat::SetupVertexPointers() const
+void D3DVertexFormat::SetupVertexPointers()
 {
 	if (d3d_decl)
 		D3D::SetVertexDeclaration(d3d_decl);

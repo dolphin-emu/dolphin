@@ -225,7 +225,6 @@ bool VertexShaderCache::SetShader(u32 components)
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
-		if (entry.shader) D3D::gfxstate->SetVShader(entry.shader, iter->second.bytecode);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 		return (entry.shader != NULL);
 	}
@@ -245,7 +244,6 @@ bool VertexShaderCache::SetShader(u32 components)
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, pbytecode);
-	D3D::gfxstate->SetVShader(last_entry->shader, last_entry->bytecode);
 	pbytecode->Release();
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return result;

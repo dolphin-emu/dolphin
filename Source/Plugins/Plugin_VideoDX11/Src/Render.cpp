@@ -1190,7 +1190,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	hr = D3D::device->CreateBlendState(&gx_state.blenddc, &blstate);
 	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 	D3D::stateman->PushBlendState(blstate);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)blstate, "blend state used to emulate the GX pipeline");
 	SAFE_RELEASE(blstate);
 
 	ID3D11DepthStencilState* depth_state;
@@ -1233,6 +1233,9 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetBlendMode(false);
 		SetLogicOpMode();
 	}
+
+	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), NULL, 0);
+	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
 }
 
 void Renderer::RestoreState()

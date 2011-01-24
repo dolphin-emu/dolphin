@@ -64,7 +64,7 @@ public:
 	~GLVertexFormat();
 
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
-	virtual void SetupVertexPointers() const;
+	virtual void SetupVertexPointers();
 	virtual void EnableComponents(u32 components);
 };
 
@@ -180,7 +180,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	this->vtx_decl = _vtx_decl;
 }
 
-void GLVertexFormat::SetupVertexPointers() const {
+void GLVertexFormat::SetupVertexPointers() {
 	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
 	// get around type checking errors, and call it.
 #ifdef USE_JIT

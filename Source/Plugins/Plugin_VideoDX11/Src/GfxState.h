@@ -33,10 +33,6 @@ public:
 	EmuGfxState();
 	~EmuGfxState();
 
-	void SetVShader(ID3D11VertexShader* shader, D3DBlob* bcode);
-	void SetPShader(ID3D11PixelShader* shader);
-	void SetInputElements(const D3D11_INPUT_ELEMENT_DESC* elems, UINT num);
-
 	void ApplyState();            // apply current state
 	void Reset();
 
@@ -47,18 +43,8 @@ public:
 	bool pscbufchanged;
 
 private:
-	ID3D11VertexShader* vertexshader;
-	D3DBlob* vsbytecode;
-	ID3D11PixelShader* pixelshader;
-	D3DBlob* psbytecode;
-	bool vshaderchanged;
-
 	ID3D11Buffer* vscbuf;
 	ID3D11Buffer* pscbuf;
-
-	ID3D11InputLayout* inp_layout;
-	D3D11_INPUT_ELEMENT_DESC inp_elems[32];
-	int num_inp_elems;
 
 	bool apply_called;
 };

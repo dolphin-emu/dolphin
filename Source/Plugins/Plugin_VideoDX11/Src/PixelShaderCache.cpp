@@ -348,7 +348,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 		
-		D3D::gfxstate->SetPShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
 		return (entry.shader != NULL);
 	}
@@ -369,7 +368,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	g_ps_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
-	D3D::gfxstate->SetPShader(last_entry->shader);
 	pbytecode->Release();
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 	return result;

@@ -17,6 +17,7 @@
 
 #include "VideoConfig.h"
 #include "GfxState.h"
+#include "VertexShaderCache.h"
 
 namespace D3D
 {
@@ -24,13 +25,10 @@ namespace D3D
 EmuGfxState* gfxstate;
 StateManager* stateman;
 
-EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(NULL), psbytecode(NULL), apply_called(false)
+EmuGfxState::EmuGfxState() : apply_called(false)
 {
 	pscbuf = NULL;
 	vscbuf = NULL;
-	vshaderchanged = false;
-	inp_layout = NULL;
-	num_inp_elems = 0;
 
 	pscbufchanged = false;
 	vscbufchanged = false;
@@ -38,65 +36,13 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 
 EmuGfxState::~EmuGfxState()
 {
-	SAFE_RELEASE(vsbytecode);
-	SAFE_RELEASE(psbytecode);
-	SAFE_RELEASE(vertexshader);
-	SAFE_RELEASE(pixelshader);
-
 	SAFE_RELEASE(pscbuf);
 	SAFE_RELEASE(vscbuf);
-
-	SAFE_RELEASE(inp_layout);
-}
-
-// TODO: No need to store the whole bytecode, signature might be enough (?)
-void EmuGfxState::SetVShader(ID3D11VertexShader* shader, D3DBlob* bcode)
-{
-	// TODO: vshaderchanged actually just needs to be true if the signature changed
-	if (bcode && vsbytecode != bcode) vshaderchanged = true;
-	SAFE_RELEASE(vsbytecode);
-	SAFE_RELEASE(vertexshader);
-
-	if (shader && bcode)
-	{
-		vertexshader = shader;
-		shader->AddRef();
-		vsbytecode = bcode;
-		bcode->AddRef();
-	}
-	else if (shader || bcode)
-	{
-		PanicAlert("Invalid parameters!\n");
-	}
-}
-
-void EmuGfxState::SetPShader(ID3D11PixelShader* shader)
-{
-	if (pixelshader) pixelshader->Release();
-	pixelshader = shader;
-	if (shader) shader->AddRef();
-}
-
-void EmuGfxState::SetInputElements(const D3D11_INPUT_ELEMENT_DESC* elems, UINT num)
-{
-	num_inp_elems = num;
-	memcpy(inp_elems, elems, num*sizeof(D3D11_INPUT_ELEMENT_DESC));
 }
 
 void EmuGfxState::ApplyState()
 {
 	HRESULT hr;
-
-	// input layout (only needs to be updated if the vertex shader signature changed)
-	if (vshaderchanged)
-	{
-		SAFE_RELEASE(inp_layout);
-		hr = D3D::device->CreateInputLayout(inp_elems, num_inp_elems, vsbytecode->Data(), vsbytecode->Size(), &inp_layout);
-		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-		SetDebugObjectName((ID3D11DeviceChild*)inp_layout, "an input layout of EmuGfxState");
-		vshaderchanged = false;
-	}
-	D3D::context->IASetInputLayout(inp_layout);
 
 	// vertex shader
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers
@@ -137,9 +83,6 @@ void EmuGfxState::ApplyState()
 		pscbufchanged = false;
 	}
 	D3D::context->PSSetConstantBuffers(0, 1, &pscbuf);
-
-	context->PSSetShader(pixelshader, NULL, 0);
-	context->VSSetShader(vertexshader, NULL, 0);
 
 	apply_called = true;
 }

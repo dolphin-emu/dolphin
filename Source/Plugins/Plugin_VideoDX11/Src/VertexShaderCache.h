@@ -28,7 +28,10 @@ public:
 	static void Init();
 	static void Clear();
 	static void Shutdown();
-	static bool SetShader(u32 components);
+	static bool SetShader(u32 components); // TODO: Should be renamed to LoadShader
+
+	static ID3D11VertexShader* GetActiveShader() { return last_entry->shader; }
+	static D3DBlob* GetActiveShaderBytecode() { return last_entry->bytecode; }
 
 	static ID3D11VertexShader* GetSimpleVertexShader();
 	static ID3D11VertexShader* GetClearVertexShader();
