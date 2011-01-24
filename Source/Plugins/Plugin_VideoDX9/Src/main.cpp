@@ -147,7 +147,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
-	swprintf_s(temp, sizeof temp, _T("%s | DX9 | %s"), svn_rev_str, text);
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX9 | %hs"), svn_rev_str, text);
 	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
