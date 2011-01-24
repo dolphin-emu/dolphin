@@ -1607,6 +1607,10 @@ void Renderer::SetWindowSize(int width, int height)
 	// Scale the window size by the EFB scale.
 	CalculateTargetScale(width, height, width, height);
 
+#if defined HAVE_X11 && HAVE_X11
+	if (s_backbuffer_width != width || s_backbuffer_height != height)
+		XMoveResizeWindow(GLWin.evdpy, GLWin.win, GLWin.x, GLWin.y, width, height);
+#endif
 	g_VideoInitialize.pRequestWindowSize(width, height);
 }
 
