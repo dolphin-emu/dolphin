@@ -3,11 +3,9 @@
 
 #include "Common.h"
 #include "CommonTypes.h"
-//#define WIN32_LEAN_AND_MEAN
 #include "Thread.h"
 #include "Timer.h"
 
-#define _WINSOCK2API_
 #include <SFML/Network.hpp>
 
 #include "GCPadStatus.h"

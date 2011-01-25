@@ -139,7 +139,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RECORDEXPORT, _("Export Recording..."));
 	emulationMenu->AppendSeparator();
 	
-	emulationMenu->Append(IDM_FRAMESTEP, _("&Frame Stepping"), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_FRAMESTEP, _("&Frame Advance"), wxEmptyString, wxITEM_CHECK);
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));

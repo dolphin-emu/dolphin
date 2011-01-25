@@ -26,6 +26,7 @@
 #define USE_BEGINTHREADEX
 #endif
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #ifdef USE_BEGINTHREADEX

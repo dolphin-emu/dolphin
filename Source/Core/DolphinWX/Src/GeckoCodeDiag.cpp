@@ -1,9 +1,6 @@
 
 #include "GeckoCodeDiag.h"
 
-#ifdef _WIN32
-#define _WINSOCK2API_
-#endif
 #include <SFML/Network/Http.hpp>
 
 #include <sstream>
