@@ -597,7 +597,10 @@ void CFrame::OnResize(wxSizeEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()) &&
+		!(Core::GetState() != Core::CORE_UNINITIALIZED &&
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize))
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
@@ -671,29 +674,25 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	wxMutexGuiEnter();
-	m_RenderParent->GetSize(&width, &height);
+	m_RenderParent->GetClientSize(&width, &height);
 	m_RenderParent->GetPosition(&x, &y);
 	wxMutexGuiLeave();
 }
 
-void CFrame::OnRenderWindowSizeRequest(int& width, int& height)
+void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
-	wxMutexGuiEnter();
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
+			IsFullScreen() || m_RenderFrame->IsMaximized())
+		return;
 
-	if (IsFullScreen())
+	int old_width, old_height;
+	m_RenderFrame->GetClientSize(&old_width, &old_height);
+	if (old_width != width || old_height != height)
 	{
-		m_RenderParent->GetSize(&width, &height);
+		wxMutexGuiEnter();
+		m_RenderFrame->SetClientSize(width, height);
+		wxMutexGuiLeave();
 	}
-	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-	{
-		m_RenderParent->SetClientSize(width, height);
-	}
-	else
-	{
-		m_RenderParent->GetParent()->SetClientSize(width, height);
-	}
-
-	wxMutexGuiLeave();
 }
 
 bool CFrame::RendererHasFocus()

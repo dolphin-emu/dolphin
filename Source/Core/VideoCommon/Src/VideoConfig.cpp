@@ -61,7 +61,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
 	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
-	iniFile.Get("Settings", "AdjustWindowSize", &bAdjustWindowSize, false);	
 	
 	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
 	//Safe texture cache params
@@ -180,7 +179,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
 	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
-	iniFile.Set("Settings", "AdjustWindowSize", bAdjustWindowSize);	
 
 	iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
 	//safe texture cache params

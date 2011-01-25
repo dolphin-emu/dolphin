@@ -1061,8 +1061,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Enable any configuration changes
 	UpdateActiveConfig();
 
-	if (g_ActiveConfig.bAdjustWindowSize)
-		SetWindowSize(fbWidth, fbHeight);
+	SetWindowSize(fbWidth, fbHeight);
 
 	const bool windowResized = CheckForResize();
 

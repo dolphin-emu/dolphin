@@ -47,7 +47,7 @@ void Host_UpdateBreakPointView();
 void Host_ShowJitResults(unsigned int address);
 void Host_SetDebugMode(bool enable);
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
-void Host_RequestRenderWindowSize(int& width, int& height);
+void Host_RequestRenderWindowSize(int width, int height);
 bool Host_RendererHasFocus();
 
 void Host_SetWaitCursor(bool enable);

@@ -48,7 +48,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 
 	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	m_volumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(_("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
+	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
 
 	// Update values
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);

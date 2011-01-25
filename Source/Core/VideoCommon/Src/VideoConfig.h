@@ -77,7 +77,6 @@ struct VideoConfig
 	bool bUseXFB;
 	bool bUseRealXFB;
 	bool bUseNativeMips;
-	bool bAdjustWindowSize;
 
 	// OpenCL
 	bool bEnableOpenCL;

@@ -1236,8 +1236,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Finish up the current frame, print some stats
 
-	if (g_ActiveConfig.bAdjustWindowSize)
-		SetWindowSize(fbWidth, fbHeight);
+	SetWindowSize(fbWidth, fbHeight);
 
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
 	
@@ -1607,10 +1606,6 @@ void Renderer::SetWindowSize(int width, int height)
 	// Scale the window size by the EFB scale.
 	CalculateTargetScale(width, height, width, height);
 
-#if defined HAVE_X11 && HAVE_X11
-	if (s_backbuffer_width != width || s_backbuffer_height != height)
-		XMoveResizeWindow(GLWin.evdpy, GLWin.win, GLWin.x, GLWin.y, width, height);
-#endif
 	g_VideoInitialize.pRequestWindowSize(width, height);
 }
 

@@ -103,7 +103,6 @@ wxString crop_tooltip = wxT("");
 wxString opencl_tooltip = wxT("");
 wxString dlc_tooltip = wxT("");
 wxString hotkeys_tooltip = wxT("");
-wxString adjust_window_size_tooltip = wxTRANSLATE("Adjusts the window to match the game's output resolution scaled by the EFB scale.\nIt is best to set the aspect ratio to stretch when using this.");
 wxString ppshader_tooltip = wxT("");
 wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safier the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
@@ -429,8 +428,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, vconfig.bEnableOpenCL));
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, vconfig.bDlistCachingEnable));
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, vconfig.bOSDHotKey));
-	szr_misc->Add(new SettingCheckBox(page_advanced, _("Adjust window size"), wxGetTranslation(adjust_window_size_tooltip), vconfig.bAdjustWindowSize));
-	szr_misc->AddSpacer(0);
 
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())

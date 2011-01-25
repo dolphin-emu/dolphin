@@ -56,6 +56,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bAutoHideCursor(false), bUsePanicHandlers(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
+  bRenderWindowAutoSize(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false),
   iTheme(0),

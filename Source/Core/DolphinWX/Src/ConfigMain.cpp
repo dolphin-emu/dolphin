@@ -38,6 +38,8 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
+
 extern CFrame* main_frame;
 
 // keep these in sync with CConfigMain::InitializeGUILists
@@ -108,6 +110,7 @@ EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_DISPLAY_FULLSCREENRES, CConfigMain::DisplaySettingsChanged)
 EVT_TEXT(ID_DISPLAY_WINDOWWIDTH, CConfigMain::DisplaySettingsChanged)
 EVT_TEXT(ID_DISPLAY_WINDOWHEIGHT, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_AUTOSIZE, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_FULLSCREEN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::DisplaySettingsChanged)
@@ -329,6 +332,7 @@ void CConfigMain::InitializeGUIValues()
 	FullscreenResolution->SetStringSelection(wxString::FromAscii(startup_params.strFullscreenResolution.c_str()));
 	WindowWidth->SetValue(startup_params.iRenderWindowWidth);
 	WindowHeight->SetValue(startup_params.iRenderWindowHeight);
+	WindowAutoSize->SetValue(startup_params.bRenderWindowAutoSize);
 	Fullscreen->SetValue(startup_params.bFullscreen);
 	HideCursor->SetValue(startup_params.bHideCursor);
 	RenderToMain->SetValue(startup_params.bRenderToMain);
@@ -399,6 +403,7 @@ void CConfigMain::InitializeGUITooltips()
 	FullscreenResolution->SetToolTip(_("Select resolution for fullscreen mode"));
 	WindowWidth->SetToolTip(_("Window width for windowed mode"));
 	WindowHeight->SetToolTip(_("Window height for windowed mode"));
+	WindowAutoSize->SetToolTip(_("Auto size the window to match the game's output resolution adjusted by the EFB scale.\nIt is best to set the aspect ratio to stretch when using this."));
 	Fullscreen->SetToolTip(_("Start the rendering window in fullscreen mode."));
 	HideCursor->SetToolTip(_("Hide the cursor when it is over the rendering window\n and the rendering window has focus."));
 	RenderToMain->SetToolTip(_("Render to main window."));
@@ -453,7 +458,6 @@ void CConfigMain::CreateGUIControls()
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, _("Enable Idle Skipping (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, _("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	// Framelimit
-	wxStaticText* FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, _("Framelimit :"), wxDefaultPosition, wxDefaultSize);
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
 	UseFPSForLimiting = new wxCheckBox(GeneralPage, ID_FRAMELIMIT_USEFPSFORLIMITING, _("Use FPS  For Limiting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -469,7 +473,7 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
-	sFramelimit->Add(FramelimitText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sFramelimit->Add(TEXT_BOX(GeneralPage, _("Framelimit :")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sFramelimit->Add(Framelimit, 0, wxALL | wxEXPAND, 5);
 	sFramelimit->Add(UseFPSForLimiting, 0, wxALL | wxEXPAND, 5);
 	sbBasic->Add(sFramelimit, 0, wxALL | wxEXPAND, 5);
@@ -490,14 +494,12 @@ void CConfigMain::CreateGUIControls()
 	// Display page
 	// General display settings
 	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Emulator Display Settings"));
-	wxStaticText* FullscreenResolutionText = new wxStaticText(DisplayPage, wxID_ANY, _("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	FullscreenResolution = new wxChoice(DisplayPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
-	wxStaticText *WindowSizeText = new wxStaticText(DisplayPage, wxID_ANY, _("Window Size:"), wxDefaultPosition, wxDefaultSize, 0);
 	WindowWidth = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxSize(70, -1));
 	WindowWidth->SetRange(0,3280);
-	wxStaticText *WindowXText = new wxStaticText(DisplayPage, wxID_ANY, wxT("x"), wxDefaultPosition, wxDefaultSize, 0);
 	WindowHeight = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxSize(70, -1));
 	WindowHeight->SetRange(0,2048);
+	WindowAutoSize = new wxCheckBox(DisplayPage, ID_DISPLAY_AUTOSIZE, _("Auto"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	Fullscreen = new wxCheckBox(DisplayPage, ID_DISPLAY_FULLSCREEN, _("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	HideCursor = new wxCheckBox(DisplayPage, ID_DISPLAY_HIDECURSOR, _("Hide Mouse Cursor"));
 	RenderToMain = new wxCheckBox(DisplayPage, ID_DISPLAY_RENDERTOMAIN, _("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -515,8 +517,6 @@ void CConfigMain::CreateGUIControls()
 	// Interface Language
 	// At the moment this only changes the language displayed in m_gamelistctrl
 	// If someone wants to control the whole GUI's language, it should be set here too
-	wxStaticText* InterfaceLangText = new wxStaticText(DisplayPage, ID_INTERFACE_LANG_TEXT,
-			_("Language:"), wxDefaultPosition, wxDefaultSize);
 	InterfaceLang = new wxChoice(DisplayPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
 
 	// Hotkey configuration
@@ -524,14 +524,16 @@ void CConfigMain::CreateGUIControls()
 
 	// Populate the settings
 	wxBoxSizer* sDisplayRes = new wxBoxSizer(wxHORIZONTAL);
-	sDisplayRes->Add(FullscreenResolutionText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplayRes->Add(TEXT_BOX(DisplayPage, _("Fullscreen Display Resolution:")),
+		   	0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sDisplayRes->Add(FullscreenResolution, 0, wxEXPAND | wxALL, 5);
 	sbDisplay->Add(sDisplayRes, 0, wxALL, 5);
 	wxBoxSizer* sDisplaySize = new wxBoxSizer(wxHORIZONTAL);
-	sDisplaySize->Add(WindowSizeText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplaySize->Add(TEXT_BOX(DisplayPage, _("Window Size:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sDisplaySize->Add(WindowWidth, 0, wxEXPAND | wxALL, 5);
-	sDisplaySize->Add(WindowXText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplaySize->Add(TEXT_BOX(DisplayPage, wxT("x")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sDisplaySize->Add(WindowHeight, 0, wxEXPAND | wxALL, 5);
+	sDisplaySize->Add(WindowAutoSize, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sbDisplay->Add(sDisplaySize, 0, wxALL, 5);
 	sbDisplay->Add(Fullscreen, 0, wxEXPAND | wxALL, 5);
 	sbDisplay->Add(HideCursor, 0, wxALL, 5);
@@ -543,7 +545,7 @@ void CConfigMain::CreateGUIControls()
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
 	wxBoxSizer* sInterface = new wxBoxSizer(wxHORIZONTAL);
-	sInterface->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sInterface->Add(TEXT_BOX(DisplayPage, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
@@ -560,15 +562,14 @@ void CConfigMain::CreateGUIControls()
 	// Gamecube page
 	// IPL settings
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("IPL Settings"));
-	wxStaticText* GCSystemLangText = new wxStaticText(GamecubePage, ID_GC_SRAM_LNG_TEXT, _("System Language:"), wxDefaultPosition, wxDefaultSize);
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang, 0, wxDefaultValidator);
 	// Device settings
 	// EXI Devices
 	wxStaticBoxSizer *sbGamecubeDeviceSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("Device Settings"));
 	wxStaticText* GCEXIDeviceText[3];
-	GCEXIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTA_TEXT, wxT("Slot A"), wxDefaultPosition, wxDefaultSize);
-	GCEXIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTB_TEXT, wxT("Slot B"), wxDefaultPosition, wxDefaultSize);
-	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
+	GCEXIDeviceText[0] = TEXT_BOX(GamecubePage, _("Slot A"));
+	GCEXIDeviceText[1] = TEXT_BOX(GamecubePage, _("Slot B"));
+	GCEXIDeviceText[2] = TEXT_BOX(GamecubePage, wxT("SP1   "));
 	const wxString SlotDevices[] = {_(DEV_NONE_STR), _(DEV_DUMMY_STR), _(EXIDEV_MEMCARD_STR), _(EXIDEV_GECKO_STR)
 	#if HAVE_PORTAUDIO
 		, _(EXIDEV_MIC_STR)
@@ -617,10 +618,10 @@ void CConfigMain::CreateGUIControls()
 	}
 	//SI Devices
 	wxStaticText* GCSIDeviceText[4];
-	GCSIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 1"), wxDefaultPosition, wxDefaultSize);
-	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
-	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
-	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
+	GCSIDeviceText[0] = TEXT_BOX(GamecubePage, _("Port 1"));
+	GCSIDeviceText[1] = TEXT_BOX(GamecubePage, _("Port 2"));
+	GCSIDeviceText[2] = TEXT_BOX(GamecubePage, _("Port 3"));
+	GCSIDeviceText[3] = TEXT_BOX(GamecubePage, _("Port 4"));
 	// SIDEV_AM_BB_STR must be last!
 	const wxString SIDevices[] = {_(DEV_NONE_STR),_(SIDEV_STDCONT_STR),_(SIDEV_GBA_STR),_(SIDEV_AM_BB_STR)};
 	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
@@ -650,7 +651,8 @@ void CConfigMain::CreateGUIControls()
 
 	// Populate the settings
 	sGamecubeIPLSettings = new wxGridBagSizer();
-	sGamecubeIPLSettings->Add(GCSystemLangText, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
+			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
 	wxBoxSizer *sEXIDevices[4], *sSIDevices[4];
@@ -682,9 +684,7 @@ void CConfigMain::CreateGUIControls()
 	// Wii page
 	// Wiimote Settings
 	sbWiimoteSettings = new wxStaticBoxSizer(wxHORIZONTAL, WiiPage, _("Wiimote Settings"));
-	wxStaticText* WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, _("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
-	wxStaticText* WiiSensBarSensText = new wxStaticText(WiiPage, ID_WII_BT_SENS_TEXT, _("IR Sensitivity:"), wxDefaultPosition, wxDefaultSize);
 	WiiSensBarSens = new wxSlider(WiiPage, ID_WII_BT_SENS, 0, 0, 4);
 	WiimoteMotor = new wxCheckBox(WiiPage, ID_WII_BT_MOT, _("Wiimote Motor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -692,9 +692,7 @@ void CConfigMain::CreateGUIControls()
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, _("Misc Settings"));
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, _("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiiEuRGB60 = new wxCheckBox(WiiPage, ID_WII_IPL_E60, _("Use EuRGB60 Mode (PAL60)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText* WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, _("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
-	wxStaticText* WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, _("System Language:"), wxDefaultPosition, wxDefaultSize);
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 
 	// Device Settings
@@ -704,9 +702,11 @@ void CConfigMain::CreateGUIControls()
 
 	// Populate the settings
 	sWiimoteSettings = new wxGridBagSizer();
-	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiimoteSettings->Add(TEXT_BOX(WiiPage, _("Sensor Bar Position:")),
+			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sWiimoteSettings->Add(WiiSensBarSensText, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiimoteSettings->Add(TEXT_BOX(WiiPage, _("IR Sensitivity:")),
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarSens, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
 	sWiimoteSettings->Add(WiimoteMotor, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings->Add(sWiimoteSettings);
@@ -714,9 +714,11 @@ void CConfigMain::CreateGUIControls()
 	sWiiIPLSettings = new wxGridBagSizer();
 	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sWiiIPLSettings->Add(WiiEuRGB60, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiiIPLSettings->Add(WiiAspectRatioText, wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("Aspect Ratio:")),
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
-	sWiiIPLSettings->Add(WiiSystemLangText, wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("System Language:")),
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
 
@@ -740,13 +742,10 @@ void CConfigMain::CreateGUIControls()
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath->Enable(false);
 
-	wxStaticText* DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, _("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii images (gcm, iso, ciso, gcz)") + wxString::Format(wxT("|*.gcm;*.iso;*.ciso;*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
-	wxStaticText* DVDRootText = new wxStaticText(PathsPage, ID_DVDROOT_TEXT, _("DVD Root:"), wxDefaultPosition, wxDefaultSize);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
-	wxStaticText* ApploaderPathText = new wxStaticText(PathsPage, ID_APPLOADERPATH_TEXT, _("Apploader:"), wxDefaultPosition, wxDefaultSize);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format(wxT("|*.img|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
@@ -761,11 +760,14 @@ void CConfigMain::CreateGUIControls()
 	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
 
 	sOtherPaths = new wxGridBagSizer();
-	sOtherPaths->Add(DefaultISOText, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Default ISO:")),
+			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
-	sOtherPaths->Add(DVDRootText, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(TEXT_BOX(PathsPage, _("DVD Root:")),
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
-	sOtherPaths->Add(ApploaderPathText, wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Apploader:")),
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
 	sOtherPaths->AddGrowableCol(1);
 
@@ -894,6 +896,9 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DISPLAY_WINDOWHEIGHT:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = WindowHeight->GetValue();
+		break;
+	case ID_DISPLAY_AUTOSIZE:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize = WindowAutoSize->IsChecked();
 		break;
 	case ID_DISPLAY_FULLSCREEN:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen = Fullscreen->IsChecked();

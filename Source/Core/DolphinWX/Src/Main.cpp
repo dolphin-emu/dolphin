@@ -579,7 +579,7 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	main_frame->GetRenderWindowSize(x, y, width, height);
 }
 
-void Host_RequestRenderWindowSize(int& width, int& height)
+void Host_RequestRenderWindowSize(int width, int height)
 {
 	main_frame->OnRenderWindowSizeRequest(width, height);
 }
@@ -600,8 +600,6 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message
-	// TODO : this has been said to cause hang (??) how is that even possible ? :d
-	event.StopPropagation();
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
