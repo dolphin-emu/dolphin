@@ -17,37 +17,14 @@
 
 #pragma once
 
-#include "D3DBase.h"
-#include "VertexShaderGen.h"
-#include "PixelShaderGen.h"
 #include <stack>
-using std::stack;
+
+struct ID3D11BlendState;
+struct ID3D11DepthStencilState;
+struct ID3D11RasterizerState;
 
 namespace D3D
 {
-
-// stores the pipeline state to use when calling VertexManager::Flush()
-class EmuGfxState
-{
-public:
-	EmuGfxState();
-	~EmuGfxState();
-
-	void ApplyState();            // apply current state
-	void Reset();
-
-
-	float psconstants[C_PENVCONST_END*4];
-	float vsconstants[C_VENVCONST_END*4];
-	bool vscbufchanged;
-	bool pscbufchanged;
-
-private:
-	ID3D11Buffer* vscbuf;
-	ID3D11Buffer* pscbuf;
-
-	bool apply_called;
-};
 
 template<typename T> class AutoState
 {
@@ -85,15 +62,14 @@ public:
 	void Apply();
 
 private:
-	stack<AutoBlendState> blendstates;
-	stack<AutoDepthStencilState> depthstates;
-	stack<AutoRasterizerState> raststates;
+	std::stack<AutoBlendState> blendstates;
+	std::stack<AutoDepthStencilState> depthstates;
+	std::stack<AutoRasterizerState> raststates;
 	ID3D11BlendState* cur_blendstate;
 	ID3D11DepthStencilState* cur_depthstate;
 	ID3D11RasterizerState* cur_raststate;
 };
 
-extern EmuGfxState* gfxstate;
 extern StateManager* stateman;
 
 }  // namespace

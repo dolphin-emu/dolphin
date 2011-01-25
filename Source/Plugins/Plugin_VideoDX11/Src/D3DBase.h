@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "D3DBlob.h"
 #include "GfxState.h"
+#include <vector>
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
 #define SAFE_DELETE(x) { delete (x); (x) = NULL; }

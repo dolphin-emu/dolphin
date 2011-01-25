@@ -337,7 +337,6 @@ HRESULT Create(HWND wnd)
 	device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
 	bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 
-	gfxstate = new EmuGfxState;
 	stateman = new StateManager;
 	return S_OK;
 }
@@ -348,7 +347,6 @@ void Close()
 	context->ClearState();
 	SAFE_RELEASE(backbuf);
 	SAFE_RELEASE(swapchain);
-	SAFE_DELETE(gfxstate);
 	SAFE_DELETE(stateman);
 	context->Flush();  // immediately destroy device objects
 

@@ -46,6 +46,10 @@ ID3D11PixelShader* s_ColorCopyProgram[2] = {NULL};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ClearProgram = NULL;
 
+float psconstants[C_PENVCONST_END*4];
+bool pscbufchanged = true;
+ID3D11Buffer* pscbuf = NULL;
+
 const char clear_program_code[] = {
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
@@ -157,6 +161,7 @@ ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 	else if (s_ColorCopyProgram[1]) return s_ColorCopyProgram[1];
 	else
 	{
+		// TODO: recreate shader on AA mode change!
 		// create MSAA shader for current AA mode
 		char buf[1024];
 		int l = sprintf_s(buf, 1024, color_copy_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
@@ -173,6 +178,7 @@ ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
 	else if (s_ColorMatrixProgram[1]) return s_ColorMatrixProgram[1];
 	else
 	{
+		// TODO: recreate shader on AA mode change!
 		// create MSAA shader for current AA mode
 		char buf[1024];
 		int l = sprintf_s(buf, 1024, color_matrix_program_code_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
@@ -189,6 +195,7 @@ ID3D11PixelShader* PixelShaderCache::GetDepthMatrixProgram(bool multisampled)
 	else if (s_DepthMatrixProgram[1]) return s_DepthMatrixProgram[1];
 	else
 	{
+		// TODO: recreate shader on AA mode change!
 		// create MSAA shader for current AA mode
 		char buf[1024];
 		int l = sprintf_s(buf, 1024, depth_matrix_program_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode));
@@ -228,23 +235,37 @@ unsigned int ps_constant_offset_table[] = {
 };
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] = f1;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] = f2;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] = f3;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] = f4;
-	D3D::gfxstate->pscbufchanged = true;
+	psconstants[ps_constant_offset_table[const_number]  ] = f1;
+	psconstants[ps_constant_offset_table[const_number]+1] = f2;
+	psconstants[ps_constant_offset_table[const_number]+2] = f3;
+	psconstants[ps_constant_offset_table[const_number]+3] = f4;
+	pscbufchanged = true;
 }
 
 void SetPSConstant4fv(unsigned int const_number, const float* f)
 {
-	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
-	D3D::gfxstate->pscbufchanged = true;
+	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
+	pscbufchanged = true;
 }
 
 void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	D3D::gfxstate->pscbufchanged = true;
+	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+	pscbufchanged = true;
+}
+
+ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
+{
+	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
+	if (pscbufchanged)
+	{
+		D3D11_MAPPED_SUBRESOURCE map;
+		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, psconstants, sizeof(psconstants));
+		D3D::context->Unmap(pscbuf, 0);
+		pscbufchanged = false;
+	}
+	return pscbuf;
 }
 
 // this class will load the precompiled shaders into our cache
@@ -259,6 +280,12 @@ public:
 
 void PixelShaderCache::Init()
 {
+	unsigned int cbsize = ((sizeof(psconstants))&(~0xf))+0x10; // must be a multiple of 16
+	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	D3D::device->CreateBuffer(&cbdesc, NULL, &pscbuf);
+	CHECK(pscbuf!=NULL, "Create pixel shader constant buffer");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, sizeof(clear_program_code));	
 	CHECK(s_ClearProgram!=NULL, "Create clear pixel shader");
@@ -311,6 +338,8 @@ void PixelShaderCache::InvalidateMSAAShaders()
 
 void PixelShaderCache::Shutdown()
 {
+	SAFE_RELEASE(pscbuf);
+
 	SAFE_RELEASE(s_ClearProgram);
 	for (int i = 0; i < 2; ++i)
 	{
@@ -356,7 +385,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	const char* code = GeneratePixelShaderCode(dstAlphaMode, API_D3D11, components);
 
 	D3DBlob* pbytecode;
-	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))
+	if (!D3D::CompilePixelShader(code, (unsigned int)strlen(code), &pbytecode))
 	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);

@@ -22,78 +22,8 @@
 namespace D3D
 {
 
-EmuGfxState* gfxstate;
 StateManager* stateman;
 
-EmuGfxState::EmuGfxState() : apply_called(false)
-{
-	pscbuf = NULL;
-	vscbuf = NULL;
-
-	pscbufchanged = false;
-	vscbufchanged = false;
-}
-
-EmuGfxState::~EmuGfxState()
-{
-	SAFE_RELEASE(pscbuf);
-	SAFE_RELEASE(vscbuf);
-}
-
-void EmuGfxState::ApplyState()
-{
-	HRESULT hr;
-
-	// vertex shader
-	// TODO: divide the global variables of the generated shaders into about 5 constant buffers
-	// TODO: improve interaction between EmuGfxState and global state management, so that we don't need to set the constant buffers every time
-	if (!vscbuf)
-	{
-		unsigned int size = ((sizeof(vsconstants))&(~0xf))+0x10; // must be a multiple of 16
-		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		hr = device->CreateBuffer(&cbdesc, NULL, &vscbuf);
-		CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", size);
-		SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "a vertex shader constant buffer of EmuGfxState");
-	}
-	if (vscbufchanged)
-	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, vsconstants, sizeof(vsconstants));
-		context->Unmap(vscbuf, 0);
-		vscbufchanged = false;
-	}
-	D3D::context->VSSetConstantBuffers(0, 1, &vscbuf);
-
-	// pixel shader
-	if (!pscbuf)
-	{
-		unsigned int size = ((sizeof(psconstants))&(~0xf))+0x10; // must be a multiple of 16
-		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		device->CreateBuffer(&cbdesc, NULL, &pscbuf);
-		CHECK(hr==S_OK, "Create pixel shader constant buffer (size=%u)", size);
-		SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "a pixel shader constant buffer of EmuGfxState");
-	}
-	if (pscbufchanged)
-	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, psconstants, sizeof(psconstants));
-		context->Unmap(pscbuf, 0);
-		pscbufchanged = false;
-	}
-	D3D::context->PSSetConstantBuffers(0, 1, &pscbuf);
-
-	apply_called = true;
-}
-
-void EmuGfxState::Reset()
-{
-	if (apply_called)
-	{
-		apply_called = false;
-	}
-}
 
 template<typename T> AutoState<T>::AutoState(const T* object) : state(object)
 {

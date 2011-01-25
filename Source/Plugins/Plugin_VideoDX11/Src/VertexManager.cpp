@@ -228,7 +228,6 @@ void VertexManager::vFlush()
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 
-	D3D::gfxstate->ApplyState();
 	g_renderer->ApplyState(useDstAlpha);
 	LoadBuffers();
 	Draw(stride);
@@ -236,7 +235,6 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
-	D3D::gfxstate->Reset();
 
 shader_fail:
 	ResetBuffer();

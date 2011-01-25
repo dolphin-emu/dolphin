@@ -48,37 +48,55 @@ ID3D11VertexShader* VertexShaderCache::GetClearVertexShader() { return ClearVert
 ID3D11InputLayout* VertexShaderCache::GetSimpleInputLayout() { return SimpleLayout; }
 ID3D11InputLayout* VertexShaderCache::GetClearInputLayout() { return ClearLayout; }
 
+float vsconstants[C_VENVCONST_END*4];
+bool vscbufchanged = true;
+ID3D11Buffer* vscbuf = NULL;
+
 // maps the constant numbers to float indices in the constant buffer
 unsigned int vs_constant_offset_table[C_VENVCONST_END];
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]  ] = f1;
-	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+1] = f2;
-	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+2] = f3;
-	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+3] = f4;
-	D3D::gfxstate->vscbufchanged = true;
+	vsconstants[vs_constant_offset_table[const_number]  ] = f1;
+	vsconstants[vs_constant_offset_table[const_number]+1] = f2;
+	vsconstants[vs_constant_offset_table[const_number]+2] = f3;
+	vsconstants[vs_constant_offset_table[const_number]+3] = f4;
+	vscbufchanged = true;
 }
 
 void SetVSConstant4fv(unsigned int const_number, const float* f)
 {
-	memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
-	D3D::gfxstate->vscbufchanged = true;
+	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
+	vscbufchanged = true;
 }
 
 void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float* f)
 {
 	for (unsigned int i = 0; i < count; i++)
 	{
-		memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number+i]], f+3*i, sizeof(float)*3);
-		D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number+i]+3] = 0.f;		
+		memcpy(&vsconstants[vs_constant_offset_table[const_number+i]], f+3*i, sizeof(float)*3);
+		vsconstants[vs_constant_offset_table[const_number+i]+3] = 0.f;		
 	}
-	D3D::gfxstate->vscbufchanged = true;
+	vscbufchanged = true;
 }
 
 void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	D3D::gfxstate->vscbufchanged = true;
+	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+	vscbufchanged = true;
+}
+
+ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
+{
+	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
+	if (vscbufchanged)
+	{
+		D3D11_MAPPED_SUBRESOURCE map;
+		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, vsconstants, sizeof(vsconstants));
+		D3D::context->Unmap(vscbuf, 0);
+		vscbufchanged = false;
+	}
+	return vscbuf;
 }
 
 // this class will load the precompiled shaders into our cache
@@ -140,6 +158,12 @@ void VertexShaderCache::Init()
 		{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
+	unsigned int cbsize = ((sizeof(vsconstants))&(~0xf))+0x10; // must be a multiple of 16
+	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	HRESULT hr = D3D::device->CreateBuffer(&cbdesc, NULL, &vscbuf);
+	CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "vertex shader constant buffer used to emulate the GX pipeline");
+
 	D3DBlob* blob;
 	D3D::CompileVertexShader(simple_shader_code, sizeof(simple_shader_code), &blob);
 	D3D::device->CreateInputLayout(simpleelems, 2, blob->Data(), blob->Size(), &SimpleLayout);
@@ -193,6 +217,8 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
+	SAFE_RELEASE(vscbuf);
+
 	SAFE_RELEASE(SimpleVertexShader);
 	SAFE_RELEASE(ClearVertexShader);
 

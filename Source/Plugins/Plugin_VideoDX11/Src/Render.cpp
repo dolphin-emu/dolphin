@@ -1233,6 +1233,9 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetLogicOpMode();
 	}
 
+	D3D::context->PSSetConstantBuffers(0, 1, &PixelShaderCache::GetConstantBuffer());
+	D3D::context->VSSetConstantBuffers(0, 1, &VertexShaderCache::GetConstantBuffer());
+
 	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), NULL, 0);
 	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
 }
