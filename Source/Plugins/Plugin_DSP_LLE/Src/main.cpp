@@ -169,16 +169,15 @@ void DoState(unsigned char **ptr, int mode)
 	PointerWrap p(ptr, mode);
 	p.Do(g_InitMixer);
 
-// Enable this when the HLE is fixed to save/load the same amount of data,
-// no matter how bogus, so that one can switch LLE->HLE. The other way is unlikely to work very well.
-#if 0
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
+#if PROFILE
 	p.Do(g_dsp.err_pc);
+#endif
 	p.Do(g_dsp.cr);
 	p.Do(g_dsp.reg_stack_ptr);
 	p.Do(g_dsp.exceptions);
-	p.Do(g_dsp.exceptions_in_progress);
+	p.Do(g_dsp.external_interrupt_waiting);
 	for (int i = 0; i < 4; i++) {
 		p.Do(g_dsp.reg_stack[i]);
 	}
@@ -187,9 +186,12 @@ void DoState(unsigned char **ptr, int mode)
 	p.Do(g_dsp.ifx_regs);
 	p.Do(g_dsp.mbox[0]);
 	p.Do(g_dsp.mbox[1]);
-	p.DoArray(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
-	p.DoArray(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
-#endif
+	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
+	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
+	p.Do(cyclesLeft);
+	p.Do(cycle_count);
 }
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
