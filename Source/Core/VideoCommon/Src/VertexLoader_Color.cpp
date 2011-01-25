@@ -29,7 +29,6 @@
 #define GSHIFT 8
 #define BSHIFT 16
 #define ASHIFT 24
-#define AMASK (0xFF << ASHIFT)
 
 extern int colIndex;
 extern int colElements[2];
@@ -41,13 +40,12 @@ __forceinline void _SetCol(u32 val)
 	colIndex++;
 }
 
-//Read 4444 directly from unswaped val so intead or RGBA yo get BARG
 __forceinline void _SetCol4444(u16 val)
 {
-	u32 col = Convert4To8(val & 0xF) << GSHIFT;
-	col |= Convert4To8((val >> 12) & 0xF) << BSHIFT;
-	col |= Convert4To8((val >> 8) & 0xF) << ASHIFT;
-	col |= Convert4To8((val >> 4) & 0xF) << RSHIFT;
+	u32 col = Convert4To8(val & 0xF) << ASHIFT;
+	col |= Convert4To8((val >> 12) & 0xF) << RSHIFT;
+	col |= Convert4To8((val >> 8) & 0xF) << GSHIFT;
+	col |= Convert4To8((val >> 4) & 0xF) << BSHIFT;
 	_SetCol(col);
 }
 
@@ -65,12 +63,13 @@ __forceinline void _SetCol565(u16 val)
 	u32 col = Convert5To8((val >> 11) & 0x1F) << RSHIFT;
 	col |= Convert6To8((val >> 5) & 0x3F) << GSHIFT;
 	col |= Convert5To8(val & 0x1F) << BSHIFT;
-	_SetCol(col | AMASK);
+	_SetCol(col | (0xFF << ASHIFT));
 }
+
 
 __forceinline u32 _Read24(const u8 *addr)
 {
-	return Common::swap32(addr) | AMASK;
+	return addr[0] | (addr[1] << 8) | (addr[2] << 16) | 0xFF000000;
 }
 
 __forceinline u32 _Read32(const u8 *addr)
@@ -78,33 +77,38 @@ __forceinline u32 _Read32(const u8 *addr)
 	return *(const u32 *)addr;
 }
 
+
+
+
 void LOADERDECL Color_ReadDirect_24b_888()
 {
-	_SetCol(_Read24(DataGetPosition()));
-	DataSkip(3);
+	u32 col = DataReadU8() << RSHIFT;
+	col    |= DataReadU8() << GSHIFT;
+	col    |= DataReadU8() << BSHIFT;
+	_SetCol(col | (0xFF << ASHIFT));
 }
 
-void LOADERDECL Color_ReadDirect_32b_888x()
-{
-	_SetCol(_Read24(DataGetPosition()));
-	DataSkip(4);
+void LOADERDECL Color_ReadDirect_32b_888x(){
+	u32 col = DataReadU8() << RSHIFT;
+	col    |= DataReadU8() << GSHIFT;
+	col    |= DataReadU8() << BSHIFT;
+	_SetCol(col | (0xFF << ASHIFT));
+	DataReadU8();
 }
-
 void LOADERDECL Color_ReadDirect_16b_565()
 {
 	_SetCol565(DataReadU16());
 }
-
 void LOADERDECL Color_ReadDirect_16b_4444()
 {
-	_SetCol4444(((const u16*)DataGetPosition())[0]);
-	DataSkip(2);
+	_SetCol4444(DataReadU16());
 }
-
 void LOADERDECL Color_ReadDirect_24b_6666()
 {
-	_SetCol6666(((const u32*)(DataGetPosition() - 1))[0]);
-	DataSkip(3);
+	u32 val = DataReadU8() << 16;
+	val |= DataReadU8() << 8;
+	val |= DataReadU8(); 
+	_SetCol6666(val);
 }
 
 // F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
@@ -121,7 +125,7 @@ void LOADERDECL Color_ReadDirect_32b_8888()
 
 	// "kill" the alpha
 	if (!colElements[colIndex])	
-		col |= AMASK;
+		col |= 0xFF << ASHIFT;
 
 	_SetCol(col);
 }
@@ -149,14 +153,15 @@ void LOADERDECL Color_ReadIndex8_32b_888x()
 void LOADERDECL Color_ReadIndex8_16b_4444()
 {
 	u8 Index = DataReadU8();
-	u16 val = ((const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])))[0];
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol4444(val);
 }
 void LOADERDECL Color_ReadIndex8_24b_6666()
 {
 	u8 Index = DataReadU8();
-	const u32* pData = (const u32*)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]) - 1);
-	_SetCol6666(pData[0]);
+	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	u32 val = pData[2] | (pData[1] << 8) | (pData[0] << 16);
+	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex8_32b_8888()
 {
@@ -164,6 +169,8 @@ void LOADERDECL Color_ReadIndex8_32b_8888()
 	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
+
+
 
 void LOADERDECL Color_ReadIndex16_16b_565()
 {
@@ -186,14 +193,15 @@ void LOADERDECL Color_ReadIndex16_32b_888x()
 void LOADERDECL Color_ReadIndex16_16b_4444()
 {
 	u16 Index = DataReadU16();
-	u16 val = ((const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])))[0];
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol4444(val);
 }
 void LOADERDECL Color_ReadIndex16_24b_6666()
 {
 	u16 Index = DataReadU16();
-	const u32* pData = (const u32*)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]) - 1);
-	_SetCol6666(pData[0]);
+	const u8 *pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	u32 val = pData[2] | (pData[1] << 8) | (pData[0] << 16);
+	_SetCol6666(val);
 }
 void LOADERDECL Color_ReadIndex16_32b_8888()
 {
