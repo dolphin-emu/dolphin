@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <d3dx11.h>
-#include <d3dcompiler.h>
 #include <string>
 
 #include "VideoConfig.h"
+
+#include "D3DBase.h"
 #include "D3DShader.h"
 
 namespace D3D
@@ -54,10 +54,13 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 
 	if (FAILED(hr) || errorBuffer)
 	{
-		std::string msg = (char*)errorBuffer->GetBufferPointer();
-		msg += "\n\n";
-		msg += code;
-		MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+		if (g_ActiveConfig.bShowShaderErrors)
+		{
+			std::string msg = (char*)errorBuffer->GetBufferPointer();
+			msg += "\n\n";
+			msg += code;
+			MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+		}
 
 		*blob = NULL;
 		errorBuffer->Release();
@@ -99,10 +102,13 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
 
 	if (FAILED(hr) || errorBuffer)
 	{
-		std::string msg = (char*)errorBuffer->GetBufferPointer();
-		msg += "\n\n";
-		msg += code;
-		MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+		if (g_ActiveConfig.bShowShaderErrors)
+		{
+			std::string msg = (char*)errorBuffer->GetBufferPointer();
+			msg += "\n\n";
+			msg += code;
+			MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+		}
 
 		*blob = NULL;
 		errorBuffer->Release();

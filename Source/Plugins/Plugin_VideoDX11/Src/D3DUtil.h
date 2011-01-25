@@ -17,8 +17,7 @@
 
 #pragma	once
 
-#include "D3DBase.h"
-#include <math.h>
+#include "d3d11.h"
 #include <MathUtil.h>
 
 namespace D3D

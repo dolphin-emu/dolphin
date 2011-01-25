@@ -15,30 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <d3dx11.h>
-
-#include "Globals.h"
-#include "Statistics.h"
-#include "MemoryUtil.h"
-#include "Hash.h"
-
-#include "CommonPaths.h"
-#include "FileUtil.h"
+#include "RenderBase.h"
 
 #include "D3DBase.h"
-#include "D3DTexture.h"
 #include "D3DUtil.h"
 #include "FramebufferManager.h"
 #include "PixelShaderCache.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
-
-#include "Render.h"
-
-#include "TextureDecoder.h"
 #include "TextureCache.h"
-#include "HiresTextures.h"
+#include "VertexShaderCache.h"
 
 namespace DX11
 {

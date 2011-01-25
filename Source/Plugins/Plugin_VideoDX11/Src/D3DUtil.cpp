@@ -16,15 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <list>
-#include "Common.h"
 
 #include "D3DBase.h"
 #include "D3DUtil.h"
-#include "D3DTexture.h"
-#include "Render.h"
 #include "PixelShaderCache.h"
 #include "VertexShaderCache.h"
 #include "D3DShader.h"
+#include "GfxState.h"
 
 namespace D3D
 {

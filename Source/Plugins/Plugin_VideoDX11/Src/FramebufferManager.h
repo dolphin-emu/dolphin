@@ -18,9 +18,11 @@
 #ifndef _FBMANAGER_D3D_H_
 #define _FBMANAGER_D3D_H_
 
-#include "D3DBase.h"
-#include "D3DTexture.h"
+#include "d3d11.h"
+
 #include "FramebufferManagerBase.h"
+
+#include "D3DTexture.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM

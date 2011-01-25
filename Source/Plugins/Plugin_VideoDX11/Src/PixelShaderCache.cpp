@@ -15,24 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
 #include "FileUtil.h"
 #include "LinearDiskCache.h"
 
-#include "Globals.h"
-#include "D3DBase.h"
-#include "D3Dcompiler.h"
-#include "D3DShader.h"
+#include "Debugger.h"
 #include "Statistics.h"
 #include "VideoConfig.h"
+
+#include "D3DBase.h"
+#include "D3DShader.h"
+#include "Globals.h"
 #include "PixelShaderGen.h"
-#include "PixelShaderManager.h"
 #include "PixelShaderCache.h"
-#include "VertexLoader.h"
-#include "BPMemory.h"
-#include "XFMemory.h"
-#include "ImageWrite.h"
-#include "Debugger.h"
 
 extern int frameCount;
 

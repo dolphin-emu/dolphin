@@ -15,46 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <tchar.h>
-#include <windows.h>
-#include <d3dx11.h>
-
 #include <wx/wx.h>
-#include <wx/notebook.h>
 
-#include "Common.h"
-#include "Atomic.h"
-#include "Thread.h"
 #include "LogManager.h"
 
-#include "VideoConfig.h"
-#include "Fifo.h"
-#include "OpcodeDecoding.h"
 #include "BPStructs.h"
+#include "CommandProcessor.h"
+#include "Fifo.h"
+#include "OnScreenDisplay.h"
+#include "OpcodeDecoding.h"
+#include "PixelEngine.h"
+#include "PixelShaderManager.h"
+#include "VideoConfig.h"
 #include "VertexLoaderManager.h"
 #include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
-#include "CommandProcessor.h"
-#include "PixelEngine.h"
-#include "OnScreenDisplay.h"
-#include "VideoState.h"
 #include "XFBConvert.h"
-#include "Render.h"
 
-#include "MainBase.h"
-#include "main.h"
+#include "DebuggerPanel.h"
+#include "DLCache.h"
+#include "EmuWindow.h"
+#include "FileUtil.h"
+#include "Globals.h"
+#include "IniFile.h"
 #include "VideoConfigDiag.h"
+
+#include "D3DUtil.h"
+#include "D3DBase.h"
+#include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
 #include "VertexShaderCache.h"
-#include "PixelShaderCache.h"
-#include "D3DTexture.h"
-#include "D3DUtil.h"
-#include "EmuWindow.h"
-#include "FramebufferManager.h"
-#include "DLCache.h"
-#include "DebuggerPanel.h"
-#include "IniFile.h"
+
 
 HINSTANCE g_hInstance = NULL;
 

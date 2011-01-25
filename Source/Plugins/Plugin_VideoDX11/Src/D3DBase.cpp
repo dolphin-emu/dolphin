@@ -15,14 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "StringUtil.h"
+#include "VideoConfig.h"
+
 #include "D3DBase.h"
 #include "D3DTexture.h"
-#include "D3DShader.h"
-#include "D3Dcompiler.h"
-#include "VideoConfig.h"
-#include "Render.h"
-#include "XFStructs.h"
-#include "StringUtil.h"
+#include "GfxState.h"
 
 HINSTANCE hD3DXDll = NULL;
 D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;

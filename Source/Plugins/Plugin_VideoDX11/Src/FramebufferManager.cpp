@@ -15,13 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "D3DBase.h"
-#include "D3DTexture.h"
-#include "D3DUtil.h"
-#include "Render.h"
-#include "FramebufferManager.h"
 #include "VideoConfig.h"
+
+#include "D3DBase.h"
+#include "D3DUtil.h"
+#include "FramebufferManager.h"
 #include "PixelShaderCache.h"
+#include "Render.h"
 #include "VertexShaderCache.h"
 
 FramebufferManager::Efb FramebufferManager::m_efb;

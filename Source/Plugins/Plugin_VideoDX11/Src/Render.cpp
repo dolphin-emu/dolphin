@@ -15,41 +15,30 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <list>
+#include <math.h>
+#include <strsafe.h>
 
-#include "StringUtil.h"
-#include "Common.h"
-#include "Atomic.h"
-#include "FileUtil.h"
-#include "Thread.h"
 #include "Timer.h"
-#include "Statistics.h"
-
-#include "VideoConfig.h"
-#include "main.h"
-#include "VertexManager.h"
-#include "PixelEngine.h"
-#include "Render.h"
-#include "OpcodeDecoding.h"
-#include "BPStructs.h"
-#include "XFStructs.h"
-#include "D3DUtil.h"
-#include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderCache.h"
-#include "PixelShaderCache.h"
-#include "VertexLoaderManager.h"
-#include "TextureCache.h"
-#include "EmuWindow.h"
-#include "AVIDump.h"
-#include "OnScreenDisplay.h"
-#include "FramebufferManager.h"
-#include "Fifo.h"
-#include "DLCache.h"
 
 #include "Debugger.h"
+#include "DLCache.h"
+#include "EmuWindow.h"
+#include "Fifo.h"
+#include "OnScreenDisplay.h"
+#include "PixelEngine.h"
+#include "Statistics.h"
+#include "VertexShaderManager.h"
+#include "VideoConfig.h"
 
-#include <strsafe.h>
+#include "D3DBase.h"
+#include "D3DUtil.h"
+#include "FramebufferManager.h"
+#include "GfxState.h"
+#include "PixelShaderCache.h"
+#include "Render.h"
+#include "TextureCache.h"
+#include "VertexShaderCache.h"
+
 
 static int s_fps = 0;
 

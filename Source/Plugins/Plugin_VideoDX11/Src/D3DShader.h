@@ -17,7 +17,10 @@
 
 #pragma once
 
-#include "D3DBase.h"
+#include "D3DBlob.h"
+
+struct ID3D11PixelShader;
+struct ID3D11VertexShader;
 
 namespace D3D
 {

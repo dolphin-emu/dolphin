@@ -19,8 +19,6 @@
 
 #include <d3dx11.h>
 #include "Common.h"
-#include "D3DBlob.h"
-#include "GfxState.h"
 #include <vector>
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }

@@ -4,7 +4,7 @@
 
 #include <map>
 
-//#include "VideoCommon.h"
+#include "VideoCommon.h"
 #include "TextureDecoder.h"
 #include "BPMemory.h"
 

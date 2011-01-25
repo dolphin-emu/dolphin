@@ -17,14 +17,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "D3DBase.h"
-
-#include "Profiler.h"
-#include "x64Emitter.h"
-#include "ABI.h"
-#include "MemoryUtil.h"
-#include "VertexShaderGen.h"
-
-#include "CPMemory.h"
+#include "D3DBlob.h"
 #include "NativeVertexFormat.h"
 #include "VertexManager.h"
 #include "VertexShaderCache.h"

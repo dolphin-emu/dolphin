@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include <d3d11.h>
-#include "Common.h"
+#include "CommonTypes.h"
+
+struct ID3D10Blob;
 
 // use this class instead ID3D10Blob or ID3D11Blob whenever possible
 class D3DBlob

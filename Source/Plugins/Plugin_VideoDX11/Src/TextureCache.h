@@ -17,14 +17,9 @@
 
 #pragma once
 
-#include <map>
-
-#include "D3DBase.h"
-#include "D3DTexture.h"
-#include "VideoCommon.h"
-#include "BPMemory.h"
-
 #include "TextureCacheBase.h"
+
+#include "D3DTexture.h"
 
 namespace DX11
 {

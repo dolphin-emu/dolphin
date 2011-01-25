@@ -17,14 +17,12 @@
 
 #pragma once
 
-#include "Common.h"
-#include "LinearDiskCache.h"
-#include "D3DBase.h"
-
 #include <map>
 
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
+#include <d3d11.h>
+
+class PIXELSHADERUID;
+enum DSTALPHA_MODE;
 
 class PixelShaderCache
 {

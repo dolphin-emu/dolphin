@@ -15,23 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <map>
-
-#include "Common.h"
 #include "FileUtil.h"
 #include "LinearDiskCache.h"
 
-#include "Globals.h"
-#include "D3DBase.h"
-#include "D3DShader.h"
-#include "Statistics.h"
-#include "Profiler.h"
-#include "VideoConfig.h"
-#include "VertexShaderCache.h"
-#include "VertexLoader.h"
-#include "BPMemory.h"
-#include "XFMemory.h"
 #include "Debugger.h"
+#include "Profiler.h"
+#include "Statistics.h"
+#include "VertexShaderGen.h"
+
+#include "D3DShader.h"
+#include "Globals.h"
+#include "VertexShaderCache.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
