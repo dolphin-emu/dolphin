@@ -168,14 +168,14 @@ XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
 	sizes = XRRSizes(dpy, DefaultScreen(dpy), &numSizes);
 	if (!numSizes)
 	{
-		NOTICE_LOG(VIDEO, "XRRExtension not supported.");
+		WARN_LOG(VIDEO, "XRRExtension not supported.");
 		bValid = false;
 		return;
 	}
 
 	int vidModeMajorVersion, vidModeMinorVersion;
 	XRRQueryVersion(dpy, &vidModeMajorVersion, &vidModeMinorVersion);
-	NOTICE_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
+	INFO_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
 	Update();
 }
 
@@ -203,12 +203,12 @@ void XRRConfiguration::Update()
 
 	screenConfig = XRRGetScreenInfo(dpy, win);
 
-	/* save desktop resolution */
+	// Save desktop resolution
 	deskSize = XRRConfigCurrentConfiguration(screenConfig, &screenRotation);
-	/* Set the desktop resolution as the default */
+	// Set the desktop resolution as the default
 	fullSize = deskSize;
 
-	/* Find the index of the fullscreen resolution from config */
+	// Find the index of the fullscreen resolution from config
 	sizes = XRRConfigSizes(screenConfig, &numSizes);
 	if (numSizes > 0 && sizes != NULL) {
 		for (int i = 0; i < numSizes; i++) {
@@ -216,7 +216,7 @@ void XRRConfiguration::Update()
 				fullSize = i;
 			}
 		}
-		NOTICE_LOG(VIDEO, "Fullscreen Resolution %dx%d", 
+		INFO_LOG(VIDEO, "Fullscreen Resolution %dx%d", 
 				sizes[fullSize].width, sizes[fullSize].height);
 	}
 	else {

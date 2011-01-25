@@ -88,7 +88,7 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
 }
 
-void Host_RequestRenderWindowSize(int& width, int& height) {}
+void Host_RequestRenderWindowSize(int width, int height) {}
 
 bool Host_RendererHasFocus()
 {
