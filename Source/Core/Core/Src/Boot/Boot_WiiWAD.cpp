@@ -63,6 +63,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
 
 	CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
+	DolLoader.Load();
 	PC = DolLoader.GetEntryPoint() | 0x80000000;
 
 	// Pass the "#002 check"
