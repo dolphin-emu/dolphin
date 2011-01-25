@@ -163,7 +163,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
+static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 static void WriteFog(char *&p);
 static int AlphaPreTest();
 
@@ -796,7 +796,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	
-	if (!WriteAlphaTest(p, ApiType))
+	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
 		p = pmainstart;
@@ -1290,7 +1290,7 @@ static int AlphaPreTest()
 }
 
 
-static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
+static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
 	
 	int Pretest = AlphaPreTest();
@@ -1309,7 +1309,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 	
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%sdiscard;%s}\n",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
+	WRITE(p, ")){ocol0 = 0;%s%sdiscard;%s}\n",dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "ocol1 = 0;" : "",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
 	return true;
 }
 
