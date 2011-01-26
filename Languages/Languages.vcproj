@@ -146,6 +146,10 @@
 			RelativePath=".\zh_CN.po"
 			>
 		</File>
+		<File
+			RelativePath=".\zh_TW.po"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
