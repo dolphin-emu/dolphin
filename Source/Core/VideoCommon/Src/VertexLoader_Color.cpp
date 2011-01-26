@@ -29,7 +29,7 @@
 #define GSHIFT 8
 #define BSHIFT 16
 #define ASHIFT 24
-#define AMASK 24
+#define AMASK 0xFF000000
 
 extern int colIndex;
 extern int colElements[2];
