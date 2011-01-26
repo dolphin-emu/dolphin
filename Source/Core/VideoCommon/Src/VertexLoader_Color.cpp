@@ -71,7 +71,7 @@ __forceinline void _SetCol6666(u32 val)
 __forceinline void _SetCol565(u16 val)
 {
 	u32 col =   (val  >>  8) & 0xF8;
-	col |=      (val  <<  3) & 0xFC00;
+	col |=      (val  <<  5) & 0xFC00;
 	col |=(((u32)val) << 19) & 0xF80000;
 	col |= (col >> 5) & 0x070007;
 	col |= (col >> 6) & 0x000300;
