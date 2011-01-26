@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-19 21:01-0600\n"
+"POT-Creation-Date: 2011-01-25 21:41-0600\n"
 "PO-Revision-Date: 2011-01-17 13:28+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
@@ -26,16 +26,6 @@ msgstr " (화면출력하기에 너무 많은)"
 msgid " Game : "
 msgstr "게임 :"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1221
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1249
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1314
-msgid ""
-" already exists.\n"
-"Do you wish to replace it?"
-msgstr ""
-" 이미 존재함.\n"
-"그것을 바꾸고 싶나요?"
-
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:525
 msgid "! NOT"
 msgstr "! NOT"
@@ -49,7 +39,7 @@ msgstr ""
 "\"%s\"가 존재하지 않음.\n"
 " 새로운 16MB 메모리카드를 생성해요?"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:139
+#: Source/Core/Core/Src/CoreParameter.cpp:140
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\"는 무효한 GCM/ISO 파일임, 혹은 GC/Wii ISO가 아님."
@@ -58,11 +48,6 @@ msgstr "\"%s\"는 무효한 GCM/ISO 파일임, 혹은 GC/Wii ISO가 아님."
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$s복사%1$s"
-
-#: Source/Plugins/Plugin_DSP_LLE/Src/DSPConfigDlgLLE.cpp:51
-#, c-format
-msgid "%d %%"
-msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:770
 #, c-format
@@ -171,8 +156,9 @@ msgid "&File"
 msgstr "파일(&F)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
-msgid "&Frame Stepping"
-msgstr "프레임 스탭(&F)"
+#, fuzzy
+msgid "&Frame Advance"
+msgstr "고급"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:315
 msgid "&Fullscreen"
@@ -262,7 +248,7 @@ msgstr "보기(&V)"
 msgid "&Wiimote Settings"
 msgstr "위모트 세팅(&W)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:442
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:439
 msgid "(off)"
 msgstr "(끔)"
 
@@ -282,7 +268,7 @@ msgstr "32,000 Hz"
 msgid "32-bit platforms do not support fastmem yet. Report this bug."
 msgstr "32-비트 플랫폼들은 fastmem을 아직 지원안함. 이 버그를 리포트하라."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:223
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:222
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D 비전 (전체화면 필요)"
 
@@ -298,11 +284,11 @@ msgstr "8 비트"
 msgid "<Insert name here>"
 msgstr "<여기에 이름을 넣으세요>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:257
 msgid "<No resolutions found>"
 msgstr "<발견된 해상도가 없음>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:68
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:71
 msgid "<Nothing>"
 msgstr "<없음>"
 
@@ -310,7 +296,7 @@ msgstr "<없음>"
 msgid "<Press Key>"
 msgstr "<키를 누르세요>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "<System>"
 msgstr "<시스템>"
 
@@ -366,8 +352,8 @@ msgstr ""
 "\n"
 "TCP 포트를 호스트에 전달해야합니다!!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:73
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
 msgid "AM-Baseboard"
 msgstr "AM-기반보드"
 
@@ -385,9 +371,13 @@ msgid "Acceleration"
 msgstr "가속"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:296
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:295
 msgid "Accurate Texture Cache"
 msgstr "정밀한 텍스쳐 캐쉬"
+
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
+msgid "Accurate VBeam emulation"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:210
 msgid "Action"
@@ -477,7 +467,7 @@ msgstr "액션 리플레이: 일반 코드 %i: 무효한 서브타입 %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "액션 리플레이: 일반 코드 0: 무효한 서브타입 %08x (%s)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:150
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:149
 msgid "Adapter:"
 msgstr "어댑터:"
 
@@ -498,7 +488,7 @@ msgstr "패치 추가"
 msgid "Add new pane"
 msgstr "새로운 팬 추가"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:743
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
 msgid "Add..."
@@ -512,24 +502,11 @@ msgstr "주소 :"
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "버튼들 활성화에 요구되는 아날로그 컨트롤 압력을 조정하세요."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:432
-msgid "Adjust window size"
-msgstr "윈도우 크기 조정"
-
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:106
-msgid ""
-"Adjusts the window to match the game's output resolution scaled by the EFB "
-"scale.\n"
-"It is best to set the aspect ratio to stretch when using this."
-msgstr ""
-"EFB 스케일로 스케일된 게임의 출력 해상도와 일치되도록 윈도우 조정.\n"
-"이것을 사용할 때 종횡비를 늘림으로 세팅하는 것이 가장좋다."
-
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:346
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:345
 msgid "Advanced"
 msgstr "고급"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:459
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:467
 msgid "Advanced Settings"
 msgstr "고급 세팅들"
 
@@ -537,7 +514,7 @@ msgstr "고급 세팅들"
 msgid "All GC/Wii files (elf, dol, gcm, iso, ciso, wad)"
 msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, ciso, wad)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:743
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
 msgid "All GC/Wii images (gcm, iso, ciso, gcz)"
 msgstr "모든 GC/Wii 이미지들 (gcm, iso, ciso, gcz)"
 
@@ -545,8 +522,8 @@ msgstr "모든 GC/Wii 이미지들 (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일들 (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1258
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1272
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1264
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1278
 msgid "All Save States (sav, s##)"
 msgstr "모든 상태들 저장 (sav, s##)"
 
@@ -558,7 +535,7 @@ msgstr "모든 Wii ISO 파일들 (iso)"
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "모든 압축된 GC/Wii ISO 파일들 (gcz)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:90
 msgid "All files (*.*)|*.*"
 msgstr "모든 파일들 (*.*)|*.*"
 
@@ -577,15 +554,11 @@ msgstr ""
 "하지만 이 옵션을 켜는 것은 만일 그 게임이 이 기능을 심하게 사용한다면 성능상"
 "에 거대한 네거티브 효과를 가질 수 있습니다."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
-msgid "Alternate RFI"
-msgstr "RFI 대안"
-
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:190
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:189
 msgid "Anisotropic Filtering:"
 msgstr "비등방성 필터링:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:195
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:194
 msgid "Anti-Aliasing:"
 msgstr "안티-앨리어싱:"
 
@@ -597,7 +570,7 @@ msgstr "어플로더가 잘못된 크기임... 정말 어플로더입니까?"
 msgid "Apploader unable to load from file"
 msgstr "어플로더가 파일로 부터 로드할 수 없음"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:771
 msgid "Apploader:"
 msgstr "어플로더:"
 
@@ -622,8 +595,8 @@ msgstr ""
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "이 파일을 지우고 싶다고 확신합니까? 그것은 영원히 가버릴 겁니다!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:693
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:169
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:719
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:168
 msgid "Aspect Ratio:"
 msgstr "종횡비:"
 
@@ -640,13 +613,24 @@ msgstr "오디오 백엔드"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: AO 장치를 열기에 에러.\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:244
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
 msgid "Auto"
 msgstr "자동"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:165
 msgid "Auto [recommended]"
 msgstr "자동 [권장]"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:408
+#, fuzzy
+msgid ""
+"Auto size the window to match the game's output resolution adjusted by the "
+"EFB scale.\n"
+"It is best to set the aspect ratio to stretch when using this."
+msgstr ""
+"EFB 스케일로 스케일된 게임의 출력 해상도와 일치되도록 윈도우 조정.\n"
+"이것을 사용할 때 종횡비를 늘림으로 세팅하는 것이 가장좋다."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -686,11 +670,11 @@ msgstr "배너:"
 msgid "Bar"
 msgstr "바"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:130
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:129
 msgid "Basic"
 msgstr "기본"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:449
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:458
 msgid "Basic Settings"
 msgstr "기본 세팅들"
 
@@ -722,7 +706,7 @@ msgstr "파랑 왼쪽"
 msgid "Blue Right"
 msgstr "파랑 오른쪽"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:271
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:277
 msgid "Bottom"
 msgstr "아래"
 
@@ -764,7 +748,7 @@ msgstr "버튼들"
 msgid "C-Stick"
 msgstr "C-스틱"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:461
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:469
 msgid "CPU Emulator Engine"
 msgstr "CPU 에뮬레이터 엔진"
 
@@ -814,7 +798,7 @@ msgstr "%s를 열수 없음"
 msgid "Cannot unregister events with events pending"
 msgstr "이벤트들 미해결을 지닌 이벤트들을 등록하지 않을 수 없음"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1009
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1018
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -859,7 +843,7 @@ msgstr "디스크 변경...(&D)"
 msgid "Change Game"
 msgstr "게임 변경"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:416
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:425
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -889,23 +873,27 @@ msgstr "치트 찾기"
 msgid "Cheats Manager"
 msgstr "치트들 관리자"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:288
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Chinese (Simplified)"
 msgstr "중국어 (간소화된)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:746
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+msgid "Chinese (Traditional)"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
 msgid "Choose a DVD root directory:"
 msgstr "DVD 루트 디렉토리 선택:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
 msgid "Choose a default ISO:"
 msgstr "디폴트 ISO 선택:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1137
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1146
 msgid "Choose a directory to add"
 msgstr "추가할 디렉토리 선택"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:984
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:993
 msgid "Choose a file to open"
 msgstr "열기위한 파일 선택"
 
@@ -913,7 +901,7 @@ msgstr "열기위한 파일 선택"
 msgid "Choose a memory card:"
 msgstr "메모리 카드 선택:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
@@ -936,7 +924,7 @@ msgstr "클래식"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:933
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:129
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:131
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:114
 msgid "Clear"
 msgstr "깨끗이"
@@ -958,7 +946,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:274
 #: Source/Core/DolphinWX/Src/LuaWindow.cpp:110
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:465
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:462
 msgid "Close"
 msgstr "닫기"
 
@@ -1003,8 +991,8 @@ msgstr "ISO 압축하기"
 msgid "Config"
 msgstr "환경☆"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:785
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:787
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:791
 msgid "Config..."
 msgstr "환경설정..."
 
@@ -1033,7 +1021,7 @@ msgstr "환경설정..."
 msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확정"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:507
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:513
 msgid "Confirm On Stop"
 msgstr "중지시 확인"
 
@@ -1042,7 +1030,7 @@ msgstr "중지시 확인"
 msgid "Connect"
 msgstr "연결"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:701
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:703
 msgid "Connect USB Keyboard"
 msgstr "USB 키보드 연결"
 
@@ -1072,7 +1060,7 @@ msgstr "위모트 4 연결"
 msgid "Connected to %i Wiimotes"
 msgstr "%i개의 위모트들에 연결된"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:613
+#: Source/Core/DolphinWX/Src/Main.cpp:618
 msgid "Connecting..."
 msgstr "연결중..."
 
@@ -1088,11 +1076,11 @@ msgstr "컨트롤"
 msgid "Convert to GCI"
 msgstr "GCI 로 변환"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:261
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:260
 msgid "Copy"
 msgstr "복사"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:353
+#: Source/Core/Core/Src/CoreParameter.cpp:355
 msgid "Copy failed"
 msgstr "복사 실패했음"
 
@@ -1125,7 +1113,7 @@ msgstr "플러그인 %s에 대한 정보를 얻을 수 없었음"
 msgid "Could not initialize backend %s."
 msgstr "백엔드 %s 를 초기화할 수 없었음"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:134
+#: Source/Core/Core/Src/CoreParameter.cpp:135
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
@@ -1136,7 +1124,7 @@ msgstr ""
 "이 아님. 본래의 게임큐브와 Wii 디스크들은 대부분의 PC DVD 드라이브들에서 읽어"
 "질 수 없음을 아세요."
 
-#: Source/Core/Core/Src/CoreParameter.cpp:270
+#: Source/Core/Core/Src/CoreParameter.cpp:272
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "%s ISO 파일을 인식할 수 없었음"
@@ -1197,31 +1185,31 @@ msgstr "AR 코드 생성"
 msgid "Create new perspective"
 msgstr "새로운 관점 생성"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:423
 msgid "Created by KDE-Look.org"
 msgstr "KDE-Look.org에 의해 만들어짐"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:411
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:420
 msgid ""
 "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 msgstr ""
 "Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]에 의해 만들어"
 "짐"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:421
 msgid "Created by VistaIcons.com"
 msgstr "VistaIcons.com에 의해 만들어짐"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:413
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:422
 msgid "Created by black_rider and published on ForumW.org > Web Developments"
 msgstr ""
 "black_rider에 의해 만들어지고 ForumW.org > Web Developments에서 퍼블리쉬된 "
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:18
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:15
 msgid "Creator: "
 msgstr "만든이:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:427
 msgid "Crop"
 msgstr "자르기"
 
@@ -1242,7 +1230,7 @@ msgstr "D-패드"
 msgid "DList Cache"
 msgstr "데이터리스트 캐쉬"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:789
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:369
 msgid "DSP"
 msgstr "사운드"
@@ -1251,15 +1239,15 @@ msgstr "사운드"
 msgid "DSP settings"
 msgstr "DSP 세팅들"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:463
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:471
 msgid "DSPLLE on thread"
 msgstr "DSPLLE를 쓰레드상에"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:745
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:768
 msgid "DVD Root:"
 msgstr "DVD 루트:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 msgid "Danish"
 msgstr "덴마크어"
 
@@ -1284,7 +1272,7 @@ msgstr "Datel MaxDrive/Pro 파일들(*.sav)"
 msgid "Dead Zone"
 msgstr "데드 존"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:79
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:81
 msgid "Debug"
 msgstr "디버그"
 
@@ -1309,11 +1297,11 @@ msgstr "ISO 압축해제하기"
 msgid "Default"
 msgstr "기본"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:741
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:765
 msgid "Default ISO:"
 msgstr "기본 ISO:"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:92
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:94
 msgid "Default font"
 msgstr "기본 폰트"
 
@@ -1349,8 +1337,8 @@ msgstr ""
 msgid "Device"
 msgstr "다바이스"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:565
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:699
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:701
 msgid "Device Settings"
 msgstr "디바이스 세팅들"
 
@@ -1358,7 +1346,7 @@ msgstr "디바이스 세팅들"
 msgid "Dial"
 msgstr "다이얼"
 
-#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:237
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:228
 msgid "Direct3D11"
 msgstr "Direct3D11"
 
@@ -1374,19 +1362,19 @@ msgstr ""
 "디렉토리 체크섬이 실패했음\n"
 " 그리고 디렉토리 백업 체크섬이 실패했음"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:360
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:359
 msgid "Disable Dest. Alpha Pass"
 msgstr "Dest. Alpha Pass 끄기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:359
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:358
 msgid "Disable Fog"
 msgstr "안개 끄기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
 msgid "Disable Lighting"
 msgstr "광원 끄기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:358
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:357
 msgid "Disable Textures"
 msgstr "텍스쳐들 끄기"
 
@@ -1430,7 +1418,7 @@ msgstr "디스크"
 msgid "Disc Read Error"
 msgstr "디스크 읽기 에러"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:441
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:450
 msgid "Display"
 msgstr "화면출력"
 
@@ -1442,15 +1430,15 @@ msgstr "디스턴스 알파 패스"
 msgid "Divide"
 msgstr "나누기"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:917
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:914
 msgid "Do you want to stop the current emulation?"
 msgstr "현재 에뮬레이션을 중단하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:796
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:793
 msgid "Dolphin"
 msgstr "돌핀"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:112
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:111
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "돌핀 %s 그래픽 환경설정"
@@ -1483,7 +1471,7 @@ msgstr "돌핀 DSP-LLE 플러그인 세팅들"
 msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "돌핀 에뮬된 위모트 환경설정"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1085
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1091
 msgid "Dolphin GCPad Configuration"
 msgstr "돌핀 GC패드 환경설정"
 
@@ -1492,7 +1480,7 @@ msgid "Dolphin OpenGL"
 msgstr "돌핀 OpenGL"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:651
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1006
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1012
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 동영상들 (*.dtm)"
 
@@ -1512,7 +1500,7 @@ msgstr ""
 "돌핀이 어느 GC/Wii ISO들도 찾을 수 없었습니다. 파일들을 둘러보려면 여기를 더"
 "블클릭..."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:205
+#: Source/Core/DolphinWX/Src/Main.cpp:204
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
@@ -1533,11 +1521,11 @@ msgstr ""
 msgid "Down"
 msgstr "아래"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:45
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:42
 msgid "Download Codes (WiiRD Database)"
 msgstr "코드들(WiiRD 데이터베이스) 다운로드"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:279
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:276
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr "%lu 코드들이 다운로드됨. (추가된 %lu)"
@@ -1546,19 +1534,19 @@ msgstr "%lu 코드들이 다운로드됨. (추가된 %lu)"
 msgid "Drums"
 msgstr "드럼"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:69
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:72
 msgid "Dummy"
 msgstr "더미"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:416
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
 msgid "Dump EFB Target"
 msgstr "EFB 타겟 덤프"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:417
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:416
 msgid "Dump Frames"
 msgstr "프레임들 덤프"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:413
 msgid "Dump Textures"
 msgstr "텍스쳐들 덤프"
 
@@ -1566,8 +1554,8 @@ msgstr "텍스쳐들 덤프"
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
 msgstr "User/Dump/Textures/<game id>/ 에 게임 텍스쳐들을 덤프"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:469
 msgid "Dutch"
 msgstr "네덜란드어"
@@ -1576,15 +1564,15 @@ msgstr "네덜란드어"
 msgid "E&xit"
 msgstr "종료(&x)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:230
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:229
 msgid "EFB"
 msgstr "내장프레임버퍼"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:374
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:373
 msgid "EFB Copy Regions"
 msgstr "EFB 복사 영역들"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
 msgid "EFB Scaled Copy"
 msgstr "EFB 스케일된 복사"
 
@@ -1637,7 +1625,7 @@ msgstr "효과"
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:251
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:250
 msgid "Emulate format changes"
 msgstr "포멧 변경들을 에뮬레이트"
 
@@ -1660,14 +1648,14 @@ msgstr "에뮬된 위모트"
 msgid "Emulation State: "
 msgstr "에뮬레이션 상태:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid "Emulator Display Settings"
 msgstr "에뮬레이터 디스플레이 세팅들"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:264
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:299
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:383
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:263
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:298
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:382
 msgid "Enable"
 msgstr "켬"
 
@@ -1689,11 +1677,11 @@ msgid "Enable Block Merging"
 msgstr "블록 합병하기 켜기"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:250
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:249
 msgid "Enable CPU Access"
 msgstr "CPU 엑세스 켜기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:452
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:461
 msgid "Enable Cheats"
 msgstr "치트 켜기"
 
@@ -1706,7 +1694,7 @@ msgstr "Copy to EFB 켜기"
 msgid "Enable DTK Music"
 msgstr "DTK 음악 켜기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:430
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:429
 msgid "Enable Display List Caching"
 msgstr "디스플레이 목록 캐쉬 켬"
 
@@ -1714,7 +1702,7 @@ msgstr "디스플레이 목록 캐쉬 켬"
 msgid "Enable Dual Core"
 msgstr "듀얼 코어 켜기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:450
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:459
 msgid "Enable Dual Core (speedup)"
 msgstr "듀얼 코어 켜기 (스피드업)"
 
@@ -1726,7 +1714,7 @@ msgstr "EFB To Texture 켜기"
 msgid "Enable HLE Audio"
 msgstr "HLE 오디오 켜기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:431
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:430
 msgid "Enable Hotkeys"
 msgstr "핫키들 켜기"
 
@@ -1734,7 +1722,7 @@ msgstr "핫키들 켜기"
 msgid "Enable Idle Skipping"
 msgstr "아이들 스킵 켜기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:451
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:460
 msgid "Enable Idle Skipping (speedup)"
 msgstr "아이들 스킵핑 켜기 (스피드업)"
 
@@ -1746,16 +1734,16 @@ msgstr "JIT Dynarec 켜기"
 msgid "Enable MMU"
 msgstr "MMU 켜기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:429
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:428
 msgid "Enable OpenCL"
 msgstr "OpenCL 켜기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:502
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:508
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
 msgid "Enable Progressive Scan"
 msgstr "프로그레시브 스캔 켜기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:695
 msgid "Enable Screen Saver (burn-in reduction)"
 msgstr "스크린 세이버 (burn-in 줄임) 켜기"
 
@@ -1763,11 +1751,11 @@ msgstr "스크린 세이버 (burn-in 줄임) 켜기"
 msgid "Enable WideScreen"
 msgstr "와이드스크린 켜기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:356
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:355
 msgid "Enable Wireframe"
 msgstr "와이어프레임 켜기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:270
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:269
 msgid "Enable cache"
 msgstr "캐쉬 켜기"
 
@@ -1852,13 +1840,13 @@ msgstr ""
 msgid "End"
 msgstr "끝"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:261
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:464
 msgid "English"
 msgstr "영어"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:185
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:184
 msgid "Enhancements"
 msgstr "향상들"
 
@@ -1880,8 +1868,8 @@ msgstr "엔트리 1/%d"
 msgid "Equal"
 msgstr "같은"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1143
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1152
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:78
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:143
 msgid "Error"
 msgstr "에러"
@@ -1902,11 +1890,11 @@ msgid ""
 msgstr ""
 "플러그인 %s 로딩 에러: 파일을 찾을 수 없음. 플러그인을 다시 선택하세요."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:396
+#: Source/Core/DolphinWX/Src/Main.cpp:403
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:79
 #: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:88
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:80
-#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:81
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:72
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:124
 msgid "Error loading selected language. Falling back to system default."
 msgstr "선택된 언어 로딩 에러. 시스템 기본으로 돌아갑니다."
@@ -1942,7 +1930,7 @@ msgstr "예외 핸들러 - 메모리 공간 아래를 접근. %08llx%08llx"
 msgid "Execute"
 msgstr "실행"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:130
+#: Source/Core/DolphinWX/Src/Main.cpp:129
 msgid "Exit Dolphin with emulator"
 msgstr "에뮬레이터와 함께 돌핀을 나옴"
 
@@ -2039,7 +2027,7 @@ msgstr "연결에 실패했음!"
 msgid "Failed to Listen!!"
 msgstr "듣기에 실패했음!!"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:289
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
 msgid "Failed to download codes."
 msgstr "코드들 다운로드에 실패했음."
 
@@ -2139,7 +2127,7 @@ msgstr "%s 에 대한 헤더 쓰기에 실패"
 msgid "Failed to write header for file %d"
 msgstr "%d 파일에 대한 헤더 쓰기에 실패했음"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:315
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:314
 msgid "Fast"
 msgstr "빠른"
 
@@ -2157,7 +2145,7 @@ msgstr ""
 "닌다.\n"
 "더느린 이형들은 더 많은 픽셀들을 쳐다보고 그리하여 더 안전하다."
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
 msgstr "파일이 코드를 지니지 않었음."
 
@@ -2211,15 +2199,15 @@ msgstr "첫번째 블럭"
 msgid "Fix Checksums"
 msgstr "체크섬들 고침"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
 msgid "Force 16:9"
 msgstr "강제 16:9"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
 msgid "Force 4:3"
 msgstr "강제 4:3"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:219
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:218
 msgid "Force Bi/Trilinear Filtering"
 msgstr "Bi/Trilinear 필터링 강제"
 
@@ -2257,7 +2245,7 @@ msgstr ""
 msgid "Forward"
 msgstr "전진"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:237
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:236
 msgid "Fractional"
 msgstr "부분의"
 
@@ -2265,16 +2253,16 @@ msgstr "부분의"
 msgid "Frame S&kipping"
 msgstr "프레임 스킵(&k)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:454
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:478
 msgid "Framelimit :"
 msgstr "프레임제한 :"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:418
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:417
 msgid "Free Look"
 msgstr "자유 보기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:269
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:466
 msgid "French"
 msgstr "프랑스어"
@@ -2287,7 +2275,7 @@ msgstr "프렛들"
 msgid "FullScr"
 msgstr "전체화면"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:491
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
 msgid "Fullscreen Display Resolution:"
 msgstr "전체화면 디스플레이 해상도:"
 
@@ -2333,11 +2321,11 @@ msgstr "게임-상세 세팅들"
 msgid "GameConfig"
 msgstr "게임환경"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:442
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:451
 msgid "Gamecube"
 msgstr "게임큐브"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:988
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:997
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:219
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "게임큐브 메모리 카드들 (*.raw,*.gcp)"
@@ -2360,13 +2348,13 @@ msgstr ""
 "Gecko코드가 (CT%i CST%i) (%s) 구동에 실패했음\n"
 "(배드 코드이거나 코드 타입이 아직 지원않된다.)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:440
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:125
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:449
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:124
 msgid "General"
 msgstr "일반"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:465
 msgid "German"
 msgstr "독일어"
@@ -2376,7 +2364,7 @@ msgstr "독일어"
 msgid "GetARCode: Index is greater than ar code list size %lu"
 msgstr "GetARCode: 목록이 ar 코드 리스트 크기 %lu 보다 더 크다 "
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:779
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:785
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 msgid "Graphics"
 msgstr "그래픽"
@@ -2389,7 +2377,7 @@ msgstr "그래픽 세팅"
 msgid "Greater Than"
 msgstr "보다 큰"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 msgid "Greek"
 msgstr "그리스어"
 
@@ -2417,7 +2405,7 @@ msgstr "HCI_CMD_INQUIRY가 호출됨, 리포트해주세요!"
 msgid "Header checksum failed"
 msgstr "헤더 체크섬 실패했음"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
 msgid "Hebrew"
 msgstr "히브리어"
 
@@ -2429,7 +2417,7 @@ msgstr "높이"
 msgid "Help"
 msgstr "도움"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:185
+#: Source/Core/DolphinWX/Src/Main.cpp:184
 msgid ""
 "Hi,\n"
 "\n"
@@ -2449,11 +2437,11 @@ msgstr ""
 msgid "Hide"
 msgstr "숨김"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
 msgid "Hide Mouse Cursor"
 msgstr "마우스 커서 숨김"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:401
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:410
 msgid ""
 "Hide the cursor when it is over the rendering window\n"
 " and the rendering window has focus."
@@ -2474,12 +2462,12 @@ msgstr "호스트"
 msgid "Hotkey Configuration"
 msgstr "단축키 설정"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:521
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
 msgid "Hotkeys"
 msgstr "단축키들"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
 msgid "Hungarian"
 msgstr "헝가리어"
 
@@ -2511,7 +2499,7 @@ msgstr ""
 msgid "IOCTL_ES_READCONTENT - bad destination"
 msgstr "IOCTL_ES_READCONTENT - 나쁜 목적지"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:560
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:566
 msgid "IPL Settings"
 msgstr "IPL 세팅"
 
@@ -2523,7 +2511,7 @@ msgstr "IR"
 msgid "IR Pointer"
 msgstr "IR 포인터"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:710
 msgid "IR Sensitivity:"
 msgstr "IR 감도:"
 
@@ -2531,7 +2519,7 @@ msgstr "IR 감도:"
 msgid "ISO Details"
 msgstr "ISO 디테일"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:734
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:740
 msgid "ISO Directories"
 msgstr "ISO 디렉토리들"
 
@@ -2544,14 +2532,13 @@ msgid "Icon"
 msgstr "아이콘"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
+#, fuzzy
 msgid ""
-"If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-"option may fix the game."
+"If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
 msgstr ""
-"멈추면, 인터프리터로만 돌려라 그렇지 않으면 돌핀은 깨진다, 이 옵션은 그 게임"
-"을 고칠지 모른다."
+"메모리 관리 유닛 켜기, 일부 게임들에서 요구된다. (켬 = 호환성, 끔 = 빠른)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:391
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:399
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50),\n"
 "you also have to disable Audio Throttle in DSP to make it effective."
@@ -2595,12 +2582,12 @@ msgstr "게임안"
 msgid "In-Game"
 msgstr "게임-안"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:78
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:80
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:289
 msgid "Info"
 msgstr "정보"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:365
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:364
 #: Source/Core/Common/Src/MsgHandler.cpp:65
 msgid "Information"
 msgstr "정보"
@@ -2621,7 +2608,7 @@ msgstr "삽입"
 msgid "Insert Encrypted or Decrypted code here..."
 msgstr "암호화되거나 비암호화된 코드를 여기에 삽입하세요..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:700
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:702
 msgid "Insert SD Card"
 msgstr "SD 카드 삽입"
 
@@ -2633,7 +2620,7 @@ msgstr "이름을 여기에 넣으시오..."
 msgid "Install Wii Menu"
 msgstr "Wii 메뉴 설치"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:225
+#: Source/Core/DolphinWX/Src/Main.cpp:224
 msgid "Install directory could not be saved"
 msgstr "설치 디렉토리는 저장될 수 없었다"
 
@@ -2651,11 +2638,11 @@ msgstr ""
 msgid "Installing WAD to Wii Menu..."
 msgstr "WAD를 Wii 메뉴에 설치하기..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:237
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:236
 msgid "Integral [recommended]"
 msgstr "완전한 [권장]"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:512
 msgid "Interface Settings"
 msgstr "인터페이스 세팅들"
 
@@ -2685,7 +2672,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 에러 -  lzo_init() 실패했음"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:243
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
 msgid "Interpreter (VERY slow)"
 msgstr "인터프리터 (매우 느린)"
 
@@ -2734,8 +2721,8 @@ msgstr "무효한 기록 파일"
 msgid "Invalid state"
 msgstr "무효한 상태"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:271
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Italian"
 msgstr "이탈리어"
@@ -2744,16 +2731,16 @@ msgstr "이탈리어"
 msgid "JAPAN"
 msgstr "일본"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:244
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:250
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT 리컴파일러 (권장)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:245
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
 msgid "JITIL experimental recompiler"
 msgstr "JITIL 실험적 리컴파일러"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:280
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:286
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 msgid "Japanese"
 msgstr "일본어"
 
@@ -2775,8 +2762,8 @@ msgstr ""
 msgid "Key"
 msgstr "        [ 키 ]"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:283
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
 msgid "Korean"
 msgstr "한국어"
 
@@ -2794,7 +2781,7 @@ msgstr "L 버튼"
 msgid "L-Analog"
 msgstr "L-아날로그"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:550
 msgid "Language:"
 msgstr "언어:"
 
@@ -2842,11 +2829,11 @@ msgstr "보다 더 적은"
 msgid "Load"
 msgstr "로드"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:415
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:414
 msgid "Load Hi-Res Textures"
 msgstr "고-해상 텍스쳐들 로드"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:215
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:214
 msgid "Load Native Mipmaps"
 msgstr "내장 밉맵들 로드"
 
@@ -2877,7 +2864,7 @@ msgstr ""
 "내장 밉맵들을 로드하는 것은 좀 더 정확한 행동이, 하지만 또한 성능 감소할지도 "
 "모른다 (당신의 마일리지가 다양할지 몰라도)."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:125
+#: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Loads the specified file (DOL, ELF, WAD, GCM, ISO)"
 msgstr "명시된 파일 (DOL, ELF, WAD, GCM, ISO) 로드"
 
@@ -2885,7 +2872,7 @@ msgstr "명시된 파일 (DOL, ELF, WAD, GCM, ISO) 로드"
 msgid "Local"
 msgstr "지역"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:462
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:470
 msgid "Lock threads to cores"
 msgstr "쓰레드들을 코어들에 잠그기"
 
@@ -2957,12 +2944,12 @@ msgstr ""
 "메모리카드가 로드에 실패했음\n"
 " 카드 크기가 무효함 (%04X)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:75
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:226
 msgid "Memory Card"
 msgstr "메모리 카드"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:345
+#: Source/Core/Core/Src/CoreParameter.cpp:347
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -2987,15 +2974,15 @@ msgstr "메뉴"
 msgid "Metroid Other M"
 msgstr "Metroid Other M"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:79
 msgid "Mic"
 msgstr "마이크"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:423
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:422
 msgid "Misc"
 msgstr "기타"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:690
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:694
 msgid "Misc Settings"
 msgstr "기타 세팅들"
 
@@ -3016,7 +3003,7 @@ msgstr ""
 "그들이 사용하고 있는 포멧을 보여주기위해 텍스쳐들을 수정한다.\n"
 "이것은 단지 디버깅 목적으로만 유용하다."
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:93
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:95
 msgid "Monospaced font"
 msgstr "단일띄어쓰기 폰트"
 
@@ -3126,7 +3113,7 @@ msgstr "이름:"
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:77
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:278
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:550
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:16
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:13
 msgid "Name: "
 msgstr "이름:"
 
@@ -3188,11 +3175,11 @@ msgstr "%s 타이틀에 대한 저장 폴더가 없음"
 msgid "None"
 msgstr "없음"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:310
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:309
 msgid "Normal"
 msgstr "보통"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:307
 msgid "Norwegian Bokmaal"
 msgstr "노르웨이어 Bokmaal"
 
@@ -3205,7 +3192,7 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "세팅 안함"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:612
+#: Source/Core/DolphinWX/Src/Main.cpp:617
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -3213,7 +3200,7 @@ msgstr "연결되지 않음"
 msgid "Notes"
 msgstr "노트"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:17
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:14
 msgid "Notes: "
 msgstr "주목:"
 
@@ -3222,7 +3209,7 @@ msgstr "주목:"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:540
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:581
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:589
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:75
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:77
 msgid "Notice"
 msgstr "알림"
 
@@ -3253,7 +3240,7 @@ msgstr "눈처크 가속"
 msgid "OK"
 msgstr "OK"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:237
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:243
 msgid "Off"
 msgstr "끔"
 
@@ -3296,15 +3283,15 @@ msgstr "OpenAL: 사운드 장치들을 찾을 수 없음"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: %s 장치를 열 수 없음"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:117
+#: Source/Core/DolphinWX/Src/Main.cpp:116
 msgid "Opens the debugger"
 msgstr "디버거 연다"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:121
+#: Source/Core/DolphinWX/Src/Main.cpp:120
 msgid "Opens the logger"
 msgstr "로거를 연다"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:124
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:126
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:279
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
@@ -3374,13 +3361,13 @@ msgstr "파티션 %i"
 msgid "Patches"
 msgstr "패치들"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:444
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:453
 msgid "Paths"
 msgstr "경로"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1401
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1407
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1408
 msgid "Pause"
 msgstr "일시정지"
 
@@ -3393,17 +3380,17 @@ msgstr "완벽한"
 msgid "Perspective %d"
 msgstr "관점 %d"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:218
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:217
 msgid "Pixel Depth"
 msgstr "픽셀 깊이"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:217
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:216
 msgid "Pixel Lighting"
 msgstr "픽셀 광원"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:362
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1410
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1411
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1416
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1417
 msgid "Play"
 msgstr " 실행▶"
 
@@ -3419,7 +3406,7 @@ msgstr "플레이가능"
 msgid "Players"
 msgstr "플레이어"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:918
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:915
 msgid "Please confirm..."
 msgstr "확인해주세요..."
 
@@ -3427,7 +3414,7 @@ msgstr "확인해주세요..."
 msgid "Please create a perspective before saving"
 msgstr "저장하기전에 관점을 생성해 주세요."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:445
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:454
 msgid "Plugins"
 msgstr "플러그인"
 
@@ -3435,16 +3422,36 @@ msgstr "플러그인"
 msgid "Plus-Minus"
 msgstr "플러스-마이너스"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:308
 msgid "Polish"
 msgstr "폴란드어"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:623
+#, fuzzy
+msgid "Port 1"
+msgstr "포트:"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:624
+#, fuzzy
+msgid "Port 2"
+msgstr "포트:"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:625
+#, fuzzy
+msgid "Port 3"
+msgstr "포트:"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
+#, fuzzy
+msgid "Port 4"
+msgstr "포트:"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:74
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:106
 msgid "Port :"
 msgstr "포트:"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:210
+#: Source/Core/DolphinWX/Src/Main.cpp:209
 msgid ""
 "Portable Setting could not be saved\n"
 " Are you running Dolphin from read only media or from a directory that "
@@ -3453,11 +3460,11 @@ msgstr ""
 "포터블 세팅은 저장되어질 수 없었음\n"
 " 돌핀을 읽기 전용 미디어나 돌핀이 위치하지 않은 디렉토리에서 구동하겠습니까?"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:309
 msgid "Portuguese (Brazilian)"
 msgstr "포루투칼어 (브라질의)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:438
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:435
 msgid "Post-Processing Shader:"
 msgstr "후-처리 쉐이더:"
 
@@ -3485,7 +3492,7 @@ msgstr "프로파일"
 msgid "Projection Hack for: "
 msgstr "프로젝션 핵:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
 msgid "Projection Stats"
 msgstr "프로젝션 상태들"
 
@@ -3520,7 +3527,7 @@ msgstr "R 버튼"
 msgid "R-Analog"
 msgstr "R-아날로그"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:268
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:267
 msgid "RAM"
 msgstr "램"
 
@@ -3532,7 +3539,7 @@ msgstr "러시아"
 msgid "Range"
 msgstr "범위"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:386
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:385
 msgid "Real"
 msgstr "리얼"
 
@@ -3577,12 +3584,12 @@ msgstr "갱신"
 msgid "Refresh game list"
 msgstr "게임 목록 갱신"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:234
+#: Source/Core/DolphinWX/Src/Main.cpp:233
 msgid "Relaunch Dolphin from the install directory and save from there"
 msgstr "설치 디렉토리에서 돌핀을 다시 불러오고 거기에서 저장함"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:744
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
 msgid "Remove"
@@ -3596,19 +3603,19 @@ msgstr ""
 "장면을 와이어프레임으로 렌더한다.\n"
 "이것은 디버깅 목적들로만 유용하다."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:501
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:507
 msgid "Render to Main Window"
 msgstr "메인 윈도우에 렌더"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:402
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:411
 msgid "Render to main window."
 msgstr "메인 윈도우에 렌더"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:351
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:350
 msgid "Rendering"
 msgstr "렌더링"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:404
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:413
 msgid "Required for using the Japanese ROM font."
 msgstr "일본 롬 폰트를 사용하기 위해서 요구된다."
 
@@ -3642,7 +3649,7 @@ msgstr "럼블"
 msgid "Run"
 msgstr "구동"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:394
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:402
 msgid "Run DSPLLE on a dedicated thread (not recommended)."
 msgstr "DSPLLE를 전용 쓰레드상에서 구동하기 (권장 안함)"
 
@@ -3650,7 +3657,7 @@ msgstr "DSPLLE를 전용 쓰레드상에서 구동하기 (권장 안함)"
 msgid "Running script...\n"
 msgstr "스크립트 구동중...\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Russian"
 msgstr "러시안어"
 
@@ -3658,7 +3665,7 @@ msgstr "러시안어"
 msgid "Sa&ve State"
 msgstr "상태 저장(&v) "
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:304
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:303
 msgid "Safe"
 msgstr "안전한"
 
@@ -3702,7 +3709,7 @@ msgstr "압축풀린 GCM/ISO를 저장"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "%s 영상 상태저장은 오염됨, 영상 기록 멈추기..."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:243
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:242
 msgid "Scale:"
 msgstr "스케일:"
 
@@ -3726,7 +3733,7 @@ msgstr "스크롤 락"
 msgid "Search Filter"
 msgstr "필터 찾기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Search Subfolders"
 msgstr "하위폴더들 찾기"
 
@@ -3742,7 +3749,7 @@ msgid "Select"
 msgstr "선택"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:649
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1004
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1010
 msgid "Select The Recording File"
 msgstr "기록 파일 선택"
 
@@ -3762,11 +3769,11 @@ msgstr "가져올 세이브 파일을 선택"
 msgid "Select floating windows"
 msgstr "떠다니는 윈도우즈 선택"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:397
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:405
 msgid "Select resolution for fullscreen mode"
 msgstr "전체화면 모드에 대한 해상도 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1205
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1211
 msgid ""
 "Select the System Menu wad extracted from the update partition of a disc"
 msgstr "디스크의 업데이트 파티션에서 풀린 [시스템 메뉴] wad를 선택"
@@ -3775,7 +3782,7 @@ msgstr "디스크의 업데이트 파티션에서 풀린 [시스템 메뉴] wad�
 msgid "Select the file to load"
 msgstr "로드할 파일 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1172
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1178
 msgid "Select the save file"
 msgstr "세이브 파일 선택"
 
@@ -3783,11 +3790,11 @@ msgstr "세이브 파일 선택"
 msgid "Select the script to load"
 msgstr "로드할 스크립트 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1256
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1262
 msgid "Select the state to load"
 msgstr "로드할 상태 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1270
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1276
 msgid "Select the state to save"
 msgstr "저장할 상태 선택"
 
@@ -3805,7 +3812,7 @@ msgstr ""
 "강제 4:3: 그림을 4:3 종횡비로 늘린다.\n"
 "윈도우로 늘림: 그림을 윈도우 크기로 늘린다."
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:94
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:96
 msgid "Selected font"
 msgstr "선택된 폰트"
 
@@ -3813,7 +3820,7 @@ msgstr "선택된 폰트"
 msgid "Send"
 msgstr "보내기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:707
 msgid "Sensor Bar Position:"
 msgstr "센서 바 위치:"
 
@@ -3821,7 +3828,7 @@ msgstr "센서 바 위치:"
 msgid "Separator"
 msgstr "분리자"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:420
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:429
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사용하는 포트이다"
@@ -3830,7 +3837,7 @@ msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사�
 msgid "Set"
 msgstr "세팅"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:503
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:509
 msgid "Set Console as NTSC-J"
 msgstr "콘솔을 NTSC-J 로 세팅"
 
@@ -3843,7 +3850,7 @@ msgstr "디폴트 ISO로 세팅(&d)"
 msgid "Set as default Memcard %c"
 msgstr "기본 메모리카드 %c 로 세팅"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:221
+#: Source/Core/DolphinWX/Src/Main.cpp:220
 #, c-format
 msgid ""
 "Set install location to:\n"
@@ -3889,7 +3896,7 @@ msgstr "툴바 보기(&T)"
 msgid "Show Drives"
 msgstr "드라이브 보기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:369
 msgid "Show FPS"
 msgstr "FPS 보기"
 
@@ -3929,7 +3936,7 @@ msgstr "플랫폼 보기"
 msgid "Show Regions"
 msgstr "지역 보기"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:375
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:374
 msgid "Show Shader Errors"
 msgstr "쉐이더 에러들 보기"
 
@@ -3949,11 +3956,11 @@ msgstr "Wad 보기"
 msgid "Show Wii"
 msgstr "Wii 보기"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:407
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:416
 msgid "Show a confirmation box before stopping a game."
 msgstr "게임을 멈추기 전에 확인 박스 보여주기."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:408
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:417
 msgid ""
 "Show a message box when a potentially serious error has occured.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
@@ -3997,7 +4004,7 @@ msgstr "저장 타이틀 보기"
 msgid "Show the number of frames rendered per second."
 msgstr "매 초마다 렌더되는 프레임수 보기."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:112
+#: Source/Core/DolphinWX/Src/Main.cpp:111
 msgid "Show this help message"
 msgstr "이 도움 메시지 보기"
 
@@ -4017,7 +4024,7 @@ msgstr ""
 msgid "Sideways Wiimote"
 msgstr "사이드웨이 위모트"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:281
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
 msgid "Simplified Chinese"
 msgstr "간략화된 중국어"
 
@@ -4029,13 +4036,23 @@ msgstr "크기"
 msgid "Skies of Arcadia"
 msgstr "Skies of Arcadia"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:460
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:468
 msgid "Skip GC BIOS"
 msgstr "GC BIOS 건너뜀"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:174
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:175
 msgid "Slot"
+msgstr "슬롯"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:572
+#, fuzzy
+msgid "Slot A"
+msgstr "슬롯"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:573
+#, fuzzy
+msgid "Slot B"
 msgstr "슬롯"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:59
@@ -4065,8 +4082,8 @@ msgstr "사운드 버퍼 생성 실패했음: %s"
 msgid "Space"
 msgstr "스페이스"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:467
 msgid "Spanish"
 msgstr "스페인어"
@@ -4096,11 +4113,11 @@ msgstr ""
 "다른 옵션들은 당신의 디스플레이 사이즈와는 독립적으로 비주얼 퀄리티 고르기로 "
 "고정되어진다."
 
-#: Source/Core/DolphinWX/Src/Main.cpp:134
+#: Source/Core/DolphinWX/Src/Main.cpp:133
 msgid "Specify a video plugin"
 msgstr "비디오 플러그인 명시"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:139
+#: Source/Core/DolphinWX/Src/Main.cpp:138
 msgid "Specify an audio plugin"
 msgstr "오디오 플러그인 명시"
 
@@ -4112,7 +4129,7 @@ msgstr "디스크 전송율 스피드 업"
 msgid "Square Stick"
 msgstr "스퀘어 스틱"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:71
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:74
 msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
@@ -4130,11 +4147,11 @@ msgstr "넷플레이 시작(&N)"
 msgid "Start Re&cording"
 msgstr "기록 시작(&c)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:505
 msgid "Start Renderer in Fullscreen"
 msgstr "전체화면에서 렌더러 시작"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:400
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:409
 msgid "Start the rendering window in fullscreen mode."
 msgstr "풀스크린 모드에서 윈도우 렌더링 시작"
 
@@ -4153,7 +4170,7 @@ msgstr "스틱"
 msgid "Stop"
 msgstr "중지"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:167
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:166
 msgid "Stretch to Window"
 msgstr "윈도우로 늘림"
 
@@ -4178,8 +4195,8 @@ msgstr "세이브 파일들을 성공적으로 가져왔음"
 msgid "Swing"
 msgstr "스윙"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:561
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:695
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:656
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
 msgid "System Language:"
 msgstr "시스템 언어:"
 
@@ -4213,15 +4230,15 @@ msgstr "스크린샷 얻기"
 msgid "Test"
 msgstr "테스트"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:266
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:265
 msgid "Texture"
 msgstr "텍스쳐"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:373
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:372
 msgid "Texture Format"
 msgstr "텍스쳐 포멧"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:207
+#: Source/Core/Core/Src/CoreParameter.cpp:209
 msgid "The WAD has been installed successfully"
 msgstr "WAD가 성공적으로 설치되었습니다"
 
@@ -4233,15 +4250,20 @@ msgstr "주소가 무효합니다"
 msgid "The checksum was successfully fixed"
 msgstr "체크섬이 성공적으로 고쳐졌다"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1143
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1152
 msgid "The chosen directory is already in the list"
 msgstr "선택된 디렉토리는 이미 리스트에 있다"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1220
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1248
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1314
-msgid "The file "
-msgstr "그 파일"
+#, fuzzy, c-format
+msgid ""
+"The file %s already exists.\n"
+"Do you wish to replace it?"
+msgstr ""
+" 이미 존재함.\n"
+"그것을 바꾸고 싶나요?"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:51
 #, c-format
@@ -4257,7 +4279,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s 파일이 이미 열려 있었다, 파일 헤더는 기록되지 않을 것이다."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:279
+#: Source/Core/Core/Src/Boot/Boot.cpp:280
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "당신이 기술한 파일 (%s)는 존재하지 않는다"
@@ -4274,11 +4296,11 @@ msgstr "이른은 ',' 문자를 포함할 수 없다"
 msgid "The save you are trying to copy has an invalid file size"
 msgstr "복사시도하려는 그 저장은 무효한 파일 크기를 지닌다"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:403
+#: Source/Core/DolphinWX/Src/Main.cpp:410
 #: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:86
 #: Source/Plugins/Plugin_DSP_HLE/Src/main.cpp:95
 #: Source/Plugins/Plugin_DSP_LLE/Src/main.cpp:87
-#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:88
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:79
 #: Source/Plugins/Plugin_VideoOGL/Src/main.cpp:131
 msgid ""
 "The selected language is not supported by your system. Falling back to "
@@ -4303,7 +4325,7 @@ msgstr "서버가 응답했음: 그 게임은 현재 구동중이다!"
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 에러 메시지를 보냈음!"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:117
+#: Source/Core/Core/Src/CoreParameter.cpp:118
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "기술된 \"%s\" 파일은 존재하지 않는다"
@@ -4312,7 +4334,7 @@ msgstr "기술된 \"%s\" 파일은 존재하지 않는다"
 msgid "The value is invalid"
 msgstr "값이 무효하다"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:511
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid "Theme"
 msgstr "테마"
 
@@ -4344,7 +4366,7 @@ msgstr ""
 "이 액션 리플레이 시뮬레이터는 액션 리플레이 스스로 수정한 코드를 지원하지 않"
 "는다."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:424
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:433
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "이것은 Wii 메뉴와 일부 게임들에서 느려짐을 유발할 수 있다."
 
@@ -4371,7 +4393,7 @@ msgstr "이것은 음악 트랙들을 재생하는데에 쓰인다, BGM같은."
 msgid "This is usually used to play voice and sound effects."
 msgstr "이것은 보통 음성과 소리 효과들 재생에 사용된다."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:390
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:398
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
 "cores.\n"
@@ -4406,19 +4428,19 @@ msgstr "    제목"
 msgid "Toggle Fullscreen"
 msgstr "전체화면 토글"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:127
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:129
 msgid "Toggle all"
 msgstr "모두 토글"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "Top"
 msgstr "위"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:282
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:288
 msgid "Traditional Chinese"
 msgstr "전통 중국어"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:369
+#: Source/Core/Core/Src/Boot/Boot.cpp:370
 msgid "Tried to load an unknown file type."
 msgstr "알려지지않은 파일 타입을 로드시도했다."
 
@@ -4443,7 +4465,7 @@ msgstr ""
 "효한 SYSCONF에서 읽기 시도\n"
 "위모트 bt id들은 유용하지 않다"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:312
 msgid "Turkish"
 msgstr ""
 
@@ -4529,19 +4551,20 @@ msgstr "업데이트"
 msgid "Upright Wiimote"
 msgstr "업라이트 위모트"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:692
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:696
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "EuRGB60 모드 (PAL60) 사용"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:456
-msgid "Use FPS  For Limiting"
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:464
+#, fuzzy
+msgid "Use FPS For Limiting"
 msgstr "제한을 위해 FPS를 사용"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:560
 msgid "Use Hex"
 msgstr "헥스 사용"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:508
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:514
 msgid "Use Panic Handlers"
 msgstr "패닉 핸들러 사용"
 
@@ -4561,11 +4584,11 @@ msgstr ""
 "대단히 비주얼 퀄리티가 EFB 복사들을 사용하는 게임들안에서 향상되지만 일부 게"
 "임들에서 결함들을 일으킬 것이다."
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:409
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:408
 msgid "Utility"
 msgstr "유틸리티"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:180
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:179
 msgid "V-Sync"
 msgstr "수직-동기화"
 
@@ -4581,11 +4604,11 @@ msgstr "값:"
 msgid "Value: "
 msgstr "값:"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:371
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
 msgid "Various Statistics"
 msgstr "다양한 통계들"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:82
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:84
 msgid "Verbosity"
 msgstr "Verbosity"
 
@@ -4593,7 +4616,7 @@ msgstr "Verbosity"
 msgid "Video"
 msgstr "비디오"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:385
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:384
 msgid "Virtual"
 msgstr "가상"
 
@@ -4602,9 +4625,9 @@ msgstr "가상"
 msgid "Volume"
 msgstr "볼륨"
 
-#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:110
-#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:139
-#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:165
+#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:111
+#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:140
+#: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:166
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD 설치 실패했음: 에러 생성 %s"
@@ -4617,17 +4640,17 @@ msgstr ""
 "수직 깜박임을 기다린다.\n"
 "갈라짐을 줄이지만 또한 성능이 감소될지 모른다."
 
-#: Source/Core/DolphinWX/Src/Frame.cpp:660
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:77
+#: Source/Core/DolphinWX/Src/Frame.cpp:663
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:79
 #: Source/Core/Common/Src/MsgHandler.cpp:67
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:238
+#: Source/Core/Core/Src/Boot/Boot.cpp:239
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:288
+#: Source/Core/Core/Src/Boot/Boot.cpp:289
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 ELF 시작!"
 
@@ -4668,7 +4691,7 @@ msgstr "WaveFileWriter - 파일이 열리지 않음."
 msgid "Whammy"
 msgstr "훼미"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:108
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:107
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
 "texture, which is a very time-consuming task.\n"
@@ -4690,7 +4713,7 @@ msgstr ""
 "(노트: 더 안전한 텍스쳐 캐쉬는 더 적은 스피드업이 생기게 조정된다; \"safe"
 "\"로 세팅된 정확한 텍스쳐 캐쉬는 실제로 더 느려질 것이다!)"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:178
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:177
 msgid "Widescreen Hack"
 msgstr "와이드스크린 핵"
 
@@ -4698,7 +4721,7 @@ msgstr "와이드스크린 핵"
 msgid "Width"
 msgstr "넓이"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:443
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:452
 msgid "Wii"
 msgstr "Wii"
 
@@ -4710,7 +4733,7 @@ msgstr "Wii 콘솔"
 msgid "Wii Save Import"
 msgstr "Wii 저장 가져오기"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1174
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1180
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii 저장 파일들 (*.bin)|*.bin"
 
@@ -4740,15 +4763,15 @@ msgstr ""
 "혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
 "당신은 즉시 재연결 하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:614
+#: Source/Core/DolphinWX/Src/Main.cpp:619
 msgid "Wiimote Connected"
 msgstr "위모트가 연결됨"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:687
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:691
 msgid "Wiimote Motor"
 msgstr "위모트 모터"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:682
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:688
 msgid "Wiimote Settings"
 msgstr "위모트 세팅"
 
@@ -4756,19 +4779,19 @@ msgstr "위모트 세팅"
 msgid "Wiimote settings"
 msgstr "위모트 세팅"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:403
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 msgid "Will enable progressive scan option if supported by software."
 msgstr "소프트에서 지원되면 프로그레시브 스캔을 켤 것이다."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:534
 msgid "Window Size:"
 msgstr "윈도우 크기:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:399
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:407
 msgid "Window height for windowed mode"
 msgstr "창모드에 대한 윈도우 높이"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:398
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:406
 msgid "Window width for windowed mode"
 msgstr "창모드에 대한 윈도우 넓이"
 
@@ -4784,7 +4807,7 @@ msgstr "윈도우즈 메뉴"
 msgid "Windows Right"
 msgstr "윈도우즈 오른쪽"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:103
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:105
 msgid "Word Wrap"
 msgstr "자동 줄바꿈"
 
@@ -4794,15 +4817,15 @@ msgstr "자동 줄바꿈"
 msgid "Working..."
 msgstr "작동중..."
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:107
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:109
 msgid "Write to Console"
 msgstr "콘솔에 쓰기"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:105
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:107
 msgid "Write to File"
 msgstr "파일에 쓰기"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:109
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:111
 msgid "Write to Window ->"
 msgstr "윈도우에 쓰기 ->"
 
@@ -4821,7 +4844,7 @@ msgstr "XAudio2 초기화 실패: %#X"
 msgid "XAudio2 master voice creation failed: %#X"
 msgstr "XAudio2 매스터 보이스 생성 실패했음: %#X"
 
-#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:380
+#: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:379
 msgid "XFB"
 msgstr "외부프레임버퍼"
 
@@ -4849,11 +4872,11 @@ msgstr "유효한 십진수나 헥스 값을 넣어야한다."
 msgid "You must enter a valid profile name."
 msgstr "유효한 프로파일 이름을 넣어야한다."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:926
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:935
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "변경이 적용되려면 돌핀을 재시작 해야합니다."
 
-#: Source/Core/Core/Src/CoreParameter.cpp:172
+#: Source/Core/Core/Src/CoreParameter.cpp:173
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -4894,7 +4917,7 @@ msgstr "[ 대기 ]"
 msgid "^ ADD"
 msgstr "^ ADD"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:749
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
 msgid "apploader (.img)"
 msgstr "어플로더 (.img)"
 
@@ -4934,11 +4957,23 @@ msgstr "어플리케이션 구동상에 wxExecute가 -1을 돌려주었음!"
 msgid "| OR"
 msgstr "| OR"
 
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
+
+#~ msgid "&Frame Stepping"
+#~ msgstr "프레임 스탭(&F)"
+
 #~ msgid "ALSA"
 #~ msgstr "ALSA"
 
 #~ msgid "AOSound"
 #~ msgstr "AOSound"
+
+#~ msgid "Adjust window size"
+#~ msgstr "윈도우 크기 조정"
+
+#~ msgid "Alternate RFI"
+#~ msgstr "RFI 대안"
 
 #~ msgid "Connected"
 #~ msgstr "연결된"
@@ -4958,6 +4993,13 @@ msgstr "| OR"
 #~ msgid "Dolphin Direct3D9"
 #~ msgstr "돌핀 Direct3D9"
 
+#~ msgid ""
+#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
+#~ "option may fix the game."
+#~ msgstr ""
+#~ "멈추면, 인터프리터로만 돌려라 그렇지 않으면 돌핀은 깨진다, 이 옵션은 그 게"
+#~ "임을 고칠지 모른다."
+
 #~ msgid "No audio output"
 #~ msgstr "오디오 출력 없음"
 
@@ -4972,6 +5014,9 @@ msgstr "| OR"
 
 #~ msgid "ROM %s too short : %i/%i"
 #~ msgstr "%s 롬은 너무 짧음 : %i/%i"
+
+#~ msgid "The file "
+#~ msgstr "그 파일"
 
 #~ msgid "Wiimote %i %s"
 #~ msgstr "위모트 %i %s"

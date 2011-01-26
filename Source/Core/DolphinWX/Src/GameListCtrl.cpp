@@ -1217,8 +1217,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
 						wxMessageBox(
-							_("The file ") + wxString::FromAscii(OutputFileName.c_str()) +
-							_(" already exists.\nDo you wish to replace it?"), 
+							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
+								OutputFileName.c_str()), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1245,8 +1245,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
 						wxMessageBox(
-							_("The file ") + wxString::FromAscii(OutputFileName.c_str()) +
-							_(" already exists.\nDo you wish to replace it?"), 
+							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
+								OutputFileName.c_str()), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1311,7 +1311,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			return;
 	} while (wxFileExists(path) &&
 			wxMessageBox(
-				_("The file ") + path + _(" already exists.\nDo you wish to replace it?"), 
+				wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"), path.c_str()), 
 				_("Confirm File Overwrite"),
 				wxYES_NO) == wxNO);
 

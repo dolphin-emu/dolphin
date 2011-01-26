@@ -78,7 +78,7 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		{
 			text_section[i] = new u8[m_dolheader.textSize[i]];
 			memcpy(text_section[i], _pBuffer + m_dolheader.textOffset[i], m_dolheader.textSize[i]);
-			for (int j = 0; j < (m_dolheader.textSize[i]/sizeof(u32)); j++)
+			for (unsigned int j = 0; j < (m_dolheader.textSize[i]/sizeof(u32)); j++)
 			{
 				u32 word = Common::swap32(((u32*)text_section[i])[j]);
 				if ((word & HID4_mask) == HID4_pattern)
