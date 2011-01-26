@@ -298,7 +298,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
-			CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_MAIL_SLICE);
+			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
 		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
@@ -310,7 +310,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case DSP_MAIL_FROM_DSP_HI:
 		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
-			CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_MAIL_SLICE);
+			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
 		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
@@ -631,12 +631,12 @@ void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 void UpdateDSPSlice(int cycles) {
 	if (dsp_is_lle) {
 		//use up the rest of the slice(if any)
-		CPluginManager::GetInstance().GetDSP()->DSP_Update(dsp_slice);
+		dsp_plugin->DSP_Update(dsp_slice);
 		dsp_slice %= 6;
 		//note the new budget
 		dsp_slice += cycles;
 	} else {
-		CPluginManager::GetInstance().GetDSP()->DSP_Update(cycles);
+		dsp_plugin->DSP_Update(cycles);
 	}
 }
 
