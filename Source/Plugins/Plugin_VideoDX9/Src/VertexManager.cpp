@@ -173,7 +173,9 @@ void VertexManager::vFlush()
 
 	Draw(stride);
 
-	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
+	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	if (useDstAlpha)
 	{
 		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
