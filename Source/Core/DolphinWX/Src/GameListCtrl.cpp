@@ -399,7 +399,18 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 	int ImageIndex = -1;
-	static wxCSConv *SJISConv = WxUtils::SJISConv();
+
+#ifdef _WIN32
+		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+		{
+			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		}
+		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+#else
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#endif
 
 	GameListItem& rISOFile = m_ISOFiles[_Index];
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
@@ -432,12 +443,12 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		case DiscIO::IVolume::COUNTRY_TAIWAN:
 		case DiscIO::IVolume::COUNTRY_JAPAN:
 			{
-				wxString name = wxString(rISOFile.GetName(0).c_str(), *SJISConv);
+				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
 				m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
 				SetItem(_Index, COLUMN_TITLE, name, -1);
 				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
 							company.c_str() : rISOFile.GetDescription(0).c_str(),
-							*SJISConv), -1);
+							SJISConv), -1);
 			}
 			break;
 		case DiscIO::IVolume::COUNTRY_USA:
@@ -467,9 +478,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	{
 		m_gameList.append(StringFromFormat("%s (WAD)\n", rISOFile.GetName(0).c_str()));
 		SetItem(_Index, COLUMN_TITLE,
-				wxString(rISOFile.GetName(0).c_str(), *SJISConv), -1);
+				wxString(rISOFile.GetName(0).c_str(), SJISConv), -1);
 		SetItem(_Index, COLUMN_NOTES,
-				wxString(rISOFile.GetDescription(0).c_str(), *SJISConv), -1);
+				wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
 	}
 
 #ifndef _WIN32

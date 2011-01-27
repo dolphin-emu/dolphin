@@ -27,7 +27,6 @@
 #include "GeckoCodeDiag.h"
 #include "ConfigManager.h"
 #include "StringUtil.h"
-#include "WxUtils.h"
 
 #include "../resources/isoprop_file.xpm"
 #include "../resources/isoprop_folder.xpm"
@@ -1249,14 +1248,24 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		|| OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
 		|| OpenGameListItem->GetPlatform() == GameListItem::WII_WAD)
 	{
-		static wxCSConv * SJISConv = WxUtils::SJISConv();
+#ifdef _WIN32
+		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+		{
+			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		}
+		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+#else
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#endif
 
-		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), *SJISConv);
+		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
 
 		// Updates the informations shown in the window
 		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), *SJISConv));
-		m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), *SJISConv));//dev too
+		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv));
+		m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), SJISConv));//dev too
 
 		std::string filename, extension;
 		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);

@@ -20,8 +20,6 @@
 
 namespace WxUtils {
 
-wxCSConv * SJISConv();
-
 // Launch a file according to its mime type
 void Launch(const char *filename);
 
