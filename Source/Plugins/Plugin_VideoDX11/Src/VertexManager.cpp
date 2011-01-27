@@ -158,8 +158,6 @@ void VertexManager::vFlush()
 	Flushed=true;
 	VideoFifo_CheckEFBAccess();
 
-	DVSTARTPROFILE();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
