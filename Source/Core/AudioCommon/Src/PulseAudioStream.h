@@ -46,7 +46,7 @@ public:
 
 private:
 	virtual void SoundLoop();
-	static void *ThreadTrampoline(void *args);
+	static void ThreadTrampoline(PulseAudio* args);
 	bool PulseInit();
 	void PulseShutdown();
 	bool Write(const void *data, size_t bytes);
@@ -56,7 +56,7 @@ private:
 	static void StreamWriteCB(pa_stream *s, size_t length, void *userdata);
 
 	u8 *mix_buffer;
-	Common::Thread *thread;
+	std::thread thread;
 	volatile bool thread_running;
 
 	pa_threaded_mainloop *mainloop;

@@ -33,15 +33,14 @@ AlsaSound::~AlsaSound()
 	delete [] mix_buffer;
 }
 
-static void *ThreadTrampoline(void *args)
+static void ThreadTrampoline(AlsaSound* args)
 {
-	reinterpret_cast<AlsaSound *>(args)->SoundLoop();
-	return NULL;
+	args->SoundLoop();
 }
 
 bool AlsaSound::Start()
 {
-	thread = new Common::Thread(&ThreadTrampoline, this);
+	thread = std::thread(ThreadTrampoline, this);
 	thread_data = 0;
 	return true;
 }
@@ -49,8 +48,7 @@ bool AlsaSound::Start()
 void AlsaSound::Stop()
 {
 	thread_data = 1;
-	delete thread;
-	thread = NULL;
+	thread.join();
 }
 
 void AlsaSound::Update()

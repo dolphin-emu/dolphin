@@ -35,24 +35,22 @@ PulseAudio::~PulseAudio()
 	delete [] mix_buffer;
 }
 
-void *PulseAudio::ThreadTrampoline(void *args)
+void PulseAudio::ThreadTrampoline(PulseAudio* args)
 {
-	((PulseAudio *)args)->SoundLoop();
-	return NULL;
+	args->SoundLoop();
 }
 
 bool PulseAudio::Start()
 {
 	thread_running = true;
-	thread = new Common::Thread(&ThreadTrampoline, this);
+	thread = std::thread(ThreadTrampoline, this);
 	return true;
 }
 
 void PulseAudio::Stop()
 {
 	thread_running = false;
-	delete thread;
-	thread = NULL;
+	thread.join();
 }
 
 void PulseAudio::Update()
