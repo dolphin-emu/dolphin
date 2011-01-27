@@ -290,8 +290,6 @@ void BPWritten(const BPCmd& bp)
 				ClearScreen(bp, rc);
 			}
 
-			RestoreRenderState(bp); // TODO: Remove this call, handle this in the plugins instead
-			
 			break;
 		}
 	case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.

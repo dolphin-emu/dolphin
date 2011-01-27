@@ -48,7 +48,6 @@ void SetColorMask(const BPCmd &bp);
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf);
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc);
 void OnPixelFormatChange(const BPCmd &bp);
-void RestoreRenderState(const BPCmd &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
 void SetTextureMode(const BPCmd &bp);

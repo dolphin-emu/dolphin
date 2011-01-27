@@ -197,11 +197,6 @@ skip:
 	Renderer::StorePixelFormat(new_format);
 }
 
-void RestoreRenderState(const BPCmd &bp)
-{
-	g_renderer->RestoreAPIState();
-}
-
 bool GetConfig(const int &type)
 {
 	switch (type)

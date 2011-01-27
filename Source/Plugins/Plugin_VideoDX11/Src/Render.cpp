@@ -62,8 +62,6 @@ struct
 	D3D11_RASTERIZER_DESC rastdc;
 } gx_state;
 
-bool reset_called = false;
-
 // State translation lookup tables
 static const D3D11_BLEND d3dSrcFactors[8] =
 {
@@ -381,8 +379,6 @@ Renderer::Renderer()
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
-
-	reset_called = false;
 }
 
 Renderer::~Renderer()
@@ -1134,21 +1130,16 @@ void Renderer::ResetAPIState()
 	D3D::stateman->PushBlendState(resetblendstate);
 	D3D::stateman->PushDepthState(resetdepthstate);
 	D3D::stateman->PushRasterizerState(resetraststate);
-	reset_called = true;
 }
 
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-	if (reset_called)
-	{
-		D3D::stateman->PopBlendState();
-		D3D::stateman->PopDepthState();
-		D3D::stateman->PopRasterizerState();
-	}
+	D3D::stateman->PopBlendState();
+	D3D::stateman->PopDepthState();
+	D3D::stateman->PopRasterizerState();
 	UpdateViewport();
 	SetScissorRect();
-	reset_called = false;
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)
