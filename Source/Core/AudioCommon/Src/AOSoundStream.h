@@ -29,7 +29,7 @@
 class AOSound : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
-	Common::Thread *thread;
+	std::thread thread;
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
 

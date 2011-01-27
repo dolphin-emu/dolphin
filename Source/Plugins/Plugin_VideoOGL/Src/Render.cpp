@@ -98,7 +98,7 @@ static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
 
 #if defined(HAVE_WX) && HAVE_WX
-static Common::Thread *scrshotThread = 0;
+static std::thread scrshotThread;
 #endif
 
 #ifdef _WIN32
@@ -490,8 +490,8 @@ Renderer::~Renderer()
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
-	if (scrshotThread)
-		delete scrshotThread;
+	if (scrshotThread.joinable())
+		scrshotThread.join();
 #endif
 
 	delete g_framebuffer_manager;
@@ -1496,10 +1496,8 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 }
 
 #if defined(HAVE_WX) && HAVE_WX
-THREAD_RETURN TakeScreenshot(void *pArgs)
+void TakeScreenshot(ScrStrct* threadStruct)
 {
-	ScrStrct *threadStruct = (ScrStrct *)pArgs;
-
 	// These will contain the final image size
 	float FloatW = (float)threadStruct->W;
 	float FloatH = (float)threadStruct->H;
@@ -1538,8 +1536,6 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
 		threadStruct->filename.c_str()).c_str(), 2000);
 	delete threadStruct;
-
-	return 0;
 }
 #endif
 
@@ -1569,20 +1565,17 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	// Create wxImage
 	wxImage *a = new wxImage(W, H, data);
 
-	if (scrshotThread)
-	{
-		delete scrshotThread;
-		scrshotThread = NULL;
-	}
+	if (scrshotThread.joinable())
+		scrshotThread.join();
 
 	ScrStrct *threadStruct = new ScrStrct;
 	threadStruct->filename = filename;
 	threadStruct->img = a;
 	threadStruct->H = H; threadStruct->W = W;
 
-	scrshotThread = new Common::Thread(TakeScreenshot, threadStruct);
+	scrshotThread = std::thread(TakeScreenshot, threadStruct);
 #ifdef _WIN32
-	scrshotThread->SetPriority(THREAD_PRIORITY_BELOW_NORMAL);
+	SetThreadPriority(scrshotThread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
 #endif
 	bool result = true;
 

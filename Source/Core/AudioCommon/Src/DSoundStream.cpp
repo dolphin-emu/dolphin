@@ -91,10 +91,9 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 }
 
 // The audio thread.
-THREAD_RETURN soundThread(void* args)
+void soundThread(DSound* dsound)
 {
-	(reinterpret_cast<DSound *>(args))->SoundLoop();
-	return 0;
+	dsound->SoundLoop();
 }
 
 void DSound::SoundLoop()
@@ -138,7 +137,7 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, 0);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = new Common::Thread(soundThread, (void *)this);
+	thread = std::thread(soundThread, this);
 	return true;
 }
 
@@ -179,8 +178,7 @@ void DSound::Stop()
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
-	delete thread;
-	thread = NULL;
+	thread.join();
 	dsBuffer->Stop();
 	dsBuffer->Release();
 	ds->Release();

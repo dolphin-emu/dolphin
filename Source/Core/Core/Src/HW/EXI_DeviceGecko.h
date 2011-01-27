@@ -33,7 +33,7 @@ public:
 	// Client for this server object
 	sf::SocketTCP client;
 	void ClientThread();
-	Common::Thread *clientThread;
+	std::thread clientThread;
 	Common::CriticalSection transfer_lock;
 
 	std::queue<u8> send_fifo;
@@ -44,11 +44,11 @@ private:
 	volatile bool	client_running;
 
 	// Only ever one server thread
-	static THREAD_RETURN GeckoConnectionWaiter(void*);
+	static void GeckoConnectionWaiter();
 
 	static u16							server_port;
 	static volatile bool				server_running;
-	static Common::Thread				*connectionThread;
+	static std::thread					connectionThread;
 	static std::queue<sf::SocketTCP>	waiting_socks;
 	static Common::CriticalSection		connection_lock;
 };

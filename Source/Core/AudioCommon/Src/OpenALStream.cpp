@@ -44,8 +44,7 @@ bool OpenALStream::Start()
 			if (pContext)
 			{
 				alcMakeContextCurrent(pContext);
-				thread = new Common::Thread(
-					OpenALStream::ThreadFunc, (void *)this);
+				thread = std::thread(OpenALStream::ThreadFunc, this);
 				bReturn = true;
 			}
 			else
@@ -75,8 +74,7 @@ void OpenALStream::Stop()
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
-	delete thread;
-	thread = NULL;
+	thread.join();
 
 	alSourceStop(uiSource);
 	alSourcei(uiSource, AL_BUFFER, 0);
@@ -123,10 +121,9 @@ void OpenALStream::Clear(bool mute)
 	}
 }
 
-THREAD_RETURN OpenALStream::ThreadFunc(void* args)
+void OpenALStream::ThreadFunc(OpenALStream* alstream)
 {
-	(reinterpret_cast<OpenALStream *>(args))->SoundLoop();
-	return 0;
+	alstream->SoundLoop();
 }
 
 void OpenALStream::SoundLoop()

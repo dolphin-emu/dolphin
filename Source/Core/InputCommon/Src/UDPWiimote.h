@@ -21,6 +21,7 @@
 
 class UDPWiimote
 {
+	friend void UDPWiiThread(UDPWiimote* arg);
 public:
 	UDPWiimote(const char * port, const char * name, int index);
 	virtual ~UDPWiimote();
@@ -49,7 +50,6 @@ private:
 	int index;
 	int int_port;
 	static int noinst;
-	friend void _UDPWiiThread(void* arg);
 	void broadcastPresence();
 	void broadcastIPv4(const void * data, size_t size);
 	void broadcastIPv6(const void * data, size_t size);

@@ -47,7 +47,7 @@
 
 struct UDPWiimote::_d
 {
-	Common::Thread * thread;
+	std::thread thread;
 	std::list<sock_t> sockfds;
 	Common::CriticalSection termLock,mutex,nameMutex;
 	volatile bool exit;
@@ -56,15 +56,9 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst=0;
 
-void _UDPWiiThread(void* arg)
+void UDPWiiThread(UDPWiimote* arg)
 {
-	((UDPWiimote*)arg)->mainThread();
-}
-
-THREAD_RETURN UDPWiiThread(void* arg)
-{
-	_UDPWiiThread(arg);
-	return 0;
+	arg->mainThread();
 }
 
 UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) : 
@@ -86,7 +80,6 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	#endif
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
-	d->thread=NULL;
 
 	#ifdef _WIN32
 	if (noinst==0)
@@ -142,7 +135,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	initBroadcastIPv4();
 	initBroadcastIPv6();
 	d->termLock.Enter();
-	d->thread = new Common::Thread(UDPWiiThread,this);
+	d->thread = std::thread(UDPWiiThread, this);
 	d->termLock.Leave();
 	return;
 }
@@ -226,8 +219,8 @@ void UDPWiimote::mainThread()
 
 UDPWiimote::~UDPWiimote()
 {
-	d->exit=true;
-	d->thread->WaitForDeath();
+	d->exit = true;
+	d->thread.join();
 	d->termLock.Enter();
 	d->termLock.Leave();
 	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)

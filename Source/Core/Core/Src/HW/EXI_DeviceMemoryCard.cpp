@@ -46,8 +46,7 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
 	m_strFilename(_rFilename),
 	card_index(_card_index),
-	m_bDirty(false),
-	flushThread(NULL)	
+	m_bDirty(false)
 {
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
@@ -103,9 +102,8 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	}
 }
 
-THREAD_RETURN innerFlush(void *pArgs)
+void innerFlush(flushStruct* data)
 {
-	flushStruct *data = ((flushStruct *)pArgs);
 	FILE* pFile = NULL;
 	pFile = fopen(data->filename.c_str(), "wb");
 
@@ -123,7 +121,7 @@ THREAD_RETURN innerFlush(void *pArgs)
 		PanicAlertT("Could not write memory card file %s.\n\n"
 			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
 		delete data;
-		return 0;
+		return;
 	}
 
 	fwrite(data->memcardContent, data->memcardSize, 1, pFile);
@@ -134,7 +132,7 @@ THREAD_RETURN innerFlush(void *pArgs)
 						     data->filename.c_str()).c_str(), 4000);
 
 	delete data;
-	return 0;
+	return;
 }
 
 // Flush memory card contents to disc
@@ -143,10 +141,9 @@ void CEXIMemoryCard::Flush(bool exiting)
 	if(!m_bDirty)
 		return;
 
-	if(flushThread)
+	if (flushThread.joinable())
 	{
-		delete flushThread;
-		flushThread = NULL;
+		flushThread.join();
 	}
 
 	if(!exiting)
@@ -159,9 +156,9 @@ void CEXIMemoryCard::Flush(bool exiting)
 	fs->memcardSize = memory_card_size;
 	fs->bExiting = exiting;
 
-	flushThread = new Common::Thread(innerFlush, fs);
-	if(exiting)
-		flushThread->WaitForDeath();
+	flushThread = std::thread(innerFlush, fs);
+	if (exiting)
+		flushThread.join();
 
 	m_bDirty = false;
 }
@@ -171,10 +168,10 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	Flush(true);
 	delete[] memory_card_content;
 	memory_card_content = NULL;
-	if(flushThread)
+	
+	if (flushThread.joinable())
 	{
-		delete flushThread;
-		flushThread = NULL;
+		flushThread.join();
 	}
 }
 
@@ -186,10 +183,9 @@ bool CEXIMemoryCard::IsPresent()
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
-	if(flushThread)
+	if (flushThread.joinable())
 	{
-		delete flushThread;
-		flushThread = NULL;
+		flushThread.join();
 	}
 
 	if (cs)  // not-selected to selected

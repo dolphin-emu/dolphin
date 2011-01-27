@@ -25,18 +25,28 @@
 
 namespace Common
 {
-	
-	int Thread::CurrentId()
-	{
+
+int CurrentThreadId()
+{
 #ifdef _WIN32
-		return GetCurrentThreadId();
+	return GetCurrentThreadId();
 #else
-		return 0;
+	return 0;
 #endif
-	}
+}
 	
 #ifdef _WIN32
-	
+
+void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
+{
+	SetThreadAffinityMask(thread, mask);
+}
+
+void SetCurrentThreadAffinity(u32 mask)
+{
+	SetThreadAffinityMask(GetCurrentThread(), mask);
+}
+
 	CriticalSection::CriticalSection(int spincount)
 	{
 		if (spincount)
@@ -69,54 +79,6 @@ namespace Common
 	{
 		LeaveCriticalSection(&section);
 	}
-	
-	Thread::Thread(ThreadFunc function, void* arg)
-	: m_hThread(NULL), m_threadId(0)
-	{
-#ifdef USE_BEGINTHREADEX
-		m_hThread = (HANDLE)_beginthreadex(NULL, 0, function, arg, 0, &m_threadId);
-#else
-		m_hThread = CreateThread(NULL, 0, function, arg, 0, &m_threadId);
-#endif
-	}
-	
-	Thread::~Thread()
-	{
-		WaitForDeath();
-	}
-	
-	DWORD Thread::WaitForDeath(const int iWait)
-	{
-		if (m_hThread)
-		{
-			DWORD Wait = WaitForSingleObject(m_hThread, iWait);
-			CloseHandle(m_hThread);
-			m_hThread = NULL;
-			return Wait;
-		}
-		return NULL;
-	}
-	
-	void Thread::SetAffinity(int mask)
-	{
-		SetThreadAffinityMask(m_hThread, mask);
-	}
-	
-	void Thread::SetPriority(int priority)
-	{
-		SetThreadPriority(m_hThread, priority);
-	}
-	
-	void Thread::SetCurrentThreadAffinity(int mask)
-	{
-		SetThreadAffinityMask(GetCurrentThread(), mask);
-	}
-	
-	bool Thread::IsCurrentThread()
-	{
-		return GetCurrentThreadId() == m_threadId;
-	}
-	
 	
 	EventEx::EventEx()
 	{
@@ -300,7 +262,32 @@ namespace Common
 	}
 	
 #else // !WIN32, so must be POSIX threads
-	
+
+void LinuxSetThreadAffinity(pthread_t thread, u32 mask)
+{
+	// This is non-standard
+#ifdef __linux__
+	cpu_set_t cpu_set;
+	CPU_ZERO(&cpu_set);
+                
+	for (int i = 0; i != sizeof(mask) * 8; ++i)
+		if ((mask >> i) & 1)
+			CPU_SET(i, &cpu_set);
+                
+	pthread_setaffinity_np(thread, sizeof(cpu_set), &cpu_set);
+#endif
+}
+
+void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
+{                
+	LinuxSetThreadAffinity(thread, mask);
+}
+
+void SetCurrentThreadAffinity(u32 mask)
+{
+	LinuxSetThreadAffinity(pthread_self(), mask);
+}
+
 	static pthread_key_t threadname_key;
 	static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
 	
@@ -343,82 +330,6 @@ namespace Common
 #else
 		pthread_mutex_unlock(&mutex);
 #endif
-	}
-	
-	
-	Thread::Thread(ThreadFunc function, void* arg)
-	: thread_id(0)
-	{
-		pthread_attr_t attr;
-		pthread_attr_init(&attr);
-		pthread_attr_setstacksize(&attr, 1024 * 1024);
-		int ret = pthread_create(&thread_id, &attr, function, arg);
-		if (ret) ERROR_LOG(COMMON, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
-						   __FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
-		
-		INFO_LOG(COMMON, "created new thread %lu (func=%p, arg=%p)\n",
-			(unsigned long)thread_id, function, arg);
-	}
-	
-	
-	Thread::~Thread()
-	{
-		WaitForDeath();
-	}
-	
-	
-	void Thread::WaitForDeath()
-	{
-		if (thread_id)
-		{
-			void* exit_status;
-			int ret = pthread_join(thread_id, &exit_status);
-			if (ret) ERROR_LOG(COMMON,
-				"error joining thread %lu: %s\n",
-				(unsigned long)thread_id, strerror(ret));
-			if (exit_status)
-				ERROR_LOG(COMMON,
-				"thread %lu exited with status %d\n",
-				(unsigned long)thread_id, *(int *)exit_status);
-			thread_id = 0;
-		}
-	}
-	
-	
-	void Thread::SetAffinity(int mask)
-	{
-		// This is non-standard
-#ifdef __linux__
-		cpu_set_t cpu_set;
-		CPU_ZERO(&cpu_set);
-		
-		for (unsigned int i = 0; i < sizeof(mask) * 8; i++)
-		{
-			if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
-		}
-		
-		pthread_setaffinity_np(thread_id, sizeof(cpu_set), &cpu_set);
-#endif
-	}
-	
-	void Thread::SetCurrentThreadAffinity(int mask)
-	{
-#ifdef __linux__
-		cpu_set_t cpu_set;
-		CPU_ZERO(&cpu_set);
-		
-		for (size_t i = 0; i < sizeof(mask) * 8; i++)
-		{
-			if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
-		}
-		
-		pthread_setaffinity_np(pthread_self(), sizeof(cpu_set), &cpu_set);
-#endif
-	}
-	
-	bool Thread::IsCurrentThread()
-	{
-		return pthread_equal(pthread_self(), thread_id) != 0;
 	}
 
 	void SleepCurrentThread(int ms)

@@ -54,10 +54,9 @@ void AOSound::SoundLoop()
 	}
 }
 
-void *soundThread(void *args)
+void soundThread(AOSound *aosound)
 {
-	((AOSound *)args)->SoundLoop();
-	return NULL;
+	aosound->SoundLoop();
 }
 
 bool AOSound::Start()
@@ -66,7 +65,7 @@ bool AOSound::Start()
 
 	soundSyncEvent.Init();
 	
-	thread = new Common::Thread(soundThread, (void *)this);
+	thread = std::thread(soundThread, this);
 	return true;
 }
 
@@ -81,8 +80,7 @@ void AOSound::Stop()
 	soundSyncEvent.Set();
 
 	soundCriticalSection.Enter();
-	delete thread;
-	thread = NULL;
+	thread.join();
 
 	if (device)
 		ao_close(device);

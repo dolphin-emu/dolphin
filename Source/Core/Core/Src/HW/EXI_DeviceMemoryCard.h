@@ -90,7 +90,7 @@ private:
 	int memory_card_size; //! in bytes, must be power of 2.
 	u8 *memory_card_content; 
 
-	Common::Thread *flushThread;
+	std::thread flushThread;
 	
 protected:
 	virtual void TransferByte(u8 &byte);

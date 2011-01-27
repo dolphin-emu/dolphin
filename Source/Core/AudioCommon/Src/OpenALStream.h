@@ -58,10 +58,10 @@ public:
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 
-	static THREAD_RETURN ThreadFunc(void* args);
+	static void ThreadFunc(OpenALStream* args);
 
 private:
-	Common::Thread *thread;
+	std::thread thread;
 	Common::EventEx soundSyncEvent;
 	
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];

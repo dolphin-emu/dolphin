@@ -41,10 +41,10 @@ bool g_real_wiimotes_initialized = false;
 unsigned int g_wiimotes_found = 0;
 
 volatile bool	g_run_wiimote_thread = false;
-Common::Thread	*g_wiimote_threads[MAX_WIIMOTES] = {};
+std::thread		g_wiimote_threads[MAX_WIIMOTES] = {};
 Common::CriticalSection		g_refresh_critsec;
 
-THREAD_RETURN WiimoteThreadFunc(void* arg);
+void WiimoteThreadFunc(Wiimote& arg);
 void StartWiimoteThreads();
 void StopWiimoteThreads();
 
@@ -433,10 +433,10 @@ void Refresh()
 		if (g_wiimotes[i] && (!(WIIMOTE_SRC_REAL & g_wiimote_sources[i]) ||
 					!g_wiimotes[i]->IsConnected()))
 		{
+			// TODO: this looks broken
 			delete g_wiimotes[i];
 			g_wiimotes[i] = NULL;
-			delete g_wiimote_threads[i];
-			g_wiimote_threads[i] = NULL;
+			g_wiimote_threads[i].join();
 			--g_wiimotes_found;
 		}
 
@@ -510,57 +510,51 @@ void StartWiimoteThreads()
 {
 	g_run_wiimote_thread = true;
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (g_wiimotes[i] && !g_wiimote_threads[i])
-			g_wiimote_threads[i] = new Common::Thread(WiimoteThreadFunc, g_wiimotes[i]);
+		if (g_wiimotes[i])
+			g_wiimote_threads[i] = std::thread(WiimoteThreadFunc, *g_wiimotes[i]);
 }
 
 void StopWiimoteThreads()
 {
 	g_run_wiimote_thread = false;
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (g_wiimote_threads[i])
-		{
-			delete g_wiimote_threads[i];
-			g_wiimote_threads[i] = NULL;
-		}
+		if (g_wiimote_threads[i].joinable())
+			g_wiimote_threads[i].join();
 }
 
-THREAD_RETURN WiimoteThreadFunc(void* arg)
+void WiimoteThreadFunc(Wiimote& wiimote)
 {
 #ifdef __APPLE__
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #endif
 
-	Wiimote* const wiimote = (Wiimote*)arg;
-
 	char thname[] = "Wiimote # Thread";
-	thname[8] = (char)('1' + wiimote->index);
+	thname[8] = (char)('1' + wiimote.index);
 	Common::SetCurrentThreadName(thname);
 
 	// rumble briefly
-	wiimote->Rumble();
+	wiimote.Rumble();
 
-	Host_ConnectWiimote(wiimote->index, true);
+	Host_ConnectWiimote(wiimote.index, true);
 
 	// main loop
-	while (g_run_wiimote_thread && wiimote->IsConnected())
+	while (g_run_wiimote_thread && wiimote.IsConnected())
 	{
 		// hopefully this is alright
-		while (wiimote->Write()) {}
+		while (wiimote.Write()) {}
 
 #ifndef __APPLE__
 		// sleep if there was nothing to read
-		if (false == wiimote->Read())
+		if (false == wiimote.Read())
 #endif
 			Common::SleepCurrentThread(1);
 	}
 
-	Host_ConnectWiimote(wiimote->index, false);
+	Host_ConnectWiimote(wiimote.index, false);
 
 #ifdef __APPLE__
 	[pool release];
 #endif
-	return 0;
 }
 
 }; // end of namespace

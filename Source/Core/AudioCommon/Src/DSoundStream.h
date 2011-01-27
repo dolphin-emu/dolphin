@@ -31,7 +31,7 @@
 class DSound : public SoundStream
 {
 #ifdef _WIN32
-    Common::Thread *thread;
+    std::thread thread;
     Common::EventEx soundSyncEvent;
     void  *hWnd;
 

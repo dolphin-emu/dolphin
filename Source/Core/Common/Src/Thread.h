@@ -18,37 +18,7 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-#ifdef _WIN32
-
-#if defined(_MSC_VER) && defined(_MT)
-// When linking with LIBCMT (the multithreaded C library), Microsoft recommends
-// using _beginthreadex instead of CreateThread.
-#define USE_BEGINTHREADEX
-#endif
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#ifdef USE_BEGINTHREADEX
-#define THREAD_RETURN unsigned __stdcall
-#else
-#define THREAD_RETURN DWORD WINAPI
-#endif
-
-#else
-
-#include <xmmintrin.h>
-#define THREAD_RETURN void*
-#include <unistd.h>
-#ifdef _POSIX_THREADS
-#include <pthread.h>
-#elif GEKKO
-#include <ogc/lwp_threads.h>
-#else
-#error unsupported platform (no pthreads?)
-#endif
-
-#endif
+#include "StdThread.h"
 
 // Don't include common.h here as it will break LogManager
 #include "CommonTypes.h"
@@ -61,6 +31,8 @@
 #define INFINITE 0xffffffff
 #endif
 
+#include <xmmintrin.h>
+
 //for gettimeofday and struct time(spec|val)
 #include <time.h>
 #include <sys/time.h>
@@ -69,6 +41,11 @@
 
 namespace Common
 {
+
+int CurrentThreadId();
+
+void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask);
+void SetCurrentThreadAffinity(u32 mask);
 	
 	class CriticalSection
 	{
@@ -86,57 +63,6 @@ namespace Common
 		void Enter();
 		bool TryEnter();
 		void Leave();
-	};
-	
-#ifdef _WIN32
-	
-#ifdef USE_BEGINTHREADEX
-	typedef unsigned (__stdcall *ThreadFunc)(void* arg);
-#else
-	typedef DWORD (WINAPI *ThreadFunc)(void* arg);
-#endif
-	
-#else
-	
-	typedef void* (*ThreadFunc)(void* arg);
-	
-#endif
-	
-	class Thread
-	{
-	public:
-		Thread(ThreadFunc entry, void* arg);
-		~Thread();
-		
-		void SetAffinity(int mask);
-		static void SetCurrentThreadAffinity(int mask);
-		static int CurrentId();
-		bool IsCurrentThread();
-#ifdef _WIN32	
-		void SetPriority(int priority);
-		DWORD WaitForDeath(const int iWait = INFINITE);
-#else
-		void WaitForDeath();
-#endif
-		
-	private:
-		
-#ifdef _WIN32
-		
-		HANDLE m_hThread;
-#ifdef USE_BEGINTHREADEX
-		unsigned m_threadId;
-#else
-		DWORD m_threadId;
-#endif
-		
-#else
-		
-#ifdef _POSIX_THREADS
-		pthread_t thread_id;
-#endif
-		
-#endif
 	};
 	
 #ifdef _WIN32

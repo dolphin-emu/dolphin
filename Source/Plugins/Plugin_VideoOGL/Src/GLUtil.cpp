@@ -108,7 +108,7 @@ void UpdateFPSDisplay(const char *text)
 }
 
 #if defined(HAVE_X11) && HAVE_X11
-THREAD_RETURN XEventThread(void *pArg);
+void XEventThread();
 
 void CreateXWindow (void)
 {
@@ -137,7 +137,7 @@ void CreateXWindow (void)
 	XMapRaised(GLWin.evdpy, GLWin.win);
 	XSync(GLWin.evdpy, True);
 
-	GLWin.xEventThread = new Common::Thread(XEventThread, NULL);
+	GLWin.xEventThread = std::thread(XEventThread);
 }
 
 void DestroyXWindow(void)
@@ -150,7 +150,7 @@ void DestroyXWindow(void)
 	XFreeColormap(GLWin.evdpy, GLWin.attr.colormap);
 }
 
-THREAD_RETURN XEventThread(void *pArg)
+void XEventThread()
 {
 	// Free look variables
 	static bool mouseLookEnabled = false;
@@ -305,7 +305,6 @@ THREAD_RETURN XEventThread(void *pArg)
 		}
 		Common::SleepCurrentThread(20);
 	}
-	return 0;
 }
 #endif
 

@@ -322,6 +322,7 @@
     <ClInclude Include="Src\SDCardUtil.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\StdThread.h" />
     <ClInclude Include="Src\StringUtil.h" />
     <ClInclude Include="Src\svnrev.h" />
     <ClInclude Include="Src\svnrev_template.h" />

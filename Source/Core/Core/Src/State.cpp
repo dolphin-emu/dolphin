@@ -69,7 +69,7 @@ static u8 *undoLoad = NULL;
 
 static bool const bCompressed = true;
 
-static Common::Thread *saveThread = NULL;
+static std::thread saveThread;
 
 
 // Don't forget to increase this after doing changes on the savestate system 
@@ -159,9 +159,8 @@ void VerifyBufferStateCallback(u64 userdata, int cyclesLate)
 	state_op_in_progress = false;
 }
 
-THREAD_RETURN CompressAndDumpState(void *pArgs)
+void CompressAndDumpState(saveStruct* saveArg)
 {
-	saveStruct *saveArg = (saveStruct *)pArgs;
 	u8 *buffer = saveArg->buffer;
 	size_t sz = saveArg->size;
 	lzo_uint out_len = 0;
@@ -185,7 +184,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
 		delete[] buffer;
-		return 0;
+		return;
 	}
 
 	// Setting up the header
@@ -229,7 +228,6 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 		filename.c_str()).c_str(), 2000);
 
 	state_op_in_progress = false;
-	return 0;
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
@@ -263,7 +261,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 	Core::DisplayMessage("Saving State...", 1000);
 
-	saveThread = new Common::Thread(CompressAndDumpState, saveData);
+	saveThread = std::thread(CompressAndDumpState, saveData);
 
 	// Resume the clock
 	PowerPC::Start();
@@ -592,10 +590,9 @@ void State_VerifyBuffer(u8 **buffer)
 void State_Flush()
 {
 	// If already saving state, wait for it to finish
-	if (saveThread)
+	if (saveThread.joinable())
 	{
-		delete saveThread;
-		saveThread = NULL;
+		saveThread.join();
 	}
 }
 

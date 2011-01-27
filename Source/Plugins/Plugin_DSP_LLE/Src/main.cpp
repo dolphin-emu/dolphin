@@ -46,7 +46,7 @@ DSPConfigDialogLLE* m_ConfigFrame = NULL;
 
 PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
-Common::Thread *g_hDSPThread = NULL;
+std::thread g_hDSPThread;
 SoundStream *soundStream = NULL;
 bool g_InitMixer = false;
 
@@ -211,7 +211,7 @@ void *DllDebugger(void *_hParent, bool Show)
 
 
 // Regular thread
-THREAD_RETURN dsp_thread(void* lpParameter)
+void dsp_thread()
 {
 	while (bIsRunning)
 	{
@@ -226,7 +226,6 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 		}
 		// yield?
 	}
-	return 0;
 }
 
 void DSP_DebugBreak()
@@ -276,7 +275,7 @@ void Initialize(void *init)
 
 	if (g_dspInitialize.bOnThread)
 	{
-		g_hDSPThread = new Common::Thread(dsp_thread, NULL);
+		g_hDSPThread = std::thread(dsp_thread);
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -291,8 +290,7 @@ void DSP_StopSoundStream()
 	bIsRunning = false;
 	if (g_dspInitialize.bOnThread)
 	{
-		delete g_hDSPThread;
-		g_hDSPThread = NULL;
+		g_hDSPThread.join();
 	}
 }
 

@@ -76,8 +76,6 @@ enum
 	CON_ERR_VERSION_MISMATCH	
 };
 
-THREAD_RETURN NetPlayThreadFunc(void* arg);
-
 // something like this should be in Common stuff
 class CritLocker
 {
@@ -116,7 +114,6 @@ public:
 	u8 GetPadNum(u8 numPAD);
 
 protected:
-	//NetPlay(Common::ThreadFunc entry, void* arg) : m_thread(entry, arg) {}
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
 	void UpdateGUI();
@@ -149,7 +146,7 @@ protected:
 
 	NetPlayDiag*	m_dialog;
 	sf::SocketTCP	m_socket;
-	Common::Thread*	m_thread;
+	std::thread		m_thread;
 	sf::Selector<sf::SocketTCP>		m_selector;
 
 	std::string		m_selected_game;
@@ -165,6 +162,8 @@ protected:
 private:
 
 };
+
+void NetPlayThreadFunc(NetPlay* arg);
 
 void NetPlay_Enable(NetPlay* const np);
 void NetPlay_Disable();

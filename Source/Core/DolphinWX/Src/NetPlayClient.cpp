@@ -7,8 +7,7 @@ NetPlayClient::~NetPlayClient()
 	if (is_connected)
 	{
 		m_do_loop = false;
-		m_thread->WaitForDeath();
-		delete m_thread;
+		m_thread.join();
 	}	
 }
 
@@ -73,7 +72,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			is_connected = true;
 
 			m_selector.Add(m_socket);
-			m_thread = new Common::Thread(NetPlayThreadFunc, this);
+			m_thread = std::thread(NetPlayThreadFunc, this);
 		}
 	}
 	else

@@ -72,7 +72,7 @@ typedef struct {
 	XVisualInfo *vi;
 	GLXContext ctx;
 	XSetWindowAttributes attr;
-	Common::Thread *xEventThread;
+	std::thread xEventThread;
 	int x, y;
 	unsigned int width, height;
 #endif

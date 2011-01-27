@@ -22,14 +22,14 @@
 #include "Thread.h"
 #include <queue>
 
-static Common::Thread *connectionThread = NULL;
+static std::thread connectionThread;
 static std::queue<sf::SocketTCP> waiting_socks;
 static Common::CriticalSection cs_gba;
 namespace { volatile bool server_running; }
 
 // --- GameBoy Advance "Link Cable" ---
 
-THREAD_RETURN GBAConnectionWaiter(void*)
+void GBAConnectionWaiter()
 {
 	server_running = true;
 
@@ -38,7 +38,7 @@ THREAD_RETURN GBAConnectionWaiter(void*)
 	sf::SocketTCP server;
 	// "dolphin gba"
 	if (!server.Listen(0xd6ba))
-		return 0;
+		return;
 	
 	server.SetBlocking(false);
 	
@@ -54,14 +54,14 @@ THREAD_RETURN GBAConnectionWaiter(void*)
 		SLEEP(1);
 	}
 	server.Close();
-	return 0;
+	return;
 }
 
 void GBAConnectionWaiter_Shutdown()
 {
 	server_running = false;
-	delete connectionThread;
-	connectionThread = NULL;
+	if (connectionThread.joinable())
+		connectionThread.join();
 }
 
 bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
@@ -82,8 +82,8 @@ bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 
 GBASockServer::GBASockServer()
 {
-	if (!connectionThread)
-		connectionThread = new Common::Thread(GBAConnectionWaiter, (void*)0);
+	if (!connectionThread.joinable())
+		connectionThread = std::thread(GBAConnectionWaiter);
 }
 
 GBASockServer::~GBASockServer()

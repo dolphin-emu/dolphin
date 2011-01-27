@@ -846,6 +846,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\StdThread.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\StringUtil.cpp"
 			>
 		</File>

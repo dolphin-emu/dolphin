@@ -95,7 +95,7 @@ TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 
 // Function declarations
-THREAD_RETURN EmuThread(void *pArg);
+void EmuThread();
 
 void Stop();
 
@@ -104,9 +104,9 @@ bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 void *g_pWindowHandle = NULL;
 
-Common::Thread* g_EmuThread = NULL;
+std::thread g_EmuThread;
 
-static Common::Thread* cpuThread = NULL;
+static std::thread cpuThread;
 
 SCoreStartupParameter g_CoreStartupParameter;
 
@@ -122,7 +122,7 @@ Common::Event cpuRunloopQuit;
 std::string StopMessage(bool bMainThread, std::string Message)
 {
 	return StringFromFormat("Stop [%s %i]\t%s\t%s",
-		bMainThread ? "Main Thread" : "Video Thread", Common::Thread::CurrentId(), MemUsage().c_str(), Message.c_str());
+		bMainThread ? "Main Thread" : "Video Thread", Common::CurrentThreadId(), MemUsage().c_str(), Message.c_str());
 }
 
 // 
@@ -166,14 +166,14 @@ bool isRunning()
 
 bool IsRunningInCurrentThread()
 {
-	return isRunning() && ((cpuThread == NULL) || cpuThread->IsCurrentThread());
+	return isRunning() && ((cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
 }
 
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
 bool Init()
 {
-	if (g_EmuThread != NULL)
+	if (g_EmuThread.joinable())
 	{
 		PanicAlertT("Emu Thread already running");
 		return false;
@@ -195,7 +195,7 @@ bool Init()
 	emuThreadGoing.Init();
 
 	// Start the emu thread 
-	g_EmuThread = new Common::Thread(EmuThread, NULL);
+	g_EmuThread = std::thread(EmuThread);
 
 	// Wait until the emu thread is running
 	emuThreadGoing.MsgWait();
@@ -242,14 +242,12 @@ void Stop()  // - Hammertime!
 	Host_SetWaitCursor(false);
 
 	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
-	g_EmuThread->WaitForDeath();
-	delete g_EmuThread;  // Wait for emuthread to close.
-	g_EmuThread = 0;
+	g_EmuThread.join();	// Wait for emuthread to close. 
 }
 
 // Create the CPU thread. which would be a CPU + Video thread in Single Core mode.
 
-THREAD_RETURN CpuThread(void *pArg)
+void CpuThread()
 {
 #ifdef __APPLE__
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -269,7 +267,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
 
 	if (_CoreParameter.bLockThreads)
-		Common::Thread::SetCurrentThreadAffinity(1);  // Force to first core
+		Common::SetCurrentThreadAffinity(1);  // Force to first core
 
 	if (_CoreParameter.bUseFastMem)
 	{
@@ -296,13 +294,13 @@ THREAD_RETURN CpuThread(void *pArg)
 #ifdef __APPLE__
 	[pool release];
 #endif
-	return 0;
+	return;
 }
 
 
 // Initalize plugins and create emulation thread
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
-THREAD_RETURN EmuThread(void *pArg)
+void EmuThread()
 {
 #ifdef __APPLE__
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -319,9 +317,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bLockThreads)
 	{
 		if (cpu_info.num_cores > 3)
-			Common::Thread::SetCurrentThreadAffinity(4);  // Force to third, non-HT core
+			Common::SetCurrentThreadAffinity(4);  // Force to third, non-HT core
 		else
-			Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
+			Common::SetCurrentThreadAffinity(2);  // Force to second core
 	}
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
@@ -420,7 +418,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
 	// Spawn the CPU thread
-	_dbg_assert_(OSHLE, cpuThread == NULL);
+	_dbg_assert_(OSHLE, !cpuThread.joinable());
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -428,7 +426,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		// and then takes over and becomes the video thread
 
 		Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
-		cpuThread = new Common::Thread(CpuThread, pArg);
+		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Video thread");
 
 		// Update the window again because all stuff is initialized
@@ -444,7 +442,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Without this extra thread, the video plugin window hangs in single
 		// core mode since noone is pumping messages.
 
-		cpuThread = new Common::Thread(CpuThread, pArg);
+		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Emuthread - Idle");
 
 		// Update the window again because all stuff is initialized
@@ -475,13 +473,10 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// At this point, the CpuThread has already returned in SC mode.
 	// But it may still be waiting in Dual Core mode.
-	if (cpuThread)
+	if (cpuThread.joinable())
 	{
 		// There is a CPU thread - join it.
-		cpuThread->WaitForDeath();
-		delete cpuThread;
-		// Returns after game exited
-		cpuThread = NULL;
+		cpuThread.join();
 	}
 
 	VolumeHandler::EjectVolume();
@@ -517,7 +512,6 @@ THREAD_RETURN EmuThread(void *pArg)
 #ifdef __APPLE__
 	[pool release];
 #endif
-	return 0;
 }
 
 // Set or get the running state

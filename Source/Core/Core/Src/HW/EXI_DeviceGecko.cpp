@@ -19,45 +19,41 @@
 #include "EXI_DeviceGecko.h"
 #include "../Core.h"
 
-THREAD_RETURN ClientThreadFunc(void *arg)
+void ClientThreadFunc(GeckoSockServer *arg)
 {
-	((GeckoSockServer*)arg)->ClientThread();
-	return 0;
+	arg->ClientThread();
 }
 
 u16							GeckoSockServer::server_port;
 int							GeckoSockServer::client_count;
-Common::Thread				*GeckoSockServer::connectionThread = NULL;
+std::thread					GeckoSockServer::connectionThread;
 volatile bool				GeckoSockServer::server_running;
 std::queue<sf::SocketTCP>	GeckoSockServer::waiting_socks;
 Common::CriticalSection		GeckoSockServer::connection_lock;
 
 GeckoSockServer::GeckoSockServer()
-	: clientThread(NULL)
-	, client_running(false)
+	: client_running(false)
 {
-	if (!connectionThread)
-		connectionThread = new Common::Thread(&GeckoConnectionWaiter, (void*)0);
+	if (!connectionThread.joinable())
+		connectionThread = std::thread(GeckoConnectionWaiter);
 }
 
 GeckoSockServer::~GeckoSockServer()
 {
-	if (clientThread)
+	if (clientThread.joinable())
 		--client_count;
 
 	client_running = false;
-	delete clientThread;
-	clientThread = NULL;
+	clientThread.join();
 
 	if (client_count <= 0)
 	{
 		server_running = false;
-		delete connectionThread;
-		connectionThread = NULL;
+		connectionThread.join();
 	}
 }
 
-THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
+void GeckoSockServer::GeckoConnectionWaiter()
 {
 	Common::SetCurrentThreadName("Gecko Connection Waiter");
 
@@ -70,7 +66,7 @@ THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
 	}
 
 	if (!server_running)
-		return 0;
+		return;
 
 	Core::DisplayMessage(
 		StringFromFormat("USBGecko: Listening on TCP port %u", server_port),
@@ -90,7 +86,6 @@ THREAD_RETURN GeckoSockServer::GeckoConnectionWaiter(void*)
 		SLEEP(1);
 	}
 	server.Close();
-	return 0;
 }
 
 bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
@@ -101,15 +96,15 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 	if (waiting_socks.size())
 	{
 		sock_to_fill = waiting_socks.front();
-		if (clientThread)
+		if (clientThread.joinable())
 		{
 			client_running = false;
-			delete clientThread;
-			clientThread = NULL;
+			clientThread.join();
+
 			recv_fifo = std::queue<u8>();
 			send_fifo = std::queue<u8>();
 		}
-		clientThread = new Common::Thread(ClientThreadFunc, this);
+		clientThread = std::thread(ClientThreadFunc, this);
 		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;
