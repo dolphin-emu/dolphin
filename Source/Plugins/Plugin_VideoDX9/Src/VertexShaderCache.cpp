@@ -206,8 +206,6 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader(u32 components)
 {
-	DVSTARTPROFILE();
-
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)

@@ -973,7 +973,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	ResetAPIState();
 
-	DVSTARTPROFILE();
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
 
@@ -1307,21 +1306,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (blend_enabled)
 		glEnable(GL_BLEND);
 	GL_REPORT_ERRORD();
-
-#if defined(DVPROFILE)
-	if (g_bWriteProfile)
-	{
-		//g_bWriteProfile = 0;
-		static int framenum = 0;
-		const int UPDATE_FRAMES = 8;
-		if (++framenum >= UPDATE_FRAMES)
-		{
-			DVProfWrite("prof.txt", UPDATE_FRAMES);
-			DVProfClear();
-			framenum = 0;
-		}
-	}
-#endif
 
 	// Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
