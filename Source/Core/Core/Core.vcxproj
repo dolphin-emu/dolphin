@@ -1,0 +1,457 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8C60E805-0DA5-4E25-8F84-038DB504BB0D}</ProjectGuid>
+    <RootNamespace>Core</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>setupapi.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>setupapi.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ShowIncludes>false</ShowIncludes>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>setupapi.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ShowIncludes>false</ShowIncludes>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>setupapi.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\ActionReplay.cpp" />
+    <ClCompile Include="Src\ARDecrypt.cpp" />
+    <ClCompile Include="Src\Boot\Boot.cpp" />
+    <ClCompile Include="Src\Boot\Boot_BS2Emu.cpp" />
+    <ClCompile Include="Src\Boot\Boot_DOL.cpp" />
+    <ClCompile Include="Src\Boot\Boot_ELF.cpp" />
+    <ClCompile Include="Src\Boot\Boot_WiiWAD.cpp" />
+    <ClCompile Include="Src\Boot\ElfReader.cpp" />
+    <ClCompile Include="Src\ConfigManager.cpp" />
+    <ClCompile Include="Src\Console.cpp" />
+    <ClCompile Include="Src\Core.cpp" />
+    <ClCompile Include="Src\CoreParameter.cpp" />
+    <ClCompile Include="Src\CoreRerecording.cpp" />
+    <ClCompile Include="Src\CoreTiming.cpp" />
+    <ClCompile Include="Src\Debugger\Debugger_SymbolMap.cpp" />
+    <ClCompile Include="Src\Debugger\Dump.cpp" />
+    <ClCompile Include="Src\Debugger\PPCDebugInterface.cpp" />
+    <ClCompile Include="Src\GeckoCode.cpp" />
+    <ClCompile Include="Src\GeckoCodeConfig.cpp" />
+    <ClCompile Include="Src\HLE\HLE.cpp" />
+    <ClCompile Include="Src\HLE\HLE_Misc.cpp" />
+    <ClCompile Include="Src\HLE\HLE_OS.cpp" />
+    <ClCompile Include="Src\HW\AudioInterface.cpp" />
+    <ClCompile Include="Src\HW\BBA-TAP\TAP_Win32.cpp" />
+    <ClCompile Include="Src\HW\CPU.cpp" />
+    <ClCompile Include="Src\HW\DSP.cpp" />
+    <ClCompile Include="Src\HW\DVDInterface.cpp" />
+    <ClCompile Include="Src\HW\EXI.cpp" />
+    <ClCompile Include="Src\HW\EXI_Channel.cpp" />
+    <ClCompile Include="Src\HW\EXI_Device.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceAD16.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceAMBaseboard.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceEthernet.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceGecko.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceIPL.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceMemoryCard.cpp" />
+    <ClCompile Include="Src\HW\EXI_DeviceMic.cpp" />
+    <ClCompile Include="Src\HW\GCPad.cpp" />
+    <ClCompile Include="Src\HW\GCPadEmu.cpp" />
+    <ClCompile Include="Src\HW\GPFifo.cpp" />
+    <ClCompile Include="Src\HW\HW.cpp" />
+    <ClCompile Include="Src\HW\Memmap.cpp" />
+    <ClCompile Include="Src\HW\MemmapFunctions.cpp" />
+    <ClCompile Include="Src\HW\MemoryInterface.cpp" />
+    <ClCompile Include="Src\HW\ProcessorInterface.cpp" />
+    <ClCompile Include="Src\HW\SI.cpp" />
+    <ClCompile Include="Src\HW\SI_Device.cpp" />
+    <ClCompile Include="Src\HW\SI_DeviceAMBaseboard.cpp" />
+    <ClCompile Include="Src\HW\SI_DeviceGBA.cpp" />
+    <ClCompile Include="Src\HW\SI_DeviceGCController.cpp" />
+    <ClCompile Include="Src\HW\Sram.cpp" />
+    <ClCompile Include="Src\HW\StreamADPCM.cpp" />
+    <ClCompile Include="Src\HW\SystemTimers.cpp" />
+    <ClCompile Include="Src\HW\VideoInterface.cpp" />
+    <ClCompile Include="Src\HW\Wiimote.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Attachment.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Classic.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Drums.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Guitar.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Nunchuk.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Attachment\Turntable.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\EmuSubroutines.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Encryption.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\Speaker.cpp" />
+    <ClCompile Include="Src\HW\WiimoteEmu\WiimoteEmu.cpp" />
+    <ClCompile Include="Src\HW\WiimoteReal\IOWin.cpp" />
+    <ClCompile Include="Src\HW\WiimoteReal\WiimoteReal.cpp" />
+    <ClCompile Include="Src\HW\WII_IOB.cpp" />
+    <ClCompile Include="Src\HW\WII_IPC.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WiiMote_HID_Attr.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
+    <ClCompile Include="Src\LuaInterface.cpp" />
+    <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\OnFrame.cpp" />
+    <ClCompile Include="Src\PatchEngine.cpp" />
+    <ClCompile Include="Src\PluginManager.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Integer.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_LoadStore.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_LoadStorePaired.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Paired.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
+    <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Tables.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\IR.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\IR_X86.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitILAsm.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Branch.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_FloatingPoint.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Integer.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStore.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStoreFloating.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStorePaired.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Paired.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_SystemRegisters.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Tables.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit64_Tables.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\JitAsm.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\JitRegCache.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_Branch.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_FloatingPoint.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_Integer.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStore.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStoreFloating.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_LoadStorePaired.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_Paired.cpp" />
+    <ClCompile Include="Src\PowerPC\Jit64\Jit_SystemRegisters.cpp" />
+    <ClCompile Include="Src\PowerPC\JitCommon\JitAsmCommon.cpp" />
+    <ClCompile Include="Src\PowerPC\JitCommon\JitBackpatch.cpp" />
+    <ClCompile Include="Src\PowerPC\JitCommon\JitBase.cpp" />
+    <ClCompile Include="Src\PowerPC\JitCommon\JitCache.cpp" />
+    <ClCompile Include="Src\PowerPC\JitCommon\Jit_Util.cpp" />
+    <ClCompile Include="Src\PowerPC\LUT_frsqrtex.cpp" />
+    <ClCompile Include="Src\PowerPC\PowerPC.cpp" />
+    <ClCompile Include="Src\PowerPC\PPCAnalyst.cpp" />
+    <ClCompile Include="Src\PowerPC\PPCCache.cpp" />
+    <ClCompile Include="Src\PowerPC\PPCSymbolDB.cpp" />
+    <ClCompile Include="Src\PowerPC\PPCTables.cpp" />
+    <ClCompile Include="Src\PowerPC\Profiler.cpp" />
+    <ClCompile Include="Src\PowerPC\SignatureDB.cpp" />
+    <ClCompile Include="Src\State.cpp" />
+    <ClCompile Include="Src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\Tracer.cpp" />
+    <ClCompile Include="Src\VolumeHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\ActionReplay.h" />
+    <ClInclude Include="Src\ARDecrypt.h" />
+    <ClInclude Include="Src\Boot\Boot.h" />
+    <ClInclude Include="Src\Boot\Boot_DOL.h" />
+    <ClInclude Include="Src\Boot\Boot_ELF.h" />
+    <ClInclude Include="Src\Boot\Boot_WiiWAD.h" />
+    <ClInclude Include="Src\Boot\ElfReader.h" />
+    <ClInclude Include="Src\Boot\ElfTypes.h" />
+    <ClInclude Include="Src\ConfigManager.h" />
+    <ClInclude Include="Src\Console.h" />
+    <ClInclude Include="Src\Core.h" />
+    <ClInclude Include="Src\CoreParameter.h" />
+    <ClInclude Include="Src\CoreTiming.h" />
+    <ClInclude Include="Src\Debugger\Debugger_SymbolMap.h" />
+    <ClInclude Include="Src\Debugger\Dump.h" />
+    <ClInclude Include="Src\Debugger\GCELF.h" />
+    <ClInclude Include="Src\Debugger\PPCDebugInterface.h" />
+    <ClInclude Include="Src\DolLoader.h" />
+    <ClInclude Include="Src\GeckoCode.h" />
+    <ClInclude Include="Src\GeckoCodeConfig.h" />
+    <ClInclude Include="Src\HLE\HLE.h" />
+    <ClInclude Include="Src\HLE\HLE_Misc.h" />
+    <ClInclude Include="Src\HLE\HLE_OS.h" />
+    <ClInclude Include="Src\Host.h" />
+    <ClInclude Include="Src\HW\AudioInterface.h" />
+    <ClInclude Include="Src\HW\BBA-TAP\TAP_Win32.h" />
+    <ClInclude Include="Src\HW\CPU.h" />
+    <ClInclude Include="Src\HW\DSP.h" />
+    <ClInclude Include="Src\HW\DVDInterface.h" />
+    <ClInclude Include="Src\HW\EXI.h" />
+    <ClInclude Include="Src\HW\EXI_Channel.h" />
+    <ClInclude Include="Src\HW\EXI_Device.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceAD16.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceAMBaseboard.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceEthernet.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceGecko.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceIPL.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceMemoryCard.h" />
+    <ClInclude Include="Src\HW\EXI_DeviceMic.h" />
+    <ClInclude Include="Src\HW\GCPad.h" />
+    <ClInclude Include="Src\HW\GCPadEmu.h" />
+    <ClInclude Include="Src\HW\GPFifo.h" />
+    <ClInclude Include="Src\HW\HW.h" />
+    <ClInclude Include="Src\HW\Memmap.h" />
+    <ClInclude Include="Src\HW\MemoryInterface.h" />
+    <ClInclude Include="Src\HW\ProcessorInterface.h" />
+    <ClInclude Include="Src\HW\SI.h" />
+    <ClInclude Include="Src\HW\SI_Device.h" />
+    <ClInclude Include="Src\HW\SI_DeviceAMBaseboard.h" />
+    <ClInclude Include="Src\HW\SI_DeviceGBA.h" />
+    <ClInclude Include="Src\HW\SI_DeviceGCController.h" />
+    <ClInclude Include="Src\HW\Sram.h" />
+    <ClInclude Include="Src\HW\StreamADPCM.h" />
+    <ClInclude Include="Src\HW\SystemTimers.h" />
+    <ClInclude Include="Src\HW\VideoInterface.h" />
+    <ClInclude Include="Src\HW\Wiimote.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Attachment.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Classic.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Drums.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Guitar.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Nunchuk.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Attachment\Turntable.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\Encryption.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\MatrixMath.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\UDPTLayer.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\WiimoteEmu.h" />
+    <ClInclude Include="Src\HW\WiimoteEmu\WiimoteHid.h" />
+    <ClInclude Include="Src\HW\WiimoteReal\WiimoteReal.h" />
+    <ClInclude Include="Src\HW\WiimoteReal\WiimoteRealBase.h" />
+    <ClInclude Include="Src\HW\WII_IOB.h" />
+    <ClInclude Include="Src\HW\WII_IPC.h" />
+    <ClInclude Include="Src\IPC_HLE\hci.h" />
+    <ClInclude Include="Src\IPC_HLE\l2cap.h" />
+    <ClInclude Include="Src\IPC_HLE\WiiMote_HID_Attr.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_stm.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h" />
+    <ClInclude Include="Src\LuaInterface.h" />
+    <ClInclude Include="Src\MemTools.h" />
+    <ClInclude Include="Src\OnFrame.h" />
+    <ClInclude Include="Src\PatchEngine.h" />
+    <ClInclude Include="Src\PluginManager.h" />
+    <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />
+    <ClInclude Include="Src\PowerPC\Gekko.h" />
+    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter.h" />
+    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter_FPUtils.h" />
+    <ClInclude Include="Src\PowerPC\Interpreter\Interpreter_Tables.h" />
+    <ClInclude Include="Src\PowerPC\Jit64IL\IR.h" />
+    <ClInclude Include="Src\PowerPC\Jit64IL\JitIL.h" />
+    <ClInclude Include="Src\PowerPC\Jit64IL\JitILAsm.h" />
+    <ClInclude Include="Src\PowerPC\Jit64IL\JitIL_Tables.h" />
+    <ClInclude Include="Src\PowerPC\Jit64\Jit.h" />
+    <ClInclude Include="Src\PowerPC\Jit64\Jit64_Tables.h" />
+    <ClInclude Include="Src\PowerPC\Jit64\JitAsm.h" />
+    <ClInclude Include="Src\PowerPC\Jit64\JitRegCache.h" />
+    <ClInclude Include="Src\PowerPC\JitCommon\JitAsmCommon.h" />
+    <ClInclude Include="Src\PowerPC\JitCommon\JitBackpatch.h" />
+    <ClInclude Include="Src\PowerPC\JitCommon\JitBase.h" />
+    <ClInclude Include="Src\PowerPC\JitCommon\JitCache.h" />
+    <ClInclude Include="Src\PowerPC\JitCommon\Jit_Util.h" />
+    <ClInclude Include="Src\PowerPC\LUT_frsqrtex.h" />
+    <ClInclude Include="Src\PowerPC\PowerPC.h" />
+    <ClInclude Include="Src\PowerPC\PPCAnalyst.h" />
+    <ClInclude Include="Src\PowerPC\PPCCache.h" />
+    <ClInclude Include="Src\PowerPC\PPCSymbolDB.h" />
+    <ClInclude Include="Src\PowerPC\PPCTables.h" />
+    <ClInclude Include="Src\PowerPC\Profiler.h" />
+    <ClInclude Include="Src\PowerPC\SignatureDB.h" />
+    <ClInclude Include="Src\State.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\Tracer.h" />
+    <ClInclude Include="Src\VolumeHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{cd3d4c3c-1027-4d33-b047-aec7b56d0bf6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
+      <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

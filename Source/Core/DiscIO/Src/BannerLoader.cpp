@@ -23,7 +23,7 @@
 #include "FileUtil.h"
 
 // HyperIris: dunno if this suitable, may be need move.
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #else
 #include <sys/param.h>

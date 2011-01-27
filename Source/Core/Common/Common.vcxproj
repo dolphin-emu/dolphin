@@ -1,0 +1,264 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C87A4178-44F6-49B2-B7AA-C79AF1B8C534}</ProjectGuid>
+    <RootNamespace>Common</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(PlatformName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\Src;..\..\PluginSpecs;..\..\..\Externals/CLRun/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Kernel32.lib;Psapi.lib;Winmm.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\Src;..\..\PluginSpecs;..\..\..\Externals/CLRun/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Kernel32.lib;Psapi.lib;Winmm.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\Src;..\..\PluginSpecs;..\..\..\Externals/CLRun/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Kernel32.lib;Psapi.lib;Winmm.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\Src;..\..\PluginSpecs;..\..\..\Externals/CLRun/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>Kernel32.lib;Psapi.lib;Winmm.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\ABI.cpp" />
+    <ClCompile Include="Src\BreakPoints.cpp" />
+    <ClCompile Include="Src\CDUtils.cpp" />
+    <ClCompile Include="Src\ColorUtil.cpp" />
+    <ClCompile Include="Src\ConsoleListener.cpp" />
+    <ClCompile Include="Src\CPUDetect.cpp" />
+    <ClCompile Include="Src\Crypto\aes_cbc.cpp" />
+    <ClCompile Include="Src\Crypto\aes_core.cpp" />
+    <ClCompile Include="Src\Crypto\bn.cpp" />
+    <ClCompile Include="Src\Crypto\ec.cpp" />
+    <ClCompile Include="Src\Crypto\md5.cpp" />
+    <ClCompile Include="Src\Crypto\sha1.cpp" />
+    <ClCompile Include="Src\DynamicLibrary.cpp" />
+    <ClCompile Include="Src\ExtendedTrace.cpp" />
+    <ClCompile Include="Src\FileSearch.cpp" />
+    <ClCompile Include="Src\FileUtil.cpp" />
+    <ClCompile Include="Src\Hash.cpp" />
+    <ClCompile Include="Src\IniFile.cpp" />
+    <ClCompile Include="Src\LogManager.cpp" />
+    <ClCompile Include="Src\MathUtil.cpp" />
+    <ClCompile Include="Src\MemArena.cpp" />
+    <ClCompile Include="Src\MemoryUtil.cpp" />
+    <ClCompile Include="Src\Misc.cpp" />
+    <ClCompile Include="Src\MsgHandler.cpp" />
+    <ClCompile Include="Src\NandPaths.cpp" />
+    <ClCompile Include="Src\OpenCL.cpp" />
+    <ClCompile Include="Src\Plugin.cpp" />
+    <ClCompile Include="Src\PluginDSP.cpp" />
+    <ClCompile Include="Src\PluginVideo.cpp" />
+    <ClCompile Include="Src\SDCardUtil.cpp" />
+    <ClCompile Include="Src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\StringUtil.cpp" />
+    <ClCompile Include="Src\SymbolDB.cpp" />
+    <ClCompile Include="Src\SysConf.cpp" />
+    <ClCompile Include="Src\Thread.cpp" />
+    <ClCompile Include="Src\Thunk.cpp" />
+    <ClCompile Include="Src\Timer.cpp" />
+    <ClCompile Include="Src\Version.cpp" />
+    <ClCompile Include="Src\x64Analyzer.cpp" />
+    <ClCompile Include="Src\x64Emitter.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\ABI.h" />
+    <ClInclude Include="Src\Atomic.h" />
+    <ClInclude Include="Src\Atomic_GCC.h" />
+    <ClInclude Include="Src\Atomic_Win32.h" />
+    <ClInclude Include="Src\BreakPoints.h" />
+    <ClInclude Include="Src\CDUtils.h" />
+    <ClInclude Include="Src\ChunkFile.h" />
+    <ClInclude Include="Src\ColorUtil.h" />
+    <ClInclude Include="Src\Common.h" />
+    <ClInclude Include="Src\CommonFuncs.h" />
+    <ClInclude Include="Src\CommonPaths.h" />
+    <ClInclude Include="Src\CommonTypes.h" />
+    <ClInclude Include="Src\ConsoleListener.h" />
+    <ClInclude Include="Src\CPUDetect.h" />
+    <ClInclude Include="Src\Crypto\aes.h" />
+    <ClInclude Include="Src\Crypto\aes_locl.h" />
+    <ClInclude Include="Src\Crypto\md5.h" />
+    <ClInclude Include="Src\Crypto\sha1.h" />
+    <ClInclude Include="Src\Crypto\tools.h" />
+    <ClInclude Include="Src\DebugInterface.h" />
+    <ClInclude Include="Src\DynamicLibrary.h" />
+    <ClInclude Include="Src\ExtendedTrace.h" />
+    <ClInclude Include="Src\FifoQueue.h" />
+    <ClInclude Include="Src\FileSearch.h" />
+    <ClInclude Include="Src\FileUtil.h" />
+    <ClInclude Include="Src\FixedSizeQueue.h" />
+    <ClInclude Include="Src\Hash.h" />
+    <ClInclude Include="Src\IniFile.h" />
+    <ClInclude Include="Src\LinearDiskCache.h" />
+    <ClInclude Include="Src\Log.h" />
+    <ClInclude Include="Src\LogManager.h" />
+    <ClInclude Include="Src\MathUtil.h" />
+    <ClInclude Include="Src\MemArena.h" />
+    <ClInclude Include="Src\MemoryUtil.h" />
+    <ClInclude Include="Src\MsgHandler.h" />
+    <ClInclude Include="Src\NandPaths.h" />
+    <ClInclude Include="Src\OpenCL.h" />
+    <ClInclude Include="Src\Plugin.h" />
+    <ClInclude Include="Src\PluginDSP.h" />
+    <ClInclude Include="Src\PluginVideo.h" />
+    <ClInclude Include="Src\SDCardUtil.h" />
+    <ClInclude Include="Src\Setup.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\StringUtil.h" />
+    <ClInclude Include="Src\svnrev.h" />
+    <ClInclude Include="Src\svnrev_template.h" />
+    <ClInclude Include="Src\SymbolDB.h" />
+    <ClInclude Include="Src\SysConf.h" />
+    <ClInclude Include="Src\Thread.h" />
+    <ClInclude Include="Src\Thunk.h" />
+    <ClInclude Include="Src\Timer.h" />
+    <ClInclude Include="Src\x64Analyzer.h" />
+    <ClInclude Include="Src\x64Emitter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
