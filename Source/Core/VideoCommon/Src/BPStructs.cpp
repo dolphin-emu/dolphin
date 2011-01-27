@@ -18,7 +18,6 @@
 #include <cmath>
 
 #include "VideoConfig.h"
-#include "Profiler.h"
 #include "Statistics.h"
 #include "RenderBase.h"
 #include "VideoCommon.h"
@@ -230,7 +229,6 @@ void BPWritten(const BPCmd& bp)
 	// It can also optionally clear the EFB while copying from it. To emulate this, we of course copy first and clear afterwards.
 	case BPMEM_TRIGGER_EFB_COPY: // Copy EFB Region or Render to the XFB or Clear the screen.
 		{
-			DVSTARTSUBPROFILE("LoadBPReg:swap");
 			// The bottom right is within the rectangle
 			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
 
@@ -296,8 +294,6 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
 		{
-			DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
-
 			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
 			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
 

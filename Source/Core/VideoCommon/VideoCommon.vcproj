@@ -578,14 +578,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Profiler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Profiler.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\Statistics.cpp"
 				>
 			</File>

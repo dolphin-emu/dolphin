@@ -27,7 +27,6 @@
 
 #include "Common.h"
 #include "VideoCommon.h"
-#include "Profiler.h"
 #include "OpcodeDecoding.h"
 #include "CommandProcessor.h"
 #include "CPUDetect.h"
@@ -446,7 +445,6 @@ void OpcodeDecoder_Shutdown()
 
 void OpcodeDecoder_Run(bool skipped_frame)
 {
-	DVSTARTPROFILE();
 	if (!skipped_frame)
 	{
 		while (FifoCommandRunnable())

@@ -18,7 +18,6 @@
 #include <cmath>
 
 #include "Common.h"
-#include "Profiler.h"
 #include "Statistics.h"
 #include "PixelShaderManager.h"
 #include "VideoCommon.h"

@@ -9,7 +9,6 @@
 #include "NativeVertexFormat.h"
 #include "TextureCacheBase.h"
 #include "RenderBase.h"
-#include "Profiler.h"
 
 #include "VertexManagerBase.h"
 
@@ -200,11 +199,6 @@ void VertexManager::Flush()
 	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
 		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
 #endif
-
-	DVSTARTPROFILE();
-
-	// set the textures
-	DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)

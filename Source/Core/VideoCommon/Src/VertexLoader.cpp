@@ -20,7 +20,6 @@
 #include "Common.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
-#include "Profiler.h"
 #include "MemoryUtil.h"
 #include "StringUtil.h"
 #include "x64Emitter.h"
@@ -514,8 +513,6 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 
 void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 {
-	DVSTARTPROFILE();
-
 	m_numLoadedVertices += count;
 
 	// Flush if our vertex format is different from the currently set.
@@ -658,8 +655,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 
 void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
 {
-	DVSTARTPROFILE();
-
 	m_numLoadedVertices += count;
 
 	// Flush if our vertex format is different from the currently set.

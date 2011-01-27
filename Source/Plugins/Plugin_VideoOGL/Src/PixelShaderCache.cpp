@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
-#include "Profiler.h"
 
 #include "GLUtil.h"
 
@@ -195,7 +194,6 @@ void PixelShaderCache::Shutdown()
 
 FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
 	GetPixelShaderId(&uid, dstAlphaMode);
 

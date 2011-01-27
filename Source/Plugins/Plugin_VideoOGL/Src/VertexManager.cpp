@@ -25,7 +25,6 @@
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
-#include "Profiler.h"
 #include "Render.h"
 #include "ImageWrite.h"
 #include "BPMemory.h"
@@ -123,8 +122,6 @@ void VertexManager::vFlush()
 		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
 #endif
 
-	DVSTARTPROFILE();
-
 	(void)GL_REPORT_ERROR();
 	
 	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
@@ -135,9 +132,6 @@ void VertexManager::vFlush()
 	if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
-
-	// set the textures
-	DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)

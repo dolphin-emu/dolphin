@@ -19,7 +19,6 @@
 #include "LinearDiskCache.h"
 
 #include "Debugger.h"
-#include "Profiler.h"
 #include "Statistics.h"
 #include "VertexShaderGen.h"
 

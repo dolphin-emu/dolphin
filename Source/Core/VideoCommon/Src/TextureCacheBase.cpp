@@ -6,7 +6,6 @@
 #include "HiresTextures.h"
 #include "RenderBase.h"
 #include "FileUtil.h"
-#include "Profiler.h"
 
 #include "PluginSpecs.h"
 
@@ -412,8 +411,6 @@ return_entry:
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
 {
-	DVSTARTPROFILE();
-
 	float colmat[28] = {0};
 	float *const fConstAdd = colmat + 16;
 	float *const ColorMask = colmat + 20;

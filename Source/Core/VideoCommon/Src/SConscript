@@ -22,7 +22,6 @@ files = [
 	'PixelEngine.cpp',
 	'PixelShaderGen.cpp',
 	'PixelShaderManager.cpp',
-	'Profiler.cpp',
 	'RenderBase.cpp',
 	'Statistics.cpp',
 	'TextureCacheBase.cpp',

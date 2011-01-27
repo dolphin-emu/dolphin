@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <locale.h>
 
-#include "Profiler.h"
 #include "PixelShaderGen.h"
 #include "XFMemory.h"  // for texture projection mode
 #include "BPMemory.h"
@@ -446,7 +445,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
-	DVSTARTPROFILE();
 
 	BuildSwapModeTable();
 	int numStages = bpmem.genMode.numtevstages + 1;

@@ -21,7 +21,6 @@
 #include "D3DBase.h"
 #include "Fifo.h"
 #include "Statistics.h"
-#include "Profiler.h"
 #include "VertexManager.h"
 #include "OpcodeDecoding.h"
 #include "IndexGenerator.h"

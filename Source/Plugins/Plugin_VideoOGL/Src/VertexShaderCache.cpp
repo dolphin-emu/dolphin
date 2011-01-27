@@ -18,7 +18,6 @@
 #include <math.h>
 
 #include "Globals.h"
-#include "Profiler.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
 
@@ -124,8 +123,6 @@ void VertexShaderCache::Shutdown()
 
 VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 {
-	DVSTARTPROFILE();
-
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)

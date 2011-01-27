@@ -33,7 +33,6 @@
 
 #include "CommonPaths.h"
 #include "VideoConfig.h"
-#include "Profiler.h"
 #include "Statistics.h"
 #include "ImageWrite.h"
 #include "PixelEngine.h"

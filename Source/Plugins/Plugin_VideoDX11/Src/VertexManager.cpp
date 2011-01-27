@@ -25,7 +25,6 @@
 #include "IndexGenerator.h"
 #include "MainBase.h"
 #include "PixelShaderManager.h"
-#include "Profiler.h"
 #include "RenderBase.h"
 #include "Statistics.h"
 #include "TextureCacheBase.h"

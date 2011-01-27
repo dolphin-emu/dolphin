@@ -18,7 +18,6 @@
 #include "Common.h"
 #include "VideoConfig.h"
 #include "MathUtil.h"
-#include "Profiler.h"
 
 #include <cmath>
 

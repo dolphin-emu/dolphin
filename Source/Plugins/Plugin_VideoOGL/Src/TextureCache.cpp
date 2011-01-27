@@ -43,7 +43,6 @@
 #include "MemoryUtil.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
-#include "Profiler.h"
 #include "Render.h"
 #include "Statistics.h"
 #include "StringUtil.h"

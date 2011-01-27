@@ -18,7 +18,6 @@
 #include <math.h>
 #include <locale.h>
 
-#include "Profiler.h"
 #include "NativeVertexFormat.h"
 
 #include "BPMemory.h"
@@ -81,7 +80,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
-	DVSTARTPROFILE();
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.nNumChans);
