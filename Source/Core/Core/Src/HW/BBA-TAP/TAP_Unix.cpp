@@ -32,11 +32,13 @@
 #include <assert.h>
 	
 int fd = -1;
+std::thread cpuThread;
 	
 bool CEXIETHERNET::deactivate()
 {
 	close(fd);
 	fd = -1;
+	cpuThread.join();
 	return true;
 }
 
@@ -143,9 +145,8 @@ bool CEXIETHERNET::resume()
 	return true;
 }
 
-THREAD_RETURN CpuThread(void *pArg)
+void CpuThread(CEXIETHERNET *self)
 {
-	CEXIETHERNET* self = (CEXIETHERNET*)pArg;
 	while(1)
 	{
 		if(self->CheckRecieved())
@@ -176,11 +177,9 @@ THREAD_RETURN CpuThread(void *pArg)
 			INFO_LOG(SP1, "Received %d bytes of data\n", self->mRecvBufferLength);
 			self->mWaiting = false;
 			self->handleRecvdPacket();
-			return 0;
 		}
 		//sleep(1);
 	}
-	return 0;
 }
 
 bool CEXIETHERNET::startRecv()
@@ -192,9 +191,8 @@ bool CEXIETHERNET::startRecv()
 		INFO_LOG(SP1, "already waiting\n");
 		return true;
 	}
-	Common::Thread *cpuThread = new Common::Thread(CpuThread, (void*)this);
-	if(cpuThread)
-		mWaiting = true;
+	cpuThread = std::thread(CpuThread, this);
+	mWaiting = true;
 		
 	return true; 
 }

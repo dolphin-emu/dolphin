@@ -144,9 +144,7 @@ void DestroyXWindow(void)
 {
 	XUnmapWindow(GLWin.dpy, GLWin.win);
 	GLWin.win = 0;
-	if (GLWin.xEventThread)
-		delete GLWin.xEventThread;
-	GLWin.xEventThread = NULL;
+	GLWin.xEventThread.join();
 	XFreeColormap(GLWin.evdpy, GLWin.attr.colormap);
 }
 
