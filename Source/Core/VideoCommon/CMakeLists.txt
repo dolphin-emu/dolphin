@@ -17,7 +17,6 @@ set(SRCS	Src/BPMemory.cpp
 			Src/PixelEngine.cpp
 			Src/PixelShaderGen.cpp
 			Src/PixelShaderManager.cpp
-			Src/Profiler.cpp
 			Src/RenderBase.cpp
 			Src/Statistics.cpp
 			Src/TextureCacheBase.cpp

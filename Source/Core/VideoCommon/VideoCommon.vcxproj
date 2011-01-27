@@ -252,7 +252,6 @@
     <ClCompile Include="Src\PixelEngine.cpp" />
     <ClCompile Include="Src\PixelShaderGen.cpp" />
     <ClCompile Include="Src\PixelShaderManager.cpp" />
-    <ClCompile Include="Src\Profiler.cpp" />
     <ClCompile Include="Src\RenderBase.cpp" />
     <ClCompile Include="Src\Statistics.cpp" />
     <ClCompile Include="Src\TextureCacheBase.cpp" />
@@ -298,7 +297,6 @@
     <ClInclude Include="Src\PixelEngine.h" />
     <ClInclude Include="Src\PixelShaderGen.h" />
     <ClInclude Include="Src\PixelShaderManager.h" />
-    <ClInclude Include="Src\Profiler.h" />
     <ClInclude Include="Src\RenderBase.h" />
     <ClInclude Include="Src\Statistics.h" />
     <ClInclude Include="Src\TextureCacheBase.h" />
