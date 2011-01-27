@@ -1,6 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebugFast|Win32">
+      <Configuration>DebugFast</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugFast|x64">
+      <Configuration>DebugFast</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -39,7 +47,19 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -57,7 +77,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -78,14 +104,28 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <TargetName>$(ProjectName)DF</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
+    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <TargetName>$(ProjectName)DF</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -169,6 +209,36 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Message>Copying Data\* to $(TargetDir)</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <BaseAddress>0x00400000</BaseAddress>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -177,6 +247,36 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <BaseAddress>0x00400000</BaseAddress>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -222,7 +322,9 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Src\MemcardManager.cpp" />
     <ClCompile Include="Src\MemoryCards\GCMemcard.cpp" />
@@ -234,7 +336,9 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\PatchAddEdit.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
