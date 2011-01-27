@@ -41,8 +41,9 @@ const char *GetLastErrorMsg()
 // strlen with cropping after size n
 size_t strnlen(const char *s, size_t n)
 {
-  const char *p = (const char *)memchr(s, 0, n);
-  return(p ? p-s : n);
+	const char *p = (const char *)memchr(s, 0, n);
+
+	return p ? (size_t)(p - s) : n;
 }
 #endif
 #if defined(_WIN32) || !(__GNUC__ == 4 && __GNUC_MINOR__ >= 5)

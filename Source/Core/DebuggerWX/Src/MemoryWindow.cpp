@@ -330,9 +330,10 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 	long newsize = 0;
 	unsigned char *tmp2 = 0;
 	char* tmpstr = 0;
-	switch (chkHex->GetValue())
+
+	if (chkHex->GetValue())
 	{
-	case 1://We are looking for hex
+		//We are looking for hex
 		//If it's uneven
 		size = (rawData.size()/2) + pad;
 		Dest.resize(size+32);
@@ -369,8 +370,8 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			i += 1;
 		}
 		delete[] tmpstr;
-		break;
-	case 0://Looking for an ascii string
+	} else {
+		//Looking for an ascii string
 		size = rawData.size();
 		Dest.resize(size+1);
 		tmpstr = new char[size+1];
@@ -382,8 +383,8 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			tmp2[i] = tmpstr[i];
 
 		delete[] tmpstr;
-		break;
 	}
+
 	if(size)
 	{
 		unsigned char* pnt = &Dest.front();

@@ -158,7 +158,8 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	const unsigned int ldScale = gqr.LD_SCALE;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_12) : _inst.SIMM_12;
+	const u32 EA = _inst.RA ?
+		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
 	if ((ldType == QUANTIZE_U8)  || (ldType == QUANTIZE_S8))  c = 0x1;
@@ -227,7 +228,8 @@ void Interpreter::psq_st(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	const unsigned int stScale = gqr.ST_SCALE;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_12) : _inst.SIMM_12;
+	const u32 EA = _inst.RA ?
+		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
 	if ((stType == 4) || (stType == 6)) c = 0x1;

@@ -61,6 +61,7 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
 	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
+	ldflags += [ '-Wl,-ObjC' ] # XXX Hack to include wxGLCanvas
 	libs += [ 'iconv' ]
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 

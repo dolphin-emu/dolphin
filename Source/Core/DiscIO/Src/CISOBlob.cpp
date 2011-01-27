@@ -41,8 +41,8 @@ CISOFileReader* CISOFileReader::Create(const char* filename)
 {
 	if (IsCISOBlob(filename))
 	{
-		FILE* file_ = fopen(filename, "rb");
-		return new CISOFileReader(file_);
+		FILE* f = fopen(filename, "rb");
+		return new CISOFileReader(f);
 	}
 	else
 		return NULL;

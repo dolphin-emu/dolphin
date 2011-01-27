@@ -76,8 +76,8 @@ void DeviceElementDebugPrint(const void *value, void *context)
 	}
 
 	c_type.append(" ");
-	NSLog(@"%s%s%spage: 0x%x usage: 0x%x name: %s "
-		"lmin: %i lmax: %i pmin: %i pmax: %i",
+	NSLog(@"%s%s%spage: 0x%x usage: 0x%x name: %@ "
+		"lmin: %ld lmax: %ld pmin: %ld pmax: %ld",
 		  type.c_str(),
 		  type == "collection" ? ":" : "",
 		  type == "collection" ? c_type.c_str() : " ",

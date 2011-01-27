@@ -93,8 +93,8 @@ public:
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
-	static int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
-	static int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
+	static unsigned int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
+	static unsigned int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
 
 	// Floating point versions of the above - only use them if really necessary
 	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }

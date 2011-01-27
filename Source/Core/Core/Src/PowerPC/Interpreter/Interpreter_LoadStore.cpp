@@ -34,7 +34,7 @@ u32  Interpreter::g_reserveAddr;
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction _inst)
 {
-	return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
+	return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : (u32)_inst.SIMM_16;
 }
 
 u32 Interpreter::Helper_Get_EA_U(const UGeckoInstruction _inst)

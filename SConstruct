@@ -126,10 +126,15 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
     env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
-    env['CC'] = '/Developer/usr/bin/llvm-gcc -ObjC'
-    env['CXX'] = '/Developer/usr/bin/llvm-g++ -ObjC++'
+    #env['CC'] = 'clang'
+    #env['CC'] = 'gcc'
+    env['CC'] = 'llvm-gcc'
+    #env['CXX'] = 'clang++'
+    #env['CXX'] = 'g++'
+    env['CXX'] = 'llvm-g++'
+    env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
-    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio', 'WebKit']
+    env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
     env['FRAMEWORKSFLAGS'] += ['-Xarch_i386', '-Wl,-framework,QuickTime']

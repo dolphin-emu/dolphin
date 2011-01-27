@@ -56,7 +56,7 @@ struct SConfig : NonCopyable
 	// interface language
 	int m_InterfaceLanguage;
 	// framelimit choose
-	int m_Framelimit;
+	unsigned int m_Framelimit;
 	bool b_UseFPS;
 	// other interface settings
 	bool m_InterfaceToolbar;

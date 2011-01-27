@@ -276,8 +276,8 @@ void DVProfWrite(const char* pfilename, u32 frames)
         uTotal[1] += iter->second.uInclusive;
     }
 
-    fprintf(f, "total times (%d): ex: %Lu ", frames, 1000000 * uTotal[0] / (luPerfFreq*(u64)frames));
-    fprintf(f, "inc: %Lu\n", 1000000 * uTotal[1]/(luPerfFreq*(u64)frames));
+    fprintf(f, "total times (%d): ex: %llu ", frames, 1000000 * uTotal[0] / (luPerfFreq*(u64)frames));
+    fprintf(f, "inc: %llu\n", 1000000 * uTotal[1]/(luPerfFreq*(u64)frames));
 
     fiTotalTime[0] = 1.0 / (double)uTotal[0];
     fiTotalTime[1] = 1.0 / (double)uTotal[1];

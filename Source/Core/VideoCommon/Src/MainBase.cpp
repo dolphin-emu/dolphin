@@ -27,8 +27,6 @@ static volatile struct
 	u32 fbHeight;
 } s_beginFieldArgs;
 
-static volatile EFBAccessType s_AccessEFBType;
-
 static struct
 {
 	EFBAccessType type;

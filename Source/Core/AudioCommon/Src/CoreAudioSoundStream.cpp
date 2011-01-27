@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <CoreServices/CoreServices.h>
+
 #include "CoreAudioSoundStream.h"
 
 OSStatus callback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,

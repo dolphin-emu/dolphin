@@ -214,8 +214,9 @@ void wxLuaWindow::LuaCloseCallback(u64 userdata, int)
 }
 void wxLuaWindow::LuaStartCallback(u64 userdata, int)
 {
-	int luaID = (int)userdata;
-	Lua::RunLuaScriptFile(luaID, (const char *)g_contextMap[luaID]->currentScript.mb_str());
+	int lid = (int)userdata;
+	Lua::RunLuaScriptFile(lid,
+		(const char *)g_contextMap[lid]->currentScript.mb_str());
 }
 void wxLuaWindow::LuaStopCallback(u64 userdata, int)
 {

@@ -218,6 +218,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		case 1:	GPFifo::Write8((u8)data, em_address); return;
 		case 2:	GPFifo::Write16((u16)data, em_address); return;
 		case 4:	GPFifo::Write32((u32)data, em_address); return;
+		case 8:	GPFifo::Write64((u64)data, em_address); return;
 		}
 	}
 	if ((em_address & 0xC8000000) == 0xC8000000)

@@ -30,9 +30,9 @@ PlainFileReader::PlainFileReader(FILE* file__)
 
 PlainFileReader* PlainFileReader::Create(const char* filename)
 {
-	FILE* file_ = fopen(filename, "rb");
-	if (file_)
-		return new PlainFileReader(file_);
+	FILE* f = fopen(filename, "rb");
+	if (f)
+		return new PlainFileReader(f);
 	else
 		return NULL;
 }
