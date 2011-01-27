@@ -19,8 +19,25 @@
 
 #include <wx/wx.h>
 #include <wx/string.h>
+#include <wx/fontmap.h>
 
 namespace WxUtils {
+
+ wxCSConv *SJISConv()
+{
+#ifdef _WIN32
+	
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+		{
+			return new wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		}
+		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		return (wxCSConv*)wxConvCurrent;
+#else
+		return new wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#endif
+}
 
 // Launch a file according to its mime type
 void Launch(const char *filename)
