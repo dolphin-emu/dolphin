@@ -177,6 +177,7 @@ void CpuThread(CEXIETHERNET *self)
 			INFO_LOG(SP1, "Received %d bytes of data\n", self->mRecvBufferLength);
 			self->mWaiting = false;
 			self->handleRecvdPacket();
+			return;
 		}
 		//sleep(1);
 	}
