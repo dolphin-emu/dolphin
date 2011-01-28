@@ -56,18 +56,16 @@ public:
 	virtual void DSP_StopSoundStream();
 	virtual void DSP_ClearAudioBuffer(bool mute);
 
+	CMailHandler& AccessMailHandler() { return m_MailHandler; }
+
 	// Formerly DSPHandler
-	void Update(int cycles);
-	u16 WriteControlRegister(u16 _Value);
-	u16 ReadControlRegister();
-	void SendMailToDSP(u32 _uMail);
 	IUCode *GetUCode();
 	void SetUCode(u32 _crc);
 	void SwapUCode(u32 _crc);
 
-	CMailHandler& AccessMailHandler() { return m_MailHandler; }
-
 private:
+	void SendMailToDSP(u32 _uMail);
+
 	// Declarations and definitions
 	void *m_hWnd;
 	bool m_bWii;

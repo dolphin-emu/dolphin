@@ -80,10 +80,12 @@ void DSPHLE::Shutdown()
 	AudioCommon::ShutdownSoundStream();
 }
 
-void DSPHLE::Update(int cycles)
+void DSPHLE::DSP_Update(int cycles)
 {
+	// This is called OFTEN - better not do anything expensive!
+	// ~1/6th as many cycles as the period PPC-side.
 	if (m_pUCode != NULL)
-		m_pUCode->Update(cycles);
+		m_pUCode->Update(cycles / 6);
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)
@@ -191,32 +193,8 @@ void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
 	}
 }
 
-u16 DSPHLE::WriteControlRegister(u16 _Value)
-{
-	UDSPControl Temp(_Value);
-	if (Temp.DSPReset)
-	{
-		SetUCode(UCODE_ROM);
-		Temp.DSPReset = 0;
-	}
-	if (Temp.DSPInit == 0)
-	{
-		// copy 128 byte from ARAM 0x000000 to IMEM
-		SetUCode(UCODE_INIT_AUDIO_SYSTEM);
-		Temp.DSPInitCode = 0;
-	}
-
-	m_DSPControl.Hex = Temp.Hex;
-	return m_DSPControl.Hex;
-}
-
-u16 DSPHLE::ReadControlRegister()
-{
-	return m_DSPControl.Hex;
-}
-
 // Other DSP fuctions
-unsigned short DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
+u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 {
 	UDSPControl Temp(_Value);
 	if (!m_InitMixer)
@@ -238,20 +216,28 @@ unsigned short DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 			m_InitMixer = true;
 		}
 	}
-	return WriteControlRegister(_Value);
+
+	if (Temp.DSPReset)
+	{
+		SetUCode(UCODE_ROM);
+		Temp.DSPReset = 0;
+	}
+	if (Temp.DSPInit == 0)
+	{
+		// copy 128 byte from ARAM 0x000000 to IMEM
+		SetUCode(UCODE_INIT_AUDIO_SYSTEM);
+		Temp.DSPInitCode = 0;
+	}
+
+	m_DSPControl.Hex = Temp.Hex;
+	return m_DSPControl.Hex;
 }
 
 u16 DSPHLE::DSP_ReadControlRegister()
 {
-	return ReadControlRegister();
+	return m_DSPControl.Hex;
 }
 
-void DSPHLE::DSP_Update(int cycles)
-{
-	// This is called OFTEN - better not do anything expensive!
-	// ~1/6th as many cycles as the period PPC-side.
-	Update(cycles / 6);
-}
 
 // The reason that we don't disable this entire
 // function when Other Audio is disabled is that then we can't turn it back on
