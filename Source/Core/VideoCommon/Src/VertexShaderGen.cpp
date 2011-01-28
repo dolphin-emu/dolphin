@@ -410,7 +410,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 					WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
 					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
-				else _assert_(0); // should have normals
+				else
+				{
+					_assert_(0); // should have normals
+					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
+				}
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
