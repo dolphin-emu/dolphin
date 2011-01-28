@@ -10,7 +10,7 @@ files = [
 	]
 
 libs = [
-	'core', 'lzo2', 'discio', 'bdisasm',
+	'audiocommon', 'core', 'dspcore', 'lzo2', 'discio', 'bdisasm',
 	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	]
 
@@ -24,6 +24,8 @@ if env['HAVE_WX']:
 		'ARCodeAddEdit.cpp',
 		'GeckoCodeDiag.cpp',
 		'ConfigMain.cpp',
+		'DSPHLEConfigDlg.cpp',
+		'DSPLLEConfigDlg.cpp',
 		'Frame.cpp',
 		'FrameAui.cpp',
 		'FrameTools.cpp',

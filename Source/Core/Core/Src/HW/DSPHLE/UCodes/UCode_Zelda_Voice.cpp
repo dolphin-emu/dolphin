@@ -231,6 +231,12 @@ void PrintObject(const T &Obj)
 	char byte[2] = {0};
 	std::stringstream ss;
 	u8 *o = (u8 *)&Obj;
+
+	// If this miscompiles, adjust the size of
+	// ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
+	CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
+	(void)ensure_zpb_size_correct;
+
 	for(int i = 0; i < sizeof(T); i++) {
 		if((i > 0) && ((i & 1) == 0))
 			ss << " ";

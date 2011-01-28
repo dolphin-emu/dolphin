@@ -470,7 +470,7 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 		else if ('`' == c)
 		{
 			// different device
-			if (false == std::getline(ss, dev_str, '`'))
+			if (false == /*XXX*/(bool)std::getline(ss, dev_str, '`'))
 				break;
 		}
 		else

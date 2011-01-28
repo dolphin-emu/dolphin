@@ -459,7 +459,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(GeneralPage, _("General"));
 	Notebook->AddPage(DisplayPage, _("Display"));
 	Notebook->AddPage(AudioPage, _("Audio"));
-	Notebook->AddPage(GamecubePage, _("Gamecube"));
+	Notebook->AddPage(GamecubePage, _("GC"));
 	Notebook->AddPage(WiiPage, _("Wii"));
 	Notebook->AddPage(PathsPage, _("Paths"));
 	Notebook->AddPage(PluginsPage, _("Plugins"));

@@ -43,9 +43,9 @@
 
 DSPLLE::DSPLLE() {
 	soundStream = NULL;
-	g_InitMixer = false;
-	bIsRunning = false;
-	cycle_count = 0;
+	m_InitMixer = false;
+	m_bIsRunning = false;
+	m_cycle_count = 0;
 }
 
 DSPLLE::~DSPLLE() {
@@ -53,7 +53,7 @@ DSPLLE::~DSPLLE() {
 
 void DSPLLE::DoState(PointerWrap &p)
 {
-	p.Do(g_InitMixer);
+	p.Do(m_InitMixer);
 
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
@@ -77,7 +77,7 @@ void DSPLLE::DoState(PointerWrap &p)
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
-	p.Do(cycle_count);
+	p.Do(m_cycle_count);
 }
 
 void DSPLLE::EmuStateChange(PLUGIN_EMUSTATE newState)
@@ -102,16 +102,16 @@ void *DllDebugger(void *_hParent, bool Show)
 void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 {
 	DSPLLE *dsp_lle = (DSPLLE *)lpParameter;
-	while (dsp_lle->bIsRunning)
+	while (dsp_lle->m_bIsRunning)
 	{
-		int cycles = (int)dsp_lle->cycle_count;
+		int cycles = (int)dsp_lle->m_cycle_count;
 		if (cycles > 0) {
 			if (dspjit) 
 				DSPCore_RunCycles(cycles);
 			else
 				DSPInterpreter::RunCycles(cycles);
 
-			Common::AtomicAdd(dsp_lle->cycle_count, -cycles);
+			Common::AtomicAdd(dsp_lle->m_cycle_count, -cycles);
 		}
 		// yield?
 	}
@@ -129,10 +129,10 @@ void DSPLLE::DSP_DebugBreak()
 
 void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
-	this->hWnd = hWnd;
-	this->bWii = bWii;
-	this->bDSPThread = bDSPThread;
-	g_InitMixer = false;
+	m_hWnd = hWnd;
+	m_bWii = bWii;
+	m_bDSPThread = bDSPThread;
+	m_InitMixer = false;
 	bool bCanWork = true;
 	char irom_file[MAX_PATH];
 	char coef_file[MAX_PATH];
@@ -160,14 +160,14 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 		return;
 	}
 
-	bIsRunning = true;
+	m_bIsRunning = true;
 
 	InitInstructionTable();
 
-	if (bDSPThread)
+	if (m_bDSPThread)
 	{
-//		g_hDSPThread = new Common::Thread(dsp_thread, (void *)this);
-		g_hDSPThread = std::thread(dsp_thread, this);
+//		m_hDSPThread = new Common::Thread(dsp_thread, (void *)this);
+		m_hDSPThread = std::thread(dsp_thread, this);
 	}
 /*
 ECTORTODO
@@ -181,10 +181,10 @@ ECTORTODO
 void DSPLLE::DSP_StopSoundStream()
 {
 	DSPInterpreter::Stop();
-	bIsRunning = false;
-	if (bDSPThread)
+	m_bIsRunning = false;
+	if (m_bDSPThread)
 	{
-		g_hDSPThread.join();
+		m_hDSPThread.join();
 	}
 }
 
@@ -197,16 +197,16 @@ void DSPLLE::Shutdown()
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
 	UDSPControl Temp(_uFlag);
-	if (!g_InitMixer)
+	if (!m_InitMixer)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
 			unsigned int AISampleRate, DACSampleRate;
 			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate), hWnd); 
+			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate), m_hWnd); 
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
-			g_InitMixer = true;
+			m_InitMixer = true;
 		}
 	}
 	DSPInterpreter::WriteCR(_uFlag);
@@ -215,7 +215,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	// and immediately process it, if it has.
 	if (_uFlag & 2)
 	{
-		if (!bDSPThread)
+		if (!m_bDSPThread)
 		{
 			DSPCore_CheckExternalInterrupt();
 			DSPCore_CheckExceptions();
@@ -301,16 +301,16 @@ void DSPLLE::DSP_Update(int cycles)
 	else
 		cycles_between_ss_update = 81000000 / 200;
 	
-	cycle_count += cycles;
-	if (cycle_count > cycles_between_ss_update)
+	m_cycle_count += cycles;
+	if (m_cycle_count > cycles_between_ss_update)
 	{
-		while (cycle_count > cycles_between_ss_update)
-			cycle_count -= cycles_between_ss_update;
+		while (m_cycle_count > cycles_between_ss_update)
+			m_cycle_count -= cycles_between_ss_update;
 		soundStream->Update();
 	}
 */
 	// If we're not on a thread, run cycles here.
-	if (!bDSPThread)
+	if (!m_bDSPThread)
 	{
 		// ~1/6th as many cycles as the period PPC-side.
 		DSPCore_RunCycles(dsp_cycles);
@@ -318,9 +318,9 @@ void DSPLLE::DSP_Update(int cycles)
 	else
 	{
 		// Wait for dsp thread to catch up reasonably. Note: this logic should be thought through.
-		while (cycle_count > dsp_cycles)
+		while (m_cycle_count > dsp_cycles)
 			;
-		Common::AtomicAdd(cycle_count, dsp_cycles);
+		Common::AtomicAdd(m_cycle_count, dsp_cycles);
 	}
 }
 

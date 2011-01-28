@@ -166,9 +166,9 @@
 { kHIDUsage_KeyboardLeftControl, "Left Control" },
 { kHIDUsage_KeyboardLeftShift, "Left Shift" },
 { kHIDUsage_KeyboardLeftAlt, "Left Alt" },
-{ kHIDUsage_KeyboardLeftGUI, "Left GUI" },
+{ kHIDUsage_KeyboardLeftGUI, "Left Command" },
 { kHIDUsage_KeyboardRightControl, "Right Control" },
 { kHIDUsage_KeyboardRightShift, "Right Shift" },
 { kHIDUsage_KeyboardRightAlt, "Right Alt" },
-{ kHIDUsage_KeyboardRightGUI, "Right GUI" },
+{ kHIDUsage_KeyboardRightGUI, "Right Command" },
 /* 0x4E - 0xFFFF Reserved */

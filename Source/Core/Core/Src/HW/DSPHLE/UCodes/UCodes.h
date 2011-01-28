@@ -35,10 +35,10 @@ public:
 	IUCode(DSPHLE *dsphle)
 		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
+		, m_DSPHLE(dsphle)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
 		, m_NeedsResumeMail(false)
-		, m_DSPHLE(dsphle)
 	{}
 
 	virtual ~IUCode()

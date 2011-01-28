@@ -32,7 +32,6 @@ files = [
 	"NandPaths.cpp",
 	"OpenCL.cpp",
 	"Plugin.cpp",
-	"PluginDSP.cpp",
 	"PluginVideo.cpp",
 	"SDCardUtil.cpp",
 	"StringUtil.cpp",
