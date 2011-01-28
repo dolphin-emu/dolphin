@@ -35,7 +35,7 @@ typedef std::pair<u8*,u8> Report;
 namespace WiimoteReal
 {
 
-class Wiimote
+class Wiimote : NonCopyable
 {
 friend class WiimoteEmu::Wiimote;
 public:
