@@ -27,7 +27,7 @@
 #include "DSPRegisterView.h"
 #include "CodeView.h"
 #include "MemoryView.h"
-#include "HW\DSPLLE\DSPSymbols.h"
+#include "HW/DSPLLE/DSPSymbols.h"
 
 // Define these here to avoid undefined symbols while still saving functionality
 void Host_NotifyMapLoaded() {}

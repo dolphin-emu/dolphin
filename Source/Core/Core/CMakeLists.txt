@@ -33,11 +33,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/AudioInterface.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
-			Src/DSPHandler.cpp
-			Src/MailHandler.cpp
-			Src/HLEMixer.cpp
-			Src/main.cpp
-			Src/Config.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
@@ -48,8 +43,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/DSPHLE/UCodes/UCode_Zelda.cpp
 			Src/HW/DSPHLE/UCodes/UCode_Zelda_ADPCM.cpp
 			Src/HW/DSPHLE/UCodes/UCode_Zelda_Voice.cpp
-			Src/HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp)
-			Src/HW/DSPHLE/DSPHandler.cpp
+			Src/HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp
 			Src/HW/DSPHLE/HLEMixer.cpp
 			Src/HW/DSPHLE/MailHandler.cpp
 			Src/HW/DSPHLE/DSPHLE.cpp
@@ -160,7 +154,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon lua sfml-network)
+set(LIBS bdisasm inputcommon dspcore lua sfml-network)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

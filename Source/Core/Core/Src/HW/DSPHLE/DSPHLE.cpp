@@ -22,7 +22,6 @@
 #include "ChunkFile.h"
 #include "IniFile.h"
 #include "HLEMixer.h"
-#include "Config.h"
 #include "Setup.h"
 #include "StringUtil.h"
 #include "LogManager.h"

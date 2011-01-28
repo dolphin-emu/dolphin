@@ -29,6 +29,7 @@ set(SRCS	Src/assemble.cpp
 			Src/Jit/DSPJitMisc.cpp)
 
 add_library(dspcore STATIC ${SRCS})
+target_link_libraries(dspcore core)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	add_definitions(-fPIC)
 endif()

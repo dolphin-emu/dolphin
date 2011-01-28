@@ -30,7 +30,6 @@
 #include "DSPHWInterface.h"
 #include "disassemble.h"
 #include "DSPSymbols.h"
-#include "Config.h"
 
 #include "AudioCommon.h"
 #include "Mixer.h"

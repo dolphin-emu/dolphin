@@ -18,7 +18,6 @@ set(SRCS	Src/ABI.cpp
 			Src/NandPaths.cpp
 			Src/OpenCL.cpp
 			Src/Plugin.cpp
-			Src/PluginDSP.cpp
 			Src/PluginVideo.cpp
 			Src/SDCardUtil.cpp
 			Src/StringUtil.cpp
