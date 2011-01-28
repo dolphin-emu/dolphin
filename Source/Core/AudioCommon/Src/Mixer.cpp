@@ -21,6 +21,11 @@
 #include "AudioCommon.h"
 #include "CPUDetect.h"
 
+#include "../../Core/Src/HW/AudioInterface.h"
+
+// UGLINESS
+#include "../../Core/Src/PowerPC/PowerPC.h"
+
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
 #endif
@@ -33,14 +38,11 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (!samples)
 		return 0;
 
-	if (g_dspInitialize.pEmulatorState)
+	if (PowerPC::GetState() != 0)
 	{
-		if (*g_dspInitialize.pEmulatorState != 0)
-		{
-			// Silence
-			memset(samples, 0, numSamples * 4);
-			return numSamples;
-		}
+		// Silence
+		memset(samples, 0, numSamples * 4);
+		return numSamples;
 	}
 
 	unsigned int numLeft = Common::AtomicLoad(m_numSamples);
@@ -127,7 +129,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (m_EnableDTKMusic)
 	{
 		// Re-sampling is done inside
-		g_dspInitialize.pGetAudioStreaming(samples, numSamples, m_sampleRate);
+		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	}
 
 	Common::AtomicAdd(m_numSamples, -(s32)numLeft);
@@ -136,18 +138,15 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 }
 
 
-void CMixer::PushSamples(short *samples, unsigned int num_samples)
+void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 {
 	if (m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
 		{
-			if (g_dspInitialize.pEmulatorState)
-			{
-				if (*g_dspInitialize.pEmulatorState != 0) 
-					break;
-			}
+			if (*PowerPC::GetStatePtr() != 0) 
+				break;
 			// Shortcut key for Throttle Skipping
 #ifdef _WIN32
 			if (GetAsyncKeyState(VK_TAB)) break;;

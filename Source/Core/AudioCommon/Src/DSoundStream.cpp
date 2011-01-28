@@ -125,9 +125,9 @@ bool DSound::Start()
 
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
         return false;
-	if (g_dspInitialize.hWnd)
+	if (hWnd)
 	{
-		HRESULT hr = ds->SetCooperativeLevel((HWND)g_dspInitialize.hWnd, DSSCL_PRIORITY);
+		HRESULT hr = ds->SetCooperativeLevel((HWND)hWnd, DSSCL_PRIORITY);
 	}
 	if (!CreateBuffer())
 		return false;

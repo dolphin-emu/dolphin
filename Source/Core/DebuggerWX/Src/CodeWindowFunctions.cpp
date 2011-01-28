@@ -512,6 +512,27 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	}
 }
 
+
+void CCodeWindow::ToggleSoundWindow(bool bShow)
+{
+	GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(bShow);
+	if (bShow)
+	{
+		/* TODO: Resurrect DSP debugger window.
+		if (!m_JitWindow)
+		   	m_JitWindow = new CJitWindow(Parent, IDM_SOUNDWINDOW);
+		Parent->DoAddPage(m_JitWindow,
+			   	iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
+			   	Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
+		*/
+	}
+	else // Close
+	{
+		//Parent->DoRemovePage(m_JitWindow, false);
+		// m_JitWindow = NULL;
+	}
+}
+
 // Notice: This windows docking will produce several wx debugging messages for plugin
 // windows when ::GetWindowRect and ::DestroyWindow fails in wxApp::CleanUp() for the
 // plugin.
@@ -525,10 +546,6 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 
 	switch(Id)
 	{
-		case IDM_SOUNDWINDOW:
-			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str();
-			PluginType = PLUGIN_TYPE_DSP;
-			break;
 		case IDM_VIDEOWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
 			PluginType = PLUGIN_TYPE_VIDEO;

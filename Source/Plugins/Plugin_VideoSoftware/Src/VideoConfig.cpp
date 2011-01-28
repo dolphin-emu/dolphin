@@ -19,9 +19,9 @@
 #include "IniFile.h"
 #include "VideoConfig.h"
 
-VideoConfig g_Config;
+SWVideoConfig g_Config;
 
-VideoConfig::VideoConfig()
+SWVideoConfig::SWVideoConfig()
 {
     bFullscreen = false;
     bHideCursor = false;
@@ -42,7 +42,7 @@ VideoConfig::VideoConfig()
     drawEnd = 100000;
 }
 
-void VideoConfig::Load(const char* ini_file)
+void SWVideoConfig::Load(const char* ini_file)
 {
     std::string temp;
     IniFile iniFile;
@@ -65,7 +65,7 @@ void VideoConfig::Load(const char* ini_file)
 	iniFile.Get("Misc", "DrawEnd", &drawEnd, 100000);
 }
 
-void VideoConfig::Save(const char* ini_file)
+void SWVideoConfig::Save(const char* ini_file)
 {
     IniFile iniFile;
     iniFile.Load(ini_file);

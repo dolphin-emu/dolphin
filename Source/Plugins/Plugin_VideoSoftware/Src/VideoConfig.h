@@ -23,9 +23,9 @@
 #define STATISTICS 1
 
 // NEVER inherit from this class.
-struct VideoConfig : NonCopyable
+struct SWVideoConfig : NonCopyable
 {
-    VideoConfig();
+    SWVideoConfig();
     void Load(const char* ini_file);
     void Save(const char* ini_file);
 
@@ -50,6 +50,6 @@ struct VideoConfig : NonCopyable
     u32 drawEnd;
 };
 
-extern VideoConfig g_Config;
+extern SWVideoConfig g_Config;
 
 #endif  // _PLUGIN_VIDEOSOFTWARE_CONFIG_H_

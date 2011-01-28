@@ -90,6 +90,7 @@ class CCodeWindow
 		void ToggleBreakPointWindow(bool bShow);
 		void ToggleMemoryWindow(bool bShow);
 		void ToggleJitWindow(bool bShow);
+		void ToggleSoundWindow(bool bShow);
 		void ToggleDLLWindow(int Id, bool bShow);
 
 		void OnChangeFont(wxCommandEvent& event);

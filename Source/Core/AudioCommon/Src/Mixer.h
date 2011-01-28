@@ -48,11 +48,11 @@ public:
 
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples);
-	virtual void Premix(short *samples, unsigned int numSamples) {}
+	virtual void Premix(short * /*samples*/, unsigned int /*numSamples*/) {}
 	unsigned int GetNumSamples();
 
 	// Called from main thread
-	virtual void PushSamples(short* samples, unsigned int num_samples);
+	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() {return m_sampleRate;}
 
 	void SetThrottle(bool use) { m_throttle = use;}

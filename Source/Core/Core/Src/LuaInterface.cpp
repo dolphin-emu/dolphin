@@ -28,10 +28,12 @@
 #include "State.h"
 #include "ConfigManager.h"
 #include "PluginManager.h"
+#include "HW/DSP.h"
 #include "HW/Memmap.h"
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
+#include "PluginDSP.h"
 
 extern "C" {
 #include "lua.h"
@@ -2956,8 +2958,7 @@ DEFINE_LUA_FUNCTION(movie_close, "")
 
 DEFINE_LUA_FUNCTION(sound_clear, "")
 {
-	if(CPluginManager::GetInstance().GetDSP())
-		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
+	DSP::GetPlugin()->DSP_ClearAudioBuffer(false);
 	return 0;
 }
 

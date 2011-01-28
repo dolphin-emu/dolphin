@@ -19,7 +19,6 @@
 #define __PLUGIN_MANAGER_H_
 
 #include "Plugin.h"
-#include "PluginDSP.h"
 #include "PluginVideo.h"
 #include "CoreParameter.h"
 
@@ -49,15 +48,12 @@ public:
 	static void Shutdown();
 
 	Common::PluginVideo *GetVideo();
-	Common::PluginDSP *GetDSP();
 
 	void FreeVideo();
-	void FreeDSP();
 
 	void EmuStateChange(PLUGIN_EMUSTATE newState);
 
 	bool InitPlugins();
-	void ShutdownPlugins();
 	void ShutdownVideoPlugin();
 	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type);
@@ -71,7 +67,6 @@ private:
 	CPluginInfos m_PluginInfos;
 	PLUGIN_GLOBALS *m_PluginGlobals;
 	Common::PluginVideo *m_video;
-	Common::PluginDSP *m_dsp;
 
 	SCoreStartupParameter * m_params;
 	CPluginManager();

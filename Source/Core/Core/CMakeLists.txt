@@ -13,6 +13,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/OnFrame.cpp
 			Src/PatchEngine.cpp
 			Src/PluginManager.cpp
+			Src/PluginDSP.cpp
 			Src/State.cpp
 			Src/stdafx.cpp
 			Src/Tracer.cpp
@@ -32,6 +33,32 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/AudioInterface.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
+			Src/DSPHandler.cpp
+			Src/MailHandler.cpp
+			Src/HLEMixer.cpp
+			Src/main.cpp
+			Src/Config.cpp
+			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
+			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
+			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
+			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
+			Src/HW/DSPHLE/UCodes/UCodes.cpp
+			Src/HW/DSPHLE/UCodes/UCode_GBA.cpp
+			Src/HW/DSPHLE/UCodes/UCode_Zelda.cpp
+			Src/HW/DSPHLE/UCodes/UCode_Zelda_ADPCM.cpp
+			Src/HW/DSPHLE/UCodes/UCode_Zelda_Voice.cpp
+			Src/HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp)
+			Src/HW/DSPHLE/DSPHandler.cpp
+			Src/HW/DSPHLE/HLEMixer.cpp
+			Src/HW/DSPHLE/MailHandler.cpp
+			Src/HW/DSPHLE/DSPHLE.cpp
+			Src/HW/DSPLLE/DSPDebugInterface.cpp
+			Src/HW/DSPLLE/DSPHost.cpp
+			Src/HW/DSPLLE/DSPSymbols.cpp
+			Src/HW/DSPLLE/DSPLLEGlobals.cpp
+			Src/HW/DSPLLE/DSPLLE.cpp
+			Src/HW/DSPLLE/DSPLLETools.cpp
 			Src/HW/DVDInterface.cpp
 			Src/HW/EXI_Channel.cpp
 			Src/HW/EXI.cpp

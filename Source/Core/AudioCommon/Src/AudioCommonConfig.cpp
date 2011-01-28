@@ -16,7 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "AudioCommon.h"
+
 AudioCommonConfig ac_Config;
+
+// This shouldn't be a global, at least not here.
+SoundStream *soundStream;
 
 // Load from given file
 void AudioCommonConfig::Load(IniFile &file) {

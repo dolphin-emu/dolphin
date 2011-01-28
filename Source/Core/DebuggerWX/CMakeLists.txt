@@ -3,6 +3,10 @@ set(SRCS	Src/BreakpointDlg.cpp
 			Src/BreakpointWindow.cpp
 			Src/CodeWindow.cpp
 			Src/CodeWindowFunctions.cpp
+			Src/DSPDebugWindow.cpp
+			Src/DSPDebugWindow.h
+			Src/DSPRegisterView.cpp
+			Src/DSPRegisterView.h
 			Src/JitWindow.cpp
 			Src/MemoryCheckDlg.cpp
 			Src/MemoryWindow.cpp

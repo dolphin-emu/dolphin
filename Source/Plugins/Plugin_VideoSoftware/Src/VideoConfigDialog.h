@@ -76,7 +76,7 @@ protected:
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
-	VideoConfig& vconfig;
+	SWVideoConfig& vconfig;
 	std::string ininame;
 };
 

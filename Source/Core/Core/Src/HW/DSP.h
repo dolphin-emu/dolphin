@@ -20,6 +20,7 @@
 
 #include "Common.h"
 class PointerWrap;
+class PluginDSP;
 
 namespace DSP
 {
@@ -38,8 +39,11 @@ enum
 	ARAM_MASK	= 0x00FFFFFF,
 };
 
-void Init();
+void Init(bool hle);
 void Shutdown();
+
+PluginDSP *GetPlugin();
+
 void DoState(PointerWrap &p);
 
 void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true);

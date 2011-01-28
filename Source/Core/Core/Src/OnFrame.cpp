@@ -130,13 +130,13 @@ bool IsUsingPad(int controller)
 	switch (controller)
 	{
 	case 0:
-		return g_numPads & 0x01;
+		return (g_numPads & 0x01) != 0;
 	case 1:
-		return g_numPads & 0x02;
+		return (g_numPads & 0x02) != 0;
 	case 2:
-		return g_numPads & 0x04;
+		return (g_numPads & 0x04) != 0;
 	case 3:
-		return g_numPads & 0x08;
+		return (g_numPads & 0x08) != 0;
 	default:
 		return false;
 	}

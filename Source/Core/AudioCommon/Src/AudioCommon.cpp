@@ -28,7 +28,7 @@
 
 namespace AudioCommon 
 {	
-	SoundStream *InitSoundStream(CMixer *mixer) 
+	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
 	{
 		// This looks evil.
 		if (!mixer)
@@ -38,9 +38,9 @@ namespace AudioCommon
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid()) 
-			soundStream = new NullSound(mixer, g_dspInitialize.hWnd);
+			soundStream = new NullSound(mixer, hWnd);
 		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
-			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+			soundStream = new DSound(mixer, hWnd);
 		else if (backend == BACKEND_XAUDIO2     && XAudio2::isValid()) 
 			soundStream = new XAudio2(mixer);
 		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
@@ -86,7 +86,7 @@ namespace AudioCommon
 			soundStream = NULL;
 		}
 
-		INFO_LOG(DSPHLE, "Done shutting down sound stream");	
+		NOTICE_LOG(DSPHLE, "Done shutting down sound stream");	
 	}
 
 	std::vector<std::string> GetSoundBackends() 

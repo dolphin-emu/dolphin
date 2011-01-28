@@ -70,7 +70,6 @@ CPluginManager::CPluginManager()
 
 	// Set initial values to NULL.
 	m_video = NULL;
-	m_dsp = NULL;
 }
 
 // This will call FreeLibrary() for all plugins
@@ -79,7 +78,6 @@ CPluginManager::~CPluginManager()
 	INFO_LOG(CONSOLE, "Delete CPluginManager\n");
 
 	delete m_PluginGlobals;
-	delete m_dsp;
 	delete m_video;
 }
 
@@ -104,25 +102,7 @@ bool CPluginManager::InitPlugins()
 	}
 	INFO_LOG(CONSOLE, "After GetVideo\n");
 
-	if (!GetDSP()) {
-		PanicAlertT("Can't init DSP Plugin");
-		return false;
-	}
-
 	return true;
-}
-
-
-// FreeLibrary() after ShutDown() is disabled for some plugins. See the comment in the file description
-// for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
-void CPluginManager::ShutdownPlugins()
-{
-	if (m_dsp)
-	{
-		m_dsp->Shutdown();
-		FreeDSP();
-		NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(false, "Audio shutdown").c_str());
-	}
 }
 
 void CPluginManager::ShutdownVideoPlugin()
@@ -216,10 +196,6 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		plugin = new Common::PluginVideo(_rFilename);
 		break;
 	
-	case PLUGIN_TYPE_DSP:
-		plugin = new Common::PluginDSP(_rFilename);
-		break;
-	
 	default:
 		PanicAlertT("Trying to load unsupported type %d", type);
 		return NULL;
@@ -286,28 +262,6 @@ void CPluginManager::ScanForPlugins()
 	}
 }
 
-
-/* Create or return the already created plugin pointers. This will be called
-   often for the DSP from the DSP files.
-   
-   We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
-   if it's not valid.
-   */
-
-Common::PluginDSP *CPluginManager::GetDSP()
-{
-	if (m_dsp != NULL)
-	{
-		if (m_dsp->GetFilename() == m_params->m_strDSPPlugin)
-			return m_dsp;
-		else
-			FreeDSP();
-	}
-	// Else load a new plugin
-	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params->m_strDSPPlugin.c_str());
-	return m_dsp;
-}
-
 Common::PluginVideo *CPluginManager::GetVideo()
 {
 	/* We don't need to check if m_video->IsValid() here, because m_video will not be set by LoadPlugin()
@@ -331,20 +285,10 @@ void CPluginManager::FreeVideo()
 	m_video = NULL;
 }
 
-void CPluginManager::FreeDSP()
-{
-	WARN_LOG(CONSOLE, "%s", Core::StopMessage(false, "Will unload audio DLL").c_str());
-	delete m_dsp;
-	m_dsp = NULL;
-}
-
 void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	GetVideo()->EmuStateChange(newState);
-	GetDSP()->EmuStateChange(newState);
 }
-
-
 
 // Call DLL functions
 // ------------
@@ -365,11 +309,6 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 			GetVideo()->Config(_Parent);
 		break;
 
-	case PLUGIN_TYPE_DSP:
-		if (GetDSP() != NULL)
-			GetDSP()->Config(_Parent);
-		break;
-
 	default:
 		PanicAlertT("Type %d config not supported in plugin %s", Type, _rFilename);
 		break;
@@ -379,7 +318,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void *CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
+	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return NULL;
@@ -389,10 +328,6 @@ void *CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TY
 	{
 	case PLUGIN_TYPE_VIDEO:
 		return GetVideo()->Debug(_Parent, Show);
-		break;
-
-	case PLUGIN_TYPE_DSP:
-		return GetDSP()->Debug(_Parent, Show);
 		break;
 
 	default:

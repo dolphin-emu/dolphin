@@ -47,6 +47,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PluginManager.h"
 #include "../ConfigManager.h"
+#include "../PluginDSP.h"
 
 namespace DSP
 {
@@ -60,8 +61,8 @@ enum
 	DSP_MAIL_FROM_DSP_LO	= 0x5006,
 	DSP_CONTROL				= 0x500A,
 	DSP_INTERRUPT_CONTROL   = 0x5010,
-	AR_INFO					= 0x5012, // These names are a good guess at best
-	AR_MODE					= 0x5016, //
+	AR_INFO					= 0x5012,  // These names are a good guess at best
+	AR_MODE					= 0x5016,  //
 	AR_REFRESH				= 0x501a,
 	AR_DMA_MMADDR_H			= 0x5020,
 	AR_DMA_MMADDR_L			= 0x5022,
@@ -71,7 +72,7 @@ enum
 	AR_DMA_CNT_L			= 0x502A,
 	AUDIO_DMA_START_HI		= 0x5030,
 	AUDIO_DMA_START_LO		= 0x5032,
-	AUDIO_DMA_BLOCKS_LENGTH	= 0x5034, // Ever used?
+	AUDIO_DMA_BLOCKS_LENGTH	= 0x5034,  // Ever used?
 	AUDIO_DMA_CONTROL_LEN	= 0x5036,
 	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
 };
@@ -211,7 +212,7 @@ static ARAM_Info g_ARAM_Info;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-Common::PluginDSP *dsp_plugin;
+PluginDSP *dsp_plugin;
 
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
@@ -229,6 +230,8 @@ void DoState(PointerWrap &p)
 	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
+
+	dsp_plugin->DoState(p);
 }
 
 
@@ -245,13 +248,15 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
 }
 
-void Init()
+PluginDSP *GetPlugin()
 {
-	dsp_plugin = CPluginManager::GetInstance().GetDSP();
-	PLUGIN_INFO DSPType;
-	dsp_plugin->GetInfo(DSPType);
-	std::string DSPName(DSPType.Name);
-	dsp_is_lle = (DSPName.find("LLE") != std::string::npos) || (DSPName.find("lle") != std::string::npos);
+	return dsp_plugin;
+}
+
+void Init(bool hle)
+{
+	dsp_plugin = CreateDSPPlugin(hle);
+	dsp_is_lle = dsp_plugin->IsLLE();
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
@@ -263,7 +268,7 @@ void Init()
 	}
 	else
 	{
-		// On the GC, ARAM is accessible only through this interface (unless you're doing mmu tricks?...)
+		// On the GC, ARAM is accessible only through this interface.
 		g_ARAM.wii_mode = false;
 		g_ARAM.size = ARAM_SIZE;
 		g_ARAM.mask = ARAM_MASK;
@@ -288,6 +293,8 @@ void Shutdown()
 		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
 	g_ARAM.ptr = NULL;
 
+	dsp_plugin->Shutdown();
+	delete dsp_plugin;
 	dsp_plugin = NULL;
 }
 
@@ -301,11 +308,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
-		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
+		_uReturnValue = dsp_plugin->DSP_ReadMailBoxHigh(true);
 		break;
 
 	case DSP_MAIL_TO_DSP_LO:
-		_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(true);
+		_uReturnValue = dsp_plugin->DSP_ReadMailBoxLow(true);
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
@@ -313,11 +320,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
-		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
+		_uReturnValue = dsp_plugin->DSP_ReadMailBoxHigh(false);
 		break;
 
 	case DSP_MAIL_FROM_DSP_LO:
-		_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(false);
+		_uReturnValue = dsp_plugin->DSP_ReadMailBoxLow(false);
 		break;
 
 	case DSP_CONTROL:
@@ -382,11 +389,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	{
 	// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		dsp_plugin->DSP_WriteMailboxHigh(true, _Value);
+		dsp_plugin->DSP_WriteMailBoxHigh(true, _Value);
 		break;
 
 	case DSP_MAIL_TO_DSP_LO:
-		dsp_plugin->DSP_WriteMailboxLow(true, _Value);
+		dsp_plugin->DSP_WriteMailBoxLow(true, _Value);
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
@@ -527,7 +534,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		_uReturnValue = (dsp_plugin->DSP_ReadMailboxHigh(true) << 16) | dsp_plugin->DSP_ReadMailboxLow(true);
+		_uReturnValue = (dsp_plugin->DSP_ReadMailBoxHigh(true) << 16) | dsp_plugin->DSP_ReadMailBoxLow(true);
 		break;
 
 		// AI
@@ -563,8 +570,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		dsp_plugin->DSP_WriteMailboxHigh(true, _iValue >> 16);
-		dsp_plugin->DSP_WriteMailboxLow(true, (u16)_iValue);
+		dsp_plugin->DSP_WriteMailBoxHigh(true, _iValue >> 16);
+		dsp_plugin->DSP_WriteMailBoxLow(true, (u16)_iValue);
 		break;
 
 		// AI

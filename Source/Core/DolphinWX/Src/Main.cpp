@@ -290,10 +290,6 @@ bool DolphinApp::OnInit()
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin =
 			std::string(videoPluginFilename.mb_str());
 
-	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
-			std::string(audioPluginFilename.mb_str());
-
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
 

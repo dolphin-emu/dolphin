@@ -195,7 +195,7 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 			g_pCodeWindow->ToggleJitWindow(bShow);
 			break;
 		case IDM_SOUNDWINDOW:
-			g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, bShow);
+			g_pCodeWindow->ToggleSoundWindow(bShow);
 			break;
 		case IDM_VIDEOWINDOW:
 			g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, bShow);

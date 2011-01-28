@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -191,7 +191,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -269,7 +269,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -344,7 +344,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="true"
@@ -419,7 +419,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -719,6 +719,190 @@
 					RelativePath=".\Src\Hw\DSP.h"
 					>
 				</File>
+				<Filter
+					Name="HLE"
+					>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\DSPHandler.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\DSPHandler.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\DSPHLE.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\DSPHLE.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\DSPHLEGlobals.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\HLEMixer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\HLEMixer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\MailHandler.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPHLE\MailHandler.h"
+						>
+					</File>
+					<Filter
+						Name="UCodes"
+						>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AX.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AX.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AXStructs.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AXWii.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_AXWii.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_CARD.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_CARD.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_GBA.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_GBA.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_ROM.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_ROM.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda.h"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda_Synth.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCode_Zelda_Voice.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCodes.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\Src\HW\DSPHLE\UCodes\UCodes.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
+				<Filter
+					Name="LLE"
+					>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPDebugInterface.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPDebugInterface.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPHost.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLE.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLE.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLEGlobals.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLEGlobals.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLETools.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPLLETools.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPSymbols.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\HW\DSPLLE\DSPSymbols.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="DI - DVD Interface"
@@ -1514,6 +1698,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\CMakeLists.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\ConfigManager.cpp"
 			>
 		</File>
@@ -1583,6 +1771,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\PatchEngine.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginDSP.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginDSP.h"
 			>
 		</File>
 		<File

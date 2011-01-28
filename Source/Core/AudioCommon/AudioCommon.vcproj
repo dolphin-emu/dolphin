@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="AudioCommon"
 	ProjectGUID="{FBAFB369-07EB-4460-9CAD-08BE5789DAB6}"
 	RootNamespace="AudioCommon"
@@ -62,6 +62,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool
@@ -126,6 +127,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool
@@ -325,6 +327,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool
@@ -388,6 +391,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib"
 				AdditionalLibraryDirectories=""
 			/>
 			<Tool

@@ -155,6 +155,7 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
 	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
+	ini.Set("Core", "DSPHLE",			m_LocalCoreStartupParameter.bDSPHLE);
 	ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
 	ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
 	ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
@@ -184,7 +185,6 @@ void SConfig::SaveSettings()
 
 	// Plugins
 	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
-	ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -280,6 +280,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
+		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
 		ini.Get("Core", "SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
 		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
@@ -318,7 +319,6 @@ void SConfig::LoadSettings()
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
-		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
 	}
 
 	m_SYSCONF = new SysConf();

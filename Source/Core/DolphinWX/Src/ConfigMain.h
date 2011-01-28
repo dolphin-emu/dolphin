@@ -20,6 +20,7 @@
 
 #include <wx/wx.h>
 #include <wx/gbsizer.h>
+#include <wx/spinbutt.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
 #include "ConfigManager.h"
@@ -43,6 +44,7 @@ public:
 	void CloseClick(wxCommandEvent& event);
 	void OnSelectionChanged(wxCommandEvent& event);
 	void OnConfig(wxCommandEvent& event);
+	void OnDSPConfig(wxCommandEvent& event);
 
 	bool bRefreshList;
 
@@ -51,6 +53,7 @@ private:
 	wxPanel* GeneralPage;
 	wxPanel* GamecubePage;
 	wxPanel* DisplayPage;
+	wxPanel* AudioPage;
 	wxPanel* WiiPage;
 	wxPanel* PathsPage;
 	wxPanel* PluginsPage;
@@ -85,6 +88,11 @@ private:
 	wxCheckBox* RenderToMain;
 	wxCheckBox* ProgressiveScan;
 	wxCheckBox* NTSCJ;
+
+	// Audio
+	wxBoxSizer* sAudioPage; // GC settings
+	wxCheckBox* DSP_HLE;
+	wxButton* DSPConfig;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
@@ -142,17 +150,12 @@ private:
 	wxDirPickerCtrl* DVDRoot;
 	wxFilePickerCtrl* ApploaderPath;
 
-
 	wxBoxSizer* sPluginsPage; // Plugins settings
 	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin;  // Graphics, DSP sections
 
 	// Graphics
 	wxChoice* GraphicSelection;
 	wxButton* GraphicConfig;
-
-	// DSP
-	wxChoice* DSPSelection;
-	wxButton* DSPConfig;
 
 	wxButton* m_Ok;
 
@@ -174,6 +177,7 @@ private:
 		ID_NOTEBOOK = 1000,
 		ID_GENERALPAGE,
 		ID_DISPLAYPAGE,
+		ID_AUDIOPAGE,
 		ID_GAMECUBEPAGE,
 		ID_WIIPAGE,
 		ID_PATHSPAGE,
@@ -201,6 +205,10 @@ private:
 		ID_DISPLAY_RENDERTOMAIN,
 		ID_DISPLAY_PROGSCAN,
 		ID_DISPLAY_NTSCJ,
+
+		// Audio Settings
+		ID_AUDIO_DSP_HLE,
+		ID_AUDIO_CONFIG,
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
@@ -268,6 +276,8 @@ private:
 	void DisplaySettingsChanged(wxCommandEvent& event);
 	void AddResolutions();
 	void OnSpin(wxSpinEvent& event);
+
+	void AudioSettingsChanged(wxCommandEvent& event);
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);

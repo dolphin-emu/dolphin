@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Dolphin"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -56,7 +56,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="0"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="false"
 				RuntimeLibrary="0"
@@ -90,11 +90,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win32/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -175,7 +175,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -208,11 +208,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win64/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -287,7 +287,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -321,11 +321,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win32/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -398,7 +398,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -432,11 +432,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win64/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -511,7 +511,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -546,11 +546,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib&#x0D;&#x0A;/NODEFAULTLIB:libcmtd.lib"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/Win32/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win32/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -627,7 +627,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\AudioCommon\Src;..\InputCommon\Src;..\DebuggerWX\src;..\DebuggerUICommon\Src;..\DiscIO\Src;..\AudioCommon\Src..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\SFML\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -659,11 +659,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
 				OutputFile="../../../Binary/x64/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;&quot;../../../Externals/OpenAL/$(PlatformName)/&quot;;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;;../../../Externals/OpenAL/Win64/;&quot;..\..\..\Externals\SDL\$(PlatformName)&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -838,6 +838,22 @@
 			</File>
 			<File
 				RelativePath=".\src\ConfigMain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPHLEConfigDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPHLEConfigDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPLLEConfigDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSPLLEConfigDlg.h"
 				>
 			</File>
 			<File

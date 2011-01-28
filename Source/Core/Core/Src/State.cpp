@@ -25,6 +25,7 @@
 #include "CoreTiming.h"
 #include "OnFrame.h"
 #include "HW/Wiimote.h"
+#include "HW/DSP.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
@@ -89,7 +90,7 @@ void DoState(PointerWrap &p)
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	CPluginManager &pm = CPluginManager::GetInstance();
 	pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
-	pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
+
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);

@@ -95,14 +95,6 @@ inline u32* Memory_Read_U32_Unswapped_Ptr(u32 _uAddress)
 }
 
 
-inline float Memory_Read_Float(u32 _uAddress)
-{
-	union {u32 i; float f;} temp;
-	temp.i = Memory_Read_U32(_uAddress);
-	return temp.f;
-}
-
-
 // Logging
 // ----------
 void HandleGLError();

@@ -69,6 +69,7 @@ struct SCoreStartupParameter
 
 	bool bCPUThread;
 	bool bDSPThread;
+	bool bDSPHLE;
 	bool bSkipIdle;
 	bool bNTSC;
 	bool bNTSCJ;
@@ -129,7 +130,6 @@ struct SCoreStartupParameter
 
 	// files
 	std::string m_strVideoPlugin;
-	std::string m_strDSPPlugin;
 
 	std::string m_strFilename;
 	std::string m_strBootROM;

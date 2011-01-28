@@ -17,6 +17,7 @@
 
 #include <string> // System
 #include <vector>
+#include <wx/spinbutt.h>
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -24,11 +25,15 @@
 #include "Core.h" // Core
 #include "HW/EXI.h"
 #include "HW/SI.h"
+#include "HW/DSPHLE/DSPHLE.h"
+#include "HW/DSPLLE/DSPLLE.h"
 
 #include "Globals.h" // Local
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "ConfigManager.h"
+#include "DSPHLEConfigDlg.h"
+#include "DSPLLEConfigDlg.h"
 #include "SysConf.h"
 #include "Frame.h"
 #include "HotkeyDlg.h"
@@ -118,6 +123,9 @@ EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_PROGSCAN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_NTSCJ, CConfigMain::DisplaySettingsChanged)
 
+EVT_CHECKBOX(ID_AUDIO_DSP_HLE, CConfigMain::AudioSettingsChanged)
+EVT_BUTTON(ID_AUDIO_CONFIG, CConfigMain::OnDSPConfig)
+
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
@@ -164,9 +172,6 @@ EVT_FILEPICKER_CHANGED(ID_APPLOADERPATH, CConfigMain::ApploaderPathChanged)
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
 
-EVT_CHOICE(ID_DSP_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_DSP_CONFIG, CConfigMain::OnConfig)
-
 END_EVENT_TABLE()
 
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -211,6 +216,9 @@ void CConfigMain::UpdateGUI()
 		ProgressiveScan->Disable();
 		NTSCJ->Disable();
 
+		// Disable stuff on AudioPage
+		DSP_HLE->Disable();
+		DSPConfig->Disable();
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -232,7 +240,6 @@ void CConfigMain::UpdateGUI()
 
 		// Disable stuff on PluginsPage
 		GraphicSelection->Disable();
-		DSPSelection->Disable();
 	}
 }
 
@@ -349,12 +356,17 @@ void CConfigMain::InitializeGUIValues()
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
-	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
+	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++) {
 		if (langIds[i] == SConfig::GetInstance().m_InterfaceLanguage)
 		{
 			InterfaceLang->SetSelection(i);
 			break;
 		}
+	}
+
+
+	// Audio
+	DSP_HLE->SetValue(startup_params.bDSPHLE);
 
 	// Gamecube - IPL
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
@@ -389,7 +401,6 @@ void CConfigMain::InitializeGUIValues()
 
 	// Plugins
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, startup_params.m_strVideoPlugin);
-	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, startup_params.m_strDSPPlugin);
 }
 
 void CConfigMain::InitializeGUITooltips()
@@ -424,10 +435,8 @@ void CConfigMain::InitializeGUITooltips()
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
-
 	// Gamecube - Devices
 	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
-
 
 	// Wii - Devices
 	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
@@ -441,6 +450,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
 	DisplayPage = new wxPanel(Notebook, ID_DISPLAYPAGE, wxDefaultPosition, wxDefaultSize);
+	AudioPage = new wxPanel(Notebook, ID_AUDIOPAGE, wxDefaultPosition, wxDefaultSize);
 	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
 	WiiPage = new wxPanel(Notebook, ID_WIIPAGE, wxDefaultPosition, wxDefaultSize);
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
@@ -448,6 +458,7 @@ void CConfigMain::CreateGUIControls()
 
 	Notebook->AddPage(GeneralPage, _("General"));
 	Notebook->AddPage(DisplayPage, _("Display"));
+	Notebook->AddPage(AudioPage, _("Audio"));
 	Notebook->AddPage(GamecubePage, _("Gamecube"));
 	Notebook->AddPage(WiiPage, _("Wii"));
 	Notebook->AddPage(PathsPage, _("Paths"));
@@ -513,6 +524,14 @@ void CConfigMain::CreateGUIControls()
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS, _("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
+	// Audio page
+	sAudioPage = new wxBoxSizer(wxVERTICAL);
+	DSP_HLE = new wxCheckBox(AudioPage, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPConfig = new wxButton(AudioPage, ID_AUDIO_CONFIG, _("Configure DSP"), wxDefaultPosition, wxDefaultSize);
+	sAudioPage->Add(DSP_HLE);
+	sAudioPage->Add(DSPConfig);
+	AudioPage->SetSizer(sAudioPage);
+
 	// Themes - this should really be a wxChoice...
 	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, _("Theme"), wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
 
@@ -786,21 +805,13 @@ void CConfigMain::CreateGUIControls()
 	GraphicSelection = new wxChoice(PluginsPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginsPage, ID_GRAPHIC_CONFIG, _("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	sbDSPPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, _("DSP"));
-	DSPSelection = new wxChoice(PluginsPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
-	DSPConfig = new wxButton(PluginsPage, ID_DSP_CONFIG, _("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	// Populate the settings
 	sbGraphicsPlugin->Add(GraphicSelection, 1, wxEXPAND|wxALL, 5);
 	sbGraphicsPlugin->Add(GraphicConfig, 0, wxALL, 5);
 
-	sbDSPPlugin->Add(DSPSelection, 1, wxEXPAND|wxALL, 5);
-	sbDSPPlugin->Add(DSPConfig, 0, wxALL, 5);
-
 	// Populate the Plugins page
 	sPluginsPage = new wxBoxSizer(wxVERTICAL);
 	sPluginsPage->Add(sbGraphicsPlugin, 0, wxEXPAND|wxALL, 5);
-	sPluginsPage->Add(sbDSPPlugin, 0, wxEXPAND|wxALL, 5);
 
 	PluginsPage->SetSizer(sPluginsPage);
 
@@ -947,6 +958,15 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 	}
 }
 
+void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case ID_AUDIO_DSP_HLE:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSP_HLE->IsChecked();
+		break;
+	}
+}
 
 // GC settings
 // -----------------------
@@ -1122,9 +1142,6 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 }
 
 
-
-
-
 // Paths settings
 // -------------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
@@ -1198,8 +1215,6 @@ void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 	// Update plugin filenames
 	if (GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin))
 		CPluginManager::GetInstance().FreeVideo();
-	if (GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin))
-		CPluginManager::GetInstance().FreeDSP();
 }
 
 void CConfigMain::OnConfig(wxCommandEvent& event)
@@ -1209,11 +1224,27 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 		case ID_GRAPHIC_CONFIG:
 			CallConfig(GraphicSelection);
 			break;
-		case ID_DSP_CONFIG:
-			CallConfig(DSPSelection);
+	}
+}
+
+void CConfigMain::OnDSPConfig(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+		case ID_AUDIO_CONFIG:
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE) {
+				DSPConfigDialogHLE *dlg = new DSPConfigDialogHLE(this);
+				dlg->ShowModal();
+				dlg->Destroy();
+			} else {
+				DSPConfigDialogLLE *dlg = new DSPConfigDialogLLE(this);
+				dlg->ShowModal();
+				dlg->Destroy();
+			}
 			break;
 	}
 }
+
 
 void CConfigMain::CallConfig(wxChoice* _pChoice)
 {

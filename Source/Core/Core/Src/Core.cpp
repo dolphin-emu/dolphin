@@ -59,6 +59,7 @@
 #include "PowerPC/JitCommon/JitBase.h"
 
 #include "PluginManager.h"
+#include "PluginDSP.h"
 #include "ConfigManager.h"
 
 #include "VolumeHandler.h"
@@ -369,24 +370,7 @@ void EmuThread()
 	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 
-	// Load and init DSPPlugin	
-	DSPInitialize dspInit;
-	dspInit.hWnd					= g_pWindowHandle;
-	dspInit.pARAM_Read_U8			= (u8  (__cdecl *)(const u32))DSP::ReadARAM; 
-	dspInit.pARAM_Write_U8			= (void (__cdecl *)(const u8, const u32))DSP::WriteARAM; 
-	dspInit.pGetARAMPointer			= DSP::GetARAMPtr;
-	dspInit.pGetMemoryPointer		= Memory::GetPointer;
-	dspInit.pLog					= Callback_DSPLog;
-	dspInit.pName					= Callback_ISOName;
-	dspInit.pDebuggerBreak			= Callback_DebuggerBreak;
-	dspInit.pGenerateDSPInterrupt	= Callback_DSPInterrupt;
-	dspInit.pGetAudioStreaming		= AudioInterface::Callback_GetStreaming;
-	dspInit.pGetSampleRate			= AudioInterface::Callback_GetSampleRate;
-	dspInit.pEmulatorState			= (int *)PowerPC::GetStatePtr();
-	dspInit.bWii					= _CoreParameter.bWii;
-	dspInit.bOnThread				= _CoreParameter.bDSPThread;
-
-	Plugins.GetDSP()->Initialize((void *)&dspInit);
+	DSP::GetPlugin()->Initialize(g_pWindowHandle, _CoreParameter.bWii, _CoreParameter.bDSPThread);
 	
 	Pad::Initialize(g_pWindowHandle);
 
@@ -484,7 +468,7 @@ void EmuThread()
 
 	// Stop audio thread - Actually this does nothing on HLE plugin.
 	// But stops the DSP Interpreter on LLE plugin.
-	Plugins.GetDSP()->DSP_StopSoundStream();
+	DSP::GetPlugin()->DSP_StopSoundStream();
 	
 	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
@@ -499,7 +483,6 @@ void EmuThread()
 
 	Pad::Shutdown();
 	Wiimote::Shutdown();
-	Plugins.ShutdownPlugins();
 
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 

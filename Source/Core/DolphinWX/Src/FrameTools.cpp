@@ -44,6 +44,8 @@ Core::GetWindowHandle().
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
+#include "DSPHLEConfigDlg.h"
+#include "DSPLLEConfigDlg.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "LogWindow.h"
@@ -1059,18 +1061,15 @@ void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
-	#ifdef _WIN32
-	Disable(); // Fake a modal dialog
-	#endif
-	CPluginManager::GetInstance().OpenConfig(
-			this,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP
-			);
-	#ifdef _WIN32
-	Enable();
-	Raise();
-	#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE) {
+		DSPConfigDialogHLE *dlg = new DSPConfigDialogHLE(this);
+		dlg->ShowModal();
+		dlg->Destroy();
+	} else {
+		DSPConfigDialogLLE *dlg = new DSPConfigDialogLLE(this);
+		dlg->ShowModal();
+		dlg->Destroy();
+	}
 }
 
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))

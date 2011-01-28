@@ -53,7 +53,7 @@ namespace HW
 		SerialInterface::Init();
 		ProcessorInterface::Init();
 		Memory::Init();
-		DSP::Init();
+		DSP::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
 		ExpansionInterface::Init();

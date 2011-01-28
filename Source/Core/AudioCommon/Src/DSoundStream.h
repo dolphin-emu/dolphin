@@ -60,13 +60,14 @@ class DSound : public SoundStream
     bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
 
 public:
-	DSound(CMixer *mixer, void *hWnd = NULL)
+	DSound(CMixer *mixer, void *_hWnd = NULL)
 		: SoundStream(mixer)
 		, bufferSize(0)
 		, currentPos(0)
 		, lastPos(0)
 		, dsBuffer(0)
 		, ds(0)
+		, hWnd(_hWnd)
 	{}
 
     virtual ~DSound() {}

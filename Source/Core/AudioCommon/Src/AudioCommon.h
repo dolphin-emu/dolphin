@@ -20,13 +20,11 @@
 
 #include "Common.h"
 #include "AudioCommonConfig.h"
-#include "../../../PluginSpecs/pluginspecs_dsp.h"
 #include "SoundStream.h"
 
 
 class CMixer;
 
-extern DSPInitialize g_dspInitialize;
 extern SoundStream *soundStream;
 extern AudioCommonConfig ac_Config;
 
@@ -57,7 +55,7 @@ union UDSPControl
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(CMixer *mixer = NULL);
+	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();
