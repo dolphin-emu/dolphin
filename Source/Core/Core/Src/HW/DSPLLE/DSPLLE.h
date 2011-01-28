@@ -59,14 +59,14 @@ public:
 private:
 	static void dsp_thread(DSPLLE* lpParameter);
 
-	std::thread g_hDSPThread;
+	std::thread m_hDSPThread;
 	SoundStream *soundStream;
-	bool g_InitMixer;
-	void *hWnd;
-	bool bWii;
-	bool bDSPThread;
-	bool bIsRunning;
-	volatile u32 cycle_count;
+	bool m_InitMixer;
+	void *m_hWnd;
+	bool m_bWii;
+	bool m_bDSPThread;
+	bool m_bIsRunning;
+	volatile u32 m_cycle_count;
 };
 
 // Hack to be deleted.
