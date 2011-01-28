@@ -217,7 +217,7 @@ void dsp_thread()
 	{
 		int cycles = (int)cycle_count;
 		if (cycles > 0) {
-			if (jit) 
+			if (dspjit) 
 				DSPCore_RunCycles(cycles);
 			else
 				DSPInterpreter::RunCycles(cycles);

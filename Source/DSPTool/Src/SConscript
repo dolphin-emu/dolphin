@@ -1,6 +1,7 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 files = [
 	'main.cpp',
@@ -11,4 +12,9 @@ libs = [
 	'common',
 	]
 
-env.Program('dsptool', files, LIBS = libs)
+if sys.platform == 'darwin':
+	frames = ['CoreFoundation']
+else:
+	frames = []
+
+env.Program('dsptool', files, LIBS = libs, FRAMEWORKS = frames)

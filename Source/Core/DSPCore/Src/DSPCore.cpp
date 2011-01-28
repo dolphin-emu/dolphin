@@ -39,7 +39,7 @@ SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
-DSPEmitter *jit = NULL;
+DSPEmitter *dspjit = NULL;
 Common::Event step_event;
 Common::CriticalSection ExtIntCriticalSection;
 
@@ -92,7 +92,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 {
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
-	jit = NULL;
+	dspjit = NULL;
 	
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
@@ -150,7 +150,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	// Initialize JIT, if necessary
 	if(bUsingJIT) 
-		jit = new DSPEmitter();
+		dspjit = new DSPEmitter();
 
 	DSPAnalyzer::Analyze();
 
@@ -165,9 +165,9 @@ void DSPCore_Shutdown()
 {
 	core_state = DSPCORE_STOP;
 
-	if(jit) {
-		delete jit;
-		jit = NULL;
+	if(dspjit) {
+		delete dspjit;
+		dspjit = NULL;
 	}
 	step_event.Shutdown();
 	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
@@ -248,10 +248,10 @@ void DSPCore_CheckExceptions()
 // Handle state changes and stepping.
 int DSPCore_RunCycles(int cycles)
 {
-	if (jit)
+	if (dspjit)
 	{
 		cyclesLeft = cycles;
-		CompiledCode pExecAddr = (CompiledCode)jit->enterDispatcher;
+		CompiledCode pExecAddr = (CompiledCode)dspjit->enterDispatcher;
 		pExecAddr();
 
 		if (g_dsp.external_interrupt_waiting)
@@ -318,7 +318,7 @@ void DSPCore_Step()
 
 void CompileCurrent()
 {
-	jit->Compile(g_dsp.pc);
+	dspjit->Compile(g_dsp.pc);
 
 	bool retry = true;
 
@@ -327,11 +327,11 @@ void CompileCurrent()
 		retry = false;
 		for(u16 i = 0x0000; i < 0xffff; ++i)
 		{
-			if (!jit->unresolvedJumps[i].empty())
+			if (!dspjit->unresolvedJumps[i].empty())
 			{
-				u16 addrToCompile = jit->unresolvedJumps[i].front();
-				jit->Compile(addrToCompile);
-				if (!jit->unresolvedJumps[i].empty())
+				u16 addrToCompile = dspjit->unresolvedJumps[i].front();
+				dspjit->Compile(addrToCompile);
+				if (!dspjit->unresolvedJumps[i].empty())
 					retry = true;
 			}
 		}

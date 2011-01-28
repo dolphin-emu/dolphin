@@ -1,6 +1,7 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 files = [
 	"AudioJitTests.cpp",
@@ -12,4 +13,9 @@ libs = [
 	'dspcore', 'common',
 	]
 
-env.Program('tester', files, LIBS = libs)
+if sys.platform == 'darwin':
+	frames = ['CoreFoundation']
+else:
+	frames = []
+
+env.Program('tester', files, LIBS = libs, FRAMEWORKS = frames)

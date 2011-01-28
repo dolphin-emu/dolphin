@@ -267,7 +267,7 @@ struct SDSP
 
 extern SDSP g_dsp;
 extern DSPBreakpoints dsp_breakpoints;
-extern DSPEmitter *jit;
+extern DSPEmitter *dspjit;
 extern u16 cyclesLeft;
 
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
