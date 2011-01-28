@@ -176,6 +176,8 @@ bool Wiimote::Connect()
 	// Set LEDs
 	SetLEDs(WIIMOTE_LED_1 << index);
 
+	m_wiimote_thread = std::thread(StartThread, this);
+
 	return true;
 }
 
@@ -188,6 +190,9 @@ void Wiimote::RealDisconnect()
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i.", index + 1);
 
 	m_connected = false;
+
+	if (m_wiimote_thread.joinable())
+		m_wiimote_thread.join();
 
 	close(out_sock);
 	close(in_sock);
