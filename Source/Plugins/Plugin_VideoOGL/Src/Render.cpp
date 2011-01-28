@@ -310,8 +310,14 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)OpenGL_GetBackbufferHeight();
 
 	// Handle VSync on/off
+#ifdef __APPLE__
+	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
 #if defined USE_WX && USE_WX
-	// TODO: FILL IN
+	NSOpenGLContext *ctx = GLWin.glCtxt->GetWXGLContext();
+#else
+	NSOpenGLContext *ctx = GLWin.cocoaCtx;
+#endif
+	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
 #elif defined _WIN32
 	if (WGLEW_EXT_swap_control)
 		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
