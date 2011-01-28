@@ -333,7 +333,7 @@ void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 
 	if (pMixer != 0 && address != 0)
 	{
-		const short *samples = (const short *)LLEMemory_Get_Pointer(address);
+		const short *samples = (const short *)&g_dsp.cpu_ram[address & Memory::RAM_MASK];
 		pMixer->PushSamples(samples, num_samples);
 	}
 

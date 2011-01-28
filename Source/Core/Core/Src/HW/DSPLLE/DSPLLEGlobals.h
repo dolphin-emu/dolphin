@@ -26,10 +26,6 @@
 
 #define PROFILE					0
 
-u16 LLEMemory_Read_U16(u32 _uAddress); // For PB address detection
-u32 LLEMemory_Read_U32(u32 _uAddress);
-void* LLEMemory_Get_Pointer(u32 _uAddress);
-
 #if PROFILE	
 	void ProfilerDump(u64 _count);
 	void ProfilerInit();
