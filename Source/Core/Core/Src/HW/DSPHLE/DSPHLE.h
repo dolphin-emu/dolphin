@@ -18,9 +18,13 @@
 #ifndef _DSPHLE_H
 #define _DSPHLE_H
 
+#include "AudioCommon.h"
 #include "SoundStream.h"
 #include "DSPHLEGlobals.h" // Local
+#include "MailHandler.h"
 #include "../../PluginDSP.h"
+
+class IUCode;
 
 class DSPHLE : public PluginDSP {
 public:
@@ -52,15 +56,26 @@ public:
 	virtual void DSP_StopSoundStream();
 	virtual void DSP_ClearAudioBuffer(bool mute);
 
+	// Formerly DSPHandler
+	void Update(int cycles);
+	u16 WriteControlRegister(u16 _Value);
+	u16 ReadControlRegister();
+	void SendMailToDSP(u32 _uMail);
+	IUCode *GetUCode();
+	void SetUCode(u32 _crc);
+	void SwapUCode(u32 _crc);
+
+	CMailHandler& AccessMailHandler() { return m_MailHandler; }
+
 private:
 	// Declarations and definitions
-	void *hWnd;
-	bool bWii;
+	void *m_hWnd;
+	bool m_bWii;
 	
-	bool g_InitMixer;
+	bool m_InitMixer;
 	SoundStream *soundStream;
 
-	// Mailbox utility
+	// Fake mailbox utility
 	struct DSPState
 	{
 		u32 CPUMailbox;
@@ -76,7 +91,16 @@ private:
 			Reset();
 		}
 	};
-	DSPState g_dspState;
+	DSPState m_dspState;
+
+	IUCode* m_pUCode;
+	IUCode* m_lastUCode;
+
+	UDSPControl m_DSPControl;
+	CMailHandler m_MailHandler;
+
+	bool m_bHalt;
+	bool m_bAssertInt;
 };
 
 // Hack to be deleted.

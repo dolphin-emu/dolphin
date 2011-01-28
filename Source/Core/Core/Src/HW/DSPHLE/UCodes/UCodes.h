@@ -22,6 +22,8 @@
 #include "ChunkFile.h"
 #include "Thread.h"
 
+#include "../DSPHLE.h"
+
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
 
@@ -30,12 +32,13 @@ class CMailHandler;
 class IUCode
 {
 public:
-	IUCode(CMailHandler& _rMailHandler)
-		: m_rMailHandler(_rMailHandler)
+	IUCode(DSPHLE *dsphle)
+		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
 		, m_NeedsResumeMail(false)
+		, m_DSPHLE(dsphle)
 	{}
 
 	virtual ~IUCode()
@@ -74,6 +77,9 @@ protected:
 	// UCode only needs to set this to true, IUCode will set to false when done!
 	bool m_UploadSetupInProgress;
 
+	// Need a pointer back to DSPHLE to switch ucodes.
+	DSPHLE *m_DSPHLE;
+
 private:
 	struct SUCode
 	{
@@ -94,6 +100,6 @@ private:
 	bool m_NeedsResumeMail;
 };
 
-extern IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler, bool bWii);
+extern IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
 
 #endif

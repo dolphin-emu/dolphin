@@ -17,15 +17,16 @@
 
 #include "Config.h" // Local
 #include "DSPHLEGlobals.h"
-#include "DSPHandler.h"
+#include "DSPHLE.h"
 #include "HLEMixer.h"
+#include "UCodes/UCodes.h"
 
 void HLEMixer::Premix(short *samples, unsigned int numSamples)
 {
 	// if this was called directly from the HLE
 	if (IsHLEReady())
 	{
-		IUCode *pUCode = CDSPHandler::GetInstance().GetUCode();
+		IUCode *pUCode = m_DSPHLE->GetUCode();
 		if (pUCode && samples)
 			pUCode->MixAdd(samples, numSamples);
 	}

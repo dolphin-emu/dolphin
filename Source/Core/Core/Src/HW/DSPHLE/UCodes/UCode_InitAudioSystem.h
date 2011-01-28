@@ -23,7 +23,7 @@
 class CUCode_InitAudioSystem : public IUCode
 {
 public:
-	CUCode_InitAudioSystem(CMailHandler& _rMailHandler);
+	CUCode_InitAudioSystem(DSPHLE *dsp_hle);
 	virtual ~CUCode_InitAudioSystem();
 
 	void HandleMail(u32 _uMail);

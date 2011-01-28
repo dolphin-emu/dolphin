@@ -29,7 +29,7 @@ enum
 class CUCode_AX	: public IUCode
 {
 public:
-	CUCode_AX(CMailHandler& _rMailHandler);
+	CUCode_AX(DSPHLE *dsp_hle);
 	virtual ~CUCode_AX();
 
 	void HandleMail(u32 _uMail);

@@ -723,14 +723,6 @@
 					Name="HLE"
 					>
 					<File
-						RelativePath=".\Src\HW\DSPHLE\DSPHandler.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\Src\HW\DSPHLE\DSPHandler.h"
-						>
-					</File>
-					<File
 						RelativePath=".\Src\HW\DSPHLE\DSPHLE.cpp"
 						>
 					</File>

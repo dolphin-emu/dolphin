@@ -27,13 +27,12 @@
 #include "Mixer.h"
 
 #include "WaveFile.h"
-#include "../DSPHandler.h"
 #include "../../DSP.h"
 
 
-CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
+CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 	: 
-	IUCode(_rMailHandler),
+	IUCode(dsp_hle),
 	m_CRC(_CRC),
 
 	m_bSyncInProgress(false),
@@ -413,7 +412,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 			return;
 
 		case 0x0002:	// Let IROM play us off
-			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+			m_DSPHLE->SetUCode(UCODE_ROM);
 			return;
 
 		case 0x0000:	// Halt

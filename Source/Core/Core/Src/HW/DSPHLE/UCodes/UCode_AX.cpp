@@ -22,16 +22,15 @@
 #include "../DSPHLEGlobals.h"
 #include "Mixer.h"
 #include "../MailHandler.h"
-#include "../DSPHandler.h"
 #include "../../DSP.h"
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 #include "UCode_AX_Voice.h"
 
-CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
-: IUCode(_rMailHandler)
-, m_addressPBs(0xFFFFFFFF)
+CUCode_AX::CUCode_AX(DSPHLE *dsp_hle)
+	: IUCode(dsp_hle)
+	, m_addressPBs(0xFFFFFFFF)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -235,7 +234,7 @@ void CUCode_AX::HandleMail(u32 _uMail)
 		else if (_uMail == 0xCDD10002) // Action 2 - IROM_Reset(); ( GC: NFS Carbon, FF Crystal Chronicles,...)
 		{
 			DEBUG_LOG(DSPHLE,"DSP IROM - Reset!");
-			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+			m_DSPHLE->SetUCode(UCODE_ROM);
 			return;
 		}
 		else if (_uMail == 0xCDD10003) // Action 3 - AX_GetNextCmdBlock();

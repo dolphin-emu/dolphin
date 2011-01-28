@@ -23,7 +23,7 @@
 class CUCode_Rom : public IUCode
 {
 public:
-	CUCode_Rom(CMailHandler& _rMailHandler);
+	CUCode_Rom(DSPHLE *dsp_hle);
 	virtual ~CUCode_Rom();
 
 	void HandleMail(u32 _uMail);

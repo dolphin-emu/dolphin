@@ -21,7 +21,7 @@
 
 struct CUCode_GBA : public IUCode
 {
-	CUCode_GBA(CMailHandler& _rMailHandler);
+	CUCode_GBA(DSPHLE *dsp_hle);
 	virtual ~CUCode_GBA();
 
 	void HandleMail(u32 _uMail);

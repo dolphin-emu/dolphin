@@ -19,7 +19,6 @@
 
 #include "../MailHandler.h"
 #include "Mixer.h"
-#include "../DSPHandler.h"
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
@@ -28,8 +27,8 @@
 #include "UCode_AX_Voice.h"
 
 
-CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 l_CRC)
-	: IUCode(_rMailHandler)
+CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
+	: IUCode(dsp_hle)
 	, m_addressPBs(0xFFFFFFFF)
 	, _CRC(l_CRC)
 {
@@ -76,7 +75,7 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 
 		case 0xCDD10002: // Action 2 - IROM_Reset(); ( WII: De Blob, Cursed Mountain,...)
 			DEBUG_LOG(DSPHLE,"DSP IROM - Reset!");
-			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+			m_DSPHLE->SetUCode(UCODE_ROM);
 			return;
 
 		case 0xCDD10003: // Action 3 - AX_GetNextCmdBlock()

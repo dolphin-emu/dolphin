@@ -16,12 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../DSPHLEGlobals.h"
-#include "../DSPHandler.h"
 #include "UCodes.h"
 #include "UCode_InitAudioSystem.h"
 
-CUCode_InitAudioSystem::CUCode_InitAudioSystem(CMailHandler& _rMailHandler)
-	: IUCode(_rMailHandler)
+CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle)
+	: IUCode(dsp_hle)
 {
 	DEBUG_LOG(DSPHLE, "CUCode_InitAudioSystem - initialized");
 }

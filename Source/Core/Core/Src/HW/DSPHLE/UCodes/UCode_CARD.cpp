@@ -16,14 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../DSPHLEGlobals.h"
-#include "../DSPHandler.h"
+#include "../DSPHLE.h"
 #include "UCodes.h"
 #include "UCode_CARD.h"
 #include "../../DSP.h"
 
 
-CUCode_CARD::CUCode_CARD(CMailHandler& _rMailHandler)
-	: IUCode(_rMailHandler)
+CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle)
+	: IUCode(dsp_hle)
 {
 	DEBUG_LOG(DSPHLE, "CUCode_CARD - initialized");
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -57,7 +57,7 @@ void CUCode_CARD::HandleMail(u32 _uMail)
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);
-	CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+	m_DSPHLE->SetUCode(UCODE_ROM);
 }
 
 

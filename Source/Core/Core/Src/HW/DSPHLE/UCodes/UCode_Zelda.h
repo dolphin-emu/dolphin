@@ -136,7 +136,7 @@ namespace {
 class CUCode_Zelda : public IUCode
 {
 public:
-	CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC);
+	CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_Zelda();
 
 	void HandleMail(u32 _uMail);

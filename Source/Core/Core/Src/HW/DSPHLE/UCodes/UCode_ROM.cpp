@@ -16,14 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../DSPHLEGlobals.h"
-#include "../DSPHandler.h"
 #include "UCodes.h"
 #include "UCode_ROM.h"
 #include "Hash.h"
 #include "../../Memmap.h"
 
-CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
-	: IUCode(_rMailHandler)
+CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle)
+	: IUCode(dsp_hle)
 	, m_CurrentUCode()
 	, m_BootTask_numSteps(0)
 	, m_NextParameter(0)
@@ -120,7 +119,7 @@ void CUCode_Rom::BootUCode()
 	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
 	DEBUG_LOG(DSPHLE, "BootTask - done");
 
-	CDSPHandler::GetInstance().SetUCode(ector_crc);
+	m_DSPHLE->SetUCode(ector_crc);
 }
 
 

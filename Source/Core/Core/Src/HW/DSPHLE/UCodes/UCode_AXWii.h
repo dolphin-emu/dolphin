@@ -25,7 +25,7 @@
 class CUCode_AXWii : public IUCode
 {
 public:
-	CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC);
+	CUCode_AXWii(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_AXWii();
 
 	void HandleMail(u32 _uMail);

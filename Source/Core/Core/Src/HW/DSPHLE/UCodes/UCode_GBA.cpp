@@ -16,14 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../DSPHLEGlobals.h"
-#include "../DSPHandler.h"
 #include "UCodes.h"
 #include "UCode_GBA.h"
 
 #include "../../DSP.h"
 
-CUCode_GBA::CUCode_GBA(CMailHandler& _rMailHandler)
-: IUCode(_rMailHandler)
+CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle)
+: IUCode(dsp_hle)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
 }
@@ -142,7 +141,7 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 			m_UploadSetupInProgress = true;
 			break;
 		case 2:
-			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+			m_DSPHLE->SetUCode(UCODE_ROM);
 			break;
 		default:
 			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 cmd: %08x", _uMail);
