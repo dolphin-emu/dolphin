@@ -40,7 +40,7 @@ void Fifo_ExitLoopNonBlocking();
 void Fifo_RunLoop(bool run);
 bool AtBreakpoint();
 void Fifo_DoState(PointerWrap &f);
-
+void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Plugin

@@ -129,6 +129,12 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
     size += len;
 }
 
+void ResetVideoBuffer()
+{
+	g_pVideoData = videoBuffer;
+	size = 0;
+}
+
 
 // Description: Main FIFO update loop
 // Purpose: Keep the Core HW updated about the CPU-GPU distance

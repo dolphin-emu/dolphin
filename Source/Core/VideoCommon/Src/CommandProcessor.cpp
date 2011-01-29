@@ -805,11 +805,11 @@ void SetFifoIdleFromVideoPlugin()
 // to 0 when PI_FIFO_RESET occurs.
 void AbortFrame()
 {
-	g_VideoInitialize.pResetGatherPipe();
 	fifo.bFF_GPReadEnable = false;	
 	while (CommandProcessor::isFifoBusy)
 		Common::YieldCPU();	
 	g_VideoInitialize.pResetGatherPipe();
+	ResetVideoBuffer();
 	fifo.CPReadPointer = fifo.CPWritePointer;
 	fifo.CPReadWriteDistance = 0;	
 	fifo.CPBreakpoint = 0;
@@ -817,6 +817,7 @@ void AbortFrame()
 	fifo.CPCmdIdle = false;		
 	PixelEngine::ResetSetToken();
 	PixelEngine::ResetSetFinish();
+	fifo.bFF_GPReadEnable = true;	
 }
 
 void SetOverflowStatusFromGatherPipe()
