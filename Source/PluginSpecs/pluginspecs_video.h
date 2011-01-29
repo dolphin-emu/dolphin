@@ -25,6 +25,7 @@ typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TCoreMessage)(int Id); // passes message to the core
+typedef void			(*TResetGatherPipe)(void);
 
 enum FieldType
 {
@@ -94,6 +95,7 @@ typedef struct
 	TPeekMessages					pPeekMessages;
     TUpdateFPSDisplay               pUpdateFPSDisplay;
 	TCoreMessage                    pCoreMessage;
+	TResetGatherPipe				pResetGatherPipe;
 	void *pMemoryBase;
 	bool bWii;
 	bool bOnThread;

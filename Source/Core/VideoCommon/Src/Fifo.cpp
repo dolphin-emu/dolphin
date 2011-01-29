@@ -154,6 +154,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		{
 			// while the FIFO is processing data we activate this for sync with emulator thread.
 			
+			CommandProcessor::isFifoBusy = true;
 
 			if (!fifoStateRun) break;
 
@@ -173,22 +174,16 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			_assert_msg_(COMMANDPROCESSOR, (s32)_fifo.CPReadWriteDistance - distToSend >= 0 ,
 			"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce inestabilty in the game. Please report it.", _fifo.CPReadWriteDistance - distToSend);
 			
-
 			// Execute new instructions found in uData
-			Fifo_SendFifoData(uData, distToSend);											
+			Fifo_SendFifoData(uData, distToSend);	
+			
+			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
+
 			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
 			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);						
-		    
-			CommandProcessor::isFifoBusy = true;
+		    			
 			CommandProcessor::SetStatus();
-			
-			_fifo.CPCmdIdle = false;
 
-			OpcodeDecoder_Run(g_bSkipCurrentFrame);
-			
-			_fifo.CPCmdIdle = true;
-			
-			CommandProcessor::isFifoBusy = false;
 			CommandProcessor::FifoCriticalLeave();
 
 			// Those two are pretty important and must be called in the FIFO Loop.
@@ -198,7 +193,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			VideoFifo_CheckAsyncRequest();
 									
 		}
-		
+
+		CommandProcessor::isFifoBusy = false;
 		
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		if (EmuRunning)

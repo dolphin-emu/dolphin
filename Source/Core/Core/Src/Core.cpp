@@ -349,6 +349,7 @@ void EmuThread()
 	VideoInitialize.pUpdateFPSDisplay			= NULL;
 	VideoInitialize.pMemoryBase					= Memory::base;
 	VideoInitialize.pCoreMessage				= Callback_CoreMessage;
+	VideoInitialize.pResetGatherPipe			= GPFifo::ResetGatherPipe;
 	VideoInitialize.bWii						= _CoreParameter.bWii;
 	VideoInitialize.bOnThread					= _CoreParameter.bCPUThread;
 	VideoInitialize.Fifo_CPUBase				= &ProcessorInterface::Fifo_CPUBase;

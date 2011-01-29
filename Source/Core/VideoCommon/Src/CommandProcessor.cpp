@@ -805,10 +805,16 @@ void SetFifoIdleFromVideoPlugin()
 // to 0 when PI_FIFO_RESET occurs.
 void AbortFrame()
 {
-
-	Fifo_SetRendering(false);
-	ProcessFifoAllDistance();
-	Fifo_SetRendering(true);
+	g_VideoInitialize.pResetGatherPipe();
+	fifo.bFF_GPReadEnable = false;	
+	while (CommandProcessor::isFifoBusy)
+		Common::YieldCPU();	
+	g_VideoInitialize.pResetGatherPipe();
+	fifo.CPReadPointer = fifo.CPWritePointer;
+	fifo.CPReadWriteDistance = 0;	
+	fifo.CPBreakpoint = 0;
+	fifo.bFF_Breakpoint = false;
+	fifo.CPCmdIdle = false;		
 	PixelEngine::ResetSetToken();
 	PixelEngine::ResetSetFinish();
 }
