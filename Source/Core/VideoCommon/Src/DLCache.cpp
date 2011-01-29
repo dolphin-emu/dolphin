@@ -75,7 +75,7 @@ struct ReferencedDataRegion
 	u8* start_address;
 	u32 size;
 	bool MustClean;
-	u32 ReferencedArray;
+	int ReferencedArray;
 	u32 ReferencedArrayStride;
 	ReferencedDataRegion* NextRegion;
 
@@ -159,7 +159,7 @@ struct CachedDisplayList
 			}
 			if(RegionStartAddress + Size > NewRegion->start_address + NewRegion->size)
 			{
-				NewRegion->size += (RegionStartAddress + Size) - (NewRegion->start_address + NewRegion->size);
+				NewRegion->size += (u32)((RegionStartAddress + Size) - (NewRegion->start_address + NewRegion->size));
 				RegionChanged = true;
 			}
 			if(RegionChanged)
@@ -186,7 +186,7 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
-				if(cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride)
+				if(Current->ReferencedArray != -1 && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
 				{
 					return false;	
 				}
