@@ -411,7 +411,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	szrPHackSettings->Add(PHackZFarText, 0, wxALIGN_CENTER_VERTICAL);
 	szrPHackSettings->Add(PHackZFar, 1, wxEXPAND);
 	szrPHackSettings->Add(PHackSZFar, 0, wxEXPAND|wxLEFT, 5);
-	szrPHackSettings->Add(PHackExP, 0, wxEXPAND);
+	szrPHackSettings->Add(PHackExP, 0, wxEXPAND|wxTOP, 5);
 
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
