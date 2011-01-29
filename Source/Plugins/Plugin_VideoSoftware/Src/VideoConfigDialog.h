@@ -21,7 +21,7 @@
 #include <vector>
 #include <string>
 
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>

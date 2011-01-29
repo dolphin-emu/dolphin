@@ -20,7 +20,7 @@
 #define _GLINIT_H_
 
 #include <string>
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "pluginspecs_video.h"
 
 #ifdef _WIN32

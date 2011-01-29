@@ -38,7 +38,7 @@ u8* g_pVideoData;
 
 #else
 
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "OpcodeDecoding.h"
 #include "VideoCommon.h"
 extern u8* g_pVideoData;

@@ -27,7 +27,7 @@ files = [
 	'TextureSampler.cpp',
 	'TransformUnit.cpp',
 	'VertexLoader.cpp',
-	'VideoConfig.cpp',
+	'SWVideoConfig.cpp',
 	'XFMemLoader.cpp',
 	]
 

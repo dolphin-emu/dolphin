@@ -648,11 +648,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VideoConfig.cpp"
+			RelativePath=".\Src\SWVideoConfig.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VideoConfig.h"
+			RelativePath=".\Src\SWVideoConfig.h"
 			>
 		</File>
 		<File

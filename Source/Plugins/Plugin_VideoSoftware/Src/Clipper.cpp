@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "XFMemLoader.h"
 #include "BPMemLoader.h"
 #include "Statistics.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 
 
 namespace Clipper

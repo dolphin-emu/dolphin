@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "main.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "IniFile.h"
 #include "Setup.h"
 
@@ -122,7 +122,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, NULL,
 		wxPoint(0, 0), wxSize(_twidth, _theight));
 	GLWin.glCanvas->Show(true);
-	GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+	if (GLWin.glCtxt == NULL) // XXX dirty hack
+		GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
 
 #elif defined(_WIN32)
 	// Create rendering window in Windows
@@ -384,8 +385,8 @@ void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->Hide();
-	GLWin.glCanvas->Destroy();
-	delete GLWin.glCtxt;
+	// XXX GLWin.glCanvas->Destroy();
+	// XXX delete GLWin.glCtxt;
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{

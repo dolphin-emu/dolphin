@@ -25,7 +25,7 @@
 
 #include "CommandProcessor.h"
 #include "OpcodeDecoder.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "PixelEngine.h"
 #include "CommandProcessor.h"
 #include "BPMemLoader.h"

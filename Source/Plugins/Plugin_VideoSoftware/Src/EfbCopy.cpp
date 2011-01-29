@@ -22,7 +22,7 @@
 #include "Renderer.h"
 #include "TextureEncoder.h"
 #include "Statistics.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
 #include "CommandProcessor.h"

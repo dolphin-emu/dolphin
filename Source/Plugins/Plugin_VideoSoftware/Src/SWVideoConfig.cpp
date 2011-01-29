@@ -17,7 +17,7 @@
 
 #include "FileUtil.h"
 #include "IniFile.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 
 SWVideoConfig g_SWVideoConfig;
 

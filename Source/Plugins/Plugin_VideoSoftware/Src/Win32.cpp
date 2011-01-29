@@ -23,7 +23,7 @@
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
 
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "main.h"
 #include "Win32.h"
 

@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "CommonTypes.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 
 #ifndef _STATISTICS_H
 #define _STATISTICS_H

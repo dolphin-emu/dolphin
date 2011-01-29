@@ -24,7 +24,7 @@
 #include "XFMemLoader.h"
 #include "Tev.h"
 #include "Statistics.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 
 
 #define BLOCK_SIZE 2

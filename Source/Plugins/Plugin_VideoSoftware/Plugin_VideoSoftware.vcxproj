@@ -193,7 +193,7 @@
     <ClCompile Include="Src\TransformUnit.cpp" />
     <ClCompile Include="Src\VertexFormatConverter.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp" />
-    <ClCompile Include="Src\VideoConfig.cpp" />
+    <ClCompile Include="Src\SWVideoConfig.cpp" />
     <ClCompile Include="Src\VideoConfigDialog.cpp" />
     <ClCompile Include="Src\Win32.cpp" />
     <ClCompile Include="Src\XFMemLoader.cpp" />
@@ -226,7 +226,7 @@
     <ClInclude Include="Src\VertexFormatConverter.h" />
     <ClInclude Include="Src\VertexLoader.h" />
     <ClInclude Include="Src\VertexLoader_Position.h" />
-    <ClInclude Include="Src\VideoConfig.h" />
+    <ClInclude Include="Src\SWVideoConfig.h" />
     <ClInclude Include="Src\VideoConfigDialog.h" />
     <ClInclude Include="Src\Win32.h" />
     <ClInclude Include="Src\XFMemLoader.h" />

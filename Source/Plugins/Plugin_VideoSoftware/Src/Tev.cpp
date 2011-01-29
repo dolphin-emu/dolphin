@@ -21,7 +21,7 @@
 #include "EfbInterface.h"
 #include "TextureSampler.h"
 #include "Statistics.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "DebugUtil.h"
 
 #include <math.h>

@@ -21,7 +21,7 @@
 #include "DebugUtil.h"
 #include "BPMemLoader.h"
 #include "TextureSampler.h"
-#include "VideoConfig.h"
+#include "SWVideoConfig.h"
 #include "EfbInterface.h"
 #include "Statistics.h"
 #include "HwRasterizer.h"

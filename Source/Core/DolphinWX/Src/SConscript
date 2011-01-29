@@ -69,6 +69,8 @@ elif sys.platform == 'darwin':
 	else:
 		exe += 'NoGUI'
 
+	env.Depends(exe, env['libvideo'])
+
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Frameworks/Cg.framework', source = [
 		'#Externals/Cg/Cg.framework/Cg',
