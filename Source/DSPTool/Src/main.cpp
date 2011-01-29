@@ -18,8 +18,8 @@
 #include "Common.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "DSPCodeUtil.h"
-#include "DSPTables.h"
+#include "DSP/DSPCodeUtil.h"
+#include "DSP/DSPTables.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }

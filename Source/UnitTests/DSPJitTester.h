@@ -62,8 +62,8 @@
 #ifndef __DSP_JIT_TESTER_
 #define __DSP_JIT_TESTER_
 
-#include "DSPCore.h"
-#include "DSPInterpreter.h"
+#include "DSP/DSPCore.h"
+#include "DSP/DSPInterpreter.h"
 #include <map>
 #include <vector>
 

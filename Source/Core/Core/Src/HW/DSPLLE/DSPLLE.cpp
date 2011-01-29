@@ -26,16 +26,16 @@
 #include "IniFile.h"
 
 #include "DSPLLEGlobals.h" // Local
-#include "DSPInterpreter.h"
-#include "DSPHWInterface.h"
-#include "disassemble.h"
+#include "DSP/DSPInterpreter.h"
+#include "DSP/DSPHWInterface.h"
+#include "DSP/disassemble.h"
 #include "DSPSymbols.h"
 
 #include "AudioCommon.h"
 #include "Mixer.h"
 
-#include "DSPTables.h"
-#include "DSPCore.h"
+#include "DSP/DSPTables.h"
+#include "DSP/DSPCore.h"
 #include "DSPLLE.h"
 #include "../Memmap.h"
 #include "../AudioInterface.h"

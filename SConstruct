@@ -342,7 +342,6 @@ dirs += [
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
-    'Source/Core/DSPCore/Src',
     'Source/Core/DebuggerUICommon/Src',
     'Source/Core/DebuggerWX/Src',
     'Source/Core/DiscIO/Src',

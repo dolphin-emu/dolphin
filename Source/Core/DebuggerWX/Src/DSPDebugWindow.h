@@ -35,9 +35,9 @@
 #include <wx/statline.h>
 #include <wx/aui/aui.h>
 
-#include "disassemble.h"
-#include "DSPInterpreter.h"
-#include "DSPMemoryMap.h"
+#include "DSP/disassemble.h"
+#include "DSP/DSPInterpreter.h"
+#include "DSP/DSPMemoryMap.h"
 #include "HW/DSPLLE/DSPDebugInterface.h"
 
 class DSPRegisterView;

@@ -17,7 +17,7 @@
 
 #include "Common.h"
 #include "Hash.h"
-#include "DSPHost.h"
+#include "DSP/DSPHost.h"
 #include "DSPSymbols.h"
 #include "DSPLLETools.h"
 #include "../DSP.h"

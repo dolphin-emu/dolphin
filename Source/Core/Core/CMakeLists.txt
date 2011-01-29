@@ -27,6 +27,35 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/Debugger/Debugger_SymbolMap.cpp
 			Src/Debugger/Dump.cpp
 			Src/Debugger/PPCDebugInterface.cpp
+			Src/DSP/assemble.cpp
+			Src/DSP/disassemble.cpp
+			Src/DSP/DSPAccelerator.cpp
+			Src/DSP/DSPIntCCUtil.cpp
+			Src/DSP/DSPIntExtOps.cpp
+			Src/DSP/DSPHWInterface.cpp
+			Src/DSP/DSPMemoryMap.cpp
+			Src/DSP/DSPStacks.cpp
+			Src/DSP/DSPAnalyzer.cpp
+			Src/DSP/DspIntArithmetic.cpp
+			Src/DSP/DspIntBranch.cpp
+			Src/DSP/DspIntLoadStore.cpp
+			Src/DSP/DspIntMisc.cpp
+			Src/DSP/DspIntMultiplier.cpp
+			Src/DSP/DSPEmitter.cpp
+			Src/DSP/DSPCodeUtil.cpp
+			Src/DSP/LabelMap.cpp
+			Src/DSP/DSPInterpreter.cpp
+			Src/DSP/DSPCore.cpp
+			Src/DSP/DSPTables.cpp
+			Src/DSP/Jit/DSPJitRegCache.cpp
+			Src/DSP/Jit/DSPJitExtOps.cpp
+			Src/DSP/Jit/DSPJitBranch.cpp
+			Src/DSP/Jit/DSPJitCCUtil.cpp
+			Src/DSP/Jit/DSPJitArithmetic.cpp
+			Src/DSP/Jit/DSPJitLoadStore.cpp
+			Src/DSP/Jit/DSPJitMultiplier.cpp
+			Src/DSP/Jit/DSPJitUtil.cpp
+			Src/DSP/Jit/DSPJitMisc.cpp
 			Src/HLE/HLE.cpp
 			Src/HLE/HLE_Misc.cpp
 			Src/HLE/HLE_OS.cpp
@@ -154,7 +183,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon dspcore lua sfml-network)
+set(LIBS bdisasm inputcommon core lua sfml-network)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
@@ -181,4 +210,6 @@ endif(OPROFILE_FOUND)
 
 add_library(core STATIC ${SRCS})
 target_link_libraries(core ${LIBS})
-
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	add_definitions(-fPIC)
+endif()

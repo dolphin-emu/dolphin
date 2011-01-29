@@ -26,9 +26,9 @@
 #include "Common.h"
 #include "StringUtil.h"
 
-#include "DSPCore.h"
+#include "DSP/DSPCore.h"
 #include "DSPSymbols.h"
-#include "disassemble.h"
+#include "DSP/disassemble.h"
 
 namespace DSPSymbols {
 

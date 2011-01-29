@@ -20,7 +20,7 @@
 #include <stdarg.h>
 
 #include "Common.h" // for Common::swap
-#include "DSPCore.h"
+#include "DSP/DSPCore.h"
 #include "DSPLLEGlobals.h"
 
 #if PROFILE

@@ -1,4 +1,4 @@
-set(LIBS	dspcore
+set(LIBS	core
 		common)
 
 set(SRCS	AudioJitTests.cpp

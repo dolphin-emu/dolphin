@@ -10,8 +10,9 @@ files = [
 	]
 
 libs = [
-	'audiocommon', 'bdisasm', 'common', 'core', 'discio', 'dspcore',
-	'inputcommon', 'lua', 'lzo2', 'sfml-network', 'z', 'GLEW', 'SOIL',
+	'core',
+	'audiocommon', 'common', 'discio', 'inputcommon',
+	'GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z',
 	]
 
 wxlibs = [ ]
@@ -72,7 +73,6 @@ elif sys.platform == 'darwin':
 	else:
 		exe += 'NoGUI'
 
-	env.Depends(exe, env['libvideo'])
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Frameworks/Cg.framework', source = [
@@ -107,7 +107,7 @@ elif sys.platform == 'darwin':
 		Value(dict(
 		CFBundleExecutable = 'Dolphin',
 		CFBundleIconFile = 'Dolphin.icns',
-		CFBundleIdentifier = 'com.dolphin-emu.dolphin',
+		CFBundleIdentifier = 'com.dolphin-emulator.dolphin',
 		CFBundlePackageType = 'APPL',
 		CFBundleShortVersionString =
 			utils.GenerateRevFile('', Dir('#None').abspath, None),
@@ -126,7 +126,10 @@ elif sys.platform == 'darwin':
 		"find $SOURCES -name .svn -exec rm -rf {} +")
 else:
 	files += [ 'X11Utils.cpp' ]
-	libs += [ 'SDL' ]
+	libs += [ 'SDL', 'clrun' ]
+	ldflags += [ '-Wl,--whole-archive,' + env['libvideo'][0].path ]
+	ldflags += [ '-Wl,--no-whole-archive' ]
+	ldflags += [ '-Wl,-Wsymbolic' ]
 	if env['HAVE_WX']:
 		exe = env['binary_dir'] + '/dolphin-emu'
 	else:
@@ -137,4 +140,5 @@ else:
 libs = wxlibs + libs + env['LIBS']
 linkflags = ldflags + env['LINKFLAGS']
 
+env.Depends(exe, env['libvideo'])
 env.Program(exe, files, LIBS = libs, LINKFLAGS = linkflags)

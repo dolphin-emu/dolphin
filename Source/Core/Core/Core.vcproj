@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -191,7 +191,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -269,7 +269,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -344,7 +344,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="true"
@@ -419,7 +419,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\DSPCore\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\AudioCommon\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib;..\..\..\Externals\Lua;..\..\..\Externals\SFML\include"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -465,6 +465,218 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Interpreter"
+			>
+			<File
+				RelativePath=".\Src\DSP\DspIntArithmetic.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DspIntBranch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPIntCCUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPIntCCUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPIntExtOps.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPIntExtOps.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DspIntLoadStore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DspIntMisc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DspIntMultiplier.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPIntUtil.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="JIT"
+			>
+			<File
+				RelativePath=".\Src\DSP\DSPEmitter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\DSPEmitter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitArithmetic.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitLoadStore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitCCUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitExtOps.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitBranch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitMisc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitMultiplier.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitRegCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitRegCache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DSP\Jit\DSPJitUtil.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\Src\DSP\assemble.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\assemble.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\disassemble.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\disassemble.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPAccelerator.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPAccelerator.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPAnalyzer.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPAnalyzer.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPBreakpoints.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPCodeUtil.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPCodeUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPCommon.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPCore.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPCore.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPHost.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPHWInterface.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPHWInterface.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPInterpreter.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPInterpreter.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPMemoryMap.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPMemoryMap.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPStacks.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPStacks.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPTables.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\DSPTables.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\LabelMap.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSP\LabelMap.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
 		<Filter
 			Name="HLE"
 			>

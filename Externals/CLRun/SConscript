@@ -1,5 +1,17 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
+if sys.platform == 'darwin':
+	Return()
+
+files = [
+	'clrun/clrun.c',
+	'clrun/dynamiclib.c',
+	'clrun/gencl.c',
+	'clrun/genclgl.c',
+	]
+
+env.StaticLibrary(env['local_libs'] + 'clrun', files)
 env['CPPPATH'] += ['#Externals/CLRun/include']

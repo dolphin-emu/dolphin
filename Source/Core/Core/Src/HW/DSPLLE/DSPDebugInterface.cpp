@@ -17,11 +17,11 @@
 
 #include "DSPDebugInterface.h"
 
-#include "DSPCore.h"
-#include "disassemble.h"
+#include "DSP/DSPCore.h"
+#include "DSP/disassemble.h"
 
 #include "DSPSymbols.h"
-#include "DSPMemoryMap.h"
+#include "DSP/DSPMemoryMap.h"
 
 void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {

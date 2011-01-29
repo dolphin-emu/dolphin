@@ -10,6 +10,5 @@ endif()
 
 add_subdirectory(DiscIO)
 add_subdirectory(DolphinWX)
-add_subdirectory(DSPCore)
 add_subdirectory(InputCommon)
 add_subdirectory(VideoCommon)

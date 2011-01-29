@@ -22,11 +22,11 @@
 #include "DSPLLEGlobals.h"
 
 #include "FileUtil.h"
-#include "DSPCore.h"
-#include "DSPCodeUtil.h"
+#include "DSP/DSPCore.h"
+#include "DSP/DSPCodeUtil.h"
 #include "DSPLLETools.h"
-#include "disassemble.h"
-#include "DSPInterpreter.h"
+#include "DSP/disassemble.h"
+#include "DSP/DSPInterpreter.h"
 
 bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {
