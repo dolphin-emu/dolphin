@@ -10,7 +10,7 @@ files = [
 	]
 
 libs = [
-	'dspcore', 'common',
+	'core', 'common',
 	]
 
 if sys.platform == 'darwin':

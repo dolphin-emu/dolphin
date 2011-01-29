@@ -129,7 +129,6 @@ else:
 	libs += [ 'SDL', 'clrun' ]
 	ldflags += [ '-Wl,--whole-archive,' + env['libvideo'][0].path ]
 	ldflags += [ '-Wl,--no-whole-archive' ]
-	ldflags += [ '-Wl,-Wsymbolic' ]
 	if env['HAVE_WX']:
 		exe = env['binary_dir'] + '/dolphin-emu'
 	else:
