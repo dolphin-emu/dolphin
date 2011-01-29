@@ -118,30 +118,18 @@ rev = utils.GenerateRevFile(env['flavor'], '.', None)
 # OS X specifics
 if sys.platform == 'darwin':
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5.4']
-    ccld += ['--sysroot=/Developer/SDKs/MacOSX10.5.sdk']
-    system = '/System/Library/Frameworks'
     env['CCFLAGS'] += ccld
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-    env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
-    env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.5.sdk' + system]
-    env['CCFLAGS'] += ['-iframework/Developer/SDKs/MacOSX10.6.sdk' + system]
-    #env['CC'] = 'clang'
-    #env['CC'] = 'gcc'
     env['CC'] = 'llvm-gcc'
-    #env['CXX'] = 'clang++'
-    #env['CXX'] = 'g++'
     env['CXX'] = 'llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['FRAMEWORKSFLAGS'] = ['-weak_framework', 'OpenCL']
-    env['FRAMEWORKSFLAGS'] += ['-Xarch_i386', '-Wl,-framework,QuickTime']
-    env['LIBPATH'] += ['/usr/lib']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
-    env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
+    env['LINKFLAGS'] += ['-Wl,-search_paths_first']
 
     if env['nowx']:
         env['HAVE_WX'] = 0
