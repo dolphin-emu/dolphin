@@ -18,6 +18,10 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
+#ifdef __APPLE__
+#import <Foundation/NSAutoreleasePool.h>
+#endif
+
 #if defined(_WIN32)
 // WIN32
 
@@ -256,9 +260,14 @@ private:
 	template <typename F>
 	static THREAD_RETURN RunAndDelete(void* param)
 	{
+#ifdef __APPLE__
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
 		static_cast<F*>(param)->Run();
 		delete static_cast<F*>(param);
-
+#ifdef __APPLE__
+		[pool release];
+#endif
 		return 0;
 	}
 };

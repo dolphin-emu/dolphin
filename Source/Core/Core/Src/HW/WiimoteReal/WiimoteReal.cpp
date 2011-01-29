@@ -28,10 +28,6 @@
 
 #include "../WiimoteEmu/WiimoteHid.h"
 
-#ifdef __APPLE__
-#import <Foundation/NSAutoreleasePool.h>
-#endif
-
 unsigned int	g_wiimote_sources[MAX_WIIMOTES];
 
 namespace WiimoteReal
@@ -308,10 +304,6 @@ void Wiimote::StartThread(Wiimote *wiimote)
 
 void Wiimote::ThreadFunc()
 {
-#ifdef __APPLE__
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
-
 	char thname[] = "Wiimote # Thread";
 	thname[8] = (char)('1' + index);
 	Common::SetCurrentThreadName(thname);
@@ -335,10 +327,6 @@ void Wiimote::ThreadFunc()
 	}
 
 	Host_ConnectWiimote(index, false);
-
-#ifdef __APPLE__
-	[pool release];
-#endif
 }
 
 #ifndef _WIN32

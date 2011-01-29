@@ -20,10 +20,6 @@
 #include <windows.h>
 #endif
 
-#ifdef __APPLE__
-#import <Foundation/NSAutoreleasePool.h>
-#endif
-
 #include "Setup.h" // Common
 #include "Atomic.h"
 #include "Thread.h"
@@ -250,10 +246,6 @@ void Stop()  // - Hammertime!
 
 void CpuThread()
 {
-#ifdef __APPLE__
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
-
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -292,9 +284,6 @@ void CpuThread()
 
 	cpuRunloopQuit.Set();
 
-#ifdef __APPLE__
-	[pool release];
-#endif
 	return;
 }
 
@@ -303,10 +292,6 @@ void CpuThread()
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-#ifdef __APPLE__
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#endif
-
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	cpuRunloopQuit.Init();
@@ -492,10 +477,6 @@ void EmuThread()
 
 	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;
-
-#ifdef __APPLE__
-	[pool release];
-#endif
 }
 
 // Set or get the running state
