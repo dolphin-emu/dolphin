@@ -22,6 +22,7 @@
 #include "PixelShaderManager.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
+#include "RenderBase.h"
 static float GC_ALIGNED16(s_fMaterials[16]);
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged;
@@ -31,6 +32,7 @@ static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
 static bool s_bFogColorChanged;
 static bool s_bFogParamChanged;
+static bool s_bFogRangeAdjustChanged;
 static int nLightsChanged[2]; // min,max
 static float lastDepthRange[2]; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
@@ -57,7 +59,7 @@ void PixelShaderManager::Dirty()
 	s_nIndTexScaleChanged = 0xFF;
 	s_nIndTexMtxChanged = 15;
 	s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
-	s_bFogColorChanged = s_bFogParamChanged = true;
+	s_bFogRangeAdjustChanged = s_bFogColorChanged = s_bFogParamChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
 	nMaterialsChanged = 15;
 }
@@ -213,6 +215,25 @@ void PixelShaderManager::SetConstants()
 		}
         s_bFogParamChanged = false;
     }
+
+	if (s_bFogRangeAdjustChanged)
+	{
+		if(!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
+		{
+			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
+			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
+			// normalice center to make calculations easy
+			float ScreenSpaceCenter = center / (2.0f * xfregs.rawViewport[0]);
+			ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
+			//bpmem.fogRange.K seems to be  a table of precalculated coeficients for the adjust factor
+			//observations: bpmem.fogRange.K[0].LO apears to be the lowest value and bpmem.fogRange.K[4].HI the largest
+			// they always seems to be larger than 256 so my teory is :
+			// they are the coeficients from the center to th e border of the screen
+			// so to simplify i use the hi coeficient as K in the shader taking 256 as the scale
+			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.rawViewport[0])), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
+		}		
+		s_bFogRangeAdjustChanged = false;
+	}
 
 	if (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting && nLightsChanged[0] >= 0) // config check added because the code in here was crashing for me inside SetPSConstant4f
 	{
@@ -392,6 +413,11 @@ void PixelShaderManager::SetFogColorChanged()
 void PixelShaderManager::SetFogParamChanged()
 {
     s_bFogParamChanged = true;
+}
+
+void PixelShaderManager::SetFogRangeAdjustChanged()
+{
+    s_bFogRangeAdjustChanged = true;
 }
 
 void PixelShaderManager::SetColorMatrix(const float* pmatrix)

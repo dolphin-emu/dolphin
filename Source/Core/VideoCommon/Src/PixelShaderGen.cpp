@@ -61,7 +61,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 
 	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
-				   ((u32)enableZTexture << 4);
+				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5);
 
 	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -504,7 +504,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "uniform float4 "I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
 	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
 	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
-	WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
+	WRITE(p, "uniform float4 "I_FOG"[3] : register(c%d);\n", C_FOG);
 
 	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -521,7 +521,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
 			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
-			ApiType == API_OPENGL ? "WPOS" : "POSITION");
+			ApiType == API_OPENGL ? "WPOS" : "VPOS");
 	}
 	else
 	{
@@ -792,7 +792,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	// emulation of unisgned 8 overflow when casting if needed
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	
 	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
 	{
@@ -997,7 +997,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if(bCRas || bARas)
 	{
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		WRITE(p, "crastemp = frac(4.0f + rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	}
 
 
@@ -1030,7 +1030,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{
-			WRITE(p, "ckonsttemp = frac(4.0f + konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "ckonsttemp = frac(konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 		}
 		else
 		{
@@ -1050,7 +1050,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cprev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 			RegisterStates[0].AlphaNeedOverflowControl = false;
 			RegisterStates[0].ColorNeedOverflowControl = false;
 		}
@@ -1073,7 +1073,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc0 = frac(4.0f + c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 			RegisterStates[1].AlphaNeedOverflowControl = false;
 			RegisterStates[1].ColorNeedOverflowControl = false;
 		}
@@ -1096,7 +1096,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc1 = frac(4.0f + c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 			RegisterStates[2].AlphaNeedOverflowControl = false;
 			RegisterStates[2].ColorNeedOverflowControl = false;
 		}
@@ -1119,7 +1119,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc2 = frac(4.0f + c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 			RegisterStates[3].AlphaNeedOverflowControl = false;
 			RegisterStates[3].ColorNeedOverflowControl = false;
 		}
@@ -1340,10 +1340,15 @@ static void WriteFog(char *&p)
 		WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
 	}
 	
-	// stuff to do!
-	// here, where we'll have to add/handle x range adjustment (if related BP register it's enabled)
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
+	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
+	if(bpmem.fogRange.Base.Enabled)
+	{
+		WRITE (p, "  float x_adjust = (2.0f * (clipPos.x / "I_FOG"[2].y)) - 1.0f - "I_FOG"[2].x;\n");
+		WRITE (p, "  x_adjust = sqrt(x_adjust * x_adjust + "I_FOG"[2].z * "I_FOG"[2].z) / "I_FOG"[2].z;\n");
+		WRITE (p, "  ze *= x_adjust;\n");
+	}
 
 	WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
 
@@ -1358,5 +1363,6 @@ static void WriteFog(char *&p)
 	}
 
 	WRITE(p, "  prev.rgb = lerp(prev.rgb,"I_FOG"[0].rgb,fog);\n");
+	
 	
 }

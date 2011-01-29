@@ -41,7 +41,7 @@
 #define C_INDTEXMTX		(C_INDTEXSCALE + 2)		//21
 #define C_FOG			(C_INDTEXMTX + 6)		//27
 
-#define C_PLIGHTS		(C_FOG + 2)
+#define C_PLIGHTS		(C_FOG + 3)
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11 + 2)

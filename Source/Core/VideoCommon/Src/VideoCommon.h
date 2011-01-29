@@ -157,14 +157,10 @@ inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 
 inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
 {
-	u32 color = src;
-	u32 dstr5 = (color & 0xFF0000) >> 19;
-	u32 dstg6 = (color & 0xFF00) >> 10;
-	u32 dstb5 = (color & 0xFF) >> 3;
-	u32 dstr8 = (dstr5 << 3) | (dstr5 >> 2);
-	u32 dstg8 = (dstg6 << 2) | (dstg6 >> 4);
-	u32 dstb8 = (dstb5 << 3) | (dstb5 >> 2);
-	color = 0xFF000000 | (dstr8 << 16) | (dstg8 << 8) | dstb8;
+	u32 color = (src & 0xF8FCF8);
+	color |= (color >> 5) & 0x070007;
+	color |= (color >> 6) & 0x000300;
+	color |= 0xFF000000;
 	return color;
 }
 

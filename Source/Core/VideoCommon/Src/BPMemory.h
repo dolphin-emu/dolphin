@@ -678,6 +678,33 @@ union FogParam3
     u32 hex;
 };
 
+union FogRangeKElement
+{
+	struct
+	{
+		u32 HI : 12;
+		u32 LO : 12;
+		u32 regid : 8;
+	};
+	u32 HEX;
+};
+
+struct FogRangeParams
+{
+	union RangeBase
+	{
+		struct
+		{
+			u32 Center : 10;
+			u32 Enabled : 1;
+			u32 unused : 13;
+			u32 regid : 8;
+		};
+		u32 hex;
+	};
+	RangeBase Base;
+	FogRangeKElement K[5];
+};
 // final eq: ze = A/(B_MAG - (Zs>>B_SHF));
 struct FogParams
 {
@@ -902,10 +929,7 @@ struct BPMemory
     FourTexUnits tex[2]; //80-bf
     TevStageCombiner combiners[16]; //0xC0-0xDF
     TevReg tevregs[4];  //0xE0
-    u32 fogRangeAdj;   //0xE8
-    u32 unknown15[3];  //0xe9,0xea,0xeb - fog related
-    u32 tev_range_adj_c; //0xec - screenx center for range adjustment, range adjustment enable
-    u32 tev_range_adj_k; //0xed - specifies range adjustment function = sqrt(x*x+k*k)/k
+    FogRangeParams fogRange;
     FogParams fog; //0xEE,0xEF,0xF0,0xF1,0xF2
     AlphaFunc alphaFunc; //0xF3
     ZTex1 ztex1; //0xf4,0xf5
