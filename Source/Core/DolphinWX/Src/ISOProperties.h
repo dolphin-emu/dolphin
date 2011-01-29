@@ -63,6 +63,7 @@ class CISOProperties : public wxDialog
 		wxStaticBoxSizer *sbCoreOverrides;
 		wxStaticBoxSizer *sbWiiOverrides;
 		wxStaticBoxSizer *sbVideoOverrides;
+		wxStaticBoxSizer *sbPHackSettings;
 		wxBoxSizer *sEmuState;
 		wxBoxSizer *sPatches;
 		wxBoxSizer *sPatchButtons;
@@ -92,10 +93,8 @@ class CISOProperties : public wxDialog
 		wxCheckBox *ForceFiltering,
 			*EFBCopyEnable, *EFBAccessEnable, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB, *UseZTPSpeedupHack,
-			*DListCache;
+			*DListCache, *PHackEnable, *PHackSZNear, *PHackSZFar, *PHackExP;
 		wxStaticText *Hacktext;
-		wxArrayString arrayStringFor_Hack;
-		wxChoice *Hack;
 
 		wxButton *EditConfig;
 		wxStaticText *EmuStateText;
@@ -129,12 +128,16 @@ class CISOProperties : public wxDialog
 		wxStaticText *m_MakerText;
 		wxStaticText *m_CommentText;
 		wxStaticText *m_BannerText;
+		wxStaticText *PHackZNearText;
+		wxStaticText *PHackZFarText;
 		wxTextCtrl *m_Name;
 		wxTextCtrl *m_GameID;
 		wxTextCtrl *m_Country;
 		wxTextCtrl *m_MakerID;
 		wxTextCtrl *m_Date;
 		wxTextCtrl *m_FST;
+		wxTextCtrl *PHackZNear;
+		wxTextCtrl *PHackZFar;
 		wxArrayString arrayStringFor_Lang;
 		wxChoice *m_Lang;
 		wxTextCtrl *m_ShortName;
@@ -145,6 +148,8 @@ class CISOProperties : public wxDialog
 		wxTreeCtrl *m_Treectrl;
 		wxTreeItemId RootId;
 		wxImageList *m_iconList;
+
+		wxFlexGridSizer *szrPHackSettings;
 
 		Gecko::CodeConfigPanel *m_geckocode_panel;
 
@@ -180,8 +185,14 @@ class CISOProperties : public wxDialog
 			ID_USEXFB,
 			ID_ZTP_SPEEDUP,
 			ID_DLISTCACHE,
-			ID_HACK_TEXT,
-			ID_HACK,
+			ID_PHACKENABLE,
+			ID_PHACK_SZNear,
+			ID_PHACK_SZFar,
+			ID_PHACK_ZNear_TEXT,
+			ID_PHACK_ZNear,
+			ID_PHACK_ZFar_TEXT,
+			ID_PHACK_ZFar,
+			ID_PHACK_ExP,
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,
 			ID_EDITCONFIG,
@@ -248,6 +259,7 @@ class CISOProperties : public wxDialog
 		void OnExtractDataFromHeader(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
 		void OnChangeBannerLang(wxCommandEvent& event);
+		void OnCheckBoxClicked(wxCommandEvent& event);
 
 		GameListItem *OpenGameListItem;
 

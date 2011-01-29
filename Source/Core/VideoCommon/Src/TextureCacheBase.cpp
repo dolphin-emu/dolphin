@@ -434,7 +434,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 
 		case 3: // Z16 
 			colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
-			cbufid = 13;
+			cbufid = 24;
 			break;
 
 		case 11: // Z16 (reverse order)

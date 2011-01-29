@@ -38,7 +38,7 @@ struct CPUInfo
 	bool CPU64bit;
 	bool Mode64bit;
 	
-	bool hyper_threaded;
+	bool HTT;
 	int num_cores;
 	int logical_cpu_count;
 
@@ -55,7 +55,6 @@ struct CPUInfo
 	bool bAES;
 	bool bLAHFSAHF64;
 	bool bLongMode;
-	bool HTT;
 
 	// Call Detect()
 	explicit CPUInfo();

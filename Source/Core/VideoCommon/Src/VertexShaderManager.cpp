@@ -20,6 +20,7 @@
 #include "MathUtil.h"
 
 #include <cmath>
+#include <sstream>
 
 #include "Statistics.h"
 
@@ -52,24 +53,77 @@ void UpdateViewport();
 namespace
 {
 // Control Variables
-static bool g_ProjHack0;
 static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
-static ProjectionHack g_ProjHack3;
+static bool g_ProjHack3;
 } // Namespace
 
-void UpdateProjectionHack(int iPhackvalue)
+float PHackValue(std::string sValue)
 {
-	bool bProjHack1 = 0, bPhackvalue1 = 0, bPhackvalue2 = 0, bPhackvalue3 = 0;
-	float fhackvalue1 = 0, fhackvalue2 = 0;
-	switch(iPhackvalue)
+	float f = 0;
+	bool fp = false;
+	const char *cStr = sValue.c_str();
+	char *c = new char[strlen(cStr)+1];
+	std::istringstream sTof("");
+
+	for (unsigned int i=0; i<=strlen(cStr); ++i)
 	{
-	case PROJECTION_HACK_NONE:
-		bProjHack1 = 0;
-		bPhackvalue1 = 0;
-		bPhackvalue2 = 0;
-		bPhackvalue3 = 0;
-		break;
+		if (i == 20)
+		{
+			c[i] = '\0';
+			break;
+		}
+		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
+		if (c[i] == '.')
+			fp = true;
+	}	
+	cStr = c;
+	sTof.str(cStr);
+	sTof >> f;
+
+	if (!fp) f /= 0xF4240;
+
+	delete [] c;
+	return f;
+}
+
+void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
+{
+	float fhackvalue1 = 0, fhackvalue2 = 0;
+	float fhacksign1 = 1.0, fhacksign2 = 1.0;
+	bool bProjHack3 = false;
+	char *sTemp[2];
+	
+	if (iPhackvalue[0] == 0)
+		goto hackDisabled;
+
+	NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
+	
+	fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
+	sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
+	fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
+	sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
+	
+	fhackvalue1 = PHackValue(sPhackvalue[0]);
+	NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
+
+	fhackvalue2 = PHackValue(sPhackvalue[1]);
+	NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
+	
+	sTemp[0] = "DISABLED";
+	bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
+	if (bProjHack3)
+		sTemp[0] = "ENABLED";
+	NOTICE_LOG(VIDEO, "- Extra Parameter: %s", sTemp[0]);
+
+	hackDisabled:
+
+	// Set the projections hacks
+	g_ProjHack1 = ProjectionHack(fhackvalue1,fhacksign1);
+	g_ProjHack2 = ProjectionHack(fhackvalue2,fhacksign2);
+	g_ProjHack3 = bProjHack3;
+
+/*	
 	case PROJECTION_HACK_ZELDA_TP_BLOOM_HACK:
 		bPhackvalue1 = 1;
 		bProjHack1 = 1;
@@ -95,7 +149,7 @@ void UpdateProjectionHack(int iPhackvalue)
 	case PROJECTION_HACK_METROID_OTHER_M:  //temp fix for black screens during cut scenes
 		bPhackvalue3 = 1;
 		break;
-/*	// Unused - kept for reference
+	// Unused - kept for reference
 	case PROJECTION_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
 		bPhackvalue1 = 1;
 		fhackvalue1 = 0.8f;
@@ -124,13 +178,6 @@ void UpdateProjectionHack(int iPhackvalue)
 		bProjHack1 = 1;
 		break;
 */
-	}
-
-	// Set the projections hacks
-	g_ProjHack0 = bProjHack1;
-	g_ProjHack1 = ProjectionHack(bPhackvalue1 == 0 ? false : true, fhackvalue1);
-	g_ProjHack2 = ProjectionHack(bPhackvalue2 == 0 ? false : true, fhackvalue2);
-	g_ProjHack3 = ProjectionHack(bPhackvalue3,0);
 }
 
 void VertexShaderManager::Init()
@@ -344,8 +391,8 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[8] = 0.0f;
 			g_fProjectionMatrix[9] = 0.0f;
-			g_fProjectionMatrix[10] = (g_ProjHack1.enabled ? -(g_ProjHack1.value + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);
-			g_fProjectionMatrix[11] = (g_ProjHack2.enabled ? -(g_ProjHack2.value + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (g_ProjHack0 ? 0.1f : 0.0f);
+			g_fProjectionMatrix[10] = (g_ProjHack1.value + xfregs.rawProjection[4]) * g_ProjHack1.sign;
+			g_fProjectionMatrix[11] = (g_ProjHack2.value + xfregs.rawProjection[5]) * g_ProjHack2.sign;
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
@@ -358,7 +405,7 @@ void VertexShaderManager::SetConstants()
 			*/
 			
 			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = (g_ProjHack3.enabled && xfregs.rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
+			g_fProjectionMatrix[15] = (g_ProjHack3 && xfregs.rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
 		
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);

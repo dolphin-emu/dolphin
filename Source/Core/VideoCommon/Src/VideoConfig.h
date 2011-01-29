@@ -121,15 +121,12 @@ struct VideoConfig
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
 	bool bOSDHotKey;
-	bool bHack;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
 	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;
-	int iPhackvalue;
-	bool bPhackvalue1, bPhackvalue2;
-	float fhackvalue1, fhackvalue2;
-	bool bProjHack1;
+	int iPhackvalue[4];
+	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bEnablePixelLigting;

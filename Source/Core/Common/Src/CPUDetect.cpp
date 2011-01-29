@@ -138,10 +138,8 @@ void CPUInfo::Detect()
 	if (max_std_fn >= 1) {
 		__cpuid(cpu_id, 0x00000001);
 		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
-		if ((cpu_id[3] >> 28) & 1) {
-			// wtf, we get here on my core 2
-			HTT = true;
-		}
+		// HTT is valid for intel processors only.
+		HTT = ((cpu_id[3] >> 28) & 1) && vendor == VENDOR_INTEL;
 		if ((cpu_id[3] >> 25) & 1) bSSE = true;
 		if ((cpu_id[3] >> 26) & 1) bSSE2 = true;
 		if ((cpu_id[2])       & 1) bSSE3 = true;
@@ -175,7 +173,7 @@ void CPUInfo::Detect()
 		if (apic_id_core_id_size == 0) {
 			// New mechanism for modern CPUs.
 			num_cores = logical_cpu_count;
-			if (HTT && vendor == VENDOR_INTEL) {
+			if (HTT) {
 				__cpuid(cpu_id, 0x00000004);
 				int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
 				cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
@@ -202,7 +200,7 @@ std::string CPUInfo::Summarize()
 	else
 	{
 		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT && vendor == VENDOR_INTEL) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
+		if (HTT) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";

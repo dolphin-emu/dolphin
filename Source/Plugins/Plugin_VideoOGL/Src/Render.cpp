@@ -74,7 +74,7 @@
 
 void VideoConfig::UpdateProjectionHack()
 {
-	::UpdateProjectionHack(g_Config.iPhackvalue);
+	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
 
