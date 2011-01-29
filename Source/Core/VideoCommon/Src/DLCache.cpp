@@ -67,12 +67,16 @@ struct ReferencedDataRegion
 		start_address(NULL),
 		size(0),
 		MustClean(false),
+		ReferencedArray(-1),
+		ReferencedArrayStride(0),
 		NextRegion(NULL)
 	{}
 	u64 hash;
 	u8* start_address;
 	u32 size;
 	bool MustClean;
+	u32 ReferencedArray;
+	u32 ReferencedArrayStride;
 	ReferencedDataRegion* NextRegion;
 
 	int IntersectsMemoryRange(u8* range_address, u32 range_size)
@@ -142,7 +146,7 @@ struct CachedDisplayList
 		BufferCount++;
 	}
 
-	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size)
+	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size,int referencedArray,int referencedArrayStride)
 	{
 		ReferencedDataRegion* NewRegion = FindOverlapingRegion(RegionStartAddress, Size);
 		if(NewRegion)
@@ -168,6 +172,9 @@ struct CachedDisplayList
 			NewRegion->size = Size;
 			NewRegion->start_address = RegionStartAddress; 
 			NewRegion->hash = GetHash64(RegionStartAddress, Size, DL_HASH_STEPS);					
+			NewRegion->ReferencedArray = referencedArray;
+			NewRegion->ReferencedArrayStride = referencedArrayStride;
+
 			InsertRegion(NewRegion);
 		}
 	}
@@ -179,6 +186,10 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
+				if(Current->ReferencedArray != -1 && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
+				{
+					return false;	
+				}
 				if(Current->hash != GetHash64(Current->start_address,  Current->size, DL_HASH_STEPS))
 					return false;
 			}
@@ -571,7 +582,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 						{
 							u8* saddr = cached_arraybases[i];
 							int arraySize = arraystrides[i] * ((tc[i] == 2)? numVertices : ((numVertices < 1024)? 2 * numVertices : numVertices));
-							dl->InsertOverlapingRegion(saddr, arraySize);
+							dl->InsertOverlapingRegion(saddr, arraySize,i,arraystrides[i]);
 						}
 					}
 				}
