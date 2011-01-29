@@ -183,7 +183,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	MOVSX(32, 16, ESI, ix_reg);
 	gpr.putReg(DSP_REG_WR0+reg);
 	gpr.putReg(DSP_REG_IX0+reg);
-	gpr.getReg(DSP_REG_WR0+reg,ar_reg);
+	gpr.getReg(DSP_REG_AR0+reg,ar_reg);
 	MOVZX(32, 16, EAX, ar_reg);
 
 	NOT(32, R(ESI)); //esi = ~ix
@@ -227,7 +227,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	//return nar
 
 	MOV(16, ar_reg, R(DI));
-	gpr.putReg(DSP_REG_WR0+reg);
+	gpr.putReg(DSP_REG_AR0+reg);
 }
 
 
