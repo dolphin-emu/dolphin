@@ -120,11 +120,10 @@ int DynamicLibrary::Unload()
 			library_file.c_str(), library);
 #ifdef _WIN32
 	retval = FreeLibrary(library);
+#elif defined __linux__
+	retval = dlclose(library) ? 0 : 1;
 #else
-	if (library == RTLD_SELF)
-		return 1;
-	else
-		retval = dlclose(library) ? 0 : 1;
+	return 1;
 #endif
 
 	if (! retval) {

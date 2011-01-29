@@ -24,8 +24,6 @@ if env['HAVE_WX']:
 		'ARCodeAddEdit.cpp',
 		'GeckoCodeDiag.cpp',
 		'ConfigMain.cpp',
-		'DSPHLEConfigDlg.cpp',
-		'DSPLLEConfigDlg.cpp',
 		'Frame.cpp',
 		'FrameAui.cpp',
 		'FrameTools.cpp',
