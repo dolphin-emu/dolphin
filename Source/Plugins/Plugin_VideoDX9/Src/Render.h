@@ -50,6 +50,6 @@ public:
 	static void SetWindowSize(int width, int height);
 };
 
-}
+}  // namespace DX9
 
 #endif

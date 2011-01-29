@@ -24,6 +24,9 @@
 #include "PixelShaderCache.h"
 #include "VertexShaderCache.h"
 
+namespace DX9
+{
+
 namespace D3D
 {
 CD3DFont font;
@@ -463,3 +466,5 @@ void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVer
 
 
 }  // namespace
+
+}  // namespace DX9

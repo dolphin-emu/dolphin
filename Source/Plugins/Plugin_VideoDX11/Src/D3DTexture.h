@@ -17,7 +17,10 @@
 
 #pragma once
 
-#include "d3d11.h"
+#include <d3d11.h>
+
+namespace DX11
+{
 
 namespace D3D
 {
@@ -53,3 +56,5 @@ private:
 	D3D11_BIND_FLAG bindflags;
 	UINT ref;
 };
+
+}  // namespace DX11

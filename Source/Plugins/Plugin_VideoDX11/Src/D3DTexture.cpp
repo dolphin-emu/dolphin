@@ -18,6 +18,9 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 
+namespace DX11
+{
+
 namespace D3D
 {
 
@@ -113,3 +116,5 @@ D3DTexture2D::~D3DTexture2D()
 	SAFE_RELEASE(dsv);
 	SAFE_RELEASE(tex);
 }
+
+}  // namespace DX11

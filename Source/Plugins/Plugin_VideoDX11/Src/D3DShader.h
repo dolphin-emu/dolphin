@@ -22,6 +22,9 @@
 struct ID3D11PixelShader;
 struct ID3D11VertexShader;
 
+namespace DX11
+{
+
 namespace D3D
 {
 	ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len);
@@ -40,3 +43,5 @@ namespace D3D
 	inline ID3D11VertexShader* CompileAndCreateVertexShader(D3DBlob* code) { return CompileAndCreateVertexShader((const char*)code->Data(), code->Size()); }
 	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code) { return CompileAndCreatePixelShader((const char*)code->Data(), code->Size()); }
 }
+
+}  // namespace DX11

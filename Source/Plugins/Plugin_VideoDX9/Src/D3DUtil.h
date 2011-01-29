@@ -21,6 +21,9 @@
 #include <math.h>
 #include <MathUtil.h>
 
+namespace DX9
+{
+
 namespace D3D
 {
 	// Font creation flags
@@ -85,3 +88,5 @@ namespace D3D
 	void SaveRenderStates();
 	void RestoreRenderStates();
 }
+
+}  // namespace DX9

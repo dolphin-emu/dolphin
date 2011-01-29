@@ -18,6 +18,9 @@
 #include <d3d11.h>
 #include "D3DBlob.h"
 
+namespace DX11
+{
+
 D3DBlob::D3DBlob(unsigned int blob_size, const u8* init_data) : ref(1), size(blob_size), blob(NULL)
 {
 	data = new u8[blob_size];
@@ -62,3 +65,5 @@ u8* D3DBlob::Data()
 {
 	return data;
 }
+
+}  // namespace DX11

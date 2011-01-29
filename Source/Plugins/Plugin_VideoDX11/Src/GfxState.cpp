@@ -20,6 +20,9 @@
 #include "D3DBase.h"
 #include "GfxState.h"
 
+namespace DX11
+{
+
 namespace D3D
 {
 
@@ -86,3 +89,5 @@ void StateManager::Apply()
 }
 
 }  // namespace
+
+}  // namespace DX11

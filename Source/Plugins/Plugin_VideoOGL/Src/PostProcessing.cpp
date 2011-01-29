@@ -22,6 +22,9 @@
 #include "PostProcessing.h"
 #include "PixelShaderCache.h"
 
+namespace OGL
+{
+
 namespace PostProcessing
 {
 
@@ -85,3 +88,5 @@ bool ApplyShader()
 }
 
 }  // namespace
+
+}  // namespace OGL

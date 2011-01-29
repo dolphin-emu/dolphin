@@ -24,6 +24,9 @@
 #include "BPMemory.h"
 #include "VertexShaderGen.h"
 
+namespace OGL
+{
+
 struct VERTEXSHADER
 {
 	VERTEXSHADER() : glprogid(0) {}
@@ -68,5 +71,7 @@ public:
 	static void DisableShader();
 	
 };
+
+}  // namespace OGL
 
 #endif // _VERTEXSHADERCACHE_H_

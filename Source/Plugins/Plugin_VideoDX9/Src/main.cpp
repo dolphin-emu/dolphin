@@ -185,7 +185,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bAllowSignedBytes = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	int shaderModel = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
 	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 }
@@ -194,18 +194,18 @@ void DllConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	D3D::Init();
+	DX9::D3D::Init();
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
-	for (int i = 0; i < D3D::GetNumAdapters(); ++i)
-		g_Config.backend_info.Adapters.push_back(D3D::GetAdapter(i).ident.Description);
+	for (int i = 0; i < DX9::D3D::GetNumAdapters(); ++i)
+		g_Config.backend_info.Adapters.push_back(DX9::D3D::GetAdapter(i).ident.Description);
 
 	// aamodes
 	g_Config.backend_info.AAModes.clear();
-	if (g_Config.iAdapter < D3D::GetNumAdapters())
+	if (g_Config.iAdapter < DX9::D3D::GetNumAdapters())
 	{
-		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
+		const DX9::D3D::Adapter &adapter = DX9::D3D::GetAdapter(g_Config.iAdapter);
 
 		for (int i = 0; i < (int)adapter.aa_levels.size(); ++i)
 			g_Config.backend_info.AAModes.push_back(adapter.aa_levels[i].name);
@@ -216,7 +216,7 @@ void DllConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
-	D3D::Shutdown();
+	DX9::D3D::Shutdown();
 #endif
 }
 
@@ -241,7 +241,7 @@ void Initialize(void *init)
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
 		return;
 	}
-	else if (FAILED(D3D::Init()))
+	else if (FAILED(DX9::D3D::Init()))
 	{
 		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_ICONERROR|MB_OK);
 		return;
@@ -304,11 +304,11 @@ void Shutdown()
 	VertexLoaderManager::Shutdown();
 
 	// internal interfaces
-	PixelShaderCache::Shutdown();
-	VertexShaderCache::Shutdown();
+	DX9::PixelShaderCache::Shutdown();
+	DX9::VertexShaderCache::Shutdown();
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	delete g_renderer;
-	D3D::Shutdown();
+	DX9::D3D::Shutdown();
 	EmuWindow::Close();
 }

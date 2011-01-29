@@ -37,6 +37,9 @@
 #include "ImageWrite.h"
 #include "Debugger.h"
 
+namespace DX9
+{
+
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
@@ -61,6 +64,15 @@ static LPDIRECT3DPIXELSHADER9 s_CopyProgram[NUM_COPY_TYPES][NUM_DEPTH_CONVERSION
 static LPDIRECT3DPIXELSHADER9 s_ClearProgram = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgba6_to_rgb8 = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgb8_to_rgba6 = NULL;
+
+class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+{
+public:
+	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
+	{
+		PixelShaderCache::InsertByteCode(key, value, value_size, false);
+	}
+};
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram(int SSAAMode)
 {
@@ -140,31 +152,6 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 	if (!s_rgb8_to_rgba6) s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
 	return s_rgb8_to_rgba6;
 }
-
-void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	float f[4] = { f1, f2, f3, f4 };
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
-}
-
-void SetPSConstant4fv(unsigned int const_number, const float *f)
-{
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
-}
-
-void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	D3D::dev->SetPixelShaderConstantF(const_number, f, count);
-}
-
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
-{
-public:
-	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
-	{
-		PixelShaderCache::InsertByteCode(key, value, value_size, false);
-	}
-};
 
 #define WRITE p+=sprintf
 
@@ -429,4 +416,23 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytec
 		D3D::SetPixelShader(shader);
 	}
 	return true;
+}
+
+}  // namespace DX9
+
+
+void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+{
+	float f[4] = { f1, f2, f3, f4 };
+	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+}
+
+void SetPSConstant4fv(unsigned int const_number, const float *f)
+{
+	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+}
+
+void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+{
+	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, count);
 }

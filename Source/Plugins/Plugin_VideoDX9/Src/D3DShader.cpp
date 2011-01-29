@@ -21,6 +21,9 @@
 #include "VideoConfig.h"
 #include "D3DShader.h"
 
+namespace DX9
+{
+
 namespace D3D
 {
 
@@ -151,3 +154,5 @@ LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char* code, unsigned in
 }
 
 }  // namespace
+
+}  // namespace DX9

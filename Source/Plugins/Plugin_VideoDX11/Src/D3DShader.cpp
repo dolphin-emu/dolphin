@@ -22,6 +22,9 @@
 #include "D3DBase.h"
 #include "D3DShader.h"
 
+namespace DX11
+{
+
 namespace D3D
 {
 
@@ -149,3 +152,5 @@ ID3D11PixelShader* CompileAndCreatePixelShader(const char* code, unsigned int le
 }
 
 }  // namespace
+
+}  // namespace DX11

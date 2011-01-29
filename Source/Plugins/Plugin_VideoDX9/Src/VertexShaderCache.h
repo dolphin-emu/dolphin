@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VERTEXSHADERCACHE_H
-#define _VERTEXSHADERCACHE_H
+#pragma once
 
 #include "D3DBase.h"
 
@@ -25,6 +24,9 @@
 
 #include "D3DBase.h"
 #include "VertexShaderGen.h"
+
+namespace DX9
+{
 
 class VertexShaderCache
 {
@@ -62,4 +64,4 @@ public:
 	static std::string GetCurrentShaderCode();
 };
 
-#endif  // _VERTEXSHADERCACHE_H
+}  // namespace DX9

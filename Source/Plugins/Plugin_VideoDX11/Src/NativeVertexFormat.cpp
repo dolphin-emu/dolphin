@@ -27,7 +27,7 @@ class D3DVertexFormat : public NativeVertexFormat
 	D3D11_INPUT_ELEMENT_DESC m_elems[32];
 	UINT m_num_elems;
 
-	D3DBlob* m_vs_bytecode;
+	DX11::D3DBlob* m_vs_bytecode;
 	ID3D11InputLayout* m_layout;
 
 public:
@@ -141,17 +141,17 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 void D3DVertexFormat::SetupVertexPointers()
 {
-	if (m_vs_bytecode != VertexShaderCache::GetActiveShaderBytecode())
+	if (m_vs_bytecode != DX11::VertexShaderCache::GetActiveShaderBytecode())
 	{
 		SAFE_RELEASE(m_vs_bytecode);
 		SAFE_RELEASE(m_layout);
 
-		m_vs_bytecode = VertexShaderCache::GetActiveShaderBytecode();
+		m_vs_bytecode = DX11::VertexShaderCache::GetActiveShaderBytecode();
 		m_vs_bytecode->AddRef();
 
-		HRESULT hr = D3D::device->CreateInputLayout(m_elems, m_num_elems, m_vs_bytecode->Data(), m_vs_bytecode->Size(), &m_layout);
+		HRESULT hr = DX11::D3D::device->CreateInputLayout(m_elems, m_num_elems, m_vs_bytecode->Data(), m_vs_bytecode->Size(), &m_layout);
 		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout, "input layout used to emulate the GX pipeline");
+		DX11::D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout, "input layout used to emulate the GX pipeline");
 	}
-	D3D::context->IASetInputLayout(m_layout);
+	DX11::D3D::context->IASetInputLayout(m_layout);
 }

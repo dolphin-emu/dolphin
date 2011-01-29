@@ -22,11 +22,15 @@
 #include "StringUtil.h"
 #include "VideoCommon.h"
 
-// D3DX
-HINSTANCE hD3DXDll = NULL;
 D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA = NULL;
 D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA = NULL;
 D3DXCOMPILESHADERTYPE PD3DXCompileShader = NULL;
+
+namespace DX9
+{
+
+// D3DX
+HINSTANCE hD3DXDll = NULL;
 int d3dx_dll_ref = 0;
 
 typedef IDirect3D9* (WINAPI* DIRECT3DCREATE9)(UINT);
@@ -820,3 +824,5 @@ void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader)
 
 
 }  // namespace
+
+}  // namespace DX9

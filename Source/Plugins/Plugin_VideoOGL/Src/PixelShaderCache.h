@@ -24,6 +24,9 @@
 #include "BPMemory.h"
 #include "PixelShaderGen.h"
 
+namespace OGL
+{
+
 struct FRAGMENTSHADER
 {
 	FRAGMENTSHADER() : glprogid(0) { }
@@ -82,5 +85,7 @@ public:
 
 	static void DisableShader();
 };
+
+}  // namespace OGL
 
 #endif // _PIXELSHADERCACHE_H_

@@ -21,7 +21,10 @@
 #include "VideoCommon.h"
 #include "GLUtil.h"
 
-// Converts textures between formats
+namespace OGL
+{
+
+// Converts textures between formats using shaders
 // TODO: support multiple texture formats
 namespace TextureConverter
 {
@@ -40,5 +43,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 u64 EncodeToRamFromTexture(u32 address, GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
 
 }
+
+}  // namespace OGL
 
 #endif // _TEXTURECONVERTER_H_

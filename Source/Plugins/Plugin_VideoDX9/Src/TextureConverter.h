@@ -24,7 +24,10 @@
 #include "D3DUtil.h"
 #include "D3DShader.h"
 
-// Converts textures between formats
+namespace DX9
+{
+
+// Converts textures between formats using shaders
 // TODO: support multiple texture formats
 namespace TextureConverter
 {
@@ -44,5 +47,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 
 
 }
+
+}  // namespace DX9
 
 #endif // _TEXTURECONVERTER_H_

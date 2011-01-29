@@ -40,6 +40,9 @@
 #include "VertexShaderCache.h"
 
 
+namespace DX11
+{
+
 static int s_fps = 0;
 
 static u32 s_LastAA = 0;
@@ -304,9 +307,6 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
 }
-
-namespace DX11
-{
 
 Renderer::Renderer()
 {
@@ -1340,4 +1340,4 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-}
+}  // namespace DX11

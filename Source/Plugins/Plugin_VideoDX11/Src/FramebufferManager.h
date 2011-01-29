@@ -24,6 +24,8 @@
 
 #include "D3DTexture.h"
 
+namespace DX11 {
+
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
 // called the XFB (External Framebuffer). The size and location of the XFB is
@@ -104,5 +106,7 @@ private:
 		D3DTexture2D* resolved_depth_tex;
 	} m_efb;
 };
+
+}  // namespace DX11
 
 #endif

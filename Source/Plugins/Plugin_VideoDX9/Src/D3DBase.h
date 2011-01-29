@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _D3DBASE_H
-#define _D3DBASE_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -24,6 +23,9 @@
 #include <d3dx9.h>
 
 #include "Common.h"
+
+namespace DX9
+{
 
 namespace D3D
 {
@@ -151,6 +153,8 @@ int GetNumAdapters();
 
 }  // namespace
 
+}  // namespace DX9
+
 
 // Used to not require the SDK and runtime versions to match:
 // Linking with d3dx9.lib makes the most recent d3dx9_xx.dll of the
@@ -163,7 +167,3 @@ typedef HRESULT (WINAPI* D3DXCOMPILESHADERTYPE)(LPCSTR, UINT, CONST D3DXMACRO*, 
 extern D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA;
 extern D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA;
 extern D3DXCOMPILESHADERTYPE PD3DXCompileShader;
-
-
-
-#endif

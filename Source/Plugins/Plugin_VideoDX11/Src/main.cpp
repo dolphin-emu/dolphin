@@ -180,17 +180,17 @@ void DllConfig(void *_hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
 
-	HRESULT hr = D3D::LoadDXGI();
-	if (SUCCEEDED(hr)) hr = D3D::LoadD3D();
+	HRESULT hr = DX11::D3D::LoadDXGI();
+	if (SUCCEEDED(hr)) hr = DX11::D3D::LoadD3D();
 	if (FAILED(hr))
 	{
-		D3D::UnloadDXGI();
+		DX11::D3D::UnloadDXGI();
 		return;
 	}
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
-	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
@@ -209,7 +209,7 @@ void DllConfig(void *_hParent)
 		{
 			char buf[32];
 			std::vector<DXGI_SAMPLE_DESC> modes;
-			D3D::EnumAAModes(ad, modes);
+			DX11::D3D::EnumAAModes(ad, modes);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
 				if (i == 0) sprintf_s(buf, 32, "None");
@@ -229,8 +229,8 @@ void DllConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
-	D3D::UnloadDXGI();
-	D3D::UnloadD3D();
+	DX11::D3D::UnloadDXGI();
+	DX11::D3D::UnloadD3D();
 #endif
 }
 
@@ -279,9 +279,9 @@ void Video_Prepare()
 	g_renderer = new DX11::Renderer;
 	g_texture_cache = new DX11::TextureCache;
 	g_vertex_manager = new DX11::VertexManager;
-	VertexShaderCache::Init();
-	PixelShaderCache::Init();
-	D3D::InitUtils();
+	DX11::VertexShaderCache::Init();
+	DX11::PixelShaderCache::Init();
+	DX11::D3D::InitUtils();
 
 	// VideoCommon
 	BPInit();
@@ -316,9 +316,9 @@ void Shutdown()
 	VertexLoaderManager::Shutdown();
 
 	// internal interfaces
-	D3D::ShutdownUtils();
-	PixelShaderCache::Shutdown();
-	VertexShaderCache::Shutdown();
+	DX11::D3D::ShutdownUtils();
+	DX11::PixelShaderCache::Shutdown();
+	DX11::VertexShaderCache::Shutdown();
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	delete g_renderer;

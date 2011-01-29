@@ -19,6 +19,9 @@
 
 #include "D3DBase.h"
 
+namespace DX9
+{
+
 namespace D3D
 {
 	LPDIRECT3DVERTEXSHADER9 CreateVertexShaderFromByteCode(const u8 *bytecode, int len);
@@ -32,3 +35,5 @@ namespace D3D
 	LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len);
 	LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, unsigned int len);
 }
+
+}  // namespace DX9

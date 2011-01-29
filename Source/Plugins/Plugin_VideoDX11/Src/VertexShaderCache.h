@@ -25,6 +25,8 @@
 
 class VERTEXSHADERUID;
 
+namespace DX11 {
+
 class VertexShaderCache
 {
 public:
@@ -69,5 +71,7 @@ private:
 	static VSCache vshaders;
 	static const VSCacheEntry* last_entry;
 };
+
+}  // namespace DX11
 
 #endif  // _VERTEXSHADERCACHE_H

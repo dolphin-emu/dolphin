@@ -51,6 +51,9 @@
 #include "DLCache.h"
 #include "Debugger.h"
 
+namespace DX9
+{
+
 static int s_fps = 0;
 
 static int s_recordWidth;
@@ -242,9 +245,6 @@ void TeardownDeviceObjects()
 	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
 }
-
-namespace DX9
-{
 
 // Init functions
 Renderer::Renderer()
@@ -1397,4 +1397,4 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-}
+}  // namespace DX9

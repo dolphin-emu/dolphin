@@ -24,6 +24,8 @@
 class PIXELSHADERUID;
 enum DSTALPHA_MODE;
 
+namespace DX11 {
+
 class PixelShaderCache
 {
 public:
@@ -58,3 +60,5 @@ private:
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
 };
+
+}  // namespace DX11

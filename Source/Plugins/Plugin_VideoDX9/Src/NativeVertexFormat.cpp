@@ -173,7 +173,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	elems[elem_idx].Type = D3DDECLTYPE_UNUSED;
 	++elem_idx;
 
-	if (FAILED(D3D::dev->CreateVertexDeclaration(elems, &d3d_decl)))
+	if (FAILED(DX9::D3D::dev->CreateVertexDeclaration(elems, &d3d_decl)))
 	{
 		PanicAlert("Failed to create D3D vertex declaration!");
 		return;
@@ -187,7 +187,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 void D3DVertexFormat::SetupVertexPointers()
 {
 	if (d3d_decl)
-		D3D::SetVertexDeclaration(d3d_decl);
+		DX9::D3D::SetVertexDeclaration(d3d_decl);
 	else
 		ERROR_LOG(VIDEO, "invalid d3d decl");
 }

@@ -23,6 +23,9 @@ struct ID3D11BlendState;
 struct ID3D11DepthStencilState;
 struct ID3D11RasterizerState;
 
+namespace DX11
+{
+
 namespace D3D
 {
 
@@ -73,3 +76,5 @@ private:
 extern StateManager* stateman;
 
 }  // namespace
+
+}  // namespace DX11

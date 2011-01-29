@@ -32,6 +32,9 @@
 #include "FileUtil.h"
 #include "Debugger.h"
 
+namespace OGL
+{
+
 static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
 static GLuint s_DepthMatrixProgram = 0;
@@ -51,23 +54,6 @@ GLuint PixelShaderCache::GetDepthMatrixProgram()
 GLuint PixelShaderCache::GetColorMatrixProgram()
 {
 	return s_ColorMatrixProgram;
-}
-
-void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	float f[4] = { f1, f2, f3, f4 };
-	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
-}
-
-void SetPSConstant4fv(unsigned int const_number, const float *f)
-{
-	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
-}
-
-void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	for (unsigned int i = 0; i < count; i++,f+=4)
-		glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number + i, f);
 }
 
 void PixelShaderCache::Init()
@@ -353,4 +339,24 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
 			CurrentShader = Shader;
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
 	}
+}
+
+}  // namespace OGL
+
+
+void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+{
+	float f[4] = { f1, f2, f3, f4 };
+	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
+}
+
+void SetPSConstant4fv(unsigned int const_number, const float *f)
+{
+	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
+}
+
+void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+{
+	for (unsigned int i = 0; i < count; i++,f+=4)
+		glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number + i, f);
 }

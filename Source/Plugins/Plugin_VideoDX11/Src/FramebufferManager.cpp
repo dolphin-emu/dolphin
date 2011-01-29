@@ -24,6 +24,8 @@
 #include "Render.h"
 #include "VertexShaderCache.h"
 
+namespace DX11 {
+
 FramebufferManager::Efb FramebufferManager::m_efb;
 
 D3DTexture2D* &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
@@ -204,3 +206,5 @@ void XFBSource::CopyEFB(float Gamma)
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
+
+}  // namespace DX11

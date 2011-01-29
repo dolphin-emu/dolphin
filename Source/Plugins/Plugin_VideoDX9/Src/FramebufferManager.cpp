@@ -23,6 +23,9 @@
 #include "VertexShaderCache.h"
 #include "TextureConverter.h"
 
+namespace DX9
+{
+
 // TODO: this is probably somewhere else
 #define SAFE_RELEASE(p) if (p) { (p)->Release(); (p) = NULL; }
 
@@ -229,3 +232,5 @@ void XFBSource::CopyEFB(float Gamma)
 
 	Rendersurf->Release();
 }
+
+}  // namespace DX9

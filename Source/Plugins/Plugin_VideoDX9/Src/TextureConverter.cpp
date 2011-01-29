@@ -32,6 +32,9 @@
 #include "Math.h"
 #include "FileUtil.h"
 
+namespace DX9
+{
+
 namespace TextureConverter
 {
 struct TransformBuffer
@@ -549,3 +552,5 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 }
 
 }  // namespace
+
+}  // namespace DX9

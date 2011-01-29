@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _FRAMEBUFFERMANAGER_D3D_H_
-#define _FRAMEBUFFERMANAGER_D3D_H_
+#pragma once
 
 #include "D3DBase.h"
 #include "FramebufferManagerBase.h"
@@ -49,6 +48,9 @@
 // Advantages: Enables high resolution graphics, better than real hardware.
 // Disadvantages: If the GameCube CPU writes directly to the XFB (which is
 // possible but uncommon), the Virtual XFB will not capture this information.
+
+namespace DX9
+{
 
 struct XFBSource : public XFBSourceBase
 {
@@ -133,4 +135,4 @@ private:
 	} s_efb;
 };
 
-#endif
+}  // namespace DX9

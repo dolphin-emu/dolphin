@@ -21,6 +21,9 @@
 #include "VideoCommon.h"
 #include "GLUtil.h"
 
+namespace OGL
+{
+
 namespace PostProcessing
 {
 
@@ -30,6 +33,8 @@ void Shutdown();
 void ReloadShader();
 // Returns false if no shader was applied.
 bool ApplyShader();
+
+}  // namespace
 
 }  // namespace
 

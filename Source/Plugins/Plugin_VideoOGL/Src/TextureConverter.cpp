@@ -31,6 +31,9 @@
 #include <math.h>
 #include "FileUtil.h"
 
+namespace OGL
+{
+
 namespace TextureConverter
 {
 
@@ -469,3 +472,5 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 }
 
 }  // namespace
+
+}  // namespace OGL

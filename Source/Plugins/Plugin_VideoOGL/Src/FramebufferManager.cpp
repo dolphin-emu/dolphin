@@ -21,7 +21,12 @@
 #include "TextureConverter.h"
 #include "Render.h"
 
-extern bool s_bHaveFramebufferBlit; // comes from Render.cpp
+
+
+namespace OGL
+{
+
+extern bool s_bHaveFramebufferBlit; // comes from Render.cpp. ugly.
 
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
@@ -401,3 +406,5 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*width = m_targetWidth;
 	*height = m_targetHeight;
 }
+
+}  // namespace OGL

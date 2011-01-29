@@ -27,6 +27,9 @@
 #include <tmmintrin.h>
 #endif
 
+namespace DX9
+{
+
 namespace D3D
 {
 
@@ -412,3 +415,5 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 }
 
 }  // namespace
+
+}  // namespace DX9

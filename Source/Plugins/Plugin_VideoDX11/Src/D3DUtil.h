@@ -17,8 +17,11 @@
 
 #pragma	once
 
-#include "d3d11.h"
+#include <d3d11.h>
 #include <MathUtil.h>
+
+namespace DX11
+{
 
 namespace D3D
 {
@@ -82,4 +85,6 @@ namespace D3D
 							float Gamma = 1.0f);
 	void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout);
 	void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2);
+}
+
 }

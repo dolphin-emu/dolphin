@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PIXELSHADERCACHE_H
-#define _PIXELSHADERCACHE_H
+#pragma once
 
 #include "Common.h"
 #include "LinearDiskCache.h"
@@ -26,6 +25,9 @@
 
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
+
+namespace DX9
+{
 
 typedef u32 tevhash;
 
@@ -68,5 +70,4 @@ public:
 	static LPDIRECT3DPIXELSHADER9 ReinterpRGB8ToRGBA6();
 };
 
-
-#endif  // _PIXELSHADERCACHE_H
+}  // namespace DX9

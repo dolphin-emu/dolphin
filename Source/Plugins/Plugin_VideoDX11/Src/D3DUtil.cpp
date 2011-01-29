@@ -24,6 +24,9 @@
 #include "D3DShader.h"
 #include "GfxState.h"
 
+namespace DX11
+{
+
 namespace D3D
 {
 
@@ -690,4 +693,6 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 	context->Draw(4, clearq_offset);
 }
 
-}  // namespace
+}  // namespace D3D
+
+}  // namespace DX11

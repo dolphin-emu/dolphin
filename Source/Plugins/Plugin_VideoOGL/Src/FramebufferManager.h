@@ -53,6 +53,8 @@
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
 
+namespace OGL {
+
 struct XFBSource : public XFBSourceBase
 {
 	XFBSource(GLuint tex) : texture(tex) {}
@@ -117,5 +119,7 @@ private:
 
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
 };
+
+}  // namespace OGL
 
 #endif

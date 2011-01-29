@@ -21,6 +21,9 @@
 
 struct ID3D10Blob;
 
+namespace DX11
+{
+
 // use this class instead ID3D10Blob or ID3D11Blob whenever possible
 class D3DBlob
 {
@@ -46,3 +49,5 @@ private:
 	u8* data;
 	ID3D10Blob* blob;
 };
+
+}  // namespace

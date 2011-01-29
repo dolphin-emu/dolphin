@@ -70,15 +70,43 @@
 #include <wx/image.h>
 #endif
 
-// Declarations and definitions
-// ----------------------------
-int s_fps=0;
+
+
+void VideoConfig::UpdateProjectionHack()
+{
+	::UpdateProjectionHack(g_Config.iPhackvalue);
+}
+
+
+#if defined(HAVE_WX) && HAVE_WX
+// Screenshot thread struct
+typedef struct
+{
+	int W, H;
+	std::string filename;
+	wxImage *img;
+} ScrStrct;
+#endif
 
 #if defined HAVE_CG && HAVE_CG
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 #endif
+
+#ifdef _WIN32
+extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+#else
+int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+#endif
+
+namespace OGL
+{
+
+// Declarations and definitions
+// ----------------------------
+int s_fps=0;
+
 
 RasterFont* s_pfont = NULL;
 
@@ -100,24 +128,6 @@ static u32 s_blendMode;
 static std::thread scrshotThread;
 #endif
 
-#ifdef _WIN32
-extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
-#else
-int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
-#endif
-
-namespace
-{
-
-#if defined(HAVE_WX) && HAVE_WX
-// Screenshot thread struct
-typedef struct
-{
-	int W, H;
-	std::string filename;
-	wxImage *img;
-} ScrStrct;
-#endif
 
 static const GLenum glSrcFactors[8] =
 {
@@ -181,15 +191,6 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 		DEBUG_LOG(VIDEO, "    last listing: %s", listing);
 }
 #endif
-
-} // namespace
-void VideoConfig::UpdateProjectionHack()
-{
-	::UpdateProjectionHack(g_Config.iPhackvalue);
-}
-
-namespace OGL
-{
 
 // Init functions
 Renderer::Renderer()

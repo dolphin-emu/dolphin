@@ -311,14 +311,14 @@ void Video_Prepare()
 	g_vertex_manager = new OGL::VertexManager;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
-	VertexShaderCache::Init();
+	OGL::VertexShaderCache::Init();
 	VertexShaderManager::Init();
-	PixelShaderCache::Init();
+	OGL::PixelShaderCache::Init();
 	PixelShaderManager::Init();
-	PostProcessing::Init();
+	OGL::PostProcessing::Init();
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
-	TextureConverter::Init();
+	OGL::TextureConverter::Init();
 	DLCache::Init();
 
 	// Notify the core that the video plugin is ready
@@ -338,16 +338,16 @@ void Shutdown()
 	s_swapRequested = FALSE;
 	DLCache::Shutdown();
 	Fifo_Shutdown();
-	PostProcessing::Shutdown();
+	OGL::PostProcessing::Shutdown();
 
 	// The following calls are NOT Thread Safe
 	// And need to be called from the video thread
-	TextureConverter::Shutdown();
+	OGL::TextureConverter::Shutdown();
 	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Shutdown();
+	OGL::VertexShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
 	PixelShaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
+	OGL::PixelShaderCache::Shutdown();
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	OpcodeDecoder_Shutdown();

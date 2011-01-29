@@ -21,12 +21,16 @@
 #include "Common.h"
 #include <vector>
 
+namespace DX11 
+{
+
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
 #define SAFE_DELETE(x) { delete (x); (x) = NULL; }
 #define SAFE_DELETE_ARRAY(x) { delete[] (x); (x) = NULL; }
 #define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
 class D3DTexture2D;
+
 namespace D3D
 {
 
@@ -100,3 +104,5 @@ typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
 typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 extern D3D11CREATEDEVICE PD3D11CreateDevice;
+
+}  // namespace DX11

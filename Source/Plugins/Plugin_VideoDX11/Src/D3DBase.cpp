@@ -22,6 +22,9 @@
 #include "D3DTexture.h"
 #include "GfxState.h"
 
+namespace DX11
+{
+
 HINSTANCE hD3DXDll = NULL;
 D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;
 D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
@@ -468,4 +471,6 @@ void Present()
 	swapchain->Present((UINT)g_ActiveConfig.bVSync, 0);
 }
 
-}  // namespace
+}  // namespace D3D
+
+}  // namespace DX11
