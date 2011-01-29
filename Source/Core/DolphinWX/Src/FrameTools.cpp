@@ -44,8 +44,6 @@ Core::GetWindowHandle().
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
-#include "DSPHLEConfigDlg.h"
-#include "DSPLLEConfigDlg.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "LogWindow.h"

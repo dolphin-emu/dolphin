@@ -32,8 +32,6 @@
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "ConfigManager.h"
-#include "DSPHLEConfigDlg.h"
-#include "DSPLLEConfigDlg.h"
 #include "SysConf.h"
 #include "Frame.h"
 #include "HotkeyDlg.h"
