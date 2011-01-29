@@ -21,8 +21,6 @@ if(wxWidgets_FOUND)
 				Src/ARCodeAddEdit.cpp
 				Src/CheatsWindow.cpp
 				Src/ConfigMain.cpp
-				Src/DSPHLEConfigDlg.cpp
-				Src/DSPLLEConfigDlg.cpp
 				Src/Frame.cpp
 				Src/FrameAui.cpp
 				Src/FrameTools.cpp

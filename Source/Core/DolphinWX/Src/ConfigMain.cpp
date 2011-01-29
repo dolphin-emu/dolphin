@@ -123,8 +123,12 @@ EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_PROGSCAN, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_NTSCJ, CConfigMain::DisplaySettingsChanged)
 
-EVT_CHECKBOX(ID_AUDIO_DSP_HLE, CConfigMain::AudioSettingsChanged)
-EVT_BUTTON(ID_AUDIO_CONFIG, CConfigMain::OnDSPConfig)
+EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, CConfigMain::AudioSettingsChanged)
+EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
+EVT_CHOICE(ID_FREQUENCY, CConfigMain::AudioSettingsChanged)
+EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
+EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
@@ -194,6 +198,18 @@ CConfigMain::~CConfigMain()
 {
 }
 
+void CConfigMain::SetSelectedTab(int tab)
+{
+	// TODO : this is just a quick and dirty way to do it, possible cleanup
+
+	switch (tab)
+	{
+	case ID_AUDIOPAGE:
+		this->Notebook->SetSelection(2);
+		break;
+	}
+}
+
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
@@ -217,8 +233,7 @@ void CConfigMain::UpdateGUI()
 		NTSCJ->Disable();
 
 		// Disable stuff on AudioPage
-		DSP_HLE->Disable();
-		DSPConfig->Disable();
+		DSPEngine->Disable();
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -256,6 +271,11 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_CPUEngine.Add(_("Interpreter (VERY slow)"));
 	arrayStringFor_CPUEngine.Add(_("JIT Recompiler (recommended)"));
 	arrayStringFor_CPUEngine.Add(_("JITIL experimental recompiler"));
+	
+	// DSP Engine 
+	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
+	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
+	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
 	
 	
 	// Display page
@@ -322,6 +342,9 @@ void CConfigMain::InitializeGUILists()
 void CConfigMain::InitializeGUIValues()
 {
 	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	
+	// Load DSP Settings.
+	ac_Config.Load();
 
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
@@ -364,9 +387,23 @@ void CConfigMain::InitializeGUIValues()
 		}
 	}
 
+	// Audio DSP Engine
+	if (startup_params.bDSPHLE)
+		DSPEngine->SetSelection(0);
+	else
+		DSPEngine->SetSelection(ac_Config.m_EnableJIT ? 1 : 2);
 
 	// Audio
-	DSP_HLE->SetValue(startup_params.bDSPHLE);
+	VolumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
+	VolumeSlider->SetValue(ac_Config.m_Volume);
+	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
+	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
+	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
+	FrequencySelection->SetSelection(
+		FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency.c_str())));
+	// add backends to the list
+	AddAudioBackends();
+
 
 	// Gamecube - IPL
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
@@ -435,6 +472,13 @@ void CConfigMain::InitializeGUITooltips()
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
+	// Audio tooltips
+	EnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
+	EnableThrottle->SetToolTip(_("This is used to control game speed by sound throttle.\nDisabling this could cause abnormal game speed, such as too fast.\nBut sometimes enabling this could cause constant noise.\n\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
+	DSPEngine->SetToolTip(_("please someone fill this tooltip i have no idea what to say :D"));
+	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
+	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
+
 	// Gamecube - Devices
 	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
 
@@ -464,6 +508,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(PathsPage, _("Paths"));
 	Notebook->AddPage(PluginsPage, _("Plugins"));
 
+
 	// General page
 	// Core Settings - Basic
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Basic Settings"));
@@ -473,7 +518,6 @@ void CConfigMain::CreateGUIControls()
 	// Framelimit
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
 	UseFPSForLimiting = new wxCheckBox(GeneralPage, ID_FRAMELIMIT_USEFPSFORLIMITING, _("Use FPS For Limiting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	// Core Settings - Advanced
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Advanced Settings"));
 	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, _("Skip GC BIOS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -481,7 +525,7 @@ void CConfigMain::CreateGUIControls()
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, _("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, _("DSPLLE on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	// Populate the settings
+	// Populate the General settings
 	sbBasic->Add(CPUThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
@@ -496,15 +540,12 @@ void CConfigMain::CreateGUIControls()
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
 
-	// Populate the General page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);
 	sGeneralPage->Add(sbBasic, 0, wxEXPAND | wxALL, 5);
 	sGeneralPage->Add(sbAdvanced, 0, wxEXPAND | wxALL, 5);
-
 	GeneralPage->SetSizer(sGeneralPage);
-	
-	
-	// Display page
+
+
 	// General display settings
 	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Emulator Display Settings"));
 	FullscreenResolution = new wxChoice(DisplayPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
@@ -519,31 +560,19 @@ void CConfigMain::CreateGUIControls()
 	ProgressiveScan = new wxCheckBox(DisplayPage, ID_DISPLAY_PROGSCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	NTSCJ = new wxCheckBox(DisplayPage, ID_DISPLAY_NTSCJ, _("Set Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
+	// Interface Language
+	InterfaceLang = new wxChoice(DisplayPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
+	// Hotkey configuration
+	// TODO : doesn't really belong to the display page, heh.
+	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+	// Themes - this should really be a wxChoice...
+	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, _("Theme"), wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
 	// Interface settings
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS, _("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	
-	// Audio page
-	sAudioPage = new wxBoxSizer(wxVERTICAL);
-	DSP_HLE = new wxCheckBox(AudioPage, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	DSPConfig = new wxButton(AudioPage, ID_AUDIO_CONFIG, _("Configure DSP"), wxDefaultPosition, wxDefaultSize);
-	sAudioPage->Add(DSP_HLE);
-	sAudioPage->Add(DSPConfig);
-	AudioPage->SetSizer(sAudioPage);
 
-	// Themes - this should really be a wxChoice...
-	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, _("Theme"), wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
-
-	// Interface Language
-	// At the moment this only changes the language displayed in m_gamelistctrl
-	// If someone wants to control the whole GUI's language, it should be set here too
-	InterfaceLang = new wxChoice(DisplayPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
-
-	// Hotkey configuration
-	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-
-	// Populate the settings
+	// Populate the Display page
 	wxBoxSizer* sDisplayRes = new wxBoxSizer(wxHORIZONTAL);
 	sDisplayRes->Add(TEXT_BOX(DisplayPage, _("Fullscreen Display Resolution:")),
 		   	0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -572,14 +601,54 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 
-	// Populate the Display page
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
 	sDisplayPage->Add(sbDisplay, 0, wxEXPAND | wxALL, 5);
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
-
 	DisplayPage->SetSizer(sDisplayPage);
 
+	
+	// Audio page
+	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
+	EnableDTKMusic = new wxCheckBox(AudioPage, ID_ENABLE_DTK_MUSIC, _("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EnableThrottle = new wxCheckBox(AudioPage, ID_ENABLE_THROTTLE, _("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	VolumeText = new wxStaticText(AudioPage, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
+	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
+	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY, wxDefaultPosition, wxDefaultSize, wxArrayRates, 0, wxDefaultValidator, wxEmptyString);
+	FrequencySelection->Append(_("48,000 Hz"));
+	FrequencySelection->Append(_("32,000 Hz"));
 
+	// Create sizer and add items to dialog
+	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
+	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
+	sbAudioSettings->Add(EnableDTKMusic, 0, wxALL, 5);
+	sbAudioSettings->Add(EnableThrottle, 0, wxALL, 5);
+
+	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
+	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
+	sbVolume->Add(VolumeText, 0, wxALL|wxALIGN_LEFT, 4);
+
+	wxBoxSizer *sBackendText = new wxBoxSizer(wxVERTICAL);
+	wxGridBagSizer *sBackend = new wxGridBagSizer();
+	sBackendText->Add(TEXT_BOX(AudioPage, _("Audio Backend :")), 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(BackendSelection, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND|wxALL, 1);
+	sBackendText->Add(TEXT_BOX(AudioPage, _("Sample Rate :")), 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(FrequencySelection, wxGBPosition(1, 0), wxDefaultSpan, wxEXPAND|wxALL, 1);
+	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
+	sbBackend->Add(sBackendText, 1, wxALL | wxEXPAND);
+	sbBackend->Add(sBackend, 0, wxALL | wxEXPAND);
+
+	wxBoxSizer *sAudio = new wxBoxSizer(wxHORIZONTAL);
+	sAudio->Add(sbAudioSettings, 1, wxEXPAND|wxALL, 5);
+	sAudio->Add(sbVolume, 0, wxEXPAND|wxALL, 5);
+
+	sAudioPage = new wxBoxSizer(wxVERTICAL);
+	sAudioPage->Add(sAudio, 0, wxALL|wxEXPAND);
+	sAudioPage->Add(sbBackend, 0, wxALL|wxEXPAND, 5);
+	AudioPage->SetSizerAndFit(sAudioPage);
+
+
+	// TODO : Warning the following code hurts
 	// Gamecube page
 	// IPL settings
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("IPL Settings"));
@@ -604,7 +673,9 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition, wxDefaultSize, numSP1Devices, SP1Devices, 0, wxDefaultValidator);
 	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
 	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+
 	// Can't move this one without making the 4 const's etc. above class members/fields,
+	// TODO : lies, wxArrayString + wxChoice->Create.
 	for (int i = 0; i < 3; ++i)
 	{
 		bool isMemcard = false;
@@ -637,12 +708,14 @@ void CConfigMain::CreateGUIControls()
 		if (!isMemcard && i < 2)
 			GCMemcardPath[i]->Disable();
 	}
+
 	//SI Devices
 	wxStaticText* GCSIDeviceText[4];
 	GCSIDeviceText[0] = TEXT_BOX(GamecubePage, _("Port 1"));
 	GCSIDeviceText[1] = TEXT_BOX(GamecubePage, _("Port 2"));
 	GCSIDeviceText[2] = TEXT_BOX(GamecubePage, _("Port 3"));
 	GCSIDeviceText[3] = TEXT_BOX(GamecubePage, _("Port 4"));
+
 	// SIDEV_AM_BB_STR must be last!
 	const wxString SIDevices[] = {_(DEV_NONE_STR),_(SIDEV_STDCONT_STR),_(SIDEV_GBA_STR),_(SIDEV_AM_BB_STR)};
 	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
@@ -670,7 +743,7 @@ void CConfigMain::CreateGUIControls()
 		}
 	}
 
-	// Populate the settings
+	// Populate the Gamecube page
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
 			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -693,12 +766,9 @@ void CConfigMain::CreateGUIControls()
 		sSIDevices[i]->Add(GCSIDevice[i], 0, wxALL, 5);
 		sbGamecubeDeviceSettings->Add(sSIDevices[i]);
 	}
-
-	// Populate the Gamecube page
 	sGamecubePage = new wxBoxSizer(wxVERTICAL);
 	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
 	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
-
 	GamecubePage->SetSizer(sGamecubePage);
 
 
@@ -721,7 +791,7 @@ void CConfigMain::CreateGUIControls()
 	WiiSDCard = new wxCheckBox(WiiPage, ID_WII_SD_CARD, _("Insert SD Card"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiiKeyboard = new wxCheckBox(WiiPage, ID_WII_KEYBOARD, _("Connect USB Keyboard"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	// Populate the settings
+	// Populate the Wii Page
 	sWiimoteSettings = new wxGridBagSizer();
 	sWiimoteSettings->Add(TEXT_BOX(WiiPage, _("Sensor Bar Position:")),
 			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -746,12 +816,10 @@ void CConfigMain::CreateGUIControls()
 	sbWiiDeviceSettings->Add(WiiSDCard, 0, wxALL, 5);
 	sbWiiDeviceSettings->Add(WiiKeyboard, 0, wxALL, 5);
 
-	// Populate the Wii page
 	sWiiPage = new wxBoxSizer(wxVERTICAL);
 	sWiiPage->Add(sbWiimoteSettings, 0, wxEXPAND|wxALL, 5);
 	sWiiPage->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
 	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
-
 	WiiPage->SetSizer(sWiiPage);
 
 	
@@ -796,7 +864,6 @@ void CConfigMain::CreateGUIControls()
 	sPathsPage = new wxBoxSizer(wxVERTICAL);
 	sPathsPage->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
 	sPathsPage->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
-
 	PathsPage->SetSizer(sPathsPage);
 
 	
@@ -849,6 +916,9 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 
 	// Save the config. Dolphin crashes to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
+
+	// Save Audio settings
+	ac_Config.SaveSettings();
 }
 
 // Core settings
@@ -962,11 +1032,55 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_AUDIO_DSP_HLE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSP_HLE->IsChecked();
+	case ID_DSPENGINE:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
+		ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
+		ac_Config.Update();
+		break;
+	case ID_BACKEND:
+		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
+		break;
+	case ID_VOLUME:
+		ac_Config.m_Volume = VolumeSlider->GetValue();
+		ac_Config.Update();
+		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
+		break;
+	default:
+		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
+		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
+		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
+		ac_Config.sFrequency = FrequencySelection->GetStringSelection().mb_str();
+		ac_Config.Update();
 		break;
 	}
 }
+
+void CConfigMain::AddAudioBackends()
+{
+	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+	// I'm sure Billiard will change this into an auto sometimes soon :P
+	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+		 iter != backends.end(); ++iter)
+	{
+		BackendSelection->Append(wxString::FromAscii((*iter).c_str()));
+		int num = BackendSelection->\
+			FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
+		BackendSelection->SetSelection(num);
+	}
+}
+
+bool CConfigMain::SupportsVolumeChanges(std::string backend)
+{
+	//FIXME: this one should ask the backend whether it supports it.
+	//       but getting the backend from string etc. is probably
+	//       too much just to enable/disable a stupid slider...
+	return (backend == BACKEND_DIRECTSOUND ||
+			backend == BACKEND_COREAUDIO ||
+			backend == BACKEND_OPENAL ||
+			backend == BACKEND_XAUDIO2 ||
+			backend == BACKEND_PULSEAUDIO);
+}
+
 
 // GC settings
 // -----------------------
@@ -1223,24 +1337,6 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 	{
 		case ID_GRAPHIC_CONFIG:
 			CallConfig(GraphicSelection);
-			break;
-	}
-}
-
-void CConfigMain::OnDSPConfig(wxCommandEvent& event)
-{
-	switch (event.GetId())
-	{
-		case ID_AUDIO_CONFIG:
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE) {
-				DSPConfigDialogHLE *dlg = new DSPConfigDialogHLE(this);
-				dlg->ShowModal();
-				dlg->Destroy();
-			} else {
-				DSPConfigDialogLLE *dlg = new DSPConfigDialogLLE(this);
-				dlg->ShowModal();
-				dlg->Destroy();
-			}
 			break;
 	}
 }

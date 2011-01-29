@@ -41,10 +41,10 @@ struct AudioCommonConfig
 	std::string sFrequency;
 	
 	// Load from given file
-	void Load(IniFile &file);
+	void Load();
 	
-	// Set the values for the file
-	void Set(IniFile &file);
+	// Self explanatory
+	void SaveSettings();
 
 	// Update according to the values (stream/mixer)
 	void Update();

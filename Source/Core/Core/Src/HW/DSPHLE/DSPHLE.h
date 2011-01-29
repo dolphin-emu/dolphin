@@ -101,8 +101,4 @@ private:
 	bool m_bAssertInt;
 };
 
-// Hack to be deleted.
-void DSPHLE_LoadConfig();
-void DSPHLE_SaveConfig();
-
 #endif  // _DSPHLE_H

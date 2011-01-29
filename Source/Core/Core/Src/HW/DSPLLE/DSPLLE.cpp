@@ -345,21 +345,3 @@ void DSPLLE::DSP_ClearAudioBuffer(bool mute)
 	if (soundStream)
 		soundStream->Clear(mute);
 }
-
-#define LLE_CONFIG_FILE "DSPLLE.ini"
-
-void DSPLLE_LoadConfig()
-{
-	// first load defaults
-	IniFile file;
-	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
-	ac_Config.Load(file);
-}
-
-void DSPLLE_SaveConfig()
-{
-	IniFile file;
-	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
-	ac_Config.Set(file);
-	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
-}

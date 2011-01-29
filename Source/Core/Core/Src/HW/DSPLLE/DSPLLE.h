@@ -69,8 +69,4 @@ private:
 	volatile u32 m_cycle_count;
 };
 
-// Hack to be deleted.
-void DSPLLE_LoadConfig();
-void DSPLLE_SaveConfig();
-
 #endif  // _DSPLLE_H

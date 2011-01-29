@@ -117,6 +117,7 @@
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG	"Dolphin.ini"
+#define DSP_CONFIG		"DSP.ini"
 #define DEBUGGER_CONFIG	"Debugger.ini"
 #define LOGGER_CONFIG	"Logger.ini"
 

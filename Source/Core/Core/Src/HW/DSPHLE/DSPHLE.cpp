@@ -267,22 +267,3 @@ void DSPHLE::DSP_ClearAudioBuffer(bool mute)
 	if (soundStream)
 		soundStream->Clear(mute);
 }
-
-
-#define HLE_CONFIG_FILE "DSP.ini"
-
-void DSPHLE_LoadConfig()
-{
-	// first load defaults
-	IniFile file;
-	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + HLE_CONFIG_FILE).c_str());
-	ac_Config.Load(file);
-}
-
-void DSPHLE_SaveConfig()
-{
-	IniFile file;
-	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + HLE_CONFIG_FILE).c_str());
-	ac_Config.Set(file);
-	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + HLE_CONFIG_FILE).c_str());
-}

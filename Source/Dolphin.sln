@@ -603,7 +603,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		AMDCaProjectFile = D:\Dev\Dolphin\trunk\Source\CodeAnalyst\Dolphin.caw
+		AMDCaPersistentConfig = Release|x64
+		AMDCaPersistentStartup = Dolphin
+		AMDCaProjectFile = G:\Dolphin\Source\CodeAnalyst\Dolphin.caw
 	EndGlobalSection
 	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
 		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}

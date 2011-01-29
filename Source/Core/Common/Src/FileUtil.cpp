@@ -663,6 +663,7 @@ const char *GetUserPath(int DirIDX)
 	static char MailLogsDir[MAX_PATH] = {0};
 	static char WiiSYSCONFDir[MAX_PATH] = {0};
 	static char DolphinConfig[MAX_PATH] = {0};
+	static char DSPConfig[MAX_PATH] = {0};
 	static char DebuggerConfig[MAX_PATH] = {0};
 	static char LoggerConfig[MAX_PATH] = {0};
 	static char MainLog[MAX_PATH] = {0};
@@ -706,6 +707,7 @@ const char *GetUserPath(int DirIDX)
 		snprintf(MailLogsDir, sizeof(MailLogsDir), "%s" MAIL_LOGS_DIR DIR_SEP, UserDir);
 		snprintf(WiiSYSCONFDir, sizeof(WiiSYSCONFDir), "%s" WII_SYSCONF_DIR DIR_SEP, UserDir);
 		snprintf(DolphinConfig, sizeof(DolphinConfig), "%s" DOLPHIN_CONFIG, ConfigDir);
+		snprintf(DSPConfig, sizeof(DSPConfig), "%s" DSP_CONFIG, ConfigDir);
 		snprintf(DebuggerConfig, sizeof(DebuggerConfig), "%s" DEBUGGER_CONFIG, ConfigDir);
 		snprintf(LoggerConfig, sizeof(LoggerConfig), "%s" LOGGER_CONFIG, ConfigDir);
 		snprintf(MainLog, sizeof(MainLog), "%s" MAIN_LOG, LogsDir);
@@ -760,6 +762,8 @@ const char *GetUserPath(int DirIDX)
 			return WiiSYSCONFDir;
 		case F_DOLPHINCONFIG_IDX:
 			return DolphinConfig;
+		case F_DSPCONFIG_IDX:
+			return DSPConfig;
 		case F_DEBUGGERCONFIG_IDX:
 			return DebuggerConfig;
 		case F_LOGGERCONFIG_IDX:

@@ -22,14 +22,14 @@
 
 PluginDSP *CreateDSPPlugin(bool HLE) 
 {
+	ac_Config.Load();
+
 	if (HLE)
 	{
-		DSPHLE_LoadConfig();
 		return new DSPHLE();
 	}
 	else
 	{
-		DSPLLE_LoadConfig();
 		return new DSPLLE();
 	}
 }

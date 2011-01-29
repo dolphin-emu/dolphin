@@ -1061,15 +1061,10 @@ void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE) {
-		DSPConfigDialogHLE *dlg = new DSPConfigDialogHLE(this);
-		dlg->ShowModal();
-		dlg->Destroy();
-	} else {
-		DSPConfigDialogLLE *dlg = new DSPConfigDialogLLE(this);
-		dlg->ShowModal();
-		dlg->Destroy();
-	}
+	CConfigMain ConfigMain(this);
+	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
+	if (ConfigMain.ShowModal() == wxID_OK)
+		m_GameListCtrl->Update();
 }
 
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))

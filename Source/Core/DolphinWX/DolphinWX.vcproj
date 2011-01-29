@@ -841,22 +841,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\DSPHLEConfigDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPHLEConfigDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPLLEConfigDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DSPLLEConfigDlg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\Frame.cpp"
 				>
 			</File>
