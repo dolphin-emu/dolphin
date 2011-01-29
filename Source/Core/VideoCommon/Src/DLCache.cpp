@@ -186,7 +186,7 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
-				if(Current->ReferencedArray != -1 && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
+				if(cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride)
 				{
 					return false;	
 				}

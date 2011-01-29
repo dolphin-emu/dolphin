@@ -92,7 +92,7 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 	float fhackvalue1 = 0, fhackvalue2 = 0;
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	bool bProjHack3 = false;
-	char *sTemp[2];
+	const char *sTemp[2];
 	
 	if (iPhackvalue[0] == 0)
 		goto hackDisabled;

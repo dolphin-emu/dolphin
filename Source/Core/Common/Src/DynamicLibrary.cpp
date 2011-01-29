@@ -81,8 +81,7 @@ int DynamicLibrary::Load(const char* filename)
 	// RTLD_LOCAL: don't resolve symbols for other libraries
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 #else
-	library = RTLD_SELF;
-	return 1;
+	library = dlopen(NULL, RTLD_LAZY);
 #endif
 
 	DEBUG_LOG(COMMON, "DL: LoadLibrary: %s(%p)", filename, library);
@@ -120,10 +119,8 @@ int DynamicLibrary::Unload()
 			library_file.c_str(), library);
 #ifdef _WIN32
 	retval = FreeLibrary(library);
-#elif defined __linux__
-	retval = dlclose(library) ? 0 : 1;
 #else
-	return 1;
+	retval = dlclose(library) ? 0 : 1;
 #endif
 
 	if (! retval) {
