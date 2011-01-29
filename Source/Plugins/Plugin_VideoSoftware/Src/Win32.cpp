@@ -195,7 +195,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (m_hParent == NULL)
 		{
 			// Take it out of fullscreen and stop the game
-			if( g_SWVidoConfig.bFullscreen )
+			if( g_SWVideoConfig.bFullscreen )
 				ToggleFullscreen(m_hParent);
 			PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
 		}

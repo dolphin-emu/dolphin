@@ -325,8 +325,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, NULL,
 		wxPoint(0, 0), wxSize(_twidth, _theight));
 	GLWin.glCanvas->Show(true);
-	if (GLWin.glCtxt == NULL) // XXX dirty hack
-		GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+	GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
 
 #elif defined(__APPLE__)
 	NSOpenGLPixelFormatAttribute attr[2] = { NSOpenGLPFADoubleBuffer, 0 };
@@ -571,8 +570,8 @@ void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->Hide();
-	// XXX GLWin.glCanvas->Destroy();
-	// XXX delete GLWin.glCtxt;
+	GLWin.glCanvas->Destroy();
+	delete GLWin.glCtxt;
 #elif defined(__APPLE__)
         [GLWin.cocoaWin close];
         [GLWin.cocoaCtx clearDrawable];
