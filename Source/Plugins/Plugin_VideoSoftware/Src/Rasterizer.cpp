@@ -116,11 +116,9 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	float dx = vertexOffsetX + (float)(x - vertex0X);
 	float dy = vertexOffsetY + (float)(y - vertex0Y);
 
-	float zFloat = 1.0f + ZSlope.GetValue(dx, dy);
-	if (zFloat < 0.0f || zFloat > 1.0f)
+	s32 z = (s32)ZSlope.GetValue(dx, dy);
+	if (z < 0 || z > 0x00ffffff)
 		return;
-
-	s32 z = (s32)(zFloat * 0x00ffffff);
 
 	if (bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)
 	{
@@ -139,7 +137,14 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
 		for(int comp = 0; comp < 4; comp++)
-			tev.Color[i][comp] = (u8)ColorSlopes[i][comp].GetValue(dx, dy);
+		{
+			u16 color = (u16)ColorSlopes[i][comp].GetValue(dx, dy);
+
+			// clamp color value to 0
+			u16 mask = ~(color >> 8);
+
+			tev.Color[i][comp] = color & mask;
+		}
 	}
 
 	// tex coords

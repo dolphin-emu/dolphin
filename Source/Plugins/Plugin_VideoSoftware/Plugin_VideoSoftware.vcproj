@@ -640,14 +640,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VertexFormatConverter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VertexFormatConverter.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\VertexLoader.cpp"
 			>
 		</File>

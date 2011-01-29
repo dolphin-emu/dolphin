@@ -30,7 +30,6 @@
 #include "SetupUnit.h"
 #include "Statistics.h"
 #include "VertexManagerBase.h"
-#include "VertexFormatConverter.h"
 #include "../../../Core/VideoCommon/Src/DataReader.h"
 
 // Vertex loaders read these
@@ -175,30 +174,6 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			ERROR_LOG(VIDEO, "VertexLoader_Normal::GetFunction returned zero!");
 		}
         AddAttributeLoader(LoadNormal);
-
-        switch (m_CurrentVat->g0.NormalFormat) {
-		case FORMAT_UBYTE:	
-		case FORMAT_BYTE:
-            if (m_CurrentVat->g0.NormalElements)
-                m_normalConverter = VertexFormatConverter::LoadNormal3_Byte;
-            else
-                m_normalConverter = VertexFormatConverter::LoadNormal1_Byte;
-			break;
-		case FORMAT_USHORT:
-		case FORMAT_SHORT:
-			if (m_CurrentVat->g0.NormalElements)
-                m_normalConverter = VertexFormatConverter::LoadNormal3_Short;
-            else
-                m_normalConverter = VertexFormatConverter::LoadNormal1_Short;
-			break;
-		case FORMAT_FLOAT:
-			if (m_CurrentVat->g0.NormalElements)
-                m_normalConverter = VertexFormatConverter::LoadNormal3_Float;
-            else
-                m_normalConverter = VertexFormatConverter::LoadNormal1_Float;
-			break;
-		default: _assert_(0); break;
-		}
     }
 
 	for (int i = 0; i < 2; i++) {
@@ -326,13 +301,8 @@ void VertexLoader::LoadPosition(VertexLoader *vertexLoader, InputVertexData *ver
 
 void VertexLoader::LoadNormal(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
-    u8 buffer[3*3*4];
-
-    VertexManager::s_pCurBufferPointer = buffer;
+	VertexManager::s_pCurBufferPointer = (u8*)&vertex->normal;
     vertexLoader->m_normalLoader();
-
-    // the common vertex loader loads data as bytes, shorts or floats so an extra step is needed to make it floats
-    vertexLoader->m_normalConverter(vertex, buffer);
 }
 
 void VertexLoader::LoadColor(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index)

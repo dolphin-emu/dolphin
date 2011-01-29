@@ -19,7 +19,6 @@ set(SRCS	Src/BPMemLoader.cpp
 			Src/TextureEncoder.cpp
 			Src/TextureSampler.cpp
 			Src/TransformUnit.cpp
-			Src/VertexFormatConverter.cpp
 			Src/VertexLoader.cpp
 			Src/VideoConfig.cpp
 			Src/XFMemLoader.cpp)

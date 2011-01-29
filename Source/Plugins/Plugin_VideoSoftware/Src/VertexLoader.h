@@ -21,7 +21,6 @@
 #include "Common.h"
 
 #include "NativeVertexFormat.h"
-#include "VertexFormatConverter.h"
 #include "CPMemLoader.h"
 
 class SetupUnit;
@@ -36,8 +35,6 @@ class VertexLoader
     TPipelineFunction m_normalLoader;
     TPipelineFunction m_colorLoader[2];
     TPipelineFunction m_texCoordLoader[8];
-
-    VertexFormatConverter::NormalConverter m_normalConverter;
 
     InputVertexData m_Vertex;
 

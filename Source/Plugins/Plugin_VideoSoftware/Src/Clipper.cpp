@@ -61,7 +61,8 @@ namespace Clipper
 {
 	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
 
-	float m_ViewOffset[3];
+	float m_ViewOffset[2];
+
     OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
     OutputVertexData *Vertices[NUM_INDICES];
 
@@ -75,7 +76,6 @@ namespace Clipper
     {
         m_ViewOffset[0] = xfregs.viewport.xOrig - 342;
         m_ViewOffset[1] = xfregs.viewport.yOrig - 342;
-        m_ViewOffset[2] = xfregs.viewport.farZ - xfregs.viewport.farZ;
     }
 
         
@@ -440,7 +440,7 @@ namespace Clipper
         float wInverse = 1.0f/projected.w;
         screen.x = projected.x * wInverse * xfregs.viewport.wd + m_ViewOffset[0];
         screen.y = projected.y * wInverse * xfregs.viewport.ht + m_ViewOffset[1];
-        screen.z = projected.z * wInverse + m_ViewOffset[2];
+        screen.z = projected.z * wInverse * xfregs.viewport.zRange + xfregs.viewport.farZ;
     }
     
 }

@@ -80,7 +80,7 @@ namespace HwRasterizer
     void DrawColorVertex(OutputVertexData *v)
     {
 		glColor3ub(v->color[0][OutputVertexData::RED_C], v->color[0][OutputVertexData::GRN_C], v->color[0][OutputVertexData::BLU_C]);
-        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z);
+        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z / (float)0x00ffffff);
     }
 
     void DrawTextureVertex(OutputVertexData *v)
