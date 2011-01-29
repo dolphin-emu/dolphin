@@ -26,8 +26,4 @@ files = [
 	'WiiWad.cpp',
 	]
 
-libs = [
-	'common'
-	]
-
-env.StaticLibrary(env['local_libs'] + 'discio', files, LIBS = libs)
+env.StaticLibrary(env['local_libs'] + 'discio', files)

@@ -149,11 +149,13 @@ private:
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || defined __APPLE__
+#if defined __APPLE__ && defined __i386__
+#define _M_SSE 0x300
+#elif defined __APPLE__ && defined __x86_64__
 #define _M_SSE 0x301
-#endif
-
-#if _MSC_VER >= 1500 // Visual Studio 2008
+#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+#define _M_SSE 0x301
+#elif _MSC_VER >= 1500 // Visual Studio 2008
 #define _M_SSE 0x401
 #endif
 

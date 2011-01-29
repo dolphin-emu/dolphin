@@ -160,18 +160,13 @@ files = [
 	"PowerPC/Jit64/Jit64_Tables.cpp",
 	]
 
-libs = [
-	'bdisasm',
-	'inputcommon',
-	'lua',
-	'sfml-network',
-	]
-
 if sys.platform == 'win32':
 	files += [ "HW/BBA-TAP/TAP_Win32.cpp", "stdafx.cpp", "HW/WiimoteReal/IOWin.cpp" ]
 elif sys.platform == 'darwin':
 	files += [ "HW/BBA-TAP/TAP_Apple.cpp", "HW/WiimoteReal/IOdarwin.mm" ]
-else:
+elif sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 	files += [ "HW/BBA-TAP/TAP_Unix.cpp", "HW/WiimoteReal/IONix.cpp" ]
+else:
+	files += [ "HW/BBA-TAP/TAP_Unix.cpp", "HW/WiimoteReal/IODummy.cpp" ]
 
-env.StaticLibrary(env['local_libs'] + 'core', files, LIBS = libs)
+env.StaticLibrary(env['local_libs'] + 'core', files)

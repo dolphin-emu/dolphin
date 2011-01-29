@@ -20,9 +20,4 @@ files = [
 	"JitWindow.cpp",
 	]
 
-libs = [
-	'common',
-	'debugger_ui_util'
-	]
-
-env.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)
+env.StaticLibrary(env['local_libs'] + "debwx", files)

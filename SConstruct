@@ -121,6 +121,7 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ccld
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
+    env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CC'] = 'llvm-gcc'
     env['CXX'] = 'llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
@@ -330,8 +331,14 @@ dirs = [
     'Externals/SFML/src',
     #'Externals/wxWidgets',
     'Externals/zlib',
-    'Source/Plugins/Plugin_VideoOGL/Src',
-    #'Source/Plugins/Plugin_VideoSoftware/Src',
+    ]
+
+if sys.platform == 'darwin':
+    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
+else:
+    dirs += ['Source/Plugins/Plugin_VideoSoftware/Src']
+
+dirs += [
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
