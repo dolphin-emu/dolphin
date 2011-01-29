@@ -19,7 +19,6 @@
 #include "StringUtil.h" // For StringFromFormat()
 #include <sstream>
 
-#include "../DSPHLEGlobals.h"
 #include "Mixer.h"
 #include "../MailHandler.h"
 #include "../../DSP.h"

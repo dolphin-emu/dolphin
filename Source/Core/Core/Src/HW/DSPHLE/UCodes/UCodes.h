@@ -23,11 +23,36 @@
 #include "Thread.h"
 
 #include "../DSPHLE.h"
+#include "../../Memmap.h"
 
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
 
 class CMailHandler;
+
+inline u8 HLEMemory_Read_U8(u32 _uAddress)
+{
+	_uAddress &= Memory::RAM_MASK;
+	return Memory::m_pRAM[_uAddress];
+}
+
+inline u16 HLEMemory_Read_U16(u32 _uAddress)
+{
+	_uAddress &= Memory::RAM_MASK;
+	return Common::swap16(*(u16*)&Memory::m_pRAM[_uAddress]);
+}
+
+inline u32 HLEMemory_Read_U32(u32 _uAddress)
+{
+	_uAddress &= Memory::RAM_MASK;
+	return Common::swap32(*(u32*)&Memory::m_pRAM[_uAddress]);
+}
+
+inline void* HLEMemory_Get_Pointer(u32 _uAddress)
+{
+	_uAddress &= Memory::RAM_MASK;
+	return &Memory::m_pRAM[_uAddress];
+}
 
 class IUCode
 {

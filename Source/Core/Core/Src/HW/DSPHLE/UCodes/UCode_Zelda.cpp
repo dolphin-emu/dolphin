@@ -19,7 +19,6 @@
 // Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess,
 // Super Mario Galaxy
 
-#include "../DSPHLEGlobals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
 #include "../MailHandler.h"

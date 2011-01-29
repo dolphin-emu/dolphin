@@ -17,8 +17,6 @@
 
 #include <iostream>
 
-#include "DSPHLEGlobals.h" // Local
-
 #include "ChunkFile.h"
 #include "IniFile.h"
 #include "HLEMixer.h"

@@ -17,11 +17,9 @@
 
 #include <sstream>
 
-#include "../DSPHLEGlobals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
 
-// #include "../main.h"
 #include "AudioCommon.h"
 #include "Mixer.h"
 #include "../../Memmap.h"

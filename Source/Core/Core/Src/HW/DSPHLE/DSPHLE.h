@@ -20,7 +20,6 @@
 
 #include "AudioCommon.h"
 #include "SoundStream.h"
-#include "DSPHLEGlobals.h" // Local
 #include "MailHandler.h"
 #include "../../PluginDSP.h"
 
