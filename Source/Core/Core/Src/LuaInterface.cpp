@@ -2804,6 +2804,7 @@ DEFINE_LUA_FUNCTION(emulua_loadrom, "filename")
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		game_ini.Get("Core", "VBeam",				&StartUp.bVBeam, StartUp.bVBeam);
 		game_ini.Get("Core", "FastDiscSpeed",	&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
+		game_ini.Get("Core", "DSPHLE",			&StartUp.bDSPHLE, StartUp.bDSPHLE);
 		// Wii settings
 		if (StartUp.bWii)
 		{

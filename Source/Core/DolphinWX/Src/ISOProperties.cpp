@@ -315,6 +315,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
@@ -378,6 +379,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(VBeam, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
 	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(DSPHLE, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
@@ -858,6 +860,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		BlockMerging->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "DSPHLE", &bTemp))
+		DSPHLE->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		DSPHLE->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Display", "ProgressiveScan", &bTemp))
 		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -973,6 +980,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "BlockMerging");
 	else
 		GameIni.Set("Core", "BlockMerging", BlockMerging->Get3StateValue());
+
+	if (DSPHLE->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "DSPHLE");
+	else
+		GameIni.Set("Core", "DSPHLE", DSPHLE->Get3StateValue());
 
 	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Display", "ProgressiveScan");
