@@ -54,7 +54,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "XFMemLoader.h"
 #include "BPMemLoader.h"
 #include "Statistics.h"
-#include "SWVideoConfig.h"
 
 
 namespace Clipper
@@ -274,9 +273,6 @@ namespace Clipper
 
     void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-        if (stats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawStart || stats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawEnd )
-            return;  
-
         INCSTAT(stats.thisFrame.numTrianglesIn)
 
         bool backface;
