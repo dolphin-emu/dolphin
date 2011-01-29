@@ -85,7 +85,7 @@ void Initialize(void *init)
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *_pVideoInitialize;
 
-    g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
+    g_SWVideoConfig.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
 
     InitBPMemory();
     InitXFMemory();

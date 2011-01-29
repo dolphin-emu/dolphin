@@ -140,10 +140,8 @@ if sys.platform == 'darwin':
     env['FRAMEWORKSFLAGS'] += ['-Xarch_i386', '-Wl,-framework,QuickTime']
     env['LIBPATH'] += ['/usr/lib']
     env['LINKFLAGS'] += ccld
+    env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
     env['LINKFLAGS'] += ['-Wl,-search_paths_first', '-Wl,-Z', '-F' + system]
-    env['SHCCFLAGS'] = env['CCFLAGS'] # Get rid of the -fPIC added in gcc.py
-    env['SHLINKFLAGS'] += ['-Wl,-undefined,dynamic_lookup']
-    env['SHLINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
     if env['nowx']:
         env['HAVE_WX'] = 0
@@ -171,7 +169,6 @@ if sys.platform == 'darwin':
     env['shared_zlib'] = True
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
-    env['plugin_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/PlugIns'
 
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
@@ -300,14 +297,12 @@ else:
     if env['install'] == 'local':
         env['binary_dir'] = '#' + env['prefix']
         env['data_dir'] = '#' + env['prefix']
-        env['plugin_dir'] = '#' + env['prefix'] + '/plugins'
         if env['bundle']:
             env.Tar(tarname, env['prefix'])
     else:
         env['prefix'] = Dir(env['prefix']).abspath
         env['binary_dir'] = env['prefix'] + '/bin'
         env['data_dir'] = env['prefix'] + "/share/dolphin-emu"
-        env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu'
         conf.Define('DATA_DIR', "\"" + env['data_dir'] + "/\"")
         conf.Define('LIBS_DIR', "\"" + env['prefix'] + '/lib/dolphin-emu/' + "\"")
         # Setup destdir for package building
@@ -317,7 +312,6 @@ else:
             env['destdir'] = Dir(env['destdir']).abspath
             env['binary_dir'] = env['destdir'] + env['binary_dir']
             env['data_dir'] = env['destdir'] + env['data_dir']
-            env['plugin_dir'] = env['destdir'] + env['plugin_dir']
             env['prefix'] = env['destdir'] + env['prefix']
             if env['bundle']:
                 env.Command(tarname + env['TARSUFFIX'], env['prefix'],
@@ -343,12 +337,13 @@ dirs = [
     'Externals/Lua',
     'Externals/GLew',
     'Externals/LZO',
-    #'Externals/OpenAL',
     'Externals/SDL',
     'Externals/SOIL',
     'Externals/SFML/src',
     #'Externals/wxWidgets',
     'Externals/zlib',
+    'Source/Plugins/Plugin_VideoOGL/Src',
+    #'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
@@ -361,8 +356,6 @@ dirs = [
     'Source/Core/VideoCommon/Src',
     'Source/Core/VideoUICommon/Src',
     'Source/DSPTool/Src',
-    'Source/Plugins/Plugin_VideoOGL/Src',
-    'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/UnitTests',
     ]
 

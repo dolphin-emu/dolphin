@@ -49,7 +49,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxDialog(parent, -1,
 		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize),
-	vconfig(g_Config),
+	vconfig(g_SWVideoConfig),
 	ininame(_ininame)
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
@@ -137,7 +137,7 @@ void VideoConfigDialog::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDialog::Event_Close(wxCloseEvent& ev)
 {
-	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	g_SWVideoConfig.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
 	ev.Skip();
 }

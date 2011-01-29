@@ -27,7 +27,7 @@ typedef void (__cdecl* TVideo_Prepare)();
 typedef void (__cdecl* TVideo_SendFifoData)(u8*,u32);
 typedef void (__cdecl* TVideo_BeginField)(u32, FieldType, u32, u32);
 typedef void (__cdecl* TVideo_EndField)();
-typedef bool (__cdecl* TVideo_Screenshot)(const char* filename);
+typedef void (__cdecl* TVideo_Screenshot)(const char* filename);
 typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_ExitLoop)();
 typedef void (__cdecl* TVideo_SetRendering)(bool bEnabled);

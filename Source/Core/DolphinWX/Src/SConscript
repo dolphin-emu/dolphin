@@ -10,8 +10,8 @@ files = [
 	]
 
 libs = [
-	'audiocommon', 'core', 'dspcore', 'lzo2', 'discio', 'bdisasm',
-	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
+	'audiocommon', 'bdisasm', 'common', 'core', 'discio', 'dspcore',
+	'inputcommon', 'lua', 'lzo2', 'sfml-network', 'z', 'GLEW', 'SOIL',
 	]
 
 wxlibs = [ ]
@@ -62,9 +62,8 @@ else:
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	ldflags += [ '-Wl,-pagezero_size,0x1000' ]
-	ldflags += [ '-Wl,-ObjC' ] # XXX Hack to include wxGLCanvas
 	libs += [ 'iconv' ]
+	ldflags += [ '-Wl,-force_load,' + env['libvideo'][0].path ]
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	if env['HAVE_WX']:

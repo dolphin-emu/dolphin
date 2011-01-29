@@ -274,7 +274,7 @@ namespace Clipper
 
     void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-        if (stats.thisFrame.numDrawnObjects < g_Config.drawStart || stats.thisFrame.numDrawnObjects >= g_Config.drawEnd )
+        if (stats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawStart || stats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawEnd )
             return;  
 
         INCSTAT(stats.thisFrame.numTrianglesIn)

@@ -19,7 +19,7 @@
 #include "IniFile.h"
 #include "VideoConfig.h"
 
-SWVideoConfig g_Config;
+SWVideoConfig g_SWVideoConfig;
 
 SWVideoConfig::SWVideoConfig()
 {

@@ -125,7 +125,7 @@ void Renderer::DrawDebugText()
 	char *p = debugtext_buffer;
 	p[0] = 0;
 
-	if (g_Config.bShowStats) 
+	if (g_SWVideoConfig.bShowStats) 
 	{
         p+=sprintf(p,"Objects: %i\n",stats.thisFrame.numDrawnObjects);
         p+=sprintf(p,"Primatives: %i\n",stats.thisFrame.numPrimatives);

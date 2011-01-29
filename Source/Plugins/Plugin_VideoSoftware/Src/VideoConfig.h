@@ -50,6 +50,6 @@ struct SWVideoConfig : NonCopyable
     u32 drawEnd;
 };
 
-extern SWVideoConfig g_Config;
+extern SWVideoConfig g_SWVideoConfig;
 
 #endif  // _PLUGIN_VIDEOSOFTWARE_CONFIG_H_

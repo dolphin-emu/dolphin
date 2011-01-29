@@ -21,17 +21,17 @@
 #include <wx/grid.h>
 
 
-class CRegTable : public wxGridTableBase
+class CDSPRegTable : public wxGridTableBase
 {
 private:
 	u64 m_CachedCounter;
 	u16 m_CachedRegs[32];
 	bool m_CachedRegHasChanged[32];
 
-	DECLARE_NO_COPY_CLASS(CRegTable);
+	DECLARE_NO_COPY_CLASS(CDSPRegTable);
 
 public:
-	CRegTable()
+	CDSPRegTable()
 	{
 		memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
 		memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));

@@ -40,7 +40,6 @@ files = [
 	'VideoState.cpp',
 	'XFBConvert.cpp',
 	'XFMemory.cpp',
-	'XFMemory.cpp',
 	'XFStructs.cpp',
 	'memcpy_amd.cpp',
 	]

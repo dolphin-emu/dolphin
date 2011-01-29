@@ -19,7 +19,7 @@
 #include "DSPRegisterView.h"
 
 
-wxString CRegTable::GetValue(int row, int col)
+wxString CDSPRegTable::GetValue(int row, int col)
 {
 	if (row < 32) // 32 "normal" regs
 	{
@@ -33,11 +33,11 @@ wxString CRegTable::GetValue(int row, int col)
 	return wxString::FromAscii("");
 }
 
-void CRegTable::SetValue(int, int, const wxString &)
+void CDSPRegTable::SetValue(int, int, const wxString &)
 {
 }
 
-void CRegTable::UpdateCachedRegs()
+void CDSPRegTable::UpdateCachedRegs()
 {
 	if (m_CachedCounter == g_dsp.step_counter)
 	{
@@ -53,7 +53,7 @@ void CRegTable::UpdateCachedRegs()
 	}
 }
 
-wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
+wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
@@ -79,7 +79,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
 {
-	SetTable(new CRegTable(), true);
+	SetTable(new CDSPRegTable(), true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -89,6 +89,6 @@ DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
 
 void DSPRegisterView::Update()
 {
-	((CRegTable *)GetTable())->UpdateCachedRegs();
+	((CDSPRegTable *)GetTable())->UpdateCachedRegs();
 	ForceRefresh();
 }

@@ -35,7 +35,7 @@ namespace EfbCopy
     {
         OpenGL_Update(); // just updates the render window position and the backbuffer size	
 
-		if (!g_Config.bHwRasterizer)
+		if (!g_SWVideoConfig.bHwRasterizer)
         {
             // copy to open gl for rendering
             EfbInterface::UpdateColorTexture();
@@ -48,7 +48,7 @@ namespace EfbCopy
 
     void CopyToRam()
     {
-        if (!g_Config.bHwRasterizer)
+        if (!g_SWVideoConfig.bHwRasterizer)
 		{
 			u8 *dest_ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.copyTexDest << 5);
 
@@ -96,7 +96,7 @@ namespace EfbCopy
 
             if (bpmem.triggerEFBCopy.clear)
             {
-                if (g_Config.bHwRasterizer)
+                if (g_SWVideoConfig.bHwRasterizer)
                     HwRasterizer::Clear();
                 else
                     ClearEfb();

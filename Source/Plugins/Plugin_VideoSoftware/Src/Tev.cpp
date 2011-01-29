@@ -599,7 +599,7 @@ void Tev::Draw()
 			IndirectLod[stageNum], IndirectLinear[stageNum], texmap, IndirectTex[stageNum]);
 
 #if ALLOW_TEV_DUMPS
-        if (g_Config.bDumpTevStages)
+        if (g_SWVideoConfig.bDumpTevStages)
         {
 			u8 stage[4] = { IndirectTex[stageNum][TextureSampler::ALP_SMP],
 							IndirectTex[stageNum][TextureSampler::BLU_SMP],
@@ -635,7 +635,7 @@ void Tev::Draw()
 			TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
 
 #if ALLOW_TEV_DUMPS
-			if (g_Config.bDumpTevTextureFetches)
+			if (g_SWVideoConfig.bDumpTevTextureFetches)
 				DebugUtil::DrawTempBuffer(texel, DIRECT_TFETCH + stageNum);
 #endif
 
@@ -689,7 +689,7 @@ void Tev::Draw()
             Reg[ac.dest][ALP_C] = Clamp1024(Reg[ac.dest][ALP_C]);
 
 #if ALLOW_TEV_DUMPS
-        if (g_Config.bDumpTevStages)
+        if (g_SWVideoConfig.bDumpTevStages)
         {
             u8 stage[4] = {(u8)Reg[0][RED_C], (u8)Reg[0][GRN_C], (u8)Reg[0][BLU_C], (u8)Reg[0][ALP_C]};
 			DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
@@ -791,7 +791,7 @@ void Tev::Draw()
     }
 
 #if ALLOW_TEV_DUMPS
-	if (g_Config.bDumpTevStages)
+	if (g_SWVideoConfig.bDumpTevStages)
 	{
 		for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 			DebugUtil::CopyTempBuffer(Position[0], Position[1], INDIRECT, i, "Indirect");
@@ -799,7 +799,7 @@ void Tev::Draw()
 			DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT, i, "Stage");
 	}
 
-	if (g_Config.bDumpTevTextureFetches)
+	if (g_SWVideoConfig.bDumpTevTextureFetches)
 	{
 		for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
 		{

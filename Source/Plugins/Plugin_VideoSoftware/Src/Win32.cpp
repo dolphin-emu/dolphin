@@ -129,7 +129,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		{
 		case VK_RETURN:
 			// Pressing Alt+Enter switch FullScreen/Windowed
-			if (m_hParent == NULL && !g_Config.renderToMainframe)
+			if (m_hParent == NULL && !g_SWVideoConfig.renderToMainframe)
 			{
 				ToggleFullscreen(hWnd);
 			}
@@ -146,7 +146,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch (LOWORD( wParam ))
 		{
 		case VK_ESCAPE:
-			if (g_Config.bFullscreen)
+			if (g_SWVideoConfig.bFullscreen)
 			{
 				// Pressing Esc switches to Windowed mode from Fullscreen mode
 				ToggleFullscreen(hWnd);
@@ -195,7 +195,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (m_hParent == NULL)
 		{
 			// Take it out of fullscreen and stop the game
-			if( g_Config.bFullscreen )
+			if( g_SWVidoConfig.bFullscreen )
 				ToggleFullscreen(m_hParent);
 			PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
 		}
@@ -262,7 +262,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	// Create new separate window
 	else
 	{
-		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
+		DWORD style = g_SWVideoConfig.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
 		RECT rc = {0, 0, width, height};
 		AdjustWindowRect(&rc, style, false);
@@ -294,10 +294,10 @@ void ToggleFullscreen(HWND hParent)
 	if (m_hParent == NULL)
 	{ 
 		int	w_fs = 640, h_fs = 480;
-		if (g_Config.bFullscreen)
+		if (g_SWVideoConfig.bFullscreen)
 		{
 			// Get out of fullscreen
-			g_Config.bFullscreen = false;
+			g_SWVideoConfig.bFullscreen = false;
 			RECT rc = {0, 0, w_fs, h_fs};
 
 			// FullScreen -> Desktop
@@ -336,7 +336,7 @@ void ToggleFullscreen(HWND hParent)
 			
 			// Set new window style -> PopUp
 			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);
-			g_Config.bFullscreen = true;
+			g_SWVideoConfig.bFullscreen = true;
 			ShowCursor(FALSE);
 
 			// SetWindowPos to the upper-left corner of the screen

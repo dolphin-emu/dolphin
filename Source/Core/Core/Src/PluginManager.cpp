@@ -125,12 +125,6 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 	: m_Filename(_rFilename)
 	, m_Valid(false)
 {
-	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
-	{
-		PanicAlertT("Can't find plugin %s", _rFilename);
-		return;
-	}
-
 	// Check if the functions that are common to all plugins are present
 	Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
 	if (plugin->IsValid())
@@ -174,32 +168,7 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
    below. */
 void *CPluginManager::LoadPlugin(const char *_rFilename)
 {
-	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str())) {
-		PanicAlertT("Error loading plugin %s: can't find file. Please re-select your plugins.", _rFilename);
-		return NULL;
-	}
-	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
-	   Dolphin was started */
-	CPluginInfo *info = NULL;
-	GetPluginInfo(info, _rFilename);
-	if (!info) {
-		PanicAlertT("Error loading %s: can't read info", _rFilename);
-		return NULL;
-	}
-	
-	PLUGIN_TYPE type = info->GetPluginInfo().Type;
-	Common::CPlugin *plugin = NULL;
-
-	switch (type)
-	{
-	case PLUGIN_TYPE_VIDEO:
-		plugin = new Common::PluginVideo(_rFilename);
-		break;
-	
-	default:
-		PanicAlertT("Trying to load unsupported type %d", type);
-		return NULL;
-	}
+	Common::CPlugin *plugin = new Common::PluginVideo(_rFilename);
 	
 	// Check that the plugin has all the common and all the type specific functions
 	if (!plugin->IsValid())
@@ -296,12 +265,6 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 // Open config window. Input: _rFilename = Plugin filename , Type = Plugin type
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)
 {
-	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
-	{
-		PanicAlertT("Can't find plugin %s", _rFilename);
-		return;
-	}
-	
 	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:
@@ -318,12 +281,6 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void *CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
-	{
-		PanicAlert("Can't find plugin %s", _rFilename);
-		return NULL;
-	}
-
 	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:

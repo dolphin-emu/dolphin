@@ -4,8 +4,6 @@ Import('env')
 import os
 import sys
 
-name = os.sep + "Plugin_VideoSoftware"
-
 files = [
 	'BPMemLoader.cpp',
 	'Clipper.cpp',
@@ -40,6 +38,21 @@ if env['HAVE_WX']:
 if sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
 
-libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
+#env['LIBS'] += ['videocommon']
+#
+#if env['HAVE_WX']:
+#	env['LIBS'] += [ 'videouicommon' ]
+# XXX partially converted to libvideocommon, but there are still conflicts
+files += [
+	'../../../Core/VideoCommon/Src/ImageWrite.cpp',
+	'../../../Core/VideoCommon/Src/IndexGenerator.cpp',
+	'../../../Core/VideoCommon/Src/OpenCL/OCLTextureDecoder.cpp',
+	'../../../Core/VideoCommon/Src/TextureDecoder.cpp',
+	'../../../Core/VideoCommon/Src/VertexLoader_Color.cpp',
+	'../../../Core/VideoCommon/Src/VertexLoader_Normal.cpp',
+	'../../../Core/VideoCommon/Src/VertexLoader_Position.cpp',
+	'../../../Core/VideoCommon/Src/VertexLoader_TextCoord.cpp',
+	'../../../Core/VideoCommon/Src/VertexManagerBase.cpp',
+	]
 
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env['libvideo'] = env.StaticLibrary(env['local_libs'] + 'video', files)

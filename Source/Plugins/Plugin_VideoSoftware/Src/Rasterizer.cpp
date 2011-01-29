@@ -296,7 +296,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 {
     INCSTAT(stats.thisFrame.numTrianglesDrawn);
 
-    if (g_Config.bHwRasterizer)
+    if (g_SWVideoConfig.bHwRasterizer)
     {
         HwRasterizer::DrawTriangleFrontFace(v0, v1, v2);
         return;

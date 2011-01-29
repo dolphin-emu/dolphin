@@ -216,10 +216,10 @@ void OnObjectBegin()
 {
     if (!g_bSkipCurrentFrame)
     {
-        if (g_Config.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
+        if (g_SWVideoConfig.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawStart && stats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawEnd)
             DumpActiveTextures();
 
-        if (g_Config.bHwRasterizer)
+        if (g_SWVideoConfig.bHwRasterizer)
 		{
             HwRasterizer::BeginTriangles();
 			drawingHwTriangles = true;
@@ -231,10 +231,10 @@ void OnObjectEnd()
 {
     if (!g_bSkipCurrentFrame)
     {
-        if (g_Config.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
+        if (g_SWVideoConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawStart && stats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawEnd)
             DumpEfb(StringFromFormat("%sobject%i.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.thisFrame.numDrawnObjects).c_str());
 
-        if (g_Config.bHwRasterizer || drawingHwTriangles)
+        if (g_SWVideoConfig.bHwRasterizer || drawingHwTriangles)
 		{
             HwRasterizer::EndTriangles();
 			drawingHwTriangles = false;
@@ -259,7 +259,7 @@ void OnFrameEnd()
 {
     if (!g_bSkipCurrentFrame)
     {
-        if (g_Config.bDumpFrames)
+        if (g_SWVideoConfig.bDumpFrames)
         {
             DumpEfb(StringFromFormat("%sframe%i_color.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.frameCount).c_str());
             DumpDepth(StringFromFormat("%sframe%i_depth.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.frameCount).c_str());

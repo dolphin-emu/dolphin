@@ -76,17 +76,20 @@ int DynamicLibrary::Load(const char* filename)
 
 #ifdef _WIN32
 	library = LoadLibrary(filename);
-#else
+#elif defined __linux__
 	// RTLD_NOW: resolve all symbols on load
 	// RTLD_LOCAL: don't resolve symbols for other libraries
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
+#else
+	library = RTLD_SELF;
+	return 1;
 #endif
 
 	DEBUG_LOG(COMMON, "DL: LoadLibrary: %s(%p)", filename, library);
 
 	if (!library) {
 		ERROR_LOG(COMMON, "DL: Error loading DLL %s: %s", filename, 
-				  DllGetLastError());
+				DllGetLastError());
 		return 0;
 	}
 
@@ -104,33 +107,35 @@ int DynamicLibrary::Load(const char* filename)
 int DynamicLibrary::Unload()
 {
 	INFO_LOG(COMMON, "DL: Unloading dynamic library %s", library_file.c_str());
-    int retval;
-    if (!IsLoaded()) { // library != null
+	int retval;
+	if (!IsLoaded()) { // library != null
 		ERROR_LOG(COMMON, "DL: Unload failed for %s: not loaded", 
-				  library_file.c_str());
-        PanicAlert("DL: Unload failed %s: not loaded", 
-				   library_file.c_str());
-        return 0;
-    }
+				library_file.c_str());
+		PanicAlert("DL: Unload failed %s: not loaded", 
+				library_file.c_str());
+		return 0;
+	}
 
-    DEBUG_LOG(COMMON, "DL: FreeLibrary: %s %p\n", 
-			  library_file.c_str(), library);        
+	DEBUG_LOG(COMMON, "DL: FreeLibrary: %s %p\n", 
+			library_file.c_str(), library);
 #ifdef _WIN32
-    retval = FreeLibrary(library);
+	retval = FreeLibrary(library);
 #else
-    retval = dlclose(library)?0:1;
+	if (library == RTLD_SELF)
+		return 1;
+	else
+		retval = dlclose(library) ? 0 : 1;
 #endif
 
-    if (! retval) {
-        ERROR_LOG(COMMON, "DL: Unload failed %s: %s", 
-				  library_file.c_str(),
-				 DllGetLastError());
-    }
-    library = 0;
+	if (! retval) {
+		ERROR_LOG(COMMON, "DL: Unload failed %s: %s", 
+				library_file.c_str(), DllGetLastError());
+	}
+	library = 0;
 
 	INFO_LOG(COMMON, "DL: Done unloading dynamic library %s", 
 			 library_file.c_str());
-    return retval;
+	return retval;
 }
 
 // Returns the address where symbol funcname is loaded or NULL on failure 
@@ -156,11 +161,10 @@ void* DynamicLibrary::Get(const char* funcname) const
 	if (!retval)
 	{
 		WARN_LOG(COMMON, "DL: Symbol %s missing in %s (error: %s)\n", 
-				  funcname, library_file.c_str(), 
-				  DllGetLastError());
+			funcname, library_file.c_str(), DllGetLastError());
 	}
 
 	INFO_LOG(COMMON, "DL: Done getting symbol %s: %s", library_file.c_str(),
-			 funcname);
+			funcname);
 	return retval;
 }
