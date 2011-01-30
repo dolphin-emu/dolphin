@@ -3,13 +3,13 @@
 <plist version="2.1">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>NVIDIA Cg version 3.0.0015</string>
+	<string>NVIDIA Cg version 3.0.0007</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.nvidia.cg</string>
 	<key>CFBundleName</key>
 	<string>NVIDIA Cg</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.0.0015</string>
+	<string>3.0.0007</string>
 	<key>IFMajorVersion</key>
 	<integer>3</integer>
 	<key>IFMinorVersion</key>

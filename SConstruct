@@ -122,8 +122,8 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
-    env['CC'] = 'llvm-gcc'
-    env['CXX'] = 'llvm-g++'
+    env['CC'] = '/Developer/usr/bin/llvm-gcc'
+    env['CXX'] = '/Developer/usr/bin/llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
