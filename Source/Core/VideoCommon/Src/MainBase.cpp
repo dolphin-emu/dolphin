@@ -195,7 +195,7 @@ static void check_DoState() {
 	}
 }
 
-// Run from the GUI thread
+// Run from the CPU thread
 void DoState(unsigned char **ptr, int mode)
 {
 	s_doStateArgs.ptr = ptr;
