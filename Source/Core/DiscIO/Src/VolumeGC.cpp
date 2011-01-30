@@ -54,14 +54,17 @@ std::string CVolumeGC::GetUniqueID() const
 	if (m_pReader == NULL)
 		return NO_UID;
 
-	char id[6];
-	if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id)))
+	char ID[7];
+
+	if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID)))
 	{
 		PanicAlertT("Failed to read unique ID from disc image");
 		return NO_UID;
 	}
 
-	return std::string(id, sizeof(id));
+	ID[6] = '\0';
+
+	return ID;
 }
 
 IVolume::ECountry CVolumeGC::GetCountry() const
