@@ -26,7 +26,6 @@
 class DSPLLE : public PluginDSP {
 public:
 	DSPLLE();
-	~DSPLLE();
 
 	virtual void Initialize(void *hWnd, bool bWii, bool bDSPThread);
 	virtual void Shutdown();

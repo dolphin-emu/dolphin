@@ -25,8 +25,7 @@
 class PluginDSP
 {
 public:
-	PluginDSP();
-	~PluginDSP();
+	virtual ~PluginDSP() {}
 
 	virtual bool IsLLE() = 0;
 

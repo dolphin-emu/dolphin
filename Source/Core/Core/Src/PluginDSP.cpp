@@ -33,6 +33,3 @@ PluginDSP *CreateDSPPlugin(bool HLE)
 		return new DSPLLE();
 	}
 }
-
-PluginDSP::PluginDSP() {}
-PluginDSP::~PluginDSP() {}

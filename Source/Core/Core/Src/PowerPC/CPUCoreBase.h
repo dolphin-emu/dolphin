@@ -21,6 +21,8 @@
 class CPUCoreBase
 {
 public:
+	virtual ~CPUCoreBase() {}
+
 	virtual void Init() = 0;
 	virtual void Shutdown() = 0;
 	virtual void ClearCache() = 0;

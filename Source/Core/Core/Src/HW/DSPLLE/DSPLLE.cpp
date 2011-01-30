@@ -48,9 +48,6 @@ DSPLLE::DSPLLE() {
 	m_cycle_count = 0;
 }
 
-DSPLLE::~DSPLLE() {
-}
-
 void DSPLLE::DoState(PointerWrap &p)
 {
 	p.Do(m_InitMixer);

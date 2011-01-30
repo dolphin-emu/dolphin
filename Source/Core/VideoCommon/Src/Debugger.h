@@ -21,6 +21,8 @@
 class GFXDebuggerBase
 {
 public:
+	virtual ~GFXDebuggerBase() {}
+
 	// if paused, debugging functions can be enabled
 	virtual void OnPause() {};
 	virtual void OnContinue() {};

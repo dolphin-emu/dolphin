@@ -148,7 +148,7 @@ if sys.platform == 'darwin':
         wxconfig.ParseWXConfig(wxenv)
         env['CPPDEFINES'] += ['__WXOSX_COCOA__']
         env['CPPPATH'] += wxenv['CPPPATH']
-        env['LIBPATH'] += wxenv['LIBPATH']
+        #env['LIBPATH'] += wxenv['LIBPATH']
         env['wxconfiglibs'] = wxenv['LIBS']
 
     env['CPPPATH'] += ['#Externals']

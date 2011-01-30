@@ -105,7 +105,7 @@ void PadSettingCheckBox::UpdateValue()
 
 void PadSettingSpin::UpdateGUI()
 {
-	((wxSpinCtrl*)wxcontrol)->SetValue(value * 100);
+	((wxSpinCtrl*)wxcontrol)->SetValue((int)(value * 100));
 }
 
 void PadSettingSpin::UpdateValue()
@@ -536,7 +536,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 
 	range_slider = new wxSlider(parent, -1, SLIDER_TICK_COUNT, 0, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/);
 
-	range_slider->SetValue(control_reference->range * SLIDER_TICK_COUNT);
+	range_slider->SetValue((int)(control_reference->range * SLIDER_TICK_COUNT));
 
 	_connect_macro_(detect_button, ControlDialog::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 	_connect_macro_(clear_button, ControlDialog::ClearControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);

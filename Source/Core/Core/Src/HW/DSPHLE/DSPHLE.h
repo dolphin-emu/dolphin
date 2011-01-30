@@ -28,7 +28,6 @@ class IUCode;
 class DSPHLE : public PluginDSP {
 public:
 	DSPHLE();
-	~DSPHLE();
 
 	virtual void Initialize(void *hWnd, bool bWii, bool bDSPThread);
 	virtual void Shutdown();

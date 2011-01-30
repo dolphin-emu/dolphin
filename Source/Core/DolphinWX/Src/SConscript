@@ -5,9 +5,7 @@ import os
 import sys
 from SconsTests import utils
 
-files = [
-	'BootManager.cpp',
-	]
+files = ['BootManager.cpp']
 
 libs = [
 	'core',
@@ -19,8 +17,12 @@ wxlibs = [ ]
 
 ldflags = [ ]
 
-if env['HAVE_WX']:
-	files += [
+if not env['HAVE_WX']:
+	files += ['MainNoGUI.cpp']
+else:
+	files += ['Main.cpp']
+
+	libfiles = [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
 		'GeckoCodeDiag.cpp',
@@ -38,7 +40,6 @@ if env['HAVE_WX']:
 		'ISOProperties.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
-		'Main.cpp',
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
@@ -52,11 +53,9 @@ if env['HAVE_WX']:
 		'WxUtils.cpp',
 		]
 
-	wxlibs += [ 'debwx', 'debugger_ui_util' ]
-else:
-	files += [
-		'MainNoGUI.cpp',
-		]
+	env.StaticLibrary(env['local_libs'] + "dolphinwx", libfiles)
+
+	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]

@@ -74,7 +74,7 @@ class PadSettingSpin : public PadSetting
 public:
 	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting)
 		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
-			, wxSize(54, -1), 0, setting->low, setting->high, setting->value * 100))
+			, wxSize(54, -1), 0, setting->low, setting->high, (int)(setting->value * 100)))
 		, value(setting->value) {}
 
 	void UpdateGUI();
