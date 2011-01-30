@@ -14,6 +14,7 @@ namespace OSX
 
 static IOHIDManagerRef HIDManager = NULL;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
+static std::map<std::string, int> kbd_name_counts, joy_name_counts;
 
 void DeviceElementDebugPrint(const void *value, void *context)
 {
@@ -136,6 +137,9 @@ static void DeviceMatching_callback(void* inContext,
 	void *inSender,
 	IOHIDDeviceRef inIOHIDDeviceRef)
 {
+	std::string name = [(NSString *)IOHIDDeviceGetProperty(inIOHIDDeviceRef,
+		CFSTR(kIOHIDProductKey)) UTF8String];
+
 	DeviceDebugPrint(inIOHIDDeviceRef);
 
 	std::vector<ControllerInterface::Device*> *devices =
@@ -144,12 +148,17 @@ static void DeviceMatching_callback(void* inContext,
 	// Add to the devices vector if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-		devices->push_back(new Keyboard(inIOHIDDeviceRef));
+		devices->push_back(new Keyboard(inIOHIDDeviceRef,
+			name, kbd_name_counts[name]++));
+#if 0
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-		return; // XXX devices->push_back(new Mouse(inIOHIDDeviceRef));
+		devices->push_back(new Mouse(inIOHIDDeviceRef,
+			name, mouse_name_counts[name++]));
+#endif
 	else 
-		devices->push_back(new Joystick(inIOHIDDeviceRef));
+		devices->push_back(new Joystick(inIOHIDDeviceRef,
+			name, joy_name_counts[name]++));
 }
 
 void Init(std::vector<ControllerInterface::Device*>& devices)
@@ -159,7 +168,7 @@ void Init(std::vector<ControllerInterface::Device*>& devices)
 	if (!HIDManager)
 		NSLog(@"Failed to create HID Manager reference");
 
-	IOHIDManagerSetDeviceMatchingMultiple(HIDManager, NULL);
+	IOHIDManagerSetDeviceMatching(HIDManager, NULL);
 
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager,
@@ -171,6 +180,9 @@ void Init(std::vector<ControllerInterface::Device*>& devices)
 	if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) !=
 		kIOReturnSuccess)
 		NSLog(@"Failed to open HID Manager");
+
+	kbd_name_counts.clear();
+	joy_name_counts.clear();
 
 	// Wait while current devices are initialized
 	while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) ==

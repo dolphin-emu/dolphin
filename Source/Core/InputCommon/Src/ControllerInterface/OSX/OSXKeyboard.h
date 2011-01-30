@@ -43,7 +43,7 @@ protected:
 		const ControlState state);
 
 public:
-	Keyboard(IOHIDDeviceRef device);
+	Keyboard(IOHIDDeviceRef device, std::string name, int index);
 
 	std::string GetName() const;
 	std::string GetSource() const;
@@ -52,6 +52,7 @@ public:
 private:
 	IOHIDDeviceRef	m_device;
 	std::string	m_device_name;
+	int		m_index;
 };
 
 }

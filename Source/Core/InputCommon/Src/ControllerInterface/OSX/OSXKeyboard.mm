@@ -21,12 +21,11 @@ const struct PrettyKeys
 
 extern void DeviceElementDebugPrint(const void *, void *);
 
-Keyboard::Keyboard(IOHIDDeviceRef device)
+Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)
+	, m_device_name(name)
+	, m_index(index)
 {
-	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device,
-		CFSTR(kIOHIDProductKey)) UTF8String];
-
 	// This class should only recieve Keyboard or Keypad devices
 	// Now, filter on just the buttons we can handle sanely
 	NSDictionary *matchingElements =
@@ -83,13 +82,12 @@ std::string Keyboard::GetName() const
 
 std::string Keyboard::GetSource() const
 {
-	return "HID";
+	return "Keyboard";
 }
 
 int Keyboard::GetId() const
 {
-	// Overload the "id" to identify devices by HID type when names collide
-	return kHIDUsage_GD_Keyboard;
+	return m_index;
 }
 
 Keyboard::Key::Key(IOHIDElementRef element)

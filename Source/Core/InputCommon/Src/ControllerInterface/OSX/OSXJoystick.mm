@@ -11,12 +11,11 @@ namespace OSX
 
 extern void DeviceElementDebugPrint(const void*, void*);
 
-Joystick::Joystick(IOHIDDeviceRef device)
+Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)
+	, m_device_name(name)
+	, m_index(index)
 {
-	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device,
-		CFSTR(kIOHIDProductKey)) UTF8String];
-
 	// Buttons
 	NSDictionary *buttonDict =
 	 [NSDictionary dictionaryWithObjectsAndKeys:
@@ -103,16 +102,13 @@ std::string Joystick::GetName() const
 
 std::string Joystick::GetSource() const
 {
-	return "HID";
+	return "Input";
 }
 
 int Joystick::GetId() const
 {
-	// Overload the "id" to identify devices by HID type when names collide
-	// XXX This class is now a catch-all, so query the usage page number
-	return kHIDUsage_GD_GamePad;
+	return m_index;
 }
-
 
 Joystick::Button::Button(IOHIDElementRef element)
 	: m_element(element)
