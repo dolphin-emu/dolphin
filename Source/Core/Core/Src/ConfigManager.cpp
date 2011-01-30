@@ -32,19 +32,19 @@ static const struct {
 	const int	DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
+	{ "ToggleFullscreen",	 70 /* 'F' */,		0x08 /* wxMOD_CMD */ },
 	{ "PlayPause",		 80 /* 'P' */,		0x08 /* wxMOD_CMD */ },
 	{ "Stop",		 87 /* 'W' */,		0x08 /* wxMOD_CMD */ },
 	{ "Screenshot",		 83 /* 'S' */,		0x08 /* wxMOD_CMD */ },
-	{ "ToggleFullscreen",	 70 /* 'F' */,		0x08 /* wxMOD_CMD */ },
 	{ "Wiimote1Connect", 	 49 /* '1' */,		0x08 /* wxMOD_CMD */ },
 	{ "Wiimote2Connect", 	 50 /* '2' */,		0x08 /* wxMOD_CMD */ },
 	{ "Wiimote3Connect", 	 51 /* '3' */,		0x08 /* wxMOD_CMD */ },
 	{ "Wiimote4Connect", 	 52 /* '4' */,		0x08 /* wxMOD_CMD */ },
 #else
+	{ "ToggleFullscreen",	 13 /* WXK_RETURN */,	0x01 /* wxMOD_ALT */ },
 	{ "PlayPause",		349 /* WXK_F10 */,	0x00 /* wxMOD_NONE*/ },
 	{ "Stop",		 27 /* WXK_ESCAPE */,	0x00 /* wxMOD_NONE*/ },
 	{ "Screenshot",		348 /* WXK_F9 */,	0x00 /* wxMOD_NONE*/ },
-	{ "ToggleFullscreen",	 13 /* WXK_RETURN */,	0x01 /* wxMOD_ALT */ },
 	{ "Wiimote1Connect", 	344 /* WXK_F5 */,	0x01 /* wxMOD_ALT */ },
 	{ "Wiimote2Connect", 	345 /* WXK_F6 */,	0x01 /* wxMOD_ALT */ },
 	{ "Wiimote3Connect", 	346 /* WXK_F7 */,	0x01 /* wxMOD_ALT */ },
