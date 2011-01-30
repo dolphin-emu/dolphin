@@ -60,7 +60,6 @@ else:
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	libs += [ 'iconv' ]
 	ldflags += [ '-Wl,-force_load,' + env['libvideo'][0].path ]
 	ldflags += [ '-Xarch_i386', '-Wl,-framework,QuickTime' ]
 	ldflags += [ '-weak_framework', 'OpenCL' ]
@@ -70,6 +69,7 @@ elif sys.platform == 'darwin':
 	if env['HAVE_WX']:
 		wxlibs += env['wxconfiglibs']
 	else:
+		libs += [ 'iconv' ]
 		exe += 'NoGUI'
 
 

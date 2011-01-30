@@ -9,7 +9,6 @@ namespace ciface
 namespace OSX
 {
 
-extern void DeviceElementDebugPrint(const void*, void*);
 
 Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)

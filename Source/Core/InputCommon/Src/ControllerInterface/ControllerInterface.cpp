@@ -505,6 +505,9 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 	unsigned int time = 0;
 	bool* const states = new bool[device->Inputs().size()];
 
+	if (device->Inputs().size() == 0)
+		return NULL;
+
 	// get starting state of all inputs, 
 	// so we can ignore those that were activated at time of Detect start
 	std::vector<Device::Input*>::const_iterator
