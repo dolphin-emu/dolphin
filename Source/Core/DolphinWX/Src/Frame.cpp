@@ -349,6 +349,7 @@ CFrame::CFrame(wxFrame* parent,
 
 #ifdef __WXGTK__
 	panic_event.Init();
+	keystate_event.Init();
 #endif
 
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
@@ -492,6 +493,7 @@ CFrame::~CFrame()
 
 #ifdef __WXGTK__
 	panic_event.Shutdown();
+	keystate_event.Shutdown();
 #endif
 
 	delete m_Mgr;
@@ -661,6 +663,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
 					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, this));
 		panic_event.Set();
+		break;
+	case IDM_KEYSTATE:
+		bKeyStateResult = wxGetKeyState(wxKeyCode(event.GetInt()));
+		keystate_event.Set();
 		break;
 #endif
 

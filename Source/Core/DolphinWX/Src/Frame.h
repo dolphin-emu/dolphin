@@ -136,6 +136,8 @@ class CFrame : public CRenderFrame
 		#ifdef __WXGTK__
 		Common::Event panic_event;
 		bool bPanicResult;
+		Common::Event keystate_event;
+		bool bKeyStateResult;
 		#endif
 
 		#if defined(HAVE_XRANDR) && HAVE_XRANDR

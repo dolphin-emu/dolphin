@@ -146,17 +146,8 @@ public:
 
 private:
 	wxNotebook* Notebook;
-	wxPanel* GeneralPage;
-	wxPanel* GamecubePage;
-	wxPanel* DisplayPage;
-	wxPanel* AudioPage;
-	wxPanel* WiiPage;
 	wxPanel* PathsPage;
-	wxPanel* PluginsPage;
 
-	wxBoxSizer* sGeneralPage; // General Settings
-	wxStaticBoxSizer* sbBasic, *sbAdvanced; // Basic and Advanced sections
-	
 	// Basic
 	wxCheckBox* CPUThread;
 	wxCheckBox* SkipIdle;
@@ -252,9 +243,6 @@ private:
 	wxFilePickerCtrl* DefaultISO;
 	wxDirPickerCtrl* DVDRoot;
 	wxFilePickerCtrl* ApploaderPath;
-
-	wxBoxSizer* sPluginsPage; // Plugins settings
-	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin;  // Graphics, DSP sections
 
 	// Graphics
 	wxChoice* GraphicSelection;
