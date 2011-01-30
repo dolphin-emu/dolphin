@@ -246,6 +246,7 @@ void Initialize(void *init)
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
+	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 	UpdateActiveConfig();
 
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));

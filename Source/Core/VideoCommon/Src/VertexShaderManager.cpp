@@ -94,33 +94,31 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 	bool bProjHack3 = false;
 	const char *sTemp[2];
 	
-	if (iPhackvalue[0] == 0)
-		goto hackDisabled;
+	if (iPhackvalue[0] == 1)
+	{
+		NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
+		
+		fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
+		sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
+		fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
+		sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
+		
+		fhackvalue1 = PHackValue(sPhackvalue[0]);
+		NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
 
-	NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
-	
-	fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
-	sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
-	fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
-	sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
-	
-	fhackvalue1 = PHackValue(sPhackvalue[0]);
-	NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
-
-	fhackvalue2 = PHackValue(sPhackvalue[1]);
-	NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
-	
-	sTemp[0] = "DISABLED";
-	bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
-	if (bProjHack3)
-		sTemp[0] = "ENABLED";
-	NOTICE_LOG(VIDEO, "- Extra Parameter: %s", sTemp[0]);
-
-	hackDisabled:
+		fhackvalue2 = PHackValue(sPhackvalue[1]);
+		NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
+		
+		sTemp[0] = "DISABLED";
+		bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
+		if (bProjHack3)
+			sTemp[0] = "ENABLED";
+		NOTICE_LOG(VIDEO, "- Extra Parameter: %s", sTemp[0]);
+	}
 
 	// Set the projections hacks
-	g_ProjHack1 = ProjectionHack(fhackvalue1,fhacksign1);
-	g_ProjHack2 = ProjectionHack(fhackvalue2,fhacksign2);
+	g_ProjHack1 = ProjectionHack(fhacksign1, fhackvalue1);
+	g_ProjHack2 = ProjectionHack(fhacksign2, fhackvalue2);
 	g_ProjHack3 = bProjHack3;
 
 /*	
@@ -391,10 +389,8 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[8] = 0.0f;
 			g_fProjectionMatrix[9] = 0.0f;
-			//g_fProjectionMatrix[10] = (g_ProjHack1.value + xfregs.rawProjection[4]) * g_ProjHack1.sign;
-			//g_fProjectionMatrix[11] = (g_ProjHack2.value + xfregs.rawProjection[5]) * g_ProjHack2.sign;
-			g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
+			g_fProjectionMatrix[10] = (g_ProjHack1.value + xfregs.rawProjection[4]) * ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
+			g_fProjectionMatrix[11] = (g_ProjHack2.value + xfregs.rawProjection[5]) * ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
