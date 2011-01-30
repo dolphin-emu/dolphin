@@ -114,13 +114,10 @@ void CCPU::EnableStepping(const bool _bStepping)
 	if (_bStepping)
 	{
 		PowerPC::Pause();
-		// TODO(ector): why a sleep?
-		Host_SetDebugMode(true);
 		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PAUSE);
 	}
 	else
 	{
-		Host_SetDebugMode(false);
 		PowerPC::Start();
 		m_StepEvent.Set();
 		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PLAY);

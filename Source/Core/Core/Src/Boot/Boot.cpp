@@ -78,7 +78,6 @@ void CBoot::Load_FST(bool _bIsWii)
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 {
 	Host_NotifyMapLoaded();
-	Host_UpdateMemoryView();
 }
 
 std::string CBoot::GenerateMapFilename()

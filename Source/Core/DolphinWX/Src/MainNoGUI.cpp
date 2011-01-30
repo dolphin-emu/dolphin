@@ -76,9 +76,7 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateBreakPointView(){}
 
-void Host_UpdateMemoryView(){}
-
-void Host_SetDebugMode(bool){}
+bool Host_GetKeyState(int keycode){}
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {

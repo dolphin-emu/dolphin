@@ -557,11 +557,8 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
 		SConfig::GetInstance().m_Framelimit * 5 : VideoInterface::TargetRefreshRate;
 
-#ifdef _WIN32
 	// Disable the frame-limiter when the throttle (Tab) key is held down
-	if (!GetAsyncKeyState(VK_TAB))
-#endif
-	if (SConfig::GetInstance().m_Framelimit)
+	if (SConfig::GetInstance().m_Framelimit && !Host_GetKeyState('\t'))
 	{
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 

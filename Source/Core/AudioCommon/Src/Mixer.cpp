@@ -20,6 +20,7 @@
 #include "Mixer.h"
 #include "AudioCommon.h"
 #include "CPUDetect.h"
+#include "Host.h"
 
 #include "../../Core/Src/HW/AudioInterface.h"
 
@@ -148,9 +149,8 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 			if (*PowerPC::GetStatePtr() != 0) 
 				break;
 			// Shortcut key for Throttle Skipping
-#ifdef _WIN32
-			if (GetAsyncKeyState(VK_TAB)) break;;
-#endif
+			if (Host_GetKeyState('\t'))
+				break;
 			SLEEP(1);
 			soundStream->Update();
 		}

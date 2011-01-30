@@ -564,11 +564,14 @@ void Host_UpdateBreakPointView()
 	}
 }
 
-void Host_UpdateMemoryView()
-{}
-
-void Host_SetDebugMode(bool)
-{}
+bool Host_GetKeyState(int keycode)
+{
+#ifdef _WIN32
+	return GetAsyncKeyState(keycode);
+#else
+	return wxGetKeyState(wxKeyCode(keycode));
+#endif
+}
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {

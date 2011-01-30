@@ -36,26 +36,22 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
+bool Host_RendererHasFocus();
+void Host_ConnectWiimote(int wm_idx, bool connect);
+bool Host_GetKeyState(int keycode);
+void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
 void Host_Message(int Id);
-void Host_UpdateMainFrame();
-void Host_UpdateTitle(const char* title);
+void Host_NotifyMapLoaded();
+void Host_RequestRenderWindowSize(int width, int height);
+void Host_SetWaitCursor(bool enable);
+void Host_SetWiiMoteConnectionState(int _State);
+void Host_ShowJitResults(unsigned int address);
+void Host_SysMessage(const char *fmt, ...);
+void Host_UpdateBreakPointView();
 void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();
-void Host_UpdateMemoryView();
-void Host_NotifyMapLoaded();
-void Host_UpdateBreakPointView();
-void Host_ShowJitResults(unsigned int address);
-void Host_SetDebugMode(bool enable);
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
-void Host_RequestRenderWindowSize(int width, int height);
-bool Host_RendererHasFocus();
-
-void Host_SetWaitCursor(bool enable);
-
+void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
-
-void Host_SysMessage(const char *fmt, ...);
-void Host_SetWiiMoteConnectionState(int _State);
-void Host_ConnectWiimote(int wm_idx, bool connect);
+void Host_UpdateTitle(const char* title);
 
 #endif

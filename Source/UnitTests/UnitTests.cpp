@@ -146,27 +146,3 @@ int main(int argc, char* argv[])
 	}
 	return 0;
 }
-
-
-// Pretend that we are a host so we can link to core.... urgh.
-//==============================================================
-void Host_UpdateMainFrame(){}
-void Host_UpdateDisasmDialog(){}
-void Host_UpdateLogDisplay(){}
-void Host_UpdateMemoryView(){}
-void Host_NotifyMapLoaded(){}
-void Host_ShowJitResults(unsigned int address){}
-void Host_UpdateBreakPointView(){}
-void Host_SetDebugMode(bool enable){}
-
-void Host_SetWaitCursor(bool enable){}
-
-void Host_UpdateStatusBar(const char* _pText, int Filed = 0){}
-
-void Host_SysMessage(const char *fmt, ...){}
-void Host_SetWiiMoteConnectionState(int _State){}
-
-void Host_UpdateLeds(int bits){}
-void Host_UpdateSpeakerStatus(int index, int bits){}
-void Host_UpdateStatus(){}
-void Host_Message(int){}
