@@ -68,8 +68,7 @@ void OpenGL_SetWindowText(const char *text)
 #if defined(USE_WX) && USE_WX
 	// Handled by Host_UpdateTitle()
 #elif defined(__APPLE__)
-	[GLWin.cocoaWin setTitle: [[[NSString alloc]
-		initWithCString: text] autorelease]];
+	[GLWin.cocoaWin setTitle: [NSString stringWithUTF8String: text]];
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
 	SetWindowTextA(EmuWindow::GetWnd(), text);

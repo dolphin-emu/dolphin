@@ -259,11 +259,6 @@ void X11_MainLoop()
 
 int main(int argc, char* argv[])
 {
-#ifdef __APPLE__
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSEvent *event = [[NSEvent alloc] init];	
-	ProcessSerialNumber psn;
-#endif
 	int ch, help = 0;
 	struct option longopts[] = {
 		{ "exec",	no_argument,	NULL,	'e' },
@@ -307,36 +302,32 @@ int main(int argc, char* argv[])
 	if (BootManager::BootCore(argv[optind]))
 	{
 #ifdef __APPLE__
-	GetCurrentProcess(&psn);
-	TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-	SetFrontProcess(&psn);
-
-	if (NSApp == nil) {
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		NSEvent *event = [[NSEvent alloc] init];	
 		[NSApplication sharedApplication];
-		//TODO : Create menu
+		[NSApp activateIgnoringOtherApps: YES];
 		[NSApp finishLaunching];
-	}
 
-	while (running)
-	{
-		event = [NSApp nextEventMatchingMask: NSAnyEventMask
-			untilDate: [NSDate distantFuture]
-			inMode: NSDefaultRunLoopMode dequeue: YES];
-
-		if ([event type] == NSKeyDown &&
-			[event modifierFlags] & NSCommandKeyMask &&
-			[[event characters] UTF8String][0] == 'q')
+		while (running)
 		{
-			Core::Stop();
-			break;
-		}
+			event = [NSApp nextEventMatchingMask: NSAnyEventMask
+				untilDate: [NSDate distantFuture]
+				inMode: NSDefaultRunLoopMode dequeue: YES];
+	
+			if ([event type] == NSKeyDown &&
+				[event modifierFlags] & NSCommandKeyMask &&
+				[[event characters] UTF8String][0] == 'q')
+			{
+				Core::Stop();
+				break;
+			}
+	
+			if ([event type] != NSKeyDown)
+				[NSApp sendEvent: event];
+		}	
 
-		if ([event type] != NSKeyDown)
-			[NSApp sendEvent: event];
-	}	
-
-	[event release];
-	[pool release];
+		[event release];
+		[pool release];
 #elif defined HAVE_X11 && HAVE_X11
 		XInitThreads();
 		X11_MainLoop();

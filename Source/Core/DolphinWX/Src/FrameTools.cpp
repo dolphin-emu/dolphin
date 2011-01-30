@@ -308,7 +308,12 @@ void CFrame::CreateMenu()
 
 wxString CFrame::GetMenuLabel(int Id)
 {
-	wxString Label;
+	int hotkey = SConfig::GetInstance().\
+		m_LocalCoreStartupParameter.iHotkey[Id];
+	int hotkeymodifier = SConfig::GetInstance().\
+		m_LocalCoreStartupParameter.iHotkeyModifier[Id];
+	wxString Hotkey, Label, Modifier;
+
 	switch (Id)
 	{
 		case HK_FULLSCREEN:
@@ -335,14 +340,20 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 	}
 
-	wxString Modifier = InputCommon::WXKeymodToString
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
-	wxString Hotkey = InputCommon::WXKeyToString
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id]);
+	// wxWidgets only accepts Ctrl/Alt/Shift as menu accelerator
+	// modifiers. On OS X, "Ctrl+" is mapped to the Command key.
+#ifdef __APPLE__
+	if (hotkeymodifier & wxMOD_CMD)
+		hotkeymodifier |= wxMOD_CONTROL;
+#endif
+	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
+	
+	Modifier = InputCommon::WXKeymodToString(hotkeymodifier);
+	Hotkey = InputCommon::WXKeyToString(hotkey);
 	if (Modifier.Len() + Hotkey.Len() > 0)
 		Label += '\t';
 
-	return Label + Modifier + (Modifier.Len() ? _T("+") : _T("")) + Hotkey;
+	return Label + Modifier + Hotkey;
 }
 
 

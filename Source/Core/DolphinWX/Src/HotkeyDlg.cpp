@@ -117,7 +117,7 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 // Update the textbox for the buttons
 void HotkeyConfigDialog::SetButtonText(int id, const wxString &keystr, const wxString &modkeystr)
 {
-	m_Button_Hotkeys[id]->SetLabel(modkeystr + (modkeystr.Len() ? _T("+") : _T("")) + keystr);
+	m_Button_Hotkeys[id]->SetLabel(modkeystr + keystr);
 }
 
 void HotkeyConfigDialog::DoGetButtons(int _GetId)

@@ -138,22 +138,29 @@ const wxString WXKeyToString(int keycode)
 		return wxString((wxChar)keycode, 1);
 	}
 
-	return _T("");
+	return wxT("");
 }
 
 const wxString WXKeymodToString(int modifier)
 {
-	switch (modifier)
-	{
-		case wxMOD_ALT:				return wxT("Alt");
-		case wxMOD_CONTROL:			return wxT("Ctrl");
-		case wxMOD_ALTGR:			return wxT("Ctrl+Alt");
-		case wxMOD_SHIFT:			return wxT("Shift");
-		// wxWidgets can only use Alt/Ctrl/Shift as menu accelerators,
-		// so Meta (Command on OS X) is simply made equivalent to Ctrl.
-		case wxMOD_META:			return wxT("Ctrl");
-		default:				return wxT("");
-	}
+	wxString mods;
+
+	if (modifier & wxMOD_META)
+#ifdef __APPLE__
+		mods += wxT("Cmd+");
+#elif defined _WIN32
+		mods += wxT("Win+");
+#else
+		mods += wxT("Meta+");
+#endif
+	if (modifier & wxMOD_CONTROL)
+		mods += wxT("Ctrl+");
+	if (modifier & wxMOD_ALT)
+		mods += wxT("Alt+");
+	if (modifier & wxMOD_SHIFT)
+		mods += wxT("Shift+");
+
+	return mods;
 }
 
 }

@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifdef __APPLE__
+#import <Cocoa/Cocoa.h>
+#endif
+
 #include "Common.h"
 #include "CommonPaths.h"
 #include "Globals.h"
@@ -1129,6 +1133,12 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	{
 		SaveGameConfig();
 
+#ifdef __APPLE__
+		// wxTheMimeTypesManager is not yet implemented for wxCocoa
+		[[NSWorkspace sharedWorkspace] openFile:
+			[NSString stringWithUTF8String: GameIniFile.c_str()]
+			withApplication: @"TextEdit"];
+#else
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("ini"));
 		if(filetype == NULL) // From extension failed, trying with MIME type now
 		{
@@ -1146,6 +1156,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		else
 			if(wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
 				PanicAlertT("wxExecute returned -1 on application run!");
+#endif
 
 		GameIni.Load(GameIniFile.c_str());
 		LoadGameConfig();
