@@ -170,7 +170,8 @@ static volatile struct
 	int mode;
 } s_doStateArgs;
 
-// Run from the GPU thread on X11, CPU thread on the rest
+// Depending on the threading mode (DC/SC) this can be called 
+// from either the GPU thread or the CPU thread
 static void check_DoState() {
 	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
@@ -194,7 +195,7 @@ static void check_DoState() {
 	}
 }
 
-// Run from the CPU thread
+// Run from the GUI thread
 void DoState(unsigned char **ptr, int mode)
 {
 	s_doStateArgs.ptr = ptr;
@@ -207,7 +208,7 @@ void DoState(unsigned char **ptr, int mode)
 			Common::YieldCPU();
 	}
 	else
-	check_DoState();
+		check_DoState();
 }
 
 void VideoFifo_CheckAsyncRequest()

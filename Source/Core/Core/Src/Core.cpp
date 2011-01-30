@@ -163,7 +163,7 @@ bool isRunning()
 
 bool IsRunningInCurrentThread()
 {
-	return isRunning() && ((cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
+	return isRunning() && ((!cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
 }
 
 // This is called from the GUI thread. See the booting call schedule in

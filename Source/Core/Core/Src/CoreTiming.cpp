@@ -68,7 +68,7 @@ u64 fakeDecStartTicks;
 u64 fakeTBStartValue;
 u64 fakeTBStartTicks;
 
-Common::CriticalSection externalEventSection;
+static Common::CriticalSection externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
 

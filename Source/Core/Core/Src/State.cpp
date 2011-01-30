@@ -27,7 +27,7 @@
 #include "HW/Wiimote.h"
 #include "HW/DSP.h"
 #include "HW/HW.h"
-#include "PowerPC/PowerPC.h"
+#include "HW/CPU.h"
 #include "PowerPC/JitCommon/JitBase.h"
 
 #include "PluginManager.h"
@@ -93,6 +93,7 @@ void DoState(PointerWrap &p)
 
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
@@ -170,6 +171,9 @@ void CompressAndDumpState(saveStruct* saveArg)
 
 	delete saveArg;
 
+	// For easy debugging
+	Common::SetCurrentThreadName("SaveState thread");
+
 	// Moving to last overwritten save-state
 	if (File::Exists(cur_filename.c_str()))
 	{
@@ -233,8 +237,8 @@ void CompressAndDumpState(saveStruct* saveArg)
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
-	// Stop the clock while we save the state
-	PowerPC::Pause();
+	// Pause the core while we save the state
+	CCPU::EnableStepping(true);
 
 	// Wait for the other threaded sub-systems to stop too
 	SLEEP(100);
@@ -264,16 +268,16 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 	saveThread = std::thread(CompressAndDumpState, saveData);
 
-	// Resume the clock
-	PowerPC::Start();
+	// Resume the core and disable stepping
+	CCPU::EnableStepping(false);
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
 	bool bCompressedState;
 
-	// Stop the clock while we load the state
-	PowerPC::Pause();
+	// Stop the core while we load the state
+	CCPU::EnableStepping(true);
 
 	// Wait for the other threaded sub-systems to stop too
 	SLEEP(100);
@@ -295,7 +299,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	{
 		Core::DisplayMessage("State not found", 2000);
 		// Resume the clock
-		PowerPC::Start();
+		CCPU::EnableStepping(false);
 		return;
 	}
 
@@ -314,7 +318,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 		fclose(f);
 		// Resume the clock
-		PowerPC::Start();
+		CCPU::EnableStepping(false);
 		return;
 	}
 
@@ -330,7 +334,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		{
 			PanicAlertT("Error allocating buffer");
 			// Resume the clock
-			PowerPC::Start();
+			CCPU::EnableStepping(false);
 			return;
 		}
 		while (true)
@@ -351,7 +355,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 				fclose(f);
 				delete[] buffer;
 				// Resume the clock
-				PowerPC::Start();
+				CCPU::EnableStepping(false);
 				return;
 			}
 	
@@ -388,7 +392,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	state_op_in_progress = false;
 
 	// Resume the clock
-	PowerPC::Start();
+	CCPU::EnableStepping(false);
 }
 
 void VerifyStateCallback(u64 userdata, int cyclesLate)

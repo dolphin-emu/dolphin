@@ -34,7 +34,6 @@ namespace
 static volatile bool fifoStateRun = false;
 static volatile bool EmuRunning = false;
 static u8 *videoBuffer;
-static Common::EventEx fifo_run_event;
 // STATE_TO_SAVE
 static int size = 0;
 }  // namespace
@@ -55,14 +54,12 @@ void Fifo_DoState(PointerWrap &p)
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-	fifo_run_event.Init();
 	fifoStateRun = false;
 }
 
 void Fifo_Shutdown()
 {
 	if (fifoStateRun) PanicAlert("Fifo shutting down while active");
-	fifo_run_event.Shutdown();
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
 }
 
@@ -89,6 +86,7 @@ void Fifo_SetRendering(bool enabled)
 void Fifo_ExitLoop()
 {
 	Fifo_ExitLoopNonBlocking();
+	EmuRunning = true;
 }
 
 // May be executed from any thread, even the graphics thread.
@@ -100,14 +98,12 @@ void Fifo_ExitLoopNonBlocking()
 	CommandProcessor::SetFifoIdleFromVideoPlugin();
 	// Terminate GPU thread loop
 	fifoStateRun = false;
-	fifo_run_event.Set();
+	EmuRunning = true;
 }
 
 void Fifo_RunLoop(bool run)
 {
 	EmuRunning = run;
-	if (run)
-		fifo_run_event.Set();
 }
 
 // Description: Fifo_EnterLoop() sends data through this function.
@@ -164,8 +160,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 			if (!fifoStateRun) break;
 
-			
 			CommandProcessor::FifoCriticalEnter();
+
 			// Create pointer to video data and send it to the VideoPlugin
 			u32 readPtr = _fifo.CPReadPointer;
 			u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
@@ -191,22 +187,28 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			CommandProcessor::SetStatus();
 
 			CommandProcessor::FifoCriticalLeave();
-
-			// Those two are pretty important and must be called in the FIFO Loop.
-			// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
+		
+			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
+			// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-			
-			VideoFifo_CheckAsyncRequest();
-									
+			VideoFifo_CheckAsyncRequest();					
 		}
 
 		CommandProcessor::isFifoBusy = false;
-		
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
+
 		if (EmuRunning)
 			Common::YieldCPU();
 		else
-			fifo_run_event.MsgWait();
+		{
+			// While the emu is paused, we still handle async request such as Savestates then sleep.
+			while (!EmuRunning)
+			{
+				video_initialize.pPeekMessages();
+				VideoFifo_CheckAsyncRequest();
+				Common::SleepCurrentThread(10);
+			}
+		}
 	}
 }
 
