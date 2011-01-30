@@ -38,10 +38,9 @@ static void ParseLine(const std::string& line, std::string* keyOut, std::string*
 	// Comments
 	if (FirstCommentChar < 0)
 		FirstCommentChar =
-			(int)line.find(";", FirstEquals > 0 ? FirstEquals : 0);
-	if (FirstCommentChar < 0)
-		FirstCommentChar =
 			(int)line.find("#", FirstEquals > 0 ? FirstEquals : 0);
+	if (FirstCommentChar < 0 && line[0] == ';')
+		FirstCommentChar = 0;
 
 	// Allow preservation of spacing before comment
 	if (FirstCommentChar > 0)

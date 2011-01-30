@@ -216,7 +216,7 @@ void CFrame::ClosePages()
 		g_pCodeWindow->ToggleBreakPointWindow(false);
 		g_pCodeWindow->ToggleMemoryWindow(false);
 		g_pCodeWindow->ToggleJitWindow(false);
-		g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
+		g_pCodeWindow->ToggleSoundWindow(false);
 		g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, false);
 	}
 }
@@ -257,7 +257,7 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_MEMORYWINDOW)
 		g_pCodeWindow->ToggleMemoryWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_SOUNDWINDOW)
-		g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
+		g_pCodeWindow->ToggleSoundWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_VIDEOWINDOW)
 		g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, false);
 }

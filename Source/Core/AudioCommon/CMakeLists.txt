@@ -37,6 +37,3 @@ endif()
 
 add_library(audiocommon STATIC ${SRCS})
 target_link_libraries(audiocommon ${LIBS})
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	add_definitions(-fPIC)
-endif()

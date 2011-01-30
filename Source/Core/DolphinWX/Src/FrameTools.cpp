@@ -939,13 +939,10 @@ void CFrame::DoStop()
 		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			Frame::EndPlayInput();
 
-		// These windows cause segmentation faults if they are open when the emulator
-		// stops.  It has something to do with the the wxAuiManager update.
+		// The video debugger window causes a segmentation fault if open when the
+		// emulator stops.  It has something to do with the the wxAuiManager update.
 		if (g_pCodeWindow)
-		{
-			g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
 			g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, false);
-		}
 
 		BootManager::Stop();
 

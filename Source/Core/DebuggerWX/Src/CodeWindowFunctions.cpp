@@ -425,7 +425,7 @@ void CCodeWindow::OpenPages()
 	if (bShowOnStart[IDM_JITWINDOW - IDM_LOGWINDOW])
 		ToggleJitWindow(true);
 	if (bShowOnStart[IDM_SOUNDWINDOW - IDM_LOGWINDOW])
-		ToggleDLLWindow(IDM_SOUNDWINDOW, true);
+		ToggleSoundWindow(true);
 	if (bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW])
 		ToggleDLLWindow(IDM_VIDEOWINDOW, true);
 }
@@ -515,22 +515,23 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 
 void CCodeWindow::ToggleSoundWindow(bool bShow)
 {
+	// TODO: Resurrect DSP debugger window.
+#if 0
 	GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(bShow);
 	if (bShow)
 	{
-		/* TODO: Resurrect DSP debugger window.
-		if (!m_JitWindow)
-		   	m_JitWindow = new CJitWindow(Parent, IDM_SOUNDWINDOW);
-		Parent->DoAddPage(m_JitWindow,
+		if (!m_SoundWindow)
+		   	m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
+		Parent->DoAddPage(m_SoundWindow,
 			   	iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
-		*/
 	}
 	else // Close
 	{
-		//Parent->DoRemovePage(m_JitWindow, false);
-		// m_JitWindow = NULL;
+		Parent->DoRemovePage(m_SoundWindow, false);
+		m_SoundWindow = NULL;
 	}
+#endif
 }
 
 // Notice: This windows docking will produce several wx debugging messages for plugin
