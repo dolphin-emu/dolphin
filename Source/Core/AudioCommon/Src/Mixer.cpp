@@ -20,7 +20,7 @@
 #include "Mixer.h"
 #include "AudioCommon.h"
 #include "CPUDetect.h"
-#include "Host.h"
+#include "../../Core/Src/Host.h"
 
 #include "../../Core/Src/HW/AudioInterface.h"
 
