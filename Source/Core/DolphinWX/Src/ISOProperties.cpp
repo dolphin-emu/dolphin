@@ -57,6 +57,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
+	EVT_CHOICE(ID_PHACK_CHOICE, CISOProperties::SetRefresh)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -115,7 +116,14 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	CreateGUIControls(DiscIO::IsVolumeWadFile(OpenISO));
 
-	std::string _iniFilename = OpenISO->GetUniqueID();
+	std::string _iniFilename;
+	
+	_iniFilename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "PH_PRESETS.ini";
+	PHPresetsIni.Load(_iniFilename.c_str());
+	//PHPresetsIni.SortSections();
+	//PHPresetsIni.Save(_iniFilename.c_str());
+
+	_iniFilename = OpenISO->GetUniqueID();
 	if (!_iniFilename.length())
 	{
 		char tmp[17];
@@ -355,18 +363,21 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Custom Projection Hack"));
 	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Enable"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
 	PHackEnable->SetToolTip(_("Customize some Orthographic Projection parameters."));
+	PHackChoiceText = new wxStaticText(m_GameConfig, ID_PHACK_CHOICE_TEXT, _("Presets: "), wxDefaultPosition, wxDefaultSize);
+	PHackChoice = new wxChoice(m_GameConfig, ID_PHACK_CHOICE, wxDefaultPosition, wxDefaultSize, wxArrayString(0, wxString("", *wxConvCurrent)), 0, wxDefaultValidator);
+	PHackChoice->SetToolTip(_("Load preset values from hack patterns available."));
 	szrPHackSettings = new wxFlexGridSizer(3,5,5);
-	PHackZNearText = new wxStaticText(m_GameConfig, ID_PHACK_ZNear_TEXT, _("zNear Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZNear = new wxTextCtrl(m_GameConfig, ID_PHACK_ZNear, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	PHackZNearText = new wxStaticText(m_GameConfig, ID_PHACK_ZNEAR_TEXT, _("zNear Correction: "), wxDefaultPosition, wxDefaultSize);
+	PHackZNear = new wxTextCtrl(m_GameConfig, ID_PHACK_ZNEAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	PHackZNear->SetToolTip(_("Adds the specified value to zNear Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZNear = new wxCheckBox(m_GameConfig, ID_PHACK_SZNear, _("(-)+zNear"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackSZNear = new wxCheckBox(m_GameConfig, ID_PHACK_SZNEAR, _("(-)+zNear"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
 	PHackSZNear->SetToolTip(_("Changes sign to zNear Parameter (after correction)"));
-	PHackZFarText = new wxStaticText(m_GameConfig, ID_PHACK_ZFar_TEXT, _("zFar Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZFar = new wxTextCtrl(m_GameConfig, ID_PHACK_ZFar, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	PHackZFarText = new wxStaticText(m_GameConfig, ID_PHACK_ZFAR_TEXT, _("zFar Correction: "), wxDefaultPosition, wxDefaultSize);
+	PHackZFar = new wxTextCtrl(m_GameConfig, ID_PHACK_ZFAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	PHackZFar->SetToolTip(_("Adds the specified value to zFar Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZFar = new wxCheckBox(m_GameConfig, ID_PHACK_SZFar, _("(-)+zFar"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackSZFar = new wxCheckBox(m_GameConfig, ID_PHACK_SZFAR, _("(-)+zFar"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
 	PHackSZFar->SetToolTip(_("Changes sign to zFar Parameter (after correction)"));
-	PHackExP = new wxCheckBox(m_GameConfig, ID_PHACK_ExP, _("Extra Parameter"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackExP = new wxCheckBox(m_GameConfig, ID_PHACK_EXP, _("Extra Parameter"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
 	PHackExP->SetToolTip(_("Extra Parameter useful in '\'Metroid: Other M'\' only."));
 
 	// Emulation State
@@ -408,7 +419,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(sbPHackSettings, 0, wxEXPAND);
 	sbPHackSettings->Add(PHackEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbPHackSettings->AddSpacer(15);
-	sbPHackSettings->Add(szrPHackSettings, 0, wxEXPAND|wxLEFT, 5);
+	sbPHackSettings->Add(PHackChoiceText, 0, wxEXPAND|wxLEFT, 5);
+	sbPHackSettings->Add(PHackChoice, 0, wxEXPAND|wxLEFT, 5);
+	sbPHackSettings->Add(szrPHackSettings, 0, wxEXPAND|wxLEFT|wxTOP, 5);
 	szrPHackSettings->Add(PHackZNearText, 0, wxALIGN_CENTER_VERTICAL);
 	szrPHackSettings->Add(PHackZNear, 1, wxEXPAND);
 	szrPHackSettings->Add(PHackSZNear, 0, wxEXPAND|wxLEFT, 5);
@@ -588,6 +601,8 @@ void CISOProperties::OnCheckBoxClicked(wxCommandEvent& event)
 		PHackZFarText->Enable(choice);
 		PHackZFar->Enable(choice);
 		PHackExP->Enable(choice);
+		PHackChoiceText->Enable(choice);
+		PHackChoice->Enable(choice);
 	}
 }
 
@@ -851,6 +866,33 @@ void CISOProperties::SetRefresh(wxCommandEvent& event)
 
 	if (event.GetId() == ID_EMUSTATE)
 		EmuIssues->Enable(event.GetSelection() != 0);
+	else if (event.GetId() == ID_PHACK_CHOICE)
+	{
+		bool bTemp;
+		std::string sTemp;
+		char sIndex[15];
+		int index = event.GetSelection();
+		bRefreshList = false;
+		
+		if (index > 1)
+		{
+			index -= 2;
+			sprintf(sIndex,"%d", index);
+
+			PHPresetsIni.Get(sIndex, "PH_SZNear", &bTemp);
+			PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
+			PHPresetsIni.Get(sIndex, "PH_SZFar", &bTemp);
+			PHackSZFar->Set3StateValue((wxCheckBoxState)bTemp);
+			PHPresetsIni.Get(sIndex, "PH_ExtraParam", &bTemp);
+			PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
+			PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
+			PHackZNear->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+			PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
+			PHackZFar->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+			
+			bRefreshList = true;
+		}
+	}
 }
 
 void CISOProperties::LoadGameConfig()
@@ -858,6 +900,7 @@ void CISOProperties::LoadGameConfig()
 	bool bTemp;
 	int iTemp;
 	std::string sTemp;
+	char sIndex[15];
 
 	if (GameIni.Get("Core", "CPUThread", &bTemp))
 		CPUThread->Set3StateValue((wxCheckBoxState)bTemp);
@@ -968,6 +1011,24 @@ void CISOProperties::LoadGameConfig()
 	PHackZFarText->Enable(bTemp);
 	PHackZFar->Enable(bTemp);
 	PHackExP->Enable(bTemp);
+	PHackChoiceText->Enable(bTemp);
+	PHackChoice->Enable(bTemp);
+
+	PHackChoice->Clear();
+	PHackChoice->Append(wxString(_("Custom"), *wxConvCurrent));
+	for (int i=0 ;  ; i++)
+	{
+		sprintf(sIndex,"%d",i);
+		if (!PHPresetsIni.Exists(sIndex, "Title"))
+			break;
+		PHPresetsIni.Get(sIndex, "Title", &sTemp);
+		if (sTemp.empty())
+			sTemp = wxString(_("(UNKNOWN)"), *wxConvCurrent).char_str();
+		if (i == 0)
+			PHackChoice->Append(wxString("-----------", *wxConvCurrent));
+		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
+	}
+	PHackChoice->Select(0);
 
 	GameIni.Get("Video", "PH_SZNear", &bTemp);
 	PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);

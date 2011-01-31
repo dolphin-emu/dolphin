@@ -94,7 +94,7 @@ class CISOProperties : public wxDialog
 			*EFBCopyEnable, *EFBAccessEnable, *EFBToTextureEnable,
 			*SafeTextureCache, *DstAlphaPass, *UseXFB, *UseZTPSpeedupHack,
 			*DListCache, *PHackEnable, *PHackSZNear, *PHackSZFar, *PHackExP;
-		wxStaticText *Hacktext;
+		wxChoice *PHackChoice;
 
 		wxButton *EditConfig;
 		wxStaticText *EmuStateText;
@@ -128,6 +128,7 @@ class CISOProperties : public wxDialog
 		wxStaticText *m_MakerText;
 		wxStaticText *m_CommentText;
 		wxStaticText *m_BannerText;
+		wxStaticText *PHackChoiceText;
 		wxStaticText *PHackZNearText;
 		wxStaticText *PHackZFarText;
 		wxTextCtrl *m_Name;
@@ -186,13 +187,15 @@ class CISOProperties : public wxDialog
 			ID_ZTP_SPEEDUP,
 			ID_DLISTCACHE,
 			ID_PHACKENABLE,
-			ID_PHACK_SZNear,
-			ID_PHACK_SZFar,
-			ID_PHACK_ZNear_TEXT,
-			ID_PHACK_ZNear,
-			ID_PHACK_ZFar_TEXT,
-			ID_PHACK_ZFar,
-			ID_PHACK_ExP,
+			ID_PHACK_CHOICE_TEXT,
+			ID_PHACK_CHOICE,
+			ID_PHACK_SZNEAR,
+			ID_PHACK_SZFAR,
+			ID_PHACK_ZNEAR_TEXT,
+			ID_PHACK_ZNEAR,
+			ID_PHACK_ZFAR_TEXT,
+			ID_PHACK_ZFAR,
+			ID_PHACK_EXP,
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,
 			ID_EDITCONFIG,
@@ -273,7 +276,7 @@ class CISOProperties : public wxDialog
 		void ExportDir(const char* _rFullPath, const char* _rExportFilename,
 								 const int partitionNum = 0);
 
-		IniFile GameIni;
+		IniFile GameIni, PHPresetsIni;
 		std::string GameIniFile;
 
 		void LoadGameConfig();
