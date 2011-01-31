@@ -94,11 +94,11 @@
     <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,17 +114,17 @@
     <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)DF</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <IntDir>$(PlatformName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)DF</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
