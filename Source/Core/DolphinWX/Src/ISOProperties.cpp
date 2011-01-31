@@ -311,10 +311,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	
 	// GameConfig editing - Overrides and emulation state
-	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	// Core
-	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -331,24 +329,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
-	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
-	{
-		sbWiiOverrides->ShowItems(false);
- 		EnableProgressiveScan->Hide();
- 		EnableWideScreen->Hide();
-	}
-	else
-	{
-		// Progressive Scan is not used by Dolphin itself, and changing it on a per-game
-		// basis would have the side-effect of changing the SysConf, making this setting
-		// rather useless.
-		EnableProgressiveScan->Disable();
-	}
 	// Video
-	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyEnable = new wxCheckBox(m_GameConfig, ID_EFBCOPYENABLE, _("Enable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBAccessEnable = new wxCheckBox(m_GameConfig, ID_EFBACCESSENABLE, _("Enable CPU Access"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -360,7 +343,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	DListCache = new wxCheckBox(m_GameConfig, ID_DLISTCACHE, _("DList Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Hack
-	sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Custom Projection Hack"));
 	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Enable"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
 	PHackEnable->SetToolTip(_("Customize some Orthographic Projection parameters."));
 	PHackChoiceText = new wxStaticText(m_GameConfig, ID_PHACK_CHOICE_TEXT, _("Presets: "), wxDefaultPosition, wxDefaultSize);
@@ -394,7 +376,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
-	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
+	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
@@ -404,8 +386,25 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
 	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxEXPAND|wxLEFT, 5);
+
+	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
+	{
+		sbWiiOverrides->ShowItems(false);
+		EnableProgressiveScan->Hide();
+		EnableWideScreen->Hide();
+	}
+	else
+	{
+		// Progressive Scan is not used by Dolphin itself, and changing it on a per-game
+		// basis would have the side-effect of changing the SysConf, making this setting
+		// rather useless.
+		EnableProgressiveScan->Disable();
+	}
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
+
+	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBCopyEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBAccessEnable, 0, wxEXPAND|wxLEFT, 5);
@@ -416,12 +415,15 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DListCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->AddSpacer(5);
-	sbVideoOverrides->Add(sbPHackSettings, 0, wxEXPAND);
+
+	sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Custom Projection Hack"));
 	sbPHackSettings->Add(PHackEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbPHackSettings->AddSpacer(15);
 	sbPHackSettings->Add(PHackChoiceText, 0, wxEXPAND|wxLEFT, 5);
 	sbPHackSettings->Add(PHackChoice, 0, wxEXPAND|wxLEFT, 5);
 	sbPHackSettings->Add(szrPHackSettings, 0, wxEXPAND|wxLEFT|wxTOP, 5);
+	sbVideoOverrides->Add(sbPHackSettings, 0, wxEXPAND);
+
 	szrPHackSettings->Add(PHackZNearText, 0, wxALIGN_CENTER_VERTICAL);
 	szrPHackSettings->Add(PHackZNear, 1, wxEXPAND);
 	szrPHackSettings->Add(PHackSZNear, 0, wxEXPAND|wxLEFT, 5);
@@ -430,6 +432,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	szrPHackSettings->Add(PHackSZFar, 0, wxEXPAND|wxLEFT, 5);
 	szrPHackSettings->Add(PHackExP, 0, wxEXPAND|wxTOP, 5);
 
+	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
+	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);

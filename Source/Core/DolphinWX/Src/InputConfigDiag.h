@@ -156,7 +156,7 @@ public:
 	{}
 };
 
-class ControlGroupBox : public wxStaticBoxSizer
+class ControlGroupBox : public wxBoxSizer
 {
 public:
 	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink);

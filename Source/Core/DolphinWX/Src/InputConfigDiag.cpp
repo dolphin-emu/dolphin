@@ -687,10 +687,9 @@ ControlGroupBox::~ControlGroupBox()
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink)
-	: wxStaticBoxSizer(wxVERTICAL, parent, WXTSTR_FROM_CSTR(group->name))
+	: wxBoxSizer(wxVERTICAL)
 	, control_group(group)
 {
-
 	static_bitmap = NULL;
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -877,7 +876,10 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	wxBoxSizer* stacked_groups = NULL;
 	for (unsigned int i = 0; i < controller->groups.size(); ++i)
 	{
-		ControlGroupBox* control_group = new ControlGroupBox(controller->groups[i], parent, eventsink);
+		ControlGroupBox* control_group_box = new ControlGroupBox(controller->groups[i], parent, eventsink);
+		wxStaticBoxSizer *control_group =
+			new wxStaticBoxSizer(wxVERTICAL, parent, WXTSTR_FROM_CSTR(controller->groups[i]->name));
+		control_group->Add(control_group_box);
 
 		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
 		col_size += grp_size;
@@ -895,7 +897,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 			stacked_groups->Add(control_group, 0, wxEXPAND);
 
 		if (groups)
-			groups->push_back(control_group);
+			groups->push_back(control_group_box);
 	}
 
 	if (stacked_groups)
