@@ -40,7 +40,7 @@
 #include "PowerPC/PowerPC.h"
 #include "HW/Wiimote.h"
 
-#include "PluginManager.h"
+#include "VideoBackendBase.h"
 #include "ConfigManager.h"
 #include "LogManager.h"
 #include "BootManager.h"
@@ -76,7 +76,10 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateBreakPointView(){}
 
-bool Host_GetKeyState(int keycode){}
+bool Host_GetKeyState(int keycode)
+{
+	return false;
+}
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
@@ -292,8 +295,9 @@ int main(int argc, char* argv[])
 	updateMainFrameEvent.Init();
 	LogManager::Init();
 	SConfig::Init();
-	CPluginManager::Init();
-	CPluginManager::GetInstance().ScanForPlugins();
+	VideoBackend::PopulateList();
+	VideoBackend::ActivateBackend(SConfig::GetInstance().
+		m_LocalCoreStartupParameter.m_strVideoPlugin);
 	WiimoteReal::LoadSettings();
 
 	// No use running the loop when booting fails
@@ -337,7 +341,7 @@ int main(int argc, char* argv[])
 
 	updateMainFrameEvent.Shutdown();
 	WiimoteReal::Shutdown();
-	CPluginManager::Shutdown();
+	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 
