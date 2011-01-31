@@ -23,6 +23,7 @@ set(SRCS	Src/ABI.cpp
 			Src/Thunk.cpp
 			Src/Timer.cpp
 			Src/Version.cpp
+			Src/VideoBackendBase.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp
 			Src/Crypto/aes_cbc.cpp

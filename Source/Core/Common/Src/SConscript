@@ -37,6 +37,7 @@ files = [
 	"Thunk.cpp",
 	"Timer.cpp",
 	"Version.cpp",
+	"VideoBackendBase.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
 	"Crypto/aes_cbc.cpp",

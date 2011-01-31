@@ -17,7 +17,7 @@
 
 #include "OCLTextureDecoder.h"
 
-#include "OpenCL.h"
+#include "../OpenCL.h"
 #include "FileUtil.h"
 
 #include <fcntl.h>

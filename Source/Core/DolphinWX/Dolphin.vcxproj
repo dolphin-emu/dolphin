@@ -436,9 +436,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
       <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\DSPCore\DSPCore.vcxproj">
-      <Project>{4ed3c8be-91a7-4361-8d46-16d03b678d4c}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
       <Project>{b39ac394-5db5-4da9-9d98-09d46ca3701f}</Project>
     </ProjectReference>
