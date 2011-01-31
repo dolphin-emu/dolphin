@@ -30,6 +30,7 @@
 #include "DSP/DSPHWInterface.h"
 #include "DSP/disassemble.h"
 #include "DSPSymbols.h"
+#include "Host.h"
 
 #include "AudioCommon.h"
 #include "Mixer.h"
@@ -77,19 +78,6 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(m_cycle_count);
 }
 
-	/* ECTORTODO
-void *DllDebugger(void *_hParent, bool Show)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	m_DebuggerFrame = new DSPDebuggerLLE((wxWindow *)_hParent);
-	return (void *)m_DebuggerFrame;
-#else
-	return NULL;
-#endif
-}
-	*/
-
-
 // Regular thread
 void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 {
@@ -109,7 +97,6 @@ void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 	}
 }
 
-/* ECTORTODO
 void DSPLLE::DSP_DebugBreak()
 {
 #if defined(HAVE_WX) && HAVE_WX
@@ -117,7 +104,6 @@ void DSPLLE::DSP_DebugBreak()
 	//  	m_DebuggerFrame->DebugBreak();
 #endif
 }
-*/
 
 void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
@@ -157,16 +143,11 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	InitInstructionTable();
 
 	if (m_bDSPThread)
-	{
 		m_hDSPThread = std::thread(dsp_thread, this);
-	}
-/*
-ECTORTODO
+
 #if defined(HAVE_WX) && HAVE_WX
-	if (m_DebuggerFrame)
-		m_DebuggerFrame->Refresh();
+	Host_RefreshDSPDebuggerWindow();
 #endif
-		*/
 }
 
 void DSPLLE::DSP_StopSoundStream()

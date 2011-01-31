@@ -42,6 +42,7 @@ bool Host_GetKeyState(int keycode);
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
 void Host_Message(int Id);
 void Host_NotifyMapLoaded();
+void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_SetWaitCursor(bool enable);
 void Host_SetWiiMoteConnectionState(int _State);

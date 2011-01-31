@@ -153,9 +153,15 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 	m_mgr.Update();
 }
 
+void Host_RefreshDSPDebuggerWindow()
+{
+	if (m_DebuggerFrame)
+		m_DebuggerFrame->Refresh();
+}
+
 void DSPDebuggerLLE::Refresh()
 {
-#if defined HAVE_X11 && HAVE_X11
+#if defined __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiEnter();
 #endif
@@ -164,7 +170,7 @@ void DSPDebuggerLLE::Refresh()
 	UpdateRegisterFlags();
 	UpdateState();
 	m_mgr.Update();
-#if defined HAVE_X11 && HAVE_X11
+#if defined __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();
 #endif
