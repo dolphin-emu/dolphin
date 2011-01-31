@@ -104,7 +104,7 @@ wxString opencl_tooltip = wxT("");
 wxString dlc_tooltip = wxT("");
 wxString hotkeys_tooltip = wxT("");
 wxString ppshader_tooltip = wxT("");
-wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safier the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
+wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
@@ -126,10 +126,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - basic
 	{
-	wxStaticBoxSizer* const group_basic = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Basic"));
-	szr_general->Add(group_basic, 0, wxEXPAND | wxALL, 5);
 	wxFlexGridSizer* const szr_basic = new wxFlexGridSizer(2, 5, 5);
-	group_basic->Add(szr_basic, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// graphics api
 	//{
@@ -180,11 +177,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// enhancements
-	{
-	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Enhancements"));
-	szr_general->Add(group_enh, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxFlexGridSizer* const szr_enh = new wxFlexGridSizer(2, 5, 5);
-	group_enh->Add(szr_enh, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	szr_enh->Add(new wxStaticText(page_general, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
@@ -222,15 +215,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_enh->Add(new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision));
 	}
 
-	}
-
 	// - EFB
-	{
-	wxStaticBoxSizer* const group_efb = new wxStaticBoxSizer(wxVERTICAL, page_general, _("EFB"));
-	szr_general->Add(group_efb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-
 	// EFB scale
-	{
 	wxBoxSizer* const efb_scale_szr = new wxBoxSizer(wxHORIZONTAL);
 	// TODO: give this a label (?)
 	const wxString efbscale_choices[] = { _("Fractional"), _("Integral [recommended]"),
@@ -243,12 +229,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	//efb_scale_szr->AddStretchSpacer(1);
 	efb_scale_szr->Add(choice_efbscale, 0, wxBOTTOM | wxLEFT, 5);
 
-	group_efb->Add(efb_scale_szr, 0, wxBOTTOM | wxLEFT, 5);
-	}
-
-	group_efb->Add(new SettingCheckBox(page_general, _("Enable CPU Access"), wxGetTranslation(efb_access_tooltip), vconfig.bEFBAccessEnable), 0, wxBOTTOM | wxLEFT, 5);
 	SettingCheckBox *emulate_efb_format_changes = new SettingCheckBox(page_general, _("Emulate format changes"), wxGetTranslation(efb_emulate_format_changes_tooltip), vconfig.bEFBEmulateFormatChanges);
-	group_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
 
 	if (!vconfig.backend_info.bSupportsFormatReinterpretation)
 	{
@@ -257,9 +238,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// EFB copy
-	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Copy"));
-	group_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
-
 	SettingCheckBox* efbcopy_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(efb_copy_tooltip), vconfig.bEFBCopyEnable);
 	_connect_macro_(efbcopy_enable, VideoConfigDiag::Event_EfbCopy, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	efbcopy_texture = new SettingRadioButton(page_general, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
@@ -267,6 +245,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	efbcopy_ram = new SettingRadioButton(page_general, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), vconfig.bCopyEFBToTexture, true);
 	_connect_macro_(efbcopy_ram, VideoConfigDiag::Event_EfbCopyToRam, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	cache_efb_copies = new SettingCheckBox(page_general, _("Enable cache"), wxGetTranslation(cache_efb_copies_tooltip), vconfig.bEFBCopyCacheEnable);
+	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Copy"));
 	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
@@ -288,33 +267,22 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	else if (vconfig.bCopyEFBToTexture)
 		cache_efb_copies->Disable();
 
-	}
-
 	// - safe texture cache
-	{
-	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Accurate Texture Cache"));
-	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-
 	SettingCheckBox* stc_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(stc_tooltip), vconfig.bSafeTextureCache);
 	_connect_macro_(stc_enable, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	group_safetex->Add(stc_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	group_safetex->AddStretchSpacer(1);
 
 	stc_safe = new wxRadioButton(page_general, -1, _("Safe"),
 		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	stc_safe->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
 
 	stc_normal = new wxRadioButton(page_general, -1, _("Normal"));
 	stc_normal->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
 
 	stc_fast = new wxRadioButton(page_general, -1, _("Fast"));
 	stc_fast->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
 
 	if (0 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_safe->SetValue(true);
@@ -332,8 +300,27 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		stc_fast->Disable();
 	}
 
-	}
+	wxStaticBoxSizer* const group_basic = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Basic"));
+	szr_general->Add(group_basic, 0, wxEXPAND | wxALL, 5);
+	group_basic->Add(szr_basic, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Enhancements"));
+	szr_general->Add(group_enh, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_enh->Add(szr_enh, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
+	wxStaticBoxSizer* const group_efb = new wxStaticBoxSizer(wxVERTICAL, page_general, _("EFB"));
+	szr_general->Add(group_efb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_efb->Add(efb_scale_szr, 0, wxBOTTOM | wxLEFT, 5);
+	group_efb->Add(new SettingCheckBox(page_general, _("Enable CPU Access"), wxGetTranslation(efb_access_tooltip), vconfig.bEFBAccessEnable), 0, wxBOTTOM | wxLEFT, 5);
+	group_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
+	group_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
+
+	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Accurate Texture Cache"));
+	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_safetex->Add(stc_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_safetex->AddStretchSpacer(1);
+	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
+	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
+	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
 	}
 
 	page_general->SetSizerAndFit(szr_general);
@@ -347,24 +334,22 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - rendering
 	{
-	wxStaticBoxSizer* const group_rendering = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Rendering"));
-	szr_advanced->Add(group_rendering, 0, wxEXPAND | wxALL, 5);
 	wxGridSizer* const szr_rendering = new wxGridSizer(2, 5, 5);
-	group_rendering->Add(szr_rendering, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	szr_rendering->Add(new SettingCheckBox(page_advanced, _("Enable Wireframe"), wxGetTranslation(wireframe_tooltip), vconfig.bWireFrame));
 	szr_rendering->Add(new SettingCheckBox(page_advanced, _("Disable Lighting"), wxGetTranslation(disable_lighting_tooltip), vconfig.bDisableLighting));
 	szr_rendering->Add(new SettingCheckBox(page_advanced, _("Disable Textures"), wxGetTranslation(disable_textures_tooltip), vconfig.bDisableTexturing));
 	szr_rendering->Add(new SettingCheckBox(page_advanced, _("Disable Fog"), wxGetTranslation(disable_fog_tooltip), vconfig.bDisableFog));
 	szr_rendering->Add(new SettingCheckBox(page_advanced, _("Disable Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_tooltip), vconfig.bDstAlphaPass));
+
+	wxStaticBoxSizer* const group_rendering = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Rendering"));
+	szr_advanced->Add(group_rendering, 0, wxEXPAND | wxALL, 5);
+	group_rendering->Add(szr_rendering, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
 	// - info
 	{
-	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Information"));
-	szr_advanced->Add(group_info, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxGridSizer* const szr_info = new wxGridSizer(2, 5, 5);
-	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	szr_info->Add(new SettingCheckBox(page_advanced, _("Show FPS"), wxGetTranslation(show_fps_tooltip), vconfig.bShowFPS));
 	szr_info->Add(new SettingCheckBox(page_advanced, _("Various Statistics"), wxGetTranslation(show_stats_tooltip), vconfig.bOverlayStats));
@@ -372,17 +357,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_info->Add(new SettingCheckBox(page_advanced, _("Texture Format"), wxGetTranslation(texfmt_tooltip), vconfig.bTexFmtOverlayEnable));
 	szr_info->Add(new SettingCheckBox(page_advanced, _("EFB Copy Regions"), wxGetTranslation(efb_copy_regions_tooltip), vconfig.bShowEFBCopyRegions));
 	szr_info->Add(new SettingCheckBox(page_advanced, _("Show Shader Errors"), wxT(""), vconfig.bShowShaderErrors));
+
+	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Information"));
+	szr_advanced->Add(group_info, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 	
 	// - XFB
 	{
-	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_advanced, _("XFB"));
-	szr_advanced->Add(group_xfb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-
 	SettingCheckBox* enable_xfb = new SettingCheckBox(page_advanced, _("Enable"), wxGetTranslation(xfb_tooltip), vconfig.bUseXFB);
 	_connect_macro_(enable_xfb, VideoConfigDiag::Event_Xfb, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	virtual_xfb = new SettingRadioButton(page_advanced, _("Virtual"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB, true, wxRB_GROUP);
 	real_xfb = new SettingRadioButton(page_advanced, _("Real"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB);
+
+	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_advanced, _("XFB"));
+	szr_advanced->Add(group_xfb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_xfb->Add(enable_xfb, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_xfb->AddStretchSpacer(1);
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
@@ -405,24 +394,22 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - utility
 	{
-	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Utility"));
-	szr_advanced->Add(group_utility, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxGridSizer* const szr_utility = new wxGridSizer(2, 5, 5);
-	group_utility->Add(szr_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Textures"), wxGetTranslation(dump_textures_tooltip), vconfig.bDumpTextures));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Load Hi-Res Textures"), wxGetTranslation(load_hires_textures_tooltip), vconfig.bHiresTextures));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump EFB Target"), dump_efb_tooltip, vconfig.bDumpEFBTarget));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Frames"), dump_frames_tooltip, vconfig.bDumpFrames));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Free Look"), free_look_tooltip, vconfig.bFreeLook));
+
+	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Utility"));
+	szr_advanced->Add(group_utility, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_utility->Add(szr_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
 	// - misc
 	{
-	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
-	szr_advanced->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxFlexGridSizer* const szr_misc = new wxFlexGridSizer(2, 5, 5);
-	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Crop"), crop_tooltip, vconfig.bCrop));
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, vconfig.bEnableOpenCL));
@@ -454,6 +441,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_misc->Add(choice_ppshader, 0, wxLEFT, 5);
 	}
 
+	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
+	szr_advanced->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
 	page_advanced->SetSizerAndFit(szr_advanced);
