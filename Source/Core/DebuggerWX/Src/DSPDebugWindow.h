@@ -47,7 +47,7 @@ class CMemoryView;
 class DSPDebuggerLLE : public wxPanel
 {
 public:
-	DSPDebuggerLLE(wxWindow *parent);
+	DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
 	virtual ~DSPDebuggerLLE();
 
 	void Refresh();
@@ -86,15 +86,15 @@ private:
 
 	void OnClose(wxCloseEvent& event);
 	void OnChangeState(wxCommandEvent& event);
-	void OnRightClick(wxListEvent& event);
-	void OnDoubleClick(wxListEvent& event);
+	//void OnRightClick(wxListEvent& event);
+	//void OnDoubleClick(wxListEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnSymbolListChange(wxCommandEvent& event);
 
 	bool JumpToAddress(u16 addr);
 
 	void FocusOnPC();
-	void UnselectAll();
+	//void UnselectAll();
 };
 
 extern DSPDebuggerLLE* m_DebuggerFrame;

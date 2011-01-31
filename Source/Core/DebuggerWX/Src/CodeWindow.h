@@ -37,6 +37,7 @@ class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
 class CCodeView;
+class DSPDebuggerLLE;
 class GFXDebuggerPanel;
 
 class CCodeWindow
@@ -107,6 +108,7 @@ class CCodeWindow
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
 		CJitWindow* m_JitWindow;
+		DSPDebuggerLLE* m_SoundWindow;
 		GFXDebuggerPanel* m_VideoWindow;
 
 		// Settings

@@ -38,6 +38,7 @@
 #include "MemoryWindow.h"
 #include "JitWindow.h"
 #include "DebuggerPanel.h"
+#include "DSPDebugWindow.h"
 #include "FileUtil.h"
 
 #include "CodeWindow.h"
@@ -516,7 +517,6 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 void CCodeWindow::ToggleSoundWindow(bool bShow)
 {
 	// TODO: Resurrect DSP debugger window.
-#if 0
 	GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(bShow);
 	if (bShow)
 	{
@@ -531,7 +531,6 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 		Parent->DoRemovePage(m_SoundWindow, false);
 		m_SoundWindow = NULL;
 	}
-#endif
 }
 
 void CCodeWindow::ToggleVideoWindow(bool bShow)

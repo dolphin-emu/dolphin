@@ -37,7 +37,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
-	blocks = new CompiledCode[MAX_BLOCKS];
+	blocks = new DSPCompiledCode[MAX_BLOCKS];
 	blockLinks = new Block[MAX_BLOCKS];
 	blockSize = new u16[MAX_BLOCKS];
 	unresolvedJumps = new std::list<u16>[MAX_BLOCKS];
@@ -52,7 +52,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	//clear all of the block references
 	for(int i = 0x0000; i < MAX_BLOCKS; i++)
 	{
-		blocks[i] = (CompiledCode)stubEntryPoint;
+		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
@@ -70,7 +70,7 @@ void DSPEmitter::ClearIRAM() {
 	// ClearCodeSpace();
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
-		blocks[i] = (CompiledCode)stubEntryPoint;
+		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = 0;
 		blockSize[i] = 0;
 	}
@@ -338,7 +338,7 @@ void DSPEmitter::Compile(u16 start_addr)
 #endif
 	}
 
-	blocks[start_addr] = (CompiledCode)entryPoint;
+	blocks[start_addr] = (DSPCompiledCode)entryPoint;
 
 	// Mark this block as a linkable destination if it does not contain
 	// any unresolved CALL's
@@ -356,7 +356,7 @@ void DSPEmitter::Compile(u16 start_addr)
 				if (unresolvedJumps[i].size() < size)
 				{
 					// Mark the block to be recompiled again
-					blocks[i] = (CompiledCode)stubEntryPoint;
+					blocks[i] = (DSPCompiledCode)stubEntryPoint;
 					blockLinks[i] = 0;
 					blockSize[i] = 0;
 				}

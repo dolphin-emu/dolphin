@@ -28,7 +28,7 @@
 
 #define MAX_BLOCKS 0x10000
 
-typedef u32 (*CompiledCode)();
+typedef u32 (*DSPCompiledCode)();
 typedef const u8 *Block;
 
 class DSPEmitter : public Gen::XCodeBlock, NonCopyable
@@ -264,7 +264,7 @@ public:
 	void SaveDSPRegs();
 
 private:
-	CompiledCode *blocks;
+	DSPCompiledCode *blocks;
 	Block blockLinkEntry;
 	u16 compileSR;
 

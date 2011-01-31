@@ -14,4 +14,4 @@ set(SRCS	Src/BreakpointDlg.cpp
 			Src/RegisterWindow.cpp)
 
 add_library(debwx STATIC ${SRCS})
-target_link_libraries(debwx common debugger_ui_util)
+target_link_libraries(debwx common core debugger_ui_util)

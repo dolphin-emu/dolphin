@@ -50,6 +50,8 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 									const wxSize& size, long style, const wxString &title)
 	: wxPanel(parent, id, position, size, style, title)
 {
+	g_pdebugger = this;
+
 	CreateGUIControls();
 
 	LoadSettings();
@@ -57,6 +59,7 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 
 GFXDebuggerPanel::~GFXDebuggerPanel()
 {
+	g_pdebugger = NULL;
 	GFXDebuggerPauseFlag = false;
 }
 
@@ -134,8 +137,6 @@ static const int numPauseEventMap = sizeof(pauseEventMap)/sizeof(PauseEventMap);
 
 void GFXDebuggerPanel::CreateGUIControls()
 {
-	g_pdebugger = this;
-
 	// Basic settings
 	CenterOnParent();
 

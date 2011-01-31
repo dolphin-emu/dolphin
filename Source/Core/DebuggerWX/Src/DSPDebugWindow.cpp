@@ -39,11 +39,13 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 END_EVENT_TABLE()
 
 
-DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent)
-	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(700, 800),
+DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
 		   	wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
 	, m_CachedStepCounter(-1)
 {
+	m_DebuggerFrame = this;
+
 	// notify wxAUI which frame to use
 	m_mgr.SetManagedWindow(this);
 

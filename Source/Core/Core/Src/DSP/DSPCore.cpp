@@ -251,7 +251,7 @@ int DSPCore_RunCycles(int cycles)
 	if (dspjit)
 	{
 		cyclesLeft = cycles;
-		CompiledCode pExecAddr = (CompiledCode)dspjit->enterDispatcher;
+		DSPCompiledCode pExecAddr = (DSPCompiledCode)dspjit->enterDispatcher;
 		pExecAddr();
 
 		if (g_dsp.external_interrupt_waiting)
