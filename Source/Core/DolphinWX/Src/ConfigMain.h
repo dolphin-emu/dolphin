@@ -57,7 +57,6 @@ public:
 		ID_GAMECUBEPAGE,
 		ID_WIIPAGE,
 		ID_PATHSPAGE,
-		ID_PLUGINPAGE,
 	};
 
 private:
@@ -74,7 +73,6 @@ private:
 		ID_CPUENGINE,
 		ID_LOCKTHREADS,
 		ID_DSPTHREAD,
-
 
 		ID_DISPLAY_FULLSCREENRES,
 		ID_DISPLAY_WINDOWWIDTH,
@@ -101,7 +99,6 @@ private:
 		ID_INTERFACE_THEME,
 		ID_INTERFACE_LANG,
 		ID_HOTKEY_CONFIG,
-
 
 		ID_GC_SRAM_LNG,
 
@@ -298,9 +295,6 @@ private:
 	void DVDRootChanged(wxFileDirPickerEvent& event);
 	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event));
 
-	void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
-	void CallConfig(wxChoice* _pChoice);
-	bool GetFilename(wxChoice* _pChoice, std::string& _rFilename);
 	DECLARE_EVENT_TABLE();
 };
 #endif

@@ -57,6 +57,7 @@
 #include "FramebufferManager.h"
 #include "Fifo.h"
 #include "Debugger.h"
+#include "Core.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -962,7 +963,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);
+		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
 	// this function is called after the XFB field is changed, not after
@@ -974,7 +975,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);
+		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
 
@@ -1365,7 +1366,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	g_VideoInitialize.pCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
 }
 
@@ -1485,6 +1486,9 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 
 }
 
+// TODO: remove
+extern bool g_aspect_wide;
+
 #if defined(HAVE_WX) && HAVE_WX
 void TakeScreenshot(ScrStrct* threadStruct)
 {
@@ -1495,7 +1499,7 @@ void TakeScreenshot(ScrStrct* threadStruct)
 	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
-		bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
+		bool use16_9 = g_aspect_wide;
 
 		// Check for force-settings and override.
 		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
@@ -1589,7 +1593,7 @@ void Renderer::SetWindowSize(int width, int height)
 	// Scale the window size by the EFB scale.
 	CalculateTargetScale(width, height, width, height);
 
-	g_VideoInitialize.pRequestWindowSize(width, height);
+	Core::Callback_VideoRequestWindowSize(width, height);
 }
 
 }

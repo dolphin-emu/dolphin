@@ -42,9 +42,6 @@
 int frameCount;
 //int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 
-SVideoInitialize g_VideoInitialize;
-PLUGIN_GLOBALS* globals;
-
 Renderer *g_renderer;
 
 bool s_bLastFrameDumped = false;

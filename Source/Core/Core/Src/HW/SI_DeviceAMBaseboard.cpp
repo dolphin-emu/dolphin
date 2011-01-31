@@ -23,8 +23,6 @@
 #include "GCPadStatus.h"
 #include "GCPad.h"
 
-#include "../PluginManager.h" // for pad state
-
 // where to put baseboard debug
 #define AMBASEBOARDDEBUG OSREPORT
 

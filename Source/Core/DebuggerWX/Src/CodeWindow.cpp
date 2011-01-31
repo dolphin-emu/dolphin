@@ -55,7 +55,6 @@
 #include "PowerPC/JitCommon/JitBase.h"
 #include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
-#include "PluginManager.h"
 #include "ConfigManager.h"
 
 extern "C"  // Bitmaps

@@ -53,84 +53,20 @@
 #include "render.h"
 #include "DLCache.h"
 #include "IniFile.h"
+#include "Core.h"
 
-HINSTANCE g_hInstance = NULL;
+#include "ConfigManager.h"
+#include "VideoBackend.h"
 
-wxLocale *InitLanguageSupport()
+namespace DX9
 {
-	wxLocale *m_locale;
-	unsigned int language = 0;
 
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
-
-	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(language))
-	{
-		m_locale = new wxLocale(language);
-
-		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
-
-		m_locale->AddCatalog(wxT("dolphin-emu"));
-
-		if(!m_locale->IsOk())
-		{
-			PanicAlertT("Error loading selected language. Falling back to system default.");
-			delete m_locale;
-			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
-		}
-	}
-	else
-	{
-		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
-		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
-	}
-	return m_locale;
+void*& VideoWindowHandle()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
 }
 
-
-// This is used for the functions right below here which use wxwidgets
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-void *DllDebugger(void *_hParent, bool Show)
-{
-	return new GFXDebuggerPanel((wxWindow*)_hParent);
-}
-
-class wxDLLApp : public wxApp
-{
-	bool OnInit()
-	{
-		return true;
-	}
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp)
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
-{
-	static wxLocale *m_locale;
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
-		{
-			wxSetInstance((HINSTANCE)hinstDLL);
-			wxInitialize();
-			m_locale = InitLanguageSupport();
-		}
-		break;
-	case DLL_PROCESS_DETACH:
-		wxUninitialize();
-		delete m_locale;
-		break;
-	}
-
-	g_hInstance = hinstDLL;
-	return TRUE;
-}
-
-unsigned int Callback_PeekMessages()
+unsigned int VideoBackend::PeekMessages()
 {
 	MSG msg;
 	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -143,36 +79,29 @@ unsigned int Callback_PeekMessages()
 	return TRUE;
 }
 
-
-void UpdateFPSDisplay(const char *text)
+void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
 	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX9 | %hs"), svn_rev_str, text);
 	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
-void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-{
-	_PluginInfo->Version = 0x0100;
-	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-#ifdef DEBUGFAST
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
-#elif defined _DEBUG
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
-#else
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
-#endif
-}
+//void GetDllInfo(PLUGIN_INFO* _PluginInfo)
+//{
+//	_PluginInfo->Version = 0x0100;
+//	//_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
+//#ifdef DEBUGFAST
+//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
+//#elif defined _DEBUG
+//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
+//#else
+//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
+//#endif
+//}
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+std::string VideoBackend::GetName()
 {
-	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager*)globals->logManager);
-}
-
-void DllAbout(HWND _hParent)
-{
-	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
+	return "Direct3D9";
 }
 
 void InitBackendInfo()
@@ -190,7 +119,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 }
 
-void DllConfig(void *_hParent)
+void VideoBackend::ShowConfig(void* parent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
@@ -212,7 +141,7 @@ void DllConfig(void *_hParent)
 	}
 
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, _trans("Direct3D9"), "gfx_dx9");
+	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
 	diag->ShowModal();
 	diag->Destroy();
 
@@ -220,23 +149,20 @@ void DllConfig(void *_hParent)
 #endif
 }
 
-void Initialize(void *init)
+void VideoBackend::Initialize()
 {
 	InitBackendInfo();
 
 	frameCount = 0;
-	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
-	// Create a shortcut to _pVideoInitialize that can also update it
-	g_VideoInitialize = *(_pVideoInitialize);
 	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
-	g_Config.GameIniLoad(globals->game_ini);
+	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();
 
-	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
-	if (g_VideoInitialize.pWindowHandle == NULL)
+	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), GetModuleHandle(0), _T("Loading - Please wait."));
+	if (VideoWindowHandle() == NULL)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
 		return;
@@ -247,20 +173,11 @@ void Initialize(void *init)
 		return;
 	}
 
-	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
-	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
-
-	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
-	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
-
-	// Now the window handle is written
-	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
-
 	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
 	s_PluginInitialized = true;
 }
 
-void Video_Prepare()
+void VideoBackend::Video_Prepare()
 {
 	// Better be safe...
 	s_efbAccessRequested = FALSE;
@@ -268,9 +185,9 @@ void Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new DX9::Renderer;
-	g_texture_cache = new DX9::TextureCache;
-	g_vertex_manager = new DX9::VertexManager;
+	g_renderer = new Renderer;
+	g_texture_cache = new TextureCache;
+	g_vertex_manager = new VertexManager;
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -283,10 +200,10 @@ void Video_Prepare()
 	DLCache::Init();
 
 	// Notify the core that the video plugin is ready
-	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
+	Core::Callback_CoreMessage(WM_USER_CREATE);
 }
 
-void Shutdown()
+void VideoBackend::Shutdown()
 {
 	s_PluginInitialized = false;
 
@@ -304,11 +221,13 @@ void Shutdown()
 	VertexLoaderManager::Shutdown();
 
 	// internal interfaces
-	DX9::PixelShaderCache::Shutdown();
-	DX9::VertexShaderCache::Shutdown();
+	PixelShaderCache::Shutdown();
+	VertexShaderCache::Shutdown();
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	delete g_renderer;
-	DX9::D3D::Shutdown();
+	D3D::Shutdown();
 	EmuWindow::Close();
+}
+
 }

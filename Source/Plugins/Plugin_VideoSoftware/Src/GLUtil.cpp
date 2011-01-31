@@ -19,6 +19,9 @@
 #include "SWVideoConfig.h"
 #include "IniFile.h"
 #include "Setup.h"
+#include "ConfigManager.h"
+#include "Core.h"
+#include "Host.h"
 
 #include "GLUtil.h"
 
@@ -36,6 +39,11 @@ GLWindow GLWin;
 // Window dimensions.
 static int s_backbuffer_width;
 static int s_backbuffer_height;
+
+static void*& VideoWindowHandle()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
+}
 
 void OpenGL_SwapBuffers()
 {
@@ -101,10 +109,10 @@ void UpdateFPSDisplay(const char *text)
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight)
+bool OpenGL_Create(int _twidth, int _theight)
 {
 	int xPos, yPos;
-	g_VideoInitialize.pGetWindowSize(xPos, yPos, _twidth, _theight);
+	Core::Callback_VideoGetWindowSize(xPos, yPos, _twidth, _theight);
 
 #if defined(_WIN32)
 	EmuWindow::SetSize(_twidth, _theight);
@@ -114,11 +122,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
 
-	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
-	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
-
 #if defined(USE_WX) && USE_WX
-	GLWin.panel = (wxPanel *)g_VideoInitialize.pWindowHandle;
+	GLWin.panel = (wxPanel*)VideoWindowHandle();
 	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, NULL,
 		wxPoint(0, 0), wxSize(_twidth, _theight));
 	GLWin.glCanvas->Show(true);
@@ -127,14 +132,14 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
 #elif defined(_WIN32)
 	// Create rendering window in Windows
-	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
+	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), g_hInstance, _T("Please wait..."));
 
 	// Show the window
 	EmuWindow::Show();
 
-	if (g_VideoInitialize.pWindowHandle == NULL)
+	if (VideoWindowHandle() == NULL)
 	{
-		g_VideoInitialize.pSysMessage("failed to create window");
+		Host_SysMessage("failed to create window");
 		return false;
 	}
 
@@ -301,7 +306,7 @@ bool OpenGL_MakeCurrent()
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
-	g_VideoInitialize.pGetWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
+	Core::Callback_VideoGetWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif

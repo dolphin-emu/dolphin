@@ -20,7 +20,6 @@
 
 #include "WII_IPC_HLE_WiiMote.h" // Core
 #include "WII_IPC_HLE_Device_usb.h"
-#include "../PluginManager.h"
 #include "../ConfigManager.h"
 #include "../Host.h"
 #include "../Core.h"

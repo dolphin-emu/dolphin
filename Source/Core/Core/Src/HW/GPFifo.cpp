@@ -18,9 +18,10 @@
 #include "Common.h"
 #include "ChunkFile.h"
 #include "ProcessorInterface.h"
-#include "../PluginManager.h"
 #include "Memmap.h"
 #include "../PowerPC/PowerPC.h"
+
+#include "VideoBackendBase.h"
 
 #include "GPFifo.h"
 
@@ -42,9 +43,7 @@ namespace GPFifo
 u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmodes
 
 // pipe counter
-u32 m_gatherPipeCount = 0;		
-
-Common::TVideo_GatherPipeBursted m_GatherPipeBursted = NULL;
+u32 m_gatherPipeCount = 0;
 
 void DoState(PointerWrap &p)
 {
@@ -55,7 +54,6 @@ void DoState(PointerWrap &p)
 void Init()
 {
 	ResetGatherPipe();
-	m_GatherPipeBursted = CPluginManager::GetInstance().GetVideo()->Video_GatherPipeBursted;
 }
 
 bool IsEmpty()
@@ -92,8 +90,7 @@ void STACKALIGN CheckGatherPipe()
 				ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
 			}
 
-			// Call pre-fetched pointer
-			m_GatherPipeBursted();
+			g_video_backend->Video_GatherPipeBursted();
 		}
 		
 		// move back the spill bytes

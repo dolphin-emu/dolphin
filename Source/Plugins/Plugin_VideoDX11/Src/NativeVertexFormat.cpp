@@ -22,6 +22,9 @@
 #include "VertexManager.h"
 #include "VertexShaderCache.h"
 
+namespace DX11
+{
+
 class D3DVertexFormat : public NativeVertexFormat
 {
 	D3D11_INPUT_ELEMENT_DESC m_elems[32];
@@ -38,14 +41,9 @@ public:
 	void SetupVertexPointers();
 };
 
-namespace DX11
-{
-
 NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new D3DVertexFormat();
-}
-
 }
 
 DXGI_FORMAT VarToD3D(VarType t, int size)
@@ -155,3 +153,5 @@ void D3DVertexFormat::SetupVertexPointers()
 	}
 	DX11::D3D::context->IASetInputLayout(m_layout);
 }
+
+} // namespace DX11

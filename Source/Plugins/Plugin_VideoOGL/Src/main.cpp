@@ -92,109 +92,21 @@ Make AA apply instantly during gameplay if possible
 #include "Setup.h"
 #include "DLCache.h"
 #include "FramebufferManager.h"
+#include "Core.h"
 
 #include "VideoState.h"
+#include "VideoBackend.h"
+#include "ConfigManager.h"
 
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
-#ifdef _WIN32
-HINSTANCE g_hInstance;
-
-wxLocale *InitLanguageSupport()
+namespace OGL
 {
-	wxLocale *m_locale;
-	unsigned int language = 0;
 
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
-
-	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(language))
-	{
-		m_locale = new wxLocale(language);
-
-		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
-
-		m_locale->AddCatalog(wxT("dolphin-emu"));
-
-		if(!m_locale->IsOk())
-		{
-			PanicAlertT("Error loading selected language. Falling back to system default.");
-			delete m_locale;
-			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
-		}
-	}
-	else
-	{
-		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
-		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
-	}
-	return m_locale;
-}
-
-class wxDLLApp : public wxApp
+std::string VideoBackend::GetName()
 {
-	bool OnInit()
-	{
-		return true;
-	}
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-// ------------------
-
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
-{
-	static wxLocale *m_locale;
-	switch (dwReason)
-	{
-		case DLL_PROCESS_ATTACH:
-			{
-				wxSetInstance((HINSTANCE)hinstDLL);
-				wxInitialize();
-				m_locale = InitLanguageSupport();
-			}
-			break; 
-
-		case DLL_PROCESS_DETACH:
-			wxUninitialize();
-			delete m_locale;
-			break;
-	}
-
-	g_hInstance = hinstDLL;
-	return TRUE;
-}
-#endif // _WIN32
-
-void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-{
-	_PluginInfo->Version = 0x0100;
-	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-#ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
-#elif defined _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
-#else
-	sprintf(_PluginInfo->Name, _trans("Dolphin OpenGL"));
-#endif
-}
-
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
-{
-	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager*)globals->logManager);
-}
-
-void *DllDebugger(void *_hParent, bool Show)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	return new GFXDebuggerPanel((wxWindow *)_hParent);
-#else
-	return NULL;
-#endif
+	return "OpenGL";
 }
 
 void GetShaders(std::vector<std::string> &shaders)
@@ -231,7 +143,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPixelLighting = true;
 }
 
-void DllConfig(void *_hParent)
+void VideoBackend::ShowConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
@@ -249,18 +161,15 @@ void DllConfig(void *_hParent)
 #endif
 }
 
-void Initialize(void *init)
+void VideoBackend::Initialize()
 {
 	InitBackendInfo();
 
 	frameCount = 0;
-	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
-	// Create a shortcut to _pVideoInitialize that can also update it
-	g_VideoInitialize = *(_pVideoInitialize);
 	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
-	g_Config.GameIniLoad(globals->game_ini);
+	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 
 	g_Config.UpdateProjectionHack();
 #if defined _WIN32
@@ -269,25 +178,20 @@ void Initialize(void *init)
 #endif
 	UpdateActiveConfig();
 
-	if (!OpenGL_Create(g_VideoInitialize, 640, 480))
+	if (!OpenGL_Create(640, 480))
 	{
-		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
 		return;
 	}
 
-	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
-	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
-
-	// Now the window handle is written
-	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
-
 	OSD::AddMessage("Dolphin OpenGL Video Plugin.", 5000);
 	s_PluginInitialized = true;
+
+	return;
 }
 
 // This is called after Initialize() from the Core
 // Run from the graphics thread
-void Video_Prepare()
+void VideoBackend::Video_Prepare()
 {
 	OpenGL_MakeCurrent();
 	//if (!Renderer::Init()) {
@@ -296,7 +200,7 @@ void Video_Prepare()
 	//	exit(1);
 	//}
 
-	g_renderer = new OGL::Renderer;
+	g_renderer = new Renderer;
 
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -305,31 +209,31 @@ void Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	g_texture_cache = new OGL::TextureCache;
+	g_texture_cache = new TextureCache;
 
 	BPInit();
-	g_vertex_manager = new OGL::VertexManager;
+	g_vertex_manager = new VertexManager;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
-	OGL::VertexShaderCache::Init();
+	VertexShaderCache::Init();
 	VertexShaderManager::Init();
-	OGL::PixelShaderCache::Init();
+	PixelShaderCache::Init();
 	PixelShaderManager::Init();
-	OGL::PostProcessing::Init();
+	PostProcessing::Init();
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
-	OGL::TextureConverter::Init();
+	TextureConverter::Init();
 	DLCache::Init();
 
 	// Notify the core that the video plugin is ready
-	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
+	Core::Callback_CoreMessage(WM_USER_CREATE);
 
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 
 }
 
-void Shutdown()
+void VideoBackend::Shutdown()
 {
 	s_PluginInitialized = false;
 
@@ -353,4 +257,6 @@ void Shutdown()
 	OpcodeDecoder_Shutdown();
 	delete g_renderer;
 	OpenGL_Shutdown();
+}
+
 }

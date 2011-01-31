@@ -22,6 +22,7 @@
 #include "VertexManagerBase.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
+#include "HW/Memmap.h"
 
 // LoadXFReg 0x10
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
@@ -224,5 +225,5 @@ void LoadIndexedXF(u32 val, int array)
     //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
 
     for (int i = 0; i < size; i++)
-        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array] * index + i * 4);
+		xfmem[address + i] = Memory::Read_U32(arraybases[array] + arraystrides[array] * index + i * 4);
 }

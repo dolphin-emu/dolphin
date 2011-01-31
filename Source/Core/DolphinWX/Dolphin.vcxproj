@@ -131,7 +131,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -157,7 +157,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -185,7 +185,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -215,7 +215,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -245,7 +245,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -275,7 +275,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -409,6 +409,18 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
       <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX11\Plugin_VideoDX11.vcxproj">
+      <Project>{9a4c733c-bade-4ac6-b58a-6e274395e90e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX9\Plugin_VideoDX9.vcxproj">
+      <Project>{dc7d7af4-ce47-49e8-8b63-265cb6233a49}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoOGL\Plugin_VideoOGL.vcxproj">
+      <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
+      <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
     </ProjectReference>
@@ -424,8 +436,17 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
       <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\DSPCore\DSPCore.vcxproj">
+      <Project>{4ed3c8be-91a7-4361-8d46-16d03b678d4c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
       <Project>{b39ac394-5db5-4da9-9d98-09d46ca3701f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoUICommon\VideoUICommon.vcxproj">
+      <Project>{281f6001-d032-4c3b-87af-0b00962b4006}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

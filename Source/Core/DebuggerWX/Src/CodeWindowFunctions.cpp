@@ -58,7 +58,6 @@
 #include "PowerPC/JitCommon/JitBase.h"
 #include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
-#include "PluginManager.h"
 #include "ConfigManager.h"
 
 extern "C"  // Bitmaps
@@ -542,15 +541,11 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 {
 	std::string DLLName;
-	int PluginType;
+	//int PluginType;
 	wxPanel *Win;
 
 	switch(Id)
 	{
-		case IDM_VIDEOWINDOW:
-			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
-			PluginType = PLUGIN_TYPE_VIDEO;
-			break;
 		default:
 			PanicAlert("CCodeWindow::ToggleDLLWindow called with invalid Id");
 			return;
@@ -559,26 +554,26 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 	if (bShow)
 	{
 		// Show window
-		Win = (wxPanel *)CPluginManager::GetInstance().OpenDebug(Parent,
-				DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
+		//Win = (wxPanel *)CPluginManager::GetInstance().OpenDebug(Parent,
+		//		DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
 
-		if (Win)
-		{
-			Win->Show();
-			Win->SetId(Id);
-			Parent->DoAddPage(Win,
-				   	iNbAffiliation[Id - IDM_LOGWINDOW],
-				   	Parent->bFloatWindow[Id - IDM_LOGWINDOW]);
-		}
+		//if (Win)
+		//{
+		//	Win->Show();
+		//	Win->SetId(Id);
+		//	Parent->DoAddPage(Win,
+		//		   	iNbAffiliation[Id - IDM_LOGWINDOW],
+		//		   	Parent->bFloatWindow[Id - IDM_LOGWINDOW]);
+		//}
 	}
 	else
 	{
-		Win = (wxPanel *)FindWindowById(Id);
-		if (Win)
-		{
-			Parent->DoRemovePage(Win, false);
-			Win->Destroy();
-		}
+		//Win = (wxPanel *)FindWindowById(Id);
+		//if (Win)
+		//{
+		//	Parent->DoRemovePage(Win, false);
+		//	Win->Destroy();
+		//}
 	}
 	GetMenuBar()->FindItem(Id)->Check(bShow && !!Win);
 }

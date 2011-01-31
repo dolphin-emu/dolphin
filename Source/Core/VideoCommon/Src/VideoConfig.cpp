@@ -243,6 +243,9 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Save(ini_file);
 }
 
+// TODO: remove
+extern bool g_aspect_wide;
+
 // TODO: Figure out a better place for this function.
 void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc)
 {
@@ -257,7 +260,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	
 	// Handle aspect ratio.
 	// Default to auto.
-	bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
+	bool use16_9 = g_aspect_wide;
 	
 	// Update aspect ratio hack values
 	// Won't take effect until next frame

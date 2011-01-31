@@ -9,7 +9,8 @@
 // ------------
 // TODO: See if we can get rid of the windows.h include.
 #ifdef _WIN32
-	#include <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 #include "Common.h"
 #include "CommonTypes.h"
@@ -31,135 +32,28 @@ enum PLUGIN_COMM
 // System specific declarations and definitions
 // ------------
 
-#ifdef _WIN32
-	#define EXPORT	__declspec(dllexport)
-	#define CALL __cdecl
-#else
-	#define EXPORT	__attribute__ ((visibility("default")))
-	#define __cdecl
-	#define CALL
-	#ifndef TRUE
-		#define TRUE 1
-		#define FALSE 0 
-	#endif
+// TODO: get rid of this i think
+#if !defined(_WIN32) && !defined(TRUE)
+#define TRUE 1
+#define FALSE 0
 #endif
-
-#if defined(__cplusplus)
-	extern "C" {
-#endif
-
-
 
 // Global values
 // ------------
 
-// Plugin types
-enum PLUGIN_TYPE {
-	PLUGIN_TYPE_VIDEO = 1,
-};
-
-#define STATE_MODE_READ    1
-#define STATE_MODE_WRITE   2
-#define STATE_MODE_MEASURE 3
+//enum STATE_MODE
+//{
+//	STATE_MODE_READ = 1,
+//	STATE_MODE_WRITE,
+//	STATE_MODE_MEASURE,
+//};
 
 // used for notification on emulation state
-enum PLUGIN_EMUSTATE {
+enum PLUGIN_EMUSTATE
+{
 	PLUGIN_EMUSTATE_PLAY = 1,
 	PLUGIN_EMUSTATE_PAUSE,
 	PLUGIN_EMUSTATE_STOP,
 };
-
-// Export structs
-// ------------
-typedef struct 
-{
-	u16 Version;		// Set to 0x0100
-	PLUGIN_TYPE Type;	// Set to PLUGIN_TYPE_DVD
-	char Name[100];		// Name of the DLL
-} PLUGIN_INFO;
-
-// TODO: Remove, or at least remove the void pointers and replace with data.
-// This design is just wrong and ugly - the plugins shouldn't have this much access.
-typedef struct 
-{
-	void *was_eventHandler_but_lets_not_break_abi;
-	void *logManager;
-	char game_ini[MAX_PATH];
-	char unique_id[16];
-} PLUGIN_GLOBALS;
-
-// GLOBAL I N T E R F A C E 
-// ____________________________________________________________________________
-// Function: GetDllInfo
-// Purpose:  This function allows the emulator to gather information
-//           about the DLL by filling in the PluginInfo structure.
-// input:    A pointer to a PLUGIN_INFO structure that needs to be
-//           filled by the function. (see def above)
-// output:   none
-//
-EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
-
-// ___________________________________________________________________________
-// Function: DllConfig
-// Purpose:  This function is optional function that is provided
-//           to allow the user to configure the DLL
-// input:    A handle to the window that calls this function
-// output:   none
-//
-EXPORT void CALL DllConfig(void *_hParent);
-
-// ___________________________________________________________________________
-// Function: DllDebugger
-// Purpose:  Open the debugger
-// input:    a handle to the window that calls this function
-// output:   none
-//
-EXPORT void* CALL DllDebugger(void *_hParent, bool Show);
-
-// ___________________________________________________________________________
-// Function: DllSetGlobals
-// Purpose:  Set the pointer for globals variables
-// input:    a pointer to the global struct
-// output:   none
-//
-EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals);
-
-// ___________________________________________________________________________
-// Function: Initialize
-// Purpose: Initialize the plugin
-// input:    Init
-// output:   none
-//
-EXPORT void CALL Initialize(void *init);
-
-// ___________________________________________________________________________
-// Function: Shutdown
-// Purpose:  This function is called when the emulator is shutting down
-//           a game allowing the dll to de-initialise.
-// input:    none
-// output:   none
-//
-EXPORT void CALL Shutdown(void);
-
-// ___________________________________________________________________________
-// Function: DoState
-// Purpose:  Saves/load state
-// input/output: ptr
-// input: mode
-//
-EXPORT void CALL DoState(unsigned char **ptr, int mode);
-
-// ___________________________________________________________________________
-// Function: EmuStateChange
-// Purpose: Notifies the plugin of a change in emulation state
-// input:    newState
-// output:   none
-//
-EXPORT void CALL EmuStateChange(PLUGIN_EMUSTATE newState);
-
-
-#if defined(__cplusplus)
-	}
-#endif
 
 #endif // _PLUGINS_H_INCLUDED__

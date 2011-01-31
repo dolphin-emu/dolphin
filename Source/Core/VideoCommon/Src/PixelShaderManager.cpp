@@ -22,7 +22,9 @@
 #include "PixelShaderManager.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
+
 #include "RenderBase.h"
+
 static float GC_ALIGNED16(s_fMaterials[16]);
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged;
@@ -42,6 +44,21 @@ static u32 lastAlpha;
 static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias;
 static int nMaterialsChanged;
+
+inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+{
+	g_renderer->SetPSConstant4f(const_number, f1, f2, f3, f4);
+}
+
+inline void SetPSConstant4fv(unsigned int const_number, const float *f)
+{
+	g_renderer->SetPSConstant4fv(const_number, f);
+}
+
+inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+{
+	g_renderer->SetMultiPSConstant4fv(const_number, count, f);
+}
 
 void PixelShaderManager::Init()
 {
@@ -97,7 +114,7 @@ void PixelShaderManager::SetConstants()
 
     if (s_bAlphaChanged) 
 	{
-        SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
+		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
     }
 
@@ -126,7 +143,7 @@ void PixelShaderManager::SetConstants()
 	if (s_bZBiasChanged || s_bDepthRangeChanged) 
 	{
         //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
+		SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
@@ -144,7 +161,7 @@ void PixelShaderManager::SetConstants()
                 f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
-            SetPSConstant4fv(C_INDTEXSCALE, f);
+			SetPSConstant4fv(C_INDTEXSCALE, f);
         }
 
         if (s_nIndTexScaleChanged & 0x0c) {
@@ -153,7 +170,7 @@ void PixelShaderManager::SetConstants()
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }            
-            SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
+			SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
         }
        
         s_nIndTexScaleChanged = 0;
@@ -173,7 +190,7 @@ void PixelShaderManager::SetConstants()
                 // xyz - static matrix
                 // TODO w - dynamic matrix scale / 256...... somehow / 4 works better
                 // rev 2972 - now using / 256.... verify that this works
-                SetPSConstant4f(C_INDTEXMTX + 2 * i,
+				SetPSConstant4f(C_INDTEXMTX + 2 * i,
                     bpmem.indmtx[i].col0.ma * fscale,
 					bpmem.indmtx[i].col1.mc * fscale,
 					bpmem.indmtx[i].col2.me * fscale,
@@ -195,8 +212,8 @@ void PixelShaderManager::SetConstants()
 
     if (s_bFogColorChanged) 
 	{
-        SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
-        s_bFogColorChanged = false;
+		SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
+		s_bFogColorChanged = false;
     }
 
     if (s_bFogParamChanged) 

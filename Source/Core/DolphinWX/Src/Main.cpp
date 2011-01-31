@@ -31,7 +31,6 @@
 #include "Setup.h"
 
 #include "Host.h" // Core
-#include "PluginManager.h"
 #include "HW/Wiimote.h"
 
 #include "Globals.h" // Local
@@ -42,6 +41,8 @@
 #include "ExtendedTrace.h"
 #include "BootManager.h"
 #include "Frame.h"
+
+#include "VideoBackendBase.h"
 
 #include <wx/intl.h>
 
@@ -283,12 +284,14 @@ bool DolphinApp::OnInit()
 
 	LogManager::Init();
 	SConfig::Init();
-	CPluginManager::Init();
+	VideoBackend::PopulateList();
 	WiimoteReal::LoadSettings();
 
 	if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin =
 			std::string(videoPluginFilename.mb_str());
+
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
@@ -420,7 +423,7 @@ int DolphinApp::OnExit()
 	if (SConfig::GetInstance().m_WiiAutoUnpair)
 		WiimoteReal::UnPair();
 #endif
-	CPluginManager::Shutdown();
+	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 
@@ -438,8 +441,6 @@ void DolphinApp::OnFatalException()
 // ------------
 // Talk to GUI
 
-
-// g_VideoInitialize.pSysMessage() goes here
 void Host_SysMessage(const char *fmt, ...) 
 {
 	va_list list;

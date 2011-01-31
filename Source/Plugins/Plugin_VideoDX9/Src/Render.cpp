@@ -50,6 +50,7 @@
 #include "TextureConverter.h"
 #include "DLCache.h"
 #include "Debugger.h"
+#include "Core.h"
 
 namespace DX9
 {
@@ -256,7 +257,7 @@ Renderer::Renderer()
 	// Multisample Anti-aliasing hasn't been implemented yet use supersamling instead
 	int backbuffer_ms_mode = 0;
 
-	g_VideoInitialize.pGetWindowSize(x, y, w_temp, h_temp);
+	Core::Callback_VideoGetWindowSize(x, y, w_temp, h_temp);
 
 	for (fullScreenRes = 0; fullScreenRes < (int)D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{
@@ -433,7 +434,7 @@ void Renderer::SetWindowSize(int width, int height)
 	// Scale the window size by the EFB scale.
 	CalculateTargetScale(width, height, width, height);
 
-	g_VideoInitialize.pRequestWindowSize(width, height);
+	Core::Callback_VideoRequestWindowSize(width, height);
 }
 
 bool Renderer::SetScissorRect()
@@ -920,7 +921,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);
+		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
 	// this function is called after the XFB field is changed, not after
@@ -932,7 +933,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);
+		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
 
@@ -1256,7 +1257,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	g_VideoInitialize.pCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
 }
 

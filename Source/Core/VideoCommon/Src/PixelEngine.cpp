@@ -24,9 +24,12 @@
 #include "VideoCommon.h"
 #include "ChunkFile.h"
 #include "Atomic.h"
+#include "CoreTiming.h"
+#include "ConfigManager.h"
 
 #include "PixelEngine.h"
 #include "CommandProcessor.h"
+#include "HW/ProcessorInterface.h"
 
 namespace PixelEngine
 {
@@ -151,8 +154,8 @@ void Init()
 {
 	m_Control.Hex = 0;
 
-	et_SetTokenOnMainThread = g_VideoInitialize.pRegisterEvent("SetToken", SetToken_OnMainThread);
-	et_SetFinishOnMainThread = g_VideoInitialize.pRegisterEvent("SetFinish", SetFinish_OnMainThread);
+	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
+	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
 
 	bbox[0] = 0x80;
 	bbox[1] = 0xA0;
@@ -298,7 +301,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bOnThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
+	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }
 
 void UpdateInterrupts()
@@ -314,7 +317,7 @@ void UpdateTokenInterrupt(bool active)
 {
 	if(interruptSetToken != active)
 	{
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, active);
+		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
 		interruptSetToken = active;
 	}
 }
@@ -324,7 +327,7 @@ void UpdateFinishInterrupt(bool active)
 
 	if(interruptSetFinish != active)
 	{
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, active);
+		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
 	}
 }
@@ -366,8 +369,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
 		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 		CommandProcessor::interruptTokenWaiting = true;
-		g_VideoInitialize.pScheduleEvent_Threadsafe(
-			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	}
 	else // set token value
 	{
@@ -386,8 +388,7 @@ void SetFinish()
 {
 	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
 	CommandProcessor::interruptFinishWaiting = true;
-	g_VideoInitialize.pScheduleEvent_Threadsafe(
-		0, et_SetFinishOnMainThread, 0);
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
@@ -401,9 +402,10 @@ void ResetSetFinish()
 		UpdateFinishInterrupt(false);
 		g_bSignalFinishInterrupt = false;
 		
-	}else
+	}
+	else
 	{
-		g_VideoInitialize.pRemoveEvent(et_SetFinishOnMainThread);
+		CoreTiming::RemoveEvent(et_SetFinishOnMainThread);
 	}
 	CommandProcessor::interruptFinishWaiting = false;
 }
@@ -415,9 +417,10 @@ void ResetSetToken()
 		UpdateTokenInterrupt(false);
 		g_bSignalTokenInterrupt = false;
 		
-	}else
+	}
+	else
 	{
-		g_VideoInitialize.pRemoveEvent(et_SetTokenOnMainThread);
+		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
 	}
 	CommandProcessor::interruptTokenWaiting = false;
 }

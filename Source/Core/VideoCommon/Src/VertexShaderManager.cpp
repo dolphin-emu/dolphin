@@ -32,6 +32,8 @@
 #include "VideoCommon.h"
 #include "VertexManagerBase.h"
 
+#include "RenderBase.h"
+
 static float GC_ALIGNED16(s_fMaterials[16]);
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
@@ -49,6 +51,26 @@ static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
 void UpdateViewport();
+
+inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+{
+	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
+}
+
+inline void SetVSConstant4fv(unsigned int const_number, const float *f)
+{
+	g_renderer->SetVSConstant4fv(const_number, f);
+}
+
+inline void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
+{
+	g_renderer->SetMultiVSConstant3fv(const_number, count, f);
+}
+
+inline void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+{
+	g_renderer->SetMultiVSConstant4fv(const_number, count, f);
+}
 
 namespace
 {

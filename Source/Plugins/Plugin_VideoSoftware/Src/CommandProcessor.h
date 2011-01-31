@@ -19,7 +19,7 @@
 #define _COMMANDPROCESSOR_H_
    
 #include "Common.h"
-#include "pluginspecs_video.h"
+
 class PointerWrap;
 
 extern volatile bool g_bSkipCurrentFrame;
@@ -29,7 +29,7 @@ void Fifo_Init();
 void Fifo_Shutdown();
 void Fifo_DoState(PointerWrap &p);
 
-void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
+void Fifo_EnterLoop();
 void Fifo_ExitLoop();
 void Fifo_SetRendering(bool bEnabled);
 

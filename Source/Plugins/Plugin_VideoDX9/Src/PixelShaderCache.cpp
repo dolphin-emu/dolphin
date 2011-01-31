@@ -36,6 +36,7 @@
 #include "XFMemory.h"
 #include "ImageWrite.h"
 #include "Debugger.h"
+#include "ConfigManager.h"
 
 namespace DX9
 {
@@ -274,7 +275,7 @@ void PixelShaderCache::Init()
 	SETSTAT(stats.numPixelShadersAlive, 0);
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
+	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 }
@@ -418,21 +419,20 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytec
 	return true;
 }
 
-}  // namespace DX9
-
-
-void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	float f[4] = { f1, f2, f3, f4 };
 	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
-void SetPSConstant4fv(unsigned int const_number, const float *f)
+void Renderer::SetPSConstant4fv(unsigned int const_number, const float *f)
 {
 	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
 }
 
-void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	DX9::D3D::dev->SetPixelShaderConstantF(const_number, f, count);
 }
+
+}  // namespace DX9

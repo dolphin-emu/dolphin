@@ -23,10 +23,11 @@
 #include "ProcessorInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
-#include "../PluginManager.h"
 #include "../CoreTiming.h"
 #include "../HW/SystemTimers.h"
 #include "StringUtil.h"
+
+#include "VideoBackendBase.h"
 
 namespace VideoInterface
 {
@@ -783,19 +784,14 @@ static void BeginField(FieldType field)
 		fieldTypeNames[field]
 	);
 
-	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
-	if (xfbAddr && video->IsValid())
-		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
+	if (xfbAddr)
+		g_video_backend->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
 }
 
 static void EndField()
 {
-	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
-	if (video->IsValid())
-	{
-		video->Video_EndField();
-		Core::VideoThrottle();
-	}
+	g_video_backend->Video_EndField();
+	Core::VideoThrottle();
 }
 
 // Purpose: Send VI interrupt when triggered

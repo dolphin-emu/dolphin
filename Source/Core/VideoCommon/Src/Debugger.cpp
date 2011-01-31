@@ -31,7 +31,7 @@ volatile bool GFXDebuggerPauseFlag = false;
 volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE;
 volatile int GFXDebuggerEventToPauseCount = 0;
 
-void UpdateFPSDisplay(const char *text);
+//void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;
 
 void GFXDebuggerUpdateScreen()
@@ -69,7 +69,7 @@ void GFXDebuggerCheckAndPause(bool update)
 		g_pdebugger->OnPause();
 		while( GFXDebuggerPauseFlag )
 		{
-			UpdateFPSDisplay("Paused by Video Debugger");
+			g_video_backend->UpdateFPSDisplay("Paused by Video Debugger");
 
 			if (update)	GFXDebuggerUpdateScreen();
 			SLEEP(5);

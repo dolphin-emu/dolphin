@@ -127,7 +127,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -146,7 +146,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -167,7 +167,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -191,7 +191,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -215,7 +215,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -239,7 +239,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DSPCore\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -313,6 +313,26 @@
     <ClCompile Include="Src\HW\BBA-TAP\TAP_Win32.cpp" />
     <ClCompile Include="Src\HW\CPU.cpp" />
     <ClCompile Include="Src\HW\DSP.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\DSPHLE.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\HLEMixer.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\MailHandler.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCodes.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AX.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_CARD.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_GBA.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_ROM.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Synth.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Voice.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPDebugInterface.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPHost.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPLLE.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPLLEGlobals.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPLLETools.cpp" />
+    <ClCompile Include="Src\HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="Src\HW\DVDInterface.cpp" />
     <ClCompile Include="Src\HW\EXI.cpp" />
     <ClCompile Include="Src\HW\EXI_Channel.cpp" />
@@ -371,7 +391,7 @@
     <ClCompile Include="Src\MemTools.cpp" />
     <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\PluginManager.cpp" />
+    <ClCompile Include="Src\PluginDSP.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -481,6 +501,26 @@
     <ClInclude Include="Src\HW\BBA-TAP\TAP_Win32.h" />
     <ClInclude Include="Src\HW\CPU.h" />
     <ClInclude Include="Src\HW\DSP.h" />
+    <ClInclude Include="Src\HW\DSPHLE\DSPHLE.h" />
+    <ClInclude Include="Src\HW\DSPHLE\DSPHLEGlobals.h" />
+    <ClInclude Include="Src\HW\DSPHLE\HLEMixer.h" />
+    <ClInclude Include="Src\HW\DSPHLE\MailHandler.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCodes.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXStructs.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_ROM.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.h" />
+    <ClInclude Include="Src\HW\DSPLLE\DSPDebugInterface.h" />
+    <ClInclude Include="Src\HW\DSPLLE\DSPLLE.h" />
+    <ClInclude Include="Src\HW\DSPLLE\DSPLLEGlobals.h" />
+    <ClInclude Include="Src\HW\DSPLLE\DSPLLETools.h" />
+    <ClInclude Include="Src\HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="Src\HW\DVDInterface.h" />
     <ClInclude Include="Src\HW\EXI.h" />
     <ClInclude Include="Src\HW\EXI_Channel.h" />
@@ -543,7 +583,7 @@
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
-    <ClInclude Include="Src\PluginManager.h" />
+    <ClInclude Include="Src\PluginDSP.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />
     <ClInclude Include="Src\PowerPC\Gekko.h" />
     <ClInclude Include="Src\PowerPC\Interpreter\Interpreter.h" />
@@ -576,17 +616,27 @@
     <ClInclude Include="Src\VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt" />
     <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
       <Project>{cd3d4c3c-1027-4d33-b047-aec7b56d0bf6}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
+      <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
     </ProjectReference>
     <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
       <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\DSPCore\DSPCore.vcxproj">
+      <Project>{4ed3c8be-91a7-4361-8d46-16d03b678d4c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

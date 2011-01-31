@@ -30,6 +30,9 @@
 #include "OpcodeDecoding.h"
 #include "CommandProcessor.h"
 #include "CPUDetect.h"
+#include "Core.h"
+#include "Host.h"
+#include "HW/Memmap.h"
 
 #include "VertexLoaderManager.h"
 
@@ -95,9 +98,9 @@ static void Decode();
 void InterpretDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
-	u8* startAddress = Memory_GetPtr(address);
+	u8* startAddress = Memory::GetPointer(address);
 
-	// Avoid the crash if Memory_GetPtr failed ..
+	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != 0)
 	{
 		g_pVideoData = startAddress;
@@ -201,16 +204,16 @@ bool FifoCommandRunnable()
 		else
 		{
 			// TODO(Omega): Maybe dump FIFO to file on this error
-            char szTemp[1024];
-            sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
+			char szTemp[1024];
+			sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
-            g_VideoInitialize.pSysMessage(szTemp);
-            g_VideoInitialize.pLog(szTemp, TRUE);
+			Host_SysMessage(szTemp);
+			Core::Callback_VideoLog(szTemp, TRUE);
 			{
                 SCPFifoStruct &fifo = CommandProcessor::fifo;
 
@@ -234,8 +237,8 @@ bool FifoCommandRunnable()
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
-				g_VideoInitialize.pSysMessage(szTmp);
-				g_VideoInitialize.pLog(szTmp, TRUE);
+				Host_SysMessage(szTmp);
+				Core::Callback_VideoLog(szTmp, TRUE);
 			}
         }
         break;

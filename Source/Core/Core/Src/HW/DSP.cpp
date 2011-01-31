@@ -45,7 +45,6 @@
 #include "ProcessorInterface.h"
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
-#include "../PluginManager.h"
 #include "../ConfigManager.h"
 #include "../PluginDSP.h"
 

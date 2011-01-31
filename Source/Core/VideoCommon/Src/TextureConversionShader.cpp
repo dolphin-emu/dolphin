@@ -25,6 +25,7 @@
 #include "PixelShaderManager.h"
 #include "PixelShaderGen.h"
 #include "BPMemory.h"
+#include "RenderBase.h"
 
 #define WRITE p+=sprintf
 
@@ -874,8 +875,8 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 
 void SetShaderParameters(float width, float height, float offsetX, float offsetY, float widthStride, float heightStride,float buffW,float buffH)
 {
-	SetPSConstant4f(C_COLORMATRIX, widthStride, heightStride, buffW, buffH);
-	SetPSConstant4f(C_COLORMATRIX + 1, width, (height - 1), offsetX, offsetY);
+	g_renderer->SetPSConstant4f(C_COLORMATRIX, widthStride, heightStride, buffW, buffH);
+	g_renderer->SetPSConstant4f(C_COLORMATRIX + 1, width, (height - 1), offsetX, offsetY);
 }
 
 }  // namespace

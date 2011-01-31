@@ -16,9 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "pluginspecs_video.h"
 #include "Thread.h"
 #include "Atomic.h"
+#include "ConfigManager.h"
+#include "Core.h"
+#include "CoreTiming.h"
+#include "HW/Memmap.h"
+#include "HW/ProcessorInterface.h"
 
 #include "CommandProcessor.h"
 #include "ChunkFile.h"
@@ -109,7 +113,7 @@ void Init()
 
 	cpreg.token = 0;
 	
-    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 
     // internal buffer position
     readPos = 0;
@@ -128,7 +132,7 @@ void Shutdown()
 
 void RunGpu()
 {
-    if (!g_VideoInitialize.bOnThread)
+    if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
     {
         // We are going to do FP math on the main thread so have to save the current state
         SaveSSEState();
@@ -309,20 +313,20 @@ void UpdateInterrupts(u64 userdata)
 	{
 		interruptSet = true;
         INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-        g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, true);        
+        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);        
 	}
 	else
 	{
         interruptSet = false;
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
-        g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);        
+        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);        
 	}
     interruptWaiting = false;
 }
 
 void UpdateInterruptsFromVideoPlugin(u64 userdata)
 {
-    g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
 void ReadFifo()
@@ -333,7 +337,7 @@ void ReadFifo()
     if (canRead && !atBreakpoint)
     {
         // read from fifo
-        u8 *ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);
+        u8 *ptr = Memory::GetPointer(cpreg.readptr);
         int bytesRead = 0;
 
         do
@@ -346,7 +350,7 @@ void ReadFifo()
             if (cpreg.readptr == cpreg.fifoend)
             {
                 cpreg.readptr = cpreg.fifobase;
-                ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);
+                ptr = Memory::GetPointer(cpreg.readptr);
             }
             else
             {
@@ -400,7 +404,7 @@ void SetStatus()
     if (interrupt != interruptSet && !interruptWaiting)
     {
         u64 userdata = interrupt?1:0;
-        if (g_VideoInitialize.bOnThread)
+        if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
         {
             interruptWaiting = true;
             CommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
@@ -470,13 +474,13 @@ bool RunBuffer()
 // fifo functions
 #if (SW_PLUGIN)
 
-void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
+void Fifo_EnterLoop()
 {
     fifoStateRun = true;
 
     while (fifoStateRun)
     {
-		g_VideoInitialize.pPeekMessages();
+		g_video_backend->PeekMessages();
         if (!CommandProcessor::RunBuffer()) {
             Common::YieldCPU();
 		}

@@ -35,11 +35,11 @@ Core::GetWindowHandle().
 #include "FileUtil.h"
 #include "FileSearch.h"
 #include "Timer.h"
+#include "VideoBackendBase.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
 #include "ConfigMain.h"
-#include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
@@ -979,7 +979,7 @@ void CFrame::DoStop()
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_ARROW);
-		DoFullscreen(FALSE);
+		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
 		m_RenderParent = NULL;
@@ -1051,18 +1051,8 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
-	#ifdef _WIN32
-	Disable(); // Fake a modal dialog
-	#endif
-	CPluginManager::GetInstance().OpenConfig(
-			this,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			PLUGIN_TYPE_VIDEO
-			);
-	#ifdef _WIN32
-	Enable();
-	Raise();
-	#endif
+	if (g_video_backend)
+		g_video_backend->ShowConfig(this);
 }
 
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))

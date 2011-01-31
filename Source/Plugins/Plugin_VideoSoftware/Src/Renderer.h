@@ -18,11 +18,11 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-#include "pluginspecs_video.h"
+#include "CommonTypes.h"
 
 namespace Renderer
 {
-    void Init(SVideoInitialize *_pVideoInitialize);
+    void Init();
     void Prepare();
     void Shutdown();
 

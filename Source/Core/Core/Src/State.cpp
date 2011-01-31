@@ -30,7 +30,7 @@
 #include "HW/CPU.h"
 #include "PowerPC/JitCommon/JitBase.h"
 
-#include "PluginManager.h"
+#include "VideoBackendBase.h"
 
 #include <string>
 
@@ -88,8 +88,7 @@ void DoState(PointerWrap &p)
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
-	CPluginManager &pm = CPluginManager::GetInstance();
-	pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
+	g_video_backend->DoState(p);
 
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());

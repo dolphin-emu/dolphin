@@ -27,6 +27,9 @@
 #include "NativeVertexFormat.h"
 #include "VertexManager.h"
 
+namespace DX9
+{
+
 class D3DVertexFormat : public NativeVertexFormat
 {
 	LPDIRECT3DVERTEXDECLARATION9 d3d_decl;
@@ -43,14 +46,9 @@ public:
 #endif
 };
 
-namespace DX9
-{
-
 NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new D3DVertexFormat();
-}
-
 }
 
 void DX9::VertexManager::GetElements(NativeVertexFormat* format, D3DVERTEXELEMENT9** elems, int* num)
@@ -191,3 +189,5 @@ void D3DVertexFormat::SetupVertexPointers()
 	else
 		ERROR_LOG(VIDEO, "invalid d3d decl");
 }
+
+} // namespace DX9

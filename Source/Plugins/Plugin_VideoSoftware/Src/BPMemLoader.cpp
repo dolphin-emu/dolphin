@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "pluginspecs_video.h"
 #include "../../../Core/VideoCommon/Src/VideoCommon.h"
 #include "main.h"
 
@@ -25,9 +24,10 @@
 #include "PixelEngine.h"
 #include "Tev.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"
+#include "HW/Memmap.h"
+#include "Core.h"
 
-
-BPMemory bpmem;
+extern BPMemory bpmem;
 
 void InitBPMemory()
 {
@@ -104,10 +104,10 @@ void BPWritten(int address, int newvalue)
 			u8 *ptr = 0;
 
             // TODO - figure out a cleaner way.
-			if (g_VideoInitialize.bWii)
-				ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.tlutXferSrc << 5);
+			if (Core::g_CoreStartupParameter.bWii)
+				ptr = Memory::GetPointer(bpmem.tlutXferSrc << 5);
 			else
-				ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+				ptr = Memory::GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
 
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);

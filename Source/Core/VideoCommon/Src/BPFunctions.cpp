@@ -22,6 +22,8 @@
 #include "VertexManagerBase.h"
 #include "VertexShaderManager.h"
 #include "VideoConfig.h"
+#include "HW/Memmap.h"
+#include "ConfigManager.h"
 
 bool textureChanged[8];
 const bool renderFog = false;
@@ -202,7 +204,7 @@ bool GetConfig(const int &type)
 	switch (type)
 	{
 	case CONFIG_ISWII:
-		return g_VideoInitialize.bWii;
+		return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	case CONFIG_DISABLEFOG:
 		return g_ActiveConfig.bDisableFog;
 	case CONFIG_SHOWEFBREGIONS:
@@ -215,7 +217,7 @@ bool GetConfig(const int &type)
 
 u8 *GetPointer(const u32 &address)
 {
-	return g_VideoInitialize.pGetMemoryPointer(address);
+	return Memory::GetPointer(address);
 }
 
 void SetTextureMode(const BPCmd &bp)

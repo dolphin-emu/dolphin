@@ -31,6 +31,7 @@
 #include "TextureCache.h"
 #include "Math.h"
 #include "FileUtil.h"
+#include "HW/Memmap.h"
 
 namespace DX9
 {
@@ -339,7 +340,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	if (!texconv_shader)
 		return;
 
-	u8 *dest_ptr = Memory_GetPtr(address);
+	u8 *dest_ptr = Memory::GetPointer(address);
 
 	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture();
 	int width = (source.right - source.left) >> bScaleByHalf;
@@ -408,7 +409,7 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	if (!texconv_shader)
 		return 0;
 
-	u8 *dest_ptr = Memory_GetPtr(address);
+	u8 *dest_ptr = Memory::GetPointer(address);
 
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
@@ -480,7 +481,7 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 // Should be scale free.
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE9 destTexture)
 {
-	u8* srcAddr = Memory_GetPtr(xfbAddr);
+	u8* srcAddr = Memory::GetPointer(xfbAddr);
 	if (!srcAddr)
 	{
 		WARN_LOG(VIDEO, "Tried to decode from invalid memory address");

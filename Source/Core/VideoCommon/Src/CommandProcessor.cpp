@@ -78,9 +78,19 @@
 #include "ChunkFile.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
+#include "CoreTiming.h"
+#include "ConfigManager.h"
+#include "HW/ProcessorInterface.h"
+#include "HW/GPFifo.h"
+#include "HW/Memmap.h"
 
 namespace CommandProcessor
 {
+
+bool IsOnThread()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+}
 
 int et_UpdateInterrupts;
 
@@ -185,7 +195,7 @@ void Init()
 
 	s_fifoIdleEvent.Init();
 
-    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+    et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
 
 void Shutdown()
@@ -204,7 +214,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		
 		// Here always there is one fifo attached to the GPU
 		
-		if (g_VideoInitialize.bOnThread)
+		if (IsOnThread())
 		{
 			m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 			m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint);
@@ -406,7 +416,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 		// Touching that game is a no-go so I don't want to take the risk :p
 
-		if (g_VideoInitialize.bOnThread)
+		if (IsOnThread())
 		{
 	
 			//ProcessFifoAllDistance();
@@ -437,7 +447,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// seems invalid or has a bug and hang the game.
 
 			// Single Core MODE
-			if (!g_VideoInitialize.bOnThread)
+			if (!IsOnThread())
 			{
 				
 				Common::AtomicStore(fifo.bFF_Breakpoint, false);
@@ -463,9 +473,9 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			if(tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable)
 			{
-				*(g_VideoInitialize.Fifo_CPUWritePointer) = fifo.CPWritePointer;
-				*(g_VideoInitialize.Fifo_CPUBase) = fifo.CPBase;
-				*(g_VideoInitialize.Fifo_CPUEnd) = fifo.CPEnd;
+				ProcessorInterface::Fifo_CPUWritePointer = fifo.CPWritePointer;
+				ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
+				ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 			}
 			// If overflown happens process the fifo to LoWatemark
 			if (bProcessFifoToLoWatemark)
@@ -488,7 +498,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UCPClearReg tmpCtrl(_Value);
 
-			if (g_VideoInitialize.bOnThread)
+			if (IsOnThread())
 			{
 				if (!tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
 					bProcessFifoToLoWatemark = true;
@@ -607,7 +617,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		WARN_LOG(COMMANDPROCESSOR, "(w16) unknown CP reg write %04x @ %08x", _Value, _Address);
 	}
 
-	if (!g_VideoInitialize.bOnThread)
+	if (!IsOnThread())
 		CatchUpGPU();
 	ProcessFifoEvents();
 }
@@ -648,12 +658,12 @@ void STACKALIGN GatherPipeBursted()
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
-		if (!g_VideoInitialize.bOnThread)
+		if (!IsOnThread())
 			CatchUpGPU();
 		return;
 	}
 
-	if (g_VideoInitialize.bOnThread)
+	if (IsOnThread())
 		SetOverflowStatusFromGatherPipe();
 
 
@@ -667,7 +677,7 @@ void STACKALIGN GatherPipeBursted()
 
 
 
-	if (!g_VideoInitialize.bOnThread)
+	if (!IsOnThread())
 	{
 		CatchUpGPU();
 		if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= fifo.CPHiWatermark)
@@ -703,17 +713,17 @@ void STACKALIGN GatherPipeBursted()
 	"FIFO is overflown by GatherPipe !\nCPU thread is too fast!");
 
 	// check if we are in sync
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== *(g_VideoInitialize.Fifo_CPUBase), "FIFOs linked but out of sync");
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== *(g_VideoInitialize.Fifo_CPUEnd), "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== ProcessorInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== ProcessorInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== ProcessorInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
 }
 
 
 // This is only used in single core mode
 void CatchUpGPU()
 {
-	// HyperIris: Memory_GetPtr is an expensive call, call it less, run faster
-	u8 *ptr = Memory_GetPtr(fifo.CPReadPointer);
+	// HyperIris: Memory::GetPointer is an expensive call, call it less, run faster
+	u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
 
 	// check if we are able to run this buffer
 	while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance ||
@@ -767,10 +777,8 @@ void UpdateInterruptsScMode()
 		|| (m_CPCtrlReg.FifoUnderflowIntEnable && fifo.bFF_LoWatermark)
 		|| (m_CPCtrlReg.FifoOverflowIntEnable && m_CPStatusReg.OverflowHiWatermark);
 	INFO_LOG(COMMANDPROCESSOR, "Fifo Interrupt: %s", (active)? "Asserted" : "Deasserted");
-	g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, active);
+	ProcessorInterface::SetInterrupt(INT_CAUSE_CP, active);
 }
-
-
 
 void UpdateInterrupts(u64 userdata)
 {
@@ -778,20 +786,20 @@ void UpdateInterrupts(u64 userdata)
 	{
 		interruptSet = true;
         INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-        g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, true);        
+        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);        
 	}
 	else
 	{
 		interruptSet = false;
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);        
+		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);        
 	}
     interruptWaiting = false;
 }
 
 void UpdateInterruptsFromVideoPlugin(u64 userdata)
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
 void SetFifoIdleFromVideoPlugin()
@@ -807,8 +815,8 @@ void AbortFrame()
 {
 	fifo.bFF_GPReadEnable = false;	
 	while (CommandProcessor::isFifoBusy)
-		Common::YieldCPU();	
-	g_VideoInitialize.pResetGatherPipe();
+		Common::YieldCPU();
+	GPFifo::ResetGatherPipe();
 	ResetVideoBuffer();
 	fifo.CPReadPointer = fifo.CPWritePointer;
 	fifo.CPReadWriteDistance = 0;	
@@ -876,7 +884,7 @@ void SetStatus()
     if (interrupt != interruptSet && !interruptWaiting)
     {
         u64 userdata = interrupt?1:0;
-        if (g_VideoInitialize.bOnThread)
+        if (IsOnThread())
         {
             interruptWaiting = true;
             CommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
@@ -890,7 +898,7 @@ void SetStatus()
 
 void ProcessFifoToLoWatemark()
 {
-	if (g_VideoInitialize.bOnThread)
+	if (IsOnThread())
 	{
 		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
 			fifo.CPReadWriteDistance > fifo.CPLoWatermark && !AtBreakpoint())
@@ -901,7 +909,7 @@ void ProcessFifoToLoWatemark()
 
 void ProcessFifoAllDistance()
 {
-	if (g_VideoInitialize.bOnThread)
+	if (IsOnThread())
 	{
 		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
 			fifo.CPReadWriteDistance && !AtBreakpoint())
@@ -912,8 +920,8 @@ void ProcessFifoAllDistance()
 
 void ProcessFifoEvents()
 {
-	if (g_VideoInitialize.bOnThread && (interruptWaiting || interruptFinishWaiting || interruptTokenWaiting))
-	g_VideoInitialize.pProcessFifoEvents();
+	if (IsOnThread() && (interruptWaiting || interruptFinishWaiting || interruptTokenWaiting))
+		CoreTiming::ProcessFifoWaitEvents();
 }
 
 

@@ -24,7 +24,8 @@
 class PIXELSHADERUID;
 enum DSTALPHA_MODE;
 
-namespace DX11 {
+namespace DX11
+{
 
 class PixelShaderCache
 {

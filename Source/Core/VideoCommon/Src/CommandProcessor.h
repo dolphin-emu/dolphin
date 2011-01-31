@@ -19,7 +19,7 @@
 #define _COMMANDPROCESSOR_H
 
 #include "Common.h"
-#include "pluginspecs_video.h"
+#include "VideoBackendBase.h"
 
 class PointerWrap;
 

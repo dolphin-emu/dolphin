@@ -20,7 +20,7 @@
 
 #include "Common.h"
 #include "MathUtil.h"
-#include "pluginspecs_video.h"
+#include "VideoBackendBase.h"
 
 #if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
 void * memcpy_amd(void *dest, const void *src, size_t n);
@@ -56,44 +56,6 @@ enum
 // Helps some effects in Paper Mario (but they aren't quite right yet).
 // Do testing to figure out if the speed hit is bad?
 // #define BBOX_SUPPORT
-
-extern SVideoInitialize g_VideoInitialize;
-
-inline u8 *Memory_GetPtr(u32 _uAddress)
-{
-	return g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u8 Memory_Read_U8(u32 _uAddress)
-{
-	return *(u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u16 Memory_Read_U16(u32 _uAddress)
-{
-	return Common::swap16(*(u16*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-}
-
-inline u32 Memory_Read_U32(u32 _uAddress)
-{
-	return Common::swap32(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-}
-
-inline u8* Memory_Read_U8_Ptr(u32 _uAddress)
-{
-	return (u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u16* Memory_Read_U16_Unswapped_Ptr(u32 _uAddress)
-{
-	return (u16*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u32* Memory_Read_U32_Unswapped_Ptr(u32 _uAddress)
-{
-	return (u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
 
 // Logging
 // ----------

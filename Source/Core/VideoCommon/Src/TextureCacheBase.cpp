@@ -11,6 +11,8 @@
 
 #include "TextureCacheBase.h"
 #include "Debugger.h"
+#include "ConfigManager.h"
+#include "HW/Memmap.h"
 
 // ugly
 extern int frameCount;
@@ -33,20 +35,17 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 
 	if (!isRenderTarget && !g_ActiveConfig.bSafeTextureCache)
 	{
-		u32 *const ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
+		u32 *const ptr = (u32*)Memory::GetPointer(addr);
 		if (ptr && *ptr == hash)
 			*ptr = oldpixel;
 	}
 }
 
-// TODO: uglyness
-extern PLUGIN_GLOBALS *globals;
-
 TextureCache::TextureCache()
 {
 	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-	HiresTextures::Init(globals->unique_id);
+	HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 }
 
 void TextureCache::Invalidate(bool shutdown)
@@ -164,7 +163,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (0 == address)
 		return NULL;
 
-	u8* ptr = g_VideoInitialize.pGetMemoryPointer(address);
+	u8* ptr = Memory::GetPointer(address);
 
 	// TexelSizeInNibbles(format)*width*height/16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
@@ -288,7 +287,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		unsigned int newWidth = width;
 		unsigned int newHeight = height;
 
-		sprintf(texPathTemp, "%s_%08llx_%i", globals->unique_id, texHash, texformat);
+		sprintf(texPathTemp, "%s_%08llx_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), texHash, texformat);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
@@ -385,11 +384,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		char szDir[MAX_PATH];
 
 		// make sure that the directory exists
-		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), globals->unique_id);
+		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 			File::CreateDir(szDir);
 
-		sprintf(szTemp, "%s/%s_%08llx_%i.png", szDir, globals->unique_id, texHash, texformat);
+		sprintf(szTemp, "%s/%s_%08llx_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), texHash, texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);

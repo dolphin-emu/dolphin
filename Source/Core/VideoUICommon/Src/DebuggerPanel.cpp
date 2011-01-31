@@ -19,14 +19,13 @@
 #include "IniFile.h"
 #include "DebuggerPanel.h"
 #include "FileUtil.h"
+#include "../../Core/Src/ConfigManager.h"
 
 #include "VideoConfig.h"
 #include "TextureCacheBase.h"
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
 #include "NativeVertexFormat.h"
-
-extern PLUGIN_GLOBALS* globals;
 
 BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_CLOSE(GFXDebuggerPanel::OnClose)
@@ -249,7 +248,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
 	char dump_path[MAX_PATH];
-	sprintf(dump_path, "%sDebug/%s/", File::GetUserPath(D_DUMP_IDX), globals->unique_id);
+	sprintf(dump_path, "%sDebug/%s/", File::GetUserPath(D_DUMP_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	if (!File::CreateFullPath(dump_path))
 		return;
 

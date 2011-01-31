@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_VideoDX11"
+	Name="VideoDX11"
 	ProjectGUID="{21DBE606-2958-43AC-A14E-B6B798D56554}"
 	RootNamespace="Plugin_VideoDX11"
 	TargetFrameworkVersion="196613"
@@ -22,7 +22,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -58,7 +58,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -89,25 +89,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="&quot;..\..\core\common\win32\release\common.lib&quot;"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib dxguid.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX11.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -119,9 +104,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -129,7 +111,7 @@
 			Name="Release|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -166,7 +148,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -198,26 +180,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib dxguid.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -229,9 +195,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -239,7 +202,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -269,7 +232,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -295,26 +258,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="&quot;..\..\core\common\win32\debug\common.lib&quot;"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib Rpcrt4.lib winmm.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX11D.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -326,9 +273,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -336,7 +280,7 @@
 			Name="Debug|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -366,7 +310,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -392,25 +336,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib Rpcrt4.lib winmm.lib vfw32.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11D.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -422,9 +351,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -432,7 +358,7 @@
 			Name="DebugFast|Win32"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -468,7 +394,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -498,26 +424,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib Rpcrt4.lib winmm.lib vfw32.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX11DF.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -529,9 +439,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -539,7 +446,7 @@
 			Name="DebugFast|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -576,7 +483,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../../Externals;../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/VideoCommon/Src;../../Core/VideoUICommon/Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VIDEO_DIRECTX11_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;;DEBUGFAST"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -607,25 +514,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib Rpcrt4.lib winmm.lib vfw32.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11DF.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -635,9 +527,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

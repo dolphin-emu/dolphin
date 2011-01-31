@@ -31,7 +31,6 @@
 #include "VideoCommon.h"
 #include "Thread.h"
 #include "MathUtil.h"
-#include "pluginspecs_video.h"
 #include "NativeVertexFormat.h"
 #include "FramebufferManagerBase.h"
 #include "BPMemory.h"
@@ -43,8 +42,6 @@ extern int frameCount;
 extern int OSDChoice, OSDTime;
 
 extern bool s_bLastFrameDumped;
-extern SVideoInitialize g_VideoInitialize;
-extern PLUGIN_GLOBALS* globals;
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
@@ -131,6 +128,17 @@ public:
 
 	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
+
+	// TODO: doesn't belong here
+	virtual void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4) = 0;
+	virtual void SetPSConstant4fv(unsigned int const_number, const float *f) = 0;
+	virtual void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f) = 0;
+
+	// TODO: doesn't belong here
+	virtual void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4) = 0;
+	virtual void SetVSConstant4fv(unsigned int const_number, const float *f) = 0;
+	virtual void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f) = 0;
+	virtual void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f) = 0;
 
 protected:
 

@@ -27,13 +27,13 @@
 #include "Core.h"
 #include "State.h"
 #include "ConfigManager.h"
-#include "PluginManager.h"
 #include "HW/DSP.h"
 #include "HW/Memmap.h"
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
 #include "PluginDSP.h"
+#include "VideoBackendBase.h"
 
 extern "C" {
 #include "lua.h"
@@ -1375,14 +1375,14 @@ DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 
 	// run 1 frame
 	if(info.speedMode == SPEEDMODE_MAXIMUM)
-		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(false);
+		g_video_backend->Video_SetRendering(false);
 	if(Core::GetState() == Core::CORE_PAUSE)
 		Core::SetState(Core::CORE_RUN);
 	PowerPC::RunLoop();
 
 	// continue as normal
 	if(info.speedMode == SPEEDMODE_MAXIMUM)
-		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(true);
+		g_video_backend->Video_SetRendering(true);
 	Frame::SetFrameStopping(false);
 	*PowerPC::GetStatePtr() = PowerPC::CPU_RUNNING;
 

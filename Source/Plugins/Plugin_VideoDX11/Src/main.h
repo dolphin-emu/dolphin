@@ -18,10 +18,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "PluginSpecs_Video.h"
 #include "Render.h"
 #include "MainBase.h"
-
-extern SVideoInitialize g_VideoInitialize;
 
 #endif

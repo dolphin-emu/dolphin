@@ -17,7 +17,6 @@
 
 
 #include "Common.h"
-#include "pluginspecs_video.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "VideoConfigDialog.h"
@@ -39,31 +38,14 @@
 #include "EfbInterface.h"
 #include "DebugUtil.h"
 #include "FileUtil.h"
+#include "VideoBackend.h"
 
-
-PLUGIN_GLOBALS* globals = NULL;
-SVideoInitialize g_VideoInitialize;
-
-
-void GetDllInfo (PLUGIN_INFO* _PluginInfo)
+namespace SW
 {
-    _PluginInfo->Version = 0x0100;
-    _PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-#ifdef DEBUGFAST
-    sprintf(_PluginInfo->Name, "Dolphin Software Renderer (DebugFast)");
-#else
-#ifndef _DEBUG
-    sprintf(_PluginInfo->Name, "Dolphin Software Renderer");
-#else
-    sprintf(_PluginInfo->Name, "Dolphin Software Renderer (Debug)");
-#endif
-#endif
-}
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+std::string VideoBackend::GetName()
 {
-	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager *)globals->logManager);
+	return "Software Renderer";
 }
 
 void *DllDebugger(void *_hParent, bool Show)
@@ -71,7 +53,7 @@ void *DllDebugger(void *_hParent, bool Show)
 	return NULL;
 }
 
-void DllConfig(void *_hParent)
+void VideoBackend::ShowConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	VideoConfigDialog* const diag = new VideoConfigDialog((wxWindow*)_hParent, "Software", "gfx_software");
@@ -80,11 +62,8 @@ void DllConfig(void *_hParent)
 #endif
 }
 
-void Initialize(void *init)
+void VideoBackend::Initialize()
 {
-    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
-    g_VideoInitialize = *_pVideoInitialize;
-
     g_SWVideoConfig.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
 
     InitBPMemory();
@@ -95,31 +74,33 @@ void Initialize(void *init)
     Clipper::Init();
     Rasterizer::Init();
     HwRasterizer::Init();
-    Renderer::Init(_pVideoInitialize);
+    Renderer::Init();
     DebugUtil::Init();
 }
 
-void DoState(unsigned char **ptr, int mode)
+void VideoBackend::DoState(PointerWrap&)
 {
+
 }
 
-void EmuStateChange(PLUGIN_EMUSTATE newState)
+void VideoBackend::EmuStateChange(PLUGIN_EMUSTATE newState)
 {
+
 }
 
-bool IsD3D()
-{
-	return false;
-}
+//bool IsD3D()
+//{
+//	return false;
+//}
 
-void Shutdown(void)
+void VideoBackend::Shutdown()
 {
 	Renderer::Shutdown();
 	OpenGL_Shutdown();
 }
 
 // This is called after Video_Initialize() from the Core
-void Video_Prepare(void)
+void VideoBackend::Video_Prepare()
 {    
     Renderer::Prepare();
 
@@ -127,16 +108,16 @@ void Video_Prepare(void)
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void VideoBackend::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {	
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void Video_EndField()
+void VideoBackend::Video_EndField()
 {
 }
 
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
+u32 VideoBackend::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
 	u32 value = 0;
 
@@ -166,71 +147,46 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
     return value;
 }
 
-void Video_Screenshot(const char *_szFilename)
+bool VideoBackend::Video_Screenshot(const char *_szFilename)
 {
+	return false;
 }
 
 // -------------------------------
 // Enter and exit the video loop
 // -------------------------------
-void Video_EnterLoop()
+void VideoBackend::Video_EnterLoop()
 {
-    Fifo_EnterLoop(g_VideoInitialize);
+    Fifo_EnterLoop();
 }
 
-void Video_ExitLoop()
+void VideoBackend::Video_ExitLoop()
 {
 	Fifo_ExitLoop();
 }
 
-void Video_AddMessage(const char* pstr, u32 milliseconds)
+void VideoBackend::Video_AddMessage(const char* pstr, u32 milliseconds)
 {	
 }
 
-void Video_SetRendering(bool bEnabled)
+void VideoBackend::Video_SetRendering(bool bEnabled)
 {
     Fifo_SetRendering(bEnabled);
 }
 
-void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
+void VideoBackend::Video_WaitForFrameFinish(void)
 {
-    CommandProcessor::Read16(_rReturnValue, _Address);
+
 }
 
-void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
-{
-    CommandProcessor::Write16(_Data, _Address);
-}
-
-void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
-{
-    PixelEngine::Read16(_rReturnValue, _Address);
-}
-
-void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
-{
-    PixelEngine::Write16(_Data, _Address);
-}
-
-void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
-{
-    PixelEngine::Write32(_Data, _Address);
-}
-
-void Video_GatherPipeBursted(void)
-{
-    CommandProcessor::GatherPipeBursted();
-}
-
-void Video_WaitForFrameFinish(void)
-{
-}
-
-bool Video_IsFifoBusy(void)
+bool VideoBackend::Video_IsFifoBusy(void)
 {
 	return false;
 }
 
-void Video_AbortFrame(void)
+void VideoBackend::Video_AbortFrame(void)
 {
+
+}
+
 }

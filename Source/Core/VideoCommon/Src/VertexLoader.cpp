@@ -25,6 +25,7 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 #include "PixelEngine.h"
+#include "Host.h"
 
 #include "LookUpTables.h"
 #include "Statistics.h"
@@ -302,7 +303,7 @@ void VertexLoader::CompileVertexTranslator()
 		{
 			char temp[256];
 			sprintf(temp,"%i %i %i %i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-			g_VideoInitialize.pSysMessage("VertexLoader_Normal::GetFunction returned zero!");
+			Host_SysMessage("VertexLoader_Normal::GetFunction returned zero!");
 		}
 		WriteCall(pFunc);
 

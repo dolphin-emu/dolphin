@@ -17,7 +17,7 @@
 #include "VideoCommon.h"
 
 #include "CPMemLoader.h"
-
+#include "HW/Memmap.h"
 
 // CP state
 u8 *cached_arraybases[16];
@@ -71,7 +71,7 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		arraybases[sub_cmd & 0xF] = value;
-        cached_arraybases[sub_cmd & 0xF] = Memory_GetPtr(value);
+        cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
 		break;
 
 	case 0xB0:

@@ -22,6 +22,7 @@
 #include "PixelShaderCache.h"
 #include "VertexShaderCache.h"
 #include "TextureConverter.h"
+#include "HW/Memmap.h"
 
 namespace DX9
 {
@@ -176,7 +177,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
-	u8* xfb_in_ram = Memory_GetPtr(xfbAddr);
+	u8* xfb_in_ram = Memory::GetPointer(xfbAddr);
 	if (!xfb_in_ram)
 	{
 		WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_VideoSoftware"
+	Name="VideoSoftware"
 	ProjectGUID="{66A4E7BD-E2E8-4373-9B75-8750EB5AE683}"
 	RootNamespace="Plugin_VideoSoftware"
 	Keyword="Win32Proj"
@@ -23,7 +23,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_WIN32;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -68,26 +68,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="false"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib opengl32.lib glew32s.lib glu32.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoSWD.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\core\common\$(PlatformName)\$(ConfigurationName)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="0"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -99,9 +83,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -109,7 +90,7 @@
 			Name="Debug|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -131,7 +112,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_WIN32;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -155,27 +136,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="false"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib opengl32.lib glew64s.lib glu32.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoSWD.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\core\common\$(PlatformName)\$(ConfigurationName)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="0"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -187,9 +151,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -197,7 +158,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -220,7 +181,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_WIN32;PLUGIN_VIDEOSOFTWARE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -241,27 +202,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="false"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib opengl32.lib glew32s.lib glu32.lib rpcrt4.lib libjpeg.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoSW.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\core\common\$(PlatformName)\$(ConfigurationName)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -273,9 +217,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -283,7 +224,7 @@
 			Name="Release|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -308,7 +249,7 @@
 				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/Core/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew\include;..\..\..\Externals\CLRun\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_WIN32;PLUGIN_VIDEOSOFTWARE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -329,27 +270,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="false"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib opengl32.lib glew64s.lib glu32.lib rpcrt4.lib libjpeg64.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoSW.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\..\core\common\$(PlatformName)\$(ConfigurationName)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
-				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="17"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -359,9 +283,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -604,6 +525,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\SWVideoConfig.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWVideoConfig.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Tev.cpp"
 			>
 		</File>
@@ -645,14 +574,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\VertexLoader.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWVideoConfig.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWVideoConfig.h"
 			>
 		</File>
 		<File

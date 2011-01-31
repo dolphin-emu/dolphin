@@ -18,8 +18,8 @@
 #ifndef _FIFO_H
 #define _FIFO_H
 
-#include "pluginspecs_video.h"
 #include "Common.h"
+#include "VideoBackendBase.h"
 
 class PointerWrap;
 
@@ -34,7 +34,7 @@ void Fifo_Shutdown();
 void Fifo_SendFifoData(u8* _uData, u32 len);
 
 // These two are for dual core mode only.
-void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
+void Fifo_EnterLoop();
 void Fifo_ExitLoop();
 void Fifo_ExitLoopNonBlocking();
 void Fifo_RunLoop(bool run);

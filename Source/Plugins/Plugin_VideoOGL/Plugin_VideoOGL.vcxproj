@@ -29,38 +29,39 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1909CD2D-1707-456F-86CA-0DF42A727C99}</ProjectGuid>
     <RootNamespace>Plugin_VideoOGL</RootNamespace>
+    <ProjectName>VideoOGL</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -131,7 +132,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -143,12 +144,16 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew32s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -160,6 +165,10 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg64;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -167,7 +176,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -181,6 +190,10 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew32s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
@@ -202,6 +215,10 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew32s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -209,7 +226,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\GLew\include;..\..\..\Externals</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -223,6 +240,10 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg64;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
@@ -244,6 +265,10 @@
       <AdditionalLibraryDirectories>..\..\..\Externals\GLew;..\..\..\Externals\Cg64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>..\..\..\Binary\$(PlatformName)\Plugins\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Lib>
+      <AdditionalDependencies>cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\Cg64;..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\FramebufferManager.cpp" />
@@ -282,6 +307,7 @@
     <ClInclude Include="Src\TextureConverter.h" />
     <ClInclude Include="Src\VertexManager.h" />
     <ClInclude Include="Src\VertexShaderCache.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\SConscript" />

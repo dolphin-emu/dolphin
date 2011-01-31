@@ -32,6 +32,7 @@ using __gnu_cxx::hash_map;
 #include "VertexShaderManager.h"
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
+#include "HW/Memmap.h"
 
 static int s_attr_dirty;  // bitfield
 
@@ -204,7 +205,7 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		arraybases[sub_cmd & 0xF] = value;
-		cached_arraybases[sub_cmd & 0xF] = Memory_GetPtr(value);
+		cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
 		break;
 
 	case 0xB0:
@@ -217,6 +218,6 @@ void RecomputeCachedArraybases()
 {
 	for (int i = 0; i < 16; i++)
 	{
-		cached_arraybases[i] = Memory_GetPtr(arraybases[i]);
+		cached_arraybases[i] = Memory::GetPointer(arraybases[i]);
 	}
 }

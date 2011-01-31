@@ -242,7 +242,6 @@
     <ClCompile Include="Src\Crypto\ec.cpp" />
     <ClCompile Include="Src\Crypto\md5.cpp" />
     <ClCompile Include="Src\Crypto\sha1.cpp" />
-    <ClCompile Include="Src\DynamicLibrary.cpp" />
     <ClCompile Include="Src\ExtendedTrace.cpp" />
     <ClCompile Include="Src\FileSearch.cpp" />
     <ClCompile Include="Src\FileUtil.cpp" />
@@ -256,9 +255,6 @@
     <ClCompile Include="Src\MsgHandler.cpp" />
     <ClCompile Include="Src\NandPaths.cpp" />
     <ClCompile Include="Src\OpenCL.cpp" />
-    <ClCompile Include="Src\Plugin.cpp" />
-    <ClCompile Include="Src\PluginDSP.cpp" />
-    <ClCompile Include="Src\PluginVideo.cpp" />
     <ClCompile Include="Src\SDCardUtil.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -275,6 +271,7 @@
     <ClCompile Include="Src\Thunk.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Version.cpp" />
+    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\x64Analyzer.cpp" />
     <ClCompile Include="Src\x64Emitter.cpp" />
   </ItemGroup>
@@ -299,7 +296,6 @@
     <ClInclude Include="Src\Crypto\sha1.h" />
     <ClInclude Include="Src\Crypto\tools.h" />
     <ClInclude Include="Src\DebugInterface.h" />
-    <ClInclude Include="Src\DynamicLibrary.h" />
     <ClInclude Include="Src\ExtendedTrace.h" />
     <ClInclude Include="Src\FifoQueue.h" />
     <ClInclude Include="Src\FileSearch.h" />
@@ -316,9 +312,7 @@
     <ClInclude Include="Src\MsgHandler.h" />
     <ClInclude Include="Src\NandPaths.h" />
     <ClInclude Include="Src\OpenCL.h" />
-    <ClInclude Include="Src\Plugin.h" />
-    <ClInclude Include="Src\PluginDSP.h" />
-    <ClInclude Include="Src\PluginVideo.h" />
+    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\SDCardUtil.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />

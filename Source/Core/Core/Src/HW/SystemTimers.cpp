@@ -61,7 +61,6 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Atomic.h"
 #include "../PatchEngine.h"
 #include "SystemTimers.h"
-#include "../PluginManager.h"
 #include "../HW/DSP.h"
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
@@ -74,7 +73,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "../PluginDSP.h"
 #include "Thread.h"
 #include "Timer.h"
-
+#include "VideoBackendBase.h"
 
 
 namespace SystemTimers
@@ -228,7 +227,7 @@ u64 GetFakeTimeBase()
 // For DC watchdog hack
 void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 {
-	CPluginManager::GetInstance().GetVideo()->Video_WaitForFrameFinish();  // lock CPUThread until frame finish
+	g_video_backend->Video_WaitForFrameFinish();  // lock CPUThread until frame finish
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_FakeGPWD);
 }
 

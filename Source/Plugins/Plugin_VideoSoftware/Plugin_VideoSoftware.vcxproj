@@ -21,26 +21,27 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9E9DA440-E9AD-413C-B648-91030E792211}</ProjectGuid>
     <RootNamespace>Plugin_VideoSoftware</RootNamespace>
+    <ProjectName>VideoSoftware</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -91,7 +92,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -108,7 +109,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -127,7 +128,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -148,7 +149,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -183,17 +184,16 @@
     <ClCompile Include="Src\Statistics.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Src\SWVideoConfig.cpp" />
     <ClCompile Include="Src\Tev.cpp" />
     <ClCompile Include="Src\TextureEncoder.cpp" />
     <ClCompile Include="Src\TextureSampler.cpp" />
     <ClCompile Include="Src\TransformUnit.cpp" />
-    <ClCompile Include="Src\VertexFormatConverter.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp" />
-    <ClCompile Include="Src\SWVideoConfig.cpp" />
     <ClCompile Include="Src\VideoConfigDialog.cpp" />
     <ClCompile Include="Src\Win32.cpp" />
     <ClCompile Include="Src\XFMemLoader.cpp" />
@@ -218,21 +218,18 @@
     <ClInclude Include="Src\SetupUnit.h" />
     <ClInclude Include="Src\Statistics.h" />
     <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\SWVideoConfig.h" />
     <ClInclude Include="Src\Tev.h" />
     <ClInclude Include="Src\TextureEncoder.h" />
     <ClInclude Include="Src\TextureSampler.h" />
     <ClInclude Include="Src\TransformUnit.h" />
     <ClInclude Include="Src\Vec3.h" />
-    <ClInclude Include="Src\VertexFormatConverter.h" />
     <ClInclude Include="Src\VertexLoader.h" />
     <ClInclude Include="Src\VertexLoader_Position.h" />
-    <ClInclude Include="Src\SWVideoConfig.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
     <ClInclude Include="Src\VideoConfigDialog.h" />
     <ClInclude Include="Src\Win32.h" />
     <ClInclude Include="Src\XFMemLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_adv.vcxproj">
@@ -247,6 +244,9 @@
     <ProjectReference Include="..\..\Core\VideoCommon\VideoCommon.vcxproj">
       <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

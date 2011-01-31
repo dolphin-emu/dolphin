@@ -22,7 +22,8 @@
 #include "Fifo.h"
 #include "VertexShaderManager.h"
 #include "RenderBase.h"
-
+#include "VideoBackendBase.h"
+#include "Core.h"
 
 int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
@@ -223,7 +224,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		return true;
 
 	case WM_DESTROY:
-		Shutdown();
+		g_video_backend->Shutdown();
 		break;
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
@@ -323,7 +324,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	// 3. Request window sizes which actually make the client area map to a common resolution
 	HWND Ret;
 	int x=0, y=0, width=640, height=480;
-	g_VideoInitialize.pGetWindowSize(x, y, width, height);
+	Core::Callback_VideoGetWindowSize(x, y, width, height);
 
 	 // TODO: Don't show if fullscreen
 	Ret = OpenWindow(hParent, hInstance, width, height, title);

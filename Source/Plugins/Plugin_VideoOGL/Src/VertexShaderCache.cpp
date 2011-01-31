@@ -210,19 +210,17 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
 	}
 }
 
-}  // namespace OGL
-
-void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
 }
 
-void SetVSConstant4fv(unsigned int const_number, const float *f)
+void Renderer::SetVSConstant4fv(unsigned int const_number, const float *f)
 {
 	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
 }
 
-void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
     if(GLEW_EXT_gpu_program_parameters)
     {
@@ -235,7 +233,7 @@ void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const 
     }
 }
 
-void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
+void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
    if(GLEW_EXT_gpu_program_parameters)
 	{
@@ -262,3 +260,5 @@ void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const 
 	    }
     }
 }
+
+}  // namespace OGL

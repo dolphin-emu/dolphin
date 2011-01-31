@@ -19,7 +19,7 @@
 #ifndef _OPCODEDECODER_H_
 #define _OPCODEDECODER_H_
 
-#include "pluginspecs_video.h"
+#include "CommonTypes.h"
 
 namespace OpcodeDecoder
 {

@@ -20,7 +20,7 @@
 #include "XFMemLoader.h"
 #include "CPMemLoader.h"
 #include "Clipper.h"
-
+#include "HW/Memmap.h"
 
 XFRegisters xfregs;
 
@@ -90,7 +90,7 @@ void LoadIndexedXF(u32 val, int array)
     int size = ((val >> 12) & 0xF) + 1;
     //load stuff from array to address in xf mem
 
-	u32 *pData = (u32*)g_VideoInitialize.pGetMemoryPointer(arraybases[array] + arraystrides[array]*index);
+	u32 *pData = (u32*)Memory::GetPointer(arraybases[array] + arraystrides[array]*index);
 
 	// byteswap data
 	u32 buffer[16];

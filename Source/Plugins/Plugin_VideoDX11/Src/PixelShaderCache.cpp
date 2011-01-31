@@ -28,6 +28,8 @@
 #include "PixelShaderGen.h"
 #include "PixelShaderCache.h"
 
+#include "ConfigManager.h"
+
 extern int frameCount;
 
 // See comment near the bottom of this file.
@@ -36,7 +38,6 @@ bool pscbufchanged = true;
 
 namespace DX11
 {
-
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
@@ -271,7 +272,7 @@ void PixelShaderCache::Init()
 	SETSTAT(stats.numPixelShadersAlive, 0);
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
+	sprintf(cache_filename, "%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 }
@@ -386,9 +387,6 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* byt
 	return true;
 }
 
-}  // DX11
-
-
 // These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
 // This will have to be changed when we merge.
 
@@ -414,7 +412,7 @@ static const unsigned int ps_constant_offset_table[] = {
 	260, 264, 268, 272, 276,		// C_PLIGHTS7, 20
 	280, 284, 288, 292				// C_PMATERIALS, 16	
 };
-void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	psconstants[ps_constant_offset_table[const_number]  ] = f1;
 	psconstants[ps_constant_offset_table[const_number]+1] = f2;
@@ -423,14 +421,16 @@ void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, fl
 	pscbufchanged = true;
 }
 
-void SetPSConstant4fv(unsigned int const_number, const float* f)
+void Renderer::SetPSConstant4fv(unsigned int const_number, const float* f)
 {
 	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
 	pscbufchanged = true;
 }
 
-void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
+void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
 	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
 	pscbufchanged = true;
 }
+
+}  // DX11

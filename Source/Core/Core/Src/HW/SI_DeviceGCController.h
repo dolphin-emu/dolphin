@@ -18,7 +18,6 @@
 #ifndef _SI_DEVICEGCCONTROLLER_H
 #define _SI_DEVICEGCCONTROLLER_H
 
-#include "../PluginManager.h"
 #include "SI_Device.h"
 #include "GCPadStatus.h"
 

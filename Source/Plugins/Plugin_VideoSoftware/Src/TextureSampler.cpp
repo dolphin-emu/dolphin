@@ -20,6 +20,7 @@
 
 #include "BPMemLoader.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"
+#include "HW/Memmap.h"
 
 #include <cmath>
 
@@ -121,7 +122,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
     TexTLUT& texTlut = texUnit.texTlut[subTexmap];
 
     u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;    
-    u8 *imageSrc = g_VideoInitialize.pGetMemoryPointer(imageBase);
+    u8 *imageSrc = Memory::GetPointer(imageBase);
 
 	int imageWidth = ti0.width;
 	int imageHeight = ti0.height;

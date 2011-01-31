@@ -18,8 +18,8 @@
 #define _PIXELENGINE_H
 
 #include "Common.h"
-#include "pluginspecs_video.h"
 #include "VideoCommon.h"
+
 class PointerWrap;
 
 namespace PixelEngine

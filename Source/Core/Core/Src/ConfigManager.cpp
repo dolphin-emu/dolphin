@@ -21,7 +21,6 @@
 #include "CommonPaths.h"
 #include "IniFile.h"
 #include "ConfigManager.h"
-#include "PluginManager.h"
 #include "FileUtil.h"
 
 SConfig* SConfig::m_Instance;
@@ -184,6 +183,7 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "UseFPS",		b_UseFPS);
 
 	// Plugins
+	// TODO: change key name, it's no longer a plugin
 	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -318,6 +318,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "UseFPS",			&b_UseFPS,										false); // use vps as default
 
 		// Plugins
+		// TODO: change key name, it's no longer a plugin
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 	}
 

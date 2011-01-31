@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Common"
 	ProjectGUID="{C573CAF7-EE6A-458E-8049-16C0BF34C2E9}"
 	RootNamespace="Common"
@@ -454,46 +454,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Plugins"
-			>
-			<File
-				RelativePath=".\Src\Plugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugin.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PluginVideo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PluginVideo.h"
-				>
-			</File>
-			<Filter
-				Name="Specs"
-				>
-				<File
-					RelativePath="..\..\PluginSpecs\ExportEpilog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\ExportProlog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\PluginSpecs.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_video.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="Logging"
 			>
 			<File
@@ -642,14 +602,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DynamicLibrary.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DynamicLibrary.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\ExtendedTrace.cpp"
 			>
 		</File>
@@ -759,6 +711,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\OpenCL.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\PluginSpecs\PluginSpecs.h"
 			>
 		</File>
 		<File
@@ -895,6 +851,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\Version.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoBackendBase.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoBackendBase.h"
 			>
 		</File>
 		<File

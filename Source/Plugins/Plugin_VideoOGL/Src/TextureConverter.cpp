@@ -18,6 +18,8 @@
 // Fast image conversion using OpenGL shaders.
 // This kind of stuff would be a LOT nicer with OpenCL.
 
+#include <math.h>
+
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
 #include "TextureCache.h"
@@ -28,8 +30,8 @@
 #include "VideoConfig.h"
 #include "ImageWrite.h"
 #include "Render.h"
-#include <math.h>
 #include "FileUtil.h"
+#include "HW/Memmap.h"
 
 namespace OGL
 {
@@ -265,7 +267,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	if (texconv_shader.glprogid == 0)
 		return;
 
-	u8 *dest_ptr = Memory_GetPtr(address);
+	u8 *dest_ptr = Memory::GetPointer(address);
 
 	GLuint source_texture = bFromZBuffer ? FramebufferManager::ResolveAndGetDepthTarget(source) : FramebufferManager::ResolveAndGetRenderTarget(source);
 
@@ -336,7 +338,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	if (texconv_shader.glprogid == 0)
 		return 0;
 
-	u8 *dest_ptr = Memory_GetPtr(address);
+	u8 *dest_ptr = Memory::GetPointer(address);
 
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
@@ -405,7 +407,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 // Should be scale free.
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
-	u8* srcAddr = Memory_GetPtr(xfbAddr);
+	u8* srcAddr = Memory::GetPointer(xfbAddr);
 	if (!srcAddr)
 	{
 		WARN_LOG(VIDEO, "Tried to decode from invalid memory address");

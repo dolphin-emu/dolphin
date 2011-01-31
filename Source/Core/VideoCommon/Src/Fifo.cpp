@@ -24,6 +24,7 @@
 #include "CommandProcessor.h"
 #include "ChunkFile.h"
 #include "Fifo.h"
+#include "HW/Memmap.h"
 
 volatile bool g_bSkipCurrentFrame = false;
 volatile bool g_EFBAccessRequested = false;
@@ -134,16 +135,15 @@ void ResetVideoBuffer()
 
 // Description: Main FIFO update loop
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
-void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
+void Fifo_EnterLoop()
 {
-
 	fifoStateRun = true;
 	SCPFifoStruct &_fifo = CommandProcessor::fifo;
 	s32 distToSend;
 
 	while (fifoStateRun)
 	{
-		video_initialize.pPeekMessages();
+		g_video_backend->PeekMessages();
 
 		VideoFifo_CheckAsyncRequest();
 
@@ -164,7 +164,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 			// Create pointer to video data and send it to the VideoPlugin
 			u32 readPtr = _fifo.CPReadPointer;
-			u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
+			u8 *uData = Memory::GetPointer(readPtr);
 
 			distToSend = 32;
 
@@ -204,7 +204,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// While the emu is paused, we still handle async request such as Savestates then sleep.
 			while (!EmuRunning)
 			{
-				video_initialize.pPeekMessages();
+				g_video_backend->PeekMessages();
 				VideoFifo_CheckAsyncRequest();
 				Common::SleepCurrentThread(10);
 			}

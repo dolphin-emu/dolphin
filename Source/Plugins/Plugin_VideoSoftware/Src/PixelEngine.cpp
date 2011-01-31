@@ -22,6 +22,9 @@
 
 #include "Common.h"
 #include "ChunkFile.h"
+#include "CoreTiming.h"
+#include "ConfigManager.h"
+#include "HW/ProcessorInterface.h"
 
 #include "PixelEngine.h"
 #include "CommandProcessor.h"
@@ -64,8 +67,8 @@ void Init()
     et_SetTokenOnMainThread = false;
     g_bSignalFinishInterrupt = false;
 
-    et_SetTokenOnMainThread = g_VideoInitialize.pRegisterEvent("SetToken", SetToken_OnMainThread);
-	et_SetFinishOnMainThread = g_VideoInitialize.pRegisterEvent("SetFinish", SetFinish_OnMainThread);
+	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
+	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -114,22 +117,22 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bOnThread || (!pereg.ctrl.PETokenEnable && !pereg.ctrl.PEFinishEnable);
+	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!pereg.ctrl.PETokenEnable && !pereg.ctrl.PEFinishEnable);
 }
 
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
     if (g_bSignalTokenInterrupt	& pereg.ctrl.PETokenEnable)
-        g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, true);
+        ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, true);
 	else
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_TOKEN, false);
+		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, false);
 
 	// check if there is a finish-interrupt
     if (g_bSignalFinishInterrupt & pereg.ctrl.PEFinishEnable)
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, true);
+		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, true);
 	else
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, false);
+		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, false);
 }
 
 
@@ -154,8 +157,8 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	pereg.token = _token;
     if (_bSetTokenAcknowledge) // set token INT
 	{
-        g_VideoInitialize.pScheduleEvent_Threadsafe(
-			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread,
+			_token | (_bSetTokenAcknowledge << 16));
 	}
 }
 
@@ -163,8 +166,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetFinish()
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(
-		0, et_SetFinishOnMainThread, 0);
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
