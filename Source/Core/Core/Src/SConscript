@@ -15,7 +15,6 @@ files = [
 	"OnFrame.cpp",
 	"MemTools.cpp",
 	"PatchEngine.cpp",
-	"PluginManager.cpp",
 	"PluginDSP.cpp",
 	"LuaInterface.cpp",
 	"State.cpp",

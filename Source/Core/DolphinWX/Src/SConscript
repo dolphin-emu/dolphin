@@ -7,9 +7,10 @@ from SconsTests import utils
 
 files = ['BootManager.cpp']
 
+# 'plugin_videosoftware',
 libs = [
-	'core',
-	'audiocommon', 'common', 'discio', 'inputcommon',
+	'core', 'discio', 'plugin_videoogl', 
+	'audiocommon', 'common', 'inputcommon', 'videocommon',
 	'GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z',
 	]
 
@@ -55,12 +56,11 @@ else:
 
 	env.StaticLibrary(env['local_libs'] + "dolphinwx", libfiles)
 
-	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx']
+	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx', 'videouicommon']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	ldflags += [ '-Wl,-force_load,' + env['libvideo'][0].path ]
 	ldflags += [ '-Xarch_i386', '-Wl,-framework,QuickTime' ]
 	ldflags += [ '-weak_framework', 'OpenCL' ]
 
@@ -126,8 +126,6 @@ elif sys.platform == 'darwin':
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL', 'clrun' ]
-	ldflags += [ '-Wl,--whole-archive,' + env['libvideo'][0].path ]
-	ldflags += [ '-Wl,--no-whole-archive' ]
 	if env['HAVE_WX']:
 		exe = env['binary_dir'] + '/dolphin-emu'
 	else:
@@ -138,5 +136,4 @@ else:
 libs = wxlibs + libs + env['LIBS']
 linkflags = ldflags + env['LINKFLAGS']
 
-env.Depends(exe, env['libvideo'])
 env.Program(exe, files, LIBS = libs, LINKFLAGS = linkflags)

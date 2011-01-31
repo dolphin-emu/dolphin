@@ -54,7 +54,12 @@ enum {
 	VB_HAS_UVTEXMTXSHIFT=13,
 };
 
+#ifdef WIN32
 #define LOADERDECL __cdecl
+#else
+#define LOADERDECL
+#endif
+
 typedef void (LOADERDECL *TPipelineFunction)();
 
 enum VarType

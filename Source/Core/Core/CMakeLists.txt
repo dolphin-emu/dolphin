@@ -12,7 +12,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/MemTools.cpp
 			Src/OnFrame.cpp
 			Src/PatchEngine.cpp
-			Src/PluginManager.cpp
 			Src/PluginDSP.cpp
 			Src/State.cpp
 			Src/stdafx.cpp

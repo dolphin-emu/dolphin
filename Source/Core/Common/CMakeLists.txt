@@ -4,7 +4,6 @@ set(SRCS	Src/ABI.cpp
 			Src/ColorUtil.cpp
 			Src/ConsoleListener.cpp
 			Src/CPUDetect.cpp
-			Src/DynamicLibrary.cpp
 			Src/FileSearch.cpp
 			Src/FileUtil.cpp
 			Src/Hash.cpp
@@ -17,8 +16,6 @@ set(SRCS	Src/ABI.cpp
 			Src/MsgHandler.cpp
 			Src/NandPaths.cpp
 			Src/OpenCL.cpp
-			Src/Plugin.cpp
-			Src/PluginVideo.cpp
 			Src/SDCardUtil.cpp
 			Src/StringUtil.cpp
 			Src/SymbolDB.cpp
@@ -27,6 +24,7 @@ set(SRCS	Src/ABI.cpp
 			Src/Thunk.cpp
 			Src/Timer.cpp
 			Src/Version.cpp
+			Src/VideoBackendBase.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp
 			Src/Crypto/aes_cbc.cpp

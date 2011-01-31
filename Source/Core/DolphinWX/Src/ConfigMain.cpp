@@ -252,10 +252,8 @@ void CConfigMain::UpdateGUI()
 		PathsPage->Disable();
 
 
-#if defined _WIN32 || defined __linux__
 		// Disable stuff on PluginsPage
 		GraphicSelection->Disable();
-#endif
 	}
 }
 
@@ -876,7 +874,6 @@ void CConfigMain::CreateGUIControls()
 	PathsPage->SetSizer(sPathsPage);
 
 	
-#if defined _WIN32 || defined __linux__
 	// Plugins page
 	//sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, _("Graphics"));
 	//GraphicSelection = new wxChoice(PluginsPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
@@ -891,7 +888,6 @@ void CConfigMain::CreateGUIControls()
 	//sPluginsPage->Add(sbGraphicsPlugin, 0, wxEXPAND|wxALL, 5);
 
 	//PluginsPage->SetSizer(sPluginsPage);
-#endif
 
 
 	m_Ok = new wxButton(this, wxID_OK);

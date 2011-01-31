@@ -19,9 +19,4 @@ files = [
 	'GLUtil.cpp'
 	]
 
-env['LIBS'] += ['videocommon']
-
-if env['HAVE_WX']:
-	env['LIBS'] += [ 'videouicommon' ]
-
-env['libvideo'] = env.StaticLibrary(env['local_libs'] + 'video', files)
+env.StaticLibrary(env['local_libs'] + 'plugin_videoogl', files)

@@ -331,14 +331,6 @@ dirs = [
     'Externals/SFML/src',
     #'Externals/wxWidgets',
     'Externals/zlib',
-    ]
-
-if sys.platform == 'darwin':
-    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
-else:
-    dirs += ['Source/Plugins/Plugin_VideoSoftware/Src']
-
-dirs += [
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
@@ -350,6 +342,8 @@ dirs += [
     'Source/Core/VideoCommon/Src',
     'Source/Core/VideoUICommon/Src',
     'Source/DSPTool/Src',
+    'Source/Plugins/Plugin_VideoOGL/Src',
+    #'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/UnitTests',
     ]
 
