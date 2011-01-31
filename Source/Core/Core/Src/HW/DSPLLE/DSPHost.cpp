@@ -24,15 +24,10 @@
 #include "../../ConfigManager.h"
 #include "../../PowerPC/PowerPC.h"
 
-/*
-ECTORTODO
 #if defined(HAVE_WX) && HAVE_WX
-
-#include "Debugger/DSPDebugWindow.h" // For the DSPDebuggerLLE class
+#include "DSPDebugWindow.h" // For the DSPDebuggerLLE class
 extern DSPDebuggerLLE* m_DebuggerFrame;
-
 #endif
-*/
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
@@ -103,20 +98,19 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
-	/* ECTORTODO
+
 #if defined(HAVE_WX) && HAVE_WX
 	if (m_DebuggerFrame)
 		m_DebuggerFrame->Refresh();
 #endif
-		*/
+
 	return ector_crc;
 }
 
 void DSPHost_UpdateDebugger()
 {
-	/* ECTORTODO
 #if defined(HAVE_WX) && HAVE_WX
 	if (m_DebuggerFrame)
 		m_DebuggerFrame->Refresh();
-#endif */
+#endif
 }

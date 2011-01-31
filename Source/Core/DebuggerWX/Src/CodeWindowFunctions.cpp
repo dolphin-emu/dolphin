@@ -516,7 +516,6 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 
 void CCodeWindow::ToggleSoundWindow(bool bShow)
 {
-	// TODO: Resurrect DSP debugger window.
 	GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(bShow);
 	if (bShow)
 	{
