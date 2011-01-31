@@ -1,19 +1,20 @@
-set(SRCS	Src/BPMemory.cpp
-			Src/BPFunctions.cpp
+set(SRCS	Src/BPFunctions.cpp
+			Src/BPMemory.cpp
 			Src/BPStructs.cpp
-			Src/CommandProcessor.cpp
 			Src/CPMemory.cpp
-			Src/Debugger.cpp
+			Src/CommandProcessor.cpp
 			Src/DLCache.cpp
+			Src/Debugger.cpp
 			Src/Fifo.cpp
 			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
 			Src/IndexGenerator.cpp
 			Src/MainBase.cpp
-			Src/memcpy_amd.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp
+			Src/OpenCL.cpp
+			Src/OpenCL/OCLTextureDecoder.cpp
 			Src/PixelEngine.cpp
 			Src/PixelShaderGen.cpp
 			Src/PixelShaderManager.cpp
@@ -36,8 +37,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFBConvert.cpp
 			Src/XFMemory.cpp
 			Src/XFStructs.cpp
-			Src/OpenCL.cpp)
-			Src/OpenCL/OCLTextureDecoder.cpp)
+			Src/memcpy_amd.cpp)
 
 if(wxWidgets_FOUND AND WIN32)
 	set(SRCS ${SRCS} Src/EmuWindow.cpp)
