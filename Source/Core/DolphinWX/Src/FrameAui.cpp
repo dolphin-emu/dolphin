@@ -410,7 +410,7 @@ void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
 			Win->Reparent(this);
 		}
 		else
-			Win->Close();
+			Win->Destroy();
 		Parent->Destroy();
 	}
 	else
@@ -427,7 +427,7 @@ void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
 					Win->Reparent(this);
 				}
 				else
-					Win->Close();
+					Win->Destroy();
 			}
 		}
 	}

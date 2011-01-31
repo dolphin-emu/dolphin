@@ -48,6 +48,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 	// notify wxAUI which frame to use
 	m_mgr.SetManagedWindow(this);
+	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_Toolbar = new wxAuiToolBar(this, ID_TOOLBAR,
 		wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
