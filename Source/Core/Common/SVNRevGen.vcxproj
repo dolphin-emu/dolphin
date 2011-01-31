@@ -45,6 +45,11 @@
     <PreBuildEvent>
       <Command>cscript /nologo /E:VBScript "make_svnrev.h.vbs"</Command>
     </PreBuildEvent>
+    <CustomBuild>
+      <Command>
+      </Command>
+      <Outputs>dummy</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="make_svnrev.h.vbs" />
