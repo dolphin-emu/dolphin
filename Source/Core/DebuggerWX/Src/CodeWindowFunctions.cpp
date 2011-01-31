@@ -37,6 +37,7 @@
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
 #include "JitWindow.h"
+#include "DebuggerPanel.h"
 #include "FileUtil.h"
 
 #include "CodeWindow.h"
@@ -426,7 +427,7 @@ void CCodeWindow::OpenPages()
 	if (bShowOnStart[IDM_SOUNDWINDOW - IDM_LOGWINDOW])
 		ToggleSoundWindow(true);
 	if (bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW])
-		ToggleDLLWindow(IDM_VIDEOWINDOW, true);
+		ToggleVideoWindow(true);
 }
 
 void CCodeWindow::ToggleCodeWindow(bool bShow)
@@ -533,47 +534,20 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 #endif
 }
 
-// Notice: This windows docking will produce several wx debugging messages for plugin
-// windows when ::GetWindowRect and ::DestroyWindow fails in wxApp::CleanUp() for the
-// plugin.
-
-// Toggle Sound Debugging Window
-void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
+void CCodeWindow::ToggleVideoWindow(bool bShow)
 {
-	std::string DLLName;
-	//int PluginType;
-	wxPanel *Win;
-
-	switch(Id)
-	{
-		default:
-			PanicAlert("CCodeWindow::ToggleDLLWindow called with invalid Id");
-			return;
-	}
-
+	GetMenuBar()->FindItem(IDM_VIDEOWINDOW)->Check(bShow);
 	if (bShow)
 	{
-		// Show window
-		//Win = (wxPanel *)CPluginManager::GetInstance().OpenDebug(Parent,
-		//		DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
-
-		//if (Win)
-		//{
-		//	Win->Show();
-		//	Win->SetId(Id);
-		//	Parent->DoAddPage(Win,
-		//		   	iNbAffiliation[Id - IDM_LOGWINDOW],
-		//		   	Parent->bFloatWindow[Id - IDM_LOGWINDOW]);
-		//}
+		if (!m_VideoWindow)
+		   	m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
+		Parent->DoAddPage(m_VideoWindow,
+			   	iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
+			   	Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
 	}
-	else
+	else // Close
 	{
-		//Win = (wxPanel *)FindWindowById(Id);
-		//if (Win)
-		//{
-		//	Parent->DoRemovePage(Win, false);
-		//	Win->Destroy();
-		//}
+		Parent->DoRemovePage(m_VideoWindow, false);
+		m_VideoWindow = NULL;
 	}
-	GetMenuBar()->FindItem(Id)->Check(bShow && !!Win);
 }

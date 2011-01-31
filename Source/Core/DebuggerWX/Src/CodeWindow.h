@@ -37,6 +37,7 @@ class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
 class CCodeView;
+class GFXDebuggerPanel;
 
 class CCodeWindow
 	: public wxPanel
@@ -91,7 +92,7 @@ class CCodeWindow
 		void ToggleMemoryWindow(bool bShow);
 		void ToggleJitWindow(bool bShow);
 		void ToggleSoundWindow(bool bShow);
-		void ToggleDLLWindow(int Id, bool bShow);
+		void ToggleVideoWindow(bool bShow);
 
 		void OnChangeFont(wxCommandEvent& event);
 
@@ -106,6 +107,7 @@ class CCodeWindow
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
 		CJitWindow* m_JitWindow;
+		GFXDebuggerPanel* m_VideoWindow;
 
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;

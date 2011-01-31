@@ -43,8 +43,5 @@ elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
 
-add_library(Plugin_VideoSoftware MODULE ${SRCS})
-target_link_libraries(Plugin_VideoSoftware ${LIBS})
-install(TARGETS Plugin_VideoSoftware
-	LIBRARY DESTINATION ${plugindir}
-	RUNTIME DESTINATION ${plugindir})
+add_library(videosoftware STATIC ${SRCS})
+target_link_libraries(videosoftware ${LIBS})
