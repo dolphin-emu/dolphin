@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\src\SFML\Network\Ftp.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Http.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\IPAddress.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Packet.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\SelectorBase.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\SocketTCP.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\SocketUDP.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Win32\SocketHelper.cpp">
+      <Filter>Win32</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\SFML\Network\Ftp.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Http.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\IPAddress.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Packet.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Selector.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SelectorBase.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketHelper.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Sockets.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketTCP.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketUDP.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Win32\SocketHelper.hpp">
+      <Filter>Win32</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\include\SFML\Network\Selector.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Win32">
+      <UniqueIdentifier>{8280ecca-24fc-48a2-b7f5-6aca41826b66}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -310,6 +310,7 @@
     <ClInclude Include="Src\VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CMakeLists.txt" />
     <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>

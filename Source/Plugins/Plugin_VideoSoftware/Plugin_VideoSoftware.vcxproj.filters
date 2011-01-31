@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\BPMemLoader.cpp" />
+    <ClCompile Include="Src\Clipper.cpp" />
+    <ClCompile Include="Src\CommandProcessor.cpp" />
+    <ClCompile Include="Src\CPMemLoader.cpp" />
+    <ClCompile Include="Src\DebugUtil.cpp" />
+    <ClCompile Include="Src\EfbCopy.cpp" />
+    <ClCompile Include="Src\EfbInterface.cpp" />
+    <ClCompile Include="Src\GLUtil.cpp" />
+    <ClCompile Include="Src\HwRasterizer.cpp" />
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\OpcodeDecoder.cpp" />
+    <ClCompile Include="Src\PixelEngine.cpp" />
+    <ClCompile Include="Src\Rasterizer.cpp" />
+    <ClCompile Include="Src\Renderer.cpp" />
+    <ClCompile Include="Src\SetupUnit.cpp" />
+    <ClCompile Include="Src\Statistics.cpp" />
+    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="Src\SWVideoConfig.cpp" />
+    <ClCompile Include="Src\Tev.cpp" />
+    <ClCompile Include="Src\TextureEncoder.cpp" />
+    <ClCompile Include="Src\TextureSampler.cpp" />
+    <ClCompile Include="Src\TransformUnit.cpp" />
+    <ClCompile Include="Src\VertexLoader.cpp" />
+    <ClCompile Include="Src\VideoConfigDialog.cpp" />
+    <ClCompile Include="Src\XFMemLoader.cpp" />
+    <ClCompile Include="Src\Win32.cpp">
+      <Filter>Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RasterFont.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\BPMemLoader.h" />
+    <ClInclude Include="Src\Clipper.h" />
+    <ClInclude Include="Src\CommandProcessor.h" />
+    <ClInclude Include="Src\CPMemLoader.h" />
+    <ClInclude Include="Src\DebugUtil.h" />
+    <ClInclude Include="Src\EfbCopy.h" />
+    <ClInclude Include="Src\EfbInterface.h" />
+    <ClInclude Include="Src\GLUtil.h" />
+    <ClInclude Include="Src\HwRasterizer.h" />
+    <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\NativeVertexFormat.h" />
+    <ClInclude Include="Src\OpcodeDecoder.h" />
+    <ClInclude Include="Src\PixelEngine.h" />
+    <ClInclude Include="Src\Rasterizer.h" />
+    <ClInclude Include="Src\Renderer.h" />
+    <ClInclude Include="Src\SetupUnit.h" />
+    <ClInclude Include="Src\Statistics.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\SWVideoConfig.h" />
+    <ClInclude Include="Src\Tev.h" />
+    <ClInclude Include="Src\TextureEncoder.h" />
+    <ClInclude Include="Src\TextureSampler.h" />
+    <ClInclude Include="Src\TransformUnit.h" />
+    <ClInclude Include="Src\Vec3.h" />
+    <ClInclude Include="Src\VertexLoader.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
+    <ClInclude Include="Src\VideoConfigDialog.h" />
+    <ClInclude Include="Src\XFMemLoader.h" />
+    <ClInclude Include="Src\Win32.h">
+      <Filter>Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RasterFont.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader_Position.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+    <None Include="Src\SConscript" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Win32">
+      <UniqueIdentifier>{081288cb-a63b-4ae9-93eb-e668568520b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{80e30848-1174-4168-a8f7-da2553f872b1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

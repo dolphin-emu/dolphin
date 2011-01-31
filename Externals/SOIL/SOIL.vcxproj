@@ -147,6 +147,10 @@
     <ClInclude Include="stbi_DDS_aug_c.h" />
     <ClInclude Include="stb_image_aug.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+    <None Include="SConscript" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -150,6 +150,12 @@
     <ClInclude Include="..\include\CL\cl_platform.h" />
     <ClInclude Include="dynamiclib.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\CMakeLists.txt" />
+    <None Include="..\SConscript" />
+    <None Include="generateClRun.pl" />
+    <None Include="Makefile" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

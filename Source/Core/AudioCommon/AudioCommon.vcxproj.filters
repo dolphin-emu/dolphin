@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\aldlist.cpp" />
+    <ClCompile Include="Src\AudioCommon.cpp" />
+    <ClCompile Include="Src\AudioCommonConfig.cpp" />
+    <ClCompile Include="Src\Mixer.cpp" />
+    <ClCompile Include="Src\WaveFile.cpp" />
+    <ClCompile Include="Src\AOSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NullSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OpenALStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\XAudio2Stream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\aldlist.h" />
+    <ClInclude Include="Src\AudioCommon.h" />
+    <ClInclude Include="Src\AudioCommonConfig.h" />
+    <ClInclude Include="Src\Mixer.h" />
+    <ClInclude Include="Src\SoundStream.h" />
+    <ClInclude Include="Src\WaveFile.h" />
+    <ClInclude Include="Src\AOSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\NullSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpenALStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XAudio2Stream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="SoundStreams">
+      <UniqueIdentifier>{efb9f5b5-ab0c-455d-b78b-26df725386af}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

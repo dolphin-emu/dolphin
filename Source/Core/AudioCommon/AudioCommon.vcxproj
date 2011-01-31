@@ -261,6 +261,7 @@
     <ClInclude Include="Src\XAudio2Stream.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CMakeLists.txt" />
     <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>

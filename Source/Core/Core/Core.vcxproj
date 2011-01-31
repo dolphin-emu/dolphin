@@ -502,7 +502,6 @@
     <ClInclude Include="Src\HW\CPU.h" />
     <ClInclude Include="Src\HW\DSP.h" />
     <ClInclude Include="Src\HW\DSPHLE\DSPHLE.h" />
-    <ClInclude Include="Src\HW\DSPHLE\DSPHLEGlobals.h" />
     <ClInclude Include="Src\HW\DSPHLE\HLEMixer.h" />
     <ClInclude Include="Src\HW\DSPHLE\MailHandler.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCodes.h" />

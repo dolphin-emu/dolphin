@@ -379,6 +379,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Installer\Dolphin.ico" />
+    <None Include="CMakeLists.txt" />
     <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>

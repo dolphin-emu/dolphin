@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\CommandProcessor.cpp" />
+    <ClCompile Include="Src\memcpy_amd.cpp" />
+    <ClCompile Include="Src\PixelEngine.cpp" />
+    <ClCompile Include="Src\VideoConfig.cpp" />
+    <ClCompile Include="Src\DLCache.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoader.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoader_Color.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoader_Normal.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoader_Position.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoader_TextCoord.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexLoaderManager.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\AVIDump.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HiresTextures.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ImageWrite.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\IndexGenerator.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OnScreenDisplay.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Statistics.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VideoState.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\XFBConvert.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PixelShaderManager.cpp">
+      <Filter>Shader Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexShaderManager.cpp">
+      <Filter>Shader Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PixelShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TextureConversionShader.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BPFunctions.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BPMemory.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BPStructs.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CPMemory.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\XFMemory.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\XFStructs.cpp">
+      <Filter>Register Sections</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OpenCL.cpp">
+      <Filter>Decoding\OpenCL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OpenCL\OCLTextureDecoder.cpp">
+      <Filter>Decoding\OpenCL</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Fifo.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OpcodeDecoding.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TextureDecoder.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debugger.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\EmuWindow.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FramebufferManagerBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MainBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TextureCacheBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VertexManagerBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\CommandProcessor.h" />
+    <ClInclude Include="Src\NativeVertexFormat.h" />
+    <ClInclude Include="Src\PixelEngine.h" />
+    <ClInclude Include="Src\VideoCommon.h" />
+    <ClInclude Include="Src\VideoConfig.h" />
+    <ClInclude Include="Src\DataReader.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DLCache.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader_Color.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader_Normal.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader_Position.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoader_TextCoord.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexLoaderManager.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\AVIDump.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HiresTextures.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ImageWrite.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IndexGenerator.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LookUpTables.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OnScreenDisplay.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Statistics.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VideoState.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XFBConvert.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PixelShaderManager.h">
+      <Filter>Shader Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexShaderManager.h">
+      <Filter>Shader Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PixelShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TextureConversionShader.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BPStructs.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BPFunctions.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BPMemory.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CPMemory.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XFMemory.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XFStructs.h">
+      <Filter>Register Sections</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpenCL.h">
+      <Filter>Decoding\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpenCL\OCLTextureDecoder.h">
+      <Filter>Decoding\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Fifo.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpcodeDecoding.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TextureDecoder.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debugger.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EmuWindow.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FramebufferManagerBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MainBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TextureCacheBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VertexManagerBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
+    <None Include="CMakeLists.txt" />
+    <None Include="..\..\..\Data\User\OpenCL\TextureDecoder.cl">
+      <Filter>Decoding\OpenCL</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Vertex Loading">
+      <UniqueIdentifier>{7520d766-5816-4e85-8068-3744850718d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{ba650466-ae40-45ba-89f4-c3d4919d1f31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Managers">
+      <UniqueIdentifier>{9b5b4ba1-ee30-4cdc-86b2-2c6b15bb47f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Generators">
+      <UniqueIdentifier>{a833e7b4-e178-4ed6-9692-ebb05e2196b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Register Sections">
+      <UniqueIdentifier>{b7c0a925-0c89-4a92-9f07-8b60bd44a8bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Decoding">
+      <UniqueIdentifier>{2e8e6b8a-0d42-48a7-8a44-085830c6d033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Base">
+      <UniqueIdentifier>{448cb71f-7edd-4a5a-ab31-a6505f5a5820}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Decoding\OpenCL">
+      <UniqueIdentifier>{e2a527a2-ccc8-4ab8-a93e-dd2628c0f3b6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

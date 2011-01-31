@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\ABI.cpp" />
+    <ClCompile Include="Src\BreakPoints.cpp" />
+    <ClCompile Include="Src\CDUtils.cpp" />
+    <ClCompile Include="Src\ColorUtil.cpp" />
+    <ClCompile Include="Src\CPUDetect.cpp" />
+    <ClCompile Include="Src\ExtendedTrace.cpp" />
+    <ClCompile Include="Src\FileSearch.cpp" />
+    <ClCompile Include="Src\FileUtil.cpp" />
+    <ClCompile Include="Src\Hash.cpp" />
+    <ClCompile Include="Src\IniFile.cpp" />
+    <ClCompile Include="Src\MathUtil.cpp" />
+    <ClCompile Include="Src\MemArena.cpp" />
+    <ClCompile Include="Src\MemoryUtil.cpp" />
+    <ClCompile Include="Src\Misc.cpp" />
+    <ClCompile Include="Src\MsgHandler.cpp" />
+    <ClCompile Include="Src\NandPaths.cpp" />
+    <ClCompile Include="Src\SDCardUtil.cpp" />
+    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="Src\StringUtil.cpp" />
+    <ClCompile Include="Src\SymbolDB.cpp" />
+    <ClCompile Include="Src\SysConf.cpp" />
+    <ClCompile Include="Src\Thread.cpp" />
+    <ClCompile Include="Src\Thunk.cpp" />
+    <ClCompile Include="Src\Timer.cpp" />
+    <ClCompile Include="Src\Version.cpp" />
+    <ClCompile Include="Src\VideoBackendBase.cpp" />
+    <ClCompile Include="Src\x64Analyzer.cpp" />
+    <ClCompile Include="Src\x64Emitter.cpp" />
+    <ClCompile Include="Src\LogManager.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ConsoleListener.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\aes_cbc.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\aes_core.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\bn.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\ec.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\md5.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Crypto\sha1.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\ABI.h" />
+    <ClInclude Include="Src\Atomic.h" />
+    <ClInclude Include="Src\Atomic_GCC.h" />
+    <ClInclude Include="Src\Atomic_Win32.h" />
+    <ClInclude Include="Src\BreakPoints.h" />
+    <ClInclude Include="Src\CDUtils.h" />
+    <ClInclude Include="Src\ChunkFile.h" />
+    <ClInclude Include="Src\ColorUtil.h" />
+    <ClInclude Include="Src\Common.h" />
+    <ClInclude Include="Src\CommonFuncs.h" />
+    <ClInclude Include="Src\CommonPaths.h" />
+    <ClInclude Include="Src\CommonTypes.h" />
+    <ClInclude Include="Src\CPUDetect.h" />
+    <ClInclude Include="Src\DebugInterface.h" />
+    <ClInclude Include="Src\ExtendedTrace.h" />
+    <ClInclude Include="Src\FifoQueue.h" />
+    <ClInclude Include="Src\FileSearch.h" />
+    <ClInclude Include="Src\FileUtil.h" />
+    <ClInclude Include="Src\FixedSizeQueue.h" />
+    <ClInclude Include="Src\Hash.h" />
+    <ClInclude Include="Src\IniFile.h" />
+    <ClInclude Include="Src\LinearDiskCache.h" />
+    <ClInclude Include="Src\MathUtil.h" />
+    <ClInclude Include="Src\MemArena.h" />
+    <ClInclude Include="Src\MemoryUtil.h" />
+    <ClInclude Include="Src\MsgHandler.h" />
+    <ClInclude Include="Src\NandPaths.h" />
+    <ClInclude Include="Src\SDCardUtil.h" />
+    <ClInclude Include="Src\Setup.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\StdThread.h" />
+    <ClInclude Include="Src\StringUtil.h" />
+    <ClInclude Include="Src\svnrev.h" />
+    <ClInclude Include="Src\svnrev_template.h" />
+    <ClInclude Include="Src\SymbolDB.h" />
+    <ClInclude Include="Src\SysConf.h" />
+    <ClInclude Include="Src\Thread.h" />
+    <ClInclude Include="Src\Thunk.h" />
+    <ClInclude Include="Src\Timer.h" />
+    <ClInclude Include="Src\VideoBackendBase.h" />
+    <ClInclude Include="Src\x64Analyzer.h" />
+    <ClInclude Include="Src\x64Emitter.h" />
+    <ClInclude Include="Src\Log.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LogManager.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ConsoleListener.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Crypto\aes.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Crypto\aes_locl.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Crypto\md5.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Crypto\sha1.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Crypto\tools.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+    <None Include="Src\SConscript" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Crypto">
+      <UniqueIdentifier>{21b7df68-af69-45f4-9741-590a6a7f1ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{f078f36e-a0ff-4cd0-95f8-476100d68e68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

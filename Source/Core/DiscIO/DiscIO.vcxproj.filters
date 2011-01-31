@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="Src\Blob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CISOBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CompressedBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DriveBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileMonitor.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeCommon.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeCreator.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeDirectory.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeGC.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeWad.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VolumeWiiCrypted.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\WiiWad.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NANDContentLoader.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Filesystem.cpp">
+      <Filter>FileSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileSystemGCWii.cpp">
+      <Filter>FileSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BannerLoader.cpp">
+      <Filter>FileHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BannerLoaderGC.cpp">
+      <Filter>FileHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BannerLoaderWii.cpp">
+      <Filter>FileHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FileHandlerARC.cpp">
+      <Filter>FileHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DiscScrubber.cpp">
+      <Filter>DiscScrubber</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\CISOBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Blob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CompressedBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DriveBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FileBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FileMonitor.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Volume.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VolumeWiiCrypted.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VolumeCreator.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VolumeDirectory.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VolumeGC.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VolumeWad.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\WiiWad.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\NANDContentLoader.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FileSystemGCWii.h">
+      <Filter>FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filesystem.h">
+      <Filter>FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BannerLoaderWii.h">
+      <Filter>FileHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BannerLoader.h">
+      <Filter>FileHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BannerLoaderGC.h">
+      <Filter>FileHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FileHandlerARC.h">
+      <Filter>FileHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DiscScrubber.h">
+      <Filter>DiscScrubber</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\SConscript" />
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="DiscScrubber">
+      <UniqueIdentifier>{46b8b594-1da4-4941-9d3e-3057ac8c251f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileHandler">
+      <UniqueIdentifier>{96aa6fd2-a1d1-40c4-9235-50f342f32bf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileSystem">
+      <UniqueIdentifier>{62cd3276-4116-4e3c-93ea-a170676fd84f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NAND">
+      <UniqueIdentifier>{60157ced-f762-4521-be00-79a26744a11a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Volume">
+      <UniqueIdentifier>{45ea663e-bcf3-4ff8-9c97-0f7cfc6ab60e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Volume\Blob">
+      <UniqueIdentifier>{7bbe1cf7-ab2c-4f01-9e60-a9c8767b4dce}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

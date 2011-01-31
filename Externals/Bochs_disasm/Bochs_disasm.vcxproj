@@ -149,6 +149,7 @@
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CMakeLists.txt" />
     <None Include="dis_tables.inl" />
     <None Include="opcodes.inl" />
     <None Include="SConscript" />
