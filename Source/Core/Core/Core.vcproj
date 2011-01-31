@@ -2062,14 +2062,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VideoBackendBase.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VideoBackendBase.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\VolumeHandler.cpp"
 			>
 		</File>

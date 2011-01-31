@@ -861,6 +861,14 @@
 			RelativePath=".\Src\x64Emitter.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\VideoBackendBase.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoBackendBase.h"
+			>
+		</File>		
 	</Files>
 	<Globals>
 	</Globals>
