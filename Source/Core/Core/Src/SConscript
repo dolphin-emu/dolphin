@@ -19,6 +19,7 @@ files = [
 	"LuaInterface.cpp",
 	"State.cpp",
 	"Tracer.cpp",
+	"VideoBackendBase.cpp",
 	"VolumeHandler.cpp",
 	"Boot/Boot.cpp",
 	"Boot/Boot_BS2Emu.cpp",

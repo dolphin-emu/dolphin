@@ -40,7 +40,7 @@
 
 // TODO: Move these out of here.
 int frameCount;
-//int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+int OSDChoice, OSDTime;
 
 Renderer *g_renderer;
 

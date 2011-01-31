@@ -25,8 +25,6 @@
 #include "VideoBackendBase.h"
 #include "Core.h"
 
-int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
-
 namespace EmuWindow
 {
 HWND m_hWnd = NULL;

@@ -36,6 +36,7 @@ set(SRCS	Src/BPMemory.cpp
 			Src/XFBConvert.cpp
 			Src/XFMemory.cpp
 			Src/XFStructs.cpp
+			Src/OpenCL.cpp)
 			Src/OpenCL/OCLTextureDecoder.cpp)
 
 if(wxWidgets_FOUND AND WIN32)

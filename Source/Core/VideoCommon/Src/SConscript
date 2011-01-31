@@ -18,6 +18,7 @@ files = [
 	'MainBase.cpp',
 	'OnScreenDisplay.cpp',
 	'OpcodeDecoding.cpp',
+	'OpenCL.cpp',
 	'OpenCL/OCLTextureDecoder.cpp',
 	'PixelEngine.cpp',
 	'PixelShaderGen.cpp',

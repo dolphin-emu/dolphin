@@ -449,6 +449,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\Tracer.cpp" />
+    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\VolumeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -613,6 +614,7 @@
     <ClInclude Include="Src\State.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\Tracer.h" />
+    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>

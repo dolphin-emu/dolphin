@@ -16,6 +16,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/State.cpp
 			Src/stdafx.cpp
 			Src/Tracer.cpp
+			Src/VideoBackendBase.cpp
 			Src/VolumeHandler.cpp
 			Src/Boot/Boot_BS2Emu.cpp
 			Src/Boot/Boot.cpp

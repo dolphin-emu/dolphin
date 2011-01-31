@@ -706,14 +706,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\OpenCL.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\OpenCL.h"
-			>
-		</File>
-		<File
 			RelativePath="..\..\PluginSpecs\PluginSpecs.h"
 			>
 		</File>
@@ -851,14 +843,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Version.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VideoBackendBase.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VideoBackendBase.h"
 			>
 		</File>
 		<File

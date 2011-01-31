@@ -96,9 +96,9 @@ CGprofile g_cgfProf;
 #endif
 
 #ifdef _WIN32
-extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+extern int OSDInternalW, OSDInternalH;
 #else
-int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
+int OSDInternalW, OSDInternalH;
 #endif
 
 namespace OGL

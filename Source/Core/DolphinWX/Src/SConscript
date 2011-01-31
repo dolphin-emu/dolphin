@@ -56,7 +56,7 @@ else:
 
 	env.StaticLibrary(env['local_libs'] + "dolphinwx", libfiles)
 
-	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx', 'videouicommon']
+	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
@@ -135,5 +135,8 @@ else:
 
 libs = wxlibs + libs + env['LIBS']
 linkflags = ldflags + env['LINKFLAGS']
+
+if env['HAVE_WX']:
+	libs += ['videouicommon']
 
 env.Program(exe, files, LIBS = libs, LINKFLAGS = linkflags)

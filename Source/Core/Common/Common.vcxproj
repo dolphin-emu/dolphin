@@ -254,7 +254,6 @@
     <ClCompile Include="Src\Misc.cpp" />
     <ClCompile Include="Src\MsgHandler.cpp" />
     <ClCompile Include="Src\NandPaths.cpp" />
-    <ClCompile Include="Src\OpenCL.cpp" />
     <ClCompile Include="Src\SDCardUtil.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -271,7 +270,6 @@
     <ClCompile Include="Src\Thunk.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Version.cpp" />
-    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\x64Analyzer.cpp" />
     <ClCompile Include="Src\x64Emitter.cpp" />
   </ItemGroup>
@@ -311,8 +309,6 @@
     <ClInclude Include="Src\MemoryUtil.h" />
     <ClInclude Include="Src\MsgHandler.h" />
     <ClInclude Include="Src\NandPaths.h" />
-    <ClInclude Include="Src\OpenCL.h" />
-    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\SDCardUtil.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />

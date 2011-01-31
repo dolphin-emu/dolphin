@@ -15,7 +15,6 @@ set(SRCS	Src/ABI.cpp
 			Src/Misc.cpp
 			Src/MsgHandler.cpp
 			Src/NandPaths.cpp
-			Src/OpenCL.cpp
 			Src/SDCardUtil.cpp
 			Src/StringUtil.cpp
 			Src/SymbolDB.cpp
@@ -24,7 +23,6 @@ set(SRCS	Src/ABI.cpp
 			Src/Thunk.cpp
 			Src/Timer.cpp
 			Src/Version.cpp
-			Src/VideoBackendBase.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp
 			Src/Crypto/aes_cbc.cpp

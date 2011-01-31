@@ -129,6 +129,7 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LINKFLAGS'] += ccld
+    env['LINKFLAGS'] += ['-Wl,-dead_strip']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
     env['LINKFLAGS'] += ['-Wl,-search_paths_first']
 
@@ -170,7 +171,7 @@ elif sys.platform == 'win32':
     pass
 
 else:
-    env['CCFLAGS'] += ['-fPIC', '-msse2', '-pthread']
+    env['CCFLAGS'] += ['-msse2', '-pthread']
     if env['CCVERSION'] >= '4.2.0':
         env['CCFLAGS'] += ['-fvisibility=hidden']
         env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
