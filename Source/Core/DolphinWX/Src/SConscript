@@ -7,16 +7,9 @@ from SconsTests import utils
 
 files = ['BootManager.cpp']
 
-# 'plugin_videosoftware',
-libs = [
-	'core', 'discio', 'plugin_videoogl', 
-	'audiocommon', 'common', 'inputcommon', 'videocommon',
-	'GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z',
-	]
-
-wxlibs = [ ]
-
 ldflags = [ ]
+
+libs = [ ]
 
 if not env['HAVE_WX']:
 	files += ['MainNoGUI.cpp']
@@ -56,7 +49,13 @@ else:
 
 	env.StaticLibrary(env['local_libs'] + "dolphinwx", libfiles)
 
-	wxlibs += ['debwx', 'debugger_ui_util', 'dolphinwx']
+	libs += ['debwx', 'debugger_ui_util', 'dolphinwx']
+
+libs += ['core', 'discio', 'plugin_videoogl'] # 'plugin_videosoftware'
+if env['HAVE_WX']:
+	libs += ['videouicommon']
+libs += ['audiocommon', 'common', 'inputcommon', 'videocommon']
+libs +=	['GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
@@ -67,7 +66,7 @@ elif sys.platform == 'darwin':
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	if env['HAVE_WX']:
-		wxlibs += env['wxconfiglibs']
+		libs += env['wxconfiglibs']
 	else:
 		libs += [ 'iconv' ]
 		exe += 'NoGUI'
@@ -133,10 +132,6 @@ else:
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
-libs = wxlibs + libs + env['LIBS']
 linkflags = ldflags + env['LINKFLAGS']
 
-if env['HAVE_WX']:
-	libs += ['videouicommon']
-
-env.Program(exe, files, LIBS = libs, LINKFLAGS = linkflags)
+env.Program(exe, files, LIBS = libs + env['LIBS'], LINKFLAGS = linkflags)
