@@ -29,7 +29,6 @@ public:
 
 	virtual void Initialize(void *hWnd, bool bWii, bool bDSPThread);
 	virtual void Shutdown();
-
 	virtual bool IsLLE() { return true; }
 
 	virtual void DoState(PointerWrap &p);

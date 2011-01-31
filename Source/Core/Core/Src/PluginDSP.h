@@ -19,7 +19,6 @@
 #define _PLUGINDSP_H_
 
 
-#include "PluginSpecs.h"  // TODO: Only here for EmuStateChange
 #include "ChunkFile.h"
 
 class PluginDSP
