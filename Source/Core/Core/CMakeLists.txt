@@ -182,7 +182,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon core lua sfml-network)
+set(LIBS bdisasm inputcommon videoogl lua sfml-network)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
@@ -209,6 +209,3 @@ endif(OPROFILE_FOUND)
 
 add_library(core STATIC ${SRCS})
 target_link_libraries(core ${LIBS})
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	add_definitions(-fPIC)
-endif()

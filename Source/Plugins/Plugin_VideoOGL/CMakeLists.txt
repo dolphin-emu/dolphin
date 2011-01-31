@@ -39,8 +39,5 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 	set(LIBS	${LIBS} usbhid)
 endif()
 
-add_library(Plugin_VideoOGL MODULE ${SRCS})
-target_link_libraries(Plugin_VideoOGL ${LIBS})
-install(TARGETS Plugin_VideoOGL
-		LIBRARY DESTINATION ${plugindir}
-		RUNTIME DESTINATION ${plugindir})
+add_library(videoogl STATIC ${SRCS})
+target_link_libraries(videoogl ${LIBS})

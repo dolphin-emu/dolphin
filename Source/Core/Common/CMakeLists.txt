@@ -41,7 +41,4 @@ endif(WIN32)
 enable_precompiled_headers(Src/stdafx.h Src/stdafx.cpp SRCS)
 
 add_library(common STATIC ${SRCS})
-target_link_libraries(common ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	add_definitions(-fPIC)
-endif()
+target_link_libraries(common clrun ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
