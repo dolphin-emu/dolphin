@@ -72,7 +72,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			is_connected = true;
 
 			m_selector.Add(m_socket);
-			m_thread = std::thread(NetPlayThreadFunc, this);
+			m_thread = std::thread(std::mem_fun(&NetPlayClient::ThreadFunc), this);
 		}
 	}
 	else
@@ -237,7 +237,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::Entry()
+void NetPlayClient::ThreadFunc()
 {
 	while (m_do_loop)
 	{

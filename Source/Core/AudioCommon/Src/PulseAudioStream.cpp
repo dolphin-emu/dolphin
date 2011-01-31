@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <functional>
+
 #include "Common.h"
 #include "Thread.h"
 
@@ -35,15 +37,10 @@ PulseAudio::~PulseAudio()
 	delete [] mix_buffer;
 }
 
-void PulseAudio::ThreadTrampoline(PulseAudio* args)
-{
-	args->SoundLoop();
-}
-
 bool PulseAudio::Start()
 {
 	thread_running = true;
-	thread = std::thread(ThreadTrampoline, this);
+	thread = std::thread(std::mem_fun(&PulseAudio::SoundLoop), this);
 	return true;
 }
 

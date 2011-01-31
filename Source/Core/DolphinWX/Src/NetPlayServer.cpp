@@ -40,14 +40,14 @@ NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDia
 		is_connected = true;
 
 		m_selector.Add(m_socket);
-		m_thread = std::thread(NetPlayThreadFunc, this);
+		m_thread = std::thread(std::mem_fun(&NetPlayServer::ThreadFunc), this);
 	}
 	else
 		is_connected = false;
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayServer::Entry()
+void NetPlayServer::ThreadFunc()
 {
 	while (m_do_loop)
 	{

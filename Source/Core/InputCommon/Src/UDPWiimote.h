@@ -21,7 +21,6 @@
 
 class UDPWiimote
 {
-	friend void UDPWiiThread(UDPWiimote* arg);
 public:
 	UDPWiimote(const char * port, const char * name, int index);
 	virtual ~UDPWiimote();
@@ -33,10 +32,11 @@ public:
 	int getErrNo() {return err;};
 	const char * getPort();
 	void changeName(const char * name);
+
+	void mainThread();
 private:
 	std::string port,displayName;
 	int pharsePacket(u8 * data, size_t size);
-	void mainThread();
 	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-
 	_d *d; 
 	double x,y,z;

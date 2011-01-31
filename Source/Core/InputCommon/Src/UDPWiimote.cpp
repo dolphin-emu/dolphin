@@ -39,11 +39,13 @@
 
 #include "Thread.h"
 #include "Timer.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <list>
+#include <functional>
 
 struct UDPWiimote::_d
 {
@@ -54,12 +56,7 @@ struct UDPWiimote::_d
 	sock_t bipv4_fd,bipv6_fd;
 };
 
-int UDPWiimote::noinst=0;
-
-void UDPWiiThread(UDPWiimote* arg)
-{
-	arg->mainThread();
-}
+int UDPWiimote::noinst = 0;
 
 UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) : 
 	port(_port), displayName(name),
@@ -135,7 +132,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	initBroadcastIPv4();
 	initBroadcastIPv6();
 	d->termLock.Enter();
-	d->thread = std::thread(UDPWiiThread, this);
+	d->thread = std::thread(std::mem_fun(&UDPWiimote::mainThread), this);
 	d->termLock.Leave();
 	return;
 }

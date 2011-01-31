@@ -38,11 +38,6 @@ extern CFrame* main_frame;
 
 DEFINE_EVENT_TYPE(wxEVT_THREAD)
 
-void NetPlayThreadFunc(NetPlay* np)
-{
-	np->Entry();
-}
-
 // called from ---GUI--- thread
 NetPlay::NetPlay()
 	: m_is_running(false), m_do_loop(true)

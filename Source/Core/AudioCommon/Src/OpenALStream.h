@@ -58,8 +58,6 @@ public:
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 
-	static void ThreadFunc(OpenALStream* args);
-
 private:
 	std::thread thread;
 	Common::EventEx soundSyncEvent;

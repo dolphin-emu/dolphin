@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <functional>
+
 #include "Common.h"
 #include "Thread.h"
 #include "AlsaSoundStream.h"
@@ -33,14 +35,9 @@ AlsaSound::~AlsaSound()
 	delete [] mix_buffer;
 }
 
-static void ThreadTrampoline(AlsaSound* args)
-{
-	args->SoundLoop();
-}
-
 bool AlsaSound::Start()
 {
-	thread = std::thread(ThreadTrampoline, this);
+	thread = std::thread(std::mem_fun(&AlsaSound::SoundLoop), this);
 	thread_data = 0;
 	return true;
 }

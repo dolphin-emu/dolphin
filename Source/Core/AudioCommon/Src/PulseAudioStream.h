@@ -46,7 +46,6 @@ public:
 
 private:
 	virtual void SoundLoop();
-	static void ThreadTrampoline(PulseAudio* args);
 	bool PulseInit();
 	void PulseShutdown();
 	bool Write(const void *data, size_t bytes);

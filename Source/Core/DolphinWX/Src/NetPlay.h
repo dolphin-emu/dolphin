@@ -10,6 +10,7 @@
 
 #include "GCPadStatus.h"
 
+#include <functional>
 #include <map>
 #include <queue>
 #include <sstream>
@@ -94,7 +95,7 @@ class NetPlay
 public:
 	NetPlay();
 	virtual ~NetPlay();
-	virtual void Entry() = 0;
+	//virtual void ThreadFunc() = 0;
 
 	bool	is_connected;
 	
@@ -163,15 +164,13 @@ private:
 
 };
 
-void NetPlayThreadFunc(NetPlay* arg);
-
 void NetPlay_Enable(NetPlay* const np);
 void NetPlay_Disable();
 
 class NetPlayServer : public NetPlay
 {
 public:
-	void Entry();
+	void ThreadFunc();
 
 	NetPlayServer(const u16 port, const std::string& name, NetPlayDiag* const npd = NULL, const std::string& game = "");
 	~NetPlayServer();
@@ -220,7 +219,7 @@ private:
 class NetPlayClient : public NetPlay
 {
 public:
-	void Entry();
+	void ThreadFunc();
 
 	NetPlayClient(const std::string& address, const u16 port, const std::string& name, NetPlayDiag* const npd = NULL);
 	~NetPlayClient();

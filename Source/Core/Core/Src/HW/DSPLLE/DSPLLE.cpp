@@ -158,7 +158,6 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 
 	if (m_bDSPThread)
 	{
-//		m_hDSPThread = new Common::Thread(dsp_thread, (void *)this);
 		m_hDSPThread = std::thread(dsp_thread, this);
 	}
 /*

@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <functional>
 #include <string.h>
 
 #include "AOSoundStream.h"
@@ -54,18 +55,13 @@ void AOSound::SoundLoop()
 	}
 }
 
-void soundThread(AOSound *aosound)
-{
-	aosound->SoundLoop();
-}
-
 bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
 	soundSyncEvent.Init();
 	
-	thread = std::thread(soundThread, this);
+	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
 	return true;
 }
 

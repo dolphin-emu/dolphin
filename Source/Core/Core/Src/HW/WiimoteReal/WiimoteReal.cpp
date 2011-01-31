@@ -297,11 +297,6 @@ bool Wiimote::SendRequest(unsigned char report_type, unsigned char* data, int le
 	return (IOWrite(buffer, length + 2) != 0);
 }
 
-void Wiimote::StartThread(Wiimote *wiimote)
-{
-	wiimote->ThreadFunc();
-}
-
 void Wiimote::ThreadFunc()
 {
 	char thname[] = "Wiimote # Thread";

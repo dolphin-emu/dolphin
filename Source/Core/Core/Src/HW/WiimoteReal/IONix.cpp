@@ -176,7 +176,7 @@ bool Wiimote::Connect()
 	// Set LEDs
 	SetLEDs(WIIMOTE_LED_1 << index);
 
-	m_wiimote_thread = std::thread(StartThread, this);
+	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
 
 	return true;
 }

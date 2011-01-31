@@ -15,9 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <windows.h>
 #include <cmath>
+#include <functional>
+
+#include <windows.h>
 #include <dxerr.h>
+
 #include "AudioCommon.h"
 #include "DSoundStream.h"
 
@@ -91,11 +94,6 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 }
 
 // The audio thread.
-void soundThread(DSound* dsound)
-{
-	dsound->SoundLoop();
-}
-
 void DSound::SoundLoop()
 {
 	currentPos = 0;
@@ -137,7 +135,7 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, 0);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = std::thread(soundThread, this);
+	thread = std::thread(std::mem_fun(&DSound::SoundLoop), this);
 	return true;
 }
 

@@ -15,14 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <functional>
+
 #include "EXI_Device.h"
 #include "EXI_DeviceGecko.h"
 #include "../Core.h"
-
-void ClientThreadFunc(GeckoSockServer *arg)
-{
-	arg->ClientThread();
-}
 
 u16							GeckoSockServer::server_port;
 int							GeckoSockServer::client_count;
@@ -104,7 +101,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			recv_fifo = std::queue<u8>();
 			send_fifo = std::queue<u8>();
 		}
-		clientThread = std::thread(ClientThreadFunc, this);
+		clientThread = std::thread(std::mem_fun(&GeckoSockServer::ClientThread), this);
 		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;

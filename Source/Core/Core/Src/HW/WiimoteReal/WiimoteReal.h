@@ -19,6 +19,8 @@
 #ifndef WIIMOTE_REAL_H
 #define WIIMOTE_REAL_H
 
+#include <functional>
+
 #include "WiimoteRealBase.h"
 #include "ChunkFile.h"
 #include "Thread.h"
@@ -90,7 +92,6 @@ private:
 	void SetLEDs(int leds);
 	int IORead(unsigned char* buf);
 	int IOWrite(unsigned char* buf, int len);
-	static void StartThread(Wiimote *wiimote);
 	void ThreadFunc();
 
 	bool				m_connected;
