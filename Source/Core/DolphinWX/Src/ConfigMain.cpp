@@ -1394,8 +1394,6 @@ void CConfigMain::AddResolutions()
 			kCGDisplayBitsPerPixel);
 		CFNumberGetValue(ref, kCFNumberIntType, &d);
 
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsInterlaced))
-			continue;
 		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
 			continue;
 		if (d != 32)

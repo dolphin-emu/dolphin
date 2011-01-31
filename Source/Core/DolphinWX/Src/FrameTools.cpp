@@ -773,6 +773,12 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
+	if (!bFullscreen) {
+		CGRestorePermanentDisplayConfiguration();
+		CGDisplayRelease(CGMainDisplayID());
+		return;
+	}
+
 	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
@@ -792,14 +798,15 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 			kCGDisplayBitsPerPixel);
 		CFNumberGetValue(ref, kCFNumberIntType, &d);
 
+		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+			continue;
 		if (w != x || h != y || d != 32)
 			continue;;
 
-		if (bFullscreen)
-			CGDisplaySwitchToMode(CGMainDisplayID(), mode);
-		else
-			CGRestorePermanentDisplayConfiguration();
+		CGDisplayCapture(CGMainDisplayID());
+		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
 	}
+
 #endif
 }
 
