@@ -6,10 +6,8 @@ import sys
 from SconsTests import utils
 
 files = ['BootManager.cpp']
-
-ldflags = [ ]
-
-libs = [ ]
+ldflags = []
+libs = []
 
 if not env['HAVE_WX']:
 	files += ['MainNoGUI.cpp']
@@ -51,11 +49,11 @@ else:
 
 	libs += ['debwx', 'debugger_ui_util', 'dolphinwx']
 
-libs += ['core', 'discio', 'plugin_videoogl'] # 'plugin_videosoftware'
+libs += ['core', 'common', 'discio', 'plugin_videoogl'] # 'plugin_videosoftware'
 if env['HAVE_WX']:
 	libs += ['videouicommon']
-libs += ['audiocommon', 'common', 'inputcommon', 'videocommon']
-libs +=	['GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z']
+libs += ['audiocommon', 'inputcommon', 'videocommon']
+libs += ['GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
@@ -70,7 +68,6 @@ elif sys.platform == 'darwin':
 	else:
 		libs += [ 'iconv' ]
 		exe += 'NoGUI'
-
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Frameworks/Cg.framework', source = [

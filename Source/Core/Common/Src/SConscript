@@ -8,6 +8,7 @@ def createVersion(env, target, source):
 	from SconsTests import utils
 	utils.GenerateRevFile(env['flavor'], source[0].path, target[0].path)
 
+Execute(Delete('svnrev.h'))
 env.Command('svnrev.h', 'svnrev_template.h',
 	[Delete('${TARGET.srcpath}'), createVersion])
 

@@ -1377,43 +1377,33 @@ void CConfigMain::AddResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(arrayStringFor_FullscreenResolution);
 #elif defined(__APPLE__)
-	CFDictionaryRef			mode;
-	CFArrayRef			array;
-	CFIndex				n, i;
-	int				w, h;
-	std::vector<std::string>	resos;
-	
-	array = CGDisplayAvailableModes(CGMainDisplayID());
-	n = CFArrayGetCount(array);
-	
-	for (i = 0; i < n; i++)
+	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
+	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
-		mode	= (CFDictionaryRef)CFArrayGetValueAtIndex(array, i);
-		
-		CFNumberRef anWidth = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayWidth);
-		if (NULL == anWidth ||
-			!CFNumberGetValue(anWidth, kCFNumberIntType, &w))
+		std::stringstream res;
+		CFDictionaryRef mode;
+		CFNumberRef ref;
+		int w, h, d;
+
+		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
+		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
+		CFNumberGetValue(ref, kCFNumberIntType, &w);
+		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
+		CFNumberGetValue(ref, kCFNumberIntType, &h);
+		ref = (CFNumberRef)CFDictionaryGetValue(mode,
+			kCGDisplayBitsPerPixel);
+		CFNumberGetValue(ref, kCFNumberIntType, &d);
+
+		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsInterlaced))
+			continue;
+		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+			continue;
+		if (d != 32)
 			continue;
 
-		CFNumberRef anHeight =
-			(CFNumberRef)CFDictionaryGetValue(mode,
-				kCGDisplayHeight);
-		if (NULL == anHeight ||
-			!CFNumberGetValue(anHeight, kCFNumberIntType, &h))
-			continue;
-		
-		char res[32];
-		sprintf(res,"%dx%d", w, h);
-		std::string strRes(res);
+		res << w << "x" << h;
 
-		// Only add unique resolutions
-		if (std::find(resos.begin(), resos.end(), strRes) ==
-			resos.end())
-		{
-			resos.push_back(strRes);
-			arrayStringFor_FullscreenResolution.Add(strRes);
-		}
+		arrayStringFor_FullscreenResolution.Add(res.str());
 	}
 #endif
 }
