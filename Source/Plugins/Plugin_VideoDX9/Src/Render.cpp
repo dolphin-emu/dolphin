@@ -307,7 +307,7 @@ Renderer::Renderer()
 	SetupDeviceObjects();
 
 	for (int stage = 0; stage < 8; stage++)
-		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
+		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, 1 << g_ActiveConfig.iMaxAnisotropy);
 
 	D3DVIEWPORT9 vp;
 	vp.X = 0;
@@ -1212,10 +1212,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 		if (windowResized)
 		{
+			// device objects lost, so recreate all of them
 			SetupDeviceObjects();
 		}
 		else
 		{
+			// just resize the frame buffer
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager;
 		}
@@ -1253,10 +1255,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	// For testing zbuffer targets.
-	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
-	//	      GetTargetWidth(), GetTargetHeight());
+
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
 }
