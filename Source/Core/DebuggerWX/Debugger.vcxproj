@@ -127,7 +127,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -141,7 +141,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -157,7 +157,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -175,7 +175,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -193,7 +193,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -211,7 +211,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\DebuggerUICommon\Src;..\VideoCommon\Src;..\VideoUICommon\Src;..\..\PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>

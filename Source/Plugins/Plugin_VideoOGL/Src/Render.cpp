@@ -95,11 +95,7 @@ CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 #endif
 
-#ifdef _WIN32
-extern int OSDInternalW, OSDInternalH;
-#else
 int OSDInternalW, OSDInternalH;
-#endif
 
 namespace OGL
 {
