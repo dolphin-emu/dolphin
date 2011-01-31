@@ -19,7 +19,6 @@
 #define _PLUGINDSP_H_
 
 
-#include "Plugin.h"  // TODO: Only here for EmuStateChange
 #include "ChunkFile.h"
 
 class PluginDSP
@@ -32,15 +31,7 @@ public:
 	virtual void Initialize(void *hWnd, bool bWii, bool bDSPThread) = 0;
 	virtual void Shutdown() = 0;
 
-	/*
-	GUI
-	virtual void Config(void *_hwnd) = 0;
-	virtual void About(void *_hwnd) = 0;
-	virtual void *Debug(void *Parent, bool Show) = 0;
-	*/
-
 	virtual void DoState(PointerWrap &p) = 0;
-	virtual void EmuStateChange(PLUGIN_EMUSTATE newState) = 0;
 
 	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) = 0;
 	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) = 0;

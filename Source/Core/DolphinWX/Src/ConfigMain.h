@@ -58,8 +58,12 @@ public:
 		ID_WIIPAGE,
 		ID_PATHSPAGE,
 		ID_PLUGINPAGE,
+	};
 
-		ID_CPUTHREAD,
+private:
+	enum
+	{
+		ID_CPUTHREAD = 1010,
 		ID_IDLESKIP,
 		ID_ENABLECHEATS,
 		ID_FRAMELIMIT,
@@ -144,7 +148,6 @@ public:
 		ID_DSP_ABOUT,
 	};
 
-private:
 	wxNotebook* Notebook;
 	wxPanel* PathsPage;
 
@@ -184,7 +187,6 @@ private:
     wxCheckBox*	EnableDTKMusic;
     wxCheckBox*	EnableThrottle;
 	wxArrayString wxArrayBackends;
-	wxArrayString wxArrayRates;
 	wxChoice*	BackendSelection;
 	wxChoice*	FrequencySelection;
 

@@ -133,11 +133,6 @@ void DSPHLE::DoState(PointerWrap &p)
 	GetUCode()->DoState(p);
 }
 
-void DSPHLE::EmuStateChange(PLUGIN_EMUSTATE newState)
-{
-	DSP_ClearAudioBuffer((newState == PLUGIN_EMUSTATE_PLAY) ? false : true);
-}
-
 // Mailbox fuctions
 unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
 {

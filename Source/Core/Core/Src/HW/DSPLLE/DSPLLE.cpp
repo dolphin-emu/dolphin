@@ -77,11 +77,6 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(m_cycle_count);
 }
 
-void DSPLLE::EmuStateChange(PLUGIN_EMUSTATE newState)
-{
-	DSP_ClearAudioBuffer((newState == PLUGIN_EMUSTATE_PLAY) ? false : true);
-}
-
 	/* ECTORTODO
 void *DllDebugger(void *_hParent, bool Show)
 {

@@ -407,9 +407,90 @@ void CConfigMain::InitializeGUIValues()
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
 
 	// Gamecube - Devices
-	// Not here. They use some locals over in CreateGUIControls for initialization,
-	// which is why they are still there.
+	wxArrayString SlotDevices;
+		SlotDevices.Add(_(DEV_NONE_STR));
+		SlotDevices.Add(_(DEV_DUMMY_STR));
+		SlotDevices.Add(_(EXIDEV_MEMCARD_STR));
+		SlotDevices.Add(_(EXIDEV_GECKO_STR));
+#if HAVE_PORTAUDIO
+		SlotDevices.Add(_(EXIDEV_MIC_STR));
+#endif
 
+	wxArrayString SP1Devices;
+		SP1Devices.Add(_(DEV_NONE_STR));
+		SP1Devices.Add(_(DEV_DUMMY_STR));
+		SP1Devices.Add(_(EXIDEV_BBA_STR));
+		SP1Devices.Add(_(EXIDEV_AM_BB_STR));
+
+	wxArrayString SIDevices;
+		SIDevices.Add(_(DEV_NONE_STR));
+		SIDevices.Add(_(SIDEV_STDCONT_STR));
+		SIDevices.Add(_(SIDEV_GBA_STR));
+		SIDevices.Add(_(SIDEV_AM_BB_STR));
+
+	for (int i = 0; i < 3; ++i)
+	{
+		bool isMemcard = false;
+
+		// Add strings to the wxChoice list, the third wxChoice is the SP1 slot
+		if (i == 2)
+			GCEXIDevice[i]->Append(SP1Devices);
+		else
+			GCEXIDevice[i]->Append(SlotDevices);
+
+		switch (SConfig::GetInstance().m_EXIDevice[i])
+		{
+		case EXIDEVICE_NONE:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[0]);
+			break;
+		case EXIDEVICE_MEMORYCARD_A:
+		case EXIDEVICE_MEMORYCARD_B:
+			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
+			break;
+		case EXIDEVICE_MIC:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
+			break;
+		case EXIDEVICE_ETH:
+			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
+			break;
+		case EXIDEVICE_AM_BASEBOARD:
+			GCEXIDevice[i]->SetStringSelection(SP1Devices[3]);
+			break;
+		case EXIDEVICE_GECKO:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
+			break;
+		case EXIDEVICE_DUMMY:
+		default:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
+			break;
+		}
+		if (!isMemcard && i < 2)
+			GCMemcardPath[i]->Disable();
+	}
+	for (int i = 0; i < 4; ++i)
+	{
+		// Add string to the wxChoice list
+		GCSIDevice[i]->Append(SIDevices);
+
+		switch (SConfig::GetInstance().m_SIDevice[i])
+		{
+		case SI_GC_CONTROLLER:
+			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
+			break;
+		case SI_GBA:
+			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
+			break;
+		case SI_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
+			break;
+		default:
+			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
+			break;
+		}
+		// Remove the AM baseboard from the list, only the first list can select it
+		if (i == 0)
+			SIDevices.RemoveAt(SIDevices.GetCount() - 1);
+	}
 
 	// Wii - Wiimote
 	WiiSensBarPos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
@@ -475,7 +556,6 @@ void CConfigMain::InitializeGUITooltips()
 	// Audio tooltips
 	EnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
 	EnableThrottle->SetToolTip(_("This is used to control game speed by sound throttle.\nDisabling this could cause abnormal game speed, such as too fast.\nBut sometimes enabling this could cause constant noise.\n\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
-	DSPEngine->SetToolTip(_("please someone fill this tooltip i have no idea what to say :D"));
 	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
@@ -661,8 +741,7 @@ void CConfigMain::CreateGUIControls()
 			wxDefaultPosition, wxDefaultSize, 0);
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition,
 			wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
-	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY, wxDefaultPosition,
-			wxDefaultSize, wxArrayRates, 0, wxDefaultValidator, wxEmptyString);
+	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY);
 	FrequencySelection->Append(_("48,000 Hz"));
 	FrequencySelection->Append(_("32,000 Hz"));
 
@@ -696,7 +775,6 @@ void CConfigMain::CreateGUIControls()
 	AudioPage->SetSizerAndFit(sAudioPage);
 
 
-	// TODO : Warning the following code hurts
 	// Gamecube page
 	// IPL settings
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("IPL Settings"));
@@ -710,59 +788,13 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDeviceText[0] = TEXT_BOX(GamecubePage, _("Slot A"));
 	GCEXIDeviceText[1] = TEXT_BOX(GamecubePage, _("Slot B"));
 	GCEXIDeviceText[2] = TEXT_BOX(GamecubePage, wxT("SP1   "));
-	const wxString SlotDevices[] = {_(DEV_NONE_STR), _(DEV_DUMMY_STR), _(EXIDEV_MEMCARD_STR), _(EXIDEV_GECKO_STR)
-	#if HAVE_PORTAUDIO
-		, _(EXIDEV_MIC_STR)
-	#endif
-	};
-	static const int numSlotDevices = sizeof(SlotDevices)/sizeof(wxString);
-	const wxString SP1Devices[] = { _(DEV_NONE_STR), _(DEV_DUMMY_STR), _(EXIDEV_BBA_STR), _(EXIDEV_AM_BB_STR) };
-	static const int numSP1Devices = sizeof(SP1Devices)/sizeof(wxString);
-	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition,
-			wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
-	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition,
-			wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
-	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition,
-			wxDefaultSize, numSP1Devices, SP1Devices, 0, wxDefaultValidator);
+	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA);
+	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB);
+	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1);
 	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, wxT("..."),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
 	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, wxT("..."),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-
-	// Can't move this one without making the 4 const's etc. above class members/fields,
-	// TODO : lies, wxArrayString + wxChoice->Create.
-	for (int i = 0; i < 3; ++i)
-	{
-		bool isMemcard = false;
-		switch (SConfig::GetInstance().m_EXIDevice[i])
-		{
-		case EXIDEVICE_NONE:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[0]);
-			break;
-		case EXIDEVICE_MEMORYCARD_A:
-		case EXIDEVICE_MEMORYCARD_B:
-			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
-			break;
-		case EXIDEVICE_MIC:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
-			break;
-		case EXIDEVICE_ETH:
-			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
-			break;
-		case EXIDEVICE_AM_BASEBOARD:
-			GCEXIDevice[i]->SetStringSelection(SP1Devices[3]);
-			break;
-		case EXIDEVICE_GECKO:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
-			break;
-		case EXIDEVICE_DUMMY:
-		default:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
-			break;
-		}
-		if (!isMemcard && i < 2)
-			GCMemcardPath[i]->Disable();
-	}
 
 	//SI Devices
 	wxStaticText* GCSIDeviceText[4];
@@ -770,37 +802,11 @@ void CConfigMain::CreateGUIControls()
 	GCSIDeviceText[1] = TEXT_BOX(GamecubePage, _("Port 2"));
 	GCSIDeviceText[2] = TEXT_BOX(GamecubePage, _("Port 3"));
 	GCSIDeviceText[3] = TEXT_BOX(GamecubePage, _("Port 4"));
+	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0);
+	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1);
+	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2);
+	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3);
 
-	// SIDEV_AM_BB_STR must be last!
-	const wxString SIDevices[] = {_(DEV_NONE_STR),_(SIDEV_STDCONT_STR),_(SIDEV_GBA_STR),_(SIDEV_AM_BB_STR)};
-	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
-	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition,
-			wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition,
-			wxDefaultSize, numSIDevices - 1, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2, wxDefaultPosition,
-			wxDefaultSize, numSIDevices - 1, SIDevices, 0, wxDefaultValidator);
-	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3, wxDefaultPosition,
-			wxDefaultSize, numSIDevices - 1, SIDevices, 0, wxDefaultValidator);
-	// Can't move this one without making the 2 const's etc. above class members/fields.
-	for (int i = 0; i < 4; ++i)
-	{
-		switch (SConfig::GetInstance().m_SIDevice[i])
-		{
-		case SI_GC_CONTROLLER:
-			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
-			break;
-		case SI_GBA:
-			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
-			break;
-		case SI_AM_BASEBOARD:
-			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
-			break;
-		default:
-			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
-			break;
-		}
-	}
 
 	// Populate the Gamecube page
 	sGamecubeIPLSettings = new wxGridBagSizer();
@@ -1096,14 +1102,13 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
 		ac_Config.Update();
 		break;
-	case ID_BACKEND:
-		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
-		break;
 	case ID_VOLUME:
 		ac_Config.m_Volume = VolumeSlider->GetValue();
 		ac_Config.Update();
 		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
 		break;
+	case ID_BACKEND:
+		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
 	default:
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
 		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();

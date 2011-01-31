@@ -29,20 +29,9 @@ public:
 
 	virtual void Initialize(void *hWnd, bool bWii, bool bDSPThread);
 	virtual void Shutdown();
-
 	virtual bool IsLLE() { return true; }
 
-	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
-
-	/*
-	GUI
-	virtual void Config(void *_hwnd);
-	virtual void About(void *_hwnd);
-	virtual void *Debug(void *Parent, bool Show);
-	*/
-
 	virtual void DoState(PointerWrap &p);
-	virtual void EmuStateChange(PLUGIN_EMUSTATE newState);
 
 	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short);
 	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short);
