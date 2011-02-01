@@ -25,6 +25,11 @@
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="po.props" />
@@ -39,7 +44,9 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\Binary\$(Platform)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Binary\$(Platform)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Binary\$(Platform)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -68,6 +75,29 @@
     <msgfmt Include="tr.po" />
     <msgfmt Include="zh_CN.po" />
     <msgfmt Include="zh_TW.po" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="da.po" />
+    <None Include="de.po" />
+    <None Include="el.po" />
+    <CustomBuild Include="en.po">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <None Include="es.po" />
+    <None Include="fr.po" />
+    <None Include="he.po" />
+    <None Include="hu.po" />
+    <None Include="it.po" />
+    <None Include="ja.po" />
+    <None Include="ko.po" />
+    <None Include="nb.po" />
+    <None Include="nl.po" />
+    <None Include="pl.po" />
+    <None Include="pt_BR.po" />
+    <None Include="ru.po" />
+    <None Include="tr.po" />
+    <None Include="zh_CN.po" />
+    <None Include="zh_TW.po" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
