@@ -25,7 +25,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript /nologo /E:VBScript &quot;make_svnrev.h.vbs&quot;"
+				CommandLine="cscript /nologo /E:JScript &quot;make_svnrev.h.js&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -42,7 +42,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\make_svnrev.h.vbs"
+			RelativePath=".\make_svnrev.h.js"
 			>
 		</File>
 	</Files>
