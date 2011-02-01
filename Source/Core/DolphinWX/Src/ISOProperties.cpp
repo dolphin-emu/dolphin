@@ -1027,7 +1027,7 @@ void CISOProperties::LoadGameConfig()
 			break;
 		PHPresetsIni.Get(sIndex, "Title", &sTemp);
 		if (sTemp.empty())
-			sTemp = _("(UNKNOWN)").char_str();
+			sTemp = wxString(_("(UNKNOWN)")).char_str();
 		if (i == 0)
 			PHackChoice->Append(wxString("-----------", *wxConvCurrent));
 		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
