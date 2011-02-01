@@ -80,18 +80,21 @@ elif sys.platform == 'darwin':
 	env.Install(env['data_dir'],
 		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
+	languages = [] 
 	msgfmt = env.WhereIs('msgfmt')
 	if not msgfmt == None:
 		po_files = Glob('#Languages/*.po', strings = True)
 		for po in po_files:
 			index_lo = po.find('Languages/') + len('Languages/')
 			index_hi = po.find('.po')
-			lproj = os.sep + po[index_lo:index_hi] + '.lproj'
+			lang = po[index_lo:index_hi]
+			lproj = os.sep + lang + '.lproj'
 			mo_dir = env['build_dir'] + '/Languages' + lproj
 			mo_file = mo_dir + '/dolphin-emu.mo'
 			env.Command('#' + mo_file, po, 'mkdir -p ' + mo_dir +
 				' && ' + msgfmt + ' -o ' + mo_file + ' ' + po)
 			env.Install(env['data_dir'] + lproj, '#' + mo_file)
+			languages += [lang]
 
 	from plistlib import writePlist
 	def createPlist(target, source, env):
@@ -103,6 +106,7 @@ elif sys.platform == 'darwin':
 		CFBundleExecutable = 'Dolphin',
 		CFBundleIconFile = 'Dolphin.icns',
 		CFBundleIdentifier = 'com.dolphin-emulator.dolphin',
+		CFBundleLocalizations = languages,
 		CFBundlePackageType = 'APPL',
 		CFBundleShortVersionString =
 			utils.GenerateRevFile('', Dir('#None').abspath, None),

@@ -1019,7 +1019,7 @@ void CISOProperties::LoadGameConfig()
 	PHackChoice->Enable(bTemp);
 
 	PHackChoice->Clear();
-	PHackChoice->Append(wxString(_("Custom"), *wxConvCurrent));
+	PHackChoice->Append(_("Custom"));
 	for (int i=0 ;  ; i++)
 	{
 		sprintf(sIndex,"%d",i);
@@ -1027,7 +1027,7 @@ void CISOProperties::LoadGameConfig()
 			break;
 		PHPresetsIni.Get(sIndex, "Title", &sTemp);
 		if (sTemp.empty())
-			sTemp = wxString(_("(UNKNOWN)"), *wxConvCurrent).char_str();
+			sTemp = _("(UNKNOWN)").char_str();
 		if (i == 0)
 			PHackChoice->Append(wxString("-----------", *wxConvCurrent));
 		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));

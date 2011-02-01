@@ -525,8 +525,8 @@ void CConfigMain::InitializeGUIValues()
 void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
-	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core,\nbut can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50),\nyou also have to disable Audio Throttle in DSP to make it effective."));
+	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
+	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."));
 
 	// General - Advanced
 	DSPThread->SetToolTip(_("Run DSPLLE on a dedicated thread (not recommended)."));
@@ -537,14 +537,14 @@ void CConfigMain::InitializeGUITooltips()
 	WindowHeight->SetToolTip(_("Window height for windowed mode"));
 	WindowAutoSize->SetToolTip(_("Auto size the window to match the game's output resolution adjusted by the EFB scale.\nIt is best to set the aspect ratio to stretch when using this."));
 	Fullscreen->SetToolTip(_("Start the rendering window in fullscreen mode."));
-	HideCursor->SetToolTip(_("Hide the cursor when it is over the rendering window\n and the rendering window has focus."));
+	HideCursor->SetToolTip(_("Hide the cursor when it is over the rendering window and the rendering window has focus."));
 	RenderToMain->SetToolTip(_("Render to main window."));
 	ProgressiveScan->SetToolTip(_("Will enable progressive scan option if supported by software."));
 	NTSCJ->SetToolTip(_("Required for using the Japanese ROM font."));
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin\nsuddenly crashes without any explanation at all."));
+	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
 
 	// Display - Themes: Copyright notice
 	Theme->SetItemToolTip(0, _("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
