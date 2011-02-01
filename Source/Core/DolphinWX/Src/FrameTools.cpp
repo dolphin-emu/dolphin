@@ -978,6 +978,11 @@ void CFrame::DoStop()
 		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			Frame::EndPlayInput();
 
+#ifdef __WXGTK__
+		// Make sure the app doesn't hang waiting on a keystate check 
+		keystate_event.Set();
+#endif
+
 		BootManager::Stop();
 
 #if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER

@@ -351,6 +351,7 @@ CFrame::CFrame(wxFrame* parent,
 #ifdef __WXGTK__
 	panic_event.Init();
 	keystate_event.Init();
+	bKeyStateResult = false;
 #endif
 
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
