@@ -656,6 +656,14 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
+	case IDM_WINDOWSIZEREQUEST:
+		{
+			std::pair<int, int> *win_size = (std::pair<int, int> *)(event.GetClientData());
+			OnRenderWindowSizeRequest(win_size->first, win_size->second);
+			delete win_size;
+		}
+		break;
+
 #ifdef __WXGTK__
 	case IDM_PANIC:
 		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
@@ -684,18 +692,34 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
+	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain ||
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
-	int old_width, old_height;
+	int old_width, old_height, log_width = 0, log_height = 0;
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
-	if (old_width != width || old_height != height)
+
+	// Add space for the log/console/debugger window
+	if ((SConfig::GetInstance().m_InterfaceLogWindow || SConfig::GetInstance().m_InterfaceConsole) &&
+			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
 	{
-		wxMutexGuiEnter();
-		m_RenderFrame->SetClientSize(width, height);
-		wxMutexGuiLeave();
+		switch (m_Mgr->GetPane(wxT("Pane 1")).dock_direction)
+		{
+			case wxAUI_DOCK_LEFT:
+			case wxAUI_DOCK_RIGHT:
+				log_width = m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
+				break;
+			case wxAUI_DOCK_TOP:
+			case wxAUI_DOCK_BOTTOM:
+				log_height = m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
+				break;
+		}
 	}
+
+	if (old_width != width + log_width || old_height != height + log_height)
+		m_RenderFrame->SetClientSize(width + log_width, height + log_height);
 }
 
 bool CFrame::RendererHasFocus()

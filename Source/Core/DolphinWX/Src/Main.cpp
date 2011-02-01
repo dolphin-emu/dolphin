@@ -587,7 +587,9 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
-	main_frame->OnRenderWindowSizeRequest(width, height);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOWSIZEREQUEST);
+	event.SetClientData(new std::pair<int, int>(width, height));
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
 void Host_SetWaitCursor(bool enable)

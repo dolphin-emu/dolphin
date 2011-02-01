@@ -238,7 +238,7 @@ bool OpenGL_Create(int _twidth, int _theight)
 		None };
 
 	GLWin.dpy = XOpenDisplay(0);
-	GLWin.parent = (Window)g_VideoInitialize.pWindowHandle;
+	GLWin.parent = (Window)VideoWindowHandle();
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
 	// Get an appropriate visual
@@ -294,7 +294,7 @@ bool OpenGL_Create(int _twidth, int _theight)
 			"GPU", None, NULL, 0, NULL);
 	XMapRaised(GLWin.dpy, GLWin.win);
 
-	g_VideoInitialize.pWindowHandle = (void *)GLWin.win;
+	VideoWindowHandle() = (void *)GLWin.win;
 #endif
 	return true;
 }
@@ -370,7 +370,7 @@ void OpenGL_Update()
 				break;
 			case ClientMessage:
 				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
-					g_VideoInitialize.pCoreMessage(WM_USER_STOP);
+					Core::Callback_CoreMessage(WM_USER_STOP);
 				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
 					XMoveResizeWindow(GLWin.dpy, GLWin.win, event.xclient.data.l[1],
 							event.xclient.data.l[2], event.xclient.data.l[3], event.xclient.data.l[4]);
