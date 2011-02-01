@@ -6,6 +6,17 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="make_svnrev.h.js">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cscript /nologo /E:JScript "make_svnrev.h.js"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Updating svnrev.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">dummy</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\svnrev.h" />
+    <ClInclude Include="Src\svnrev_template.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{69F00340-5C3D-449F-9A80-958435C6CF06}</ProjectGuid>
     <RootNamespace>SVNRevGen</RootNamespace>
@@ -43,17 +54,14 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>cscript /nologo /E:VBScript "make_svnrev.h.vbs"</Command>
-    </PreBuildEvent>
-    <CustomBuild>
       <Command>
       </Command>
-      <Outputs>dummy</Outputs>
+    </PreBuildEvent>
+    <CustomBuild>
+      <Outputs>
+      </Outputs>
     </CustomBuild>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CustomBuild Include="make_svnrev.h.vbs" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

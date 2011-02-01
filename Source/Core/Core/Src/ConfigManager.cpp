@@ -197,10 +197,6 @@ void SConfig::LoadSettings()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
-	// Hard coded defaults
-	m_DefaultGFXPlugin = DEFAULT_GFX_PLUGIN;
-	m_DefaultDSPPlugin = DEFAULT_DSP_PLUGIN;
-
 	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
@@ -319,7 +315,7 @@ void SConfig::LoadSettings()
 
 		// Plugins
 		// TODO: change key name, it's no longer a plugin
-		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
+		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, "");
 	}
 
 	m_SYSCONF = new SysConf();

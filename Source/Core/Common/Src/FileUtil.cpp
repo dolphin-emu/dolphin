@@ -603,23 +603,6 @@ std::string GetBundleDirectory()
 }
 #endif
 
-std::string GetPluginsDirectory()
-{
-	std::string pluginsDir;
-
-#if defined (__APPLE__)
-	pluginsDir = GetBundleDirectory();
-	pluginsDir += DIR_SEP;
-	pluginsDir += PLUGINS_DIR;
-#else
-	pluginsDir = PLUGINS_DIR;
-#endif
-	pluginsDir += DIR_SEP;
-
-	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
-	return pluginsDir;
-}
-
 std::string GetSysDirectory()
 {
 	std::string sysDir;
