@@ -166,6 +166,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputCommon", "Core\InputCo
 		{C87A4178-44F6-49B2-B7AA-C79AF1B8C534} = {C87A4178-44F6-49B2-B7AA-C79AF1B8C534}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Languages", "..\Languages\Languages.vcxproj", "{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -488,6 +490,16 @@ Global
 		{B39AC394-5DB5-4DA9-9D98-09D46CA3701F}.Release|Win32.Build.0 = Release|Win32
 		{B39AC394-5DB5-4DA9-9D98-09D46CA3701F}.Release|x64.ActiveCfg = Release|x64
 		{B39AC394-5DB5-4DA9-9D98-09D46CA3701F}.Release|x64.Build.0 = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|Win32.ActiveCfg = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|x64.ActiveCfg = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Debug|x64.Build.0 = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|Win32.ActiveCfg = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|x64.ActiveCfg = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.DebugFast|x64.Build.0 = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|Win32.ActiveCfg = Release|Win32
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|Win32.Build.0 = Release|Win32
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|x64.ActiveCfg = Release|x64
+		{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
