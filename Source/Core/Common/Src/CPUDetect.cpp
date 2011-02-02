@@ -180,6 +180,10 @@ void CPUInfo::Detect()
 				num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
 				logical_cpu_count /= cores_x_package;
 			}
+			else 
+			{
+				num_cores = 1;
+			}
 		} else {
 			// Use AMD's new method.
 			num_cores = (cpu_id[2] & 0xFF) + 1;
