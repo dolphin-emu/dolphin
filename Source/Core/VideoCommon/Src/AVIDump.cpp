@@ -244,6 +244,7 @@ bool AVIDump::CreateFile()
 	s_FormatContext = avformat_alloc_context();
 	snprintf(s_FormatContext->filename, sizeof(s_FormatContext->filename), "%s",
 			StringFromFormat("%sframedump0.avi", File::GetUserPath(D_DUMPFRAMES_IDX)).c_str());
+	File::CreateFullPath(s_FormatContext->filename);
 
 	if (!(s_FormatContext->oformat = av_guess_format("avi", NULL, NULL)) ||
 			!(s_Stream = av_new_stream(s_FormatContext, 0)))

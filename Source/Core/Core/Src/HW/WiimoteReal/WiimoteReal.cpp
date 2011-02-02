@@ -509,7 +509,7 @@ void Update(int _WiimoteNumber)
 	g_refresh_critsec.Leave();
 }
 
-void StateChange(PLUGIN_EMUSTATE newState)
+void StateChange(EMUSTATE_CHANGE newState)
 {
 	//g_refresh_critsec.Enter();	// enter
 

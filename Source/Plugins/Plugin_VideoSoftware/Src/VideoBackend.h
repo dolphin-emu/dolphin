@@ -14,7 +14,7 @@ class VideoBackend : public VideoBackendLLE
 
 	std::string GetName();
 
-	void EmuStateChange(PLUGIN_EMUSTATE newState);
+	void EmuStateChange(EMUSTATE_CHANGE newState);
 
 	void DoState(PointerWrap &p);
 

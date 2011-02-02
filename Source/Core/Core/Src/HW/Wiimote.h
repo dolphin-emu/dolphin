@@ -2,7 +2,6 @@
 #ifndef _WIIMOTE_H_
 #define _WIIMOTE_H_
 
-#include "PluginSpecs.h"
 #include "../../InputCommon/Src/InputConfig.h"
 
 #define MAX_WIIMOTES	4
@@ -27,7 +26,7 @@ void Initialize(void* const hwnd);
 
 unsigned int GetAttached();
 void DoState(unsigned char **ptr, int mode);
-void EmuStateChange(PLUGIN_EMUSTATE newState);
+void EmuStateChange(EMUSTATE_CHANGE newState);
 InputPlugin *GetPlugin();
 
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);

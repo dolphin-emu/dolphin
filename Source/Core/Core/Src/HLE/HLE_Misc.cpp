@@ -21,7 +21,6 @@
 
 #include "../PowerPC/PowerPC.h"
 #include "../HW/Memmap.h"
-#include "PluginSpecs.h"
 #include "../Host.h"
 
 namespace HLE_Misc

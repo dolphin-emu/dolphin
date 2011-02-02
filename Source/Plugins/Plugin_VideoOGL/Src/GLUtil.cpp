@@ -105,7 +105,7 @@ unsigned int VideoBackend::PeekMessages()
 	}
 	return TRUE;
 #else
-	return FALSE;
+	return false;
 #endif
 }
 
@@ -494,7 +494,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	CreateXWindow();
 	VideoWindowHandle() = (void *)GLWin.win;
 #endif
-	return false;
+	return true;
 }
 
 bool OpenGL_MakeCurrent()

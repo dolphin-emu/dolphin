@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -190,7 +190,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -265,7 +265,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -337,7 +337,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -408,7 +408,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../../Externals/CLRun/include"
+				AdditionalIncludeDirectories="../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				FloatingPointModel="0"
@@ -703,10 +703,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\NandPaths.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\PluginSpecs\PluginSpecs.h"
 			>
 		</File>
 		<File

@@ -246,7 +246,6 @@ endif()
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
-include_directories(Source/PluginSpecs)
 include_directories(Source/Core/AudioCommon/Src)
 include_directories(Source/Core/Common/Src)
 include_directories(Source/Core/Core/Src)

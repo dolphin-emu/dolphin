@@ -159,4 +159,24 @@ private:
 #define _M_SSE 0x401
 #endif
 
+// Host communication.
+enum HOST_COMM
+{
+	// Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
+	WM_USER_PAUSE = 10,
+	WM_USER_STOP,
+	WM_USER_CREATE,
+	WM_USER_SETCURSOR,
+	WM_USER_KEYDOWN,
+	WIIMOTE_DISCONNECT // Disconnect Wiimote
+};
+
+// Used for notification on emulation state
+enum EMUSTATE_CHANGE
+{
+	EMUSTATE_CHANGE_PLAY = 1,
+	EMUSTATE_CHANGE_PAUSE,
+	EMUSTATE_CHANGE_STOP
+};
+
 #endif // _COMMON_H_

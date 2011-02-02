@@ -127,7 +127,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -146,7 +146,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -167,7 +167,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -191,7 +191,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -216,7 +216,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>
@@ -240,7 +240,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\zlib;..\..\..\Externals\Lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ShowIncludes>false</ShowIncludes>

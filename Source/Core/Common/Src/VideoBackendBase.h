@@ -21,8 +21,6 @@
 #include <string>
 #include <vector>
 
-#include "PluginSpecs.h"
-
 #include "ChunkFile.h"
 
 enum FieldType
@@ -80,7 +78,7 @@ class VideoBackend
 public:
 	virtual ~VideoBackend() {}
 
-	virtual void EmuStateChange(PLUGIN_EMUSTATE) = 0;
+	virtual void EmuStateChange(EMUSTATE_CHANGE) = 0;
 
 	virtual void UpdateFPSDisplay(const char*) = 0;
 
@@ -106,6 +104,7 @@ public:
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
 
 	virtual void Video_AddMessage(const char* pstr, unsigned int milliseconds) = 0;
+	virtual void Video_ClearMessages() = 0;
 	virtual bool Video_Screenshot(const char* filename) = 0;
 
 	virtual void Video_SetRendering(bool bEnabled) = 0;
@@ -129,7 +128,7 @@ class VideoBackendHLE : public VideoBackend
 {
 	void DoState(PointerWrap &p);
 
-	void EmuStateChange(PLUGIN_EMUSTATE);
+	void EmuStateChange(EMUSTATE_CHANGE);
 
 	void Video_EnterLoop();
 	void Video_ExitLoop();
@@ -138,6 +137,7 @@ class VideoBackendHLE : public VideoBackend
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
+	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
 
 	void Video_SetRendering(bool bEnabled);

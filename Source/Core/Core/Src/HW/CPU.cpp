@@ -117,14 +117,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 	if (_bStepping)
 	{
 		PowerPC::Pause();
-		g_video_backend->EmuStateChange(PLUGIN_EMUSTATE_PAUSE);
+		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
 		DSP::GetPlugin()->DSP_ClearAudioBuffer(true);
 	}
 	else
 	{
 		PowerPC::Start();
 		m_StepEvent.Set();
-		g_video_backend->EmuStateChange(PLUGIN_EMUSTATE_PLAY);
+		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
 		DSP::GetPlugin()->DSP_ClearAudioBuffer(false);
 	}
 }

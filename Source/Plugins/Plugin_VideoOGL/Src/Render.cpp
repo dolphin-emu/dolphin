@@ -501,7 +501,10 @@ Renderer::~Renderer()
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	if(s_bAVIDumping)
+	{
 		AVIDump::Stop();
+		s_bAVIDumping = false;
+	}
 #else
 	if(f_pFrameDump != NULL)
 		fclose(f_pFrameDump);

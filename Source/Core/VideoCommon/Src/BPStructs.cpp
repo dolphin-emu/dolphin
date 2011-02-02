@@ -217,11 +217,11 @@ void BPWritten(const BPCmd& bp)
 		}
 		break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
-		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), FALSE);
+		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
 		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
 		break;
 	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
-		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), TRUE);
+		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
 		break;
 	// ------------------------

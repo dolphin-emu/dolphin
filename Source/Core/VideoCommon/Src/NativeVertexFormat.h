@@ -18,7 +18,7 @@
 #ifndef _NATIVEVERTEXFORMAT_H
 #define _NATIVEVERTEXFORMAT_H
 
-#include "PluginSpecs.h"
+#include "Common.h"
 
 // m_components
 enum {

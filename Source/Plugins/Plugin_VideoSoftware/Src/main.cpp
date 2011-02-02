@@ -83,7 +83,7 @@ void VideoBackend::DoState(PointerWrap&)
 
 }
 
-void VideoBackend::EmuStateChange(PLUGIN_EMUSTATE newState)
+void VideoBackend::EmuStateChange(EMUSTATE_CHANGE newState)
 {
 
 }

@@ -191,7 +191,7 @@ void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	g_bStopping = true;
-	g_video_backend->EmuStateChange(PLUGIN_EMUSTATE_STOP);
+	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
 
 	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
 
@@ -215,6 +215,9 @@ void Stop()  // - Hammertime!
 		// Wait until the CPU finishes exiting the main run loop
 		cpuRunloopQuit.Wait();
 	}
+
+	// Clear on screen messages that haven't expired
+	g_video_backend->Video_ClearMessages();
 
 	// Close the trace file
 	Core::StopTrace();

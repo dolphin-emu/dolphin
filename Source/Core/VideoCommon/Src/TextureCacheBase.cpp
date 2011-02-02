@@ -7,8 +7,6 @@
 #include "RenderBase.h"
 #include "FileUtil.h"
 
-#include "PluginSpecs.h"
-
 #include "TextureCacheBase.h"
 #include "Debugger.h"
 #include "ConfigManager.h"

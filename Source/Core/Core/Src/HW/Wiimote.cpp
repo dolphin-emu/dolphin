@@ -144,7 +144,7 @@ void DoState(unsigned char **ptr, int mode)
 // input:    newState
 // output:   none
 //
-void EmuStateChange(PLUGIN_EMUSTATE newState)
+void EmuStateChange(EMUSTATE_CHANGE newState)
 {
 	// TODO
 	WiimoteReal::StateChange(newState);

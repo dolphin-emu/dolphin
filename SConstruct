@@ -95,7 +95,7 @@ if env['flavor'] == 'debug':
     env['CPPDEFINES'] += ['_DEBUG']
 elif env['flavor'] == 'fastlog':
     env['CPPDEFINES'] += ['DEBUGFAST']
-env['CPPPATH'] = ['#Source/PluginSpecs']
+env['CPPPATH'] = []
 env['LIBPATH'] = []
 env['LIBS'] = []
 

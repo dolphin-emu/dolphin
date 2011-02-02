@@ -132,7 +132,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -147,7 +147,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -164,7 +164,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -183,7 +183,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -203,7 +203,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -222,7 +222,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\PluginSpecs;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\VideoUICommon\Src;..\..\..\Externals\wxWidgets\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>

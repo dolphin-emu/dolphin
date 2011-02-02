@@ -131,7 +131,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -157,7 +157,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -185,7 +185,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -215,7 +215,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -247,7 +247,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -277,7 +277,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\PluginSpecs;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUGFAST;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>

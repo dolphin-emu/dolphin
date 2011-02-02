@@ -18,6 +18,11 @@
 #ifndef _VIDEOCOMMON_H
 #define _VIDEOCOMMON_H
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include "Common.h"
 #include "MathUtil.h"
 #include "VideoBackendBase.h"

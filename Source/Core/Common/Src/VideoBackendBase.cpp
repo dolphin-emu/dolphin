@@ -19,10 +19,10 @@
 
 // TODO: ugly
 #ifdef _WIN32
-#include "../Plugins/Plugin_VideoDX9/Src/VideoBackend.h"
-#include "../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
+#include "../../../Plugins/Plugin_VideoDX9/Src/VideoBackend.h"
+#include "../../../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
 #endif
-#include "../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
+#include "../../../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
 //#include "../Plugins/Plugin_VideoSoftware/Src/VideoBackend.h"
 
 std::vector<VideoBackend*> g_available_video_backends;

@@ -76,4 +76,11 @@ void DrawMessages()
 	}
 }
 
+void ClearMessages()
+{
+	std::list<MESSAGE>::iterator it = s_listMsgs.begin();
+	while (it != s_listMsgs.end()) 
+		it = s_listMsgs.erase(it);
+}
+
 }  // namespace

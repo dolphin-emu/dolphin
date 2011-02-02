@@ -179,14 +179,10 @@ void VideoBackend::Initialize()
 	UpdateActiveConfig();
 
 	if (!OpenGL_Create(640, 480))
-	{
 		return;
-	}
 
 	OSD::AddMessage("Dolphin OpenGL Video Plugin.", 5000);
 	s_PluginInitialized = true;
-
-	return;
 }
 
 // This is called after Initialize() from the Core
@@ -228,7 +224,6 @@ void VideoBackend::Video_Prepare()
 	// Notify the core that the video plugin is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 
-	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
 
 }
