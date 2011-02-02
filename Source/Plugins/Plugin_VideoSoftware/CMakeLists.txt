@@ -35,11 +35,11 @@ set(LIBS	videocommon
 			${X11_LIBRARIES}
 			${wxWidgets_LIBRARIES})
 
-if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
-	set(SRCS	${SRCS} Src/cocoaGL.m)
-elseif(WIN32)
+if(WIN32)
 	set(SRCS ${SRCS} Src/Win32.cpp)
-elseif(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+endif()
+
+if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
 

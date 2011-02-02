@@ -81,7 +81,7 @@ void BPWritten(int address, int newvalue)
         break;
     case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID        
         DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bpmem.petokenint & 0xFFFF));
-        PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), TRUE);
+        PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
         break;
     case BPMEM_TRIGGER_EFB_COPY:
         EfbCopy::CopyEfb();

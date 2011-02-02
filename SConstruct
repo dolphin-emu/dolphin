@@ -344,7 +344,7 @@ dirs = [
     'Source/Core/VideoUICommon/Src',
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
-    #'Source/Plugins/Plugin_VideoSoftware/Src',
+    'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/UnitTests',
     ]
 

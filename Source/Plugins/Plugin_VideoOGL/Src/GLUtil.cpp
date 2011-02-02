@@ -48,7 +48,7 @@ void OpenGL_SwapBuffers()
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SwapBuffers();
 #elif defined(__APPLE__)
-        [GLWin.cocoaCtx flushBuffer];
+	[GLWin.cocoaCtx flushBuffer];
 #elif defined(_WIN32)
 	SwapBuffers(hDC);
 #elif defined(HAVE_X11) && HAVE_X11
@@ -322,7 +322,7 @@ void XEventThread()
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool OpenGL_Create(int _iwidth, int _iheight)
 {
-	int _tx, _ty, _twidth,  _theight;
+	int _tx, _ty, _twidth, _theight;
 	Core::Callback_VideoGetWindowSize(_tx, _ty, _twidth, _theight);
 
 	// Control window size and picture scaling
@@ -342,7 +342,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
 	if (fmt == nil) {
-		printf("failed to create pixel format\n");
+		ERROR_LOG(VIDEO, "failed to create pixel format");
 		return NULL;
 	}
 
@@ -350,16 +350,18 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 		initWithFormat: fmt shareContext: nil];
 	[fmt release];
 	if (GLWin.cocoaCtx == nil) {
-		printf("failed to create context\n");
+		ERROR_LOG(VIDEO, "failed to create context");
 		return NULL;
 	}
 
-        GLWin.cocoaWin = [[NSWindow alloc]
-		initWithContentRect: NSMakeRect(50, 50, _twidth, _theight)
-		styleMask: NSTitledWindowMask | NSResizableWindowMask
-		backing: NSBackingStoreBuffered defer: FALSE];
-        [GLWin.cocoaWin setReleasedWhenClosed: YES];
-        [GLWin.cocoaWin makeKeyAndOrderFront: nil];
+	(void)VideoWindowHandle;
+	CGDisplayCapture(CGMainDisplayID());
+	GLWin.cocoaWin = [[NSWindow alloc]
+		initWithContentRect: [[NSScreen mainScreen] frame]
+		styleMask: NSBorderlessWindowMask
+		backing: NSBackingStoreBuffered defer: NO];
+	[GLWin.cocoaWin makeKeyAndOrderFront: nil];
+	[GLWin.cocoaWin setLevel: CGShieldingWindowLevel()];
 	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
 
 #elif defined(_WIN32)
@@ -583,9 +585,9 @@ void OpenGL_Shutdown()
 	// XXX GLWin.glCanvas->Destroy();
 	// XXX delete GLWin.glCtxt;
 #elif defined(__APPLE__)
-        [GLWin.cocoaWin close];
-        [GLWin.cocoaCtx clearDrawable];
-        [GLWin.cocoaCtx release];
+	[GLWin.cocoaWin close];
+	[GLWin.cocoaCtx clearDrawable];
+	[GLWin.cocoaCtx release];
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{

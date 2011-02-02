@@ -19,6 +19,12 @@
 #include "Thread.h"
 #include "Common.h"
 
+#ifdef __APPLE__
+#include <mach/mach.h>
+#elif defined BSD4_4
+#include <pthread_np.h>
+#endif
+
 #ifdef USE_BEGINTHREADEX
 #include <process.h>
 #endif
@@ -30,6 +36,8 @@ int CurrentThreadId()
 {
 #ifdef _WIN32
 	return GetCurrentThreadId();
+#elif defined __APPLE__
+	return mach_thread_self();
 #else
 	return 0;
 #endif
@@ -263,10 +271,12 @@ void SetCurrentThreadAffinity(u32 mask)
 	
 #else // !WIN32, so must be POSIX threads
 
-void LinuxSetThreadAffinity(pthread_t thread, u32 mask)
-{
-	// This is non-standard
-#ifdef __linux__
+void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
+{                
+#ifdef __APPLE__
+	thread_policy_set(pthread_mach_thread_np(thread),
+		THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
+#elif defined __linux__ || defined BSD4_4
 	cpu_set_t cpu_set;
 	CPU_ZERO(&cpu_set);
                 
@@ -278,14 +288,9 @@ void LinuxSetThreadAffinity(pthread_t thread, u32 mask)
 #endif
 }
 
-void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
-{                
-	LinuxSetThreadAffinity(thread, mask);
-}
-
 void SetCurrentThreadAffinity(u32 mask)
 {
-	LinuxSetThreadAffinity(pthread_self(), mask);
+	SetThreadAffinity(pthread_self(), mask);
 }
 
 	static pthread_key_t threadname_key;
