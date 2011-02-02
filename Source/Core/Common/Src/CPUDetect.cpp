@@ -133,13 +133,15 @@ void CPUInfo::Detect()
 	strcpy(brand_string, cpu_string);
 	
 	// Detect family and other misc stuff.
-	HTT = false;
+	bool ht = false;
+	HTT = ht;
 	logical_cpu_count = 1;
 	if (max_std_fn >= 1) {
 		__cpuid(cpu_id, 0x00000001);
 		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
-		// HTT is valid for intel processors only.
-		HTT = ((cpu_id[3] >> 28) & 1) && vendor == VENDOR_INTEL;
+		ht = (cpu_id[3] >> 28) & 1;
+		// True HTT is valid for intel processors only.
+		HTT = (ht && vendor == VENDOR_INTEL);
 		if ((cpu_id[3] >> 25) & 1) bSSE = true;
 		if ((cpu_id[3] >> 26) & 1) bSSE2 = true;
 		if ((cpu_id[2])       & 1) bSSE3 = true;
@@ -171,14 +173,16 @@ void CPUInfo::Detect()
 		__cpuid(cpu_id, 0x80000008);
 		int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
 		if (apic_id_core_id_size == 0) {
-			// New mechanism for modern CPUs.
 			num_cores = logical_cpu_count;
-			if (HTT) {
-				__cpuid(cpu_id, 0x00000004);
-				int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
-				cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
-				num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
-				logical_cpu_count /= cores_x_package;
+			if (ht) {
+				// New mechanism for modern Intel CPUs.
+				if (HTT) {
+					__cpuid(cpu_id, 0x00000004);
+					int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
+					cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
+					num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
+					logical_cpu_count /= cores_x_package;
+				}
 			}
 			else 
 			{
