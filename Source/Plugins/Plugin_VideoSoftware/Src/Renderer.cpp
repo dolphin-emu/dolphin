@@ -34,7 +34,7 @@ void Renderer::Init()
 {
     if (!OpenGL_Create(640, 480)) // 640x480 will be the default if all else fails
 	{
-		Core::Callback_VideoLog("Renderer::Create failed\n", TRUE);
+		Core::Callback_VideoLog("Renderer::Create failed\n");
         return;
     }
 }
