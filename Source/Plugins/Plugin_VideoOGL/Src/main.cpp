@@ -195,9 +195,9 @@ void VideoBackend::Video_Prepare()
 
 	g_renderer = new Renderer;
 
-	s_efbAccessRequested = FALSE;
-	s_FifoShuttingDown = FALSE;
-	s_swapRequested = FALSE;
+	s_efbAccessRequested = false;
+	s_FifoShuttingDown = false;
+	s_swapRequested = false;
 
 	CommandProcessor::Init();
 	PixelEngine::Init();
@@ -229,9 +229,9 @@ void VideoBackend::Shutdown()
 {
 	s_PluginInitialized = false;
 
-	s_efbAccessRequested = FALSE;
-	s_FifoShuttingDown = FALSE;
-	s_swapRequested = FALSE;
+	s_efbAccessRequested = false;
+	s_FifoShuttingDown = false;
+	s_swapRequested = false;
 	DLCache::Shutdown();
 	Fifo_Shutdown();
 	OGL::PostProcessing::Shutdown();

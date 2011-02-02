@@ -145,6 +145,7 @@ void VideoBackend::ShowConfig(void* parent)
 	diag->ShowModal();
 	diag->Destroy();
 
+	g_Config.backend_info.Adapters.clear();
 	DX9::D3D::Shutdown();
 #endif
 }

@@ -163,6 +163,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 	diag->ShowModal();
 	diag->Destroy();
 
+	g_Config.backend_info.Adapters.clear();
 	DX11::D3D::UnloadDXGI();
 	DX11::D3D::UnloadD3D();
 #endif
