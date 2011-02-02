@@ -26,7 +26,7 @@
 void bswap(Elf32_Word &w) {w = Common::swap32(w);}
 void bswap(Elf32_Half &w) {w = Common::swap16(w);}
 
-void byteswapHeader(Elf32_Ehdr &ELF_H)
+static void byteswapHeader(Elf32_Ehdr &ELF_H)
 {
 	bswap(ELF_H.e_type);
 	bswap(ELF_H.e_machine);
@@ -43,7 +43,7 @@ void byteswapHeader(Elf32_Ehdr &ELF_H)
 	bswap(ELF_H.e_flags);
 }
 
-void byteswapSegment(Elf32_Phdr &sec)
+static void byteswapSegment(Elf32_Phdr &sec)
 {
 	bswap(sec.p_align);
 	bswap(sec.p_filesz);
@@ -55,7 +55,7 @@ void byteswapSegment(Elf32_Phdr &sec)
 	bswap(sec.p_type);
 }
 
-void byteswapSection(Elf32_Shdr &sec)
+static void byteswapSection(Elf32_Shdr &sec)
 {
 	bswap(sec.sh_addr);
 	bswap(sec.sh_addralign);
@@ -104,20 +104,6 @@ const char *ElfReader::GetSectionName(int section) const
 	else
 		return NULL;
 }
-
-void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
-{
-	lo = (addr & 0xFFFF);
-	u32 naddr = addr - lo;
-	hi = naddr>>16;
-	
-	u32 test = (hi<<16) + lo;
-	if (test != addr)
-	{
-		Crash();
-	}
-}
-
 
 bool ElfReader::LoadInto(u32 vaddr)
 {

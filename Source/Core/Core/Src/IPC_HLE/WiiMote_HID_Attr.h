@@ -18,6 +18,7 @@
 #ifndef WIIMOTE_HID_ATTR_H_
 #define WIIMOTE_HID_ATTR_H_
 
+#if 0
 struct SAttrib
 {
 	u16 ID;
@@ -34,6 +35,7 @@ struct SAttrib
 typedef std::vector<SAttrib> CAttribTable;
 
 const CAttribTable& GetAttribTable();
+#endif
 
 const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size);
 

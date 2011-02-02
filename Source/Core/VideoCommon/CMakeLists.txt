@@ -34,7 +34,6 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/VertexShaderManager.cpp
 			Src/VideoConfig.cpp
 			Src/VideoState.cpp
-			Src/XFBConvert.cpp
 			Src/XFMemory.cpp
 			Src/XFStructs.cpp
 			Src/memcpy_amd.cpp)

@@ -19,23 +19,17 @@
 
 #include "CoreAudioSoundStream.h"
 
-OSStatus callback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
-			const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
-			UInt32 inNumberFrames, AudioBufferList *ioData)
+OSStatus CoreAudioSound::callback(void *inRefCon,
+	AudioUnitRenderActionFlags *ioActionFlags,
+	const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
+	UInt32 inNumberFrames, AudioBufferList *ioData)
 {
 	for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
-	{
-		((CoreAudioSound *)inRefCon)-> \
-			RenderSamples(ioData->mBuffers[i].mData,
-					ioData->mBuffers[i].mDataByteSize);
-	}
+		((CoreAudioSound *)inRefCon)->m_mixer->
+			Mix((short *)ioData->mBuffers[i].mData,
+				ioData->mBuffers[i].mDataByteSize / 4);
 
 	return noErr;
-}
-
-void CoreAudioSound::RenderSamples(void *target, UInt32 size)
-{
-	m_mixer->Mix((short *)target, size / 4);
 }
 
 CoreAudioSound::CoreAudioSound(CMixer *mixer) : SoundStream(mixer)

@@ -31,7 +31,6 @@ namespace Frame {
 bool g_bFrameStep = false;
 bool g_bFrameStop = false;
 u32 g_rerecords = 0;
-bool g_bFirstKey = true;
 PlayMode g_playMode = MODE_NONE;
 
 unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;

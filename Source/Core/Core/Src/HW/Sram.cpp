@@ -42,6 +42,7 @@ SRAM sram_dump = {{
 	0x00, 0x00
 }};
 
+#if 0
 // german
 SRAM sram_dump_german = {{ 
 	0x1F, 0x66,
@@ -66,6 +67,7 @@ SRAM sram_dump_german = {{
 	0x00, 0x00,
 	0x00, 0x00
 }};
+#endif
 
 void initSRAM()
 {

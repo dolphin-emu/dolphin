@@ -27,7 +27,6 @@
 #include "HW/Memmap.h"
 
 volatile bool g_bSkipCurrentFrame = false;
-volatile bool g_EFBAccessRequested = false;
 extern u8* g_pVideoData;
 
 namespace
@@ -79,20 +78,9 @@ void Fifo_SetRendering(bool enabled)
 	g_bSkipCurrentFrame = !enabled;
 }
 
-// Executed from another thread, no the graphics thread!
-// Basically, all it does is set a flag so that the loop will eventually exit, then
-// waits for the event to be set, which happens when the loop does exit.
-// If we look stuck in here, then the video thread is stuck in something and won't exit
-// the loop. Switch to the video thread and investigate.
-void Fifo_ExitLoop()
-{
-	Fifo_ExitLoopNonBlocking();
-	EmuRunning = true;
-}
-
 // May be executed from any thread, even the graphics thread.
 // Created to allow for self shutdown.
-void Fifo_ExitLoopNonBlocking()
+void Fifo_ExitLoop()
 {
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;

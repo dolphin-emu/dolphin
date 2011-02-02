@@ -82,7 +82,7 @@ u8 *m_pRAM;
 u8 *m_pL1Cache;
 u8 *m_pEXRAM;
 u8 *m_pFakeVMEM;
-u8 *m_pEFB;
+//u8 *m_pEFB;
 
 // 64-bit: Pointers to high-mem mirrors
 // 32-bit: Same as above
@@ -92,7 +92,7 @@ u8 *m_pVirtualUncachedRAM;
 u8 *m_pPhysicalEXRAM;        // wii only
 u8 *m_pVirtualCachedEXRAM;   // wii only
 u8 *m_pVirtualUncachedEXRAM; // wii only
-u8 *m_pVirtualEFB;
+//u8 *m_pVirtualEFB;
 u8 *m_pVirtualL1Cache;
 u8 *m_pVirtualFakeVMEM;
 

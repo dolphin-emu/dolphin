@@ -30,14 +30,14 @@
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 
-void dsp_reg_stack_push(int stack_reg)
+static void dsp_reg_stack_push(int stack_reg)
 {
 	g_dsp.reg_stack_ptr[stack_reg]++;
 	g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
 	g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r.st[stack_reg];
 }
 
-void dsp_reg_stack_pop(int stack_reg)
+static void dsp_reg_stack_pop(int stack_reg)
 {
 	g_dsp.r.st[stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
 	g_dsp.reg_stack_ptr[stack_reg]--;

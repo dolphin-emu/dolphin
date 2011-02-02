@@ -47,7 +47,6 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 #include <byteswap.h>
 #else
 char * strndup(char const *s, size_t n);
-size_t strnlen(const char *s, size_t n);
 #endif
 
 // go to debugger mode

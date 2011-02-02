@@ -45,10 +45,14 @@ public:
 	
 	virtual void Update();
 
-	void RenderSamples(void *target, UInt32 size);
-
 private:
 	AudioUnit audioUnit;
+
+	static OSStatus callback(void *inRefCon,
+		AudioUnitRenderActionFlags *ioActionFlags,
+		const AudioTimeStamp *inTimeStamp,
+		UInt32 inBusNumber, UInt32 inNumberFrames,
+		AudioBufferList *ioData);
 #else
 public:
 	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}

@@ -29,8 +29,6 @@
 namespace ActionReplay
 {
 
-int total;
-
 // Alphanumeric filter for text<->bin conversion
 const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 

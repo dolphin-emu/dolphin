@@ -271,7 +271,6 @@
     <ClCompile Include="Src\VertexShaderManager.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
     <ClCompile Include="Src\VideoState.cpp" />
-    <ClCompile Include="Src\XFBConvert.cpp" />
     <ClCompile Include="Src\XFMemory.cpp" />
     <ClCompile Include="Src\XFStructs.cpp" />
   </ItemGroup>
@@ -318,7 +317,6 @@
     <ClInclude Include="Src\VideoCommon.h" />
     <ClInclude Include="Src\VideoConfig.h" />
     <ClInclude Include="Src\VideoState.h" />
-    <ClInclude Include="Src\XFBConvert.h" />
     <ClInclude Include="Src\XFMemory.h" />
     <ClInclude Include="Src\XFStructs.h" />
   </ItemGroup>

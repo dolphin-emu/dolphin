@@ -83,7 +83,6 @@ Make AA apply instantly during gameplay if possible
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
-#include "XFBConvert.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
 #include "TextureConverter.h"
@@ -97,9 +96,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoState.h"
 #include "VideoBackend.h"
 #include "ConfigManager.h"
-
-// Logging
-int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 namespace OGL
 {
@@ -166,7 +162,6 @@ void VideoBackend::Initialize()
 	InitBackendInfo();
 
 	frameCount = 0;
-	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());

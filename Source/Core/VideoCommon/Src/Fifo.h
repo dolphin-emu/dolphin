@@ -36,7 +36,6 @@ void Fifo_SendFifoData(u8* _uData, u32 len);
 // These two are for dual core mode only.
 void Fifo_EnterLoop();
 void Fifo_ExitLoop();
-void Fifo_ExitLoopNonBlocking();
 void Fifo_RunLoop(bool run);
 bool AtBreakpoint();
 void Fifo_DoState(PointerWrap &f);

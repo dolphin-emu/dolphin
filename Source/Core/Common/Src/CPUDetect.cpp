@@ -60,7 +60,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 #endif
 }
 
-void __cpuid(int info[4], int x)
+static void __cpuid(int info[4], int x)
 {
 	unsigned int eax = x, ebx = 0, ecx = 0, edx = 0;
 	do_cpuid(&eax, &ebx, &ecx, &edx);

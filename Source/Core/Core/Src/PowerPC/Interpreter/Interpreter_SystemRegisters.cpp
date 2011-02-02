@@ -65,7 +65,7 @@ const u32 MASKS = 0x1F80;  // mask away the interrupts.
 const u32 DAZ = 0x40;
 const u32 FTZ = 0x8000;
 
-void FPSCRtoFPUSettings(UReg_FPSCR fp)
+static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 {
 	// Set FPU rounding mode to mimic the PowerPC's
 #ifdef _M_IX86
@@ -239,7 +239,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 
 // Segment registers. MMU control.
 
-void SetSR(int index, u32 value) {
+static void SetSR(int index, u32 value) {
 	DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index, value);
 	PowerPC::ppcState.sr[index] = value;
 }
@@ -341,16 +341,16 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 			old_hid0.Hex = oldValue;
 			if (HID0.ICE != old_hid0.ICE)
 			{
-				NOTICE_LOG(POWERPC, "Instruction Cache Enable (HID0.ICE) = %d", (int)HID0.ICE);
+				INFO_LOG(POWERPC, "Instruction Cache Enable (HID0.ICE) = %d", (int)HID0.ICE);
 			}
 			if (HID0.ILOCK != old_hid0.ILOCK)
 			{
-				NOTICE_LOG(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = %d", (int)HID0.ILOCK);
+				INFO_LOG(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = %d", (int)HID0.ILOCK);
 			}
 			if (HID0.ICFI)
 			{
 				HID0.ICFI = 0;
-				NOTICE_LOG(POWERPC, "Flush Instruction Cache! ICE=%d", (int)HID0.ICE);
+				INFO_LOG(POWERPC, "Flush Instruction Cache! ICE=%d", (int)HID0.ICE);
 				// this is rather slow
 				// most games do it only once during initialization
 				PowerPC::ppcState.iCache.Reset();

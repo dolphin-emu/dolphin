@@ -32,6 +32,7 @@ typedef int SectionID;
 
 class ElfReader
 {
+private:
 	char *base;
 	u32 *base32;
 
@@ -55,7 +56,10 @@ public:
 	ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
 	u32 GetEntryPoint() const { return entryPoint; }
 	u32 GetFlags() const { return (u32)(header->e_flags); }
+	bool LoadInto(u32 vaddr);
+	bool LoadSymbols();
 
+private:
 	int GetNumSegments() const { return (int)(header->e_phnum); }
 	int GetNumSections() const { return (int)(header->e_shnum); }
 	const u8 *GetPtr(int offset) const { return (u8*)base + offset; }
@@ -80,9 +84,6 @@ public:
 	bool DidRelocate() {
 		return bRelocate;
 	}
-	// More indepth stuff:)
-	bool LoadInto(u32 vaddr);
-	bool LoadSymbols();
 };
 
 #endif

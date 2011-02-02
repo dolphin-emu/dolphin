@@ -80,25 +80,6 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
-// Draw messages on top of the screen
-unsigned int Callback_PeekMessages()
-{
-#ifdef _WIN32
-	// TODO: peekmessage
-	MSG msg;
-	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-	{
-		if (msg.message == WM_QUIT)
-			return FALSE;
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	return TRUE;
-#else
-	return FALSE;
-#endif
-}
-
 // Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {

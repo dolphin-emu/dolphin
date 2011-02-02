@@ -665,7 +665,9 @@ typedef struct tlb_entry
 } tlb_entry;
 
 // TODO: tlb needs to be in ppcState for save-state purposes.
-tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
+#ifdef FAST_TLB_CACHE
+static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
+#endif
 
 u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {

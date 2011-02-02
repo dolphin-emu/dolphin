@@ -127,7 +127,7 @@ void FindFilename(u64 offset)
 		FileAccess = false;
 		ReadGC(SConfig::GetInstance().m_LastFilename);
 		ISOFile = SConfig::GetInstance().m_LastFilename;
-		NOTICE_LOG(FILEMON, "Opening '%s'", ISOFile.c_str());
+		INFO_LOG(FILEMON, "Opening '%s'", ISOFile.c_str());
 		return;
 	}
 

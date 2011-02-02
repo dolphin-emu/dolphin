@@ -671,7 +671,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 Transaction
 	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->length + sizeof(l2cap_hdr_t));
 }
 
-u32 ParseCont(u8* pCont)
+static u32 ParseCont(u8* pCont)
 {
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pCont);

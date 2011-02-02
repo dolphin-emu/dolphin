@@ -34,7 +34,7 @@
 namespace Core
 {
 
-void Callback_VideoLog(const char* _szMessage, int _bDoBreak);
+void Callback_VideoLog(const char* _szMessage);
 void Callback_VideoCopiedToXFB(bool video_update);
 void Callback_VideoGetWindowSize(int& x, int& y, int& width, int& height);
 void Callback_VideoRequestWindowSize(int& width, int& height);

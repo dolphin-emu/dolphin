@@ -49,7 +49,6 @@
 #include "D3DUtil.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
-#include "XFBConvert.h"
 #include "render.h"
 #include "DLCache.h"
 #include "IniFile.h"
@@ -155,7 +154,6 @@ void VideoBackend::Initialize()
 	InitBackendInfo();
 
 	frameCount = 0;
-	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());

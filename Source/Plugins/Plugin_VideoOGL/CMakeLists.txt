@@ -30,7 +30,7 @@ if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(LIBS	${LIBS} Cg CgGL)
 endif()
 
-if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(LIBS	${LIBS} clrun)
 endif()
 

@@ -39,7 +39,8 @@ using namespace Gen;
 
 extern u8 *trampolineCodePtr;
 
-void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
+#ifdef _M_X64
+static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	u64 code_addr = (u64)codePtr;
 	disassembler disasm;
 	char disbuf[256];
@@ -55,7 +56,7 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	   text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
-
+#endif
 
 void TrampolineCache::Init()
 {

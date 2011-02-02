@@ -22,14 +22,15 @@
 
 #define MAKE(type, arg) (*(type *)&(arg))
 
-const u8 CEXIETHERNET::mac_address_default[6] = { 0x00, 0x09, 0xbf, 0x01, 0x00, 0xc1 };
-
 CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr) :
 	m_uPosition(0),
 	m_uCommand(0),
 	mWriteBuffer(2048),
 	mCbw(mBbaMem + CB_OFFSET, CB_SIZE)
 {
+	const u8 mac_address_default[6] =
+		{ 0x00, 0x09, 0xbf, 0x01, 0x00, 0xc1 };
+
 	memset(mBbaMem, 0, BBA_MEM_SIZE);
 	
 	int x = 0;

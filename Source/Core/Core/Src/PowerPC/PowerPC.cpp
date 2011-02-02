@@ -436,11 +436,3 @@ void UpdateFPRF(double dvalue)
 	//if (FPSCR.FPRF == 0x11)
 	//	PanicAlert("QNAN alert");
 }
-
-void UpdateFEX() {
-	FPSCR.FEX = (FPSCR.XX & FPSCR.XE) |
-		        (FPSCR.ZX & FPSCR.ZE) |
-				(FPSCR.UX & FPSCR.UE) |
-				(FPSCR.OX & FPSCR.OE) |
-				(FPSCR.VX & FPSCR.VE);
-}

@@ -181,8 +181,8 @@ private:
 	wxRadioBox* DSPEngine;
 	wxSlider*	VolumeSlider;
 	wxStaticText* VolumeText;    
-    wxCheckBox*	EnableDTKMusic;
-    wxCheckBox*	EnableThrottle;
+	wxCheckBox*	EnableDTKMusic;
+	wxCheckBox*	EnableThrottle;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
 	wxChoice*	FrequencySelection;
@@ -278,7 +278,6 @@ private:
 	void OnSpin(wxSpinEvent& event);
 
 	void AudioSettingsChanged(wxCommandEvent& event);
-	bool SupportsVolumeChanges(std::string backend);
 	void AddAudioBackends();
 
 	void GCSettingsChanged(wxCommandEvent& event);
@@ -295,6 +294,9 @@ private:
 	void DVDRootChanged(wxFileDirPickerEvent& event);
 	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event));
 
+private:
 	DECLARE_EVENT_TABLE();
+
+	static bool SupportsVolumeChanges(std::string backend);
 };
 #endif

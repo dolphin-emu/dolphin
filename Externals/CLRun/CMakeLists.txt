@@ -4,6 +4,4 @@ set(SRCS	clrun/clrun.c
 			clrun/genclgl.c)
 
 add_library(clrun STATIC ${SRCS})
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	target_link_libraries(clrun ${CMAKE_DL_LIBS})
-endif()
+target_link_libraries(clrun ${CMAKE_DL_LIBS})

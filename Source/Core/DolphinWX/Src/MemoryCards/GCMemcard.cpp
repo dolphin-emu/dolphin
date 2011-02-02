@@ -17,10 +17,7 @@
 #include "GCMemcard.h"
 #include "ColorUtil.h"
 
-// i think there is support for this stuff in the common lib... if not there should be support
-
-// undefined functions... prolly it means something like that
-void ByteSwap(u8 *valueA, u8 *valueB)
+static void ByteSwap(u8 *valueA, u8 *valueB)
 {
 	u8 tmp = *valueA;
 	*valueA = *valueB;

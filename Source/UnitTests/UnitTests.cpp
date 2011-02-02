@@ -94,9 +94,6 @@ void StringTests()
 {
 	EXPECT_EQ(StripSpaces(" abc   "), "abc");
 
-	EXPECT_EQ(StripNewline(" abc \n"), " abc ");
-	EXPECT_EQ(StripNewline(" abc \n "), " abc \n ");
-
 	EXPECT_EQ(StripQuotes("\"abc\""), "abc");
 	EXPECT_EQ(StripQuotes("\"abc\" "), "\"abc\" ");
 

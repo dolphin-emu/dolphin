@@ -133,7 +133,7 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 		majorDeviceClass: kBluetoothDeviceClassMajorPeripheral
 		minorDeviceClass: kBluetoothDeviceClassMinorPeripheral2Joystick
 		];
-	[bti setUpdateNewDeviceNames: FALSE];
+	[bti setUpdateNewDeviceNames: NO];
 
 	if ([bti start] == kIOReturnSuccess)
 		[bti retain];

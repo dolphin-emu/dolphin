@@ -229,9 +229,13 @@ void CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendSeparator();
-	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _("Show &Logwindow"));
+	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _("Show &Log"));
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _("Show &Console"));
 	viewMenu->AppendSeparator();
+
+#ifndef _WIN32
+	viewMenu->Enable(IDM_CONSOLEWINDOW, false);
+#endif
 
 	if (g_pCodeWindow)
 	{

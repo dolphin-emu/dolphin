@@ -29,7 +29,6 @@ public:
 
 private:
 	bool OnInit();
-	void OnEndSession();
 	int OnExit();
 	void OnFatalException();
 	void InitLanguageSupport();

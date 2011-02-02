@@ -122,17 +122,6 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-// "\"hello\"" is turned to "hello"
-// This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
-std::string StripNewline(const std::string& s)
-{
-	if (s.size() && '\n' == *s.rbegin())
-		return s.substr(0, s.size() - 1);
-	else
-		return s;
-}
-
 bool TryParse(const std::string &str, u32 *const output)
 {
 	char *endptr = NULL;
@@ -199,13 +188,6 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 		*_pExtension = full_path.substr(fname_end);
 
 	return true;
-}
-
-std::string PathToFilename(const std::string &Path)
-{
-	std::string Name, Ending;
-	SplitPath(Path, 0, &Name, &Ending);
-	return Name + Ending;
 }
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename)

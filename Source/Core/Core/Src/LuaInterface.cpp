@@ -44,16 +44,8 @@ extern "C" {
 
 // TODO Count: 7
 
-#if defined(DEBUG) || defined(DEBUGFAST)
-bool Debug = true;
-#else
-bool Debug = false;
-#endif
-
 namespace Lua {
 
-int disableSound2, disableRamSearchUpdate;
-bool BackgroundInput;
 bool g_disableStatestateWarnings;
 bool g_onlyCallSavestateCallbacks;
 bool frameadvSkipLagForceDisable;
@@ -168,11 +160,11 @@ static const char* luaMemHookTypeStrings [] =
 };
 	//static const int _makeSureWeHaveTheRightNumberOfStrings2 [sizeof(luaMemHookTypeStrings)/sizeof(*luaMemHookTypeStrings) == LUAMEMHOOK_COUNT ? 1 : 0];
 
-void StopScriptIfFinished(int uid, bool justReturned = false);
-void SetSaveKey(LuaContextInfo& info, const char* key);
-void SetLoadKey(LuaContextInfo& info, const char* key);
-void RefreshScriptStartedStatus();
-void RefreshScriptSpeedStatus();
+static void StopScriptIfFinished(int uid, bool justReturned = false);
+static void SetSaveKey(LuaContextInfo& info, const char* key);
+static void SetLoadKey(LuaContextInfo& info, const char* key);
+static void RefreshScriptStartedStatus();
+static void RefreshScriptSpeedStatus();
 
 static char* rawToCString(lua_State* L, int idx=0);
 static const char* toCString(lua_State* L, int idx=0);
@@ -629,7 +621,7 @@ static const char* deferredGUIIDString = "lazygui";
 
 // store the most recent C function call from Lua (and all its arguments)
 // for later evaluation
-void DeferFunctionCall(lua_State* L, const char* idstring)
+static void DeferFunctionCall(lua_State* L, const char* idstring)
 {
 	// there might be a cleaner way of doing this using lua_pushcclosure and lua_getref
 
@@ -1118,7 +1110,7 @@ DEFINE_LUA_FUNCTION(emulua_wait, "")
 	return 0;
 }
 
-void indicateBusy(lua_State* L, bool busy)
+static void indicateBusy(lua_State* L, bool busy)
 {
 	// disabled because there have been complaints about this message being useless spam.
 }
@@ -1205,7 +1197,7 @@ void printfToOutput(const char* fmt, ...)
 	delete[] str;
 }
 
-bool FailVerifyAtFrameBoundary(lua_State* L, const char* funcName, int unstartedSeverity=2, int inframeSeverity=2)
+static bool FailVerifyAtFrameBoundary(lua_State* L, const char* funcName, int unstartedSeverity=2, int inframeSeverity=2)
 {
 	if (!Core::isRunning() || Core::GetState() == Core::CORE_STOPPING)
 	{
@@ -1236,7 +1228,14 @@ bool FailVerifyAtFrameBoundary(lua_State* L, const char* funcName, int unstarted
 }
 
 // TODO
-/*
+#if 0
+
+#if defined(DEBUG) || defined(DEBUGFAST)
+static bool Debug = true;
+#else
+static bool Debug = false;
+#endif
+
 // acts similar to normal emulation update
 // except without the user being able to activate emulator commands
 DEFINE_LUA_FUNCTION(emulua_emulateframe, "")
@@ -1352,7 +1351,8 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 	info.speedMode = newSpeedMode;
 	RefreshScriptSpeedStatus();
 	return 0;
-}*/
+}
+#endif
 
 
 // I didn't make it clear enough what this function needs to do, so I'll spell it out this time:
@@ -2146,7 +2146,7 @@ s_colorMapping [] =
 	{"magenta",   0xFF00FFFF},
 };
 
-inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
+static inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 {
 	int type = lua_type(L,idx);
 	switch(type)
@@ -2206,6 +2206,7 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 	}
 	return defaultColor;
 }
+
 int getcolor(lua_State *L, int idx, int defaultColor)
 {
 	int color = getcolor_unmodified(L, idx, defaultColor);
@@ -3046,7 +3047,7 @@ DEFINE_LUA_FUNCTION(input_getcurrentinputstatus, "")
 
 
 // resets our "worry" counter of the Lua state
-int dontworry(LuaContextInfo& info)
+static int dontworry(LuaContextInfo& info)
 {
 	if(info.stopWorrying)
 	{
@@ -3665,7 +3666,7 @@ void RequestAbortLuaScript(int uid, const char* message)
 	}
 }
 
-void SetSaveKey(LuaContextInfo& info, const char* key)
+static void SetSaveKey(LuaContextInfo& info, const char* key)
 {
 	info.dataSaveKey = crc32(0, (const unsigned char*)key, (int)strlen(key));
 
@@ -3675,7 +3676,8 @@ void SetSaveKey(LuaContextInfo& info, const char* key)
 		info.dataSaveLoadKeySet = true;
 	}
 }
-void SetLoadKey(LuaContextInfo& info, const char* key)
+
+static void SetLoadKey(LuaContextInfo& info, const char* key)
 {
 	info.dataLoadKey = crc32(0, (const unsigned char*)key, (int)strlen(key));
 
@@ -4235,7 +4237,7 @@ void PushBinaryItem(T item, std::vector<unsigned char>& output)
 }
 // read a value from the byte stream and advance the stream by its size
 template<typename T>
-T AdvanceByteStream(const unsigned char*& data, unsigned int& remaining)
+static T AdvanceByteStream(const unsigned char*& data, unsigned int& remaining)
 {
 #ifdef IS_LITTLE_ENDIAN
 	T rv = *(T*)data;
@@ -4464,7 +4466,7 @@ static void LuaStackToBinaryConverter(lua_State* L, int i, std::vector<unsigned 
 
 
 // complements LuaStackToBinaryConverter
-void BinaryToLuaStackConverter(lua_State* L, const unsigned char*& data, unsigned int& remaining)
+static void BinaryToLuaStackConverter(lua_State* L, const unsigned char*& data, unsigned int& remaining)
 {
 	assert(s_dbg_dataSize - (data - s_dbg_dataStart) == (int)remaining);
 
@@ -4718,7 +4720,7 @@ void LuaSaveData::SaveRecordPartial(int uid, unsigned int key, int idx)
 		recordList = cur;
 }
 
-void fwriteint(unsigned int value, FILE* file)
+static void fwriteint(unsigned int value, FILE* file)
 {
 	for(int i=0;i<4;i++)
 	{
@@ -4727,7 +4729,7 @@ void fwriteint(unsigned int value, FILE* file)
 		value >>= 8;
 	}
 }
-void freadint(unsigned int& value, FILE* file)
+static void freadint(unsigned int& value, FILE* file)
 {
 	int rv = 0;
 	for(int i=0;i<4;i++)
@@ -4863,7 +4865,7 @@ void RestartAllLuaScripts()
 }
 
 // sets anything that needs to depend on the total number of scripts running
-void RefreshScriptStartedStatus()
+static void RefreshScriptStartedStatus()
 {
 	int numScriptsStarted = 0;
 
@@ -4882,7 +4884,7 @@ void RefreshScriptStartedStatus()
 }
 
 // sets anything that needs to depend on speed mode or running status of scripts
-void RefreshScriptSpeedStatus()
+static void RefreshScriptSpeedStatus()
 {
 	g_anyScriptsHighSpeed = false;
 
@@ -4897,7 +4899,5 @@ void RefreshScriptSpeedStatus()
 		++iter;
 	}
 }
-
-
 
 };

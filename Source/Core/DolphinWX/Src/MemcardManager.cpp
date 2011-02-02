@@ -274,7 +274,7 @@ void CMemcardManager::CreateGUIControls()
 
 void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	Destroy();
+	Close();
 }
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)

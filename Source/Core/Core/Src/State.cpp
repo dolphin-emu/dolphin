@@ -508,7 +508,7 @@ void State_Shutdown()
 	}
 }
 
-std::string MakeStateFilename(int state_number)
+static std::string MakeStateFilename(int state_number)
 {
 	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), state_number);
 }

@@ -49,7 +49,6 @@ struct DSPState
 		Reset();
 	}
 };
-DSPState m_dspState;
 
 void DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {

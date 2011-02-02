@@ -43,7 +43,7 @@
 #include "Attachment/Attachment.h"
 
 /* Bit shift conversions */
-u32 swap24(const u8* src)
+static u32 swap24(const u8* src)
 {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
 }

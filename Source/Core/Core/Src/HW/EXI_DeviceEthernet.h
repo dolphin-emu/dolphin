@@ -292,7 +292,6 @@ public:
 
 
 	volatile bool mWaiting;
-	static const u8 mac_address_default[6];
 	u8 mac_address[6];
 	u8 mRecvBuffer[BBA_RECV_SIZE];
 #ifdef _WIN32

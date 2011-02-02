@@ -209,7 +209,7 @@ void Stop()  // - Hammertime!
 		// Video_EnterLoop() should now exit so that EmuThread() will continue
 		// concurrently with the rest of the commands in this function. We no
 		// longer rely on Postmessage.
-		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		g_video_backend->Video_ExitLoop();
 
 		// Wait until the CPU finishes exiting the main run loop
@@ -386,9 +386,9 @@ void EmuThread()
 		}
 
 		// Wait for CpuThread to exit
-		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 		cpuRunloopQuit.Wait();
-		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 		// On unix platforms, the Emulation main thread IS the CPU & video
 		// thread So there's only one thread, imho, that's much better than on
 		// windows :P
@@ -396,7 +396,7 @@ void EmuThread()
 	}
 
 	// We have now exited the Video Loop
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
 
 	// At this point, the CpuThread has already returned in SC mode.
 	// But it may still be waiting in Dual Core mode.
@@ -415,11 +415,10 @@ void EmuThread()
 	
 	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
 	HW::Shutdown();
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 
-	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
 	// In single core mode, this has already been called.
 	if (_CoreParameter.bCPUThread)
 		g_video_backend->Shutdown();
@@ -427,10 +426,10 @@ void EmuThread()
 	Pad::Shutdown();
 	Wiimote::Shutdown();
 
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
-	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
+	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
 	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;
@@ -614,7 +613,7 @@ bool report_slow(int skipped)
 
 // Callback_VideoLog
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-void Callback_VideoLog(const char *_szMessage, int _bDoBreak)
+void Callback_VideoLog(const char *_szMessage)
 {
 	INFO_LOG(VIDEO, "%s", _szMessage);
 }

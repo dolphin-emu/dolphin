@@ -24,9 +24,6 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
-bool MicButton = false;
-bool IsOpen;
-
 // Unfortunately this must be enabled in Common.h for windows users. Scons should enable it otherwise
 #if !HAVE_PORTAUDIO
 
@@ -49,6 +46,9 @@ bool CEXIMic::IsInterruptSet(){return false;}
 #ifdef _WIN32
 #pragma comment(lib, "C:/Users/Shawn/Desktop/portaudio/portaudio-v19/portaudio_x64.lib")
 #endif
+
+static bool MicButton = false;
+static bool IsOpen;
 
 union InputData
 {

@@ -47,9 +47,6 @@
     <ClCompile Include="Src\VideoState.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Src\XFBConvert.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="Src\PixelShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
@@ -172,9 +169,6 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="Src\VideoState.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\XFBConvert.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="Src\PixelShaderManager.h">

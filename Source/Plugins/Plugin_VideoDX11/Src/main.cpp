@@ -29,7 +29,6 @@
 #include "VideoConfig.h"
 #include "VertexLoaderManager.h"
 #include "VertexShaderManager.h"
-#include "XFBConvert.h"
 #include "Core.h"
 
 #include "DebuggerPanel.h"
@@ -174,7 +173,6 @@ void VideoBackend::Initialize()
 	InitBackendInfo();
 
 	frameCount = 0;
-	InitXFBConvTables();
 
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx11.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());

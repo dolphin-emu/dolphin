@@ -25,7 +25,6 @@
 #include "HW/Memmap.h"
 #include "ConfigManager.h"
 
-bool textureChanged[8];
 const bool renderFog = false;
 namespace BPFunctions
 {

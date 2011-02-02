@@ -26,7 +26,6 @@
 u8 DSPHost_ReadHostMemory(u32 addr);
 void DSPHost_WriteHostMemory(u8 value, u32 addr);
 bool DSPHost_OnThread();
-bool DSPHost_Running();
 void DSPHost_InterruptRequest();
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size);
 void DSPHost_UpdateDebugger();

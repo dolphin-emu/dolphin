@@ -86,7 +86,7 @@ namespace AudioCommon
 			soundStream = NULL;
 		}
 
-		NOTICE_LOG(DSPHLE, "Done shutting down sound stream");	
+		INFO_LOG(DSPHLE, "Done shutting down sound stream");	
 	}
 
 	std::vector<std::string> GetSoundBackends() 

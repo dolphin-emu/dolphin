@@ -46,11 +46,6 @@ bool DSPHost_OnThread()
 	return  _CoreParameter.bDSPThread;
 }
 
-bool DSPHost_Running()
-{
-	return !(*PowerPC::GetStatePtr());
-}
-
 void DSPHost_InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.

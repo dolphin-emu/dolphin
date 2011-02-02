@@ -304,15 +304,18 @@ bool DolphinApp::OnInit()
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
-	// The following is not needed in linux.  Linux window managers do not allow windows to
-	// be created off the desktop.
+	// The following is not needed with X11, where window managers
+	// do not allow windows to be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
 	HWND hDesktop = GetDesktopWindow();
 	RECT rc;
 	GetWindowRect(hDesktop, &rc);
 	if (rc.right < x + w || rc.bottom < y + h)
-		x = y = -1;
+		x = y = wxDefaultCoord;
+#elif defined __APPLE__
+	if (y < 1)
+		y = wxDefaultCoord;
 #endif
 
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
@@ -410,11 +413,6 @@ void DolphinApp::InitLanguageSupport()
 		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
-}
-
-void DolphinApp::OnEndSession()
-{
-	SConfig::GetInstance().SaveSettings();
 }
 
 int DolphinApp::OnExit()

@@ -181,14 +181,14 @@ int TexDecoder_GetPaletteSize(int format)
 	}
 }
 
-inline u32 decodeIA8(u16 val)
+static inline u32 decodeIA8(u16 val)
 {
 	int a = val >> 8;
 	int i = val & 0xFF;
 	return (a << 24) | (i << 16) | (i << 8) | i;
 }
 
-inline u32 decode5A3(u16 val)
+static inline u32 decode5A3(u16 val)
 {
 	int r,g,b,a;
 	if ((val & 0x8000))
@@ -208,7 +208,7 @@ inline u32 decode5A3(u16 val)
 	return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-inline u32 decode5A3RGBA(u16 val)
+static inline u32 decode5A3RGBA(u16 val)
 {
 	int r,g,b,a;
 	if ((val&0x8000))
@@ -228,7 +228,7 @@ inline u32 decode5A3RGBA(u16 val)
 	return r | (g<<8) | (b << 16) | (a << 24);
 }
 
-inline u32 decode565RGBA(u16 val)
+static inline u32 decode565RGBA(u16 val)
 {
 	int r,g,b,a;
 	r=Convert5To8((val>>11) & 0x1f);
@@ -238,7 +238,7 @@ inline u32 decode565RGBA(u16 val)
 	return  r | (g<<8) | (b << 16) | (a << 24);
 }
 
-inline u32 decodeIA8Swapped(u16 val)
+static inline u32 decodeIA8Swapped(u16 val)
 {
 	int a = val & 0xFF;
 	int i = val >> 8;

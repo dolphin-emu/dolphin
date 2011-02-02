@@ -45,7 +45,6 @@ std::string ArrayToString(const u8 *data, u32 size, int line_len = 20, bool spac
 
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
-std::string StripNewline(const std::string &s);
 
 // Thousand separator. Turns 12345678 into 12,345,678
 template <typename I>
@@ -92,8 +91,6 @@ void SplitString(const std::string& str, char delim, std::vector<std::string>& o
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
-// "C:/Windows/winhelp.exe" to "winhelp.exe"
-std::string PathToFilename(const std::string &Path);
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
 
