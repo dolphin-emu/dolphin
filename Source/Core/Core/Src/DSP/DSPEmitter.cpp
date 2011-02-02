@@ -20,6 +20,7 @@
 #include "DSPEmitter.h"
 #include "DSPMemoryMap.h"
 #include "DSPCore.h"
+#include "DSPHost.h"
 #include "DSPInterpreter.h"
 #include "DSPAnalyzer.h"
 #include "Jit/DSPJitUtil.h"
@@ -269,7 +270,7 @@ void DSPEmitter::Compile(u16 start_addr)
 			DSPJitRegCache c(gpr);
 			HandleLoop();
 			SaveDSPRegs();
-			if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+			if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 			{
 				MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 			}
@@ -307,7 +308,7 @@ void DSPEmitter::Compile(u16 start_addr)
 				DSPJitRegCache c(gpr);
 				//don't update g_dsp.pc -- the branch insn already did
 				SaveDSPRegs();
-				if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+				if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 				{
 					MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 				}
@@ -373,7 +374,7 @@ void DSPEmitter::Compile(u16 start_addr)
 	}
 
 	SaveDSPRegs();
-	if (DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+	if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 	}
@@ -400,6 +401,13 @@ void DSPEmitter::CompileDispatcher()
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
 	const u8 *dispatcherLoop = GetCodePtr();
+
+	FixupBranch exceptionExit;
+	if (DSPHost_OnThread())
+	{
+		CMP(8, M(&g_dsp.external_interrupt_waiting), Imm8(0));
+		exceptionExit = J_CC(CC_NE);
+	}
 
 	// Check for DSP halt
 #ifdef _M_IX86
@@ -440,6 +448,10 @@ void DSPEmitter::CompileDispatcher()
 	
 	// DSP gave up the remaining cycles.
 	SetJumpTarget(_halt);
+	if (DSPHost_OnThread())
+	{
+		SetJumpTarget(exceptionExit);
+	}
 	//MOV(32, M(&cyclesLeft), Imm32(0));
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();

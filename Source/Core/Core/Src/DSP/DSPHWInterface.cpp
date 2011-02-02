@@ -99,7 +99,12 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 u16 gdsp_mbox_read_h(u8 mbx)
 {
-	return g_dsp.mbox[mbx][0];  // TODO: mask away the top bit?
+	if (DSPHost_OnThread())
+		g_CriticalSection.Enter();
+	u16 val =  g_dsp.mbox[mbx][0];  // TODO: mask away the top bit?
+	if (DSPHost_OnThread())
+		g_CriticalSection.Leave();
+	return val;
 }
 
 

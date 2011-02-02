@@ -86,12 +86,15 @@ void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
 		if (cycles > 0) {
-			if (dspjit) 
+			if (dspjit)
+			{
 				DSPCore_RunCycles(cycles);
+			}
 			else
+			{
 				DSPInterpreter::RunCycles(cycles);
-
-			Common::AtomicAdd(dsp_lle->m_cycle_count, -cycles);
+			}
+			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
 		// yield?
 	}
@@ -261,8 +264,10 @@ void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSPLLE::DSP_Update(int cycles)
 {
-	unsigned int dsp_cycles = cycles / 6;  //(jit?20:6);
+	int dsp_cycles = cycles / 6;
 
+	if (dsp_cycles <= 0)
+		return;
 // Sound stream update job has been handled by AudioDMA routine, which is more efficient
 /*
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
@@ -289,10 +294,10 @@ void DSPLLE::DSP_Update(int cycles)
 	}
 	else
 	{
-		// Wait for dsp thread to catch up reasonably. Note: this logic should be thought through.
-		while (m_cycle_count > dsp_cycles)
+		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
+		while (m_cycle_count != 0)
 			;
-		Common::AtomicAdd(m_cycle_count, dsp_cycles);
+		Common::AtomicStore(m_cycle_count, dsp_cycles);
 	}
 }
 

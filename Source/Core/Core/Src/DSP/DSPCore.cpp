@@ -250,16 +250,16 @@ int DSPCore_RunCycles(int cycles)
 {
 	if (dspjit)
 	{
-		cyclesLeft = cycles;
-		DSPCompiledCode pExecAddr = (DSPCompiledCode)dspjit->enterDispatcher;
-		pExecAddr();
-
 		if (g_dsp.external_interrupt_waiting)
 		{
 			DSPCore_CheckExternalInterrupt();
 			DSPCore_CheckExceptions();
 			DSPCore_SetExternalInterrupt(false);
 		}
+
+		cyclesLeft = cycles;
+		DSPCompiledCode pExecAddr = (DSPCompiledCode)dspjit->enterDispatcher;
+		pExecAddr();
 
 		return cyclesLeft;
 	}
