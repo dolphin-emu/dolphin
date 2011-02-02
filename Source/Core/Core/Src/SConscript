@@ -15,7 +15,7 @@ files = [
 	"OnFrame.cpp",
 	"MemTools.cpp",
 	"PatchEngine.cpp",
-	"PluginDSP.cpp",
+	"DSPEmulator.cpp",
 	"LuaInterface.cpp",
 	"State.cpp",
 	"Tracer.cpp",

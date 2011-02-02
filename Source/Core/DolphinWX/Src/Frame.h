@@ -47,7 +47,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 class CGameListCtrl;
 class CLogWindow;
 
-// The CPanel class to receive MSWWindowProc messages from the video plugin.
+// The CPanel class to receive MSWWindowProc messages from the video backend.
 class CPanel : public wxPanel
 {
 	public:
@@ -186,10 +186,10 @@ class CFrame : public CRenderFrame
 			Toolbar_Pause,
 			Toolbar_Screenshot,
 			Toolbar_FullScreen,
-			Toolbar_PluginOptions,
-			Toolbar_PluginGFX,
-			Toolbar_PluginDSP,
-			Toolbar_PluginPAD,
+			Toolbar_ConfigMain,
+			Toolbar_ConfigGFX,
+			Toolbar_ConfigDSP,
+			Toolbar_ConfigPAD,
 			Toolbar_Wiimote,			
 			Toolbar_Help,
 			EToolbar_Max
@@ -295,10 +295,10 @@ class CFrame : public CRenderFrame
 		void OnFrameStep(wxCommandEvent& event);
 		
 		void OnConfigMain(wxCommandEvent& event); // Options
-		void OnPluginGFX(wxCommandEvent& event);
-		void OnPluginDSP(wxCommandEvent& event);
-		void OnPluginPAD(wxCommandEvent& event);
-		void OnPluginWiimote(wxCommandEvent& event);
+		void OnConfigGFX(wxCommandEvent& event);
+		void OnConfigDSP(wxCommandEvent& event);
+		void OnConfigPAD(wxCommandEvent& event);
+		void OnConfigWiimote(wxCommandEvent& event);
 
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);

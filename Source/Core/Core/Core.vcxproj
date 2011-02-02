@@ -393,7 +393,7 @@
     <ClCompile Include="Src\MemTools.cpp" />
     <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\PluginDSP.cpp" />
+    <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -584,7 +584,7 @@
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
-    <ClInclude Include="Src\PluginDSP.h" />
+    <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />
     <ClInclude Include="Src\PowerPC\Gekko.h" />
     <ClInclude Include="Src\PowerPC\Interpreter\Interpreter.h" />

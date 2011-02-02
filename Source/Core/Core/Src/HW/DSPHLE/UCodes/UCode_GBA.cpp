@@ -36,7 +36,7 @@ void CUCode_GBA::Update(int cycles)
 	// check if we have to send something
 	if (!m_rMailHandler.IsEmpty())
 	{
-		DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 }
 

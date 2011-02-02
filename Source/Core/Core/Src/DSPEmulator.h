@@ -21,10 +21,10 @@
 
 #include "ChunkFile.h"
 
-class PluginDSP
+class DSPEmulator
 {
 public:
-	virtual ~PluginDSP() {}
+	virtual ~DSPEmulator() {}
 
 	virtual bool IsLLE() = 0;
 
@@ -45,6 +45,6 @@ public:
 	virtual void DSP_ClearAudioBuffer(bool mute) = 0;
 };
 
-PluginDSP *CreateDSPPlugin(bool LLE);
+DSPEmulator *CreateDSPEmulator(bool LLE);
 
 #endif // _PLUGINDSP_H_

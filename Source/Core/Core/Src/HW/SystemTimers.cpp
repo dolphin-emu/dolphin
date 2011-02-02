@@ -70,7 +70,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "../CoreTiming.h"
 #include "../ConfigManager.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
-#include "../PluginDSP.h"
+#include "../DSPEmulator.h"
 #include "Thread.h"
 #include "Timer.h"
 #include "VideoBackendBase.h"
@@ -245,7 +245,7 @@ void Init()
 	{
 		CPU_CORE_CLOCK = 729000000u;
 
-		if (!DSP::GetPlugin()->IsLLE())
+		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
 		// AyuanX: TO BE TWEAKED
@@ -261,11 +261,11 @@ void Init()
 	{
 		CPU_CORE_CLOCK = 486000000u;
 
-		if (!DSP::GetPlugin()->IsLLE())
+		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 
-	if (DSP::GetPlugin()->IsLLE())
+	if (DSP::GetDSPEmulator()->IsLLE())
 		DSP_PERIOD = 12000; // TO BE TWEAKED
 
 	// This is the biggest question mark.

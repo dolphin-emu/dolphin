@@ -32,7 +32,7 @@
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
-#include "PluginDSP.h"
+#include "DSPEmulator.h"
 #include "VideoBackendBase.h"
 
 extern "C" {
@@ -2959,7 +2959,7 @@ DEFINE_LUA_FUNCTION(movie_close, "")
 
 DEFINE_LUA_FUNCTION(sound_clear, "")
 {
-	DSP::GetPlugin()->DSP_ClearAudioBuffer(false);
+	DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(false);
 	return 0;
 }
 

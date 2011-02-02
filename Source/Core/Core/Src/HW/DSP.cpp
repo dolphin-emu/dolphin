@@ -46,7 +46,7 @@
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../ConfigManager.h"
-#include "../PluginDSP.h"
+#include "../DSPEmulator.h"
 
 namespace DSP
 {
@@ -211,7 +211,7 @@ static ARAM_Info g_ARAM_Info;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-PluginDSP *dsp_plugin;
+DSPEmulator *dsp_emulator;
 
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
@@ -230,7 +230,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
 
-	dsp_plugin->DoState(p);
+	dsp_emulator->DoState(p);
 }
 
 
@@ -247,15 +247,15 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
 }
 
-PluginDSP *GetPlugin()
+DSPEmulator *GetDSPEmulator()
 {
-	return dsp_plugin;
+	return dsp_emulator;
 }
 
 void Init(bool hle)
 {
-	dsp_plugin = CreateDSPPlugin(hle);
-	dsp_is_lle = dsp_plugin->IsLLE();
+	dsp_emulator = CreateDSPEmulator(hle);
+	dsp_is_lle = dsp_emulator->IsLLE();
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
@@ -292,9 +292,9 @@ void Shutdown()
 		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
 	g_ARAM.ptr = NULL;
 
-	dsp_plugin->Shutdown();
-	delete dsp_plugin;
-	dsp_plugin = NULL;
+	dsp_emulator->Shutdown();
+	delete dsp_emulator;
+	dsp_emulator = NULL;
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -304,31 +304,31 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
-			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
+			dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
-		_uReturnValue = dsp_plugin->DSP_ReadMailBoxHigh(true);
+		_uReturnValue = dsp_emulator->DSP_ReadMailBoxHigh(true);
 		break;
 
 	case DSP_MAIL_TO_DSP_LO:
-		_uReturnValue = dsp_plugin->DSP_ReadMailBoxLow(true);
+		_uReturnValue = dsp_emulator->DSP_ReadMailBoxLow(true);
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
 		if (dsp_slice > DSP_MAIL_SLICE && dsp_is_lle) {
-			dsp_plugin->DSP_Update(DSP_MAIL_SLICE);
+			dsp_emulator->DSP_Update(DSP_MAIL_SLICE);
 			dsp_slice -= DSP_MAIL_SLICE;
 		}
-		_uReturnValue = dsp_plugin->DSP_ReadMailBoxHigh(false);
+		_uReturnValue = dsp_emulator->DSP_ReadMailBoxHigh(false);
 		break;
 
 	case DSP_MAIL_FROM_DSP_LO:
-		_uReturnValue = dsp_plugin->DSP_ReadMailBoxLow(false);
+		_uReturnValue = dsp_emulator->DSP_ReadMailBoxLow(false);
 		break;
 
 	case DSP_CONTROL:
 		_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
-			(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+			(dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
 		break;
 
 		// ARAM
@@ -388,11 +388,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	{
 	// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		dsp_plugin->DSP_WriteMailBoxHigh(true, _Value);
+		dsp_emulator->DSP_WriteMailBoxHigh(true, _Value);
 		break;
 
 	case DSP_MAIL_TO_DSP_LO:
-		dsp_plugin->DSP_WriteMailBoxLow(true, _Value);
+		dsp_emulator->DSP_WriteMailBoxLow(true, _Value);
 		break;
 
 	case DSP_MAIL_FROM_DSP_HI:
@@ -408,7 +408,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UDSPControl tmpControl;
 			tmpControl.Hex = (_Value & ~DSP_CONTROL_MASK) |
-							(dsp_plugin->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
+							(dsp_emulator->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
 			// Not really sure if this is correct, but it works...
 			// Kind of a hack because DSP_CONTROL_MASK should make this bit
@@ -533,7 +533,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		_uReturnValue = (dsp_plugin->DSP_ReadMailBoxHigh(true) << 16) | dsp_plugin->DSP_ReadMailBoxLow(true);
+		_uReturnValue = (dsp_emulator->DSP_ReadMailBoxHigh(true) << 16) | dsp_emulator->DSP_ReadMailBoxLow(true);
 		break;
 
 		// AI
@@ -569,8 +569,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	{
 		// DSP
 	case DSP_MAIL_TO_DSP_HI:
-		dsp_plugin->DSP_WriteMailBoxHigh(true, _iValue >> 16);
-		dsp_plugin->DSP_WriteMailBoxLow(true, (u16)_iValue);
+		dsp_emulator->DSP_WriteMailBoxHigh(true, _iValue >> 16);
+		dsp_emulator->DSP_WriteMailBoxLow(true, (u16)_iValue);
 		break;
 
 		// AI
@@ -626,8 +626,8 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 	UpdateInterrupts();
 }
 
-// CALLED FROM DSP PLUGIN, POSSIBLY THREADED
-void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
+// CALLED FROM DSP EMULATOR, POSSIBLY THREADED
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
@@ -637,12 +637,12 @@ void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 void UpdateDSPSlice(int cycles) {
 	if (dsp_is_lle) {
 		//use up the rest of the slice(if any)
-		dsp_plugin->DSP_Update(dsp_slice);
+		dsp_emulator->DSP_Update(dsp_slice);
 		dsp_slice %= 6;
 		//note the new budget
 		dsp_slice += cycles;
 	} else {
-		dsp_plugin->DSP_Update(cycles);
+		dsp_emulator->DSP_Update(cycles);
 	}
 }
 
@@ -660,7 +660,7 @@ void UpdateAudioDMA()
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
-			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, 8*g_audioDMA.AudioDMAControl.NumBlocks);
+			dsp_emulator->DSP_SendAIBuffer(g_audioDMA.SourceAddress, 8*g_audioDMA.AudioDMAControl.NumBlocks);
 			GenerateDSPInterrupt(DSP::INT_AID);
 			if (g_audioDMA.AudioDMAControl.Enable)
 			{

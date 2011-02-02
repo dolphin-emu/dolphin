@@ -145,12 +145,12 @@ void CUCode_AXWii::Update(int cycles)
 	if (NeedsResumeMail())
 	{
 		m_rMailHandler.PushMail(DSP_RESUME);
-		DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 	// check if we have to send something
 	else if (!m_rMailHandler.IsEmpty())
 	{
-		DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 }
 

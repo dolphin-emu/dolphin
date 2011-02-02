@@ -54,7 +54,7 @@
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
 
-#include "PluginDSP.h"
+#include "DSPEmulator.h"
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"
 
@@ -314,7 +314,7 @@ void EmuThread()
 	g_video_backend->Initialize();
 	g_pWindowHandle = _CoreParameter.hMainWindow;
 
-	DSP::GetPlugin()->Initialize(g_pWindowHandle, _CoreParameter.bWii, _CoreParameter.bDSPThread);
+	DSP::GetDSPEmulator()->Initialize(g_pWindowHandle, _CoreParameter.bWii, _CoreParameter.bDSPThread);
 	
 	Pad::Initialize(g_pWindowHandle);
 
@@ -411,7 +411,7 @@ void EmuThread()
 
 	// Stop audio thread - Actually this does nothing on HLE plugin.
 	// But stops the DSP Interpreter on LLE plugin.
-	DSP::GetPlugin()->DSP_StopSoundStream();
+	DSP::GetDSPEmulator()->DSP_StopSoundStream();
 	
 	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
@@ -653,7 +653,7 @@ void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 void Callback_DSPInterrupt()
 {
-	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 

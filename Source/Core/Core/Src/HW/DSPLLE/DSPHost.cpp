@@ -54,7 +54,7 @@ bool DSPHost_Running()
 void DSPHost_InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.
-	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size)

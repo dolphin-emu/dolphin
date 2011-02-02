@@ -182,9 +182,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
 	ini.Set("Core", "UseFPS",		b_UseFPS);
 
-	// Plugins
-	// TODO: change key name, it's no longer a plugin
-	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
+	// GFX Backend
+	ini.Set("Core", "GFXBackend",	m_LocalCoreStartupParameter.m_strVideoBackend);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -313,9 +312,8 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
 		ini.Get("Core", "UseFPS",			&b_UseFPS,										false); // use vps as default
 
-		// Plugins
-		// TODO: change key name, it's no longer a plugin
-		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, "");
+		// GFX Backend
+		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	}
 
 	m_SYSCONF = new SysConf();

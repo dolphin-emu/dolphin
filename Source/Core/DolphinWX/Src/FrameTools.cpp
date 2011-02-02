@@ -379,10 +379,10 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
 	ToolBar->AddTool(IDM_SCREENSHOT, _("ScrShot"),   m_Bitmaps[Toolbar_FullScreen], _("Take Screenshot"));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(wxID_PREFERENCES, _("Config"), m_Bitmaps[Toolbar_PluginOptions], _("Configure..."));
-	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _("Graphics settings"));
-	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _("GCPad"),  m_Bitmaps[Toolbar_PluginPAD], _("Gamecube Pad settings"));
+	ToolBar->AddTool(wxID_PREFERENCES, _("Config"), m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
+	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _("Graphics"),  m_Bitmaps[Toolbar_ConfigGFX], _("Graphics settings"));
+	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _("DSP"),  m_Bitmaps[Toolbar_ConfigDSP], _("DSP settings"));
+	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _("GCPad"),  m_Bitmaps[Toolbar_ConfigPAD], _("Gamecube Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _("Wiimote settings"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
@@ -464,10 +464,10 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(toolbar_play_png);
 		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(toolbar_stop_png);
 		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(toolbar_pause_png);
-		m_Bitmaps[Toolbar_PluginOptions]= wxGetBitmapFromMemory(toolbar_plugin_options_png);
-		m_Bitmaps[Toolbar_PluginGFX]	= wxGetBitmapFromMemory(toolbar_plugin_gfx_png);
-		m_Bitmaps[Toolbar_PluginDSP]	= wxGetBitmapFromMemory(toolbar_plugin_dsp_png);
-		m_Bitmaps[Toolbar_PluginPAD]	= wxGetBitmapFromMemory(toolbar_plugin_pad_png);
+		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(toolbar_plugin_options_png);
+		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(toolbar_plugin_gfx_png);
+		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(toolbar_plugin_dsp_png);
+		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(toolbar_plugin_pad_png);
 		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(toolbar_plugin_wiimote_png);
 		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
 		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
@@ -490,10 +490,10 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play1_png);
 		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop1_png);
 		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause1_png);
-		m_Bitmaps[Toolbar_PluginOptions]= wxGetBitmapFromMemory(Toolbar_Options1_png);
-		m_Bitmaps[Toolbar_PluginGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx1_png);
-		m_Bitmaps[Toolbar_PluginDSP]	= wxGetBitmapFromMemory(Toolbar_DSP1_png);
-		m_Bitmaps[Toolbar_PluginPAD]	= wxGetBitmapFromMemory(Toolbar_Pad1_png);
+		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options1_png);
+		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx1_png);
+		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP1_png);
+		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad1_png);
 		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote1_png);
 		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen1_png);
 		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen1_png);
@@ -509,10 +509,10 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play2_png);
 		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop2_png);
 		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause2_png);
-		m_Bitmaps[Toolbar_PluginOptions]= wxGetBitmapFromMemory(Toolbar_Options2_png);
-		m_Bitmaps[Toolbar_PluginGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx2_png);
-		m_Bitmaps[Toolbar_PluginDSP]	= wxGetBitmapFromMemory(Toolbar_DSP2_png);
-		m_Bitmaps[Toolbar_PluginPAD]	= wxGetBitmapFromMemory(Toolbar_Pad2_png);
+		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options2_png);
+		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx2_png);
+		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP2_png);
+		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad2_png);
 		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote2_png);
 		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen2_png);
 		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen2_png);
@@ -528,10 +528,10 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play3_png);
 		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop3_png);
 		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause3_png);
-		m_Bitmaps[Toolbar_PluginOptions]= wxGetBitmapFromMemory(Toolbar_Options3_png);
-		m_Bitmaps[Toolbar_PluginGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx3_png);
-		m_Bitmaps[Toolbar_PluginDSP]	= wxGetBitmapFromMemory(Toolbar_DSP3_png);
-		m_Bitmaps[Toolbar_PluginPAD]	= wxGetBitmapFromMemory(Toolbar_Pad3_png);
+		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options3_png);
+		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx3_png);
+		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP3_png);
+		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad3_png);
 		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote3_png);
 		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen3_png);
 		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen3_png);
@@ -1088,13 +1088,13 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 		m_GameListCtrl->Update();
 }
 
-void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
 {
 	if (g_video_backend)
 		g_video_backend->ShowConfig(this);
 }
 
-void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
 	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
@@ -1102,7 +1102,7 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 		m_GameListCtrl->Update();
 }
 
-void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 {
 	InputPlugin *const pad_plugin = Pad::GetPlugin();
 	bool was_init = false;
@@ -1117,16 +1117,16 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 		Pad::Initialize(GetHandle());
 #endif
 	}
-	InputConfigDialog *const m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
-	m_ConfigFrame->ShowModal();
-	m_ConfigFrame->Destroy();
+	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
+	m_ConfigFrame.ShowModal();
+	m_ConfigFrame.Destroy();
 	if (!was_init)				// if game isn't running
 	{
 		Pad::Shutdown();
 	}
 }
 
-void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	InputPlugin *const wiimote_plugin = Wiimote::GetPlugin();
 	bool was_init = false;
@@ -1141,9 +1141,9 @@ void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 		Wiimote::Initialize(GetHandle());
 #endif
 	}
-	WiimoteConfigDiag *const m_ConfigFrame = new WiimoteConfigDiag(this, *wiimote_plugin);
-	m_ConfigFrame->ShowModal();
-	m_ConfigFrame->Destroy();
+	WiimoteConfigDiag m_ConfigFrame(this, *wiimote_plugin);
+	m_ConfigFrame.ShowModal();
+	m_ConfigFrame.Destroy();
 	if (!was_init)				// if game isn't running
 	{
 		Wiimote::Shutdown();

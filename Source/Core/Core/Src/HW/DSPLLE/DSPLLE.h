@@ -21,9 +21,9 @@
 #include "Thread.h"
 #include "SoundStream.h"
 #include "DSPLLEGlobals.h" // Local
-#include "../../PluginDSP.h"
+#include "../../DSPEmulator.h"
 
-class DSPLLE : public PluginDSP {
+class DSPLLE : public DSPEmulator {
 public:
 	DSPLLE();
 

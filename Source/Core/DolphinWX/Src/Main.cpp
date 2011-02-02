@@ -98,11 +98,11 @@ bool DolphinApp::OnInit()
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
-	bool selectVideoPlugin = false;
-	bool selectAudioPlugin = false;
+	bool selectVideoBackend = false;
+	bool selectAudioEmulation = false;
 
-	wxString videoPluginFilename;
-	wxString audioPluginFilename;
+	wxString videoBackendName;
+	wxString audioEmulationName;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
 	wxCmdLineEntryDesc cmdLineDesc[] =
@@ -130,13 +130,13 @@ bool DolphinApp::OnInit()
 			_("Exit Dolphin with emulator")
 		},
 		{
-			wxCMD_LINE_OPTION, wxS("V"), wxS("video_plugin"),
-			_("Specify a video plugin"),
+			wxCMD_LINE_OPTION, wxS("V"), wxS("video_backend"),
+			_("Specify a video backend"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, wxS("A"), wxS("audio_plugin"),
-			_("Specify an audio plugin"),
+			wxCMD_LINE_OPTION, wxS("A"), wxS("audio_emulation"),
+			_("Specify low level (LLE) or high level (HLE) audio emulation"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -155,10 +155,11 @@ bool DolphinApp::OnInit()
 	UseLogger = parser.Found(wxT("logger"));
 	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
 	BatchMode = parser.Found(wxT("batch"));
-	selectVideoPlugin = parser.Found(wxT("video_plugin"),
-		&videoPluginFilename);
-	selectAudioPlugin = parser.Found(wxT("audio_plugin"),
-		&audioPluginFilename);
+	selectVideoBackend = parser.Found(wxT("video_backend"),
+		&videoBackendName);
+	// TODO:  This currently has no effect.  Implement or delete.
+	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
+		&audioEmulationName);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
@@ -287,11 +288,11 @@ bool DolphinApp::OnInit()
 	VideoBackend::PopulateList();
 	WiimoteReal::LoadSettings();
 
-	if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin =
-			std::string(videoPluginFilename.mb_str());
+	if (selectVideoBackend && videoBackendName != wxEmptyString)
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
+			std::string(videoBackendName.mb_str());
 
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);

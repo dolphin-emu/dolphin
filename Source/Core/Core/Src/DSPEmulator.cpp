@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "PluginDSP.h"
+#include "DSPEmulator.h"
 
 #include "HW/DSPLLE/DSPLLE.h"
 #include "HW/DSPHLE/DSPHLE.h"
 
-PluginDSP *CreateDSPPlugin(bool HLE) 
+DSPEmulator *CreateDSPEmulator(bool HLE) 
 {
 	ac_Config.Load();
 

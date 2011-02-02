@@ -662,8 +662,12 @@ void CConfigMain::CreateGUIControls()
 	// backend
 	wxBoxSizer* svidbackend = new wxBoxSizer(wxHORIZONTAL);
 	svidbackend->Add(TEXT_BOX(DisplayPage, _("Video Backend:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-	GraphicSelection = new wxChoice(DisplayPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
+	GraphicSelection = new wxChoice(DisplayPage, ID_GRAPHIC_CB,
+			wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	svidbackend->Add(GraphicSelection, 0, wxALIGN_CENTER_VERTICAL, 5);
+	GraphicConfig = new wxButton(DisplayPage, ID_GRAPHIC_CONFIG, _("GFX Config"),
+			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+	svidbackend->Add(GraphicConfig, 0, wxALIGN_CENTER_VERTICAL, 5);
 
 	wxBoxSizer* sDisplaySize = new wxBoxSizer(wxHORIZONTAL);
 	sDisplaySize->Add(TEXT_BOX(DisplayPage, _("Window Size:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
@@ -673,7 +677,7 @@ void CConfigMain::CreateGUIControls()
 	sDisplaySize->Add(WindowAutoSize, 0, wxALIGN_CENTER_VERTICAL, 5);
 
 	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Emulator Display Settings"));
-	sbDisplay->Add(svidbackend, 0, wxLEFT, 5);
+	sbDisplay->Add(svidbackend, 0, wxEXPAND | wxLEFT, 5);
 	sbDisplay->Add(sDisplayRes, 0, wxALL, 5);
 	sbDisplay->Add(sDisplaySize, 0, wxALL, 5);
 	sbDisplay->Add(Fullscreen, 0, wxEXPAND | wxALL, 5);
@@ -1339,11 +1343,11 @@ void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 }
 
 
-// Plugin settings
+// GFX backend selection
 void CConfigMain::OnSelectionChanged(wxCommandEvent& ev)
 {
 	g_video_backend = g_available_video_backends[ev.GetInt()];
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin = g_video_backend->GetName();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
 }
 
 void CConfigMain::OnConfig(wxCommandEvent&)

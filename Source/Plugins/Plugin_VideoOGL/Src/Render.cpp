@@ -503,6 +503,7 @@ Renderer::~Renderer()
 	if(s_bAVIDumping)
 	{
 		AVIDump::Stop();
+		s_bLastFrameDumped = false;
 		s_bAVIDumping = false;
 	}
 #else

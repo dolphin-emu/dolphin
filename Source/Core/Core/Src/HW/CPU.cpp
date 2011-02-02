@@ -18,7 +18,7 @@
 #include "Common.h"
 #include "Thread.h"
 
-#include "../PluginDSP.h"
+#include "../DSPEmulator.h"
 #include "../PowerPC/PowerPC.h"
 #include "../Host.h"
 #include "../Core.h"
@@ -118,14 +118,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 	{
 		PowerPC::Pause();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
-		DSP::GetPlugin()->DSP_ClearAudioBuffer(true);
+		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(true);
 	}
 	else
 	{
 		PowerPC::Start();
 		m_StepEvent.Set();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
-		DSP::GetPlugin()->DSP_ClearAudioBuffer(false);
+		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(false);
 	}
 }
 

@@ -40,7 +40,7 @@ void CUCode_CARD::Update(int cycles)
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())
 	{
-		DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 }
 

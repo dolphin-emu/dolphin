@@ -1974,11 +1974,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PluginDSP.cpp"
+			RelativePath=".\Src\DSPEmulator.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PluginDSP.h"
+			RelativePath=".\Src\DSPEmulator.h"
 			>
 		</File>
 		<File

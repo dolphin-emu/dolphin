@@ -297,7 +297,7 @@ int main(int argc, char* argv[])
 	SConfig::Init();
 	VideoBackend::PopulateList();
 	VideoBackend::ActivateBackend(SConfig::GetInstance().
-		m_LocalCoreStartupParameter.m_strVideoPlugin);
+		m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
 
 	// No use running the loop when booting fails

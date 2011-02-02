@@ -128,9 +128,9 @@ struct SCoreStartupParameter
 	};
 	EBootType m_BootType;
 
-	// files
-	std::string m_strVideoPlugin;
+	std::string m_strVideoBackend;
 
+	// files
 	std::string m_strFilename;
 	std::string m_strBootROM;
 	std::string m_strSRAM;

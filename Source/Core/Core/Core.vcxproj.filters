@@ -10,7 +10,7 @@
     <ClCompile Include="Src\MemTools.cpp" />
     <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\PluginDSP.cpp" />
+    <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\State.cpp" />
     <ClCompile Include="Src\stdafx.cpp" />
     <ClCompile Include="Src\Tracer.cpp" />
@@ -539,7 +539,7 @@
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
-    <ClInclude Include="Src\PluginDSP.h" />
+    <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\State.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\Tracer.h" />

@@ -34,10 +34,6 @@ struct SConfig : NonCopyable
 	bool m_WiiAutoReconnect[4];
 	bool m_WiiAutoUnpair;
 
-	// hard coded default plugins ...
-	std::string m_DefaultGFXPlugin;
-	std::string m_DefaultDSPPlugin;
-
 	// name of the last used filename
 	std::string m_LastFilename;
 
