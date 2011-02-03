@@ -26,6 +26,7 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "ISOProperties.h"
+#include "PHackSettings.h"
 #include "PatchAddEdit.h"
 #include "ARCodeAddEdit.h"
 #include "GeckoCodeDiag.h"
@@ -49,6 +50,7 @@ DiscIO::IFileSystem *pFileSystem = NULL;
 
 std::vector<PatchEngine::Patch> onFrame;
 std::vector<ActionReplay::ARCode> arCodes;
+PHackData PHack_Data;
 
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
@@ -57,7 +59,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
-	EVT_CHOICE(ID_PHACK_CHOICE, CISOProperties::SetRefresh)
+	EVT_BUTTON(ID_PHSETTINGS, CISOProperties::PHackButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -116,14 +118,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	CreateGUIControls(DiscIO::IsVolumeWadFile(OpenISO));
 
-	std::string _iniFilename;
-	
-	_iniFilename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "PH_PRESETS.ini";
-	PHPresetsIni.Load(_iniFilename.c_str());
-	//PHPresetsIni.SortSections();
-	//PHPresetsIni.Save(_iniFilename.c_str());
+	std::string _iniFilename = OpenISO->GetUniqueID();
 
-	_iniFilename = OpenISO->GetUniqueID();
 	if (!_iniFilename.length())
 	{
 		char tmp[17];
@@ -342,27 +338,14 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	DListCache = new wxCheckBox(m_GameConfig, ID_DLISTCACHE, _("DList Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	
 	// Hack
-	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Enable"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
-	PHackEnable->SetToolTip(_("Customize some Orthographic Projection parameters."));
-	PHackChoiceText = new wxStaticText(m_GameConfig, ID_PHACK_CHOICE_TEXT, _("Presets: "), wxDefaultPosition, wxDefaultSize);
-	PHackChoice = new wxChoice(m_GameConfig, ID_PHACK_CHOICE, wxDefaultPosition, wxDefaultSize, wxArrayString(0, wxString("", *wxConvCurrent)), 0, wxDefaultValidator);
-	PHackChoice->SetToolTip(_("Load preset values from hack patterns available."));
-	szrPHackSettings = new wxFlexGridSizer(3,5,5);
-	PHackZNearText = new wxStaticText(m_GameConfig, ID_PHACK_ZNEAR_TEXT, _("zNear Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZNear = new wxTextCtrl(m_GameConfig, ID_PHACK_ZNEAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	PHackZNear->SetToolTip(_("Adds the specified value to zNear Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZNear = new wxCheckBox(m_GameConfig, ID_PHACK_SZNEAR, _("(-)+zNear"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
-	PHackSZNear->SetToolTip(_("Changes sign to zNear Parameter (after correction)"));
-	PHackZFarText = new wxStaticText(m_GameConfig, ID_PHACK_ZFAR_TEXT, _("zFar Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZFar = new wxTextCtrl(m_GameConfig, ID_PHACK_ZFAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	PHackZFar->SetToolTip(_("Adds the specified value to zFar Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZFar = new wxCheckBox(m_GameConfig, ID_PHACK_SZFAR, _("(-)+zFar"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
-	PHackSZFar->SetToolTip(_("Changes sign to zFar Parameter (after correction)"));
-	PHackExP = new wxCheckBox(m_GameConfig, ID_PHACK_EXP, _("Extra Parameter"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
-	PHackExP->SetToolTip(_("Extra Parameter useful in '\'Metroid: Other M'\' only."));
+	szrPHackSettings = new wxFlexGridSizer(0);
+	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Custom Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackEnable->SetToolTip(_("Enables Custom Projection Hack"));
+	PHSettings = new wxButton(m_GameConfig, ID_PHSETTINGS, _("Settings..."), wxDefaultPosition, wxDefaultSize, 0);
+	PHSettings->SetToolTip(_("Customize some Orthographic Projection parameters."));
 
-	// Emulation State
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_EmuState.Add(_("Not Set"));
@@ -414,23 +397,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DListCache, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->AddSpacer(5);
-
-	sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Custom Projection Hack"));
-	sbPHackSettings->Add(PHackEnable, 0, wxEXPAND|wxLEFT, 5);
-	sbPHackSettings->AddSpacer(15);
-	sbPHackSettings->Add(PHackChoiceText, 0, wxEXPAND|wxLEFT, 5);
-	sbPHackSettings->Add(PHackChoice, 0, wxEXPAND|wxLEFT, 5);
-	sbPHackSettings->Add(szrPHackSettings, 0, wxEXPAND|wxLEFT|wxTOP, 5);
-	sbVideoOverrides->Add(sbPHackSettings, 0, wxEXPAND);
-
-	szrPHackSettings->Add(PHackZNearText, 0, wxALIGN_CENTER_VERTICAL);
-	szrPHackSettings->Add(PHackZNear, 1, wxEXPAND);
-	szrPHackSettings->Add(PHackSZNear, 0, wxEXPAND|wxLEFT, 5);
-	szrPHackSettings->Add(PHackZFarText, 0, wxALIGN_CENTER_VERTICAL);
-	szrPHackSettings->Add(PHackZFar, 1, wxEXPAND);
-	szrPHackSettings->Add(PHackSZFar, 0, wxEXPAND|wxLEFT, 5);
-	szrPHackSettings->Add(PHackExP, 0, wxEXPAND|wxTOP, 5);
+	szrPHackSettings->Add(PHackEnable, 0, wxEXPAND|wxLEFT, 5);
+	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(szrPHackSettings, 0, wxEXPAND);
 
 	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
@@ -598,15 +567,7 @@ void CISOProperties::OnCheckBoxClicked(wxCommandEvent& event)
 	
 	if (event.GetId() == ID_PHACKENABLE)
 	{
-		PHackSZNear->Enable(choice);
-		PHackSZFar->Enable(choice);
-		PHackZNearText->Enable(choice);
-		PHackZNear->Enable(choice);
-		PHackZFarText->Enable(choice);
-		PHackZFar->Enable(choice);
-		PHackExP->Enable(choice);
-		PHackChoiceText->Enable(choice);
-		PHackChoice->Enable(choice);
+		PHSettings->Enable(choice);
 	}
 }
 
@@ -870,33 +831,6 @@ void CISOProperties::SetRefresh(wxCommandEvent& event)
 
 	if (event.GetId() == ID_EMUSTATE)
 		EmuIssues->Enable(event.GetSelection() != 0);
-	else if (event.GetId() == ID_PHACK_CHOICE)
-	{
-		bool bTemp;
-		std::string sTemp;
-		char sIndex[15];
-		int index = event.GetSelection();
-		bRefreshList = false;
-		
-		if (index > 1)
-		{
-			index -= 2;
-			sprintf(sIndex,"%d", index);
-
-			PHPresetsIni.Get(sIndex, "PH_SZNear", &bTemp);
-			PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
-			PHPresetsIni.Get(sIndex, "PH_SZFar", &bTemp);
-			PHackSZFar->Set3StateValue((wxCheckBoxState)bTemp);
-			PHPresetsIni.Get(sIndex, "PH_ExtraParam", &bTemp);
-			PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
-			PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
-			PHackZNear->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-			PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
-			PHackZFar->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-			
-			bRefreshList = true;
-		}
-	}
 }
 
 void CISOProperties::LoadGameConfig()
@@ -904,7 +838,6 @@ void CISOProperties::LoadGameConfig()
 	bool bTemp;
 	int iTemp;
 	std::string sTemp;
-	char sIndex[15];
 
 	if (GameIni.Get("Core", "CPUThread", &bTemp))
 		CPUThread->Set3StateValue((wxCheckBoxState)bTemp);
@@ -1008,53 +941,14 @@ void CISOProperties::LoadGameConfig()
 
 	GameIni.Get("Video", "ProjectionHack", &bTemp);
 	PHackEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	PHackSZNear->Enable(bTemp);
-	PHackSZFar->Enable(bTemp);
-	PHackZNearText->Enable(bTemp);
-	PHackZNear->Enable(bTemp);
-	PHackZFarText->Enable(bTemp);
-	PHackZFar->Enable(bTemp);
-	PHackExP->Enable(bTemp);
-	PHackChoiceText->Enable(bTemp);
-	PHackChoice->Enable(bTemp);
+	PHSettings->Enable(bTemp);
+	
+	GameIni.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
+	GameIni.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
+	GameIni.Get("Video", "PH_ExtraParam", &PHack_Data.PHackExP);
 
-	PHackChoice->Clear();
-	PHackChoice->Append(_("Custom"));
-	for (int i=0 ;  ; i++)
-	{
-		sprintf(sIndex,"%d",i);
-		if (!PHPresetsIni.Exists(sIndex, "Title"))
-			break;
-		PHPresetsIni.Get(sIndex, "Title", &sTemp);
-		if (sTemp.empty())
-			sTemp = wxString(_("(UNKNOWN)")).char_str();
-		if (i == 0)
-			PHackChoice->Append(wxString("-----------", *wxConvCurrent));
-		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
-	}
-	PHackChoice->Select(0);
-
-	GameIni.Get("Video", "PH_SZNear", &bTemp);
-	PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
-	GameIni.Get("Video", "PH_SZFar", &bTemp);
-	PHackSZFar->Set3StateValue((wxCheckBoxState)bTemp);
-	GameIni.Get("Video", "PH_ExtraParam", &bTemp);
-	PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
-
-	GameIni.Get("Video", "PH_ZNear", &sTemp);
-	if (!sTemp.empty())
-	{
-		PHackZNear->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-		bRefreshList = true;
-	}
-
-	GameIni.Get("Video", "PH_ZFar", &sTemp);
-	if (!sTemp.empty())
-	{
-		PHackZFar->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-		bRefreshList = true;
-	}
-
+	GameIni.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
+	GameIni.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
 
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
@@ -1175,12 +1069,13 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Video", "DlistCachingEnable", DListCache->Get3StateValue());
 
 	GameIni.Set("Video", "ProjectionHack", PHackEnable->Get3StateValue());
-	GameIni.Set("Video", "PH_SZNear", PHackSZNear->Get3StateValue());
-	GameIni.Set("Video", "PH_SZFar", PHackSZFar->Get3StateValue());
-	GameIni.Set("Video", "PH_ExtraParam", PHackExP->Get3StateValue());
 
-	GameIni.Set("Video", "PH_ZNear", (const char*)PHackZNear->GetValue().mb_str(*wxConvCurrent));
-	GameIni.Set("Video", "PH_ZFar", (const char*)PHackZFar->GetValue().mb_str(*wxConvCurrent));
+	GameIni.Set("Video", "PH_SZNear", PHack_Data.PHackSZNear ? 1 : 0);
+	GameIni.Set("Video", "PH_SZFar", PHack_Data.PHackSZFar ? 1 : 0);
+	GameIni.Set("Video", "PH_ExtraParam", PHack_Data.PHackExP ? 1 : 0);
+
+	GameIni.Set("Video", "PH_ZNear", PHack_Data.PHZNear);
+	GameIni.Set("Video", "PH_ZFar", PHack_Data.PHZFar);
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
@@ -1287,6 +1182,17 @@ void CISOProperties::PatchList_Save()
 	}
 	GameIni.SetLines("OnFrame", lines);
 	lines.clear();
+}
+
+void CISOProperties::PHackButtonClicked(wxCommandEvent& event)
+{
+	if (event.GetId() == ID_PHSETTINGS)
+	{
+		::PHack_Data = PHack_Data;
+		CPHackSettings dlg(this, 1);
+		if (dlg.ShowModal() == wxID_OK)
+			PHack_Data = ::PHack_Data;
+	}
 }
 
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)

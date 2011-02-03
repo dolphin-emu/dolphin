@@ -925,6 +925,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PHackSettings.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PHackSettings.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\UDPConfigDiag.cpp"
 				>
 			</File>
