@@ -271,12 +271,6 @@ include_directories(Source/Core/VideoUICommon/Src)
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
-# TODO: Try using the native lib first
-# To use the native lib for Lua the dolphin code will need to be changed.
-# Currently the file lstate.h is improperly included.
-add_subdirectory(Externals/Lua)
-include_directories(Externals/Lua)
-
 check_lib(LZO lzo2 lzo/lzo1x.h QUIET)
 if(LZO_FOUND)
 	message("Using shared lzo")

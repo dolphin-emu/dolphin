@@ -3,7 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcproj", "{F0B874CB-4476-4199-9315-8343D05AE684}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C7E5D50A-2916-464B-86A7-E10B3CC88ADA} = {C7E5D50A-2916-464B-86A7-E10B3CC88ADA}
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158} = {DA4CA030-A741-4DDC-9DA8-B2F351F0F158}
 		{33546D62-7F34-4EA6-A88E-D538B36E16BF} = {33546D62-7F34-4EA6-A88E-D538B36E16BF}
 		{FBAFB369-07EB-4460-9CAD-08BE5789DAB6} = {FBAFB369-07EB-4460-9CAD-08BE5789DAB6}
 		{3E03C179-8251-46E4-81F4-466F114BAC63} = {3E03C179-8251-46E4-81F4-466F114BAC63}
@@ -153,11 +152,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DebuggerUICommon", "Core\De
 	ProjectSection(ProjectDependencies) = postProject
 		{B807E8DB-4241-4754-BC2A-2F435BCA881A} = {B807E8DB-4241-4754-BC2A-2F435BCA881A}
 		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcproj", "{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B807E8DB-4241-4754-BC2A-2F435BCA881A} = {B807E8DB-4241-4754-BC2A-2F435BCA881A}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAdv28", "..\Externals\wxWidgets\build\msw\wx_adv.vcproj", "{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}"
@@ -448,18 +442,6 @@ Global
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|Win32.Build.0 = Release|Win32
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|x64.ActiveCfg = Release|x64
 		{F81AE75C-3D17-4D8C-A201-82FA5351C123}.Release|x64.Build.0 = Release|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|Win32.Build.0 = Debug|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.ActiveCfg = Debug|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Debug|x64.Build.0 = Debug|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.ActiveCfg = Release|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|Win32.Build.0 = Release|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|x64.ActiveCfg = Release|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.DebugFast|x64.Build.0 = Release|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.ActiveCfg = Release|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|Win32.Build.0 = Release|Win32
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|x64.ActiveCfg = Release|x64
-		{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}.Release|x64.Build.0 = Release|x64
 		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}.Debug|Win32.Build.0 = Debug|Win32
 		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}.Debug|x64.ActiveCfg = Debug|x64
@@ -585,9 +567,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		AMDCaPersistentConfig = Release|x64
-		AMDCaPersistentStartup = Dolphin
 		AMDCaProjectFile = G:\Dolphin\Source\CodeAnalyst\Dolphin.caw
+		AMDCaPersistentStartup = Dolphin
+		AMDCaPersistentConfig = Release|x64
 	EndGlobalSection
 	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
 		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}

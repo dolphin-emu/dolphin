@@ -148,9 +148,9 @@ void CPHackSettings::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CPHackSettings::SavePHackData(wxCommandEvent& WXUNUSED (event))
 {
-	PHack_Data.PHackSZNear = (bool)PHackSZNear->Get3StateValue();
-	PHack_Data.PHackSZFar = (bool)PHackSZFar->Get3StateValue();
-	PHack_Data.PHackExP = (bool)PHackExP->Get3StateValue();
+	PHack_Data.PHackSZNear = PHackSZNear->GetValue();
+	PHack_Data.PHackSZFar = PHackSZFar->GetValue();
+	PHack_Data.PHackExP = PHackExP->GetValue();
 
 	PHack_Data.PHZNear = PHackZNear->GetValue().char_str();
 	PHack_Data.PHZFar = PHackZFar->GetValue().char_str();

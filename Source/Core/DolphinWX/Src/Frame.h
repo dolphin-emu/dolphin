@@ -321,7 +321,6 @@ class CFrame : public CRenderFrame
 
 		void OnMemcard(wxCommandEvent& event); // Misc
 		void OnImportSave(wxCommandEvent& event);
-		void OnOpenLuaWindow(wxCommandEvent& event);
 
 		void OnNetPlay(wxCommandEvent& event);
 

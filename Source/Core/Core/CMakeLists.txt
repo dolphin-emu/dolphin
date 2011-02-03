@@ -9,7 +9,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/DSPEmulator.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
-			Src/LuaInterface.cpp
 			Src/MemTools.cpp
 			Src/OnFrame.cpp
 			Src/PatchEngine.cpp

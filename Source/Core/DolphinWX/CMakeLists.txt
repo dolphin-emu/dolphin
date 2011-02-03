@@ -32,7 +32,6 @@ if(wxWidgets_FOUND)
 				Src/ISOFile.cpp
 				Src/ISOProperties.cpp
 				Src/LogWindow.cpp
-				Src/LuaWindow.cpp
 				Src/Main.cpp
 				Src/MemcardManager.cpp
 				Src/MemoryCards/GCMemcard.cpp

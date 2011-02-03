@@ -291,9 +291,6 @@
     <ClCompile Include="Src\HW\VideoInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LuaInterface.cpp">
-      <Filter>Lua Interface</Filter>
-    </ClCompile>
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp">
       <Filter>PowerPC\Interpreter</Filter>
     </ClCompile>
@@ -796,9 +793,6 @@
     <ClInclude Include="Src\HW\VideoInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LuaInterface.h">
-      <Filter>Lua Interface</Filter>
-    </ClInclude>
     <ClInclude Include="Src\PowerPC\Interpreter\Interpreter_Tables.h">
       <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
@@ -1015,9 +1009,6 @@
     </Filter>
     <Filter Include="DSPCore\Interpreter">
       <UniqueIdentifier>{45a9bf0a-e022-4ace-a99f-df675a0b251d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Lua Interface">
-      <UniqueIdentifier>{77d38b80-6b23-4159-86cf-047a597608a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="PowerPC">
       <UniqueIdentifier>{1905e5c1-a593-454d-b0a0-68bf6cdbec12}</UniqueIdentifier>

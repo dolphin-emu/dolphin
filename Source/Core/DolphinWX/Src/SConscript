@@ -22,7 +22,6 @@ else:
 		'Frame.cpp',
 		'FrameAui.cpp',
 		'FrameTools.cpp',
-		'LuaWindow.cpp',
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',
 		'HotkeyDlg.cpp',
@@ -54,7 +53,7 @@ libs += ['core', 'common', 'discio', 'plugin_videoogl', 'plugin_videosoftware']
 if env['HAVE_WX']:
 	libs += ['videouicommon']
 libs += ['audiocommon', 'inputcommon', 'videocommon']
-libs += ['GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z']
+libs += ['GLEW', 'SOIL', 'bdisasm', 'lzo2', 'sfml-network', 'z']
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]

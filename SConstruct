@@ -326,7 +326,6 @@ env['LIBPATH'].insert(0, env['local_libs'])
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/CLRun',
-    'Externals/Lua',
     'Externals/GLew',
     'Externals/LZO',
     'Externals/SDL',

@@ -66,9 +66,6 @@
     <ClCompile Include="Src\LogWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LuaWindow.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Src\MemcardManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -86,6 +83,9 @@
     </ClCompile>
     <ClCompile Include="Src\ISOFile.cpp">
       <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PHackSettings.cpp">
+      <Filter>GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -141,9 +141,6 @@
     <ClInclude Include="Src\LogWindow.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LuaWindow.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Src\MemcardManager.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -164,6 +161,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PHackSettings.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

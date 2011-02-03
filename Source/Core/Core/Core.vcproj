@@ -1698,18 +1698,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Lua Interface"
-			>
-			<File
-				RelativePath=".\Src\LuaInterface.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\LuaInterface.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="GeckoCode"
 			>
 			<File
@@ -1946,6 +1934,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DSPEmulator.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\DSPEmulator.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Host.h"
 			>
 		</File>
@@ -1971,14 +1967,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\PatchEngine.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DSPEmulator.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DSPEmulator.h"
 			>
 		</File>
 		<File

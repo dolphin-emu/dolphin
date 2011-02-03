@@ -16,7 +16,6 @@ files = [
 	"MemTools.cpp",
 	"PatchEngine.cpp",
 	"DSPEmulator.cpp",
-	"LuaInterface.cpp",
 	"State.cpp",
 	"Tracer.cpp",
 	"VolumeHandler.cpp",

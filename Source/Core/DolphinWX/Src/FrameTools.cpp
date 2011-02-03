@@ -46,7 +46,6 @@ Core::GetWindowHandle().
 #include "ConfigMain.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
-#include "LuaWindow.h"
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
@@ -197,7 +196,6 @@ void CFrame::CreateMenu()
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
-	toolsMenu->Append(IDM_LUA, _("New &Lua Console"));
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
 	toolsMenu->Append(IDM_IMPORTSAVE, _("Wii Save Import"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
@@ -1219,11 +1217,6 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.mb_str());
 		delete saveFile;
 	}
-}
-
-void CFrame::OnOpenLuaWindow(wxCommandEvent& WXUNUSED (event))
-{
-	new wxLuaWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
 
 void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))

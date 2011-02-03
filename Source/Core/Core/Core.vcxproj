@@ -389,7 +389,6 @@
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
-    <ClCompile Include="Src\LuaInterface.cpp" />
     <ClCompile Include="Src\MemTools.cpp" />
     <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
@@ -580,7 +579,6 @@
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h" />
-    <ClInclude Include="Src\LuaInterface.h" />
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
