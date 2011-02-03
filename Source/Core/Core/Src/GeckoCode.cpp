@@ -136,6 +136,9 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 		// code failed
 		if (false == result)
 		{
+			// disable code to stop annoying error messages
+			gecko_code.enabled = false;
+
 			PanicAlertT("GeckoCode failed to run (CT%i CST%i) (%s)"
 				"\n(either a bad code or the code type is not yet supported.)"
 				, code.type, code.subtype, gecko_code.name.c_str());
@@ -158,7 +161,8 @@ bool RunActiveCodes()
 		gcodes_end = active_codes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
 	{
-		RunGeckoCode(*gcodes_iter);
+		if (gcodes_iter->enabled)
+			RunGeckoCode(*gcodes_iter);
 		// we don't need to stop all codes if one fails, maybe
 		//if (false == RunGeckoCode(*gcodes_iter))
 			//return false;
