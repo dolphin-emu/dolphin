@@ -21,7 +21,7 @@
 #include <map>
 
 #include "BPMemLoader.h"
-#include "GLUtil.h"
+#include "SWGLUtil.h"
 
 struct OutputVertexData;
 

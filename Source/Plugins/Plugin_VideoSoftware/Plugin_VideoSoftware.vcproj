@@ -308,14 +308,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\RasterFont.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\RasterFont.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Core\VideoCommon\Src\TextureDecoder.cpp"
 				>
 			</File>
@@ -369,11 +361,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\CommandProcessor.cpp"
+			RelativePath=".\Src\SWCommandProcessor.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\CommandProcessor.h"
+			RelativePath=".\Src\SWCommandProcessor.h"
 			>
 		</File>
 		<File
@@ -409,11 +401,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\GLUtil.cpp"
+			RelativePath=".\Src\SWGLUtil.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\GLUtil.h"
+			RelativePath=".\Src\SWGLUtil.h"
 			>
 		</File>
 		<File
@@ -445,11 +437,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PixelEngine.cpp"
+			RelativePath=".\Src\SWPixelEngine.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PixelEngine.h"
+			RelativePath=".\Src\SWPixelEngine.h"
 			>
 		</File>
 		<File
@@ -461,11 +453,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Renderer.cpp"
+			RelativePath=".\Src\SWRenderer.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Renderer.h"
+			RelativePath=".\Src\SWRenderer.h"
 			>
 		</File>
 		<File
@@ -477,11 +469,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Statistics.cpp"
+			RelativePath=".\Src\SWStatistics.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Statistics.h"
+			RelativePath=".\Src\SWStatistics.h"
 			>
 		</File>
 		<File
@@ -569,11 +561,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VertexLoader.cpp"
+			RelativePath=".\Src\SWVertexLoader.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\VertexLoader.h"
+			RelativePath=".\Src\SWVertexLoader.h"
 			>
 		</File>
 		<File

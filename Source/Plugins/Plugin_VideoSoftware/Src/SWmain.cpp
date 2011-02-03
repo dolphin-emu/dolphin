@@ -22,16 +22,15 @@
 #include "VideoConfigDialog.h"
 #endif // HAVE_WX
 
-#include "CommandProcessor.h"
+#include "SWCommandProcessor.h"
 #include "OpcodeDecoder.h"
 #include "SWVideoConfig.h"
-#include "PixelEngine.h"
-#include "CommandProcessor.h"
+#include "SWPixelEngine.h"
 #include "BPMemLoader.h"
 #include "XFMemLoader.h"
 #include "Clipper.h"
 #include "Rasterizer.h"
-#include "Renderer.h"
+#include "SWRenderer.h"
 #include "../../../Core/VideoCommon/Src/LookUpTables.h"
 #include "HwRasterizer.h"
 #include "LogManager.h"
@@ -68,13 +67,13 @@ void VideoBackend::Initialize()
 
     InitBPMemory();
     InitXFMemory();
-    CommandProcessor::Init();
-    PixelEngine::Init();
+    SWCommandProcessor::Init();
+    SWPixelEngine::Init();
     OpcodeDecoder::Init();
     Clipper::Init();
     Rasterizer::Init();
     HwRasterizer::Init();
-    Renderer::Init();
+    SWRenderer::Init();
     DebugUtil::Init();
 }
 
@@ -95,14 +94,14 @@ void VideoBackend::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoBackend::Shutdown()
 {
-	Renderer::Shutdown();
+	SWRenderer::Shutdown();
 	OpenGL_Shutdown();
 }
 
 // This is called after Video_Initialize() from the Core
 void VideoBackend::Video_Prepare()
 {    
-    Renderer::Prepare();
+    SWRenderer::Prepare();
 
     INFO_LOG(VIDEO, "Video plugin initialized.");
 }
@@ -169,6 +168,10 @@ void VideoBackend::Video_AddMessage(const char* pstr, u32 milliseconds)
 {	
 }
 
+void VideoBackend::Video_ClearMessages()
+{
+}
+
 void VideoBackend::Video_SetRendering(bool bEnabled)
 {
     Fifo_SetRendering(bEnabled);
@@ -176,7 +179,6 @@ void VideoBackend::Video_SetRendering(bool bEnabled)
 
 void VideoBackend::Video_WaitForFrameFinish(void)
 {
-
 }
 
 bool VideoBackend::Video_IsFifoBusy(void)
@@ -186,7 +188,15 @@ bool VideoBackend::Video_IsFifoBusy(void)
 
 void VideoBackend::Video_AbortFrame(void)
 {
+}
 
+void VideoBackend::UpdateFPSDisplay(const char*)
+{
+}
+
+unsigned int VideoBackend::PeekMessages()
+{
+	return 0;
 }
 
 }

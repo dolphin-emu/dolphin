@@ -124,12 +124,15 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CC'] = '/Developer/usr/bin/llvm-gcc'
     env['CXX'] = '/Developer/usr/bin/llvm-g++'
+    #env['CC'] = 'clang'
+    #env['CXX'] = 'clang++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['LIBPATH'] += ['/usr/lib'] # XXX clang
     env['LINKFLAGS'] += ccld
-    env['LINKFLAGS'] += ['-Wl,-dead_strip']
+    env['LINKFLAGS'] += ['-Wl,-dead_strip', '-Wl,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
     env['LINKFLAGS'] += ['-Wl,-search_paths_first']
 
@@ -149,7 +152,6 @@ if sys.platform == 'darwin':
         wxconfig.ParseWXConfig(wxenv)
         env['CPPDEFINES'] += ['__WXOSX_COCOA__']
         env['CPPPATH'] += wxenv['CPPPATH']
-        #env['LIBPATH'] += wxenv['LIBPATH']
         env['wxconfiglibs'] = wxenv['LIBS']
 
     env['CPPPATH'] += ['#Externals']

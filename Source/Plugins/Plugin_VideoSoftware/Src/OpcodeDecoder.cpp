@@ -19,15 +19,15 @@
 
 #include "../../../Core/VideoCommon/Src/DataReader.h"
 
-#include "main.h"
 #include "OpcodeDecoder.h"
 #include "BPMemLoader.h"
 #include "CPMemLoader.h"
 #include "XFMemLoader.h"
-#include "VertexLoader.h"
-#include "Statistics.h"
+#include "SWVertexLoader.h"
+#include "SWStatistics.h"
 #include "DebugUtil.h"
-#include "CommandProcessor.h"
+#include "SWCommandProcessor.h"
+#include "CPMemLoader.h"
 #include "SWVideoConfig.h"
 #include "HW/Memmap.h"
 
@@ -38,7 +38,7 @@ u32 minCommandSize;
 u16 streamSize;
 u16 streamAddress;
 bool readOpcode;
-VertexLoader vertexLoader;
+SWVertexLoader vertexLoader;
 bool inObjectStream;
 u8 lastPrimCmd;
 
@@ -51,8 +51,8 @@ void DecodePrimitiveStream(u32 iBufferSize)
     u32 vertexSize = vertexLoader.GetVertexSize();
 
 	bool skipPrimitives = g_bSkipCurrentFrame ||
-		 stats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawStart ||
-		 stats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawEnd;
+		 swstats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawStart ||
+		 swstats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawEnd;
 
     if (skipPrimitives)
     {
@@ -87,7 +87,7 @@ void ReadXFData(u32 iBufferSize)
     u32 pData[16];
     for (int i = 0; i < streamSize; i++)
         pData[i] = DataReadU32();
-    LoadXFReg(streamSize, streamAddress, pData);
+    SWLoadXFReg(streamSize, streamAddress, pData);
 
     // return to normal command processing
     ResetDecoding();
@@ -149,7 +149,7 @@ void DecodeStandard(u32 bufferSize)
         {
             u32 SubCmd = DataReadU8();
             u32 Value = DataReadU32();
-            LoadCPReg(SubCmd, Value);
+            SWLoadCPReg(SubCmd, Value);
         }
         break;
 
@@ -165,16 +165,16 @@ void DecodeStandard(u32 bufferSize)
         break;
 
     case GX_LOAD_INDX_A: //used for position matrices
-        LoadIndexedXF(DataReadU32(), 0xC);
+        SWLoadIndexedXF(DataReadU32(), 0xC);
         break;
     case GX_LOAD_INDX_B: //used for normal matrices
-        LoadIndexedXF(DataReadU32(), 0xD);
+        SWLoadIndexedXF(DataReadU32(), 0xD);
         break;
     case GX_LOAD_INDX_C: //used for postmatrices
-        LoadIndexedXF(DataReadU32(), 0xE);
+        SWLoadIndexedXF(DataReadU32(), 0xE);
         break;
     case GX_LOAD_INDX_D: //used for lights
-        LoadIndexedXF(DataReadU32(), 0xF);
+        SWLoadIndexedXF(DataReadU32(), 0xF);
         break;
 
     case GX_CMD_CALL_DL:
@@ -196,7 +196,7 @@ void DecodeStandard(u32 bufferSize)
     case GX_LOAD_BP_REG: //0x61
         {
 			u32 cmd = DataReadU32();
-            LoadBPReg(cmd);
+            SWLoadBPReg(cmd);
         }
         break;
 
@@ -214,7 +214,7 @@ void DecodeStandard(u32 bufferSize)
             minCommandSize = vertexLoader.GetVertexSize();
             readOpcode = false;
 
-            INCSTAT(stats.thisFrame.numPrimatives);
+            INCSTAT(swstats.thisFrame.numPrimatives);
             DEBUG_LOG(VIDEO, "Draw begin");
         }
         else

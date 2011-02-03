@@ -30,8 +30,7 @@ TMatrixIndexB MatrixIndexB;
 TVtxDesc g_VtxDesc;
 VAT g_VtxAttr[8];
 
-
-void LoadCPReg(u32 sub_cmd, u32 value)
+void SWLoadCPReg(u32 sub_cmd, u32 value)
 {
     switch (sub_cmd & 0xF0)
 	{
@@ -79,4 +78,3 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 		break;
 	}
 }
-

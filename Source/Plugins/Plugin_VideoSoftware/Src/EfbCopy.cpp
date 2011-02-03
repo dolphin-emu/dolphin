@@ -15,18 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "main.h"
 #include "BPMemLoader.h"
 #include "EfbCopy.h"
 #include "EfbInterface.h"
-#include "Renderer.h"
+#include "SWRenderer.h"
 #include "TextureEncoder.h"
-#include "Statistics.h"
+#include "SWStatistics.h"
 #include "SWVideoConfig.h"
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
-#include "CommandProcessor.h"
-#include "GLUtil.h"
+#include "SWCommandProcessor.h"
+#include "SWGLUtil.h"
 #include "HW/Memmap.h"
 #include "Core.h"
 
@@ -40,10 +39,10 @@ namespace EfbCopy
         {
             // copy to open gl for rendering
             EfbInterface::UpdateColorTexture();
-            Renderer::DrawTexture(EfbInterface::efbColorTexture, EFB_WIDTH, EFB_HEIGHT);
+            SWRenderer::DrawTexture(EfbInterface::efbColorTexture, EFB_WIDTH, EFB_HEIGHT);
         }
 
-        Renderer::SwapBuffer();
+        SWRenderer::SwapBuffer();
 
     }
 
@@ -88,7 +87,7 @@ namespace EfbCopy
                 CopyToXfb();
                 Core::Callback_VideoCopiedToXFB(false);
 
-                stats.frameCount++;
+                swstats.frameCount++;
             }
             else
             {

@@ -34,10 +34,10 @@
 #include <wx/spinctrl.h>
 
 template <typename W>
-class BoolSetting : public W
+class _BoolSetting : public W
 {
 public:
-	BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse = false, long style = 0);
+	_BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse = false, long style = 0);
 
 	void UpdateValue(wxCommandEvent& ev)
 	{
@@ -64,7 +64,7 @@ private:
 	T& m_setting;
 };
 
-typedef BoolSetting<wxCheckBox> SettingCheckBox;
+typedef _BoolSetting<wxCheckBox> SettingCheckBox;
 typedef IntegerSetting<u32> U32Setting;
 
 class VideoConfigDialog : public wxDialog

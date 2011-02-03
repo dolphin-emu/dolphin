@@ -19,7 +19,7 @@
 
 #include "CPMemLoader.h"
 #include "OpcodeDecoder.h"
-#include "Statistics.h"
+#include "SWStatistics.h"
 #include "Clipper.h"
 
 

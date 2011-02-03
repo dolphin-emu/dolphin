@@ -85,22 +85,22 @@ void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 
 void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 {
-    const float* mat = (const float*)&xfregs.posMatrices[src->posMtx * 4];    
+    const float* mat = (const float*)&swxfregs.posMatrices[src->posMtx * 4];    
     MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
-    if (xfregs.projection[6] == 0)
+    if (swxfregs.projection[6] == 0)
     {
-        MultipleVec3Perspective(dst->mvPosition, xfregs.projection, dst->projectedPosition);
+        MultipleVec3Perspective(dst->mvPosition, swxfregs.projection, dst->projectedPosition);
     }
     else
     {
-        MultipleVec3Ortho(dst->mvPosition, xfregs.projection, dst->projectedPosition);
+        MultipleVec3Ortho(dst->mvPosition, swxfregs.projection, dst->projectedPosition);
     }
 }
 
 void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst)
 {
-    const float* mat = (const float*)&xfregs.normalMatrices[(src->posMtx & 31)  * 3];
+    const float* mat = (const float*)&swxfregs.normalMatrices[(src->posMtx & 31)  * 3];
 
     if (nbt)
     {
@@ -139,7 +139,7 @@ inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
             break;
     }
 
-    const float *mat = (const float*)&xfregs.posMatrices[srcVertex->texMtx[coordNum] * 4];
+    const float *mat = (const float*)&swxfregs.posMatrices[srcVertex->texMtx[coordNum] * 4];
     Vec3 *dst = &dstVertex->texCoords[coordNum];
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
@@ -159,13 +159,13 @@ inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
 
-    if (xfregs.dualTexTrans)
+    if (swxfregs.dualTexTrans)
     {
         Vec3 tempCoord;
 
         // normalize
-        const PostMtxInfo &postInfo = xfregs.postMtxInfo[coordNum];
-		const float *postMat = (const float*)&xfregs.postMatrices[postInfo.index * 4];
+        const PostMtxInfo &postInfo = swxfregs.postMtxInfo[coordNum];
+		const float *postMat = (const float*)&swxfregs.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{
@@ -227,7 +227,7 @@ inline float SafeDivide(float n, float d)
 
 void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
-    const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*lightNum];
+    const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*lightNum];
 
     if (!(chan.attnfunc & 1)) {
         // atten disabled
@@ -304,7 +304,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
-    const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*lightNum];
+    const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*lightNum];
 
     if (!(chan.attnfunc & 1)) {
         // atten disabled
@@ -377,18 +377,18 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 {
-    for (u32 chan = 0; chan < xfregs.nNumChans; chan++)
+    for (u32 chan = 0; chan < swxfregs.nNumChans; chan++)
     {
         // abgr
         u8 matcolor[4];
         u8 chancolor[4];
 
         // color
-        LitChannel &colorchan = xfregs.color[chan];
+        LitChannel &colorchan = swxfregs.color[chan];
         if (colorchan.matsource)
             *(u32*)matcolor = *(u32*)src->color[chan];  // vertex
         else
-            *(u32*)matcolor = xfregs.matColor[chan];
+            *(u32*)matcolor = swxfregs.matColor[chan];
 
         if (colorchan.enablelighting)
         {
@@ -402,7 +402,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
             }
             else
             {
-                u8 *ambColor = (u8*)&xfregs.ambColor[chan];
+                u8 *ambColor = (u8*)&swxfregs.ambColor[chan];
                 lightCol.x = ambColor[1];
                 lightCol.y = ambColor[2];
                 lightCol.z = ambColor[3];
@@ -425,19 +425,19 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
         }
 
         // alpha
-        LitChannel &alphachan = xfregs.alpha[chan];
+        LitChannel &alphachan = swxfregs.alpha[chan];
         if (alphachan.matsource)
             matcolor[0] = src->color[chan][0];  // vertex
         else
-            matcolor[0] = xfregs.matColor[chan] & 0xff;
+            matcolor[0] = swxfregs.matColor[chan] & 0xff;
 
-        if (xfregs.alpha[chan].enablelighting)
+        if (swxfregs.alpha[chan].enablelighting)
         {
             float lightCol;
             if (alphachan.ambsource)
                 lightCol = src->color[chan][0]; // vertex
             else
-                lightCol = (float)(xfregs.ambColor[chan] & 0xff);
+                lightCol = (float)(swxfregs.ambColor[chan] & 0xff);
 
             u8 mask = alphachan.GetFullLightMask();
             for (int i = 0; i < 8; ++i) {
@@ -459,9 +459,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 
 void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase)
 {
-    for (u32 coordNum = 0; coordNum < xfregs.numTexGens; coordNum++)
+    for (u32 coordNum = 0; coordNum < swxfregs.numTexGens; coordNum++)
     {
-        const TexMtxInfo &texinfo = xfregs.texMtxInfo[coordNum];
+        const TexMtxInfo &texinfo = swxfregs.texMtxInfo[coordNum];
 
         switch (texinfo.texgentype)
         {
@@ -470,7 +470,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
             break;
         case XF_TEXGEN_EMBOSS_MAP:
             {
-                const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*texinfo.embosslightshift];
+                const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*texinfo.embosslightshift];
 
                 Vec3 ldir = (light->pos - dst->mvPosition).normalized();
                 float d1 = ldir * dst->normal[1];
@@ -500,7 +500,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
         }
     }
 
-	for (u32 coordNum = 0; coordNum < xfregs.numTexGens; coordNum++)
+	for (u32 coordNum = 0; coordNum < swxfregs.numTexGens; coordNum++)
     {
 		dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
 		dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);

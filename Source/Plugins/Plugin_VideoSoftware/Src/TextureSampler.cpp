@@ -16,7 +16,6 @@
 
 
 #include "TextureSampler.h"
-#include "main.h"
 
 #include "BPMemLoader.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"

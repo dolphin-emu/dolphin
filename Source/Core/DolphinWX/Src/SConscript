@@ -31,6 +31,7 @@ else:
 		'ISOFile.cpp',
 		'ISOProperties.cpp',
 		'PatchAddEdit.cpp',
+		'PHackSettings.cpp',
 		'CheatsWindow.cpp',
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
@@ -49,7 +50,7 @@ else:
 
 	libs += ['debwx', 'debugger_ui_util', 'dolphinwx']
 
-libs += ['core', 'common', 'discio', 'plugin_videoogl'] # 'plugin_videosoftware'
+libs += ['core', 'common', 'discio', 'plugin_videoogl', 'plugin_videosoftware']
 if env['HAVE_WX']:
 	libs += ['videouicommon']
 libs += ['audiocommon', 'inputcommon', 'videocommon']
@@ -58,8 +59,8 @@ libs += ['GLEW', 'SOIL', 'bdisasm', 'lua', 'lzo2', 'sfml-network', 'z']
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	ldflags += [ '-Xarch_i386', '-Wl,-framework,QuickTime' ]
-	ldflags += [ '-weak_framework', 'OpenCL' ]
+	ldflags += ['-Wl,-framework,QuickTime', '-Wl,-no_arch_warnings']
+	ldflags += ['-weak_framework', 'OpenCL']
 
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 

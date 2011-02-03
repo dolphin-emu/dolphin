@@ -1,25 +1,24 @@
 set(SRCS	Src/BPMemLoader.cpp
 			Src/Clipper.cpp
-			Src/CommandProcessor.cpp
+			Src/SWCommandProcessor.cpp
 			Src/CPMemLoader.cpp
 			Src/DebugUtil.cpp
 			Src/EfbCopy.cpp
 			Src/EfbInterface.cpp
-			Src/GLUtil.cpp
+			Src/SWGLUtil.cpp
 			Src/HwRasterizer.cpp
-			Src/main.cpp
+			Src/SWmain.cpp
 			Src/OpcodeDecoder.cpp
-			Src/PixelEngine.cpp
+			Src/SWPixelEngine.cpp
 			Src/Rasterizer.cpp
-			Src/RasterFont.cpp
-			Src/Renderer.cpp
+			Src/SWRenderer.cpp
 			Src/SetupUnit.cpp
-			Src/Statistics.cpp
+			Src/SWStatistics.cpp
 			Src/Tev.cpp
 			Src/TextureEncoder.cpp
 			Src/TextureSampler.cpp
 			Src/TransformUnit.cpp
-			Src/VertexLoader.cpp
+			Src/SWVertexLoader.cpp
 			Src/SWVideoConfig.cpp
 			Src/XFMemLoader.cpp)
 

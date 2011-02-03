@@ -22,7 +22,7 @@
 
 #include "BPMemLoader.h"
 #include "HwRasterizer.h"
-#include "GLUtil.h"
+#include "SWGLUtil.h"
 #include "NativeVertexFormat.h"
 #include "DebugUtil.h"
 

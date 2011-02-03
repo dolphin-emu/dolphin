@@ -22,7 +22,7 @@
 
 class PointerWrap;
 
-namespace PixelEngine
+namespace SWPixelEngine
 {
     // internal hardware addresses
     enum
@@ -148,8 +148,6 @@ namespace PixelEngine
     void SetFinish(void);
     bool AllowIdleSkipping();    
 
-} // end of namespace PixelEngine
+} // end of namespace SWPixelEngine
 
 #endif
-
-

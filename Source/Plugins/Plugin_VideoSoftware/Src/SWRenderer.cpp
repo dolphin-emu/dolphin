@@ -18,11 +18,10 @@
 #include "Common.h"
 #include "Core.h"
 
-#include "GLUtil.h"
-#include "Renderer.h"
-#include "main.h"
-#include "Statistics.h"
-#include "RasterFont.h"
+#include "SWGLUtil.h"
+#include "SWRenderer.h"
+#include "SWStatistics.h"
+#include "../../Plugin_VideoOGL/Src/RasterFont.h"
 
 #define VSYNC_ENABLED 0
 
@@ -30,16 +29,16 @@ static GLuint s_RenderTarget = 0;
 
 RasterFont* s_pfont = NULL;
 
-void Renderer::Init()
+void SWRenderer::Init()
 {
     if (!OpenGL_Create(640, 480)) // 640x480 will be the default if all else fails
 	{
-		Core::Callback_VideoLog("Renderer::Create failed\n");
+		Core::Callback_VideoLog("SWRenderer::Create failed\n");
         return;
     }
 }
 
-void Renderer::Shutdown()
+void SWRenderer::Shutdown()
 {
     glDeleteTextures(1, &s_RenderTarget);	
 
@@ -47,7 +46,7 @@ void Renderer::Shutdown()
     s_pfont = 0;
 }
 
-void Renderer::Prepare()
+void SWRenderer::Prepare()
 {
     OpenGL_MakeCurrent();
 
@@ -104,7 +103,7 @@ void Renderer::Prepare()
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
-void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
+void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
@@ -116,7 +115,7 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 		0, nBackbufferWidth, nBackbufferHeight);
 }
 
-void Renderer::DrawDebugText()
+void SWRenderer::DrawDebugText()
 {
     char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
@@ -124,27 +123,27 @@ void Renderer::DrawDebugText()
 
 	if (g_SWVideoConfig.bShowStats) 
 	{
-        p+=sprintf(p,"Objects: %i\n",stats.thisFrame.numDrawnObjects);
-        p+=sprintf(p,"Primatives: %i\n",stats.thisFrame.numPrimatives);
-        p+=sprintf(p,"Vertices Loaded: %i\n",stats.thisFrame.numVerticesLoaded);
+        p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
+        p+=sprintf(p,"Primatives: %i\n",swstats.thisFrame.numPrimatives);
+        p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
 
-        p+=sprintf(p,"Triangles Input:   %i\n",stats.thisFrame.numTrianglesIn);
-        p+=sprintf(p,"Triangles Rejected:   %i\n",stats.thisFrame.numTrianglesRejected);
-        p+=sprintf(p,"Triangles Culled:   %i\n",stats.thisFrame.numTrianglesCulled);
-        p+=sprintf(p,"Triangles Clipped:  %i\n",stats.thisFrame.numTrianglesClipped);
-        p+=sprintf(p,"Triangles Drawn:   %i\n",stats.thisFrame.numTrianglesDrawn);
+        p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
+        p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
+        p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
+        p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
+        p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
 
-        p+=sprintf(p,"Rasterized Pix:   %i\n",stats.thisFrame.rasterizedPixels);
-        p+=sprintf(p,"TEV Pix In:   %i\n",stats.thisFrame.tevPixelsIn);
-        p+=sprintf(p,"TEV Pix Out:   %i\n",stats.thisFrame.tevPixelsOut);        
+        p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
+        p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
+        p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);        
     }
 
 	// Render a shadow, and then the text.
-	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
+	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
+	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
 
-void Renderer::DrawTexture(u8 *texture, int width, int height)
+void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
     GLsizei glWidth = (GLsizei)OpenGL_GetBackbufferWidth();
 	GLsizei glHeight = (GLsizei)OpenGL_GetBackbufferHeight();
@@ -173,7 +172,7 @@ void Renderer::DrawTexture(u8 *texture, int width, int height)
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);    
 }
 
-void Renderer::SwapBuffer()
+void SWRenderer::SwapBuffer()
 {
     DrawDebugText();
 
@@ -183,7 +182,7 @@ void Renderer::SwapBuffer()
     
 	GL_REPORT_ERRORD();
 
-    stats.ResetFrame();
+    swstats.ResetFrame();
 	
 	// Clear framebuffer
 	glClearColor(0, 0, 0, 0);
@@ -192,5 +191,3 @@ void Renderer::SwapBuffer()
 
 	GL_REPORT_ERRORD();
 }
-
-

@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "main.h"
 #include "SWVideoConfig.h"
 #include "IniFile.h"
 #include "Setup.h"
@@ -23,7 +22,7 @@
 #include "Core.h"
 #include "Host.h"
 
-#include "GLUtil.h"
+#include "SWGLUtil.h"
 
 #if defined(_WIN32)
 #include "Win32.h"

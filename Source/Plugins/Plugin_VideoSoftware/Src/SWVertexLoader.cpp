@@ -17,7 +17,7 @@
 
 #include "Common.h"
 
-#include "VertexLoader.h"
+#include "SWVertexLoader.h"
 #include "VertexLoader_Position.h"
 #include "../../../Core/VideoCommon/Src/VertexLoader_Normal.h"
 #include "../../../Core/VideoCommon/Src/VertexLoader_Color.h"
@@ -28,19 +28,18 @@
 
 #include "TransformUnit.h"
 #include "SetupUnit.h"
-#include "Statistics.h"
+#include "SWStatistics.h"
 #include "VertexManagerBase.h"
 #include "../../../Core/VideoCommon/Src/DataReader.h"
 
 // Vertex loaders read these
-int tcIndex;
-int colIndex;
-int colElements[2];
-float posScale;
-float tcScale[8];
+static int tcIndex;
+static int colIndex;
+static int colElements[2];
+static float posScale;
+static float tcScale[8];
 
-
-VertexLoader::VertexLoader() :
+SWVertexLoader::SWVertexLoader() :
     m_VertexSize(0),
     m_NumAttributeLoaders(0)
  {
@@ -51,13 +50,13 @@ VertexLoader::VertexLoader() :
      m_SetupUnit = new SetupUnit;     
  }
 
-VertexLoader::~VertexLoader()
+SWVertexLoader::~SWVertexLoader()
 {
     delete m_SetupUnit;
     m_SetupUnit = NULL;
 }
 
-void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
+void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
     m_CurrentVat = &g_VtxAttr[attributeIndex];
 
@@ -107,15 +106,15 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
     // Reset vertex
     // matrix index from xf regs or cp memory?
-	if (xfregs.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
-		xfregs.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
-		xfregs.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
-		xfregs.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
-		xfregs.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
-		xfregs.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
-		xfregs.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
-		xfregs.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
-		xfregs.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
+	if (swxfregs.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
+		swxfregs.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
+		swxfregs.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
+		swxfregs.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
+		swxfregs.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
+		swxfregs.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
+		swxfregs.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
+		swxfregs.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
+		swxfregs.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
 	{
 		WARN_LOG(VIDEO, "Matrix indices don't match");
 
@@ -126,15 +125,15 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	}
 
 #if(1)
-    m_Vertex.posMtx = xfregs.MatrixIndexA.PosNormalMtxIdx;
-    m_Vertex.texMtx[0] = xfregs.MatrixIndexA.Tex0MtxIdx;
-    m_Vertex.texMtx[1] = xfregs.MatrixIndexA.Tex1MtxIdx;
-    m_Vertex.texMtx[2] = xfregs.MatrixIndexA.Tex2MtxIdx;
-    m_Vertex.texMtx[3] = xfregs.MatrixIndexA.Tex3MtxIdx;
-    m_Vertex.texMtx[4] = xfregs.MatrixIndexB.Tex4MtxIdx;
-    m_Vertex.texMtx[5] = xfregs.MatrixIndexB.Tex5MtxIdx;
-    m_Vertex.texMtx[6] = xfregs.MatrixIndexB.Tex6MtxIdx;
-    m_Vertex.texMtx[7] = xfregs.MatrixIndexB.Tex7MtxIdx;
+    m_Vertex.posMtx = swxfregs.MatrixIndexA.PosNormalMtxIdx;
+    m_Vertex.texMtx[0] = swxfregs.MatrixIndexA.Tex0MtxIdx;
+    m_Vertex.texMtx[1] = swxfregs.MatrixIndexA.Tex1MtxIdx;
+    m_Vertex.texMtx[2] = swxfregs.MatrixIndexA.Tex2MtxIdx;
+    m_Vertex.texMtx[3] = swxfregs.MatrixIndexA.Tex3MtxIdx;
+    m_Vertex.texMtx[4] = swxfregs.MatrixIndexB.Tex4MtxIdx;
+    m_Vertex.texMtx[5] = swxfregs.MatrixIndexB.Tex5MtxIdx;
+    m_Vertex.texMtx[6] = swxfregs.MatrixIndexB.Tex6MtxIdx;
+    m_Vertex.texMtx[7] = swxfregs.MatrixIndexB.Tex7MtxIdx;
 #else
     m_Vertex.posMtx = MatrixIndexA.PosNormalMtxIdx;
     m_Vertex.texMtx[0] = MatrixIndexA.Tex0MtxIdx;
@@ -245,14 +244,14 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_TexGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
-		(xfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
+		(swxfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 
 
     m_SetupUnit->Init(primitiveType);
 }
 
 
-void VertexLoader::LoadVertex()
+void SWVertexLoader::LoadVertex()
 {
     for (int i = 0; i < m_NumAttributeLoaders; i++)
         m_AttributeLoaders[i].loader(this, &m_Vertex, m_AttributeLoaders[i].index);
@@ -273,39 +272,39 @@ void VertexLoader::LoadVertex()
 
     m_SetupUnit->SetupVertex();
 
-    INCSTAT(stats.thisFrame.numVerticesLoaded)
+    INCSTAT(swstats.thisFrame.numVerticesLoaded)
 }
 
-void VertexLoader::AddAttributeLoader(AttributeLoader loader, u8 index)
+void SWVertexLoader::AddAttributeLoader(AttributeLoader loader, u8 index)
 {
     _assert_msg_(VIDEO, m_NumAttributeLoaders < 21, "Too many attribute loaders");
     m_AttributeLoaders[m_NumAttributeLoaders].loader = loader;
     m_AttributeLoaders[m_NumAttributeLoaders++].index = index;
 }
 
-void VertexLoader::LoadPosMtx(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
+void SWVertexLoader::LoadPosMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
     vertex->posMtx = DataReadU8() & 0x3f;
 }
 
-void VertexLoader::LoadTexMtx(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
+void SWVertexLoader::LoadTexMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
 {
     vertex->texMtx[index] = DataReadU8() & 0x3f;
 }    
 
-void VertexLoader::LoadPosition(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
+void SWVertexLoader::LoadPosition(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
     VertexManager::s_pCurBufferPointer = (u8*)&vertex->position;
     vertexLoader->m_positionLoader();
 }
 
-void VertexLoader::LoadNormal(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
+void SWVertexLoader::LoadNormal(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
 	VertexManager::s_pCurBufferPointer = (u8*)&vertex->normal;
     vertexLoader->m_normalLoader();
 }
 
-void VertexLoader::LoadColor(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
+void SWVertexLoader::LoadColor(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
 {
     u32 color;
     VertexManager::s_pCurBufferPointer = (u8*)&color;
@@ -316,7 +315,7 @@ void VertexLoader::LoadColor(VertexLoader *vertexLoader, InputVertexData *vertex
     *(u32*)vertex->color[index] = Common::swap32(color);
 }
 
-void VertexLoader::LoadTexCoord(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
+void SWVertexLoader::LoadTexCoord(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
 {
     VertexManager::s_pCurBufferPointer = (u8*)&vertex->texCoords[index];
     tcIndex = index;

@@ -22,10 +22,10 @@
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 // template instantiation
-template class BoolSetting<wxCheckBox>;
+template class _BoolSetting<wxCheckBox>;
 
 template <>
-SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style) :
+SettingCheckBox::_BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style) :
 	wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style),
 	m_setting(setting),
 	m_reverse(reverse)

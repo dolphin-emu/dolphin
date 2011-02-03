@@ -26,11 +26,11 @@
 #include "ConfigManager.h"
 #include "HW/ProcessorInterface.h"
 
-#include "PixelEngine.h"
-#include "CommandProcessor.h"
+#include "SWPixelEngine.h"
+#include "SWCommandProcessor.h"
 
 
-namespace PixelEngine
+namespace SWPixelEngine
 {
 
 enum
@@ -170,4 +170,4 @@ void SetFinish()
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
-} // end of namespace PixelEngine
+} // end of namespace SWPixelEngine

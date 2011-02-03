@@ -20,7 +20,7 @@
 #include "EfbInterface.h"
 #include "BPMemLoader.h"
 #include "../../../Core/VideoCommon/Src/LookUpTables.h"
-#include "PixelEngine.h"
+#include "SWPixelEngine.h"
 
 
 u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
@@ -434,10 +434,10 @@ namespace EfbInterface
             SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
 
         // branchless bounding box update
-        PixelEngine::pereg.boxLeft = PixelEngine::pereg.boxLeft>x?x:PixelEngine::pereg.boxLeft;
-        PixelEngine::pereg.boxRight = PixelEngine::pereg.boxRight<x?x:PixelEngine::pereg.boxRight;
-        PixelEngine::pereg.boxTop = PixelEngine::pereg.boxTop>y?y:PixelEngine::pereg.boxTop;
-        PixelEngine::pereg.boxBottom = PixelEngine::pereg.boxBottom<y?y:PixelEngine::pereg.boxBottom;
+        SWPixelEngine::pereg.boxLeft = SWPixelEngine::pereg.boxLeft>x?x:SWPixelEngine::pereg.boxLeft;
+        SWPixelEngine::pereg.boxRight = SWPixelEngine::pereg.boxRight<x?x:SWPixelEngine::pereg.boxRight;
+        SWPixelEngine::pereg.boxTop = SWPixelEngine::pereg.boxTop>y?y:SWPixelEngine::pereg.boxTop;
+        SWPixelEngine::pereg.boxBottom = SWPixelEngine::pereg.boxBottom<y?y:SWPixelEngine::pereg.boxBottom;
     }
 
     void SetColor(u16 x, u16 y, u8 *color)

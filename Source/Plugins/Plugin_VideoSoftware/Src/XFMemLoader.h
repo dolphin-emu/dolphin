@@ -236,14 +236,14 @@ struct XFRegisters
 #define XFMEM_LIGHTS_END         0x680
 
 
-extern XFRegisters xfregs;
+extern XFRegisters swxfregs;
 
 void InitXFMemory();
 
 void XFWritten(u32 transferSize, u32 baseAddress); 
 
-void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData);
+void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData);
 
-void LoadIndexedXF(u32 val, int array);
+void SWLoadIndexedXF(u32 val, int array);
 
 #endif

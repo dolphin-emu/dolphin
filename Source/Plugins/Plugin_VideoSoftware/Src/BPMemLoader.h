@@ -24,5 +24,7 @@
 #include "../../../Core/VideoCommon/Src/BPMemory.h"
 
 void InitBPMemory();
+void SWBPWritten(int address, int newvalue);
+void SWLoadBPReg(u32 value);
 
 #endif

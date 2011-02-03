@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "NativeVertexFormat.h"
 #include "XFMemLoader.h"
 #include "BPMemLoader.h"
-#include "Statistics.h"
+#include "SWStatistics.h"
 
 
 namespace Clipper
@@ -73,8 +73,8 @@ namespace Clipper
 
     void SetViewOffset()
     {
-        m_ViewOffset[0] = xfregs.viewport.xOrig - 342;
-        m_ViewOffset[1] = xfregs.viewport.yOrig - 342;
+        m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
+        m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
     }
 
         
@@ -209,7 +209,7 @@ namespace Clipper
 		        POLY_CLIP(CLIP_POS_Z_BIT,  0,  0,  0, 1);
 		        POLY_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
 
-                INCSTAT(stats.thisFrame.numTrianglesClipped);
+                INCSTAT(swstats.thisFrame.numTrianglesClipped);
 
 		        // transform the poly in inlist into triangles
 		        indices[0] = inlist[0];
@@ -273,7 +273,7 @@ namespace Clipper
 
     void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-        INCSTAT(stats.thisFrame.numTrianglesIn)
+        INCSTAT(swstats.thisFrame.numTrianglesIn)
 
         bool backface;
 
@@ -395,7 +395,7 @@ namespace Clipper
 
         if(mask)
         {
-            INCSTAT(stats.thisFrame.numTrianglesRejected)
+            INCSTAT(swstats.thisFrame.numTrianglesRejected)
             return false;
         }
 
@@ -415,13 +415,13 @@ namespace Clipper
 
         if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
         {
-            INCSTAT(stats.thisFrame.numTrianglesCulled)
+            INCSTAT(swstats.thisFrame.numTrianglesCulled)
             return false;
         }
 
         if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
         {
-            INCSTAT(stats.thisFrame.numTrianglesCulled)
+            INCSTAT(swstats.thisFrame.numTrianglesCulled)
             return false;
         }
 
@@ -434,9 +434,9 @@ namespace Clipper
         Vec3 &screen = vertex->screenPosition;
 
         float wInverse = 1.0f/projected.w;
-        screen.x = projected.x * wInverse * xfregs.viewport.wd + m_ViewOffset[0];
-        screen.y = projected.y * wInverse * xfregs.viewport.ht + m_ViewOffset[1];
-        screen.z = projected.z * wInverse * xfregs.viewport.zRange + xfregs.viewport.farZ;
+        screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
+        screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
+        screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
     }
     
 }

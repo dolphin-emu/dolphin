@@ -16,12 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../../../Core/VideoCommon/Src/VideoCommon.h"
-#include "main.h"
 
 #include "BPMemLoader.h"
 #include "EfbCopy.h"
 #include "Rasterizer.h"
-#include "PixelEngine.h"
+#include "SWPixelEngine.h"
 #include "Tev.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"
 #include "HW/Memmap.h"
@@ -35,9 +34,7 @@ void InitBPMemory()
     bpmem.bpMask = 0xFFFFFF;
 }
 
-void BPWritten(int address, int newvalue);
-
-void LoadBPReg(u32 value)
+void SWLoadBPReg(u32 value)
 {
     //handle the mask register
 	int address = value >> 24;
@@ -50,10 +47,10 @@ void LoadBPReg(u32 value)
 	if (address != 0xFE)
 		bpmem.bpMask = 0xFFFFFF;
 
-    BPWritten(address, newval);
+    SWBPWritten(address, newval);
 }
 
-void BPWritten(int address, int newvalue)
+void SWBPWritten(int address, int newvalue)
 {
     switch (address)
 	{
@@ -66,7 +63,7 @@ void BPWritten(int address, int newvalue)
 		switch (bpmem.drawdone & 0xFF)
         {
         case 0x02:
-            PixelEngine::SetFinish(); // may generate interrupt
+            SWPixelEngine::SetFinish(); // may generate interrupt
             DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bpmem.drawdone & 0xFFFF));
             break;
 
@@ -77,22 +74,22 @@ void BPWritten(int address, int newvalue)
         break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
         DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bpmem.petoken & 0xFFFF));
-        PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), false);
+        SWPixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), false);
         break;
     case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID        
         DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bpmem.petokenint & 0xFFFF));
-        PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
+        SWPixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
         break;
     case BPMEM_TRIGGER_EFB_COPY:
         EfbCopy::CopyEfb();
         break;
     case BPMEM_CLEARBBOX1:
-        PixelEngine::pereg.boxRight = newvalue >> 10;
-        PixelEngine::pereg.boxLeft = newvalue & 0x3ff;
+        SWPixelEngine::pereg.boxRight = newvalue >> 10;
+        SWPixelEngine::pereg.boxLeft = newvalue & 0x3ff;
         break;
     case BPMEM_CLEARBBOX2:
-        PixelEngine::pereg.boxBottom = newvalue >> 10;
-        PixelEngine::pereg.boxTop = newvalue & 0x3ff;
+        SWPixelEngine::pereg.boxBottom = newvalue >> 10;
+        SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
     case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;

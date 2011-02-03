@@ -24,11 +24,11 @@
 #include "HW/Memmap.h"
 #include "HW/ProcessorInterface.h"
 
-#include "CommandProcessor.h"
+#include "VideoBackend.h"
+#include "SWCommandProcessor.h"
 #include "ChunkFile.h"
 #include "MathUtil.h"
 
-volatile bool g_bSkipCurrentFrame;
 bool fifoStateRun;
 
 // set to 0 if using in video common
@@ -37,8 +37,6 @@ bool fifoStateRun;
 #if (SW_PLUGIN)
 
 #include "OpcodeDecoder.h"
-#include "main.h"
-u8* g_pVideoData;
 
 #else
 
@@ -49,7 +47,7 @@ extern u8* g_pVideoData;
 
 #endif
 
-namespace CommandProcessor
+namespace SWCommandProcessor
 {
 
 enum
@@ -407,10 +405,10 @@ void SetStatus()
         if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
         {
             interruptWaiting = true;
-            CommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
+            SWCommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
         }
         else
-            CommandProcessor::UpdateInterrupts(userdata);
+            SWCommandProcessor::UpdateInterrupts(userdata);
     }
 }
 
@@ -468,20 +466,20 @@ bool RunBuffer()
     return ranDecoder;
 }
 
-} // end of namespace CommandProcessor
+} // end of namespace SWCommandProcessor
 
 
 // fifo functions
 #if (SW_PLUGIN)
 
-void Fifo_EnterLoop()
+void SWFifo_EnterLoop()
 {
     fifoStateRun = true;
 
     while (fifoStateRun)
     {
 		g_video_backend->PeekMessages();
-        if (!CommandProcessor::RunBuffer()) {
+        if (!SWCommandProcessor::RunBuffer()) {
             Common::YieldCPU();
 		}
     }
@@ -508,6 +506,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 #endif
 
+#if 0
 void Fifo_ExitLoop()
 {
     fifoStateRun = false;
@@ -525,10 +524,11 @@ void Fifo_DoState(PointerWrap &p) {}
 
 u8* FAKE_GetFifoStartPtr()
 {
-    return CommandProcessor::commandBuffer;
+    return SWCommandProcessor::commandBuffer;
 }
 
 u8* FAKE_GetFifoEndPtr()
 {
-    return &CommandProcessor::commandBuffer[CommandProcessor::writePos];
+    return &SWCommandProcessor::commandBuffer[SWCommandProcessor::writePos];
 }
+#endif

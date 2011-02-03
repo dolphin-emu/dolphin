@@ -24,8 +24,8 @@
 #include <wx/aboutdlg.h>
 
 #include "ConfigManager.h"
+#include "VideoBackend.h"
 #include "SWVideoConfig.h"
-#include "main.h"
 #include "Win32.h"
 
 #include "StringUtil.h"

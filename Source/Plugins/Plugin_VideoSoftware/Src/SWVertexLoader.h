@@ -25,7 +25,7 @@
 
 class SetupUnit;
 
-class VertexLoader
+class SWVertexLoader
 {
     u32 m_VertexSize;
 
@@ -38,7 +38,7 @@ class VertexLoader
 
     InputVertexData m_Vertex;
 
-    typedef void (*AttributeLoader)(VertexLoader*, InputVertexData*, u8);
+    typedef void (*AttributeLoader)(SWVertexLoader*, InputVertexData*, u8);
     struct AttrLoaderCall
     {
         AttributeLoader loader;
@@ -49,20 +49,20 @@ class VertexLoader
     void AddAttributeLoader(AttributeLoader loader, u8 index=0);
 
     // attribute loader functions
-    static void LoadPosMtx(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-    static void LoadTexMtx(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
-    static void LoadPosition(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-    static void LoadNormal(VertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-    static void LoadColor(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
-    static void LoadTexCoord(VertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
+    static void LoadPosMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
+    static void LoadTexMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
+    static void LoadPosition(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
+    static void LoadNormal(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
+    static void LoadColor(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
+    static void LoadTexCoord(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
 
     SetupUnit *m_SetupUnit;
 
 	bool m_TexGenSpecialCase;
 
 public:
-    VertexLoader();
-    ~VertexLoader();
+    SWVertexLoader();
+    ~SWVertexLoader();
 
     void SetFormat(u8 attributeIndex, u8 primitiveType);
 

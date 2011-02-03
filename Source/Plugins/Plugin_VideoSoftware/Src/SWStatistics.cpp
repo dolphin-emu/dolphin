@@ -15,9 +15,24 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef MAIN_H
-#define MAIN_H
+#include "SWStatistics.h"
 
-#include "VideoBackend.h"
+SWStatistics swstats;
 
-#endif
+template <class T>
+void Xchg(T& a, T&b)
+{
+	T c = a;
+	a = b;
+	b = c;
+}
+
+SWStatistics::SWStatistics()
+{
+    frameCount = 0;
+}
+
+void SWStatistics::ResetFrame()
+{
+	memset(&thisFrame, 0, sizeof(ThisFrame));
+}

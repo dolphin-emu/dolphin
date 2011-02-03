@@ -20,7 +20,7 @@
 
 #include "CommonTypes.h"
 
-namespace Renderer
+namespace SWRenderer
 {
     void Init();
     void Prepare();

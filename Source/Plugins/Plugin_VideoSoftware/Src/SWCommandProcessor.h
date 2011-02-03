@@ -23,6 +23,7 @@
 class PointerWrap;
 
 extern volatile bool g_bSkipCurrentFrame;
+extern u8* g_pVideoData;
 
 // for compatibility with video common
 void Fifo_Init();
@@ -38,7 +39,7 @@ void VideoFifo_CheckSwapRequest();
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 void VideoFifo_CheckEFBAccess();
 
-namespace CommandProcessor
+namespace SWCommandProcessor
 {
     // internal hardware addresses
     enum
@@ -164,7 +165,7 @@ namespace CommandProcessor
     void UpdateInterruptsFromVideoPlugin(u64 userdata);
 
 
-} // end of namespace CommandProcessor
+} // end of namespace SWCommandProcessor
 
 
 #endif

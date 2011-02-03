@@ -510,7 +510,7 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\Src\main.cpp"
+			RelativePath=".\Src\DSPTool.cpp"
 			>
 		</File>
 		<File

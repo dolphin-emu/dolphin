@@ -29,6 +29,7 @@ class VideoBackend : public VideoBackendLLE
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
+	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
 
 	void Video_SetRendering(bool bEnabled);

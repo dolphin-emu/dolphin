@@ -21,7 +21,7 @@
 #ifndef _STATISTICS_H
 #define _STATISTICS_H
 
-struct Statistics
+struct SWStatistics
 {
     struct ThisFrame
     {
@@ -42,13 +42,13 @@ struct Statistics
     };
 
     u32 frameCount;
-    Statistics();
+    SWStatistics();
 
     ThisFrame thisFrame;
     void ResetFrame();
 };
 
-extern Statistics stats;
+extern SWStatistics swstats;
 
 #if (STATISTICS)
 #define INCSTAT(a) (a)++;

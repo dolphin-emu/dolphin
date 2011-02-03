@@ -22,11 +22,11 @@
 #include "Clipper.h"
 #include "HW/Memmap.h"
 
-XFRegisters xfregs;
+XFRegisters swxfregs;
 
 void InitXFMemory()
 {
-    memset(&xfregs, 0, sizeof(xfregs));
+    memset(&swxfregs, 0, sizeof(swxfregs));
 }
 
 void XFWritten(u32 transferSize, u32 baseAddress)
@@ -39,7 +39,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	// fix lights so invalid values don't trash the lighting computations	
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
-		u32* x = xfregs.lights;
+		u32* x = swxfregs.lights;
 
 		// go through all lights
 		for (int light = 0; light < 8; light++)
@@ -61,7 +61,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	}
 }
 
-void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
+void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {
     u32 size = transferSize;
 
@@ -77,13 +77,13 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
     }
 
     if (size > 0) {
-        memcpy_gc( &((u32*)&xfregs)[baseAddress], pData, size * 4);
+        memcpy_gc( &((u32*)&swxfregs)[baseAddress], pData, size * 4);
         XFWritten(transferSize, baseAddress);
     }
 
 }
 
-void LoadIndexedXF(u32 val, int array)
+void SWLoadIndexedXF(u32 val, int array)
 {
     int index = val >> 16;
     int address = val & 0xFFF; //check mask
@@ -97,5 +97,5 @@ void LoadIndexedXF(u32 val, int array)
 	for (int i = 0; i < size; ++i)
 		buffer[i] = Common::swap32(*(pData + i));
 
-	LoadXFReg(size, address, buffer);
+	SWLoadXFReg(size, address, buffer);
 }

@@ -4,7 +4,7 @@ Import('env')
 import sys
 
 files = [
-	'main.cpp',
+	'DSPTool.cpp',
 	]
 
 libs = [

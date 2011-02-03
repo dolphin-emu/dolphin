@@ -23,7 +23,7 @@
 #include "BPMemLoader.h"
 #include "XFMemLoader.h"
 #include "Tev.h"
-#include "Statistics.h"
+#include "SWStatistics.h"
 #include "SWVideoConfig.h"
 
 
@@ -111,7 +111,7 @@ void SetTevReg(int reg, int comp, bool konst, s16 color)
 
 inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
-    INCSTAT(stats.thisFrame.rasterizedPixels);
+    INCSTAT(swstats.thisFrame.rasterizedPixels);
 
 	float dx = vertexOffsetX + (float)(x - vertex0X);
 	float dy = vertexOffsetY + (float)(y - vertex0Y);
@@ -258,7 +258,7 @@ void BuildBlock(s32 blockX, s32 blockY)
 			for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 			{
 				float projection = invW;
-				if (xfregs.texMtxInfo[i].projection)
+				if (swxfregs.texMtxInfo[i].projection)
 				{
 					float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
 					if (q != 0.0f)
@@ -298,7 +298,7 @@ void BuildBlock(s32 blockX, s32 blockY)
 
 void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 {
-    INCSTAT(stats.thisFrame.numTrianglesDrawn);
+    INCSTAT(swstats.thisFrame.numTrianglesDrawn);
 
     if (g_SWVideoConfig.bHwRasterizer)
     {
