@@ -1414,7 +1414,10 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		{
 			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 		}
-		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		else
+		{
+			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		}
 #else
 		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
 #endif

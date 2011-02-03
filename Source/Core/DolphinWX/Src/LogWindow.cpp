@@ -57,7 +57,10 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		{
 			m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 		}
-		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		else
+		{
+			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		}
 #else
 		m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
 #endif
