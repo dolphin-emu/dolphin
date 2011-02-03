@@ -90,7 +90,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -208,7 +208,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/$(PlatformName)/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -321,7 +321,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
 				OutputFile="../../../Binary/Win32/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -432,7 +432,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/TLBID:1"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28ud.lib wxmsw28ud_core.lib wxmsw28ud_adv.lib wxmsw28ud_aui.lib"
 				OutputFile="../../../Binary/x64/DolphinD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -546,7 +546,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib&#x0D;&#x0A;/NODEFAULTLIB:libcmtd.lib"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/Win32/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -659,7 +659,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib OpenAL32.lib"
+				AdditionalDependencies="Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/x64/DolphinDF.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
