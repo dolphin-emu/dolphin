@@ -71,7 +71,6 @@ protected:
 	X64CachedReg saved_xregs[NUMXREGS];
 
 	virtual const int *GetAllocationOrder(int &count) = 0;
-	int SanityCheck() const;
 	
 	XEmitter *emit;
 
@@ -96,6 +95,7 @@ public:
 	}
 	virtual void Flush(FlushMode mode);
 	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
+	int SanityCheck() const;
 	void KillImmediate(int preg, bool doLoad, bool makeDirty);
 
 	//TODO - instead of doload, use "read", "write"
