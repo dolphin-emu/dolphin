@@ -7,7 +7,6 @@ set(LIBS	core
 			inputcommon
 			common
 			audiocommon
-			lua
 			z
 			sfml-network
 			SDL

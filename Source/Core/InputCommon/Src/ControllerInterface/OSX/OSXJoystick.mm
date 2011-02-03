@@ -75,6 +75,8 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 ControlState Joystick::GetInputState(
 	const ControllerInterface::Device::Input* const input) const
 {
+	if (input == NULL)	// XXX
+		return 0;
 	return ((Input*)input)->GetState(m_device);
 }
 

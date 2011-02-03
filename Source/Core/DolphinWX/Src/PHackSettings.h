@@ -67,4 +67,5 @@ class CPHackSettings : public wxDialog
 		void SavePHackData(wxCommandEvent& event);
 		void LoadPHackData();
 };
+
 #endif // __PHACK_SETTINGS_h__

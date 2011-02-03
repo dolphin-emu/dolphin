@@ -31,8 +31,6 @@
 #include <tmmintrin.h>
 #endif
 
-static const __m128i sr_mask = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
-
 // Executed from sound stream thread
 unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 {
@@ -64,6 +62,10 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_sampleRate == 32000)
 		{
 #if _M_SSE >= 0x301
+			static const __m128i sr_mask =
+				_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
+					0x04050607L, 0x00010203L);
+
 			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
 			{
 				for (unsigned int i = 0; i < numLeft * 2; i += 8)

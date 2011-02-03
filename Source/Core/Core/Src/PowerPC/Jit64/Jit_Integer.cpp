@@ -116,7 +116,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	int d = inst.RD, a = inst.RA, s = inst.RS;
+	u32 d = inst.RD, a = inst.RA, s = inst.RS;
 	switch (inst.OPCD)
 	{
 	case 14:  // addi
