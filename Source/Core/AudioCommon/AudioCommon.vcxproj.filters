@@ -12,13 +12,13 @@
     <ClCompile Include="Src\DSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NullSoundStream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
     <ClCompile Include="Src\OpenALStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="Src\XAudio2Stream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
   </ItemGroup>
