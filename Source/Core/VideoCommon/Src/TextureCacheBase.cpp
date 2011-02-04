@@ -17,7 +17,7 @@ extern int frameCount;
 
 enum
 {
-	TEMP_SIZE = (1024 * 1024 * 4),
+	TEMP_SIZE = (2048 * 2048 * 4),
 	TEXTURE_KILL_THRESHOLD = 200,
 };
 
@@ -180,6 +180,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
 	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 	bool texture_is_dynamic = false;
+	bool forceLegacyHash = (g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 	unsigned int texLevels;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
@@ -190,9 +191,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		full_format = texformat | (tlutfmt << 16);
 
 	// hires texture loading and texture dumping require accurate hashes
-	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
+	if (g_ActiveConfig.bSafeTextureCache || forceLegacyHash)
 	{
-		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples, forceLegacyHash);
 
 		if (isC4_C8_C14X2)
 		{
@@ -205,7 +206,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			// we must make sure that texture with different tluts get different IDs.
 
 			const u64 tlutHash = GetHash64(texMem + tlutaddr, palette_size,
-				g_ActiveConfig.iSafeTextureCache_ColorSamples);
+				g_ActiveConfig.iSafeTextureCache_ColorSamples, forceLegacyHash);
 
 			texHash ^= tlutHash;
 
@@ -285,7 +286,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		unsigned int newWidth = width;
 		unsigned int newHeight = height;
 
-		sprintf(texPathTemp, "%s_%08llx_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), texHash, texformat);
+		sprintf(texPathTemp, "%s_%08lx_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
@@ -386,7 +387,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 			File::CreateDir(szDir);
 
-		sprintf(szTemp, "%s/%s_%08llx_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), texHash, texformat);
+		sprintf(szTemp, "%s/%s_%08lx_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);

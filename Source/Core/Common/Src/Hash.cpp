@@ -133,18 +133,23 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 #endif
 }
 
-u64 GetHash64(const u8 *src, int len, u32 samples)
+u64 GetHash64(const u8 *src, int len, u32 samples, bool legacy)
 {
 	const u64 m = 0xc6a4a7935bd1e995;
 	u64 h = len * m;
 
 #if _M_SSE >= 0x402
-	if (cpu_info.bSSE4_2)
+	if (cpu_info.bSSE4_2 && !legacy)
 	{
 		h = GetCRC32(src, len, samples);
 	}
 	else
 #endif
+	/* NOTE: This hash function is used for custom texture loading/dumping, so
+	   it should not be changed, which would require all custom textures to be
+	   recalculated for their new hash values. If the hashing function is
+	   changed, make sure this one is still used when the legacy parameter is
+	   true. */
 	{
 		const int r = 47;
 		u32 Step = (len / 8);
