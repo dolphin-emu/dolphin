@@ -417,11 +417,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\main.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\main.h"
+			RelativePath=".\Src\SWmain.cpp"
 			>
 		</File>
 		<File
