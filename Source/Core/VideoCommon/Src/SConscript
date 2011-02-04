@@ -44,4 +44,4 @@ files = [
 	'memcpy_amd.cpp',
 	]
 
-env.StaticLibrary(env['local_libs'] + "videocommon", files)
+env['LIBS'] += env.StaticObject(files)

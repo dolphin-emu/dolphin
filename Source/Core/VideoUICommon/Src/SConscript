@@ -10,4 +10,4 @@ files = [
 	'DebuggerPanel.cpp',
 	]
 
-env.StaticLibrary(env['local_libs'] + 'videouicommon', files)
+env['LIBS'] += env.StaticObject(files)

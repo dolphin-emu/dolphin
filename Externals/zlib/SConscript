@@ -1,8 +1,13 @@
 # -*- python -*-
 
 Import('env')
+import sys
+
+if sys.platform == 'darwin':
+	Return()
 
 if env.has_key('shared_zlib') and env['shared_zlib']:
+	env['LIBS'] += 'z'
 	Return()
 
 files = [
@@ -20,5 +25,5 @@ files = [
 	'zutil.c',
 	]
 
-env.StaticLibrary(env['local_libs'] + "z", files)
 env['CPPPATH'] += ['#Externals/zlib']
+env['LIBS'] += env.StaticObject(files)

@@ -196,4 +196,4 @@ elif sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 else:
 	files += [ "HW/BBA-TAP/TAP_Unix.cpp", "HW/WiimoteReal/IODummy.cpp" ]
 
-env.StaticLibrary(env['local_libs'] + 'core', files)
+env['LIBS'] += env.StaticObject(files)

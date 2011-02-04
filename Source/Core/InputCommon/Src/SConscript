@@ -30,4 +30,4 @@ elif env['HAVE_X11']:
 		'ControllerInterface/Xlib/Xlib.cpp',
 		]
 
-env.StaticLibrary(env['local_libs'] + "inputcommon", files)
+env['LIBS'] += env.StaticObject(files)

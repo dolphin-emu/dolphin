@@ -3,6 +3,7 @@
 Import('env')
 
 if env.has_key('shared_soil') and env['shared_soil']:
+	env['LIBS'] += 'SOIL'
 	Return()
 
 files = [
@@ -12,5 +13,5 @@ files = [
 	'stb_image_aug.c'
 	]
 
-env.StaticLibrary(env['local_libs'] + "SOIL", files)
 env['CPPPATH'] += ['#Externals/SOIL']
+env['LIBS'] += env.StaticObject(files)

@@ -103,9 +103,6 @@ env['LIBS'] = []
 env['build_dir'] = 'Build' + os.sep + platform.system() + \
     '-' + platform.machine() + '-' + env['flavor']
 
-# Static libs go here
-env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
-
 # Default install path
 if not env.has_key('install') or env['install'] == 'local':
     env['prefix'] = 'Binary' + os.sep + platform.system() + \
@@ -122,10 +119,6 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
-    env['CC'] = '/Developer/usr/bin/llvm-gcc'
-    env['CXX'] = '/Developer/usr/bin/llvm-g++'
-    #env['CC'] = 'clang'
-    #env['CXX'] = 'clang++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['AppKit', 'Carbon', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'CoreAudio', 'WebKit']
@@ -135,6 +128,15 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-Wl,-dead_strip', '-Wl,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
     env['LINKFLAGS'] += ['-Wl,-search_paths_first']
+
+    if env['ENV'].has_key('CC'):
+        env['CC'] = env['ENV']['CC']
+    else:
+        env['CC'] = '/Developer/usr/bin/llvm-gcc'
+    if env['ENV'].has_key('CXX'):
+        env['CXX'] = env['ENV']['CXX']
+    else:
+        env['CXX'] = '/Developer/usr/bin/llvm-g++'
 
     if env['nowx']:
         env['HAVE_WX'] = 0
@@ -157,8 +159,6 @@ if sys.platform == 'darwin':
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKPATH'] += ['Externals/Cg']
     env['FRAMEWORKS'] += ['Cg']
-    env['shared_sdl'] = True
-    env['shared_zlib'] = True
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
 
@@ -318,11 +318,6 @@ else:
 
     env.Alias('install', env['prefix'])
 
-# Local (static) libraries must be first in the search path for the build in
-# order that they can override system libraries, but they must not be found
-# during autoconfiguration as they will then be detected as system libraries.
-env['LIBPATH'].insert(0, env['local_libs'])
-
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/CLRun',
@@ -343,10 +338,10 @@ dirs = [
     'Source/Core/InputCommon/Src',
     'Source/Core/VideoCommon/Src',
     'Source/Core/VideoUICommon/Src',
-    'Source/DSPTool/Src',
+    #'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/UnitTests',
+    #'Source/UnitTests',
     ]
 
 # Now that platform configuration is done, propagate it to modules

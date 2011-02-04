@@ -22,7 +22,7 @@
 
 #include "BPMemLoader.h"
 #include "HwRasterizer.h"
-#include "SWGLUtil.h"
+#include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "NativeVertexFormat.h"
 #include "DebugUtil.h"
 

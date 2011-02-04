@@ -11,4 +11,4 @@ files = [
 	'MemoryView.cpp',
 	]
 
-env.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)
+env['LIBS'] += env.StaticObject(files)

@@ -3,7 +3,11 @@
 Import('env')
 import sys
 
+if sys.platform == 'darwin':
+	Return()
+
 if env.has_key('shared_sdl') and env['shared_sdl']:
+	env['LIBS'] += 'SDL'
 	Return()
 
 files = [
@@ -38,5 +42,5 @@ else:
 		'src/joystick/dummy/SDL_sysjoystick.c',
 		]
 
-env.StaticLibrary(env['local_libs'] + "SDL", files)
 env['CPPPATH'] += ['#Externals/SDL', '#Externals/SDL/include']
+env['LIBS'] += env.StaticObject(files)

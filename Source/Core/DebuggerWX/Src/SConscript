@@ -20,4 +20,4 @@ files = [
 	"JitWindow.cpp",
 	]
 
-env.StaticLibrary(env['local_libs'] + "debwx", files)
+env['LIBS'] += env.StaticObject(files)

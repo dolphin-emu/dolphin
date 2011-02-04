@@ -190,13 +190,4 @@ void VideoBackend::Video_AbortFrame(void)
 {
 }
 
-void VideoBackend::UpdateFPSDisplay(const char*)
-{
-}
-
-unsigned int VideoBackend::PeekMessages()
-{
-	return 0;
-}
-
 }

@@ -19,4 +19,4 @@ files = [
 	'GLUtil.cpp'
 	]
 
-env.StaticLibrary(env['local_libs'] + 'plugin_videoogl', files)
+env['LIBS'] += env.StaticObject(files)

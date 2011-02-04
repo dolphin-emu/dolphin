@@ -3,6 +3,7 @@
 Import('env')
 
 if env.has_key('shared_sfml') and env['shared_sfml']:
+	env['LIBS'] += 'sfml-network'
 	Return()
 
 files = [
@@ -16,5 +17,5 @@ files = [
 	"SFML/Network/Unix/SocketHelper.cpp",
 	]
 
-env.StaticLibrary(env['local_libs'] + "sfml-network", files)
 env['CPPPATH'] += ['#Externals/SFML/include']
+env['LIBS'] += env.StaticObject(files)

@@ -6,15 +6,12 @@ import sys
 from SconsTests import utils
 
 files = ['BootManager.cpp']
-ldflags = []
-libs = []
+frameworksflags = []
 
 if not env['HAVE_WX']:
 	files += ['MainNoGUI.cpp']
 else:
-	files += ['Main.cpp']
-
-	libfiles = [
+	files += [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
 		'GeckoCodeDiag.cpp',
@@ -32,6 +29,7 @@ else:
 		'PatchAddEdit.cpp',
 		'PHackSettings.cpp',
 		'CheatsWindow.cpp',
+		'Main.cpp',
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
@@ -45,28 +43,18 @@ else:
 		'WxUtils.cpp',
 		]
 
-	env.StaticLibrary(env['local_libs'] + "dolphinwx", libfiles)
-
-	libs += ['debwx', 'debugger_ui_util', 'dolphinwx']
-
-libs += ['core', 'common', 'discio', 'plugin_videoogl', 'plugin_videosoftware']
-if env['HAVE_WX']:
-	libs += ['videouicommon']
-libs += ['audiocommon', 'inputcommon', 'videocommon']
-libs += ['GLEW', 'SOIL', 'bdisasm', 'lzo2', 'sfml-network', 'z']
-
 if sys.platform == 'win32':
-	files += [ "stdafx.cpp" ]
+	files += ["stdafx.cpp"]
 elif sys.platform == 'darwin':
-	ldflags += ['-Wl,-framework,QuickTime', '-Wl,-no_arch_warnings']
-	ldflags += ['-weak_framework', 'OpenCL']
+	frameworksflags += ['-Wl,-framework,QuickTime', '-Wl,-no_arch_warnings']
+	frameworksflags += ['-weak_framework', 'OpenCL']
 
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	if env['HAVE_WX']:
-		libs += env['wxconfiglibs']
+		env['LIBS'] += env['wxconfiglibs']
 	else:
-		libs += [ 'iconv' ]
+		env['LIBS'] += ['iconv']
 		exe += 'NoGUI'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
@@ -121,18 +109,15 @@ elif sys.platform == 'darwin':
 			CFBundleTypeRole = 'Viewer')]
 		)))
 
-	env.Command('dummy', '#' + env['prefix'],
-		"find $SOURCES -name .svn -exec rm -rf {} +")
 else:
-	files += [ 'X11Utils.cpp' ]
-	libs += [ 'SDL', 'clrun' ]
-	if env['HAVE_WX']:
-		exe = env['binary_dir'] + '/dolphin-emu'
-	else:
-		exe = env['binary_dir'] + '/dolphin-emu-nogui'
+	files += ['X11Utils.cpp']
+	exe = env['binary_dir'] + '/dolphin-emu'
+	if not env['HAVE_WX']:
+		exe += '-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
 
-linkflags = ldflags + env['LINKFLAGS']
+env.Command('dummy', '#' + env['prefix'],
+	"find $SOURCES -name .svn -exec rm -rf {} +")
 
-env.Program(exe, files, LIBS = libs + env['LIBS'], LINKFLAGS = linkflags)
+env.Program(exe, files, FRAMEWORKSFLAGS = frameworksflags)

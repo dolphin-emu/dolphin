@@ -21,9 +21,11 @@
 #include "ConfigManager.h"
 #include "Core.h"
 #include "Host.h"
+#include "VideoBackend.h"
 
 #include "SWGLUtil.h"
 
+#if 0
 #if defined(_WIN32)
 #include "Win32.h"
 static HDC hDC = NULL;       // Private GDI Device Context
@@ -78,15 +80,41 @@ void OpenGL_SetWindowText(const char *text)
 	XStoreName(GLWin.dpy, GLWin.win, text);
 #endif
 }
+#endif
+
+namespace SW
+{
+
+// Draw messages on top of the screen
+unsigned int VideoBackend::PeekMessages()
+{
+#ifdef _WIN32
+	// TODO: peekmessage
+	MSG msg;
+	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	{
+		if (msg.message == WM_QUIT)
+			return FALSE;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return TRUE;
+#else
+	return false;
+#endif
+}
 
 // Show the current FPS
-void UpdateFPSDisplay(const char *text)
+void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	char temp[100];
-	snprintf(temp, sizeof temp, "%s | Software | %s", svn_rev_str, text);
+	snprintf(temp, sizeof temp, "%s | OpenGL | %s", svn_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 
+}
+
+#if 0
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool OpenGL_Create(int _twidth, int _theight)
@@ -454,3 +482,4 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 	}
 	return true;
 }
+#endif

@@ -4,16 +4,19 @@ Import('env')
 import sys
 
 if env.has_key('shared_glew') and env['shared_glew']:
+	env['LIBS'] += 'GLEW'
 	Return()
 
 if sys.platform == 'darwin':
-	libs = ['GLEW']
+	libs = []
 	frames = ['AGL', 'OpenGL']
 else:
-	libs = ['GLEW', 'GL', 'GLU']
+	libs = ['GL', 'GLU']
 	frames = []
 
+glew = env.StaticObject('src/glew.c')
+libs += glew
 env.Program('glewinfo', 'src/glewinfo.c', LIBS = libs, FRAMEWORKS = frames)
 env.Program('visualinfo', 'src/visualinfo.c', LIBS = libs, FRAMEWORKS = frames)
-env.StaticLibrary(env['local_libs'] + 'GLEW', ['src/glew.c'])
 env['CPPPATH'] += ['#Externals/GLew/include']
+env['LIBS'] += glew

@@ -36,4 +36,4 @@ if env['HAVE_WX']:
 if sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
 
-env.StaticLibrary(env['local_libs'] + 'plugin_videosoftware', files)
+env['LIBS'] += env.StaticObject(files)
