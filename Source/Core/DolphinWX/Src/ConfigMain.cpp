@@ -397,7 +397,7 @@ void CConfigMain::InitializeGUIValues()
 	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 	FrequencySelection->SetSelection(
-		FrequencySelection->FindString(wxString::FromAscii(ac_Config.sFrequency.c_str())));
+		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.sFrequency)));
 	// add backends to the list
 	AddAudioBackends();
 
@@ -717,8 +717,8 @@ void CConfigMain::CreateGUIControls()
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition,
 				wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY);
-	FrequencySelection->Append(_("48,000 Hz"));
-	FrequencySelection->Append(_("32,000 Hz"));
+	FrequencySelection->Append(wxString::Format(_("%d Hz"), 48000));
+	FrequencySelection->Append(wxString::Format(_("%d Hz"), 32000));
 
 	// Create sizer and add items to dialog
 	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
@@ -1069,7 +1069,9 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
 		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
 		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
-		ac_Config.sFrequency = FrequencySelection->GetStringSelection().mb_str();
+		long int frequency;
+		FrequencySelection->GetStringSelection().ToLong(&frequency);
+		ac_Config.sFrequency = frequency;
 		ac_Config.Update();
 		break;
 	}

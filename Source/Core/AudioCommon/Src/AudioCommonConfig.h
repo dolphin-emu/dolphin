@@ -38,7 +38,7 @@ struct AudioCommonConfig
 	bool m_EnableJIT;
 	int m_Volume;
 	std::string sBackend;
-	std::string sFrequency;
+	int sFrequency;
 	
 	// Load from given file
 	void Load();

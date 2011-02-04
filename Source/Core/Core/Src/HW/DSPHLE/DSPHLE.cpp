@@ -192,16 +192,11 @@ u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
-			unsigned int AISampleRate, DACSampleRate, BackendSampleRate;
+			unsigned int AISampleRate, DACSampleRate;
 			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			std::string frequency = ac_Config.sFrequency;
-			if (frequency == "48,000 Hz")
-				BackendSampleRate = 48000;
-			else
-				BackendSampleRate = 32000;
 
 			soundStream = AudioCommon::InitSoundStream(
-				new HLEMixer(this, AISampleRate, DACSampleRate, BackendSampleRate), m_hWnd);
+				new HLEMixer(this, AISampleRate, DACSampleRate, ac_Config.sFrequency), m_hWnd);
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			m_InitMixer = true;

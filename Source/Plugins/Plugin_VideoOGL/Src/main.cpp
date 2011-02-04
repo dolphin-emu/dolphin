@@ -229,16 +229,16 @@ void VideoBackend::Shutdown()
 	s_swapRequested = false;
 	DLCache::Shutdown();
 	Fifo_Shutdown();
-	OGL::PostProcessing::Shutdown();
+	PostProcessing::Shutdown();
 
 	// The following calls are NOT Thread Safe
 	// And need to be called from the video thread
-	OGL::TextureConverter::Shutdown();
+	TextureConverter::Shutdown();
 	VertexLoaderManager::Shutdown();
-	OGL::VertexShaderCache::Shutdown();
+	VertexShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
 	PixelShaderManager::Shutdown();
-	OGL::PixelShaderCache::Shutdown();
+	PixelShaderCache::Shutdown();
 	delete g_vertex_manager;
 	delete g_texture_cache;
 	OpcodeDecoder_Shutdown();

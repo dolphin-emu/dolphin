@@ -42,7 +42,7 @@ void AudioCommonConfig::Load()
 #else
 	file.Get("Config", "Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
-	file.Get("Config", "Frequency", &sFrequency, "48,000 Hz");
+	file.Get("Config", "Frequency", &sFrequency, 48000);
 	file.Get("Config", "Volume", &m_Volume, 100);
 }
 
