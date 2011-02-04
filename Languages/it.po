@@ -18,7 +18,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:494
 msgid " (too many to display)"
-msgstr " (troppo grande per il display)"
+msgstr " (troppi per la visualizzazione)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:252
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:434
@@ -59,7 +59,7 @@ msgstr "%d Blocchi Liberi; %d Voci Directory Libere"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
 #, c-format
 msgid "%d Hz"
-msgstr ""
+msgstr "%d Hz"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:129
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:321
@@ -264,16 +264,16 @@ msgstr "Impostazioni &Wiimote"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:59
 msgid "(-)+zFar"
-msgstr ""
+msgstr "(-)+zFar"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:54
 msgid "(-)+zNear"
-msgstr ""
+msgstr "(-)+zNear"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:105
 #, fuzzy
 msgid "(UNKNOWN)"
-msgstr "SCONOSCIUTO"
+msgstr "(SCONOSCIUTO)"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:426
 msgid "(off)"
@@ -537,6 +537,13 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
+"Somma il valore specificato al Parametro zFar.\n"
+"Due modi di esprimere i valori in virgola mobile.\n"
+"Esempio: inserendo ''200'' o direttamente ''0.0002'', il risultato non cambia, "
+"il valore acquisito sarà ''0.0002''.\n"
+"Valori: (0->+/-Intero) oppure (0->+/-Frazionaro[6 cifre di precisione dopo la virgola])\n"
+"\n"
+"NOTA: Controlla la Finestra di Log o la Console per i valori acquisiti."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:53
 msgid ""
@@ -548,6 +555,13 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
+"Somma il valore specificato al Parametro zNear.\n"
+"Due modi di esprimere i valori in virgola mobile.\n"
+"Esempio: inserendo ''200'' o direttamente ''0.0002'', il risultato non cambia, "
+"il valore acquisito sarà ''0.0002''.\n"
+"Valori: (0->+/-Intero) oppure (0->+/-Frazionaro[6 cifre di precisione dopo la virgola])\n"
+"\n"
+"NOTA: Controlla la Finestra di Log o la Console per i valori acquisiti."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:777
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -669,12 +683,12 @@ msgstr "Almeno un riquadro deve rimanere aperto."
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 #, fuzzy
 msgid "Audio"
-msgstr "CoreAudio"
+msgstr "Audio"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #, fuzzy
-msgid "Audio Backend :"
-msgstr "Interfaccia Audio"
+msgid "Audio Backend:"
+msgstr "Interfaccia Audio:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -708,7 +722,7 @@ msgstr "Indietro"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:740
 #, fuzzy
 msgid "Backend Settings"
-msgstr "Impostazioni di Base"
+msgstr "Impostazioni Interfaccia"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:280
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
@@ -908,11 +922,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:60
 msgid "Changes sign to zFar Parameter (after correction)"
-msgstr ""
+msgstr "Cambia segno al Parametro zFar (dopo la correzione)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:55
 msgid "Changes sign to zNear Parameter (after correction)"
-msgstr ""
+msgstr "Cambia segno al Parametro zNear (dopo la correzione)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:561
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:562
@@ -1082,7 +1096,7 @@ msgstr "Conferma la Sovrascrittura del File"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:652
 msgid "Confirm On Stop"
-msgstr "Conferma Alla Chiusura"
+msgstr "Conferma alla Chiusura"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:61
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:81
@@ -1174,8 +1188,8 @@ msgid ""
 "backup.  Please note that original Gamecube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
-"Impossibile leggere \"%s\". Nessun disco trovato nell'unità, oppure non è un "
-"backup GC/Wii. Tieni presente che la maggior parte delle unità a DVD nei PC "
+"Impossibile leggere \"%s\". Nessun disco trovato nell'unità, oppure non è una "
+"copia di sicurezza GC/Wii. Tieni presente che la maggior parte delle unità a DVD nei PC "
 "non riesce a leggere i dischi originali GameCube/Wii."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:273
@@ -1280,16 +1294,16 @@ msgstr "Directory corrente cambiata da %s a %s dopo wxFileSelector!"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 #, fuzzy
 msgid "Custom Projection Hack"
-msgstr "Hack Proiezione per:"
+msgstr "Hack Proiezione Personalizzato:"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.h:30
 #, fuzzy
 msgid "Custom Projection Hack Settings"
-msgstr "Hack Proiezione per:"
+msgstr "Impostazioni Hack Proiezione Personalizzato:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Customize some Orthographic Projection parameters."
-msgstr ""
+msgstr "Personalizza alcuni parametri di Proiezione Ortografica"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:86
 msgid "D-Pad"
@@ -1306,30 +1320,30 @@ msgstr "DSP"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:708
 #, fuzzy
 msgid "DSP Emulator Engine"
-msgstr "Motore di Emulazione CPU"
+msgstr "Motore di Emulazione DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
 msgid "DSP HLE emulation (fast)"
-msgstr ""
+msgstr "Emulazione DSP HLE (veloce)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:275
 #, fuzzy
 msgid "DSP LLE interpreter (slow)"
-msgstr "Interprete (Molto lento)"
+msgstr "Interprete DSP LLE (lento)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
 #, fuzzy
 msgid "DSP LLE recompiler"
-msgstr "Debugger DSP LLE"
+msgstr "Ricompilatore DSP LLE"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:386
 msgid "DSP settings"
 msgstr "Impostazioni DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "Blocca DSPLLE al thread"
+msgid "DSP LLE on thread"
+msgstr "Blocca DSP LLE al thread"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -1607,7 +1621,7 @@ msgstr "Percussioni/Batteria"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:77
 msgid "Dummy"
-msgstr "Fittizia"
+msgstr "Fittizio/a"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:401
 msgid "Dump EFB Target"
@@ -1859,7 +1873,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 #, fuzzy
 msgid "Enables Custom Projection Hack"
-msgstr "Hack Proiezione per:"
+msgstr "Abilita Hack Proiezione Personalizzato"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:70
 msgid ""
@@ -2028,11 +2042,11 @@ msgstr "Estensione"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:61
 msgid "Extra Parameter"
-msgstr ""
+msgstr "Parametro Extra"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:62
 msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-msgstr ""
+msgstr "Parametro Extra utile solo in ''Metroid: Other M''."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:622
 msgid "Extract All Files..."
@@ -2119,8 +2133,8 @@ msgid ""
 "Failed to read block allocation table backup correctly\n"
 "(0x8000-0x9FFF)"
 msgstr ""
-"Accesso alla tavola di allocazione dei blocchi non riuscito\n"
-"(0x8000-0x9FFF)"
+"Accesso alla copia di sicurezza della tavola di allocazione "
+"dei blocchi non riuscito\n(0x8000-0x9FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:122
 msgid ""
@@ -2319,8 +2333,8 @@ msgid "Frame S&kipping"
 msgstr "Salta &Fotogramma"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "Limite FPS :"
+msgid "Framelimit:"
+msgstr "Limite FPS:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -2342,7 +2356,7 @@ msgstr "Schermo Intero"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:659
 msgid "Fullscreen Display Resolution:"
-msgstr "Risoluzione video a Schermo Intero"
+msgstr "Risoluzione video a Schermo Intero:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:83
 msgid ""
@@ -2368,7 +2382,7 @@ msgstr "Controlli GC"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:669
 #, fuzzy
 msgid "GFX Config"
-msgstr "Configurazione"
+msgstr "Impostazioni GFX"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
 msgid "Game ID:"
@@ -2941,7 +2955,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:50
 msgid "Load preset values from hack patterns available."
-msgstr ""
+msgstr "Carica valori preimpostati dai modelli hack disponibili."
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:72
 msgid ""
@@ -3040,6 +3054,8 @@ msgid ""
 "Memory Card Manager WARNING-Make backups before using, should be fixed but "
 "could mangle stuff!"
 msgstr ""
+"AVVISO Gestore Scheda di Memoria - Al fine di evitare l'accidentale perdita di dati,\n"
+"eseguire una copia di sicurezza prima dell'uso!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:348
 #, c-format
@@ -3444,7 +3460,7 @@ msgstr "Paragrafo"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:64
 msgid "Parameters"
-msgstr ""
+msgstr "Parametri"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:214
 #, c-format
@@ -3476,7 +3492,7 @@ msgstr "Prospettiva %d"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:210
 msgid "Pixel Depth"
-msgstr "Pixel Depth"
+msgstr "Profondità Pixel"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:209
 msgid "Pixel Lighting"
@@ -3563,7 +3579,7 @@ msgstr "Effetti di Post-Processing:"
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:48
 #, fuzzy
 msgid "Presets: "
-msgstr "<Premi Tasto>"
+msgstr "Preimpostazioni: "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:206
 msgid "Prev Page"
@@ -3747,8 +3763,8 @@ msgid "Rumble"
 msgstr "Vibrazione"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "Esegui DSPLLE in un thread dedicato (non raccomandato)"
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "Esegui DSP LLE in un thread dedicato (non raccomandato)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3764,8 +3780,8 @@ msgstr "Accurata"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #, fuzzy
-msgid "Sample Rate :"
-msgstr "Frequenza di Campionamento"
+msgid "Sample Rate:"
+msgstr "Frequenza di Campionamento:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:993
@@ -3965,7 +3981,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
 #, fuzzy
 msgid "Settings..."
-msgstr "Impostazioni IPL"
+msgstr "Impostazioni..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:210
 msgid "SetupWiiMem: Cant find setting file"
@@ -4718,7 +4734,7 @@ msgstr "Video"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:665
 #, fuzzy
 msgid "Video Backend:"
-msgstr "Interfaccia Audio"
+msgstr "Interfaccia Video"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:370
 msgid "Virtual"
@@ -4768,7 +4784,7 @@ msgid ""
 "%s\n"
 "Do you wish to continue?"
 msgstr ""
-"Attenzione! Si consiglia di eseguire il backup di tutti i file nella "
+"Attenzione! Si consiglia di eseguire la copia di sicurezza di tutti i file nella "
 "cartella:\n"
 "%s\n"
 "Vuoi proseguire?"
@@ -5027,7 +5043,7 @@ msgstr "[ attesa ]"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:97
 msgid "[Custom]"
-msgstr ""
+msgstr "[Personalizzata]"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:526
 msgid "^ ADD"
@@ -5074,11 +5090,11 @@ msgstr "valore wxExecute ritornato -1 su applicazione in esecuzione!"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:56
 msgid "zFar Correction: "
-msgstr ""
+msgstr "Correzione zFar: "
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:51
 msgid "zNear Correction: "
-msgstr ""
+msgstr "Correzione zNear: "
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:511
 msgid "| OR"
@@ -5441,7 +5457,7 @@ msgstr "| OR"
 
 #, fuzzy
 #~ msgid "Graphics Plugin"
-#~ msgstr "Video"
+#~ msgstr "Plugin Video"
 
 #~ msgid ""
 #~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "

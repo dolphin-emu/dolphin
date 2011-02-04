@@ -104,7 +104,7 @@ void CPHackSettings::LoadPHackData()
 		if (sTemp.empty())
 			sTemp = wxString(_("(UNKNOWN)")).char_str();
 		if (i == 0)
-			PHackChoice->Append(wxString("-----------", *wxConvCurrent));
+			PHackChoice->Append(wxString("-------------", *wxConvCurrent));
 		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
 	}
 	PHackChoice->Select(0);

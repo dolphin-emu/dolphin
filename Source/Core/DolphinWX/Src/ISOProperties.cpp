@@ -360,15 +360,15 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
-	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(MMUBAT, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(VBeam, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(FastDiscSpeed, 0, wxEXPAND|wxLEFT, 5);	
-	sbCoreOverrides->Add(BlockMerging, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(DSPHLE, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(MMUBAT, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(TLBHack, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);	
+	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
 
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
@@ -384,23 +384,23 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		// rather useless.
 		EnableProgressiveScan->Disable();
 	}
-	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
-	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
+	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxLEFT, 5);
+	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
-	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(EFBCopyEnable, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(EFBAccessEnable, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(DListCache, 0, wxEXPAND|wxLEFT, 5);
-	szrPHackSettings->Add(PHackEnable, 0, wxEXPAND|wxLEFT, 5);
+	sbVideoOverrides->Add(ForceFiltering, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(EFBCopyEnable, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(EFBAccessEnable, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(SafeTextureCache, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(DstAlphaPass, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(UseXFB, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxLEFT, 5);
+	sbVideoOverrides->Add(DListCache, 0, wxLEFT, 5);
+	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(szrPHackSettings, 0, wxEXPAND);
 
+	sbVideoOverrides->Add(szrPHackSettings, 0, wxEXPAND);
 	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);

@@ -649,7 +649,7 @@ msgstr "XAudio2"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #, fuzzy
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr "Audio Backend"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1293,8 +1293,8 @@ msgid "DSP settings"
 msgstr "Ustawienia DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "Wątek dla DSPLLE"
+msgid "DSP LLE on thread"
+msgstr "Wątek dla DSP LLE"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2266,7 +2266,7 @@ msgid "Frame S&kipping"
 msgstr "Frame S&kipping"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
+msgid "Framelimit:"
 msgstr "Limit ramek"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
@@ -3659,8 +3659,8 @@ msgid "Rumble"
 msgstr "Wibracje"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "Wykonuj DSPLLE na osobnym wątku (niezalecane)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "Wykonuj DSP LLE na osobnym wątku (niezalecane)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3676,7 +3676,7 @@ msgstr "Bezpieczny"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #, fuzzy
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "Wskaźnik próbkowania"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

@@ -638,7 +638,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #, fuzzy
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr "Система вывода"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1274,8 +1274,8 @@ msgid "DSP settings"
 msgstr "Настройка аудио (DSP)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "Обрабатывать DSPLLE отдельным потоком"
+msgid "DSP LLE on thread"
+msgstr "Обрабатывать DSP LLE отдельным потоком"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2216,8 +2216,8 @@ msgid "Frame S&kipping"
 msgstr "&Пропуск кадров"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "Лимит кадров :"
+msgid "Framelimit:"
+msgstr "Лимит кадров:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -3599,8 +3599,8 @@ msgid "Rumble"
 msgstr "Видбрация"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "Запускает обработку DSPLLE в отдельном потоке (не рекомендуется)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "Запускает обработку DSP LLE в отдельном потоке (не рекомендуется)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3616,7 +3616,7 @@ msgstr "безопасное"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #, fuzzy
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "Частота"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

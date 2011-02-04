@@ -666,7 +666,7 @@ msgid "Audio"
 msgstr "Hang"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr "Hang feldolgozó:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1303,8 +1303,8 @@ msgid "DSP settings"
 msgstr "Hang (DSP) beállítások"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "DSPLLE folyamatágon"
+msgid "DSP LLE on thread"
+msgstr "DSP LLE folyamatágon"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2287,7 +2287,7 @@ msgid "Frame S&kipping"
 msgstr "Képkocka k&ihagyás"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
+msgid "Framelimit:"
 msgstr "Képkocka korlát:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
@@ -3689,8 +3689,8 @@ msgid "Rumble"
 msgstr "Rumble funkció"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "DSPLLE futtatása egy dedikált folyamatágon (nem ajánlott)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "DSP LLE futtatása egy dedikált folyamatágon (nem ajánlott)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3705,7 +3705,7 @@ msgid "Safe"
 msgstr "Biztonságos"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "Mintavételezési frekvencia:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

@@ -168,13 +168,18 @@ void CPUInfo::Detect()
 		if (cpu_id[2] & 2) cmp_legacy = true; //wtf is this?
 		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
 	}
+
+	num_cores = logical_cpu_count;
+	
 	if (max_ex_fn >= 0x80000008) {
 		// Get number of cores. This is a bit complicated. Following AMD manual here.
 		__cpuid(cpu_id, 0x80000008);
 		int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
 		if (apic_id_core_id_size == 0) {
-			num_cores = logical_cpu_count;
 			if (ht) {
+				if (vendor == VENDOR_OTHER) {
+					num_cores = 1;
+				}
 				// New mechanism for modern Intel CPUs.
 				if (HTT) {
 					__cpuid(cpu_id, 0x00000004);
@@ -183,20 +188,14 @@ void CPUInfo::Detect()
 					num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
 					logical_cpu_count /= cores_x_package;
 				}
-			}
-			else 
-			{
+			} else {
 				num_cores = 1;
 			}
 		} else {
 			// Use AMD's new method.
 			num_cores = (cpu_id[2] & 0xFF) + 1;
 		}
-	} else {
-		// Wild guess
-		if (logical_cpu_count)
-			num_cores = logical_cpu_count;
-	}
+	} 
 }
 
 // Turn the cpu info into a string we can show

@@ -601,7 +601,7 @@ msgid "Audio"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr ""
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1212,7 +1212,7 @@ msgid "DSP settings"
 msgstr "הגדרות קול"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
+msgid "DSP LLE on thread"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
@@ -2115,7 +2115,7 @@ msgid "Frame S&kipping"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
+msgid "Framelimit:"
 msgstr ""
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
@@ -3431,7 +3431,7 @@ msgid "Rumble"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
@@ -3447,7 +3447,7 @@ msgid "Safe"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

@@ -668,8 +668,8 @@ msgid "Audio"
 msgstr "Audio"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
-msgid "Audio Backend :"
-msgstr "Interface audio :"
+msgid "Audio Backend:"
+msgstr "Interface audio:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -1314,8 +1314,8 @@ msgid "DSP settings"
 msgstr "Paramètres DSP (audio)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "DSPLLE sur thread"
+msgid "DSP LLE on thread"
+msgstr "DSP LLE sur thread"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2300,8 +2300,8 @@ msgid "Frame S&kipping"
 msgstr "Saut d'&image :"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "Image/s max :"
+msgid "Framelimit:"
+msgstr "Image/s max:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -3707,7 +3707,7 @@ msgid "Rumble"
 msgstr "Rumble"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
 msgstr "Exécuter DSP-LLE sur un thread dédié (non recommandé)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
@@ -3723,7 +3723,7 @@ msgid "Safe"
 msgstr "Sûr "
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "Echantillonnage"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

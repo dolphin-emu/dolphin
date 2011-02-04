@@ -656,8 +656,8 @@ msgid "Audio"
 msgstr "Ήχος"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
-msgid "Audio Backend :"
-msgstr "Backend Ήχου :"
+msgid "Audio Backend:"
+msgstr "Backend Ήχου:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -1295,8 +1295,8 @@ msgid "DSP settings"
 msgstr "Ρυθμίσεις ήχου (DSP)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "DSPLLE σε ξεχωριστό νήμα"
+msgid "DSP LLE on thread"
+msgstr "DSP LLE σε ξεχωριστό νήμα"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2271,8 +2271,8 @@ msgid "Frame S&kipping"
 msgstr "Παράλειψη Κ&αρέ"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "Περιορισμός Καρέ :"
+msgid "Framelimit:"
+msgstr "Περιορισμός Καρέ:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -3663,8 +3663,8 @@ msgid "Rumble"
 msgstr "Δόνηση"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "Εκτέλεση DSPLLE σε ξεχωριστό νήμα (δεν προτείνεται)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "Εκτέλεση DSP LLE σε ξεχωριστό νήμα (δεν προτείνεται)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3679,8 +3679,8 @@ msgid "Safe"
 msgstr "Ασφαλής"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-msgid "Sample Rate :"
-msgstr "Ρυθμός Δειγματοληψίας :"
+msgid "Sample Rate:"
+msgstr "Ρυθμός Δειγματοληψίας:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:993

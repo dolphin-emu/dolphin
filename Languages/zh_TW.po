@@ -636,7 +636,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #, fuzzy
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr "聲音 Backend"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1269,8 +1269,8 @@ msgid "DSP settings"
 msgstr "聲音設定"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "DSPLLE 單獨線程"
+msgid "DSP LLE on thread"
+msgstr "DSP LLE 單獨線程"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2222,7 +2222,7 @@ msgid "Frame S&kipping"
 msgstr "畫格省略(&K)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
+msgid "Framelimit:"
 msgstr "畫格速限制："
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
@@ -3601,8 +3601,8 @@ msgid "Rumble"
 msgstr "震動"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "在獨立的線程中執行 DSPLLE (不推薦)。"
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "在獨立的線程中執行 DSP LLE (不推薦)。"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3618,7 +3618,7 @@ msgstr "安全"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #, fuzzy
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "採樣率"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

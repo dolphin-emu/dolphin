@@ -645,7 +645,7 @@ msgstr "XAudio2"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #, fuzzy
-msgid "Audio Backend :"
+msgid "Audio Backend:"
 msgstr "오디오 백엔드"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
@@ -1285,8 +1285,8 @@ msgid "DSP settings"
 msgstr "DSP 설정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "DSPLLE를 쓰레드상에"
+msgid "DSP LLE on thread"
+msgstr "DSP LLE를 쓰레드상에"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2255,8 +2255,8 @@ msgid "Frame S&kipping"
 msgstr "프레임 스킵(&k)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "프레임제한 :"
+msgid "Framelimit:"
+msgstr "프레임제한:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -3642,8 +3642,8 @@ msgid "Rumble"
 msgstr "진동"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "DSPLLE를 전용 쓰레드상에서 구동하기 (권장 안함)"
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "DSP LLE를 전용 쓰레드상에서 구동하기 (권장 안함)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3659,7 +3659,7 @@ msgstr "안전"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #, fuzzy
-msgid "Sample Rate :"
+msgid "Sample Rate:"
 msgstr "샘플율"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947

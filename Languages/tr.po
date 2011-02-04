@@ -662,8 +662,8 @@ msgid "Audio"
 msgstr "Ses"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
-msgid "Audio Backend :"
-msgstr "Ses Arka Ucu :"
+msgid "Audio Backend:"
+msgstr "Ses Arka Ucu:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -1303,8 +1303,8 @@ msgid "DSP settings"
 msgstr "Ses ayarları"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-msgid "DSPLLE on thread"
-msgstr "İşlem birimi üzerinde DSPLLE"
+msgid "DSP LLE on thread"
+msgstr "İşlem birimi üzerinde DSP LLE"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:894
 msgid "DVD Root:"
@@ -2278,8 +2278,8 @@ msgid "Frame S&kipping"
 msgstr "&Kare Atlama"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Framelimit :"
-msgstr "Kare Sınırı :"
+msgid "Framelimit:"
+msgstr "Kare Sınırı:"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
@@ -3672,8 +3672,8 @@ msgid "Rumble"
 msgstr "Gümbürtü"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
-msgid "Run DSPLLE on a dedicated thread (not recommended)."
-msgstr "DSPLLE'yi adanmış işlem biriminde çalıştır (önerilmez)."
+msgid "Run DSP LLE on a dedicated thread (not recommended)."
+msgstr "DSP LLE'yi adanmış işlem biriminde çalıştır (önerilmez)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Russian"
@@ -3688,8 +3688,8 @@ msgid "Safe"
 msgstr "Güvenli"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-msgid "Sample Rate :"
-msgstr "Örnek Oran :"
+msgid "Sample Rate:"
+msgstr "Örnek Oran:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:993

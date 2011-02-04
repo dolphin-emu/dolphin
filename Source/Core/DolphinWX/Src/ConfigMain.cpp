@@ -529,7 +529,7 @@ void CConfigMain::InitializeGUITooltips()
 	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."));
 
 	// General - Advanced
-	DSPThread->SetToolTip(_("Run DSPLLE on a dedicated thread (not recommended)."));
+	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
 
 	// Display - Display
 	FullscreenResolution->SetToolTip(_("Select resolution for fullscreen mode"));
@@ -599,11 +599,11 @@ void CConfigMain::CreateGUIControls()
 	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, _("Skip GC BIOS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, _("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, _("DSPLLE on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, _("DSP LLE on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the General settings
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
-	sFramelimit->Add(TEXT_BOX(GeneralPage, _("Framelimit :")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sFramelimit->Add(TEXT_BOX(GeneralPage, _("Framelimit:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sFramelimit->Add(Framelimit, 0, wxALL | wxEXPAND, 5);
 	sFramelimit->Add(UseFPSForLimiting, 0, wxALL | wxEXPAND, 5);
 	wxStaticBoxSizer* const sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Basic Settings"));
@@ -664,7 +664,7 @@ void CConfigMain::CreateGUIControls()
 	svidbackend->Add(TEXT_BOX(DisplayPage, _("Video Backend:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 	GraphicSelection = new wxChoice(DisplayPage, ID_GRAPHIC_CB,
 			wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
-	svidbackend->Add(GraphicSelection, 0, wxALIGN_CENTER_VERTICAL, 5);
+	svidbackend->Add(GraphicSelection, 0, wxLEFT|wxBOTTOM|wxTOP, 5);
 	GraphicConfig = new wxButton(DisplayPage, ID_GRAPHIC_CONFIG, _("GFX Config"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
 	svidbackend->Add(GraphicConfig, 0, wxALIGN_CENTER_VERTICAL, 5);
@@ -688,7 +688,7 @@ void CConfigMain::CreateGUIControls()
 
 	wxBoxSizer* sInterface = new wxBoxSizer(wxHORIZONTAL);
 	sInterface->Add(TEXT_BOX(DisplayPage, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sInterface->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
+	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
@@ -727,18 +727,16 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(EnableThrottle, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
-	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
-	sbVolume->Add(VolumeText, 0, wxALL|wxALIGN_LEFT, 4);
+	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
+	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER|wxALL, 5);
 
-	wxBoxSizer *sBackendText = new wxBoxSizer(wxVERTICAL);
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
-	sBackendText->Add(TEXT_BOX(AudioPage, _("Audio Backend :")), 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBackend->Add(BackendSelection, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND|wxALL, 1);
-	sBackendText->Add(TEXT_BOX(AudioPage, _("Sample Rate :")), 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBackend->Add(FrequencySelection, wxGBPosition(1, 0), wxDefaultSpan, wxEXPAND|wxALL, 1);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Sample Rate:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(FrequencySelection, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
-	sbBackend->Add(sBackendText, 1, wxALL | wxEXPAND);
-	sbBackend->Add(sBackend, 0, wxALL | wxEXPAND);
+	sbBackend->Add(sBackend, 0, wxEXPAND);
 
 	wxBoxSizer *sAudio = new wxBoxSizer(wxHORIZONTAL);
 	sAudio->Add(sbAudioSettings, 1, wxEXPAND|wxALL, 5);
@@ -792,7 +790,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		sEXIDevices[i] = new wxBoxSizer(wxHORIZONTAL);
 		sEXIDevices[i]->Add(GCEXIDeviceText[i], 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-		sEXIDevices[i]->Add(GCEXIDevice[i], 0, wxALL, 5);
+		sEXIDevices[i]->Add(GCEXIDevice[i], 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 		if (i < 2)
 			sEXIDevices[i]->Add(GCMemcardPath[i], 0, wxALL, 5);
 		sbGamecubeDeviceSettings->Add(sEXIDevices[i]);
