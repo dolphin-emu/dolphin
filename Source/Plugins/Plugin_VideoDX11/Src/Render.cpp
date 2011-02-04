@@ -784,7 +784,32 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
-	// TODO
+	// TODO: MSAA support..
+	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight());
+
+	ID3D11PixelShader* pixel_shader;
+	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6();
+	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8();
+	else
+	{
+		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+		return;
+	}
+
+	// convert data and set the target texture as our new EFB
+	g_renderer->ResetAPIState();
+
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetFullTargetWidth(), (float)g_renderer->GetFullTargetHeight());
+	D3D::context->RSSetViewports(1, &vp);
+
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), NULL);
+	D3D::SetPointCopySampler();
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+
+	g_renderer->RestoreAPIState();
+
+	FramebufferManager::SwapReinterpretTexture();
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
 void SetSrcBlend(D3D11_BLEND val)

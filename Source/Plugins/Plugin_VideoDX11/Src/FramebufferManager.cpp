@@ -78,6 +78,17 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetRTV(), "EFB color texture render target view");
 
+	// Temporary EFB color texture - used in ReinterpretPixelData
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0);
+	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
+	CHECK(hr==S_OK, "create EFB color temp texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+	m_efb.color_temp_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM);
+	CHECK(m_efb.color_temp_tex!=NULL, "create EFB color temp texture (size: %dx%d)", target_width, target_height);
+	SAFE_RELEASE(buf);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetTex(), "EFB color temp texture");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetSRV(), "EFB color temp texture shader resource view");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetRTV(), "EFB color temp texture render target view");
+
 	// AccessEFB - Sysmem buffer used to retrieve the pixel data from color_tex
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.color_staging_buf);
@@ -138,6 +149,7 @@ FramebufferManager::FramebufferManager()
 FramebufferManager::~FramebufferManager()
 {
 	SAFE_RELEASE(m_efb.color_tex);
+	SAFE_RELEASE(m_efb.color_temp_tex);
 	SAFE_RELEASE(m_efb.color_staging_buf);
 	SAFE_RELEASE(m_efb.resolved_color_tex);
 	SAFE_RELEASE(m_efb.depth_tex);

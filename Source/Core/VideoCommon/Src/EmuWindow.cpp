@@ -110,28 +110,28 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 		if (mouseLookEnabled) {
 			GetCursorPos(&point);
 			VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
-			lastMouse[0] = point.x;
-			lastMouse[1] = point.y;
+			lastMouse[0] = (float)point.x;
+			lastMouse[1] = (float)point.y;
 		}
 
 		if (mouseMoveEnabled) {
 			GetCursorPos(&point);
 			VertexShaderManager::TranslateView((point.x - lastMouse[0]) / 50.0f, (point.y - lastMouse[1]) / 50.0f);
-			lastMouse[0] = point.x;
-			lastMouse[1] = point.y;
+			lastMouse[0] = (float)point.x;
+			lastMouse[1] = (float)point.y;
 		}
 		break;
 
 	case WM_RBUTTONDOWN:
 		GetCursorPos(&point);
-		lastMouse[0] = point.x;
-		lastMouse[1] = point.y;
+		lastMouse[0] = (float)point.x;
+		lastMouse[1] = (float)point.y;
 		mouseLookEnabled= true;
 		break;
 	case WM_MBUTTONDOWN:		
 		GetCursorPos(&point);
-		lastMouse[0] = point.x;
-		lastMouse[1] = point.y;
+		lastMouse[0] = (float)point.x;
+		lastMouse[1] = (float)point.y;
 		mouseMoveEnabled= true;
 		break;
 	case WM_RBUTTONUP:

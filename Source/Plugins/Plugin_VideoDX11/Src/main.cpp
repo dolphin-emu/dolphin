@@ -104,7 +104,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bAllowSignedBytes = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
-	g_Config.backend_info.bSupportsFormatReinterpretation = false;
+	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
 }
 

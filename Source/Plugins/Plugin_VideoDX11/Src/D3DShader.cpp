@@ -62,7 +62,7 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 			std::string msg = (char*)errorBuffer->GetBufferPointer();
 			msg += "\n\n";
 			msg += code;
-			MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+			MessageBoxA(0, msg.c_str(), "Error compiling vertex shader", MB_ICONERROR);
 		}
 
 		*blob = NULL;

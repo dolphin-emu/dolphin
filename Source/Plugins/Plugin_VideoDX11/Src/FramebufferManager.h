@@ -87,6 +87,14 @@ public:
 	static D3DTexture2D* &GetResolvedEFBColorTexture();
 	static D3DTexture2D* &GetResolvedEFBDepthTexture();
 
+	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
+	static void SwapReinterpretTexture()
+	{
+		D3DTexture2D* swaptex = GetEFBColorTempTexture();
+		m_efb.color_temp_tex = GetEFBColorTexture();
+		m_efb.color_tex = swaptex;
+	}
+
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
@@ -101,6 +109,8 @@ private:
 		D3DTexture2D* depth_tex;
 		ID3D11Texture2D* depth_staging_buf;
 		D3DTexture2D* depth_read_texture;
+
+		D3DTexture2D* color_temp_tex;
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;

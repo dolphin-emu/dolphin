@@ -48,6 +48,8 @@ ID3D11PixelShader* s_ColorMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {NULL};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ClearProgram = NULL;
+ID3D11PixelShader* s_rgba6_to_rgb8 = NULL;
+ID3D11PixelShader* s_rgb8_to_rgba6 = NULL;
 ID3D11Buffer* pscbuf = NULL;
 
 const char clear_program_code[] = {
@@ -154,6 +156,64 @@ const char depth_matrix_program_msaa[] = {
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8()
+{
+	// TODO: MSAA support..
+	const char code[] = {
+		"sampler samp0 : register(s0);\n"
+		"Texture2D Tex0 : register(t0);\n"
+		"void main(\n"
+		"	out float4 ocol0 : SV_Target,\n"
+		"	in float4 pos : SV_Position,\n"
+		"	in float2 uv0 : TEXCOORD0)\n"
+		"{\n"
+		"	int4 src6 = round(Tex0.Sample(samp0,uv0) * 63.f);\n"
+		"	int4 dst8;\n"
+		"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
+		"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
+		"	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
+		"	dst8.a = 255;\n"
+		"	ocol0 = (float4)dst8 / 255.f;\n"
+		"}"
+	};
+
+	if(s_rgba6_to_rgb8) return s_rgba6_to_rgb8;
+
+	s_rgba6_to_rgb8 = D3D::CompileAndCreatePixelShader(code, sizeof(code));
+	CHECK(s_rgba6_to_rgb8!=NULL, "Create RGBA6 to RGB8 pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_rgba6_to_rgb8, "RGBA6 to RGB8 pixel shader");
+	return s_rgba6_to_rgb8;
+}
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGB8ToRGBA6()
+{
+	// TODO: MSAA support..
+	const char code[] = {
+		"sampler samp0 : register(s0);\n"
+		"Texture2D Tex0 : register(t0);\n"
+		"void main(\n"
+		"	out float4 ocol0 : SV_Target,\n"
+		"	in float4 pos : SV_Position,\n"
+		"	in float2 uv0 : TEXCOORD0)\n"
+		"{\n"
+		"	int4 src8 = round(Tex0.Sample(samp0,uv0) * 255.f);\n"
+		"	int4 dst6;\n"
+		"	dst6.r = src8.r >> 2;\n"
+		"	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
+		"	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
+		"	dst6.a = src8.b & 0x3F;\n"
+		"	ocol0 = (float4)dst6 / 63.f;\n"
+		"}\n"
+	};
+
+	if(s_rgb8_to_rgba6) return s_rgb8_to_rgba6;
+
+	s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, sizeof(code));
+	CHECK(s_rgb8_to_rgba6!=NULL, "Create RGB8 to RGBA6 pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_rgb8_to_rgba6, "RGB8 to RGBA6 pixel shader");
+	return s_rgb8_to_rgba6;
+}
 
 ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)
 {
@@ -297,6 +357,8 @@ void PixelShaderCache::Shutdown()
 {
 	SAFE_RELEASE(pscbuf);
 
+	SAFE_RELEASE(s_rgba6_to_rgb8);
+	SAFE_RELEASE(s_rgb8_to_rgba6);
 	SAFE_RELEASE(s_ClearProgram);
 	for (int i = 0; i < 2; ++i)
 	{
