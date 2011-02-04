@@ -691,10 +691,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	{
 		// TODO: Speed this up by batching pokes?
 		ResetAPIState();
-		D3D::drawColorQuad(poke_data, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-									- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
-									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
+		D3D::drawColorQuad(GetFullTargetWidth(), GetFullTargetHeight(), poke_data,
+							  (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+							- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
+							  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
+							- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
 		RestoreAPIState();
 		return 0;
 	}
@@ -838,7 +839,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	D3D::drawClearQuad(GetFullTargetWidth(), GetFullTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	RestoreAPIState();
 }
 
@@ -978,7 +979,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
-		D3D::drawClearQuad(0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+		D3D::drawClearQuad(GetFullTargetWidth(), GetFullTargetHeight(), 0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	}
 	else
 	{
