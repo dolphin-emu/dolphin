@@ -16,6 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Hash.h"
+#if _M_SSE >= 0x402
+#include "CPUDetect.h"
+#include <nmmintrin.h>
+#endif
 
 // uint32_t
 // WARNING - may read one more byte!
@@ -105,117 +109,180 @@ u32 HashEctor(const u8* ptr, int length)
 }
 
 #ifdef _M_X64
+// CRC32 hash using the SSE4.2 instruction
+u64 GetCRC32(const u8 *src, int len, u32 samples)
+{
+#if _M_SSE >= 0x402
+	u64 h = len;
+	u32 Step = (len / 8);
+	const u64 *data = (const u64 *)src;
+	const u64 *end = data + Step;
+	if(samples == 0) samples = Step;
+	Step = Step / samples;
+	if(Step < 1) Step = 1;
+	while(data < end)
+	{
+		h = _mm_crc32_u64(h, data[0]);
+		data += Step;
+	}
+
+	const u8 *data2 = (const u8*)end;
+	return _mm_crc32_u64(h, u64(data2[0]));
+#else
+	return 0;
+#endif
+}
+
 u64 GetHash64(const u8 *src, int len, u32 samples)
 {
 	const u64 m = 0xc6a4a7935bd1e995;
-	const int r = 47;
-
 	u64 h = len * m;
-	u32 Step = (len/8);
-	const u64 * data = (const u64 *)src;
-	const u64 * end = data + Step;
+
+#if _M_SSE >= 0x402
+	if (cpu_info.bSSE4_2)
+	{
+		h = GetCRC32(src, len, samples);
+	}
+	else
+#endif
+	{
+		const int r = 47;
+		u32 Step = (len / 8);
+		const u64 *data = (const u64 *)src;
+		const u64 *end = data + Step;
+		if(samples == 0) samples = Step;
+		Step = Step / samples;
+		if(Step < 1) Step = 1;
+		while(data < end)
+		{
+			u64 k = data[0];
+			data+=Step;
+			k *= m; 
+			k ^= k >> r; 
+			k *= m; 		
+			h ^= k;
+			h *= m; 
+		}
+
+		const u8 * data2 = (const u8*)end;
+
+		switch(len & 7)
+		{
+		case 7: h ^= u64(data2[6]) << 48;
+		case 6: h ^= u64(data2[5]) << 40;
+		case 5: h ^= u64(data2[4]) << 32;
+		case 4: h ^= u64(data2[3]) << 24;
+		case 3: h ^= u64(data2[2]) << 16;
+		case 2: h ^= u64(data2[1]) << 8;
+		case 1: h ^= u64(data2[0]);
+				h *= m;
+		};
+	 
+		h ^= h >> r;
+		h *= m;
+		h ^= h >> r;
+	}
+
+	return h;
+} 
+#else
+// CRC32 hash using the SSE4.2 instruction
+u64 GetCRC32(const u8 *src, int len, u32 samples)
+{
+#if _M_SSE >= 0x402
+	u32 h = len;
+	u32 Step = (len/4);
+	const u32 *data = (const u32 *)src;
+	const u32 *end = data + Step;
 	if(samples == 0) samples = Step;
 	Step  = Step / samples;
 	if(Step < 1) Step = 1;
 	while(data < end)
 	{
-		u64 k = data[0];
-		data+=Step;
-		k *= m; 
-		k ^= k >> r; 
-		k *= m; 		
-		h ^= k;
-		h *= m; 
+		h = _mm_crc32_u32(h, data[0]);
+		data += Step;
 	}
 
-	const u8 * data2 = (const u8*)end;
-
-	switch(len & 7)
-	{
-	case 7: h ^= u64(data2[6]) << 48;
-	case 6: h ^= u64(data2[5]) << 40;
-	case 5: h ^= u64(data2[4]) << 32;
-	case 4: h ^= u64(data2[3]) << 24;
-	case 3: h ^= u64(data2[2]) << 16;
-	case 2: h ^= u64(data2[1]) << 8;
-	case 1: h ^= u64(data2[0]);
-	        h *= m;
-	};
- 
-	h ^= h >> r;
-	h *= m;
-	h ^= h >> r;
-
-	return h;
-} 
-
+	const u8 *data2 = (const u8*)end;
+	return (u64)_mm_crc32_u32(h, u32(data2[0]));
 #else
+	return 0;
+#endif
+}
+
 u64 GetHash64(const u8 *src, int len, u32 samples)
 {
 	const u32 m = 0x5bd1e995;
-	const int r = 24;
-	
-	u32 h1 = len;
-	u32 h2 = 0;
-
-	u32 Step = (len / 4);
-	const u32 * data = (const u32 *)src;
-	const u32 * end = data + Step;
-	const u8 * uEnd = (const u8 *)end;
-	if(samples == 0) samples = Step;
-	Step = Step / samples;
-
-	if(Step < 2) Step = 2;	
-
-	while(data < end)
+	u64 h = 0;
+#if _M_SSE >= 0x402
+	if (cpu_info.bSSE4_2)
 	{
-		u32 k1 = data[0];
-		k1 *= m; 
-		k1 ^= k1 >> r; 
-		k1 *= m;
-		h1 *= m; 
-		h1 ^= k1;
+		h = GetCRC32(src, len, samples);
+	}
+	else
+#endif
+	{
+		const int r = 24;
 		
+		u32 h1 = len;
+		u32 h2 = 0;
 
-		u32 k2 = data[1];
-		k2 *= m; 
-		k2 ^= k2 >> r; 
-		k2 *= m;
-		h2 *= m; 
-		h2 ^= k2;
-		data+=Step;
+		u32 Step = (len / 4);
+		const u32 * data = (const u32 *)src;
+		const u32 * end = data + Step;
+		const u8 * uEnd = (const u8 *)end;
+		if(samples == 0) samples = Step;
+		Step = Step / samples;
+
+		if(Step < 2) Step = 2;	
+
+		while(data < end)
+		{
+			u32 k1 = data[0];
+			k1 *= m; 
+			k1 ^= k1 >> r; 
+			k1 *= m;
+			h1 *= m; 
+			h1 ^= k1;
+			
+
+			u32 k2 = data[1];
+			k2 *= m; 
+			k2 ^= k2 >> r; 
+			k2 *= m;
+			h2 *= m; 
+			h2 ^= k2;
+			data+=Step;
+		}
+
+		if((len & 7) > 3)
+		{
+			u32 k1 = *(end - 1);
+			k1 *= m; 
+			k1 ^= k1 >> r; 
+			k1 *= m;
+			h1 *= m; 
+			h1 ^= k1;
+			len -= 4;
+		}
+
+		switch(len & 3)
+		{
+		case 3: h2 ^= uEnd[2] << 16;
+		case 2: h2 ^= uEnd[1] << 8;
+		case 1: h2 ^= uEnd[0];
+				h2 *= m;
+		};
+
+		h1 ^= h2 >> 18; h1 *= m;
+		h2 ^= h1 >> 22; h2 *= m;
+		h1 ^= h2 >> 17; h1 *= m;
+		h2 ^= h1 >> 19; h2 *= m;
+
+		h = h1;
+
+		h = (h << 32) | h2;
 	}
-
-	if((len & 7) > 3)
-	{
-		u32 k1 = *(end - 1);
-		k1 *= m; 
-		k1 ^= k1 >> r; 
-		k1 *= m;
-		h1 *= m; 
-		h1 ^= k1;
-		len -= 4;
-	}
-
-	switch(len & 3)
-	{
-	case 3: h2 ^= uEnd[2] << 16;
-	case 2: h2 ^= uEnd[1] << 8;
-	case 1: h2 ^= uEnd[0];
-			h2 *= m;
-	};
-
-	h1 ^= h2 >> 18; h1 *= m;
-	h2 ^= h1 >> 22; h2 *= m;
-	h1 ^= h2 >> 17; h1 *= m;
-	h2 ^= h1 >> 19; h2 *= m;
-
-	u64 h = h1;
-
-	h = (h << 32) | h2;
-
 	return h;
 }
-
-
 #endif

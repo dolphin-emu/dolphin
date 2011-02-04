@@ -155,7 +155,7 @@ private:
 #elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
 #define _M_SSE 0x301
 #elif _MSC_VER >= 1500 // Visual Studio 2008
-#define _M_SSE 0x401
+#define _M_SSE 0x402
 #endif
 
 // Host communication.
