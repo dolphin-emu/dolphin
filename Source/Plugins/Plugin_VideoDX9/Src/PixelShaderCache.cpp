@@ -107,10 +107,10 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGBA6ToRGB8()
 		"			out float4 ocol0 : COLOR0,\n"
 		"			in float2 uv0 : TEXCOORD0){\n"
 		"	ocol0 = tex2D(samp0,uv0);\n"
-		"	float4 src6 = floor(ocol0 * 63.f);\n"
-		"	ocol0.r = src6.r*4.f + floor(src6.g/16.f);\n" // dst8r = (src6r<<2)|(src6g>>4);
-		"	ocol0.g = frac(src6.g/16.f)*16.f*16.f+floor(src6.b/4.f);\n" // dst8g = ((src6g&0xF)<<4)|(src6b>>2);
-		"	ocol0.b = frac(src6.b/4.f)*4.f*64.f+src6.a;\n" // dst8b = ((src6b&0x3)<<6)|src6a;
+		"	float4 src6 = round(ocol0 * 63.f);\n"
+		"	ocol0.r = floor(src6.r*4.f) + floor(src6.g/16.f);\n" // dst8r = (src6r<<2)|(src6g>>4);
+		"	ocol0.g = frac(src6.g/16.f)*16.f*16.f + floor(src6.b/4.f);\n" // dst8g = ((src6g&0xF)<<4)|(src6b>>2);
+		"	ocol0.b = frac(src6.b/4.f)*4.f*64.f + src6.a;\n" // dst8b = ((src6b&0x3)<<6)|src6a;
 		"	ocol0.a = 255.f;\n"
 		"	ocol0 /= 255.f;\n"
 		"}\n"
@@ -129,10 +129,10 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 		"			out float4 ocol0 : COLOR0,\n"
 		"			in float2 uv0 : TEXCOORD0){\n"
 		"	ocol0 = tex2D(samp0,uv0);\n"
-		"	float4 src8 = trunc(ocol0*255.f);\n"
-		"	ocol0.r = (src8.r/4.f);\n" // dst6r = src8r>>2;
-		"	ocol0.g = frac(src8.r/4.f)*4.f*16.f + (src8.g/16.f);\n" // dst6g = ((src8r&0x3)<<4)|(src8g>>4);
-		"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + (src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
+		"	float4 src8 = round(ocol0*255.f);\n"
+		"	ocol0.r = floor(src8.r/4.f);\n" // dst6r = src8r>>2;
+		"	ocol0.g = frac(src8.r/4.f)*4.f*16.f + floor(src8.g/16.f);\n" // dst6g = ((src8r&0x3)<<4)|(src8g>>4);
+		"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + floor(src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
 		"	ocol0.a = frac(src8.b/64.f)*64.f;\n" // dst6a = src8b&0x3F;
 		"	ocol0 /= 63.f;\n"
 		"}\n"
@@ -146,8 +146,8 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 					"in float2 uv0 : TEXCOORD0){\n"
 			"float4 temp1 = float4(1.0f/4.0f,1.0f/16.0f,1.0f/64.0f,0.0f);\n"
 			"float4 temp2 = float4(1.0f,64.0f,255.0f,1.0f/63.0f);\n"
-			"float4 src8 = floor(tex2D(samp0,uv0)*temp2.z) * temp1;\n"
-			"ocol0 = (frac(src8.wxyz) * temp2.xyyy + src8) * temp2.w;\n"
+			"float4 src8 = round(tex2D(samp0,uv0)*temp2.z) * temp1;\n"
+			"ocol0 = (frac(src8.wxyz) * temp2.xyyy + floor(src8)) * temp2.w;\n"
 		"}\n"
 	};
 	if (!s_rgb8_to_rgba6) s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
