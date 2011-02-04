@@ -53,5 +53,6 @@ if sys.platform == 'win32':
 	files += [ "ExtendedTrace.cpp" ]
 	files += [ "stdafx.cpp" ]
 
+env['common'] = env.StaticObject(files)
 env['CPPPATH'] += ['.']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env['common']

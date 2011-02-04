@@ -338,10 +338,10 @@ dirs = [
     'Source/Core/InputCommon/Src',
     'Source/Core/VideoCommon/Src',
     'Source/Core/VideoUICommon/Src',
-    #'Source/DSPTool/Src',
+    'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
-    #'Source/UnitTests',
+    'Source/UnitTests',
     ]
 
 # Now that platform configuration is done, propagate it to modules

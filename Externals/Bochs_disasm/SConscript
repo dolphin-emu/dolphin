@@ -15,6 +15,4 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 
 env['CPPPATH'] += ['#Externals/Bochs_disasm']
-#env['LIBS'] += env.StaticObject(files)
-bochs = env.StaticObject(files)
-env['LIBS'] += bochs
+env['LIBS'] += env.StaticObject(files)

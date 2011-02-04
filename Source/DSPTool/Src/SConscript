@@ -8,8 +8,8 @@ files = [
 	]
 
 libs = [
-	'core',
-	'common',
+	env['common'],
+	env['dspcore'],
 	]
 
 if sys.platform == 'darwin':
