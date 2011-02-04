@@ -136,7 +136,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,7 +152,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -172,7 +172,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
@@ -193,7 +193,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -213,7 +213,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
@@ -234,7 +234,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>dsound.lib;dxerr.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

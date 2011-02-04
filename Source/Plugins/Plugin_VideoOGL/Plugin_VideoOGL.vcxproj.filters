@@ -39,7 +39,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
-    <ClInclude Include="Src\GLWindow.h" />
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\VideoBackend.h" />
