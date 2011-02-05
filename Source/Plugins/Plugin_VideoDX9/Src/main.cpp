@@ -138,8 +138,10 @@ void VideoBackend::ShowConfig(void* parent)
 		for (int i = 0; i < (int)adapter.aa_levels.size(); ++i)
 			g_Config.backend_info.AAModes.push_back(adapter.aa_levels[i].name);
 	}
-
-
+	
+	// Clear ppshaders string vector
+	g_Config.backend_info.PPShaders.clear();
+	
 	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
 	diag->ShowModal();
 	diag->Destroy();

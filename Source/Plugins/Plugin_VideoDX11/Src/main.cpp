@@ -158,6 +158,9 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 	factory->Release();
 
+	// Clear ppshaders string vector
+	g_Config.backend_info.PPShaders.clear();
+
 	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
 	diag->ShowModal();
 	diag->Destroy();

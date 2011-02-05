@@ -669,7 +669,7 @@ msgstr "Audio"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 msgid "Audio Backend:"
-msgstr "Interface audio:"
+msgstr "Interface audio :"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -2301,7 +2301,7 @@ msgstr "Saut d'&image :"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
 msgid "Framelimit:"
-msgstr "Image/s max:"
+msgstr "Image/s max :"
 
 #: Source/Core/VideoUICommon/Src/VideoConfigDiag.cpp:403
 msgid "Free Look"
