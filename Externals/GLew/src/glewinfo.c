@@ -569,6 +569,15 @@ static void _glewInfo_GL_AMD_debug_output (void)
 
 #endif /* GL_AMD_debug_output */
 
+#ifdef GL_AMD_depth_clamp_separate
+
+static void _glewInfo_GL_AMD_depth_clamp_separate (void)
+{
+  glewPrintExt("GL_AMD_depth_clamp_separate", GLEW_AMD_depth_clamp_separate, glewIsSupported("GL_AMD_depth_clamp_separate"), glewGetExtension("GL_AMD_depth_clamp_separate"));
+}
+
+#endif /* GL_AMD_depth_clamp_separate */
+
 #ifdef GL_AMD_draw_buffers_blend
 
 static void _glewInfo_GL_AMD_draw_buffers_blend (void)
@@ -3804,6 +3813,15 @@ static void _glewInfo_GL_EXT_texture_sRGB (void)
 }
 
 #endif /* GL_EXT_texture_sRGB */
+
+#ifdef GL_EXT_texture_sRGB_decode
+
+static void _glewInfo_GL_EXT_texture_sRGB_decode (void)
+{
+  glewPrintExt("GL_EXT_texture_sRGB_decode", GLEW_EXT_texture_sRGB_decode, glewIsSupported("GL_EXT_texture_sRGB_decode"), glewGetExtension("GL_EXT_texture_sRGB_decode"));
+}
+
+#endif /* GL_EXT_texture_sRGB_decode */
 
 #ifdef GL_EXT_texture_shared_exponent
 
@@ -7143,6 +7161,9 @@ static void glewInfo (void)
 #ifdef GL_AMD_debug_output
   _glewInfo_GL_AMD_debug_output();
 #endif /* GL_AMD_debug_output */
+#ifdef GL_AMD_depth_clamp_separate
+  _glewInfo_GL_AMD_depth_clamp_separate();
+#endif /* GL_AMD_depth_clamp_separate */
 #ifdef GL_AMD_draw_buffers_blend
   _glewInfo_GL_AMD_draw_buffers_blend();
 #endif /* GL_AMD_draw_buffers_blend */
@@ -7821,6 +7842,9 @@ static void glewInfo (void)
 #ifdef GL_EXT_texture_sRGB
   _glewInfo_GL_EXT_texture_sRGB();
 #endif /* GL_EXT_texture_sRGB */
+#ifdef GL_EXT_texture_sRGB_decode
+  _glewInfo_GL_EXT_texture_sRGB_decode();
+#endif /* GL_EXT_texture_sRGB_decode */
 #ifdef GL_EXT_texture_shared_exponent
   _glewInfo_GL_EXT_texture_shared_exponent();
 #endif /* GL_EXT_texture_shared_exponent */

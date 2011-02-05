@@ -258,8 +258,8 @@ typedef Display* ( * PFNGLXGETCURRENTDISPLAYPROC) (void);
 #define GLX_DONT_CARE 0xFFFFFFFF
 
 typedef XID GLXFBConfigID;
-typedef XID GLXWindow;
 typedef XID GLXPbuffer;
+typedef XID GLXWindow;
 typedef struct __GLXFBConfigRec *GLXFBConfig;
 
 typedef struct {
@@ -1511,7 +1511,7 @@ GLXEW_EXPORT GLboolean __GLXEW_SUN_video_resize;
 
 typedef struct GLXEWContextStruct GLXEWContext;
 extern GLenum glxewContextInit (GLXEWContext* ctx);
-extern GLboolean glxewContextIsSupported (GLXEWContext* ctx, const char* name);
+extern GLboolean glxewContextIsSupported (const GLXEWContext* ctx, const char* name);
 
 #define glxewInit() glxewContextInit(glxewGetContext())
 #define glxewIsSupported(x) glxewContextIsSupported(glxewGetContext(), x)
