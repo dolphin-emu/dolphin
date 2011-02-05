@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="VideoCommon"
 	ProjectGUID="{E5D1F0C0-AA07-4841-A4EB-4CF4DAA6B0FA}"
 	RootNamespace="VideoCommon"
@@ -28,6 +28,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -94,6 +95,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -161,7 +163,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -230,7 +232,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -300,7 +302,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -364,7 +366,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -689,19 +691,19 @@
 				Name="OpenCL"
 				>
 				<File
-					RelativePath=".\Src\OpenCL.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\OpenCL.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\OpenCL\OCLTextureDecoder.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\Src\OpenCL\OCLTextureDecoder.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\OpenCL.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\OpenCL.h"
 					>
 				</File>
 				<File

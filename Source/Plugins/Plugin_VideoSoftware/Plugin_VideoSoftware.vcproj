@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="VideoSoftware"
 	ProjectGUID="{66A4E7BD-E2E8-4373-9B75-8750EB5AE683}"
 	RootNamespace="Plugin_VideoSoftware"
@@ -25,6 +25,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -92,6 +93,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -160,7 +162,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -226,7 +228,7 @@
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -361,14 +363,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SWCommandProcessor.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWCommandProcessor.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\CPMemLoader.cpp"
 			>
 		</File>
@@ -401,23 +395,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SWGLUtil.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWGLUtil.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\HwRasterizer.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\HwRasterizer.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWmain.cpp"
 			>
 		</File>
 		<File
@@ -433,14 +415,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SWPixelEngine.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWPixelEngine.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Rasterizer.cpp"
 			>
 		</File>
@@ -449,27 +423,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SWRenderer.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWRenderer.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SetupUnit.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\SetupUnit.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWStatistics.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWStatistics.h"
 			>
 		</File>
 		<File
@@ -510,6 +468,58 @@
 		</File>
 		<File
 			RelativePath=".\Src\stdafx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWCommandProcessor.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWCommandProcessor.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWGLUtil.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWGLUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWmain.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWPixelEngine.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWPixelEngine.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWRenderer.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWRenderer.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWStatistics.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWStatistics.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWVertexLoader.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SWVertexLoader.h"
 			>
 		</File>
 		<File
@@ -554,14 +564,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Vec3.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWVertexLoader.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWVertexLoader.h"
 			>
 		</File>
 		<File

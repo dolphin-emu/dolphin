@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Languages"
 	ProjectGUID="{0B8D0A82-C520-46BA-849D-3BB8F637EE0C}"
 	RootNamespace="Languages"
@@ -27,7 +27,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="10"
 			CharacterSet="0"
-			WholeProgramOptimization="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
