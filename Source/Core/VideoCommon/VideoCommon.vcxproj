@@ -246,6 +246,7 @@
     <ClCompile Include="Src\HiresTextures.cpp" />
     <ClCompile Include="Src\ImageWrite.cpp" />
     <ClCompile Include="Src\IndexGenerator.cpp" />
+    <ClCompile Include="Src\LightingShaderGen.cpp" />
     <ClCompile Include="Src\MainBase.cpp" />
     <ClCompile Include="Src\memcpy_amd.cpp" />
     <ClCompile Include="Src\OnScreenDisplay.cpp" />
@@ -290,6 +291,7 @@
     <ClInclude Include="Src\HiresTextures.h" />
     <ClInclude Include="Src\ImageWrite.h" />
     <ClInclude Include="Src\IndexGenerator.h" />
+    <ClInclude Include="Src\LightingShaderGen.h" />
     <ClInclude Include="Src\LookUpTables.h" />
     <ClInclude Include="Src\MainBase.h" />
     <ClInclude Include="Src\NativeVertexFormat.h" />

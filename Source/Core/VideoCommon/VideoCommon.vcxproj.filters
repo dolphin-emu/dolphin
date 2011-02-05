@@ -116,6 +116,9 @@
     <ClCompile Include="Src\VertexManagerBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="Src\LightingShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\CommandProcessor.h" />
@@ -239,6 +242,9 @@
     </ClInclude>
     <ClInclude Include="Src\VertexManagerBase.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LightingShaderGen.h">
+      <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -436,6 +436,14 @@
 			Name="Shader Generators"
 			>
 			<File
+				RelativePath=".\Src\LightingShaderGen.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LightingShaderGen.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PixelShaderGen.cpp"
 				>
 			</File>

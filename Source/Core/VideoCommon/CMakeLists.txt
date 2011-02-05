@@ -10,6 +10,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
 			Src/IndexGenerator.cpp
+			Src/LightingShaderGen.cpp
 			Src/MainBase.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp

@@ -22,6 +22,7 @@
 
 #include "BPMemory.h"
 #include "CPMemory.h"
+#include "LightingShaderGen.h"
 #include "VertexShaderGen.h"
 #include "VideoConfig.h"
 
@@ -71,10 +72,6 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 static char text[16384];
 
 #define WRITE p+=sprintf
-
-#define LIGHTS_POS ""
-
-char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char *dest, int coloralpha);
 
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 {
@@ -238,113 +235,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		else
 			WRITE(p, "o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");		
 	}
-	// lights/colors
-	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
-	{
-		const LitChannel& color = xfregs.color[j];
-		const LitChannel& alpha = xfregs.alpha[j];
+	
+	p = GenerateLightingShader(p, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
-		WRITE(p, "{\n");
-		
-		if (color.matsource) {// from vertex
-			if (components & (VB_HAS_COL0 << j))
-				WRITE(p, "mat = color%d;\n", j);
-			else if (components & VB_HAS_COL0)
-				WRITE(p, "mat = color0;\n");
-			else
-				WRITE(p, "mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
-		}
-		else // from color
-			WRITE(p, "mat = "I_MATERIALS".C%d;\n", j+2);
-
-		if (color.enablelighting) {
-			if (color.ambsource) { // from vertex
-				if (components & (VB_HAS_COL0<<j) )
-					WRITE(p, "lacc = color%d;\n", j);
-				else if (components & VB_HAS_COL0 )
-					WRITE(p, "lacc = color0;\n");
-				else
-					WRITE(p, "lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
-			}
-			else // from color
-				WRITE(p, "lacc = "I_MATERIALS".C%d;\n", j);
-		}
-		else
-		{
-			WRITE(p, "lacc = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
-		}
-
-		// check if alpha is different
-		if (alpha.matsource != color.matsource) {
-			if (alpha.matsource) {// from vertex
-				if (components & (VB_HAS_COL0<<j))
-					WRITE(p, "mat.w = color%d.w;\n", j);
-				else if (components & VB_HAS_COL0)
-					WRITE(p, "mat.w = color0.w;\n");
-				else WRITE(p, "mat.w = 1.0f;\n");
-			}
-			else // from color
-				WRITE(p, "mat.w = "I_MATERIALS".C%d.w;\n", j+2);
-		}
-
-		if (alpha.enablelighting)
-		{
-			if (alpha.ambsource) {// from vertex
-				if (components & (VB_HAS_COL0<<j) )
-					WRITE(p, "lacc.w = color%d.w;\n", j);
-				else if (components & VB_HAS_COL0 )
-					WRITE(p, "lacc.w = color0.w;\n");
-				else
-					WRITE(p, "lacc.w = 0.0f;\n");
-			}
-			else // from color
-				WRITE(p, "lacc.w = "I_MATERIALS".C%d.w;\n", j);
-		}
-		else
-		{
-			WRITE(p, "lacc.w = 1.0f;\n");
-		}	
-		
-		if(color.enablelighting && alpha.enablelighting)
-		{
-			// both have lighting, test if they use the same lights
-			int mask = 0;
-			if(color.lightparams == alpha.lightparams)
-			{
-				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
-				if(mask)
-				{
-					for (int i = 0; i < 8; ++i)
-					{
-						if (mask & (1<<i))
-							p = GenerateLightShader(p, i, color, "lacc", 3);
-					}
-				}
-			}
-
-			// no shared lights
-			for (int i = 0; i < 8; ++i)
-			{
-				if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)))
-					p = GenerateLightShader(p, i, color, "lacc", 1);
-				if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)))
-					p = GenerateLightShader(p, i, alpha, "lacc", 2);
-			}
-		}
-		else if (color.enablelighting || alpha.enablelighting)
-		{
-			// lights are disabled on one channel so process only the active ones
-			LitChannel workingchannel = color.enablelighting ? color : alpha;
-			int coloralpha = color.enablelighting ? 1 : 2;
-			for (int i = 0; i < 8; ++i)
-			{
-				if (workingchannel.GetFullLightMask() & (1<<i))
-					p = GenerateLightShader(p, i, workingchannel, "lacc", coloralpha);
-			}
-		}
-		WRITE(p, "o.colors_%d = mat * saturate(lacc);\n", j);
-		WRITE(p, "}\n");
-	}	
 	if(xfregs.numChan.numColorChans < 2)
 	{
 		if (components & VB_HAS_COL1)
@@ -537,65 +430,4 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
 	setlocale(LC_NUMERIC, ""); // restore locale
 	return text;
-}
-
-// coloralpha - 1 if color, 2 if alpha
-char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char *dest, int coloralpha)
-{
-	const char* swizzle = "xyzw";
-	if (coloralpha == 1 ) swizzle = "xyz";
-	else if (coloralpha == 2 ) swizzle = "w";
-
-	if (!(chan.attnfunc & 1)) {
-		// atten disabled
-		switch (chan.diffusefunc) {
-			case LIGHTDIF_NONE:
-				WRITE(p, "%s.%s += "I_LIGHTS".lights[%d].col.%s;\n", dest, swizzle, index, swizzle);
-				break;
-			case LIGHTDIF_SIGN:
-			case LIGHTDIF_CLAMP:
-				WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", index);
-				WRITE(p, "%s.%s += %sdot(ldir, _norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
-					dest, swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", index, swizzle);
-				break;
-			default: _assert_(0);
-		}
-	}
-	else { // spec and spot
-		
-		if (chan.attnfunc == 3) 
-		{ // spot
-			WRITE(p, "ldir = "I_LIGHTS".lights[%d].pos.xyz - pos.xyz;\n", index);
-			WRITE(p, "dist2 = dot(ldir, ldir);\n"
-				"dist = sqrt(dist2);\n"
-				"ldir = ldir / dist;\n"
-				"attn = max(0.0f, dot(ldir, "I_LIGHTS".lights[%d].dir.xyz));\n",index);
-			WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", index, index);
-		}
-		else if (chan.attnfunc == 1) 
-		{ // specular
-			WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz);\n",index);
-			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index);
-			WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1,attn,attn*attn));\n", index, index);
-		}
-
-		switch (chan.diffusefunc)
-		{
-			case LIGHTDIF_NONE:
-				WRITE(p, "%s.%s += attn * "I_LIGHTS".lights[%d].col.%s;\n", dest, swizzle, index, swizzle);
-				break;
-			case LIGHTDIF_SIGN:
-			case LIGHTDIF_CLAMP:
-				WRITE(p, "%s.%s += attn * %sdot(ldir, _norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
-					dest, 
-					swizzle, 
-					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", 
-					index, 
-					swizzle);
-				break;
-			default: _assert_(0);
-		}
-	}
-	WRITE(p, "\n");	
-	return p;
 }
