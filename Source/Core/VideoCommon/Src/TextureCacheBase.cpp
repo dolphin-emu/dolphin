@@ -23,8 +23,10 @@ enum
 
 TextureCache *g_texture_cache;
 
-u8 *TextureCache::temp;
+u8 *TextureCache::temp = NULL;
+
 TextureCache::TexCache TextureCache::textures;
+Common::CriticalSection TextureCache::texMutex;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -41,13 +43,17 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 
 TextureCache::TextureCache()
 {
-	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
+	if (!temp)
+		temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-	HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+    if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
 void TextureCache::Invalidate(bool shutdown)
 {
+	texMutex.Enter();
 	TexCache::iterator
 		iter = textures.begin(),
 		tcend = textures.end();
@@ -59,14 +65,20 @@ void TextureCache::Invalidate(bool shutdown)
 	}
 
 	textures.clear();
-	HiresTextures::Shutdown();
+	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	texMutex.Leave();
 }
 
 TextureCache::~TextureCache()
 {
 	Invalidate(true);
-	FreeMemoryPages(temp, TEMP_SIZE);
-	temp = NULL;
+	if (temp)
+	{
+		FreeMemoryPages(temp, TEMP_SIZE);
+		temp = NULL;
+	}
 }
 
 void TextureCache::Cleanup()
@@ -180,22 +192,20 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
 	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 	bool texture_is_dynamic = false;
-	bool forceLegacyHash = (g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 	unsigned int texLevels;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
-	// someone who understands this var could rename it :p
-	const bool isC4_C8_C14X2 = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
+	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
 
-	if (isC4_C8_C14X2)
+	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
 	// hires texture loading and texture dumping require accurate hashes
-	if (g_ActiveConfig.bSafeTextureCache || forceLegacyHash)
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
-		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples, forceLegacyHash);
+		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-		if (isC4_C8_C14X2)
+		if (isPaletteTexture)
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
 			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
@@ -206,7 +216,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			// we must make sure that texture with different tluts get different IDs.
 
 			const u64 tlutHash = GetHash64(texMem + tlutaddr, palette_size,
-				g_ActiveConfig.iSafeTextureCache_ColorSamples, forceLegacyHash);
+				g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 			texHash ^= tlutHash;
 
@@ -229,7 +239,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 				{
 					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-					if (isC4_C8_C14X2)
+					if (isPaletteTexture)
 					{
 						hash_value ^= GetHash64(&texMem[tlutaddr], palette_size,
 							g_ActiveConfig.iSafeTextureCache_ColorSamples);

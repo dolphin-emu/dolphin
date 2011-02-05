@@ -2,6 +2,7 @@
 #include "VideoConfigDiag.h"
 
 #include "FileUtil.h"
+#include "TextureCacheBase.h"
 
 #include <wx/intl.h>
 
@@ -58,6 +59,8 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
 	ev.Skip();
+
+	TextureCache::Invalidate(false); // For settings like hi-res textures/texture format/etc.
 }
 
 

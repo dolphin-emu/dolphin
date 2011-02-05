@@ -33,6 +33,8 @@ std::map<std::string, std::string> textureMap;
 
 void Init(const char *gameCode)
 {
+	textureMap.clear();
+
 	CFileSearch::XStringVector Directories;
 	//Directories.push_back(std::string(File::GetUserPath(D_HIRESTEXTURES_IDX)));
 	char szDir[MAX_PATH];
@@ -86,11 +88,6 @@ void Init(const char *gameCode)
 				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilenames[i]));
 		}
 	}
-}
-
-void Shutdown()
-{
-	textureMap.clear();
 }
 
 PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, int texformat, u8 *data)

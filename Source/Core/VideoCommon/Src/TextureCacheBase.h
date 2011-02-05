@@ -7,6 +7,7 @@
 #include "VideoCommon.h"
 #include "TextureDecoder.h"
 #include "BPMemory.h"
+#include "Thread.h"
 
 #include "CommonTypes.h"
 
@@ -71,6 +72,8 @@ public:
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
+	static void Init();
+	static void Shutdown();
 	static void Cleanup();
 
 	static void Invalidate(bool shutdown);
@@ -87,6 +90,8 @@ public:
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel);
 	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
 		u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect);
+
+	static Common::CriticalSection texMutex;
 
 protected:
 	TextureCache();
