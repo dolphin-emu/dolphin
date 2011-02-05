@@ -72,8 +72,6 @@ public:
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
-	static void Init();
-	static void Shutdown();
 	static void Cleanup();
 
 	static void Invalidate(bool shutdown);
