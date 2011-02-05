@@ -18,7 +18,7 @@
 #include "Common.h"
 #include "Core.h"
 
-#include "../../Plugin_VideoOGL/Src/GLUtil.h"
+#include "SWGLUtil.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
 #include "../../Plugin_VideoOGL/Src/RasterFont.h"
