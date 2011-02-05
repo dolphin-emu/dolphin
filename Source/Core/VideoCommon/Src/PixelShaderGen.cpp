@@ -41,7 +41,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 		if (bpmem.tevorders[i/2].getEnable(i & 1))
 		{
 			int texcoord = bpmem.tevorders[i / 2].getTexCoord(i & 1);
-			if (xfregs.texcoords[texcoord].texmtxinfo.projection)
+			if (xfregs.texMtxInfo[i].projection)
 				projtexcoords |= 1 << texcoord;
 		}
 	}
@@ -66,12 +66,12 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		for (int i = 0; i < 2; ++i) {
-			uid->values[3 + i] = xfregs.colChans[i].color.enablelighting ?
-				(u32)xfregs.colChans[i].color.hex :
-				(u32)xfregs.colChans[i].color.matsource;
-			uid->values[3 + i] |= (xfregs.colChans[i].alpha.enablelighting ?
-				(u32)xfregs.colChans[i].alpha.hex :
-				(u32)xfregs.colChans[i].alpha.matsource) << 15;
+			uid->values[3 + i] = xfregs.color[i].enablelighting ?
+				(u32)xfregs.color[i].hex :
+				(u32)xfregs.color[i].matsource;
+			uid->values[3 + i] |= (xfregs.alpha[i].enablelighting ?
+				(u32)xfregs.alpha[i].hex :
+				(u32)xfregs.alpha[i].matsource) << 15;
 		}
 	}
 	uid->values[4] |= (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
@@ -552,7 +552,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 		else
 		{
-			for (int i = 0; i < xfregs.numTexGens; ++i)
+			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 				WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
 		}
 	}
@@ -591,7 +591,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	
 	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGens < 7) 
+		if (xfregs.numTexGen.numTexGens < 7) 
 		{
 			WRITE(p,"float3 _norm0 = normalize(Normal.xyz);\n\n");
 			WRITE(p,"float3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
@@ -607,10 +607,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		"float3 ldir, h;\n"
 		"float dist, dist2, attn;\n");
 		// lights/colors
-		for (int j = 0; j < xfregs.nNumChans; j++)
+		for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
 		{
-			const LitChannel& color = xfregs.colChans[j].color;
-			const LitChannel& alpha = xfregs.colChans[j].alpha;
+			const LitChannel& color = xfregs.color[j];
+			const LitChannel& alpha = xfregs.alpha[j];
 
 			WRITE(p, "{\n");
 			
@@ -730,7 +730,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		for (int i = 0; i < numTexgen; ++i)
 		{
 			// optional perspective divides
-			if (xfregs.texcoords[i].texmtxinfo.projection == XF_TEXPROJ_STQ)
+			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
 				WRITE(p, "if (uv%d.z)", i);
 				WRITE(p, "	uv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);

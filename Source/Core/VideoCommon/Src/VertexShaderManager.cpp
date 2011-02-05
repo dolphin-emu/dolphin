@@ -33,8 +33,6 @@
 #include "VertexManagerBase.h"
 
 #include "RenderBase.h"
-
-static float GC_ALIGNED16(s_fMaterials[16]);
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
@@ -237,9 +235,23 @@ void VertexShaderManager::SetConstants()
 
 	if (nMaterialsChanged)
 	{
+		float GC_ALIGNED16(material[4]);
+		float NormalizationCoef = 1 / 255.0f;
+
 		for (int i = 0; i < 4; ++i)
+		{
 			if (nMaterialsChanged & (1 << i))
-				SetVSConstant4fv(C_MATERIALS + i, &s_fMaterials[4 * i]);
+			{
+				u32 data = *(xfregs.ambColor + i);
+
+				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
+				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
+				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
+				material[3] = ( data        & 0xFF) * NormalizationCoef;
+
+				SetVSConstant4fv(C_MATERIALS + i, material);
+			}
+		}
 
 		nMaterialsChanged = 0;
 	}
@@ -530,47 +542,19 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 	}
 }
 
-void VertexShaderManager::SetViewport(float* _Viewport, int constantIndex)
-{
-	if(constantIndex <= 0)
-	{
-		memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));
-	}
-	else
-	{
-		xfregs.rawViewport[constantIndex] = _Viewport[0];
-	}
-	bViewportChanged = true;
-}
-
 void VertexShaderManager::SetViewportChanged()
 {
 	bViewportChanged = true;
 }
 
-void VertexShaderManager::SetProjection(float* _pProjection, int constantIndex)
+void VertexShaderManager::SetProjectionChanged()
 {
-	if(constantIndex <= 0)
-	{
-		memcpy(xfregs.rawProjection, _pProjection, sizeof(xfregs.rawProjection));
-	}
-	else
-	{
-		xfregs.rawProjection[constantIndex] = _pProjection[0];
-	}
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::SetMaterialColor(int index, u32 data)
+void VertexShaderManager::SetMaterialColorChanged(int index)
 {
-	int ind = index * 4;
-
 	nMaterialsChanged  |= (1 << index);
-	float NormalizationCoef = 1 / 255.0f;
-	s_fMaterials[ind++] = ((data >> 24) & 0xFF) * NormalizationCoef;
-	s_fMaterials[ind++] = ((data >> 16) & 0xFF) * NormalizationCoef;
-	s_fMaterials[ind++] = ((data >>  8) & 0xFF) * NormalizationCoef;
-	s_fMaterials[ind]   = ( data        & 0xFF) * NormalizationCoef;
 }
 
 void VertexShaderManager::TranslateView(float x, float y)

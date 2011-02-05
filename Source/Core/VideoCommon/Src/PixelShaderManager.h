@@ -39,7 +39,7 @@ public:
 	static void SetDestAlpha(const ConstantAlpha& alpha);
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
 	static void SetZTextureBias(u32 bias);
-	static void SetViewport(float* viewport,int VIndex = -1);
+	static void SetViewportChanged();
 	static void SetIndMatrixChanged(int matrixidx);
 	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
@@ -50,7 +50,7 @@ public:
 	static void SetFogRangeAdjustChanged();
 	static void SetColorMatrix(const float* pmatrix);
 	static void InvalidateXFRange(int start, int end);
-	static void SetMaterialColor(int index, u32 data);
+	static void SetMaterialColorChanged(int index);
 	
 };
 

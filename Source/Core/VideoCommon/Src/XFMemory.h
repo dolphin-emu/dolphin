@@ -173,6 +173,32 @@ union PostMtxInfo
     u32 hex;
 };
 
+union NumColorChannel
+{
+	struct
+	{
+		u32 numColorChans : 2;
+	};
+	u32 hex;
+};
+
+union NumTexGen
+{
+	struct
+	{
+		u32 numTexGens : 4;
+	};
+	u32 hex;
+};
+
+union DualTexInfo
+{
+	struct
+	{
+		u32 enabled : 1;
+	};
+	u32 hex;
+};
 
 
 
@@ -199,16 +225,6 @@ struct Light
     };
 };
 
-
-
-struct ColorChannel
-{
-    u32 ambColor;
-    u32 matColor;
-    LitChannel color;
-    LitChannel alpha;
-};
-
 struct Viewport
 {
 	float wd;
@@ -219,26 +235,38 @@ struct Viewport
 	float farZ;
 };
 
-struct TexCoordInfo
-{
-    TexMtxInfo texmtxinfo;
-    PostMtxInfo postmtxinfo;
-};
-
 struct XFRegisters
 {
-    int numTexGens;
-    int nNumChans;
-    INVTXSPEC hostinfo; // number of textures,colors,normals from vertex input
-    ColorChannel colChans[2]; //C0A0 C1A1
-    TexCoordInfo texcoords[8];
-    bool bEnableDualTexTransform;
-	float rawViewport[6];
-	float rawProjection[7];	
+    u32 error;                      // 0x1000
+    u32 diag;                       // 0x1001
+    u32 state0;                     // 0x1002
+    u32 state1;                     // 0x1003
+    u32 xfClock;                    // 0x1004
+    u32 clipDisable;                // 0x1005
+    u32 perf0;                      // 0x1006
+    u32 perf1;                      // 0x1007
+    INVTXSPEC hostinfo;             // 0x1008 number of textures,colors,normals from vertex input
+    NumColorChannel numChan;        // 0x1009
+    u32 ambColor[2];                // 0x100a, 0x100b
+    u32 matColor[2];                // 0x100c, 0x100d
+    LitChannel color[2];            // 0x100e, 0x100f
+    LitChannel alpha[2];            // 0x1010, 0x1011
+    DualTexInfo dualTexTrans;       // 0x1012
+    u32 unk3;                       // 0x1013
+    u32 unk4;                       // 0x1014
+    u32 unk5;                       // 0x1015
+    u32 unk6;                       // 0x1016
+    u32 unk7;                       // 0x1017
+    u32 MatrixIndexA;				// 0x1018
+    u32 MatrixIndexB;				// 0x1019
+    float rawViewport[6];           // 0x101a - 0x101f
+    float rawProjection[7];         // 0x1020 - 0x1026
+    u32 unk8[24];                   // 0x1027 - 0x103e
+    NumTexGen numTexGen;            // 0x103f
+    TexMtxInfo texMtxInfo[8];       // 0x1040 - 0x1047
+    u32 unk9[8];                    // 0x1048 - 0x104f
+    PostMtxInfo postMtxInfo[8];     // 0x1050 - 0x1057
 };
-
-
-
 
 
 extern XFRegisters xfregs;
