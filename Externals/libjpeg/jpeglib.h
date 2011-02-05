@@ -2,7 +2,7 @@
  * jpeglib.h
  *
  * Copyright (C) 1991-1998, Thomas G. Lane.
- * Modified 2002-2009 by Guido Vollbeding.
+ * Modified 2002-2010 by Guido Vollbeding.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -33,11 +33,13 @@ extern "C" {
 #endif
 #endif
 
-/* Version ID for the JPEG library.
- * Might be useful for tests like "#if JPEG_LIB_VERSION >= 70".
+/* Version IDs for the JPEG library.
+ * Might be useful for tests like "#if JPEG_LIB_VERSION >= 80".
  */
 
-#define JPEG_LIB_VERSION  70	/* Version 7.0 */
+#define JPEG_LIB_VERSION        80	/* Compatibility version 8.0 */
+#define JPEG_LIB_VERSION_MAJOR  8
+#define JPEG_LIB_VERSION_MINOR  3
 
 
 /* Various constants determining the sizes of things.
@@ -171,7 +173,7 @@ typedef struct {
   int MCU_width;		/* number of blocks per MCU, horizontally */
   int MCU_height;		/* number of blocks per MCU, vertically */
   int MCU_blocks;		/* MCU_width * MCU_height */
-  int MCU_sample_width;		/* MCU width in samples, MCU_width*DCT_scaled_size */
+  int MCU_sample_width;	/* MCU width in samples: MCU_width * DCT_h_scaled_size */
   int last_col_width;		/* # of non-dummy blocks across in last MCU */
   int last_row_height;		/* # of non-dummy blocks down in last MCU */
 
@@ -414,6 +416,10 @@ struct jpeg_compress_struct {
 
   int Ss, Se, Ah, Al;		/* progressive JPEG parameters for scan */
 
+  int block_size;		/* the basic DCT block size: 1..16 */
+  const int * natural_order;	/* natural-order position array */
+  int lim_Se;			/* min( Se, DCTSIZE2-1 ) */
+
   /*
    * Links to compression subobjects (methods and private variables of modules)
    */
@@ -560,6 +566,7 @@ struct jpeg_decompress_struct {
   jpeg_component_info * comp_info;
   /* comp_info[i] describes component that appears i'th in SOF */
 
+  boolean is_baseline;		/* TRUE if Baseline SOF0 encountered */
   boolean progressive_mode;	/* TRUE if SOFn specifies progressive mode */
   boolean arith_code;		/* TRUE=arithmetic coding, FALSE=Huffman */
 
@@ -632,6 +639,12 @@ struct jpeg_decompress_struct {
   /* i'th block in an MCU */
 
   int Ss, Se, Ah, Al;		/* progressive JPEG parameters for scan */
+
+  /* These fields are derived from Se of first SOS marker.
+   */
+  int block_size;		/* the basic DCT block size: 1..16 */
+  const int * natural_order; /* natural-order position array for entropy decode */
+  int lim_Se;			/* min( Se, DCTSIZE2-1 ) for entropy decode */
 
   /* This field is shared between entropy decoder and marker parser.
    * It is either zero or the code of a JPEG marker that has been
@@ -862,6 +875,8 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 #define jpeg_destroy_decompress	jDestDecompress
 #define jpeg_stdio_dest		jStdDest
 #define jpeg_stdio_src		jStdSrc
+#define jpeg_mem_dest		jMemDest
+#define jpeg_mem_src		jMemSrc
 #define jpeg_set_defaults	jSetDefaults
 #define jpeg_set_colorspace	jSetColorspace
 #define jpeg_default_colorspace	jDefColorspace
@@ -894,6 +909,7 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 #define jpeg_input_complete	jInComplete
 #define jpeg_new_colormap	jNewCMap
 #define jpeg_consume_input	jConsumeInput
+#define jpeg_core_output_dimensions	jCoreDimensions
 #define jpeg_calc_output_dimensions	jCalcDimensions
 #define jpeg_save_markers	jSaveMarkers
 #define jpeg_set_marker_processor	jSetMarker
@@ -937,6 +953,14 @@ EXTERN(void) jpeg_destroy_decompress JPP((j_decompress_ptr cinfo));
 /* Caller is responsible for opening the file before and closing after. */
 EXTERN(void) jpeg_stdio_dest JPP((j_compress_ptr cinfo, FILE * outfile));
 EXTERN(void) jpeg_stdio_src JPP((j_decompress_ptr cinfo, FILE * infile));
+
+/* Data source and destination managers: memory buffers. */
+EXTERN(void) jpeg_mem_dest JPP((j_compress_ptr cinfo,
+			       unsigned char ** outbuffer,
+			       unsigned long * outsize));
+EXTERN(void) jpeg_mem_src JPP((j_decompress_ptr cinfo,
+			      unsigned char * inbuffer,
+			      unsigned long insize));
 
 /* Default parameter setup for compression */
 EXTERN(void) jpeg_set_defaults JPP((j_compress_ptr cinfo));
@@ -1032,6 +1056,7 @@ EXTERN(int) jpeg_consume_input JPP((j_decompress_ptr cinfo));
 #define JPEG_SCAN_COMPLETED	4 /* Completed last iMCU row of a scan */
 
 /* Precalculate output dimensions for current decompression parameters. */
+EXTERN(void) jpeg_core_output_dimensions JPP((j_decompress_ptr cinfo));
 EXTERN(void) jpeg_calc_output_dimensions JPP((j_decompress_ptr cinfo));
 
 /* Control saving of COM and APPn markers into marker_list. */
