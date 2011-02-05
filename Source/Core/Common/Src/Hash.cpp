@@ -215,12 +215,12 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 #endif
 }
 
-u64 GetHash64(const u8 *src, int len, u32 samples)
+u64 GetHash64(const u8 *src, int len, u32 samples, bool legacy)
 {
 	const u32 m = 0x5bd1e995;
 	u64 h = 0;
 #if _M_SSE >= 0x402
-	if (cpu_info.bSSE4_2)
+	if (cpu_info.bSSE4_2 && !legacy)
 	{
 		h = GetCRC32(src, len, samples);
 	}
