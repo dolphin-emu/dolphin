@@ -1299,7 +1299,7 @@ msgstr "Hack Proiezione Personalizzato:"
 #: Source/Core/DolphinWX/Src/PHackSettings.h:30
 #, fuzzy
 msgid "Custom Projection Hack Settings"
-msgstr "Impostazioni Hack Proiezione Personalizzato:"
+msgstr "Impostazioni Hack Proiezione Personalizzato"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Customize some Orthographic Projection parameters."
