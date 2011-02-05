@@ -2,6 +2,8 @@
 
    This file is part of the LZO real-time data compression library.
 
+   Copyright (C) 2010 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2009 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2008 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2007 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2006 Markus Franz Xaver Johannes Oberhumer
@@ -45,9 +47,9 @@
 
 
 #ifndef __MINILZO_H
-#define __MINILZO_H
+#define __MINILZO_H 1
 
-#define MINILZO_VERSION         0x2030
+#define MINILZO_VERSION         0x2040
 
 #ifdef __LZOCONF_H
 #  error "you cannot use both LZO and miniLZO"

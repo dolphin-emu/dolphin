@@ -2,6 +2,8 @@
 
    This file is part of the LZO real-time data compression library.
 
+   Copyright (C) 2010 Markus Franz Xaver Johannes Oberhumer
+   Copyright (C) 2009 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2008 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2007 Markus Franz Xaver Johannes Oberhumer
    Copyright (C) 2006 Markus Franz Xaver Johannes Oberhumer
@@ -39,11 +41,11 @@
 
 
 #ifndef __LZOCONF_H_INCLUDED
-#define __LZOCONF_H_INCLUDED
+#define __LZOCONF_H_INCLUDED 1
 
-#define LZO_VERSION             0x2030
-#define LZO_VERSION_STRING      "2.03"
-#define LZO_VERSION_DATE        "Apr 30 2008"
+#define LZO_VERSION             0x2040
+#define LZO_VERSION_STRING      "2.04"
+#define LZO_VERSION_DATE        "Oct 31 2010"
 
 /* internal Autoconf configuration file - only used when building LZO */
 #if defined(LZO_HAVE_CONFIG_H)
@@ -167,12 +169,12 @@ extern "C" {
 /* Memory model that allows to access memory at offsets of lzo_uint. */
 #if !defined(__LZO_MMODEL)
 #  if (LZO_UINT_MAX <= UINT_MAX)
-#    define __LZO_MMODEL
+#    define __LZO_MMODEL        /*empty*/
 #  elif defined(LZO_HAVE_MM_HUGE_PTR)
 #    define __LZO_MMODEL_HUGE   1
 #    define __LZO_MMODEL        __huge
 #  else
-#    define __LZO_MMODEL
+#    define __LZO_MMODEL        /*empty*/
 #  endif
 #endif
 
@@ -189,7 +191,7 @@ extern "C" {
 #define lzo_xintp               lzo_xint __LZO_MMODEL *
 #define lzo_voidpp              lzo_voidp __LZO_MMODEL *
 #define lzo_bytepp              lzo_bytep __LZO_MMODEL *
-/* deprecated - use `lzo_bytep' instead of `lzo_byte *' */
+/* deprecated - use 'lzo_bytep' instead of 'lzo_byte *' */
 #define lzo_byte                unsigned char __LZO_MMODEL
 
 typedef int lzo_bool;
@@ -215,10 +217,10 @@ typedef int lzo_bool;
 
 /* DLL export information */
 #if !defined(__LZO_EXPORT1)
-#  define __LZO_EXPORT1
+#  define __LZO_EXPORT1         /*empty*/
 #endif
 #if !defined(__LZO_EXPORT2)
-#  define __LZO_EXPORT2
+#  define __LZO_EXPORT2         /*empty*/
 #endif
 
 /* __cdecl calling convention for public C and assembly functions */
@@ -341,32 +343,32 @@ LZO_EXTERN(const lzo_charp) _lzo_version_date(void);
 
 /* string functions */
 LZO_EXTERN(int)
-lzo_memcmp(const lzo_voidp _s1, const lzo_voidp _s2, lzo_uint _len);
+    lzo_memcmp(const lzo_voidp a, const lzo_voidp b, lzo_uint len);
 LZO_EXTERN(lzo_voidp)
-lzo_memcpy(lzo_voidp _dest, const lzo_voidp _src, lzo_uint _len);
+    lzo_memcpy(lzo_voidp dst, const lzo_voidp src, lzo_uint len);
 LZO_EXTERN(lzo_voidp)
-lzo_memmove(lzo_voidp _dest, const lzo_voidp _src, lzo_uint _len);
+    lzo_memmove(lzo_voidp dst, const lzo_voidp src, lzo_uint len);
 LZO_EXTERN(lzo_voidp)
-lzo_memset(lzo_voidp _s, int _c, lzo_uint _len);
+    lzo_memset(lzo_voidp buf, int c, lzo_uint len);
 
 /* checksum functions */
 LZO_EXTERN(lzo_uint32)
-lzo_adler32(lzo_uint32 _adler, const lzo_bytep _buf, lzo_uint _len);
+    lzo_adler32(lzo_uint32 c, const lzo_bytep buf, lzo_uint len);
 LZO_EXTERN(lzo_uint32)
-lzo_crc32(lzo_uint32 _c, const lzo_bytep _buf, lzo_uint _len);
+    lzo_crc32(lzo_uint32 c, const lzo_bytep buf, lzo_uint len);
 LZO_EXTERN(const lzo_uint32p)
-lzo_get_crc32_table(void);
+    lzo_get_crc32_table(void);
 
 /* misc. */
 LZO_EXTERN(int) _lzo_config_check(void);
 typedef union { lzo_bytep p; lzo_uint u; } __lzo_pu_u;
 typedef union { lzo_bytep p; lzo_uint32 u32; } __lzo_pu32_u;
-typedef union { void *vp; lzo_bytep bp; lzo_uint32 u32; long l; } lzo_align_t;
+typedef union { void *vp; lzo_bytep bp; lzo_uint u; lzo_uint32 u32; unsigned long l; } lzo_align_t;
 
-/* align a char pointer on a boundary that is a multiple of `size' */
-LZO_EXTERN(unsigned) __lzo_align_gap(const lzo_voidp _ptr, lzo_uint _size);
-#define LZO_PTR_ALIGN_UP(_ptr,_size) \
-    ((_ptr) + (lzo_uint) __lzo_align_gap((const lzo_voidp)(_ptr),(lzo_uint)(_size)))
+/* align a char pointer on a boundary that is a multiple of 'size' */
+LZO_EXTERN(unsigned) __lzo_align_gap(const lzo_voidp p, lzo_uint size);
+#define LZO_PTR_ALIGN_UP(p,size) \
+    ((p) + (lzo_uint) __lzo_align_gap((const lzo_voidp)(p),(lzo_uint)(size)))
 
 
 /***********************************************************************
@@ -395,8 +397,8 @@ LZO_EXTERN(unsigned) __lzo_align_gap(const lzo_voidp _ptr, lzo_uint _size);
 #  define __LZO_WIN 1
 #endif
 
-#define __LZO_CMODEL
-#define __LZO_DMODEL
+#define __LZO_CMODEL            /*empty*/
+#define __LZO_DMODEL            /*empty*/
 #define __LZO_ENTRY             __LZO_CDECL
 #define LZO_EXTERN_CDECL        LZO_EXTERN
 #define LZO_ALIGN               LZO_PTR_ALIGN_UP
