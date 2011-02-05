@@ -13,7 +13,12 @@
 #ifndef ZUTIL_H
 #define ZUTIL_H
 
-#define ZLIB_INTERNAL
+#if ((__GNUC__-0) * 10 + __GNUC_MINOR__-0 >= 33) && !defined(NO_VIZ)
+#  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
+#else
+#  define ZLIB_INTERNAL
+#endif
+
 #include "zlib.h"
 
 #ifdef STDC
@@ -22,19 +27,6 @@
 #  endif
 #  include <string.h>
 #  include <stdlib.h>
-#endif
-
-#if defined(UNDER_CE) && defined(NO_ERRNO_H)
-#  define zseterrno(ERR) SetLastError((DWORD)(ERR))
-#  define zerrno() ((int)GetLastError())
-#else
-#  ifdef NO_ERRNO_H
-     extern int errno;
-#  else
-#    include <errno.h>
-#  endif
-#  define zseterrno(ERR) do { errno = (ERR); } while (0)
-#  define zerrno() errno
 #endif
 
 #ifndef local
@@ -167,10 +159,10 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
   #pragma warn -8066
 #endif
 
-#ifdef _LARGEFILE64_SOURCE
-#  define z_off64_t off64_t
-#else
-#  define z_off64_t z_off_t
+/* provide prototypes for these when building zlib without LFS */
+#if !defined(_LARGEFILE64_SOURCE) || _LFS64_LARGEFILE-0 == 0
+    ZEXTERN uLong ZEXPORT adler32_combine64 OF((uLong, uLong, z_off_t));
+    ZEXTERN uLong ZEXPORT crc32_combine64 OF((uLong, uLong, z_off_t));
 #endif
 
         /* common defaults */
@@ -181,12 +173,6 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
 #ifndef F_OPEN
 #  define F_OPEN(name, mode) fopen((name), (mode))
-#endif
-
-#ifdef _LARGEFILE64_SOURCE
-#  define F_OPEN64(name, mode) fopen64((name), (mode))
-#else
-#  define F_OPEN64(name, mode) fopen((name), (mode))
 #endif
 
          /* functions */
@@ -250,16 +236,16 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #    define zmemzero(dest, len) memset(dest, 0, len)
 #  endif
 #else
-   extern void zmemcpy  OF((Bytef* dest, const Bytef* source, uInt len));
-   extern int  zmemcmp  OF((const Bytef* s1, const Bytef* s2, uInt len));
-   extern void zmemzero OF((Bytef* dest, uInt len));
+   void ZLIB_INTERNAL zmemcpy OF((Bytef* dest, const Bytef* source, uInt len));
+   int ZLIB_INTERNAL zmemcmp OF((const Bytef* s1, const Bytef* s2, uInt len));
+   void ZLIB_INTERNAL zmemzero OF((Bytef* dest, uInt len));
 #endif
 
 /* Diagnostic functions */
 #ifdef DEBUG
 #  include <stdio.h>
-   extern int z_verbose;
-   extern void z_error    OF((char *m));
+   extern int ZLIB_INTERNAL z_verbose;
+   extern void ZLIB_INTERNAL z_error OF((char *m));
 #  define Assert(cond,msg) {if(!(cond)) z_error(msg);}
 #  define Trace(x) {if (z_verbose>=0) fprintf x ;}
 #  define Tracev(x) {if (z_verbose>0) fprintf x ;}
@@ -276,8 +262,9 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 
-voidpf zcalloc OF((voidpf opaque, unsigned items, unsigned size));
-void   zcfree  OF((voidpf opaque, voidpf ptr));
+voidpf ZLIB_INTERNAL zcalloc OF((voidpf opaque, unsigned items,
+                        unsigned size));
+void ZLIB_INTERNAL zcfree  OF((voidpf opaque, voidpf ptr));
 
 #define ZALLOC(strm, items, size) \
            (*((strm)->zalloc))((strm)->opaque, (items), (size))

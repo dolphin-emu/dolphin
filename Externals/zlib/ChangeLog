@@ -1,6 +1,84 @@
 
                 ChangeLog file for zlib
 
+Changes in 1.2.5 (19 Apr 2010)
+- Disable visibility attribute in win32/Makefile.gcc [Bar-Lev]
+- Default to libdir as sharedlibdir in configure [Nieder]
+- Update copyright dates on modified source files
+- Update trees.c to be able to generate modified trees.h
+- Exit configure for MinGW, suggesting win32/Makefile.gcc
+
+Changes in 1.2.4.5 (18 Apr 2010)
+- Set sharedlibdir in configure [Torok]
+- Set LDFLAGS in Makefile.in [Bar-Lev]
+- Avoid mkdir objs race condition in Makefile.in [Bowler]
+- Add ZLIB_INTERNAL in front of internal inter-module functions and arrays
+- Define ZLIB_INTERNAL to hide internal functions and arrays for GNU C
+- Don't use hidden attribute when it is a warning generator (e.g. Solaris)
+
+Changes in 1.2.4.4 (18 Apr 2010)
+- Fix CROSS_PREFIX executable testing, CHOST extract, mingw* [Torok]
+- Undefine _LARGEFILE64_SOURCE in zconf.h if it is zero, but not if empty
+- Try to use bash or ksh regardless of functionality of /bin/sh
+- Fix configure incompatibility with NetBSD sh
+- Remove attempt to run under bash or ksh since have better NetBSD fix
+- Fix win32/Makefile.gcc for MinGW [Bar-Lev]
+- Add diagnostic messages when using CROSS_PREFIX in configure
+- Added --sharedlibdir option to configure [Weigelt]
+- Use hidden visibility attribute when available [Frysinger]
+
+Changes in 1.2.4.3 (10 Apr 2010)
+- Only use CROSS_PREFIX in configure for ar and ranlib if they exist
+- Use CROSS_PREFIX for nm [Bar-Lev]
+- Assume _LARGEFILE64_SOURCE defined is equivalent to true
+- Avoid use of undefined symbols in #if with && and ||
+- Make *64 prototypes in gzguts.h consistent with functions
+- Add -shared load option for MinGW in configure [Bowler]
+- Move z_off64_t to public interface, use instead of off64_t
+- Remove ! from shell test in configure (not portable to Solaris)
+- Change +0 macro tests to -0 for possibly increased portability
+
+Changes in 1.2.4.2 (9 Apr 2010)
+- Add consistent carriage returns to readme.txt's in masmx86 and masmx64
+- Really provide prototypes for *64 functions when building without LFS
+- Only define unlink() in minigzip.c if unistd.h not included
+- Update README to point to contrib/vstudio project files
+- Move projects/vc6 to old/ and remove projects/
+- Include stdlib.h in minigzip.c for setmode() definition under WinCE
+- Clean up assembler builds in win32/Makefile.msc [Rowe]
+- Include sys/types.h for Microsoft for off_t definition
+- Fix memory leak on error in gz_open()
+- Symbolize nm as $NM in configure [Weigelt]
+- Use TEST_LDSHARED instead of LDSHARED to link test programs [Weigelt]
+- Add +0 to _FILE_OFFSET_BITS and _LFS64_LARGEFILE in case not defined
+- Fix bug in gzeof() to take into account unused input data
+- Avoid initialization of structures with variables in puff.c
+- Updated win32/README-WIN32.txt [Rowe]
+
+Changes in 1.2.4.1 (28 Mar 2010)
+- Remove the use of [a-z] constructs for sed in configure [gentoo 310225]
+- Remove $(SHAREDLIB) from LIBS in Makefile.in [Creech]
+- Restore "for debugging" comment on sprintf() in gzlib.c
+- Remove fdopen for MVS from gzguts.h
+- Put new README-WIN32.txt in win32 [Rowe]
+- Add check for shell to configure and invoke another shell if needed
+- Fix big fat stinking bug in gzseek() on uncompressed files
+- Remove vestigial F_OPEN64 define in zutil.h
+- Set and check the value of _LARGEFILE_SOURCE and _LARGEFILE64_SOURCE
+- Avoid errors on non-LFS systems when applications define LFS macros
+- Set EXE to ".exe" in configure for MINGW [Kahle]
+- Match crc32() in crc32.c exactly to the prototype in zlib.h [Sherrill]
+- Add prefix for cross-compilation in win32/makefile.gcc [Bar-Lev]
+- Add DLL install in win32/makefile.gcc [Bar-Lev]
+- Allow Linux* or linux* from uname in configure [Bar-Lev]
+- Allow ldconfig to be redefined in configure and Makefile.in [Bar-Lev]
+- Add cross-compilation prefixes to configure [Bar-Lev]
+- Match type exactly in gz_load() invocation in gzread.c
+- Match type exactly of zcalloc() in zutil.c to zlib.h alloc_func
+- Provide prototypes for *64 functions when building zlib without LFS
+- Don't use -lc when linking shared library on MinGW
+- Remove errno.h check in configure and vestigial errno code in zutil.h
+
 Changes in 1.2.4 (14 Mar 2010)
 - Fix VER3 extraction in configure for no fourth subversion
 - Update zlib.3, add docs to Makefile.in to make .pdf out of it
@@ -99,7 +177,7 @@ Changes in 1.2.3.6 (17 Jan 2010)
 - Correct email address in configure for system options
 - Update make_vms.com and add make_vms.com to contrib/minizip [Zinser]
 - Update zlib.map [Brown]
-- Fix Makefile.in for Solaris 10 make of example64 and minizip64 [Tšršk]
+- Fix Makefile.in for Solaris 10 make of example64 and minizip64 [Torok]
 - Apply various fixes to CMakeLists.txt [Lowman]
 - Add checks on len in gzread() and gzwrite()
 - Add error message for no more room for gzungetc()
