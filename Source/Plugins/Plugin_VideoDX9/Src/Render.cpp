@@ -1377,7 +1377,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	if (texindex)
 		stage += 4;
 	
-	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR && g_ActiveConfig.iMaxAnisotropy > 1)
+	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR && g_ActiveConfig.iMaxAnisotropy)
 	{
 		min = D3DTEXF_ANISOTROPIC;
 	}
