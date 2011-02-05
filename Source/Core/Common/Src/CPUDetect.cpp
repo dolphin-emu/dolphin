@@ -207,7 +207,7 @@ std::string CPUInfo::Summarize()
 	else
 	{
 		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT) sum += StringFromFormat(" (%i logical IDs per physical core)", logical_cpu_count);
+		if (HTT) sum += StringFromFormat(" (%i logical thread(s) per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";
