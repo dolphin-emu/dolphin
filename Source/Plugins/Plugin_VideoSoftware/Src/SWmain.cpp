@@ -87,11 +87,6 @@ void VideoBackend::EmuStateChange(EMUSTATE_CHANGE newState)
 
 }
 
-//bool IsD3D()
-//{
-//	return false;
-//}
-
 void VideoBackend::Shutdown()
 {
 	SWRenderer::Shutdown();

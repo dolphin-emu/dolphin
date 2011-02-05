@@ -68,7 +68,7 @@ bool TryParse(const std::string &str, bool *output);
 bool TryParse(const std::string &str, u32 *output);
 
 template <typename N>
-bool TryParse(const std::string &str, N *const output)
+static bool TryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
 	

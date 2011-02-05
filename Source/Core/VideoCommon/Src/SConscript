@@ -8,7 +8,6 @@ files = [
 	'BPStructs.cpp',
 	'CPMemory.cpp',
 	'CommandProcessor.cpp',
-	'Debugger.cpp',
 	'DLCache.cpp',
 	'Fifo.cpp',
 	'FramebufferManagerBase.cpp',
@@ -43,5 +42,8 @@ files = [
 	'XFStructs.cpp',
 	'memcpy_amd.cpp',
 	]
+
+if env['HAVE_WX']:
+	files += ['Debugger.cpp']
 
 env['LIBS'] += env.StaticObject(files)

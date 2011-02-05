@@ -30,10 +30,6 @@ namespace AudioCommon
 {	
 	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
 	{
-		// This looks evil.
-		if (!mixer)
-			mixer = new CMixer();
-
 		std::string backend = ac_Config.sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
@@ -57,12 +53,11 @@ namespace AudioCommon
 			ac_Config.Update();
 			if (soundStream->Start())
 			{
+#if 0
 				// Start the sound recording
-				/*
-				  if (ac_Config.record) {
-				  soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
-				  }
-				*/
+				if (ac_Config.record)
+					soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
+#endif
 				return soundStream;
 			}
 			PanicAlertT("Could not initialize backend %s.", backend.c_str());
@@ -81,7 +76,10 @@ namespace AudioCommon
 		if (soundStream) 
 		{
 			soundStream->Stop();
-			soundStream->StopLogAudio();
+#if 0
+			if (ac_Config.record)
+				soundStream->StopLogAudio();
+#endif
 			delete soundStream;
 			soundStream = NULL;
 		}

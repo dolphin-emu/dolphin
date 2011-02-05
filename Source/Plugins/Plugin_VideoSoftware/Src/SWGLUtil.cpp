@@ -108,7 +108,7 @@ unsigned int VideoBackend::PeekMessages()
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	char temp[100];
-	snprintf(temp, sizeof temp, "%s | OpenGL | %s", svn_rev_str, text);
+	snprintf(temp, sizeof temp, "%s | Software | %s", svn_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 

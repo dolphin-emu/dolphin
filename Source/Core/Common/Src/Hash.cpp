@@ -449,7 +449,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
    makes identical hashes, this is just a c/p of the 64-bit one. */
 u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 {
-	const u64 m = 0xc6a4a7935bd1e995;
+	const u64 m = 0xc6a4a7935bd1e995ULL;
 	u64 h = len * m;
 	const int r = 47;
 	u32 Step = (len / 8);

@@ -37,7 +37,7 @@
 
 // A shortcut to access the bitmaps
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
-inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+static inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 {
 	wxMemoryInputStream is(data, length);
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));

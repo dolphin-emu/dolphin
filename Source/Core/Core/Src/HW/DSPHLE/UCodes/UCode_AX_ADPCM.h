@@ -20,7 +20,7 @@
 
 #include "../../DSP.h"
 
-inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 frac)
+static inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 frac)
 {
 	while (samplePos < newSamplePos)
 	{
@@ -63,7 +63,7 @@ inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 
 
 // TODO: WTF is going on here?!?
 // Volume control (ramping)
-inline u16 ADPCM_Vol(u16 vol, u16 delta)
+static inline u16 ADPCM_Vol(u16 vol, u16 delta)
 {
 	int x = vol;
 	if (delta && delta < 0x5000)

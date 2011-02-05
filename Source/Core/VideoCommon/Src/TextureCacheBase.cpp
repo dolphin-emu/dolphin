@@ -296,7 +296,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		unsigned int newWidth = width;
 		unsigned int newHeight = height;
 
-		sprintf(texPathTemp, "%s_%08lx_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
+		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
@@ -397,7 +397,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 			File::CreateDir(szDir);
 
-		sprintf(szTemp, "%s/%s_%08lx_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);

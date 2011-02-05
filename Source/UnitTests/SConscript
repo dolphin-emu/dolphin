@@ -14,9 +14,4 @@ libs = [
 	env['dspcore'],
 	]
 
-if sys.platform == 'darwin':
-	frames = ['CoreFoundation']
-else:
-	frames = []
-
-env.Program('tester', files, LIBS = libs, FRAMEWORKS = frames)
+env.Program('tester', files, LIBS = libs)
