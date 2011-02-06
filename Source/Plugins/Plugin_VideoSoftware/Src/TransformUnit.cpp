@@ -116,7 +116,7 @@ void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst
     }    
 }
 
-inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
+void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
 {
     const Vec3 *src;
     switch (texinfo.sourcerow)

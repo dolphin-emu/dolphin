@@ -193,14 +193,14 @@ void Stop()  // - Hammertime!
 	g_bStopping = true;
 	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
 
-	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
+	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
 
 	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
 
 	// Stop the CPU
-	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 	PowerPC::Stop();
 	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
 
@@ -225,7 +225,7 @@ void Stop()  // - Hammertime!
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
 
-	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 	g_EmuThread.join();	// Wait for emuthread to close. 
 }
 

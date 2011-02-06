@@ -338,6 +338,8 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 		GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
 
 #elif defined(__APPLE__)
+	NSRect size;
+	NSUInteger style = NSMiniaturizableWindowMask;
 	NSOpenGLPixelFormatAttribute attr[2] = { NSOpenGLPFADoubleBuffer, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
@@ -354,15 +356,29 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 		return NULL;
 	}
 
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen) {
+		size = [[NSScreen mainScreen] frame];
+		style |= NSBorderlessWindowMask;
+	} else {
+		size = NSMakeRect(_tx, _ty, _twidth, _theight);
+		style |= NSResizableWindowMask | NSTitledWindowMask;
+	}
+
 	(void)VideoWindowHandle;
-	CGDisplayCapture(CGMainDisplayID());
-	GLWin.cocoaWin = [[NSWindow alloc]
-		initWithContentRect: [[NSScreen mainScreen] frame]
-		styleMask: NSBorderlessWindowMask
-		backing: NSBackingStoreBuffered defer: NO];
-	[GLWin.cocoaWin makeKeyAndOrderFront: nil];
-	[GLWin.cocoaWin setLevel: CGShieldingWindowLevel()];
+	GLWin.cocoaWin = [[NSWindow alloc] initWithContentRect: size
+		styleMask: style backing: NSBackingStoreBuffered defer: NO];
+	if (GLWin.cocoaWin == nil) {
+		ERROR_LOG(VIDEO, "failed to create window");
+		return NULL;
+	}
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen) {
+		CGDisplayCapture(CGMainDisplayID());
+		[GLWin.cocoaWin setLevel: CGShieldingWindowLevel()];
+	}
+
 	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
+	[GLWin.cocoaWin makeKeyAndOrderFront: nil];
 
 #elif defined(_WIN32)
 	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), GetModuleHandle(0), _T("Please wait..."));

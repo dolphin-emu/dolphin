@@ -137,22 +137,35 @@ class CMemcardManager : public wxDialog
 
 		struct _mcmSettings
 		{
-			bool twoCardsLoaded,
-				 usePages,
-				 column[NUMBER_OF_COLUMN+1];
-		}mcmSettings;
+			bool twoCardsLoaded;
+			bool usePages;
+			bool column[NUMBER_OF_COLUMN + 1];
+		} mcmSettings;
 
 		class CMemcardListCtrl : public wxListCtrl
 		{
+//BEGIN_EVENT_TABLE(CMemcardManager::CMemcardListCtrl, wxListCtrl)
+//      EVT_RIGHT_DOWN(CMemcardManager::CMemcardListCtrl::OnRightClick)
+//END_EVENT_TABLE()
 		public:
-			CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style, _mcmSettings& _mcmSetngs)
-				: wxListCtrl(parent, id, pos, size, style),	__mcmSettings(_mcmSetngs){;}
-			~CMemcardListCtrl(){;}
+			CMemcardListCtrl(wxWindow* parent, const wxWindowID id,
+				const wxPoint& pos, const wxSize& size,
+				long style, _mcmSettings& _mcmSetngs)
+				: wxListCtrl(parent, id, pos, size, style)
+				, __mcmSettings(_mcmSetngs)
+			{
+				Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(
+					CMemcardListCtrl::OnRightClick));
+			}
+			~CMemcardListCtrl()
+			{
+				Disconnect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(
+					CMemcardListCtrl::OnRightClick));
+			}
 			_mcmSettings & __mcmSettings;
 			bool prevPage,
 				 nextPage;
 		private:
-			DECLARE_EVENT_TABLE()
 			void OnRightClick(wxMouseEvent& event);	
 		};
 		

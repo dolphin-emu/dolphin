@@ -488,7 +488,8 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 {
 	lbox_search_results->Clear();
 
-	wxString count_label = _("Count:") + wxString::Format(wxT(" %i"), search_results.size());
+	wxString count_label = _("Count:") + wxString::Format(wxT(" %lu"),
+		(unsigned long)search_results.size());
 	if (search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
 	{
 		count_label += _(" (too many to display)");

@@ -133,7 +133,7 @@ inline s16 Clamp1024(s16 in)
      return in>1023?1023:(in<-1024?-1024:in);
 }
 
-inline void Tev::SetRasColor(int colorChan, int swaptable)
+void Tev::SetRasColor(int colorChan, int swaptable)
 {
     switch(colorChan)
     {
