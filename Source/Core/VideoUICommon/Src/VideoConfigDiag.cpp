@@ -50,18 +50,17 @@ void SettingChoice::UpdateValue(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 {
-	EndModal(wxID_OK);
+	Close();
 }
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	ev.Skip();
+	EndModal(wxID_OK);
 
 	TextureCache::Invalidate(false); // For settings like hi-res textures/texture format/etc.
 }
-
 
 // TODO: implement some hack to increase the tooltip display duration, because some of these are way too long for anyone to read in 5 seconds.
 

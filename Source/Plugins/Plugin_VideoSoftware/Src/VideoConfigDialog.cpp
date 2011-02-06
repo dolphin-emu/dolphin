@@ -132,12 +132,12 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 
 void VideoConfigDialog::Event_ClickClose(wxCommandEvent&)
 {
-	EndModal(wxID_OK);
+	Close();
 }
 
 void VideoConfigDialog::Event_Close(wxCloseEvent& ev)
 {
 	g_SWVideoConfig.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	ev.Skip();
+	EndModal(wxID_OK);
 }
