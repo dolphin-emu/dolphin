@@ -111,13 +111,22 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_NumCompPackets_Freq);
 	p.Do(m_WiimoteUpdate_Freq);
 
-	for (int i = 0; i < 4; i++)
+	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		p.Do(m_PacketCount[i]);
+		// Reset the connection of all connected wiimotes
+		for (unsigned int i = 0; i < 4; i++)
+		{
+			if (m_WiiMotes[i].IsConnected())
+			{
+				m_WiiMotes[i].Activate(false);
+				m_WiiMotes[i].Activate(true);
+			}
+			else
+			{
+				m_WiiMotes[i].Activate(false);
+			}
+		}
 	}
-
-	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-		m_WiiMotes[i].DoState(p);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)
