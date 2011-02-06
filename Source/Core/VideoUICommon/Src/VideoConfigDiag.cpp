@@ -1,4 +1,3 @@
-
 #include "VideoConfigDiag.h"
 
 #include "FileUtil.h"
@@ -51,7 +50,7 @@ void SettingChoice::UpdateValue(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 {
-	Close();
+	EndModal(wxID_OK);
 }
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)

@@ -93,7 +93,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
-    if (texture)
+	if (texture)
 	{
 		glDeleteTextures(1, &texture);
 		texture = 0;

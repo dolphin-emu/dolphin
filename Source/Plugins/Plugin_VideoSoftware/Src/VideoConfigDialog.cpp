@@ -132,7 +132,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 
 void VideoConfigDialog::Event_ClickClose(wxCommandEvent&)
 {
-	Close();
+	EndModal(wxID_OK);
 }
 
 void VideoConfigDialog::Event_Close(wxCloseEvent& ev)

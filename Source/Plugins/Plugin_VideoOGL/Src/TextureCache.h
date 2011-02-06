@@ -36,8 +36,8 @@ public:
 
 private:
 	struct TCacheEntry : TCacheEntryBase
-    {
-	    GLuint texture;
+	{
+		GLuint texture;
 
 		PC_TexFormat pcfmt;
 
@@ -65,7 +65,7 @@ private:
 
 	private:
 		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
-    };
+	};
 
 	~TextureCache();
 
