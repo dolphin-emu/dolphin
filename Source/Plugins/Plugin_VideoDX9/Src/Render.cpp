@@ -1283,6 +1283,7 @@ void Renderer::RestoreState()
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {
+	D3D::SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 	D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
@@ -1295,6 +1296,7 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
+	D3D::SetRenderState(D3DRS_FILLMODE, g_ActiveConfig.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	UpdateViewport();
 	SetScissorRect();

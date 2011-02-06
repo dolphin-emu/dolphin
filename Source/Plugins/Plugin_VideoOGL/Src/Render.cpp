@@ -840,9 +840,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	// make sure to disable wireframe when drawing the clear quad
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
 	if (colorEnable) ColorMask = GL_TRUE;
 	if (alphaEnable) AlphaMask = GL_TRUE;
@@ -876,10 +873,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	glVertex3f( 1.f,  1.f, 1.f);
 	glVertex3f( 1.f, -1.f, 1.f);
 	glEnd();
-
-	// reenable wireframe if necessary
-	if (g_ActiveConfig.bWireFrame)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	RestoreAPIState();
 }
@@ -990,9 +983,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
-
-	// Make sure that the wireframe setting doesn't screw up the screen copy.
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// Textured triangles are necessary because of post-processing shaders
 
@@ -1127,10 +1117,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	OGL::TextureCache::DisableStage(0);
-
-	// Wireframe
-	if (g_ActiveConfig.bWireFrame)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Save screenshot
 	if (s_bScreenshot)
@@ -1390,6 +1376,9 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+	// make sure to disable wireframe when drawing the clear quad
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Renderer::RestoreAPIState()
@@ -1402,6 +1391,9 @@ void Renderer::RestoreAPIState()
 	SetDepthMode();
 	SetBlendMode(true);
 	UpdateViewport();
+
+	if (g_ActiveConfig.bWireFrame)
+ 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	VertexShaderCache::SetCurrentShader(0);
 	PixelShaderCache::SetCurrentShader(0);
