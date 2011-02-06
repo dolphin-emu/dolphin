@@ -840,6 +840,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
+	// make sure to disable wireframe when drawing the clear quad
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
 	if (colorEnable) ColorMask = GL_TRUE;
 	if (alphaEnable) AlphaMask = GL_TRUE;
@@ -873,6 +876,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	glVertex3f( 1.f,  1.f, 1.f);
 	glVertex3f( 1.f, -1.f, 1.f);
 	glEnd();
+
+	// reenable wireframe if necessary
+	if (g_ActiveConfig.bWireFrame)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	RestoreAPIState();
 }
