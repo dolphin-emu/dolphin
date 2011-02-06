@@ -162,10 +162,14 @@ inline u64 fmix64(u64 k)
     return k;
 }
 
-u64 GetMurmurHash3(const u8 *src, const int len, u32 samples)
+u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 {
     const u8 * data = (const u8*)src;
     const int nblocks = len / 16;
+	u32 Step = (len / 8);
+	if(samples == 0) samples = Step;
+	Step = Step / samples;
+	if(Step < 1) Step = 1;
 
     u64 h1 = 0x9368e53c2f6af274;
     u64 h2 = 0x586dcd208f7cd3fd;
@@ -173,12 +177,13 @@ u64 GetMurmurHash3(const u8 *src, const int len, u32 samples)
     u64 c1 = 0x87c37b91114253d5;
     u64 c2 = 0x4cf5ad432745937f;
 
+
     //----------
     // body
 
     const u64 * blocks = (const u64 *)(data);
 
-    for(int i = 0; i < nblocks; i++)
+    for(int i = 0; i < nblocks; i+=Step)
     {
         u64 k1 = getblock(blocks,i*2+0);
         u64 k2 = getblock(blocks,i*2+1);
@@ -382,8 +387,12 @@ inline void bmix32(u32 & h1, u32 & h2, u32 & k1, u32 & k2, u32 & c1, u32 & c2)
 u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 {
 	const u8 * data = (const u8*)src;
-	const int nblocks = len / 8;
 	u32 out[2];
+	const int nblocks = len / 8;
+	u32 Step = (len / 4);
+	if(samples == 0) samples = Step;
+	Step = Step / samples;
+	if(Step < 1) Step = 1;
 
 	u32 h1 = 0x8de1c3ac;
 	u32 h2 = 0xbab98226;
@@ -396,7 +405,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 
 	const u32 * blocks = (const u32 *)(data + nblocks*8);
 
-	for(int i = -nblocks; i; i++)
+	for(int i = -nblocks; i < 0; i+=Step)
 	{
 		u32 k1 = getblock(blocks,i*2+0);
 		u32 k2 = getblock(blocks,i*2+1);
