@@ -47,7 +47,6 @@ __asm__(
 		  "=c" (*ecx),
 		  "=d" (*edx)
 		: "a"  (*eax)
-		: "eax", "ebx", "ecx", "edx"	// clobbered registers
 		);
 }
 
