@@ -35,29 +35,20 @@
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
-#ifdef _LP64
-	__asm__("cpuid"
-			: "=a" (*eax),
-			  "=b" (*ebx),
-			"=c" (*ecx),
-			"=d" (*edx)
-			: "a"  (*eax)
-			);
-#else
-	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to be
-	//       restored at the end of the asm block.
-	__asm__(
-			"pushl  %%ebx;"
-			"cpuid;"
-			"movl   %%ebx,%1;"
-			"popl   %%ebx;"
-			: "=a" (*eax),
-			  "=r" (*ebx),
-			  "=c" (*ecx),
-			  "=d" (*edx)
-			: "a"  (*eax)
-			);
-#endif
+// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to be
+//       restored at the end of the asm block.
+__asm__(
+		"pushl  %%ebx;"
+		"cpuid;"
+		"movl   %%ebx,%1;"
+		"popl   %%ebx;"
+		: "=a" (*eax),
+		  "=r" (*ebx),
+		  "=c" (*ecx),
+		  "=d" (*edx)
+		: "a"  (*eax)
+		: "eax", "ebx", "ecx", "edx"	// clobbered registers
+		);
 }
 
 static void __cpuid(int info[4], int x)
@@ -140,8 +131,7 @@ void CPUInfo::Detect()
 		__cpuid(cpu_id, 0x00000001);
 		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
 		ht = (cpu_id[3] >> 28) & 1;
-		// True HTT is valid for intel processors only.
-		HTT = (ht && vendor == VENDOR_INTEL);
+
 		if ((cpu_id[3] >> 25) & 1) bSSE = true;
 		if ((cpu_id[3] >> 26) & 1) bSSE2 = true;
 		if ((cpu_id[2])       & 1) bSSE3 = true;
@@ -177,18 +167,18 @@ void CPUInfo::Detect()
 		int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
 		if (apic_id_core_id_size == 0) {
 			if (ht) {
-				if (vendor == VENDOR_OTHER) {
-					num_cores = 1;
-				}
 				// New mechanism for modern Intel CPUs.
-				if (HTT) {
+				if (vendor == VENDOR_INTEL) {
 					__cpuid(cpu_id, 0x00000004);
 					int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
+					HTT = (cores_x_package < logical_cpu_count);
 					cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
 					num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
 					logical_cpu_count /= cores_x_package;
+				} else if (vendor == VENDOR_OTHER) { //trash block!!??
+					num_cores = 1;
 				}
-			} else {
+			} else { //trash block!!??
 				num_cores = 1;
 			}
 		} else {
@@ -207,7 +197,7 @@ std::string CPUInfo::Summarize()
 	else
 	{
 		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT) sum += StringFromFormat(" (%i logical thread(s) per physical core)", logical_cpu_count);
+		if (HTT) sum += StringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
 	}
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";
@@ -215,6 +205,7 @@ std::string CPUInfo::Summarize()
 	if (bSSSE3) sum += ", SSSE3";
 	if (bSSE4_1) sum += ", SSE4.1";
 	if (bSSE4_2) sum += ", SSE4.2";
+	if (HTT) sum += ", HTT";
 	if (bAVX) sum += ", AVX";
 	if (bAES) sum += ", AES";
 	if (bLongMode) sum += ", 64-bit support";
