@@ -41,7 +41,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 	__asm__(
 		"push  %%rbx;"
 		"cpuid;"
-		"mov   %%rbx,%1;"
+		"movl  %%ebx,%1;"
 		"pop   %%rbx;"
 		: "=a" (*eax),
 		  "=r" (*ebx),
