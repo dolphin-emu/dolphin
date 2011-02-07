@@ -84,6 +84,10 @@ if(UNIX AND NOT APPLE)
 	endif(VISIBILITY_HIDDEN)
 endif()
 
+if (APPLE)
+	add_definitions(-x objective-c++)	
+endif()
+
 if(WIN32)
 	add_definitions(-D_SECURE_SCL=0)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)

@@ -15,7 +15,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS	${SRCS}
 				Src/ControllerInterface/OSX/OSX.mm
 				Src/ControllerInterface/OSX/OSXKeyboard.mm
-				Src/ControllerInterface/OSX/OSXMouse.mm
+				Src/ControllerInterface/OSX/OSXJoystick.mm
 				Src/ControllerInterface/SDL/SDL.cpp)
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
