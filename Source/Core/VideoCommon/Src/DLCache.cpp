@@ -74,11 +74,12 @@ struct ReferencedDataRegion
 	{}
 	u64 hash;
 	u8* start_address;
-	u32 size;
-	bool MustClean;
-	int ReferencedArray;
-	u32 ReferencedArrayStride;
 	ReferencedDataRegion* NextRegion;
+	u32 size;
+	u32 MustClean;
+	u32 ReferencedArray;
+	u32 ReferencedArrayStride;
+	
 
 	int IntersectsMemoryRange(u8* range_address, u32 range_size)
 	{
@@ -107,31 +108,33 @@ struct CachedDisplayList
 	{
 		frame_count = frameCount;
 	}
-	
-	bool uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
-	// Analitic data
-	int num_xf_reg;
-	int num_cp_reg;
-	int num_bp_reg; 
-	int num_index_xf;
-	int num_draw_call;
-	
-	int pass;
 	u64 dl_hash;
+	ReferencedDataRegion* Regions;
+	ReferencedDataRegion* LastRegion;
+	const u8* compiled_code;
+	u32 uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
+	// Analitic data
+	u32 num_xf_reg;
+	u32 num_cp_reg;
+	u32 num_bp_reg; 
+	u32 num_index_xf;
+	u32 num_draw_call;
+	
+	u32 pass;
+	
 
-	int check;
-	int next_check;
+	u32 check;
+	u32 next_check;
 
 	int frame_count;
 
 	// ... Something containing cached vertex buffers here ...
-	int BufferCount;
-	ReferencedDataRegion* Regions;
-	ReferencedDataRegion* LastRegion;	
+	u32 BufferCount;
+	
 	
 	// Compile the commands themselves down to native code.
 	
-	const u8* compiled_code;
+	
 
 	void InsertRegion(ReferencedDataRegion* NewRegion)
 	{
@@ -147,7 +150,7 @@ struct CachedDisplayList
 		BufferCount++;
 	}
 
-	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size,int referencedArray,int referencedArrayStride)
+	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size,u32 referencedArray,u32 referencedArrayStride)
 	{
 		ReferencedDataRegion* NewRegion = FindOverlapingRegion(RegionStartAddress, Size);
 		if(NewRegion)
@@ -187,6 +190,7 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
+				// this chek is not strictly necesary now but i left it for an aditional safety check
 				if(Current->ReferencedArray != -1 && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
 				{
 					return false;	
@@ -199,7 +203,7 @@ struct CachedDisplayList
 		return true;
 	}	
 
-	ReferencedDataRegion* FindOverlapingRegion(u8* RegionStart, int Regionsize)
+	ReferencedDataRegion* FindOverlapingRegion(u8* RegionStart, u32 Regionsize)
 	{
 		ReferencedDataRegion* Current = Regions;
 		while(Current)
@@ -234,7 +238,7 @@ inline u64 CreateMapId(u32 address, u32 size)
 	return ((u64)address << 32) | size;
 }
 
-inline u64 CreateVMapId(u8 VATUSED)
+inline u64 CreateVMapId(u32 VATUSED)
 {
 	u64 vmap_id = 0;
 	for(int i = 0; i < 8 ; i++)
@@ -251,6 +255,11 @@ inline u64 CreateVMapId(u8 VATUSED)
 			}
 		}
 	}
+	for(int i = 0; i < 12; i++)
+	{
+		if(VATUSED & (1 << (i + 16)))
+			vmap_id  = vmap_id ^ ((u64)cached_arraybases[i]) ^ (((u64)arraystrides[i]) << 16);
+	}
 	return vmap_id ^ g_VtxDesc.Hex;
 }
 
@@ -259,8 +268,8 @@ typedef std::map<u64, CachedDisplayList> DLMap;
 struct VDlist
 {
 	DLMap dl_map;
-	u8 VATUsed;
-	int count;
+	u32 VATUsed;
+	u32 count;
 };
 
 typedef std::map<u64, VDlist> VDLMap;
@@ -273,16 +282,17 @@ static Gen::XEmitter emitter;
 
 
 // First pass - analyze
-u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
+u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 {
-	int num_xf_reg = 0;
-	int num_cp_reg = 0;
-	int num_bp_reg = 0; 
-	int num_index_xf = 0;
-	int num_draw_call = 0;
-	u8 result = 0;
 	u8* old_pVideoData = g_pVideoData;
 	u8* startAddress = Memory::GetPointer(address);
+	u32 num_xf_reg = 0;
+	u32 num_cp_reg = 0;
+	u32 num_bp_reg = 0; 
+	u32 num_index_xf = 0;
+	u32 num_draw_call = 0;
+	u32 result = 0;
+	
 
 	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != 0)
@@ -383,6 +393,17 @@ u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 						numVertices);
 					num_draw_call++;
+					const int tc[12] = {
+						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (g_VtxDesc.Hex >> 31) & 3
+					};
+					for(int i = 0; i < 12; i++)
+					{
+						if(tc[i] > 1)
+						{
+							result |= 1 << (i + 16);
+						}
+					}
 				}
 				else
 				{
@@ -415,7 +436,7 @@ u8 AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 // but to compile as we go, interpreting the list. We can't compile and then execute, we must
 // compile AND execute at the same time. The second time the display list gets called, we already
 // have the compiled code so we don't have to interpret anymore, we just run it.
-bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
+void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 {
 	u8* old_pVideoData = g_pVideoData;
 	u8* startAddress = Memory::GetPointer(address);
@@ -601,8 +622,8 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 		Statistics::SwapDL();
 	}
 	g_pVideoData = old_pVideoData;
-	return true;
 }
+
 
 void Init()
 {
@@ -694,7 +715,6 @@ bool HandleDisplayList(u32 address, u32 size)
 		iter = 	Parentiter->second.dl_map.find(vhash);
 		childexist = iter != Parentiter->second.dl_map.end();		
 	}
-	//INCSTAT(stats.numDListsAlive);
 	if (Parentiter != DLCache::dl_map.end() && childexist)
 	{
 		DLCache::CachedDisplayList &dl = iter->second;
@@ -703,14 +723,12 @@ bool HandleDisplayList(u32 address, u32 size)
 			return false;			
 		}
 
-		// Got one! And it's been compiled too, so let's run the compiled code!
 		switch (dl.pass)
 		{
 		case DLCache::DLPASS_COMPILE:
 			// First, check that the hash is the same as the last time.
 			if (dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0))
 			{
-				// PanicAlert("uncachable %08x", address);
 				dl.uncachable = true;				
 				return false;
 			}
@@ -730,10 +748,7 @@ bool HandleDisplayList(u32 address, u32 size)
 						dl.ClearRegions();						
 						return false;
 					}
-					dl.check = dl.next_check;
-					/*dl.next_check ++;
-					if (dl.next_check > 60)
-						dl.next_check = 60;*/
+					dl.check = dl.next_check;					
 				}
 				dl.frame_count= frameCount;
 				u8 *old_datareader = g_pVideoData;
@@ -760,12 +775,12 @@ bool HandleDisplayList(u32 address, u32 size)
 
 	DLCache::CachedDisplayList dl;
 	
-	u8 dlvatused = DLCache::AnalyzeAndRunDisplayList(address, size, &dl);
+	u32 dlvatused = DLCache::AnalyzeAndRunDisplayList(address, size, &dl);
 	dl.dl_hash = GetHash64(Memory::GetPointer(address), size,0);
 	dl.pass = DLCache::DLPASS_COMPILE;
 	dl.check = 1;
 	dl.next_check = 1;
-	
+	vhash = DLCache::CreateVMapId(dlvatused);
 	if(Parentiter != DLCache::dl_map.end())
 	{
 		DLCache::VDlist &vdl = Parentiter->second;
