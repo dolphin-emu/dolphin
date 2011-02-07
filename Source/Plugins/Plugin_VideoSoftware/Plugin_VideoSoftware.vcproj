@@ -479,14 +479,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SWGLUtil.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SWGLUtil.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SWmain.cpp"
 			>
 		</File>

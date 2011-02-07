@@ -25,7 +25,7 @@
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
 #include "SWCommandProcessor.h"
-#include "SWGLUtil.h"
+#include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "HW/Memmap.h"
 #include "Core.h"
 

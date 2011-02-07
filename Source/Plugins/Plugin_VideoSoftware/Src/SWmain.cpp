@@ -151,7 +151,7 @@ bool VideoBackend::Video_Screenshot(const char *_szFilename)
 // -------------------------------
 void VideoBackend::Video_EnterLoop()
 {
-    Fifo_EnterLoop();
+	Fifo_EnterLoop();
 }
 
 void VideoBackend::Video_ExitLoop()
@@ -169,7 +169,7 @@ void VideoBackend::Video_ClearMessages()
 
 void VideoBackend::Video_SetRendering(bool bEnabled)
 {
-    Fifo_SetRendering(bEnabled);
+	Fifo_SetRendering(bEnabled);
 }
 
 void VideoBackend::Video_WaitForFrameFinish(void)
@@ -183,6 +183,33 @@ bool VideoBackend::Video_IsFifoBusy(void)
 
 void VideoBackend::Video_AbortFrame(void)
 {
+}
+
+// Draw messages on top of the screen
+unsigned int VideoBackend::PeekMessages()
+{
+#ifdef _WIN32
+	// TODO: peekmessage
+	MSG msg;
+	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	{
+		if (msg.message == WM_QUIT)
+			return FALSE;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return TRUE;
+#else
+	return false;
+#endif
+}
+
+// Show the current FPS
+void VideoBackend::UpdateFPSDisplay(const char *text)
+{
+	char temp[100];
+	snprintf(temp, sizeof temp, "%s | Software | %s", svn_rev_str, text);
+	OpenGL_SetWindowText(temp);
 }
 
 }

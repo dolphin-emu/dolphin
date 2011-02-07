@@ -174,7 +174,6 @@
     <ClCompile Include="Src\DebugUtil.cpp" />
     <ClCompile Include="Src\EfbCopy.cpp" />
     <ClCompile Include="Src\EfbInterface.cpp" />
-    <ClCompile Include="Src\SWGLUtil.cpp" />
     <ClCompile Include="Src\HwRasterizer.cpp" />
     <ClCompile Include="Src\SWmain.cpp" />
     <ClCompile Include="Src\OpcodeDecoder.cpp" />
@@ -207,7 +206,6 @@
     <ClInclude Include="Src\DebugUtil.h" />
     <ClInclude Include="Src\EfbCopy.h" />
     <ClInclude Include="Src\EfbInterface.h" />
-    <ClInclude Include="Src\SWGLUtil.h" />
     <ClInclude Include="Src\HwRasterizer.h" />
     <ClInclude Include="Src\NativeVertexFormat.h" />
     <ClInclude Include="Src\OpcodeDecoder.h" />

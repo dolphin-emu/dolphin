@@ -5,7 +5,6 @@ set(SRCS	Src/BPMemLoader.cpp
 			Src/DebugUtil.cpp
 			Src/EfbCopy.cpp
 			Src/EfbInterface.cpp
-			Src/SWGLUtil.cpp
 			Src/HwRasterizer.cpp
 			Src/SWmain.cpp
 			Src/OpcodeDecoder.cpp

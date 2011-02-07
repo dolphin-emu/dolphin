@@ -12,7 +12,6 @@ files = [
 	'DebugUtil.cpp',
 	'EfbCopy.cpp',
 	'EfbInterface.cpp',
-	'SWGLUtil.cpp',
 	'HwRasterizer.cpp',
 	'SWmain.cpp',
 	'OpcodeDecoder.cpp',
