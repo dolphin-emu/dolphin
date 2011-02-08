@@ -288,15 +288,15 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		return;
 
 	case FIFO_READ_POINTER_LO:
-		//_rReturnValue = ReadLow (fifo.CPReadPointer);
+		_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		_rReturnValue = ReadLow (fifo.CPWritePointer);
+		//_rReturnValue = ReadLow (fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_READ_POINTER_HI:
-		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
+		_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-	    _rReturnValue = ReadHigh(fifo.CPWritePointer);
+	    //_rReturnValue = ReadHigh(fifo.CPWritePointer);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
 
@@ -503,11 +503,6 @@ void Write16(const u16 _Value, const u32 _Address)
 				if (!tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
 					bProcessFifoToLoWatemark = true;
 
-				if (tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
-					ProcessFifoAllDistance();
-
-				if (!tmpCtrl.ClearFifoUnderflow && !tmpCtrl.ClearFifoOverflow)
-					ProcessFifoAllDistance();
 			}
 			else
 			{
@@ -814,8 +809,7 @@ void SetFifoIdleFromVideoPlugin()
 void AbortFrame()
 {
 	fifo.bFF_GPReadEnable = false;	
-	while (CommandProcessor::isFifoBusy)
-		Common::YieldCPU();
+	s_fifoIdleEvent.Wait();
 	GPFifo::ResetGatherPipe();
 	ResetVideoBuffer();
 	fifo.CPReadPointer = fifo.CPWritePointer;
