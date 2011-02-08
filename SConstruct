@@ -146,6 +146,7 @@ if sys.platform == 'darwin':
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
+        env['CPPDEFINES'] += ['__WXOSX_COCOA__']
         wxenv = env.Clone(CPPPATH = '', LIBPATH = '', LIBS = '')
         conf = wxenv.Configure(conf_dir = None, log_file = None,
             custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
@@ -154,13 +155,16 @@ if sys.platform == 'darwin':
                 env['flavor'] == 'debug')
         conf.Finish()
         if not env['HAVE_WX']:
+            print '\nWARNING:'
             print 'wxWidgets 2.9.2 not found using ' + wxenv['wxconfig']
+            print '\nwxWidgets r66814 or newer is required to build Dolphin.'
             print 'See http://code.google.com/p/dolphin-emu/wiki/MacOSX_Build'
-            Exit(1)
-        wxconfig.ParseWXConfig(wxenv)
-        env['CPPDEFINES'] += ['__WXOSX_COCOA__']
-        env['CPPPATH'] += wxenv['CPPPATH']
-        env['wxconfiglibs'] = wxenv['LIBS']
+            print 'for instructions on building and installing wxWidgets.\n'
+            env['wxconfiglibs'] = []
+        else:
+            wxconfig.ParseWXConfig(wxenv)
+            env['CPPPATH'] += wxenv['CPPPATH']
+            env['wxconfiglibs'] = wxenv['LIBS']
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
     env['shared_zlib'] = True
@@ -329,7 +333,7 @@ dirs = [
     'Externals/SDL',
     'Externals/SOIL',
     'Externals/SFML/src',
-    #'Externals/wxWidgets',
+    'Externals/wxWidgets3',
     'Externals/zlib',
     'Source/Core/AudioCommon/Src',
     'Source/Core/Common/Src',

@@ -48,6 +48,7 @@ if sys.platform == 'win32':
 elif sys.platform == 'darwin':
 	env['CPPPATH'] += ['#Externals']
 	env['FRAMEWORKPATH'] += ['Externals/Cg']
+	env['LIBS'] += ['expat', 'iconv']
 	frameworksflags += ['-Wl,-weak_framework,Cg']
 	frameworksflags += ['-Wl,-weak_framework,OpenCL']
 
@@ -61,7 +62,6 @@ elif sys.platform == 'darwin':
 		frameworksflags += ['-Wl,-weak_framework,WebKit']
 		frameworksflags += ['-Wl,-no_arch_warnings']
 	else:
-		env['LIBS'] += ['iconv']
 		exe += 'NoGUI'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
