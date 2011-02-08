@@ -49,10 +49,6 @@ using namespace Gen;
 namespace DLCache
 {
 
-// Currently just recompiles the DLs themselves, doesn't bother with the vertex data.
-// The speed boost is pretty small. The real big boost will come when we also store
-// vertex arrays in the cached DLs.
-
 enum DisplayListPass {
 	DLPASS_ANALYZE,
 	DLPASS_COMPILE,
@@ -578,7 +574,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 						numVertices);
 					u8* EndAddress = VertexManager::s_pCurBufferPointer;
 					u32 Vdatasize = (u32)(EndAddress - StartAddress);
-					if (size > 0)
+					if (size > 0 && numVertices > 0)
 					{
 					// Compile
 						ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
@@ -735,17 +731,17 @@ bool HandleDisplayList(u32 address, u32 size)
 			break;
 		case DLCache::DLPASS_RUN:
 			{
-				// Every N draws, check hash
+				bool DlistChanged = false;
 				if (dl.check != CheckContextId)
 				{
 					dl.check = CheckContextId;
-					if (dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0) || !dl.CheckRegions()) 
-					{
-						dl.uncachable = true;
-						dl.check = 60;
-						dl.ClearRegions();						
-						return false;
-					}
+					DlistChanged = !dl.CheckRegions() || dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0);					
+				}
+				if (DlistChanged) 
+				{
+					dl.uncachable = true;
+					dl.ClearRegions();						
+					return false;
 				}
 				dl.frame_count= frameCount;
 				u8 *old_datareader = g_pVideoData;

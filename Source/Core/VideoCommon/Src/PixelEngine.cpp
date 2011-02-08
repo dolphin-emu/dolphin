@@ -30,7 +30,7 @@
 #include "PixelEngine.h"
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
-
+#include "DLCache.h"
 namespace PixelEngine
 {
 
@@ -324,7 +324,6 @@ void UpdateTokenInterrupt(bool active)
 
 void UpdateFinishInterrupt(bool active)
 {
-
 	if(interruptSetFinish != active)
 	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
@@ -346,6 +345,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		INFO_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 		UpdateInterrupts();
 		CommandProcessor::interruptTokenWaiting = false;
+		IncrementCheckContextId();
 	//}
 	//else
 	//	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", CommandProcessor::fifo.PEToken);
@@ -380,6 +380,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 		// 4-byte padded.
         Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 	}
+	IncrementCheckContextId();
 }
 
 // SetFinish
@@ -390,6 +391,7 @@ void SetFinish()
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
+	IncrementCheckContextId();
 }
 
 //This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.

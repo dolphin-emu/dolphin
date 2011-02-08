@@ -83,6 +83,7 @@
 #include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/Memmap.h"
+#include "DLCache.h"
 
 namespace CommandProcessor
 {
@@ -826,6 +827,7 @@ void AbortFrame()
 	PixelEngine::ResetSetToken();
 	PixelEngine::ResetSetFinish();
 	fifo.bFF_GPReadEnable = true;	
+	IncrementCheckContextId();
 }
 
 void SetOverflowStatusFromGatherPipe()
@@ -858,8 +860,11 @@ void SetStatus()
         {        
 			
             if (!fifo.bFF_Breakpoint)
+			{
 				INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
-            fifo.bFF_Breakpoint = true;			
+				fifo.bFF_Breakpoint = true;
+				IncrementCheckContextId();
+			}
         }
 		else
 		{
