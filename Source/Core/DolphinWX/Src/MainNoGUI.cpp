@@ -48,7 +48,8 @@
 bool rendererHasFocus = true;
 bool running = true;
 
-void Host_NotifyMapLoaded(){}
+void Host_NotifyMapLoaded() {}
+void Host_RefreshDSPDebuggerWindow() {}
 
 void Host_ShowJitResults(unsigned int address){}
 

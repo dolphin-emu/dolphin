@@ -10,6 +10,9 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
 			Src/MemTools.cpp
+			Src/NetPlay.cpp
+			Src/NetPlayClient.cpp
+			Src/NetPlayServer.cpp
 			Src/OnFrame.cpp
 			Src/PatchEngine.cpp
 			Src/State.cpp

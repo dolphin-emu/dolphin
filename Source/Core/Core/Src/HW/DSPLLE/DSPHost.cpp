@@ -90,16 +90,12 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
 
-#if defined(HAVE_WX) && HAVE_WX
-	Host_RefreshDSPDebuggerWindow();
-#endif
+	DSPHost_UpdateDebugger();
 
 	return ector_crc;
 }
 
 void DSPHost_UpdateDebugger()
 {
-#if defined(HAVE_WX) && HAVE_WX
 	Host_RefreshDSPDebuggerWindow();
-#endif
 }

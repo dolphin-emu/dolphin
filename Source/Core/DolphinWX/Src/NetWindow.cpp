@@ -20,6 +20,7 @@
 
 #include "NetPlay.h"
 #include "NetWindow.h"
+#include "Frame.h"
 
 #include <sstream>
 
@@ -27,11 +28,13 @@
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
 
+DEFINE_EVENT_TYPE(wxEVT_THREAD)
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
 END_EVENT_TABLE()
 
 static NetPlay* netplay_ptr = NULL;
+extern CFrame* main_frame;
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
@@ -218,7 +221,7 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 	unsigned long port = 0;
 	m_connect_port_text->GetValue().ToULong(&port);
 	::netplay_ptr = new NetPlayClient(std::string(m_connect_ip_text->GetValue().mb_str())
-		, (u16)port, std::string(m_nickname_text->GetValue().mb_str()), npd);
+		, (u16)port, npd, std::string(m_nickname_text->GetValue().mb_str()));
 	if (::netplay_ptr->is_connected)
 	{
 		//NetPlayServerDiag* const npsd = 
@@ -379,6 +382,50 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 void NetPlayDiag::OnStop(wxCommandEvent&)
 {
 	::netplay_ptr->StopGame();
+}
+
+void NetPlayDiag::BootGame(const std::string& filename)
+{
+	main_frame->BootGame(filename);
+}
+
+void NetPlayDiag::StopGame()
+{
+	main_frame->DoStop();
+}
+
+// NetPlayUI methods called from ---NETPLAY--- thread
+void NetPlayDiag::Update()
+{
+	wxCommandEvent evt(wxEVT_THREAD, 1);
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDiag::AppendChat(const std::string& msg)
+{
+	chat_msgs.Push(msg);
+	// silly
+	Update();
+}
+
+void NetPlayDiag::OnMsgChangeGame(const std::string& filename)
+{
+	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
+	// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
+	evt.SetString(wxString(filename.c_str(), *wxConvCurrent));
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDiag::OnMsgStartGame()
+{
+	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDiag::OnMsgStopGame()
+{
+	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
+	GetEventHandler()->AddPendingEvent(evt);
 }
 
 void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)

@@ -1,5 +1,4 @@
 #include "NetPlay.h"
-#include "NetWindow.h"
 
 // called from ---GUI--- thread
 NetPlayServer::~NetPlayServer()
@@ -12,9 +11,8 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDiag* const npd, const std::string& game)
+NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog, const std::string& game) : NetPlay(dialog)
 {
-	m_dialog = npd;
 	m_selected_game = game;
 
 	m_update_pings = true;
@@ -35,7 +33,7 @@ NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDia
 		m_local_player = &m_players[m_socket];
 		//PanicAlertT("Listening");
 
-		UpdateGUI();
+		m_dialog->Update();
 
 		is_connected = true;
 
@@ -246,7 +244,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	// add client to selector/ used for receiving
 	m_selector.Add(socket);
 
-	UpdateGUI();
+	m_dialog->Update();
 
 	return 0;
 }
@@ -281,7 +279,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
 
-	UpdateGUI();
+	m_dialog->Update();
 
 	return 0;
 }
@@ -345,7 +343,7 @@ bool NetPlayServer::SetPadMapping(const int pid, const int map[])
 	CritLocker	send_lock(m_crit.send);	// lock send
 	UpdatePadMapping();	// sync pad mappings with everyone
 
-	UpdateGUI();
+	m_dialog->Update();
 
 	return true;
 }
@@ -439,7 +437,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			std::ostringstream ss;
 			ss << player.name << '[' << (char)(player.pid+'0') << "]: " << msg;
 
-			AppendChatGUI(ss.str());
+			m_dialog->AppendChat(ss.str());
 		}
 		break;
 
@@ -489,7 +487,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				//PanicAlertT("good pong");
 				player.ping = ping;
 			}
-			UpdateGUI();
+			m_dialog->Update();
 		}
 		break;
 

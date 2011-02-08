@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "NetPlay.h"
-#include "NetWindow.h"
 
 // for wiimote
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -25,22 +24,17 @@
 #include "HW/SI_DeviceGCController.h"
 // for gctime
 #include "HW/EXI_DeviceIPL.h"
-// to start/stop game
-#include "Frame.h"
 // for wiimote/ OSD messages
 #include "Core.h"
 
 Common::CriticalSection		crit_netplay_ptr;
 static NetPlay* netplay_ptr = NULL;
-extern CFrame* main_frame;
 
 #define RPT_SIZE_HACK	(1 << 16)
 
-DEFINE_EVENT_TYPE(wxEVT_THREAD)
-
 // called from ---GUI--- thread
-NetPlay::NetPlay()
-	: m_is_running(false), m_do_loop(true)
+NetPlay::NetPlay(NetPlayUI* dialog)
+	: m_dialog(dialog), m_is_running(false), m_do_loop(true)
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
@@ -72,27 +66,6 @@ NetPlay::~NetPlay()
 NetPlay::Player::Player()
 {
 	memset(pad_map, -1, sizeof(pad_map));
-}
-
-// called from ---NETPLAY--- thread
-void NetPlay::UpdateGUI()
-{
-	if (m_dialog)
-	{
-		wxCommandEvent evt(wxEVT_THREAD, 1);
-		m_dialog->GetEventHandler()->AddPendingEvent(evt);
-	}
-}
-
-// called from ---NETPLAY--- thread
-void NetPlay::AppendChatGUI(const std::string& msg)
-{
-	if (m_dialog)
-	{
-		m_dialog->chat_msgs.Push(msg);
-		// silly
-		UpdateGUI();
-	}
 }
 
 // called from ---GUI--- thread
@@ -256,7 +229,7 @@ bool NetPlay::StartGame(const std::string &path)
 		return false;
 	}
 
-	AppendChatGUI(" -- STARTING GAME -- ");
+	m_dialog->AppendChat(" -- STARTING GAME -- ");
 
 	m_is_running = true;
 	NetPlay_Enable(this);
@@ -264,7 +237,7 @@ bool NetPlay::StartGame(const std::string &path)
 	ClearBuffers();
 
 	// boot game
-	::main_frame->BootGame(path);
+	m_dialog->BootGame(path);
 
 	// temporary
 	NetWiimote nw;
@@ -286,13 +259,13 @@ bool NetPlay::StopGame()
 		return false;
 	}
 
-	AppendChatGUI(" -- STOPPING GAME -- ");
+	m_dialog->AppendChat(" -- STOPPING GAME -- ");
 
 	m_is_running = false;
 	NetPlay_Disable();
 
 	// stop game
-	::main_frame->DoStop();
+	m_dialog->StopGame();
 
 	return true;
 }

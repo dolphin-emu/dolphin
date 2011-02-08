@@ -525,6 +525,15 @@
     <ClCompile Include="Src\HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
+    <ClCompile Include="Src\NetPlay.cpp">
+      <Filter>NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NetPlayServer.cpp">
+      <Filter>NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\NetPlayClient.cpp">
+      <Filter>NetPlay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -977,6 +986,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="Src\DolLoader.h" />
+    <ClInclude Include="Src\NetPlay.h">
+      <Filter>NetPlay</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -1108,6 +1120,9 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
       <UniqueIdentifier>{1c21a3e1-b791-4a23-b0d5-ed2b2c34007f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetPlay">
+      <UniqueIdentifier>{231ceb02-1122-402a-87a8-094a9ed768c2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

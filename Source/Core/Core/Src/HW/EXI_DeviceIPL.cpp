@@ -343,10 +343,8 @@ u32 CEXIIPL::GetGCTime()
 	u64 ltime = 0;
 	const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
-#if defined(HAVE_WX) && HAVE_WX
 	// hack in some netplay stuff
 	ltime = NetPlay_GetGCTime();
-#endif
 	if (Frame::IsRecordingInput() || Frame::IsPlayingInput())
 		ltime = 1234567890; // TODO: Should you be able to set a custom time in movies?
 	else if (0 == ltime)

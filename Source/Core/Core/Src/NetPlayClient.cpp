@@ -1,5 +1,4 @@
 #include "NetPlay.h"
-#include "NetWindow.h"
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -12,9 +11,8 @@ NetPlayClient::~NetPlayClient()
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const std::string& name, NetPlayDiag* const npd)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name) : NetPlay(dialog)
 {
-	m_dialog = npd;
 	is_connected = false;
 
 	// why is false successful? documentation says true is
@@ -66,7 +64,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			m_players[m_pid] = player;
 			m_local_player = &m_players[m_pid];
 
-			UpdateGUI();
+			m_dialog->Update();
 
 			//PanicAlertT("Connection successful: assigned player id: %d", m_pid);
 			is_connected = true;
@@ -99,7 +97,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			m_players[player.pid] = player;
 			m_crit.players.Leave();
 
-			UpdateGUI();
+			m_dialog->Update();
 		}
 		break;
 
@@ -112,7 +110,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			m_players.erase(m_players.find(pid));
 			m_crit.players.Leave();
 
-			UpdateGUI();
+			m_dialog->Update();
 		}
 		break;
 
@@ -130,7 +128,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			std::ostringstream ss;
 			ss << player.name << '[' << (char)(pid+'0') << "]: " << msg;
 
-			AppendChatGUI(ss.str());
+			m_dialog->AppendChat(ss.str());
 		}
 		break;
 
@@ -146,7 +144,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 				packet >> player.pad_map[i];
 			m_crit.players.Leave();
 
-			UpdateGUI();
+			m_dialog->Update();
 		}
 		break;
 
@@ -179,10 +177,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			m_crit.game.Leave();
 
 			// update gui
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
-			// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
-			evt.SetString(wxString(m_selected_game.c_str(), *wxConvCurrent));
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
+			m_dialog->OnMsgChangeGame(m_selected_game);
 		}
 		break;
 
@@ -192,15 +187,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> m_current_game;
 			m_crit.game.Leave();
 
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
+			m_dialog->OnMsgStartGame();
 		}
 		break;
 
 	case NP_MSG_STOP_GAME :
 		{
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
+			m_dialog->OnMsgStopGame();
 		}
 		break;
 
@@ -254,7 +247,7 @@ void NetPlayClient::ThreadFunc()
 			default :
 				m_is_running = false;
 				NetPlay_Disable();
-				AppendChatGUI("< LOST CONNECTION TO SERVER >");
+				m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");
 				PanicAlertT("Lost connection to server!");
 				m_do_loop = false;
 				break;

@@ -35,6 +35,8 @@
 
 #include "FifoQueue.h"
 
+#include "NetPlay.h"
+
 enum
 {
 	NP_GUI_EVT_CHANGE_GAME = 45,
@@ -62,7 +64,7 @@ private:
 	const CGameListCtrl* const m_game_list;
 };
 
-class NetPlayDiag : public wxFrame
+class NetPlayDiag : public wxFrame, public NetPlayUI
 {
 public:
 	NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list
@@ -73,6 +75,17 @@ public:
 
 	void OnStart(wxCommandEvent& event);
 	void OnStop(wxCommandEvent& event);
+
+	// implementation of NetPlayUI methods
+	void BootGame(const std::string& filename);
+	void StopGame();
+
+	void Update();
+	void AppendChat(const std::string& msg);
+
+	void OnMsgChangeGame(const std::string& filename);
+	void OnMsgStartGame();
+	void OnMsgStopGame();
 
 private:
     DECLARE_EVENT_TABLE()

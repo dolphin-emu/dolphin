@@ -242,9 +242,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\MemcardManager.cpp" />
     <ClCompile Include="Src\MemoryCards\GCMemcard.cpp" />
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp" />
-    <ClCompile Include="Src\NetPlay.cpp" />
-    <ClCompile Include="Src\NetPlayClient.cpp" />
-    <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\NetWindow.cpp" />
     <ClCompile Include="Src\PatchAddEdit.cpp" />
     <ClCompile Include="Src\PHackSettings.cpp" />
@@ -281,7 +278,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\MemcardManager.h" />
     <ClInclude Include="Src\MemoryCards\GCMemcard.h" />
     <ClInclude Include="Src\MemoryCards\WiiSaveCrypted.h" />
-    <ClInclude Include="Src\NetPlay.h" />
     <ClInclude Include="Src\NetWindow.h" />
     <ClInclude Include="Src\PatchAddEdit.h" />
     <ClInclude Include="Src\PHackSettings.h" />

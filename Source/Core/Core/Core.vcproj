@@ -1885,6 +1885,26 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="NetPlay"
+			>
+			<File
+				RelativePath=".\Src\NetPlay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NetPlay.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NetPlayClient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\NetPlayServer.cpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\CMakeLists.txt"
 			>

@@ -944,22 +944,6 @@
 				Name="NetPlay"
 				>
 				<File
-					RelativePath=".\Src\NetPlay.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\NetPlay.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\NetPlayClient.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\NetPlayServer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\NetWindow.cpp"
 					>
 					<FileConfiguration

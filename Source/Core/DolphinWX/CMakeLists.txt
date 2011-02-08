@@ -34,9 +34,6 @@ if(wxWidgets_FOUND)
 				Src/Main.cpp
 				Src/MemcardManager.cpp
 				Src/MemoryCards/GCMemcard.cpp
-				Src/NetPlay.cpp
-				Src/NetPlayClient.cpp
-				Src/NetPlayServer.cpp
 				Src/NetWindow.cpp
 				Src/PatchAddEdit.cpp
 				Src/PHackSettings.cpp

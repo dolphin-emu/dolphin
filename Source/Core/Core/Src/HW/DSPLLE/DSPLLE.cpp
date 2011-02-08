@@ -100,14 +100,6 @@ void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 	}
 }
 
-void DSPLLE::DSP_DebugBreak()
-{
-#if defined(HAVE_WX) && HAVE_WX
-	// if (m_DebuggerFrame)
-	//  	m_DebuggerFrame->DebugBreak();
-#endif
-}
-
 void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
 	m_hWnd = hWnd;
@@ -148,9 +140,7 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	if (m_bDSPThread)
 		m_hDSPThread = std::thread(dsp_thread, this);
 
-#if defined(HAVE_WX) && HAVE_WX
 	Host_RefreshDSPDebuggerWindow();
-#endif
 }
 
 void DSPLLE::DSP_StopSoundStream()

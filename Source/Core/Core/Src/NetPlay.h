@@ -17,8 +17,6 @@
 
 #include "FifoQueue.h"
 
-class NetPlayDiag;
-
 class NetPad
 {
 public:
@@ -90,14 +88,28 @@ private:
 	Common::CriticalSection&	m_crit;
 };
 
+class NetPlayUI
+{
+public:
+	virtual void BootGame(const std::string& filename) = 0;
+	virtual void StopGame() = 0;
+
+	virtual void Update() = 0;
+	virtual void AppendChat(const std::string& msg) = 0;
+
+	virtual void OnMsgChangeGame(const std::string& filename) = 0;
+	virtual void OnMsgStartGame() = 0;
+	virtual void OnMsgStopGame() = 0;
+};
+
 class NetPlay
 {
 public:
-	NetPlay();
+	NetPlay(NetPlayUI* _dialog);
 	virtual ~NetPlay();
 	//virtual void ThreadFunc() = 0;
 
-	bool	is_connected;
+	bool is_connected;
 	
 	// Send and receive pads values
 	void WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
@@ -117,8 +129,6 @@ public:
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
-	void UpdateGUI();
-	void AppendChatGUI(const std::string& msg);
 	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct
@@ -145,7 +155,7 @@ protected:
 
 	NetWiimote		m_wiimote_input[4];
 
-	NetPlayDiag*	m_dialog;
+	NetPlayUI*		m_dialog;
 	sf::SocketTCP	m_socket;
 	std::thread		m_thread;
 	sf::Selector<sf::SocketTCP>		m_selector;
@@ -172,7 +182,7 @@ class NetPlayServer : public NetPlay
 public:
 	void ThreadFunc();
 
-	NetPlayServer(const u16 port, const std::string& name, NetPlayDiag* const npd = NULL, const std::string& game = "");
+	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog, const std::string& game = "");
 	~NetPlayServer();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
@@ -221,7 +231,7 @@ class NetPlayClient : public NetPlay
 public:
 	void ThreadFunc();
 
-	NetPlayClient(const std::string& address, const u16 port, const std::string& name, NetPlayDiag* const npd = NULL);
+	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name);
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
