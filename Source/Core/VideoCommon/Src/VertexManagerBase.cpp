@@ -158,9 +158,7 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
-	TextureCache::texMutex.Enter();
 	g_vertex_manager->vFlush();
-	TextureCache::texMutex.Leave();
 }
 
 // TODO: need to merge more stuff into VideoCommon to use this

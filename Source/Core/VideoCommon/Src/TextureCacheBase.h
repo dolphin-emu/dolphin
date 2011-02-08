@@ -75,6 +75,7 @@ public:
 	static void Cleanup();
 
 	static void Invalidate(bool shutdown);
+	static void InvalidateDefer();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static void ClearRenderTargets();	// currently only used by OGL
@@ -89,7 +90,7 @@ public:
 	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
 		u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect);
 
-	static Common::CriticalSection texMutex;
+	static bool DeferredInvalidate;
 
 protected:
 	TextureCache();

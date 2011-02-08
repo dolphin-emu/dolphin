@@ -59,7 +59,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 
 	EndModal(wxID_OK);
 
-	TextureCache::Invalidate(false); // For settings like hi-res textures/texture format/etc.
+	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
 // TODO: implement some hack to increase the tooltip display duration, because some of these are way too long for anyone to read in 5 seconds.

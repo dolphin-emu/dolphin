@@ -26,7 +26,7 @@ TextureCache *g_texture_cache;
 u8 *TextureCache::temp = NULL;
 
 TextureCache::TexCache TextureCache::textures;
-Common::CriticalSection TextureCache::texMutex;
+bool TextureCache::DeferredInvalidate;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -53,7 +53,6 @@ TextureCache::TextureCache()
 
 void TextureCache::Invalidate(bool shutdown)
 {
-	texMutex.Enter();
 	TexCache::iterator
 		iter = textures.begin(),
 		tcend = textures.end();
@@ -68,7 +67,13 @@ void TextureCache::Invalidate(bool shutdown)
 	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-	texMutex.Leave();
+	
+	DeferredInvalidate = false;
+}
+
+void TextureCache::InvalidateDefer()
+{
+	DeferredInvalidate = true;
 }
 
 TextureCache::~TextureCache()

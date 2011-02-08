@@ -31,6 +31,7 @@
 #include "MainBase.h"
 #include "VideoConfig.h"
 #include "FramebufferManagerBase.h"
+#include "TextureCacheBase.h"
 #include "Fifo.h"
 #include "Timer.h"
 #include "StringUtil.h"
@@ -108,6 +109,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	{
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
+	}
+	
+	if (TextureCache::DeferredInvalidate)
+	{
+		TextureCache::Invalidate(false);
 	}
 }
 
