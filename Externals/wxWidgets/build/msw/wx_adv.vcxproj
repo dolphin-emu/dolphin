@@ -99,7 +99,6 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Include;..\..\Include\msvc;..\..\..\zlib;..\..\src\png;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_LIB;__WXMSW__;__WXDEBUG__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
     </ClCompile>
@@ -136,7 +135,6 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Include;..\..\Include\msvc;..\..\..\zlib;..\..\src\png;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_LIB;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
