@@ -503,6 +503,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			if (m_WiiMotes[i].IsConnected() && m_WiimoteUpdate_Freq == 15 / (i + 1))
 			{
 				NetPlay_WiimoteUpdate(i);
+				Wiimote::Update(i);
 				//return true;
 			}
 		}
