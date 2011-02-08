@@ -87,18 +87,7 @@
 namespace CommandProcessor
 {
 
-bool IsOnThread()
-{
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-}
-
 int et_UpdateInterrupts;
-
-
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
-{
-	UpdateInterrupts(userdata);
-}
 
 // look for 1002 verts, breakpoint there, see why next draw is flushed
 // TODO(ector): Warn on bbox read/write
@@ -109,8 +98,6 @@ UCPStatusReg m_CPStatusReg;
 UCPCtrlReg	m_CPCtrlReg;
 UCPClearReg	m_CPClearReg;
 
-u32 HiWatermark_Tighter;
-
 int m_bboxleft;
 int m_bboxtop;
 int m_bboxright;
@@ -120,7 +107,7 @@ u16 m_tokenReg;
 static u32 fake_GPWatchdogLastToken = 0;
 static Common::EventEx s_fifoIdleEvent;
 static Common::CriticalSection sFifoCritical;
-static bool bProcessFifoToLoWatemark = false;
+static bool bProcessFifoToLoWatermark = false;
 static bool bProcessFifoAllDistance = false;
 
 volatile bool isFifoBusy = false; //This state is changed when the FIFO is processing data.
@@ -129,6 +116,16 @@ volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
 volatile bool OnOverflow = false;
+
+bool IsOnThread()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+}
+
+void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+{
+	UpdateInterrupts(userdata);
+}
 
 void FifoCriticalEnter()
 {
@@ -144,14 +141,23 @@ void DoState(PointerWrap &p)
 {
 	p.Do(m_CPStatusReg);
 	p.Do(m_CPCtrlReg);
-	//p.Do(m_CPClearReg);
+	p.Do(m_CPClearReg);
 	p.Do(m_bboxleft);
 	p.Do(m_bboxtop);
 	p.Do(m_bboxright);
 	p.Do(m_bboxbottom);
 	p.Do(m_tokenReg);
 	p.Do(fifo);
-	p.Do(HiWatermark_Tighter);
+
+	p.Do(bProcessFifoToLoWatermark);
+	p.Do(bProcessFifoAllDistance);
+
+	p.Do(isFifoBusy);
+	p.Do(interruptSet);
+	p.Do(interruptWaiting);
+	p.Do(interruptTokenWaiting);
+	p.Do(interruptFinishWaiting);
+	p.Do(OnOverflow);
 }
 
 //inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
@@ -478,8 +484,8 @@ void Write16(const u16 _Value, const u32 _Address)
 				ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 			}
 			// If overflown happens process the fifo to LoWatemark
-			if (bProcessFifoToLoWatemark)
-				ProcessFifoToLoWatemark();
+			if (bProcessFifoToLoWatermark)
+				ProcessFifoToLoWatermark();
 			
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
@@ -501,7 +507,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (IsOnThread())
 			{
 				if (!tmpCtrl.ClearFifoUnderflow && tmpCtrl.ClearFifoOverflow)
-					bProcessFifoToLoWatemark = true;
+					bProcessFifoToLoWatermark = true;
 
 			}
 			else
@@ -890,7 +896,7 @@ void SetStatus()
     }
 }
 
-void ProcessFifoToLoWatemark()
+void ProcessFifoToLoWatermark()
 {
 	if (IsOnThread())
 	{
@@ -898,7 +904,7 @@ void ProcessFifoToLoWatemark()
 			fifo.CPReadWriteDistance > fifo.CPLoWatermark && !AtBreakpoint())
 			Common::YieldCPU();
 	}
-	bProcessFifoToLoWatemark = false;
+	bProcessFifoToLoWatermark = false;
 }
 
 void ProcessFifoAllDistance()

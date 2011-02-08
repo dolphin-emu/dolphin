@@ -44,5 +44,6 @@ void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Plugin
 void VideoFifo_CheckAsyncRequest();
+void VideoFifo_CheckStateRequest();
 
 #endif // _FIFO_H

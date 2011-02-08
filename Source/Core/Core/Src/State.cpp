@@ -88,6 +88,8 @@ void DoState(PointerWrap &p)
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
+	// Pause the video thread in multi-threaded mode
+	g_video_backend->RunLoop(false);
 	g_video_backend->DoState(p);
 
 	if (Core::g_CoreStartupParameter.bWii)
@@ -96,6 +98,9 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
+
+	// Resume the video thread
+	g_video_backend->RunLoop(true);
 }
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)

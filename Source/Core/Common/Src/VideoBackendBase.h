@@ -88,6 +88,7 @@ public:
 	virtual void Shutdown() = 0;
 
 	virtual void DoState(PointerWrap &p) = 0;
+	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() = 0;
 
@@ -127,6 +128,7 @@ extern VideoBackend* g_video_backend;
 class VideoBackendHLE : public VideoBackend
 {
 	void DoState(PointerWrap &p);
+	void RunLoop(bool enable);
 
 	void EmuStateChange(EMUSTATE_CHANGE);
 

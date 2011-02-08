@@ -55,3 +55,8 @@ void VideoCommon_DoState(PointerWrap &p)
     DoState(p);
 	//TODO: search for more data that should be saved and add it here
 }
+
+void VideoCommon_RunLoop(bool enable)
+{
+	Fifo_RunLoop(enable);
+}

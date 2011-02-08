@@ -179,7 +179,8 @@ static volatile struct
 
 // Depending on the threading mode (DC/SC) this can be called 
 // from either the GPU thread or the CPU thread
-static void check_DoState() {
+void VideoFifo_CheckStateRequest()
+{
 	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
 		// Clear all caches that touch RAM
@@ -215,14 +216,18 @@ void VideoBackendHLE::DoState(PointerWrap& p)
 			Common::YieldCPU();
 	}
 	else
-		check_DoState();
+		VideoFifo_CheckStateRequest();
+}
+
+void VideoBackendHLE::RunLoop(bool enable)
+{
+	VideoCommon_RunLoop(enable);
 }
 
 void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
-	check_DoState();
 }
 
 void VideoBackend::Video_GatherPipeBursted()

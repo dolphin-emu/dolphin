@@ -194,8 +194,8 @@ void Fifo_EnterLoop()
 			while (!EmuRunning)
 			{
 				g_video_backend->PeekMessages();
-				VideoFifo_CheckAsyncRequest();
-				Common::SleepCurrentThread(10);
+				VideoFifo_CheckStateRequest();
+				Common::SleepCurrentThread(1);
 			}
 		}
 	}

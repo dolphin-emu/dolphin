@@ -22,5 +22,6 @@
 #include "ChunkFile.h"
 
 void VideoCommon_DoState(PointerWrap &p);
+void VideoCommon_RunLoop(bool enable);
 
 #endif // _VIDEOSTATE_H

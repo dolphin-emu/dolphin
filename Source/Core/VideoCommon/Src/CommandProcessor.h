@@ -171,7 +171,7 @@ void FifoCriticalEnter();
 void FifoCriticalLeave();
 
 void SetOverflowStatusFromGatherPipe();
-void ProcessFifoToLoWatemark();
+void ProcessFifoToLoWatermark();
 void ProcessFifoAllDistance();
 void ProcessFifoEvents();
 void AbortFrame();
