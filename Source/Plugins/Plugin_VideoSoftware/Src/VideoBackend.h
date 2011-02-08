@@ -17,6 +17,7 @@ class VideoBackend : public VideoBackendLLE
 	void EmuStateChange(EMUSTATE_CHANGE newState);
 
 	void DoState(PointerWrap &p);
+	void RunLoop(bool enable);
 
 	void ShowConfig(void* parent);
 

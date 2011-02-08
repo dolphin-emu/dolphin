@@ -43,7 +43,7 @@
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
 #define DL_CODE_CLEAR_THRESHOLD (128 * 1024)
 extern int frameCount;
-static int CheckContextId;
+static u32 CheckContextId;
 using namespace Gen;
 
 namespace DLCache
@@ -66,11 +66,11 @@ struct ReferencedDataRegion
 	ReferencedDataRegion()
 		:hash(0),
 		start_address(NULL),
+		NextRegion(NULL),
 		size(0),
-		MustClean(false),
+		MustClean(0),
 		ReferencedArray(-1),
-		ReferencedArrayStride(0),
-		NextRegion(NULL)
+		ReferencedArrayStride(0)
 	{}
 	u64 hash;
 	u8* start_address;
@@ -94,16 +94,16 @@ struct ReferencedDataRegion
 struct CachedDisplayList
 {
 	CachedDisplayList()
-			: uncachable(false),
+			: Regions(NULL),
+			LastRegion(NULL),
+			uncachable(false),
 			num_xf_reg(0),
 			num_cp_reg(0),
 			num_bp_reg(0), 
 			num_index_xf(0),
 			num_draw_call(0),
 			pass(DLPASS_ANALYZE),
-			BufferCount(0),
-			Regions(NULL),
-			LastRegion(NULL)
+			BufferCount(0)
 	{
 		frame_count = frameCount;
 	}
@@ -188,8 +188,7 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
-				// this chek is not strictly necesary now but i left it for an aditional safety check
-				if(Current->ReferencedArray != -1 && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
+				if(cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride)
 				{
 					return false;	
 				}

@@ -79,12 +79,14 @@ void VideoBackend::Initialize()
 
 void VideoBackend::DoState(PointerWrap&)
 {
+}
 
+void VideoBackend::RunLoop(bool enable)
+{
 }
 
 void VideoBackend::EmuStateChange(EMUSTATE_CHANGE newState)
 {
-
 }
 
 void VideoBackend::Shutdown()

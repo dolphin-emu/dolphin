@@ -50,13 +50,16 @@ elif sys.platform == 'darwin':
 	env['FRAMEWORKPATH'] += ['Externals/Cg']
 	frameworksflags += ['-Wl,-weak_framework,Cg']
 	frameworksflags += ['-Wl,-weak_framework,OpenCL']
-	frameworksflags += ['-Wl,-weak_framework,QuickTime']
-	frameworksflags += ['-Wl,-no_arch_warnings']
 
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
 	if env['HAVE_WX']:
 		env['LIBS'] += env['wxconfiglibs']
+		frameworksflags += ['-Wl,-weak_framework,AudioToolbox']
+		frameworksflags += ['-Wl,-weak_framework,Carbon']
+		frameworksflags += ['-Wl,-weak_framework,QuickTime']
+		frameworksflags += ['-Wl,-weak_framework,WebKit']
+		frameworksflags += ['-Wl,-no_arch_warnings']
 	else:
 		env['LIBS'] += ['iconv']
 		exe += 'NoGUI'
