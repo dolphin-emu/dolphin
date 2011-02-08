@@ -65,7 +65,7 @@ struct ReferencedDataRegion
 		NextRegion(NULL),
 		size(0),
 		MustClean(0),
-		ReferencedArray(-1),
+		ReferencedArray(0xFFFFFFFF),
 		ReferencedArrayStride(0)
 	{}
 	u64 hash;
@@ -184,7 +184,10 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
-				if(cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride)
+				//this test is here  to grant that the referenced arrays by the dlist dont change
+				// in the current implementation is not necesary as the id of the dlist is calculated based on the arrays it refers
+				// but i let this test for extra safety
+				if(Current->ReferencedArray != 0xFFFFFFFF && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
 				{
 					return false;	
 				}
