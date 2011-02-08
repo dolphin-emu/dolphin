@@ -43,7 +43,7 @@
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
 #define DL_CODE_CLEAR_THRESHOLD (128 * 1024)
 extern int frameCount;
-
+static int CheckContextId;
 using namespace Gen;
 
 namespace DLCache
@@ -101,7 +101,6 @@ struct CachedDisplayList
 			num_index_xf(0),
 			num_draw_call(0),
 			pass(DLPASS_ANALYZE),
-			next_check(1),
 			BufferCount(0),
 			Regions(NULL),
 			LastRegion(NULL)
@@ -124,7 +123,6 @@ struct CachedDisplayList
 	
 
 	u32 check;
-	u32 next_check;
 
 	int frame_count;
 
@@ -627,6 +625,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 
 void Init()
 {
+	CheckContextId = 0;
 	dlcode_cache = (u8*)AllocateExecutableMemory(DL_CODE_CACHE_SIZE, false);  // Don't need low memory.
 	emitter.SetCodePtr(dlcode_cache);
 }
@@ -738,9 +737,9 @@ bool HandleDisplayList(u32 address, u32 size)
 		case DLCache::DLPASS_RUN:
 			{
 				// Every N draws, check hash
-				dl.check--;
-				if (dl.check <= 0)
+				if (dl.check != CheckContextId)
 				{
+					dl.check = CheckContextId;
 					if (dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0) || !dl.CheckRegions()) 
 					{
 						dl.uncachable = true;
@@ -748,7 +747,6 @@ bool HandleDisplayList(u32 address, u32 size)
 						dl.ClearRegions();						
 						return false;
 					}
-					dl.check = dl.next_check;					
 				}
 				dl.frame_count= frameCount;
 				u8 *old_datareader = g_pVideoData;
@@ -778,8 +776,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	u32 dlvatused = DLCache::AnalyzeAndRunDisplayList(address, size, &dl);
 	dl.dl_hash = GetHash64(Memory::GetPointer(address), size,0);
 	dl.pass = DLCache::DLPASS_COMPILE;
-	dl.check = 1;
-	dl.next_check = 1;
+	dl.check = CheckContextId;
 	vhash = DLCache::CreateVMapId(dlvatused);
 	if(Parentiter != DLCache::dl_map.end())
 	{
@@ -799,4 +796,9 @@ bool HandleDisplayList(u32 address, u32 size)
 	}
 	return true;
 	
+}
+
+void IncrementCheckContextId()
+{
+	CheckContextId++;
 }

@@ -19,6 +19,7 @@
 #define _DLCACHE_H
 
 bool HandleDisplayList(u32 address, u32 size);
+void IncrementCheckContextId();
 
 namespace DLCache {
 
