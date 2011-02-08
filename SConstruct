@@ -114,29 +114,34 @@ rev = utils.GenerateRevFile(env['flavor'], '.', None)
 
 # OS X specifics
 if sys.platform == 'darwin':
+    #ccld = ['-mmacosx-version-min=10.5.4']
+    #ccld += ['-arch', 'x86_64', '-mssse3']
+    #ccld += ['-arch', 'i386', '-msse3']
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5.4']
     env['CCFLAGS'] += ccld
-    env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-    env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
+    env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
+    env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CXXFLAGS'] += ['-x', 'objective-c++']
-    env['FRAMEWORKS'] += ['AudioToolbox', 'AudioUnit', 'Carbon', 'Cocoa']
-    env['FRAMEWORKS'] += ['CoreAudio', 'CoreFoundation', 'CoreServices']
-    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL', 'WebKit']
-    env['LIBPATH'] += ['/usr/lib'] # XXX clang
+    env['FRAMEWORKS'] += ['ApplicationServices', 'AudioUnit', 'Cocoa']
+    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
-    env['LINKFLAGS'] += ['-Wl,-search_paths_first']
+
+    env['CC'] = '/Developer/usr/bin/llvm-gcc'
+    env['CXX'] = '/Developer/usr/bin/llvm-g++'
+    #env['CC'] = '/Developer/usr/bin/clang'
+    #env['CXX'] = '/Developer/usr/bin/clang++'
+    #if float(os.popen('xcode-select -version').read()[21:]) < 2000:
+    #    print 'Xcode 4 is required to build Dolphin'
+    #    print 'It is available from http://developer.apple.com/devcenter/mac/'
+    #    Exit(1)
 
     if env['ENV'].has_key('CC'):
         env['CC'] = env['ENV']['CC']
-    else:
-        env['CC'] = '/Developer/usr/bin/llvm-gcc'
     if env['ENV'].has_key('CXX'):
         env['CXX'] = env['ENV']['CXX']
-    else:
-        env['CXX'] = '/Developer/usr/bin/llvm-g++'
 
     if env['nowx']:
         env['HAVE_WX'] = 0
@@ -145,11 +150,12 @@ if sys.platform == 'darwin':
         conf = wxenv.Configure(conf_dir = None, log_file = None,
             custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
         env['HAVE_WX'] = \
-            conf.CheckWXConfig(2.9, 'aui adv core base gl'.split(),
+            conf.CheckWXConfig(2.92, 'aui adv core base gl'.split(),
                 env['flavor'] == 'debug')
         conf.Finish()
         if not env['HAVE_WX']:
-            print "wxWidgets 2.9 not found using " + env['wxconfig']
+            print 'wxWidgets 2.9.2 not found using ' + wxenv['wxconfig']
+            print 'See http://code.google.com/p/dolphin-emu/wiki/MacOSX_Build'
             Exit(1)
         wxconfig.ParseWXConfig(wxenv)
         env['CPPDEFINES'] += ['__WXOSX_COCOA__']

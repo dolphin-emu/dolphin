@@ -27,9 +27,9 @@ def SystemWXConfig(env, args):
 # Check version of wx-config
 # It succeeds with a warning if version check failed.
 def CheckWXConfigVersion(context, version):
-    releaseversion = SystemWXConfig(context.env,'--release')[1]
+    releaseversion = SystemWXConfig(context.env,'--version-full')[1]
     try:
-        if float(version) > float(releaseversion.strip()):
+        if float(version) > float(releaseversion.replace('.', '')) / 1000:
             return False
     except (ValueError, TypeError):
         context.Message('version check failed, but ok... ')
