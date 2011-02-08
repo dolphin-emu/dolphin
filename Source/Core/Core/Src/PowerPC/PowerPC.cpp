@@ -183,7 +183,7 @@ void Init(int cpu_core)
 
 	if (cpu_core_base != interpreter)
 	{
-		jit = dynamic_cast<JitBase*>(cpu_core_base);
+		jit = static_cast<JitBase*>(cpu_core_base);
 		jit->Init();
 		mode = MODE_JIT;
 	}

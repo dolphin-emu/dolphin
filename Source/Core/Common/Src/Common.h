@@ -89,17 +89,6 @@ private:
 // Since it is always around on windows
 	#define HAVE_WX 1
 
-// it is VERY DANGEROUS to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries.
-// You will get bizarre crash bugs whenever you use STL.
-	namespace
-	{
-		#ifndef _SECURE_SCL
-			#error Please define _SECURE_SCL=0 in the project settings
-		#else
-			CompileTimeAssert<_SECURE_SCL==0> volatile EnsureNoSecureSCL;
-		#endif
-	}
-
 // Debug definitions
 	#if defined(_DEBUG)
 		#include <crtdbg.h>
