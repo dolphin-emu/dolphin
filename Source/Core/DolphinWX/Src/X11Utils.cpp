@@ -25,6 +25,11 @@
 extern char **environ;
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
+#include <string>
+#include <algorithm>
+#endif
+
 namespace X11Utils
 {
 
@@ -157,35 +162,43 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
 	: dpy(_dpy)
 	, win(_win)
-	, deskSize(-1), fullSize(-1)
-	, bValid(true)
+	, screenResources(NULL), outputInfo(NULL), crtcInfo(NULL)
+	, fullMode(0)
+	, fs_fb_width(0), fs_fb_height(0), fs_fb_width_mm(0), fs_fb_height_mm(0)
+	, bValid(true), bIsFullscreen(false)
 {
-	XRRScreenSize *sizes;
-	int numSizes;
+	int XRRMajorVersion, XRRMinorVersion;
 
-	// XRRSizes is safe to call even if the RANDR extension is not present and numSizes
-	// will be 0 in that case (according to the documentation)
-	sizes = XRRSizes(dpy, DefaultScreen(dpy), &numSizes);
-	if (!numSizes)
+	if (!XRRQueryVersion(dpy, &XRRMajorVersion, &XRRMinorVersion) ||
+			(XRRMajorVersion < 1 || (XRRMajorVersion == 1 && XRRMinorVersion < 3)))
 	{
 		WARN_LOG(VIDEO, "XRRExtension not supported.");
 		bValid = false;
 		return;
 	}
 
-	int vidModeMajorVersion, vidModeMinorVersion;
-	XRRQueryVersion(dpy, &vidModeMajorVersion, &vidModeMinorVersion);
-	INFO_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
+	screenResources = XRRGetScreenResourcesCurrent(dpy, win);
+
+	screen = DefaultScreen(dpy);
+	fb_width = DisplayWidth(dpy, screen);
+	fb_height = DisplayHeight(dpy, screen);
+	fb_width_mm = DisplayWidthMM(dpy, screen);
+	fb_height_mm = DisplayHeightMM(dpy, screen);
+
+	INFO_LOG(VIDEO, "XRRExtension-Version %d.%d", XRRMajorVersion, XRRMinorVersion);
 	Update();
 }
 
 XRRConfiguration::~XRRConfiguration()
 {
-	if (bValid)
-	{
+	if (bValid && bIsFullscreen)
 		ToggleDisplayMode(False);
-		XRRFreeScreenConfigInfo(screenConfig);
-	}
+	if (screenResources)
+		XRRFreeScreenResources(screenResources);
+	if (outputInfo)
+		XRRFreeOutputInfo(outputInfo);
+	if (crtcInfo)
+		XRRFreeCrtcInfo(crtcInfo);
 }
 
 void XRRConfiguration::Update()
@@ -193,33 +206,81 @@ void XRRConfiguration::Update()
 	if (!bValid)
 		return;
 
-	// Get the resolution setings for fullscreen mode
-	int fullWidth, fullHeight;
-	sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-			"%dx%d", &fullWidth, &fullHeight);
-
-	XRRScreenSize *sizes;
-	int numSizes;
-
-	screenConfig = XRRGetScreenInfo(dpy, win);
-
-	// Save desktop resolution
-	deskSize = XRRConfigCurrentConfiguration(screenConfig, &screenRotation);
-	// Set the desktop resolution as the default
-	fullSize = deskSize;
-
-	// Find the index of the fullscreen resolution from config
-	sizes = XRRConfigSizes(screenConfig, &numSizes);
-	if (numSizes > 0 && sizes != NULL) {
-		for (int i = 0; i < numSizes; i++) {
-			if ((sizes[i].width == fullWidth) && (sizes[i].height == fullHeight)) {
-				fullSize = i;
-			}
-		}
-		INFO_LOG(VIDEO, "Fullscreen Resolution %dx%d", 
-				sizes[fullSize].width, sizes[fullSize].height);
+	if (outputInfo)
+	{
+		XRRFreeOutputInfo(outputInfo);
+		outputInfo = NULL;
 	}
-	else {
+	if (crtcInfo)
+	{
+		XRRFreeCrtcInfo(crtcInfo);
+		crtcInfo = NULL;
+	}
+	fullMode = 0;
+
+	// Get the resolution setings for fullscreen mode
+	unsigned int fullWidth, fullHeight;
+	char *output_name = NULL;
+	sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+			"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+
+	for (int i = 0; i < screenResources->noutput; i++)
+	{
+		XRROutputInfo *output_info = XRRGetOutputInfo(dpy, screenResources, screenResources->outputs[i]);
+		if (output_info && output_info->crtc && output_info->connection == RR_Connected)
+		{
+			XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(dpy, screenResources, output_info->crtc);
+			if (crtc_info)
+			{
+				if (!strcmp(output_name, output_info->name))
+				{
+					outputInfo = output_info;
+					crtcInfo = crtc_info;
+					for (int j = 0; j < output_info->nmode && fullMode == 0; j++)
+					{
+						for (int k = 0; k < screenResources->nmode && fullMode == 0; k++)
+						{
+							if (output_info->modes[j] == screenResources->modes[k].id)
+							{
+								if (fullWidth == screenResources->modes[k].width &&
+										fullHeight == screenResources->modes[k].height)
+								{
+									fullMode = screenResources->modes[k].id;
+									if (crtcInfo->x + (int)screenResources->modes[k].width > fs_fb_width)
+										fs_fb_width = crtcInfo->x + screenResources->modes[k].width;
+									if (crtcInfo->y + (int)screenResources->modes[k].height > fs_fb_height)
+										fs_fb_height = crtcInfo->y + screenResources->modes[k].height;
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					if (crtc_info->x + (int)crtc_info->width > fs_fb_width)
+						fs_fb_width = crtc_info->x + crtc_info->width;
+					if (crtc_info->y + (int)crtc_info->height > fs_fb_height)
+						fs_fb_height = crtc_info->y + crtc_info->height;
+				}
+			}
+			if (crtc_info && crtcInfo != crtc_info)
+				XRRFreeCrtcInfo(crtc_info);
+		}
+		if (output_info && outputInfo != output_info)
+			XRRFreeOutputInfo(output_info);
+	}
+	fs_fb_width_mm = fs_fb_width * DisplayHeightMM(dpy, screen) / DisplayHeight(dpy, screen);
+	fs_fb_height_mm = fs_fb_height * DisplayHeightMM(dpy, screen) / DisplayHeight(dpy, screen);
+
+	if (output_name)
+		free(output_name);
+
+	if (outputInfo && crtcInfo && fullMode)
+	{
+		INFO_LOG(VIDEO, "Fullscreen Resolution %dx%d", fullWidth, fullHeight);
+	}
+	else
+	{
 		ERROR_LOG(VIDEO, "Failed to obtain fullscreen size.\n"
 				"Using current desktop resolution for fullscreen.");
 	}
@@ -227,35 +288,64 @@ void XRRConfiguration::Update()
 
 void XRRConfiguration::ToggleDisplayMode(bool bFullscreen)
 {
-	if (!bValid)
+	if (!bValid || !screenResources || !outputInfo || !crtcInfo || !fullMode)
+		return;
+	if (bFullscreen == bIsFullscreen)
 		return;
 
+	XGrabServer(dpy);
 	if (bFullscreen)
-		XRRSetScreenConfig(dpy, screenConfig, win,
-				fullSize, screenRotation, CurrentTime);
+	{
+		XRRSetCrtcConfig(dpy, screenResources, outputInfo->crtc, CurrentTime,
+				crtcInfo->x, crtcInfo->y, fullMode, crtcInfo->rotation,
+				crtcInfo->outputs, crtcInfo->noutput);
+		XRRSetScreenSize(dpy, win, fs_fb_width, fs_fb_height, fs_fb_width_mm, fs_fb_height_mm);
+		bIsFullscreen = true;
+	}
 	else
-		XRRSetScreenConfig(dpy, screenConfig, win,
-				deskSize, screenRotation, CurrentTime);
+	{
+		XRRSetCrtcConfig(dpy, screenResources, outputInfo->crtc, CurrentTime,
+				crtcInfo->x, crtcInfo->y, crtcInfo->mode, crtcInfo->rotation,
+				crtcInfo->outputs, crtcInfo->noutput);
+		XRRSetScreenSize(dpy, win, fb_width, fb_height, fb_width_mm, fb_height_mm);
+		bIsFullscreen = false;
+	}
+	XUngrabServer(dpy);
+	XSync(dpy, false);
 }
 
 #if defined(HAVE_WX) && HAVE_WX
 void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenResolution)
 {
-	if (!bValid)
+	if (!bValid || !screenResources)
 		return;
 
-	int screen;
-	screen = DefaultScreen(dpy);
-	//Get all full screen resos for the config dialog
-	XRRScreenSize *sizes = NULL;
-	int modeNum = 0;
-
-	sizes = XRRSizes(dpy, screen, &modeNum);
-	if (modeNum > 0 && sizes != NULL)
+	//Get all full screen resolutions for the config dialog
+	for (int i = 0; i < screenResources->noutput; i++)
 	{
-		for (int i = 0; i < modeNum; i++)
-			arrayStringFor_FullscreenResolution.Add(wxString::Format(wxT("%dx%d"),
-					   	sizes[i].width, sizes[i].height));
+		XRROutputInfo *output_info =
+			XRRGetOutputInfo(dpy, screenResources, screenResources->outputs[i]);
+
+		if (output_info && output_info->crtc && output_info->connection == RR_Connected)
+		{
+			std::vector<std::string> resos;
+			for (int j = 0; j < output_info->nmode; j++)
+				for (int k = 0; k < screenResources->nmode; k++)
+					if (output_info->modes[j] == screenResources->modes[k].id)
+					{
+						std::string strRes(screenResources->modes[k].name);
+						// Only add unique resolutions
+						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+						{
+							resos.push_back(strRes);
+							arrayStringFor_FullscreenResolution.Add(
+									wxString::FromUTF8(output_info->name) + wxT(": ") +
+									wxString::FromUTF8(screenResources->modes[k].name));
+						}
+					}
+		}
+		if (output_info)
+			XRRFreeOutputInfo(output_info);
 	}
 }
 #endif
@@ -263,4 +353,3 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 #endif
 
 }
-

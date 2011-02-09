@@ -36,9 +36,9 @@
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec
-#define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
-#define _NET_WM_STATE_ADD           1    /* add/set property */
-#define _NET_WM_STATE_TOGGLE        2    /* toggle property  */
+#define _NET_WM_STATE_REMOVE        0    // remove/unset property
+#define _NET_WM_STATE_ADD           1    // add/set property
+#define _NET_WM_STATE_TOGGLE        2    // toggle property
 
 namespace X11Utils
 {
@@ -74,10 +74,15 @@ class XRRConfiguration
 	private:
 		Display *dpy;
 		Window win;
-		XRRScreenConfiguration *screenConfig;
-		Rotation screenRotation;
-		int deskSize, fullSize;
+		int screen;
+		XRRScreenResources *screenResources;
+		XRROutputInfo *outputInfo;
+		XRRCrtcInfo *crtcInfo;
+		RRMode fullMode;
+		int fb_width, fb_height, fb_width_mm, fb_height_mm;
+		int fs_fb_width, fs_fb_height, fs_fb_width_mm, fs_fb_height_mm;
 		bool bValid;
+		bool bIsFullscreen;
 };
 #endif
 
