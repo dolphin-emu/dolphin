@@ -96,7 +96,7 @@ void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 			}
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
-		// yield?
+		Common::YieldCPU();
 	}
 }
 

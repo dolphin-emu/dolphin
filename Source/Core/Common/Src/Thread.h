@@ -142,7 +142,7 @@ void SetCurrentThreadAffinity(u32 mask);
 #ifdef _WIN32
 		YieldProcessor();
 #elif defined(_M_IX86) || defined(_M_X64)
-		_mm_pause();
+		usleep(1);
 #endif
 	}
 	
