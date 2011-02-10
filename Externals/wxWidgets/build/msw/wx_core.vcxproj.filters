@@ -2339,12 +2339,4 @@
       <Filter>png</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\include\wx\msw\setup.h">
-      <Filter>Setup Headers</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\include\wx\msw\genrcdefs.h">
-      <Filter>MSW Headers</Filter>
-    </CustomBuild>
-  </ItemGroup>
 </Project>
