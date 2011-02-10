@@ -41,6 +41,7 @@ bool AtBreakpoint();
 void Fifo_DoState(PointerWrap &f);
 void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
+bool IsFifoProcesingData();
 
 // Implemented by the Video Plugin
 void VideoFifo_CheckAsyncRequest();

@@ -240,9 +240,9 @@ void VideoBackendHLE::Video_WaitForFrameFinish()
 	CommandProcessor::WaitForFrameFinish();
 }
 
-bool VideoBackendHLE::Video_IsFifoBusy()
+bool VideoBackendHLE::Video_IsPossibleWaitingSetDrawDone()
 {
-	return CommandProcessor::isFifoBusy;
+	return CommandProcessor::isPossibleWaitingSetDrawDone;
 }
 
 void VideoBackendHLE::Video_AbortFrame()

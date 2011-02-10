@@ -178,7 +178,7 @@ void VideoBackend::Video_WaitForFrameFinish(void)
 {
 }
 
-bool VideoBackend::Video_IsFifoBusy(void)
+bool VideoBackend::Video_IsPossibleWaitingSetDrawDone(void)
 {
 	return false;
 }

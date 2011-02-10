@@ -111,7 +111,7 @@ static Common::CriticalSection sFifoCritical;
 static bool bProcessFifoToLoWatermark = false;
 static bool bProcessFifoAllDistance = false;
 
-volatile bool isFifoBusy = false; //This state is changed when the FIFO is processing data.
+volatile bool isPossibleWaitingSetDrawDone = false; //This state is changed when the FIFO is processing data.
 volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
@@ -153,7 +153,7 @@ void DoState(PointerWrap &p)
 	p.Do(bProcessFifoToLoWatermark);
 	p.Do(bProcessFifoAllDistance);
 
-	p.Do(isFifoBusy);
+	p.Do(isPossibleWaitingSetDrawDone);
 	p.Do(interruptSet);
 	p.Do(interruptWaiting);
 	p.Do(interruptTokenWaiting);
@@ -477,6 +477,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
 			fifo.bFF_HiWatermarkInt = tmpCtrl.FifoOverflowIntEnable;
 			fifo.bFF_LoWatermarkInt = tmpCtrl.FifoUnderflowIntEnable;
+			fifo.bFF_GPLinkEnable = tmpCtrl.GPLinkEnable;
 
 			if(tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable)
 			{
@@ -816,7 +817,7 @@ void SetFifoIdleFromVideoPlugin()
 void AbortFrame()
 {
 	fifo.bFF_GPReadEnable = false;	
-	s_fifoIdleEvent.Wait();
+	while(IsFifoProcesingData()) Common::YieldCPU();
 	GPFifo::ResetGatherPipe();
 	ResetVideoBuffer();
 	fifo.CPReadPointer = fifo.CPWritePointer;

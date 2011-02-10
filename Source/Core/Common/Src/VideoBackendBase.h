@@ -55,6 +55,7 @@ struct SCPFifoStruct
 	// So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its mess.
 	volatile u16 PEToken;
 
+	volatile u32 bFF_GPLinkEnable;
 	volatile u32 bFF_GPReadEnable;
 	volatile u32 bFF_BPEnable;
 	volatile u32 bFF_BPInt;
@@ -113,7 +114,7 @@ public:
 	static void Video_GatherPipeBursted();
 
 	virtual void Video_WaitForFrameFinish() = 0;
-	virtual bool Video_IsFifoBusy() = 0;
+	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
 	virtual void Video_AbortFrame() = 0;
 
 	static void PopulateList();
@@ -145,7 +146,7 @@ class VideoBackendHLE : public VideoBackend
 	void Video_SetRendering(bool bEnabled);
 
 	void Video_WaitForFrameFinish();
-	bool Video_IsFifoBusy();
+	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
 };
 

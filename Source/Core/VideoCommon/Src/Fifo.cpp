@@ -33,6 +33,7 @@ namespace
 {
 static volatile bool fifoStateRun = false;
 static volatile bool EmuRunning = false;
+static volatile bool isFifoProcesingData = false;
 static u8 *videoBuffer;
 // STATE_TO_SAVE
 static int size = 0;
@@ -95,6 +96,11 @@ void Fifo_RunLoop(bool run)
 	EmuRunning = run;
 }
 
+bool IsFifoProcesingData()
+{
+	return isFifoProcesingData;
+}
+
 // Description: Fifo_EnterLoop() sends data through this function.
 void Fifo_SendFifoData(u8* _uData, u32 len)
 {
@@ -142,9 +148,8 @@ void Fifo_EnterLoop()
 		while (!CommandProcessor::interruptWaiting && _fifo.bFF_GPReadEnable &&
 			_fifo.CPReadWriteDistance && (!AtBreakpoint() || CommandProcessor::OnOverflow))
 		{
-			// while the FIFO is processing data we activate this for sync with emulator thread.
-			
-			CommandProcessor::isFifoBusy = true;
+			isFifoProcesingData = true;
+			CommandProcessor::isPossibleWaitingSetDrawDone = _fifo.bFF_GPLinkEnable;
 
 			if (!fifoStateRun) break;
 
@@ -180,9 +185,10 @@ void Fifo_EnterLoop()
 			// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			VideoFifo_CheckAsyncRequest();		
-			CommandProcessor::isFifoBusy = false;
+			CommandProcessor::isPossibleWaitingSetDrawDone = false;
 		}
-
+		
+		isFifoProcesingData = false;
 		
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 

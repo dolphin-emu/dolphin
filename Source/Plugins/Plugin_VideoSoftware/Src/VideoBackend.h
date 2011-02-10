@@ -36,7 +36,7 @@ class VideoBackend : public VideoBackendLLE
 	void Video_SetRendering(bool bEnabled);
 
 	void Video_WaitForFrameFinish();
-	bool Video_IsFifoBusy();
+	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
 
 	void UpdateFPSDisplay(const char*);
