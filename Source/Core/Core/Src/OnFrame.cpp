@@ -217,6 +217,15 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	fwrite(&g_padState, sizeof(ControllerState), 1, g_recordfd);
 }
 
+void RecordWiimote(u8 *data, s8 size)
+{
+	if(!IsRecordingInput())
+		return;
+
+	fwrite(&size, 1, 1, g_recordfd);
+	fwrite(data, 1, size, g_recordfd);
+}
+
 bool PlayInput(const char *filename)
 {
 	if(!filename || g_playMode != MODE_NONE || g_recordfd)
@@ -360,6 +369,26 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	PadStatus->substickX = g_padState.CStickX;
 	PadStatus->substickY = g_padState.CStickY;
 	
+	if(feof(g_recordfd))
+	{
+		Core::DisplayMessage("Movie End", 2000);
+		// TODO: read-only mode
+		//EndPlayInput();
+		g_playMode = MODE_RECORDING;
+	}
+}
+
+void PlayWiimote(u8 *data, s8 &size)
+{
+	s8 count = 0;
+	if(!IsPlayingInput())
+		return;
+
+	fread(&count, 1, 1, g_recordfd);
+	size = (count > size) ? size : count;
+	fread(data, 1, size, g_recordfd);
+	
+	// TODO: merge this with the above so that there's no duplicate code
 	if(feof(g_recordfd))
 	{
 		Core::DisplayMessage("Movie End", 2000);

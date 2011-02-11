@@ -110,10 +110,12 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
+void RecordWiimote(u8* data, s8 size);
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
+void PlayWiimote(u8* data, s8 &size);
 void EndPlayInput();
 void SaveRecording(const char *filename);
 
