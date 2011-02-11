@@ -256,14 +256,14 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	s_Stream->codec->codec_id = CODEC_ID_FFV1; //s_FormatContext->oformat->video_codec;
+	s_Stream->codec->codec_id = s_FormatContext->oformat->video_codec;
 	s_Stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_Stream->codec->bit_rate = 400000;
 	s_Stream->codec->width = s_width;
 	s_Stream->codec->height = s_height;
 	s_Stream->codec->time_base = (AVRational){1, VideoInterface::TargetRefreshRate};
 	s_Stream->codec->gop_size = 12;
-	s_Stream->codec->pix_fmt = PIX_FMT_BGRA;
+	s_Stream->codec->pix_fmt = PIX_FMT_YUV420P;
 
 	av_set_parameters(s_FormatContext, NULL);
 
@@ -275,7 +275,7 @@ bool AVIDump::CreateFile()
 	}
 
 	if(!(s_SwsContext = sws_getContext(s_width, s_height, PIX_FMT_BGR24, s_width, s_height,
-					PIX_FMT_BGRA, SWS_BICUBIC, NULL, NULL, NULL)))
+					PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL)))
 	{
 		CloseFile();
 		return false;
@@ -284,10 +284,10 @@ bool AVIDump::CreateFile()
 	s_BGRFrame = avcodec_alloc_frame();
 	s_YUVFrame = avcodec_alloc_frame();
 
-	s_size = avpicture_get_size(PIX_FMT_BGRA, s_width, s_height);
+	s_size = avpicture_get_size(PIX_FMT_YUV420P, s_width, s_height);
 
 	s_YUVBuffer = new uint8_t[s_size];
-	avpicture_fill((AVPicture *)s_YUVFrame, s_YUVBuffer, PIX_FMT_BGRA, s_width, s_height);
+	avpicture_fill((AVPicture *)s_YUVFrame, s_YUVBuffer, PIX_FMT_YUV420P, s_width, s_height);
 
 	s_OutBuffer = new uint8_t[s_size];
 

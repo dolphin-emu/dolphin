@@ -959,7 +959,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	static u8 *data = 0;
+	static u8 *data = NULL;
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
@@ -1198,7 +1198,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			if (data)
 			{
 				delete[] data;
-				data = 0;
+				data = NULL;
 				w = h = 0;
 			}
 			AVIDump::Stop();
