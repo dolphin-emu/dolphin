@@ -60,9 +60,7 @@ if(wxWidgets_FOUND)
 				Src/RegisterWindow.cpp
 				Src/VideoConfigDiag.cpp)
 
-	set(WXLIBS	debwx
-				debugger_ui_util
-				${wxWidgets_LIBRARIES}
+	set(WXLIBS ${wxWidgets_LIBRARIES}
 				${GTK2_LIBRARIES})
 
 else(wxWidgets_FOUND)

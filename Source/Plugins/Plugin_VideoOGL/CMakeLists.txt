@@ -19,7 +19,7 @@ set(LIBS	videocommon
 			${X11_LIBRARIES})
 
 if(wxWidgets_FOUND)
-	set(LIBS	videouicommon ${LIBS} ${wxWidgets_LIBRARIES})
+	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
 if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
