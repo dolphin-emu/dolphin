@@ -63,7 +63,9 @@
 #ifdef _WIN32
 #include "EmuWindow.h"
 #endif
+#if defined _WIN32 || defined HAVE_LIBAV
 #include "AVIDump.h"
+#endif
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/image.h>
@@ -966,7 +968,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (g_ActiveConfig.bDumpFrames && data)
 		#ifdef _WIN32
 			AVIDump::AddFrame((char *) data);
-		#else
+		#elif defined HAVE_LIBAV
 			AVIDump::AddFrame(data);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);
@@ -984,7 +986,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (g_ActiveConfig.bDumpFrames && data)
 		#ifdef _WIN32
 			AVIDump::AddFrame((char *) data);
-		#else
+		#elif defined HAVE_LIBAV
 			AVIDump::AddFrame(data);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);

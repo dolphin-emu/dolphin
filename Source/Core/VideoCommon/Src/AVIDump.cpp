@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "AVIDump.h"
+#include "HW/VideoInterface.h" //for TargetRefreshRate
 
 #ifdef _WIN32
 
@@ -29,8 +30,6 @@
 #include "FileUtil.h"
 #include "CommonPaths.h"
 #include "Log.h"
-
-#include "HW/VideoInterface.h" //for TargetRefreshRate
 
 HWND m_emuWnd;
 LONG m_byteBuffer;
@@ -202,8 +201,6 @@ bool AVIDump::SetVideoFormat()
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "Log.h"
-
-#include "HW/VideoInterface.h" //for TargetRefreshRate
 
 extern "C" {
 #include <libavcodec/avcodec.h>
