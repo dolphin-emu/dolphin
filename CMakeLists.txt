@@ -4,27 +4,23 @@
 cmake_minimum_required(VERSION 2.6)
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-
 set(DOLPHIN_IS_STABLE FALSE)
-set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
-set(libdir		${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}	CACHE PATH "libdir")
-set(plugindir	${libdir}/dolphin-emu						CACHE PATH "plugindir")
-set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
 
 # Set up paths
+set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
+set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
 set(userdir ".dolphin-emu" CACHE STRING "User directory")
 add_definitions(-DUSER_DIR="${userdir}")
 add_definitions(-DDATA_DIR="${datadir}/")
-add_definitions(-DLIBS_DIR="${plugindir}")
 
-# These just set where the binary files will be built.  The program will not
-# execute from here.  You must run "make install" to install these to the
-# proper location as defined above.
+# Set where the binary files will be built.  The program will not execute from
+# here.  You must run "make install" to install these to the proper location
+# as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries/plugins)
 
 # Precompiled header support for MSVC:
-# Call this after setting the source list (and don't add the source file used to generate the pch file, this will be done here automatically)
+# Call this after setting the source list (and don't add the source file used
+# to generate the pch file, this will be done here automatically)
 function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIABLE_NAME)
 	if(MSVC)
 		set(files ${${SOURCE_VARIABLE_NAME}})
@@ -33,15 +29,19 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIAB
 		get_filename_component(pch_basename ${PRECOMPILED_HEADER} NAME_WE)
 		set(pch_abs ${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER})
 		set(pch_unity ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_FILE})
-		set_source_files_properties(${pch_unity}  PROPERTIES COMPILE_FLAGS "/Yc\"${pch_abs}\"")
+		set_source_files_properties(${pch_unity}  PROPERTIES COMPILE_FLAGS
+			"/Yc\"${pch_abs}\"")
 
 		# Update properties of source files to use the precompiled header.
-		# Additionally, force the inclusion of the precompiled header at beginning of each source file.
+		# Additionally, force the inclusion of the precompiled header at
+		# beginning of each source file.
 		foreach(source_file ${files} )
-			set_source_files_properties(${source_file} PROPERTIES COMPILE_FLAGS "/Yu\"${pch_abs}\" /FI\"${pch_abs}\"")
+			set_source_files_properties(${source_file} PROPERTIES COMPILE_FLAGS
+				"/Yu\"${pch_abs}\" /FI\"${pch_abs}\"")
 		endforeach(source_file)
 
-		# Finally, update the source file collection to contain the precompiled header translation unit
+		# Finally, update the source file collection to contain the
+		# precompiled header translation unit
 		set(${SOURCE_VARIABLE_NAME} ${pch_unity} ${${SOURCE_VARIABLE_NAME}} PARENT_SCOPE)
 	endif(MSVC)
 endfunction(enable_precompiled_headers)
@@ -98,9 +98,10 @@ if (APPLE)
 	FIND_LIBRARY(IOK_LIBRARY IOKit)		
 	FIND_LIBRARY(OGL_LIBRARY OpenGL)
 	FIND_LIBRARY(WEBKIT_LIBRARY WebKit)		
-	SET(EXTRA_LIBS  ${ATB_LIBRARY}  ${AU_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY} ${COREAUDIO_LIBRARY} 
-	${COREFUND_LIBRARY} ${CORESERV_LIBRARY} ${IOB_LIBRARY} ${IOK_LIBRARY} ${OGL_LIBRARY} ${WEBKIT_LIBRARY})
-	
+	SET(EXTRA_LIBS ${ATB_LIBRARY} ${AU_LIBRARY} ${CARBON_LIBRARY}
+		${COCOA_LIBRARY} ${COREAUDIO_LIBRARY} ${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY} ${IOB_LIBRARY} ${IOK_LIBRARY} ${OGL_LIBRARY}
+		${WEBKIT_LIBRARY})
 endif()
  
 if(WIN32)
@@ -132,17 +133,9 @@ endif()
 ########################################
 # Dependency checking
 #
-# NOTES:
-# There are numerous possible cases:
-# - dependency may be required or optional
-# - dependency may be already installed (but optionally the bundled one may be used)
-# 
-# TODO: We should have a number of options for optional dependencies (disable,
-# force bundled, bundled or native, force native).  For example the OpenGL
-# plugin defaults to force native, so we error out if no GL libs are found.
-# The user is free to explicitly disable it though.  Stuff which is likely to
-# be needed by users is optional defaulting to ON, other stuff (like e.g.
-# sound backends) is completely optional.
+# TODO: We should have options for dependencies included in the externals to
+# override autodetection of system libraries and force the usage of the
+# externals.
 
 include(CheckLib)
 

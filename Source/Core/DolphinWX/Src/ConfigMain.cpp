@@ -66,6 +66,7 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_KOREAN,
 	wxLANGUAGE_NORWEGIAN_BOKMAL,
 	wxLANGUAGE_POLISH,
+	wxLANGUAGE_PORTUGUESE,
 	wxLANGUAGE_PORTUGUESE_BRAZILIAN,
 	wxLANGUAGE_RUSSIAN,
 	wxLANGUAGE_SPANISH,
@@ -330,6 +331,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("Korean"));
 	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmaal"));
 	arrayStringFor_InterfaceLang.Add(_("Polish"));
+	arrayStringFor_InterfaceLang.Add(_("Portuguese"));
 	arrayStringFor_InterfaceLang.Add(_("Portuguese (Brazilian)"));
 	arrayStringFor_InterfaceLang.Add(_("Russian"));
 	arrayStringFor_InterfaceLang.Add(_("Spanish"));

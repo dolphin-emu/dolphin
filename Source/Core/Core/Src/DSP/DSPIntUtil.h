@@ -127,9 +127,10 @@ static inline u16 dsp_decrement_addr_reg(u16 reg)
 // --- reg
 // ---------------------------------------------------------------------------------------
 
-static inline u16 dsp_op_read_reg(int reg)
+static inline u16 dsp_op_read_reg(int _reg)
 {
-	switch (reg & 0x1f) {
+	int reg = _reg & 0x1f;
+	switch (reg) {
 	case DSP_REG_ST0:
 	case DSP_REG_ST1:
 	case DSP_REG_ST2:
@@ -177,9 +178,10 @@ static inline u16 dsp_op_read_reg(int reg)
 	}
 }
 
-static inline void dsp_op_write_reg(int reg, u16 val)
+static inline void dsp_op_write_reg(int _reg, u16 val)
 {
-	switch (reg & 0x1f) {
+	int reg = _reg & 0x1f;
+	switch (reg) {
 	// 8-bit sign extended registers. Should look at prod.h too...
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
