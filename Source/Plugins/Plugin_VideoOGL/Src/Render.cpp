@@ -1214,9 +1214,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		s_criticalScreenshot.Enter();
 		char movie_file_name[255];
-		int w = dst_rect.GetWidth();
-		int h = dst_rect.GetHeight();
-		u8 *data = new u8[3 * w * h];
+		w = dst_rect.GetWidth();
+		h = dst_rect.GetHeight();
+		data = new u8[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
