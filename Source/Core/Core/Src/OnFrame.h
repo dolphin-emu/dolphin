@@ -99,7 +99,9 @@ bool IsRecordingInput();
 bool IsPlayingInput();
 
 bool IsUsingPad(int controller);
+bool IsUsingWiimote(int wiimote);
 void ChangePads();
+void ChangeWiiPads();
 
 void SetFrameStepping(bool bEnabled);
 void SetFrameStopping(bool bEnabled);

@@ -22,6 +22,8 @@
 #include "FileUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/SI.h"
+#include "HW/Wiimote.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "VideoBackendBase.h"
 
 Common::CriticalSection cs_frameSkip;
@@ -130,28 +132,27 @@ bool IsPlayingInput()
 
 bool IsUsingPad(int controller)
 {
-	switch (controller)
-	{
-	case 0:
-		return (g_numPads & 0x01) != 0;
-	case 1:
-		return (g_numPads & 0x02) != 0;
-	case 2:
-		return (g_numPads & 0x04) != 0;
-	case 3:
-		return (g_numPads & 0x08) != 0;
-	default:
-		return false;
-	}
+	return (g_numPads & (1 << controller));
+}
+
+bool IsUsingWiimote(int wiimote)
+{
+	return (g_numPads & (1 << (wiimote + 4)));
 }
 
 void ChangePads()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED) {
-		SerialInterface::ChangeDevice(IsUsingPad(0) ? SI_GC_CONTROLLER : SI_NONE, 0);
-		SerialInterface::ChangeDevice(IsUsingPad(1) ? SI_GC_CONTROLLER : SI_NONE, 1);
-		SerialInterface::ChangeDevice(IsUsingPad(2) ? SI_GC_CONTROLLER : SI_NONE, 2);
-		SerialInterface::ChangeDevice(IsUsingPad(3) ? SI_GC_CONTROLLER : SI_NONE, 3);
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		for (int i = 0; i < 4; i++)
+			SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+}
+
+void ChangeWiiPads()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
 	}
 }
 
@@ -301,6 +302,7 @@ void LoadInput(const char *filename)
 	g_numPads = header.numControllers;
 	
 	ChangePads();
+	ChangeWiiPads();
 	
 	if (g_recordfd)
 		fclose(g_recordfd);
