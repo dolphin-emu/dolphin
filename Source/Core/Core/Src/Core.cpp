@@ -530,7 +530,7 @@ void VideoThrottle()
 
 	// Update info per second
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
-	if (ElapseTime >= 1000 && DrawnVideo > 0)
+	if ((ElapseTime >= 1000 && DrawnVideo > 0) || Frame::g_bFrameStep)
 	{
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -567,7 +567,11 @@ void VideoThrottle()
 					TicksPercentage);
 
 		#else	// Summary information
-		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		std::string SFPS;
+		if (Frame::g_recordfd)
+			SFPS = StringFromFormat("Frame: %d | FPS: %u - VPS: %u - SPEED: %u%%", Frame::g_frameCounter, FPS, VPS, Speed);
+		else
+			SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 		#endif
 
 		// This is our final "frame counter" string

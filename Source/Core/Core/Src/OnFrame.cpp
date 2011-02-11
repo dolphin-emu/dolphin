@@ -103,15 +103,19 @@ void SetFrameStopping(bool bEnabled)
 
 void FrameSkipping()
 {
-	cs_frameSkip.Enter();
+	// Frameskipping will desync movie playback
+	if (!IsPlayingInput() && !IsRecordingInput())
+	{
+		cs_frameSkip.Enter();
 
-	g_frameSkipCounter++;
-	if (g_frameSkipCounter > g_framesToSkip || Core::report_slow(g_frameSkipCounter) == false)
-		g_frameSkipCounter = 0;
-	
-	g_video_backend->Video_SetRendering(!g_frameSkipCounter);
-	
-	cs_frameSkip.Leave();
+		g_frameSkipCounter++;
+		if (g_frameSkipCounter > g_framesToSkip || Core::report_slow(g_frameSkipCounter) == false)
+			g_frameSkipCounter = 0;
+		
+		g_video_backend->Video_SetRendering(!g_frameSkipCounter);
+		
+		cs_frameSkip.Leave();
+	}
 }
 
 bool IsRecordingInput()
