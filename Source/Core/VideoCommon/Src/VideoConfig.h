@@ -108,6 +108,7 @@ struct VideoConfig
 	bool bHiresTextures;
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
+	bool bUseFFV1;
 	bool bFreeLook;
 	bool bAnaglyphStereo;
 	int iAnaglyphStereoSeparation;

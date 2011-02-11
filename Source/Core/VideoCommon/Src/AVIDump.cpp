@@ -17,6 +17,7 @@
 
 #include "AVIDump.h"
 #include "HW/VideoInterface.h" //for TargetRefreshRate
+#include "VideoConfig.h"
 
 #ifdef _WIN32
 
@@ -253,6 +254,11 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
+	if (g_Config.bUseFFV1)
+	{
+		s_FormatContext->oformat->video_codec = CODEC_ID_FFV1;
+	}
+
 	s_Stream->codec->codec_id = s_FormatContext->oformat->video_codec;
 	s_Stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_Stream->codec->bit_rate = 400000;
@@ -260,7 +266,7 @@ bool AVIDump::CreateFile()
 	s_Stream->codec->height = s_height;
 	s_Stream->codec->time_base = (AVRational){1, VideoInterface::TargetRefreshRate};
 	s_Stream->codec->gop_size = 12;
-	s_Stream->codec->pix_fmt = PIX_FMT_YUV420P;
+	s_Stream->codec->pix_fmt = (g_Config.bUseFFV1) ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
 
 	av_set_parameters(s_FormatContext, NULL);
 
@@ -272,7 +278,7 @@ bool AVIDump::CreateFile()
 	}
 
 	if(!(s_SwsContext = sws_getContext(s_width, s_height, PIX_FMT_BGR24, s_width, s_height,
-					PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL)))
+					s_Stream->codec->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL)))
 	{
 		CloseFile();
 		return false;
@@ -281,10 +287,10 @@ bool AVIDump::CreateFile()
 	s_BGRFrame = avcodec_alloc_frame();
 	s_YUVFrame = avcodec_alloc_frame();
 
-	s_size = avpicture_get_size(PIX_FMT_YUV420P, s_width, s_height);
+	s_size = avpicture_get_size(s_Stream->codec->pix_fmt, s_width, s_height);
 
 	s_YUVBuffer = new uint8_t[s_size];
-	avpicture_fill((AVPicture *)s_YUVFrame, s_YUVBuffer, PIX_FMT_YUV420P, s_width, s_height);
+	avpicture_fill((AVPicture *)s_YUVFrame, s_YUVBuffer, s_Stream->codec->pix_fmt, s_width, s_height);
 
 	s_OutBuffer = new uint8_t[s_size];
 

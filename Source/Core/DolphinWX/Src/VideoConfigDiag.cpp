@@ -99,6 +99,9 @@ wxString dump_textures_tooltip = wxTRANSLATE("Dump game textures to User/Dump/Te
 wxString load_hires_textures_tooltip = wxTRANSLATE("Load high-resolution textures from User/Load/Textures/<game id>/");
 wxString dump_efb_tooltip = wxT("");
 wxString dump_frames_tooltip = wxT("");
+#if !defined WIN32 && defined HAVE_LIBAV
+wxString use_ffv1_tooltip = wxT("");
+#endif
 wxString free_look_tooltip = wxT("");
 wxString crop_tooltip = wxT("");
 wxString opencl_tooltip = wxT("");
@@ -402,6 +405,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump EFB Target"), dump_efb_tooltip, vconfig.bDumpEFBTarget));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Frames"), dump_frames_tooltip, vconfig.bDumpFrames));
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Free Look"), free_look_tooltip, vconfig.bFreeLook));
+#if !defined WIN32 && defined HAVE_LIBAV
+	szr_utility->Add(new SettingCheckBox(page_advanced, _("Frame dumps use FFV1"), use_ffv1_tooltip, vconfig.bUseFFV1));
+#endif
 
 	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Utility"));
 	szr_advanced->Add(group_utility, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
