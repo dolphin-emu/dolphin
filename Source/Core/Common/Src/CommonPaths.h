@@ -83,6 +83,7 @@
 #define DUMP_DIR		"Dump"
 #define DUMP_TEXTURES_DIR	DUMP_DIR DIR_SEP "Textures"
 #define DUMP_FRAMES_DIR		DUMP_DIR DIR_SEP "Frames"
+#define DUMP_AUDIO_DIR		DUMP_DIR DIR_SEP "Audio"
 #define DUMP_DSP_DIR		DUMP_DIR DIR_SEP "DSP"
 #define LOGS_DIR		"Logs"
 #define MAIL_LOGS_DIR		LOGS_DIR DIR_SEP "Mail"

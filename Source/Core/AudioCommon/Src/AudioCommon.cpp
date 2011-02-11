@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "AudioCommon.h"
+#include "FileUtil.h"
 #include "Mixer.h"
 #include "NullSoundStream.h"
 #include "DSoundStream.h"
@@ -53,11 +54,13 @@ namespace AudioCommon
 			ac_Config.Update();
 			if (soundStream->Start())
 			{
-#if 0
-				// Start the sound recording
-				if (ac_Config.record)
-					soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
-#endif
+				if (ac_Config.m_DumpAudio) {
+				  char audio_file_name[255];
+				  snprintf(audio_file_name, 255, "%saudiodump.wav", File::GetUserPath(D_DUMPAUDIO_IDX));
+				  mixer->StartLogAudio(audio_file_name);
+				  //soundStream->StartLogAudio(audio_file_name);
+				}
+
 				return soundStream;
 			}
 			PanicAlertT("Could not initialize backend %s.", backend.c_str());
@@ -76,10 +79,9 @@ namespace AudioCommon
 		if (soundStream) 
 		{
 			soundStream->Stop();
-#if 0
-			if (ac_Config.record)
-				soundStream->StopLogAudio();
-#endif
+			if (ac_Config.m_DumpAudio)
+				soundStream->GetMixer()->StopLogAudio();
+				//soundStream->StopLogAudio();
 			delete soundStream;
 			soundStream = NULL;
 		}

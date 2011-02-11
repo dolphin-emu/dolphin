@@ -89,6 +89,7 @@ private:
 		ID_ENABLE_HLE_AUDIO,
 		ID_ENABLE_DTK_MUSIC,
 		ID_ENABLE_THROTTLE,
+		ID_DUMP_AUDIO,
 		ID_FREQUENCY,
 		ID_BACKEND,
 		ID_VOLUME,
@@ -183,6 +184,7 @@ private:
 	wxStaticText* VolumeText;    
 	wxCheckBox*	EnableDTKMusic;
 	wxCheckBox*	EnableThrottle;
+	wxCheckBox*	DumpAudio;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
 	wxChoice*	FrequencySelection;

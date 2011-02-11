@@ -961,8 +961,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
+	static u8 *data = 0;
+	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
+		if (g_ActiveConfig.bDumpFrames && data)
+		#ifdef _WIN32
+			AVIDump::AddFrame((char *) data);
+		#else
+			AVIDump::AddFrame(data);
+		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -975,6 +983,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
+		if (g_ActiveConfig.bDumpFrames && data)
+		#ifdef _WIN32
+			AVIDump::AddFrame((char *) data);
+		#else
+			AVIDump::AddFrame(data);
+		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1134,9 +1148,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		s_criticalScreenshot.Enter();
-		int w = dst_rect.GetWidth();
-		int h = dst_rect.GetHeight();
-		u8 *data = new u8[3 * w * h];
+		if (!data || w != dst_rect.GetWidth() ||
+		             h != dst_rect.GetHeight())
+		{
+			if (data) delete[] data;
+			w = dst_rect.GetWidth();
+			h = dst_rect.GetHeight();
+			data = new u8[3 * w * h];
+		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
@@ -1172,13 +1191,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 
-		delete[] data;
 		s_criticalScreenshot.Leave();
 	}
 	else
 	{
 		if (s_bLastFrameDumped && s_bAVIDumping)
 		{
+			if (data)
+			{
+				delete[] data;
+				data = 0;
+				w = h = 0;
+			}
 			AVIDump::Stop();
 			s_bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);

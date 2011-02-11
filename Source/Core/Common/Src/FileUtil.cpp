@@ -640,6 +640,7 @@ const char *GetUserPath(int DirIDX)
 	static char HiresTexturesDir[MAX_PATH] = {0};
 	static char DumpDir[MAX_PATH] = {0};
 	static char DumpFramesDir[MAX_PATH] = {0};
+	static char DumpAudioDir[MAX_PATH] = {0};
 	static char DumpTexturesDir[MAX_PATH] = {0};
 	static char DumpDSPDir[MAX_PATH] = {0};
 	static char LogsDir[MAX_PATH] = {0};
@@ -684,6 +685,7 @@ const char *GetUserPath(int DirIDX)
 		snprintf(HiresTexturesDir, sizeof(HiresTexturesDir), "%s" HIRES_TEXTURES_DIR DIR_SEP, UserDir);
 		snprintf(DumpDir, sizeof(DumpDir), "%s" DUMP_DIR DIR_SEP, UserDir);
 		snprintf(DumpFramesDir, sizeof(DumpFramesDir), "%s" DUMP_FRAMES_DIR DIR_SEP, UserDir);
+		snprintf(DumpAudioDir, sizeof(DumpAudioDir), "%s" DUMP_AUDIO_DIR DIR_SEP, UserDir);
 		snprintf(DumpTexturesDir, sizeof(DumpTexturesDir), "%s" DUMP_TEXTURES_DIR DIR_SEP, UserDir);
 		snprintf(DumpDSPDir, sizeof(DumpDSPDir), "%s" DUMP_DSP_DIR DIR_SEP, UserDir);
 		snprintf(LogsDir, sizeof(LogsDir), "%s" LOGS_DIR DIR_SEP, UserDir);
@@ -733,6 +735,8 @@ const char *GetUserPath(int DirIDX)
 			return DumpDir;
 		case D_DUMPFRAMES_IDX:
 			return DumpFramesDir;
+		case D_DUMPAUDIO_IDX:
+			return DumpAudioDir;
 		case D_DUMPTEXTURES_IDX:
 			return DumpTexturesDir;
 		case D_DUMPDSP_IDX:

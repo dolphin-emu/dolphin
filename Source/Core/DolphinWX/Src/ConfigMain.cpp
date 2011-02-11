@@ -127,6 +127,7 @@ EVT_CHECKBOX(ID_DISPLAY_NTSCJ, CConfigMain::DisplaySettingsChanged)
 EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
+EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_FREQUENCY, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
@@ -399,6 +400,7 @@ void CConfigMain::InitializeGUIValues()
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
 	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
+	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	FrequencySelection->SetSelection(
 		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.sFrequency)));
 	// add backends to the list
@@ -713,6 +715,8 @@ void CConfigMain::CreateGUIControls()
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableThrottle = new wxCheckBox(AudioPage, ID_ENABLE_THROTTLE, _("Enable Audio Throttle"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
+				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100,
 				wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, wxT(""),
@@ -728,6 +732,7 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
 	sbAudioSettings->Add(EnableDTKMusic, 0, wxALL, 5);
 	sbAudioSettings->Add(EnableThrottle, 0, wxALL, 5);
+	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
 	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
@@ -1069,6 +1074,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	default:
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
 		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
+		ac_Config.m_DumpAudio = DumpAudio->GetValue();
 		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
 		long int frequency;
 		FrequencySelection->GetStringSelection().ToLong(&frequency);

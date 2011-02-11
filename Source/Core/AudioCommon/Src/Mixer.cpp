@@ -125,15 +125,29 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (numSamples > numLeft)
 		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
 
-	// Add the DSPHLE sound, re-sampling is done inside
-	Premix(samples, numSamples);
+	//when logging, also throttle HLE audio
+	if (m_logAudio) {
+		if (m_AIplaying) {
+			Premix(samples, numLeft);
 
-	// Add the DTK Music
-	if (m_EnableDTKMusic)
-	{
-		// Re-sampling is done inside
-		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
+			if (m_EnableDTKMusic)
+				AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
+
+			g_wave_writer.AddStereoSamples(samples, numLeft);
+		}
 	}
+	else { 	//or mix as usual
+		// Add the DSPHLE sound, re-sampling is done inside
+		Premix(samples, numSamples);
+
+		// Add the DTK Music
+		if (m_EnableDTKMusic)
+		{
+			// Re-sampling is done inside
+			AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
+		}
+	}
+
 
 	Common::AtomicAdd(m_numSamples, -(s32)numLeft);
 

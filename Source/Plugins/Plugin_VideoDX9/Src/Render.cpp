@@ -920,6 +920,8 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
+	static char* data = 0;
+	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
 		Core::Callback_VideoCopiedToXFB(false);
@@ -1120,10 +1122,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			D3DLOCKED_RECT rect;
 			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
-				char* data = (char*)malloc(3 * s_recordWidth * s_recordHeight);
+				if (!data || w != s_recordWidth || h != s_recordHeight)
+				{
+					free(data);
+					data = (char*)malloc(3 * s_recordWidth * s_recordHeight);
+					w = s_recordWidth;
+					h = s_recordHeight;
+				}
 				formatBufferDump((const char*)rect.pBits, data, s_recordWidth, s_recordHeight, rect.Pitch);
 				AVIDump::AddFrame(data);
-				free(data);
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
@@ -1133,6 +1140,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (s_bLastFrameDumped && s_bAVIDumping)
 		{
+			if (data)
+			{
+				free(data);
+				data = 0;
+				w = h = 0;
+			}
 			AVIDump::Stop();
 			s_bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
