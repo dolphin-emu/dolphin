@@ -38,6 +38,23 @@ else:
 		'WiimoteConfigDiag.cpp',
 		'WXInputBase.cpp',
 		'WxUtils.cpp',
+		'BreakpointDlg.cpp',
+		'BreakpointView.cpp',
+		'BreakpointWindow.cpp',
+		'CodeView.cpp',
+		'CodeWindow.cpp',
+		'CodeWindowFunctions.cpp',
+		'DebuggerPanel.cpp',
+		'DebuggerUIUtil.cpp',
+		'DSPDebugWindow.cpp',
+		'DSPRegisterView.cpp',
+		'JitWindow.cpp',
+		'MemoryCheckDlg.cpp',
+		'MemoryView.cpp',
+		'MemoryWindow.cpp',
+		'RegisterView.cpp',
+		'RegisterWindow.cpp',
+		'VideoConfigDiag.cpp',
 		]
 
 if sys.platform == 'win32':

@@ -87,6 +87,57 @@
     <ClCompile Include="Src\PHackSettings.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Src\DebuggerUIUtil.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VideoConfigDiag.cpp">
+      <Filter>GUI\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CodeView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MemoryView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DebuggerPanel.cpp">
+      <Filter>GUI\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BreakpointDlg.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BreakpointWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CodeWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CodeWindowFunctions.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DSPDebugWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\JitWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MemoryCheckDlg.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MemoryWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RegisterWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RegisterView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\DSPRegisterView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BreakpointView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Main.h" />
@@ -165,6 +216,54 @@
     <ClInclude Include="Src\PHackSettings.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Src\DebuggerUIUtil.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VideoConfigDiag.h">
+      <Filter>GUI\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CodeView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MemoryView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DebuggerPanel.h">
+      <Filter>GUI\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BreakpointDlg.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BreakpointWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CodeWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DSPDebugWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\JitWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MemoryCheckDlg.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MemoryWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RegisterWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RegisterView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DSPRegisterView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BreakpointView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\SConscript" />
@@ -191,6 +290,12 @@
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{9dd3ef96-b03a-4c14-9d35-6a4850acd430}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Debugger">
+      <UniqueIdentifier>{8ab1ce40-f5e7-47b8-9706-59c924af4eaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Video">
+      <UniqueIdentifier>{ff5180be-244f-4c0e-8a35-bd4bffb6a343}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -131,7 +131,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -145,7 +145,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -159,7 +159,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -173,7 +173,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -187,7 +187,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -201,7 +201,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;..\AudioCommon\Src;..\Core\Src;..\DebuggerWX\Src;..\DebuggerUICommon\Src;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
@@ -217,8 +217,18 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\AboutDolphin.cpp" />
     <ClCompile Include="Src\ARCodeAddEdit.cpp" />
     <ClCompile Include="Src\BootManager.cpp" />
+    <ClCompile Include="Src\BreakpointDlg.cpp" />
+    <ClCompile Include="Src\BreakpointView.cpp" />
+    <ClCompile Include="Src\BreakpointWindow.cpp" />
     <ClCompile Include="Src\CheatsWindow.cpp" />
+    <ClCompile Include="Src\CodeView.cpp" />
+    <ClCompile Include="Src\CodeWindow.cpp" />
+    <ClCompile Include="Src\CodeWindowFunctions.cpp" />
     <ClCompile Include="Src\ConfigMain.cpp" />
+    <ClCompile Include="Src\DebuggerPanel.cpp" />
+    <ClCompile Include="Src\DebuggerUIUtil.cpp" />
+    <ClCompile Include="Src\DSPDebugWindow.cpp" />
+    <ClCompile Include="Src\DSPRegisterView.cpp" />
     <ClCompile Include="Src\Frame.cpp" />
     <ClCompile Include="Src\FrameAui.cpp" />
     <ClCompile Include="Src\FrameTools.cpp" />
@@ -229,6 +239,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="Src\ISOFile.cpp" />
     <ClCompile Include="Src\ISOProperties.cpp" />
+    <ClCompile Include="Src\JitWindow.cpp" />
     <ClCompile Include="Src\LogWindow.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\MainNoGUI.cpp">
@@ -242,9 +253,14 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\MemcardManager.cpp" />
     <ClCompile Include="Src\MemoryCards\GCMemcard.cpp" />
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp" />
+    <ClCompile Include="Src\MemoryCheckDlg.cpp" />
+    <ClCompile Include="Src\MemoryView.cpp" />
+    <ClCompile Include="Src\MemoryWindow.cpp" />
     <ClCompile Include="Src\NetWindow.cpp" />
     <ClCompile Include="Src\PatchAddEdit.cpp" />
     <ClCompile Include="Src\PHackSettings.cpp" />
+    <ClCompile Include="Src\RegisterView.cpp" />
+    <ClCompile Include="Src\RegisterWindow.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
@@ -254,6 +270,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\UDPConfigDiag.cpp" />
+    <ClCompile Include="Src\VideoConfigDiag.cpp" />
     <ClCompile Include="Src\WiimoteConfigDiag.cpp" />
     <ClCompile Include="Src\WXInputBase.cpp" />
     <ClCompile Include="Src\WxUtils.cpp" />
@@ -263,8 +280,17 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\AboutDolphin.h" />
     <ClInclude Include="Src\ARCodeAddEdit.h" />
     <ClInclude Include="Src\BootManager.h" />
+    <ClInclude Include="Src\BreakpointDlg.h" />
+    <ClInclude Include="Src\BreakpointView.h" />
+    <ClInclude Include="Src\BreakpointWindow.h" />
     <ClInclude Include="Src\CheatsWindow.h" />
+    <ClInclude Include="Src\CodeView.h" />
+    <ClInclude Include="Src\CodeWindow.h" />
     <ClInclude Include="Src\ConfigMain.h" />
+    <ClInclude Include="Src\DebuggerPanel.h" />
+    <ClInclude Include="Src\DebuggerUIUtil.h" />
+    <ClInclude Include="Src\DSPDebugWindow.h" />
+    <ClInclude Include="Src\DSPRegisterView.h" />
     <ClInclude Include="Src\Frame.h" />
     <ClInclude Include="Src\GameListCtrl.h" />
     <ClInclude Include="Src\GeckoCodeDiag.h" />
@@ -273,16 +299,23 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\InputConfigDiag.h" />
     <ClInclude Include="Src\ISOFile.h" />
     <ClInclude Include="Src\ISOProperties.h" />
+    <ClInclude Include="Src\JitWindow.h" />
     <ClInclude Include="Src\LogWindow.h" />
     <ClInclude Include="Src\Main.h" />
     <ClInclude Include="Src\MemcardManager.h" />
     <ClInclude Include="Src\MemoryCards\GCMemcard.h" />
     <ClInclude Include="Src\MemoryCards\WiiSaveCrypted.h" />
+    <ClInclude Include="Src\MemoryCheckDlg.h" />
+    <ClInclude Include="Src\MemoryView.h" />
+    <ClInclude Include="Src\MemoryWindow.h" />
     <ClInclude Include="Src\NetWindow.h" />
     <ClInclude Include="Src\PatchAddEdit.h" />
     <ClInclude Include="Src\PHackSettings.h" />
+    <ClInclude Include="Src\RegisterView.h" />
+    <ClInclude Include="Src\RegisterWindow.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\UDPConfigDiag.h" />
+    <ClInclude Include="Src\VideoConfigDiag.h" />
     <ClInclude Include="Src\WiimoteConfigDiag.h" />
     <ClInclude Include="Src\WXInputBase.h" />
     <ClInclude Include="Src\WxUtils.h" />
@@ -335,12 +368,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ProjectReference Include="..\Core\Core.vcxproj">
       <Project>{8c60e805-0da5-4e25-8f84-038db504bb0d}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\DebuggerUICommon\DebuggerUICommon.vcxproj">
-      <Project>{c5a30052-1fc7-4a30-b4a2-6b06da298ab3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\DebuggerWX\Debugger.vcxproj">
-      <Project>{518f8625-9bfd-402f-aacb-01ce9a1ced8a}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
       <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
     </ProjectReference>
@@ -349,9 +376,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     </ProjectReference>
     <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
       <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\VideoUICommon\VideoUICommon.vcxproj">
-      <Project>{281f6001-d032-4c3b-87af-0b00962b4006}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

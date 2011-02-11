@@ -41,7 +41,24 @@ if(wxWidgets_FOUND)
 				Src/WiimoteConfigDiag.cpp
 				Src/MemoryCards/WiiSaveCrypted.cpp
 				Src/WXInputBase.cpp
-				Src/WxUtils.cpp)
+				Src/WxUtils.cpp
+				Src/BreakpointDlg.cpp
+				Src/BreakpointView.cpp
+				Src/BreakpointWindow.cpp
+				Src/CodeView.cpp
+				Src/CodeWindow.cpp
+				Src/CodeWindowFunctions.cpp
+				Src/DebuggerPanel.cpp
+				Src/DebuggerUIUtil.cpp
+				Src/DSPDebugWindow.cpp
+				Src/DSPRegisterView.cpp
+				Src/JitWindow.cpp
+				Src/MemoryCheckDlg.cpp
+				Src/MemoryView.cpp
+				Src/MemoryWindow.cpp
+				Src/RegisterView.cpp
+				Src/RegisterWindow.cpp
+				Src/VideoConfigDiag.cpp)
 
 	set(WXLIBS	debwx
 				debugger_ui_util
