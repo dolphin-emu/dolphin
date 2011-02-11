@@ -133,18 +133,28 @@ void Shutdown()
 
 void SetDefaultContentFile(const std::string& _rFilename)
 {
-	CWII_IPC_HLE_Device_es* pDevice = (CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
+	CWII_IPC_HLE_Device_es* pDevice =
+		(CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
 	if (pDevice)
 		pDevice->LoadWAD(_rFilename);
 }
 
 void ES_DIVerify(u8 *_pTMD, u32 _sz)
 {
-	CWII_IPC_HLE_Device_es* pDevice = (CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
+	CWII_IPC_HLE_Device_es* pDevice =
+		(CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
 	if (pDevice)
 		pDevice->ES_DIVerify(_pTMD, _sz);
 	else
 		ERROR_LOG(WII_IPC_ES, "DIVerify called but /dev/es is not available");
+}
+
+void SDIO_EventNotify()
+{
+	CWII_IPC_HLE_Device_sdio_slot0 *pDevice =
+		(CWII_IPC_HLE_Device_sdio_slot0*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/sdio/slot0")));
+	if (pDevice)
+		pDevice->EventNotify();
 }
 
 int GetDeviceIDByName(const std::string& _rDeviceName)

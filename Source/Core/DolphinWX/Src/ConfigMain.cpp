@@ -27,6 +27,7 @@
 #include "HW/SI.h"
 #include "HW/DSPHLE/DSPHLE.h"
 #include "HW/DSPLLE/DSPLLE.h"
+#include "IPC_HLE/WII_IPC_HLE.h"
 
 #include "Globals.h" // Local
 #include "ConfigMain.h"
@@ -1268,6 +1269,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	// Wii - Devices
 	case ID_WII_SD_CARD:
 		SConfig::GetInstance().m_WiiSDCard = WiiSDCard->IsChecked();
+		WII_IPC_HLE_Interface::SDIO_EventNotify();
 		break;
 	case ID_WII_KEYBOARD:
 		SConfig::GetInstance().m_WiiKeyboard = WiiKeyboard->IsChecked();

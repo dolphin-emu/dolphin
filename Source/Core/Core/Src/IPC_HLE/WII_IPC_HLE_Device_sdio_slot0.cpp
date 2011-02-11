@@ -20,6 +20,7 @@
 
 #include "SDCardUtil.h"
 
+#include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "../HW/CPU.h"
@@ -40,6 +41,18 @@ CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 	{
 		fclose(m_Card);
 		m_Card = NULL;
+	}
+}
+
+void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
+{
+	if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
+		(!SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_REMOVE))
+	{
+		Memory::Write_U32(m_event.type, m_event.addr + 4);
+		WII_IPC_HLE_Interface::EnqReply(m_event.addr);
+		m_event.addr = 0;
+		m_event.type = EVENT_NONE;
 	}
 }
 
@@ -159,10 +172,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_SENDCMD:
-		if (Memory::Read_U32(BufferIn) != SDHC_CAPABILITIES)
-		{
-			INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
-		}
+		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x ipc:%08x",
+			Memory::Read_U32(BufferIn), _CommandAddress);
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
 		break;
 
@@ -172,7 +183,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		else
 			m_Status = CARD_NOT_EXIST;
 		INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
-			(m_Status & CARD_INSERTED) ? "inserted" : "not exitsting",
+			(m_Status & CARD_INSERTED) ? "inserted" : "not present",
 			(m_Status & CARD_INITIALIZED) ? " and initialized" : "");
 		Memory::Write_U32(m_Status, BufferOut);
 		break;
@@ -192,9 +203,32 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 // 	INFO_LOG(WII_IPC_SD, "OutBuffer");
 // 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
-	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
-	return true;
+	if (ReturnValue == RET_EVENT_REGISTER)
+	{
+		// async
+		m_event.addr = _CommandAddress;
+		Memory::Write_U32(0, _CommandAddress + 0x4);
+		// Check if the condition is already true
+		EventNotify();
+		return false;
+	}
+	else if (ReturnValue == RET_EVENT_UNREGISTER)
+	{
+		// release returns 0
+		// unknown sd int
+		// technically we do it out of order, oh well
+		Memory::Write_U32(EVENT_INVALID, m_event.addr + 4);
+		WII_IPC_HLE_Interface::EnqReply(m_event.addr);
+		m_event.addr = 0;
+		m_event.type = EVENT_NONE;
+		Memory::Write_U32(0, _CommandAddress + 0x4);
+		return true;
+	}
+	else
+	{
+		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+		return true;
+	}
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
@@ -264,7 +298,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	// Note: req.addr is the virtual address of _rwBuffer
 
 
-	u32 rwFail = 0;
+	u32 ret = RET_OK;
 
 	switch (req.command)
 	{
@@ -365,7 +399,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					"read %lx, error %i, eof? %i",
 					(unsigned long)nRead,
 					ferror(m_Card), feof(m_Card));
-				rwFail = 1;
+				ret = RET_FAIL;
 			}
 
 			delete[] buffer;
@@ -402,7 +436,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					"wrote %lx, error %i, eof? %i",
 					(unsigned long)nWritten,
 					ferror(m_Card), feof(m_Card));
-				rwFail = 1;
+				ret = RET_FAIL;
 			}
 
 			delete[] buffer;
@@ -411,23 +445,16 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
-	case SDHC_CAPABILITIES:
-		{
-			DEBUG_LOG(WII_IPC_SD, "SDHC_CAPABILITIES");
-			// SDHC 1.0 supports only 10-63 MHz.
-			// So of course we reply 63MHz :)
-			u32 freq = (63 << 8) + (1 << 7) + 63;
-			// Only support 3.3V
-			u32 voltage = 1 << 24;
-			// High Speed support
-			u32 speed = 1 << 21;
-			u32 caps = freq | voltage | speed;
-			Memory::Write_U32(caps, _BufferOut);
-			break;
-		}
+	case EVENT_REGISTER: // async
+		DEBUG_LOG(WII_IPC_SD, "Register event %x", req.arg);
+		m_event.type = (EventType)req.arg;
+		ret = RET_EVENT_REGISTER;
+		break;
 
-	case CRAZY_BIGN65:
-		// Just means unmount/detach, but we don't care
+	case EVENT_UNREGISTER: // synchronous
+		DEBUG_LOG(WII_IPC_SD, "Unregister event %x", req.arg);
+		m_event.type = (EventType)req.arg;
+		ret = RET_EVENT_UNREGISTER;
 		break;
 
 	default:
@@ -435,5 +462,5 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 	}
 
-	return rwFail;
+	return ret;
 }

@@ -44,6 +44,8 @@ void DoState(PointerWrap &p);
 void SetDefaultContentFile(const std::string& _rFilename);
 void ES_DIVerify(u8 *_pTMD, u32 _sz);
 
+void SDIO_EventNotify();
+
 int GetDeviceIDByName(const std::string& _rDeviceName);
 
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
