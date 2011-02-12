@@ -28,6 +28,9 @@
 
 #ifdef WIN32
 #include <io.h> //_chsize_s
+#include <fcntl.h>
+#include <share.h>
+#include <sys/stat.h>
 #else
 #include <unistd.h> //truncate
 #endif
@@ -488,7 +491,7 @@ void SaveRecording(const char *filename)
 	{
 #ifdef WIN32
 		int fd;
-		if (!_sopen_s(&fd, g_recordFile.c_str(), _O_RDWR, _SH_DENYNO, _S_IREAD | _S_IWRITE))
+		if (!_sopen_s(&fd, filename, _O_RDWR, _SH_DENYNO, _S_IREAD | _S_IWRITE))
 		{
 			success = (_chsize_s(fd, size) == 0);
 			_close(fd);
