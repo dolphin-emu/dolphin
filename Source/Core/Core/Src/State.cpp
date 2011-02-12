@@ -265,7 +265,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	saveData->buffer = buffer;
 	saveData->size = sz;
 	
-	if (Frame::IsRecordingInput())
+	if (Frame::IsRecordingInput() || Frame::IsPlayingInput())
 		Frame::SaveRecording(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
 
 	Core::DisplayMessage("Saving State...", 1000);

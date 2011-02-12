@@ -26,12 +26,19 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "VideoBackendBase.h"
 
+#ifdef WIN32
+#include <io.h> //_chsize_s
+#else
+#include <unistd.h> //truncate
+#endif
+
 Common::CriticalSection cs_frameSkip;
 
 namespace Frame {
 
 bool g_bFrameStep = false;
 bool g_bFrameStop = false;
+bool g_bReadOnly = true;
 u32 g_rerecords = 0;
 PlayMode g_playMode = MODE_NONE;
 
@@ -39,6 +46,7 @@ unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 int g_numPads = 0;
 ControllerState g_padState;
+char g_playingFile[256] = "\0";
 FILE *g_recordfd = NULL;
 
 u64 g_frameCounter = 0, g_lagCounter = 0;
@@ -101,6 +109,11 @@ void SetFrameStepping(bool bEnabled)
 void SetFrameStopping(bool bEnabled)
 {
 	g_bFrameStop = bEnabled;
+}
+
+void SetReadOnly(bool bEnabled)
+{
+	g_bReadOnly = bEnabled;
 }
 
 void FrameSkipping()
@@ -242,7 +255,10 @@ bool PlayInput(const char *filename)
 	
 	DTMHeader header;
 	
-	g_recordfd = fopen(filename, "rb");
+	File::Delete(g_recordFile.c_str());
+	File::Copy(filename, g_recordFile.c_str());
+	
+	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
 	if(!g_recordfd)
 		return false;
 	
@@ -277,6 +293,8 @@ bool PlayInput(const char *filename)
 	ChangePads();
 	
 	g_playMode = MODE_PLAYING;
+
+	strncpy(g_playingFile, filename, 256);
 	
 	return true;
 	
@@ -297,12 +315,15 @@ void LoadInput(const char *filename)
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
 		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
+		strncpy(g_playingFile, "\0", 256);
 		EndPlayInput();
 		return;
 	}
 	
 	if (g_rerecords == 0)
 		g_rerecords = header.numRerecords;
+	
+	g_frameCounter = header.frameCount;
 	
 	g_numPads = header.numControllers;
 	
@@ -381,9 +402,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	if(feof(g_recordfd))
 	{
 		Core::DisplayMessage("Movie End", 2000);
-		// TODO: read-only mode
-		//EndPlayInput();
-		g_playMode = MODE_RECORDING;
+		EndPlayInput();
 	}
 }
 
@@ -401,54 +420,88 @@ void PlayWiimote(u8 *data, s8 &size)
 	if(feof(g_recordfd))
 	{
 		Core::DisplayMessage("Movie End", 2000);
-		// TODO: read-only mode
-		//EndPlayInput();
-		g_playMode = MODE_RECORDING;
+		EndPlayInput();
 	}
 }
 
 void EndPlayInput() {
 	if (g_recordfd)
 		fclose(g_recordfd);
-	g_recordfd = NULL;
-	g_numPads = g_rerecords = 0;
-	g_frameCounter = g_lagCounter = 0;
-	g_playMode = MODE_NONE;
+	
+	if (!g_bReadOnly && strncmp(g_playingFile, "\0", 1))
+	{
+		File::Delete(g_recordFile.c_str());
+		File::Copy(g_playingFile, g_recordFile.c_str());
+		g_recordfd = fopen(g_recordFile.c_str(), "r+b");
+		fseeko(g_recordfd, 0, SEEK_END);
+		g_playMode = MODE_RECORDING;
+	}
+	else
+	{
+		g_recordfd = NULL;
+		g_numPads = g_rerecords = 0;
+		g_frameCounter = g_lagCounter = 0;
+		g_playMode = MODE_NONE;
+	}
 }
 
 void SaveRecording(const char *filename)
 {
-	rewind(g_recordfd);
+	off_t size = ftello(g_recordfd);
 
-	// Create the real header now and write it
-	DTMHeader header;
-	memset(&header, 0, sizeof(DTMHeader));
+	// NOTE: Eventually this will not happen in
+	// read-only mode, but we need a way for the save state to
+	// store the current point in the file first.
+	// if (!g_bReadOnly)
+	{
+		rewind(g_recordfd);
 	
-	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.bWii = Core::g_CoreStartupParameter.bWii;
-	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
-	
-	header.bFromSaveState = false; // TODO: add the case where it's true
-	header.frameCount = g_frameCounter;
-	header.lagCount = g_lagCounter; 
-	header.numRerecords = g_rerecords;
-	
-	// TODO
-	header.uniqueID = 0; 
-	// header.author;
-	// header.videoPlugin; 
-	// header.audioPlugin;
-	
-	fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
+		// Create the real header now and write it
+		DTMHeader header;
+		memset(&header, 0, sizeof(DTMHeader));
+		
+		header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
+		strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
+		header.bWii = Core::g_CoreStartupParameter.bWii;
+		header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
+		
+		header.bFromSaveState = false; // TODO: add the case where it's true
+		header.frameCount = g_frameCounter;
+		header.lagCount = g_lagCounter; 
+		header.numRerecords = g_rerecords;
+		
+		// TODO
+		header.uniqueID = 0; 
+		// header.author;
+		// header.videoPlugin; 
+		// header.audioPlugin;
+		
+		fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
+	}
+
+	bool success = false;
 	fclose(g_recordfd);
+	File::Delete(filename);
+	success = File::Copy(g_recordFile.c_str(), filename);
+
+	if (success /* && !g_bReadOnly*/)
+	{
+		success =
+#ifdef WIN32
+			(g_recordfd = fopen(filename, "r+b")) &&
+			!(_chsize_s(g_recordfd, size) == 0) &&
+			fclose(g_recordfd);
+#else
+			!truncate(filename, size);			
+#endif
+	}
 	
-	if (File::Copy(g_recordFile.c_str(), filename))
+	if (success)
 		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
 	else
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
 	
 	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	fseeko(g_recordfd, 0, SEEK_END);
+	fseeko(g_recordfd, size, SEEK_SET);
 }
 };

@@ -140,6 +140,8 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RECORD, _("Start Re&cording"));
 	emulationMenu->Append(IDM_PLAYRECORD, _("P&lay Recording..."));
 	emulationMenu->Append(IDM_RECORDEXPORT, _("Export Recording..."));
+	emulationMenu->Append(IDM_RECORDREADONLY, _("&Read-only mode"), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
 	emulationMenu->Append(IDM_FRAMESTEP, _("&Frame Advance"), wxEmptyString, wxITEM_CHECK);
@@ -631,6 +633,11 @@ void CFrame::DoOpen(bool Boot)
 		strncpy(newDiscpath, path.mb_str(), strlen(path.mb_str())+1);
 		DVDInterface::ChangeDisc(newDiscpath);
 	}
+}
+
+void CFrame::OnRecordReadOnly(wxCommandEvent& event)
+{
+	Frame::SetReadOnly(event.IsChecked());
 }
 
 void CFrame::OnFrameStep(wxCommandEvent& event)

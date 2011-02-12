@@ -279,6 +279,7 @@ class CFrame : public CRenderFrame
 		void OnRecord(wxCommandEvent& event);
 		void OnPlayRecording(wxCommandEvent& event);
 		void OnRecordExport(wxCommandEvent& event);
+		void OnRecordReadOnly(wxCommandEvent& event);
 		void OnChangeDisc(wxCommandEvent& event);
 		void OnScreenshot(wxCommandEvent& event);
 		void OnActive(wxActivateEvent& event);

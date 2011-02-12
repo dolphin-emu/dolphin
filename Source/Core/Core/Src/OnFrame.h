@@ -50,13 +50,14 @@ struct ControllerState {
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled;
+extern bool g_bFrameStep, g_bPolled, g_bReadOnly;
 extern PlayMode g_playMode;
 
 extern unsigned int g_framesToSkip, g_frameSkipCounter;
 
 extern int g_numPads;
 extern ControllerState *g_padStates;
+extern char g_playingFile[256];
 extern FILE *g_recordfd;
 extern std::string g_recordFile;
 
@@ -105,6 +106,7 @@ void ChangeWiiPads();
 
 void SetFrameStepping(bool bEnabled);
 void SetFrameStopping(bool bEnabled);
+void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
 int FrameSkippingFactor();
