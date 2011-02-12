@@ -37,29 +37,31 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 {
 #ifdef _LP64
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to
-	// restored at the end of the asm block. 
-	__asm__(
-		"push  %%rbx;"
+	// restored at the end of the asm block.
+	__asm__ (
+		"mov   %%rbx,%%rdi;"
 		"cpuid;"
 		"movl  %%ebx,%1;"
-		"pop   %%rbx;"
+		"mov   %%rdi,%%rbx;"
 		: "=a" (*eax),
-		  "=r" (*ebx),
+		  "=g" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx)
-		: "a"  (*eax) 
+		: "a"  (*eax)
+		: "rdi", "rbx"
 		);
 #else
 	__asm__(
-		"pushl  %%ebx;"
+		"movl   %%ebx,%%edi;"
 		"cpuid;"
 		"movl   %%ebx,%1;"
-		"popl   %%ebx;"
+		"movl   %%edi,%%ebx;"
 		: "=a" (*eax),
-		  "=r" (*ebx),
+		  "=g" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx)
-		: "a"  (*eax) 
+		: "a"  (*eax)
+		: "edi", "ebx"
 		);
 #endif
 }
