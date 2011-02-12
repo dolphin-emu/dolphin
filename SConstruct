@@ -226,13 +226,18 @@ else:
     if env['nowx']:
         env['HAVE_WX'] = 0
     else:
+        if not conf.CheckPKG('gtk+-2.0'):
+            print "gtk+-2.0 developement headers not detected"
+            print "gtk+-2.0 is required to build the WX GUI"
+            Exit(1)
+        env['CPPDEFINES'] += ['__WXGTK__']
+        conf.Define('HAVE_WX', 1)
         env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(),
             env['flavor'] == 'debug')
-        conf.Define('HAVE_WX', env['HAVE_WX'])
-        wxconfig.ParseWXConfig(env)
-        if not env['HAVE_WX']:
+        if env['HAVE_WX']:
+            wxconfig.ParseWXConfig(env)
+        else:
             print "wxWidgets not found - see config.log"
-            Exit(1)
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
     conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
@@ -252,11 +257,6 @@ else:
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
     conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
     conf.Define('HAVE_X11', env['HAVE_X11'])
-
-    if env['HAVE_WX'] and not conf.CheckPKG('gtk+-2.0'):
-        print "gtk+-2.0 developement headers not detected"
-        print "gtk+-2.0 is required to build the WX GUI"
-        Exit(1)
 
     if not conf.CheckPKG('GL'):
         print "Must have OpenGL to build"
