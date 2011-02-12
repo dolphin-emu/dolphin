@@ -78,9 +78,6 @@
     <ClCompile Include="Src\WiimoteConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Src\BootManager.cpp">
-      <Filter>Misc</Filter>
-    </ClCompile>
     <ClCompile Include="Src\ISOFile.cpp">
       <Filter>Misc</Filter>
     </ClCompile>
@@ -203,9 +200,6 @@
     </ClInclude>
     <ClInclude Include="Src\WiimoteConfigDiag.h">
       <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\BootManager.h">
-      <Filter>Misc</Filter>
     </ClInclude>
     <ClInclude Include="Src\ISOFile.h">
       <Filter>Misc</Filter>

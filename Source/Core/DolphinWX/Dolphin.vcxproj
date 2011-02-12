@@ -216,7 +216,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   <ItemGroup>
     <ClCompile Include="Src\AboutDolphin.cpp" />
     <ClCompile Include="Src\ARCodeAddEdit.cpp" />
-    <ClCompile Include="Src\BootManager.cpp" />
     <ClCompile Include="Src\BreakpointDlg.cpp" />
     <ClCompile Include="Src\BreakpointView.cpp" />
     <ClCompile Include="Src\BreakpointWindow.cpp" />
@@ -279,7 +278,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="resource.h" />
     <ClInclude Include="Src\AboutDolphin.h" />
     <ClInclude Include="Src\ARCodeAddEdit.h" />
-    <ClInclude Include="Src\BootManager.h" />
     <ClInclude Include="Src\BreakpointDlg.h" />
     <ClInclude Include="Src\BreakpointView.h" />
     <ClInclude Include="Src\BreakpointWindow.h" />

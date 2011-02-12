@@ -6,6 +6,7 @@ import sys
 files = [
 	"ActionReplay.cpp",
 	"ARDecrypt.cpp",
+	"BootManager.cpp",
 	"ConfigManager.cpp",
 	"Console.cpp",
 	"Core.cpp",

@@ -1,5 +1,6 @@
 set(SRCS	Src/ActionReplay.cpp
 			Src/ARDecrypt.cpp
+			Src/BootManager.cpp
 			Src/ConfigManager.cpp
 			Src/Console.cpp
 			Src/Core.cpp

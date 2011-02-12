@@ -5,7 +5,6 @@ import os
 import sys
 from SconsTests import utils
 
-files = ['BootManager.cpp']
 frameworksflags = []
 
 if not env['HAVE_WX']:

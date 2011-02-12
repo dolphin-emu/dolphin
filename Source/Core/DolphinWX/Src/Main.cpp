@@ -492,6 +492,24 @@ void Host_Message(int Id)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
+#ifdef _WIN32
+extern "C" HINSTANCE wxGetInstance();
+void* Host_GetInstance()
+{
+	return (void*)wxGetInstance();
+}
+#else
+void* Host_GetInstance()
+{
+	return NULL;
+}
+#endif
+
+void* Host_GetRenderHandle()
+{
+    return main_frame->GetRenderHandle();
+}
+
 // OK, this thread boundary is DANGEROUS on linux
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded()
@@ -589,6 +607,23 @@ void Host_RequestRenderWindowSize(int width, int height)
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOWSIZEREQUEST);
 	event.SetClientData(new std::pair<int, int>(width, height));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
+}
+
+void Host_SetStartupDebuggingParameters()
+{
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	if (main_frame->g_pCodeWindow)
+	{    
+		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
+		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
+		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
+		StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
+	}
+	else
+	{
+		StartUp.bBootToPause = false;
+	}
+	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
 void Host_SetWaitCursor(bool enable)

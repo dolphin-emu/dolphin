@@ -44,6 +44,7 @@ void Host_Message(int Id);
 void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
+void Host_SetStartupDebuggingParameters();
 void Host_SetWaitCursor(bool enable);
 void Host_SetWiiMoteConnectionState(int _State);
 void Host_ShowJitResults(unsigned int address);
@@ -54,5 +55,9 @@ void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
 void Host_UpdateTitle(const char* title);
+
+// TODO (neobrain): Remove these from host!
+void* Host_GetInstance();
+void* Host_GetRenderHandle();
 
 #endif

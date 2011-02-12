@@ -64,6 +64,13 @@ void Host_Message(int Id)
 	}
 }
 
+void* Host_GetRenderHandle()
+{
+	return NULL;
+}
+
+void* Host_GetInstance() { return NULL; }
+
 void Host_UpdateTitle(const char* title){};
 
 void Host_UpdateLogDisplay(){}
@@ -91,6 +98,12 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
+void Host_SetStartupDebuggingParameters()
+{
+    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	StartUp.bEnableDebugging = false;
+	StartUp.bBootToPause = false;
+}
 
 bool Host_RendererHasFocus()
 {

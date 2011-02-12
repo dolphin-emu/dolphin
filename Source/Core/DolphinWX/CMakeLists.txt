@@ -1,5 +1,3 @@
-set(SRCS	Src/BootManager.cpp)
-
 set(LIBS	core
 			lzo2
 			discio
