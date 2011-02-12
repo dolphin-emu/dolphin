@@ -31,23 +31,85 @@ static const struct {
 	const int	DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
-	{ "ToggleFullscreen",	 70 /* 'F' */,		0x08 /* wxMOD_CMD */ },
-	{ "PlayPause",		 80 /* 'P' */,		0x08 /* wxMOD_CMD */ },
-	{ "Stop",		 87 /* 'W' */,		0x08 /* wxMOD_CMD */ },
-	{ "Screenshot",		 83 /* 'S' */,		0x08 /* wxMOD_CMD */ },
-	{ "Wiimote1Connect", 	 49 /* '1' */,		0x08 /* wxMOD_CMD */ },
-	{ "Wiimote2Connect", 	 50 /* '2' */,		0x08 /* wxMOD_CMD */ },
-	{ "Wiimote3Connect", 	 51 /* '3' */,		0x08 /* wxMOD_CMD */ },
-	{ "Wiimote4Connect", 	 52 /* '4' */,		0x08 /* wxMOD_CMD */ },
+	{ "Open",		0x4F /* WXK_O */,	0x02 /* wxMOD_CONTROL*/ },
+	{ "ChangeDisc",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "RefreshList",		0,	0x00 /* wxMOD_NONE*/ },
+
+	{ "PlayPause",		80 /* 'P' */,		0x08 /* wxMOD_CMD */ },
+	{ "Stop",		87 /* 'W' */,		0x08 /* wxMOD_CMD */ },
+	{ "Reset",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "FrameAdvance",		0,	0x00 /* wxMOD_NONE*/ },
+
+	{ "StartRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "PlayRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "ExportRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "Readonlymode",		0,	0x00 /* wxMOD_NONE*/ },
+
+	{ "ToggleFullscreen",		70 /* 'F' */,		0x08 /* wxMOD_CMD */ },
+	{ "Screenshot",		83 /* 'S' */,		0x08 /* wxMOD_CMD */ },
+
+	{ "Wiimote1Connect",		49 /* '1' */,		0x08 /* wxMOD_CMD */ },
+	{ "Wiimote2Connect",		50 /* '2' */,		0x08 /* wxMOD_CMD */ },
+	{ "Wiimote3Connect",		51 /* '3' */,		0x08 /* wxMOD_CMD */ },
+	{ "Wiimote4Connect",		52 /* '4' */,		0x08 /* wxMOD_CMD */ },
+
+	{ "LoadStateSlot1",		340 /* WXK_F1 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot2",		341 /* WXK_F2 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot3",		342 /* WXK_F3 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot4",		343 /* WXK_F4 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot5",		344 /* WXK_F5 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot6",		345 /* WXK_F6 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot7",		346 /* WXK_F7 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot8",		347 /* WXK_F8 */,	0x00 /* wxMOD_NONE*/ },
+
+	{ "SaveStateSlot1",		340 /* WXK_F1 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot2",		341 /* WXK_F2 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot3",		342 /* WXK_F3 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot4",		343 /* WXK_F4 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot5",		344 /* WXK_F5 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot6",		345 /* WXK_F6 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot7",		346 /* WXK_F7 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot8",		347 /* WXK_F8 */,	0x04 /* wxMOD_SHIFT*/ },
 #else
-	{ "ToggleFullscreen",	 13 /* WXK_RETURN */,	0x01 /* wxMOD_ALT */ },
+	{ "Open",		0x4F /* WXK_O */,	0x02 /* wxMOD_CONTROL*/ },
+	{ "ChangeDisc",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "RefreshList",		00,	0x00 /* wxMOD_NONE*/ },
+
 	{ "PlayPause",		349 /* WXK_F10 */,	0x00 /* wxMOD_NONE*/ },
-	{ "Stop",		 27 /* WXK_ESCAPE */,	0x00 /* wxMOD_NONE*/ },
+	{ "Stop",		27 /* WXK_ESCAPE */,	0x00 /* wxMOD_NONE*/ },
+	{ "Reset",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "FrameAdvance",		0,	0x00 /* wxMOD_NONE*/ },
+
+	{ "StartRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "PlayRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "ExportRecording",		0,	0x00 /* wxMOD_NONE*/ },
+	{ "Readonlymode",		0,	0x00 /* wxMOD_NONE*/ },
+
+	{ "ToggleFullscreen",		13 /* WXK_RETURN */,	0x01 /* wxMOD_ALT */ },
 	{ "Screenshot",		348 /* WXK_F9 */,	0x00 /* wxMOD_NONE*/ },
-	{ "Wiimote1Connect", 	344 /* WXK_F5 */,	0x01 /* wxMOD_ALT */ },
-	{ "Wiimote2Connect", 	345 /* WXK_F6 */,	0x01 /* wxMOD_ALT */ },
-	{ "Wiimote3Connect", 	346 /* WXK_F7 */,	0x01 /* wxMOD_ALT */ },
-	{ "Wiimote4Connect", 	347 /* WXK_F8 */,	0x01 /* wxMOD_ALT */ },
+
+	{ "Wiimote1Connect",		344 /* WXK_F5 */,	0x01 /* wxMOD_ALT */ },
+	{ "Wiimote2Connect",		345 /* WXK_F6 */,	0x01 /* wxMOD_ALT */ },
+	{ "Wiimote3Connect",		346 /* WXK_F7 */,	0x01 /* wxMOD_ALT */ },
+	{ "Wiimote4Connect",		347 /* WXK_F8 */,	0x01 /* wxMOD_ALT */ },
+
+	{ "LoadStateSlot1",		340 /* WXK_F1 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot2",		341 /* WXK_F2 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot3",		342 /* WXK_F3 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot4",		343 /* WXK_F4 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot5",		344 /* WXK_F5 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot6",		345 /* WXK_F6 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot7",		346 /* WXK_F7 */,	0x00 /* wxMOD_NONE*/ },
+	{ "LoadStateSlot8",		347 /* WXK_F8 */,	0x00 /* wxMOD_NONE*/ },
+
+	{ "SaveStateSlot1",		340 /* WXK_F1 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot2",		341 /* WXK_F2 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot3",		342 /* WXK_F3 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot4",		343 /* WXK_F4 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot5",		344 /* WXK_F5 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot6",		345 /* WXK_F6 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot7",		346 /* WXK_F7 */,	0x04 /* wxMOD_SHIFT*/ },
+	{ "SaveStateSlot8",		347 /* WXK_F8 */,	0x04 /* wxMOD_SHIFT*/ },
 #endif
 };
 
@@ -116,7 +178,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
 
 	// Hotkeys
-	for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
+	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		ini.Set("Hotkeys", g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
 		ini.Set("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
@@ -236,7 +298,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
 
 		// Hotkeys
-		for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
+		for (int i = 0; i < NUM_HOTKEYS; i++)
 		{
 			ini.Get("Hotkeys", g_HKData[i].IniText,
 					&m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);

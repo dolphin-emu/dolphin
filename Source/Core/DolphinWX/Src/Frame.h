@@ -300,6 +300,7 @@ class CFrame : public CRenderFrame
 		void OnConfigDSP(wxCommandEvent& event);
 		void OnConfigPAD(wxCommandEvent& event);
 		void OnConfigWiimote(wxCommandEvent& event);
+		void OnConfigHotkey(wxCommandEvent& event);
 
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);

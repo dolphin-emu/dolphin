@@ -21,7 +21,7 @@
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_CLOSE(HotkeyConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, HotkeyConfigDialog::CloseClick)
-	EVT_COMMAND_RANGE(HK_FULLSCREEN, NUM_HOTKEYS - 1,
+	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
 		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(IDTM_BUTTON, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
@@ -188,14 +188,45 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 {
 	static const wxChar* hkText[] =
 	{
-		_("Toggle Fullscreen"),
+		_("Open"),
+		_("Change Disc"),
+		_("Refresh List"),
+
 		_("Play/Pause"),
 		_("Stop"),
+		_("Reset"),
+		_("Frame Advance"),
+
+		_("Start Recording"),
+		_("Play Recording"),
+		_("Export Recording"),
+		_("Read-only mode"),
+
+		_("Toggle Fullscreen"),
 		_("Take Screenshot"),
+
 		_("Connect Wiimote 1"),
 		_("Connect Wiimote 2"),
 		_("Connect Wiimote 3"),
-		_("Connect Wiimote 4")
+		_("Connect Wiimote 4"),
+
+		_("Load State Slot 1"),
+		_("Load State Slot 2"),
+		_("Load State Slot 3"),
+		_("Load State Slot 4"),
+		_("Load State Slot 5"),
+		_("Load State Slot 6"),
+		_("Load State Slot 7"),
+		_("Load State Slot 8"),
+
+		_("Save State Slot 1"),
+		_("Save State Slot 2"),
+		_("Save State Slot 3"),
+		_("Save State Slot 4"),
+		_("Save State Slot 5"),
+		_("Save State Slot 6"),
+		_("Save State Slot 7"),
+		_("Save State Slot 8")
 	};
 
 	// Configuration controls sizes
@@ -220,7 +251,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		wxStaticText *stHotkeys = new wxStaticText(this, wxID_ANY, hkText[i]);
 
 		// Key selection button
-		m_Button_Hotkeys[i] = new wxButton(this, HK_FULLSCREEN + i, wxEmptyString,
+		m_Button_Hotkeys[i] = new wxButton(this, i, wxEmptyString,
 				wxDefaultPosition, size);
 		m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 		SetButtonText(i,

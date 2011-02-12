@@ -68,6 +68,7 @@ Core::GetWindowHandle().
 #include "WXInputBase.h"
 #include "WiimoteConfigDiag.h"
 #include "InputConfigDiag.h"
+#include "HotkeyDlg.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -109,8 +110,8 @@ void CFrame::CreateMenu()
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	fileMenu->Append(wxID_OPEN, _("&Open...") + wxString(wxT("\tCtrl+O")));
-	fileMenu->Append(IDM_CHANGEDISC, _("Change &Disc..."));
+	fileMenu->Append(wxID_OPEN, GetMenuLabel(HK_OPEN));
+	fileMenu->Append(IDM_CHANGEDISC, GetMenuLabel(HK_CHANGE_DISC));
 
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Drive..."), externalDrive);
@@ -122,7 +123,7 @@ void CFrame::CreateMenu()
 	}
 
 	fileMenu->AppendSeparator();
-	fileMenu->Append(wxID_REFRESH, _("&Refresh List"));
+	fileMenu->Append(wxID_REFRESH, GetMenuLabel(HK_REFRESH_LIST));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
@@ -133,18 +134,18 @@ void CFrame::CreateMenu()
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, GetMenuLabel(HK_PLAY_PAUSE));
 	emulationMenu->Append(IDM_STOP, GetMenuLabel(HK_STOP));
-	emulationMenu->Append(IDM_RESET, _("&Reset"));
+	emulationMenu->Append(IDM_RESET, GetMenuLabel(HK_RESET));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));	
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_RECORD, _("Start Re&cording"));
-	emulationMenu->Append(IDM_PLAYRECORD, _("P&lay Recording..."));
-	emulationMenu->Append(IDM_RECORDEXPORT, _("Export Recording..."));
-	emulationMenu->Append(IDM_RECORDREADONLY, _("&Read-only mode"), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
+	emulationMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
+	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
+	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
-	emulationMenu->Append(IDM_FRAMESTEP, _("&Frame Advance"), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString, wxITEM_CHECK);
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
@@ -176,8 +177,8 @@ void CFrame::CreateMenu()
 	loadMenu->AppendSeparator();
 
 	for (int i = 1; i <= 8; i++) {
-		loadMenu->Append(IDM_LOADSLOT1 + i - 1, _("Slot") + wxString::Format(wxT(" %i\tF%i"), i, i));
-		saveMenu->Append(IDM_SAVESLOT1 + i - 1, _("Slot") + wxString::Format(wxT(" %i\tShift+F%i"), i, i));
+		loadMenu->Append(IDM_LOADSLOT1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
+		saveMenu->Append(IDM_SAVESLOT1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
 	}
 	m_MenuBar->Append(emulationMenu, _("&Emulation"));
 
@@ -189,6 +190,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _("&DSP Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("&Gamecube Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -324,9 +326,16 @@ wxString CFrame::GetMenuLabel(int Id)
 
 	switch (Id)
 	{
-		case HK_FULLSCREEN:
-			Label = _("&Fullscreen");
+		case HK_OPEN:
+			Label = _("&Open...");
 			break;
+		case HK_CHANGE_DISC:
+			Label = _("Change &Disc...");
+			break;
+		case HK_REFRESH_LIST:
+			Label = _("&Refresh List");
+			break;
+
 		case HK_PLAY_PAUSE:
 			if (Core::GetState() == Core::CORE_RUN)
 				Label = _("&Pause");
@@ -336,9 +345,33 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_STOP:
 			Label = _("&Stop");
 			break;
+		case HK_RESET:
+			Label = _("&Reset");
+			break;
+		case HK_FRAME_ADVANCE:
+			Label = _("&Frame Advance");
+			break;
+
+		case HK_START_RECORDING:
+			Label = _("Start Re&cording");
+			break;
+		case HK_PLAY_RECORDING:
+			Label = _("P&lay Recording...");
+			break;
+		case HK_EXPORT_RECORDING:
+			Label = _("Export Recording...");
+			break;
+		case HK_READ_ONLY_MODE:
+			Label = _("&Read-only mode");
+			break;
+
+		case HK_FULLSCREEN:
+			Label = _("&Fullscreen");
+			break;
 		case HK_SCREENSHOT:
 			Label = _("Take Screenshot");
 			break;
+
 		case HK_WIIMOTE1_CONNECT:
 		case HK_WIIMOTE2_CONNECT:
 		case HK_WIIMOTE3_CONNECT:
@@ -346,6 +379,33 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Connect Wiimote %i"),
 					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
+
+		case HK_LOAD_STATE_SLOT_1:
+		case HK_LOAD_STATE_SLOT_2:
+		case HK_LOAD_STATE_SLOT_3:
+		case HK_LOAD_STATE_SLOT_4:
+		case HK_LOAD_STATE_SLOT_5:
+		case HK_LOAD_STATE_SLOT_6:
+		case HK_LOAD_STATE_SLOT_7:
+		case HK_LOAD_STATE_SLOT_8:
+			Label = wxString::Format(_("Slot %i"), 
+					Id - HK_LOAD_STATE_SLOT_1 + 1);
+			break;
+
+		case HK_SAVE_STATE_SLOT_1:
+		case HK_SAVE_STATE_SLOT_2:
+		case HK_SAVE_STATE_SLOT_3:
+		case HK_SAVE_STATE_SLOT_4:
+		case HK_SAVE_STATE_SLOT_5:
+		case HK_SAVE_STATE_SLOT_6:
+		case HK_SAVE_STATE_SLOT_7:
+		case HK_SAVE_STATE_SLOT_8:
+			Label = wxString::Format(_("Slot %i"), 
+					Id - HK_SAVE_STATE_SLOT_1 + 1);
+			break;
+
+		default:
+			Label = wxString::Format(_("Undefined %i"), Id);
 	}
 
 	// wxWidgets only accepts Ctrl/Alt/Shift as menu accelerator
@@ -1156,6 +1216,15 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 	{
 		Wiimote::Shutdown();
 	}
+}
+
+void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
+{
+	HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
+	m_HotkeyDialog->ShowModal();
+	m_HotkeyDialog->Destroy();
+	// Update the GUI in case menu accelerators were changed
+	UpdateGUI();
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)
