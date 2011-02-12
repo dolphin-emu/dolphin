@@ -15,24 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "VideoConfigDiag.h"
 #include "VideoConfigDialog.h"
 
 #include "FileUtil.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
-
-// template instantiation
-template class _BoolSetting<wxCheckBox>;
-
-template <>
-SettingCheckBox::_BoolSetting(wxWindow* parent, const wxString& label, bool &setting, bool reverse, long style) :
-	wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style),
-	m_setting(setting),
-	m_reverse(reverse)
-{
-	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-}
 
 template <typename T>
 IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style) :
@@ -69,7 +57,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxGridSizer* const szr_rendering = new wxGridSizer(2, 5, 5);
 	group_rendering->Add(szr_rendering, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Hardware rasterization"), vconfig.bHwRasterizer));
+	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Hardware rasterization"), wxT(""), vconfig.bHwRasterizer));
 	}
 
 	// - info
@@ -79,7 +67,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxGridSizer* const szr_info = new wxGridSizer(2, 5, 5);
 	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_info->Add(new SettingCheckBox(page_general, wxT("Various Statistics"), vconfig.bShowStats));
+	szr_info->Add(new SettingCheckBox(page_general, wxT("Various Statistics"), wxT(""), vconfig.bShowStats));
 	}
 	
 	// - utility
@@ -89,9 +77,9 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxGridSizer* const szr_utility = new wxGridSizer(2, 5, 5);
 	group_utility->Add(szr_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Textures"), vconfig.bDumpTextures));
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Objects"), vconfig.bDumpObjects));
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Frames"), vconfig.bDumpFrames));
+	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Textures"), wxT(""), vconfig.bDumpTextures));
+	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Objects"), wxT(""), vconfig.bDumpObjects));
+	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Frames"), wxT(""), vconfig.bDumpFrames));
 
 	// - debug only
 	wxStaticBoxSizer* const group_debug_only_utility = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Debug Only"));
@@ -99,8 +87,8 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxGridSizer* const szr_debug_only_utility = new wxGridSizer(2, 5, 5);
 	group_debug_only_utility->Add(szr_debug_only_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump TEV Stages"), vconfig.bDumpTevStages));
-	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump Texture Fetches"), vconfig.bDumpTevTextureFetches));
+	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump TEV Stages"), wxT(""), vconfig.bDumpTevStages));
+	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump Texture Fetches"), wxT(""), vconfig.bDumpTevTextureFetches));
 	}
 
 	// - misc

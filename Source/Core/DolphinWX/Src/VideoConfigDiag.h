@@ -36,10 +36,27 @@ private:
 typedef BoolSetting<wxCheckBox> SettingCheckBox;
 typedef BoolSetting<wxRadioButton> SettingRadioButton;
 
+template <typename T>
+class IntegerSetting : public wxSpinCtrl
+{
+public:
+	IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style = 0);
+
+	void UpdateValue(wxCommandEvent& ev)
+	{
+		m_setting = ev.GetInt();
+		ev.Skip();
+	}
+private:
+	T& m_setting;
+};
+
+typedef IntegerSetting<u32> U32Setting;
+
 class SettingChoice : public wxChoice
 {
 public:
-	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = NULL);
+	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = NULL, long style = 0);
 	void UpdateValue(wxCommandEvent& ev);
 private:
 	int &m_setting;
