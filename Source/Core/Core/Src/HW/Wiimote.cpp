@@ -104,7 +104,7 @@ void Update(int _number)
 	}
 	_last_number = _number;
 
-	if ((Frame::IsPlayingInput() && Frame::IsUsingWiimote(_number)) || (!Frame::IsPlayingInput() && (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])))
+	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
 	else
 		WiimoteReal::Update(_number);

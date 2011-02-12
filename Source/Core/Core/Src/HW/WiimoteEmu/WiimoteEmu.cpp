@@ -668,13 +668,9 @@ void Wiimote::Update()
 	memset(data, 0, sizeof(data));
 	
 	// figure out what data we need
-	s8 rptf_size = MAX_PAYLOAD;;
+	s8 rptf_size = MAX_PAYLOAD;
 
-	if (Frame::IsPlayingInput())
-	{
-		Frame::PlayWiimote(data, rptf_size);
-	}
-	else
+	if (!Frame::IsPlayingInput() || !Frame::PlayWiimote(m_index, data, rptf_size))
 	{
 		const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 		rptf_size = rptf.size;
@@ -782,7 +778,7 @@ void Wiimote::Update()
 		}
 		if (Frame::IsRecordingInput())
 		{
-			Frame::RecordWiimote(data, rptf_size);
+			Frame::RecordWiimote(m_index, data, rptf_size);
 		}
 	}
 

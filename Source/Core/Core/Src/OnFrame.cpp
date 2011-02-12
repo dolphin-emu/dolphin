@@ -239,9 +239,9 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	fwrite(&g_padState, sizeof(ControllerState), 1, g_recordfd);
 }
 
-void RecordWiimote(u8 *data, s8 size)
+void RecordWiimote(int wiimote, u8 *data, s8 size)
 {
-	if(!IsRecordingInput())
+	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
 
 	fwrite(&size, 1, 1, g_recordfd);
@@ -409,11 +409,11 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	}
 }
 
-void PlayWiimote(u8 *data, s8 &size)
+bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 {
 	s8 count = 0;
-	if(!IsPlayingInput())
-		return;
+	if(!IsPlayingInput() || !IsUsingWiimote(wiimote))
+		return false;
 
 	fread(&count, 1, 1, g_recordfd);
 	size = (count > size) ? size : count;
@@ -425,6 +425,7 @@ void PlayWiimote(u8 *data, s8 &size)
 		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput();
 	}
+	return true;
 }
 
 void EndPlayInput() {

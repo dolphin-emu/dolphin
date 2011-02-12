@@ -117,6 +117,7 @@ private:
 		ID_WII_BT_BAR,
 		ID_WII_BT_SENS,
 		ID_WII_BT_MOT,
+		ID_WII_WIIMOTE_RECONNECT,
 
 		ID_WII_IPL_SSV,
 		ID_WII_IPL_E60,
@@ -218,6 +219,7 @@ private:
 	wxChoice* WiiSensBarPos;
 	wxSlider* WiiSensBarSens;
 	wxCheckBox* WiimoteMotor;
+	wxCheckBox* WiimoteReconnectOnLoad;
 
 	// Misc
 	wxCheckBox* WiiScreenSaver;

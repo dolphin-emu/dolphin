@@ -111,20 +111,45 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_NumCompPackets_Freq);
 	p.Do(m_WiimoteUpdate_Freq);
 
+	u32 size;
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		// Reset the connection of all connected wiimotes
-		for (unsigned int i = 0; i < 4; i++)
+		u8 buf[sizeof(ACLQ)];
+		p.Do(size);
+		while (!m_ACLQ.empty())
+			m_ACLQ.pop();
+		for (u32 i = 0; i < size; i++)
 		{
-			if (m_WiiMotes[i].IsConnected())
-			{
-				m_WiiMotes[i].Activate(false);
-				m_WiiMotes[i].Activate(true);
-			}
-			else
-			{
-				m_WiiMotes[i].Activate(false);
-			}
+			p.DoVoid((void *)buf, sizeof(ACLQ));
+			m_ACLQ.push(*(ACLQ *)buf);
+		}
+		if (SConfig::GetInstance().m_WiimoteReconnectOnLoad)
+		{
+			// Reset the connection of all connected wiimotes
+                	for (unsigned int i = 0; i < 4; i++)
+	                {
+        	                if (m_WiiMotes[i].IsConnected())
+                	        {
+                        	        m_WiiMotes[i].Activate(false);
+                                	m_WiiMotes[i].Activate(true);
+	                        }
+        	                else
+                	        {
+                        	        m_WiiMotes[i].Activate(false);
+	                        }
+        	        }
+		}
+	}
+	else
+	{
+		size = m_ACLQ.size();
+		p.Do(size);
+		for (u32 i = 0; i < size; i++)
+		{
+			ACLQ tmp = m_ACLQ.front();
+			m_ACLQ.pop();
+			m_ACLQ.push(tmp);
+			p.DoVoid((void *)&tmp, sizeof(ACLQ));
 		}
 	}
 }

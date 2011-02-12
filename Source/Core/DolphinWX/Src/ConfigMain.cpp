@@ -163,6 +163,7 @@ EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
 
 EVT_CHECKBOX(ID_WII_SD_CARD, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_KEYBOARD, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_WIIMOTE_RECONNECT, CConfigMain::WiiSettingsChanged)
 
 
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
@@ -500,6 +501,7 @@ void CConfigMain::InitializeGUIValues()
 	WiiSensBarPos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
 	WiiSensBarSens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
+	WiimoteReconnectOnLoad->SetValue(SConfig::GetInstance().m_WiimoteReconnectOnLoad);
 	
 	// Wii - Misc
 	WiiScreenSaver->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
@@ -821,6 +823,7 @@ void CConfigMain::CreateGUIControls()
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
 	WiiSensBarSens = new wxSlider(WiiPage, ID_WII_BT_SENS, 0, 0, 4);
 	WiimoteMotor = new wxCheckBox(WiiPage, ID_WII_BT_MOT, _("Wiimote Motor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteReconnectOnLoad = new wxCheckBox(WiiPage, ID_WII_KEYBOARD, _("Reconnect Wiimote On Load State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Misc Settings
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, _("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -841,6 +844,7 @@ void CConfigMain::CreateGUIControls()
 			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarSens, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
 	sWiimoteSettings->Add(WiimoteMotor, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiimoteSettings->Add(WiimoteReconnectOnLoad, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings = new wxStaticBoxSizer(wxHORIZONTAL, WiiPage, _("Wiimote Settings"));
 	sbWiimoteSettings->Add(sWiimoteSettings);
 
@@ -1260,6 +1264,9 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WII_BT_MOT:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", WiimoteMotor->IsChecked());
+		break;
+	case ID_WII_WIIMOTE_RECONNECT:
+		SConfig::GetInstance().m_WiimoteReconnectOnLoad = WiimoteReconnectOnLoad->IsChecked();
 		break;
 	// SYSCONF settings
 	case ID_WII_IPL_SSV:

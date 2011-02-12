@@ -239,6 +239,7 @@ void SConfig::SaveSettings()
 
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
+	ini.Set("Core", "WiimoteReconnectOnLoad", m_WiimoteReconnectOnLoad);
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
@@ -364,6 +365,7 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
+		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,							true);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
