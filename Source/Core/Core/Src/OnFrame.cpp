@@ -132,19 +132,24 @@ bool IsPlayingInput()
 
 bool IsUsingPad(int controller)
 {
-	return (g_numPads & (1 << controller));
+	return ((g_numPads & (1 << controller)) != 0);
 }
 
 bool IsUsingWiimote(int wiimote)
 {
-	return (g_numPads & (1 << (wiimote + 4)));
+	return ((g_numPads & (1 << (wiimote + 4))) != 0);
 }
 
-void ChangePads()
+void ChangePads(bool instantly)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
 		for (int i = 0; i < 4; i++)
-			SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+			if (instantly) // Changes from savestates need to be instantaneous
+				SerialInterface::AddDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+			else
+				SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+	}
 }
 
 void ChangeWiiPads()
@@ -301,8 +306,10 @@ void LoadInput(const char *filename)
 	
 	g_numPads = header.numControllers;
 	
-	ChangePads();
-	ChangeWiiPads();
+	ChangePads(true);
+
+	if (Core::g_CoreStartupParameter.bWii)
+		ChangeWiiPads();
 	
 	if (g_recordfd)
 		fclose(g_recordfd);
@@ -420,7 +427,7 @@ void SaveRecording(const char *filename)
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
 	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.bWii = Core::g_CoreStartupParameter.bWii;
-	header.numControllers = g_numPads;
+	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
 	
 	header.bFromSaveState = false; // TODO: add the case where it's true
 	header.frameCount = g_frameCounter;

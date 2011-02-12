@@ -100,7 +100,7 @@ bool IsPlayingInput();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
-void ChangePads();
+void ChangePads(bool instantly = false);
 void ChangeWiiPads();
 
 void SetFrameStepping(bool bEnabled);
