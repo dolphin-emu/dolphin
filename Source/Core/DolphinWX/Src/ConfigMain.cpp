@@ -823,7 +823,7 @@ void CConfigMain::CreateGUIControls()
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
 	WiiSensBarSens = new wxSlider(WiiPage, ID_WII_BT_SENS, 0, 0, 4);
 	WiimoteMotor = new wxCheckBox(WiiPage, ID_WII_BT_MOT, _("Wiimote Motor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiimoteReconnectOnLoad = new wxCheckBox(WiiPage, ID_WII_KEYBOARD, _("Reconnect Wiimote On Load State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteReconnectOnLoad = new wxCheckBox(WiiPage, ID_WII_WIIMOTE_RECONNECT, _("Reconnect Wiimote On Load State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Misc Settings
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, _("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
