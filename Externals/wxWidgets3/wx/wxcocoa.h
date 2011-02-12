@@ -303,7 +303,7 @@
 
 #define wxUSE_ANY 1
 
-#define wxUSE_REGEX 1
+#define wxUSE_REGEX 0
 
 #define wxUSE_SYSTEM_OPTIONS 1
 
@@ -311,15 +311,15 @@
 
 #define wxUSE_MEDIACTRL 1
 
-#define wxUSE_XRC 1
+#define wxUSE_XRC 0
 
 #define wxUSE_XML 1
 
 #define wxUSE_AUI 1
 
-#define wxUSE_RIBBON 1
+#define wxUSE_RIBBON 0
 
-#define wxUSE_PROPGRID 1
+#define wxUSE_PROPGRID 0
 
 #define wxUSE_STC 0
 
@@ -511,11 +511,11 @@
 
 #define wxUSE_PRINTING_ARCHITECTURE 1
 
-#define wxUSE_HTML 1
+#define wxUSE_HTML 0
 
 #define wxUSE_GLCANVAS 1
 
-#define wxUSE_RICHTEXT 1
+#define wxUSE_RICHTEXT 0
 
 
 #define wxUSE_CLIPBOARD 1
@@ -539,7 +539,7 @@
 #define wxUSE_MS_HTML_HELP 0
 
 
-#define wxUSE_WXHTML_HELP 1
+#define wxUSE_WXHTML_HELP 0
 
 #define wxUSE_CONSTRAINTS 1
 
