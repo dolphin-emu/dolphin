@@ -486,13 +486,19 @@ void SaveRecording(const char *filename)
 
 	if (success /* && !g_bReadOnly*/)
 	{
-		success =
 #ifdef WIN32
-			(g_recordfd = fopen(filename, "r+b")) &&
-			!(_chsize_s(g_recordfd, size) == 0) &&
-			fclose(g_recordfd);
+		int fd;
+		if (!_sopen_s(&fd, g_recordFile.c_str(), _O_RDWR, _SH_DENYNO, _S_IREAD | _S_IWRITE))
+		{
+			success = (_chsize_s(fd, size) == 0);
+			_close(fd);
+		}
+		else
+		{
+			success = false;
+		}
 #else
-			!truncate(filename, size);			
+		success = !truncate(filename, size);			
 #endif
 	}
 	
