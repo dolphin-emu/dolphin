@@ -184,6 +184,8 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 	DoGetButtons(ClickedButton->GetId());
 }
 
+#define HOTKEY_NUM_COLUMNS 2
+
 void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 {
 	static const wxChar* hkText[] =
@@ -234,16 +236,20 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-	wxStaticBoxSizer *sHotkeys = new wxStaticBoxSizer(wxVERTICAL, this, _("Hotkeys"));
+	wxStaticBoxSizer *sHotkeyBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Hotkeys"));
+	wxGridSizer *sHotkeys = new wxGridSizer(HOTKEY_NUM_COLUMNS, 0, 0);
 
 	// Header line
-	wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
-	wxStaticText *StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Action"));
-	HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
-	HeaderSizer->AddStretchSpacer();
-	StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Key"), wxDefaultPosition, size);
-	HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
-	sHotkeys->Add(HeaderSizer, 0, wxEXPAND | wxALL, 1);
+	for (int i = 0; i < HOTKEY_NUM_COLUMNS; i++)
+	{
+		wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
+		wxStaticText *StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Action"));
+		HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
+		HeaderSizer->AddStretchSpacer();
+		StaticTextHeader = new wxStaticText(this, wxID_ANY, _("Key"), wxDefaultPosition, size);
+		HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
+		sHotkeys->Add(HeaderSizer, 0, wxEXPAND | wxALL, 1);
+	}
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
@@ -265,13 +271,15 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		sHotkeys->Add(sHotkey, 0, wxEXPAND | wxALL, 1);
 	}
 
+	sHotkeyBox->Add(sHotkeys);
+
 	m_Close = new wxButton(this, ID_CLOSE, _("Close"));
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
-	sMainSizer->Add(sHotkeys, 0, wxEXPAND | wxALL, 5);
+	sMainSizer->Add(sHotkeyBox, 0, wxEXPAND | wxALL, 5);
 	sMainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 	SetSizer(sMainSizer);
 	Layout();
