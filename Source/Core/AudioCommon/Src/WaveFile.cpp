@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "WaveFile.h"
+#include "../../Core/Src/ConfigManager.h"
 
 enum {BUF_SIZE = 32*1024};
 
@@ -63,8 +64,7 @@ bool WaveFileWriter::Start(const char *filename)
 	Write(16);  // size of fmt block
 	Write(0x00020001); //two channels, uncompressed
 
-	//const u32 sample_rate = 32000;
-	const u32 sample_rate = 48000;
+	const u32 sample_rate = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE ? 48000 : 32000;
 	Write(sample_rate);
 	Write(sample_rate * 2 * 2); //two channels, 16bit
 
