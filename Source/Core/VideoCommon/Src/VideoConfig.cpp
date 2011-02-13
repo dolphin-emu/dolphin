@@ -121,6 +121,9 @@ void VideoConfig::Load(const char *ini_file)
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
+
+	VerifyValidity();
+
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
@@ -176,6 +179,19 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	   iniFile.Get("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
 	if (iniFile.Exists("Video", "DlistCachingEnable"))
 	   iniFile.Get("Video", "DlistCachingEnable", &bDlistCachingEnable);
+
+	VerifyValidity();
+}
+
+void VideoConfig::VerifyValidity()
+{
+	// TODO: Check iMaxAnisotropy value
+	if (!backend_info.bSupportsEFBToRAM) bCopyEFBToTexture = true;
+	if (iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
+	if (!backend_info.bSupportsRealXFB) bUseRealXFB = false;
+	if (!backend_info.bSupports3DVision) b3DVision = false;
+	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
+	if (!backend_info.bSupportsPixelLighting) bEnablePixelLigting = false;
 }
 
 void VideoConfig::Save(const char *ini_file)

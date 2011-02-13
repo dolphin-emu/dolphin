@@ -64,6 +64,7 @@ struct VideoConfig
 	VideoConfig();
 	void Load(const char *ini_file);
 	void GameIniLoad(const char *ini_file);
+	void VerifyValidity();
 	void Save(const char *ini_file);
 	void UpdateProjectionHack();
 

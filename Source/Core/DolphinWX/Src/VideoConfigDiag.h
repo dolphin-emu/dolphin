@@ -71,55 +71,6 @@ protected:
 	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
-	void Event_EfbCopy(wxCommandEvent &ev)
-	{
-		if (ev.GetInt() == 0)
-		{
-			efbcopy_texture->Disable();
-			efbcopy_ram->Disable();
-			cache_efb_copies->Disable();
-		}
-		else
-		{
-			efbcopy_texture->Enable();
-			if (vconfig.backend_info.bSupportsEFBToRAM)
-			{
-				efbcopy_ram->Enable();
-				if (!vconfig.bCopyEFBToTexture)
-					cache_efb_copies->Enable();
-			}
-		}
-		ev.Skip();
-	}
-
-	void Event_EfbCopyToTexture(wxCommandEvent &ev)
-	{
-		cache_efb_copies->Disable();
-		ev.Skip();
-	}
-
-	void Event_EfbCopyToRam(wxCommandEvent &ev)
-	{
-		cache_efb_copies->Enable();
-		ev.Skip();
-	}
-
-	void Event_Stc(wxCommandEvent &ev)
-	{
-		if (ev.GetInt() == 0)
-		{
-			stc_safe->Disable();
-			stc_normal->Disable();
-			stc_fast->Disable();
-		}
-		else
-		{
-			stc_safe->Enable();
-			stc_normal->Enable();
-			stc_fast->Enable();
-		}
-		ev.Skip();
-	}
 	void Event_StcSafe(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 0; ev.Skip(); }
 	void Event_StcNormal(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 512; ev.Skip(); }
 	void Event_StcFast(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 128; ev.Skip(); }
@@ -134,31 +85,57 @@ protected:
 		ev.Skip();
 	}
 
-	void Event_Xfb(wxCommandEvent &ev)
-	{
-		if (ev.GetInt() == 0)
-		{
-			virtual_xfb->Disable();
-			real_xfb->Disable();
-		}
-		else
-		{
-			virtual_xfb->Enable();
-			if(vconfig.backend_info.bSupportsRealXFB) real_xfb->Enable();
-		}
-		ev.Skip();
-	}
-
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
-	wxRadioButton* stc_safe;
-	wxRadioButton* stc_normal;
-	wxRadioButton* stc_fast;
+	// Enables/disables UI elements depending on current config
+	void OnUpdateUI(wxUpdateUIEvent& ev)
+	{
+		// Anti-aliasing
+		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+
+		// pixel lighting
+		pixel_lighting->Enable(vconfig.backend_info.bSupportsPixelLighting);
+
+		// 3D vision
+		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
+
+		// EFB copy
+		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
+		efbcopy_ram->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM);
+		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM && !vconfig.bCopyEFBToTexture);
+
+		// EFB format change emulation
+		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
+
+		// ATC
+		stc_safe->Enable(vconfig.bSafeTextureCache);
+		stc_normal->Enable(vconfig.bSafeTextureCache);
+		stc_fast->Enable(vconfig.bSafeTextureCache);
+
+		// XFB
+		virtual_xfb->Enable(vconfig.bUseXFB);
+		real_xfb->Enable(vconfig.bUseXFB && vconfig.backend_info.bSupportsRealXFB);
+
+		ev.Skip();
+	}
+
+	wxStaticText* text_aamode;
+	SettingChoice* choice_aamode;
+
+	SettingCheckBox* pixel_lighting;
+
+	SettingCheckBox* _3d_vision;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
+	SettingCheckBox* emulate_efb_format_changes;
+
+	wxRadioButton* stc_safe;
+	wxRadioButton* stc_normal;
+	wxRadioButton* stc_fast;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

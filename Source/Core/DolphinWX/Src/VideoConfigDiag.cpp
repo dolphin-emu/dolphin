@@ -120,6 +120,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
+	Connect(wxID_ANY, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(VideoConfigDiag::OnUpdateUI), NULL, this);
+
 	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
 	// -- GENERAL --
@@ -188,9 +190,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(new SettingChoice(page_general, vconfig.iMaxAnisotropy, wxGetTranslation(af_tooltip), 5, af_choices));
 
 
-	wxStaticText* const text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
+	text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
-	SettingChoice* const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_tooltip));
+	choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_tooltip));
 
 	std::vector<std::string>::const_iterator
 		it = vconfig.backend_info.AAModes.begin(),
@@ -198,11 +200,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	for (; it != itend; ++it)
 		choice_aamode->AppendString(wxGetTranslation(wxString::FromAscii(it->c_str())));
 
-	if (vconfig.backend_info.AAModes.size() <= 1)
-	{
-		choice_aamode->Disable();
-		text_aamode->Disable();
-	}
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(choice_aamode);
@@ -210,14 +207,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(new SettingCheckBox(page_general, _("Load Native Mipmaps"), wxGetTranslation(native_mips_tooltip), vconfig.bUseNativeMips));
 	szr_enh->Add(new SettingCheckBox(page_general, _("EFB Scaled Copy"), wxGetTranslation(scaled_efb_copy_tooltip), vconfig.bCopyEFBScaled));	
-	szr_enh->Add(new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), vconfig.bEnablePixelLigting));
+	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), vconfig.bEnablePixelLigting));
 	szr_enh->Add(new SettingCheckBox(page_general, _("Pixel Depth"), wxGetTranslation(pixel_depth_tooltip), vconfig.bEnablePerPixelDepth));
 	szr_enh->Add(new SettingCheckBox(page_general, _("Force Bi/Trilinear Filtering"), wxGetTranslation(force_filtering_tooltip), vconfig.bForceFiltering));
 	
-	if (vconfig.backend_info.bSupports3DVision)
-	{
-		szr_enh->Add(new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision));
-	}
+	_3d_vision = new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision);
+	_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
+	szr_enh->Add(_3d_vision);
 
 	// - EFB
 	// EFB scale
@@ -233,21 +229,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	//efb_scale_szr->AddStretchSpacer(1);
 	efb_scale_szr->Add(choice_efbscale, 0, wxBOTTOM | wxLEFT, 5);
 
-	SettingCheckBox *emulate_efb_format_changes = new SettingCheckBox(page_general, _("Emulate format changes"), wxGetTranslation(efb_emulate_format_changes_tooltip), vconfig.bEFBEmulateFormatChanges);
-
-	if (!vconfig.backend_info.bSupportsFormatReinterpretation)
-	{
-		emulate_efb_format_changes->SetValue(false);
-		emulate_efb_format_changes->Disable();
-	}
+	emulate_efb_format_changes = new SettingCheckBox(page_general, _("Emulate format changes"), wxGetTranslation(efb_emulate_format_changes_tooltip), vconfig.bEFBEmulateFormatChanges);
 
 	// EFB copy
 	SettingCheckBox* efbcopy_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(efb_copy_tooltip), vconfig.bEFBCopyEnable);
-	_connect_macro_(efbcopy_enable, VideoConfigDiag::Event_EfbCopy, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	efbcopy_texture = new SettingRadioButton(page_general, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	_connect_macro_(efbcopy_texture, VideoConfigDiag::Event_EfbCopyToTexture, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	efbcopy_ram = new SettingRadioButton(page_general, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), vconfig.bCopyEFBToTexture, true);
-	_connect_macro_(efbcopy_ram, VideoConfigDiag::Event_EfbCopyToRam, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 	cache_efb_copies = new SettingCheckBox(page_general, _("Enable cache"), wxGetTranslation(cache_efb_copies_tooltip), vconfig.bEFBCopyCacheEnable);
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Copy"));
 	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -256,24 +243,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
 	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
 
-	if (!vconfig.backend_info.bSupportsEFBToRAM)
-	{
-		efbcopy_ram->Disable();
-		vconfig.bCopyEFBToTexture = true;
-		efbcopy_texture->SetValue(true);
-	}
-	if (!vconfig.bEFBCopyEnable)
-	{
-		efbcopy_ram->Disable();
-		efbcopy_texture->Disable();
-		cache_efb_copies->Disable();
-	}
-	else if (vconfig.bCopyEFBToTexture)
-		cache_efb_copies->Disable();
 
 	// - safe texture cache
 	SettingCheckBox* stc_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(stc_tooltip), vconfig.bSafeTextureCache);
-	_connect_macro_(stc_enable, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 
 	stc_safe = new wxRadioButton(page_general, -1, _("Safe"),
 		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -297,12 +269,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	if (128 == vconfig.iSafeTextureCache_ColorSamples)
 		stc_fast->SetValue(true);
 
-	if (!vconfig.bSafeTextureCache)
-	{
-		stc_safe->Disable();
-		stc_normal->Disable();
-		stc_fast->Disable();
-	}
 
 	wxStaticBoxSizer* const group_basic = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Basic"));
 	szr_general->Add(group_basic, 0, wxEXPAND | wxALL, 5);
@@ -370,7 +336,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// - XFB
 	{
 	SettingCheckBox* enable_xfb = new SettingCheckBox(page_advanced, _("Enable"), wxGetTranslation(xfb_tooltip), vconfig.bUseXFB);
-	_connect_macro_(enable_xfb, VideoConfigDiag::Event_Xfb, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	virtual_xfb = new SettingRadioButton(page_advanced, _("Virtual"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB, true, wxRB_GROUP);
 	real_xfb = new SettingRadioButton(page_advanced, _("Real"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB);
 
@@ -381,18 +346,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 
-	if (!vconfig.backend_info.bSupportsRealXFB)
-	{
-		real_xfb->Disable();
-		vconfig.bUseRealXFB = false;
-		virtual_xfb->SetValue(true);
-	}
-
-	if (!vconfig.bUseXFB)
-	{
-		real_xfb->Disable();
-		virtual_xfb->Disable();
-	}
 
 	}	// xfb
 
@@ -459,7 +412,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxButton* const btn_close = new wxButton(this, -1, _("Close"), wxDefaultPosition);
 	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	Connect(-1, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
+	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
 
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
@@ -467,4 +420,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	SetSizerAndFit(szr_main);
 	Center();
+
+	UpdateWindowUI();
 }
