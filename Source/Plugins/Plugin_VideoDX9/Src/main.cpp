@@ -25,7 +25,7 @@
 #endif // HAVE_WX
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "DebuggerPanel.h"
+#include "Debugger/DebuggerPanel.h"
 #endif // HAVE_WX
 
 #include "MainBase.h"

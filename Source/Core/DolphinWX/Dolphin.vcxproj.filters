@@ -84,55 +84,55 @@
     <ClCompile Include="Src\PHackSettings.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DebuggerUIUtil.cpp">
+    <ClCompile Include="Src\Debugger\DebuggerUIUtil.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
     <ClCompile Include="Src\VideoConfigDiag.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
-    <ClCompile Include="Src\CodeView.cpp">
+    <ClCompile Include="Src\Debugger\CodeView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\MemoryView.cpp">
+    <ClCompile Include="Src\Debugger\MemoryView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DebuggerPanel.cpp">
+    <ClCompile Include="Src\Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
-    <ClCompile Include="Src\BreakpointDlg.cpp">
+    <ClCompile Include="Src\Debugger\BreakpointDlg.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\BreakpointWindow.cpp">
+    <ClCompile Include="Src\Debugger\BreakpointWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\CodeWindow.cpp">
+    <ClCompile Include="Src\Debugger\CodeWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\CodeWindowFunctions.cpp">
+    <ClCompile Include="Src\Debugger\CodeWindowFunctions.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DSPDebugWindow.cpp">
+    <ClCompile Include="Src\Debugger\DSPDebugWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\JitWindow.cpp">
+    <ClCompile Include="Src\Debugger\JitWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\MemoryCheckDlg.cpp">
+    <ClCompile Include="Src\Debugger\MemoryCheckDlg.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\MemoryWindow.cpp">
+    <ClCompile Include="Src\Debugger\MemoryWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RegisterWindow.cpp">
+    <ClCompile Include="Src\Debugger\RegisterWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RegisterView.cpp">
+    <ClCompile Include="Src\Debugger\RegisterView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DSPRegisterView.cpp">
+    <ClCompile Include="Src\Debugger\DSPRegisterView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\BreakpointView.cpp">
+    <ClCompile Include="Src\Debugger\BreakpointView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
   </ItemGroup>
@@ -210,52 +210,52 @@
     <ClInclude Include="Src\PHackSettings.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DebuggerUIUtil.h">
+    <ClInclude Include="Src\Debugger\DebuggerUIUtil.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Src\VideoConfigDiag.h">
       <Filter>GUI\Video</Filter>
     </ClInclude>
-    <ClInclude Include="Src\CodeView.h">
+    <ClInclude Include="Src\Debugger\CodeView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\MemoryView.h">
+    <ClInclude Include="Src\Debugger\MemoryView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DebuggerPanel.h">
+    <ClInclude Include="Src\Debugger\DebuggerPanel.h">
       <Filter>GUI\Video</Filter>
     </ClInclude>
-    <ClInclude Include="Src\BreakpointDlg.h">
+    <ClInclude Include="Src\Debugger\BreakpointDlg.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\BreakpointWindow.h">
+    <ClInclude Include="Src\Debugger\BreakpointWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\CodeWindow.h">
+    <ClInclude Include="Src\Debugger\CodeWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DSPDebugWindow.h">
+    <ClInclude Include="Src\Debugger\DSPDebugWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\JitWindow.h">
+    <ClInclude Include="Src\Debugger\JitWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\MemoryCheckDlg.h">
+    <ClInclude Include="Src\Debugger\MemoryCheckDlg.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\MemoryWindow.h">
+    <ClInclude Include="Src\Debugger\MemoryWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RegisterWindow.h">
+    <ClInclude Include="Src\Debugger\RegisterWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RegisterView.h">
+    <ClInclude Include="Src\Debugger\RegisterView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DSPRegisterView.h">
+    <ClInclude Include="Src\Debugger\DSPRegisterView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\BreakpointView.h">
+    <ClInclude Include="Src\Debugger\BreakpointView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
   </ItemGroup>

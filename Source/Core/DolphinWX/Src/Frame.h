@@ -29,7 +29,7 @@
 #include <vector>
 
 #include "CDUtils.h"
-#include "CodeWindow.h"
+#include "Debugger/CodeWindow.h"
 #include "LogWindow.h"
 #if defined(HAVE_X11) && HAVE_X11
 #include "X11Utils.h"

@@ -31,7 +31,7 @@
 #include "VertexShaderManager.h"
 #include "Core.h"
 
-#include "DebuggerPanel.h"
+#include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
 #include "FileUtil.h"

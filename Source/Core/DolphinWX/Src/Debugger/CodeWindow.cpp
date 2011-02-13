@@ -59,11 +59,11 @@
 
 extern "C"  // Bitmaps
 {
-	#include "../resources/toolbar_play.c"
-	#include "../resources/toolbar_pause.c"
-	#include "../resources/toolbar_add_memorycheck.c"
-	#include "../resources/toolbar_debugger_delete.c"
-	#include "../resources/toolbar_add_breakpoint.c"
+	#include "../../resources/toolbar_play.c"
+	#include "../../resources/toolbar_pause.c"
+	#include "../../resources/toolbar_add_memorycheck.c"
+	#include "../../resources/toolbar_debugger_delete.c"
+	#include "../../resources/toolbar_add_breakpoint.c"
 }
 
 class CPluginInfo;

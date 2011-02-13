@@ -63,7 +63,7 @@ Make AA apply instantly during gameplay if possible
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "VideoConfigDiag.h"
-#include "DebuggerPanel.h"
+#include "Debugger/DebuggerPanel.h"
 #endif // HAVE_WX
 
 #include "MainBase.h"

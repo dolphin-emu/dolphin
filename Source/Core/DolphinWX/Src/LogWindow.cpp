@@ -20,7 +20,7 @@
 #include "Console.h"
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "DebuggerUIUtil.h"
+#include "Debugger/DebuggerUIUtil.h"
 #include <wx/fontmap.h>
 
 // Milliseconds between msgQueue flushes to wxTextCtrl

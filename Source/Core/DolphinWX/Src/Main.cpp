@@ -36,8 +36,8 @@
 #include "Globals.h" // Local
 #include "Main.h"
 #include "ConfigManager.h"
-#include "CodeWindow.h"
-#include "JitWindow.h"
+#include "Debugger/CodeWindow.h"
+#include "Debugger/JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
 #include "Frame.h"
