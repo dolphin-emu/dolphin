@@ -40,7 +40,6 @@ static int size = 0;
 
 void Fifo_DoState(PointerWrap &p) 
 {
-	CommandProcessor::FifoCriticalEnter();
 
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
@@ -48,7 +47,6 @@ void Fifo_DoState(PointerWrap &p)
 	p.Do(pos); // read or write offset (depends on the mode afaik)
 	g_pVideoData = &videoBuffer[pos]; // overwrite g_pVideoData -> expected no change when load ss and change when save ss
 
-	CommandProcessor::FifoCriticalLeave();
 }
 
 void Fifo_Init()
@@ -150,8 +148,6 @@ void Fifo_EnterLoop()
 
 			if (!fifoStateRun) break;
 
-			CommandProcessor::FifoCriticalEnter();
-
 			// Create pointer to video data and send it to the VideoPlugin
 			u32 readPtr = _fifo.CPReadPointer;
 			u8 *uData = Memory::GetPointer(readPtr);
@@ -175,8 +171,6 @@ void Fifo_EnterLoop()
 			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);						
 		    			
 			CommandProcessor::SetStatus();
-
-			CommandProcessor::FifoCriticalLeave();
 		
 			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 			// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false

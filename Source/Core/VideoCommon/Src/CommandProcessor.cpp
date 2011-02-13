@@ -107,7 +107,6 @@ u16 m_tokenReg;
 
 static u32 fake_GPWatchdogLastToken = 0;
 static Common::EventEx s_fifoIdleEvent;
-static Common::CriticalSection sFifoCritical;
 static bool bProcessFifoToLoWatermark = false;
 static bool bProcessFifoAllDistance = false;
 
@@ -126,16 +125,6 @@ bool IsOnThread()
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts(userdata);
-}
-
-void FifoCriticalEnter()
-{
-	sFifoCritical.Enter();
-}
-
-void FifoCriticalLeave()
-{
-	sFifoCritical.Leave();
 }
 
 void DoState(PointerWrap &p)

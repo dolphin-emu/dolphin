@@ -184,10 +184,8 @@ void VideoFifo_CheckStateRequest()
 	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
 		// Clear all caches that touch RAM
-		CommandProcessor::FifoCriticalEnter();
 		TextureCache::Invalidate(false);
 		VertexLoaderManager::MarkAllDirty();
-		CommandProcessor::FifoCriticalLeave();
 
 		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
 		VideoCommon_DoState(p);
