@@ -88,60 +88,90 @@ protected:
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
-	// Enables/disables UI elements depending on current config
-	void OnUpdateUI(wxUpdateUIEvent& ev)
-	{
-		// Anti-aliasing
-		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
-		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+	void Event_OnProfileChange(wxCommandEvent& ev);
 
-		// pixel lighting
-		pixel_lighting->Enable(vconfig.backend_info.bSupportsPixelLighting);
+	// Enables/disables UI elements depending on current config - if appropriate also updates g_Config
+	void OnUpdateUI(wxUpdateUIEvent& ev);
 
-		// 3D vision
-		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
+	// Refresh UI values from current config (used when reloading config)
+	void SetUIValuesFromConfig();
 
-		// EFB copy
-		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
-		efbcopy_ram->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM);
-		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM && !vconfig.bCopyEFBToTexture);
+	// Don't mess with keeping two comboboxes in sync, use only one CB instead..
+	SettingChoice* profile_cb; // "General" tab
+	wxStaticText* profile_text; // "Advanced" tab
 
-		// EFB format change emulation
-		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
+	wxChoice* choice_adapter;
+	wxChoice* choice_aspect;
+	SettingCheckBox* widescreen_hack;
+	SettingCheckBox* vsync;
 
-		// ATC
-		stc_safe->Enable(vconfig.bSafeTextureCache);
-		stc_normal->Enable(vconfig.bSafeTextureCache);
-		stc_fast->Enable(vconfig.bSafeTextureCache);
-
-		// XFB
-		virtual_xfb->Enable(vconfig.bUseXFB);
-		real_xfb->Enable(vconfig.bUseXFB && vconfig.backend_info.bSupportsRealXFB);
-
-		ev.Skip();
-	}
-
+	SettingChoice* anisotropic_filtering;
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 
+	SettingCheckBox* native_mips;
+	SettingCheckBox* efb_scaled_copy;
 	SettingCheckBox* pixel_lighting;
-
+	SettingCheckBox* pixel_depth;
+	SettingCheckBox* force_filtering;
 	SettingCheckBox* _3d_vision;
 
+	wxChoice* choice_efbscale;
+	SettingCheckBox* efbaccess_enable;
+	SettingCheckBox* emulate_efb_format_changes;
+
+	SettingCheckBox* efbcopy_enable;
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
-	SettingCheckBox* emulate_efb_format_changes;
 
+	SettingCheckBox* stc_enable;
 	wxRadioButton* stc_safe;
 	wxRadioButton* stc_normal;
 	wxRadioButton* stc_fast;
 
+	SettingCheckBox* wireframe;
+	SettingCheckBox* disable_lighting;
+	SettingCheckBox* disable_textures;
+	SettingCheckBox* disable_fog;
+	SettingCheckBox* disable_dst_alpha;
+
+	SettingCheckBox* show_fps;
+	SettingCheckBox* overlay_stats;
+	SettingCheckBox* overlay_proj_stats;
+	SettingCheckBox* texfmt_overlay;
+	SettingCheckBox* efb_copy_regions;
+	SettingCheckBox* show_shader_errors;
+
+	SettingCheckBox* enable_xfb;
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
 
-	VideoConfig &vconfig;
+	SettingCheckBox* dump_textures;
+	SettingCheckBox* hires_textures;
+	SettingCheckBox* dump_efb;
+	SettingCheckBox* dump_frames;
+	SettingCheckBox* free_look;
+	SettingCheckBox* frame_dumps_via_ffv1;
+
+	SettingCheckBox* crop;
+	SettingCheckBox* opencl;
+	SettingCheckBox* dlcache;
+	SettingCheckBox* hotkeys;
+
+	wxChoice* choice_ppshader;
+
+	// TODO: Add options for
+	//vconfig.bTexFmtOverlayCenter
+	//vconfig.bAnaglyphStereo
+	//vconfig.iAnaglyphStereoSeparation
+	//vconfig.iAnaglyphFocalAngle
+	//vconfig.bShowEFBCopyRegions
+	//vconfig.iCompileDLsLevel
+
+	VideoConfig vconfig;
 	std::string ininame;
+	int cur_profile;
 };
 
 #endif

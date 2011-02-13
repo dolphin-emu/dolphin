@@ -941,3 +941,8 @@ void CFrame::DoFullscreen(bool bF)
 	else
 		m_RenderFrame->Raise();
 }
+
+const GameListItem *CFrame::GetGameListItem(int index) const
+{
+	return m_GameListCtrl->GetISO(index);
+}

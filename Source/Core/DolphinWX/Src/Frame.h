@@ -45,6 +45,7 @@ static inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int len
 
 // Class declarations
 class CGameListCtrl;
+class GameListItem;
 class CLogWindow;
 
 // The CPanel class to receive MSWWindowProc messages from the video backend.
@@ -132,6 +133,8 @@ class CFrame : public CRenderFrame
 		void DoFullscreen(bool bF);
 		void ToggleDisplayMode (bool bFullscreen);
 		static void ConnectWiimote(int wm_idx, bool connect);
+
+		const GameListItem *GetGameListItem(int index) const;
 
 		#ifdef __WXGTK__
 		Common::Event panic_event;

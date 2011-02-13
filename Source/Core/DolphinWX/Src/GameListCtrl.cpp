@@ -695,6 +695,7 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 
 const GameListItem *CGameListCtrl::GetISO(int index) const
 {
+	if (index >= (int)m_ISOFiles.size()) return NULL;
 	return &m_ISOFiles[index];
 }
 

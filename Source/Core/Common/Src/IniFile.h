@@ -120,6 +120,13 @@ public:
 	bool Get(const char* sectionName, const char* key, bool* value, bool defaultValue = false);
 	bool Get(const char* sectionName, const char* key, std::vector<std::string>& values);
 
+	template<typename T> bool GetIfExists(const char* sectionName, const char* key, T value)
+	{
+		if (Exists(sectionName, key))
+			return Get(sectionName, key, value);
+		return false;
+	}
+
 	bool GetKeys(const char* sectionName, std::vector<std::string>& keys) const;
 
 	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
