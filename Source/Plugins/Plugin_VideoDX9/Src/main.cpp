@@ -121,8 +121,8 @@ void InitBackendInfo()
 void VideoBackend::ShowConfig(void* parent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	InitBackendInfo();
 	DX9::D3D::Init();
+	InitBackendInfo();
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();

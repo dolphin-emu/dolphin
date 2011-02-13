@@ -134,7 +134,12 @@ HRESULT Init()
 		--d3d_dll_ref;
 		return E_FAIL;
 	}
+
+	// Init the caps structure using data from the currently selected device
+	int adapter = g_Config.iAdapter;
+	D3D->GetDeviceCaps((adapter >= 0 && adapter < std::min(MAX_ADAPTERS, numAdapters)) ? adapter : D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &caps);
 	Enumerate();
+
 	return S_OK;
 }
 
