@@ -70,7 +70,7 @@ public:
 	virtual void StartLogAudio(const char *filename) {
 		if (! m_logAudio) {
 			m_logAudio = true;
-			g_wave_writer.Start(filename);
+			g_wave_writer.Start(filename, GetSampleRate());
 			g_wave_writer.SetSkipSilence(false);
 			NOTICE_LOG(DSPHLE, "Starting Audio logging");
 		} else {

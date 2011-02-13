@@ -43,7 +43,7 @@ public:
 	WaveFileWriter();
 	~WaveFileWriter();
 
-	bool Start(const char *filename);
+	bool Start(const char *filename, unsigned int HLESampleRate);
 	void Stop();
 
 	void SetSkipSilence(bool skip) { skip_silence = skip; }
