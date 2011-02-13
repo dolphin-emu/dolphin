@@ -169,7 +169,8 @@ void Fifo_EnterLoop()
 
 			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
 			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);						
-		    			
+			if((FAKE_GetFifoEndPtr() - g_pVideoData) == 0)
+				Common::AtomicStore(_fifo.SafeCPReadPointer, _fifo.CPReadPointer);
 			CommandProcessor::SetStatus();
 		
 			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.

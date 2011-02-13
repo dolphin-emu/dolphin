@@ -49,7 +49,7 @@ struct SCPFifoStruct
 	volatile u32 CPWritePointer;
 	volatile u32 CPReadPointer;
 	volatile u32 CPBreakpoint;
-
+	volatile u32 SafeCPReadPointer;
 	// Super Monkey Ball Adventure require this.
 	// Because the read&check-PEToken-loop stays in its JITed block I suppose.
 	// So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its mess.
