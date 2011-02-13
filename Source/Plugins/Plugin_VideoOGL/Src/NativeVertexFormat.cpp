@@ -104,6 +104,8 @@ inline GLuint VarToGL(VarType t)
 
 void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
+	s_prevcomponents = 0;
+
 	vertex_stride = _vtx_decl.stride;
 	using namespace Gen;
 

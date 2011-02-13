@@ -192,6 +192,17 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 // Init functions
 Renderer::Renderer()
 {
+	OSDInternalW = 0;
+	OSDInternalH = 0;
+
+	s_fps=0;
+
+#if defined _WIN32 || defined HAVE_LIBAV
+	s_bAVIDumping = false;
+#else
+	f_pFrameDump = NULL;
+#endif
+
 	bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;

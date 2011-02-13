@@ -146,10 +146,13 @@ void Init()
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, renderBufferWidth, renderBufferHeight);
 
+	s_srcTextureWidth = 0;
+	s_srcTextureHeight = 0;
+
 	glGenTextures(1, &s_srcTexture);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	CreateRgbToYuyvProgram();
 	CreateYuyvToRgbProgram();
