@@ -52,8 +52,9 @@ void Fifo_DoState(PointerWrap &p)
 }
 
 void Fifo_Init()
-{
+{	
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+	size = 0;
 	fifoStateRun = false;
 }
 
@@ -84,7 +85,8 @@ void Fifo_ExitLoop()
 {
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
-	CommandProcessor::SetFifoIdleFromVideoPlugin();
+	SCPFifoStruct &_fifo = CommandProcessor::fifo;
+	while(_fifo.isFifoProcesingData) Common::YieldCPU();
 	// Terminate GPU thread loop
 	fifoStateRun = false;
 	EmuRunning = true;
