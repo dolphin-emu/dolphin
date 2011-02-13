@@ -474,7 +474,6 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			fifo.bFF_BPInt = tmpCtrl.BPInt;
 			fifo.bFF_BPEnable = tmpCtrl.BPEnable;
-			fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
 			fifo.bFF_HiWatermarkInt = tmpCtrl.FifoOverflowIntEnable;
 			fifo.bFF_LoWatermarkInt = tmpCtrl.FifoUnderflowIntEnable;
 			fifo.bFF_GPLinkEnable = tmpCtrl.GPLinkEnable;
@@ -489,6 +488,15 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (bProcessFifoToLoWatermark)
 				ProcessFifoToLoWatermark();
 			
+			if(fifo.bFF_GPReadEnable && !tmpCtrl.GPReadEnable)
+			{
+				fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
+				while(fifo.isFifoProcesingData) Common::YieldCPU();
+			}
+			else
+			{
+				fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
+			}
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
@@ -613,6 +621,12 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 	case FIFO_RW_DISTANCE_LO:
 		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value & 0xFFE0);
+		if (fifo.CPReadWriteDistance == 0)
+		{
+			GPFifo::ResetGatherPipe();
+			ResetVideoBuffer();
+			IncrementCheckContextId();
+		}		
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
 
@@ -699,11 +713,7 @@ void STACKALIGN GatherPipeBursted()
 			OnOverflow = true;
 			while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
 			fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase - 64)
-			Common::YieldCPU();
-			
-				
-				
-			
+			Common::YieldCPU();														
 		}
 		else
 		{
@@ -816,19 +826,19 @@ void SetFifoIdleFromVideoPlugin()
 // to 0 when PI_FIFO_RESET occurs.
 void AbortFrame()
 {
-	fifo.bFF_GPReadEnable = false;	
-	while(IsFifoProcesingData()) Common::YieldCPU();
-	GPFifo::ResetGatherPipe();
-	ResetVideoBuffer();
-	fifo.CPReadPointer = fifo.CPWritePointer;
-	fifo.CPReadWriteDistance = 0;	
-	fifo.CPBreakpoint = 0;
-	fifo.bFF_Breakpoint = false;
-	fifo.CPCmdIdle = false;		
-	PixelEngine::ResetSetToken();
-	PixelEngine::ResetSetFinish();
-	fifo.bFF_GPReadEnable = true;	
-	IncrementCheckContextId();
+	//fifo.bFF_GPReadEnable = false;	
+	//while(IsFifoProcesingData()) Common::YieldCPU();
+	//GPFifo::ResetGatherPipe();
+	//ResetVideoBuffer();
+	//fifo.CPReadPointer = fifo.CPWritePointer;
+	//fifo.CPReadWriteDistance = 0;	
+	//fifo.CPBreakpoint = 0;
+	//fifo.bFF_Breakpoint = false;
+	//fifo.CPCmdIdle = false;		
+	//PixelEngine::ResetSetToken();
+	//PixelEngine::ResetSetFinish();
+	//fifo.bFF_GPReadEnable = true;	
+	//IncrementCheckContextId();
 }
 
 void SetOverflowStatusFromGatherPipe()
