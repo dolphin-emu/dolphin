@@ -670,6 +670,8 @@ void Wiimote::Update()
 	// figure out what data we need
 	s8 rptf_size = MAX_PAYLOAD;
 
+	Frame::SetPolledDevice();
+
 	if (!Frame::IsPlayingInput() || !Frame::PlayWiimote(m_index, data, rptf_size))
 	{
 		const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
