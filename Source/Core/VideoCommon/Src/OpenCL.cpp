@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// TODO: Make a more centralized version of this (for now every plugin that will use it will create its own context, which is weird). An object maybe?
+// TODO: Make a more centralized version of this (for now every backend that will use it will create its own context, which is weird). An object maybe?
 
 #include "OpenCL.h"
 #include "Common.h"

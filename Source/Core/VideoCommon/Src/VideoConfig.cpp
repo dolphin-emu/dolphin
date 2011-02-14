@@ -222,7 +222,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
-	if (iAdapter >= backend_info.Adapters.size()) iAdapter = 0;
+	if (iAdapter >= (int)backend_info.Adapters.size()) iAdapter = 0;
 	if (!backend_info.bSupportsEFBToRAM) bCopyEFBToTexture = true;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 	if (!backend_info.bSupportsRealXFB) bUseRealXFB = false;

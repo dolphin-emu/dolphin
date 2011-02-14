@@ -148,7 +148,7 @@ void Fifo_EnterLoop()
 
 			if (!fifoStateRun) break;
 
-			// Create pointer to video data and send it to the VideoPlugin
+			// Create pointer to video data and send it to the VideoBackend
 			u32 readPtr = _fifo.CPReadPointer;
 			u8 *uData = Memory::GetPointer(readPtr);
 
@@ -182,7 +182,7 @@ void Fifo_EnterLoop()
 		
 		_fifo.isFifoProcesingData = false;
 		
-		CommandProcessor::SetFifoIdleFromVideoPlugin();
+		CommandProcessor::SetFifoIdleFromVideoBackend();
 
 		if (EmuRunning)
 			Common::YieldCPU();

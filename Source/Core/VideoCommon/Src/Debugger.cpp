@@ -31,7 +31,7 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 
 void GFXDebuggerUpdateScreen()
 {
-	// TODO: Implement this in a plugin-independent way
+	// TODO: Implement this in a backend-independent way
 /*	// update screen
 	if (D3D::bFrameInProgress)
 	{

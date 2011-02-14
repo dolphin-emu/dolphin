@@ -593,7 +593,7 @@ void OpenGL_Update()
 }
 
 
-// Close plugin
+// Close backend
 void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX

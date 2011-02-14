@@ -80,7 +80,7 @@ struct EFBRectangle : public MathUtil::Rectangle<int>
 struct TargetRectangle : public MathUtil::Rectangle<int>
 {
 #ifdef _WIN32
-	// Only used by D3D plugin.
+	// Only used by D3D backend.
 	const RECT *AsRECT() const
 	{
 		// The types are binary compatible so this works.

@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// This is currently only used by the DX plugin, but it may make sense to
-// use it in the GL plugin or a future DX10 plugin too.
+// This is currently only used by the DX backend, but it may make sense to
+// use it in the GL backend or a future DX10 backend too.
 
 #ifndef _INDEXGENERATOR_H
 #define _INDEXGENERATOR_H

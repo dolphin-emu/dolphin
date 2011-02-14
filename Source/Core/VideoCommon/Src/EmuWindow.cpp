@@ -186,7 +186,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	// This is called when we close the window when we render to a separate window
 	case WM_CLOSE:
 		// When the user closes the window, we post an event to the main window to call Stop()
-		// Which then handles all the necessary steps to Shutdown the core + the plugins
+		// Which then handles all the necessary steps to Shutdown the core
 		if (m_hParent == NULL)
 		{
 			// Stop the game

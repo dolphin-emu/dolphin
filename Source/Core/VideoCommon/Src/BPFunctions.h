@@ -17,7 +17,7 @@
 
 
 // ------------------------------------------
-// Video plugin must define these functions
+// Video backend must define these functions
 // ------------------------------------------
 
 #ifndef _BPFUNCTIONS_H

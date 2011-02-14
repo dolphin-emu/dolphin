@@ -124,7 +124,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-// Defer to plugin-specific DL cache.
+// Defer to backend-specific DL cache.
 extern bool HandleDisplayList(u32 address, u32 size);
 
 void ExecuteDisplayList(u32 address, u32 size)

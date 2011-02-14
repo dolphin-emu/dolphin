@@ -104,7 +104,7 @@ HWND MSWGetParent_(HWND Parent)
 #endif
 
 // ---------------
-// The CPanel class to receive MSWWindowProc messages from the video plugin.
+// The CPanel class to receive MSWWindowProc messages from the video backend.
 
 extern CFrame* main_frame;
 
@@ -254,8 +254,8 @@ EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
-EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnConfigGFX)
-EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnConfigDSP)
+EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
+EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
@@ -974,7 +974,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		// Send the OSD hotkeys to the video plugin
+		// Send the OSD hotkeys to the video backend
 		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
 		{
 #ifdef _WIN32
@@ -983,7 +983,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
 #endif
 		}
-		// Send the freelook hotkeys to the video plugin
+		// Send the freelook hotkeys to the video backend
 		if ((event.GetKeyCode() == ')' || event.GetKeyCode() == '(' ||
 					event.GetKeyCode() == '0' || event.GetKeyCode() == '9' ||
 					event.GetKeyCode() == 'W' || event.GetKeyCode() == 'S' ||

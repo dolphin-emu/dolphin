@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_VIDEOSOFTWARE_CONFIG_H_
-#define _PLUGIN_VIDEOSOFTWARE_CONFIG_H_
+#ifndef _VIDEOSOFTWARE_CONFIG_H_
+#define _VIDEOSOFTWARE_CONFIG_H_
 
 #include "Common.h"
 
@@ -52,4 +52,4 @@ struct SWVideoConfig : NonCopyable
 
 extern SWVideoConfig g_SWVideoConfig;
 
-#endif  // _PLUGIN_VIDEOSOFTWARE_CONFIG_H_
+#endif  // _VIDEOSOFTWARE_CONFIG_H_

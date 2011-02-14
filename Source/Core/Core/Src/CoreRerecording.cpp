@@ -54,7 +54,6 @@ bool rerecording = false;
  
 #include "PowerPC/PowerPC.h"
  
-#include "PluginManager.h"
 #include "ConfigManager.h"
  
 #include "MemTools.h"

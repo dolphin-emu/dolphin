@@ -412,7 +412,7 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 		{
 			MessageBox(wnd,
 				_T("Failed to initialize Direct3D."),
-				_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
+				_T("Dolphin Direct3D Backend"), MB_OK | MB_ICONERROR);
 			return E_FAIL;
 		}
 	}

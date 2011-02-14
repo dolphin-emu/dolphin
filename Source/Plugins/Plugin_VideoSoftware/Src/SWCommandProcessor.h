@@ -34,7 +34,7 @@ void Fifo_EnterLoop();
 void Fifo_ExitLoop();
 void Fifo_SetRendering(bool bEnabled);
 
-// Implemented by the Video Plugin
+// Implemented by the Video Backend
 void VideoFifo_CheckSwapRequest();
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 void VideoFifo_CheckEFBAccess();
@@ -162,7 +162,7 @@ namespace SWCommandProcessor
     // for CGPFIFO
     void GatherPipeBursted();
     void UpdateInterrupts(u64 userdata);
-    void UpdateInterruptsFromVideoPlugin(u64 userdata);
+    void UpdateInterruptsFromVideoBackend(u64 userdata);
 
 
 } // end of namespace SWCommandProcessor

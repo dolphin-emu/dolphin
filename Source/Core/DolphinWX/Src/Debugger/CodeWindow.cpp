@@ -66,9 +66,6 @@ extern "C"  // Bitmaps
 	#include "../../resources/toolbar_add_breakpoint.c"
 }
 
-class CPluginInfo;
-class CPluginManager;
-
 // -------
 // Main
 

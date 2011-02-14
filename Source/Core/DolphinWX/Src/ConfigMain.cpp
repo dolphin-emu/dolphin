@@ -235,7 +235,7 @@ void CConfigMain::UpdateGUI()
 		ProgressiveScan->Disable();
 		NTSCJ->Disable();
 
-		// Disable graphics plugin selection
+		// Disable graphics backend selection
 		GraphicSelection->Disable();
 
 		// Disable stuff on AudioPage
@@ -403,7 +403,7 @@ void CConfigMain::InitializeGUIValues()
 	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	FrequencySelection->SetSelection(
-		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.sFrequency)));
+		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
 	// add backends to the list
 	AddAudioBackends();
 
@@ -1082,7 +1082,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
 		long int frequency;
 		FrequencySelection->GetStringSelection().ToLong(&frequency);
-		ac_Config.sFrequency = frequency;
+		ac_Config.iFrequency = frequency;
 		ac_Config.Update();
 		break;
 	}

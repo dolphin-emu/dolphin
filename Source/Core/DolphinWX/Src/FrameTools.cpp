@@ -186,8 +186,8 @@ void CFrame::CreateMenu()
 	wxMenu* pOptionsMenu = new wxMenu;
 	pOptionsMenu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _("&Graphics Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _("&DSP Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&DSP Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("&Gamecube Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
@@ -444,8 +444,8 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_SCREENSHOT, _("ScrShot"),   m_Bitmaps[Toolbar_FullScreen], _("Take Screenshot"));
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(wxID_PREFERENCES, _("Config"), m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
-	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _("Graphics"),  m_Bitmaps[Toolbar_ConfigGFX], _("Graphics settings"));
-	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _("DSP"),  m_Bitmaps[Toolbar_ConfigDSP], _("DSP settings"));
+	ToolBar->AddTool(IDM_CONFIG_GFX_BACKEND, _("Graphics"),  m_Bitmaps[Toolbar_ConfigGFX], _("Graphics settings"));
+	ToolBar->AddTool(IDM_CONFIG_DSP_EMULATOR, _("DSP"),  m_Bitmaps[Toolbar_ConfigDSP], _("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _("GCPad"),  m_Bitmaps[Toolbar_ConfigPAD], _("Gamecube Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _("Wiimote settings"));
 

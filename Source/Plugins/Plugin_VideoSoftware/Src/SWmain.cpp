@@ -100,7 +100,7 @@ void VideoBackend::Video_Prepare()
 {    
     SWRenderer::Prepare();
 
-    INFO_LOG(VIDEO, "Video plugin initialized.");
+    INFO_LOG(VIDEO, "Video backend initialized.");
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)

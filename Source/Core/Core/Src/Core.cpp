@@ -274,7 +274,7 @@ void CpuThread()
 }
 
 
-// Initalize plugins and create emulation thread
+// Initalize and create emulation thread
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
@@ -367,7 +367,7 @@ void EmuThread()
 	{
 		// the spawned CPU Thread also does the graphics.  the EmuThread is
 		// thus an idle thread, which sleep wait for the program to terminate.
-		// Without this extra thread, the video plugin window hangs in single
+		// Without this extra thread, the video backend window hangs in single
 		// core mode since noone is pumping messages.
 
 		cpuThread = std::thread(CpuThread);
@@ -409,8 +409,8 @@ void EmuThread()
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
 
-	// Stop audio thread - Actually this does nothing on HLE plugin.
-	// But stops the DSP Interpreter on LLE plugin.
+	// Stop audio thread - Actually this does nothing when using HLE emulation.
+	// But stops the DSP Interpreter when using LLE emulation.
 	DSP::GetDSPEmulator()->DSP_StopSoundStream();
 	
 	// We must set up this flag before executing HW::Shutdown()
@@ -425,8 +425,6 @@ void EmuThread()
 
 	Pad::Shutdown();
 	Wiimote::Shutdown();
-
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
@@ -613,7 +611,7 @@ bool report_slow(int skipped)
 	return fps_slow;
 }
 
-// --- Callbacks for plugins / engine ---
+// --- Callbacks for backends / engine ---
 
 // Callback_VideoLog
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
@@ -660,7 +658,7 @@ void Callback_DSPInterrupt()
 }
 
 
-// Callback_ISOName: Let the DSP plugin get the game name
+// Callback_ISOName: Let the DSP emulator get the game name
 //
 const char *Callback_ISOName()
 {

@@ -10,15 +10,15 @@ public:
 
 	enum
 	{
-		// values from OGL plugin
+		// values from OGL backend
 		//MAXVBUFFERSIZE = 0x1FFFF,
 		//MAXIBUFFERSIZE = 0xFFFF,
 
-		// values from DX9 plugin
+		// values from DX9 backend
 		//MAXVBUFFERSIZE = 0x50000,
 		//MAXIBUFFERSIZE = 0xFFFF,
 
-		// values from DX11 plugin
+		// values from DX11 backend
 		MAXVBUFFERSIZE = 0x50000,
 		MAXIBUFFERSIZE = 0x10000,
 	};

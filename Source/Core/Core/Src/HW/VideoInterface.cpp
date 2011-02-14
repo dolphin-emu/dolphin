@@ -413,7 +413,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	DEBUG_LOG(VIDEOINTERFACE, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
 
-	//Somewhere it sets screen width.. we need to communicate this to the gfx plugin...
+	//Somewhere it sets screen width.. we need to communicate this to the gfx backend...
 
 	switch (_iAddress & 0xFFF)
 	{

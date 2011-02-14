@@ -43,7 +43,7 @@ void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
 bool IsFifoProcesingData();
 
-// Implemented by the Video Plugin
+// Implemented by the Video Backend
 void VideoFifo_CheckAsyncRequest();
 void VideoFifo_CheckStateRequest();
 

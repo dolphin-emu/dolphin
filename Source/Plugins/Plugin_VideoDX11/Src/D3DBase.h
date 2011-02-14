@@ -81,8 +81,8 @@ inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
 
 // Used to not require the SDK and runtime versions to match:
 // Linking with d3dx11.lib makes the most recent d3dx11_xx.dll of the
-// compiler's SDK a requirement, but this plugin works with DX11 runtimes
-// back to August 2009 even if the plugin was built with June 2010.
+// compiler's SDK a requirement, but this backend works with DX11 runtimes
+// back to August 2009 even if the backend was built with June 2010.
 // Add any d3dx11 functions which you want to use here and load them in Create()
 typedef HRESULT (WINAPI* D3DX11COMPILEFROMMEMORYTYPE)(LPCSTR, SIZE_T, LPCSTR, const D3D10_SHADER_MACRO*, LPD3D10INCLUDE, LPCSTR, LPCSTR, UINT, UINT, ID3DX11ThreadPump*, ID3D10Blob**, ID3D10Blob**, HRESULT*);
 typedef HRESULT (WINAPI* D3DX11FILTERTEXTURETYPE)(ID3D11DeviceContext*, ID3D11Resource*, UINT, UINT);

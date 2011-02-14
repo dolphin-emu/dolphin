@@ -16,9 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// This header contains type definitions that are shared between the Dolphin
-// core and the plugin specs. Any definitions that are only used by the core
-// should be placed in "Common.h" instead.
+// This header contains type definitions that are shared between the Dolphin core and
+// other parts of the code. Any definitions that are only used by the core should be
+// placed in "Common.h" instead.
 
 #ifndef _COMMONTYPES_H_
 #define _COMMONTYPES_H_

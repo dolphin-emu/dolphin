@@ -17,7 +17,7 @@
 
 
 
-// OpenGL Plugin Documentation
+// OpenGL Backend Documentation
 /* 
 
 1.1 Display settings
@@ -173,8 +173,8 @@ void VideoBackend::Initialize()
 	if (!OpenGL_Create(640, 480))
 		return;
 
-	OSD::AddMessage("Dolphin OpenGL Video Plugin.", 5000);
-	s_PluginInitialized = true;
+	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
+	s_BackendInitialized = true;
 }
 
 // This is called after Initialize() from the Core
@@ -213,16 +213,16 @@ void VideoBackend::Video_Prepare()
 	TextureConverter::Init();
 	DLCache::Init();
 
-	// Notify the core that the video plugin is ready
+	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 
-	INFO_LOG(VIDEO, "Video plugin initialized.");
+	INFO_LOG(VIDEO, "Video backend initialized.");
 
 }
 
 void VideoBackend::Shutdown()
 {
-	s_PluginInitialized = false;
+	s_BackendInitialized = false;
 
 	s_efbAccessRequested = false;
 	s_FifoShuttingDown = false;

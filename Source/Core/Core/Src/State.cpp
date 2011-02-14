@@ -87,7 +87,7 @@ void DoState(PointerWrap &p)
 		p.SetMode(PointerWrap::MODE_MEASURE);
 		return;
 	}
-	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
+	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	// Pause the video thread in multi-threaded mode
 	g_video_backend->RunLoop(false);
 	g_video_backend->DoState(p);

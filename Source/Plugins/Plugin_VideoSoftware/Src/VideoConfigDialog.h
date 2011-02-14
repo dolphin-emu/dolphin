@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_VIDEOSOFTWARE_CONFIG_DIAG_H_
-#define _PLUGIN_VIDEOSOFTWARE_CONFIG_DIAG_H_
+#ifndef _VIDEOSOFTWARE_CONFIG_DIAG_H_
+#define _VIDEOSOFTWARE_CONFIG_DIAG_H_
 
 #include <vector>
 #include <string>

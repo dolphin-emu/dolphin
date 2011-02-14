@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGINDSP_H_
-#define _PLUGINDSP_H_
+#ifndef _DSPEMULATOR_H_
+#define _DSPEMULATOR_H_
 
 
 #include "ChunkFile.h"
@@ -47,4 +47,4 @@ public:
 
 DSPEmulator *CreateDSPEmulator(bool LLE);
 
-#endif // _PLUGINDSP_H_
+#endif // _DSPEMULATOR_H_

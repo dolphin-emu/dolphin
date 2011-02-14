@@ -32,9 +32,9 @@
 bool fifoStateRun;
 
 // set to 0 if using in video common
-#define SW_PLUGIN 1
+#define SW_BACKEND 1
 
-#if (SW_PLUGIN)
+#if (SW_BACKEND)
 
 #include "OpcodeDecoder.h"
 
@@ -322,7 +322,7 @@ void UpdateInterrupts(u64 userdata)
     interruptWaiting = false;
 }
 
-void UpdateInterruptsFromVideoPlugin(u64 userdata)
+void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
@@ -405,7 +405,7 @@ void SetStatus()
         if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
         {
             interruptWaiting = true;
-            SWCommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
+            SWCommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
         }
         else
             SWCommandProcessor::UpdateInterrupts(userdata);
@@ -427,7 +427,7 @@ bool RunBuffer()
 
     u32 availableBytes = writePos - readPos;
 
-#if (SW_PLUGIN)
+#if (SW_BACKEND)
     while (OpcodeDecoder::CommandRunnable(availableBytes))
     {
         cpreg.status.CommandIdle = 0;
@@ -470,7 +470,7 @@ bool RunBuffer()
 
 
 // fifo functions
-#if (SW_PLUGIN)
+#if (SW_BACKEND)
 
 void SWFifo_EnterLoop()
 {

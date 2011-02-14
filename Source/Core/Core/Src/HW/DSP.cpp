@@ -412,7 +412,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			// Not really sure if this is correct, but it works...
 			// Kind of a hack because DSP_CONTROL_MASK should make this bit
-			// only viewable to dsp plugin
+			// only viewable to dsp emulator
 			if (_Value & 1 /*DSPReset*/)
 			{
 				g_audioDMA.AudioDMAControl.Hex = 0;

@@ -81,9 +81,9 @@ struct DTMHeader {
     u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
     u8  author[32];			// Author's name (encoded in UTF-8)
     
-    u8  videoPlugin[16];	// UTF-8 representation of the video plugin
-    u8  audioPlugin[16];	// UTF-8 representation of the audio plugin
-    u8  padPlugin[16];		// UTF-8 representation of the input plugin
+    u8  videoBackend[16];	// UTF-8 representation of the video backend
+    u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
+    u8  padBackend[16];		// UTF-8 representation of the input backend
 
     u8	padding[7];		// Padding to align the header to 1024 bits
 

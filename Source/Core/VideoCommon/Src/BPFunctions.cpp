@@ -88,7 +88,7 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 
 /* Explanation of the magic behind ClearScreen:
 	There's numerous possible formats for the pixel data in the EFB.
-	However, in the HW accelerated plugins we're always using RGBA8
+	However, in the HW accelerated backends we're always using RGBA8
 	for the EFB format, which causes some problems:
 	- We're using an alpha channel although the game doesn't
 	- If the actual EFB format is RGBA6_Z24 or R5G6B5_Z16, we are using more bits per channel than the native HW

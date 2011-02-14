@@ -129,9 +129,6 @@ bool SetCurrentDir(const char *directory);
 // directory. To be used in "multi-user" mode (that is, installed).
 const char *GetUserPath(int DirIDX);
 
-// Returns the path to where the plugins are
-std::string GetPluginsDirectory();
-
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 

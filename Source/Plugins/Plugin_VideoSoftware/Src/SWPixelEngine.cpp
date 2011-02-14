@@ -140,7 +140,7 @@ void UpdateInterrupts()
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
 	g_bSignalTokenInterrupt = true;
-    INFO_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", pereg.token);
+    INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", pereg.token);
 	UpdateInterrupts();
 }
 

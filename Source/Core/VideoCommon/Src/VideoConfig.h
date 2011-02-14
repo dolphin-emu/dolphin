@@ -22,8 +22,8 @@
 // at the start of every frame. Noone should ever change members of g_ActiveConfig 
 // directly.
 
-#ifndef _PLUGIN_VIDEO_CONFIG_H_
-#define _PLUGIN_VIDEO_CONFIG_H_
+#ifndef _VIDEO_CONFIG_H_
+#define _VIDEO_CONFIG_H_
 
 #include "Common.h"
 #include "VideoCommon.h"
@@ -173,4 +173,4 @@ void UpdateActiveConfig();
 
 void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
 
-#endif  // _PLUGIN_VIDEO_CONFIG_H_
+#endif  // _VIDEO_CONFIG_H_

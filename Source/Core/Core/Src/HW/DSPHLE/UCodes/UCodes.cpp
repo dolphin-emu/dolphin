@@ -94,12 +94,12 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	default:
 		if (bWii)
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE plugin if this is homebrew.", _CRC);
+			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", _CRC);
 			return new CUCode_AXWii(dsp_hle, _CRC);
 		}
 		else
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE plugin if this is homebrew.", _CRC);
+			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", _CRC);
 			return new CUCode_AX(dsp_hle);
 		}
 	}

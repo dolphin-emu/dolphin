@@ -64,8 +64,8 @@ LogManager::LogManager() {
 	m_Log[LogTypes::DSPHLE]			    = new LogContainer("DSPHLE",		"DSP HLE");
 	m_Log[LogTypes::DSPLLE]			    = new LogContainer("DSPLLE",		"DSP LLE");
 	m_Log[LogTypes::DSP_MAIL]		    = new LogContainer("DSPMails",		"DSP Mails");
-	m_Log[LogTypes::VIDEO]			    = new LogContainer("Video",			"Video Plugin");
-	m_Log[LogTypes::AUDIO]			    = new LogContainer("Audio",			"Audio Plugin");
+	m_Log[LogTypes::VIDEO]			    = new LogContainer("Video",			"Video Backend");
+	m_Log[LogTypes::AUDIO]			    = new LogContainer("Audio",			"Audio Emulator");
 	m_Log[LogTypes::DYNA_REC]			= new LogContainer("JIT",			"Dynamic Recompiler");
 	m_Log[LogTypes::CONSOLE]			= new LogContainer("CONSOLE",		"Dolphin Console");
 	m_Log[LogTypes::OSREPORT]			= new LogContainer("OSREPORT",		"OSReport");			

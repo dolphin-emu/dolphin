@@ -93,7 +93,7 @@ using namespace PowerPC;
 // Seldom-happening events is handled by adding a decrement of a counter to all blr instructions (which are
 // expensive anyway since we need to return to dispatcher, except when they can be predicted).
 
-// TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints in dual core mode!!!
+// TODO: SERIOUS synchronization problem with the video backend setting tokens and breakpoints in dual core mode!!!
 //       Somewhat fixed by disabling idle skipping when certain interrupts are enabled
 //       This is no permanent reliable fix
 // TODO: Zeldas go whacko when you hang the gfx thread

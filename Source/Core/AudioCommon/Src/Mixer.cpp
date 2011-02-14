@@ -194,10 +194,8 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 
 	if (m_sampleRate == 32000)
 		Common::AtomicAdd(m_numSamples, num_samples);
-	else if (m_sampleRate == 48000)
+	else // Assume 48000 otherwise
 		Common::AtomicAdd(m_numSamples, num_samples * 3 / 2);
-	else
-		PanicAlertT("Mixer: Unsupported sample rate.");
 
 	return;
 }

@@ -36,7 +36,7 @@
 // PPC have a frame-finish watchdog. Handled by system timming stuff like the decrementer.
 // (DualCore mode): I have observed, after ZTP logos, a fifo-recovery start when DECREMENTER_EXCEPTION is throwned.
 // The frame setting (by GP) took too much time and didn't finish properly due to this watchdog.
-// Faster GX plugins required, indeed :p
+// Faster GX backends required, indeed :p
 
 // * BPs are needed for some game GP/CPU sync.
 // But it could slowdown (MP1 at least) because our GP in DC is faster than "expected" in some area.
@@ -751,7 +751,7 @@ void CatchUpGPU()
 			break;
 		}
 
-		// read the data and send it to the VideoPlugin
+		// read the data and send it to the VideoBackend
 		// We are going to do FP math on the main thread so have to save the current state
 		SaveSSEState();
 		LoadDefaultSSEState();
@@ -808,12 +808,12 @@ void UpdateInterrupts(u64 userdata)
     interruptWaiting = false;
 }
 
-void UpdateInterruptsFromVideoPlugin(u64 userdata)
+void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
-void SetFifoIdleFromVideoPlugin()
+void SetFifoIdleFromVideoBackend()
 {
 	s_fifoIdleEvent.Set();
 }
@@ -901,7 +901,7 @@ void SetStatus()
         if (IsOnThread())
         {
             interruptWaiting = true;
-            CommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
+            CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
         }
         else
             CommandProcessor::UpdateInterrupts(userdata);

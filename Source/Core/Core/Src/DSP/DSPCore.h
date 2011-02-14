@@ -225,7 +225,7 @@ struct SDSP
 	
 	// This is NOT the same cr as r.cr.
 	// This register is shared with the main emulation, see DSP.cpp
-	// The plugin has control over 0x0C07 of this reg.
+	// The engine has control over 0x0C07 of this reg.
 	// Bits are defined in a struct in DSP.cpp.
 	u16 cr;
 

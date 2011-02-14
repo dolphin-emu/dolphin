@@ -33,7 +33,7 @@ void DoState(PointerWrap &p);
 
 void Update();
 
-// Called by DSP plugin
+// Called by DSP emulator
 void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate);
 unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate = 48000);
 

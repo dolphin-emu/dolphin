@@ -157,7 +157,7 @@ float MathFloatVectorSum(const std::vector<float>&);
 
 
 // Tiny matrix/vector library.
-// Used for things like Free-Look in the gfx plugin.
+// Used for things like Free-Look in the gfx backend.
 
 class Matrix33
 {

@@ -353,7 +353,7 @@ void Interpreter::dcba(UGeckoInstruction _inst)
 
 void Interpreter::dcbf(UGeckoInstruction _inst)
 {
-	//This should tell GFX plugin to throw out any cached data here
+	//This should tell GFX backend to throw out any cached data here
 	// !!! SPEEDUP HACK for OSProtectRange !!!
 /*	u32 tmp1 = Memory::Read_U32(PC+4);
 	u32 tmp2 = Memory::Read_U32(PC+8);

@@ -157,9 +157,9 @@ void SetStatus();
 void GatherPipeBursted();
 void UpdateFifoRegister();
 void UpdateInterrupts(u64 userdata);
-void UpdateInterruptsFromVideoPlugin(u64 userdata);
+void UpdateInterruptsFromVideoBackend(u64 userdata);
 void UpdateInterruptsScMode();
-void SetFifoIdleFromVideoPlugin();
+void SetFifoIdleFromVideoBackend();
 
 bool AllowIdleSkipping();
 

@@ -22,7 +22,7 @@
 // STATE_TO_SAVE
 BPMemory bpmem;
 
-// The plugin must implement this.
+// The backend must implement this.
 void BPWritten(const BPCmd& bp);
 
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()

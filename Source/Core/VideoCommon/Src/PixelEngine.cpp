@@ -342,13 +342,13 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	//{
 		g_bSignalTokenInterrupt = true;	
 		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
-		INFO_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+		INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 		UpdateInterrupts();
 		CommandProcessor::interruptTokenWaiting = false;
 		IncrementCheckContextId();
 	//}
 	//else
-	//	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", CommandProcessor::fifo.PEToken);
+	//	LOGV(PIXELENGINE, 1, "VIDEO Backend wrote token: %i", CommandProcessor::fifo.PEToken);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)

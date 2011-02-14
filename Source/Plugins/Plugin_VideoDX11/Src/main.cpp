@@ -77,19 +77,6 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 	SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 
-//void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-//{
-//	_PluginInfo->Version = 0x0100;
-//	//_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-//#ifdef DEBUGFAST
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11 (DebugFast)");
-//#elif defined _DEBUG
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11 (Debug)");
-//#else
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D11");
-//#endif
-//}
-
 std::string VideoBackend::GetName()
 {
 	return "Direct3D11";
@@ -189,8 +176,8 @@ void VideoBackend::Initialize()
 		return;
 	}
 
-	OSD::AddMessage("Dolphin Direct3D11 Video Plugin.", 5000);
-	s_PluginInitialized = true;
+	OSD::AddMessage("Dolphin Direct3D11 Video Backend.", 5000);
+	s_BackendInitialized = true;
 }
 
 void VideoBackend::Video_Prepare()
@@ -225,7 +212,7 @@ void VideoBackend::Video_Prepare()
 
 void VideoBackend::Shutdown()
 {
-	s_PluginInitialized = false;
+	s_BackendInitialized = false;
 
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -249,7 +236,7 @@ void VideoBackend::Shutdown()
 	delete g_renderer;
 	EmuWindow::Close();
 
-	s_PluginInitialized = false;
+	s_BackendInitialized = false;
 }
 
 }

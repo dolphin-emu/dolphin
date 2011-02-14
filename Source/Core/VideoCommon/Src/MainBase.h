@@ -4,7 +4,7 @@
 
 #include "CommonTypes.h"
 
-extern bool s_PluginInitialized;
+extern bool s_BackendInitialized;
 extern u32 s_efbAccessRequested;
 extern volatile u32 s_FifoShuttingDown;
 extern volatile u32 s_swapRequested;

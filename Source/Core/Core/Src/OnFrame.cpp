@@ -477,8 +477,8 @@ void SaveRecording(const char *filename)
 		// TODO
 		header.uniqueID = 0; 
 		// header.author;
-		// header.videoPlugin; 
-		// header.audioPlugin;
+		// header.videoBackend; 
+		// header.audioEmulator;
 		
 		fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
 	}

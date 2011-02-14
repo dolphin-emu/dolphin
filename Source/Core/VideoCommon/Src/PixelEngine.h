@@ -75,7 +75,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress);
 void Write16(const u16 _iValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);
 
-// gfx plugin support
+// gfx backend support
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
 void ResetSetFinish(void);

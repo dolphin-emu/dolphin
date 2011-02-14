@@ -15,7 +15,7 @@
 #include "VideoBackendBase.h"
 #include "ConfigManager.h"
 
-bool s_PluginInitialized = false;
+bool s_BackendInitialized = false;
 
 volatile u32 s_swapRequested = false;
 u32 s_efbAccessRequested = false;
@@ -96,7 +96,7 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHLE::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
+	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
 	{
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 			VideoFifo_CheckSwapRequest();
@@ -110,7 +110,7 @@ void VideoBackendHLE::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHLE::Video_EndField()
 {
-	if (s_PluginInitialized)
+	if (s_BackendInitialized)
 	{
 		Common::AtomicStoreRelease(s_swapRequested, true);
 	}
@@ -145,7 +145,7 @@ void VideoFifo_CheckEFBAccess()
 
 u32 VideoBackendHLE::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
-	if (s_PluginInitialized)
+	if (s_BackendInitialized)
 	{
 		s_accessEFBArgs.type = type;
 		s_accessEFBArgs.x = x;

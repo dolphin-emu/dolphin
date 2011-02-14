@@ -85,19 +85,6 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
-//void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-//{
-//	_PluginInfo->Version = 0x0100;
-//	//_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-//#ifdef DEBUGFAST
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
-//#elif defined _DEBUG
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
-//#else
-//	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
-//#endif
-//}
-
 std::string VideoBackend::GetName()
 {
 	return "Direct3D9";
@@ -174,8 +161,8 @@ void VideoBackend::Initialize()
 		return;
 	}
 
-	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
-	s_PluginInitialized = true;
+	OSD::AddMessage("Dolphin Direct3D9 Video Backend.", 5000);
+	s_BackendInitialized = true;
 }
 
 void VideoBackend::Video_Prepare()
@@ -200,13 +187,13 @@ void VideoBackend::Video_Prepare()
 	PixelEngine::Init();
 	DLCache::Init();
 
-	// Notify the core that the video plugin is ready
+	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()
 {
-	s_PluginInitialized = false;
+	s_BackendInitialized = false;
 
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
