@@ -3,7 +3,7 @@
 Import('env')
 
 if env.has_key('shared_lzo') and env['shared_lzo']:
-	env['LIBS'] += 'lzo2'
+	env['LIBS'] += ['lzo2']
 	Return()
 
 env['CPPPATH'] += ['#Externals/LZO']

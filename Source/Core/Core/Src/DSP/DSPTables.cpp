@@ -300,38 +300,38 @@ const DSPOPCTemplate opcodes[] =
 };
 
 const DSPOPCTemplate cw = 
-	{"CW",		0x0000, 0x0000, NULL, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false};
+	{"CW",		0x0000, 0x0000, NULL, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 
 // extended opcodes
 
 const DSPOPCTemplate opcodes_ext[] =
 {
-	{"XXX",		0x0000, 0x00fc, DSPInterpreter::Ext::nop,  &DSPEmitter::nop,  1, 1, {{P_VAL, 1, 0, 0, 0x00ff}}, false, false, false},
+	{"XXX",		0x0000, 0x00fc, DSPInterpreter::Ext::nop,  &DSPEmitter::nop,  1, 1, {{P_VAL, 1, 0, 0, 0x00ff}}, false, false, false, false, false},
 
-	{"DR",		0x0004, 0x00fc, DSPInterpreter::Ext::dr,   &DSPEmitter::dr,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"IR",		0x0008, 0x00fc, DSPInterpreter::Ext::ir,   &DSPEmitter::ir,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"NR",		0x000c, 0x00fc, DSPInterpreter::Ext::nr,   &DSPEmitter::nr,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"MV",		0x0010, 0x00f0, DSPInterpreter::Ext::mv,   &DSPEmitter::mv,   1, 2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, false, false, false},
+	{"DR",		0x0004, 0x00fc, DSPInterpreter::Ext::dr,   &DSPEmitter::dr,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"IR",		0x0008, 0x00fc, DSPInterpreter::Ext::ir,   &DSPEmitter::ir,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"NR",		0x000c, 0x00fc, DSPInterpreter::Ext::nr,   &DSPEmitter::nr,   1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"MV",		0x0010, 0x00f0, DSPInterpreter::Ext::mv,   &DSPEmitter::mv,   1, 2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, false, false, false, false, false},
 
-	{"S",		0x0020, 0x00e4, DSPInterpreter::Ext::s,    &DSPEmitter::s,    1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, false, false, false},
-	{"SN",		0x0024, 0x00e4, DSPInterpreter::Ext::sn,   &DSPEmitter::sn,   1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, false, false, false},
+	{"S",		0x0020, 0x00e4, DSPInterpreter::Ext::s,    &DSPEmitter::s,    1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, false, false, false, false, false},
+	{"SN",		0x0024, 0x00e4, DSPInterpreter::Ext::sn,   &DSPEmitter::sn,   1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, false, false, false, false, false},
 
-	{"L",		0x0040, 0x00c4, DSPInterpreter::Ext::l,    &DSPEmitter::l,    1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"LN",		0x0044, 0x00c4, DSPInterpreter::Ext::ln,   &DSPEmitter::ln,   1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
+	{"L",		0x0040, 0x00c4, DSPInterpreter::Ext::l,    &DSPEmitter::l,    1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"LN",		0x0044, 0x00c4, DSPInterpreter::Ext::ln,   &DSPEmitter::ln,   1, 2, {{P_REG18, 1, 0, 3, 0x0038}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
 
-	{"LS",		0x0080, 0x00ce, DSPInterpreter::Ext::ls,   &DSPEmitter::ls,   1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false},
-	{"SL",		0x0082, 0x00ce, DSPInterpreter::Ext::sl,   &DSPEmitter::sl,   1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false},
-	{"LSN",		0x0084, 0x00ce, DSPInterpreter::Ext::lsn,  &DSPEmitter::lsn,  1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false},
-	{"SLN",		0x0086, 0x00ce, DSPInterpreter::Ext::sln,  &DSPEmitter::sln,  1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false},
-	{"LSM",		0x0088, 0x00ce, DSPInterpreter::Ext::lsm,  &DSPEmitter::lsm,  1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false},
-	{"SLM",		0x008a, 0x00ce, DSPInterpreter::Ext::slm,  &DSPEmitter::slm,  1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false},
-	{"LSNM",	0x008c, 0x00ce, DSPInterpreter::Ext::lsnm, &DSPEmitter::lsnm, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false},
-	{"SLNM",	0x008e, 0x00ce, DSPInterpreter::Ext::slnm, &DSPEmitter::slnm, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false},
+	{"LS",		0x0080, 0x00ce, DSPInterpreter::Ext::ls,   &DSPEmitter::ls,   1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false, false, false},
+	{"SL",		0x0082, 0x00ce, DSPInterpreter::Ext::sl,   &DSPEmitter::sl,   1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false, false, false},
+	{"LSN",		0x0084, 0x00ce, DSPInterpreter::Ext::lsn,  &DSPEmitter::lsn,  1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false, false, false},
+	{"SLN",		0x0086, 0x00ce, DSPInterpreter::Ext::sln,  &DSPEmitter::sln,  1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false, false, false},
+	{"LSM",		0x0088, 0x00ce, DSPInterpreter::Ext::lsm,  &DSPEmitter::lsm,  1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false, false, false},
+	{"SLM",		0x008a, 0x00ce, DSPInterpreter::Ext::slm,  &DSPEmitter::slm,  1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false, false, false},
+	{"LSNM",	0x008c, 0x00ce, DSPInterpreter::Ext::lsnm, &DSPEmitter::lsnm, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false, false, false},
+	{"SLNM",	0x008e, 0x00ce, DSPInterpreter::Ext::slnm, &DSPEmitter::slnm, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false, false, false},
 
-	{"LD",		0x00c0, 0x00cc, DSPInterpreter::Ext::ld,   &DSPEmitter::ld,   1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"LDN",		0x00c4, 0x00cc, DSPInterpreter::Ext::ldn,  &DSPEmitter::ldn,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"LDM",		0x00c8, 0x00cc, DSPInterpreter::Ext::ldm,  &DSPEmitter::ldm,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
-	{"LDNM",	0x00cc, 0x00cc, DSPInterpreter::Ext::ldnm, &DSPEmitter::ldnm, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false},
+	{"LD",		0x00c0, 0x00cc, DSPInterpreter::Ext::ld,   &DSPEmitter::ld,   1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"LDN",		0x00c4, 0x00cc, DSPInterpreter::Ext::ldn,  &DSPEmitter::ldn,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"LDM",		0x00c8, 0x00cc, DSPInterpreter::Ext::ldm,  &DSPEmitter::ldm,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
+	{"LDNM",	0x00cc, 0x00cc, DSPInterpreter::Ext::ldnm, &DSPEmitter::ldnm, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
 };
 
 const int opcodes_size = sizeof(opcodes) / sizeof(DSPOPCTemplate);

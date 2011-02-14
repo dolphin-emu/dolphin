@@ -83,9 +83,7 @@ env['CCFLAGS'] += ['-fno-exceptions', '-fno-strict-aliasing']
 
 if env['lint']:
     env['CCFLAGS'] += ['-Werror']
-env['CCFLAGS'] += ['-Wall', '-Wextra']
-env['CCFLAGS'] += ['-Wno-missing-field-initializers', '-Wno-unused-parameter']
-env['CCFLAGS'] += ['-Wpacked', '-Wpointer-arith', '-Wshadow', '-Wwrite-strings']
+env['CCFLAGS'] += ['-Wall', '-Wextra', '-Wshadow', '-Wno-unused-parameter']
 if env['CCVERSION'] < '4.2.0':
     env['CCFLAGS'] += ['-Wno-pragmas']
 if env['CCVERSION'] >= '4.3.0':
@@ -123,6 +121,10 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
+    env['CC'] = '/Developer/usr/bin/clang'
+    env['CXX'] = '/Developer/usr/bin/clang++'
+    env['CC'] = '/Developer/usr/bin/llvm-gcc'
+    env['CXX'] = '/Developer/usr/bin/llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['FRAMEWORKS'] += ['ApplicationServices', 'AudioUnit', 'Cocoa']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
@@ -130,12 +132,8 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
 
-    env['CC'] = '/Developer/usr/bin/llvm-gcc'
-    env['CXX'] = '/Developer/usr/bin/llvm-g++'
-    #env['CC'] = '/Developer/usr/bin/clang'
-    #env['CXX'] = '/Developer/usr/bin/clang++'
     #if float(os.popen('xcode-select -version').read()[21:]) < 2000:
-    #    print 'Xcode 4 is required to build Dolphin'
+    #    print 'Xcode 4 running on Snow Leopard is required to build Dolphin'
     #    print 'It is available from http://developer.apple.com/devcenter/mac/'
     #    Exit(1)
 
@@ -166,6 +164,7 @@ if sys.platform == 'darwin':
             wxconfig.ParseWXConfig(wxenv)
             env['CPPPATH'] += wxenv['CPPPATH']
             env['wxconfiglibs'] = wxenv['LIBS']
+            env['shared_png'] = True
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
     env['shared_zlib'] = True
@@ -239,6 +238,7 @@ else:
             env['flavor'] == 'debug')
         if env['HAVE_WX']:
             wxconfig.ParseWXConfig(env)
+            env['shared_png'] = True
         else:
             print "wxWidgets not found - see config.log"
 

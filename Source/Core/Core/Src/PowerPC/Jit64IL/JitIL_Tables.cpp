@@ -40,7 +40,6 @@ struct GekkoOPTemplate
 	int opcode;
 	_Instruction Inst;
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
-	int runCount;
 };
 
 static GekkoOPTemplate primarytable[] = 

@@ -779,8 +779,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		//printf("A: %s\n", line);
 		code_line++;
 
-		param_t params[10] = {{0}};
-		param_t params_ext[10] = {{0}};
+		param_t params[10] = {{0, P_NONE, NULL}};
+		param_t params_ext[10] = {{0, P_NONE, NULL}};
 		
 		bool upper = true;
 		for (int i = 0; i < LINEBUF_SIZE; i++)

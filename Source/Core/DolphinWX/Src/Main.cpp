@@ -114,20 +114,23 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_SWITCH, wxS("d"), wxS("debugger"),
-			_("Opens the debugger")
+			_("Opens the debugger"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, wxS("l"), wxS("logger"),
-			_("Opens the logger")
+			_("Opens the logger"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, wxS("e"), wxS("exec"),
-			_("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
+			_("Loads the specified file (DOL,ELF,GCM,ISO,WAD)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, wxS("b"), wxS("batch"),
-			_("Exit Dolphin with emulator")
+			_("Exit Dolphin with emulator"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, wxS("V"), wxS("video_backend"),
@@ -136,11 +139,11 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, wxS("A"), wxS("audio_emulation"),
-			_("Specify low level (LLE) or high level (HLE) audio emulation"),
+			_("Low level (LLE) or high level (HLE) audio"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_NONE
+			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
 

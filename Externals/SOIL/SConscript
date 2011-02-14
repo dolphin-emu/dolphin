@@ -3,7 +3,7 @@
 Import('env')
 
 if env.has_key('shared_soil') and env['shared_soil']:
-	env['LIBS'] += 'SOIL'
+	env['LIBS'] += ['SOIL']
 	Return()
 
 files = [

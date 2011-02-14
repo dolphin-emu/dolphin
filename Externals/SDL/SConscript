@@ -7,7 +7,7 @@ if sys.platform == 'darwin':
 	Return()
 
 if env.has_key('shared_sdl') and env['shared_sdl']:
-	env['LIBS'] += 'SDL'
+	env['LIBS'] += ['SDL']
 	Return()
 
 files = [

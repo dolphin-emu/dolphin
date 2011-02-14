@@ -134,9 +134,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxString::Format(_("Dolphin %s Graphics Configuration"),
 			wxGetTranslation(wxString::From8BitData(title.c_str()))),
 		wxDefaultPosition, wxDefaultSize)
-	, ininame(_ininame)
 	, choice_adapter(NULL)
 	, choice_ppshader(NULL)
+	, ininame(_ininame)
 {
 	// TODO: Make this less hacky
 	vconfig = g_Config; // take over backend_info

@@ -45,7 +45,6 @@ struct SPatch
 {
 	char m_szPatchName[128];
 	TPatchFunction PatchFunction;
-	int returnType;
 };
 
 static const SPatch OSPatches[] = 
