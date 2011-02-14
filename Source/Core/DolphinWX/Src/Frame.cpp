@@ -886,8 +886,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		if (IsHotkey(event, HK_FULLSCREEN))
 			DoFullscreen(!RendererIsFullscreen());
 		// Send Debugger keys to CodeWindow
-		//else
-		if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
+		else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
  			event.Skip();
 		// Pause and Unpause
 		else if (IsHotkey(event, HK_PLAY_PAUSE))
