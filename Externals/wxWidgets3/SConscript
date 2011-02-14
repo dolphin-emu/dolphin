@@ -11,11 +11,10 @@ env['HAVE_WX'] = 1
 
 wxenv = env.Clone()
 
+wxenv['CCFLAGS'] += ['-fexceptions']
+wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations']
 wxenv['CCFLAGS'] += ['-Wno-shadow', '-Wno-sign-compare']
 wxenv['CPPDEFINES'] += ['WXBUILDING']
-if sys.platform == 'darwin':
-	wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations']
-	wxenv['CPPDEFINES'] += ['__WXMAC__', '__WXOSX__'] # ['__WXOSX_COCOA__']
 
 # gtk, msw, osx and shared files as of r66858
 
@@ -167,7 +166,7 @@ common = [
 	'src/common/log.cpp',
 	'src/common/longlong.cpp',
 	'src/common/matrix.cpp',
-	'src/common/mediactrlcmn.cpp',
+	#'src/common/mediactrlcmn.cpp',
 	'src/common/memory.cpp',
 	'src/common/menucmn.cpp',
 	'src/common/mimecmn.cpp',
@@ -622,9 +621,9 @@ msw = [
 	'src/msw/listctrl.cpp',
 	'src/msw/main.cpp',
 	'src/msw/mdi.cpp',
-	'src/msw/mediactrl_am.cpp',
-	'src/msw/mediactrl_qt.cpp',
-	'src/msw/mediactrl_wmp10.cpp',
+	#'src/msw/mediactrl_am.cpp',
+	#'src/msw/mediactrl_qt.cpp',
+	#'src/msw/mediactrl_wmp10.cpp',
 	'src/msw/menu.cpp',
 	'src/msw/menuitem.cpp',
 	'src/msw/metafile.cpp',
@@ -1153,7 +1152,7 @@ unixgtk = [
 	'src/unix/fswatcher_inotify.cpp',
 	'src/unix/glx11.cpp',
 	'src/unix/joystick.cpp',
-	'src/unix/mediactrl.cpp',
+	#'src/unix/mediactrl.cpp',
 	'src/unix/mimetype.cpp',
 	'src/unix/sound.cpp',
 	'src/unix/sound_sdl.cpp',
@@ -1268,8 +1267,8 @@ else:
 #env['LIBS'] += wxenv.StaticObject(xrc)
 #wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/regex']
 #env['LIBS'] += wxenv.StaticObject(regex)
-wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/png']
-env['LIBS'] += wxenv.StaticObject(png)
+#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/png']
+#env['LIBS'] += wxenv.StaticObject(png)
 #wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/jpeg']
 #env['LIBS'] += wxenv.StaticObject(jpeg)
 #wxenv['CPPDEFINES'] += ['__WX__', 'SCI_LEXER', 'LINK_LEXERS']

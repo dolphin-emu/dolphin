@@ -40,6 +40,7 @@ if env['PLATFORM'] == 'posix': vars.AddVariables(
                  allowed_values = ('none', 'generate', 'use'), ignorecase = 2),
     BoolVariable('shared_glew', 'Use system shared libGLEW', True),
     BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
+    BoolVariable('shared_png', 'Use system shared libpng', True),
     BoolVariable('shared_sdl', 'Use system shared libSDL', True),
     BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
     BoolVariable('shared_soil', 'Use system shared libSOIL', True),
@@ -206,6 +207,8 @@ else:
 
     if env['shared_glew']:
         env['shared_glew'] = conf.CheckPKG('GLEW')
+    if env['shared_png']:
+        env['shared_png'] = conf.CheckPKG('png')
     if env['shared_sdl']:
         env['shared_sdl'] = conf.CheckPKG('SDL')
     if env['shared_zlib']:
@@ -333,6 +336,7 @@ dirs = [
     'Externals/SDL',
     'Externals/SOIL',
     'Externals/SFML/src',
+    'Externals/libpng',
     'Externals/wxWidgets3',
     'Externals/zlib',
     'Source/Core/AudioCommon/Src',

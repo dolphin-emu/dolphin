@@ -866,9 +866,6 @@
 /* The type of 5th argument to getsockopt() - usually size_t or int */
 #define SOCKOPTLEN_T socklen_t
 
-/* The type of statvfs(2) argument */
-#define WX_STATFS_T struct statfs
-
 /* The signal handler prototype */
 #define wxTYPE_SA_HANDLER int
 
@@ -939,15 +936,6 @@
 /* Define if you have a snprintf() which supports positional arguments
    (defined in the unix98 standard) */
 #define HAVE_UNIX98_PRINTF 1
-
-/* define if you have statfs function */
-#define HAVE_STATFS 1
-
-/* define if you have statfs prototype */
-#define HAVE_STATFS_DECL 1
-
-/* define if you have statvfs function */
-/* #undef HAVE_STATVFS */
 
 /* Define if you have strtoull() and strtoll() */
 #define HAVE_STRTOULL 1
@@ -1131,7 +1119,11 @@
 #define HAVE_ICONV 1
 
 /* Define as "const" if the declaration of iconv() needs const.  */
+#if defined __FreeBSD__ || __NetBSD__
 #define ICONV_CONST const
+#else
+#define ICONV_CONST
+#endif
 
 /* Define if you have the <langinfo.h> header file.  */
 #define HAVE_LANGINFO_H 1
@@ -1204,12 +1196,6 @@
 
 /* Define if locale_t is available */
 /* #undef HAVE_LOCALE_T */
-
-/* Define if you have inotify_xxx() functions. */
-/* #undef wxHAS_INOTIFY */
-
-/* Define if you have kqueu_xxx() functions. */
-#define wxHAS_KQUEUE 1
 
 /* -------------------------------------------------------------------------
    Win32 adjustments section
