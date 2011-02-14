@@ -343,6 +343,7 @@ class CFrame : public CRenderFrame
 		DECLARE_EVENT_TABLE();
 };
 
+int GetCmdForHotkey(unsigned int key);
 
 #endif  // __FRAME_H_
 

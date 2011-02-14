@@ -799,6 +799,84 @@ bool IsHotkey(wxKeyEvent &event, int Id)
 			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
+int GetCmdForHotkey(unsigned int key)
+{
+	if (key == HK_OPEN)
+		return wxID_OPEN;
+	if (key == HK_CHANGE_DISC)
+		return IDM_CHANGEDISC;
+	if (key == HK_REFRESH_LIST)
+		return wxID_REFRESH;
+
+	if (key == HK_PLAY_PAUSE)
+		return IDM_PLAY;
+	if (key == HK_STOP)
+		return IDM_STOP;
+	if (key == HK_RESET)
+		return IDM_RESET;
+	if (key == HK_FRAME_ADVANCE)
+		return IDM_FRAMESTEP;
+
+	if (key == HK_START_RECORDING)
+		return IDM_RECORD;
+	if (key == HK_PLAY_RECORDING)
+		return IDM_PLAYRECORD;
+	if (key == HK_EXPORT_RECORDING)
+		return IDM_RECORDEXPORT;
+	if (key == HK_READ_ONLY_MODE)
+		return IDM_RECORDREADONLY;
+
+	if (key == HK_FULLSCREEN)
+		return IDM_TOGGLE_FULLSCREEN;
+	if (key == HK_SCREENSHOT)
+		return IDM_SCREENSHOT;
+
+	if (key == HK_WIIMOTE1_CONNECT)
+		return IDM_CONNECT_WIIMOTE1;
+	if (key == HK_WIIMOTE2_CONNECT)
+		return IDM_CONNECT_WIIMOTE2;
+	if (key == HK_WIIMOTE3_CONNECT)
+		return IDM_CONNECT_WIIMOTE3;
+	if (key == HK_WIIMOTE4_CONNECT)
+		return IDM_CONNECT_WIIMOTE4;
+
+	if (key == HK_LOAD_STATE_SLOT_1)
+		return IDM_LOADSLOT1;
+	if (key == HK_LOAD_STATE_SLOT_2)
+		return IDM_LOADSLOT2;
+	if (key == HK_LOAD_STATE_SLOT_3)
+		return IDM_LOADSLOT3;
+	if (key == HK_LOAD_STATE_SLOT_4)
+		return IDM_LOADSLOT4;
+	if (key == HK_LOAD_STATE_SLOT_5)
+		return IDM_LOADSLOT5;
+	if (key == HK_LOAD_STATE_SLOT_6)
+		return IDM_LOADSLOT6;
+	if (key == HK_LOAD_STATE_SLOT_7)
+		return IDM_LOADSLOT7;
+	if (key == HK_LOAD_STATE_SLOT_8)
+		return IDM_LOADSLOT8;
+
+	if (key == HK_SAVE_STATE_SLOT_1)
+		return IDM_SAVESLOT1;
+	if (key == HK_SAVE_STATE_SLOT_2)
+		return IDM_SAVESLOT2;
+	if (key == HK_SAVE_STATE_SLOT_3)
+		return IDM_SAVESLOT3;
+	if (key == HK_SAVE_STATE_SLOT_4)
+		return IDM_SAVESLOT4;
+	if (key == HK_SAVE_STATE_SLOT_5)
+		return IDM_SAVESLOT5;
+	if (key == HK_SAVE_STATE_SLOT_6)
+		return IDM_SAVESLOT6;
+	if (key == HK_SAVE_STATE_SLOT_7)
+		return IDM_SAVESLOT7;
+	if (key == HK_SAVE_STATE_SLOT_8)	
+		return IDM_SAVESLOT8;
+
+	return -1;
+}
+
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -808,7 +886,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		if (IsHotkey(event, HK_FULLSCREEN))
 			DoFullscreen(!RendererIsFullscreen());
 		// Send Debugger keys to CodeWindow
-		else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
+		//else
+		if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
  			event.Skip();
 		// Pause and Unpause
 		else if (IsHotkey(event, HK_PLAY_PAUSE))
@@ -829,7 +908,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
 			WiimoteId = 3;
 		// State save and state load hotkeys
-		else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
+		/*else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
 		{
 			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
 			if (event.GetModifiers() == wxMOD_NONE)
@@ -838,7 +917,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				State_Save(slot_number);
 			else
 				event.Skip();
-		}
+		}*/
 		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
 			State_LoadLastSaved();
 		else if (event.GetKeyCode() == WXK_F12)
@@ -851,6 +930,30 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				event.Skip();
 		}
 		else
+		{
+			unsigned int i = NUM_HOTKEYS;
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			{
+				for (i = 0; i < NUM_HOTKEYS; i++)
+				{
+					if (IsHotkey(event, i))
+					{
+						int cmd = GetCmdForHotkey(i);
+						if (cmd >= 0)
+						{ 
+							wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, cmd);
+							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
+							if (item && item->IsCheckable())
+							{
+								item->wxMenuItemBase::Toggle();
+								evt.SetInt(item->IsChecked());
+							}
+							main_frame->GetEventHandler()->AddPendingEvent(evt);
+							break;
+						}
+					}
+				}
+			}
 			// On OS X, we claim all keyboard events while
 			// emulation is running to avoid wxWidgets sounding
 			// the system beep for unhandled key events when
@@ -859,8 +962,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #ifndef __APPLE__
 			// On other platforms, we leave the key event alone
 			// so it can be passed on to the windowing system.
-			event.Skip();
+			if (i == NUM_HOTKEYS)
+				event.Skip();
 #endif
+		}
 
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
