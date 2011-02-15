@@ -185,27 +185,19 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_basic->Add(profile_cb, 1, 0, 0);
 
 	profile_cb->AppendString(_("(Default)"));
+	wxArrayString arrayStringFor_GameNames;
 	for (int index = 0; ; ++index)
 	{
-		// TODO: Sort these alphabetically
 		const GameListItem* item = main_frame->GetGameListItem(index);
 		if (item == NULL) break;
-		profile_cb->AppendString(wxString(item->GetName(0).c_str(), wxConvUTF8));
+		arrayStringFor_GameNames.Add(wxString(item->GetName(0).c_str(), wxConvUTF8));
 	}
+	arrayStringFor_GameNames.Sort();
+	for (unsigned int index = 0; index < arrayStringFor_GameNames.GetCount(); ++index)
+		profile_cb->AppendString(arrayStringFor_GameNames[index]);
+
 	profile_cb->Select(cur_profile);
 	_connect_macro_(profile_cb, VideoConfigDiag::Event_OnProfileChange, wxEVT_COMMAND_CHOICE_SELECTED, this);
-
-	// graphics api
-	//{
-	//const wxString gfxapi_choices[] = { _("Software [not present]"),
-	//	_("OpenGL [broken]"), _("Direct3D 9 [broken]"), _("Direct3D 11") };
-
-	//szr_basic->Add(new wxStaticText(page_general, -1, _("Graphics API:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	//wxChoice* const choice_gfxapi = new SettingChoice(page_general,
-	//	g_gfxapi, sizeof(gfxapi_choices)/sizeof(*gfxapi_choices), gfxapi_choices);
-	//szr_basic->Add(choice_gfxapi, 1, 0, 0);
-	// TODO: Connect with Event_Backend()
-	//}
 
 	// adapter // for D3D only
 	if (vconfig.backend_info.Adapters.size())
@@ -357,9 +349,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// configuration profiles
 	{
 	wxStaticBoxSizer* const group_profile = new wxStaticBoxSizer(wxHORIZONTAL, page_advanced, _("Configuration profile"));
-	profile_text = new wxStaticText(page_advanced, -1, profile_cb->GetLabelText());
+	profile_text = new wxStaticText(page_advanced, -1, profile_cb->GetStringSelection());
 	szr_advanced->Add(group_profile, 0, wxEXPAND | wxALL, 5);
-	group_profile->Add(profile_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_profile->Add(profile_text, 1, wxEXPAND | wxALL, 5);
 	}
 
 	// - rendering
@@ -516,7 +508,7 @@ void VideoConfigDiag::Event_OnProfileChange(wxCommandEvent& ev)
 	// Update our UI elements with the new config
 	SetUIValuesFromConfig();
 	UpdateWindowUI();
-	profile_text->SetLabel(profile_cb->GetLabelText());
+	profile_text->SetLabel(profile_cb->GetStringSelection());
 
 	ev.Skip();
 }
