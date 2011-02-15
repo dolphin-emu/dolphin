@@ -1456,7 +1456,7 @@ void CFrame::UpdateGUI()
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
-	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Frame::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Frame::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);

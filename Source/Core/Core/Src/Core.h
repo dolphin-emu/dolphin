@@ -55,7 +55,8 @@ void Callback_CoreMessage(int Id);
 	std::string StopMessage(bool, std::string);
 
 	bool isRunning();
-	bool IsRunningInCurrentThread(); // this tells us whether we are in the cpu thread.
+	bool IsRunningInCurrentThread(); // this tells us whether we are running in the cpu thread.
+	bool IsCPUThread(); // this tells us whether we are the cpu thread.
     
     void SetState(EState _State);
     EState GetState();
@@ -78,6 +79,9 @@ void Callback_CoreMessage(int Id);
     void StartTrace(bool write);
     void DisplayMessage(const std::string &message, int time_in_ms); // This displays messages in a user-visible way.
     void DisplayMessage(const char *message, int time_in_ms); // This displays messages in a user-visible way.
+	
+	std::string GetStateFileName();
+	void SetStateFileName(std::string val);
     
     int SyncTrace();
     void SetBlockStart(u32 addr);
@@ -100,7 +104,6 @@ void Callback_CoreMessage(int Id);
 		extern bool g_FrameStep;
 	#endif
 	// ---------------------------
-
 }  // namespace
 
 #endif

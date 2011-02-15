@@ -97,6 +97,7 @@ void SetPolledDevice();
 
 bool IsAutoFiring();
 bool IsRecordingInput();
+bool IsRecordingInputFromSaveState();
 bool IsPlayingInput();
 
 bool IsUsingPad(int controller);

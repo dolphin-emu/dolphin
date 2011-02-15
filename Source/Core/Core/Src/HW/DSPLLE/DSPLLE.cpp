@@ -51,8 +51,6 @@ DSPLLE::DSPLLE() {
 
 void DSPLLE::DoState(PointerWrap &p)
 {
-	p.Do(m_InitMixer);
-
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
@@ -96,7 +94,8 @@ void DSPLLE::dsp_thread(DSPLLE *lpParameter)
 			}
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
-		Common::YieldCPU();
+		else
+			Common::YieldCPU();
 	}
 }
 
@@ -164,7 +163,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	UDSPControl Temp(_uFlag);
 	if (!m_InitMixer)
 	{
-		if (!Temp.DSPHalt && Temp.DSPInit)
+		if (!Temp.DSPHalt)
 		{
 			unsigned int AISampleRate, DACSampleRate;
 			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);

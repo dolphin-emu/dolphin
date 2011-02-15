@@ -34,6 +34,7 @@
 #else
 #include <unistd.h> //truncate
 #endif
+#include "State.h"
 
 Common::CriticalSection cs_frameSkip;
 
@@ -53,6 +54,7 @@ char g_playingFile[256] = "\0";
 FILE *g_recordfd = NULL;
 
 u64 g_frameCounter = 0, g_lagCounter = 0;
+bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
 
 int g_numRerecords = 0;
@@ -141,6 +143,11 @@ bool IsRecordingInput()
 	return (g_playMode == MODE_RECORDING);
 }
 
+bool IsRecordingInputFromSaveState()
+{
+	return g_bRecordingFromSaveState;
+}
+
 bool IsPlayingInput()
 {
 	return (g_playMode == MODE_PLAYING);
@@ -177,17 +184,27 @@ void ChangeWiiPads()
 	}
 }
 
-// TODO: Add BeginRecordingFromSavestate
 bool BeginRecordingInput(int controllers)
 {
 	if(g_playMode != MODE_NONE || controllers == 0 || g_recordfd != NULL)
 		return false;
-	
+
 	const char *filename = g_recordFile.c_str();
 	
 	if(File::Exists(filename))
 		File::Delete(filename);
-	
+
+	if (Core::isRunning())
+	{
+		std::string tmpStateFilename = g_recordFile;
+		tmpStateFilename.append(".sav");
+		const char *stateFilename = tmpStateFilename.c_str();
+		if(File::Exists(stateFilename))
+			File::Delete(stateFilename);
+		State_SaveAs(stateFilename);
+		g_bRecordingFromSaveState = true;
+	}
+
 	g_recordfd = fopen(filename, "wb");
 	if(!g_recordfd) {
 		PanicAlertT("Error opening file %s for recording", filename);
@@ -273,8 +290,13 @@ bool PlayInput(const char *filename)
 	}
 	
 	// Load savestate (and skip to frame data)
-	if(header.bFromSaveState) {
-		// TODO
+	if(header.bFromSaveState)
+	{
+		std::string stateFilename = filename;
+		stateFilename.append(".sav");
+		if(File::Exists(stateFilename.c_str()))
+			Core::SetStateFileName(stateFilename);
+		g_bRecordingFromSaveState = true;
 	}
 	
 	/* TODO: Put this verification somewhere we have the gameID of the played game
@@ -316,7 +338,8 @@ void LoadInput(const char *filename)
 	fread(&header, sizeof(DTMHeader), 1, t_record);
 	fclose(t_record);
 	
-	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
+	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A)
+	{
 		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
 		strncpy(g_playingFile, "\0", 256);
 		EndPlayInput();
@@ -469,7 +492,7 @@ void SaveRecording(const char *filename)
 		header.bWii = Core::g_CoreStartupParameter.bWii;
 		header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
 		
-		header.bFromSaveState = false; // TODO: add the case where it's true
+		header.bFromSaveState = g_bRecordingFromSaveState;
 		header.frameCount = g_frameCounter;
 		header.lagCount = g_lagCounter; 
 		header.numRerecords = g_rerecords;
@@ -487,6 +510,15 @@ void SaveRecording(const char *filename)
 	fclose(g_recordfd);
 	File::Delete(filename);
 	success = File::Copy(g_recordFile.c_str(), filename);
+
+	if (success && g_bRecordingFromSaveState)
+	{
+		std::string tmpStateFilename = g_recordFile;
+		tmpStateFilename.append(".sav");
+		std::string stateFilename = filename;
+		stateFilename.append(".sav");
+		success = File::Copy(tmpStateFilename.c_str(), stateFilename.c_str());
+	}
 
 	if (success /* && !g_bReadOnly*/)
 	{

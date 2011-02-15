@@ -94,7 +94,7 @@ bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 void *g_pWindowHandle = NULL;
-
+std::string g_stateFileName;
 std::thread g_EmuThread;
 
 static std::thread cpuThread;
@@ -105,7 +105,8 @@ SCoreStartupParameter g_CoreStartupParameter;
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
 
-
+std::string GetStateFileName() { return g_stateFileName; }
+void SetStateFileName(std::string val) { g_stateFileName = val; }
 
 // Display messages and return values
 
@@ -125,12 +126,26 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 
 void DisplayMessage(const std::string &message, int time_in_ms)
 {
+	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	g_video_backend->Video_AddMessage(message.c_str(), time_in_ms);
+	if (_CoreParameter.bRenderToMain &&
+		SConfig::GetInstance().m_InterfaceStatusbar) {
+			Host_UpdateStatusBar(message.c_str());
+	} else
+		Host_UpdateTitle(message.c_str());
 }
 
 void DisplayMessage(const char *message, int time_in_ms)
 {
+	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	g_video_backend->Video_AddMessage(message, time_in_ms);
+	if (_CoreParameter.bRenderToMain &&
+		SConfig::GetInstance().m_InterfaceStatusbar) {
+			Host_UpdateStatusBar(message);
+	} else
+		Host_UpdateTitle(message);
 }
 
 void Callback_DebuggerBreak()
@@ -156,6 +171,11 @@ bool isRunning()
 bool IsRunningInCurrentThread()
 {
 	return isRunning() && ((!cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
+}
+
+bool IsCPUThread()
+{
+	return ((!cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
 }
 
 // This is called from the GUI thread. See the booting call schedule in
@@ -257,6 +277,9 @@ void CpuThread()
 			PanicAlertT("32-bit platforms do not support fastmem yet. Report this bug.");
 		#endif
 	}
+
+	if (!g_stateFileName.empty())
+		State_LoadAs(g_stateFileName);
 
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();

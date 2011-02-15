@@ -241,11 +241,11 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	externalEventSection.Leave();
 }
 
-// Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the main thread
+// Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
 // in which case the event will get handled immediately, before returning.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
-	if(Core::IsRunningInCurrentThread())
+	if(Core::IsCPUThread())
 	{
 		externalEventSection.Enter();
 		event_types[event_type].callback(userdata, 0);

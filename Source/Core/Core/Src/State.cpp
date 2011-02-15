@@ -265,7 +265,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	saveData->buffer = buffer;
 	saveData->size = sz;
 	
-	if (Frame::IsRecordingInput() || Frame::IsPlayingInput())
+	if ((Frame::IsRecordingInput() || Frame::IsPlayingInput()) && !Frame::IsRecordingInputFromSaveState())
 		Frame::SaveRecording(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
 
 	Core::DisplayMessage("Saving State...", 1000);
@@ -390,7 +390,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	
 	if (File::Exists(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str()))
 		Frame::LoadInput(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
-	else
+	else if (!Frame::IsRecordingInputFromSaveState())
 		Frame::EndPlayInput();
 
 	state_op_in_progress = false;

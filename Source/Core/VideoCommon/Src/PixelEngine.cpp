@@ -135,10 +135,11 @@ void DoState(PointerWrap &p)
 	p.Do(m_AlphaModeConf);
 	p.Do(m_AlphaRead);
 	p.Do(m_Control);
-	p.Do(CommandProcessor::fifo.PEToken);
 
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
+	p.Do(interruptSetToken);
+	p.Do(interruptSetFinish);
 	
 	p.Do(bbox);
 	p.Do(bbox_active);
