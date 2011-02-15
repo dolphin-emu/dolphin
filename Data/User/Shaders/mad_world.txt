@@ -1,0 +1,17 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 emboss = (texRECT(samp0, uv0+1).rgba - texRECT(samp0, uv0-1).rgba)*2.0f;
+  emboss -= (texRECT(samp0, uv0+float2(1,-1)).rgba - texRECT(samp0, uv0+float2(-1,1)).rgba);
+  float4 color = texRECT(samp0, uv0).rgba;
+  if (color.r > 0.8 && color.b + color.b < 0.2)
+    ocol0 = float4(1,0,0,0);
+  else {
+    color += emboss;
+    if (dot(color.rgb, float3(0.3, 0.5, 0.2)) > 0.5)
+      ocol0 = float4(1,1,1,1);
+    else
+      ocol0 = float4(0,0,0,0);
+  }
+}

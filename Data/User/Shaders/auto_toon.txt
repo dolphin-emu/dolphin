@@ -1,0 +1,16 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 to_gray = float4(0.3,0.59,0.11,0);
+  float x1 = dot(to_gray, texRECT(samp0, uv0+float2(1,1)));
+  float x0 = dot(to_gray, texRECT(samp0, uv0+float2(-1,-1)));
+  float x3 = dot(to_gray, texRECT(samp0, uv0+float2(1,-1)));
+  float x2 = dot(to_gray, texRECT(samp0, uv0+float2(-1,1)));
+  float edge = (x1 - x0) * (x1 - x0);
+  float edge2 = (x3 - x2) * (x3 - x2);
+  edge += edge2;
+  float4 color = texRECT(samp0, uv0).rgba;
+
+  ocol0 = max(color - float4(edge, edge, edge, edge) * 12, float4(0,0,0,0));
+}

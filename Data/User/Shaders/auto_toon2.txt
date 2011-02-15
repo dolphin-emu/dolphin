@@ -1,0 +1,99 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+ //Changethis to increase the number of colors.
+  float numColors =8;
+
+  float4 to_gray = float4(0.3,0.59,0.11,0);
+  float x1 = dot(to_gray, texRECT(samp0, uv0+float2(1,1)));
+  float x0 = dot(to_gray, texRECT(samp0, uv0+float2(-1,-1)));
+  float x3 = dot(to_gray, texRECT(samp0, uv0+float2(1,-1)));
+  float x2 = dot(to_gray, texRECT(samp0, uv0+float2(-1,1)));
+  float edge = (x1 - x0) * (x1 - x0);
+  float edge2 = (x3 - x2) * (x3 - x2);
+  edge += edge2;
+  float4 color = texRECT(samp0, uv0).rgba;
+
+  float4 c0 = max(color - float4(edge, edge, edge, edge) * 12, float4(0,0,0,0));
+
+  //Change this number to increase the pixel size.
+  int pixelSize = 1;
+ 
+
+  float red   = 0.0;
+  float green = 0.0;
+  float blue  = 0.0;
+  bool rr = false;
+  bool bb = false;
+  bool gg = false;
+  int  val = uv0[0];
+  int val2 = uv0[1];
+  int count = 1;
+  
+  double colorN = 0.0;
+  double colorB = 0.0;
+  val = val % pixelSize;
+  val2 = val2  % pixelSize;
+
+//if(val == 0 && val2 == 0  )
+	// c0 = texRECT(samp0, uv0).rgba;
+//else
+	// c0 = texRECT(samp0, uv0-float2(val, val2)).rgba;
+	 
+	 for(count = 1; count <= numColors ; count++){
+		 colorN = count / numColors;
+		 
+		 if ( c0.r <= colorN && c0.r >= colorB && rr == false ){
+			if (count == 1){
+				if(colorN >= 0.1)
+					red = 0.01;
+				else
+					red = colorN;
+			}
+			else if (count == numColors)
+				red = 0.95;
+			else
+				red = colorN ;
+			
+			 rr = true;
+		}
+
+		 if (c0.b <= colorN && c0.b >= colorB && bb == false){
+			if (count == 1){
+				if(colorN >= 0.1)
+					blue = 0.01;
+				else
+					blue = colorN;
+			}
+			else if (count == numColors)
+				blue = 0.95;
+			else
+				blue = colorN ;
+			
+			 bb = true;
+		}
+
+		 if (c0.g <= colorN && c0.g >= colorB && gg == false){
+			if (count == 1){
+				if(colorN >= 0.1)
+					green = 0.01;
+				else
+					green = colorN;
+			}
+			else if (count == numColors)
+				green = 0.95 ;
+			else
+			green = colorN ;
+			 gg = true;
+		}
+			
+		colorB = count / numColors;
+		if(rr == true && bb == true && gg == true)
+			break;
+	}
+
+
+  
+  ocol0 = float4(red, green, blue, c0.a);
+}
