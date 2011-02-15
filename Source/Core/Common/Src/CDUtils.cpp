@@ -149,16 +149,16 @@ static struct
 } checklist[] =
 	{
 #ifdef __linux__
-		{ "/dev/cdrom", 0, 0},
-		{ "/dev/dvd", 0, 0},
-		{ "/dev/hd%c",  'a', 'z' },
+		{ "/dev/cdrom", 0, 0 },
+		{ "/dev/dvd", 0, 0 },
+		{ "/dev/hd%c", 'a', 'z' },
 		{ "/dev/scd%d", 0, 27 },
-		{ "/dev/sr%d",  0, 27 },
+		{ "/dev/sr%d", 0, 27 },
 #else
 		{ "/dev/acd%d", 0, 27 },
 		{ "/dev/cd%d", 0, 27 },
 #endif
-		{ NULL }
+		{ NULL, 0, 0 }
 	};
 
 // Returns true if a device is a block or char device and not a symbolic link

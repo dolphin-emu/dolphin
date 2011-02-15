@@ -209,7 +209,7 @@ else:
     if env['shared_glew']:
         env['shared_glew'] = conf.CheckPKG('GLEW')
     if env['shared_png']:
-        env['shared_png'] = conf.CheckPKG('png')
+        env['shared_png'] = conf.CheckPKG('libpng')
     if env['shared_sdl']:
         env['shared_sdl'] = conf.CheckPKG('SDL')
     if env['shared_zlib']:
