@@ -121,7 +121,7 @@ bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, s8 &size);
-void EndPlayInput();
+void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 
 };

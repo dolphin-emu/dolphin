@@ -391,7 +391,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	if (File::Exists(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str()))
 		Frame::LoadInput(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
 	else if (!Frame::IsRecordingInputFromSaveState())
-		Frame::EndPlayInput();
+		Frame::EndPlayInput(false);
 
 	state_op_in_progress = false;
 

@@ -1044,7 +1044,7 @@ void CFrame::DoStop()
 		if(Frame::IsRecordingInput())
 			DoRecordingSave();
 		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
-			Frame::EndPlayInput();
+			Frame::EndPlayInput(false);
 
 #ifdef __WXGTK__
 		// Make sure the app doesn't hang waiting on a keystate check 

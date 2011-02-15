@@ -50,19 +50,21 @@ unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 int g_numPads = 0;
 ControllerState g_padState;
-char g_playingFile[256] = "\0";
 FILE *g_recordfd = NULL;
 
-u64 g_frameCounter = 0, g_lagCounter = 0;
+u64 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0;
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
 
 int g_numRerecords = 0;
 std::string g_recordFile = "0.dtm";
+std::string g_tmpRecordFile = "1.dtm";
 
 void FrameUpdate()
 {
 	g_frameCounter++;
+	if (IsRecordingInput())
+		g_totalFrameCount = g_frameCounter;
 
 	if(!g_bPolled) 
 		g_lagCounter++;
@@ -314,12 +316,11 @@ bool PlayInput(const char *filename)
 	
 	g_numPads = header.numControllers;
 	g_numRerecords = header.numRerecords;
+	g_totalFrameCount = header.frameCount;
 	
 	ChangePads();
 	
 	g_playMode = MODE_PLAYING;
-
-	strncpy(g_playingFile, filename, 256);
 	
 	return true;
 	
@@ -341,8 +342,7 @@ void LoadInput(const char *filename)
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A)
 	{
 		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
-		strncpy(g_playingFile, "\0", 256);
-		EndPlayInput();
+		EndPlayInput(false);
 		return;
 	}
 	
@@ -350,6 +350,7 @@ void LoadInput(const char *filename)
 		g_rerecords = header.numRerecords;
 	
 	g_frameCounter = header.frameCount;
+	g_totalFrameCount = header.frameCount;
 	
 	g_numPads = header.numControllers;
 	
@@ -425,10 +426,10 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	PadStatus->substickX = g_padState.CStickX;
 	PadStatus->substickY = g_padState.CStickY;
 	
-	if(feof(g_recordfd))
+	if(feof(g_recordfd) || g_frameCounter >= g_totalFrameCount)
 	{
 		Core::DisplayMessage("Movie End", 2000);
-		EndPlayInput();
+		EndPlayInput(!g_bReadOnly);
 	}
 }
 
@@ -443,31 +444,37 @@ bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 	fread(data, 1, size, g_recordfd);
 	
 	// TODO: merge this with the above so that there's no duplicate code
-	if(feof(g_recordfd))
+	if(feof(g_recordfd) || g_frameCounter >= g_totalFrameCount)
 	{
 		Core::DisplayMessage("Movie End", 2000);
-		EndPlayInput();
+		EndPlayInput(!g_bReadOnly);
 	}
 	return true;
 }
 
-void EndPlayInput() {
-	if (g_recordfd)
-		fclose(g_recordfd);
-	
-	if (!g_bReadOnly && strncmp(g_playingFile, "\0", 1))
+void EndPlayInput(bool cont) 
+{
+	if (cont && g_recordfd)
 	{
+		// The save and restore here is to resume rerecording
+		// from the exact point in playback we're at now
+		// if playback ends before the end of the file.
+		SaveRecording(g_tmpRecordFile.c_str());
+		fclose(g_recordfd);
 		File::Delete(g_recordFile.c_str());
-		File::Copy(g_playingFile, g_recordFile.c_str());
+		File::Copy(g_tmpRecordFile.c_str(), g_recordFile.c_str());
 		g_recordfd = fopen(g_recordFile.c_str(), "r+b");
 		fseeko(g_recordfd, 0, SEEK_END);
 		g_playMode = MODE_RECORDING;
+		Core::DisplayMessage("Resuming movie recording", 2000);
 	}
 	else
 	{
+		if (g_recordfd)
+			fclose(g_recordfd);
 		g_recordfd = NULL;
 		g_numPads = g_rerecords = 0;
-		g_frameCounter = g_lagCounter = 0;
+		g_totalFrameCount = g_frameCounter = g_lagCounter = 0;
 		g_playMode = MODE_NONE;
 	}
 }
