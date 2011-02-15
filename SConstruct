@@ -204,6 +204,8 @@ else:
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
 
+    conf.CheckPKG('iconv')
+
     if env['shared_glew']:
         env['shared_glew'] = conf.CheckPKG('GLEW')
     if env['shared_png']:

@@ -131,7 +131,6 @@ elif sys.platform == 'darwin':
 		)))
 
 else:
-	env['LIBS'] += ['iconv']
 	files += ['X11Utils.cpp']
 	exe = env['binary_dir'] + '/dolphin-emu'
 	if not env['HAVE_WX']:

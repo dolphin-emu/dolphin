@@ -186,7 +186,7 @@
 #define wxUSE_WCHAR_T 1
 
 
-#define wxUSE_EXCEPTIONS 1
+#define wxUSE_EXCEPTIONS 0
 
 #define wxUSE_EXTENDED_RTTI 0
 
@@ -247,7 +247,7 @@
 
 #define wxUSE_STOPWATCH 1
 
-#define wxUSE_FSWATCHER 1
+#define wxUSE_FSWATCHER 0
 
 #define wxUSE_CONFIG 1
 

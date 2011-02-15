@@ -192,7 +192,7 @@
 //
 // Recommended setting: depends on whether you intend to use C++ exceptions
 //                      in your own code (1 if you do, 0 if you don't)
-#define wxUSE_EXCEPTIONS    1
+#define wxUSE_EXCEPTIONS    0
 
 // Set wxUSE_EXTENDED_RTTI to 1 to use extended RTTI
 //
@@ -435,7 +435,7 @@
 // Default is 1
 //
 // Recommended setting: 1
-#define wxUSE_FSWATCHER     1
+#define wxUSE_FSWATCHER     0
 
 // Setting wxUSE_CONFIG to 1 enables the use of wxConfig and related classes
 // which allow the application to store its settings in the persistent
