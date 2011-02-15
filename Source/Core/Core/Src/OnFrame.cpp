@@ -246,8 +246,10 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
 	g_padState.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
 	
-	g_padState.L = PadStatus->triggerLeft;
-	g_padState.R = PadStatus->triggerRight;
+	g_padState.L = ((PadStatus->button & PAD_TRIGGER_L) != 0);
+	g_padState.R = ((PadStatus->button & PAD_TRIGGER_R) != 0);
+	g_padState.TriggerL = PadStatus->triggerLeft;
+	g_padState.TriggerR = PadStatus->triggerRight;
 	
 	g_padState.AnalogStickX = PadStatus->stickX;
 	g_padState.AnalogStickY = PadStatus->stickY;
@@ -413,12 +415,13 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	if(g_padState.DPadRight)
 		PadStatus->button |= PAD_BUTTON_RIGHT;
 	
-	PadStatus->triggerLeft = g_padState.L;
-	if(PadStatus->triggerLeft > 230)
+	if(g_padState.L)
 		PadStatus->button |= PAD_TRIGGER_L;
-	PadStatus->triggerRight = g_padState.R;
-	if(PadStatus->triggerRight > 230)
+	if(g_padState.R)
 		PadStatus->button |= PAD_TRIGGER_R;
+	
+	PadStatus->triggerLeft = g_padState.TriggerL;
+	PadStatus->triggerRight = g_padState.TriggerR;
 	
 	PadStatus->stickX = g_padState.AnalogStickX;
 	PadStatus->stickY = g_padState.AnalogStickY;
