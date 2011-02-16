@@ -131,6 +131,7 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
+    #env['LINKFLAGS'] += ['-Wl,-read_only_relocs,suppress']
 
     #if float(os.popen('xcode-select -version').read()[21:]) < 2000:
     #    print 'Xcode 4 running on Snow Leopard is required to build Dolphin'
@@ -164,10 +165,8 @@ if sys.platform == 'darwin':
             wxconfig.ParseWXConfig(wxenv)
             env['CPPPATH'] += wxenv['CPPPATH']
             env['wxconfiglibs'] = wxenv['LIBS']
-            env['shared_png'] = True
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
-    env['shared_zlib'] = True
 
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
@@ -240,7 +239,6 @@ else:
             env['flavor'] == 'debug')
         if env['HAVE_WX']:
             wxconfig.ParseWXConfig(env)
-            env['shared_png'] = True
         else:
             print "wxWidgets not found - see config.log"
 

@@ -4,7 +4,6 @@ Import('env')
 import sys
 
 if env.has_key('shared_glew') and env['shared_glew']:
-	env['LIBS'] += ['GLEW']
 	Return()
 
 if sys.platform == 'darwin':

@@ -62,7 +62,7 @@ if sys.platform == 'win32':
 elif sys.platform == 'darwin':
 	env['CPPPATH'] += ['#Externals']
 	env['FRAMEWORKPATH'] += ['Externals/Cg']
-	env['LIBS'] += ['iconv']
+	env['LIBS'] += ['iconv', 'z']
 	frameworksflags += ['-Wl,-weak_framework,Cg']
 	frameworksflags += ['-Wl,-weak_framework,OpenCL']
 

@@ -4,8 +4,6 @@ Import('env')
 import sys
 
 if env.has_key('shared_png') and env['shared_png']:
-	# Currently using libwxpng in the shared case
-	#env['LIBS'] += ['png']
 	Return()
 
 files = [

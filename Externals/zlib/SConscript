@@ -4,7 +4,9 @@ Import('env')
 import sys
 
 if env.has_key('shared_zlib') and env['shared_zlib']:
-	env['LIBS'] += ['z']
+	Return()
+
+if sys.platform == 'darwin':
 	Return()
 
 files = [

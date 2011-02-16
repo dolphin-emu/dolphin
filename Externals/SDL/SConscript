@@ -3,11 +3,10 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
+if env.has_key('shared_sdl') and env['shared_sdl']:
 	Return()
 
-if env.has_key('shared_sdl') and env['shared_sdl']:
-	env['LIBS'] += ['SDL']
+if sys.platform == 'darwin':
 	Return()
 
 files = [
