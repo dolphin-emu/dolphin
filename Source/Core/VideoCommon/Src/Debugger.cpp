@@ -29,6 +29,11 @@
 //void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;
 
+GFXDebuggerBase *g_pdebugger = NULL;
+volatile bool GFXDebuggerPauseFlag = false;
+volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE;
+volatile int GFXDebuggerEventToPauseCount = 0;
+
 void GFXDebuggerUpdateScreen()
 {
 	// TODO: Implement this in a backend-independent way
