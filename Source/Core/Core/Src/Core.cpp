@@ -268,14 +268,16 @@ void Stop()  // - Hammertime!
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 	PowerPC::Stop();
-	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
+	// Kick it if it's waiting (code stepping wait loop)
+	CCPU::StepOpcode();
 
 	if (_CoreParameter.bCPUThread)
 	{
-		// Video_EnterLoop() should now exit so that EmuThread() will continue
-		// concurrently with the rest of the commands in this function. We no
-		// longer rely on Postmessage.
-		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
+		// Video_EnterLoop() should now exit so that EmuThread()
+		// will continue concurrently with the rest of the commands
+		// in this function. We no longer rely on Postmessage.
+		INFO_LOG(CONSOLE, "%s", StopMessage(true,
+			"Wait for Video Loop to exit ...").c_str());
 		g_video_backend->Video_ExitLoop();
 
 		// Wait until the CPU finishes exiting the main run loop
@@ -291,13 +293,15 @@ void Stop()  // - Hammertime!
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
 
-	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
+	INFO_LOG(CONSOLE, "%s",
+		StopMessage(true, "Stopping Emu thread ...").c_str());
 	g_EmuThread.join();	// Wait for emuthread to close. 
 
-	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
+	INFO_LOG(CONSOLE, "%s",
+		StopMessage(true, "Main thread stopped").c_str());
 
-	// Stop audio thread - Actually this does nothing when using HLE emulation.
-	// But stops the DSP Interpreter when using LLE emulation.
+	// Stop audio thread - Actually this does nothing when using HLE
+	// emulation, but stops the DSP Interpreter when using LLE emulation.
 	DSP::GetDSPEmulator()->DSP_StopSoundStream();
 	
 	// We must set up this flag before executing HW::Shutdown()
@@ -307,6 +311,10 @@ void Stop()  // - Hammertime!
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 	Pad::Shutdown();
 	Wiimote::Shutdown();
+
+	// In single core mode, this has already been called.
+	if (_CoreParameter.bCPUThread)
+		g_video_backend->Shutdown();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 }
@@ -450,10 +458,6 @@ void EmuThread()
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
-
-	// In single core mode, this has already been called.
-	if (_CoreParameter.bCPUThread)
-		g_video_backend->Shutdown();
 
 	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;
