@@ -182,18 +182,55 @@ bool IsCPUThread()
 // BootManager.cpp
 bool Init()
 {
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	if (g_EmuThread.joinable())
 	{
 		PanicAlertT("Emu Thread already running");
 		return false;
 	}
 
-	g_CoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	g_CoreStartupParameter = _CoreParameter;
 
-	// FIXME DEBUG_LOG(BOOT, dump_params());
+	INFO_LOG(OSREPORT, "Starting core = %s mode",
+		g_CoreStartupParameter.bWii ? "Wii" : "Gamecube");
+	INFO_LOG(OSREPORT, "CPU Thread separate = %s",
+		g_CoreStartupParameter.bCPUThread ? "Yes" : "No");
+
 	Host_SetWaitCursor(true);
+	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	emuThreadGoing.Init();
+
+	g_aspect_wide = _CoreParameter.bWii;
+	if (g_aspect_wide) 
+	{
+		IniFile gameIni;
+		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
+		gameIni.Get("Wii", "Widescreen", &g_aspect_wide,
+			!!SConfig::GetInstance().m_SYSCONF->
+				GetData<u8>("IPL.AR"));
+	}
+
+	HW::Init();	
+	DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
+		_CoreParameter.bWii, _CoreParameter.bDSPThread);
+	Pad::Initialize(g_pWindowHandle);
+	// Load and Init Wiimotes - only if we are booting in wii mode	
+	if (g_CoreStartupParameter.bWii)
+	{
+		Wiimote::Initialize(g_pWindowHandle);
+
+		// Activate wiimotes which don't have source set to "None"
+		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+			if (g_wiimote_sources[i])
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->
+					Activate(true);
+	}
+
+	// The hardware is initialized.
+	g_bHwInit = true;
 
 	// Start the emu thread 
 	g_EmuThread = std::thread(EmuThread);
@@ -203,6 +240,7 @@ bool Init()
 	emuThreadGoing.Shutdown();
 
 	Host_SetWaitCursor(false);
+
 	return true;
 }
 
@@ -247,6 +285,22 @@ void Stop()  // - Hammertime!
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 	g_EmuThread.join();	// Wait for emuthread to close. 
+
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
+
+	// Stop audio thread - Actually this does nothing when using HLE emulation.
+	// But stops the DSP Interpreter when using LLE emulation.
+	DSP::GetDSPEmulator()->DSP_StopSoundStream();
+	
+	// We must set up this flag before executing HW::Shutdown()
+	g_bHwInit = false;
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+	HW::Shutdown();
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+	Pad::Shutdown();
+	Wiimote::Shutdown();
+
+	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 }
 
 // Create the CPU thread. which would be a CPU + Video thread in Single Core mode.
@@ -301,8 +355,6 @@ void CpuThread()
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
-
 	cpuRunloopQuit.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
@@ -316,44 +368,13 @@ void EmuThread()
 			Common::SetCurrentThreadAffinity(2);  // Force to second core
 	}
 
-	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
-	INFO_LOG(OSREPORT, "CPU Thread separate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
-
-	HW::Init();	
-
 	emuThreadGoing.Set();
-
-	g_aspect_wide = _CoreParameter.bWii;
-	if (g_aspect_wide) 
-	{
-		IniFile gameIni;
-		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
-		gameIni.Get("Wii", "Widescreen", &g_aspect_wide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
-	}
 
 	// _CoreParameter.hMainWindow is first the m_Panel handle, then it is updated to have the new window handle,
 	// within g_video_backend->Initialize()
 	// TODO: that's ugly, change Initialize() to take m_Panel and return the new window handle
 	g_video_backend->Initialize();
 	g_pWindowHandle = _CoreParameter.hMainWindow;
-
-	DSP::GetDSPEmulator()->Initialize(g_pWindowHandle, _CoreParameter.bWii, _CoreParameter.bDSPThread);
-	
-	Pad::Initialize(g_pWindowHandle);
-
-	// Load and Init Wiimotes - only if we are booting in wii mode	
-	if (_CoreParameter.bWii)
-	{
-		Wiimote::Initialize(g_pWindowHandle);
-
-		// activate wiimotes which don't have source set to "None"
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
-			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
-	}
-
-	// The hardware is initialized.
-	g_bHwInit = true;
 
 	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
@@ -412,10 +433,6 @@ void EmuThread()
 		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 		cpuRunloopQuit.Wait();
 		INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
-		// On unix platforms, the Emulation main thread IS the CPU & video
-		// thread So there's only one thread, imho, that's much better than on
-		// windows :P
-		//CpuThread(pArg);
 	}
 
 	// We have now exited the Video Loop
@@ -432,25 +449,9 @@ void EmuThread()
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
 
-	// Stop audio thread - Actually this does nothing when using HLE emulation.
-	// But stops the DSP Interpreter when using LLE emulation.
-	DSP::GetDSPEmulator()->DSP_StopSoundStream();
-	
-	// We must set up this flag before executing HW::Shutdown()
-	g_bHwInit = false;
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-	HW::Shutdown();
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-
 	// In single core mode, this has already been called.
 	if (_CoreParameter.bCPUThread)
 		g_video_backend->Shutdown();
-
-	Pad::Shutdown();
-	Wiimote::Shutdown();
-
-	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
-	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
 	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;

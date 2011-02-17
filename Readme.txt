@@ -27,10 +27,10 @@ Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]
   -h, --help                	Show this help message
   -d, --debugger            	Opens the debugger
   -l, --logger              	Opens the logger
-  -e, --exec=<str>          	Loads the specified file (DOL, ELF, WAD, GCM, ISO)
+  -e, --exec=<str>          	Loads the specified file (DOL,ELF,WAD,GCM,ISO)
   -b, --batch             	Exit Dolphin with emulator
   -V, --video_backend=<str>  	Specify a video plugin
-  -A, --audio_emulation=<str>  	Specify low level (LLE) or high level (HLE) audio emulation
+  -A, --audio_emulation=<str>  	Low level (LLE) or high level (HLE) audio
 
 [Libraries]
 Cg: Cg Shading API (http://developer.nvidia.com/object/cg_toolkit.html)
