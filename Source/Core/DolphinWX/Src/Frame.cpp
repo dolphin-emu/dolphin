@@ -686,10 +686,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
-	wxMutexGuiEnter();
 	m_RenderParent->GetClientSize(&width, &height);
 	m_RenderParent->GetPosition(&x, &y);
-	wxMutexGuiLeave();
 }
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)

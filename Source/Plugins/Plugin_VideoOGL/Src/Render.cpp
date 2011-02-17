@@ -538,7 +538,7 @@ void Renderer::DrawDebugInfo()
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
 	if (g_ActiveConfig.bShowInputDisplay)
-		p+=sprintf(p, Frame::GetInputDisplay().c_str());
+		p+=sprintf(p, "%s", Frame::GetInputDisplay().c_str());
 
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
