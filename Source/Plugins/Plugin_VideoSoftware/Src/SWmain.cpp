@@ -174,9 +174,6 @@ void VideoBackend::Video_SetRendering(bool bEnabled)
 	Fifo_SetRendering(bEnabled);
 }
 
-void VideoBackend::Video_WaitForFrameFinish(void)
-{
-}
 
 bool VideoBackend::Video_IsPossibleWaitingSetDrawDone(void)
 {

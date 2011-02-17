@@ -58,5 +58,5 @@ void VideoCommon_DoState(PointerWrap &p)
 
 void VideoCommon_RunLoop(bool enable)
 {
-	Fifo_RunLoop(enable);
+	EmulatorState(enable);
 }

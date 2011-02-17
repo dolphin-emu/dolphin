@@ -72,7 +72,7 @@ struct SCPFifoStruct
 
 	// for GP watchdog hack
 	volatile u32 Fake_GPWDToken; // cicular incrementer
-	volatile u32 isFifoProcesingData;
+	volatile u32 isGpuReadingData;
 };
 
 class VideoBackend
@@ -114,7 +114,6 @@ public:
 
 	static void Video_GatherPipeBursted();
 
-	virtual void Video_WaitForFrameFinish() = 0;
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
 	virtual void Video_AbortFrame() = 0;
 
@@ -146,7 +145,6 @@ class VideoBackendHLE : public VideoBackend
 
 	void Video_SetRendering(bool bEnabled);
 
-	void Video_WaitForFrameFinish();
 	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
 };

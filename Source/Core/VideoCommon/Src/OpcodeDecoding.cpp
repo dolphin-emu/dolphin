@@ -90,8 +90,8 @@ DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<16>
 };
 
-extern u8* FAKE_GetFifoStartPtr();
-extern u8* FAKE_GetFifoEndPtr();
+extern u8* GetVideoBufferStartPtr();
+extern u8* GetVideoBufferEndPtr();
 
 static void Decode();
 
@@ -135,7 +135,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 
 bool FifoCommandRunnable()
 {
-	u32 buffer_size = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
+	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
     if (buffer_size == 0)
 		return false;  // can't peek
 
@@ -420,7 +420,7 @@ static void DecodeSemiNop()
 
 void OpcodeDecoder_Init()
 {	
-	g_pVideoData = FAKE_GetFifoStartPtr();
+	g_pVideoData = GetVideoBufferStartPtr();
 
 #if _M_SSE >= 0x301
 	if (cpu_info.bSSSE3)

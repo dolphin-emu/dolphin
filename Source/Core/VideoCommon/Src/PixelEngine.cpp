@@ -367,8 +367,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
 	if (_bSetTokenAcknowledge) // set token INT
 	{
-		// This seems smelly...
-		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
+
 		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 		CommandProcessor::interruptTokenWaiting = true;
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
@@ -389,7 +388,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");

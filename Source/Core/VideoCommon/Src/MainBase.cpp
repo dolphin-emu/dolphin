@@ -41,18 +41,18 @@ static u32 s_AccessEFBResult = 0;
 
 void VideoBackendHLE::EmuStateChange(EMUSTATE_CHANGE newState)
 {
-	Fifo_RunLoop((newState == EMUSTATE_CHANGE_PLAY) ? true : false);
+	EmulatorState((newState == EMUSTATE_CHANGE_PLAY) ? true : false);
 }
 
 // Enter and exit the video loop
 void VideoBackendHLE::Video_EnterLoop()
 {
-	Fifo_EnterLoop();
+	RunGpuLoop();
 }
 
 void VideoBackendHLE::Video_ExitLoop()
 {
-	Fifo_ExitLoop();
+	ExitGpuLoop();
 	s_FifoShuttingDown = true;
 }
 
@@ -231,11 +231,6 @@ void VideoFifo_CheckAsyncRequest()
 void VideoBackend::Video_GatherPipeBursted()
 {
 	CommandProcessor::GatherPipeBursted();
-}
-
-void VideoBackendHLE::Video_WaitForFrameFinish()
-{
-	CommandProcessor::WaitForFrameFinish();
 }
 
 bool VideoBackendHLE::Video_IsPossibleWaitingSetDrawDone()

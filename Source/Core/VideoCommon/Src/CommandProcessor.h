@@ -151,25 +151,15 @@ void Write16(const u16 _Data, const u32 _Address);
 void Read32(u32& _rReturnValue, const u32 _Address);
 void Write32(const u32 _Data, const u32 _Address);
 
-// for CGPFIFO
-void CatchUpGPU();
-void SetStatus();
+void SetCpStatus();
 void GatherPipeBursted();
-void UpdateFifoRegister();
 void UpdateInterrupts(u64 userdata);
 void UpdateInterruptsFromVideoBackend(u64 userdata);
-void UpdateInterruptsScMode();
-void SetFifoIdleFromVideoBackend();
 
 bool AllowIdleSkipping();
 
-// for DC GP watchdog hack
-void IncrementGPWDToken();
-void WaitForFrameFinish();
-
-void FifoCriticalEnter();
-void FifoCriticalLeave();
-
+void SetCpControlRegister();
+void SetCpStatusRegister();
 void SetOverflowStatusFromGatherPipe();
 void ProcessFifoToLoWatermark();
 void ProcessFifoAllDistance();
