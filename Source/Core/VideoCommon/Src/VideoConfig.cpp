@@ -67,6 +67,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);
 
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
+	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
 	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
@@ -143,6 +144,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
 
 	iniFile.GetIfExists("Video_Settings", "ShowFPS", &bShowFPS);
+	iniFile.GetIfExists("Video_Settings", "ShowInputDisplay", &bShowInputDisplay);
 	iniFile.GetIfExists("Video_Settings", "OverlayStats", &bOverlayStats);
 	iniFile.GetIfExists("Video_Settings", "OverlayProjStats", &bOverlayProjStats);
 	iniFile.GetIfExists("Video_Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions);
@@ -248,6 +250,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 
 	iniFile.Set("Settings", "ShowFPS", bShowFPS);
+	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
 	iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
@@ -326,6 +329,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 
 	SET_IF_DIFFERS("Video_Settings", "ShowFPS", bShowFPS);
+	SET_IF_DIFFERS("Video_Settings", "ShowInputDisplay", bShowInputDisplay);
 	SET_IF_DIFFERS("Video_Settings", "OverlayStats", bOverlayStats);
 	SET_IF_DIFFERS("Video_Settings", "OverlayProjStats", bOverlayProjStats);
 	SET_IF_DIFFERS("Video_Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);

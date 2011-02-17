@@ -51,6 +51,7 @@
 #include "DLCache.h"
 #include "Debugger.h"
 #include "Core.h"
+#include "OnFrame.h"
 
 namespace DX9
 {
@@ -1158,7 +1159,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		char fps[20];
 		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, fps);
+		D3D::font.DrawTextScaled(0, 0, 20, 20, 0.0f, 0xFF00FFFF, fps);
+	}
+
+	if (g_ActiveConfig.bShowInputDisplay)
+	{
+		char inputDisplay[1000];
+		StringCchPrintfA(inputDisplay, 1000, Frame::GetInputDisplay().c_str());
+		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
 	Renderer::DrawDebugText();
 

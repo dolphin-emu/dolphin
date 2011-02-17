@@ -142,6 +142,7 @@ protected:
 	SettingCheckBox* texfmt_overlay;
 	SettingCheckBox* efb_copy_regions;
 	SettingCheckBox* show_shader_errors;
+	SettingCheckBox* show_input_display;
 
 	SettingCheckBox* enable_xfb;
 	SettingRadioButton* virtual_xfb;

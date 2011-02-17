@@ -58,6 +58,7 @@
 #include "Fifo.h"
 #include "Debugger.h"
 #include "Core.h"
+#include "OnFrame.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -535,6 +536,9 @@ void Renderer::DrawDebugInfo()
 
 	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
+
+	if (g_ActiveConfig.bShowInputDisplay)
+		p+=sprintf(p, Frame::GetInputDisplay().c_str());
 
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{

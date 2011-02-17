@@ -60,6 +60,16 @@ int g_numRerecords = 0;
 std::string g_recordFile = "0.dtm";
 std::string g_tmpRecordFile = "1.dtm";
 
+std::string g_InputDisplay[4];
+
+std::string GetInputDisplay()
+{
+	std::string inputDisplay = "";
+	for (int i = 0; i < 4; ++i)
+		inputDisplay.append(g_InputDisplay[i]);
+	return inputDisplay; 
+}
+
 void FrameUpdate()
 {
 	g_frameCounter++;
@@ -229,6 +239,75 @@ bool BeginRecordingInput(int controllers)
 	return true;
 }
 
+void SetInputDisplayString(ControllerState padState, int controllerID)
+{
+	char inp[70];
+	sprintf(inp, "%dP:", controllerID + 1);
+	g_InputDisplay[controllerID] = inp;
+
+	sprintf(inp, " X: %d Y: %d rX: %d rY: %d L: %d R: %d", 
+		g_padState.AnalogStickX,
+		g_padState.AnalogStickY,
+		g_padState.CStickX,
+		g_padState.CStickY,
+		g_padState.TriggerL,
+		g_padState.TriggerR);
+	g_InputDisplay[controllerID].append(inp);
+
+	if(g_padState.A)
+	{
+		g_InputDisplay[controllerID].append(" A");
+	}
+	if(g_padState.B)
+	{
+		g_InputDisplay[controllerID].append(" B");
+	}
+	if(g_padState.X)
+	{
+		g_InputDisplay[controllerID].append(" X");
+	}
+	if(g_padState.Y)
+	{
+		g_InputDisplay[controllerID].append(" Y");
+	}
+	if(g_padState.Z)
+	{
+		g_InputDisplay[controllerID].append(" Z");
+	}
+	if(g_padState.Start)
+	{
+		g_InputDisplay[controllerID].append(" START");
+	}
+
+	if(g_padState.DPadUp)
+	{
+		g_InputDisplay[controllerID].append(" UP");
+	}
+	if(g_padState.DPadDown)
+	{
+		g_InputDisplay[controllerID].append(" DOWN");
+	}
+	if(g_padState.DPadLeft)
+	{
+		g_InputDisplay[controllerID].append(" LEFT");
+	}
+	if(g_padState.DPadRight)
+	{
+		g_InputDisplay[controllerID].append(" RIGHT");
+	}
+
+	if(g_padState.L)
+	{
+		g_InputDisplay[controllerID].append(" L");
+	}
+	if(g_padState.R)
+	{
+		g_InputDisplay[controllerID].append(" R");
+	}
+
+	g_InputDisplay[controllerID].append("\n");
+}
+
 void RecordInput(SPADStatus *PadStatus, int controllerID)
 {
 	if(!IsRecordingInput() || !IsUsingPad(controllerID))
@@ -258,6 +337,8 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.CStickY = PadStatus->substickY;
 	
 	fwrite(&g_padState, sizeof(ControllerState), 1, g_recordfd);
+
+	SetInputDisplayString(g_padState, controllerID);
 }
 
 void RecordWiimote(int wiimote, u8 *data, s8 size)
@@ -383,52 +464,76 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	// in the same order done during recording
 	if(!IsPlayingInput() || !IsUsingPad(controllerID))
 		return;
-	
+
 	memset(PadStatus, 0, sizeof(SPADStatus));
 	fread(&g_padState, sizeof(ControllerState), 1, g_recordfd);
 	
+	PadStatus->triggerLeft = g_padState.TriggerL;
+	PadStatus->triggerRight = g_padState.TriggerR;
+
+	PadStatus->stickX = g_padState.AnalogStickX;
+	PadStatus->stickY = g_padState.AnalogStickY;
+
+	PadStatus->substickX = g_padState.CStickX;
+	PadStatus->substickY = g_padState.CStickY;
+
 	PadStatus->button |= PAD_USE_ORIGIN;
 	
-	if(g_padState.A) {
+	if(g_padState.A)
+	{
 		PadStatus->button |= PAD_BUTTON_A;
 		PadStatus->analogA = 0xFF;
 	}
-	if(g_padState.B) {
+	if(g_padState.B)
+	{
 		PadStatus->button |= PAD_BUTTON_B;
 		PadStatus->analogB = 0xFF;
 	}
 	if(g_padState.X)
+	{
 		PadStatus->button |= PAD_BUTTON_X;
+	}
 	if(g_padState.Y)
+	{
 		PadStatus->button |= PAD_BUTTON_Y;
+	}
 	if(g_padState.Z)
+	{
 		PadStatus->button |= PAD_TRIGGER_Z;
+	}
 	if(g_padState.Start)
+	{
 		PadStatus->button |= PAD_BUTTON_START;
+	}
 	
 	if(g_padState.DPadUp)
+	{
 		PadStatus->button |= PAD_BUTTON_UP;
+	}
 	if(g_padState.DPadDown)
+	{
 		PadStatus->button |= PAD_BUTTON_DOWN;
+	}
 	if(g_padState.DPadLeft)
+	{
 		PadStatus->button |= PAD_BUTTON_LEFT;
+	}
 	if(g_padState.DPadRight)
+	{
 		PadStatus->button |= PAD_BUTTON_RIGHT;
+	}
 	
 	if(g_padState.L)
+	{
 		PadStatus->button |= PAD_TRIGGER_L;
+	}
 	if(g_padState.R)
+	{
 		PadStatus->button |= PAD_TRIGGER_R;
-	
-	PadStatus->triggerLeft = g_padState.TriggerL;
-	PadStatus->triggerRight = g_padState.TriggerR;
-	
-	PadStatus->stickX = g_padState.AnalogStickX;
-	PadStatus->stickY = g_padState.AnalogStickY;
-	
-	PadStatus->substickX = g_padState.CStickX;
-	PadStatus->substickY = g_padState.CStickY;
-	
+	}
+
+	SetInputDisplayString(g_padState, controllerID);
+
 	if(feof(g_recordfd) || g_frameCounter >= g_totalFrameCount)
 	{
 		Core::DisplayMessage("Movie End", 2000);

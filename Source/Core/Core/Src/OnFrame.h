@@ -19,7 +19,7 @@
 #define __FRAME_H
 
 #include "Common.h"
-#include "GCPadStatus.h"
+#include "../../InputCommon/Src/GCPadStatus.h"
 
 #include <string>
 
@@ -125,6 +125,7 @@ bool PlayWiimote(int wiimote, u8* data, s8 &size);
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 
+std::string GetInputDisplay();
 };
 
 #endif // __FRAME_H

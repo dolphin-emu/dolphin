@@ -109,6 +109,7 @@ wxString disable_textures_tooltip = wxTRANSLATE("Disable texturing.\nThis is onl
 wxString disable_fog_tooltip = wxTRANSLATE("Disable fog. Improves performance but causes glitches in games which rely on proper fog emulation.");
 wxString disable_alphapass_tooltip = wxTRANSLATE("Disables an alpha-setting pass.\nBreaks certain effects but might help performance.");
 wxString show_fps_tooltip = wxTRANSLATE("Show the number of frames rendered per second.");
+wxString show_input_display_tooltip = wxTRANSLATE("Display the inputs read by the emulator.");
 wxString show_stats_tooltip = wxTRANSLATE("Show various statistics.\nThis is only useful for debugging purposes.");
 wxString proj_stats_tooltip = wxTRANSLATE("Show projection statistics.\nThis is only useful for debugging purposes.");
 wxString texfmt_tooltip = wxTRANSLATE("Modify textures to show the format they're using.\nThis is only useful for debugging purposes.");
@@ -379,6 +380,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_info->Add(texfmt_overlay = new SettingCheckBox(page_advanced, _("Texture Format"), wxGetTranslation(texfmt_tooltip), vconfig.bTexFmtOverlayEnable));
 	szr_info->Add(efb_copy_regions = new SettingCheckBox(page_advanced, _("EFB Copy Regions"), wxGetTranslation(efb_copy_regions_tooltip), vconfig.bShowEFBCopyRegions));
 	szr_info->Add(show_shader_errors = new SettingCheckBox(page_advanced, _("Show Shader Errors"), wxT(""), vconfig.bShowShaderErrors));
+	szr_info->Add(show_input_display = new SettingCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_tooltip), vconfig.bShowInputDisplay));
 
 	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Information"));
 	szr_advanced->Add(group_info, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -606,6 +608,7 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	texfmt_overlay->SetValue(vconfig.bTexFmtOverlayEnable);
 	efb_copy_regions->SetValue(vconfig.bShowEFBCopyRegions);
 	show_shader_errors->SetValue(vconfig.bShowShaderErrors);
+	show_input_display->SetValue(vconfig.bShowInputDisplay);
 
 	enable_xfb->SetValue(vconfig.bUseXFB);
 	virtual_xfb->SetValue(!vconfig.bUseRealXFB);
