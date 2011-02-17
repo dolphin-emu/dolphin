@@ -38,6 +38,7 @@
 #include "DebugUtil.h"
 #include "FileUtil.h"
 #include "VideoBackend.h"
+#include "../../../Core/VideoCommon/Src/Fifo.h"
 
 namespace SW
 {
@@ -153,12 +154,12 @@ bool VideoBackend::Video_Screenshot(const char *_szFilename)
 // -------------------------------
 void VideoBackend::Video_EnterLoop()
 {
-	Fifo_EnterLoop();
+	EmulatorState(true);
 }
 
 void VideoBackend::Video_ExitLoop()
 {
-	Fifo_ExitLoop();
+	ExitGpuLoop();
 }
 
 void VideoBackend::Video_AddMessage(const char* pstr, u32 milliseconds)
