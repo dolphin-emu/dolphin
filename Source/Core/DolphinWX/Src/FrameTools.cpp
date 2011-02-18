@@ -1231,9 +1231,8 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigLogger(wxCommandEvent& WXUNUSED (event))
 {
-	LogConfigDiag m_LogConfigDiag(this, m_LogWindow);
-	m_LogConfigDiag.ShowModal();
-	m_LogConfigDiag.Destroy();
+	LogConfigDiag *m_LogConfigDiag = new LogConfigDiag(this, m_LogWindow);
+	m_LogConfigDiag->Show();
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)

@@ -22,11 +22,11 @@
 #include "FileUtil.h"
 
 #define _connect_macro_(b, f, c, s) \
-	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
+	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
 LogConfigDiag::LogConfigDiag(wxWindow* parent, CLogWindow *log_window)
 	: wxDialog(parent, wxID_ANY, _("Logger Configuration"), wxDefaultPosition, wxDefaultSize)
-	, m_LogWindow(log_window)
+	, m_LogWindow(log_window), enableAll(true)
 {
 	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(LogConfigDiag::OnClose), (wxObject*)0, this);
 	m_LogManager = LogManager::GetInstance();
@@ -121,6 +121,7 @@ void LogConfigDiag::LoadSettings()
 	{
 		bool log_enabled;
 		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
+		if (log_enabled) enableAll=false;
 		m_checks->Check(i, log_enabled);
 	}
 }
@@ -194,11 +195,9 @@ void LogConfigDiag::OnWriteWindowChecked(wxCommandEvent& event)
 
 void LogConfigDiag::OnToggleAll(wxCommandEvent& WXUNUSED(event))
 {
-	static bool enableAll = false;
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		ToggleLog(i, enableAll);
 
-	SaveSettings();
 	enableAll = !enableAll;
 }
 
@@ -231,8 +230,6 @@ void LogConfigDiag::OnLogCheck(wxCommandEvent& event)
 {
 	int i = event.GetInt();
 	ToggleLog(i, m_checks->IsChecked(i));
-
-	SaveSettings();
 }
 
 void LogConfigDiag::OnClickClose(wxCommandEvent& WXUNUSED(event))
@@ -240,8 +237,8 @@ void LogConfigDiag::OnClickClose(wxCommandEvent& WXUNUSED(event))
 	Close();
 }
 
-void LogConfigDiag::OnClose(wxCloseEvent& WXUNUSED(event))
+void LogConfigDiag::OnClose(wxCloseEvent& event)
 {
 	SaveSettings();
-	EndModal(wxID_CLOSE);
+	event.Skip();
 }

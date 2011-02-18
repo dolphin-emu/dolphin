@@ -197,6 +197,10 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 		const wxPoint& pos, const wxSize& size,	long style)
 	: wxFrame(parent, id, title, pos, size, style)
 {
+	// Give it an icon
+	wxIcon IconTemp;
+	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
+	SetIcon(IconTemp);
 }
 
 #ifdef _WIN32
@@ -374,11 +378,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Create toolbar bitmaps
 	InitBitmaps();
-
-	// Give it an icon
-	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
-	SetIcon(IconTemp);
 
 	// Give it a status bar
 	SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));

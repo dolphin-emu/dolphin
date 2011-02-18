@@ -37,6 +37,7 @@ private:
 	LogManager *m_LogManager;
 	CLogWindow *m_LogWindow;
 	bool m_writeFile, m_writeConsole, m_writeWindow;
+	bool enableAll;
 
 	// Controls
 	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
