@@ -60,6 +60,7 @@
     <Midl />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <msgfmt Include="cs.po" />
     <msgfmt Include="da.po" />
     <msgfmt Include="de.po" />
     <msgfmt Include="el.po" />
@@ -81,6 +82,7 @@
     <msgfmt Include="zh_TW.po" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cs.po" />
     <None Include="da.po" />
     <None Include="de.po" />
     <None Include="el.po" />

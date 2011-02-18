@@ -82,7 +82,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 
 // TODO: implement some hack to increase the tooltip display duration, because some of these are way too long for anyone to read in 5 seconds.
 
-wxString profile_tooltip = wxTRANSLATE("Selects which game should be affect by the configuration changes done in this dialog.\nThe (Default) profile affects the standard settings used for every game.");
+wxString profile_tooltip = wxTRANSLATE("Selects which game should be affected by the configuration changes done in this dialog.\nThe (Default) profile affects the standard settings used for every game.");
 wxString adapter_tooltip = wxTRANSLATE("Select a hardware adapter to use.\nWhen in doubt, use the first one");
 wxString ar_tooltip = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio (4:3)\nForce 16:9: Stretch the picture to an aspect ratio of 16:9.\nForce 4:3: Stretch the picture to an aspect ratio of 4:3.\nStretch to window: Stretch the picture to the window size.");
 wxString ws_hack_tooltip = wxTRANSLATE("Force the game to output graphics for widescreen resolutions.\nNote that this might cause graphical glitches");

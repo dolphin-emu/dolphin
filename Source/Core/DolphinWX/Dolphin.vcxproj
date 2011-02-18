@@ -239,6 +239,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\ISOFile.cpp" />
     <ClCompile Include="Src\ISOProperties.cpp" />
     <ClCompile Include="Src\Debugger\JitWindow.cpp" />
+    <ClCompile Include="Src\LogConfigDiag.cpp" />
     <ClCompile Include="Src\LogWindow.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\MainNoGUI.cpp">
@@ -298,6 +299,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\ISOFile.h" />
     <ClInclude Include="Src\ISOProperties.h" />
     <ClInclude Include="Src\Debugger\JitWindow.h" />
+    <ClInclude Include="Src\LogConfigDiag.h" />
     <ClInclude Include="Src\LogWindow.h" />
     <ClInclude Include="Src\Main.h" />
     <ClInclude Include="Src\MemcardManager.h" />

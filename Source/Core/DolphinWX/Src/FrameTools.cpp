@@ -50,6 +50,7 @@ Core::GetWindowHandle().
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "LogWindow.h"
+#include "LogConfigDiag.h"
 #include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
@@ -188,9 +189,10 @@ void CFrame::CreateMenu()
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&DSP Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("&Gamecube Pad Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("Gamecube &Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_LOGGER, _("&Logger Settings"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -1225,6 +1227,13 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	m_HotkeyDialog->Destroy();
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
+}
+
+void CFrame::OnConfigLogger(wxCommandEvent& WXUNUSED (event))
+{
+	LogConfigDiag m_LogConfigDiag(this, m_LogWindow);
+	m_LogConfigDiag.ShowModal();
+	m_LogConfigDiag.Destroy();
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)

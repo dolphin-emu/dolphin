@@ -76,12 +76,9 @@ private:
 	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
 
 	// Controls
-	wxBoxSizer *sUber, *sLeft, *sRight, *sRightBottom;
+	wxBoxSizer *sBottom;
 	wxTextCtrl *m_Log, *m_cmdline;
 	wxChoice * m_FontChoice;
-	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
-	wxCheckListBox* m_checks;
-	wxRadioBox *m_verbosity;
 
 	Common::CriticalSection m_LogSection;
 
@@ -95,14 +92,10 @@ private:
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSubmit(wxCommandEvent& event);
-	void OnOptionsCheck(wxCommandEvent& event);
-	void OnLogCheck(wxCommandEvent& event);
+	void OnFontChange(wxCommandEvent& event);
+	void OnWrapLineCheck(wxCommandEvent& event);
 	void OnClear(wxCommandEvent& event);
-	void OnToggleAll(wxCommandEvent& event);
 	void OnLogTimer(wxTimerEvent& WXUNUSED(event));
-
-	void ToggleLog(int _logType, bool enable);
-	void UpdateChecks();
 	void UpdateLog();
 
 	// LogListener

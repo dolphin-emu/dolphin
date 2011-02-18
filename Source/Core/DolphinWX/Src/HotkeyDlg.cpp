@@ -284,7 +284,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 						SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[i]));
 
 			wxBoxSizer *sHotkey = new wxBoxSizer(wxHORIZONTAL);
-			sHotkey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALL, 2);
+			sHotkey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
 			sHotkey->AddStretchSpacer();
 			sHotkey->Add(m_Button_Hotkeys[i], 0, wxALL, 2);
 			sHotkeys->Add(sHotkey,
