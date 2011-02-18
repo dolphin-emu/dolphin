@@ -126,7 +126,8 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 
 void DisplayMessage(const std::string &message, int time_in_ms)
 {
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_video_backend->Video_AddMessage(message.c_str(), time_in_ms);
 	if (_CoreParameter.bRenderToMain &&
@@ -138,7 +139,8 @@ void DisplayMessage(const std::string &message, int time_in_ms)
 
 void DisplayMessage(const char *message, int time_in_ms)
 {
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
 	if (_CoreParameter.bRenderToMain &&
@@ -255,7 +257,8 @@ bool Init()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
 	g_bStopping = true;
 	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
 
@@ -311,19 +314,16 @@ void Stop()  // - Hammertime!
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 	Pad::Shutdown();
 	Wiimote::Shutdown();
-
-	// In single core mode, this has already been called.
-	if (_CoreParameter.bCPUThread)
-		g_video_backend->Shutdown();
+	g_video_backend->Shutdown();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 }
 
-// Create the CPU thread. which would be a CPU + Video thread in Single Core mode.
-
+// Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 void CpuThread()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -331,22 +331,15 @@ void CpuThread()
 	}
 	else
 	{
-		g_video_backend->Video_Prepare();
 		Common::SetCurrentThreadName("CPU-GPU thread");
+		g_video_backend->Video_Prepare();
 	}
 
 	if (_CoreParameter.bLockThreads)
 		Common::SetCurrentThreadAffinity(1);  // Force to first core
 
 	if (_CoreParameter.bUseFastMem)
-	{
-		#ifdef _M_X64
-			// Let's run under memory watch
-			EMM::InstallExceptionHandler();
-		#else
-			PanicAlertT("32-bit platforms do not support fastmem yet. Report this bug.");
-		#endif
-	}
+		EMM::InstallExceptionHandler(); // Let's run under memory watch
 
 	if (!g_stateFileName.empty())
 		State_LoadAs(g_stateFileName);
@@ -354,34 +347,29 @@ void CpuThread()
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
-	// The shutdown function of OpenGL is not thread safe
-	// So we have to call the shutdown from the thread that started it.
-	if (!_CoreParameter.bCPUThread)
-	{
-		g_video_backend->Shutdown();
-	}
-
 	cpuRunloopQuit.Set();
 
 	return;
 }
 
-
 // Initalize and create emulation thread
-// Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
+// Call browser: Init():g_EmuThread().
+// See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	cpuRunloopQuit.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (_CoreParameter.bLockThreads)
 	{
-		if (cpu_info.num_cores > 3)
-			Common::SetCurrentThreadAffinity(4);  // Force to third, non-HT core
-		else
-			Common::SetCurrentThreadAffinity(2);  // Force to second core
+		if (cpu_info.num_cores > 3)	// Force to third, non-HT core
+			Common::SetCurrentThreadAffinity(4);
+		else				// Force to second core
+			Common::SetCurrentThreadAffinity(2);
 	}
 
 	emuThreadGoing.Set();
@@ -394,7 +382,8 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
+	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
+					_CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -404,10 +393,8 @@ void EmuThread()
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
-		// This thread, after creating the EmuWindow, spawns a CPU thread,
-		// and then takes over and becomes the video thread
-
-		g_video_backend->Video_Prepare(); // wglMakeCurrent
+		// This thread, after creating the EmuWindow, spawns a CPU
+		// thread, and then takes over and becomes the video thread
 		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Video thread");
 
@@ -415,14 +402,16 @@ void EmuThread()
 		Host_UpdateDisasmDialog();
 		Host_UpdateMainFrame();
 
+		g_video_backend->Video_Prepare();
 		g_video_backend->Video_EnterLoop();
 	}
 	else // SingleCore mode
 	{
-		// the spawned CPU Thread also does the graphics.  the EmuThread is
-		// thus an idle thread, which sleep wait for the program to terminate.
-		// Without this extra thread, the video backend window hangs in single
-		// core mode since noone is pumping messages.
+		// The spawned CPU Thread also does the graphics.
+		// The EmuThread is thus an idle thread, which sleeps while
+		// waiting for the program to terminate. Without this extra
+		// thread, the video backend window hangs in single core mode
+		// because noone is pumping messages.
 
 		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Emuthread - Idle");
@@ -431,8 +420,6 @@ void EmuThread()
 		Host_UpdateDisasmDialog();
 		Host_UpdateMainFrame();
 
-		// TODO(ector) : investigate using GetMessage instead .. although
-		// then we lose the powerdown check. ... unless powerdown sends a message :P
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
@@ -440,13 +427,16 @@ void EmuThread()
 		}
 
 		// Wait for CpuThread to exit
-		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true,
+			"Stopping CPU-GPU thread ...").c_str());
 		cpuRunloopQuit.Wait();
-		INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true,
+			"CPU thread stopped.").c_str());
 	}
 
 	// We have now exited the Video Loop
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	INFO_LOG(CONSOLE, "%s",
+		StopMessage(false, "Stop() and Video Loop Ended").c_str());
 
 	// At this point, the CpuThread has already returned in SC mode.
 	// But it may still be waiting in Dual Core mode.
@@ -692,7 +682,8 @@ void Callback_DSPInterrupt()
 //
 const char *Callback_ISOName()
 {
-	SCoreStartupParameter& params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& params =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (params.m_strName.length() > 0)
 		return params.m_strName.c_str();
 	else	
