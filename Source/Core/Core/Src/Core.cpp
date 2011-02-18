@@ -393,6 +393,8 @@ void EmuThread()
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
+		g_video_backend->Video_Prepare();
+
 		// This thread, after creating the EmuWindow, spawns a CPU
 		// thread, and then takes over and becomes the video thread
 		cpuThread = std::thread(CpuThread);
@@ -402,7 +404,6 @@ void EmuThread()
 		Host_UpdateDisasmDialog();
 		Host_UpdateMainFrame();
 
-		g_video_backend->Video_Prepare();
 		g_video_backend->Video_EnterLoop();
 	}
 	else // SingleCore mode

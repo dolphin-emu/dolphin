@@ -91,6 +91,8 @@ private:
 class NetPlayUI
 {
 public:
+	virtual ~NetPlayUI() {};
+
 	virtual void BootGame(const std::string& filename) = 0;
 	virtual void StopGame() = 0;
 
