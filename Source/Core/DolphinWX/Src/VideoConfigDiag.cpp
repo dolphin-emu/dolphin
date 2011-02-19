@@ -186,16 +186,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_basic->Add(profile_cb, 1, 0, 0);
 
 	profile_cb->AppendString(_("(Default)"));
-	wxArrayString arrayStringFor_GameNames;
 	for (int index = 0; ; ++index)
 	{
+		// TODO: Sort these alphabetically
 		const GameListItem* item = main_frame->GetGameListItem(index);
 		if (item == NULL) break;
-		arrayStringFor_GameNames.Add(wxString(item->GetName(0).c_str(), wxConvUTF8));
+		profile_cb->AppendString(wxString(item->GetName(0).c_str(), wxConvUTF8));
 	}
-	arrayStringFor_GameNames.Sort();
-	for (unsigned int index = 0; index < arrayStringFor_GameNames.GetCount(); ++index)
-		profile_cb->AppendString(arrayStringFor_GameNames[index]);
 
 	profile_cb->Select(cur_profile);
 	_connect_macro_(profile_cb, VideoConfigDiag::Event_OnProfileChange, wxEVT_COMMAND_CHOICE_SELECTED, this);
