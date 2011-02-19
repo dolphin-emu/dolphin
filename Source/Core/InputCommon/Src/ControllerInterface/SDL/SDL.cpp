@@ -105,15 +105,15 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// constant effect
 		if ( supported_effects & SDL_HAPTIC_CONSTANT )
 		{
-			outputs.push_back( new ConstantEffect( m_state_out.size() ) );
-			AddOutput( EffectIDState() );
+			AddOutput( new ConstantEffect( m_state_out.size() ) );
+			m_state_out.push_back( EffectIDState() );
 		}
 
 		// ramp effect
 		if ( supported_effects & SDL_HAPTIC_RAMP )
 		{
-			outputs.push_back( new RampEffect( m_state_out.size() ) );
-			AddOutput( EffectIDState() );
+			AddOutput( new RampEffect( m_state_out.size() ) );
+			m_state_out.push_back( EffectIDState() );
 		}
 	}
 #endif
