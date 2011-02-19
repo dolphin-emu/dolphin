@@ -175,7 +175,12 @@ void VideoBackend::Initialize()
 
 	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
 	s_BackendInitialized = true;
+}
 
+// This is called after Initialize() from the Core
+// Run from the graphics thread
+void VideoBackend::Video_Prepare()
+{
 	OpenGL_MakeCurrent();
 
 	g_renderer = new Renderer;
@@ -202,13 +207,6 @@ void VideoBackend::Initialize()
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
 	DLCache::Init();
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
-	OpenGL_MakeCurrent();
 
 	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
