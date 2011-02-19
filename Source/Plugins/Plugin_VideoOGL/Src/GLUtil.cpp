@@ -489,7 +489,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 			if (GLWin.vi == NULL)
 			{
 				ERROR_LOG(VIDEO, "Could not choose visual (glXChooseVisual)");
-				exit(0);
+				return false;
 			}
 		}
 	}
@@ -501,7 +501,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	if (!GLWin.ctx)
 	{
 		PanicAlert("Couldn't Create GLX context.Quit");
-		exit(0); // TODO: Don't bring down entire Emu
+		return false;
 	}
 
 	GLWin.x = _tx;

@@ -89,6 +89,14 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 }
 #endif
 
+bool DolphinApp::Initialize(int& c, wxChar **v)
+{
+#if defined HAVE_X11 && HAVE_X11
+	XInitThreads();
+#endif 
+	return wxApp::Initialize(c, v);
+}
+
 // The `main program' equivalent that creates the main window and return the main frame 
 
 bool DolphinApp::OnInit()
@@ -327,10 +335,6 @@ bool DolphinApp::OnInit()
 				UseDebugger, BatchMode, UseLogger);
 	SetTopWindow(main_frame);
 	main_frame->SetMinSize(wxSize(400, 300));
-
-#if defined HAVE_X11 && HAVE_X11
-	XInitThreads();
-#endif 
 
 	// Postpone final actions until event handler is running.
 	// Updating the game list makes use of wxProgressDialog which may

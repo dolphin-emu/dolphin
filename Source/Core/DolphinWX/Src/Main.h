@@ -31,6 +31,7 @@ private:
 	bool OnInit();
 	int OnExit();
 	void OnFatalException();
+	bool Initialize(int& c, wxChar **v);
 	void InitLanguageSupport();
 	void MacOpenFile(const wxString &fileName);
 
