@@ -67,12 +67,13 @@ private:
 	ConsoleListener *m_console;
 	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
-	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
+	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess, m_bWrapLines;
 
 	// Controls
 	wxBoxSizer *sBottom;
 	wxTextCtrl *m_Log, *m_cmdline;
-	wxChoice * m_FontChoice;
+	wxChoice *m_FontChoice;
+	wxCheckBox *m_WrapLine;
 
 	Common::CriticalSection m_LogSection;
 
@@ -88,6 +89,7 @@ private:
 	void OnSubmit(wxCommandEvent& event);
 	void OnFontChange(wxCommandEvent& event);
 	void OnWrapLineCheck(wxCommandEvent& event);
+	void ToggleWrapLine(bool word_wrap);
 	void OnClear(wxCommandEvent& event);
 	void OnLogTimer(wxTimerEvent& WXUNUSED(event));
 	void UpdateLog();

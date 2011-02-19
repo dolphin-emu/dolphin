@@ -15,35 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Setup.h" // Common
-
-#include "NetWindow.h"
-
 #include "Common.h" // Common
-#include "FileUtil.h"
-#include "FileSearch.h"
-#include "Timer.h"
+#include "ConsoleListener.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
-#include "ConfigMain.h"
-#include "CheatsWindow.h"
-#include "AboutDolphin.h"
-#include "GameListCtrl.h"
-#include "BootManager.h"
 #include "LogWindow.h"
-#include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
-#include "ConsoleListener.h"
-#include "Core.h"
-#include "OnFrame.h"
-#include "HW/DVDInterface.h"
-#include "State.h"
-#include "VolumeHandler.h"
-#include "NANDContentLoader.h"
-
-#include <wx/datetime.h> // wxWidgets
 
 // ------------
 // Aui events

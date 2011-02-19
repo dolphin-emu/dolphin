@@ -69,6 +69,9 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 
 	LoadSettings();
 
+	m_WrapLine->SetValue(m_bWrapLines);
+	ToggleWrapLine(m_bWrapLines);
+
 	m_LogTimer = new wxTimer(this, IDTM_UPDATELOG);
 	m_LogTimer->Start(UPDATETIME);
 }
@@ -88,8 +91,7 @@ void CLogWindow::CreateGUIControls()
 	LogFont.push_back(MonoSpaceFont);
 	LogFont.push_back(DebuggerFont);
 
-	// Line wrap
-	wxCheckBox * m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, _("Word Wrap"));
+	m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, _("Word Wrap"));
 
 	// Log viewer and submit row
 	m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
@@ -154,6 +156,7 @@ void CLogWindow::SaveSettings()
 		ini.Set("LogWindow", "pos", winpos);
 	}
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());
+	ini.Set("Options", "WrapLines", m_bWrapLines);
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
@@ -175,6 +178,8 @@ void CLogWindow::LoadSettings()
 	m_FontChoice->SetSelection(font);
 	if (m_FontChoice->GetSelection() < (int)LogFont.size())
 		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[m_FontChoice->GetSelection()]));
+
+	ini.Get("Options", "WrapLines", &m_bWrapLines, false);
 
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
@@ -265,11 +270,17 @@ void CLogWindow::OnFontChange(wxCommandEvent& event)
 // When an option is changed, save the change
 void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 {
-	wxString Text;
+	m_bWrapLines ^= true;
+	ToggleWrapLine(event.IsChecked());
+	SaveSettings();
+}
 
+void CLogWindow::ToggleWrapLine(bool word_wrap)
+{
 #ifdef __WXGTK__
 	m_Log->SetWindowStyleFlag(m_Log->GetWindowStyleFlag() ^ (wxTE_WORDWRAP | wxTE_DONTWRAP));
 #else
+	wxString Text;
 	// Unfortunately wrapping styles can only be changed dynamically with wxGTK
 	// Notice:	To retain the colors when changing word wrapping we need to
 	//			loop through every letter with GetStyle and then reapply them letter by letter
@@ -278,7 +289,7 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 	UnPopulateRight();
 	Text = m_Log->GetValue();
 	m_Log->Destroy();
-	if (event.IsChecked())
+	if (word_wrap)
 		m_Log = CreateTextCtrl(this, IDM_LOG,
 				wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
 	else
@@ -289,8 +300,6 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 	PopulateRight();
 	m_LogAccess = true;
 #endif
-
-	SaveSettings();
 }
 
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
