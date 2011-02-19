@@ -1004,14 +1004,11 @@
 /* The number of bytes in a short.  */
 #define SIZEOF_SHORT 2
 
-/* The number of bytes in a size_t.  */
-#define SIZEOF_SIZE_T 4
-
-/* Define if size_t on your machine is the same type as unsigned int. */
+#ifdef __LP64__
+#define wxSIZE_T_IS_ULONG 1
+#else
 #define wxSIZE_T_IS_UINT 1
-
-/* Define if size_t on your machine is the same type as unsigned long. */
-/* #undef wxSIZE_T_IS_ULONG */
+#endif
 
 /* Define if wchar_t is distinct type in your compiler. */
 #define wxWCHAR_T_IS_REAL_TYPE 1
