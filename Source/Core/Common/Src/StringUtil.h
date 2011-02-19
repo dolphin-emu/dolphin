@@ -51,9 +51,9 @@ template <typename I>
 std::string ThousandSeparate(I value, int spaces = 0)
 {
 	std::ostringstream oss;
-#ifdef __APPLE__
-	oss.imbue(std::locale());
-#else
+
+// std::locale("") seems to be broken on many platforms
+#if defined _WIN32 || (defined __linux__ && !defined __clang__)
 	oss.imbue(std::locale(""));
 #endif
 	oss << std::setw(spaces) << value;
