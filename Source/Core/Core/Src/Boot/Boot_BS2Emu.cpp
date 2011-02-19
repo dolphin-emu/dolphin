@@ -258,10 +258,12 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
 	Memory::Write_U32(0x00000011, 0x00003138);		// Console type
 	// 40 is copied from 88 after running apploader
-	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format
+	Memory::Write_U32(0x00090204, 0x00003140);		// IOS revision (IOS9, v2.4)
+	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format (June 25, 2007)
 	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
 	Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
 	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
+	Memory::Write_U32(0x00090204, 0x00003188);		// Expected IOS revision
 
 	Memory::Write_U8(0x80, 0x0000315c);				// OSInit
 	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
