@@ -134,7 +134,7 @@ class CFrame : public CRenderFrame
 		void ToggleDisplayMode (bool bFullscreen);
 		static void ConnectWiimote(int wm_idx, bool connect);
 
-		const GameListItem *GetGameListItem(int index) const;
+		const CGameListCtrl *GetGameListCtrl() const;
 
 		#ifdef __WXGTK__
 		Common::Event panic_event;

@@ -62,6 +62,8 @@ private:
 	int &m_setting;
 };
 
+class CGameListCtrl;
+
 class VideoConfigDiag : public wxDialog
 {
 public:
@@ -173,6 +175,7 @@ protected:
 	VideoConfig vconfig;
 	std::string ininame;
 	int cur_profile;
+	const CGameListCtrl *GameListCtrl;
 };
 
 #endif

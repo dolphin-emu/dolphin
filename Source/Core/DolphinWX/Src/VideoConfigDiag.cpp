@@ -7,6 +7,7 @@
 
 #include "Frame.h"
 #include "ISOFile.h"
+#include "GameListCtrl.h"
 
 #include "ConfigManager.h"
 #include "Core.h"
@@ -70,9 +71,9 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	}
 	else
 	{
-		const GameListItem* item = main_frame->GetGameListItem(cur_profile-1);
+		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniSave((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str(), 
-							(std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
+				(std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
 	}
 
 	EndModal(wxID_OK);
@@ -138,6 +139,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	, choice_adapter(NULL)
 	, choice_ppshader(NULL)
 	, ininame(_ininame)
+	, GameListCtrl(main_frame->GetGameListCtrl())
 {
 	// TODO: Make this less hacky
 	vconfig = g_Config; // take over backend_info
@@ -147,13 +149,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	if (Core::isRunning())
 	{
 		// Search which ISO has been started
-		for (int index = 0; ; ++index)
+		for (long index = GameListCtrl->GetNextItem(-1); index != -1; index = GameListCtrl->GetNextItem(index))
 		{
-			const GameListItem* item = main_frame->GetGameListItem(index);
-			if (item == NULL) break;
+			const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
 			if (item->GetUniqueID() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
 			{
-				cur_profile = index+1;
+				cur_profile = index + 1;
 				break;
 			}
 		}
@@ -163,7 +164,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 	if (cur_profile != 0)
 	{
-		const GameListItem* item = main_frame->GetGameListItem(cur_profile-1);
+		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniLoad((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
 	}
 
@@ -186,11 +187,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_basic->Add(profile_cb, 1, 0, 0);
 
 	profile_cb->AppendString(_("(Default)"));
-	for (int index = 0; ; ++index)
+	for (long index = GameListCtrl->GetNextItem(-1); index != -1; index = GameListCtrl->GetNextItem(index))
 	{
-		// TODO: Sort these alphabetically
-		const GameListItem* item = main_frame->GetGameListItem(index);
-		if (item == NULL) break;
+		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
 		profile_cb->AppendString(wxString(item->GetName(0).c_str(), wxConvUTF8));
 	}
 
@@ -486,9 +485,9 @@ void VideoConfigDiag::Event_OnProfileChange(wxCommandEvent& ev)
 	}
 	else
 	{
-		const GameListItem* item = main_frame->GetGameListItem(cur_profile-1);
+		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniSave((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str(), 
-							(std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
+				(std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
 	}
 
 	// Enable new profile
@@ -500,7 +499,7 @@ void VideoConfigDiag::Event_OnProfileChange(wxCommandEvent& ev)
 	// Load game-specific settings
 	if (cur_profile != 0)
 	{
-		const GameListItem* item = main_frame->GetGameListItem(cur_profile-1);
+		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniLoad((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
 	}
 
@@ -550,7 +549,8 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 	else if (cur_profile != 0)
 	{
 		// TODO: Modifying the default profile should update g_Config as well
-		if (main_frame->GetGameListItem(cur_profile-1)->GetUniqueID() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
+		if (GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1))->GetUniqueID() ==
+					SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
 			g_Config = vconfig;
 	}
 
