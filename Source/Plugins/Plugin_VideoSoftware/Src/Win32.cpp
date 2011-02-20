@@ -164,10 +164,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		}
 		break;
 
-	case WM_DESTROY:
-		g_video_backend->Shutdown();
-		break;
-
 	// Called when a screensaver wants to show up while this window is active
 	case WM_SYSCOMMAND:
 		switch (wParam) 

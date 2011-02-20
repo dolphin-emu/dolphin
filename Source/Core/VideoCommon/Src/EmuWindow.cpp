@@ -221,9 +221,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		PostMessage(m_hParent, WM_USER, WM_USER_SETCURSOR, 0);
 		return true;
 
-	case WM_DESTROY:
-		g_video_backend->Shutdown();
-		break;
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
