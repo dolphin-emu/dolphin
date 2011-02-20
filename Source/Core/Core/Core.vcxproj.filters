@@ -534,6 +534,7 @@
     <ClCompile Include="Src\NetPlayClient.cpp">
       <Filter>NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="Src\BootManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -989,6 +990,7 @@
     <ClInclude Include="Src\NetPlay.h">
       <Filter>NetPlay</Filter>
     </ClInclude>
+    <ClInclude Include="Src\BootManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

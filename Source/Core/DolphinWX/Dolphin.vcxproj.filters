@@ -12,15 +12,6 @@
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp">
       <Filter>GUI\Saves</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NetPlay.cpp">
-      <Filter>GUI\NetPlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NetPlayClient.cpp">
-      <Filter>GUI\NetPlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NetPlayServer.cpp">
-      <Filter>GUI\NetPlay</Filter>
-    </ClCompile>
     <ClCompile Include="Src\NetWindow.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
@@ -151,9 +142,6 @@
       <Filter>GUI\Saves</Filter>
     </ClInclude>
     <ClInclude Include="Src\NetWindow.h">
-      <Filter>GUI\NetPlay</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\NetPlay.h">
       <Filter>GUI\NetPlay</Filter>
     </ClInclude>
     <ClInclude Include="Src\InputConfigDiag.h">
