@@ -882,10 +882,15 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 
 	if (item != wxNOT_FOUND)
 	{
+#ifndef __WXGTK__
+		// The subitem parameter of HitTest is only implemented for wxMSW.  On
+		// all other platforms it will always be -1.
 		if (subitem == COLUMN_EMULATION_STATE)
+#endif
 		{
 			if (toolTip || lastItem == item || this != FindFocus())
 			{
+				if (!toolTip) lastItem = -1;
 				event.Skip();
 				return;
 			}
@@ -910,13 +915,6 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			ini.Get("EmuState", "EmulationStateId", &nState);
 			ini.Get("EmuState", "EmulationIssues", &issues, "");
 
-			// Get item Coords then convert from wxWindow coord to Screen coord
-			wxRect Rect;
-			this->GetItemRect(item, Rect);
-			int mx = Rect.GetWidth();
-			int my = Rect.GetY();
-			this->ClientToScreen(&mx, &my);
-
 			// Show a tooltip containing the EmuState and the state description
 			if (nState > 0 && nState < 6)
 			{
@@ -928,14 +926,36 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			else
 				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
 
+			// Get item Coords
+			wxRect Rect;
+			GetItemRect(item, Rect);
+#ifdef _WIN32
+			int mx = Rect.GetWidth();
+			int my = Rect.GetY();
+			ClientToScreen(&mx, &my);
 			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(subitem),
 						my, GetColumnWidth(subitem), Rect.GetHeight()));
 			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(subitem),
 						my - 5 + Rect.GetHeight()));
+#elif defined __WXGTK__
+			// TODO:  This works on OSX too, but something weird happens
+			// when the mouse is over the header row.
+			int x = Rect.GetX(), y = Rect.GetY(),
+				w = Rect.GetWidth(), h = Rect.GetHeight();
+			// For some reason the y position does not account for the header
+			// row, so subtract the y position of the first visible item.
+			GetItemRect(GetTopItem(), Rect);
+			y -= Rect.GetY();
+			ClientToScreen(&x, &y);
+			toolTip->SetBoundingRect(wxRect(x, y, w, h));
+			toolTip->SetPosition(wxPoint(x + w, y + h / 2));
+#endif
 
 			lastItem = item;
 		}
 	}
+	else
+		lastItem = -1;
 
 	event.Skip();
 }
