@@ -882,15 +882,20 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 
 	if (item != wxNOT_FOUND)
 	{
-#ifndef __WXGTK__
-		// The subitem parameter of HitTest is only implemented for wxMSW.  On
-		// all other platforms it will always be -1.
+		wxRect Rect;
+#ifdef __WXMSW__
 		if (subitem == COLUMN_EMULATION_STATE)
+#else
+		// The subitem parameter of HitTest is only implemented for wxMSW.  On
+		// all other platforms it will always be -1.  Check the x position
+		// instead.
+			GetItemRect(item, Rect);
+		if (Rect.GetX() + Rect.GetWidth() - GetColumnWidth(COLUMN_EMULATION_STATE) < event.GetX())
 #endif
 		{
 			if (toolTip || lastItem == item || this != FindFocus())
 			{
-				if (!toolTip) lastItem = -1;
+				if (lastItem != item) lastItem = -1;
 				event.Skip();
 				return;
 			}
@@ -927,34 +932,25 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
 
 			// Get item Coords
-			wxRect Rect;
 			GetItemRect(item, Rect);
-#ifdef _WIN32
 			int mx = Rect.GetWidth();
 			int my = Rect.GetY();
-			ClientToScreen(&mx, &my);
-			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(subitem),
-						my, GetColumnWidth(subitem), Rect.GetHeight()));
-			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(subitem),
-						my - 5 + Rect.GetHeight()));
-#elif defined __WXGTK__
-			// TODO:  This works on OSX too, but something weird happens
-			// when the mouse is over the header row.
-			int x = Rect.GetX(), y = Rect.GetY(),
-				w = Rect.GetWidth(), h = Rect.GetHeight();
+#ifndef __WXMSW__
 			// For some reason the y position does not account for the header
 			// row, so subtract the y position of the first visible item.
 			GetItemRect(GetTopItem(), Rect);
-			y -= Rect.GetY();
-			ClientToScreen(&x, &y);
-			toolTip->SetBoundingRect(wxRect(x, y, w, h));
-			toolTip->SetPosition(wxPoint(x + w, y + h / 2));
+			my -= Rect.GetY();
 #endif
-
+			// Convert to screen coordinates
+			ClientToScreen(&mx, &my);
+			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(COLUMN_EMULATION_STATE),
+						my, GetColumnWidth(COLUMN_EMULATION_STATE), Rect.GetHeight()));
+			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(COLUMN_EMULATION_STATE),
+						my - 5 + Rect.GetHeight()));
 			lastItem = item;
 		}
 	}
-	else
+	if (!toolTip)
 		lastItem = -1;
 
 	event.Skip();
