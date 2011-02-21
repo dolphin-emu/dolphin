@@ -28,6 +28,7 @@ LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWin
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
 	, m_LogWindow(log_window), enableAll(true)
 {
+	SetMinSize(wxSize(100, 100));
 	m_LogManager = LogManager::GetInstance();
 	CreateGUIControls();
 	LoadSettings();
@@ -110,7 +111,7 @@ void LogConfigWindow::LoadSettings()
 	{
 		bool log_enabled;
 		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
-		if (log_enabled) enableAll=false;
+		if (log_enabled) enableAll = false;
 		m_checks->Check(i, log_enabled);
 	}
 }

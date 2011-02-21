@@ -152,6 +152,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		for (long index = GameListCtrl->GetNextItem(-1); index != -1; index = GameListCtrl->GetNextItem(index))
 		{
 			const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
+			if (!item) continue;
 			if (item->GetUniqueID() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
 			{
 				cur_profile = index + 1;
@@ -167,7 +168,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniLoad((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
 	}
-
 
 	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
@@ -190,6 +190,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	for (long index = GameListCtrl->GetNextItem(-1); index != -1; index = GameListCtrl->GetNextItem(index))
 	{
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
+		if (!item) continue;
 		profile_cb->AppendString(wxString(item->GetName(0).c_str(), wxConvUTF8));
 	}
 
