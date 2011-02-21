@@ -5058,8 +5058,8 @@ msgid "You must enter a name!"
 msgstr "Vous devez entrer un nom !"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
-msgid "You must enter a valid decimal or hex value."
-msgstr "Vous devez entrer une valeur décimale ou hexadécimale valide."
+msgid "You must enter a valid decimal, hexadecimal or octal value."
+msgstr "Vous devez entrer une valeur décimale, hexadécimale ou octale valide."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623
 msgid "You must enter a valid profile name."

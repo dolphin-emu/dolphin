@@ -4982,7 +4982,7 @@ msgid "You must enter a name!"
 msgstr "이름을 넣어야 합니다!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
-msgid "You must enter a valid decimal or hex value."
+msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "적합한 10진수나 16진수 값을 넣어야 합니다."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623

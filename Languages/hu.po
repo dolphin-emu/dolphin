@@ -5030,7 +5030,7 @@ msgid "You must enter a name!"
 msgstr "Meg kell adnod egy nevet!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
-msgid "You must enter a valid decimal or hex value."
+msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Be kell írnod egy érvényes decimális vagy hexa értéket."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623

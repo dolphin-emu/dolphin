@@ -4920,7 +4920,7 @@ msgid "You must enter a name!"
 msgstr "您必須輸入一個名稱！"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
-msgid "You must enter a valid decimal or hex value."
+msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "您必須輸入一個有效的十進制或十六進制數值。"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623

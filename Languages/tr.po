@@ -5029,7 +5029,7 @@ msgid "You must enter a name!"
 msgstr "Bir isim girmelisiniz!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
-msgid "You must enter a valid decimal or hex value."
+msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Doğru bir onluk veya onaltılık değer girmelisiniz."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623
