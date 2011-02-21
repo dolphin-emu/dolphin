@@ -20,7 +20,7 @@ else:
 		'FrameAui.cpp',
 		'FrameTools.cpp',
 		'LogWindow.cpp',
-		'LogConfigDiag.cpp',
+		'LogConfigWindow.cpp',
 		'GameListCtrl.cpp',
 		'HotkeyDlg.cpp',
 		'InputConfigDiag.cpp',

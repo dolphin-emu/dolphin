@@ -126,7 +126,7 @@
     <ClCompile Include="Src\Debugger\BreakpointView.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LogConfigDiag.cpp">
+    <ClCompile Include="Src\LogConfigWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -249,7 +249,7 @@
     <ClInclude Include="Src\Debugger\BreakpointView.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LogConfigDiag.h">
+    <ClInclude Include="Src\LogConfigWindow.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

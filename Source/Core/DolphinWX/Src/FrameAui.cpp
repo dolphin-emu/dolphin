@@ -42,14 +42,17 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 	if (!g_pCodeWindow)
 	{
-		if ((nb->GetPage(0)->GetId() == IDM_LOGWINDOW || 
-					nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW))
+		if (nb->GetPage(0)->GetId() == IDM_LOGWINDOW || 
+				nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW ||
+				nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW)
 		{
 			// Closing a pane containing the logwindow or a console closes both
 			SConfig::GetInstance().m_InterfaceConsole = false;
 			SConfig::GetInstance().m_InterfaceLogWindow = false;
+			SConfig::GetInstance().m_InterfaceLogConfigWindow = false;
 			ToggleConsole(false);
 			ToggleLogWindow(false);
+			ToggleLogConfigWindow(false);
 		}
 	}
 	else
@@ -87,6 +90,29 @@ void CFrame::ToggleLogWindow(bool bShow)
 	{
 		m_LogWindow->Disable();
 		DoRemovePage(m_LogWindow, true);
+	}
+
+	// Hide or Show the pane
+	if (!g_pCodeWindow)
+		TogglePane();
+}
+
+void CFrame::ToggleLogConfigWindow(bool bShow)
+{
+	GetMenuBar()->FindItem(IDM_LOGCONFIGWINDOW)->Check(bShow);
+
+	if (bShow)
+	{
+		if (!m_LogConfigWindow)
+			m_LogConfigWindow = new LogConfigWindow(this, m_LogWindow, IDM_LOGCONFIGWINDOW);
+		DoAddPage(m_LogConfigWindow,
+				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[1] : 0,
+				g_pCodeWindow ? bFloatWindow[1] : false);
+	}
+	else
+	{
+		DoRemovePage(m_LogConfigWindow, false);
+		m_LogConfigWindow = NULL;
 	}
 
 	// Hide or Show the pane
@@ -155,6 +181,11 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 				SConfig::GetInstance().m_InterfaceLogWindow = bShow;
 			ToggleLogWindow(bShow);
 			break;
+		case IDM_LOGCONFIGWINDOW:
+			if (!g_pCodeWindow)
+				SConfig::GetInstance().m_InterfaceLogConfigWindow = bShow;
+			ToggleLogConfigWindow(bShow);
+			break;
 		case IDM_CONSOLEWINDOW:
 			if (!g_pCodeWindow)
 				SConfig::GetInstance().m_InterfaceConsole = bShow;
@@ -186,6 +217,7 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 void CFrame::ClosePages()
 {
 	ToggleLogWindow(false);
+	ToggleLogConfigWindow(false);
 	ToggleConsole(false);
 	if (g_pCodeWindow)
 	{
@@ -224,6 +256,8 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_LOGWINDOW)
 		ToggleLogWindow(false);
+	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_LOGCONFIGWINDOW)
+		ToggleLogConfigWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_CONSOLEWINDOW)
 		ToggleConsole(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_REGISTERWINDOW)

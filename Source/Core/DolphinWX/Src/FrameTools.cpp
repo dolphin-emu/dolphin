@@ -50,7 +50,7 @@ Core::GetWindowHandle().
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "LogWindow.h"
-#include "LogConfigDiag.h"
+#include "LogConfigWindow.h"
 #include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
@@ -192,7 +192,6 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("Gamecube &Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_LOGGER, _("&Logger Settings"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -234,6 +233,7 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendSeparator();
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _("Show &Log"));
+	viewMenu->AppendCheckItem(IDM_LOGCONFIGWINDOW, _("Show Log &Configuration"));
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _("Show &Console"));
 	viewMenu->AppendSeparator();
 
@@ -266,6 +266,7 @@ void CFrame::CreateMenu()
 	else
 	{
 		viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
+		viewMenu->Check(IDM_LOGCONFIGWINDOW, SConfig::GetInstance().m_InterfaceLogConfigWindow);
 		viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	}
 
@@ -1227,12 +1228,6 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	m_HotkeyDialog->Destroy();
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
-}
-
-void CFrame::OnConfigLogger(wxCommandEvent& WXUNUSED (event))
-{
-	LogConfigDiag *m_LogConfigDiag = new LogConfigDiag(this, m_LogWindow);
-	m_LogConfigDiag->Show();
 }
 
 void CFrame::OnHelp(wxCommandEvent& event)

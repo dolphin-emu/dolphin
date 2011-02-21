@@ -31,6 +31,7 @@
 #include "CDUtils.h"
 #include "Debugger/CodeWindow.h"
 #include "LogWindow.h"
+#include "LogConfigWindow.h"
 #if defined(HAVE_X11) && HAVE_X11
 #include "X11Utils.h"
 #endif
@@ -120,6 +121,7 @@ class CFrame : public CRenderFrame
 		void UpdateGUI();
 		void UpdateGameList();
 		void ToggleLogWindow(bool bShow);
+		void ToggleLogConfigWindow(bool bShow);
 		void ToggleConsole(bool bShow);		
 		void PostEvent(wxCommandEvent& event);
 		void StatusBarMessage(const char * Text, ...);
@@ -170,6 +172,7 @@ class CFrame : public CRenderFrame
 		CRenderFrame* m_RenderFrame;
 		wxPanel* m_RenderParent;
 		CLogWindow* m_LogWindow;
+		LogConfigWindow* m_LogConfigWindow;
 		bool UseDebugger;
 		bool m_bBatchMode;
 		bool m_bEdit;
@@ -304,7 +307,6 @@ class CFrame : public CRenderFrame
 		void OnConfigPAD(wxCommandEvent& event);
 		void OnConfigWiimote(wxCommandEvent& event);
 		void OnConfigHotkey(wxCommandEvent& event);
-		void OnConfigLogger(wxCommandEvent& event);
 
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);

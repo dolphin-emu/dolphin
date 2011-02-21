@@ -43,7 +43,7 @@ if(wxWidgets_FOUND)
 				Src/ISOProperties.cpp
 				Src/InputConfigDiag.cpp
 				Src/InputConfigDiagBitmaps.cpp
-				Src/LogConfigDiag.cpp
+				Src/LogConfigWindow.cpp
 				Src/LogWindow.cpp
 				Src/Main.cpp
 				Src/MemcardManager.cpp

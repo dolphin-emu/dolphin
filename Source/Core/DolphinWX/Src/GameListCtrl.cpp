@@ -545,16 +545,16 @@ void CGameListCtrl::ScanForISOs()
 		for (u32 i = 0; i < Directories.size(); i++)
 		{
 			File::FSTEntry FST_Temp;
-			File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
+			File::ScanDirectoryTree(Directories[i].c_str(), FST_Temp);
 			for (u32 j = 0; j < FST_Temp.children.size(); j++)
 			{
-				if (FST_Temp.children.at(j).isDirectory)
+				if (FST_Temp.children[j].isDirectory)
 				{
 					bool duplicate = false;
 					for (u32 k = 0; k < Directories.size(); k++)
 					{
-						if (strcmp(Directories.at(k).c_str(),
-									FST_Temp.children.at(j).physicalName.c_str()) == 0)
+						if (strcmp(Directories[k].c_str(),
+									FST_Temp.children[j].physicalName.c_str()) == 0)
 						{
 							duplicate = true;
 							break;
@@ -562,7 +562,7 @@ void CGameListCtrl::ScanForISOs()
 					}
 					if (!duplicate)
 						Directories.push_back(
-								FST_Temp.children.at(j).physicalName.c_str());
+								FST_Temp.children[j].physicalName.c_str());
 				}
 			}
 		}
@@ -841,7 +841,11 @@ void CGameListCtrl::OnKeyPress(wxListEvent& event)
 
 		wxString text = bleh.GetText();
 
-		if (text.MakeUpper().at(0) == event.GetKeyCode())
+#ifdef __WXGTK__
+		if (text.MakeLower()[0] == event.GetKeyCode())
+#else
+		if (text.MakeUpper()[0] == event.GetKeyCode())
+#endif
 		{
 			if (lastKey == event.GetKeyCode() && Loop < sLoop)
 			{
@@ -889,7 +893,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 		// The subitem parameter of HitTest is only implemented for wxMSW.  On
 		// all other platforms it will always be -1.  Check the x position
 		// instead.
-			GetItemRect(item, Rect);
+		GetItemRect(item, Rect);
 		if (Rect.GetX() + Rect.GetWidth() - GetColumnWidth(COLUMN_EMULATION_STATE) < event.GetX())
 #endif
 		{

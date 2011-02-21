@@ -263,7 +263,6 @@ EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
-EVT_MENU(IDM_CONFIG_LOGGER, CFrame::OnConfigLogger)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnToolBar)
 EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_SAVE_PERSPECTIVE, CFrame::OnDropDownToolbarItem)
@@ -347,7 +346,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
-	, m_LogWindow(NULL), UseDebugger(_UseDebugger)
+	, m_LogWindow(NULL), m_LogConfigWindow(NULL), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bGameLoading(false)
 {
@@ -442,6 +441,8 @@ CFrame::CFrame(wxFrame* parent,
 	{
 		if (SConfig::GetInstance().m_InterfaceLogWindow)
 			ToggleLogWindow(true);
+		if (SConfig::GetInstance().m_InterfaceLogConfigWindow)
+			ToggleLogConfigWindow(true);
 		if (SConfig::GetInstance().m_InterfaceConsole)
 			ToggleConsole(true);
 	}
@@ -710,7 +711,8 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
 
 	// Add space for the log/console/debugger window
-	if ((SConfig::GetInstance().m_InterfaceLogWindow || SConfig::GetInstance().m_InterfaceConsole) &&
+	if ((SConfig::GetInstance().m_InterfaceLogWindow || SConfig::GetInstance().m_InterfaceConsole ||
+				SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
 	{
 		switch (m_Mgr->GetPane(wxT("Pane 1")).dock_direction)

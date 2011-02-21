@@ -157,6 +157,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowToolbar",			m_InterfaceToolbar);
 	ini.Set("Interface", "ShowStatusbar",		m_InterfaceStatusbar);
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
+	ini.Set("Interface", "ShowLogConfigWindow",	m_InterfaceLogConfigWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
 
 	// Hotkeys
@@ -278,6 +279,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowToolbar",			&m_InterfaceToolbar,							true);
 		ini.Get("Interface", "ShowStatusbar",		&m_InterfaceStatusbar,							true);
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
+		ini.Get("Interface", "ShowLogConfigWindow",	&m_InterfaceLogConfigWindow,					false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
 
 		// Hotkeys

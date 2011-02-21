@@ -25,10 +25,11 @@ class CFrame;
 class LogManager;
 class CLogWindow;
 
-class LogConfigDiag : public wxDialog
+class LogConfigWindow : public wxPanel
 {
 public:
-	LogConfigDiag(wxWindow* parent, CLogWindow *log_window);
+	LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id = wxID_ANY);
+	~LogConfigWindow();
 
 	void SaveSettings();
 	void LoadSettings();
@@ -52,8 +53,6 @@ private:
 	void OnToggleAll(wxCommandEvent& event);
 	void ToggleLog(int _logType, bool enable);
 	void OnLogCheck(wxCommandEvent& event);
-	void OnClickClose(wxCommandEvent& WXUNUSED(event));
-	void OnClose(wxCloseEvent& event);
 };
 
 #endif // _LOG_CONFIG_DIAG_H_

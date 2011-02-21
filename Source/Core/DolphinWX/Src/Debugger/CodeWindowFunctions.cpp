@@ -90,6 +90,7 @@ void CCodeWindow::Load()
 
 	const char* SettingName[] = {
 		"Log",
+		"LogConfig",
 		"Console",
 		"Registers",
 		"Breakpoints",
@@ -131,6 +132,7 @@ void CCodeWindow::Save()
 
 	const char* SettingName[] = {
 		"Log",
+		"LogConfig",
 		"Console",
 		"Registers",
 		"Breakpoints",
@@ -415,6 +417,8 @@ void CCodeWindow::OpenPages()
 	ToggleCodeWindow(true);
 	if (bShowOnStart[0])
 		Parent->ToggleLogWindow(true);
+	if (bShowOnStart[IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW])
+		Parent->ToggleLogConfigWindow(true);
 	if (bShowOnStart[IDM_CONSOLEWINDOW - IDM_LOGWINDOW])
 		Parent->ToggleConsole(true);
 	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])

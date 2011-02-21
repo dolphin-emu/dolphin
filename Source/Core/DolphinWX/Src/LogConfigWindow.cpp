@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "LogConfigDiag.h"
+#include "LogConfigWindow.h"
 #include "LogManager.h"
 #include "ConsoleListener.h"
 #include "LogWindow.h"
@@ -24,17 +24,21 @@
 #define _connect_macro_(b, f, c, s) \
 	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
-LogConfigDiag::LogConfigDiag(wxWindow* parent, CLogWindow *log_window)
-	: wxDialog(parent, wxID_ANY, _("Logger Configuration"), wxDefaultPosition, wxDefaultSize)
+LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
 	, m_LogWindow(log_window), enableAll(true)
 {
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(LogConfigDiag::OnClose), (wxObject*)0, this);
 	m_LogManager = LogManager::GetInstance();
 	CreateGUIControls();
 	LoadSettings();
 }
 
-void LogConfigDiag::CreateGUIControls()
+LogConfigWindow::~LogConfigWindow()
+{
+	SaveSettings();
+}
+
+void LogConfigWindow::CreateGUIControls()
 {
 	// Verbosity
 	wxArrayString wxLevels, wxLevelsUse;
@@ -48,59 +52,44 @@ void LogConfigDiag::CreateGUIControls()
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
 			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
 			wxRA_SPECIFY_ROWS, wxDefaultValidator);
-	_connect_macro_(m_verbosity, LogConfigDiag::OnVerbosityChange, wxEVT_COMMAND_RADIOBOX_SELECTED, this);
+	_connect_macro_(m_verbosity, LogConfigWindow::OnVerbosityChange, wxEVT_COMMAND_RADIOBOX_SELECTED, this);
 
 	// Options
 	m_writeFileCB = new wxCheckBox(this, wxID_ANY, _("Write to File"));
-	_connect_macro_(m_writeFileCB, LogConfigDiag::OnWriteFileChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(m_writeFileCB, LogConfigWindow::OnWriteFileChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	m_writeConsoleCB = new wxCheckBox(this, wxID_ANY, _("Write to Console"));
-	_connect_macro_(m_writeConsoleCB, LogConfigDiag::OnWriteConsoleChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(m_writeConsoleCB, LogConfigWindow::OnWriteConsoleChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
-	_connect_macro_(m_writeWindowCB, LogConfigDiag::OnWriteWindowChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(m_writeWindowCB, LogConfigWindow::OnWriteWindowChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 
 	wxButton *btn_toggle_all = new wxButton(this, wxID_ANY, _("Toggle All Log Types"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-	_connect_macro_(btn_toggle_all, LogConfigDiag::OnToggleAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(btn_toggle_all, LogConfigWindow::OnToggleAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	m_checks = new wxCheckListBox(this, wxID_ANY);
-	_connect_macro_(m_checks, LogConfigDiag::OnLogCheck, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
+	_connect_macro_(m_checks, LogConfigWindow::OnLogCheck, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		m_checks->Append(wxString::FromAscii(m_LogManager->getFullName((LogTypes::LOG_TYPE)i)));
 
 	// Sizers
-	wxStaticBoxSizer* sbOptions = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));
-	sbOptions->Add(m_writeFileCB, 0, wxDOWN, 1);
-	sbOptions->Add(m_writeConsoleCB, 0, wxDOWN, 1);
-	sbOptions->Add(m_writeWindowCB, 0);
+	wxStaticBoxSizer* sbOutputs = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));
+	sbOutputs->Add(m_writeFileCB, 0, wxDOWN, 1);
+	sbOutputs->Add(m_writeConsoleCB, 0, wxDOWN, 1);
+	sbOutputs->Add(m_writeWindowCB, 0);
 
 	wxStaticBoxSizer* sbLogTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Log Types"));
 	sbLogTypes->Add(m_checks, 1, wxEXPAND);
 
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->AddStretchSpacer();
-	wxButton *btn_close = new wxButton(this, wxID_CLOSE);
-	_connect_macro_(btn_close, LogConfigDiag::OnClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	sButtons->Add(btn_close, 0, wxALL, 5);	
-
-	wxBoxSizer *sLeft = new wxBoxSizer(wxVERTICAL);
-	sLeft->Add(m_verbosity, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-	sLeft->Add(sbOptions, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-	sLeft->AddStretchSpacer();
-	sLeft->Add(btn_toggle_all, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-
-	wxBoxSizer *sTop = new wxBoxSizer(wxHORIZONTAL);
-	sTop->Add(sLeft, 0, wxEXPAND);
-	sTop->Add(sbLogTypes, 0, wxEXPAND | wxRIGHT, 5);
-
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(sTop, 0, wxEXPAND);
-	sMain->Add(sButtons, 0, wxEXPAND);
+	sMain->Add(m_verbosity, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+	sMain->Add(sbOutputs, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+	sMain->Add(btn_toggle_all, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+	sMain->Add(sbLogTypes, 1, wxEXPAND | wxLEFT | wxRIGHT, 5);
 
 	SetSizer(sMain);
 	Layout();
-	Fit();
 }
 
-void LogConfigDiag::LoadSettings()
+void LogConfigWindow::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
@@ -126,7 +115,7 @@ void LogConfigDiag::LoadSettings()
 	}
 }
 
-void LogConfigDiag::SaveSettings()
+void LogConfigWindow::SaveSettings()
 {
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
@@ -140,7 +129,7 @@ void LogConfigDiag::SaveSettings()
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
-void LogConfigDiag::OnVerbosityChange(wxCommandEvent& event)
+void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 {
 	int v = m_verbosity->GetSelection() + 1;
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
@@ -148,7 +137,7 @@ void LogConfigDiag::OnVerbosityChange(wxCommandEvent& event)
 	event.Skip();
 }
 
-void LogConfigDiag::OnWriteFileChecked(wxCommandEvent& event)
+void LogConfigWindow::OnWriteFileChecked(wxCommandEvent& event)
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
@@ -163,7 +152,7 @@ void LogConfigDiag::OnWriteFileChecked(wxCommandEvent& event)
 	}
 }
 
-void LogConfigDiag::OnWriteConsoleChecked(wxCommandEvent& event)
+void LogConfigWindow::OnWriteConsoleChecked(wxCommandEvent& event)
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
@@ -178,7 +167,7 @@ void LogConfigDiag::OnWriteConsoleChecked(wxCommandEvent& event)
 	}
 }
 
-void LogConfigDiag::OnWriteWindowChecked(wxCommandEvent& event)
+void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
@@ -193,7 +182,7 @@ void LogConfigDiag::OnWriteWindowChecked(wxCommandEvent& event)
 	}
 }
 
-void LogConfigDiag::OnToggleAll(wxCommandEvent& WXUNUSED(event))
+void LogConfigWindow::OnToggleAll(wxCommandEvent& WXUNUSED(event))
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		ToggleLog(i, enableAll);
@@ -201,7 +190,7 @@ void LogConfigDiag::OnToggleAll(wxCommandEvent& WXUNUSED(event))
 	enableAll = !enableAll;
 }
 
-void LogConfigDiag::ToggleLog(int _logType, bool enable)
+void LogConfigWindow::ToggleLog(int _logType, bool enable)
 {
 	LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
 
@@ -226,19 +215,8 @@ void LogConfigDiag::ToggleLog(int _logType, bool enable)
 	}
 }
 
-void LogConfigDiag::OnLogCheck(wxCommandEvent& event)
+void LogConfigWindow::OnLogCheck(wxCommandEvent& event)
 {
 	int i = event.GetInt();
 	ToggleLog(i, m_checks->IsChecked(i));
-}
-
-void LogConfigDiag::OnClickClose(wxCommandEvent& WXUNUSED(event))
-{
-	Close();
-}
-
-void LogConfigDiag::OnClose(wxCloseEvent& event)
-{
-	SaveSettings();
-	event.Skip();
 }
