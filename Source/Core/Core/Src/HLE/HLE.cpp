@@ -68,7 +68,6 @@ static const SPatch OSPatches[] =
 
 	// wii only
 	//{ "__OSInitAudioSystem",			HLE_Misc::UnimplementedFunction },
-	{ "IsBusyStrm_",					HLE_Misc::IsBusyStream },
 
 	// Super Monkey Ball - no longer needed.
 	//{ ".evil_vec_cosine",				HLE_Misc::SMB_EvilVecCosine },
@@ -93,6 +92,8 @@ static const SPatch OSPatches[] =
 
 	// Name doesn't matter, installed in CBoot::BootUp()
 	{ "HBReload",						HLE_Misc::HBReload			},
+	// hax :|
+	{ "IsBusyStrm_",					HLE_Misc::IsBusyStream },
 };
 
 static const SPatch OSBreakPoints[] =
