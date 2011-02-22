@@ -52,12 +52,13 @@ static const SPatch OSPatches[] =
 	{ "FAKE_TO_SKIP_0",					HLE_Misc::UnimplementedFunction },
 
 	// speedup
-	//{ "OSProtectRange",					HLE_Misc::UnimplementedFunctionFalse },
+	//{ "OSProtectRange",				HLE_Misc::UnimplementedFunctionFalse },
 	//{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
 	// debug out is very nice ;)
 	{ "OSReport",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "DEBUGPrint",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "OSPanic",						HLE_OS::HLE_OSPanic				},
 	{ "vprintf",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "printf",							HLE_OS::HLE_GeneralDebugPrint	},

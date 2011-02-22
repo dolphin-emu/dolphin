@@ -165,7 +165,7 @@ bool CBoot::BootUp()
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
 	// HLE jump to loader (homebrew)
-	Memory::Write_U32(((1 & 0x3f) << 26) | 10, 0x80001800);
+	HLE::Patch(0x80001800, "HBReload");
 	const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
 	Memory::WriteBigEData(stubstr, 0x80001804, 8);
 
