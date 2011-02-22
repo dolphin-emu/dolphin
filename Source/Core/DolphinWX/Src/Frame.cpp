@@ -955,7 +955,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 								item->wxMenuItemBase::Toggle();
 								evt.SetInt(item->IsChecked());
 							}
-							main_frame->GetEventHandler()->AddPendingEvent(evt);
+							GetEventHandler()->AddPendingEvent(evt);
 							break;
 						}
 					}
