@@ -140,9 +140,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		break;
 
 	case WM_WRITE_SPEAKER_DATA : // 0x18
-#ifdef USE_WIIMOTE_EMU_SPEAKER
-		SpeakerData((wm_speaker_data*)sr->data);
-#endif
+		Wiimote::SpeakerData((wm_speaker_data*)sr->data);
 		// TODO: Does this need an ack?
 		return;	// no ack
 		break;
@@ -150,11 +148,9 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_SPEAKER_MUTE : // 0x19
 		//INFO_LOG(WIIMOTE, "WM Speaker Mute: 0x%02x", sr->data[0]);
 		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
-#ifdef USE_WIIMOTE_EMU_SPEAKER
 		// testing
-		if (sr->data[0] & 0x04)
-			memset(&m_channel_status, 0, sizeof(m_channel_status));
-#endif
+		//if (sr->data[0] & 0x04)
+		//	memset(&m_channel_status, 0, sizeof(m_channel_status));
 		m_speaker_mute = sr->enable;
 		if (false == sr->ack)
 			return;

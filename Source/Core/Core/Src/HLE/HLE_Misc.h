@@ -39,6 +39,7 @@ namespace HLE_Misc
 	void FZ_sqrt_internal();
 	void FZ_rsqrt_internal();
 	void HBReload();
+	void IsBusyStream();
 }
 
 #endif

@@ -1,3 +1,19 @@
+// Copyright (C) 2003 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
 
 #include "Attachment/Classic.h"
 #include "Attachment/Nunchuk.h"
@@ -282,32 +298,6 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
-	
-#ifdef USE_WIIMOTE_EMU_SPEAKER
-	// set up speaker stuff
-	// this doesnt belong here
-
-	// TODO: i never clean up any of this audio stuff
-
-	if (0 == m_index)	// very dumb
-	{
-		ALCdevice* pDevice;
-		ALchar DeviceName[] = "DirectSound3D";
-		pDevice = alcOpenDevice(DeviceName);
-		ALCcontext* pContext;
-		pContext = alcCreateContext(pDevice, NULL);
-		alcMakeContextCurrent(pContext);
-	}
-
-	alListener3f(AL_POSITION, 0.0, 0.0, 0.0);
-	alListener3f(AL_VELOCITY, 0.0, 0.0, 0.0);
-	alListener3f(AL_DIRECTION, 0.0, 0.0, 0.0);
-
-	alGenSources(1, &m_audio_source);
-	alSourcef(m_audio_source, AL_PITCH, 1.0);
-	alSourcef(m_audio_source, AL_GAIN, 1.0);
-	alSourcei(m_audio_source, AL_LOOPING, false);
-#endif
 
 	// --- reset eeprom/register/values to default ---
 	Reset();
@@ -633,36 +623,6 @@ void Wiimote::Update()
 	// returns true if a report was sent
 	if (Step())
 		return;
-
-	// ----speaker----
-#ifdef USE_WIIMOTE_EMU_SPEAKER
-
-	ALint processed = 0;
-	alGetSourcei(m_audio_source, AL_BUFFERS_PROCESSED, &processed);
-
-	while (processed--)
-	{
-		//PanicAlert("Buffer Processed");
-		alSourceUnqueueBuffers(m_audio_source, 1, &m_audio_buffers.front().buffer);
-		alDeleteBuffers(1, &m_audio_buffers.front().buffer);
-		delete[] m_audio_buffers.front().samples;
-		m_audio_buffers.pop();
-	}
-
-	// testing speaker crap
-	//m_rumble->controls[0]->control_ref->State( m_speaker_data.size() > 0 );
-	//if ( m_speaker_data.size() )
-		//m_speaker_data.pop();
-
-	//while ( m_speaker_data.size() )
-	//{
-	//	std::ofstream file;
-	//	file.open( "test.pcm", std::ios::app | std::ios::out | std::ios::binary );
-	//	file.put(m_speaker_data.front());
-	//	file.close();
-	//	m_speaker_data.pop();
-	//}
-#endif
 
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));

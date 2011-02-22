@@ -22,6 +22,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../HW/Memmap.h"
 #include "../Host.h"
+#include "CoreTiming.h"
 
 namespace HLE_Misc
 {
@@ -280,6 +281,30 @@ void HBReload()
 	// There isn't much we can do. Just stop cleanly.
 	PowerPC::Pause();
 	Host_Message(WM_USER_STOP);
+}
+
+u8 isBusyPoll = 0;
+
+// Hack: Wiimotes are never too busy to process speaker data
+void IsBusyStream()
+{
+	isBusyPoll++;
+
+	// Signal that the wiimote is idle for a few cycles, allowing sound
+	// to be processed.
+	if (isBusyPoll < 5)
+	{
+		// Wiimote is idle
+		GPR(3) = 0;
+	}
+	else
+	{
+		// Wiimote is busy
+		GPR(3) = 1;
+		if (isBusyPoll >= 8)
+			isBusyPoll = 0;
+	}
+	NPC = LR;
 }
 
 }
