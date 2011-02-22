@@ -124,7 +124,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/WiimoteEmu/Attachment/Turntable.cpp
 			Src/HW/WiimoteEmu/EmuSubroutines.cpp
 			Src/HW/WiimoteEmu/Encryption.cpp
-			#Src/HW/WiimoteEmu/Speaker.cpp
+			Src/HW/WiimoteEmu/Speaker.cpp
 			Src/HW/WiimoteReal/WiimoteReal.cpp
 			Src/IPC_HLE/WII_IPC_HLE.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp

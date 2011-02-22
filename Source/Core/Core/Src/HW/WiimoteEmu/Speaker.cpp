@@ -70,7 +70,6 @@ ADPCMChannelStatus cs;
 void Wiimote::SpeakerData(wm_speaker_data* sd)
 {
 	s16 samples[40];
-	u16 sampleRate = 6000000 / Common::swap16(m_reg_speaker.sample_rate);
 
 	if (m_reg_speaker.format == 0x40)
 	{
