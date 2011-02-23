@@ -54,7 +54,6 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	// Read message and write it to the log
 	std::string caption;
 	char buffer[2048];
-	bool ret = true;
 
 	static std::string info_caption;
 	static std::string warn_caption;
@@ -88,10 +87,10 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
 	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-	if (msg_handler && (AlertEnabled || Style == QUESTION)) {
-		ret = msg_handler(caption.c_str(), buffer, yes_no, Style);
-	}
-	return ret;
+	if (msg_handler && (AlertEnabled || Style == QUESTION))
+		return msg_handler(caption.c_str(), buffer, yes_no, Style);
+
+	return true;
 }
 
 // Default non library depended panic alert

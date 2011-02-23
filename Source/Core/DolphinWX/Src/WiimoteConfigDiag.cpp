@@ -144,7 +144,7 @@ void WiimoteConfigPage::UpdateWiimoteStatus()
 		// Connect wiimotes
 		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
 			CFrame::ConnectWiimote(m_index, true);
-		else if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && orig_source & WIIMOTE_SRC_EMU)
+		else if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
 			CFrame::ConnectWiimote(m_index, WiimoteReal::g_wiimotes[m_index]->IsConnected());
 	}
 }
