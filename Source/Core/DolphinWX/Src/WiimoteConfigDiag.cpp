@@ -1,6 +1,7 @@
 
 #include "WiimoteConfigDiag.h"
 #include "HW/Wiimote.h"
+#include "HW/WiimoteReal/WiimoteReal.h"
 #include "Frame.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
@@ -14,7 +15,7 @@ const wxString& ConnectedWiimotesString()
 
 WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	: wxNotebookPage(parent, -1, wxDefaultPosition, wxDefaultSize)
-	, m_index(index)
+	, m_index(index), orig_source(g_wiimote_sources[index]), end_source(g_wiimote_sources[index])
 {
 	// input source
 	const wxString src_choices[] = { _("None"),
@@ -66,18 +67,19 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
-	, m_plugin(plugin)
+	, m_plugin(plugin), m_save(false)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
 		WiimoteConfigPage* const wpage = new WiimoteConfigPage(m_pad_notebook, i);
-		//m_padpages.push_back(wpage);
 		m_pad_notebook->AddPage(wpage, wxString(_("Wiimote ")) + wxChar('1'+i));
 	}
 
 	wxButton* const ok_button = new wxButton(this, -1, _("OK"), wxDefaultPosition);
 	_connect_macro_(ok_button, WiimoteConfigDiag::Save, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(WiimoteConfigDiag::OnClose), (wxObject*)0, this);
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_pad_notebook, 1, wxEXPAND | wxALL, 5);
@@ -128,11 +130,28 @@ void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 
 void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
 {
-	// should be kinda fine, maybe should just set when user clicks OK, w/e change it later
-	g_wiimote_sources[m_index] = event.GetInt();
+	// This needs to be changed now in order for refresh to work right.
+	// Revert if the dialog is canceled.
+	g_wiimote_sources[m_index] = end_source = event.GetInt();
+}
 
-	// Connect or disconnect emulated wiimotes (maybe do this in when OK is clicked too?).
-	CFrame::ConnectWiimote(m_index, WIIMOTE_SRC_EMU & g_wiimote_sources[m_index]);
+void WiimoteConfigPage::UpdateWiimoteStatus()
+{
+	if (orig_source != end_source)
+	{
+		// Disconnect first, otherwise the new source doesn't seem to work
+		CFrame::ConnectWiimote(m_index, false);
+		// Connect wiimotes
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+			CFrame::ConnectWiimote(m_index, true);
+		else if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && orig_source & WIIMOTE_SRC_EMU)
+			CFrame::ConnectWiimote(m_index, WiimoteReal::g_wiimotes[m_index]->IsConnected());
+	}
+}
+
+void WiimoteConfigPage::RevertSource()
+{
+	g_wiimote_sources[m_index] = orig_source;
 }
 
 void WiimoteConfigDiag::Save(wxCommandEvent&)
@@ -150,8 +169,20 @@ void WiimoteConfigDiag::Save(wxCommandEvent&)
 
 		sec.Set("Source", (int)g_wiimote_sources[i]);
 	}
+	for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
+		((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->UpdateWiimoteStatus();
 
 	inifile.Save(ini_filename);
 
+	m_save = true;
+
 	Close();
+}
+
+void WiimoteConfigDiag::OnClose(wxCloseEvent& event)
+{
+	if (!m_save)
+		for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
+			((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->RevertSource();
+	event.Skip();
 }

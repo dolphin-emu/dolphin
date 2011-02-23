@@ -21,11 +21,14 @@ public:
 	WiimoteConfigPage(wxWindow* const parent, const int index);
 
 	void SelectSource(wxCommandEvent& event);
+	void UpdateWiimoteStatus();
+	void RevertSource();
 
 	wxStaticText*	connected_wiimotes_txt;
 
 private:
 	const int	m_index;
+	unsigned int orig_source, end_source;
 };
 
 class WiimoteConfigDiag : public wxDialog
@@ -43,10 +46,11 @@ public:
 	void UpdateGUI();
 
 private:
+	void OnClose(wxCloseEvent& event);
+
 	InputPlugin&	m_plugin;
-
 	wxNotebook*		m_pad_notebook;
-
+	bool			m_save;
 };
 
 

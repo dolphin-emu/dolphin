@@ -105,9 +105,10 @@ void CFrame::ToggleLogConfigWindow(bool bShow)
 	{
 		if (!m_LogConfigWindow)
 			m_LogConfigWindow = new LogConfigWindow(this, m_LogWindow, IDM_LOGCONFIGWINDOW);
+		const int nbIndex = IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW;
 		DoAddPage(m_LogConfigWindow,
-				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[1] : 0,
-				g_pCodeWindow ? bFloatWindow[1] : false);
+				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[nbIndex] : 0,
+				g_pCodeWindow ? bFloatWindow[nbIndex] : false);
 	}
 	else
 	{
@@ -147,9 +148,10 @@ void CFrame::ToggleConsole(bool bShow)
 		ConsoleWin->Reparent(ConsoleParent);
 
 		ConsoleParent->Enable();
+		const int nbIndex = IDM_CONSOLEWINDOW - IDM_LOGWINDOW;
 		DoAddPage(ConsoleParent,
-				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[1] : 0,
-				g_pCodeWindow ? bFloatWindow[1] : false);
+				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[nbIndex] : 0,
+				g_pCodeWindow ? bFloatWindow[nbIndex] : false);
 	}
 	else // Hide
 	{
