@@ -117,6 +117,7 @@ private:
 		ID_WII_BT_BAR,
 		ID_WII_BT_SENS,
 		ID_WII_BT_MOT,
+		ID_WII_WIIMOTE_SPEAKER,
 		ID_WII_WIIMOTE_RECONNECT,
 
 		ID_WII_IPL_SSV,
@@ -219,6 +220,7 @@ private:
 	wxChoice* WiiSensBarPos;
 	wxSlider* WiiSensBarSens;
 	wxCheckBox* WiimoteMotor;
+	wxCheckBox* WiimoteSpeaker;
 	wxCheckBox* WiimoteReconnectOnLoad;
 
 	// Misc

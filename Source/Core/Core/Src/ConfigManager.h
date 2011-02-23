@@ -33,6 +33,7 @@ struct SConfig : NonCopyable
 	bool m_WiiKeyboard;
 	bool m_WiiAutoReconnect[4];
 	bool m_WiiAutoUnpair;
+	int m_WiimoteSpeaker;
 	bool m_WiimoteReconnectOnLoad;
 
 	// name of the last used filename
