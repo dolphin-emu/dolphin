@@ -1574,7 +1574,6 @@ void CFrame::UpdateGUI()
 	}
 
 	if (m_ToolBar) m_ToolBar->Refresh();
-	if (g_pCodeWindow) g_pCodeWindow->Update();
 
 	// Commit changes to manager
 	m_Mgr->Update();
