@@ -25,10 +25,8 @@
 class CMemoryView : public wxControl
 {
 public:
-	CMemoryView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
-	wxSize DoGetBestSize() const;
+	CMemoryView(DebugInterface* debuginterface, wxWindow* parent);
 	void OnPaint(wxPaintEvent& event);
-	void OnErase(wxEraseEvent& event);
 	void OnMouseDownL(wxMouseEvent& event);
 	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseUpL(wxMouseEvent& event);
@@ -41,27 +39,23 @@ public:
 	void Center(u32 addr)
 	{
 		curAddress = addr;
-		redraw();
+		Refresh();
 	}
 	int dataType;	// u8,u16,u32
 	int curAddress;	// Will be accessed by parent
 
 private:
 	int YToAddress(int y);
-	void redraw() {Refresh();}
+	void OnResize(wxSizeEvent& event);
 
 	DebugInterface* debugger;
-
 
 	int align;
 	int rowHeight;
 
 	u32 selection;
 	u32 oldSelection;
-	bool selectionChanged;
 	bool selecting;
-	bool hasFocus;
-	bool showHex;
 
 	int memory;
 
@@ -77,4 +71,4 @@ private:
 	DECLARE_EVENT_TABLE()
 };
 
-#endif /*MEMORYVIEW_H_*/
+#endif // MEMORYVIEW_H_

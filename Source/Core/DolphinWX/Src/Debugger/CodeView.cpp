@@ -46,7 +46,6 @@ enum
 	IDM_ADDFUNCTION,
 };
 
-
 BEGIN_EVENT_TABLE(CCodeView, wxControl)
 	EVT_ERASE_BACKGROUND(CCodeView::OnErase)
 	EVT_PAINT(CCodeView::OnPaint)
@@ -56,13 +55,17 @@ BEGIN_EVENT_TABLE(CCodeView, wxControl)
 	EVT_RIGHT_DOWN(CCodeView::OnMouseDown)
 	EVT_RIGHT_UP(CCodeView::OnMouseUpR)
 	EVT_MENU(-1, CCodeView::OnPopupMenu)
+	EVT_SIZE(CCodeView::OnResize)
 END_EVENT_TABLE()
 
-CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb, wxWindow* parent, wxWindowID Id, const wxSize& Size)
-	: wxControl(parent, Id, wxDefaultPosition, Size),
+CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb,
+		wxWindow* parent, wxWindowID Id)
+	: wxControl(parent, Id),
       debugger(debuginterface),
 	  symbol_db(symboldb),
 	  plain(false),
+	  curAddress(debuginterface->getPC()),
+	  align(debuginterface->getInstructionSize(0)),
       rowHeight(13),
       selection(0),
       oldSelection(0),
@@ -73,30 +76,15 @@ CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb, wxWindo
       lx(-1),
       ly(-1)
 {
-	rowHeight = 13;
-	align = debuginterface->getInstructionSize(0);
-	curAddress = debuginterface->getPC();
-	selection = 0;
 }
-
-
-wxSize CCodeView::DoGetBestSize() const
-{
-	wxSize bestSize;
-	bestSize.x = 400;
-	bestSize.y = 800;
-	return(bestSize);
-}
-
 
 int CCodeView::YToAddress(int y)
 {
 	wxRect rc = GetClientRect();
 	int ydiff = y - rc.height / 2 - rowHeight / 2;
 	ydiff = (int)(floorf((float)ydiff / (float)rowHeight)) + 1;
-	return(curAddress + ydiff * align);
+	return curAddress + ydiff * align;
 }
-
 
 void CCodeView::OnMouseDown(wxMouseEvent& event)
 {
@@ -112,50 +100,39 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 		selecting = true;
 
 		if (!oldselecting || (selection != oldSelection))
-		{
-			redraw();
-		}
+			Refresh();
 	}
 	else
-	{
 		ToggleBreakpoint(YToAddress(y));
-	}
 
 	event.Skip(true);
 }
 
-
 void CCodeView::ToggleBreakpoint(u32 address)
 {
 	debugger->toggleBreakpoint(address);
-	redraw();
+	Refresh();
 	Host_UpdateBreakPointView();
 }
-
 
 void CCodeView::OnMouseMove(wxMouseEvent& event)
 {
 	wxRect rc = GetClientRect();
 
-	if (event.m_leftDown)
+	if (event.m_leftDown && event.m_x > 16)
 	{
-		if (event.m_x > 16)
+		if (event.m_y < 0)
 		{
-			if (event.m_y < 0)
-			{
-				curAddress -= align;
-				redraw();
-			}
-			else if (event.m_y > rc.height)
-			{
-				curAddress += align;
-				redraw();
-			}
-			else
-			{
-				OnMouseDown(event);
-			}
+			curAddress -= align;
+			Refresh();
 		}
+		else if (event.m_y > rc.height)
+		{
+			curAddress += align;
+			Refresh();
+		}
+		else
+			OnMouseDown(event);
 	}
 
 	event.Skip(true);
@@ -175,8 +152,7 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 	{
 		curAddress = YToAddress(event.m_y);
 		selecting = false;
-		//ReleaseCapture();
-		redraw();
+		Refresh();
 	}
 	RaiseEvent();
 	event.Skip(true);
@@ -223,7 +199,7 @@ void CCodeView::InsertBlrNop(int Blr)
 		else
 			debugger->insertBLR(selection, 0x60000000);	
 	}
-	redraw();	
+	Refresh();	
 }
 
 void CCodeView::OnPopupMenu(wxCommandEvent& event)
@@ -244,12 +220,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    break;
 
 		case IDM_COPYCODE:
-		{
+			{
 			char disasm[256];
 			debugger->disasm(selection, disasm, 256);
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm))); //Have to manually convert from char* to wxString, don't have to in Windows?
-		}
-		    break;
+			wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm)));
+			}
+			break;
 
 	    case IDM_COPYHEX:
 		    {
@@ -263,13 +239,15 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_COPYFUNCTION:
 			{
 			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
-			if (symbol) {
+			if (symbol)
+			{
 				std::string text;
 				text = text + symbol->name + "\r\n";
 				// we got a function
 				u32 start = symbol->address;
 				u32 end = start + symbol->size;
-				for (u32 addr = start; addr != end; addr += 4) {
+				for (u32 addr = start; addr != end; addr += 4)
+				{
 					char disasm[256];
 					debugger->disasm(addr, disasm, 256);
 					text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
@@ -283,17 +261,17 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	    case IDM_RUNTOHERE:
 		    debugger->setBreakpoint(selection);
 		    debugger->runToBreakpoint();
-		    redraw();
+		    Refresh();
 		    break;
 
 		// Insert blr or restore old value
 		case IDM_INSERTBLR:
 			InsertBlrNop(0);
-			redraw();
+			Refresh();
 			break;
 		case IDM_INSERTNOP:
 			InsertBlrNop(1);
-			redraw();
+			Refresh();
 			break;
 
 	    case IDM_JITRESULTS:
@@ -310,21 +288,22 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 	
 		case IDM_ADDFUNCTION:
-			{
 			symbol_db->AddFunction(selection);
 			Host_NotifyMapLoaded();
-			}
 			break;
 
 		case IDM_RENAMESYMBOL:
 			{
 			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
-			if (symbol) {
-				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"), wxGetTextFromUserPromptStr,
-					wxString::FromAscii(symbol->name.c_str()));
-				if (input_symbol.ShowModal() == wxID_OK) {
+			if (symbol)
+			{
+				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"),
+						wxGetTextFromUserPromptStr,
+						wxString::FromAscii(symbol->name.c_str()));
+				if (input_symbol.ShowModal() == wxID_OK)
+				{
 					symbol->name = input_symbol.GetValue().mb_str();
-					redraw(); // Redraw to show the renamed symbol
+					Refresh(); // Redraw to show the renamed symbol
 				}
 				Host_NotifyMapLoaded();
 			}
@@ -332,9 +311,6 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 
 		case IDM_PATCHALERT:
-			{
-
-			}
 			break;
 	}
 
@@ -344,14 +320,14 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	event.Skip(true);
 }
 
-
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
 	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != 0;
 	// popup menu
 	wxMenu* menu = new wxMenu;
 	//menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
-	menu->Append(IDM_FOLLOWBRANCH, wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
+	menu->Append(IDM_FOLLOWBRANCH,
+			wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
 	menu->AppendSeparator();
 #if wxUSE_CLIPBOARD
 	menu->Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
@@ -372,10 +348,8 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	event.Skip(true);
 }
 
-
 void CCodeView::OnErase(wxEraseEvent& event)
 {}
-
 
 void CCodeView::OnPaint(wxPaintEvent& event)
 {
@@ -397,9 +371,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// TODO: Add any drawing code here...
 	int width   = rc.width;
 	int numRows = (rc.height / rowHeight) / 2 + 2;
-	//numRows=(numRows&(~1)) + 1;
 	// ------------
-
 
 	// --------------------------------------------------------------------
 	// Colors and brushes
@@ -424,7 +396,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	dc.DrawRectangle(0, 0, 16, rc.height);
 	dc.DrawRectangle(0, 0, rc.width, 5);
 	// ------------
-
 
 	// --------------------------------------------------------------------
 	// Walk through all visible rows
@@ -455,7 +426,8 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 		dc.DrawRectangle(16, rowY1, width, rowY2 - rowY1 + 1);
 		dc.SetBrush(currentBrush);
-		if (!plain) {
+		if (!plain)
+		{
 			dc.SetTextForeground(_T("#600000")); // the address text is dark red
 			dc.DrawText(temp, 17, rowY1);
 			dc.SetTextForeground(_T("#000000"));
@@ -546,7 +518,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	} // end of for
 	// ------------
 
-
 	// --------------------------------------------------------------------
 	// Colors and brushes
 	// -------------------------
@@ -584,7 +555,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// ------------
 }
 
-
 void CCodeView::_LineTo(wxPaintDC &dc, int x, int y)
 {
 	dc.DrawLine(lx, ly, x, y);
@@ -592,3 +562,8 @@ void CCodeView::_LineTo(wxPaintDC &dc, int x, int y)
 	ly = y;
 }
 
+void CCodeView::OnResize(wxSizeEvent& event)
+{
+	Refresh();
+	event.Skip();
+}

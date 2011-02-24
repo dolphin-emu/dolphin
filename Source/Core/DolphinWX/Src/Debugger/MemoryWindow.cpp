@@ -83,7 +83,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
 	//	   	wxSize(20, 100), 0, NULL, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
-	memview = new CMemoryView(di, this, wxID_ANY);
+	memview = new CMemoryView(di, this);
 	memview->dataType = 0;
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
@@ -113,11 +113,8 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	chkHex->SetValue(1); //Set defaults
 	chk8->SetValue(1);
 
-	//sizerLeft->SetSizeHints(this);
 	//sizerLeft->Fit(this);
-	sizerRight->SetSizeHints(this);
 	sizerRight->Fit(this);
-	sizerBig->SetSizeHints(this);
 	sizerBig->Fit(this);
 }
 

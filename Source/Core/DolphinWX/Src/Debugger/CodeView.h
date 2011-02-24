@@ -35,8 +35,8 @@ class SymbolDB;
 class CCodeView : public wxControl
 {
 public:
-	CCodeView(DebugInterface* debuginterface, SymbolDB *symbol_db, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
-	wxSize DoGetBestSize() const;
+	CCodeView(DebugInterface* debuginterface, SymbolDB *symbol_db,
+			wxWindow* parent, wxWindowID Id = wxID_ANY);
 	void OnPaint(wxPaintEvent& event);
 	void OnErase(wxEraseEvent& event);
 	void OnMouseDown(wxMouseEvent& event);
@@ -60,10 +60,11 @@ public:
 	{
 		curAddress = addr;
 		selection = addr;
-		redraw();
+		Refresh();
 	}
 
-	void SetPlain() {
+	void SetPlain()
+	{
 		plain = true;
 	}
 
@@ -72,8 +73,7 @@ private:
 	int YToAddress(int y);
 
 	u32 AddrToBranch(u32 addr);
-
-	void redraw() {Refresh();}
+	void OnResize(wxSizeEvent& event);
 
 	DebugInterface* debugger;
 	SymbolDB* symbol_db;

@@ -411,9 +411,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	SetSizer(sizerBig);
 
-	sizerLeft->SetSizeHints(this);
 	sizerLeft->Fit(this);
-	sizerBig->SetSizeHints(this);
 	sizerBig->Fit(this);
 
 	sync_event.Init();

@@ -87,9 +87,7 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	SetSizer(sizerBig);
 
-	sizerSplit->SetSizeHints(this);
 	sizerSplit->Fit(this);
-	sizerBig->SetSizeHints(this);
 	sizerBig->Fit(this);
 }
 

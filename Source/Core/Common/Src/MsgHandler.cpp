@@ -28,8 +28,8 @@ static bool AlertEnabled = true;
 std::string DefaultStringTranslator(const char* text);
 static StringTranslator str_translator = DefaultStringTranslator;
 
-/* Select which of these functions that are used for message boxes. If
-   wxWidgets is enabled we will use wxMsgAlert() that is defined in Main.cpp */
+// Select which of these functions that are used for message boxes. If
+// wxWidgets is enabled we will use wxMsgAlert() that is defined in Main.cpp
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
 	msg_handler = handler;
@@ -47,8 +47,8 @@ void SetEnableAlert(bool enable)
 	AlertEnabled = enable;
 }
 
-/* This is the first stop for gui alerts where the log is updated and the
-   correct windows is shown */
+// This is the first stop for gui alerts where the log is updated and the
+// correct window is shown
 bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 {
 	// Read message and write it to the log
@@ -93,7 +93,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	return true;
 }
 
-// Default non library depended panic alert
+// Default non library dependent panic alert
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style)
 {
 #ifdef _WIN32

@@ -42,7 +42,6 @@ void CRegisterWindow::CreateGUIControls()
 	m_GPRGridView = new CRegisterView(this, ID_GPR);
 	sGrid->Add(m_GPRGridView, 1, wxGROW);
 	SetSizer(sGrid);
-	sGrid->SetSizeHints(this);
 
 	NotifyUpdate();
 }
@@ -50,7 +49,5 @@ void CRegisterWindow::CreateGUIControls()
 void CRegisterWindow::NotifyUpdate()
 {
 	if (m_GPRGridView != NULL)
-	{
 		m_GPRGridView->Update();
-	}
 }

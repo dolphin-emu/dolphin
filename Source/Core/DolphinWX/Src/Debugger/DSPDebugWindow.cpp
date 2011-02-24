@@ -76,7 +76,6 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_CodeView->SetPlain();
 	code_sizer->Add(m_CodeView, 1, wxALL | wxEXPAND);
 	code_panel->SetSizer(code_sizer);
-	code_sizer->SetSizeHints(code_panel);
 	m_MainNotebook->AddPage(code_panel, wxT("Disasm"), true);
 
 	wxPanel *mem_panel = new wxPanel(m_MainNotebook, wxID_ANY);
@@ -85,7 +84,6 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_MemView = new CMemoryView(&debug_interface, mem_panel);
 	mem_sizer->Add(m_MemView, 1, wxALL | wxEXPAND);
 	mem_panel->SetSizer(mem_sizer);
-	mem_sizer->SetSizeHints(mem_panel);
 	m_MainNotebook->AddPage(mem_panel, wxT("Mem"));
 
 	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);

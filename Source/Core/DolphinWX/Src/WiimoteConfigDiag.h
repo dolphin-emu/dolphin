@@ -28,7 +28,7 @@ public:
 
 private:
 	const int	m_index;
-	unsigned int orig_source, end_source;
+	unsigned int orig_source;
 };
 
 class WiimoteConfigDiag : public wxDialog

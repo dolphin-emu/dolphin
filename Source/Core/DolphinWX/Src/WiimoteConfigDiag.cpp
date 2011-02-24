@@ -15,7 +15,7 @@ const wxString& ConnectedWiimotesString()
 
 WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 	: wxNotebookPage(parent, -1, wxDefaultPosition, wxDefaultSize)
-	, m_index(index), orig_source(g_wiimote_sources[index]), end_source(g_wiimote_sources[index])
+	, m_index(index), orig_source(g_wiimote_sources[index])
 {
 	// input source
 	const wxString src_choices[] = { _("None"),
@@ -132,12 +132,12 @@ void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
 {
 	// This needs to be changed now in order for refresh to work right.
 	// Revert if the dialog is canceled.
-	g_wiimote_sources[m_index] = end_source = event.GetInt();
+	g_wiimote_sources[m_index] = event.GetInt();
 }
 
 void WiimoteConfigPage::UpdateWiimoteStatus()
 {
-	if (orig_source != end_source)
+	if (orig_source != g_wiimote_sources[m_index])
 	{
 		// Disconnect first, otherwise the new source doesn't seem to work
 		CFrame::ConnectWiimote(m_index, false);
