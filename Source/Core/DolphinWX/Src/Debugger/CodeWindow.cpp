@@ -165,10 +165,7 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
-	if (event.GetKeyCode() == WXK_SPACE && event.GetModifiers() == wxMOD_NONE)
-		SingleStep();
-	else
-		event.Skip();
+	event.Skip();
 }
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)

@@ -643,10 +643,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 	case IDM_UPDATESTATUSBAR:
 		if (GetStatusBar() != NULL)
-		{
 			GetStatusBar()->SetStatusText(event.GetString(), event.GetInt());
-			UpdateGUI();
-		}
 		break;
 
 	case IDM_UPDATETITLE:
