@@ -333,8 +333,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 
 void Close()
 {
-	if (m_hParent == NULL)
-		DestroyWindow(m_hWnd);
+	DestroyWindow(m_hWnd);
 	UnregisterClass(m_szClassName, m_hInstance);
 }
 
