@@ -16,11 +16,164 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-
 #include "DebugInterface.h"
 #include "BreakPoints.h"
+#include <sstream>
 
-void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
+bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
+{
+	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+		if (i->iAddress == _iAddress)
+			return true;
+	return false;
+}
+
+bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
+{
+	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+		if (i->iAddress == _iAddress && i->bTemporary)
+			return true;
+	return false;
+}
+
+BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
+{
+	TBreakPointsStr bps;
+	for (TBreakPoints::const_iterator i = m_BreakPoints.begin();
+		i != m_BreakPoints.end(); ++i)
+	{
+		if (!i->bTemporary)
+		{
+			std::stringstream bp;
+			bp << std::hex << i->iAddress << " " << (i->bOn ? "n" : "");
+			bps.push_back(bp.str());
+		}
+	}
+
+	return bps;
+}
+
+void BreakPoints::AddFromStrings(const TBreakPointsStr& bps)
+{
+	for (TBreakPointsStr::const_iterator i = bps.begin(); i != bps.end(); ++i)
+	{
+		TBreakPoint bp;
+		std::stringstream bpstr;
+		bpstr << std::hex << *i;
+		bpstr >> bp.iAddress;
+		bp.bOn = i->find("n") != i->npos;
+		bp.bTemporary = false;
+		Add(bp);
+	}
+}
+
+void BreakPoints::Add(const TBreakPoint& bp)
+{
+	if (!IsAddressBreakPoint(bp.iAddress))
+		m_BreakPoints.push_back(bp);
+}
+
+void BreakPoints::Add(u32 em_address, bool temp)
+{
+	if (!IsAddressBreakPoint(em_address)) // only add new addresses
+	{
+		TBreakPoint pt; // breakpoint settings
+		pt.bOn = true;
+		pt.bTemporary = temp;
+		pt.iAddress = em_address;
+
+		m_BreakPoints.push_back(pt);
+	}
+}
+
+void BreakPoints::Remove(u32 _iAddress)
+{
+	for (TBreakPoints::const_iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	{
+		if (i->iAddress == _iAddress)
+		{
+			m_BreakPoints.erase(i);
+			return;
+		}
+	}
+}
+
+
+MemChecks::TMemChecksStr MemChecks::GetStrings() const
+{
+	TMemChecksStr mcs;
+	for (TMemChecks::const_iterator i = m_MemChecks.begin();
+		i != m_MemChecks.end(); ++i)
+	{
+		std::stringstream mc;
+		mc << std::hex << i->StartAddress;
+		mc << " " << (i->bRange ? i->EndAddress : i->StartAddress) << " " <<
+			(i->bRange ? "n" : "") << (i->OnRead ? "r" : "") <<
+			(i->OnWrite ? "w" : "") << (i->Log ? "l" : "") << (i->Break ? "p" : "");
+		mcs.push_back(mc.str());
+	}
+
+	return mcs;
+}
+
+void MemChecks::AddFromStrings(const TMemChecksStr& mcs)
+{
+	for (TMemChecksStr::const_iterator i = mcs.begin(); i != mcs.end(); ++i)
+	{
+		TMemCheck mc;
+		std::stringstream mcstr;
+		mcstr << std::hex << *i;
+		mcstr >> mc.StartAddress;
+		mc.bRange	= i->find("n") != i->npos;
+		mc.OnRead	= i->find("r") != i->npos;
+		mc.OnWrite	= i->find("w") != i->npos;
+		mc.Log		= i->find("l") != i->npos;
+		mc.Break	= i->find("p") != i->npos;
+		if (mc.bRange)
+			mcstr >> mc.EndAddress;
+		else
+			mc.EndAddress = mc.StartAddress;
+		Add(mc);
+	}
+}
+
+void MemChecks::Add(const TMemCheck& _rMemoryCheck)
+{
+	if (GetMemCheck(_rMemoryCheck.StartAddress) == 0)
+		m_MemChecks.push_back(_rMemoryCheck);
+}
+
+void MemChecks::Remove(u32 _Address)
+{
+	for (TMemChecks::const_iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+	{
+		if (i->StartAddress == _Address)
+		{
+			m_MemChecks.erase(i);
+			return;
+		}
+	}
+}
+
+TMemCheck *MemChecks::GetMemCheck(u32 address)
+{
+	for (TMemChecks::iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+	{
+		if (i->bRange)
+		{
+			if (address >= i->StartAddress && address <= i->EndAddress)
+				return &(*i);
+		}
+		else if (i->StartAddress == address)
+			return &(*i);
+	}
+
+	// none found
+	return 0;
+}
+
+void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr,
+						bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
@@ -35,120 +188,4 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bo
 		if (Break)
 			debug_interface->breakNow();
 	}
-}
-
-bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
-{
-	std::vector<TBreakPoint>::iterator iter;
-	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-		if ((*iter).iAddress == _iAddress)
-			return true;
-	return false;
-}
-
-bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
-{
-	std::vector<TBreakPoint>::iterator iter;
-
-	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-		if ((*iter).iAddress == _iAddress && (*iter).bTemporary)
-			return true;
-
-	return false;
-}
-
-bool BreakPoints::Add(u32 em_address, bool temp)
-{
-	if (!IsAddressBreakPoint(em_address)) // only add new addresses
-	{
-		TBreakPoint pt; // breakpoint settings
-		pt.bOn = true;
-		pt.bTemporary = temp;
-		pt.iAddress = em_address;
-
-		m_BreakPoints.push_back(pt);
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool BreakPoints::Remove(u32 _iAddress)
-{
-	std::vector<TBreakPoint>::iterator iter;
-	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-	{
-		if ((*iter).iAddress == _iAddress)
-		{
-			m_BreakPoints.erase(iter);
-			return true;
-		}
-	}
-	return false;
-}
-
-void BreakPoints::Clear()
-{
-	m_BreakPoints.clear();
-}
-
-void BreakPoints::DeleteByAddress(u32 _Address)
-{
-    // first check breakpoints
-    {
-        std::vector<TBreakPoint>::iterator iter;
-        for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-        {
-            if ((*iter).iAddress == _Address)
-            {
-                m_BreakPoints.erase(iter);
-                return;
-            } 
-        }
-    }
-}
-
-void MemChecks::Add(const TMemCheck& _rMemoryCheck)
-{
-	m_MemChecks.push_back(_rMemoryCheck);
-}
-
-
-TMemCheck *MemChecks::GetMemCheck(u32 address)
-{
-	std::vector<TMemCheck>::iterator iter;
-	for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
-	{
-		if ((*iter).bRange)
-		{
-			if (address >= (*iter).StartAddress && address <= (*iter).EndAddress)
-				return &(*iter);
-		}
-		else
-		{
-			if ((*iter).StartAddress == address)
-				return &(*iter);
-		}
-	}
-
-	//none found
-	return 0;
-}
-
-void MemChecks::Clear()
-{
-	m_MemChecks.clear();
-}
-
-void MemChecks::DeleteByAddress(u32 _Address)
-{
-    std::vector<TMemCheck>::iterator iter;
-    for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
-    {
-        if ((*iter).StartAddress == _Address)
-        {
-            m_MemChecks.erase(iter);
-			return;
-        }
-    }
 }

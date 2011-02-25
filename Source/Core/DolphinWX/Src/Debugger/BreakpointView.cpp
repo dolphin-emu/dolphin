@@ -112,6 +112,9 @@ void CBreakPointView::Update()
 		SetItemData(Item, rMemCheck.StartAddress);
 	}
 
+	SetColumnWidth(2, -1);
+	SetColumnWidth(3, -1);
+
 	Refresh();
 }
 
@@ -121,8 +124,8 @@ void CBreakPointView::DeleteCurrentSelection()
     if (Item >= 0)
     {
         u32 Address = (u32)GetItemData(Item);
-        PowerPC::breakpoints.DeleteByAddress(Address);
-        PowerPC::memchecks.DeleteByAddress(Address);
+        PowerPC::breakpoints.Remove(Address);
+        PowerPC::memchecks.Remove(Address);
 		Update();
     }
 }
@@ -136,7 +139,7 @@ CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, c
 	SetBackgroundColour(wxColour(0x555555));
 	SetForegroundColour(wxColour(0xffffff));
 
-	// load orignal size 48x48
+	// load original size 48x48
 	wxMemoryInputStream st1(toolbar_delete_png, sizeof(toolbar_delete_png));
 	wxMemoryInputStream st2(toolbar_add_breakpoint_png, sizeof(toolbar_add_breakpoint_png));
 	wxMemoryInputStream st3(toolbar_add_memcheck_png, sizeof(toolbar_add_memcheck_png));
@@ -157,15 +160,14 @@ CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, c
 void CBreakPointBar::PopulateBar()
 {
 	InsertItem(IDM_DELETE, _("Delete"), 0);
-	InsertItem(IDM_CLEAR, _("Clear all"), 0);
+	InsertItem(IDM_CLEAR, _("Clear"), 0);
 
-	InsertItem(IDM_ADD_BREAKPOINT, _("Add BP..."), 1);
-	InsertItem(IDM_ADD_BREAKPOINTMANY, _("Add BPs..."), 1);
+	InsertItem(IDM_ADD_BREAKPOINT, _("+BP"), 1);
 
     // just add memory breakpoints if you can use them
     if (Memory::AreMemoryBreakpointsActivated())
-    {
-		InsertItem(IDM_ADD_MEMORYCHECK, _("Add MC..."), 2);
-		InsertItem(IDM_ADD_MEMORYCHECKMANY, _("Add MCs..."), 2);
-    }
+		InsertItem(IDM_ADD_MEMORYCHECK, _("+MC"), 2);
+
+	InsertItem(IDM_SAVEALL, _("Load"));
+	InsertItem(IDM_SAVEALL, _("Save"));
 }

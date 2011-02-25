@@ -156,7 +156,7 @@ void PPCDebugInterface::toggleMemCheck(unsigned int address)
 
 	}
 	else
-		PowerPC::memchecks.DeleteByAddress(address);
+		PowerPC::memchecks.Remove(address);
 }
 
 void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 

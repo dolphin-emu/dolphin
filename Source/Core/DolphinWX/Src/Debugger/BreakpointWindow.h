@@ -29,55 +29,50 @@ enum
 	IDM_DELETE = 0,
 	IDM_CLEAR,
 	IDM_ADD_BREAKPOINT,
-	IDM_ADD_BREAKPOINTMANY,
 	IDM_ADD_MEMORYCHECK,
-	IDM_ADD_MEMORYCHECKMANY
+	IDM_LOADALL,
+	IDM_SAVEALL
 };
 
 class CBreakPointWindow
 	: public wxPanel
 {
-	private:
+public:
 
-		DECLARE_EVENT_TABLE();
+	CBreakPointWindow(CCodeWindow* _pCodeWindow,
+		wxWindow* parent,
+		wxWindowID id = wxID_ANY,
+		const wxString& title = _("Breakpoints"),
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxTAB_TRAVERSAL | wxBORDER_NONE);
 
-	public:
+	void NotifyUpdate();
 
-		CBreakPointWindow(CCodeWindow* _pCodeWindow,
-						  wxWindow* parent,
-						  wxWindowID id = wxID_ANY,
-						  const wxString& title = _("Breakpoints"),
-						  const wxPoint& pos = wxDefaultPosition,
-						  const wxSize& size = wxDefaultSize,
-						  long style = wxTAB_TRAVERSAL | wxBORDER_NONE);
+private:
+	DECLARE_EVENT_TABLE();
 
-		void NotifyUpdate();
-		void OnDelete();
-		void OnClear();
-		void OnAddBreakPoint();
-		void OnAddBreakPointMany();
-		void OnAddMemoryCheck();
-		void OnAddMemoryCheckMany();
+	enum
+	{
+		ID_TOOLBAR = 501,
+		ID_BPS = 1002,
+	};
 
-	private:
+	CBreakPointBar* m_BreakPointBar;
+	CBreakPointView* m_BreakPointListView;
+	CCodeWindow* m_pCodeWindow;
 
-		enum
-		{
-			ID_TOOLBAR = 501,
-			ID_BPS = 1002,
-		};
-
-		CBreakPointBar* m_BreakPointBar;
-		CBreakPointView* m_BreakPointListView;
-        CCodeWindow* m_pCodeWindow;
-
-		// void RecreateToolbar();
-		// void PopulateToolbar(wxToolBar* toolBar);
-		// void InitBitmaps();
-		void CreateGUIControls();
-
-		void OnSelectItem(wxListEvent& event);
-        void OnActivated(wxListEvent& event);
+	void OnClose(wxCloseEvent& event);
+	void OnSelectToolbar(wxListEvent& event);
+	void OnSelectBP(wxListEvent& event);
+	void OnRightClick(wxListEvent& event);
+	void CreateGUIControls();
+	void OnDelete();
+	void OnClear();
+	void OnAddBreakPoint();
+	void OnAddMemoryCheck();
+	void SaveAll();
+	void LoadAll();
 };
 
 #endif

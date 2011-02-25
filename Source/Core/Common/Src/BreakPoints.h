@@ -36,6 +36,8 @@ struct TMemCheck
 {
 	TMemCheck() {
 		numHits = 0;
+		StartAddress = EndAddress = 0;
+		bRange = OnRead = OnWrite = Log = Break = false;
 	}
 	u32 StartAddress;
 	u32 EndAddress;
@@ -50,7 +52,8 @@ struct TMemCheck
 
 	u32		numHits;
 
-	void Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr, bool write, int size, u32 pc);
+	void Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
+				bool write, int size, u32 pc);
 };
 
 // Code breakpoints.
@@ -58,19 +61,24 @@ class BreakPoints
 {
 public:
 	typedef std::vector<TBreakPoint> TBreakPoints;
+	typedef std::vector<std::string> TBreakPointsStr;
 
 	const TBreakPoints& GetBreakPoints() { return m_BreakPoints; }
+
+	TBreakPointsStr GetStrings() const;
+	void AddFromStrings(const TBreakPointsStr& bps);
 
 	// is address breakpoint
 	bool IsAddressBreakPoint(u32 _iAddress);
 	bool IsTempBreakPoint(u32 _iAddress);
 
-	// AddBreakPoint
-	bool Add(u32 em_address, bool temp=false);
+	// Add BreakPoint
+	void Add(u32 em_address, bool temp=false);
+	void Add(const TBreakPoint& bp);
 
 	// Remove Breakpoint
-	bool Remove(u32 _iAddress);
-	void Clear();
+	void Remove(u32 _iAddress);
+	void Clear() { m_BreakPoints.clear(); };
 
     void DeleteByAddress(u32 _Address);
 
@@ -85,15 +93,22 @@ class MemChecks
 {
 public:
 	typedef std::vector<TMemCheck> TMemChecks;
+	typedef std::vector<std::string> TMemChecksStr;
+
 	TMemChecks m_MemChecks;
-	const TMemChecks& GetMemChecks()		{ return m_MemChecks; }
+	
+	const TMemChecks& GetMemChecks() { return m_MemChecks; }
+	
+	TMemChecksStr GetStrings() const;
+	void AddFromStrings(const TMemChecksStr& mcs);
+
 	void Add(const TMemCheck& _rMemoryCheck);
 
-	//memory breakpoint
+	// memory breakpoint
 	TMemCheck *GetMemCheck(u32 address);
-    void DeleteByAddress(u32 _Address);
+    void Remove(u32 _Address);
 
-	void Clear();
+	void Clear() { m_MemChecks.clear(); };
 };
 
 #endif

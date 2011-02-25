@@ -27,8 +27,10 @@
 #include "FileUtil.h"
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
-	EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
-	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectItem)
+	EVT_CLOSE(CBreakPointWindow::OnClose)
+	EVT_LIST_ITEM_SELECTED(ID_BPS, CBreakPointWindow::OnSelectBP)
+	EVT_LIST_ITEM_RIGHT_CLICK(ID_BPS, CBreakPointWindow::OnRightClick)
+	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectToolbar)
 END_EVENT_TABLE()
 
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
@@ -39,6 +41,11 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	, m_pCodeWindow(_pCodeWindow)
 {
 	CreateGUIControls();
+}
+
+void CBreakPointWindow::OnClose(wxCloseEvent& WXUNUSED(event))
+{
+	SaveAll();
 }
 
 void CBreakPointWindow::CreateGUIControls()
@@ -53,69 +60,65 @@ void CBreakPointWindow::CreateGUIControls()
 
 	wxBoxSizer* sizerH = new wxBoxSizer(wxVERTICAL);
 	sizerH->Add(m_BreakPointBar, 0, wxALL | wxEXPAND);
-	sizerH->Add((wxListCtrl*)m_BreakPointListView, 1, wxEXPAND);
+	sizerH->Add(m_BreakPointListView, 1, wxEXPAND);
 
-	NotifyUpdate();
 	SetSizer(sizerH);
 }
 
-void CBreakPointWindow::OnSelectItem(wxListEvent& event)
+void CBreakPointWindow::OnSelectToolbar(wxListEvent& event)
 {
 	switch(event.GetItem().GetId())
 	{
 	case IDM_DELETE:
 		OnDelete();
-		m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_FOCUSED);
 		break;
 	case IDM_CLEAR:
 		OnClear();
-		m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_FOCUSED);
 		break;
 	case IDM_ADD_BREAKPOINT:
 		OnAddBreakPoint();
 		break;
-	case IDM_ADD_BREAKPOINTMANY:
-		OnAddBreakPointMany();
-		break;
 	case IDM_ADD_MEMORYCHECK:
 		OnAddMemoryCheck();
 		break;
-	case IDM_ADD_MEMORYCHECKMANY:
-		OnAddMemoryCheckMany();
+	case IDM_LOADALL:
+		LoadAll();
+	case IDM_SAVEALL:
+		SaveAll();
 		break;
 	}
 }
 
 void CBreakPointWindow::NotifyUpdate()
 {
-	if (m_BreakPointListView != NULL) m_BreakPointListView->Update();
+	if (m_BreakPointListView)
+		m_BreakPointListView->Update();
 }
 
 void CBreakPointWindow::OnDelete()
 {
 	if (m_BreakPointListView)
-	{
 		m_BreakPointListView->DeleteCurrentSelection();
-	}
 }
 
-void CBreakPointWindow::OnActivated(wxListEvent& event)
+// jump to begin addr
+void CBreakPointWindow::OnSelectBP(wxListEvent& event)
 {
 	long Index = event.GetIndex();
 	if (Index >= 0)
 	{
 		u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
-		if (m_pCodeWindow != NULL)
-		{
+		if (m_pCodeWindow)
 			m_pCodeWindow->JumpToAddress(Address);
-		}
 	}
 }
 
-// Breakpoint actions
-// ---------------------
+// modify
+void CBreakPointWindow::OnRightClick(wxListEvent& event)
+{
+}
 
-// Clear all breakpoints
+// Clear all breakpoints and memchecks
 void CBreakPointWindow::OnClear()
 {
 	PowerPC::breakpoints.Clear();
@@ -123,143 +126,43 @@ void CBreakPointWindow::OnClear()
 	NotifyUpdate();
 }
 
-// Add one breakpoint
 void CBreakPointWindow::OnAddBreakPoint()
 {
 	BreakPointDlg bpDlg(this, this);
 	bpDlg.ShowModal();
 }
 
-// Load breakpoints from file
-void CBreakPointWindow::OnAddBreakPointMany()
-{
-	// load ini
-	IniFile ini;
-	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "BreakPoints.ini";
-
-	if (ini.Load(filename.c_str())) // check if there is any file there
-	{
-		// get lines from a certain section
-		std::vector<std::string> lines;
-		if (!ini.GetLines("BreakPoints", lines))
-		{
-			wxMessageBox(_("You have no [BreakPoints] line in your file"));
-			return;
-		}
-
-		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
-		{
-			std::string line = StripSpaces(*iter);
-			u32 Address = 0;
-			if (AsciiToHex(line.c_str(), Address))
-			{
-				PowerPC::breakpoints.Add(Address);
-			}
-		}
-		// Only update after we are done with the loop
-		NotifyUpdate();
-	}
-	else
-	{
-		wxMessageBox(_("Couldn't find GameConfig/BreakPoints.ini file"));
-	}
-
-}
-
-// Memory check actions
-// ---------------------
-void
-CBreakPointWindow::OnAddMemoryCheck()
+void CBreakPointWindow::OnAddMemoryCheck()
 {
 	MemoryCheckDlg memDlg(this);
 	memDlg.ShowModal();
 }
 
-// Load memory checks from file
-void CBreakPointWindow::OnAddMemoryCheckMany()
+void CBreakPointWindow::SaveAll()
 {
-	// load ini
+	// simply dump all to bp/mc files in a way we can read again
 	IniFile ini;
-	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "MemoryChecks.ini";
-
-	if (ini.Load(filename.c_str()))
+	if (ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
 	{
-		// get lines from a certain section
-		std::vector<std::string> lines;
-		if (!ini.GetLines("MemoryChecks", lines))
-		{
-			wxMessageBox(_("You have no [MemoryChecks] line in your file"));
-			return;
-		}
-
-		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
-		{
-			std::string line = StripSpaces(*iter);
-			std::vector<std::string> pieces;
-			SplitString(line, ' ', pieces); // split string
-
-			TMemCheck MemCheck;
-			u32 sAddress = 0;
-			u32 eAddress = 0;
-			bool doCommon = false;
-
-			// ------------------------------------------------------------------------------------------
-			// Decide if we have a range or just one address, and if we should break or not
-			// --------------
-			if (
-				pieces.size() == 1
-				&& AsciiToHex(pieces[0].c_str(), sAddress)
-				&& pieces[0].size() == 8
-				)
-			{
-				// address range
-				MemCheck.StartAddress = sAddress;
-				MemCheck.EndAddress = sAddress;
-				doCommon = true;
-				MemCheck.Break = false;
-			}
-			else if(
-				pieces.size() == 2
-				&& AsciiToHex(pieces[0].c_str(), sAddress) && AsciiToHex(pieces[1].c_str(), eAddress)
-				&& pieces[0].size() == 8 && pieces[1].size() == 8
-				)
-			{
-				// address range
-				MemCheck.StartAddress = sAddress;
-				MemCheck.EndAddress = eAddress;
-				doCommon = true;
-				MemCheck.Break = false;
-			}
-			else if(
-				pieces.size() == 3
-				&& AsciiToHex(pieces[0].c_str(), sAddress) && AsciiToHex(pieces[1].c_str(), eAddress)
-				&& pieces[0].size() == 8 && pieces[1].size() == 8 && pieces[2].size() == 1
-				)
-			{
-				// address range
-				MemCheck.StartAddress = sAddress;
-				MemCheck.EndAddress = eAddress;
-				doCommon = true;
-				MemCheck.Break = true;
-			}
-
-			if (doCommon)
-			{
-				// settings for the memory check
-				MemCheck.OnRead = true;
-				MemCheck.OnWrite = true;
-				MemCheck.Log = true;
-				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
-				// so don't think it's off because we are only writing this to the log
-				PowerPC::memchecks.Add(MemCheck);
-			}
-		}
-		// Update after we are done with the loop
-		NotifyUpdate();
-	}
-	else
-	{
-		wxMessageBox(_("You have no ") + wxString::FromAscii(File::GetUserPath(D_GAMECONFIG_IDX)) + _("MemoryChecks.ini file"));
+		ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
+		ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
+		ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	}
 }
 
+void CBreakPointWindow::LoadAll()
+{
+	IniFile ini;
+	BreakPoints::TBreakPointsStr newbps;
+	MemChecks::TMemChecksStr newmcs;
+	
+	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
+		return;
+	
+	if (ini.GetLines("BreakPoints", newbps))
+		PowerPC::breakpoints.AddFromStrings(newbps);
+	if (ini.GetLines("MemoryChecks", newmcs, false))
+		PowerPC::memchecks.AddFromStrings(newmcs);
+
+	NotifyUpdate();
+}
