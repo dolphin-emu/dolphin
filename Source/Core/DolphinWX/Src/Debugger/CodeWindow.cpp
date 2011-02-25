@@ -164,6 +164,7 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 	{
 	    case IDM_NOTIFYMAPLOADED:
 		    NotifyMapLoaded();
+			if (m_BreakpointWindow) m_BreakpointWindow->NotifyUpdate();
 		    break;
 
 	    case IDM_UPDATEDISASMDIALOG:

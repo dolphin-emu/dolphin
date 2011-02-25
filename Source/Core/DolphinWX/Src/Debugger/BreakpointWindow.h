@@ -24,16 +24,6 @@ class CCodeWindow;
 class wxListEvent;
 class IniFile;
 
-enum
-{
-	IDM_DELETE = 0,
-	IDM_CLEAR,
-	IDM_ADD_BREAKPOINT,
-	IDM_ADD_MEMORYCHECK,
-	IDM_LOADALL,
-	IDM_SAVEALL
-};
-
 class CBreakPointWindow
 	: public wxPanel
 {
@@ -48,6 +38,13 @@ public:
 		long style = wxTAB_TRAVERSAL | wxBORDER_NONE);
 
 	void NotifyUpdate();
+
+	void OnDelete();
+	void OnClear();
+	void OnAddBreakPoint();
+	void OnAddMemoryCheck();
+	void SaveAll();
+	void LoadAll();
 
 private:
 	DECLARE_EVENT_TABLE();
@@ -67,12 +64,6 @@ private:
 	void OnSelectBP(wxListEvent& event);
 	void OnRightClick(wxListEvent& event);
 	void CreateGUIControls();
-	void OnDelete();
-	void OnClear();
-	void OnAddBreakPoint();
-	void OnAddMemoryCheck();
-	void SaveAll();
-	void LoadAll();
 };
 
 #endif

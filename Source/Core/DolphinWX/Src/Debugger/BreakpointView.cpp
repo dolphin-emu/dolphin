@@ -26,21 +26,14 @@
 #include "PowerPC/PowerPC.h"
 #include "HW/Memmap.h"
 
-extern "C" {
-#include "../../resources/toolbar_add_breakpoint.c"
-#include "../../resources/toolbar_add_memorycheck.c"
-#include "../../resources/toolbar_debugger_delete.c"
-}
-
-
-CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id,
+								const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
 	SetFont(DebuggerFont);
 
 	Refresh();
 }
-
 
 void CBreakPointView::Update()
 {
@@ -128,46 +121,4 @@ void CBreakPointView::DeleteCurrentSelection()
         PowerPC::memchecks.Remove(Address);
 		Update();
     }
-}
-
-
-CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl((wxWindow*)parent, id, pos, size, style)
-{
-	BPWindow = parent;
-
-	SetBackgroundColour(wxColour(0x555555));
-	SetForegroundColour(wxColour(0xffffff));
-
-	// load original size 48x48
-	wxMemoryInputStream st1(toolbar_delete_png, sizeof(toolbar_delete_png));
-	wxMemoryInputStream st2(toolbar_add_breakpoint_png, sizeof(toolbar_add_breakpoint_png));
-	wxMemoryInputStream st3(toolbar_add_memcheck_png, sizeof(toolbar_add_memcheck_png));
-	m_Bitmaps[Toolbar_Delete] = wxBitmap(wxImage(st1, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-	m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxImage(st2, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-	m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxImage(st3, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-
-	m_imageListNormal = new wxImageList(24, 24);
-	m_imageListNormal->Add(m_Bitmaps[Toolbar_Delete]);
-	m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_BP]);
-	m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_MC]);
-	SetImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
-
-	PopulateBar();
-}
-
-
-void CBreakPointBar::PopulateBar()
-{
-	InsertItem(IDM_DELETE, _("Delete"), 0);
-	InsertItem(IDM_CLEAR, _("Clear"), 0);
-
-	InsertItem(IDM_ADD_BREAKPOINT, _("+BP"), 1);
-
-    // just add memory breakpoints if you can use them
-    if (Memory::AreMemoryBreakpointsActivated())
-		InsertItem(IDM_ADD_MEMORYCHECK, _("+MC"), 2);
-
-	InsertItem(IDM_SAVEALL, _("Load"));
-	InsertItem(IDM_SAVEALL, _("Save"));
 }

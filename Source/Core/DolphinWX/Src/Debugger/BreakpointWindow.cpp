@@ -26,6 +26,70 @@
 #include "PowerPC/PowerPC.h"
 #include "FileUtil.h"
 
+extern "C" {
+#include "../../resources/toolbar_add_breakpoint.c"
+#include "../../resources/toolbar_add_memorycheck.c"
+#include "../../resources/toolbar_debugger_delete.c"
+}
+
+#include <map>
+typedef void (CBreakPointWindow::*toolbar_func)();
+typedef std::map<long, toolbar_func> toolbar_m;
+typedef std::pair<long, toolbar_func> toolbar_p;
+toolbar_m toolbar_map;
+
+class CBreakPointBar : public wxListCtrl
+{
+	enum
+	{
+		Toolbar_Delete,
+		Toolbar_Add_BP,
+		Toolbar_Add_MC,
+		Bitmaps_max
+	};
+	wxBitmap m_Bitmaps[Bitmaps_max];
+
+public:
+	CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id,
+		const wxPoint& pos, const wxSize& size, long style)
+		: wxListCtrl((wxWindow*)parent, id, pos, size, style)
+	{
+		SetBackgroundColour(wxColour(0x555555));
+		SetForegroundColour(wxColour(0xffffff));
+
+		// load original size 48x48
+		wxMemoryInputStream st1(toolbar_delete_png, sizeof(toolbar_delete_png));
+		wxMemoryInputStream st2(toolbar_add_breakpoint_png, sizeof(toolbar_add_breakpoint_png));
+		wxMemoryInputStream st3(toolbar_add_memcheck_png, sizeof(toolbar_add_memcheck_png));
+		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxImage(st1, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
+		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxImage(st2, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
+		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxImage(st3, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
+
+		m_imageListNormal = new wxImageList(24, 24);
+		m_imageListNormal->Add(m_Bitmaps[Toolbar_Delete]);
+		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_BP]);
+		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_MC]);
+		SetImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
+
+		toolbar_map.insert(toolbar_p(InsertItem(0, _("Delete"), 0), &CBreakPointWindow::OnDelete));
+		toolbar_map.insert(toolbar_p(InsertItem(1, _("Clear"), 0), &CBreakPointWindow::OnClear));
+		toolbar_map.insert(toolbar_p(InsertItem(2, _("+BP"), 1), &CBreakPointWindow::OnAddBreakPoint));
+
+		// just add memory breakpoints if you can use them
+		if (Memory::AreMemoryBreakpointsActivated())
+		{
+			toolbar_map.insert(toolbar_p(InsertItem(3, _("+MC"), 2), &CBreakPointWindow::OnAddMemoryCheck));
+			toolbar_map.insert(toolbar_p(InsertItem(4, _("Load"), 0), &CBreakPointWindow::LoadAll));
+			toolbar_map.insert(toolbar_p(InsertItem(5, _("Save"), 0), &CBreakPointWindow::SaveAll));
+		}
+		else
+		{
+			toolbar_map.insert(toolbar_p(InsertItem(3, _("Load"), 0), &CBreakPointWindow::LoadAll));
+			toolbar_map.insert(toolbar_p(InsertItem(4, _("Save"), 0), &CBreakPointWindow::SaveAll));
+		}
+	}
+};
+
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_LIST_ITEM_SELECTED(ID_BPS, CBreakPointWindow::OnSelectBP)
@@ -67,26 +131,8 @@ void CBreakPointWindow::CreateGUIControls()
 
 void CBreakPointWindow::OnSelectToolbar(wxListEvent& event)
 {
-	switch(event.GetItem().GetId())
-	{
-	case IDM_DELETE:
-		OnDelete();
-		break;
-	case IDM_CLEAR:
-		OnClear();
-		break;
-	case IDM_ADD_BREAKPOINT:
-		OnAddBreakPoint();
-		break;
-	case IDM_ADD_MEMORYCHECK:
-		OnAddMemoryCheck();
-		break;
-	case IDM_LOADALL:
-		LoadAll();
-	case IDM_SAVEALL:
-		SaveAll();
-		break;
-	}
+	(this->*toolbar_map[event.GetItem().GetId()])();
+	m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_SELECTED);
 }
 
 void CBreakPointWindow::NotifyUpdate()
@@ -159,7 +205,7 @@ void CBreakPointWindow::LoadAll()
 	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
 		return;
 	
-	if (ini.GetLines("BreakPoints", newbps))
+	if (ini.GetLines("BreakPoints", newbps, false))
 		PowerPC::breakpoints.AddFromStrings(newbps);
 	if (ini.GetLines("MemoryChecks", newmcs, false))
 		PowerPC::memchecks.AddFromStrings(newmcs);
