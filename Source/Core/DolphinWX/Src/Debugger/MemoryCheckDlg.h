@@ -45,6 +45,7 @@ class MemoryCheckDlg : public wxDialog
 		wxCheckBox* m_pReadFlag;
 		wxCheckBox* m_pWriteFlag;
 		wxCheckBox* m_log_flag;
+		wxCheckBox* m_break_flag;
 		wxTextCtrl* m_pEditEndAddress;
 		wxTextCtrl* m_pEditStartAddress;
 
@@ -52,6 +53,8 @@ class MemoryCheckDlg : public wxDialog
 
 		enum
 		{
+			ID_BREAK_FLAG = 1018,
+			ID_LOG_FLAG = 1017,
 			ID_CANCEL = 1016,
 			ID_OK = 1015,
 			ID_READ_FLAG = 1014,
@@ -62,7 +65,6 @@ class MemoryCheckDlg : public wxDialog
 			ID_WXSTATICTEXT1 = 1009,
 			ID_EDIT_START_ADDR = 1008,
 			ID_WXSTATICBOX1 = 1007,
-			ID_LOG_FLAG = 1007,
 		};
 	
 	private:

@@ -179,10 +179,10 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr,
 	{
 		if (Log)
 		{
-			INFO_LOG(MEMMAP, "CHK %08x %s%i %08x at %08x (%s)",
-				debug_interface->getPC(),
-				write ? "Write" : "Read", size*8, iValue, addr, // address
-				debug_interface->getDescription(addr).c_str() // symbol map description
+			INFO_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)",
+				pc, debug_interface->getDescription(pc).c_str(),
+				write ? "Write" : "Read", size*8, size*2, iValue, addr,
+				debug_interface->getDescription(addr).c_str()
 				);
 		}
 		if (Break)

@@ -51,10 +51,12 @@ void MemoryCheckDlg::CreateGUIControls()
 	m_pReadFlag = new wxCheckBox(this, ID_READ_FLAG, _("Read"), wxPoint(336,33), wxSize(57,15), 0, wxDefaultValidator, _("Read"));
 
 	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, _("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
+	m_pWriteFlag->SetValue(true);
+	m_log_flag = new wxCheckBox(this, ID_LOG_FLAG, _("Log"), wxPoint(420,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox2"));
+	m_log_flag->SetValue(true);
+	m_break_flag = new wxCheckBox(this, ID_BREAK_FLAG, _("Break"), wxPoint(420,33), wxSize(57,15), 0, wxDefaultValidator, wxT("WxCheckBox2"));
 
-	m_log_flag = new wxCheckBox(this, ID_LOG_FLAG, _("Log"), wxPoint(420,33), wxSize(57,13), 0, wxDefaultValidator, wxT("WxCheckBox2"));
-
-	new wxStaticBox(this, ID_WXSTATICBOX2, _("Break On"), wxPoint(328,0), wxSize(73,57));
+	new wxStaticBox(this, ID_WXSTATICBOX2, _("Action"), wxPoint(328,0), wxSize(73,57));
 
 	new wxStaticText(this, ID_WXSTATICTEXT2, _("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
 
@@ -78,21 +80,28 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 	wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
 	bool OnRead = m_pReadFlag->GetValue();
 	bool OnWrite = m_pWriteFlag->GetValue();
-	bool OnLog = m_log_flag->GetValue();
+	bool Log = m_log_flag->GetValue();
+	bool Break = m_break_flag->GetValue();;
 
 	u32 StartAddress, EndAddress;
+	bool EndAddressOK = EndAddressString.Len() &&
+		AsciiToHex(EndAddressString.mb_str(), EndAddress);
+
 	if (AsciiToHex(StartAddressString.mb_str(), StartAddress) &&
-		AsciiToHex(EndAddressString.mb_str(), EndAddress))
+		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;
+
+		if (!EndAddressOK)
+			EndAddress = StartAddress;
+
 		MemCheck.StartAddress = StartAddress;
 		MemCheck.EndAddress = EndAddress;
 		MemCheck.bRange = StartAddress != EndAddress;
 		MemCheck.OnRead = OnRead;
 		MemCheck.OnWrite = OnWrite;
-
-		MemCheck.Log = OnLog;
-		MemCheck.Break = OnRead || OnWrite;
+		MemCheck.Log = Log;
+		MemCheck.Break = Break;
 
 		PowerPC::memchecks.Add(MemCheck);
 		Host_UpdateBreakPointView();

@@ -72,7 +72,7 @@ void CBreakPointView::Update()
 				SetItem(Item, 2, temp);
 			}
 			
-            sprintf(szBuffer, "0x%08x", rBP.iAddress);
+            sprintf(szBuffer, "%08x", rBP.iAddress);
             temp = wxString::FromAscii(szBuffer);
 			SetItem(Item, 3, temp);
 
@@ -86,7 +86,7 @@ void CBreakPointView::Update()
 		const TMemCheck& rMemCheck = rMemChecks[i];
 
 		wxString temp;
-		temp = wxString::FromAscii(rMemCheck.Break ? "on" : " ");
+		temp = wxString::FromAscii((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
 		int Item = InsertItem(0, temp);
 		temp = wxString::FromAscii("MC");
 		SetItem(Item, 1, temp);
@@ -98,7 +98,7 @@ void CBreakPointView::Update()
 			SetItem(Item, 2, temp);
 		}
 
-		sprintf(szBuffer, "0x%08x to 0%08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
+		sprintf(szBuffer, "%08x to %08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
 		temp = wxString::FromAscii(szBuffer);
 		SetItem(Item, 3, temp);
 
