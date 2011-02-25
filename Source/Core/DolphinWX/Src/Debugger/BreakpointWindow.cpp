@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <wx/wx.h>
+#include <wx/imaglist.h>
 
 #include "BreakpointView.h"
 #include "CodeWindow.h"
@@ -50,7 +51,7 @@ class CBreakPointBar : public wxListCtrl
 	wxBitmap m_Bitmaps[Bitmaps_max];
 
 public:
-	CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id,
+	CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id,
 		const wxPoint& pos, const wxSize& size, long style)
 		: wxListCtrl((wxWindow*)parent, id, pos, size, style)
 	{
