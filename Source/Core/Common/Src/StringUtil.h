@@ -93,5 +93,8 @@ void SplitString(const std::string& str, char delim, std::vector<std::string>& o
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
+std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
+std::string UriDecode(const std::string & sSrc);
+std::string UriEncode(const std::string & sSrc);
 
 #endif // _STRINGUTIL_H_

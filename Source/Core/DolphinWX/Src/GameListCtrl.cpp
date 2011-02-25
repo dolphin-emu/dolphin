@@ -124,6 +124,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 	EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
 	EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
+	EVT_MENU(IDM_GAMEWIKI, CGameListCtrl::OnWiki)
 	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
 	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
@@ -998,6 +999,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		{
 			wxMenu* popupMenu = new wxMenu;
 			popupMenu->Append(IDM_PROPERTIES, _("&Properties"));
+			popupMenu->Append(IDM_GAMEWIKI, _("&Wiki"));
 			popupMenu->AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
@@ -1164,6 +1166,22 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	ISOProperties.Center();
 	if(ISOProperties.ShowModal() == wxID_OK)
 		Update();
+}
+
+void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso)
+		return;
+
+	std::string wikiUrl = "http://api.dolphin-emulator.com/wiki.html?id=[GAME_ID]&name=[GAME_NAME]";
+	wikiUrl = ReplaceAll(wikiUrl, "[GAME_ID]", UriEncode(iso->GetUniqueID()));
+	if (UriEncode(iso->GetName(0)).length() < 100)
+		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", UriEncode(iso->GetName(0)));
+	else
+		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", "");
+
+	WxUtils::Launch(wikiUrl.c_str());
 }
 
 void CGameListCtrl::OnInstallWAD(wxCommandEvent& WXUNUSED (event))
