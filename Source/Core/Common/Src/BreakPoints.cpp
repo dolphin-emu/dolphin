@@ -88,7 +88,7 @@ void BreakPoints::Add(u32 em_address, bool temp)
 
 void BreakPoints::Remove(u32 _iAddress)
 {
-	for (TBreakPoints::const_iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
 	{
 		if (i->iAddress == _iAddress)
 		{
@@ -145,7 +145,7 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 
 void MemChecks::Remove(u32 _Address)
 {
-	for (TMemChecks::const_iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+	for (TMemChecks::iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
 	{
 		if (i->StartAddress == _Address)
 		{
