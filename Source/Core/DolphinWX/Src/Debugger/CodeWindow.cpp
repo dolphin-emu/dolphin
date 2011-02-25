@@ -143,11 +143,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
-
-	// Connect keyboard
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-		wxKeyEventHandler(CCodeWindow::OnKeyDown),
-		(wxObject*)0, this);
 }
 
 wxMenuBar *CCodeWindow::GetMenuBar()
@@ -162,11 +157,6 @@ wxAuiToolBar *CCodeWindow::GetToolBar()
 
 // ----------
 // Events
-
-void CCodeWindow::OnKeyDown(wxKeyEvent& event)
-{
-	event.Skip();
-}
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {

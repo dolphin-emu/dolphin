@@ -48,7 +48,7 @@ public:
 		long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 		const wxString& name = _("JIT block viewer"));
 
-	static void ViewAddr(u32 em_address);
+	void ViewAddr(u32 em_address);
 	void Update();
 
 private:

@@ -38,13 +38,7 @@
 #include "StringUtil.h"
 #include "LogManager.h"
 
-// ugly that this lib included code from the main
-#include "../../DolphinWX/Src/Globals.h"
-
-// TODO:  Fix this ugly hack
-namespace {
-CJitWindow *the_jit_window;
-}
+#include "../Globals.h"
 
 enum
 {
@@ -67,7 +61,6 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	   	const wxSize& size, long style, const wxString& name)
 : wxPanel(parent, id, pos, size, style, name)
 {
-	the_jit_window = this;
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
 	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"),
@@ -97,16 +90,9 @@ void CJitWindow::OnRefresh(wxCommandEvent& /*event*/) {
 
 void CJitWindow::ViewAddr(u32 em_address)
 {
-	if (the_jit_window)
-	{
-		the_jit_window->Show(true);
-		the_jit_window->Compare(em_address);
-		the_jit_window->SetFocus();
-	}
-	else
-	{
-		PanicAlert("Jit window not available");
-	}
+	Show(true);
+	Compare(em_address);
+	SetFocus();
 }
 
 void CJitWindow::Compare(u32 em_address)

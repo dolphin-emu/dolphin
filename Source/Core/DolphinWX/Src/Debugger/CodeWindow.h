@@ -143,7 +143,6 @@ class CCodeWindow
 
 		void UpdateLists();
 		void UpdateCallstack();
-		void OnKeyDown(wxKeyEvent& event);
 
 		void InitBitmaps();
 		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);

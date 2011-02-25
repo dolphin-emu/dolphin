@@ -557,7 +557,8 @@ void Host_UpdateDisasmDialog()
 
 void Host_ShowJitResults(unsigned int address)
 {
-	CJitWindow::ViewAddr(address);
+	if (main_frame->g_pCodeWindow && main_frame->g_pCodeWindow->m_JitWindow)
+		main_frame->g_pCodeWindow->m_JitWindow->ViewAddr(address);
 }
 
 void Host_UpdateMainFrame()
