@@ -42,6 +42,10 @@ using namespace MathUtil;
 
 void UpdateSSEState();
 
+#ifdef _MSC_VER
+#pragma float_control(precise, on, push)
+#endif
+
 // Extremely rare - actually, never seen.
 // Star Wars : Rogue Leader spams that at some point :|
 void Interpreter::Helper_UpdateCR1(double _fValue)
@@ -242,9 +246,7 @@ void Interpreter::fnegx(UGeckoInstruction _inst)
 
 void Interpreter::fselx(UGeckoInstruction _inst)
 {
-	// D = (A >= 0) ? C : B
-	rPS0(_inst.FD) = (rPS0(_inst.FA) < 0.0 || riPS0(_inst.FA) == PPC_NAN_U64) ?
-		rPS0(_inst.FB) : rPS0(_inst.FC);
+	rPS0(_inst.FD) = (rPS0(_inst.FA) >= -0.0) ? rPS0(_inst.FC) : rPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
@@ -517,3 +519,7 @@ void Interpreter::fsqrtx(UGeckoInstruction _inst)
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
+
+#ifdef _MSC_VER
+#pragma float_control(pop)
+#endif
