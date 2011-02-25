@@ -44,7 +44,7 @@ extern const unsigned char sfont_raw[][9*10];
 
 // TRAM
 // STATE_TO_SAVE
-u8 texMem[TMEM_SIZE];
+ GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 
 // Gamecube/Wii texture decoder

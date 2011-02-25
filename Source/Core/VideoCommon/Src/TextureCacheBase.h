@@ -95,7 +95,7 @@ public:
 protected:
 	TextureCache();
 
-	static u8 *temp;
+	static  GC_ALIGNED16(u8 *temp);
 
 private:
 	typedef std::map<u32, TCacheEntryBase*> TexCache;

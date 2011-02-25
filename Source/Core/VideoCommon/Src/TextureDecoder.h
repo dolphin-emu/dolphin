@@ -23,7 +23,7 @@ enum
     TMEM_SIZE = 1024*1024,
     HALFTMEM_SIZE = 512*1024
 };
-extern u8 texMem[TMEM_SIZE];
+extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 enum TextureFormat
 {

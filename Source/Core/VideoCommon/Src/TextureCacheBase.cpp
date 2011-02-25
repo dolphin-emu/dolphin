@@ -23,7 +23,7 @@ enum
 
 TextureCache *g_texture_cache;
 
-u8 *TextureCache::temp = NULL;
+ GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
@@ -44,7 +44,7 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 TextureCache::TextureCache()
 {
 	if (!temp)
-		temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
+		temp =(u8*) AllocateAlignedMemory(TEMP_SIZE,16);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
@@ -81,7 +81,7 @@ TextureCache::~TextureCache()
 	Invalidate(true);
 	if (temp)
 	{
-		FreeMemoryPages(temp, TEMP_SIZE);
+		FreeAlignedMemory(temp);
 		temp = NULL;
 	}
 }

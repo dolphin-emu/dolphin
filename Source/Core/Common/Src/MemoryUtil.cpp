@@ -74,18 +74,53 @@ void* AllocateMemoryPages(size_t size)
 	return ptr;
 }
 
-void FreeMemoryPages(void* ptr, size_t size)
+void* AllocateAlignedMemory(size_t size,size_t alignment)
 {
 #ifdef _WIN32
+	void* ptr =  _aligned_malloc(size,alignment);
+#else
+	void* ptr = NULL;
+	posix_memalign(&ptr, alignment, size);
+;
+#endif
+
+	// printf("Mapped memory at %p (size %ld)\n", ptr,
+	//	(unsigned long)size);
+
+	if (ptr == NULL)
+		PanicAlert("Failed to allocate aligned memory");
+
+	return ptr;
+}
+
+void FreeMemoryPages(void* ptr, size_t size)
+{
 	if (ptr)
 	{
+#ifdef _WIN32
+	
 		if (!VirtualFree(ptr, 0, MEM_RELEASE))
 			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg());
 		ptr = NULL; // Is this our responsibility?
-	}
+	
 #else
-	munmap(ptr, size);
+		munmap(ptr, size);
 #endif
+	}
+}
+
+void FreeAlignedMemory(void* ptr)
+{
+	if (ptr)
+	{
+#ifdef _WIN32
+	
+		_aligned_free(ptr);
+	
+#else
+	free(ptr);
+#endif
+	}
 }
 
 void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)

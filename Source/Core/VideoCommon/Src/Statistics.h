@@ -90,6 +90,7 @@ extern Statistics stats;
 
 #ifdef STATISTICS
 #define INCSTAT(a) (a)++;
+#define DECSTAT(a) (a)--;
 #define ADDSTAT(a,b) (a)+=(b);
 #define SETSTAT(a,x) (a)=(int)(x);
 #define SETSTAT_UINT(a,x) (a)=(u32)(x);
