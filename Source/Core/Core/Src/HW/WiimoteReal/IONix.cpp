@@ -32,6 +32,7 @@
 
 #include "Common.h"
 #include "WiimoteReal.h"
+#include "Host.h"
 
 // Identify the wiimote device by its class
 #define WM_DEV_CLASS_0				0x04
@@ -193,6 +194,8 @@ void Wiimote::RealDisconnect()
 
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
+
+	Host_ConnectWiimote(index, false);
 
 	close(out_sock);
 	close(in_sock);

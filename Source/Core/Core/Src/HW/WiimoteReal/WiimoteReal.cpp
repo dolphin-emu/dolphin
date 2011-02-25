@@ -22,7 +22,6 @@
 #include "IniFile.h"
 #include "StringUtil.h"
 #include "Timer.h"
-#include "../../Host.h"
 
 #include "WiimoteReal.h"
 
@@ -306,8 +305,6 @@ void Wiimote::ThreadFunc()
 	// rumble briefly
 	Rumble();
 
-	Host_ConnectWiimote(index, true);
-
 	// main loop
 	while (IsConnected())
 	{
@@ -320,8 +317,6 @@ void Wiimote::ThreadFunc()
 #endif
 			Common::SleepCurrentThread(1);
 	}
-
-	Host_ConnectWiimote(index, false);
 }
 
 #ifndef _WIN32
