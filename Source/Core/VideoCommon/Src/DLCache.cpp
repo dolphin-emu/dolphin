@@ -41,7 +41,7 @@
 #include "VideoConfig.h"
 
 #define DL_CODE_CACHE_SIZE (1024*1024*16)
-#define DL_CODE_CLEAR_THRESHOLD (128 * 1024)
+#define DL_CODE_CLEAR_THRESHOLD (16 * 1024)
 extern int frameCount;
 static u32 CheckContextId;
 using namespace Gen;
@@ -64,17 +64,13 @@ struct ReferencedDataRegion
 		start_address(NULL),
 		NextRegion(NULL),
 		size(0),
-		MustClean(0),
-		ReferencedArray(0xFFFFFFFF),
-		ReferencedArrayStride(0)
+		MustClean(0)
 	{}
 	u64 hash;
 	u8* start_address;
 	ReferencedDataRegion* NextRegion;
 	u32 size;
 	u32 MustClean;
-	u32 ReferencedArray;
-	u32 ReferencedArrayStride;
 	
 
 	int IntersectsMemoryRange(u8* range_address, u32 range_size)
@@ -104,8 +100,10 @@ struct CachedDisplayList
 		frame_count = frameCount;
 	}
 	u64 dl_hash;
+	// ... Something containing cached vertex buffers here ...
 	ReferencedDataRegion* Regions;
 	ReferencedDataRegion* LastRegion;
+	// Compile the commands themselves down to native code.
 	const u8* compiled_code;
 	u32 uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
 	// Analitic data
@@ -113,22 +111,11 @@ struct CachedDisplayList
 	u32 num_cp_reg;
 	u32 num_bp_reg; 
 	u32 num_index_xf;
-	u32 num_draw_call;
-	
+	u32 num_draw_call;	
 	u32 pass;
-	
-
 	u32 check;
-
-	int frame_count;
-
-	// ... Something containing cached vertex buffers here ...
+	int frame_count;	
 	u32 BufferCount;
-	
-	
-	// Compile the commands themselves down to native code.
-	
-	
 
 	void InsertRegion(ReferencedDataRegion* NewRegion)
 	{
@@ -144,7 +131,7 @@ struct CachedDisplayList
 		BufferCount++;
 	}
 
-	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size,u32 referencedArray,u32 referencedArrayStride)
+	void InsertOverlapingRegion(u8* RegionStartAddress, u32 Size)
 	{
 		ReferencedDataRegion* NewRegion = FindOverlapingRegion(RegionStartAddress, Size);
 		if(NewRegion)
@@ -169,10 +156,7 @@ struct CachedDisplayList
 			NewRegion->MustClean = false;
 			NewRegion->size = Size;
 			NewRegion->start_address = RegionStartAddress; 
-			NewRegion->hash = GetHash64(RegionStartAddress, Size, DL_HASH_STEPS);					
-			NewRegion->ReferencedArray = referencedArray;
-			NewRegion->ReferencedArrayStride = referencedArrayStride;
-
+			NewRegion->hash = GetHash64(RegionStartAddress, Size, DL_HASH_STEPS);
 			InsertRegion(NewRegion);
 		}
 	}
@@ -184,13 +168,6 @@ struct CachedDisplayList
 		{
 			if(Current->hash)
 			{
-				//this test is here  to grant that the referenced arrays by the dlist dont change
-				// in the current implementation is not necesary as the id of the dlist is calculated based on the arrays it refers
-				// but i let this test for extra safety
-				if(Current->ReferencedArray != 0xFFFFFFFF && (cached_arraybases[Current->ReferencedArray] != Current->start_address || arraystrides[Current->ReferencedArray] != Current->ReferencedArrayStride))
-				{
-					return false;	
-				}
 				if(Current->hash != GetHash64(Current->start_address,  Current->size, DL_HASH_STEPS))
 					return false;
 			}
@@ -600,7 +577,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 						{
 							u8* saddr = cached_arraybases[i];
 							int arraySize = arraystrides[i] * ((tc[i] == 2)? numVertices : ((numVertices < 1024)? 2 * numVertices : numVertices));
-							dl->InsertOverlapingRegion(saddr, arraySize,i,arraystrides[i]);
+							dl->InsertOverlapingRegion(saddr, arraySize);
 						}
 					}
 				}

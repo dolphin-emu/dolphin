@@ -514,27 +514,27 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 
 void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 {
+	if(count == 0)
+		return;
 	m_numLoadedVertices += count;
-
+	INCSTAT(stats.thisFrame.numDrawCalls);
 	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
+	if (g_nativeVertexFmt != m_NativeFmt)
 	{
 		// We really must flush here. It's possible that the native representations
 		// of the two vtx formats are the same, but we have no way to easily check that 
 		// now. 
 		VertexManager::Flush();
-		// Also move the Set() here?
-	}
-	g_nativeVertexFmt = m_NativeFmt;
-
+		g_nativeVertexFmt = m_NativeFmt;
+		m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
+	}	
+	
 	if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
 		// if cull mode is none, ignore triangles and quads
 		DataSkip(count * m_VertexSize);
 		return;
-	}
-
-	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
+	}	
 
 	// Load position and texcoord scale factors.
 	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
@@ -554,87 +554,19 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
-
-	// if strips or fans, make sure all vertices can fit in buffer, otherwise flush
-	int granularity = 1;
-	switch (primitive) {
-		case 3: // strip .. hm, weird
-		case 4: // fan
-			if (VertexManager::GetRemainingSize() < 3 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 6: // line strip
-			if (VertexManager::GetRemainingSize() < 2 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 0: granularity = 4; break; // quads
-		case 2: granularity = 3; break; // tris
-		case 5: granularity = 2; break; // lines
-	}
-
-	int startv = 0, extraverts = 0;
-	int v = 0;
-
-	//int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-	while (v < count)
-	{
-		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
-		//if (remainingVerts2 - v + startv < remainingVerts)
-		    //remainingVerts = remainingVerts2 - v + startv;
-		if (remainingVerts < granularity) {
-			INCSTAT(stats.thisFrame.numBufferSplits);
-			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			u8* plastptr = VertexManager::s_pCurBufferPointer;
-			if (v - startv > 0)
-				VertexManager::AddVertices(primitive, v - startv + extraverts);
-			VertexManager::Flush();
-			//remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-			// Why does this need to be so complicated?
-			switch (primitive) {
-				case 3: // triangle strip, copy last two vertices
-					// a little trick since we have to keep track of signs
-					if (v & 1) {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride*3;
-						extraverts = 3;
-					}
-					else {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-						VertexManager::s_pCurBufferPointer += native_stride*2;
-						extraverts = 2;
-					}
-					break;
-				case 4: // tri fan, copy first and last vert
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 2;
-					break;
-				case 6: // line strip
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 1;
-					break;
-				default:
-					extraverts = 0;
-					break;
-			}
-			startv = v;
-		}
-		int remainingPrims = remainingVerts / granularity;
-		remainingVerts = remainingPrims * granularity;
-		if (count - v < remainingVerts)
-			remainingVerts = count - v;
+	
+	if(VertexManager::GetRemainingSize() < native_stride * count)
+		VertexManager::Flush();
+	
+	VertexManager::AddVertices(primitive,count);
 
 	#ifdef USE_JIT
-		if (remainingVerts > 0) {
-			loop_counter = remainingVerts;
+		if (count > 0) {
+			loop_counter = count;
 			((void (*)())(void*)m_compiledCode)();
 		}
 	#else
-		for (int s = 0; s < remainingVerts; s++)
+		for (int s = 0; s < count; s++)
 		{
 			tcIndex = 0;
 			colIndex = 0;
@@ -643,12 +575,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 				m_PipelineStages[i]();
 			PRIM_LOG("\n");
 		}
-	#endif
-		v += remainingVerts;
-	}
-
-	if (startv < count)
-		VertexManager::AddVertices(primitive, count - startv + extraverts);
+	#endif	
 }
 
 
@@ -657,45 +584,24 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
 {
 	m_numLoadedVertices += count;
-
+	INCSTAT(stats.thisFrame.numDrawCalls);
 	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
+	if (g_nativeVertexFmt != m_NativeFmt)
 	{
 		// We really must flush here. It's possible that the native representations
 		// of the two vtx formats are the same, but we have no way to easily check that 
 		// now. 
 		VertexManager::Flush();
-		// Also move the Set() here?
-	}
-	g_nativeVertexFmt = m_NativeFmt;
-
+		g_nativeVertexFmt = m_NativeFmt;
+		m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
+	}	
+	
 	if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
 		// if cull mode is none, ignore triangles and quads
 		DataSkip(count * m_VertexSize);
 		return;
 	}
-
-	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
-
-	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
-	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
-	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
-	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
-	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
-	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
-	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
-	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
-
-	pVtxAttr = &m_VtxAttr;
-	posScale = fractionTable[m_VtxAttr.PosFrac];
-	if (m_NativeFmt->m_components & VB_HAS_UVALL)
-		for (int i = 0; i < 8; i++)
-			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
-	for (int i = 0; i < 2; i++)
-		colElements[i] = m_VtxAttr.color[i].Elements;
 
 	if(VertexManager::GetRemainingSize() < native_stride * count)
 		VertexManager::Flush();
