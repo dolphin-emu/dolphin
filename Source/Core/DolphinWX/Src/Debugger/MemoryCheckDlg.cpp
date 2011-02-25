@@ -41,7 +41,7 @@ MemoryCheckDlg::~MemoryCheckDlg()
 void MemoryCheckDlg::CreateGUIControls()
 {
 	SetIcon(wxNullIcon);
-	SetSize(8,8,415,122);
+	SetSize(8,8,470,122);
 	Center();
 	
 	m_pButtonCancel = new wxButton(this, ID_CANCEL, _("Cancel"), wxPoint(248,64), wxSize(73,25), 0, wxDefaultValidator, _("Cancel"));
@@ -52,15 +52,17 @@ void MemoryCheckDlg::CreateGUIControls()
 
 	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, _("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
 
+	m_log_flag = new wxCheckBox(this, ID_LOG_FLAG, _("Log"), wxPoint(420,33), wxSize(57,13), 0, wxDefaultValidator, wxT("WxCheckBox2"));
+
 	new wxStaticBox(this, ID_WXSTATICBOX2, _("Break On"), wxPoint(328,0), wxSize(73,57));
 
 	new wxStaticText(this, ID_WXSTATICTEXT2, _("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
 
 	new wxStaticText(this, ID_WXSTATICTEXT1, _("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
 
-	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT("80000000"), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
+	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT(""), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 
-	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT("80000000"), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
+	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT(""), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
 
 	new wxStaticBox(this, ID_WXSTATICBOX1, _("Address Range"), wxPoint(0,0), wxSize(321,57));
 }
@@ -76,6 +78,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 	wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
 	bool OnRead = m_pReadFlag->GetValue();
 	bool OnWrite = m_pWriteFlag->GetValue();
+	bool OnLog = m_log_flag->GetValue();
 
 	u32 StartAddress, EndAddress;
 	if (AsciiToHex(StartAddressString.mb_str(), StartAddress) &&
@@ -84,11 +87,12 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 		TMemCheck MemCheck;
 		MemCheck.StartAddress = StartAddress;
 		MemCheck.EndAddress = EndAddress;
+		MemCheck.bRange = StartAddress != EndAddress;
 		MemCheck.OnRead = OnRead;
 		MemCheck.OnWrite = OnWrite;
 
-		MemCheck.Log = true;
-		MemCheck.Break = true;
+		MemCheck.Log = OnLog;
+		MemCheck.Break = OnRead || OnWrite;
 
 		PowerPC::memchecks.Add(MemCheck);
 		Host_UpdateBreakPointView();
