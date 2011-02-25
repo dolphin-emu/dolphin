@@ -82,11 +82,6 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
-static void*& VideoWindowHandle()
-{
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
-}
-
 namespace OGL
 {
 
@@ -320,7 +315,7 @@ void XEventThread()
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool OpenGL_Create(int _iwidth, int _iheight)
+bool OpenGL_Create(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;
 	Core::Callback_VideoGetWindowSize(_tx, _ty, _twidth, _theight);
@@ -330,7 +325,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	s_backbuffer_height = _theight;
 
 #if defined(USE_WX) && USE_WX
-	GLWin.panel = (wxPanel *)VideoWindowHandle();
+	GLWin.panel = (wxPanel *)window_handle;
 	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, NULL,
 		wxPoint(0, 0), wxSize(_twidth, _theight));
 	GLWin.glCanvas->Show(true);
@@ -364,7 +359,6 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 		style |= NSResizableWindowMask | NSTitledWindowMask;
 	}
 
-	(void)VideoWindowHandle;
 	GLWin.cocoaWin = [[NSWindow alloc] initWithContentRect: size
 		styleMask: style backing: NSBackingStoreBuffered defer: NO];
 	if (GLWin.cocoaWin == nil) {
@@ -381,8 +375,8 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	[GLWin.cocoaWin makeKeyAndOrderFront: nil];
 
 #elif defined(_WIN32)
-	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), GetModuleHandle(0), _T("Please wait..."));
-	if (VideoWindowHandle() == NULL)
+	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Please wait..."));
+	if (window_handle == NULL)
 	{
 		Host_SysMessage("failed to create window");
 		return false;
@@ -466,7 +460,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 
 	GLWin.dpy = XOpenDisplay(0);
 	GLWin.evdpy = XOpenDisplay(0);
-	GLWin.parent = (Window)VideoWindowHandle();
+	GLWin.parent = (Window)window_handle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 	if (GLWin.parent == 0)
 		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
@@ -510,7 +504,7 @@ bool OpenGL_Create(int _iwidth, int _iheight)
 	GLWin.height = _theight;
 
 	CreateXWindow();
-	VideoWindowHandle() = (void *)GLWin.win;
+	window_handle = (void *)GLWin.win;
 #endif
 	return true;
 }

@@ -39,6 +39,7 @@
 #include "FileUtil.h"
 #include "VideoBackend.h"
 #include "../../../Core/VideoCommon/Src/Fifo.h"
+#include "Core.h"
 
 namespace SW
 {
@@ -62,9 +63,15 @@ void VideoBackend::ShowConfig(void *_hParent)
 #endif
 }
 
-void VideoBackend::Initialize()
+bool VideoBackend::Initialize(void *&window_handle)
 {
     g_SWVideoConfig.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
+
+	if (!OpenGL_Create(window_handle))
+	{
+		Core::Callback_VideoLog("SWRenderer::Create failed\n");
+		return false;
+	}
 
     InitBPMemory();
     InitXFMemory();
@@ -76,6 +83,8 @@ void VideoBackend::Initialize()
     HwRasterizer::Init();
     SWRenderer::Init();
     DebugUtil::Init();
+
+	return true;
 }
 
 void VideoBackend::DoState(PointerWrap&)

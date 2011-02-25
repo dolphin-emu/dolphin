@@ -9,7 +9,7 @@ namespace OGL
 
 class VideoBackend : public VideoBackendHLE
 {
-	void Initialize();
+	bool Initialize(void *&);
 	void Shutdown();
 
 	std::string GetName();

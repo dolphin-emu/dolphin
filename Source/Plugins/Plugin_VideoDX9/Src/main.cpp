@@ -60,11 +60,6 @@
 namespace DX9
 {
 
-void*& VideoWindowHandle()
-{
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
-}
-
 unsigned int VideoBackend::PeekMessages()
 {
 	MSG msg;
@@ -138,7 +133,7 @@ void VideoBackend::ShowConfig(void* parent)
 #endif
 }
 
-void VideoBackend::Initialize()
+bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitBackendInfo();
 
@@ -149,20 +144,22 @@ void VideoBackend::Initialize()
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();
 
-	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), GetModuleHandle(0), _T("Loading - Please wait."));
-	if (VideoWindowHandle() == NULL)
+	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
+	if (window_handle == NULL)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
-		return;
+		return false;
 	}
 	else if (FAILED(DX9::D3D::Init()))
 	{
 		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_ICONERROR|MB_OK);
-		return;
+		return false;
 	}
 
 	OSD::AddMessage("Dolphin Direct3D9 Video Backend.", 5000);
 	s_BackendInitialized = true;
+
+	return true;
 }
 
 void VideoBackend::Video_Prepare()

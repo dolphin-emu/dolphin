@@ -9,7 +9,7 @@ namespace SW
 
 class VideoBackend : public VideoBackendLLE
 {
-	void Initialize();
+	bool Initialize(void *&);
 	void Shutdown();
 
 	std::string GetName();

@@ -215,13 +215,16 @@ bool Init()
 				GetData<u8>("IPL.AR"));
 	}
 
-	// _CoreParameter.hMainWindow is first the m_Panel handle,
-	// then it is updated to have the new window handle,
+	// g_pWindowHandle is first the m_Panel handle,
+	// then it is updated to the render window handle,
 	// within g_video_backend->Initialize()
-	// TODO: that's ugly, change Initialize() to take m_Panel
-	// and return the new window handle
-	g_video_backend->Initialize();
-	g_pWindowHandle = _CoreParameter.hMainWindow;
+	g_pWindowHandle = Host_GetRenderHandle();
+	if (!g_video_backend->Initialize(g_pWindowHandle))
+	{
+		emuThreadGoing.Shutdown();
+		Host_SetWaitCursor(false);
+		return false;
+	}
 
 	HW::Init();	
 	DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,

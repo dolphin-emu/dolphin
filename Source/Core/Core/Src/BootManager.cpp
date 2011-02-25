@@ -120,7 +120,6 @@ bool BootCore(const std::string& _rFilename)
 	} 
 
 	// Run the game
-	StartUp.hMainWindow = Host_GetRenderHandle();
 	// Init the core
 	if (!Core::Init())
 	{

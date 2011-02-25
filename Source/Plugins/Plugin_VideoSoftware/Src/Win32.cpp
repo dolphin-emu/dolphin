@@ -43,11 +43,6 @@ WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 
-static void*& VideoWindowHandle()
-{
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
-}
-
 // ------------------------------------------
 /* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
    an empty transparent cursor */
@@ -206,44 +201,14 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	CreateCursors(/*m_hInstance*/GetModuleHandle(0));
 
 	// Create child window
-	if (parent)
-	{
-		m_hParent = parent;
+	m_hParent = parent;
 
-		m_hWnd = CreateWindow(m_szClassName, title,
+	m_hWnd = CreateWindow(m_szClassName, title,
 			WS_CHILD,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			parent, NULL, hInstance, NULL);
 
-		ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
-	}
-
-	// Create new separate window
-	else
-	{
-		DWORD style = g_SWVideoConfig.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
-
-		RECT rc = {0, 0, width, height};
-		AdjustWindowRect(&rc, style, false);
-
-		int w = rc.right - rc.left;
-		int h = rc.bottom - rc.top;
-
-		rc.left = (1280 - w)/2;
-		rc.right = rc.left + w;
-		rc.top = (1024 - h)/2;
-		rc.bottom = rc.top + h;
-
-		m_hParent = (HWND)VideoWindowHandle();
-
-		m_hWnd = CreateWindow(m_szClassName, title,
-			style,
-			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-			parent, NULL, hInstance, NULL );
-
-		g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
-		g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
-	}
+	ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
 
 	return m_hWnd;
 }

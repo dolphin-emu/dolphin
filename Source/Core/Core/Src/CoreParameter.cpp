@@ -31,7 +31,7 @@
 #include "Core.h" // for bWii
 
 SCoreStartupParameter::SCoreStartupParameter()
-: hInstance(0), hMainWindow(0),
+: hInstance(0),
   bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),

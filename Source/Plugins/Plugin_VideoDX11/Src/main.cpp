@@ -52,11 +52,6 @@
 namespace DX11
 {
 
-void*& VideoWindowHandle()
-{
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.hMainWindow;
-}
-
 unsigned int VideoBackend::PeekMessages()
 {
 	MSG msg;
@@ -158,7 +153,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 #endif
 }
 
-void VideoBackend::Initialize()
+bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitBackendInfo();
 
@@ -169,15 +164,17 @@ void VideoBackend::Initialize()
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 	UpdateActiveConfig();
 
-	VideoWindowHandle() = (void*)EmuWindow::Create((HWND)VideoWindowHandle(), GetModuleHandle(0), _T("Loading - Please wait."));
-	if (VideoWindowHandle() == NULL)
+	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
+	if (window_handle == NULL)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
-		return;
+		return false;
 	}
 
 	OSD::AddMessage("Dolphin Direct3D11 Video Backend.", 5000);
 	s_BackendInitialized = true;
+
+	return true;
 }
 
 void VideoBackend::Video_Prepare()

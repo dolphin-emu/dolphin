@@ -69,9 +69,6 @@ struct SCoreStartupParameter
 {
 	void* hInstance;  // HINSTANCE but we don't want to include <windows.h>
 
-	// Windows/GUI related
-	void* hMainWindow;
-
 	// Settings
 	bool bEnableDebugging;
 	bool bAutomaticStart;

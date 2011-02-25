@@ -157,7 +157,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 #endif
 }
 
-void VideoBackend::Initialize()
+bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitBackendInfo();
 
@@ -170,11 +170,13 @@ void VideoBackend::Initialize()
 
 	UpdateActiveConfig();
 
-	if (!OpenGL_Create(640, 480))
-		return;
+	if (!OpenGL_Create(window_handle))
+		return false;
 
 	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
 	s_BackendInitialized = true;
+
+	return true;
 }
 
 // This is called after Initialize() from the Core

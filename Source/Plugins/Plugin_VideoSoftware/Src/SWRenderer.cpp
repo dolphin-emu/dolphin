@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "Core.h"
 
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "SWRenderer.h"
@@ -31,11 +30,6 @@ RasterFont* s_pfont = NULL;
 
 void SWRenderer::Init()
 {
-    if (!OpenGL_Create(640, 480)) // 640x480 will be the default if all else fails
-	{
-		Core::Callback_VideoLog("SWRenderer::Create failed\n");
-        return;
-    }
 }
 
 void SWRenderer::Shutdown()

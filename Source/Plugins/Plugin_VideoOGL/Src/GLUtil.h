@@ -84,7 +84,7 @@ extern GLWindow GLWin;
 // Public OpenGL util
 
 // Initialization / upkeep
-bool OpenGL_Create(int _width, int _height);
+bool OpenGL_Create(void *&);
 void OpenGL_Shutdown();
 void OpenGL_Update();
 bool OpenGL_MakeCurrent();
