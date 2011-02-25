@@ -1327,6 +1327,7 @@ void Renderer::RestoreAPIState()
 		D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	SetColorMask();
 	SetLogicOpMode();
+	SetGenerationMode();
 }
 
 void Renderer::SetGenerationMode()
