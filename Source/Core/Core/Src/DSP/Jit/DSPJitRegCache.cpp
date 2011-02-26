@@ -126,11 +126,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	regs[DSP_REG_AX1_32].size = 4;
 	for(unsigned int i = 0; i < DSP_REG_MAX_MEM_BACKED+1; i++) {
 		regs[i].dirty = false;
-#ifdef _M_IX86 // All32
 		regs[i].loc = M(regs[i].mem);
-#else
-		regs[i].loc = MDisp(R11, PtrOffset(regs[i].mem, &g_dsp.r));
-#endif
 	}
 }
 
@@ -218,10 +214,10 @@ void DSPJitRegCache::loadStaticRegs()
 {
 #ifdef _M_X64
 #ifdef ROTATED_REG_ACCS
-	emitter.MOV(64, R(R8), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[0].val)));
-	emitter.MOV(64, R(R9), MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[1].val)));
+	emitter.MOV(64, R(R8), M(&g_dsp.r.ac[0].val));
+	emitter.MOV(64, R(R9), M(&g_dsp.r.ac[1].val));
 #endif
-	emitter.MOV(64, MDisp(R11, PtrOffset(&ebp_store, &g_dsp.r)), R(RBP));
+	emitter.MOV(64, M(&ebp_store), R(RBP));
 #else
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
@@ -232,10 +228,10 @@ void DSPJitRegCache::saveStaticRegs()
 	flushRegs();
 #ifdef _M_X64
 #ifdef ROTATED_REG_ACCS
-	emitter.MOV(64, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[0].val)), R(R8));
-	emitter.MOV(64, MDisp(R11, STRUCT_OFFSET(g_dsp.r, ac[1].val)), R(R9));
+	emitter.MOV(64, M(&g_dsp.r.ac[0].val), R(R8));
+	emitter.MOV(64, M(&g_dsp.r.ac[1].val), R(R9));
 #endif
-	emitter.MOV(64, R(RBP), MDisp(R11, PtrOffset(&ebp_store, &g_dsp.r)));
+	emitter.MOV(64, R(RBP), M(&ebp_store));
 #else
 	emitter.MOV(32, R(EBP), M(&ebp_store));
 #endif
@@ -327,11 +323,7 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 
 		if (load) {
 			u16 *regp = reg_ptr(reg);
-#ifdef _M_IX86 // All32
 			emitter.MOV(16, oparg, M(regp));
-#else
-			emitter.MOV(16, oparg, MDisp(R11, PtrOffset(regp, &g_dsp.r)));
-#endif
 		}
 */
 		oparg = regs[reg].loc; //when loading/storing from/to mem, need to consider regs[reg].size
@@ -390,7 +382,7 @@ void DSPJitRegCache::putReg(int reg, bool dirty)
 		//need to fix in memory for now.
 		u16 *regp = reg_ptr(reg);
 		OpArg mem;
-	        mem = MDisp(R11,PtrOffset(regp,&g_dsp.r));
+	        mem = M(regp);
 		X64Reg tmp;
 		getFreeXReg(tmp);
 		// sign extend from the bottom 8 bits.
@@ -424,11 +416,7 @@ void DSPJitRegCache::putReg(int reg, bool dirty)
 
 		if(dirty) {
 			u16 *regp = reg_ptr(reg);
-#ifdef _M_IX86 // All32
 			emitter.MOV(16, M(dregp), R(tmp));
-#else
-			emitter.MOV(16, MDisp(R11, PtrOffset(dregp, &g_dsp.r)), R(tmp));
-#endif
 		}
 */
 	}

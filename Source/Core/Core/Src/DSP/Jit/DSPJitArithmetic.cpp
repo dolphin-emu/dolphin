@@ -102,7 +102,6 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 		gpr.getReg(DSP_REG_SR,sr_reg);
 		AND(16, R(RAX), Imm16(imm));
 		CMP(16, R(RAX), Imm16(imm));
-		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
 		OR(16, sr_reg, Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
@@ -142,7 +141,6 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 		OpArg sr_reg;
 		gpr.getReg(DSP_REG_SR,sr_reg);
 		TEST(16, R(RAX), Imm16(imm));
-		// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 		FixupBranch notLogicZero = J_CC(CC_NE);
 		OR(16, sr_reg, Imm16(SR_LOGIC_ZERO));
 		FixupBranch exit = J();
@@ -613,7 +611,6 @@ void DSPEmitter::addr(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
@@ -947,7 +944,6 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 	get_long_acc(dreg, RCX);
 	MOV(64, R(RAX), R(RCX));
 //	s64 ax = (s16)g_dsp.r[sreg];
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	dsp_op_read_reg(sreg, RDX, SIGN);
 //	ax <<= 16;
 	SHL(64, R(RDX), Imm8(16));
@@ -1218,7 +1214,6 @@ void DSPEmitter::movr(const UDSPInstruction opc)
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 //	s64 acc = (s16)g_dsp.r[sreg];
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	dsp_op_read_reg(sreg, RAX, SIGN);
 //	acc <<= 16;
 	SHL(64, R(RAX), Imm8(16));

@@ -26,78 +26,45 @@ using namespace Gen;
 //clobbers:
 //EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
 //CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
-//expects:
-//R11 = &g_dsp.r
 void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 {
 	//g_dsp.reg_stack_ptr[stack_reg]++;
 	//g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
-#ifdef _M_IX86 // All32
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
-#else
-	MOV(8, R(AL), MDisp(R11, PtrOffset(&g_dsp.reg_stack_ptr[stack_reg],
-					   &g_dsp.r)));
-#endif
 	ADD(8, R(AL), Imm8(1));
 	AND(8, R(AL), Imm8(DSP_STACK_MASK));
-#ifdef _M_IX86 // All32
 	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
-#else
-	MOV(8, MDisp(R11, PtrOffset(&g_dsp.reg_stack_ptr[stack_reg],
-				    &g_dsp.r)), R(AL));
-#endif
 
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
-#ifdef _M_IX86 // All32
 	MOV(16, R(CX), M(&g_dsp.r.st[stack_reg]));
+#ifdef _M_IX86 // All32
 	MOVZX(32, 8, EAX, R(AL));
-	MOV(16, MComplex(EAX, EAX, 1, (u32)&g_dsp.reg_stack[stack_reg][0]), R(CX));
 #else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(CX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[stack_reg])));
 	MOVZX(64, 8, RAX, R(AL));
-	MOV(16, MComplex(R11, RAX, 2,
-			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],&g_dsp.r)),
-	    R(CX));
 #endif
+	MOV(16, MComplex(EAX, EAX, 1, (u64)&g_dsp.reg_stack[stack_reg][0]), R(CX));
 }
 
 //clobbers:
 //EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
 //CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
-//expects:
-//R11 = &g_dsp.r
 void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 {
 	//g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
-#ifdef _M_IX86 // All32
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
-#else
-	MOV(8, R(AL),
-	    MDisp(R11, PtrOffset(&g_dsp.reg_stack_ptr[stack_reg],&g_dsp.r)));
-#endif
 #ifdef _M_IX86 // All32
 	MOVZX(32, 8, EAX, R(AL));
-	MOV(16, R(CX), MComplex(EAX, EAX, 1, (u32)&g_dsp.reg_stack[stack_reg][0]));
-	MOV(16, M(&g_dsp.r.st[stack_reg]), R(CX));
 #else
 	MOVZX(64, 8, RAX, R(AL));
-	MOV(16, R(CX), MComplex(R11, RAX, 2,
-				PtrOffset(&g_dsp.reg_stack[stack_reg][0],
-					  &g_dsp.r)));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[stack_reg])), R(CX));
 #endif
+	MOV(16, R(CX), MComplex(EAX, EAX, 1, (u64)&g_dsp.reg_stack[stack_reg][0]));
+	MOV(16, M(&g_dsp.r.st[stack_reg]), R(CX));
 
 	//g_dsp.reg_stack_ptr[stack_reg]--;
 	//g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
 	SUB(8, R(AL), Imm8(1));
 	AND(8, R(AL), Imm8(DSP_STACK_MASK));
-#ifdef _M_IX86 // All32
 	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
-#else
-	MOV(8, MDisp(R11, PtrOffset(&g_dsp.reg_stack_ptr[stack_reg],&g_dsp.r)),
-		R(AL));
-#endif
 }
 
 
@@ -108,23 +75,13 @@ void DSPEmitter::dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg)
 	}
 	dsp_reg_stack_push(stack_reg);
 	//g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r.st[stack_reg]), R(EDX));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[stack_reg])), R(EDX));
-#endif
 }
 
 void DSPEmitter::dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg)
 {
 	//u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
-#ifdef _M_IX86 // All32
 	MOV(16, R(EDX), M(&g_dsp.r.st[stack_reg]));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, R(EDX), MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[stack_reg])));
-#endif
 	dsp_reg_stack_pop(stack_reg);
 	if (host_dreg != EDX) {
 		MOV(16, R(host_dreg), R(EDX));
@@ -135,12 +92,7 @@ void DSPEmitter::dsp_reg_store_stack_imm(int stack_reg, u16 val)
 {
 	dsp_reg_stack_push(stack_reg);
 	//g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-#ifdef _M_IX86 // All32
 	MOV(16, M(&g_dsp.r.st[stack_reg]), Imm16(val));
-#else
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
-	MOV(16, MDisp(R11, STRUCT_OFFSET(g_dsp.r, st[stack_reg])), Imm16(val));
-#endif
 }
 
 void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)

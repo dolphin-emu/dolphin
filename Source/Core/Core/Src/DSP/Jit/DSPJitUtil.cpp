@@ -324,7 +324,6 @@ void DSPEmitter::imem_read()
 // In:  ECX - the address to read
 // Out: EAX - the result of the read (used by caller)
 // ESI - Base
-// Trashes R11 on gdsp_ifx_read
 void DSPEmitter::dmem_read()
 {
 	//	if (saddr == 0)
@@ -408,7 +407,6 @@ void DSPEmitter::dmem_read_imm(u16 address)
 void DSPEmitter::get_long_prod(X64Reg long_prod)
 {
 #ifdef _M_X64
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];
 	OpArg reg;
 	gpr.getReg(DSP_REG_PROD_64, reg);
@@ -581,9 +579,6 @@ void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
 
 void DSPEmitter::LoadDSPRegs()
 {
-#ifdef _M_X64
-	MOV(64, R(R11), ImmPtr(&g_dsp.r));
-#endif
 
 	// Load DSP register state here...
 	gpr.loadStaticRegs();

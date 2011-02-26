@@ -168,8 +168,8 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 //	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
 //	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
 	//64bit move to memory does not work. use 2 32bits
-	MOV(32, MDisp(R11, STRUCT_OFFSET(g_dsp.r, prod.val)+0), Imm32(0xfff00000U));
-	MOV(32, MDisp(R11, STRUCT_OFFSET(g_dsp.r, prod.val)+4), Imm32(0x001000ffU));
+	MOV(32, M(&g_dsp.r.prod.val), Imm32(0xfff00000U));
+	MOV(32, M((u8*)(&g_dsp.r.prod.val)+4), Imm32(0x001000ffU));
 #else
 	Default(opc);
 #endif
@@ -466,7 +466,6 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 	u8 treg = ((opc >> 11) & 0x1);
 	u8 sreg = ((opc >> 12) & 0x1);
 
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	dsp_op_read_reg(DSP_REG_AXL0 + sreg*2, RSI, SIGN);
 //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -715,7 +714,6 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 	u8 treg  = (opc >> 11) & 0x1;
 	u8 sreg  = (opc >> 12) & 0x1;
 
-	// MOV(64, R(R11), ImmPtr(&g_dsp.r));
 //	s64 acc = dsp_get_long_prod_round_prodl();
 	get_long_prod_round_prodl();
 	PUSH(64, R(RAX));

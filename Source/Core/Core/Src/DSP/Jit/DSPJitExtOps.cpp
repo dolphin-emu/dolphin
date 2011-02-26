@@ -117,12 +117,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 		//even if only for one bit, can only
 		//store (up to) two registers in EBX,
 		//so store all of SR
-#ifdef _M_IX86 // All32
 		MOV(16, R(EAX), M(&g_dsp.r.sr));
-#else
-		MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
-		MOV(16, R(RAX), MatR(RAX));
-#endif
 		SHL(32, R(EAX), Imm8(16));
 		OR(32, R(EBX), R(EAX));
 	}
@@ -146,12 +141,7 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 		//even if only for one bit, can only
 		//store (up to) two registers in EBX,
 		//so store all of SR
-#ifdef _M_IX86 // All32
 		MOV(16, R(EAX), M(&g_dsp.r.sr));
-#else
-		MOV(64, R(RAX), ImmPtr(&g_dsp.r.sr));
-		MOV(16, R(RAX), MatR(RAX));
-#endif
 		SHL(32, R(EAX), Imm8(16));
 		OR(32, R(EBX), R(EAX));
 	}
