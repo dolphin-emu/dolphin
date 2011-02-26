@@ -17,7 +17,8 @@
 
 #pragma once
 
-#include <d3dx11.h>
+#include <D3DX11.h>
+#include <D3Dcompiler.h>
 #include "Common.h"
 #include <vector>
 
@@ -37,9 +38,11 @@ namespace D3D
 HRESULT LoadDXGI();
 HRESULT LoadD3D();
 HRESULT LoadD3DX();
+HRESULT LoadD3DCompiler();
 void UnloadDXGI();
 void UnloadD3D();
 void UnloadD3DX();
+void UnloadD3DCompiler();
 
 void EnumAAModes(IDXGIAdapter* adapter, std::vector<DXGI_SAMPLE_DESC>& aa_modes);
 DXGI_SAMPLE_DESC GetAAMode(int index);
@@ -72,7 +75,7 @@ unsigned int GetMaxTextureSize();
 inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	resource->SetPrivateData( WKPDID_D3DDebugObjectName, strlen(name), name);
+	resource->SetPrivateData( WKPDID_D3DDebugObjectName, (UINT)strlen(name), name);
 #endif
 }
 
@@ -104,5 +107,8 @@ typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
 typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 extern D3D11CREATEDEVICE PD3D11CreateDevice;
+
+typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
+extern D3DREFLECT PD3DReflect;
 
 }  // namespace DX11

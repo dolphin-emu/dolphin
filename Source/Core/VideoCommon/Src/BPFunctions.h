@@ -45,7 +45,8 @@ void SetBlendMode(const BPCmd &bp);
 void SetDitherMode(const BPCmd &bp);
 void SetLogicOpMode(const BPCmd &bp);
 void SetColorMask(const BPCmd &bp);
-void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf);
+void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc);
 void OnPixelFormatChange(const BPCmd &bp);
 u8 *GetPointer(const u32 &address);

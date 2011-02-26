@@ -54,8 +54,14 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 #endif
 	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, NULL, NULL, "main", D3D::VertexShaderVersionString(),
 							flags, 0, NULL, &shaderBuffer, &errorBuffer, NULL);
+	
+	if (errorBuffer)
+	{
+		INFO_LOG(VIDEO, "Vertex shader compiler messages:\n%s\n",
+			(const char*)errorBuffer->GetBufferPointer());
+	}
 
-	if (FAILED(hr) || errorBuffer)
+	if (FAILED(hr))
 	{
 		if (g_ActiveConfig.bShowShaderErrors)
 		{
@@ -90,7 +96,8 @@ ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned 
 }
 
 // code->bytecode
-bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
+bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob,
+	const D3D_SHADER_MACRO* pDefines)
 {
 	ID3D10Blob* shaderBuffer = NULL;
 	ID3D10Blob* errorBuffer = NULL;
@@ -100,10 +107,16 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
 #else
 	UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
 #endif
-	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, NULL, NULL, "main", D3D::PixelShaderVersionString(),
+	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, pDefines, NULL, "main", D3D::PixelShaderVersionString(),
 							flags, 0, NULL, &shaderBuffer, &errorBuffer, NULL);
+	
+	if (errorBuffer)
+	{
+		INFO_LOG(VIDEO, "Pixel shader compiler messages:\n%s",
+			(const char*)errorBuffer->GetBufferPointer());
+	}
 
-	if (FAILED(hr) || errorBuffer)
+	if (FAILED(hr))
 	{
 		if (g_ActiveConfig.bShowShaderErrors)
 		{
@@ -121,6 +134,7 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
 		*blob = new D3DBlob(shaderBuffer);
 		shaderBuffer->Release();
 	}
+
 	return SUCCEEDED(hr);
 }
 

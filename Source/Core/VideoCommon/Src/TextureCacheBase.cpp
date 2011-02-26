@@ -421,8 +421,8 @@ return_entry:
 	return entry;
 }
 
-void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
-	bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const EFBRectangle &source_rect)
+void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	float colmat[28] = {0};
 	float *const fConstAdd = colmat + 16;
@@ -431,9 +431,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
 	unsigned int cbufid = -1;
 
-	if (bFromZBuffer)
+	if (srcFormat == PIXELFMT_Z24)
 	{
-		switch (copyfmt)
+		switch (dstFormat)
 		{
 		case 0: // Z4				
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
@@ -476,17 +476,17 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
+			ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", dstFormat);
 			colmat[2] = colmat[5] = colmat[8] = 1.0f;
 			cbufid = 7;
 			break;
 		}
 		
 	}
-	else if (bIsIntensityFmt) 
+	else if (isIntensity) 
 	{
 		fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-		switch (copyfmt) 
+		switch (dstFormat) 
 		{
 		case 0: // I4
 		case 1: // I8
@@ -498,11 +498,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
 			colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
 
-			if (copyfmt < 2 || copyfmt == 8) 
+			if (dstFormat < 2 || dstFormat == 8) 
 			{
 				colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
 				fConstAdd[3] = 16.0f/255.0f;
-				if (copyfmt == 0)
+				if (dstFormat == 0)
 				{
 					ColorMask[0] = ColorMask[1] = ColorMask[2] = 15.0f;
 					ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
@@ -516,7 +516,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			else// alpha
 			{
 				colmat[15] = 1;
-				if (copyfmt == 2)
+				if (dstFormat == 2)
 				{
 					ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 15.0f;
 					ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
@@ -531,7 +531,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
+			ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", dstFormat);
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 			cbufid = 23;
 			break;
@@ -539,7 +539,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	}
 	else
 	{
-		switch (copyfmt) 
+		switch (dstFormat) 
 		{
 		case 0: // R4
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
@@ -612,22 +612,22 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
+			ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", dstFormat);
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 			cbufid = 23;
 			break;
 		}
 	}
 
-	const unsigned int tex_w = (abs(source_rect.GetWidth()) >> (int)bScaleByHalf);
-	const unsigned int tex_h = (abs(source_rect.GetHeight()) >> (int)bScaleByHalf);
+	const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth()/2 : srcRect.GetWidth();
+	const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight()/2 : srcRect.GetHeight();
 
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
 	bool texture_is_dynamic = false;
 
-	TCacheEntryBase *entry = textures[address];
+	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
 		if ((entry->isRenderTarget && entry->virtualW == scaled_tex_w && entry->virtualH == scaled_tex_h) 
@@ -652,9 +652,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 	if (NULL == entry)
 	{
 		// create the texture
-		textures[address] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
+		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
-		entry->addr = address;
+		entry->addr = dstAddr;
 		entry->hash = 0;
 
 		entry->realW = tex_w;
@@ -663,7 +663,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 		entry->virtualW = scaled_tex_w;
 		entry->virtualH = scaled_tex_h;
 
-		entry->format = copyfmt;
+		entry->format = dstFormat;
 		entry->mipLevels = 0;
 
 		entry->isRenderTarget = true;
@@ -675,7 +675,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer,
 
 	g_renderer->ResetAPIState(); // reset any game specific settings
 
-	entry->FromRenderTarget(bFromZBuffer, bScaleByHalf, cbufid, colmat, source_rect, bIsIntensityFmt, copyfmt);
+	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
 	g_renderer->RestoreAPIState();
 }

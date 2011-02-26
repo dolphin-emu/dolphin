@@ -46,9 +46,10 @@ private:
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
 
-		void FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
-			unsigned int cbufid, const float* colmat, const EFBRectangle &source_rect,
-			bool bIsIntensityFmt, u32 copyfmt);
+		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+			unsigned int srcFormat, const EFBRectangle& srcRect,
+			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
+			const float *colmat);
 
 		void Bind(unsigned int stage);
 		bool Save(const char filename[]);

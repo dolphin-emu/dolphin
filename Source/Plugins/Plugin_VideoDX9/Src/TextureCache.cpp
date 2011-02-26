@@ -69,11 +69,12 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	// D3D9 will automatically generate mip maps if necessary
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleByHalf,
-	unsigned int cbufid, const float *colmat, const EFBRectangle &source_rect,
-	bool bIsIntensityFmt, u32 copyfmt)
+void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+	unsigned int srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
+	const float *colmat)
 {
-	const LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ?
+	const LPDIRECT3DTEXTURE9 read_texture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::GetEFBDepthTexture() :
 		FramebufferManager::GetEFBColorTexture();
 
@@ -101,16 +102,16 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 		destrect.top = 0;
 
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
+		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		RECT sourcerect;
 		sourcerect.bottom = targetSource.bottom;
 		sourcerect.left = targetSource.left;
 		sourcerect.right = targetSource.right;
 		sourcerect.top = targetSource.top;
 
-		if (bFromZBuffer)
+		if (srcFormat == PIXELFMT_Z24)
 		{
-			if (bScaleByHalf || g_ActiveConfig.iMultisampleMode)
+			if (scaleByHalf || g_ActiveConfig.iMultisampleMode)
 			{
 				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
@@ -134,7 +135,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
 			virtualW, virtualH,
 			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
-			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, bFromZBuffer && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
+			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, (srcFormat == PIXELFMT_Z24) && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
 
 		Rendersurf->Release();
@@ -147,11 +148,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer, bool bScaleB
 			read_texture,
 			Renderer::GetFullTargetWidth(), 
 			Renderer::GetFullTargetHeight(),
-			bFromZBuffer, 
-			bIsIntensityFmt, 
-			copyfmt, 
-			bScaleByHalf, 
-			source_rect);
+			srcFormat == PIXELFMT_Z24, 
+			isIntensity, 
+			dstFormat, 
+			scaleByHalf, 
+			srcRect);
 	}
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

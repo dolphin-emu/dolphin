@@ -248,10 +248,9 @@ void BPWritten(const BPCmd& bp)
 				if (GetConfig(CONFIG_SHOWEFBREGIONS))
 					stats.efb_regions.push_back(rc);
 
-				CopyEFB(bp, rc, bpmem.copyTexDest << 5, 
-							bpmem.zcontrol.pixel_format == PIXELFMT_Z24, 
-							PE_copy.intensity_fmt > 0,PE_copy.tp_realFormat(),
-							PE_copy.half_scale);
+				CopyEFB(bpmem.copyTexDest << 5, PE_copy.tp_realFormat(),
+					bpmem.zcontrol.pixel_format, rc, PE_copy.intensity_fmt,
+					PE_copy.half_scale);
 			}
 			else
 			{

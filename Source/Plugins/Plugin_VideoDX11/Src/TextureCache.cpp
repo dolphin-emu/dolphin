@@ -23,12 +23,17 @@
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexShaderCache.h"
+#include "TextureEncoder.h"
+#include "PSTextureEncoder.h"
+#include "HW/Memmap.h"
+#include "VideoConfig.h"
 
 namespace DX11
 {
 
-#define MAX_COPY_BUFFERS 25
-ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {};
+static TextureEncoder* g_encoder = NULL;
+const size_t MAX_COPY_BUFFERS = 25;
+ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -92,48 +97,70 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	return entry;
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleByHalf,
-	unsigned int cbufid, const float colmat[], const EFBRectangle &source_rect,
-	bool bIsIntensityFmt, u32 copyfmt)
+void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+	unsigned int srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
+	const float *colmat)
 {
-	g_renderer->ResetAPIState();
-	// stretch picture with increased internal resolution
-	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
-	D3D::context->RSSetViewports(1, &vp);
-
-	// set transformation
-	if (NULL == efbcopycbuf[cbufid])
+	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
-		const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-		D3D11_SUBRESOURCE_DATA data;
-		data.pSysMem = colmat;
-		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
-		CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
-	}
-	D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
+		g_renderer->ResetAPIState();
 
-	const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
-	// TODO: try targetSource.asRECT();
-	const D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
+		// stretch picture with increased internal resolution
+		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
+		D3D::context->RSSetViewports(1, &vp);
 
-	// Use linear filtering if (bScaleByHalf), use point filtering otherwise
-	if (bScaleByHalf)
-		D3D::SetLinearCopySampler();
-	else
-		D3D::SetPointCopySampler();
+		// set transformation
+		if (NULL == efbcopycbuf[cbufid])
+		{
+			const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
+			D3D11_SUBRESOURCE_DATA data;
+			data.pSysMem = colmat;
+			HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
+			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+		}
+		D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
 
-	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
+		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
+		// TODO: try targetSource.asRECT();
+		const D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
 
-	D3D::drawShadedTexQuad(
-		(bFromZBuffer) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
-		&sourcerect, Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
-		(bFromZBuffer) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+		// Use linear filtering if (bScaleByHalf), use point filtering otherwise
+		if (scaleByHalf)
+			D3D::SetLinearCopySampler();
+		else
+			D3D::SetPointCopySampler();
 
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
+
+		// Create texture copy
+		D3D::drawShadedTexQuad(
+			(srcFormat == PIXELFMT_Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
+			&sourcerect, Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
+			(srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	
-	g_renderer->RestoreAPIState();
+		g_renderer->RestoreAPIState();
+	}
+
+	if (!g_ActiveConfig.bCopyEFBToTexture)
+	{
+		u8* dst = Memory::GetPointer(dstAddr);
+		size_t encodeSize = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		hash = GetHash64(dst, encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		if (g_ActiveConfig.bEFBCopyCacheEnable)
+		{
+			// If the texture in RAM is already in the texture cache,
+			// do not copy it again as it has not changed.
+			if (TextureCache::Find(dstAddr, hash))
+				return;
+		}
+
+		TextureCache::MakeRangeDynamic(dstAddr, encodeSize);
+	}
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
@@ -146,12 +173,19 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 TextureCache::TextureCache()
 {
+	// FIXME: Is it safe here?
+	g_encoder = new PSTextureEncoder;
+	g_encoder->Init();
 }
 
 TextureCache::~TextureCache()
 {
 	for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
 		SAFE_RELEASE(efbcopycbuf[k]);
+
+	g_encoder->Shutdown();
+	delete g_encoder;
+	g_encoder = NULL;
 }
 
 }

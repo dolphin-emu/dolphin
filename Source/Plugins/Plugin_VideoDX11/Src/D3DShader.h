@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "D3DBase.h"
 #include "D3DBlob.h"
 
 struct ID3D11PixelShader;
@@ -32,7 +33,7 @@ namespace D3D
 
 	// The returned bytecode buffers should be Release()d.
 	bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob);
-	bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob);
+	bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = NULL);
 
 	// Utility functions
 	ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int len);

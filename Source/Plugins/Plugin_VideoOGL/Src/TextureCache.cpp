@@ -264,16 +264,17 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	return entry;
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleByHalf,
-	unsigned int cbufid, const float colmat[], const EFBRectangle &source_rect,
-	bool bIsIntensityFmt, u32 copyfmt)
+void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
+	unsigned int srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
+	const float *colmat)
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	// Make sure to resolve anything we need to read from.
-	const GLuint read_texture = bFromZBuffer ?
-		FramebufferManager::ResolveAndGetDepthTarget(source_rect) :
-		FramebufferManager::ResolveAndGetRenderTarget(source_rect);
+	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
+		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
+		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
     GL_REPORT_ERRORD();
 
@@ -295,11 +296,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 
 		glViewport(0, 0, virtualW, virtualH);
 
-		PixelShaderCache::SetCurrentShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
+		PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		GL_REPORT_ERRORD();
 
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(source_rect);
+		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 
 		glBegin(GL_QUADS);
 		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);
@@ -319,11 +320,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool bFromZBuffer,	bool bScaleB
 		hash = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
-			bFromZBuffer, 
-			bIsIntensityFmt, 
-			copyfmt, 
-			bScaleByHalf, 
-			source_rect);
+			srcFormat == PIXELFMT_Z24, 
+			isIntensity, 
+			dstFormat, 
+			scaleByHalf, 
+			srcRect);
 	}
 
     FramebufferManager::SetFramebuffer(0);
