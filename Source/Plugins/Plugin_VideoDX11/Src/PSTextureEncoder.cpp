@@ -1081,6 +1081,8 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 
 		m_staticShaders[key] = newShader;
 		bytecode->Release();
+
+		it = m_staticShaders.find(key);
 	}
 
 	if (it != m_staticShaders.end())
