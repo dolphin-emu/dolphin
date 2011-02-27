@@ -133,14 +133,13 @@ void SetCurrentThreadAffinity(u32 mask);
 	void SleepCurrentThread(int ms);
 	void SwitchCurrentThread();	// On Linux, this is equal to sleep 1ms
 
-	// YieldCPU: This function is only effective on HyperThreading CPU
 	// Use this function during a spin-wait to make the current thread
 	// relax while another thread is working. This may be more efficient
 	// than using events because event functions use kernel calls.
 	inline void YieldCPU()
 	{
 #ifdef _WIN32
-		YieldProcessor();
+		Sleep(0);
 #elif defined(_M_IX86) || defined(_M_X64)
 		usleep(1);
 #endif
