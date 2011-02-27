@@ -136,7 +136,7 @@ static const char EFB_ENCODE_PS[] =
 "uint ExtractB4(uint pixel) { return ExtractB(pixel) >> 4; }\n"
 "uint ExtractB5(uint pixel) { return ExtractB(pixel) >> 3; }\n"
 
-"uint Swap32(uint v) {\n"
+"uint4 Swap4_32(uint4 v) {\n"
 	"return (((v >> 24) & 0xFF) | ((v >> 8) & 0xFF00) | ((v << 8) & 0xFF0000) | ((v << 24) & 0xFF000000));\n"
 "}\n"
 
@@ -413,7 +413,7 @@ static const char EFB_ENCODE_PS[] =
 			");\n"
 	"}\n"
 
-	"return uint4(Swap32(dw[0]), Swap32(dw[1]), Swap32(dw[2]), Swap32(dw[3]));\n"
+	"return Swap4_32(uint4(dw[0], dw[1], dw[2], dw[3]));\n"
 "}\n"
 
 "uint4 Generate_4(uint2 cacheCoord)\n"
@@ -437,7 +437,7 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw2 = UINT_1616(EncodeRGB565(sample4), EncodeRGB565(sample5));\n"
 	"uint dw3 = UINT_1616(EncodeRGB565(sample6), EncodeRGB565(sample7));\n"
 
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_5(uint2 cacheCoord)\n"
@@ -460,8 +460,8 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw1 = UINT_1616(EncodeRGB5A3(sample2), EncodeRGB5A3(sample3));\n"
 	"uint dw2 = UINT_1616(EncodeRGB5A3(sample4), EncodeRGB5A3(sample5));\n"
 	"uint dw3 = UINT_1616(EncodeRGB5A3(sample6), EncodeRGB5A3(sample7));\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_6(uint2 cacheCoord)\n"
@@ -500,8 +500,8 @@ static const char EFB_ENCODE_PS[] =
 		"dw2 = UINT_8888(ExtractG(sample4), ExtractB(sample4), ExtractG(sample5), ExtractB(sample5));\n"
 		"dw3 = UINT_8888(ExtractG(sample6), ExtractB(sample6), ExtractG(sample7), ExtractB(sample7));\n"
 	"}\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_7(uint2 cacheCoord)\n"
@@ -532,8 +532,8 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw1 = UINT_8888(ExtractA(sample4), ExtractA(sample5), ExtractA(sample6), ExtractA(sample7));\n"
 	"uint dw2 = UINT_8888(ExtractA(sample8), ExtractA(sample9), ExtractA(sampleA), ExtractA(sampleB));\n"
 	"uint dw3 = UINT_8888(ExtractA(sampleC), ExtractA(sampleD), ExtractA(sampleE), ExtractA(sampleF));\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_8(uint2 cacheCoord)\n"
@@ -564,8 +564,8 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw1 = UINT_8888(ExtractR(sample4), ExtractR(sample5), ExtractR(sample6), ExtractR(sample7));\n"
 	"uint dw2 = UINT_8888(ExtractR(sample8), ExtractR(sample9), ExtractR(sampleA), ExtractR(sampleB));\n"
 	"uint dw3 = UINT_8888(ExtractR(sampleC), ExtractR(sampleD), ExtractR(sampleE), ExtractR(sampleF));\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_A(uint2 cacheCoord)\n"
@@ -596,8 +596,8 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw1 = UINT_8888(ExtractB(sample4), ExtractB(sample5), ExtractB(sample6), ExtractB(sample7));\n"
 	"uint dw2 = UINT_8888(ExtractB(sample8), ExtractB(sample9), ExtractB(sampleA), ExtractB(sampleB));\n"
 	"uint dw3 = UINT_8888(ExtractB(sampleC), ExtractB(sampleD), ExtractB(sampleE), ExtractB(sampleF));\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "uint4 Generate_B(uint2 cacheCoord)\n"
@@ -620,8 +620,8 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw1 = UINT_8888(ExtractG(sample2), ExtractR(sample2), ExtractG(sample3), ExtractR(sample3));\n"
 	"uint dw2 = UINT_8888(ExtractG(sample4), ExtractR(sample4), ExtractG(sample5), ExtractR(sample5));\n"
 	"uint dw3 = UINT_8888(ExtractG(sample6), ExtractR(sample6), ExtractG(sample7), ExtractR(sample7));\n"
-
-	"return uint4(Swap32(dw0), Swap32(dw1), Swap32(dw2), Swap32(dw3));\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
 "#ifdef DYNAMIC_MODE\n"
