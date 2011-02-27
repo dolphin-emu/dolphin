@@ -200,6 +200,7 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
     <ClCompile Include="Src\PixelShaderCache.cpp" />
+    <ClCompile Include="Src\PSTextureEncoder.cpp" />
     <ClCompile Include="Src\Render.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -224,9 +225,11 @@
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\PixelShaderCache.h" />
+    <ClInclude Include="Src\PSTextureEncoder.h" />
     <ClInclude Include="Src\Render.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\TextureCache.h" />
+    <ClInclude Include="Src\TextureEncoder.h" />
     <ClInclude Include="Src\VertexManager.h" />
     <ClInclude Include="Src\VertexShaderCache.h" />
     <ClInclude Include="Src\VideoBackend.h" />

@@ -42,6 +42,9 @@
     <ClCompile Include="Src\VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PSTextureEncoder.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -82,6 +85,12 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\VertexManager.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PSTextureEncoder.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TextureEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
