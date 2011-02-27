@@ -328,16 +328,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Video
-	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBCopyEnable = new wxCheckBox(m_GameConfig, ID_EFBCOPYENABLE, _("Enable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBAccessEnable = new wxCheckBox(m_GameConfig, ID_EFBACCESSENABLE, _("Enable CPU Access"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To Texture"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Accurate Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
-	DListCache = new wxCheckBox(m_GameConfig, ID_DLISTCACHE, _("DList Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	
 	// Hack
 	szrPHackSettings = new wxFlexGridSizer(0);
@@ -388,15 +380,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
-	sbVideoOverrides->Add(ForceFiltering, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(EFBCopyEnable, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(EFBAccessEnable, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(SafeTextureCache, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(DstAlphaPass, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(UseXFB, 0, wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(DListCache, 0, wxLEFT, 5);
 	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
 
@@ -889,55 +873,16 @@ void CISOProperties::LoadGameConfig()
 	else
 		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
 
+	// ??
 	if (GameIni.Get("Wii", "Widescreen", &bTemp))
 		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Video", "ForceFiltering", &bTemp))
-		ForceFiltering->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		ForceFiltering->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "EFBCopyEnable", &bTemp))
-		EFBCopyEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBCopyEnable->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "EFBAccessEnable", &bTemp))
-		EFBAccessEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBAccessEnable->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "EFBToTextureEnable", &bTemp))
-		EFBToTextureEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBToTextureEnable->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "SafeTextureCache", &bTemp))
-		SafeTextureCache->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		SafeTextureCache->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "DstAlphaPass", &bTemp))
-		DstAlphaPass->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		DstAlphaPass->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "UseXFB", &bTemp))
-		UseXFB->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Video", "ZTPSpeedupHack", &bTemp))
 		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		UseZTPSpeedupHack->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Video", "DlistCachingEnable", &bTemp))
-		DListCache->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		DListCache->Set3StateValue(wxCHK_UNDETERMINED);
 
 	GameIni.Get("Video", "ProjectionHack", &bTemp);
 	PHackEnable->Set3StateValue((wxCheckBoxState)bTemp);
@@ -1023,50 +968,10 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
-	if (ForceFiltering->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "ForceFiltering");
-	else
-		GameIni.Set("Video", "ForceFiltering", ForceFiltering->Get3StateValue());
-
-	if (EFBCopyEnable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBCopyEnable");
-	else
-		GameIni.Set("Video", "EFBCopyEnable", EFBCopyEnable->Get3StateValue());
-
-	if (EFBAccessEnable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBAccessEnable");
-	else
-		GameIni.Set("Video", "EFBAccessEnable", EFBAccessEnable->Get3StateValue());
-
-	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBToTextureEnable");
-	else
-		GameIni.Set("Video", "EFBToTextureEnable", EFBToTextureEnable->Get3StateValue());
-
-	if (SafeTextureCache->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "SafeTextureCache");
-	else
-		GameIni.Set("Video", "SafeTextureCache", SafeTextureCache->Get3StateValue());
-
-	if (DstAlphaPass->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "DstAlphaPass");
-	else
-		GameIni.Set("Video", "DstAlphaPass", DstAlphaPass->Get3StateValue());
-
-	if (UseXFB->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "UseXFB");
-	else
-		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
-
 	if (UseZTPSpeedupHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ZTPSpeedupHack");
 	else
 		GameIni.Set("Video", "ZTPSpeedupHack", UseZTPSpeedupHack->Get3StateValue());
-
-	if (DListCache->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "DlistCachingEnable");
-	else
-		GameIni.Set("Video", "DlistCachingEnable", DListCache->Get3StateValue());
 
 	GameIni.Set("Video", "ProjectionHack", PHackEnable->Get3StateValue());
 

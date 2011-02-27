@@ -100,10 +100,7 @@ class CISOProperties : public wxDialog
 		// Wii
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
 		// Video
-		wxCheckBox *ForceFiltering,
-			*EFBCopyEnable, *EFBAccessEnable, *EFBToTextureEnable,
-			*SafeTextureCache, *DstAlphaPass, *UseXFB, *UseZTPSpeedupHack,
-			*DListCache, *PHackEnable;
+		wxCheckBox *UseZTPSpeedupHack, *PHackEnable;
 		wxButton *PHSettings;
 
 		wxButton *EditConfig;
@@ -182,15 +179,7 @@ class CISOProperties : public wxDialog
 			ID_DISCSPEED,
 			ID_MERGEBLOCKS,
 			ID_AUDIO_DSP_HLE,
-			ID_FORCEFILTERING,
-			ID_EFBCOPYENABLE,
-			ID_EFBACCESSENABLE,
-			ID_EFBTOTEXTUREENABLE,
-			ID_SAFETEXTURECACHE,
-			ID_DSTALPHAPASS,
-			ID_USEXFB,
 			ID_ZTP_SPEEDUP,
-			ID_DLISTCACHE,
 			ID_PHACKENABLE,
 			ID_PHSETTINGS,
 			ID_ENABLEPROGRESSIVESCAN,
