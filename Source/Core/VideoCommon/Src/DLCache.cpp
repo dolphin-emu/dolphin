@@ -213,7 +213,7 @@ inline u64 CreateMapId(u32 address, u32 size)
 
 inline u64 CreateVMapId(u32 VATUSED)
 {
-	u64 vmap_id = 0x9368e53c2f6af274 ^ g_VtxDesc.Hex;
+	u64 vmap_id = 0x9368e53c2f6af274ULL ^ g_VtxDesc.Hex;
 	for(int i = 0; i < 8 ; i++)
 	{
 		if(VATUSED & (1 << i))
