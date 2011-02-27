@@ -24,7 +24,8 @@
 
 #include <sstream>
 
-#define _connect_macro_( b, f, c, s )	(b)->Connect( wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s )
+#define _connect_macro_(b, f, c, s)	\
+	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
 
@@ -35,6 +36,7 @@ END_EVENT_TABLE()
 
 static NetPlay* netplay_ptr = NULL;
 extern CFrame* main_frame;
+NetPlayDiag *NetPlayDiag::npd = NULL;
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
@@ -47,7 +49,8 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxPanel* const panel = new wxPanel(this);
 
 	// top row
-	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"),
+			wxDefaultPosition, wxDefaultSize);
 	
 	std::string nickname;
 	netplay_section.Get("Nickname", &nickname, "Player");
@@ -68,13 +71,15 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	// connect tab
 	{
-	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"),
+			wxDefaultPosition, wxDefaultSize);
 	
 	std::string address;
 	netplay_section.Get("Address", &address, "localhost");
 	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, wxString::FromAscii(address.c_str()));
 
-	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"),
+			wxDefaultPosition, wxDefaultSize);
 	
 	// string? w/e
 	std::string port;
@@ -84,9 +89,9 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, _("Connect"));
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
-		, _("ALERT:\n\nNetPlay will currently only work properly when using the following settings:\n - Dual Core [OFF]\n - Audio Throttle [OFF]\n - DSP-HLE with \"Null Audio\" or DSP-LLE\n - Manually set the exact number of controllers that will be used to [Standard Controller]\n\nAll players should try to use the same Dolphin version and settings.\nDisable all memory cards or send them to all players before starting.\nWiimote support has not been implemented.\n\nYou must forward TCP port to host!!")
-		, wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY,
+			_("ALERT:\n\nNetPlay will currently only work properly when using the following settings:\n - Dual Core [OFF]\n - Audio Throttle [OFF]\n - DSP-HLE with \"Null Audio\" or DSP-LLE\n - Manually set the exact number of controllers that will be used to [Standard Controller]\n\nAll players should try to use the same Dolphin version and settings.\nDisable all memory cards or send them to all players before starting.\nWiimote support has not been implemented.\n\nYou must forward TCP port to host!!"),
+			wxDefaultPosition, wxDefaultSize);
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 	top_szr->Add(ip_lbl, 0, wxCENTER | wxRIGHT, 5);
@@ -106,7 +111,8 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	// host tab
 	{
-	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"), wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"),
+			wxDefaultPosition, wxDefaultSize);
 	
 	// string? w/e
 	std::string port;
@@ -171,11 +177,13 @@ NetPlaySetupDiag::~NetPlaySetupDiag()
 	netplay_section.Set("HostPort", m_host_port_text->GetValue().mb_str());
 
 	inifile.Save(dolphin_ini);
+	main_frame->g_NetPlaySetupDiag = NULL;
 }
 
 void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 {
-	if (::netplay_ptr)
+	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
+	if (npd)
 	{
 		PanicAlertT("A NetPlay window is already open!!");
 		return;
@@ -189,14 +197,13 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 
 	std::string game(m_game_lbox->GetStringSelection().mb_str());
 
-	NetPlayDiag* const npd = new NetPlayDiag(m_parent, m_game_list, game, true);
+	npd = new NetPlayDiag(m_parent, m_game_list, game, true);
 	unsigned long port = 0;
 	m_host_port_text->GetValue().ToULong(&port);
-	::netplay_ptr = new NetPlayServer(u16(port)
+	netplay_ptr = new NetPlayServer(u16(port)
 		, std::string(m_nickname_text->GetValue().mb_str()), npd, game);
-	if (::netplay_ptr->is_connected)
+	if (netplay_ptr->is_connected)
 	{
-		//NetPlayServerDiag* const npsd = 
 		npd->Show();
 		Destroy();
 	}
@@ -204,36 +211,31 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	{
 		PanicAlertT("Failed to Listen!!");
 		npd->Destroy();
-		// dialog will delete netplay
-		//delete ::netplay_ptr;
 	}
 }
 
 void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 {
-	if (::netplay_ptr)
+	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
+	if (npd)
 	{
 		PanicAlertT("A NetPlay window is already open!!");
 		return;
 	}
 
-	NetPlayDiag* const npd = new NetPlayDiag(m_parent, m_game_list, "");
+	npd = new NetPlayDiag(m_parent, m_game_list, "");
 	unsigned long port = 0;
 	m_connect_port_text->GetValue().ToULong(&port);
-	::netplay_ptr = new NetPlayClient(std::string(m_connect_ip_text->GetValue().mb_str())
+	netplay_ptr = new NetPlayClient(std::string(m_connect_ip_text->GetValue().mb_str())
 		, (u16)port, npd, std::string(m_nickname_text->GetValue().mb_str()));
-	if (::netplay_ptr->is_connected)
+	if (netplay_ptr->is_connected)
 	{
-		//NetPlayServerDiag* const npsd = 
 		npd->Show();
 		Destroy();
 	}
 	else
 	{
-		//PanicAlertT("Failed to Connect!!");
 		npd->Destroy();
-		// dialog will delete netplay
-		//delete ::netplay_ptr;
 	}
 }
 
@@ -242,8 +244,8 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent&)
 	Destroy();
 }
 
-NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list
-						 , const std::string& game, const bool is_hosting)
+NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list,
+		const std::string& game, const bool is_hosting)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_selected_game(game)
 	, m_game_list(game_list)
@@ -251,8 +253,9 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	wxPanel* const panel = new wxPanel(this);
 
 	// top crap
-	m_game_btn = new wxButton(panel, wxID_ANY
-		, wxString(m_selected_game.c_str(), *wxConvCurrent).Prepend(_(" Game : ")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+	m_game_btn = new wxButton(panel, wxID_ANY,
+			wxString(m_selected_game.c_str(), *wxConvCurrent).Prepend(_(" Game : ")),
+			wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 	
 	if (is_hosting)
 		_connect_macro_(m_game_btn, NetPlayDiag::OnChangeGame, wxEVT_COMMAND_BUTTON_CLICKED, this);
@@ -338,11 +341,12 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 
 NetPlayDiag::~NetPlayDiag()
 {
-	if (::netplay_ptr)
+	if (netplay_ptr)
 	{
 		delete netplay_ptr;
-		::netplay_ptr = NULL;
+		netplay_ptr = NULL;
 	}
+	npd = NULL;
 }
 
 void NetPlayDiag::OnChat(wxCommandEvent&)
@@ -351,7 +355,7 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 
 	if (s.Length())
 	{
-		::netplay_ptr->SendChatMessage(std::string(s.mb_str()));
+		netplay_ptr->SendChatMessage(std::string(s.mb_str()));
 		m_chat_text->AppendText(s.Prepend(wxT(" >> ")).Append(wxT('\n')));
 		m_chat_msg_text->Clear();
 	}
@@ -374,14 +378,14 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	}
 
 	if (path.length())
-		::netplay_ptr->StartGame(path);
+		netplay_ptr->StartGame(path);
 	else
 		PanicAlertT("Game not found!!");
 }
 
 void NetPlayDiag::OnStop(wxCommandEvent&)
 {
-	::netplay_ptr->StopGame();
+	netplay_ptr->StopGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)
@@ -430,7 +434,7 @@ void NetPlayDiag::OnMsgStopGame()
 
 void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)
 {
-	const u64 time = ((NetPlayServer*)::netplay_ptr)->CalculateMinimumBufferTime();
+	const u64 time = ((NetPlayServer*)netplay_ptr)->CalculateMinimumBufferTime();
 	std::ostringstream ss;
 	ss << "< Calculated from pings: required buffer: "
 		<< time * (60.0f/1000) << "(60fps) / "
@@ -442,11 +446,11 @@ void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
 {
 	const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
-	((NetPlayServer*)::netplay_ptr)->AdjustPadBufferSize(val);
+	((NetPlayServer*)netplay_ptr)->AdjustPadBufferSize(val);
 
 	std::ostringstream ss;
 	ss << "< Pad Buffer: " << val << " >";
-	::netplay_ptr->SendChatMessage(ss.str());
+	netplay_ptr->SendChatMessage(ss.str());
 	m_chat_text->AppendText(wxString(ss.str().c_str(), *wxConvCurrent).Append(wxT('\n')));
 }
 
@@ -461,7 +465,7 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	// player list
 	m_playerids.clear();
 	std::string tmps;
-	::netplay_ptr->GetPlayerList(tmps, m_playerids);
+	netplay_ptr->GetPlayerList(tmps, m_playerids);
 
 	const int selection = m_player_lbox->GetSelection();
 
@@ -516,7 +520,7 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 	if (game_name.length())
 	{
 		m_selected_game = std::string(game_name.mb_str());
-		::netplay_ptr->ChangeGame(m_selected_game);
+		netplay_ptr->ChangeGame(m_selected_game);
 		m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 	}
 }
@@ -531,14 +535,14 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 		return;
 	pid = m_playerids.at(pid);
 
-	if (false == ((NetPlayServer*)::netplay_ptr)->GetPadMapping(pid, mapping))
+	if (false == ((NetPlayServer*)netplay_ptr)->GetPadMapping(pid, mapping))
 		return;
 
 	PadMapDiag* const pmd = new PadMapDiag(this, mapping);
 	pmd->ShowModal();
 	pmd->Destroy();
 
-	if (false == ((NetPlayServer*)::netplay_ptr)->SetPadMapping(pid, mapping))
+	if (false == ((NetPlayServer*)netplay_ptr)->SetPadMapping(pid, mapping))
 		PanicAlertT("Could not set pads. The player left or the game is currently running!\n"
 				"(setting pads while the game is running is not yet supported)");
 }

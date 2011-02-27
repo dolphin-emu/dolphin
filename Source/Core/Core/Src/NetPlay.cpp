@@ -42,21 +42,21 @@ NetPlay::NetPlay(NetPlayUI* dialog)
 
 void NetPlay_Enable(NetPlay* const np)
 {
-	CritLocker crit(::crit_netplay_ptr);	// probably safe without a lock
-	::netplay_ptr = np;
+	CritLocker crit(crit_netplay_ptr);	// probably safe without a lock
+	netplay_ptr = np;
 }
 
 void NetPlay_Disable()
 {
-	CritLocker crit(::crit_netplay_ptr);
-	::netplay_ptr = NULL;
+	CritLocker crit(crit_netplay_ptr);
+	netplay_ptr = NULL;
 }
 
 // called from ---GUI--- thread
 NetPlay::~NetPlay()
 {
 	CritLocker crit(crit_netplay_ptr);
-	::netplay_ptr = NULL;
+	netplay_ptr = NULL;
 
 	// not perfect
 	if (m_is_running)
@@ -288,9 +288,9 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 // Actual Core function which is called on every frame
 bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
 {
-	CritLocker crit(::crit_netplay_ptr);
+	CritLocker crit(crit_netplay_ptr);
 
-	if (::netplay_ptr)
+	if (netplay_ptr)
 		return netplay_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus);
 	else
 		return false;
@@ -300,9 +300,9 @@ bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u
 // so all players' games get the same time
 u32 CEXIIPL::NetPlay_GetGCTime()
 {
-	CritLocker crit(::crit_netplay_ptr);
+	CritLocker crit(crit_netplay_ptr);
 
-	if (::netplay_ptr)
+	if (netplay_ptr)
 		return 1272737767;	// watev
 	else
 		return 0;
@@ -312,10 +312,10 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 // return the local pad num that should rumble given a ingame pad num
 u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 {
-	CritLocker crit(::crit_netplay_ptr);
+	CritLocker crit(crit_netplay_ptr);
 
-	if (::netplay_ptr)
-		return ::netplay_ptr->GetPadNum(numPAD);
+	if (netplay_ptr)
+		return netplay_ptr->GetPadNum(numPAD);
 	else
 		return numPAD;
 }
@@ -325,20 +325,20 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 //void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int)
 {
-	//CritLocker crit(::crit_netplay_ptr);
+	//CritLocker crit(crit_netplay_ptr);
 
-	//if (::netplay_ptr)
-	//	::netplay_ptr->WiimoteUpdate(_number);
+	//if (netplay_ptr)
+	//	netplay_ptr->WiimoteUpdate(_number);
 }
 
 // called from ---CPU--- thread
 //
 int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 {
-	//CritLocker crit(::crit_netplay_ptr);
+	//CritLocker crit(crit_netplay_ptr);
 
-	//if (::netplay_ptr)
-	//	return ::netplay_ptr->GetPadNum(_number);		// just using gcpad mapping for now
+	//if (netplay_ptr)
+	//	return netplay_ptr->GetPadNum(_number);		// just using gcpad mapping for now
 	//else
 		return _number;
 }
@@ -348,9 +348,9 @@ int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 //bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
 bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 {
-	CritLocker crit(::crit_netplay_ptr);
+	CritLocker crit(crit_netplay_ptr);
 
-	if (::netplay_ptr)
+	if (netplay_ptr)
 	//{
 	//	if (_Size >= RPT_SIZE_HACK)
 	//	{
@@ -359,7 +359,7 @@ bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 	//	}
 	//	else
 	//	{
-	//		::netplay_ptr->WiimoteInput(_number, _channelID, _pData, _Size);
+	//		netplay_ptr->WiimoteInput(_number, _channelID, _pData, _Size);
 	//		// don't use this packet
 			return true;
 	//	}

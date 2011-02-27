@@ -48,6 +48,8 @@ static inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int len
 class CGameListCtrl;
 class GameListItem;
 class CLogWindow;
+class NetPlaySetupDiag;
+class wxCheatsWindow;
 
 // The CPanel class to receive MSWWindowProc messages from the video backend.
 class CPanel : public wxPanel
@@ -112,6 +114,8 @@ class CFrame : public CRenderFrame
 
 		// These have to be public		
 		CCodeWindow* g_pCodeWindow;
+		NetPlaySetupDiag* g_NetPlaySetupDiag;
+		wxCheatsWindow* g_CheatsWindow;
 		void InitBitmaps();
 		void DoPause();
 		void DoStop();

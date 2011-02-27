@@ -171,9 +171,6 @@ protected:
 	Player*		m_local_player;
 
 	u32		m_current_game;
-
-private:
-
 };
 
 void NetPlay_Enable(NetPlay* const np);

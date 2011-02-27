@@ -87,6 +87,8 @@ public:
 	void OnMsgStartGame();
 	void OnMsgStopGame();
 
+	static NetPlayDiag *&GetInstance() { return npd; };
+
 private:
     DECLARE_EVENT_TABLE()
 
@@ -108,6 +110,8 @@ private:
 	std::vector<int>	m_playerids;
 
 	const CGameListCtrl* const m_game_list;
+
+	static NetPlayDiag* npd;
 };
 
 DECLARE_EVENT_TYPE(wxEVT_THREAD, -1)

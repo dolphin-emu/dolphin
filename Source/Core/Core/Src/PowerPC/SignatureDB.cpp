@@ -129,7 +129,7 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 			else 
 			{
 				function->name = iter->second.name;
-				ERROR_LOG(OSHLE, "Wrong sizzze! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
+				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
 			}
 		}
 	}

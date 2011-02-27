@@ -107,6 +107,7 @@ class wxCheatsWindow : public wxFrame
 
 	public:
 		wxCheatsWindow(wxWindow* const parent);
+		~wxCheatsWindow();
 
 	protected:
 

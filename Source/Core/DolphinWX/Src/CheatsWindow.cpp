@@ -23,12 +23,14 @@
 #include "VolumeHandler.h"
 #include "ISOProperties.h"
 #include "HW/Memmap.h"
+#include "Frame.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
 
 extern std::vector<ActionReplay::ARCode> arCodes;
+extern CFrame* main_frame;
 
 // meh
 static wxCheatsWindow *g_cheat_window;
@@ -57,6 +59,11 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 	Center();
 	Show();
+}
+
+wxCheatsWindow::~wxCheatsWindow()
+{
+	main_frame->g_CheatsWindow = NULL;
 }
 
 void wxCheatsWindow::Init_ChildControls()

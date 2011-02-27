@@ -70,7 +70,7 @@ public:
 		m_imageListNormal->Add(m_Bitmaps[Toolbar_Delete]);
 		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_BP]);
 		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_MC]);
-		SetImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
+		AssignImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
 
 		toolbar_map.insert(toolbar_p(InsertItem(0, _("Delete"), 0), &CBreakPointWindow::OnDelete));
 		toolbar_map.insert(toolbar_p(InsertItem(1, _("Clear"), 0), &CBreakPointWindow::OnClear));
@@ -115,9 +115,6 @@ void CBreakPointWindow::OnClose(wxCloseEvent& WXUNUSED(event))
 
 void CBreakPointWindow::CreateGUIControls()
 {
-	SetSize(8, 8, 400, 370);
-	Center();
-
 	m_BreakPointBar = new CBreakPointBar(this, ID_TOOLBAR, wxDefaultPosition, wxSize(0, 55),
 			wxLC_ICON | wxSUNKEN_BORDER | wxLC_SINGLE_SEL);
 	m_BreakPointListView = new CBreakPointView(this, ID_BPS, wxDefaultPosition, wxDefaultSize,

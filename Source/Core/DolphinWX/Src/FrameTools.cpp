@@ -96,11 +96,6 @@ extern "C" {
 #include "../resources/KDE.h"
 };
 
-
-// Other Windows
-wxCheatsWindow* CheatsWindow;
-
-
 // Create menu items
 // ---------------------
 void CFrame::CreateMenu()
@@ -1274,7 +1269,15 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
-	new NetPlaySetupDiag(this, m_GameListCtrl);
+	if (!g_NetPlaySetupDiag)
+	{
+		if (NetPlayDiag::GetInstance() != NULL)
+			NetPlayDiag::GetInstance()->Raise();
+		else
+			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
+	}
+	else
+		g_NetPlaySetupDiag->Raise();
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
@@ -1300,7 +1303,10 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
-	CheatsWindow = new wxCheatsWindow(this);
+	if (!g_CheatsWindow)
+		g_CheatsWindow = new wxCheatsWindow(this);
+	else
+		g_CheatsWindow->Raise();
 }
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& event)

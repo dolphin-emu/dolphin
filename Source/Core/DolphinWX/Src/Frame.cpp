@@ -341,7 +341,7 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
-	, g_pCodeWindow(NULL)
+	, g_pCodeWindow(NULL), g_NetPlaySetupDiag(NULL), g_CheatsWindow(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_GameListCtrl(NULL), m_Panel(NULL)
@@ -667,7 +667,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 #ifdef __WXGTK__
 	case IDM_PANIC:
 		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
-					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, this));
+					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
 		panic_event.Set();
 		break;
 	case IDM_KEYSTATE:
