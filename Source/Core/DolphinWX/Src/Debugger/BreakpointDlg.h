@@ -20,47 +20,24 @@
 
 
 #include <wx/wx.h>
-#include <wx/dialog.h>
-#include <wx/stattext.h>
-#include <wx/button.h>
-#include <wx/textctrl.h>
-#include <wx/statbox.h>
+
+class CBreakPointWindow;
 
 class BreakPointDlg : public wxDialog
 {
-	private:
-		DECLARE_EVENT_TABLE();
-		
-	public:
-		BreakPointDlg(CBreakPointWindow *, wxWindow *parent, wxWindowID id = 1, const wxString &title = _("BreakPoint"),
-			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-			long style = wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX);
-		virtual ~BreakPointDlg();
+public:
+	BreakPointDlg(CBreakPointWindow *_Parent);
 	
-	private:
+private:
 
-		CBreakPointWindow *Parent;
-		wxButton *m_pButtonOK;
-		wxButton *m_pButtonCancel;
-		wxTextCtrl *m_pEditAddress;
+	CBreakPointWindow *Parent;
+	wxTextCtrl *m_pEditAddress;
 
-	private:
+	void OnClose(wxCloseEvent& WXUNUSED(event));
+	void OnCancel(wxCommandEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& WXUNUSED(event));
 
-		enum
-		{
-			ID_WXSTATICTEXT1 = 1006,
-			ID_OK = 1005,
-			ID_CANCEL = 1004,
-			ID_ADDRESS = 1003,
-			ID_WXSTATICBOX1 = 1001,
-		};
-	
-	private:
-
-		void CreateGUIControls();
-		void OnClose(wxCloseEvent& event);
-		void OnCancel(wxCommandEvent& event);
-		void OnOK(wxCommandEvent& event);
+	DECLARE_EVENT_TABLE();
 };
 
 #endif

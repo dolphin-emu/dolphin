@@ -18,51 +18,52 @@
 #ifndef __BREAKPOINTWINDOW_h__
 #define __BREAKPOINTWINDOW_h__
 
+#include <wx/wx.h>
+#include <wx/aui/aui.h>
+
 class CBreakPointView;
 class CBreakPointBar;
 class CCodeWindow;
 class wxListEvent;
 class IniFile;
 
-class CBreakPointWindow
-	: public wxPanel
+class CBreakPointWindow : public wxPanel
 {
 public:
 
 	CBreakPointWindow(CCodeWindow* _pCodeWindow,
 		wxWindow* parent,
 		wxWindowID id = wxID_ANY,
-		const wxString& title = _("Breakpoints"),
+		const wxString& title = wxT("Breakpoints"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL | wxBORDER_NONE);
+	~CBreakPointWindow();
 
 	void NotifyUpdate();
 
-	void OnDelete();
-	void OnClear();
-	void OnAddBreakPoint();
-	void OnAddMemoryCheck();
+	void OnDelete(wxCommandEvent& WXUNUSED(event));
+	void OnClear(wxCommandEvent& WXUNUSED(event));
+	void OnAddBreakPoint(wxCommandEvent& WXUNUSED(event));
+	void OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event));
+	void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
 	void SaveAll();
-	void LoadAll();
+	void LoadAll(wxCommandEvent& WXUNUSED(event));
 
 private:
 	DECLARE_EVENT_TABLE();
 
 	enum
 	{
-		ID_TOOLBAR = 501,
 		ID_BPS = 1002,
 	};
 
-	CBreakPointBar* m_BreakPointBar;
+	wxAuiManager m_mgr;
 	CBreakPointView* m_BreakPointListView;
 	CCodeWindow* m_pCodeWindow;
 
 	void OnClose(wxCloseEvent& event);
-	void OnSelectToolbar(wxListEvent& event);
 	void OnSelectBP(wxListEvent& event);
-	void OnRightClick(wxListEvent& event);
 	void CreateGUIControls();
 };
 

@@ -15,57 +15,47 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <wx/wx.h>
-
-#include "Common.h"
-#include "Host.h"
+#include "BreakpointDlg.h"
+//#include "Host.h"
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "BreakpointWindow.h"
-#include "BreakpointDlg.h"
 
-BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
+BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 	EVT_CLOSE(BreakPointDlg::OnClose)
-	EVT_BUTTON(ID_OK, BreakPointDlg::OnOK)
-	EVT_BUTTON(ID_CANCEL, BreakPointDlg::OnCancel)
+	EVT_BUTTON(wxID_OK, BreakPointDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, BreakPointDlg::OnCancel)
 END_EVENT_TABLE()
 
-class CBreakPointWindow;
-
-BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent, wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
-: wxDialog(parent, id, title, position, size, style)
-, Parent(_Parent)
+BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
+	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"), wxDefaultPosition, wxDefaultSize)
+	, Parent(_Parent)
 {
-	CreateGUIControls();
+	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, wxT("80000000"));
+	wxButton *m_pButtonOK = new wxButton(this, wxID_OK, wxT("OK"));
+	wxButton *m_pButtonCancel = new wxButton(this, wxID_CANCEL, wxT("Cancel"));
+
+	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(m_pButtonCancel, 0);
+	sButtons->Add(m_pButtonOK, 0);
+
+	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
+	sMainSizer->Add(m_pEditAddress, 0, wxEXPAND | wxALL, 5);
+	sMainSizer->Add(sButtons, 0, wxALL, 5);
+
+	SetSizer(sMainSizer);
+	Layout();
+	Fit();
 }
 
-
-BreakPointDlg::~BreakPointDlg()
+void BreakPointDlg::OnClose(wxCloseEvent& WXUNUSED(event))
 {
-} 
-
-
-void BreakPointDlg::CreateGUIControls()
-{
-	SetIcon(wxNullIcon);
-	SetSize(8,8,279,121);
-	Center();	
-
-
-	m_pButtonOK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(192,64), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
-
-	m_pButtonCancel = new wxButton(this, ID_CANCEL, _("Cancel"), wxPoint(112,64), wxSize(73,25), 0, wxDefaultValidator, _("Cancel"));
-
-	m_pEditAddress = new wxTextCtrl(this, ID_ADDRESS, wxT("80000000"), wxPoint(56,24), wxSize(197,20), 0, wxDefaultValidator, wxT("WxEdit1"));
-}
-
-
-void BreakPointDlg::OnClose(wxCloseEvent& /*event*/)
-{
+	EndModal(wxID_CLOSE);
 	Destroy();
 }
 
-void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
+void BreakPointDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
@@ -76,9 +66,11 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 		//Host_UpdateBreakPointView();
 		Close();		
 	}
+	else
+		PanicAlert("The address %s is invalid.", (const char *)AddressString.ToUTF8());
 }
 
-void BreakPointDlg::OnCancel(wxCommandEvent& /*event*/)
+void BreakPointDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 }

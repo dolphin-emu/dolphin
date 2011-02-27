@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <wx/wx.h>
 #include <wx/imaglist.h>
 
 #include "BreakpointView.h"
@@ -33,116 +32,117 @@ extern "C" {
 #include "../../resources/toolbar_debugger_delete.c"
 }
 
-#include <map>
-typedef void (CBreakPointWindow::*toolbar_func)();
-typedef std::map<long, toolbar_func> toolbar_m;
-typedef std::pair<long, toolbar_func> toolbar_p;
-toolbar_m toolbar_map;
+#define _connect_macro_(id, handler) \
+	Connect(id, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(handler), (wxObject*)0, (wxEvtHandler*)parent)
 
-class CBreakPointBar : public wxListCtrl
+class CBreakPointBar : public wxAuiToolBar
 {
+public:
+	CBreakPointBar(wxWindow* parent, const wxWindowID id)
+		: wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
+				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
+	{
+		SetToolBitmapSize(wxSize(24, 24));
+
+		m_Bitmaps[Toolbar_Delete] =
+		   	wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(24, 24));
+		m_Bitmaps[Toolbar_Add_BP] =
+		   	wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(24, 24));
+		m_Bitmaps[Toolbar_Add_MC] =
+			wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(24, 24));
+
+		AddTool(ID_DELETE, wxT("Delete"), m_Bitmaps[Toolbar_Delete]);
+		_connect_macro_(ID_DELETE, CBreakPointWindow::OnDelete);
+
+		AddTool(ID_CLEAR, wxT("Clear"), m_Bitmaps[Toolbar_Delete]);
+		_connect_macro_(ID_CLEAR, CBreakPointWindow::OnClear);
+
+		AddTool(ID_ADDBP, wxT("+BP"), m_Bitmaps[Toolbar_Add_BP]);
+		_connect_macro_(ID_ADDBP, CBreakPointWindow::OnAddBreakPoint);
+
+		// Add memory breakpoints if you can use them
+		if (Memory::AreMemoryBreakpointsActivated())
+		{
+			AddTool(ID_ADDMC, wxT("+MC"), m_Bitmaps[Toolbar_Add_MC]);
+			_connect_macro_(ID_ADDMC, CBreakPointWindow::OnAddMemoryCheck);
+		}
+
+		AddTool(ID_LOAD, wxT("Load"), m_Bitmaps[Toolbar_Delete]);
+		_connect_macro_(ID_LOAD, CBreakPointWindow::LoadAll);
+
+		AddTool(ID_SAVE, wxT("Save"), m_Bitmaps[Toolbar_Delete]);
+		_connect_macro_(ID_SAVE, CBreakPointWindow::Event_SaveAll);
+	}
+
+private:
+
 	enum
 	{
 		Toolbar_Delete,
 		Toolbar_Add_BP,
 		Toolbar_Add_MC,
-		Bitmaps_max
+		Num_Bitmaps
 	};
-	wxBitmap m_Bitmaps[Bitmaps_max];
 
-public:
-	CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id,
-		const wxPoint& pos, const wxSize& size, long style)
-		: wxListCtrl((wxWindow*)parent, id, pos, size, style)
+	enum
 	{
-		SetBackgroundColour(wxColour(0x555555));
-		SetForegroundColour(wxColour(0xffffff));
+		ID_DELETE = 2000,
+		ID_CLEAR,
+		ID_ADDBP,
+		ID_ADDMC,
+		ID_LOAD,
+		ID_SAVE
+	};
 
-		// load original size 48x48
-		wxMemoryInputStream st1(toolbar_delete_png, sizeof(toolbar_delete_png));
-		wxMemoryInputStream st2(toolbar_add_breakpoint_png, sizeof(toolbar_add_breakpoint_png));
-		wxMemoryInputStream st3(toolbar_add_memcheck_png, sizeof(toolbar_add_memcheck_png));
-		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxImage(st1, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxImage(st2, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxImage(st3, wxBITMAP_TYPE_ANY, -1).Rescale(24,24), -1);
-
-		m_imageListNormal = new wxImageList(24, 24);
-		m_imageListNormal->Add(m_Bitmaps[Toolbar_Delete]);
-		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_BP]);
-		m_imageListNormal->Add(m_Bitmaps[Toolbar_Add_MC]);
-		AssignImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
-
-		toolbar_map.insert(toolbar_p(InsertItem(0, _("Delete"), 0), &CBreakPointWindow::OnDelete));
-		toolbar_map.insert(toolbar_p(InsertItem(1, _("Clear"), 0), &CBreakPointWindow::OnClear));
-		toolbar_map.insert(toolbar_p(InsertItem(2, _("+BP"), 1), &CBreakPointWindow::OnAddBreakPoint));
-
-		// just add memory breakpoints if you can use them
-		if (Memory::AreMemoryBreakpointsActivated())
-		{
-			toolbar_map.insert(toolbar_p(InsertItem(3, _("+MC"), 2), &CBreakPointWindow::OnAddMemoryCheck));
-			toolbar_map.insert(toolbar_p(InsertItem(4, _("Load"), 0), &CBreakPointWindow::LoadAll));
-			toolbar_map.insert(toolbar_p(InsertItem(5, _("Save"), 0), &CBreakPointWindow::SaveAll));
-		}
-		else
-		{
-			toolbar_map.insert(toolbar_p(InsertItem(3, _("Load"), 0), &CBreakPointWindow::LoadAll));
-			toolbar_map.insert(toolbar_p(InsertItem(4, _("Save"), 0), &CBreakPointWindow::SaveAll));
-		}
-	}
+	wxBitmap m_Bitmaps[Num_Bitmaps];
 };
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_LIST_ITEM_SELECTED(ID_BPS, CBreakPointWindow::OnSelectBP)
-	EVT_LIST_ITEM_RIGHT_CLICK(ID_BPS, CBreakPointWindow::OnRightClick)
-	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectToolbar)
 END_EVENT_TABLE()
 
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
 	   	wxWindowID id, const wxString& title, const wxPoint& position,
 	   	const wxSize& size, long style)
-: wxPanel(parent, id, position, size, style, title)
-	, m_BreakPointListView(NULL)
+	: wxPanel(parent, id, position, size, style, title)
 	, m_pCodeWindow(_pCodeWindow)
 {
 	CreateGUIControls();
 }
 
-void CBreakPointWindow::OnClose(wxCloseEvent& WXUNUSED(event))
+CBreakPointWindow::~CBreakPointWindow()
+{
+	m_mgr.UnInit();
+}
+
+void CBreakPointWindow::OnClose(wxCloseEvent& event)
 {
 	SaveAll();
+	event.Skip();
 }
 
 void CBreakPointWindow::CreateGUIControls()
 {
-	m_BreakPointBar = new CBreakPointBar(this, ID_TOOLBAR, wxDefaultPosition, wxSize(0, 55),
-			wxLC_ICON | wxSUNKEN_BORDER | wxLC_SINGLE_SEL);
-	m_BreakPointListView = new CBreakPointView(this, ID_BPS, wxDefaultPosition, wxDefaultSize,
-			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
+	m_mgr.SetManagedWindow(this);
+	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-	wxBoxSizer* sizerH = new wxBoxSizer(wxVERTICAL);
-	sizerH->Add(m_BreakPointBar, 0, wxALL | wxEXPAND);
-	sizerH->Add(m_BreakPointListView, 1, wxEXPAND);
+	m_BreakPointListView = new CBreakPointView(this, ID_BPS);
 
-	SetSizer(sizerH);
-}
-
-void CBreakPointWindow::OnSelectToolbar(wxListEvent& event)
-{
-	(this->*toolbar_map[event.GetItem().GetId()])();
-	m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_SELECTED);
+	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
+			LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
+	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
+	m_mgr.Update();
 }
 
 void CBreakPointWindow::NotifyUpdate()
 {
-	if (m_BreakPointListView)
-		m_BreakPointListView->Update();
+	m_BreakPointListView->Update();
 }
 
-void CBreakPointWindow::OnDelete()
+void CBreakPointWindow::OnDelete(wxCommandEvent& WXUNUSED(event))
 {
-	if (m_BreakPointListView)
-		m_BreakPointListView->DeleteCurrentSelection();
+	m_BreakPointListView->DeleteCurrentSelection();
 }
 
 // jump to begin addr
@@ -157,29 +157,29 @@ void CBreakPointWindow::OnSelectBP(wxListEvent& event)
 	}
 }
 
-// modify
-void CBreakPointWindow::OnRightClick(wxListEvent& event)
-{
-}
-
 // Clear all breakpoints and memchecks
-void CBreakPointWindow::OnClear()
+void CBreakPointWindow::OnClear(wxCommandEvent& WXUNUSED(event))
 {
 	PowerPC::breakpoints.Clear();
 	PowerPC::memchecks.Clear();
 	NotifyUpdate();
 }
 
-void CBreakPointWindow::OnAddBreakPoint()
+void CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& WXUNUSED(event))
 {
-	BreakPointDlg bpDlg(this, this);
+	BreakPointDlg bpDlg(this);
 	bpDlg.ShowModal();
 }
 
-void CBreakPointWindow::OnAddMemoryCheck()
+void CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event))
 {
 	MemoryCheckDlg memDlg(this);
 	memDlg.ShowModal();
+}
+
+void CBreakPointWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
+{
+	SaveAll();
 }
 
 void CBreakPointWindow::SaveAll()
@@ -194,7 +194,7 @@ void CBreakPointWindow::SaveAll()
 	}
 }
 
-void CBreakPointWindow::LoadAll()
+void CBreakPointWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
 {
 	IniFile ini;
 	BreakPoints::TBreakPointsStr newbps;

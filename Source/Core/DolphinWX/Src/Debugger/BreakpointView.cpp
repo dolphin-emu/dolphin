@@ -16,8 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <wx/wx.h>
-#include <wx/mstream.h>
-#include <wx/imaglist.h>
 
 #include "BreakpointView.h"
 #include "DebuggerUIUtil.h"
@@ -26,12 +24,11 @@
 #include "PowerPC/PowerPC.h"
 #include "HW/Memmap.h"
 
-CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id,
-								const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style)
+CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
+	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
+			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING)
 {
 	SetFont(DebuggerFont);
-
 	Refresh();
 }
 
@@ -39,11 +36,11 @@ void CBreakPointView::Update()
 {
 	ClearAll();
 
-	InsertColumn(0, _("Active"), wxLIST_FORMAT_LEFT, 50);
-	InsertColumn(1, _("Type"), wxLIST_FORMAT_LEFT, 50);
-	InsertColumn(2, _("Function"), wxLIST_FORMAT_CENTER, 200);
-    InsertColumn(3, _("Address"), wxLIST_FORMAT_LEFT, 100);
-    InsertColumn(4, _("Flags"), wxLIST_FORMAT_CENTER, 100);
+	InsertColumn(0, wxT("Active"));
+	InsertColumn(1, wxT("Type"));
+	InsertColumn(2, wxT("Function"));
+    InsertColumn(3, wxT("Address"));
+    InsertColumn(4, wxT("Flags"));
 
     char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
@@ -104,9 +101,6 @@ void CBreakPointView::Update()
 
 		SetItemData(Item, rMemCheck.StartAddress);
 	}
-
-	SetColumnWidth(2, -1);
-	SetColumnWidth(3, -1);
 
 	Refresh();
 }

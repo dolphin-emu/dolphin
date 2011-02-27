@@ -25,8 +25,7 @@
 class CBreakPointView : public wxListCtrl
 {
 public:
-	CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos,
-		const wxSize& size, long style);
+	CBreakPointView(wxWindow* parent, const wxWindowID id);
 
 	void Update();
 	void DeleteCurrentSelection();

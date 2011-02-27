@@ -21,60 +21,67 @@
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
 
+#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
+
 BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
 	EVT_CLOSE(MemoryCheckDlg::OnClose)
-	EVT_BUTTON(ID_OK, MemoryCheckDlg::OnOK)
-	EVT_BUTTON(ID_CANCEL, MemoryCheckDlg::OnCancel)
+	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, MemoryCheckDlg::OnCancel)
 END_EVENT_TABLE()
 
-
-MemoryCheckDlg::MemoryCheckDlg(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
-: wxDialog(parent, id, title, position, size, style)
+MemoryCheckDlg::MemoryCheckDlg(wxWindow *parent)
+	: wxDialog(parent, wxID_ANY, _("Memory Check"), wxDefaultPosition, wxDefaultSize)
 {
-	CreateGUIControls();
-}
-
-MemoryCheckDlg::~MemoryCheckDlg()
-{
-} 
-
-void MemoryCheckDlg::CreateGUIControls()
-{
-	SetIcon(wxNullIcon);
-	SetSize(8,8,470,122);
-	Center();
-	
-	m_pButtonCancel = new wxButton(this, ID_CANCEL, _("Cancel"), wxPoint(248,64), wxSize(73,25), 0, wxDefaultValidator, _("Cancel"));
-
-	m_pButtonOK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(328,64), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
-
-	m_pReadFlag = new wxCheckBox(this, ID_READ_FLAG, _("Read"), wxPoint(336,33), wxSize(57,15), 0, wxDefaultValidator, _("Read"));
-
-	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, _("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
+	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
+	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
+	m_pWriteFlag = new wxCheckBox(this, wxID_ANY, _("Write"));
 	m_pWriteFlag->SetValue(true);
-	m_log_flag = new wxCheckBox(this, ID_LOG_FLAG, _("Log"), wxPoint(420,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox2"));
+	m_pReadFlag = new wxCheckBox(this, wxID_ANY, _("Read"));
+
+	m_log_flag = new wxCheckBox(this, wxID_ANY, _("Log"));
 	m_log_flag->SetValue(true);
-	m_break_flag = new wxCheckBox(this, ID_BREAK_FLAG, _("Break"), wxPoint(420,33), wxSize(57,15), 0, wxDefaultValidator, wxT("WxCheckBox2"));
+	m_break_flag = new wxCheckBox(this, wxID_ANY, _("Break"));
 
-	new wxStaticBox(this, ID_WXSTATICBOX2, _("Action"), wxPoint(328,0), wxSize(73,57));
+	wxStaticBoxSizer *sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Address Range"));
+	sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+	sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+	sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+	sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
 
-	new wxStaticText(this, ID_WXSTATICTEXT2, _("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
+	wxStaticBoxSizer *sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Action"));
+	sActionBox->Add(m_pWriteFlag);
+	sActionBox->Add(m_pReadFlag);
 
-	new wxStaticText(this, ID_WXSTATICTEXT1, _("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
+	wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Flags"));
+	sFlags->Add(m_log_flag);
+	sFlags->Add(m_break_flag);
 
-	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT(""), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
+	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(new wxButton(this, wxID_CANCEL, _("Cancel")));
+	sButtons->Add(new wxButton(this, wxID_OK, wxT("OK")));
 
-	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT(""), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
+	wxBoxSizer *sControls = new wxBoxSizer(wxHORIZONTAL);
+	sControls->Add(sAddressRangeBox, 0, wxEXPAND);
+	sControls->Add(sActionBox, 0, wxEXPAND);
+	sControls->Add(sFlags, 0, wxEXPAND);
 
-	new wxStaticBox(this, ID_WXSTATICBOX1, _("Address Range"), wxPoint(0,0), wxSize(321,57));
+	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
+	sMainSizer->Add(sControls, 0, wxEXPAND | wxALL, 5);
+	sMainSizer->Add(sButtons, 0, wxEXPAND | wxALL, 5);
+
+	SetSizer(sMainSizer);
+	Layout();
+	Fit();
 }
 
-void MemoryCheckDlg::OnClose(wxCloseEvent& /*event*/)
+void MemoryCheckDlg::OnClose(wxCloseEvent& WXUNUSED(event))
 {
+	EndModal(wxID_CLOSE);
 	Destroy();
 }
 
-void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
+void MemoryCheckDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 {
 	wxString StartAddressString = m_pEditStartAddress->GetLineText(0);
 	wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
@@ -109,7 +116,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 	}
 }
 
-void MemoryCheckDlg::OnCancel(wxCommandEvent& /*event*/)
+void MemoryCheckDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 }

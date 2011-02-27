@@ -19,29 +19,13 @@
 #define __MEMORYCHECKDLG_h__
 
 #include <wx/wx.h>
-#include <wx/dialog.h>
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/statbox.h>
-
-#undef MemoryCheckDlg_STYLE
-#define MemoryCheckDlg_STYLE wxCAPTION | wxSYSTEM_MENU | wxSTAY_ON_TOP | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
 class MemoryCheckDlg : public wxDialog
 {
-	private:
-		DECLARE_EVENT_TABLE();
-		
 	public:
-		MemoryCheckDlg(wxWindow *parent, wxWindowID id = 1, const wxString &title = _("Memory Check"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MemoryCheckDlg_STYLE);
-		virtual ~MemoryCheckDlg();
+		MemoryCheckDlg(wxWindow *parent);
 	
 	private:
-
-		wxButton* m_pButtonCancel;
-		wxButton* m_pButtonOK;
 		wxCheckBox* m_pReadFlag;
 		wxCheckBox* m_pWriteFlag;
 		wxCheckBox* m_log_flag;
@@ -49,29 +33,11 @@ class MemoryCheckDlg : public wxDialog
 		wxTextCtrl* m_pEditEndAddress;
 		wxTextCtrl* m_pEditStartAddress;
 
-	private:
+		void OnClose(wxCloseEvent& WXUNUSED(event));
+		void OnOK(wxCommandEvent& WXUNUSED(event));
+		void OnCancel(wxCommandEvent& WXUNUSED(event));
 
-		enum
-		{
-			ID_BREAK_FLAG = 1018,
-			ID_LOG_FLAG = 1017,
-			ID_CANCEL = 1016,
-			ID_OK = 1015,
-			ID_READ_FLAG = 1014,
-			ID_WRITE_FLAG = 1013,
-			ID_WXSTATICBOX2 = 1012,
-			ID_EDIT_END_ADDRESS = 1011,
-			ID_WXSTATICTEXT2 = 1010,
-			ID_WXSTATICTEXT1 = 1009,
-			ID_EDIT_START_ADDR = 1008,
-			ID_WXSTATICBOX1 = 1007,
-		};
-	
-	private:
-		void OnClose(wxCloseEvent& event);
-		void OnOK(wxCommandEvent& event);
-		void OnCancel(wxCommandEvent& event);
-		void CreateGUIControls();
+		DECLARE_EVENT_TABLE();
 };
 
 #endif
