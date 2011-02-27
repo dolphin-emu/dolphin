@@ -56,8 +56,8 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		emitter.TEST(16, R(EAX), Imm16(1));
 
 		//LE: problem in here, half the tests fail
-		skipCode2 = emitter.J_CC(CC_NE);
-		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
+		skipCode2 = emitter.J_CC(CC_NE, true);
+		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)), true);
 		emitter.dsp_op_read_reg(DSP_REG_SR, RAX);
 		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
 		break;
@@ -94,7 +94,7 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		break;
 		//c2 = emitter.gpr;
 		//emitter.TEST(16, R(EAX), Imm16(SR_OVER_S32 | SR_TOP2BITS));
-		//skipCode2 = emitter.J_CC((CCFlags)(CC_E + (cond & 1)));
+		//skipCode2 = emitter.J_CC((CCFlags)(CC_E + (cond & 1)), true);
 		//emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
 		//break;
 	}
@@ -107,7 +107,7 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		break;
 	}
 	DSPJitRegCache c1(emitter.gpr);
-	FixupBranch skipCode = cond == 0xe ? emitter.J_CC(CC_E) : emitter.J_CC((CCFlags)(CC_NE - (cond & 1)));
+	FixupBranch skipCode = cond == 0xe ? emitter.J_CC(CC_E,true) : emitter.J_CC((CCFlags)(CC_NE - (cond & 1)),true);
 	jitCode(opc,emitter);
 	emitter.gpr.flushRegs(c1);
 	emitter.SetJumpTarget(skipCode);
@@ -121,7 +121,8 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 
 static void WriteBranchExit(DSPEmitter& emitter)
 {
-	emitter.SaveDSPRegs();
+	DSPJitRegCache c(emitter.gpr);
+	emitter.gpr.saveRegs();
 	if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		emitter.MOV(16, R(EAX), Imm16(0x1000));
@@ -131,6 +132,8 @@ static void WriteBranchExit(DSPEmitter& emitter)
 		emitter.MOV(16, R(EAX), Imm16(emitter.blockSize[emitter.startAddr]));
 	}
 	emitter.JMP(emitter.returnDispatcher, true);
+	emitter.gpr.loadRegs(false);
+	emitter.gpr.flushRegs(c,false);
 }
 
 static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
@@ -142,12 +145,12 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 		{
 			emitter.gpr.flushRegs();
 			// Check if we have enough cycles to execute the next block
-			emitter.MOV(16, R(ESI), M(&cyclesLeft));
-			emitter.CMP(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
+			emitter.MOV(16, R(ECX), M(&cyclesLeft));
+			emitter.CMP(16, R(ECX), Imm16(emitter.blockSize[emitter.startAddr] + emitter.blockSize[dest]));
 			FixupBranch notEnoughCycles = emitter.J_CC(CC_BE);
 
-			emitter.SUB(16, R(ESI), Imm16(emitter.blockSize[emitter.startAddr]));
-			emitter.MOV(16, M(&cyclesLeft), R(ESI));
+			emitter.SUB(16, R(ECX), Imm16(emitter.blockSize[emitter.startAddr]));
+			emitter.MOV(16, M(&cyclesLeft), R(ECX));
 			emitter.JMP(emitter.blockLinks[dest], true);
 			emitter.SetJumpTarget(notEnoughCycles);
 		}
@@ -339,9 +342,11 @@ void DSPEmitter::HandleLoop()
 	FixupBranch loopUpdated = J(true);
 
 	SetJumpTarget(loadStack);
+	DSPJitRegCache c(gpr);
 	dsp_reg_load_stack(0);
 	dsp_reg_load_stack(2);
 	dsp_reg_load_stack(3);
+	gpr.flushRegs(c);
 
 	SetJumpTarget(loopUpdated);
 	SetJumpTarget(rLoopAddrG);

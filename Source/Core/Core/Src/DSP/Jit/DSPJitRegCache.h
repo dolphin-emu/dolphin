@@ -23,12 +23,16 @@
 class DSPEmitter;
 
 enum DSPJitRegSpecial {
-	DSP_REG_ACC0_64  =32,
-	DSP_REG_ACC1_64  =33,
-	DSP_REG_AX0_32   =34,
-	DSP_REG_AX1_32   =35,
+	DSP_REG_AX0_32   =32,
+	DSP_REG_AX1_32   =33,
+#ifdef _M_X64
+	DSP_REG_ACC0_64  =34,
+	DSP_REG_ACC1_64  =35,
 	DSP_REG_PROD_64  =36,
 	DSP_REG_MAX_MEM_BACKED = 36,
+#else
+	DSP_REG_MAX_MEM_BACKED = 33,
+#endif
 
 	DSP_REG_USED     =253,
 	DSP_REG_STATIC   =254,
@@ -50,24 +54,28 @@ private:
 	struct X64CachedReg
 	{
 		int guest_reg; //including DSPJitRegSpecial
+		bool pushed;
 	};
 	struct DynamicReg {
 		Gen::OpArg loc;
 		void *mem;
 		size_t size;
 		bool dirty;
-	};
-
-#ifdef _M_X64
-	//when there is a way to do this efficiently in x86, uncondition
-	struct {
-		Gen::X64Reg host_reg;
-		int shift;
-		bool dirty;
 		bool used;
-		Gen::X64Reg tmp_reg;
-	} acc[2];
-#endif
+		int last_use_ctr;
+		int parentReg;
+		int shift;//current shift if parentReg == DSP_REG_NONE
+		          //otherwise the shift this part can be found at
+		Gen::X64Reg host_reg;
+/* todo:
+   + drop sameReg
+   + add parentReg
+   + add shift:
+     - if parentReg != DSP_REG_NONE, this is the shift where this
+       register is found in the parentReg
+     - if parentReg == DSP_REG_NONE, this is the current shift _state_
+ */
+	};
 
 	DynamicReg regs[DSP_REG_MAX_MEM_BACKED+1];
 	X64CachedReg xregs[NUMXREGS];
@@ -75,11 +83,21 @@ private:
 	DSPEmitter &emitter;
 	bool temporary;
 	bool merged;
+
+	int use_ctr;
 private:
 	//find a free host reg
 	Gen::X64Reg findFreeXReg();
 	Gen::X64Reg spillXReg();
+	Gen::X64Reg findSpillFreeXReg();
 	void spillXReg(Gen::X64Reg reg);
+
+	void movToHostReg(int reg, Gen::X64Reg host_reg, bool load);
+	void movToHostReg(int reg, bool load);
+	void rotateHostReg(int reg, int shift, bool emit);
+	void movToMemory(int reg);
+	void flushMemBackedRegs();
+
 public:
 	DSPJitRegCache(DSPEmitter &_emitter);
 
@@ -147,10 +165,19 @@ public:
 	//prepare state so that another flushed DSPJitRegCache can take over
 	void flushRegs();
 
-	void loadStaticRegs();//load statically allocated regs from memory
-	void saveStaticRegs();//save statically allocated regs to memory
+	void loadRegs(bool emit=true);//load statically allocated regs from memory
+	void saveRegs();//save statically allocated regs to memory
+
+	void pushRegs();//save registers before abi call
+	void popRegs();//restore registers after abi call
+
+	//returns a register with the same contents as reg that is safe
+	//to use through saveStaticRegs and for ABI-calls
+	Gen::X64Reg makeABICallSafe(Gen::X64Reg reg);
 
 	//gives no SCALE_RIP with abs(offset) >= 0x80000000
+	//32/64 bit writes allowed when the register has a _64 or _32 suffix
+	//only 16 bit writes allowed without any suffix.
 	void getReg(int reg, Gen::OpArg &oparg, bool load = true);
 	//done with all usages of OpArg above
 	void putReg(int reg, bool dirty = true);

@@ -52,8 +52,10 @@ public:
 
 	// CC Util
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
-	void Update_SR_Register64_Carry(Gen::X64Reg val = Gen::EAX);
-	void Update_SR_Register64_Carry2(Gen::X64Reg val = Gen::EAX);
+	void Update_SR_Register64_Carry(Gen::X64Reg val,
+					Gen::X64Reg carry_ovfl);
+	void Update_SR_Register64_Carry2(Gen::X64Reg val,
+					 Gen::X64Reg carry_ovfl);
 	void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
 	void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
 
@@ -65,13 +67,13 @@ public:
 	// Memory helper functions
 	void increment_addr_reg(int reg);
 	void decrement_addr_reg(int reg);
-	void increase_addr_reg(int reg);
+	void increase_addr_reg(int reg, int ix_reg);
 	void decrease_addr_reg(int reg);
-	void imem_read();
-	void dmem_read();
+	void imem_read(Gen::X64Reg address);
+	void dmem_read(Gen::X64Reg address);
 	void dmem_read_imm(u16 addr);
-	void dmem_write();
-	void dmem_write_imm(u16 addr);
+	void dmem_write(Gen::X64Reg value);
+	void dmem_write_imm(u16 addr, Gen::X64Reg value);
 
 	// Ext command helpers
 	void pushExtValueFromReg(u16 dreg, u16 sreg);
@@ -250,6 +252,7 @@ public:
 
 	// CALL this to start the dispatcher
 	const u8 *enterDispatcher;
+	const u8 *reenterDispatcher;
 	const u8 *stubEntryPoint;
 	const u8 *returnDispatcher;
 	u16 compilePC;
@@ -259,10 +262,6 @@ public:
 	std::list<u16> *unresolvedJumps;
 
 	DSPJitRegCache gpr;
-
-	void LoadDSPRegs();
-	void SaveDSPRegs();
-
 private:
 	DSPCompiledCode *blocks;
 	Block blockLinkEntry;
@@ -275,12 +274,8 @@ private:
 	// Counts down.
 	// int cycles;
 
-
 	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
-	void ToMask(Gen::X64Reg value_reg = Gen::EDI);
-	void dsp_increment_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
-	void dsp_decrement_one(Gen::X64Reg ar = Gen::EAX, Gen::X64Reg wr = Gen::EDX, Gen::X64Reg wr_pow = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 	void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
 	void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
 	void set_long_prod();

@@ -25,7 +25,7 @@ using namespace Gen;
 
 //clobbers:
 //EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
-//CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
+//expects:
 void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 {
 	//g_dsp.reg_stack_ptr[stack_reg]++;
@@ -35,30 +35,38 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	AND(8, R(AL), Imm8(DSP_STACK_MASK));
 	MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
 
+	X64Reg tmp1;
+	gpr.getFreeXReg(tmp1);
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
-	MOV(16, R(CX), M(&g_dsp.r.st[stack_reg]));
+	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
 #ifdef _M_IX86 // All32
 	MOVZX(32, 8, EAX, R(AL));
 #else
 	MOVZX(64, 8, RAX, R(AL));
 #endif
-	MOV(16, MComplex(EAX, EAX, 1, (u64)&g_dsp.reg_stack[stack_reg][0]), R(CX));
+	MOV(16, MComplex(EAX, EAX, 1,
+			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)), R(tmp1));
+	gpr.putXReg(tmp1);
 }
 
 //clobbers:
 //EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
-//CX = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]]
+//expects:
 void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 {
 	//g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
+	X64Reg tmp1;
+	gpr.getFreeXReg(tmp1);
 #ifdef _M_IX86 // All32
 	MOVZX(32, 8, EAX, R(AL));
 #else
 	MOVZX(64, 8, RAX, R(AL));
 #endif
-	MOV(16, R(CX), MComplex(EAX, EAX, 1, (u64)&g_dsp.reg_stack[stack_reg][0]));
-	MOV(16, M(&g_dsp.r.st[stack_reg]), R(CX));
+	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
+				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)));
+	MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
+	gpr.putXReg(tmp1);
 
 	//g_dsp.reg_stack_ptr[stack_reg]--;
 	//g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
@@ -165,7 +173,7 @@ void DSPEmitter::dsp_conditional_extend_accum(int reg)
 		//}
 		gpr.flushRegs(c);
 		SetJumpTarget(not_40bit);
-		gpr.putReg(DSP_REG_SR);
+		gpr.putReg(DSP_REG_SR, false);
 	}
 	}
 }
@@ -181,7 +189,7 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
 		gpr.getReg(DSP_REG_SR,sr_reg);
 		DSPJitRegCache c(gpr);
 		TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
-		FixupBranch not_40bit = J_CC(CC_Z);
+		FixupBranch not_40bit = J_CC(CC_Z, true);
 		//if (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)
 		//{
 		// Sign extend into whole accum.
@@ -192,7 +200,7 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
 		//}
 		gpr.flushRegs(c);
 		SetJumpTarget(not_40bit);
-		gpr.putReg(DSP_REG_SR);
+		gpr.putReg(DSP_REG_SR, false);
 	}
 	}
 }
@@ -327,9 +335,9 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 	//	u8 dreg = opc & 0x3;
 	//	u8 sreg = (opc >> 2) & 0x3;
 	//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
-	
+
 	// From looking around it is always called with the matching index register
-	increase_addr_reg(opc & 0x3);
+    increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
 }
 
 //----
