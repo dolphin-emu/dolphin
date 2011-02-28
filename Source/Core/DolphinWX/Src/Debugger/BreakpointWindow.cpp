@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <wx/imaglist.h>
-
+#include "BreakpointWindow.h"
 #include "BreakpointView.h"
 #include "CodeWindow.h"
 #include "HW/Memmap.h"
@@ -99,7 +98,7 @@ private:
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
-	EVT_LIST_ITEM_SELECTED(ID_BPS, CBreakPointWindow::OnSelectBP)
+	EVT_LIST_ITEM_SELECTED(wxID_ANY, CBreakPointWindow::OnSelectBP)
 END_EVENT_TABLE()
 
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
@@ -108,7 +107,15 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	: wxPanel(parent, id, position, size, style, title)
 	, m_pCodeWindow(_pCodeWindow)
 {
-	CreateGUIControls();
+	m_mgr.SetManagedWindow(this);
+	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
+
+	m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
+
+	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
+			LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
+	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
+	m_mgr.Update();
 }
 
 CBreakPointWindow::~CBreakPointWindow()
@@ -120,19 +127,6 @@ void CBreakPointWindow::OnClose(wxCloseEvent& event)
 {
 	SaveAll();
 	event.Skip();
-}
-
-void CBreakPointWindow::CreateGUIControls()
-{
-	m_mgr.SetManagedWindow(this);
-	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
-
-	m_BreakPointListView = new CBreakPointView(this, ID_BPS);
-
-	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
-			LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
-	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
-	m_mgr.Update();
 }
 
 void CBreakPointWindow::NotifyUpdate()

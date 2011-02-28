@@ -1152,7 +1152,7 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	// Only Format 16MB memcards for now
 	if ((SizeMb != MemCard2043Mb) || (data_size != mc_data_size)) return false;
 
-	pStream = fopen(File::GetUserPath(F_GCSRAM_IDX), "rb");
+	pStream = fopen(File::GetUserPath(F_GCSRAM_IDX).c_str(), "rb");
 	if (pStream)
 	{
 		fread(&m_SRAM, 1, 64, pStream);

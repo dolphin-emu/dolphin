@@ -34,7 +34,7 @@ cUIDsys cUIDsys::m_Instance;
 CSharedContent::CSharedContent()
 {
 	lastID = 0;
-	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
+	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
 	if (File::Exists(contentMap))
 	{
@@ -62,7 +62,7 @@ std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
 		if (memcmp(_pHash, m_Elements[i].SHA1Hash, 20) == 0)
 		{
 			char szFilename[1024];
-			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX),
+			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
 				m_Elements[i].FileName[0], m_Elements[i].FileName[1], m_Elements[i].FileName[2], m_Elements[i].FileName[3],
 				m_Elements[i].FileName[4], m_Elements[i].FileName[5], m_Elements[i].FileName[6], m_Elements[i].FileName[7]);
 			return szFilename;
@@ -90,7 +90,7 @@ std::string CSharedContent::AddSharedContent(u8* _pHash)
 			fwrite(&Element, sizeof(SElement), 1, pFile);
 			fclose(pFile);
 		}
-		sprintf(tempFilename, "%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX), c_ID);
+		sprintf(tempFilename, "%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), c_ID);
 		szFilename = tempFilename;
 		lastID++;
 	}
@@ -384,7 +384,7 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId)
 
 cUIDsys::cUIDsys()
 {
-	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX));
+	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
 	lastUID = 0x00001000;
 	if (File::Exists(uidSys))
 	{

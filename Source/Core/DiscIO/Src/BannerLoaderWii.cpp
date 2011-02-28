@@ -39,7 +39,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	TitleID = Common::swap64(TitleID);
 
 	sprintf(Filename, "%stitle/%08x/%08x/data/banner.bin",
-		    File::GetUserPath(D_WIIUSER_IDX), (u32)(TitleID>>32), (u32)TitleID);
+		    File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
 	if (!File::Exists(Filename))
 	{
@@ -51,13 +51,13 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 
 		// Creating title folder
 		sprintf(titleFolder, "%stitle/%08x/%08x/data/",
-			File::GetUserPath(D_WIIUSER_IDX), (u32)(TitleID>>32), (u32)TitleID);
+			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 		if(!File::Exists(titleFolder))
 			File::CreateFullPath(titleFolder);
 		
 		// Extracting banner.bin from opening.bnr
 		sprintf(bnrFilename, "%stitle/%08x/%08x/data/opening.bnr",
-			File::GetUserPath(D_WIIUSER_IDX), (u32)(TitleID>>32), (u32)TitleID);
+			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
 		if(!_rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
 			m_IsValid = false;

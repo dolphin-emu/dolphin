@@ -19,13 +19,11 @@
 #define __BREAKPOINTWINDOW_h__
 
 #include <wx/wx.h>
+#include <wx/listctrl.h>
 #include <wx/aui/aui.h>
 
 class CBreakPointView;
-class CBreakPointBar;
 class CCodeWindow;
-class wxListEvent;
-class IniFile;
 
 class CBreakPointWindow : public wxPanel
 {
@@ -53,18 +51,12 @@ public:
 private:
 	DECLARE_EVENT_TABLE();
 
-	enum
-	{
-		ID_BPS = 1002,
-	};
-
 	wxAuiManager m_mgr;
 	CBreakPointView* m_BreakPointListView;
 	CCodeWindow* m_pCodeWindow;
 
 	void OnClose(wxCloseEvent& event);
 	void OnSelectBP(wxListEvent& event);
-	void CreateGUIControls();
 };
 
 #endif

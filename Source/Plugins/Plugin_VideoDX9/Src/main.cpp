@@ -139,7 +139,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();

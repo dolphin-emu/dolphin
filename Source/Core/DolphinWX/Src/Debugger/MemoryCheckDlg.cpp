@@ -18,8 +18,8 @@
 #include "MemoryCheckDlg.h"
 #include "Common.h"
 #include "StringUtil.h"
-#include "Host.h"
 #include "PowerPC/PowerPC.h"
+#include "BreakpointWindow.h"
 
 #define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
 
@@ -29,8 +29,9 @@ BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
 	EVT_BUTTON(wxID_CANCEL, MemoryCheckDlg::OnCancel)
 END_EVENT_TABLE()
 
-MemoryCheckDlg::MemoryCheckDlg(wxWindow *parent)
+MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	: wxDialog(parent, wxID_ANY, _("Memory Check"), wxDefaultPosition, wxDefaultSize)
+	, m_parent(parent)
 {
 	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
 	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
@@ -111,7 +112,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 		MemCheck.Break = Break;
 
 		PowerPC::memchecks.Add(MemCheck);
-		Host_UpdateBreakPointView();
+		m_parent->NotifyUpdate();
 		Close();
 	}
 }

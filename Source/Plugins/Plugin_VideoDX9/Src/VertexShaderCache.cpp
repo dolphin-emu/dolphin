@@ -140,14 +140,15 @@ void VertexShaderCache::Init()
 	Clear();
 	delete [] vProg;
 
-	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX).c_str()))
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
 
 	SETSTAT(stats.numVertexShadersCreated, 0);
 	SETSTAT(stats.numVertexShadersAlive, 0);
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 }

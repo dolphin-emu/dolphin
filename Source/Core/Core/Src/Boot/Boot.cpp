@@ -94,7 +94,7 @@ std::string CBoot::GenerateMapFilename()
 			u64 TitleID = Loader.GetTitleID();
 			char tmpBuffer[32];
 			sprintf(tmpBuffer, "%08x_%08x", (u32)(TitleID >> 32) & 0xFFFFFFFF , (u32)TitleID & 0xFFFFFFFF );
-			return std::string(File::GetUserPath(D_MAPS_IDX)) + std::string(tmpBuffer) + ".map";
+			return File::GetUserPath(D_MAPS_IDX) + std::string(tmpBuffer) + ".map";
 		}
 		break;
 	}
@@ -103,7 +103,7 @@ std::string CBoot::GenerateMapFilename()
 	case SCoreStartupParameter::BOOT_DOL:
 		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
 	default:
-		return std::string(File::GetUserPath(D_MAPS_IDX)) + _StartupPara.GetUniqueID() + ".map";
+		return File::GetUserPath(D_MAPS_IDX) + _StartupPara.GetUniqueID() + ".map";
 	}
 
     return std::string("unknown map");

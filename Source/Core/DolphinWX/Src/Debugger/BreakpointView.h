@@ -20,7 +20,6 @@
 
 #include <wx/listctrl.h>
 #include "Common.h"
-#include "BreakpointWindow.h"
 
 class CBreakPointView : public wxListCtrl
 {

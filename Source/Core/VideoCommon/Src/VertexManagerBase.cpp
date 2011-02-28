@@ -238,7 +238,7 @@ void VertexManager::Flush()
 				//{
 				//	// save the textures
 				//	char strfile[255];
-				//	sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX), g_Config.iSaveTargetId, i);
+				//	sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
 				//	SaveTexture(strfile, GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 				//}
 			}
@@ -280,10 +280,10 @@ void VertexManager::Flush()
 	{
 		// save the shaders
 		char strfile[255];
-		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
+		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps(strfile);
 		fps << ps->strprog.c_str();
-		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
+		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs(strfile);
 		fvs << vs->strprog.c_str();
 	}
@@ -291,7 +291,7 @@ void VertexManager::Flush()
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
 	{
 		char str[128];
-		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
+		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		TargetRectangle tr;
 		tr.left = 0;
 		tr.right = Renderer::GetTargetWidth();

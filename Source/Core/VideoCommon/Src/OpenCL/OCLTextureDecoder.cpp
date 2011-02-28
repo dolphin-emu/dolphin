@@ -99,15 +99,15 @@ void TexDecoder_OpenCL_Initialize()
 		cl_device_id *devices = NULL;
 		size_t *binary_sizes = NULL;
 		char **binaries = NULL;		
-		char filename[1024];
+		std::string filename;
 		char dolphin_rev[HEADER_SIZE];
 
-		sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
+		filename = File::GetUserPath(D_OPENCL_IDX) + "kernel.bin";
 		snprintf(dolphin_rev, HEADER_SIZE, "%-31s", svn_rev_str);
 
 		FILE *input = NULL;
 
-		input = fopen(filename, "rb");
+		input = fopen(filename.c_str(), "rb");
 		if (input == NULL)
 		{
 			binary_size = 0;
@@ -152,10 +152,10 @@ void TexDecoder_OpenCL_Initialize()
 		if (err)
 		{
 			std::string code;
-			sprintf(filename, "%sTextureDecoder.cl", File::GetUserPath(D_OPENCL_IDX));
-			if (!File::ReadFileToString(true, filename, code))
+			filename = File::GetUserPath(D_OPENCL_IDX) + "TextureDecoder.cl";
+			if (!File::ReadFileToString(true, filename.c_str(), code))
 			{
-				ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename);
+				ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename.c_str());
 				return;
 			}
 
@@ -201,9 +201,9 @@ void TexDecoder_OpenCL_Initialize()
 
 			if (!err)
 			{
-				sprintf(filename, "%skernel.bin", File::GetUserPath(D_OPENCL_IDX));
+				filename = File::GetUserPath(D_OPENCL_IDX) + "kernel.bin";
 				FILE *output = NULL;
-				output = fopen(filename, "wb");
+				output = fopen(filename.c_str(), "wb");
 
 				if (output == NULL)
 				{

@@ -29,7 +29,7 @@ InputPlugin::~InputPlugin()
 bool InputPlugin::LoadConfig()
 {
 	IniFile inifile;
-	if (inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini"))
+	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
 	{
 		std::vector< ControllerEmu* >::const_iterator
 			i = controllers.begin(),
@@ -53,7 +53,7 @@ bool InputPlugin::LoadConfig()
 
 void InputPlugin::SaveConfig()
 {
-	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" );
+	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini";
 
 	IniFile inifile;
 	inifile.Load(ini_filename);

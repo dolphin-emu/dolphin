@@ -395,14 +395,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (g_ActiveConfig.bDumpTextures)
 	{
 		char szTemp[MAX_PATH];
-		char szDir[MAX_PATH];
+		std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 		// make sure that the directory exists
-		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
-			File::CreateDir(szDir);
+		if (false == File::Exists(szDir.c_str()) || false == File::IsDirectory(szDir.c_str()))
+			File::CreateDir(szDir.c_str());
 
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				(u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);

@@ -51,7 +51,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	const DiscIO::IVolume* const vol = VolumeHandler::GetVolume();
 	if (vol)
 	{
-		m_gameini_path = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + vol->GetUniqueID() + ".ini";
+		m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + vol->GetUniqueID() + ".ini";
 		m_gameini.Load(m_gameini_path);
 		m_geckocode_panel->LoadCodes(m_gameini);
 	}

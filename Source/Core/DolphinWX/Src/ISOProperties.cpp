@@ -130,7 +130,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			_iniFilename = tmp;
 		}
 	}
-	GameIniFile = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + _iniFilename + ".ini";
+	GameIniFile = File::GetUserPath(D_GAMECONFIG_IDX) + _iniFilename + ".ini";
 	if (GameIni.Load(GameIniFile.c_str()))
 		LoadGameConfig();
 	else

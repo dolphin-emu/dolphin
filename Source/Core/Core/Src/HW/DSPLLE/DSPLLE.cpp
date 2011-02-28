@@ -106,20 +106,14 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
 	bool bCanWork = true;
-	char irom_file[MAX_PATH];
-	char coef_file[MAX_PATH];
+	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
+	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 
-	snprintf(irom_file, MAX_PATH, "%s%s",
-		File::GetSysDirectory().c_str(), GC_SYS_DIR DIR_SEP DSP_IROM);
-	if (!File::Exists(irom_file))
-		snprintf(irom_file, MAX_PATH, "%s%s",
-			File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_IROM);
-	snprintf(coef_file, MAX_PATH, "%s%s",
-		File::GetSysDirectory().c_str(), GC_SYS_DIR DIR_SEP DSP_COEF);
-	if (!File::Exists(coef_file))
-		snprintf(coef_file, MAX_PATH, "%s%s",
-			File::GetUserPath(D_GCUSER_IDX), DIR_SEP DSP_COEF);
-	bCanWork = DSPCore_Init(irom_file, coef_file, AudioCommon::UseJIT());
+	if (!File::Exists(irom_file.c_str()))
+		irom_file = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP DSP_IROM;
+	if (!File::Exists(coef_file.c_str()))
+		coef_file = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP DSP_COEF;
+	bCanWork = DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT());
 
 	g_dsp.cpu_ram = Memory::GetPointer(0);
 	DSPCore_Reset();

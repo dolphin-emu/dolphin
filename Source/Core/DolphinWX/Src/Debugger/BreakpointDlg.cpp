@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "BreakpointDlg.h"
-//#include "Host.h"
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "BreakpointWindow.h"
@@ -63,7 +62,6 @@ void BreakPointDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	{
 		PowerPC::breakpoints.Add(Address);
 		Parent->NotifyUpdate();
-		//Host_UpdateBreakPointView();
 		Close();		
 	}
 	else

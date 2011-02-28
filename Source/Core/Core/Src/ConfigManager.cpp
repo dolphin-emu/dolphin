@@ -124,7 +124,7 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-	NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
 
@@ -239,7 +239,7 @@ void SConfig::SaveSettings()
 
 void SConfig::LoadSettings()
 {
-	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -372,14 +372,14 @@ void SConfig::LoadSettingsWii()
 {
 	IniFile ini;
 	//Wiimote configs
-	ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
+	ini.Load((File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini"));
 	for (int i = 0; i < 4; i++)
 	{
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
 	}
-		ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "wiimote.ini").c_str());
+		ini.Load((File::GetUserPath(D_CONFIG_IDX) + "wiimote.ini"));
 		ini.Get("Real", "Unpair", &m_WiiAutoUnpair, false);
 		
 }

@@ -43,7 +43,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	, m_game_list(game_list)
 {
 	IniFile inifile;
-	inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini");
+	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
 	wxPanel* const panel = new wxPanel(this);
@@ -167,7 +167,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 NetPlaySetupDiag::~NetPlaySetupDiag()
 {
 	IniFile inifile;
-	const std::string dolphin_ini = std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini";
+	const std::string dolphin_ini = File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini";
 	inifile.Load(dolphin_ini);
 	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 

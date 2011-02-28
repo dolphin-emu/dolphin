@@ -1188,7 +1188,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				{
 					OSD::AddMessage(StringFromFormat(
 								"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-								File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
+								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
 				}
 			}
 			if (s_bAVIDumping)
@@ -1228,7 +1228,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		s_criticalScreenshot.Enter();
-		char movie_file_name[255];
+		std::string movie_file_name;
 		w = dst_rect.GetWidth();
 		h = dst_rect.GetHeight();
 		data = new u8[3 * w * h];
@@ -1238,14 +1238,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		{
 			if (!s_bLastFrameDumped)
 			{
-				sprintf(movie_file_name, "%sframedump.raw", File::GetUserPath(D_DUMPFRAMES_IDX));
-				f_pFrameDump = fopen(movie_file_name, "wb");
+				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+				f_pFrameDump = fopen(movie_file_name.c_str(), "wb");
 				if (f_pFrameDump == NULL)
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
 					char msg [255];
-					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name, w, h);
+					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h);
 					OSD::AddMessage(msg, 2000);
 				}
 			}

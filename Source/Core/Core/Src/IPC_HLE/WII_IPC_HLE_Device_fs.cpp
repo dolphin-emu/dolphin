@@ -46,10 +46,9 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-      char Path[260];
-      snprintf(Path, sizeof(Path), "%stmp", File::GetUserPath(D_WIIUSER_IDX));
-	    File::DeleteDirRecursively(Path);
-	    File::CreateDir(Path);
+		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
+	    File::DeleteDirRecursively(Path.c_str());
+	    File::CreateDir(Path.c_str());
 	}
 
 	// create home directory
@@ -66,7 +65,8 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		if (GameID == 0) GameID = 0xF00DBEEF;
 		if (TitleID == 0) TitleID = 0x00010000;
 
-		snprintf(Path, sizeof(Path), "%stitle/%08x/%08x/data/nocopy/", File::GetUserPath(D_WIIUSER_IDX), TitleID, GameID);
+		snprintf(Path, sizeof(Path), "%stitle/%08x/%08x/data/nocopy/",
+				File::GetUserPath(D_WIIUSER_IDX).c_str(), TitleID, GameID);
 
 		File::CreateFullPath(Path);
 	}

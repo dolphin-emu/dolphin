@@ -100,7 +100,7 @@ void CUCode_Rom::BootUCode()
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	char binFile[MAX_PATH];
-	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX), ector_crc);
+	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
 
 	FILE* pFile = fopen(binFile, "wb");
 	if (pFile)

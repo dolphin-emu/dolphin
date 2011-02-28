@@ -18,16 +18,8 @@
 #include "Common.h"
 #include "CommonPaths.h"
 
-#include <wx/button.h>
-#include <wx/textctrl.h>
-#include <wx/textdlg.h>
-#include <wx/listctrl.h>
-#include <wx/thread.h>
-#include <wx/mstream.h>
-#include <wx/tipwin.h>
 #include <wx/fontdlg.h>
-
-#include "../../DolphinWX/Src/WxUtils.h"
+#include <wx/mimetype.h>
 
 #include "Host.h"
 
@@ -165,7 +157,6 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
 	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"));
-	// pSymbolsMenu->Append(IDM_CLEANSYMBOLS, _("&Clean symbols (zz)"));
 	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_LOADMAPFILE, _("&Load symbol map"));
@@ -207,8 +198,25 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		break;
 	case IDM_WRITEPROFILE:
-		Profiler::WriteProfileResults("profiler.txt");
-		WxUtils::Launch("profiler.txt");
+		if (jit != NULL)
+		{
+			std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+			File::CreateFullPath(filename.c_str());
+			Profiler::WriteProfileResults(filename.c_str());
+
+			wxFileType* filetype = NULL;
+			if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+			{
+				// From extension failed, trying with MIME type now
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+					// MIME type failed, aborting mission
+					break;
+			}
+			wxString OpenCommand;
+			OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(filename.c_str()));
+			if(!OpenCommand.IsEmpty())
+				wxExecute(OpenCommand, wxEXEC_SYNC);
+		}
 		break;
 	}
 }
@@ -225,10 +233,6 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_CLEARSYMBOLS:
 		if(!AskYesNo("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
-		Host_NotifyMapLoaded();
-		break;
-	case IDM_CLEANSYMBOLS:
-		g_symbolDB.Clear("zz");
 		Host_NotifyMapLoaded();
 		break;
 	case IDM_SCANFUNCTIONS:

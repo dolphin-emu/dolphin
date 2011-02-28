@@ -28,8 +28,8 @@
 #include "CoreParameter.h"
 
 // GUI global
-#include "../../DolphinWX/Src/Globals.h"
-#include "../../DolphinWX/Src/Frame.h"
+#include "../Globals.h"
+#include "../Frame.h"
 
 class CFrame;
 class CRegisterWindow;
@@ -145,7 +145,6 @@ class CCodeWindow
 		void UpdateCallstack();
 
 		void InitBitmaps();
-		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);
 
 		CCodeView* codeview;
 		wxListBox* callstack;

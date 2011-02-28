@@ -20,12 +20,15 @@
 
 #include <wx/wx.h>
 
+class CBreakPointWindow;
+
 class MemoryCheckDlg : public wxDialog
 {
 	public:
-		MemoryCheckDlg(wxWindow *parent);
+		MemoryCheckDlg(CBreakPointWindow *parent);
 	
 	private:
+		CBreakPointWindow *m_parent;
 		wxCheckBox* m_pReadFlag;
 		wxCheckBox* m_pWriteFlag;
 		wxCheckBox* m_log_flag;

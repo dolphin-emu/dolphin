@@ -294,7 +294,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				file.open( (std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
+				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
@@ -427,7 +427,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			{
 				// reading the whole mii block :/
 				std::ifstream file;
-				file.open((std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
 				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}

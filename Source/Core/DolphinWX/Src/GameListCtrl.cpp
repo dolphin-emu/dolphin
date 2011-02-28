@@ -382,8 +382,7 @@ void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 				m_imageListSmall->Draw(m_FlagImageIndex[rISOFile.GetCountry()],
 						dc, flagOffset, itemY);
 
-				ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) +
-							(rISOFile.GetUniqueID()) + ".ini").c_str());
+				ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + rISOFile.GetUniqueID() + ".ini");
 				ini.Get("EmuState", "EmulationStateId", &nState);
 				m_imageListSmall->Draw(m_EmuStateImageIndex[nState],
 						dc, stateOffset, itemY);
@@ -490,8 +489,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 #ifndef _WIN32
 	// Load the INI file for columns that read from it
 	IniFile ini;
-	ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) +
-				(rISOFile.GetUniqueID()) + ".ini").c_str());
+	ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + rISOFile.GetUniqueID() + ".ini");
 
 	// Emulation status
 	int nState;
@@ -780,9 +778,9 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		case CGameListCtrl::COLUMN_EMULATION_STATE:
 			IniFile ini;
 			int nState1 = 0, nState2 = 0;
-			std::string GameIni1 = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) +
+			std::string GameIni1 = File::GetUserPath(D_GAMECONFIG_IDX) +
 				iso1->GetUniqueID() + ".ini";
-			std::string GameIni2 = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) +
+			std::string GameIni2 = File::GetUserPath(D_GAMECONFIG_IDX) +
 				iso2->GetUniqueID() + ".ini";
 
 			ini.Load(GameIni1.c_str());
@@ -908,8 +906,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			const GameListItem& rISO = m_ISOFiles[GetItemData(item)];
 
 			IniFile ini;
-			ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) +
-						(rISO.GetUniqueID()) + ".ini").c_str());
+			ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + rISO.GetUniqueID() + ".ini");
 
 			// Emulation status
 			std::string emuState[5] = {

@@ -1114,7 +1114,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			else
 			{
 				char msg [255];
-				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
+				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
 				OSD::AddMessage(msg, 2000);
 			}
 		}

@@ -269,14 +269,15 @@ void PixelShaderCache::Init()
 
 	Clear();
 
-	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX).c_str()))
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
 
 	SETSTAT(stats.numPixelShadersCreated, 0);
 	SETSTAT(stats.numPixelShadersAlive, 0);
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 }
@@ -362,7 +363,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
+		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		
 		SaveData(szTemp, code);
 	}
@@ -376,7 +377,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 			PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 			static int counter = 0;
 			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);			
+			sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);			
 			SaveData(szTemp, code);
 		}
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);

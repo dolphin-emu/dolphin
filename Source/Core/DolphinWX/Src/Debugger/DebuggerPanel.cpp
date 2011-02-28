@@ -253,58 +253,58 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
-	char dump_path[MAX_PATH];
-	sprintf(dump_path, "%sDebug/%s/", File::GetUserPath(D_DUMP_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	if (!File::CreateFullPath(dump_path))
+	std::string dump_path = File::GetUserPath(D_DUMP_IDX) + "Debug/" +
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID + "/";
+	if (!File::CreateFullPath(dump_path.c_str()))
 		return;
 
 	switch (m_pDumpList->GetSelection())
 	{
 		case 0: // Pixel Shader
-			DumpPixelShader(dump_path);
+			DumpPixelShader(dump_path.c_str());
 			break;
 
 		case 1: // Vertex Shader
-			DumpVertexShader(dump_path);
+			DumpVertexShader(dump_path.c_str());
 			break;
 
 		case 2: // Pixel Shader Constants
-			DumpPixelShaderConstants(dump_path);
+			DumpPixelShaderConstants(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 3: // Vertex Shader Constants
-			DumpVertexShaderConstants(dump_path);
+			DumpVertexShaderConstants(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 4: // Textures
-			DumpTextures(dump_path);
+			DumpTextures(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 5: // Frame Buffer
-			DumpFrameBuffer(dump_path);
+			DumpFrameBuffer(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 6: // Geometry
-			DumpGeometry(dump_path);
+			DumpGeometry(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 7: // Vertex Description
-			DumpVertexDecl(dump_path);
+			DumpVertexDecl(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 8: // Vertex Matrices
-			DumpMatrices(dump_path);
+			DumpMatrices(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 9: // Statistics
-			DumpStats(dump_path);
+			DumpStats(dump_path.c_str());
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 	}

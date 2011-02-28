@@ -1632,7 +1632,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_PURGECACHE:
 		CFileSearch::XStringVector Directories;
-		Directories.push_back(File::GetUserPath(D_CACHE_IDX));
+		Directories.push_back(File::GetUserPath(D_CACHE_IDX).c_str());
 		CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*.cache");
 		

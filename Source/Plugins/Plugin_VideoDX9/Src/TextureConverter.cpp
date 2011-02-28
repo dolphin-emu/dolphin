@@ -142,7 +142,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
 			static int counter = 0;
 			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
+			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
 			SaveData(szTemp, shader);
 		}

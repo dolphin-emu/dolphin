@@ -31,7 +31,7 @@ static Common::replace_v replacements;
 // This is used by several of the FileIO and /dev/fs/ functions 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
-	std::string path_full = std::string(File::GetUserPath(D_WIIROOT_IDX));
+	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
 	std::string path_wii(_pFilename);
 
 	if ((path_wii.length() > 0) && (path_wii[1] == '0'))

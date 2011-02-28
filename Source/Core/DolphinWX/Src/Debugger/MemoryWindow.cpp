@@ -231,7 +231,7 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 // Write mram to file
 void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 {
-	FILE* f = fopen(File::GetUserPath(F_RAMDUMP_IDX), "wb");
+	FILE* f = fopen(File::GetUserPath(F_RAMDUMP_IDX).c_str(), "wb");
 	if (f && Memory::m_pRAM)
 	{
 		fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, f);
@@ -246,7 +246,7 @@ void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 	
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
+		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX).c_str(), "wb");
 		if (f && Memory::m_pEXRAM)
 		{
 			fwrite(Memory::m_pEXRAM, Memory::EXRAM_SIZE, 1, f);
@@ -256,7 +256,7 @@ void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 	else
 	{
 		u8* aram = DSP::GetARAMPtr();
-		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
+		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX).c_str(), "wb");
 		if (f && aram)
 		{
 			fwrite(aram, DSP::ARAM_SIZE, 1, f);

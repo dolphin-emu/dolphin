@@ -1169,7 +1169,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
 	std::string filename = std::string(wxFileSelector(
 		_("Choose a file to open"),
-		wxString::FromUTF8(File::GetUserPath(D_GCUSER_IDX)),
+		wxString::FromUTF8(File::GetUserPath(D_GCUSER_IDX).c_str()),
 		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
 		wxEmptyString,
 		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))).mb_str());

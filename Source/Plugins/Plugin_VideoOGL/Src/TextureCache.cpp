@@ -336,7 +336,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
     if (g_ActiveConfig.bDumpEFBTarget)
     {
 		static int count = 0;
-		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX),
+		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
 			count++).c_str(), GL_TEXTURE_2D, texture, realW, realH);
     }
 }

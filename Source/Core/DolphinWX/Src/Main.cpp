@@ -202,7 +202,7 @@ bool DolphinApp::OnInit()
 
 #ifdef _WIN32
 	// Keep the user config dir free unless user wants to save the working dir
-	if (!File::Exists((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str()))
+	if (!File::Exists((File::GetUserPath(D_CONFIG_IDX) + "portable").c_str()))
 	{
 		char tmp[1024];
 		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),
@@ -216,7 +216,7 @@ bool DolphinApp::OnInit()
 		{
 			if (PanicYesNoT("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
 			{
-				FILE* portable = fopen((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str(), "w");
+				FILE* portable = fopen((File::GetUserPath(D_CONFIG_IDX) + "portable").c_str(), "w");
 				if (!portable)
 				{
 					PanicAlertT("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
@@ -264,34 +264,34 @@ bool DolphinApp::OnInit()
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
 	File::CopyDir(std::string(SHARED_USER_DIR CONFIG_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_CONFIG_IDX));
+		File::GetUserPath(D_CONFIG_IDX).c_str());
 	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_GAMECONFIG_IDX));
+		File::GetUserPath(D_GAMECONFIG_IDX).c_str());
 	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_MAPS_IDX));
+		File::GetUserPath(D_MAPS_IDX).c_str());
 	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_SHADERS_IDX));
+		File::GetUserPath(D_SHADERS_IDX).c_str());
 	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_WIIUSER_IDX));
+		File::GetUserPath(D_WIIUSER_IDX).c_str());
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_OPENCL_IDX));
+		File::GetUserPath(D_OPENCL_IDX).c_str());
 
-	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_CACHE_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX).c_str()))
+		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX).c_str());
 #endif
 
 	LogManager::Init();
@@ -394,7 +394,7 @@ void DolphinApp::InitLanguageSupport()
 	unsigned int language = 0;
 
 	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
 	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise

@@ -54,12 +54,11 @@ namespace AudioCommon
 			ac_Config.Update();
 			if (soundStream->Start())
 			{
-				if (ac_Config.m_DumpAudio) {
-				  char audio_file_name[255];
-				  snprintf(audio_file_name, 255, "%saudiodump.wav", File::GetUserPath(D_DUMPAUDIO_IDX));
-				  File::CreateFullPath(audio_file_name);
-				  mixer->StartLogAudio(audio_file_name);
-				  //soundStream->StartLogAudio(audio_file_name);
+				if (ac_Config.m_DumpAudio)
+				{
+					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
+					File::CreateFullPath(audio_file_name.c_str());
+					mixer->StartLogAudio(audio_file_name.c_str());
 				}
 
 				return soundStream;

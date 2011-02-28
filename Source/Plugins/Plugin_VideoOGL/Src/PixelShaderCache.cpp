@@ -217,7 +217,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
+		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		
 		SaveData(szTemp, code);
 	}
@@ -228,7 +228,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 		ERROR_LOG(VIDEO, "failed to create pixel shader");
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);			
+		sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);			
 		SaveData(szTemp, code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;

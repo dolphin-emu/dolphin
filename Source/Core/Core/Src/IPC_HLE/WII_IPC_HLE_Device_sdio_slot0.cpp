@@ -60,16 +60,15 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
 
-	char filename[300];
-	sprintf(filename, "%ssd.raw", File::GetUserPath(D_WIIUSER_IDX));
-	m_Card = fopen(filename, "r+b");
+	std::string filename = File::GetUserPath(D_WIIUSER_IDX) + "sd.raw";
+	m_Card = fopen(filename.c_str(), "r+b");
 	if(!m_Card)
 	{
 		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-		if (SDCardCreate(128, filename))
+		if (SDCardCreate(128, filename.c_str()))
 		{
-			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename);
-			m_Card = fopen(filename, "r+b");
+			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
+			m_Card = fopen(filename.c_str(), "r+b");
 		}
 		if(!m_Card)
 		{

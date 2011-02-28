@@ -26,7 +26,8 @@ namespace Common
 std::string CreateTicketFileName(u64 _titleID)
 {
 	char TicketFilename[1024];
-	sprintf(TicketFilename, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX), (u32)(_titleID >> 32), (u32)_titleID);
+	sprintf(TicketFilename, "%sticket/%08x/%08x.tik",
+			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(_titleID >> 32), (u32)_titleID);
 
 	return TicketFilename;
 }
@@ -34,7 +35,8 @@ std::string CreateTicketFileName(u64 _titleID)
 std::string CreateTitleDataPath(u64 _titleID)
 {
 	char path[1024];
-	sprintf(path, "%stitle/%08x/%08x/data", File::GetUserPath(D_WIIUSER_IDX), (u32)(_titleID >> 32), (u32)_titleID);
+	sprintf(path, "%stitle/%08x/%08x/data",
+			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(_titleID >> 32), (u32)_titleID);
 
 	return path;
 }
@@ -42,7 +44,8 @@ std::string CreateTitleDataPath(u64 _titleID)
 std::string CreateTitleContentPath(u64 _titleID)
 {
 	char ContentPath[1024];
-	sprintf(ContentPath, "%stitle/%08x/%08x/content", File::GetUserPath(D_WIIUSER_IDX), (u32)(_titleID >> 32), (u32)_titleID);
+	sprintf(ContentPath, "%stitle/%08x/%08x/content",
+			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(_titleID >> 32), (u32)_titleID);
 
 	return ContentPath;
 }

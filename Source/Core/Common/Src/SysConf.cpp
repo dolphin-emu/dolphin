@@ -21,7 +21,7 @@
 SysConf::SysConf()
 : m_IsValid(false)
 {
-	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
+	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX).c_str()))
 		m_IsValid = true;
 }
 

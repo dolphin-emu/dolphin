@@ -48,11 +48,11 @@ void ReloadShader()
 
 bool ApplyShader()
 {
-	if (s_currentShader != std::string(File::GetUserPath(D_SHADERS_IDX)) + g_ActiveConfig.sPostProcessingShader + ".txt")
+	if (s_currentShader != File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".txt")
 	{
 		// Set immediately to prevent endless recompiles on failure.
 		if (!g_ActiveConfig.sPostProcessingShader.empty())
-			s_currentShader = std::string(File::GetUserPath(D_SHADERS_IDX)) + g_ActiveConfig.sPostProcessingShader + ".txt";
+			s_currentShader = File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".txt";
 		else
 			s_currentShader.clear();
 

@@ -346,7 +346,7 @@ static int ConnectWiimotes(Wiimote** wm)
 
 void LoadSettings()
 {
-	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + WIIMOTE_INI_NAME ".ini" );
+	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
 
 	IniFile inifile;
 	inifile.Load(ini_filename);

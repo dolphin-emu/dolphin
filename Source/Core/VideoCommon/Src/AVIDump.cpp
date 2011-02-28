@@ -63,7 +63,7 @@ bool AVIDump::CreateFile()
 	m_totalBytes = 0;
 	m_frameCount = 0;
 	char movie_file_name[255];
-	sprintf(movie_file_name, "%sframedump%d.avi", File::GetUserPath(D_DUMPFRAMES_IDX), m_fileCount);
+	sprintf(movie_file_name, "%sframedump%d.avi", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), m_fileCount);
 	// Create path
 	File::CreateFullPath(movie_file_name);
 
@@ -244,7 +244,7 @@ bool AVIDump::CreateFile()
 
 	s_FormatContext = avformat_alloc_context();
 	snprintf(s_FormatContext->filename, sizeof(s_FormatContext->filename), "%s",
-			StringFromFormat("%sframedump0.avi", File::GetUserPath(D_DUMPFRAMES_IDX)).c_str());
+			(File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
 	File::CreateFullPath(s_FormatContext->filename);
 
 	if (!(s_FormatContext->oformat = av_guess_format("avi", NULL, NULL)) ||

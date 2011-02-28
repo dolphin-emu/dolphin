@@ -19,13 +19,6 @@
 #include "Common.h"
 
 #include <wx/wx.h>
-#include <wx/button.h>
-#include <wx/textctrl.h>
-#include <wx/textdlg.h>
-#include <wx/listctrl.h>
-#include <wx/thread.h>
-#include <wx/mstream.h>
-#include <wx/tipwin.h>
 
 #include "Host.h"
 
@@ -72,50 +65,14 @@ extern "C"  // Bitmaps
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 
 	// Menu bar
-	EVT_MENU(IDM_AUTOMATICSTART,		CCodeWindow::OnCPUMode) // Options
-	EVT_MENU(IDM_BOOTTOPAUSE,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_FONTPICKER,			CCodeWindow::OnChangeFont)
-
-	EVT_MENU(IDM_INTERPRETER,			CCodeWindow::OnCPUMode) // Jit
-	EVT_MENU(IDM_JITNOBLOCKCACHE,		CCodeWindow::OnCPUMode)
-
-	EVT_MENU(IDM_JITOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSLXZOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSLWZOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSLBZXOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSFOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSPOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITFPOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITIOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITPOFF,				CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITSROFF,				CCodeWindow::OnCPUMode)
-
-	EVT_MENU(IDM_CLEARCODECACHE,		CCodeWindow::OnJitMenu)
-	EVT_MENU(IDM_LOGINSTRUCTIONS,		CCodeWindow::OnJitMenu)
-	EVT_MENU(IDM_SEARCHINSTRUCTION,		CCodeWindow::OnJitMenu)
-
-	EVT_MENU(IDM_CLEARSYMBOLS,			CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_LOADMAPFILE,			CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SCANFUNCTIONS,			CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SAVEMAPFILE,			CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SAVEMAPFILEWITHCODES,	CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_CREATESIGNATUREFILE,	CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_USESIGNATUREFILE,		CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_PATCHHLEFUNCTIONS,		CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_RENAME_SYMBOLS,		CCodeWindow::OnSymbolsMenu)
-
-	EVT_MENU(IDM_PROFILEBLOCKS,			CCodeWindow::OnProfilerMenu)
-	EVT_MENU(IDM_WRITEPROFILE,			CCodeWindow::OnProfilerMenu)
+	EVT_MENU_RANGE(IDM_INTERPRETER, IDM_JITSROFF, CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_FONTPICKER, CCodeWindow::OnChangeFont)
+	EVT_MENU_RANGE(IDM_CLEARCODECACHE, IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
+	EVT_MENU_RANGE(IDM_LOADMAPFILE, IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU_RANGE(IDM_PROFILEBLOCKS, IDM_WRITEPROFILE, CCodeWindow::OnProfilerMenu)
 
 	// Toolbar
-	EVT_MENU(IDM_STEP,					CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_STEPOVER,				CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_TOGGLE_BREAKPOINT,		CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_SKIP,					CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_SETPC,					CCodeWindow::OnCodeStep)
-	EVT_MENU(IDM_GOTOPC,				CCodeWindow::OnCodeStep)
-	EVT_TEXT(IDM_ADDRBOX,				CCodeWindow::OnAddrBoxChange)
+	EVT_MENU_RANGE(IDM_STEP, IDM_ADDRBOX, CCodeWindow::OnCodeStep)
 
 	// Other
 	EVT_LISTBOX(ID_SYMBOLLIST,			CCodeWindow::OnSymbolListChange)
@@ -142,7 +99,30 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 {
 	InitBitmaps();
 
-	CreateGUIControls(_LocalCoreStartupParameter);
+	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
+
+	DebugInterface* di = &PowerPC::debug_interface;
+
+	codeview = new CCodeView(di, &g_symbolDB, this, ID_CODEVIEW);
+	sizerBig->Add(sizerLeft, 2, wxEXPAND);
+	sizerBig->Add(codeview, 5, wxEXPAND);
+
+	sizerLeft->Add(callstack = new wxListBox(this, ID_CALLSTACKLIST,
+				wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
+	sizerLeft->Add(symbols = new wxListBox(this, ID_SYMBOLLIST,
+				wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+	sizerLeft->Add(calls = new wxListBox(this, ID_CALLSLIST, wxDefaultPosition,
+				wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
+	sizerLeft->Add(callers = new wxListBox(this, ID_CALLERSLIST, wxDefaultPosition,
+				wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
+
+	SetSizer(sizerBig);
+
+	sizerLeft->Fit(this);
+	sizerBig->Fit(this);
+
+	sync_event.Init();
 }
 
 wxMenuBar *CCodeWindow::GetMenuBar()
@@ -374,35 +354,6 @@ void CCodeWindow::UpdateCallstack()
 
 	if (!ret)
 		callstack->Append(wxString::FromAscii("invalid callstack"));
-}
-
-void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
-{
-	// Configure the code window
-	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
-
-	DebugInterface* di = &PowerPC::debug_interface;
-
-	codeview = new CCodeView(di, &g_symbolDB, this, ID_CODEVIEW);
-	sizerBig->Add(sizerLeft, 2, wxEXPAND);
-	sizerBig->Add(codeview, 5, wxEXPAND);
-
-	sizerLeft->Add(callstack = new wxListBox(this, ID_CALLSTACKLIST,
-			   	wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
-	sizerLeft->Add(symbols = new wxListBox(this, ID_SYMBOLLIST,
-			   	wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
-	sizerLeft->Add(calls = new wxListBox(this, ID_CALLSLIST, wxDefaultPosition,
-			   	wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
-	sizerLeft->Add(callers = new wxListBox(this, ID_CALLERSLIST, wxDefaultPosition,
-			   	wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
-
-	SetSizer(sizerBig);
-
-	sizerLeft->Fit(this);
-	sizerBig->Fit(this);
-
-	sync_event.Init();
 }
 
 // Create CPU Mode menus

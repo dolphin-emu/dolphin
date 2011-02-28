@@ -181,10 +181,10 @@ void CompressAndDumpState(saveStruct* saveArg)
 	// Moving to last overwritten save-state
 	if (File::Exists(cur_filename.c_str()))
 	{
-		if (File::Exists((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str()))
-			File::Delete((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str());
+		if (File::Exists((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str()))
+			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
 
-		if (!File::Rename(cur_filename.c_str(), (std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str()))
+		if (!File::Rename(cur_filename.c_str(), (File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str()))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
 
@@ -515,7 +515,7 @@ void State_Shutdown()
 
 static std::string MakeStateFilename(int state_number)
 {
-	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), state_number);
+	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), state_number);
 }
 
 void State_SaveAs(const std::string &filename)
@@ -614,7 +614,7 @@ void State_UndoLoadState()
 // Load the state that the last save state overwritten on
 void State_UndoSaveState()
 {
-	State_LoadAs((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str());
+	State_LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
 }
 
 size_t State_GetSize()

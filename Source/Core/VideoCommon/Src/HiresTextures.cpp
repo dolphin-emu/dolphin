@@ -36,9 +36,9 @@ void Init(const char *gameCode)
 	textureMap.clear();
 
 	CFileSearch::XStringVector Directories;
-	//Directories.push_back(std::string(File::GetUserPath(D_HIRESTEXTURES_IDX)));
+	//Directories.push_back(File::GetUserPath(D_HIRESTEXTURES_IDX));
 	char szDir[MAX_PATH];
-	sprintf(szDir,"%s%s",File::GetUserPath(D_HIRESTEXTURES_IDX),gameCode);
+	sprintf(szDir, "%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode);
 	Directories.push_back(std::string(szDir));
 	
 

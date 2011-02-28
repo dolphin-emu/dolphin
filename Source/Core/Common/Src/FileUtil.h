@@ -127,7 +127,7 @@ bool SetCurrentDir(const char *directory);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-const char *GetUserPath(int DirIDX);
+std::string &GetUserPath(int DirIDX);
 
 // Returns the path to where the sys file are
 std::string GetSysDirectory();

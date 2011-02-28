@@ -108,10 +108,10 @@ std::string VideoBackend::GetName()
 void GetShaders(std::vector<std::string> &shaders)
 {
         shaders.clear();
-        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
+        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX).c_str()))
         {
                 File::FSTEntry entry;
-                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
+                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX).c_str(), entry);
                 for (u32 i = 0; i < entry.children.size(); i++) 
                 {
                         std::string name = entry.children[i].virtualName.c_str();
@@ -122,7 +122,7 @@ void GetShaders(std::vector<std::string> &shaders)
         }
         else
         {
-                File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
+                File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
         }
 }
 
@@ -163,7 +163,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 
 	g_Config.UpdateProjectionHack();

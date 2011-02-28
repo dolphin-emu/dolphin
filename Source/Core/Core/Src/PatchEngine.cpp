@@ -154,7 +154,7 @@ int GetSpeedhackCycles(const u32 addr)
 void LoadPatches(const char *gameID)
 {
 	IniFile ini;
-	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + gameID + ".ini";
+	std::string filename = File::GetUserPath(D_GAMECONFIG_IDX) + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnFrame", onFrame, ini);
 		ActionReplay::LoadCodes(ini, false);

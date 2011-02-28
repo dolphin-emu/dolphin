@@ -28,7 +28,7 @@ SoundStream *soundStream;
 void AudioCommonConfig::Load()
 {
 	IniFile file;
-	file.Load(std::string(File::GetUserPath(F_DSPCONFIG_IDX)).c_str());
+	file.Load(File::GetUserPath(F_DSPCONFIG_IDX));
 
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
@@ -51,7 +51,7 @@ void AudioCommonConfig::Load()
 void AudioCommonConfig::SaveSettings()
 {
 	IniFile file;
-	file.Load(std::string(File::GetUserPath(F_DSPCONFIG_IDX)).c_str());
+	file.Load(File::GetUserPath(F_DSPCONFIG_IDX));
 
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
@@ -61,7 +61,7 @@ void AudioCommonConfig::SaveSettings()
 	file.Set("Config", "Frequency", iFrequency);
 	file.Set("Config", "Volume", m_Volume);
 
-	file.Save((std::string(File::GetUserPath(F_DSPCONFIG_IDX)).c_str()));
+	file.Save(File::GetUserPath(F_DSPCONFIG_IDX));
 }
 
 // Update according to the values (stream/mixer)

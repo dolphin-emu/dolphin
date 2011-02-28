@@ -73,7 +73,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	{
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		vconfig.GameIniSave((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str(), 
-				(std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + item->GetUniqueID() + ".ini").c_str());
+				(File::GetUserPath(D_GAMECONFIG_IDX) + item->GetUniqueID() + ".ini").c_str());
 	}
 
 	EndModal(wxID_OK);
