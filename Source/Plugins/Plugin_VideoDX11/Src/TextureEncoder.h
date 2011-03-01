@@ -29,6 +29,50 @@ namespace DX11
 // 32-bit format: 4x4 texels / 2 cache lines
 // Compressed format: 8x8 texels / cache line
 
+// Document EFB encoding formats here with examples of where they are used.
+
+// Format: 0 - R4
+// Used in The Legend of Zelda: The Wind Waker for character shadows (srcFormat 1,
+// isIntensity 1, scaleByHalf 1).
+
+// Format: 1 - R8
+// FIXME: Unseen. May or may not be a duplicate of format 8.
+
+// Format: 2 - A4 R4
+// FIXME: Unseen.
+
+// Format: 3 - A8 R8
+// FIXME: Unseen.
+
+// Format: 4 - R5 G6 B5
+// Used in Wind Waker for most render-to-texture effects like heat shimmer and
+// depth-of-field.
+
+// Format: 5 - 1 R5 G5 B5 or 0 A3 R4 G4 B4
+// Used in Twilight Princess for character shadows.
+
+// Format: 6 - A8 R8 A8 R8 | G8 B8 G8 B8
+// Used in Twilight Princess for bloom effect.
+
+// Format: 7 - A8
+// Used in Metroid Prime 2 for the scan visor.
+
+// Format: 8 - R8
+// Used in Twilight Princess for the map.
+
+// Format: 9 - G8
+// FIXME: Unseen.
+
+// Format: A - B8
+// Used in Metroid Prime 2 for the scan visor.
+
+// Format: B - G8 R8
+// Used in Wind Waker for depth-of-field. Usually used with srcFormat 3 to
+// render depth textures.
+
+// Format: C - B8 G8
+// FIXME: Unseen.
+
 const unsigned int BLOCK_WIDTHS[16] = {
 	8, // R4
 	8, // R8 (FIXME: duplicate of R8 below?)

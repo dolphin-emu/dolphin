@@ -382,7 +382,7 @@ static const char EFB_ENCODE_PS[] =
 
 // Interfaces and classes for different destination formats
 
-"uint4 Generate_0(uint2 cacheCoord)\n"
+"uint4 Generate_0(uint2 cacheCoord)\n" // R4
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -413,7 +413,122 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw[0], dw[1], dw[2], dw[3]));\n"
 "}\n"
 
-"uint4 Generate_4(uint2 cacheCoord)\n"
+// FIXME: Untested
+"uint4 Generate_1(uint2 cacheCoord)\n" // R8 (FIXME: Duplicate of R8 below?)
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+
+	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
+	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
+	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
+	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
+	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
+	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
+	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
+	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
+	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
+	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
+	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
+	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
+	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
+	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
+	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"uint4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
+		"uint4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
+		"uint4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
+		"uint4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+// FIXME: Untested
+"uint4 Generate_2(uint2 cacheCoord)\n" // A4 R4
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	
+	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
+	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
+	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
+	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
+	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
+	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
+	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
+	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
+	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
+	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
+	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
+	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
+	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
+	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
+	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+
+	"uint dw0 = UINT_44444444(\n"
+		"sample0.a >> 4, sample0.r >> 4,\n"
+		"sample1.a >> 4, sample1.r >> 4,\n"
+		"sample2.a >> 4, sample2.r >> 4,\n"
+		"sample3.a >> 4, sample3.r >> 4\n"
+		");\n"
+	"uint dw1 = UINT_44444444(\n"
+		"sample4.a >> 4, sample4.r >> 4,\n"
+		"sample5.a >> 4, sample5.r >> 4,\n"
+		"sample6.a >> 4, sample6.r >> 4,\n"
+		"sample7.a >> 4, sample7.r >> 4\n"
+		");\n"
+	"uint dw2 = UINT_44444444(\n"
+		"sample8.a >> 4, sample8.r >> 4,\n"
+		"sample9.a >> 4, sample9.r >> 4,\n"
+		"sampleA.a >> 4, sampleA.r >> 4,\n"
+		"sampleB.a >> 4, sampleB.r >> 4\n"
+		");\n"
+	"uint dw3 = UINT_44444444(\n"
+		"sampleC.a >> 4, sampleC.r >> 4,\n"
+		"sampleD.a >> 4, sampleD.r >> 4,\n"
+		"sampleE.a >> 4, sampleE.r >> 4,\n"
+		"sampleF.a >> 4, sampleF.r >> 4\n"
+		");\n"
+	
+	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
+"}\n"
+
+// FIXME: Untested
+"uint4 Generate_3(uint2 cacheCoord)\n" // A8 R8
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+
+	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
+	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
+	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
+	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
+	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
+	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
+	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
+	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"uint4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
+		"uint4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
+		"uint4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
+		"uint4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+"uint4 Generate_4(uint2 cacheCoord)\n" // R5 G6 B5
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -437,7 +552,7 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_5(uint2 cacheCoord)\n"
+"uint4 Generate_5(uint2 cacheCoord)\n" // 1 R5 G5 B5 or 0 A3 R4 G4 G4
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -461,7 +576,7 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_6(uint2 cacheCoord)\n"
+"uint4 Generate_6(uint2 cacheCoord)\n" // A8 R8 A8 R8 | G8 B8 G8 B8
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(4,1);\n"
 
@@ -502,7 +617,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_7(uint2 cacheCoord)\n"
+"uint4 Generate_7(uint2 cacheCoord)\n" // A8
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -536,7 +651,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_8(uint2 cacheCoord)\n"
+"uint4 Generate_8(uint2 cacheCoord)\n" // R8
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -570,7 +685,42 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_A(uint2 cacheCoord)\n"
+// FIXME: Untested
+"uint4 Generate_9(uint2 cacheCoord)\n" // G8
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+
+	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
+	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
+	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
+	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
+	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
+	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
+	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
+	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
+	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
+	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
+	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
+	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
+	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
+	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
+	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"uint4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
+		"uint4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
+		"uint4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
+		"uint4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+"uint4 Generate_A(uint2 cacheCoord)\n" // B8
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -604,7 +754,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_B(uint2 cacheCoord)\n"
+"uint4 Generate_B(uint2 cacheCoord)\n" // G8 R8
 "{\n"
 	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
@@ -625,6 +775,33 @@ static const char EFB_ENCODE_PS[] =
 		"uint4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
 		"uint4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
 		"uint4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+// FIXME: Untested
+"uint4 Generate_C(uint2 cacheCoord)\n" // B8 G8
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+
+	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
+	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
+	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
+	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
+	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
+	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
+	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
+	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"uint4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
+		"uint4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
+		"uint4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
+		"uint4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
 		");\n"
 	
 	"return dw4;\n"
@@ -1049,18 +1226,26 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		switch (generatorNum)
 		{
 		case 0x0: generatorFuncName = "Generate_0"; break;
+		case 0x1: generatorFuncName = "Generate_1"; break;
+		case 0x2: generatorFuncName = "Generate_2"; break;
+		case 0x3: generatorFuncName = "Generate_3"; break;
 		case 0x4: generatorFuncName = "Generate_4"; break;
 		case 0x5: generatorFuncName = "Generate_5"; break;
 		case 0x6: generatorFuncName = "Generate_6"; break;
 		case 0x7: generatorFuncName = "Generate_7"; break;
 		case 0x8: generatorFuncName = "Generate_8"; break;
+		case 0x9: generatorFuncName = "Generate_9"; break;
 		case 0xA: generatorFuncName = "Generate_A"; break;
 		case 0xB: generatorFuncName = "Generate_B"; break;
+		case 0xC: generatorFuncName = "Generate_C"; break;
 		default:
 			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
 			m_staticShaders[key] = NULL;
 			return false;
 		}
+
+		INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d",
+			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
 		D3DBlob* bytecode = NULL;
