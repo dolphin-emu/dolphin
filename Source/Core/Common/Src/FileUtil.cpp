@@ -73,7 +73,7 @@ static void StripTailDirSlashes(std::string &fname)
 }
 
 // Returns true if file filename exists
-bool Exists(const std::string filename)
+bool Exists(const std::string &filename)
 {
 	struct stat64 file_info;
 
@@ -86,7 +86,7 @@ bool Exists(const std::string filename)
 }
 
 // Returns true if filename is a directory
-bool IsDirectory(const std::string filename)
+bool IsDirectory(const std::string &filename)
 {
 	struct stat64 file_info;
 
@@ -106,7 +106,7 @@ bool IsDirectory(const std::string filename)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string filename)
+bool Delete(const std::string &filename)
 {
 	INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
@@ -144,7 +144,7 @@ bool Delete(const std::string filename)
 }
 
 // Returns true if successful, or path already exists.
-bool CreateDir(const std::string path)
+bool CreateDir(const std::string &path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
 #ifdef _WIN32
@@ -176,7 +176,7 @@ bool CreateDir(const std::string path)
 }
 
 // Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string fullPath)
+bool CreateFullPath(const std::string &fullPath)
 {
 	int panicCounter = 100;
 	INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
@@ -214,7 +214,7 @@ bool CreateFullPath(const std::string fullPath)
 
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string filename)
+bool DeleteDir(const std::string &filename)
 {
 	INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
 
@@ -238,7 +238,7 @@ bool DeleteDir(const std::string filename)
 }
 
 // renames file srcFilename to destFilename, returns true on success 
-bool Rename(const std::string srcFilename, const std::string destFilename)
+bool Rename(const std::string &srcFilename, const std::string &destFilename)
 {
 	INFO_LOG(COMMON, "Rename: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
@@ -250,7 +250,7 @@ bool Rename(const std::string srcFilename, const std::string destFilename)
 }
 
 // copies file srcFilename to destFilename, returns true on success 
-bool Copy(const std::string srcFilename, const std::string destFilename)
+bool Copy(const std::string &srcFilename, const std::string &destFilename)
 {
 	INFO_LOG(COMMON, "Copy: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
@@ -321,7 +321,7 @@ bool Copy(const std::string srcFilename, const std::string destFilename)
 }
 
 // Returns the size of filename (64bit)
-u64 GetSize(const std::string filename)
+u64 GetSize(const std::string &filename)
 {
 	if (!Exists(filename))
 	{
@@ -379,7 +379,7 @@ u64 GetSize(FILE *f)
 }
 
 // creates an empty file filename, returns true on success 
-bool CreateEmptyFile(const std::string filename)
+bool CreateEmptyFile(const std::string &filename)
 {
 	INFO_LOG(COMMON, "CreateEmptyFile: %s", filename.c_str()); 
 
@@ -396,7 +396,7 @@ bool CreateEmptyFile(const std::string filename)
 
 // Scans the directory tree gets, starting from _Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
-u32 ScanDirectoryTree(const std::string directory, FSTEntry& parentEntry)
+u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 {
 	INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
 	// How many files + directories we found
@@ -466,7 +466,7 @@ u32 ScanDirectoryTree(const std::string directory, FSTEntry& parentEntry)
 
 	
 // Deletes the given directory and anything under it. Returns true on success.
-bool DeleteDirRecursively(const std::string directory)
+bool DeleteDirRecursively(const std::string &directory)
 {
 	INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
 #ifdef _WIN32
@@ -527,7 +527,7 @@ bool DeleteDirRecursively(const std::string directory)
 }
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string source_path, const std::string dest_path)
+void CopyDir(const std::string &source_path, const std::string &dest_path)
 {
 #ifndef _WIN32
 	if (source_path == dest_path) return;
@@ -580,7 +580,7 @@ std::string GetCurrentDir()
 }
 
 // Sets the current directory to the given directory
-bool SetCurrentDir(const std::string directory)
+bool SetCurrentDir(const std::string &directory)
 {
 	return __chdir(directory.c_str()) == 0;
 }
