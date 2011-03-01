@@ -362,6 +362,27 @@ inline s16 dsp_get_acc_h(int _reg)
 	return g_dsp.r.ac[_reg].h;
 }
 
+inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
+{
+	if (g_dsp.r.sr & SR_40_MODE_BIT)
+	{
+		s64 acc = dsp_get_long_acc(_reg);
+	
+		if (acc != (s32)acc) 
+		{
+			//NOTICE_LOG(DSPLLE,"LIMIT: 0x%x", g_dsp.pc);
+			if (acc > 0)
+				return 0x7fff;
+			else 
+				return 0x8000;
+		}
+		else
+			return g_dsp.r.ac[_reg].m;
+	}
+	else
+		return g_dsp.r.ac[_reg].m;
+}
+
 // ---------------------------------------------------------------------------------------
 // --- AX - extra accumulators (32-bit)
 // ---------------------------------------------------------------------------------------

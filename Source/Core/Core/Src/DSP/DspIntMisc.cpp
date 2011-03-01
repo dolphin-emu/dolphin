@@ -28,14 +28,16 @@ namespace DSPInterpreter {
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
-// todo: Perform additional operation depending on destination register.
 void mrr(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x1f;
 	u8 dreg = (opc >> 5) & 0x1f;
 
-	u16 val = dsp_op_read_reg(sreg);
-	dsp_op_write_reg(dreg, val);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_write_reg(dreg, dsp_op_read_reg_and_saturate(sreg-DSP_REG_ACM0));
+	else
+		dsp_op_write_reg(dreg, dsp_op_read_reg(sreg));
+	
 	dsp_conditional_extend_accum(dreg);
 }
 
