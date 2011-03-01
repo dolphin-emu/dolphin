@@ -92,7 +92,7 @@ CVolumeDirectory::~CVolumeDirectory()
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
 	std::string directoryName = ExtractDirectoryName(_rDirectory);
-	return File::IsDirectory(directoryName.c_str());
+	return File::IsDirectory(directoryName);
 }
 
 bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
@@ -513,7 +513,7 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 
 u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
 {
-	u32 foundEntries = ScanDirectoryTree(_Directory.c_str(), parentEntry);
+	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
 	m_totalNameSize += ComputeNameSize(parentEntry);
 	return foundEntries;
 }

@@ -677,7 +677,7 @@ void CFrame::DoOpen(bool Boot)
 	{
 		PanicAlertT("Current dir changed from %s to %s after wxFileSelector!",
 				currentDir.c_str(), currentDir2.c_str());
-		File::SetCurrentDir(currentDir.c_str());
+		File::SetCurrentDir(currentDir);
 	}
 
 	if (path.IsEmpty())
@@ -1641,7 +1641,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		
 		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
-			File::Delete(rFilenames[i].c_str());
+			File::Delete(rFilenames[i]);
 		}
 		break;
 	}

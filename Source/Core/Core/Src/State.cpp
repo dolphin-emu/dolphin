@@ -179,12 +179,12 @@ void CompressAndDumpState(saveStruct* saveArg)
 	Common::SetCurrentThreadName("SaveState thread");
 
 	// Moving to last overwritten save-state
-	if (File::Exists(cur_filename.c_str()))
+	if (File::Exists(cur_filename))
 	{
-		if (File::Exists((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str()))
-			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
+			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"));
 
-		if (!File::Rename(cur_filename.c_str(), (File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str()))
+		if (!File::Rename(cur_filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
 
@@ -388,8 +388,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	delete[] buffer;
 	
-	if (File::Exists(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str()))
-		Frame::LoadInput(StringFromFormat("%s.dtm", cur_filename.c_str()).c_str());
+	if (File::Exists(cur_filename + ".dtm"))
+		Frame::LoadInput((cur_filename + ".dtm").c_str());
 	else if (!Frame::IsRecordingInputFromSaveState())
 		Frame::EndPlayInput(false);
 

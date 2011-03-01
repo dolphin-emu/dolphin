@@ -108,10 +108,10 @@ std::string VideoBackend::GetName()
 void GetShaders(std::vector<std::string> &shaders)
 {
         shaders.clear();
-        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX).c_str()))
+        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
         {
                 File::FSTEntry entry;
-                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX).c_str(), entry);
+                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
                 for (u32 i = 0; i < entry.children.size(); i++) 
                 {
                         std::string name = entry.children[i].virtualName.c_str();

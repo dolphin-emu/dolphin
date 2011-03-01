@@ -157,11 +157,11 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
 {
-	if (File::IsDirectory(_rName.c_str()))
+	if (File::IsDirectory(_rName))
 	{
 		m_Valid = CreateFromDirectory(_rName);
 	}
-	else if (File::Exists(_rName.c_str()))
+	else if (File::Exists(_rName))
 	{
 		m_Valid = CreateFromWAD(_rName);
 	}
@@ -210,7 +210,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 				  TMDFileName.c_str());
 		return false;
 	}
-	u64 Size = File::GetSize(TMDFileName.c_str());
+	u64 Size = File::GetSize(TMDFileName);
 	u8* pTMD = new u8[(u32)Size];
 	fread(pTMD, (size_t)Size, 1, pTMDFile);
 	fclose(pTMDFile);

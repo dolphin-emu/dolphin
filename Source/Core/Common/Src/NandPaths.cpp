@@ -54,7 +54,7 @@ bool CheckTitleTMD(u64 _titleID)
 {
 	std::string TitlePath;
 	TitlePath = CreateTitleContentPath(_titleID) + "/title.tmd";
-	if (File::Exists(TitlePath.c_str()))
+	if (File::Exists(TitlePath))
 	{
 		FILE* pTMDFile = fopen(TitlePath.c_str(), "rb");
 		if(pTMDFile)
@@ -74,7 +74,7 @@ bool CheckTitleTMD(u64 _titleID)
 bool CheckTitleTIK(u64 _titleID)
 {
 	std::string TikPath = Common::CreateTicketFileName(_titleID);	
-	if (File::Exists(TikPath.c_str()))
+	if (File::Exists(TikPath))
 	{
 		FILE* pTIKFile = fopen(TikPath.c_str(), "rb");
 		if(pTIKFile)
@@ -112,7 +112,7 @@ void ReadReplacements(replace_v& replacements)
 	std::string filename(File::GetUserPath(D_WIIROOT_IDX));
 	filename += replace_fname;
 
-	if (!File::Exists(filename.c_str()))
+	if (!File::Exists(filename))
 		CreateReplacementFile(filename);
 
 	std::ifstream f(filename.c_str());

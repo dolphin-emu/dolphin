@@ -111,8 +111,8 @@ void innerFlush(flushStruct* data)
 	{
 		std::string dir;
 		SplitPath(data->filename, &dir, 0, 0);
-		if(!File::IsDirectory(dir.c_str()))
-			File::CreateFullPath(dir.c_str());
+		if(!File::IsDirectory(dir))
+			File::CreateFullPath(dir);
 		pFile = fopen(data->filename.c_str(), "wb");
 	}
 

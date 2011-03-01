@@ -185,11 +185,11 @@ public:
 	{
 		INFO_LOG(COMMON, "ChunkReader: Loading %s" , _rFilename.c_str());
 
-		if (! File::Exists(_rFilename.c_str()))
+		if (!File::Exists(_rFilename))
 			return false;
 				
 		// Check file size
-		u64 fileSize = File::GetSize(_rFilename.c_str());
+		u64 fileSize = File::GetSize(_rFilename);
 		u64 headerSize = sizeof(SChunkHeader);
 		if (fileSize < headerSize) {
 			ERROR_LOG(COMMON,"ChunkReader: File too small");

@@ -201,25 +201,21 @@ bool BeginRecordingInput(int controllers)
 	if(g_playMode != MODE_NONE || controllers == 0 || g_recordfd != NULL)
 		return false;
 
-	const char *filename = g_recordFile.c_str();
-	
-	if(File::Exists(filename))
-		File::Delete(filename);
+	if(File::Exists(g_recordFile))
+		File::Delete(g_recordFile);
 
 	if (Core::isRunning())
 	{
-		std::string tmpStateFilename = g_recordFile;
-		tmpStateFilename.append(".sav");
-		const char *stateFilename = tmpStateFilename.c_str();
+		const std::string stateFilename = g_recordFile + ".sav";
 		if(File::Exists(stateFilename))
 			File::Delete(stateFilename);
-		State_SaveAs(stateFilename);
+		State_SaveAs(stateFilename.c_str());
 		g_bRecordingFromSaveState = true;
 	}
 
-	g_recordfd = fopen(filename, "wb");
+	g_recordfd = fopen(g_recordFile.c_str(), "wb");
 	if(!g_recordfd) {
-		PanicAlertT("Error opening file %s for recording", filename);
+		PanicAlertT("Error opening file %s for recording", g_recordFile.c_str());
 		return false;
 	}
 	
@@ -360,8 +356,8 @@ bool PlayInput(const char *filename)
 	
 	DTMHeader header;
 	
-	File::Delete(g_recordFile.c_str());
-	File::Copy(filename, g_recordFile.c_str());
+	File::Delete(g_recordFile);
+	File::Copy(filename, g_recordFile);
 	
 	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
 	if(!g_recordfd)
@@ -377,9 +373,8 @@ bool PlayInput(const char *filename)
 	// Load savestate (and skip to frame data)
 	if(header.bFromSaveState)
 	{
-		std::string stateFilename = filename;
-		stateFilename.append(".sav");
-		if(File::Exists(stateFilename.c_str()))
+		const std::string stateFilename = std::string(filename) + ".sav";
+		if(File::Exists(stateFilename))
 			Core::SetStateFileName(stateFilename);
 		g_bRecordingFromSaveState = true;
 	}
@@ -445,8 +440,8 @@ void LoadInput(const char *filename)
 	if (g_recordfd)
 		fclose(g_recordfd);
 	
-	File::Delete(g_recordFile.c_str());
-	File::Copy(filename, g_recordFile.c_str());
+	File::Delete(g_recordFile);
+	File::Copy(filename, g_recordFile);
 	
 	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
 	fseeko(g_recordfd, 0, SEEK_END);
@@ -569,8 +564,8 @@ void EndPlayInput(bool cont)
 		// if playback ends before the end of the file.
 		SaveRecording(g_tmpRecordFile.c_str());
 		fclose(g_recordfd);
-		File::Delete(g_recordFile.c_str());
-		File::Copy(g_tmpRecordFile.c_str(), g_recordFile.c_str());
+		File::Delete(g_recordFile);
+		File::Copy(g_tmpRecordFile, g_recordFile);
 		g_recordfd = fopen(g_recordFile.c_str(), "r+b");
 		fseeko(g_recordfd, 0, SEEK_END);
 		g_playMode = MODE_RECORDING;
@@ -624,7 +619,7 @@ void SaveRecording(const char *filename)
 	bool success = false;
 	fclose(g_recordfd);
 	File::Delete(filename);
-	success = File::Copy(g_recordFile.c_str(), filename);
+	success = File::Copy(g_recordFile, filename);
 
 	if (success && g_bRecordingFromSaveState)
 	{
@@ -632,7 +627,7 @@ void SaveRecording(const char *filename)
 		tmpStateFilename.append(".sav");
 		std::string stateFilename = filename;
 		stateFilename.append(".sav");
-		success = File::Copy(tmpStateFilename.c_str(), stateFilename.c_str());
+		success = File::Copy(tmpStateFilename, stateFilename);
 	}
 
 	if (success /* && !g_bReadOnly*/)

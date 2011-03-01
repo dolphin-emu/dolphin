@@ -591,7 +591,7 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
 
-	if (false == File::Exists(fname.c_str()))
+	if (false == File::Exists(fname))
 		return;
 
 	IniFile inifile;
@@ -609,7 +609,7 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 {
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
-	File::CreateFullPath(fname.c_str());
+	File::CreateFullPath(fname);
 
 	if (false == fname.empty())
 	{

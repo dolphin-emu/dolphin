@@ -569,7 +569,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			{
 				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), NULL), -1))
 				{
-					File::Delete(fileName.mb_str());
+					File::Delete(std::string(fileName.mb_str()));
 				}
 			}
 		}
@@ -582,7 +582,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		mpath = m_MemcardPath[slot]->GetPath().mb_str();
 		SplitPath(mpath, &path1, &path2, NULL);
 		path1 += path2;
-		File::CreateDir(path1.c_str());
+		File::CreateDir(path1);
 		if(PanicYesNoT("Warning: This will overwrite any existing saves that are in the folder:\n"
 					"%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)

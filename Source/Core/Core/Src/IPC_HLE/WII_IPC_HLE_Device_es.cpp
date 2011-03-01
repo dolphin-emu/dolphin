@@ -445,11 +445,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
 
             u32 ViewCount = 0;
-            if (File::Exists(TicketFilename.c_str()))
+            if (File::Exists(TicketFilename))
             {
                 const u32 SIZE_OF_ONE_TICKET = 676;
 
-                u32 FileSize = (u32)(File::GetSize(TicketFilename.c_str()));
+                u32 FileSize = (u32)(File::GetSize(TicketFilename));
                 _dbg_assert_msg_(WII_IPC_ES, (FileSize % SIZE_OF_ONE_TICKET) == 0, "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
 
                 ViewCount = FileSize / SIZE_OF_ONE_TICKET;
@@ -481,7 +481,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u32 maxViews = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 
 			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
-			if (File::Exists(TicketFilename.c_str()))
+			if (File::Exists(TicketFilename))
 			{
 				const u32 SIZE_OF_ONE_TICKET = 676;
 				FILE* pFile = fopen(TicketFilename.c_str(), "rb");
@@ -807,9 +807,9 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	dataPath	= Common::CreateTitleDataPath(tmdTitleID) + DIR_SEP;
 	tmdPath = contentPath + "/title.tmd";
 
-	File::CreateFullPath(contentPath.c_str());
-	File::CreateFullPath(dataPath.c_str());
-	if(!File::Exists(tmdPath.c_str()))
+	File::CreateFullPath(contentPath);
+	File::CreateFullPath(dataPath);
+	if(!File::Exists(tmdPath))
 	{
 		FILE* _pTMDFile = fopen(tmdPath.c_str(), "wb");
 		if (_pTMDFile)

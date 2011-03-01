@@ -544,7 +544,7 @@ void CGameListCtrl::ScanForISOs()
 		for (u32 i = 0; i < Directories.size(); i++)
 		{
 			File::FSTEntry FST_Temp;
-			File::ScanDirectoryTree(Directories[i].c_str(), FST_Temp);
+			File::ScanDirectoryTree(Directories[i], FST_Temp);
 			for (u32 j = 0; j < FST_Temp.children.size(); j++)
 			{
 				if (FST_Temp.children[j].isDirectory)
@@ -1133,7 +1133,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		if (wxMessageBox(_("Are you sure you want to delete this file?  It will be gone forever!"),
 					wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
-			File::Delete(iso->GetFileName().c_str());
+			File::Delete(iso->GetFileName());
 			Update();
 		}
 	}
@@ -1147,7 +1147,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 			for (int i = 0; i < selected; i++)
 			{
 				const GameListItem *iso = GetSelectedISO();
-				File::Delete(iso->GetFileName().c_str());
+				File::Delete(iso->GetFileName());
 			}
 			Update();
 		}

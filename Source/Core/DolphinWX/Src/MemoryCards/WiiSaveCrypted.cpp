@@ -350,15 +350,15 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		std::string __name, __ext;
 		memset(&tmpFileHDR, 0, FILE_HDR_SZ);
 
-		_fileSize = File::GetSize(FilesList.at(i).c_str());
+		_fileSize = File::GetSize(FilesList[i]);
 		_roundedfileSize = ROUND_UP(_fileSize, BLOCK_SZ);
 
 		tmpFileHDR.magic = Common::swap32(FILE_HDR_MAGIC);
 		tmpFileHDR.size = Common::swap32(_fileSize);
 		tmpFileHDR.Permissions = 0x3C;
-		tmpFileHDR.type = File::IsDirectory(FilesList.at(i).c_str()) ? 2 : 1;
+		tmpFileHDR.type = File::IsDirectory(FilesList[i]) ? 2 : 1;
 
-		SplitPath(FilesList.at(i), NULL, &__name, &__ext);
+		SplitPath(FilesList[i], NULL, &__name, &__ext);
 		__name += __ext;
 
 		
@@ -392,14 +392,14 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		{
 			if (_fileSize == 0)
 			{
-				PanicAlertT("%s is a 0 byte file", FilesList.at(i).c_str());
+				PanicAlertT("%s is a 0 byte file", FilesList[i].c_str());
 				b_valid = false;
 				return;
 			}
-			fpRawSaveFile = fopen(FilesList.at(i).c_str(), "rb");
+			fpRawSaveFile = fopen(FilesList[i].c_str(), "rb");
 			if (!fpRawSaveFile)
 			{
-				PanicAlertT("%s failed to open", FilesList.at(i).c_str());
+				PanicAlertT("%s failed to open", FilesList[i].c_str());
 				b_valid = false;
 			}
 			__data = new u8[_roundedfileSize];
@@ -407,7 +407,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 			memset(__data, 0, _roundedfileSize);
 			if (fread(__data, _fileSize, 1, fpRawSaveFile) != 1)
 			{
-				PanicAlertT("failed to read data from file: %s", FilesList.at(i).c_str());
+				PanicAlertT("failed to read data from file: %s", FilesList[i].c_str());
 				b_valid = false;
 			}
 			fclose(fpRawSaveFile);
@@ -564,10 +564,10 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 	Directories.push_back(savDir);
 	for (u32 i = 0; i < Directories.size(); i++)
 	{
-		if (i) FileList.push_back(Directories.at(i));//add dir to fst
+		if (i) FileList.push_back(Directories[i]);//add dir to fst
 
 		File::FSTEntry FST_Temp;
-		File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
+		File::ScanDirectoryTree(Directories[i], FST_Temp);
 		for (u32 j = 0; j < FST_Temp.children.size(); j++)
 		{
 			if (strncmp(FST_Temp.children.at(j).virtualName.c_str(), "banner.bin", 10) != 0)

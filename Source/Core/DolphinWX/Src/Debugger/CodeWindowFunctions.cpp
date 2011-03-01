@@ -201,7 +201,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 		if (jit != NULL)
 		{
 			std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
-			File::CreateFullPath(filename.c_str());
+			File::CreateFullPath(filename);
 			Profiler::WriteProfileResults(filename.c_str());
 
 			wxFileType* filetype = NULL;
@@ -254,7 +254,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 		}
 	case IDM_LOADMAPFILE:
-		if (!File::Exists(mapfile.c_str()))
+		if (!File::Exists(mapfile))
 		{
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);

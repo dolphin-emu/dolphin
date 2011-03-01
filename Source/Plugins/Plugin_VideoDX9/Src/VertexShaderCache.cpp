@@ -140,7 +140,7 @@ void VertexShaderCache::Init()
 	Clear();
 	delete [] vProg;
 
-	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX).c_str()))
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
 
 	SETSTAT(stats.numVertexShadersCreated, 0);

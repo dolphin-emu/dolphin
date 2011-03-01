@@ -47,7 +47,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	// clear tmp folder
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
-	    File::DeleteDirRecursively(Path.c_str());
+	    File::DeleteDirRecursively(Path);
 	    File::CreateDir(Path.c_str());
 	}
 
@@ -125,7 +125,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
-			if (!File::Exists(DirName.c_str()))
+			if (!File::Exists(DirName))
 			{
 				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", DirName.c_str());
 				ReturnValue = FS_DIRFILE_NOT_FOUND;
@@ -133,7 +133,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			}
 
 			// AyuanX: what if we return "found one successfully" if it is a file?
-			else if (!File::IsDirectory(DirName.c_str()))
+			else if (!File::IsDirectory(DirName))
 			{
 				// It's not a directory, so error.
 				// Games don't usually seem to care WHICH error they get, as long as it's <0
@@ -214,10 +214,10 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			u32 iNodes = 0;
 
 			INFO_LOG(WII_IPC_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
-			if (File::IsDirectory(path.c_str()))
+			if (File::IsDirectory(path))
 			{
 				File::FSTEntry parentDir;
-				iNodes = File::ScanDirectoryTree(path.c_str(), parentDir);
+				iNodes = File::ScanDirectoryTree(path, parentDir);
 
 				u64 totalSize = ComputeTotalFileSize(parentDir); // "Real" size, to be converted to nand blocks
 
@@ -315,8 +315,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			INFO_LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s, OwnerID %#x, GroupID %#x, Attributes %#x", DirName.c_str(), OwnerID, GroupID, Attribs);
 
 			DirName += DIR_SEP;
-			File::CreateFullPath(DirName.c_str());
-			_dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName.c_str()), "FS: CREATE_DIR %s failed", DirName.c_str());
+			File::CreateFullPath(DirName);
+			_dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName), "FS: CREATE_DIR %s failed", DirName.c_str());
 
 			return FS_RESULT_OK;
 		}
@@ -359,13 +359,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 GroupPerm = 0x3;		// read/write
 			u8 OtherPerm = 0x3;		// read/write		
 			u8 Attributes = 0x00;	// no attributes
-			if (File::IsDirectory(Filename.c_str()))
+			if (File::IsDirectory(Filename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set", Filename.c_str());
 			}
 			else
 			{
-				if (File::Exists(Filename.c_str()))
+				if (File::Exists(Filename))
 				{
 					INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - all permission flags are set", Filename.c_str());
 				}
@@ -401,11 +401,11 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
-			if (File::Delete(Filename.c_str()))
+			if (File::Delete(Filename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
 			}
-			else if (File::DeleteDir(Filename.c_str()))
+			else if (File::DeleteDir(Filename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: DeleteDir %s", Filename.c_str());
 			}
@@ -430,16 +430,16 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Offset += 64;
 
 			// try to make the basis directory
-			File::CreateFullPath(FilenameRename.c_str());
+			File::CreateFullPath(FilenameRename);
 
 			// if there is already a file, delete it
-			if (File::Exists(FilenameRename.c_str()))
+			if (File::Exists(FilenameRename))
 			{
-				File::Delete(FilenameRename.c_str());
+				File::Delete(FilenameRename);
 			}
 
 			// finally try to rename the file
-			if (File::Rename(Filename.c_str(), FilenameRename.c_str()))
+			if (File::Rename(Filename, FilenameRename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
 			}
@@ -475,15 +475,15 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			DEBUG_LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
 
 			// check if the file already exist
-			if (File::Exists(Filename.c_str()))
+			if (File::Exists(Filename))
 			{
 				WARN_LOG(WII_IPC_FILEIO, "\tresult = FS_RESULT_EXISTS");
 				return FS_FILE_EXIST;
 			}
 
 			// create the file
-			File::CreateFullPath(Filename.c_str());  // just to be sure
-			bool Result = File::CreateEmptyFile(Filename.c_str());
+			File::CreateFullPath(Filename);  // just to be sure
+			bool Result = File::CreateEmptyFile(Filename);
 			if (!Result)
 			{
 				ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs: couldn't create new file");

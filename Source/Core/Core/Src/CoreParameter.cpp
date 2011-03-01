@@ -114,7 +114,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			bool bootDrive = cdio_is_cdrom(m_strFilename);
 			// Check if the file exist, we may have gotten it from a --elf command line
 			// that gave an incorrect file name 
-			if (!bootDrive && !File::Exists(m_strFilename.c_str()))
+			if (!bootDrive && !File::Exists(m_strFilename))
 			{
 				PanicAlertT("The specified file \"%s\" does not exist", m_strFilename.c_str());
 				return false;
@@ -304,7 +304,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 		m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
 		if (!bHLE_BS2)
 		{
-			if (!File::Exists(m_strBootROM.c_str()))
+			if (!File::Exists(m_strBootROM))
 			{
 				WARN_LOG(BOOT, "bootrom file %s not found - using HLE.", m_strBootROM.c_str());
 				bHLE_BS2 = true;
@@ -340,7 +340,7 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 		if (!hasregion)
 		{
 			// filename doesn't have region in the extension
-			if (File::Exists(filename.c_str()))
+			if (File::Exists(filename))
 			{
 				// If the old file exists we are polite and ask if we should copy it
 				std::string oldFilename = filename;
@@ -352,7 +352,7 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 					"Would you like to copy the old file to this new location?\n",
 					isSlotA ? 'A':'B', isSlotA ? 'A':'B', filename.c_str()))
 				{
-					if (!File::Copy(oldFilename.c_str(), filename.c_str()))
+					if (!File::Copy(oldFilename, filename))
 						PanicAlertT("Copy failed");
 				}
 			}

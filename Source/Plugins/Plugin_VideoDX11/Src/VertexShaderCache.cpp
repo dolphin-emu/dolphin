@@ -163,7 +163,7 @@ void VertexShaderCache::Init()
 	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
 	for (k = 0;k <  4;k++) vs_constant_offset_table[C_DEPTHPARAMS+k]		   = 952+4*k;	
 
-	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX).c_str()))
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
 
 	SETSTAT(stats.numVertexShadersCreated, 0);

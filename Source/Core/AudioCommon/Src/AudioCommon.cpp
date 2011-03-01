@@ -57,7 +57,7 @@ namespace AudioCommon
 				if (ac_Config.m_DumpAudio)
 				{
 					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
-					File::CreateFullPath(audio_file_name.c_str());
+					File::CreateFullPath(audio_file_name);
 					mixer->StartLogAudio(audio_file_name.c_str());
 				}
 

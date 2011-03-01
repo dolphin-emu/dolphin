@@ -280,7 +280,7 @@ int main(int argc, const char *argv[])
 				return 1;
 			}
 			input_name = argv[i];
-			if (!File::Exists(input_name.c_str()))
+			if (!File::Exists(input_name))
 			{
 				printf("ERROR: Input path does not exist.\n");
 				return 1;

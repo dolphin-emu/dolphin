@@ -213,10 +213,10 @@ void CopySettingsFile(std::string& DeviceName)
 
 	// Check if the target dir exists, otherwise create it
 	std::string TargetDir = Target.substr(0, Target.find_last_of(DIR_SEP));
-	if (!File::IsDirectory(TargetDir.c_str()))
-		File::CreateFullPath(Target.c_str());
+	if (!File::IsDirectory(TargetDir))
+		File::CreateFullPath(Target);
 
-	if (File::Copy(Source.c_str(), Target.c_str()))
+	if (File::Copy(Source, Target))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());
 	}

@@ -202,7 +202,7 @@ bool DolphinApp::OnInit()
 
 #ifdef _WIN32
 	// Keep the user config dir free unless user wants to save the working dir
-	if (!File::Exists((File::GetUserPath(D_CONFIG_IDX) + "portable").c_str()))
+	if (!File::Exists(File::GetUserPath(D_CONFIG_IDX) + "portable"))
 	{
 		char tmp[1024];
 		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),
@@ -263,35 +263,35 @@ bool DolphinApp::OnInit()
 #else
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
-	File::CopyDir(std::string(SHARED_USER_DIR CONFIG_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_CONFIG_IDX).c_str());
-	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_GAMECONFIG_IDX).c_str());
-	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_MAPS_IDX).c_str());
-	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_SHADERS_IDX).c_str());
-	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_WIIUSER_IDX).c_str());
-	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP).c_str(),
-		File::GetUserPath(D_OPENCL_IDX).c_str());
+	File::CopyDir(std::string(SHARED_USER_DIR CONFIG_DIR DIR_SEP),
+			File::GetUserPath(D_CONFIG_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
+			File::GetUserPath(D_GAMECONFIG_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP),
+			File::GetUserPath(D_MAPS_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP),
+			File::GetUserPath(D_SHADERS_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP),
+			File::GetUserPath(D_WIIUSER_IDX));
+	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
+			File::GetUserPath(D_OPENCL_IDX));
 
-	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_CACHE_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX).c_str());
-	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX).c_str()))
-		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX).c_str());
+	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 #endif
 
 	LogManager::Init();
@@ -374,14 +374,13 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
 			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
-						m_strDefaultGCM.c_str()))
+					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM))
 			{
 				main_frame->BootGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
 						m_strDefaultGCM);
 			}
 			else if(!SConfig::GetInstance().m_LastFilename.empty()
-					&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
+					&& File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				main_frame->BootGame(SConfig::GetInstance().m_LastFilename);
 			}	
@@ -394,7 +393,7 @@ void DolphinApp::InitLanguageSupport()
 	unsigned int language = 0;
 
 	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise

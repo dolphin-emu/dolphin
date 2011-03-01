@@ -109,9 +109,9 @@ void DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 
-	if (!File::Exists(irom_file.c_str()))
+	if (!File::Exists(irom_file))
 		irom_file = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP DSP_IROM;
-	if (!File::Exists(coef_file.c_str()))
+	if (!File::Exists(coef_file))
 		coef_file = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP DSP_COEF;
 	bCanWork = DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT());
 

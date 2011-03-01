@@ -78,7 +78,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				m_Description[i] = "No Description";
 			}
 			m_Country  = pVolume->GetCountry();
-			m_FileSize = File::GetSize(_rFileName.c_str());
+			m_FileSize = File::GetSize(_rFileName);
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
@@ -153,9 +153,9 @@ bool GameListItem::LoadFromCache()
 
 void GameListItem::SaveToCache()
 {
-	if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX).c_str()))
+	if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
 	{
-		File::CreateDir(File::GetUserPath(D_CACHE_IDX).c_str());
+		File::CreateDir(File::GetUserPath(D_CACHE_IDX));
 	}
 
 	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
@@ -188,7 +188,7 @@ std::string GameListItem::CreateCacheFilename()
 	// Append hash to prevent ISO name-clashing in different folders.
 	Filename.append(StringFromFormat("%s_%x_%llx.cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
-		File::GetSize(m_FileName.c_str())));
+		File::GetSize(m_FileName)));
 
 	std::string fullname(File::GetUserPath(D_CACHE_IDX));
 	fullname += Filename;

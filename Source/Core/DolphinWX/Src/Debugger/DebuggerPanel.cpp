@@ -255,7 +255,7 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
 	std::string dump_path = File::GetUserPath(D_DUMP_IDX) + "Debug/" +
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID + "/";
-	if (!File::CreateFullPath(dump_path.c_str()))
+	if (!File::CreateFullPath(dump_path))
 		return;
 
 	switch (m_pDumpList->GetSelection())

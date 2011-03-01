@@ -399,7 +399,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 		// make sure that the directory exists
-		if (false == File::Exists(szDir.c_str()) || false == File::IsDirectory(szDir.c_str()))
+		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 			File::CreateDir(szDir.c_str());
 
 		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),

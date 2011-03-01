@@ -288,7 +288,7 @@ bool CBoot::BootUp()
 	// ELF
 	case SCoreStartupParameter::BOOT_ELF:
 	{
-		if(!File::Exists(_StartupPara.m_strFilename.c_str()))
+		if(!File::Exists(_StartupPara.m_strFilename))
 		{
 			PanicAlertT("The file you specified (%s) does not exist",
 				_StartupPara.m_strFilename.c_str());

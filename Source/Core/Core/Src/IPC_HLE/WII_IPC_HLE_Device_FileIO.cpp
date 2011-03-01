@@ -108,7 +108,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	// The file must exist before we can open it
 	// It should be created by ISFS_CreateFile, not here
-	if(File::Exists(m_Filename.c_str()))
+	if(File::Exists(m_Filename))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", m_Name.c_str(), Modes[_Mode]);
 		switch(_Mode)

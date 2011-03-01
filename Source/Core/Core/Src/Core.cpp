@@ -499,7 +499,8 @@ static inline std::string GenerateScreenshotName()
 	std::string gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 	tempname = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
-	if (!File::CreateFullPath(tempname.c_str())) {
+	if (!File::CreateFullPath(tempname))
+	{
 		//fallback to old-style screenshots, without folder.
 		tempname = File::GetUserPath(D_SCREENSHOTS_IDX);
 	}
@@ -508,7 +509,7 @@ static inline std::string GenerateScreenshotName()
 
 	do
 		name = StringFromFormat("%s-%d.png", tempname.c_str(), index++);
-	while (File::Exists(name.c_str()));
+	while (File::Exists(name));
 
 	return name;
 }
