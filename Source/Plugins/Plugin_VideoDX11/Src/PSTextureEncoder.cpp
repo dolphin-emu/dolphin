@@ -204,27 +204,14 @@ static const char EFB_ENCODE_PS[] =
 "float4 Fetch_3(uint2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	// Ref: <http://www.horde3d.org/forums/viewtopic.php?f=1&t=569>
-	// Ref: <http://code.google.com/p/dolphin-emu/source/detail?r=6217>
-	"float depth = 255.99998474121094 * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
-	"float4 result = depth.rrrr;\n"
 
-	"result.a = floor(result.a);\n" // bits 31..24
-
-	"result.rgb -= result.a;\n"
-	"result.rgb *= 256.0;\n"
-	"result.r = floor(result.r);\n" // bits 23..16
-
-	"result.gb -= result.r;\n"
-	"result.gb *= 256.0;\n"
-	"result.g = floor(result.g);\n" // bits 15..8
-
-	"result.b -= result.g;\n"
-	"result.b *= 256.0;\n"
-	"result.b = floor(result.b);\n" // bits 7..0
-
-	"result = float4(result.arg / 255.0, 1.0);\n"
-	"return result;\n"
+	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
+	"uint4 bytes = uint4(\n"
+		"(depth24 >> 16) & 0xFF,\n" // r
+		"(depth24 >> 8) & 0xFF,\n"  // g
+		"depth24 & 0xFF,\n"         // b
+		"255);\n"                   // a
+	"return bytes / 255.0;\n"
 "}\n"
 
 "#ifdef DYNAMIC_MODE\n"

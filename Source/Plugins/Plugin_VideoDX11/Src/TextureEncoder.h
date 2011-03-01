@@ -68,7 +68,8 @@ namespace DX11
 
 // Format: B - G8 R8
 // Used in Wind Waker for depth-of-field. Usually used with srcFormat 3 to
-// render depth textures.
+// render depth textures. The bytes are swapped, so games have to correct it
+// in RAM before using it as a texture.
 
 // Format: C - B8 G8
 // FIXME: Unseen.
