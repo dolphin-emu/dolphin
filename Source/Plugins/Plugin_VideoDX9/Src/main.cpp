@@ -159,11 +159,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 	OSD::AddMessage("Dolphin Direct3D9 Video Backend.", 5000);
 	s_BackendInitialized = true;
 
-	return true;
-}
-
-void VideoBackend::Video_Prepare()
-{
 	// Better be safe...
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -184,6 +179,11 @@ void VideoBackend::Video_Prepare()
 	PixelEngine::Init();
 	DLCache::Init();
 
+	return true;
+}
+
+void VideoBackend::Video_Prepare()
+{
 	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 }

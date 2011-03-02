@@ -64,9 +64,8 @@ typedef struct {
 	int screen;
 	Window win;
 	Window parent;
- // dpy (mainly) used for glx stuff, evdpy for window events etc.
- // used to keep the two threads from eating each others events
- // evdpy is to be used by XEventThread only (when it is running)
+	// dpy used for glx stuff, evdpy for window events etc.
+	// evdpy is to be used by XEventThread only
 	Display *dpy, *evdpy;
 	XVisualInfo *vi;
 	GLXContext ctx;
@@ -88,6 +87,7 @@ bool OpenGL_Create(void *&);
 void OpenGL_Shutdown();
 void OpenGL_Update();
 bool OpenGL_MakeCurrent();
+bool OpenGL_ReleaseContext();
 void OpenGL_SwapBuffers();
 
 // Get status

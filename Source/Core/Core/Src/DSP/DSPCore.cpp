@@ -61,7 +61,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 		return true;
 	}
 
-	PanicAlertT("Failed to load DSP ROM: %s", fname);
+	PanicAlertT("Failed to load DSP ROM:\n%s\nThis file is required to use DSP LLE", fname);
 	return false;
 }
 
@@ -87,6 +87,14 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 	return true;
 }
 
+static void DSPCore_FreeMemoryPages()
+{
+	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
+	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+}
+
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 				  bool bUsingJIT)
 {
@@ -104,10 +112,13 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	memset(g_dsp.coef, 0, DSP_COEF_BYTE_SIZE);
 
 	// Try to load real ROM contents.
-	LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom);
-	LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef);
-	if (!VerifyRoms(irom_filename, coef_filename))
+	if (!LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom) ||
+			!LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef) ||
+			!VerifyRoms(irom_filename, coef_filename))
+	{
+		DSPCore_FreeMemoryPages();
 		return false;
+	}
 
 	memset(&g_dsp.r,0,sizeof(g_dsp.r));
 
@@ -163,6 +174,9 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 void DSPCore_Shutdown()
 {
+	if (core_state == DSPCORE_STOP)
+		return;
+
 	core_state = DSPCORE_STOP;
 
 	if(dspjit) {
@@ -170,10 +184,7 @@ void DSPCore_Shutdown()
 		dspjit = NULL;
 	}
 	step_event.Shutdown();
-	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
-	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
-	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
-	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+	DSPCore_FreeMemoryPages();
 }
 
 void DSPCore_Reset()

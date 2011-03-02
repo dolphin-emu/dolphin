@@ -203,8 +203,6 @@ bool Init()
 	Host_SetWaitCursor(true);
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
-	emuThreadGoing.Init();
-
 	g_aspect_wide = _CoreParameter.bWii;
 	if (g_aspect_wide) 
 	{
@@ -221,14 +219,19 @@ bool Init()
 	g_pWindowHandle = Host_GetRenderHandle();
 	if (!g_video_backend->Initialize(g_pWindowHandle))
 	{
-		emuThreadGoing.Shutdown();
 		Host_SetWaitCursor(false);
 		return false;
 	}
 
 	HW::Init();	
-	DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
-		_CoreParameter.bWii, _CoreParameter.bDSPThread);
+	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
+				_CoreParameter.bWii, _CoreParameter.bDSPThread))
+	{
+		HW::Shutdown();
+		g_video_backend->Shutdown();
+		Host_SetWaitCursor(false);
+		return false;
+	}
 	Pad::Initialize(g_pWindowHandle);
 	// Load and Init Wiimotes - only if we are booting in wii mode	
 	if (g_CoreStartupParameter.bWii)
@@ -244,6 +247,8 @@ bool Init()
 
 	// The hardware is initialized.
 	g_bHwInit = true;
+
+	emuThreadGoing.Init();
 
 	// Start the emu thread 
 	g_EmuThread = std::thread(EmuThread);

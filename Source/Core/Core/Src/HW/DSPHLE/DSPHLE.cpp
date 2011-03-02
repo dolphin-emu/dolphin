@@ -50,7 +50,7 @@ struct DSPState
 	}
 };
 
-void DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
 	m_hWnd = hWnd;
 	m_bWii = bWii;
@@ -65,6 +65,8 @@ void DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 
 	m_InitMixer = false;
 	m_dspState.Reset();
+
+	return true;
 }
 
 void DSPHLE::DSP_StopSoundStream()

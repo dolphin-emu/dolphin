@@ -176,14 +176,12 @@ bool VideoBackend::Initialize(void *&window_handle)
 	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
 	s_BackendInitialized = true;
 
-	return true;
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
-	OpenGL_MakeCurrent();
+	if (!OpenGL_MakeCurrent())
+	{
+		ERROR_LOG(VIDEO, "Unable to connect to OpenGL context.");
+		OpenGL_Shutdown();
+		return false;
+	}
 
 	g_renderer = new Renderer;
 
@@ -209,6 +207,22 @@ void VideoBackend::Video_Prepare()
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
 	DLCache::Init();
+
+	if (!OpenGL_ReleaseContext())
+	{
+		ERROR_LOG(VIDEO, "Unable to release OpenGL context.");
+		Shutdown();
+		return false;
+	}
+
+	return true;
+}
+
+// This is called after Initialize() from the Core
+// Run from the graphics thread
+void VideoBackend::Video_Prepare()
+{
+	OpenGL_MakeCurrent();
 
 	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
