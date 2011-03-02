@@ -155,6 +155,7 @@ EVT_CHOICE(ID_GC_SIDEVICE3, CConfigMain::GCSettingsChanged)
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 EVT_SLIDER(ID_WII_BT_SENS, CConfigMain::WiiSettingsChanged)
+EVT_SLIDER(ID_WII_BT_SPKV, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_BT_MOT, CConfigMain::WiiSettingsChanged)
 
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
@@ -248,6 +249,7 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on WiiPage
 		WiiSensBarPos->Disable();
 		WiiSensBarSens->Disable();
+		WiimoteSpkVolume->Disable();
 		WiimoteMotor->Disable();
 		WiiScreenSaver->Disable();
 		WiiEuRGB60->Disable();
@@ -502,6 +504,7 @@ void CConfigMain::InitializeGUIValues()
 	// Wii - Wiimote
 	WiiSensBarPos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
 	WiiSensBarSens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
+	WiimoteSpkVolume->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.SPKV"));
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
 	WiimoteReconnectOnLoad->SetValue(SConfig::GetInstance().m_WiimoteReconnectOnLoad);
 	
@@ -824,6 +827,7 @@ void CConfigMain::CreateGUIControls()
 	// Wiimote Settings
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
 	WiiSensBarSens = new wxSlider(WiiPage, ID_WII_BT_SENS, 0, 0, 4);
+	WiimoteSpkVolume = new wxSlider(WiiPage, ID_WII_BT_SPKV, 0, 0, 127);
 	WiimoteMotor = new wxCheckBox(WiiPage, ID_WII_BT_MOT, _("Wiimote Motor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiimoteReconnectOnLoad = new wxCheckBox(WiiPage, ID_WII_WIIMOTE_RECONNECT, _("Reconnect Wiimote On Load State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -845,8 +849,11 @@ void CConfigMain::CreateGUIControls()
 	sWiimoteSettings->Add(TEXT_BOX(WiiPage, _("IR Sensitivity:")),
 			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarSens, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
-	sWiimoteSettings->Add(WiimoteMotor, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiimoteSettings->Add(WiimoteReconnectOnLoad, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiimoteSettings->Add(TEXT_BOX(WiiPage, _("Speaker Volume:")),
+		wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiimoteSettings->Add(WiimoteSpkVolume, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+	sWiimoteSettings->Add(WiimoteMotor, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiimoteSettings->Add(WiimoteReconnectOnLoad, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings = new wxStaticBoxSizer(wxHORIZONTAL, WiiPage, _("Wiimote Settings"));
 	sbWiimoteSettings->Add(sWiimoteSettings);
 
@@ -1263,6 +1270,9 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WII_BT_SENS:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", WiiSensBarSens->GetValue());
+		break;
+	case ID_WII_BT_SPKV:
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.SPKV", WiimoteSpkVolume->GetValue());
 		break;
 	case ID_WII_BT_MOT:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", WiimoteMotor->IsChecked());
