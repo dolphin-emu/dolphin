@@ -87,7 +87,6 @@ bool OpenGL_Create(void *&);
 void OpenGL_Shutdown();
 void OpenGL_Update();
 bool OpenGL_MakeCurrent();
-bool OpenGL_ReleaseContext();
 void OpenGL_SwapBuffers();
 
 // Get status

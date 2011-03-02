@@ -529,15 +529,6 @@ bool OpenGL_MakeCurrent()
 	return true;
 }
 
-bool OpenGL_ReleaseContext()
-{
-#ifdef _WIN32
-	return wglMakeCurrent(NULL, NULL);
-#elif defined(HAVE_X11) && HAVE_X11
-	return glXMakeCurrent(GLWin.dpy, None, NULL);
-#endif
-}
-
 // Update window width, size and etc. Called from Render.cpp
 void OpenGL_Update()
 {

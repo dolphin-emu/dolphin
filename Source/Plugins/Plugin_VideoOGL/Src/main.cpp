@@ -176,12 +176,14 @@ bool VideoBackend::Initialize(void *&window_handle)
 	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
 	s_BackendInitialized = true;
 
-	if (!OpenGL_MakeCurrent())
-	{
-		ERROR_LOG(VIDEO, "Unable to connect to OpenGL context.");
-		OpenGL_Shutdown();
-		return false;
-	}
+	return true;
+}
+
+// This is called after Initialize() from the Core
+// Run from the graphics thread
+void VideoBackend::Video_Prepare()
+{
+	OpenGL_MakeCurrent();
 
 	g_renderer = new Renderer;
 
@@ -208,22 +210,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 	TextureConverter::Init();
 	DLCache::Init();
 
-	if (!OpenGL_ReleaseContext())
-	{
-		ERROR_LOG(VIDEO, "Unable to release OpenGL context.");
-		Shutdown();
-		return false;
-	}
-
-	return true;
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
-	OpenGL_MakeCurrent();
-
 	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 }
@@ -232,25 +218,29 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
-	s_efbAccessRequested = false;
-	s_FifoShuttingDown = false;
-	s_swapRequested = false;
-	DLCache::Shutdown();
-	Fifo_Shutdown();
-	PostProcessing::Shutdown();
+	if (g_renderer)
+	{
+		s_efbAccessRequested = false;
+		s_FifoShuttingDown = false;
+		s_swapRequested = false;
+		DLCache::Shutdown();
+		Fifo_Shutdown();
+		PostProcessing::Shutdown();
 
-	// The following calls are NOT Thread Safe
-	// And need to be called from the video thread
-	TextureConverter::Shutdown();
-	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Shutdown();
-	VertexShaderManager::Shutdown();
-	PixelShaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
-	delete g_vertex_manager;
-	delete g_texture_cache;
-	OpcodeDecoder_Shutdown();
-	delete g_renderer;
+		// The following calls are NOT Thread Safe
+		// And need to be called from the video thread
+		TextureConverter::Shutdown();
+		VertexLoaderManager::Shutdown();
+		VertexShaderCache::Shutdown();
+		VertexShaderManager::Shutdown();
+		PixelShaderManager::Shutdown();
+		PixelShaderCache::Shutdown();
+		delete g_vertex_manager;
+		delete g_texture_cache;
+		OpcodeDecoder_Shutdown();
+		delete g_renderer;
+		g_renderer = NULL;
+	}
 	OpenGL_Shutdown();
 }
 

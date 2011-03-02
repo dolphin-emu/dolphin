@@ -159,6 +159,11 @@ bool VideoBackend::Initialize(void *&window_handle)
 	OSD::AddMessage("Dolphin Direct3D9 Video Backend.", 5000);
 	s_BackendInitialized = true;
 
+	return true;
+}
+
+void VideoBackend::Video_Prepare()
+{
 	// Better be safe...
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -179,11 +184,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 	PixelEngine::Init();
 	DLCache::Init();
 
-	return true;
-}
-
-void VideoBackend::Video_Prepare()
-{
 	// Notify the core that the video backend is ready
 	Core::Callback_CoreMessage(WM_USER_CREATE);
 }
@@ -192,25 +192,29 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
-	s_efbAccessRequested = FALSE;
-	s_FifoShuttingDown = FALSE;
-	s_swapRequested = FALSE;
+	if (g_renderer)
+	{
+		s_efbAccessRequested = FALSE;
+		s_FifoShuttingDown = FALSE;
+		s_swapRequested = FALSE;
 
-	// VideoCommon
-	DLCache::Shutdown();
-	Fifo_Shutdown();
-	CommandProcessor::Shutdown();
-	PixelShaderManager::Shutdown();
-	VertexShaderManager::Shutdown();
-	OpcodeDecoder_Shutdown();
-	VertexLoaderManager::Shutdown();
+		// VideoCommon
+		DLCache::Shutdown();
+		Fifo_Shutdown();
+		CommandProcessor::Shutdown();
+		PixelShaderManager::Shutdown();
+		VertexShaderManager::Shutdown();
+		OpcodeDecoder_Shutdown();
+		VertexLoaderManager::Shutdown();
 
-	// internal interfaces
-	PixelShaderCache::Shutdown();
-	VertexShaderCache::Shutdown();
-	delete g_vertex_manager;
-	delete g_texture_cache;
-	delete g_renderer;
+		// internal interfaces
+		PixelShaderCache::Shutdown();
+		VertexShaderCache::Shutdown();
+		delete g_vertex_manager;
+		delete g_texture_cache;
+		delete g_renderer;
+		g_renderer = NULL;
+	}
 	D3D::Shutdown();
 	EmuWindow::Close();
 }

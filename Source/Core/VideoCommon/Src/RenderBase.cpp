@@ -43,7 +43,7 @@
 int frameCount;
 int OSDChoice, OSDTime;
 
-Renderer *g_renderer;
+Renderer *g_renderer = NULL;
 
 bool s_bLastFrameDumped = false;
 Common::CriticalSection Renderer::s_criticalScreenshot;
