@@ -1,35 +1,34 @@
-# Translation of dolphin-emu.pot to Korean
+# Translation of dolphin-emu.pot to Czech
 # Copyright (C) 2003-2011
 # This file is distributed under the same license as the dolphin-emu package.
-# Siegfried <iori3000@hanafos.com>, 2011
+# Zbyněk Schwarz <zbynek.schwarz@gmail.com>, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-02-21 19:57-0600\n"
-"PO-Revision-Date: 2011-02-17 00:29+0900\n"
-"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"PO-Revision-Date: 2011-02-21 21:41+0100\n"
+"Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
-"Language: Korean\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Korean\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:488
 msgid " (too many to display)"
-msgstr " (표시하기에 너무 많은)"
+msgstr "(příliš mnoho pro zobrazení)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:255
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:481
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:520
 msgid " Game : "
-msgstr "게임 :"
+msgstr " Hra : "
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:525
 msgid "! NOT"
-msgstr "! NOT"
+msgstr "! NE"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:71
 #, c-format
@@ -37,18 +36,18 @@ msgid ""
 "\"%s\" does not exist.\n"
 " Create a new 16MB Memcard?"
 msgstr ""
-"\"%s\"가 존재하지 않습니다.\n"
-" 새로운 16MB 메모리카드를 생성해요?"
+"\"%s\" neexistuje.\n"
+" Vytvořit novou 16MB Paměťovou kartu?"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:141
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
-msgstr "\"%s\"는 비적합 GCM/ISO 파일임, 혹은 GC/Wii ISO가 아님."
+msgstr "\"%s\" je neplatný soubor GCM/ISO, nebo není GC/Wii ISO."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:193
 #, c-format
 msgid "%1$sCopy%1$s"
-msgstr "%1$s복사%1$s"
+msgstr "%1$sKopírovat%1$s"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:408
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:731
@@ -61,17 +60,17 @@ msgstr "%d Hz"
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:321
 #, c-format
 msgid "%s already exists, overwrite?"
-msgstr "%s가 이미 존재함, 덮어씁니까?"
+msgstr "%s už existuje, přepsat?"
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:169
 #, c-format
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
-msgstr "%s 가 실패해서 취소되었습니다. 이미지가 손상된 것 같습니다."
+msgstr "%s nelze vyčistit. Obraz je pravděpodobně poškozen."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:402
 #, c-format
 msgid "%s failed to open"
-msgstr "%s가 열기에 실패했습니다"
+msgstr "%s nelze otevřít"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:79
 #, c-format
@@ -80,108 +79,108 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio will be garbled."
 msgstr ""
-"%s가 잘못된 해쉬를 지녔습니다.\n"
-"문제를 고치기위해 지금 중단하시겠습니까?\n"
-"\"아니오\"를 선택하면, 오디오가 알아듣기 힘들겁니다."
+"%s má nesprávný otisk.\n"
+"Chtěli byste hned teď zastavit a opravit problém?\n"
+"Pokud vyberete \"Ne\", zvuk bude zkomolený."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
 msgid "%s is a 0 byte file"
-msgstr "%s 는 0 바이트 파일임"
+msgstr "%s má velikost 0 bajtů"
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:161
 #, c-format
 msgid "%s is already compressed! Cannot compress it further."
-msgstr "%s 는 이미 압축됨! 그것을 더이상 압축할 수 없습니다."
+msgstr "%s je už komprimován! Nelze komprimovat dále."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:378
 #, c-format
 msgid "%s is too long for the filename, max chars is 45"
-msgstr "%s 는 너무 긴 파일이름 입니다, 최대 글자수는 45 입니다."
+msgstr "%s má příliš mnoho znaků, max znaků je 45"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:199
 #, c-format
 msgid "%sDelete%s"
-msgstr "%s삭제%s"
+msgstr "%sVymazat%s"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:197
 #, c-format
 msgid "%sExport GCI%s"
-msgstr "%sGCI 내보내기%s"
+msgstr "%sExportovat GCI%s"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:195
 #, c-format
 msgid "%sImport GCI%s"
-msgstr "%sGCI 가져오기%s"
+msgstr "%sImportovat GCI%s"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:766
 #, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
-msgstr "%u 빈 블럭; %u 빈 디렉토리 엔트리"
+msgstr "%u Volných Bloků; %u Volných Záznamů Adr"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:524
 msgid "&& AND"
-msgstr "&& AND"
+msgstr "&& A"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:315
 msgid "&About..."
-msgstr "돌핀에 대해(&A)..."
+msgstr "O Progr&amu..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:118
 msgid "&Boot from DVD Drive..."
-msgstr "DVD 드라이브에서 부트(&B)..."
+msgstr "&Bootovat z DVD Mechaniky..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:251
 msgid "&Breakpoints"
-msgstr "브레이크포인트(&B)"
+msgstr "&Body přerušení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:129
 msgid "&Browse for ISOs..."
-msgstr "ISO 폴더탐색(&B)"
+msgstr "&Brouzdat pro ISO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
 msgid "&Cheats Manager"
-msgstr "치트 매니저(&C)"
+msgstr "Správce &cheatů"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:191
 msgid "&DSP Settings"
-msgstr "오디오 설정(&D)"
+msgstr "&DSP Nastavení"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1017
 msgid "&Delete ISO..."
-msgstr "ISO 삭제(&D)..."
+msgstr "&Smazat ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1034
 msgid "&Delete selected ISOs..."
-msgstr "선택된 ISO들 삭제(&D)..."
+msgstr "&Smazat vybraná ISO..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:184
 msgid "&Emulation"
-msgstr "에뮬레이션(&E)"
+msgstr "&Emulace"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:132
 msgid "&File"
-msgstr "파일(&F)"
+msgstr "&Soubor"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:355
 msgid "&Frame Advance"
-msgstr "프레임 진행(&F)"
+msgstr "&Postup Snímkem"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:372
 msgid "&Fullscreen"
-msgstr "전체화면(&F)"
+msgstr "&Celá Obrazovka"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:190
 msgid "&Graphics Settings"
-msgstr "그래픽 설정(&G)"
+msgstr "&Grafická Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:316
 msgid "&Help"
-msgstr "도움(&H)"
+msgstr "&Nápověda"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
 msgid "&Hotkey Settings"
-msgstr "단축키 설정(&H)"
+msgstr "Nastavení Klávesových Zkratek"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:253
 msgid "&JIT"
@@ -189,149 +188,149 @@ msgstr "&JIT"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:162
 msgid "&Load State"
-msgstr "상태 로드(&L)"
+msgstr "&Nahrát Stav"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:204
 msgid "&Memcard Manager (GC)"
-msgstr "메모리 카드 매니저(GC) (&M)"
+msgstr "Správce Pa&měťových karet (GC)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:252
 msgid "&Memory"
-msgstr "메모리(&M)"
+msgstr "Pa&měť"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:333
 msgid "&Open..."
-msgstr "열기(&O)..."
+msgstr "&Otevřít..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:200
 msgid "&Options"
-msgstr "옵션(&O)"
+msgstr "V&olby"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:344
 msgid "&Pause"
-msgstr "일시정지(&P)"
+msgstr "&Pauza"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:346
 msgid "&Play"
-msgstr "실행(&P)"
+msgstr "&Přehrát"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1000
 msgid "&Properties"
-msgstr "속성(&P)"
+msgstr "&Vlastnosti"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 msgid "&Read-only mode"
-msgstr "읽기-전용 모드(&R)"
+msgstr "&Režim pouze pro čtení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:339
 msgid "&Refresh List"
-msgstr "게임목록 새로 고침(&R)"
+msgstr "&Obnovit Seznam"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:250
 msgid "&Registers"
-msgstr "레지스터들(&R)"
+msgstr "&Registry"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:352
 msgid "&Reset"
-msgstr "리셋(&R)"
+msgstr "&Resetovat"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:254
 msgid "&Sound"
-msgstr "사운드(&S)"
+msgstr "&Zvuk"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:349
 msgid "&Stop"
-msgstr "중지(&S)"
+msgstr "Za&stavit"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:227
 msgid "&Tools"
-msgstr "도구(&T)"
+msgstr "Nás&troje"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:255
 msgid "&Video"
-msgstr "비디오(&V)"
+msgstr "&Video"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:304
 msgid "&View"
-msgstr "보기(&V)"
+msgstr "&Zobrazit"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
 msgid "&Wiimote Settings"
-msgstr "위모트 설정(&W)"
+msgstr "&Wiimote Nastavení"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:59
 msgid "(-)+zFar"
-msgstr "(-)+z원거리"
+msgstr "(-)+zFar"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:54
 msgid "(-)+zNear"
-msgstr "(-)+z근거리"
+msgstr "(-)+zNear"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:189
 msgid "(Default)"
-msgstr "(기본)"
+msgstr "(Výchozí)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:105
 msgid "(UNKNOWN)"
-msgstr "(알려지지 않음)"
+msgstr "(NEZNÁMÝ)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:437
 msgid "(off)"
-msgstr "(끔)"
+msgstr "(vypnuto)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:159
 msgid "16 bit"
-msgstr "16 비트"
+msgstr "16 bit"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:160
 msgid "32 bit"
-msgstr "32 비트"
+msgstr "32 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:265
 msgid "3D Vision (Requires Fullscreen)"
-msgstr "3D 비전 (전체화면 필요)"
+msgstr "3D Vision (Vyžaduje režim Celé Obrazovky)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:158
 msgid "8 bit"
-msgstr "8 비트"
+msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:43
 msgid "<Insert name here>"
-msgstr "<여기에 이름을 넣으세요>"
+msgstr "<Zde vložte jméno>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:285
 msgid "<No resolutions found>"
-msgstr "<발견된 해상도가 없음>"
+msgstr "<Žádné rozlišení nenalezeno>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
 msgid "<Nothing>"
-msgstr "<없음>"
+msgstr "<Nic>"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:185
 msgid "<Press Key>"
-msgstr "<키를 누르세요>"
+msgstr "<Zmáčkněte klávesu>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:321
 msgid "<System>"
-msgstr "<시스템>"
+msgstr "<Systém>"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:180
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:216
 msgid "A NetPlay window is already open!!"
-msgstr "넷플레이 윈도우가 이미 열려있습니다!!"
+msgstr "Okno NetPlay je už otevřené!!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:348
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:379
 msgid "A game is not currently running."
-msgstr "현재 게임이 구동되고 있지 않습니다."
+msgstr "Hra v současnosti neběží!"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:118
 msgid ""
 "A supported bluetooth device was not found!\n"
 "(Only the Microsoft bluetooth stack is supported.)"
 msgstr ""
-"지원되는 블루투스 장치를 찾을 수 없습니다!\n"
-"(마이크로소프트 블루투스 스택만 지원됩니다.)"
+"Podporované zařízení bluetooth nebylo nalezeno!\n"
+"(Pouze zásobník Microsoft bluetooth je podporován)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:88
 msgid ""
@@ -351,52 +350,52 @@ msgid ""
 "\n"
 "You must forward TCP port to host!!"
 msgstr ""
-"알림:\n"
+"POZOR:\n"
 "\n"
-"넷플레이는 다음 설정들을 사용할 때만이 현재 제대로 작동할 겁니다:\n"
-" - 듀얼 코어 [끔]\n"
-" - 오디오 병목 [끔]\n"
-" - DSP-HLE \"소리 없음\"으로 혹은 DSP-LLE\n"
-" - 수동으로 [스텐다드 컨트롤러]에 사용되어질 정확한 컨트롤러들의 수를 설정하"
-"세요\n"
+"Netplay bude v současnosti správně fungovat pouze při použití následujících "
+"nastavení:\n"
+" - Dvojité Jádro [VYPNUTO]\n"
+" - Přiškrcení Zvuku [VYPNUTO]\n"
+" - DSP-HLE s \"Nulovým Zvukem\" nebo DSP-LLE\n"
+" - Ručně nastavit přesné číslo ovladačů, které budou použity na [Standardní "
+"Ovladač]\n"
 "\n"
-"모든 플레이어들은 같은 돌핀 버전과 설정들을 사용하도록 시도해야합니다.\n"
-"모든 메모리 카드를 끄거나 시작하기전에 그것들을 모든 플레이어들에게 보내세"
-"요.\n"
-"위모트 지원은 시행되지 않었습니다.\n"
+"Všichni hráči by měli používat stejné nastavení i verzi Dolphina.\n"
+"Zakázat všechny paměťové karty nebo je poslat hračům před spuštěním.\n"
+"Podpora Wiimote nebyla ještě zavedena.\n"
 "\n"
-"TCP 포트를 호스트에 전달해야합니다!!"
+"Musíte přesměrovat Váš TCP port na hostitele!!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:83
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:88
 msgid "AM-Baseboard"
-msgstr "AM-기반보드"
+msgstr "AM Základní Deska"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:120
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
 msgid "AR Codes"
-msgstr "AR 코드"
+msgstr "Kódy AR"
 
 #: Source/Core/DolphinWX/Src/AboutDolphin.h:33
 msgid "About Dolphin"
-msgstr "돌핀에 대해"
+msgstr "O Dolphinu"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:24
 msgid "Acceleration"
-msgstr "가속"
+msgstr "Zrychlení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:329
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:335
 msgid "Accurate Texture Cache"
-msgstr "정확한 텍스쳐 캐쉬"
+msgstr "Precizní Vyrovnávací Paměť Textur"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Accurate VBeam emulation"
-msgstr "정확한 VBeam 에뮬레이션"
+msgstr "Precizní emulace VBeam"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:262
 msgid "Action"
-msgstr "   [ 액션 ]"
+msgstr "Činnost"
 
 #: Source/Core/Core/Src/ARDecrypt.cpp:481
 #, c-format
@@ -407,10 +406,10 @@ msgid ""
 "Culprit Code:\n"
 "%s"
 msgstr ""
-"액션 리플레이 코드 해독 에러:\n"
-"패러티 체크 실패했습니다\n"
+"Chyba Dešifrování Kódu Action Replay:\n"
+"Kontrola Parity Selhala\n"
 "\n"
-"범인 코드:\n"
+"Viníkem je Kód:\n"
 "%s"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:669
@@ -418,7 +417,8 @@ msgstr ""
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 코드 추가 (%s)에"
+"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Kódu Přidat "
+"(%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:756
 #, c-format
@@ -426,8 +426,8 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
 "(%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 채우기와 슬라이드(%s)"
-"에"
+"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Naplnit a "
+"Sesunout (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:549
 #, c-format
@@ -435,8 +435,8 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
 "Fill (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 램 쓰기와 채우기 (%s)"
-"에"
+"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Ram Zápisu A "
+"Naplnění (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:609
 #, c-format
@@ -444,75 +444,76 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
 "Pointer (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 포인터 (%s)에 쓰기에"
+"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Zápisu Do "
+"Ukazatele (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:803
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
-msgstr "액션 리플레이 에러: 비적합 크기 (%08x), 메모리 복사 (%s)에"
+msgstr "Chyba Action Replay: Neplatná hodnota (%08x) v Kopii Paměti (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:684
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
 msgstr ""
-"액션 리플레이 에러: 매스터 코드와 CCXXXXXX에 쓰기가 시행되지 않습니다 (%s)"
+"Chyba Action Replay: Hlavní Kód a Zápis do CCXXXXXX nejsou zavedeny (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
-msgstr "액션 리플레이 에러: 비적합 AR 코드 라인: %s"
+msgstr "Chyba Action Replay: neplatný řádek kódu AR: %s"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:873
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
-msgstr "액션 리플레이: 조건적 코드: 비적합 크기 %08x (%s)"
+msgstr "Action Replay: Podmínkový kód: Neplatná Velikost %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:946
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
-msgstr "액션 리플레이: 비적합 일반 코드 타입 %08x (%s)"
+msgstr "Action Replay: Neplatný Normální Kód Typu %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:897
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
-msgstr "액션 리플레이: 일반 코드 %i: 비적합 서브타입 %08x (%s)"
+msgstr "Action Replay: Normální Kód %i: Neplatný podtyp %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:839
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
-msgstr "액션 리플레이: 일반 코드 0: 비적합 서브타입 %08x (%s)"
+msgstr "Action Replay: Normální Kód 0: Neplatný Podtyp %08x (%s)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:203
 msgid "Adapter:"
-msgstr "어댑터:"
+msgstr "Adaptér:"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:73
 msgid "Add"
-msgstr "추가"
+msgstr "Přidat"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1283
 msgid "Add ActionReplay Code"
-msgstr "액션리플레이 코드 추가"
+msgstr "Přidat kód ActionReplay"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1212
 msgid "Add Patch"
-msgstr "패치 추가"
+msgstr "Přidat záplatu"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:478
 msgid "Add new pane"
-msgstr "새로운 창 추가"
+msgstr "Přidat nový panel"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:879
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:422
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:444
 msgid "Add..."
-msgstr "추가..."
+msgstr "Přidat..."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:71
 msgid "Address :"
-msgstr "주소 :"
+msgstr "Adresa :"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid ""
@@ -524,13 +525,13 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"상세화 값을 z원거리 파라미터에 추가합니다.\n"
-"부동소수점 값을 표현하는 두가지 방법이 있다\n"
-"예: \"200\" 이나 \"0.0002\"를 직접적으로 넣기, 그것은 같은 효과를 낸다, 그 실"
-"질적 값은 \"0.0002\"가 될 것이다.\n"
-"값: (0->+/-정수) or (0->+/-부동소수[6개 숫자 정확성])\n"
+"Přidá zadanou hodnotu do Parametru ZFar.\n"
+"Dva způsoby jak vyjádřit hodnoty v plovoucí desetinné čárce.\n"
+"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná "
+"hodnota bude \"0.0002\".\n"
+"Hodnoty: (0->+/-Celé číslo) nebo (0->+/-PDČ[6 desetinných míst])\n"
 "\n"
-"알아두기: 얻어진 값들에 대해 로그윈도우/콘솔을 체크하세요."
+"Poznámka: Zkontrolujte Konzoli/Okno protokolu pro získané hodnoty"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:53
 msgid ""
@@ -542,55 +543,55 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"상세화 값을 z근거리 파라미터에 추가합니다.\n"
-"부동소수점 값을 표현하는 두가지 방법이 있다\n"
-"예: \"200\" 이나 \"0.0002\"를 직접적으로 넣기, 그것은 같은 효과를 낸다, 그 실"
-"질적 값은 \"0.0002\"가 될 것이다.\n"
-"값: (0->+/-정수) or (0->+/-부동소수[6개 숫자 정확성])\n"
+"Přidá zadanou hodnotu do Parametru zNear.\n"
+"Dva způsoby jak vyjádřit hodnoty v plovoucí desetinné čárce.\n"
+"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná "
+"hodnota bude \"0.0002\".\n"
+"Hodnoty: (0->+/-Celé číslo) nebo (0->+/-PDČ[6 desetinných míst])\n"
 "\n"
-"알아두기: 얻어진 값들에 대해 로그윈도우/콘솔을 체크하세요."
+"Poznámka: Zkontrolujte Konzoli/Okno protokolu pro získané hodnoty\""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:777
 msgid "Adjust the analog control pressure required to activate buttons."
-msgstr "버튼들 활성화에 필요한 아날로그 컨트롤 압력을 조정하세요."
+msgstr "Upravte tlak analogového ovládání potřebný k aktivaci tlačítek."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:344
 msgid "Advanced"
-msgstr "고급"
+msgstr "Pokročilé"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:624
 msgid "Advanced Settings"
-msgstr "고급 설정"
+msgstr "Pokročilá Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:673
 #, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, ciso, gcz, wad)"
-msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, ciso, wad)"
+msgstr "Všechny soubory GC/Wii (elf, dol, gcm, iso, ciso, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:884
 msgid "All GC/Wii images (gcm, iso, ciso, gcz)"
-msgstr "모든 GC/Wii 이미지들 (gcm, iso, ciso, gcz)"
+msgstr "Všechny obrazy GC/Wii (gcm, iso, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1323
 msgid "All Gamecube GCM files (gcm)"
-msgstr "모든 게임큐브 GCM 파일들 (gcm)"
+msgstr "Všechny soubory Gamecube GCM )gcm)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1369
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
 msgid "All Save States (sav, s##)"
-msgstr "모든 상태들 저장 (sav, s##)"
+msgstr "Všechny Uložené Stavy (sav, s##)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1321
 msgid "All Wii ISO files (iso)"
-msgstr "모든 Wii ISO 파일들 (iso)"
+msgstr "Všechny soubory Wii ISO (iso)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1341
 msgid "All compressed GC/Wii ISO files (gcz)"
-msgstr "모든 압축된 GC/Wii ISO 파일들 (gcz)"
+msgstr "Všechny komprimované soubory GC/WII ISO (gcz)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:97
 msgid "All files (*.*)|*.*"
-msgstr "모든 파일 (*.*)|*.*"
+msgstr "Všechny soubory (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
 msgid ""
@@ -601,82 +602,82 @@ msgid ""
 "but enabling this option can also have a huge negative impact on performance "
 "if the game uses this functionality heavily."
 msgstr ""
-"CPU가 EFB(렌더 버퍼)에 읽거나 쓰도록 허용.\n"
-"이것은 특정 게임플레이 기능(예. Super Mario Galaxy에 별 포인터) 뿐만아니라 특"
-"정 비주얼 효과들(예. Monster Hunter Tri)에 요구됩니다,\n"
-"하지만 이 옵션을 켜는 것은 그 게임이 이 기능을 심하게 사용한다면 성능상에 거"
-"대한 네거티브 효과를 가질 수 있습니다."
+"Povolí procesoru číst či zapisovat do EFB (vyrovnávací paměť vykreslování).\n"
+"Toto je potřeba pro některé funkce hraní (např. star pointer v Super Mario "
+"Galaxy) a také pro jisté vizuální efekty (např. Monster Hunter Tri),\n"
+"ale zapnutí této možnosti může mít také velký negativní dopad ny výkon pokud "
+"hra tuto funkci hodně využívá."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:239
 msgid "Anisotropic Filtering:"
-msgstr "비등방성 필터링:"
+msgstr "Anizotropní Filtrování:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:244
 msgid "Anti-Aliasing:"
-msgstr "안티-앨리어싱:"
+msgstr "Vyhlazení okrajů"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:317
 msgid "Apploader is the wrong size...is it really an apploader?"
-msgstr "앱로더가 잘못된 크기임... 정말 앱로더입니까?"
+msgstr "Zavaděč aplikace má špatnou velikost... je to vážně zavaděč?"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:311
 msgid "Apploader unable to load from file"
-msgstr "앱로더가 파일로 부터 로드할 수 없음"
+msgstr "Zavaděč aplikace nemohl načíst soubor"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:908
 msgid "Apploader:"
-msgstr "앱로더:"
+msgstr "Zavaděč aplikace:"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:127
 msgid "Apply"
-msgstr "적용"
+msgstr "Použít"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:634
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
-msgstr "\"%s\" 를 정말로 지우고 싶습니까?"
+msgstr "Jste si jisti, že chcete smazat \"%s\"?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1143
 msgid ""
 "Are you sure you want to delete these files?\n"
 "They will be gone forever!"
 msgstr ""
-"이 파일들을 정말로 지우고 싶습니까?\n"
-"그것들은 영원히 사라집니다!"
+"Jste si jisti, že chcete tyto soubory smazat?\n"
+"Tímto budou navždycky ztraceny!"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1134
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
-msgstr "이 파일을 정말로 지우고 싶습니까? 그것은 영원히 사라집니다!"
+msgstr "Opravdu chcete smazat tento soubor? Tímto bude navždy pryč!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:856
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:222
 msgid "Aspect Ratio:"
-msgstr "종횡비:"
+msgstr "Poměr Stran:"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:61
 msgid "At least one pane must remain open."
-msgstr "적어도 하나의 창이 열려 있어야합니다."
+msgstr "Alespoň jeden panel musí být otevřen."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:594
 msgid "Audio"
-msgstr "오디오"
+msgstr "Audio"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:746
 msgid "Audio Backend:"
-msgstr "오디오 처리기:"
+msgstr "Backend Zvuku:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
-msgstr "AudioCommon: AO 장치를 열기 에러.\n"
+msgstr "AudioCommon: Chyba při otevírání zařízení zvukového výstupu.\n"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:641
 msgid "Auto"
-msgstr "자동"
+msgstr "Auto"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:219
 msgid "Auto [recommended]"
-msgstr "자동 [권장]"
+msgstr "Auto [doporučeno]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:547
 msgid ""
@@ -684,125 +685,125 @@ msgid ""
 "EFB scale.\n"
 "It is best to set the aspect ratio to stretch when using this."
 msgstr ""
-"EFB 스케일로 조정된 게임의 출력 해상도와 일치되도록 윈도우 크기를 자동 조"
-"정.\n"
-"이것을 사용할 때 종횡비를 늘림으로 설정하는 것이 가장좋다."
+"Automaticky upravovat velikost okna pro shodu s výstupním rozlišením hry "
+"nastavená pomocí změny velikosti EFB.\n"
+"Při používání tohoto je nejlepší nastavit poměr stran na roztáhnutí."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
-msgstr "뒤로"
+msgstr "Zpět"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
 msgid "Backend Settings"
-msgstr "처리기 설정"
+msgstr "Nastavení Backendu"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
 msgid "Background Input"
-msgstr "백그라운드 입력"
+msgstr "Zadní Vstup"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:279
 msgid "Backward"
-msgstr "뒤로"
+msgstr "Dozadu"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:289
 msgid "Bad File Header"
-msgstr "배드 파일 헤더"
+msgstr "Špatná hlavička souboru"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:628
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:254
 msgid "Banner"
-msgstr "       배너"
+msgstr "Plakát"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:523
 msgid "Banner Details"
-msgstr "배너 세부사항"
+msgstr "Detaily Plakátu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
 msgid "Banner:"
-msgstr "배너:"
+msgstr "Plakát:"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Bar"
-msgstr "바"
+msgstr "Vibráto"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:315
 msgid "Basic"
-msgstr "기본"
+msgstr "Základní"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:618
 msgid "Basic Settings"
-msgstr "기본 설정"
+msgstr "Základní nastavení"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
 msgid "Bass"
-msgstr "베이스"
+msgstr "Basy"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:169
 msgid "Block Allocation Table checksum failed"
-msgstr "블럭 할당 테이블 체크섬을 실패했습니다"
+msgstr "Kontrolní součet Alokační Tabulky Bloku selhal"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:632
 msgid "Blocks"
-msgstr "블럭들"
+msgstr "Bloky"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Blue"
-msgstr "파랑"
+msgstr "Modrá"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
 msgid "Blue Left"
-msgstr "파랑 왼쪽"
+msgstr "Modrá vlevo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Blue Right"
-msgstr "파랑 오른쪽"
+msgstr "Modrá vpravo"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 msgid "Bottom"
-msgstr "아래"
+msgstr "Dole"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:243
 #, c-format
 msgid "Bound Controls: %lu"
-msgstr "바운드 컨트롤들: %lu"
+msgstr "Spojené ovladače: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:352
 msgid "Broken"
-msgstr "고장난"
+msgstr "Rozbité"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:442
 msgid "Browse"
-msgstr "폴더탐색"
+msgstr "Procházet"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:205
 msgid "Browse for a directory to add"
-msgstr "추가할 디렉토리 둘러보기"
+msgstr "Procházet pro přidání adresáře"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:442
 msgid "Browse for an ISO directory..."
-msgstr "ISO 디렉토리 불러오기..."
+msgstr "Procházet pro adresář ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1216
 msgid "Browse for output directory"
-msgstr "출력 디렉토리 둘러보기"
+msgstr "Procházet pro výstupní adresář"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Buffer:"
-msgstr "버퍼:"
+msgstr "Vyrovnávací paměť:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
 msgid "Buttons"
-msgstr "버튼"
+msgstr "Tlačítka"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
-msgstr "C-스틱"
+msgstr "Kr-Stick"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:609
 msgid "CPU Emulator Engine"
-msgstr "CPU 에뮬레이터 엔진"
+msgstr "Jádro Emulátoru Procesoru"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
@@ -810,8 +811,9 @@ msgid ""
 "vertex.\n"
 "This is the more accurate behavior but reduces performance."
 msgstr ""
-"버텍스마다가 아닌 픽셀마다를 기반으로 3D 그래픽의 빛을 계산한다.\n"
-"이것은 더 정확한 행함이지만 성능을 감소시킨다."
+"Spočítá osvětlení 3D obrazu na základě pixelu, raději než na základě "
+"vertexu.\n"
+"Toto je správnější chování, ale snižuje výkon."
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:103
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
@@ -819,43 +821,43 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:69
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:77
 msgid "Cancel"
-msgstr "취소"
+msgstr "Zrušit"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:92
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:189
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:263
 #, c-format
 msgid "Cannot open %s"
-msgstr "%s를 열수 없음"
+msgstr "Nelze otevřít %s"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
-msgstr "이벤트들 미해결을 지닌 이벤트들을 등록하지 않을 수 없음"
+msgstr "Nelze odhlásit události, když jsou očekávány"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1187
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
 msgstr ""
-"그 파일을 메모리 카드로 사용할 수 없음.\n"
-"둘다의 슬롯들에 같은 파일을 사용하려 합니까?"
+"Nelze použít tento soubor jako paměťovou kartu.\n"
+"Snažíte se použít stejný soubor v obou slotech?"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1859
 #, c-format
 msgid "Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x"
-msgstr "bd: %02x:%02x:%02x:%02x:%02x:%02x 에 의해 위모트를 찾을 수 없음 "
+msgstr "Nelze najít Wiimote podle bz: %02x:%02x:%02x:%02x:%02x:%02x"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1873
 #, c-format
 msgid "Cant find WiiMote by connection handle %02x"
-msgstr "%02x 연결핸들에 의해 위모트를 찾을 수 없음."
+msgstr "Nelze najít Wiimote pomocí obslužné rutiny spojení %02x"
 
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:644
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:654
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:240
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:335
 msgid "Cant read from DVD_Plugin - DVD-Interface: Fatal Error"
-msgstr "DVD_플러그인에서 읽을 수 없음 - DVD-인터페이스: 치명적 에러"
+msgstr "Nelze číst ze zásuvného modulu DVD - DVD-Rozhraní: Závažná chyba"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:49
 msgid "Caps Lock"
@@ -863,127 +865,127 @@ msgstr "Caps Lock"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
 msgid "Center"
-msgstr "중앙"
+msgstr "Střed"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:561
 msgid "Change"
-msgstr "변경"
+msgstr "Změnit"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:336
 msgid "Change &Disc..."
-msgstr "디스크 변경(&D)..."
+msgstr "Vyměnit &Disk..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:202
 msgid "Change Disc"
-msgstr "디스크 변경"
+msgstr "Vyměnit Disk"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:547
 msgid "Change Game"
-msgstr "게임 변경"
+msgstr "Změnit hru"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:564
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
 msgstr ""
-"유저 인터페이스의 언어를 변경.\n"
-"재시작이 요구됨."
+"Změnit jazyk uživatelského rozhraní.\n"
+"Vyžaduje restart."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:60
 msgid "Changes sign to zFar Parameter (after correction)"
-msgstr "표시를 z원거리 파라미터로 변경 (정정 후에)"
+msgstr "Změní znaménko na Parametr zFar (po korekci)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:55
 msgid "Changes sign to zNear Parameter (after correction)"
-msgstr "표시를 z근거리 파라미터로 변경 (정정 후에)"
+msgstr "Změní znaménko na Parametr zNear (po korekci)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:569
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
 msgid "Changing this will have no effect while the emulator is running!"
-msgstr "에뮬레이터가 작동하고 있는 동안에 이 변경은 효과가 없을 겁니다!"
+msgstr "Změna tohoto se neprojeví, pokud emulátor běží!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:279
 msgid "Chat"
-msgstr "채팅"
+msgstr "Chat"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:57
 msgid "Cheat Code"
-msgstr "치트 코드"
+msgstr "Cheat Kód"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:123
 msgid "Cheat Search"
-msgstr "치트 찾기"
+msgstr "Hledání Cheatů"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:37
 msgid "Cheats Manager"
-msgstr "치트들 관리자"
+msgstr "Správce Cheatů"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:322
 msgid "Chinese (Simplified)"
-msgstr "중국어 (간소화)"
+msgstr "Čínština (Zjednodušeně)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:323
 msgid "Chinese (Traditional)"
-msgstr "중국어 (전통)"
+msgstr "Zjednodušená Čínština"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:886
 msgid "Choose a DVD root directory:"
-msgstr "DVD 루트 디렉토리 선택:"
+msgstr "Zvolte kořenový adresář DVD:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:883
 msgid "Choose a default ISO:"
-msgstr "디폴트 ISO 선택:"
+msgstr "Zvolte výchozí ISO:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1316
 msgid "Choose a directory to add"
-msgstr "추가할 디렉토리 선택"
+msgstr "Zvolte adresář k přidání"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1162
 msgid "Choose a file to open"
-msgstr "열려는 파일 선택"
+msgstr "Zvolte soubor k otevření"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:214
 msgid "Choose a memory card:"
-msgstr "메모리 카드 선택:"
+msgstr "Zvolte paměťovou kartu:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:887
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
 msgstr ""
-"앱로더로 사용할 파일을 선택: (디렉토리들로만 구성된 디스크들에게만 적용됨)"
+"Zvolte soubor, který má být použit jako zavaděč aplikace: (platí pouze pro "
+"disky sestavené z adresářů)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:765
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:804
 msgid "Choose the folder to extract to"
-msgstr "압축해제할 폴더를 선택"
+msgstr "Zvolte adresář pro umístění extrakce"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:297
 msgid "Circle Stick"
-msgstr "서클 스틱"
+msgstr "Kruhový Stick"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:52
 msgid "Classic"
-msgstr "클래식"
+msgstr "Klasické"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:505
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:935
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:104
 msgid "Clear"
-msgstr "깨끗이"
+msgstr "Vyčistit"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:174
 msgid "Clear failed."
-msgstr "청소 실패했습니다."
+msgstr "Vyčištění selhalo"
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:257
 msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
 msgstr ""
-"게임이 구동되는 중에 클라이언트 연결해제됨!! 넷플레이 불가능. 수동으로 게임"
-"을 중지해야합니다."
+"Klient odpojen při běhu hry!! NetPlay je vypnut. Hru musíte ukončit ručně."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:463
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:129
@@ -991,168 +993,168 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:283
 #: Source/Core/DolphinWX/Src/AboutDolphin.cpp:42
 msgid "Close"
-msgstr "닫기"
+msgstr "Zavřít"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:188
 msgid "Co&nfigure..."
-msgstr "환경설정(&n)..."
+msgstr "&Nastavit..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:78
 msgid "Code Info"
-msgstr "코드 정보"
+msgstr "Informace o kódu"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:547
 msgid "Code: "
-msgstr "코드:"
+msgstr "Kód:"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:134
 msgid "Command"
-msgstr "명령"
+msgstr "Příkaz"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 msgid "Comment"
-msgstr "주석"
+msgstr "Komentář"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:487
 msgid "Comment:"
-msgstr "주석:"
+msgstr "Komentář:"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1024
 msgid "Compress ISO..."
-msgstr "ISO 압축..."
+msgstr "Komprimovat ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1036
 msgid "Compress selected ISOs..."
-msgstr "선택된 ISO들 압축..."
+msgstr "Komprimovat vybraná ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1222
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1355
 msgid "Compressing ISO"
-msgstr "ISO 압축하기"
+msgstr "Komprimuji ISO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:449
 msgid "Config"
-msgstr " 환경  "
+msgstr "Nastavení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:349
 msgid "Configuration profile"
-msgstr "환경설정 프로파일"
+msgstr "Profil nastavení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:185
 msgid "Configuration profile:"
-msgstr "환경설정 프로파일:"
+msgstr "Profil nastavení:"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:32
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:135
 #: Source/Core/DolphinWX/Src/InputConfigDiag.h:154
 msgid "Configure"
-msgstr "환경설정"
+msgstr "Nastavit"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:117
 msgid "Configure Control"
-msgstr "컨트롤 설정"
+msgstr "Nastavit Ovládání"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:290
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:583
 msgid "Configure Pads"
-msgstr "패드들 설정"
+msgstr "Nastavit Pady"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:449
 msgid "Configure..."
-msgstr "환경설정..."
+msgstr "Nastavit..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1258
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1286
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1351
 msgid "Confirm File Overwrite"
-msgstr "파일 덮어쓰기 확정"
+msgstr "Potvrdit Přepsání Souboru"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:660
 msgid "Confirm On Stop"
-msgstr "중지시 확인"
+msgstr "Při zastavení potvrdit"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:64
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:84
 msgid "Connect"
-msgstr "연결"
+msgstr "Připojit"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:838
 msgid "Connect USB Keyboard"
-msgstr "USB 키보드 연결"
+msgstr "Připojit USB Klávesnici"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:382
 #, c-format
 msgid "Connect Wiimote %i"
-msgstr "위모트 %i 연결"
+msgstr "Připojit Wiimote %i"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:218
 msgid "Connect Wiimote 1"
-msgstr "위모트 1 연결"
+msgstr "Připojit Wiimote 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
 msgid "Connect Wiimote 2"
-msgstr "위모트 2 연결"
+msgstr "Připojit Wiimote 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
 msgid "Connect Wiimote 3"
-msgstr "위모트 3 연결"
+msgstr "Připojit Wiimote 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
 msgid "Connect Wiimote 4"
-msgstr "위모트 4 연결"
+msgstr "Připojit Wiimote 4"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:11
 #, c-format
 msgid "Connected to %i Wiimotes"
-msgstr "%i개의 위모트들에 연결된"
+msgstr "Připojen k %i Wiimote"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:668
 msgid "Connecting..."
-msgstr "연결중..."
+msgstr "Připojuji..."
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:142
 msgid "Console"
-msgstr "콘솔"
+msgstr "Konzole"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:46
 msgid "Control"
-msgstr "컨트롤"
+msgstr "Ctrl"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:188
 msgid "Convert to GCI"
-msgstr "GCI 로 변환"
+msgstr "Převést do GCI"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:290
 msgid "Copy"
-msgstr "복사"
+msgstr "Kopírovat"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:356
 msgid "Copy failed"
-msgstr "복사 실패했습니다"
+msgstr "Kopírování selhalo"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:789
 #, c-format
 msgid "Copy to Memcard %c"
-msgstr "메모리카드 %c 에 복사"
+msgstr "Kopírovat na Paměťovou kartu %c"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:362
 msgid "Core"
-msgstr "코어"
+msgstr "Jádro"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE.cpp:226
 #, c-format
 msgid "Could not copy %s to %s"
-msgstr "%s 를 %s에 복사할 수 없었습니다"
+msgstr "Nelze kopírovat %s do %s"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:152
 #, c-format
 msgid "Could not create %s"
-msgstr "%s 를 생성할 수 없었습니다"
+msgstr "Nelze vytvořit %s"
 
 #: Source/Core/AudioCommon/Src/AudioCommon.cpp:67
 #, c-format
 msgid "Could not initialize backend %s."
-msgstr "처리기 %s 를 초기화할 수 없었습니다"
+msgstr "Nezle spustit backend %s."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:136
 #, c-format
@@ -1161,27 +1163,27 @@ msgid ""
 "backup.  Please note that original Gamecube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
-"\"%s\"를 읽을 수 없었습니다.  드라이브안에 디스크가 없음, 혹은 그것은 GC/Wii "
-"백업이 아님. 본래의 게임큐브와 Wii 디스크들은 대부분의 PC DVD 드라이브들에서 "
-"읽어질 수 없음을 아세요."
+"\"%s\" nelze číst. Buď není v mechanice žádný disk, nebo toto není záloha GC/"
+"Wii. Nezapomeňte, že původní disky GameCube a Wii nepřečte většina PC DVD "
+"mechanik."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:273
 #, c-format
 msgid "Could not recognize ISO file %s"
-msgstr "%s ISO 파일을 인식할 수 없었습니다"
+msgstr "Nelze rozpoznat ISO soubor %s"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:577
 #, c-format
 msgid "Could not save %s"
-msgstr "%s 를 저장할 수 없었습니다"
+msgstr "Nelze uložit %s"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:542
 msgid ""
 "Could not set pads. The player left or the game is currently running!\n"
 "(setting pads while the game is running is not yet supported)"
 msgstr ""
-"패드들을 설정할 수 없었습니다. 플레이어가 떠났거나 게임이 현재 구동중!\n"
-"(게임이 구동중일 때 패드들을 설정하기는 아직 지원되지 않습니다)"
+"Nelze nastavit pady. Hráč odešel, nebo hra v současnosti běží!.\n"
+"(nastavení padů za běhu hry není ještě podporováno)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:121
 #, c-format
@@ -1191,151 +1193,150 @@ msgid ""
 "Are you running Dolphin from a CD/DVD, or is the save file maybe write "
 "protected?"
 msgstr ""
-"메모리 카드 파일 %s를 쓸 수 없었습니다.\n"
+"Nelze zapsat soubor pamětové karty %s.\n"
 "\n"
-"CD/DVD에서 돌핀을 구동하나요, 아니면 저장 파일이 쓰기 보호일지도?"
+"Spouštíte Dolphina z CD/DVD, nebo je snad soubor s uložením chráněný proti "
+"zápisu?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1115
 msgid "Couldn't find open command for extension 'ini'!"
-msgstr "확장자 'ini'에 대한 열린 명령을 발견할 수 없었습니다!"
+msgstr "Nelze najít příkaz pro otevření přípony 'ini'!"
 
 #: Source/Core/Core/Src/BootManager.cpp:127
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
 msgstr ""
-"코어를 초기화할 수 없었습니다\n"
-"당신의 환경설정을 체크하세요."
+"Nelze spustit jádro.\n"
+"Zkontrolujte Vaše nastavení."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:171
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:484
 msgid "Count:"
-msgstr "카운트:"
+msgstr "Počet:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:465
 msgid "Country:"
-msgstr "국가:"
+msgstr "Země:"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:174
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:539
 msgid "Create AR Code"
-msgstr "AR 코드 생성"
+msgstr "Vytvořit AR kód"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:514
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:579
 msgid "Create new perspective"
-msgstr "새로운 관점 생성"
+msgstr "Vytvořit novou perspektivu"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:562
 msgid "Created by KDE-Look.org"
-msgstr "KDE-Look.org에 의해 만들어짐"
+msgstr "Vytvořil KDE-look.org"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:559
 msgid ""
 "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 msgstr ""
-"Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]에 의해 만들어"
-"짐"
+"Vytvořil Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:560
 msgid "Created by VistaIcons.com"
-msgstr "VistaIcons.com에 의해 만들어짐"
+msgstr "Vytvořil VistaIcons.com"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:561
 msgid "Created by black_rider and published on ForumW.org > Web Developments"
-msgstr ""
-"black_rider에 의해 만들어지고 ForumW.org > Web Developments에서 게시됨 "
+msgstr "Vytvořil black_rider a publikováno na ForumW.org > Web Developments"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:15
 msgid "Creator: "
-msgstr "만든이:"
+msgstr "Tvůrce:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
 msgid "Crop"
-msgstr "자르기"
+msgstr "Oříznout"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
-msgstr "크로스페이드"
+msgstr "Crossfade"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:683
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
-msgstr "현재 디렉토리가 %s에서 wxFileSelector뒤에 %s로 변경됨!"
+msgstr "Současný adresář se změnil z %s na %s po wxFileSelector!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 msgid "Custom Projection Hack"
-msgstr "사용자 지정 프로젝션 핵:"
+msgstr "Vlastní Hack Projekce"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.h:30
 msgid "Custom Projection Hack Settings"
-msgstr "사용자 지정 프로젝션 핵 설정"
+msgstr "Nastavení Vlastního Hacku Projekce"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Customize some Orthographic Projection parameters."
-msgstr "일부 정 투영 파라미터들을 커스터마이즈."
+msgstr "Přizpůsobte některé Ortografické parametry Projekce"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:324
 msgid "Czech"
-msgstr "체코"
+msgstr "Čeština"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:86
 msgid "D-Pad"
-msgstr "D-패드"
+msgstr "D-Pad"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
 msgid "DList Cache"
-msgstr "데이터리스트 캐쉬"
+msgstr "Vyrovnávací paměť DList"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:451
 msgid "DSP"
-msgstr "오디오"
+msgstr "DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:716
 msgid "DSP Emulator Engine"
-msgstr "DSP 에뮬레이터 엔진"
+msgstr "Jádro Emulátoru DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:277
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
 msgid "DSP HLE emulation (fast)"
-msgstr "DSP HLE 에뮬레이션 (빠름)"
+msgstr "DSP HLE emulace (rychlé)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:279
 msgid "DSP LLE interpreter (slow)"
-msgstr "DSP LLE 인터프리터 (느림)"
+msgstr "DSP LLE převaděč (pomalé)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:611
 msgid "DSP LLE on thread"
-msgstr "DSP LLE를 쓰레드상에"
+msgstr "DSP LLE ve vlákně"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "DSP LLE recompiler"
-msgstr "DSP LLE 리컴파일러"
+msgstr "DSP LLE rekompilátor"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:451
 msgid "DSP settings"
-msgstr "DSP 설정"
+msgstr "Nastavení DSP"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:905
 msgid "DVD Root:"
-msgstr "DVD 루트:"
+msgstr "Kořen DVD:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:325
 msgid "Danish"
-msgstr "덴마크어"
+msgstr "Dánština"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:164
 msgid "Data Size"
-msgstr "데이터 크기"
+msgstr "Velikost data"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:469
 msgid "Date:"
-msgstr "날짜:"
+msgstr "Datum:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:531
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:565
 msgid "Datel MaxDrive/Pro files(*.sav)"
-msgstr "Datel MaxDrive/Pro 파일들(*.sav)"
+msgstr "Soubory Datel MaxDrive/Pro(*.sav)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:242
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:259
@@ -1343,58 +1344,58 @@ msgstr "Datel MaxDrive/Pro 파일들(*.sav)"
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:281
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:296
 msgid "Dead Zone"
-msgstr "데드 존"
+msgstr "Mrtvá Zóna"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:50
 msgid "Debug"
-msgstr "디버그"
+msgstr "Ladění"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:76
 msgid "Decimal"
-msgstr "10진수의"
+msgstr "Desetinné"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1022
 msgid "Decompress ISO..."
-msgstr "ISO 압축해제..."
+msgstr "Dekomprimovat ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1037
 msgid "Decompress selected ISOs..."
-msgstr "선택된 ISO들 압축해제..."
+msgstr "Dekomprimovat vybraná ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1222
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1355
 msgid "Decompressing ISO"
-msgstr "ISO 압축해제하기"
+msgstr "Dekomprimuji ISO"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:934
 msgid "Default"
-msgstr "기본"
+msgstr "Výchozí"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:902
 msgid "Default ISO:"
-msgstr "기본 ISO:"
+msgstr "Výchozí ISO:"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:85
 msgid "Default font"
-msgstr "기본 폰트"
+msgstr "Výchozí typ písma"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:948
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:32
 msgid "Delete"
-msgstr "삭제"
+msgstr "Smazat"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:790
 msgid "Delete Save"
-msgstr "저장 지우기"
+msgstr "Smazat Uloženou Hru"
 
 #: Source/Core/VideoCommon/Src/AVIDump.cpp:73
 #, c-format
 msgid "Delete the existing file '%s'?"
-msgstr "기존 '%s'파일을 삭제합니까?"
+msgstr "Vymazat existující soubor '%s'?"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Detect"
-msgstr "감지"
+msgstr "Zjistit"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:234
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:329
@@ -1402,22 +1403,22 @@ msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
 msgstr ""
-"출력 버퍼 안에 적합한 것보다 더 많은 데이터 읽기 시도가 감지되었습니다. 고정"
-"(Clamp)."
+"Zjištěn pokus o přečtení více dat z DVD, než se vejde do výstupní paměti. "
+"Zásek."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:133
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:920
 msgid "Device"
-msgstr "장비"
+msgstr "Zařízení"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:865
 msgid "Device Settings"
-msgstr "장비 설정"
+msgstr "Nastavení Zařízení"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Dial"
-msgstr "다이얼"
+msgstr "Kruhová stupnice"
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:151
 msgid "Direct3D11"
@@ -1432,68 +1433,69 @@ msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
 msgstr ""
-"디렉토리 체크섬이 실패했습니다\n"
-" 그리고 디렉토리 백업 체크섬이 실패했습니다"
+"Kontrolní součet adresáře\n"
+"i záložní kontrolní součet Adresáře selhal"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:363
 msgid "Disable Dest. Alpha Pass"
-msgstr "목적지 알파 패스 끔"
+msgstr "Vypnout Průchod Cíl. Průhl."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:362
 msgid "Disable Fog"
-msgstr "안개 끔"
+msgstr "Zakázat Mlhu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:360
 msgid "Disable Lighting"
-msgstr "광원 끔"
+msgstr "Zakázat Osvětlení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:361
 msgid "Disable Textures"
-msgstr "텍스쳐들 끔"
+msgstr "Zakázat Textury"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:110
 msgid ""
 "Disable fog. Improves performance but causes glitches in games which rely on "
 "proper fog emulation."
 msgstr ""
-"안개 끔. 성능이 향상되지만 올바른 안개 에뮬레이션에 의존한 게임에서 결함 유"
-"발."
+"Zakáže mlhu. Zlepší výkon, ale způsobuje chyby v hrách, které závisejí na "
+"správné emulaci mlhy"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:108
 msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
 msgstr ""
-"광원 끔. 성능이 향상되지만 그것을 사용하는 게임에서 빛이 사라짐을 유발."
+"Zakáže osvětlení. Zlepší výkon, ale způsobí, že osvětlení zmizí v hrách, "
+"které ho používají."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"텍스쳐링 끔.\n"
-"이것은 디버깅 목적으로만 유용합니다."
+"Zakáže texturování.\n"
+"Toto se používá pouze pro účely ladění"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:111
 msgid ""
 "Disables an alpha-setting pass.\n"
 "Breaks certain effects but might help performance."
 msgstr ""
-"알파-설정 패스 끔\n"
-"특정 효과를 부시지만 성능에는 도움이 될지도."
+"Vypne průchod nastavení průhlednosti.\n"
+"Některé efekty budou poškozeny, ale může to zlepšit výkon."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:541
 msgid "Disc"
-msgstr "디스크"
+msgstr "Disk"
 
 #: Source/Core/DiscIO/Src/DriveBlob.cpp:111
 #: Source/Core/DiscIO/Src/DriveBlob.cpp:130
 msgid "Disc Read Error"
-msgstr "디스크 읽기 에러"
+msgstr "Chyba čtení disku"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:593
 msgid "Display"
-msgstr "화면표시"
+msgstr "Obraz"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
 msgid "Display the inputs read by the emulator."
@@ -1501,141 +1503,141 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
 msgid "Distance Alpha Pass"
-msgstr "디스턴스 알파 패스"
+msgstr "Průchod Vzdálené Průhlednosti"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:77
 msgid "Divide"
-msgstr "나누기"
+msgstr "Rozdělit"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
 msgid "Do you want to stop the current emulation?"
-msgstr "현재 에뮬레이션을 중단하고 싶습니까?"
+msgstr "Chcete současnou emulaci zastavit?"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:915
 msgid "Dolphin"
-msgstr "돌핀"
+msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:136
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
-msgstr "돌핀 %s 그래픽 환경설정"
+msgstr "Dolphin %s Grafická Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:312
 msgid "Dolphin &Web Site"
-msgstr "돌핀 웹 사이트(&W)"
+msgstr "&Webová stránka Dolphin"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.h:37
 msgid "Dolphin Configuration"
-msgstr "돌핀 환경설정"
+msgstr "Dolphin Nastavení"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:93
 msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "돌핀 에뮬된 위모트 환경설정"
+msgstr "Nastavení Emulovaného Dolphin Wiimote"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1192
 msgid "Dolphin GCPad Configuration"
-msgstr "돌핀 GC패드 환경설정"
+msgstr "Dolphin GCPad Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:738
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1131
 msgid "Dolphin TAS Movies (*.dtm)"
-msgstr "돌핀 TAS 동영상 (*.dtm)"
+msgstr "Doplhin Filmy TAS (*.dtm)"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
 msgid "Dolphin Wiimote Configuration"
-msgstr "돌핀 위모트 환경설정"
+msgstr "Dolphin Wiimote Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:313
 msgid "Dolphin at &Google Code"
-msgstr "돌핀 구글 코드(&G)"
+msgstr "Dolphin na &Google Code"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:302
 msgid ""
 "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
 "files..."
 msgstr ""
-"돌핀이 어느 GC/Wii ISO도 찾을 수 없었습니다. 파일을 둘러보려면 여기를 더블클"
-"릭하세요..."
+"Dolphin nemohl nalézt žádná GX/Wii ISO. Klikněte zde dvakrát k prohledání "
+"souborů..."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:217
 msgid ""
 "Dolphin has not been configured with an install location,\n"
 "Keep Dolphin portable?"
 msgstr ""
-"돌핀이 설치 위치로 환경설정이 되지 않었습니다,\n"
-"돌핀을 포터블로 유지합니까?"
+"Umístění instalace nebylo v Dolphinu nastaveno,\n"
+"Ponechat Dolphina přenosného?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:306
 msgid ""
 "Dolphin is currently set to hide all games.  Doubleclick here to show all "
 "games..."
 msgstr ""
-"돌핀이 현재 모든 게임들을 숨기게 설정됨. 모든 게임들을 보려면 여기를 더블클"
-"릭..."
+"Dolphin je v současnosti nastaven na skrytí všech her. Klikněte zde dvakrát "
+"pro zobrazení všech her..."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 msgid "Down"
-msgstr "아래"
+msgstr "Dolů"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:42
 msgid "Download Codes (WiiRD Database)"
-msgstr "코드(WiiRD 데이터베이스) 다운로드"
+msgstr "Stáhnout kódy (Databáze WiiRD)"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:276
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
-msgstr "%lu 코드들이 다운로드됨. (추가된 %lu)"
+msgstr "Stáhnuto %lu kódů. (přídáno %lu)"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
 msgid "Drums"
-msgstr "드럼"
+msgstr "Bubny"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:79
 msgid "Dummy"
-msgstr "더미"
+msgstr "Atrapa"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
 msgid "Dump Audio"
-msgstr "오디오 덤프"
+msgstr "Uložit Zvuk"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:409
 msgid "Dump EFB Target"
-msgstr "EFB 타겟 덤프"
+msgstr "Vypsat Cíl EFB"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
 msgid "Dump Frames"
-msgstr "프레임들 덤프"
+msgstr "Vypsat Snímky"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:407
 msgid "Dump Textures"
-msgstr "텍스쳐들 덤프"
+msgstr "Vypsat Textury"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
-msgstr "User/Dump/Textures/<game id>/ 에 게임 텍스쳐들을 덤프"
+msgstr "Vypíše textury hry do User/Dump/Textures/<id hry>/"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 msgid "Dutch"
-msgstr "네덜란드어"
+msgstr "Nizozemština"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:131
 msgid "E&xit"
-msgstr "종료(&x)"
+msgstr "O&dejít"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:322
 msgid "EFB"
-msgstr "EFB (내장프레임버퍼)"
+msgstr "EFB"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:378
 msgid "EFB Copy Regions"
-msgstr "EFB 복사 영역"
+msgstr "EFB Regiony Kopie"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:260
 msgid "EFB Scaled Copy"
-msgstr "EFB 스케일된 복사"
+msgstr "EFB Kopie Změněné Velikosti"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:249
 #, c-format
@@ -1645,50 +1647,50 @@ msgid ""
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"에러:  이 버전의 돌핀은 적어도 버전 %d.%d인 TAP-Win32 드라이버가 필요하다  "
-"-- 당신이 최근에 당신의 돌핀 배포를 업그레이드했다면, 윈도우즈가 새로운 드라"
-"이버를 알게 하려는 시점에서 아마도 재부팅이 필요합니다."
+"CHYBA: Tato verze Dolphinu vyžaduje ovladač TAP-Win32 verze alespoň %d. %d "
+"-- Pokud jste nedávno aktualizovali Vaši Dolphin instalaci, je zapotřebí v "
+"tomto bodě restartovat, aby Windows nový ovladač uviděl."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "EUROPE"
-msgstr "유럽"
+msgstr "EVROPA"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:467
 msgid "Edit"
-msgstr "편집"
+msgstr "Upravit"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.h:30
 msgid "Edit ActionReplay Code"
-msgstr "액션리플레이 코드 편집"
+msgstr "Upravit kód ActionReplay"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:284
 msgid "Edit Config"
-msgstr "환경 편집"
+msgstr "Upravit nastavení"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.h:30
 msgid "Edit Patch"
-msgstr "패치 편집"
+msgstr "Upravit záplatu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:467
 msgid "Edit current perspective"
-msgstr "현재 관점 편집"
+msgstr "Upravit současnou perspektivu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:421
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:443
 msgid "Edit..."
-msgstr "편집..."
+msgstr "Upravit"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
 msgid "Effect"
-msgstr "효과"
+msgstr "Efekt"
 
 #: Source/Core/Core/Src/Core.cpp:192
 msgid "Emu Thread already running"
-msgstr "에뮬 쓰레드가 이미 구동중임"
+msgstr "Vlákno Emulace již běží"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:283
 msgid "Emulate format changes"
-msgstr "포멧 변경들을 에뮬레이트"
+msgstr "Emulovat změny formátů"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:103
 msgid ""
@@ -1696,138 +1698,139 @@ msgid ""
 "This is not so accurate, but it's good enough for the way many games use "
 "framebuffer copies."
 msgstr ""
-"텍스쳐들에 직접적으로 프레임버퍼 복사들을 에뮬레이트.\n"
-"이것은 그리 정확하지는 않습니다, 하지만 많은 게임들이 프레임버퍼 복사들을 사"
-"용하는 방법으로 충분히 좋다."
+"Emuluje kopie vyrovnávací paměti snímku přímo do textur.\n"
+"Není to precizní, ale pro způsob jakým spousta her používá kopie vyrovnávací "
+"paměti snímku to stačí."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:33
 msgid "Emulated Wiimote"
-msgstr "에뮬된 위모트"
+msgstr "Emulovaný Wiimote"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:350
 msgid "Emulation State: "
-msgstr "에뮬레이션 상태:"
+msgstr "Stav Emulace:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:688
 msgid "Emulator Display Settings"
-msgstr "에뮬레이터 화면표시 설정"
+msgstr "Obrazová Nastavení Emulátoru"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:286
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:389
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
 msgid "Enable"
-msgstr "활성"
+msgstr "Povolit"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:103
 msgid "Enable AR Logging"
-msgstr "AR 로깅 활성"
+msgstr "Povolit protokolování AR"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:720
 msgid "Enable Audio Throttle"
-msgstr "오디오 병목 활성"
+msgstr "Zapnout Přiškrcení Zvuku"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
 msgid "Enable BAT"
-msgstr "BAT 활성"
+msgstr "Zapnout BAT"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Enable Block Merging"
-msgstr "블록 합치기 활성"
+msgstr "Zapnout Slučování Bloků"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Enable CPU Access"
-msgstr "CPU 엑세스 활성"
+msgstr "Povolit Přístup k Procesoru"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
 msgid "Enable Cheats"
-msgstr "치트 활성"
+msgstr "Povolit Cheaty"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
 msgid "Enable Copy to EFB"
-msgstr "EFB에 복사 활성"
+msgstr "Povolit Kopírování do EFB"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:718
 msgid "Enable DTK Music"
-msgstr "DTK 음악 활성"
+msgstr "Zapnout DTK Hudbu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:427
 msgid "Enable Display List Caching"
-msgstr "화면표시 목록 캐쉬 활성"
+msgstr "Ukládat předvyt. obj. do vyr. pam."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
 msgid "Enable Dual Core"
-msgstr "듀얼 코어 활성"
+msgstr "Povolit dvojité jádro"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:601
 msgid "Enable Dual Core (speedup)"
-msgstr "듀얼 코어 활성 (속도상승)"
+msgstr "Zapnout dvojité jádro (zrychlení)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:334
 msgid "Enable EFB To Texture"
-msgstr "'EFB를 텍스쳐에' 활성"
+msgstr "Povolit EFB do Textury"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:428
 msgid "Enable Hotkeys"
-msgstr "단축키 활성(그래픽 컨트롤)"
+msgstr "Povolit klávesové zkratky"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid "Enable Idle Skipping"
-msgstr "아이들 스킵 활성"
+msgstr "Povolit Přeskakování Nečinných Příkazů"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:602
 msgid "Enable Idle Skipping (speedup)"
-msgstr "아이들 스킵 활성 (속도상승)"
+msgstr "Povolit Přeskakování Nečinných Příkazů (zrychlení)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
 msgid "Enable MMU"
-msgstr "MMU 활성"
+msgstr "Zapnout MMU"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:426
 msgid "Enable OpenCL"
-msgstr "OpenCL 활성"
+msgstr "Zapnout OpenCL"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:645
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Enable Progressive Scan"
-msgstr "프로그레시브 스캔 활성"
+msgstr "Povolit Progresivní Skenování"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:831
 msgid "Enable Screen Saver (burn-in reduction)"
-msgstr "스크린 세이버 (열화 줄임) 활성"
+msgstr "Povolit Spořič Obrazovky (zmírnění vypálení)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
 msgid "Enable WideScreen"
-msgstr "와이드스크린 활성"
+msgstr "Povolit Širokoúhlou obrazovku"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:359
 msgid "Enable Wireframe"
-msgstr "와이어프레임 활성"
+msgstr "Povolit Drátěný Model"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
 msgid "Enable cache"
-msgstr "캐쉬 활성"
+msgstr "Povolit vyrovnávací paměť"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid ""
 "Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = "
 "Compatible)"
 msgstr ""
-"빠른 디스크 엑세스 활성. 일부 게임들에서 요구됨. (켬 = 빠른, 끔 = 호환성)"
+"Zapnout rychlý přístup k disku. Některé hry to potřebují. (ZAPNUTO = rychlé, "
+"VYPNUTO = Kompatibilní)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:803
 msgid "Enable pages"
-msgstr "페이지 활성"
+msgstr "Zapnout stránky"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
 msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
 msgstr ""
-"The Legend of Zelda: Twilight Princess를 스피드업 하려면 켬. 다른 게임을 위해"
-"서는 끔."
+"Povolte toto pro zrychlení The Legend of Zelda: Twilight Princess. Zakažte "
+"pro VŠECHNY ostatní hry."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
@@ -1835,20 +1838,21 @@ msgid ""
 "Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = "
 "Fast)"
 msgstr ""
-"블럭 주소 해석 (BAT); 메모리 관리 유닛 함수 활성. 하드웨어에 정확해진다, 하지"
-"만 에뮬레이트는 느려진다.(켬 = 호환성, 끔 = 빠름)"
+"Povolit Překlad Adres Bloků (BAT); funkce Jednotky Správy Paměti. Přesně "
+"napodobuje hardware, ale je emulován pomalu. (ZAPNUTO = Kompatibilní, "
+"VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Enables Custom Projection Hack"
-msgstr "사용자 지정 프로젝션 핵 활성화"
+msgstr "Povolit Vlastní Hack Projekce"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
 msgid ""
 "Enables anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles."
 msgstr ""
-"비등방성 필터링 활성.\n"
-"비스듬한 보기 각도들에 있는 텍스쳐들의 비주얼 품질을 향상시킨다"
+"Povolí aniztropní fillrování.\n"
+"Zlepší obrazovou kvalitu textur, které jsou v zorných úhlech šikmé."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
 msgid ""
@@ -1856,9 +1860,10 @@ msgid ""
 "Games often need this for post-processing or other things, but if you can "
 "live without it, you can sometimes get a big speedup."
 msgstr ""
-"내장프레임버퍼 복사들의 에뮬레이션을 켭니다, 그 게임이 그것들을 사용하면 .\n"
-"게임들은 후처리나 다른 것들을 위해 종종 이것이 필요하다, 하지만 그것 없이 살 "
-"수 있다면, 때때로 큰 속도향상을 얻을 수 있다."
+"Povolí emulaci Vnořených kopií Vyrovnávací paměti snímků, pokud je hra "
+"používá.\n"
+"Hry toto často potřebují pro následné zpracování nebo jiné věci, ale pokud "
+"toto oželíte, můžete někdy získat velké zrychlení."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
 msgid ""
@@ -1869,68 +1874,71 @@ msgid ""
 "Depending on how the game uses this function, the speed hits caused by this "
 "option range from none to critical."
 msgstr ""
-"픽셀 포멧이 변경될 때 EFB 안쪽에서 그 데이터를 재해석하기를 켭니다.\n"
-"일부 게임들은 특정 효과들에 대해 이 기능에 의존한다, 그러니 결함들을 겪는다"
-"면 켜라.\n"
-"그 게임이 이 기능을 어떻게 사용하냐에 따라, 속도는 영향없음에서 치명까지 유발"
-"됩니다."
+"Povoluje reinterpretaci dat uvnitř EFB, když se formát pixelů změní.\n"
+"Některé hry závisejí na této funkci pro jisté efekty, takže pokud máte "
+"chyby, tuto možnost zapněte.\n"
+"V závislosti na tom, jak hra tuto funkci využivá bude mít rychlostní zisk "
+"způsobený touto volbou rozsah od žádný až po kritický."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
-msgstr "일부 게임들에 필요한 메모리 관리 유닛 활성. (켬 = 호환성, 끔 = 빠름)"
+msgstr ""
+"Povolí Jednotku Správy Paměti, potřebnou v nějakých hrách. (ZAPNUTO = "
+"Kompatibilní, VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
-msgstr "끝"
+msgstr "End"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:327
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:475
 msgid "English"
-msgstr "영어"
+msgstr "Angličtina"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:318
 msgid "Enhancements"
-msgstr "향상"
+msgstr "Vylepšení"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:578
 msgid "Enter a name for the new perspective:"
-msgstr "새로운 관점을 위한 이름을 입력하세요:"
+msgstr "Zadejte jméno nové perspektivy:"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:198
 #, c-format
 msgid "Entry %d/%d"
-msgstr "엔트리 %d/%d"
+msgstr "Záznam %d/%d"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:85
 #, c-format
 msgid "Entry 1/%d"
-msgstr "엔트리 1/%d"
+msgstr "Záznam 1/%d"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:205
 msgid "Equal"
-msgstr "같음"
+msgstr "Rovná se"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1322
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:152
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 msgid "Error"
-msgstr "에러"
+msgstr "Chyba"
 
 #: Source/Core/Core/Src/State.cpp:339 Source/Core/Core/Src/State.cpp:442
 msgid "Error allocating buffer"
-msgstr "버퍼 할당하기 에러"
+msgstr "Chyba při alokaci vyrovnávací paměti"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:413
 msgid "Error loading selected language. Falling back to system default."
-msgstr "선택된 언어 로딩 에러. 시스템 기본으로 돌아갑니다."
+msgstr ""
+"Chyba při nahrávání zvoleného jazyka. Vracím se na výchozí jazyk systému."
 
 #: Source/Core/Core/Src/OnFrame.cpp:222
 #, c-format
 msgid "Error opening file %s for recording"
-msgstr "기록하기 위한 %s 파일 열기 에러"
+msgstr "Chyba při otevírání souboru %s pro nahrávání"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:278
 #, c-format
@@ -1938,8 +1946,8 @@ msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
 "fonts correctly, or crash."
 msgstr ""
-"에러: %s 폰트들을 접근 시도함 하지만 그것들은 로드되지 않습니다. 게임들이 올"
-"바르게 폰트들을 보여주지 않을 수 있다, 혹은 깨짐."
+"Chyba: Pokus o přístup k písmům %s, ale ty nejsou načtena. hry nemusí "
+"zobrazit písma správně, nebo se můžou zhroutit"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:30
 msgid "Escape"
@@ -1947,155 +1955,155 @@ msgstr "Escape"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Euphoria"
-msgstr "유포리아"
+msgstr "Euforie"
 
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
-msgstr "예외 핸들러 - 메모리 공간 아래를 접근. %08llx%08llx"
+msgstr "Obslužná rutina výjimky - přístup pod paměťovým místem. %08llx%08llx"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
 msgid "Execute"
-msgstr "실행"
+msgstr "Spustit"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:140
 msgid "Exit Dolphin with emulator"
-msgstr "에뮬레이터와 함께 돌핀 종료"
+msgstr "Ukončit Dolphin s emulátorem"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:465
 msgid "Export Failed"
-msgstr "내보내기 실패했습니다"
+msgstr "Export Selhal"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:640
 msgid "Export File"
-msgstr "파일 내보내기"
+msgstr "Exportovat Soubor"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:212
 msgid "Export Recording"
-msgstr "(입력) 기록 내보내기"
+msgstr "Exportovat Nahrávku"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:365
 msgid "Export Recording..."
-msgstr "(입력) 기록 내보내기..."
+msgstr "Exportovat Nahrávku..."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:792
 msgid "Export Save"
-msgstr "저장 내보내기"
+msgstr "Exportovat Uloženou hru"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1006
 msgid "Export Wii save (Experimental)"
-msgstr "Wii 저장 내보내기 (실험적)"
+msgstr "Exportovat uloženou hru Wii (Experimentální)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:793
 msgid "Export all saves"
-msgstr "모든 저장들을 내보내기"
+msgstr "Exportovat všechny Uložené hry"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:81
 msgid "Export failed, try again?"
-msgstr "내보내기 실패했습니다, 다시 시도?"
+msgstr "Exportování selhalo, zkusit znovu?"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:560
 msgid "Export save as..."
-msgstr "저장을 다른 이름으로 내보내기..."
+msgstr "Exportovat Uloženou hru jako..."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:261
 msgid "Extension"
-msgstr "확장"
+msgstr "Rozšíření"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:61
 msgid "Extra Parameter"
-msgstr "추가 매개변수"
+msgstr "Extra Parametr"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:62
 msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-msgstr "추가 매개변수는 ''Metroid: Other M''에서만 유용합니다."
+msgstr "Extra Parametr užitečný pouze v ''Metroid: Other M''"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:622
 msgid "Extract All Files..."
-msgstr "모든 파일들 압축풀기..."
+msgstr "Extrahovat Všechny Soubory..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:624
 msgid "Extract Apploader..."
-msgstr "앱로더 압축풀기..."
+msgstr "Extrahovat Zavaděč Aplikace..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:625
 msgid "Extract DOL..."
-msgstr "DOL 압축풀기..."
+msgstr "Extrahovat DOL..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:618
 msgid "Extract Directory..."
-msgstr "디렉토리 압축풀기..."
+msgstr "Extrahovat Adresář..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:620
 msgid "Extract File..."
-msgstr "파일 압축 풀기..."
+msgstr "Extrahovat Soubor..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:616
 msgid "Extract Partition..."
-msgstr "파티션 압축풀기..."
+msgstr "Extrahovat Oddíl..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:725
 #, c-format
 msgid "Extracting %s"
-msgstr "%s 압축풀기"
+msgstr "Extrahuji %s"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:709
 msgid "Extracting All Files"
-msgstr "모든 파일들 압축풀기"
+msgstr "Extrahuji Všechny Soubory"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:709
 msgid "Extracting Directory"
-msgstr "디렉토리 압축풀기"
+msgstr "Extrahuji Adresář"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:711
 msgid "Extracting..."
-msgstr "압축풀기..."
+msgstr "Extrahuji..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:164
 msgid "FRANCE"
-msgstr "프랑스"
+msgstr "FRANCIE"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:471
 msgid "FST Size:"
-msgstr "FST 크기:"
+msgstr "Velikost FST:"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:77
 msgid "Failed to Connect!"
-msgstr "연결에 실패했습니다!"
+msgstr "Připojení Selhalo!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:205
 msgid "Failed to Listen!!"
-msgstr "듣기에 실패했습니다!!"
+msgstr "Naslouchání Selhalo!!"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
 msgid "Failed to download codes."
-msgstr "코드들 다운로드에 실패했습니다."
+msgstr "Stahování kódů selhalo."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:825
 #, c-format
 msgid "Failed to extract to %s!"
-msgstr "%s로 압축풀기 실패했습니다!"
+msgstr "Nelze extrahovat do %s!"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:64
 #, c-format
 msgid "Failed to load DSP ROM: %s"
-msgstr "DSP 롬: %s 로드에 실패했습니다"
+msgstr "Nelze nahrát DSP ROM : %s"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:62
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:71
 msgid "Failed to load hid.dll"
-msgstr "hid.dll 로드에 실패했습니다"
+msgstr "Nelze nahrát hid.dll"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:157
 msgid "Failed to read banner.bin"
-msgstr "banner.bin 읽기에 실패했습니다"
+msgstr "Nelze číst z banner.bin"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:128
 msgid ""
 "Failed to read block allocation table backup correctly\n"
 "(0x8000-0x9FFF)"
 msgstr ""
-"블럭 할당 테이블 백업을 올바르게 읽기에 실패했습니다\n"
+"Nelze správně číst zálohu alokační tabulky bloku\n"
 "(0x8000-0x9FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:122
@@ -2103,20 +2111,20 @@ msgid ""
 "Failed to read block allocation table correctly\n"
 "(0x6000-0x7FFF)"
 msgstr ""
-"블럭 할당 테이블을 올바르게 읽기에 실패했습니다\n"
+"Nelze správně číst alokační tabulku bloku\n"
 "(0x6000-0x7FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:311
 #, c-format
 msgid "Failed to read data from file %d"
-msgstr "%d 파일로 부터 데이터 읽기 실패"
+msgstr "Nelze číst data ze souboru %d"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:116
 msgid ""
 "Failed to read directory backup correctly\n"
 "(0x4000-0x5FFF)"
 msgstr ""
-"디렉토리 백업을 올바르게 읽기에 실패했습니다\n"
+"Nelze správně číst zálohu adresáře\n"
 "(0x4000-0x5FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:110
@@ -2124,7 +2132,7 @@ msgid ""
 "Failed to read directory correctly\n"
 "(0x2000-0x3FFF)"
 msgstr ""
-"디렉토리를 올바르게 읽기에 실패했습니다\n"
+"Nelze správně číst adresář\n"
 "(0x2000-0x3FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:104
@@ -2132,7 +2140,7 @@ msgid ""
 "Failed to read header correctly\n"
 "(0x0000-0x1FFF)"
 msgstr ""
-"해더를 올바르게 읽기에 실패했습니다\n"
+"Nelze správně číst hlavičku\n"
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:211
@@ -2141,39 +2149,39 @@ msgid ""
 "(0xA000-)\n"
 "Memcard may be truncated"
 msgstr ""
-"저장 데이터를 읽기에 실패했습니다\n"
+"Nelze číst uložená data\n"
 "(0xA000-)\n"
-"메모리카드가 잘렸을 지도"
+"Data v paměťové kartě můžou být zkrácená"
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:61
 msgid "Failed to read unique ID from disc image"
-msgstr "디스크 이미지로 부터 유일한 ID를 읽기에 실패했습니다"
+msgstr "Nelze přečíst jedinečné ID z obrazu disku"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:83
 msgid "Failed to write BT.DINF to SYSCONF"
-msgstr "BT.DINF를 SYSCONF로 쓰기에 실패했습니다"
+msgstr "Selhal zápis BT.DINF do SYSCONF"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:249
 msgid "Failed to write bkhdr"
-msgstr "bkhdr를 쓰기에 실패"
+msgstr "Zápis bkhdr selhal"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:173
 #, c-format
 msgid "Failed to write header for %s"
-msgstr "%s 에 대한 헤더 쓰기에 실패"
+msgstr "Zápis hlavičky selhal pro %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:282
 #, c-format
 msgid "Failed to write header for file %d"
-msgstr "%d 파일에 대한 헤더 쓰기에 실패했습니다"
+msgstr "Selhal zápis hlavičky souboru %d"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:310
 msgid "Fast"
-msgstr "빠름"
+msgstr "Rychlá"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 msgid "Fast version of the MMU.  Does not work for every game."
-msgstr "MMU의 빠른 버전. 모든 게임에 대해 작동하지는 않는다."
+msgstr "Rychlá verze MMU. Nefunguje v každé hře."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:106
 msgid ""
@@ -2181,25 +2189,25 @@ msgid ""
 "errors.\n"
 "Slower variants look at more pixels and thus are safer."
 msgstr ""
-"더 빠른 형태는 더 적은 픽셀들을 살펴보고 그리하여 에러들에 대한 더 많은 잠재"
-"력을를 가진다.\n"
-"더 느린 형태는 더 많은 픽셀들을 살펴봐서 더 안전하다."
+"Rychlejší varianty se dívají na méně pixelů a tudíž mají větší potenciál k "
+"chybám.\n"
+"Pomalejší varianty se dívají na více pixelů a tudíž jsou bezpečnější."
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
-msgstr "파일이 코드를 지니지 않었습니다."
+msgstr "Soubor neobsahoval žádné kódy"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:419
 msgid "File converted to .gci"
-msgstr "파일이 .gci 로 변환되었습니다"
+msgstr "Soubor převeden na .gci"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:434
 msgid ""
 "File could not be opened\n"
 "or does not have a valid extension"
 msgstr ""
-"파일을 열 수 없었습니다\n"
-"혹은 적합한 확장자가 아닙니다"
+"Soubor nelze otevřít\n"
+"nebo nemá platnou příponu"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:95
 #, c-format
@@ -2207,61 +2215,61 @@ msgid ""
 "File has the extension \"%s\"\n"
 "valid extensions are (.raw/.gcp)"
 msgstr ""
-"파일이 확장자 \"%s\"를 가집니다\n"
-"적합한 확장자들은 (.raw/.gcp)"
+"Soubor má příponu \"%s\"\n"
+"platné přípony jsou (.raw/.gcp)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:431
 msgid "File is not recognized as a memcard"
-msgstr "파일이 메모리카드로 인식되지 않는다"
+msgstr "Soubor nerozpoznán jako paměťová karta"
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:302
 msgid "File not compressed"
-msgstr "파일이 압축되지 않었습니다"
+msgstr "Soubor není komprimovaný"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp:120
 #, c-format
 msgid "FileIO: Unknown open mode : 0x%02x"
-msgstr "FileIO: 알려지지 않은 열기 모드: 0x%02x"
+msgstr "FileIO: Neznámý režim otevření : 0x%02x"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:300
 msgid "Filesystem"
-msgstr "파일시스템"
+msgstr "Souborový systém"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1108
 msgid "Filetype 'ini' is unknown! Will not open!"
-msgstr "'ini'파일타입은 알려지지 않음! 열지 않겠습니다!"
+msgstr "Typ souboru 'ini' je neznámý! Nelze otevřít!"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:633
 msgid "First Block"
-msgstr "첫번째 블럭"
+msgstr "První blok"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:799
 msgid "Fix Checksums"
-msgstr "체크섬들 고침"
+msgstr "Spravit Kontrolní Součty"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:220
 msgid "Force 16:9"
-msgstr "강제 16:9"
+msgstr "Vynutit 16:9"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:220
 msgid "Force 4:3"
-msgstr "강제 4:3"
+msgstr "Vynutit 4:3"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid "Force Bi/Trilinear Filtering"
-msgstr "이/삼선형 필터링 강제"
+msgstr "Vynutit Bi/Trilineární Filtrování"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Force Filtering"
-msgstr "강제 필터링"
+msgstr "Vynutit Filtrování"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Note that this might cause graphical glitches"
 msgstr ""
-"게임을 와이드스크린 해상도로 그래픽을 출력하게 강제시킴.\n"
-"이것은 그래픽 결함을 유발할지도 모르니 참고하세요."
+"Donutí hru vytvářet obraz v širokoúhlých rozlišeních.\n"
+"Nezapomeňte, že toto může způsobovat grafické chyby"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 msgid ""
@@ -2269,63 +2277,63 @@ msgid ""
 "Improves texture quality (especially when using a high internal resolution) "
 "but causes glitches in some games."
 msgstr ""
-"게임이 명백히 그것을 껐더라도 이선형 텍스쳐 필터링을 강제시킨다.\n"
-"텍스쳐 품질을 향상시킨다(특히 높은 내부 해상도를 사용할 때) 하지만 일부 게임"
-"들에서는 결함들을 유발한다."
+"Vynutí bilineární filtrování textur i když ho hra výslovně zakázala.\n"
+"Zlepší kvalitu textur (zvláště pokud používáte vysoké vnitřní rozlišení), "
+"ale v některých hrách způsobuje chyby."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:83
 msgid ""
 "Format as ascii (NTSC\\PAL)?\n"
 "Choose no for sjis (NTSC-J)"
 msgstr ""
-"ascii (NTSC\\PAL)로 포멧?\n"
-"sjis (NTSC-J)에 대해서 선택하지 마세요"
+"Formátovat jako ascii (NTSC\\PAL)?\n"
+"Zvolte ne pro sjis (NTSC-J)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:278
 msgid "Forward"
-msgstr "앞으로"
+msgstr "Dopředu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid "Fractional"
-msgstr "부분"
+msgstr "Zlomkový"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Frame Advance"
-msgstr "프레임 진행"
+msgstr "Postup Snímkem"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:152
 msgid "Frame S&kipping"
-msgstr "프레임 스킵(&k)"
+msgstr "Přes&kakování snímků:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:413
 msgid "Frame dumps use FFV1"
-msgstr "FFV1을 사용한 프레임 덤프"
+msgstr "Uložení snímků použije FFV1"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:615
 msgid "Framelimit:"
-msgstr "프레임제한:"
+msgstr "Limit Snímků:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:411
 msgid "Free Look"
-msgstr "자유로운 보기"
+msgstr "Rozhlížení pomocí myši"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:328
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
 msgid "French"
-msgstr "프랑스어"
+msgstr "Francouzština"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:38
 msgid "Frets"
-msgstr "프렛들"
+msgstr "Pražce"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:446
 msgid "FullScr"
-msgstr "전체화면"
+msgstr "CelObr"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:667
 msgid "Fullscreen Display Resolution:"
-msgstr "전체화면 표시 해상도:"
+msgstr "Rozlišení Displeje v režimu Celé Obrazovky:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:104
 msgid ""
@@ -2333,68 +2341,68 @@ msgid ""
 "This is more accurate than EFB Copy to Texture, and some games need this to "
 "work properly, but it can also be very slow."
 msgstr ""
-"내장프레임버퍼 복사들을 완전히 에뮬레이트한다.\n"
-"이것은 '텍스쳐에 EFB를 복사'보다 더 정확하다, 그리고 일부 게임들은 올바르게 "
-"작동하기위해 이것이 필요하다, 하지만 매우 느릴 수도 있다."
+"Plně emuluje kopie vnořených snímků vyrovnávací paměti.\n"
+"Toto je preciznější než EFB Kopie do Textury, a některé hry toto potřebují "
+"ke správnému fungování, ale může být velmi pomalé."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:537
 msgid "GCI File(*.gci)"
-msgstr "GCI 파일(*.gci)"
+msgstr "Soubor GCI(*.gci)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:452
 msgid "GCPad"
-msgstr "GC패드"
+msgstr "GCPad"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:677
 msgid "GFX Config"
-msgstr "그래픽 환경설정"
+msgstr "Nastavení GFX"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
 msgid "Game ID:"
-msgstr "게임 ID:"
+msgstr "ID Hry:"
 
 #: Source/Core/Core/Src/NetPlay.cpp:228
 msgid "Game is already running!"
-msgstr "게임이 이미 구동중입니다!"
+msgstr "Hra už běží!"
 
 #: Source/Core/Core/Src/NetPlay.cpp:258
 msgid "Game isn't running!"
-msgstr "게임이 구동중이지 않습니다!"
+msgstr "Hra neběží!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:379
 msgid "Game not found!!"
-msgstr "게임이 찾을 수 없습니다!!"
+msgstr "Hra nenalezena!!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:404
 msgid "Game-Specific Settings"
-msgstr "게임-상세 설정"
+msgstr "Nastavení Konkrétní Hry"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
 msgid "GameConfig"
-msgstr "게임환경"
+msgstr "NastaveníHry"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:595
 msgid "Gamecube"
-msgstr "게임큐브"
+msgstr "Gamecube"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:192
 #, fuzzy
 msgid "Gamecube &Pad Settings"
-msgstr "게임큐브 패드 설정(&G)"
+msgstr "Nastavení &Gamecube Pad"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1166
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "게임큐브 메모리 카드들 (*.raw,*.gcp)"
+msgstr "Paměťové karty Gamecube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:452
 msgid "Gamecube Pad settings"
-msgstr "게임큐브 패드 설정"
+msgstr "Gamecube Pad nastavení"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:122
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:296
 msgid "Gecko Codes"
-msgstr "Gecko 코드"
+msgstr "Kódy Gecko"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:142
 #, c-format
@@ -2402,77 +2410,77 @@ msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported.)"
 msgstr ""
-"Gecko코드가 (CT%i CST%i) (%s) 구동에 실패했습니다\n"
-"(잘못된 코드이거나 코드 타입이 아직 지원않된다.)"
+"Nelze spustit GeckoKód (CT%i CST%i) (%s)\n"
+"(buď špatný kód, nebo typ kódu není ještě podporován.)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:592
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:177
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
 msgid "General"
-msgstr "일반"
+msgstr "Obecné"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:329
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
 msgid "German"
-msgstr "독일어"
+msgstr "Němčina"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:451
 #, c-format
 msgid "GetARCode: Index is greater than ar code list size %lu"
-msgstr "GetARCode: 인덱스가 ar 코드 리스트 크기 %lu 보다 더 큽니다 "
+msgstr "GetARCode: Index je větší než velikost seznamu ar kódu %lu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:450
 msgid "Graphics"
-msgstr "그래픽"
+msgstr "Grafika"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:450
 msgid "Graphics settings"
-msgstr "그래픽 설정"
+msgstr "Grafická nastavení"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:206
 msgid "Greater Than"
-msgstr "보다 큰"
+msgstr "Větší než"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:330
 msgid "Greek"
-msgstr "그리스어"
+msgstr "Řečtina"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
 msgid "Green"
-msgstr "초록"
+msgstr "Zelená"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
 msgid "Green Left"
-msgstr "초록 왼쪽"
+msgstr "Zelená vlevo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Right"
-msgstr "초록 오른쪽"
+msgstr "Zelená vpravo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:35
 msgid "Guitar"
-msgstr "기타"
+msgstr "Kytara"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1253
 msgid "HCI_CMD_INQUIRY is called, please report!"
-msgstr "HCI_CMD_INQUIRY가 호출됨, 보고해주세요!"
+msgstr "Byl zavolán HCI_CMD_INQUIRY, prosím ohlašte!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:139
 msgid "Header checksum failed"
-msgstr "헤더 체크섬 실패했습니다"
+msgstr "Kontrolní součet hlavičky selhal"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:331
 msgid "Hebrew"
-msgstr "히브리어"
+msgstr "Hebrejština"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:312
 msgid "Height"
-msgstr "높이"
+msgstr "Výška"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:61
 msgid "Help"
-msgstr "도움"
+msgstr "Nápověda"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:197
 msgid ""
@@ -2483,62 +2491,57 @@ msgid ""
 "\n"
 "Sayonara!\n"
 msgstr ""
-"안녕,\n"
+"Ahoj,\n"
 "\n"
-"돌핀은 당신의 CPU가 SSE2 확장들을 지원하길 요구합니다.\n"
-"유감스럽게도 당신의 CPU는 그들을 지원하지 않습니다, 그래서 돌핀은 구동하지 않"
-"을 겁니다.\n"
+"Dolphin potřebuje, aby Váš procesor podporoval SSE2 rozšíření.\n"
+"Bohužel Váš procesor je nepodporuje, takže Dolphin nebude spuštěn.\n"
 "\n"
-"사요나라!\n"
+"Sajonara!\n"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:308
 msgid "Hide"
-msgstr "숨김"
+msgstr "Skrýt"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:643
 msgid "Hide Mouse Cursor"
-msgstr "마우스 커서 숨김"
+msgstr "Skrýt kurzor myši"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:549
 msgid ""
 "Hide the cursor when it is over the rendering window and the rendering "
 "window has focus."
-msgstr ""
-"커서가 렌더링 윈도우 위에 있을 때 숨깁니다 그리고 렌더링 윈도우가 초점을 가집"
-"니다."
+msgstr "Skrýt kurzor, když je nad vykreslovacím oknem a okno je aktivní"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
 msgid "Home"
-msgstr "홈"
+msgstr "Home"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:66
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:116
 msgid "Host"
-msgstr "호스트"
+msgstr "Hostovat"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.h:44
 msgid "Hotkey Configuration"
-msgstr "단축키 설정"
+msgstr "Nastavení klávesových zkratek"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:654
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:296
 msgid "Hotkeys"
-msgstr "단축키들"
+msgstr "Klávesové zkratky"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:332
 msgid "Hungarian"
-msgstr "헝가리어"
+msgstr "Maďarština"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
 msgid "Hybrid Wiimote"
-msgstr "하이브리드 위모트"
+msgstr "Hybridní Wiimote"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:503
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
-msgstr ""
-"IOCTL_ES_GETVIEWS: 알려지지 않은 티켓: %08x/%08x 에서 데이터를 얻으려 시도했"
-"습니다"
+msgstr "IOCTL_ES_GETVIEWS: Pokus o získání dat z neznámého lístku: %08x/%08x"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:717
 #, c-format
@@ -2548,166 +2551,166 @@ msgid ""
 "TitleID %016llx.\n"
 " Dolphin will likely hang now"
 msgstr ""
-"IOCTL_ES_LAUNCH: 게임이 ios를 리로드 하려고 했거나 당신의 낸드 덤프에 적합하"
-"지 않은 것이 조금 있음\n"
-"TitleID %016llx.\n"
-" 돌핀은 이제 멈추려할 것이다"
+"IOCTL_ES_LAUNCH: Hra se pokusila znovu načíst ios nebo název, který není "
+"dostupný ve Vašem nand výpisu\n"
+"IDNázvu %016llx.\n"
+"Dolphin se teď pravděpodobně zasekne"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:302
 msgid "IOCTL_ES_READCONTENT - bad destination"
-msgstr "IOCTL_ES_READCONTENT - 잘못된 대상"
+msgstr "IOCTL_ES_READCONTENT - špatný cíl"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:797
 msgid "IPL Settings"
-msgstr "IPL 설정"
+msgstr "Nastavení IPL"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:243
 msgid "IR"
-msgstr "IR"
+msgstr "Infrč."
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:25
 msgid "IR Pointer"
-msgstr "IR 포인터"
+msgstr "Infrč. Ukazovátko"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:845
 msgid "IR Sensitivity:"
-msgstr "IR 감도:"
+msgstr "Citlivost Infrč.:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:507
 msgid "ISO Details"
-msgstr "ISO 세부사항"
+msgstr "Detaily ISO"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:897
 msgid "ISO Directories"
-msgstr "ISO 디렉토리들"
+msgstr "Adresáře ISO"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:167
 msgid "ITALY"
-msgstr "이탈리아"
+msgstr "ITÁLIE"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:631
 msgid "Icon"
-msgstr "아이콘"
+msgstr "Ikona"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
 msgid ""
 "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
 msgstr ""
-"FPS가 불규칙적이면, 이 옵션이 도움이 될 수도 있습니다. (켬 = 호환성, 끔 = 빠"
-"름)"
+"Pokud jsou SzS nestálé, tato volba může pomoci. (ZAPNUTO = Kompatibilní, "
+"VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:538
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you "
 "also have to disable Audio Throttle in DSP to make it effective."
 msgstr ""
-"프레임제한을 게임 풀 스피드 (NTSC:60, PAL:50)보다 더 높게 설정하면, DSP에서 "
-"오디오 병목도 꺼야 그것이 효과를 냅니다."
+"Pokud nastavíte limit snímků větší než plná rychlost hry (NTSC:60, PAL:50), "
+"měli byste také vypnout Přiškrcení Zvuku v DSP, aby to bylo účinné."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 msgid "Import Save"
-msgstr "저장을 가져오기"
+msgstr "Importovat Uloženou hru"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:60
 msgid "Import failed, try again?"
-msgstr "가져오기 실패했습니다, 재시도?"
+msgstr "Import selhal, zkusit znovu?"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:460
 msgid ""
 "Imported file has gsc extension\n"
 "but does not have a correct header"
 msgstr ""
-"가져온 파일은 gsc 확장자를 가진다\n"
-"하지만 올바른 헤더를 가지고 있지 않습니다"
+"Importovaný soubor má příponu gsc\n"
+"ale nemá správnou hlavičku"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:448
 msgid "Imported file has invalid length"
-msgstr "가져온 파일이 비적합 길이를 가지고 있습니다"
+msgstr "Importovaný soubor má neplatnou délku"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:457
 msgid ""
 "Imported file has sav extension\n"
 "but does not have a correct header"
 msgstr ""
-"가져온 파일이 sav 확장자를 지닌다\n"
-"하지만 올바른 해더를 지니지 않는다"
+"\"Importovaný soubor má příponu sav\n"
+"ale nemá správnou hlavičku\""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:354
 msgid "In Game"
-msgstr "게임안"
+msgstr "Ve Hře"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:596
 msgid "In-Game"
-msgstr "게임-안"
+msgstr "Ve Hře"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:298
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:49
 msgid "Info"
-msgstr "정보"
+msgstr "Info"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:382
 #: Source/Core/Common/Src/MsgHandler.cpp:65
 msgid "Information"
-msgstr "정보"
+msgstr "Informace"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Input"
-msgstr "입력"
+msgstr "Vstup"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:28
 msgid "Input Source"
-msgstr "소스 입력"
+msgstr "Zdroj Vstupu:"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:60
 msgid "Insert"
-msgstr "삽입"
+msgstr "Vložit"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:168
 msgid "Insert Encrypted or Decrypted code here..."
-msgstr "암호화되거나 암호해독된 코드를 여기에 삽입하세요..."
+msgstr "Zde vložte Šifrovaný nebo Dešifrovaný kód..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:837
 msgid "Insert SD Card"
-msgstr "SD 카드 삽입"
+msgstr "Vložit SD Kartu"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:43
 msgid "Insert name here.."
-msgstr "이름을 여기에 넣으시오..."
+msgstr "Zde vložte jméno..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:219
 msgid "Install Wii Menu"
-msgstr "Wii 메뉴 설치"
+msgstr "Instalovat Wii Menu"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:237
 msgid "Install directory could not be saved"
-msgstr "설치 디렉토리는 저장될 수 없었다"
+msgstr "Instalační adresář nemohl být uložen"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1026
 msgid "Install to Wii Menu"
-msgstr "Wii 메뉴에 설치"
+msgstr "Instalovat do Wii Menu"
 
 #: Source/Core/Core/Src/MemTools.cpp:248
 msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr ""
-"InstallExceptionHandler 호출됨, 하지만 이 플랫폼은 아직 그것을 지원하지 않습"
-"니다."
+"Byl zavolán InstallExceptionHandler, ale tato platforma toto ještě "
+"nepodporuje."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1175
 msgid "Installing WAD to Wii Menu..."
-msgstr "WAD를 Wii 메뉴에 설치하기..."
+msgstr "Instaluji WAD do Wii Menu..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid "Integral [recommended]"
-msgstr "전체 [권장]"
+msgstr "Celistvý [doporučeno]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:703
 msgid "Interface Settings"
-msgstr "인터페이스 설정"
+msgstr "Nastavení Rozhraní"
 
 #: Source/Core/Core/Src/State.cpp:217
 msgid "Internal LZO Error - compression failed"
-msgstr "내부 LZO 에러 - 압축 실패했습니다"
+msgstr "Vnitřní chyba LZO - komprimace selhala"
 
 #: Source/Core/Core/Src/State.cpp:458
 #, c-format
@@ -2715,8 +2718,8 @@ msgid ""
 "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
 "Try verifying the state again"
 msgstr ""
-"내부 LZO 에러 - 압축해제 실패했습니다 (%d) (%ld, %ld) \n"
-"상태를 다시 검사해보세요"
+"Vnitřní chyba LZO - dekomprimace selhala (%d) (%ld, %ld) \n"
+"Zkuste znovu ověřit stav"
 
 #: Source/Core/Core/Src/State.cpp:357
 #, c-format
@@ -2724,42 +2727,42 @@ msgid ""
 "Internal LZO Error - decompression failed (%d) (%li, %li) \n"
 "Try loading the state again"
 msgstr ""
-"내부 LZO 에러 - 압축해제 실패했습니다 (%d) (%li, %li) \n"
-"상태 로딩을 다시 해보세요"
+"Vnitřní chyba LZO - dekomprimace selhala (%d) (%ld, %ld) \n"
+"Zkuste znovu nahrát stav"
 
 #: Source/Core/Core/Src/State.cpp:502
 msgid "Internal LZO Error - lzo_init() failed"
-msgstr "내부 LZO 에러 -  lzo_init() 실패했습니다"
+msgstr "Vnitřní chyba LZO - lzo_init() selhalo"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
 msgid "Interpreter (VERY slow)"
-msgstr "인터프리터 (매우 느림)"
+msgstr "Převaděč (VELMI pomalé)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Intro"
-msgstr "소개화면"
+msgstr "Intro"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
 msgid "Invalid Size(%x) or Magic word (%x)"
-msgstr "비적합 크기(%x) 혹은 마법 낱말 (%x)"
+msgstr "Neplatná Velikost(%x) nebo Kouzelné slovo (%x)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:602
 msgid "Invalid Value!"
-msgstr "비적합 값!"
+msgstr "Neplatná Hodnota!"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:468
 msgid "Invalid bat.map or dir entry"
-msgstr "비적합 bat.map 혹은 디렉토리 엔트리"
+msgstr "Neplatný bat.map nebo záznam adr."
 
 #: Source/Core/Core/Src/CoreTiming.cpp:544
 #, c-format
 msgid "Invalid event type %i"
-msgstr "비적합 이벤트 타입 %i"
+msgstr "Neplatná událost typu %i"
 
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:314
 msgid "Invalid file"
-msgstr "비적합 파일"
+msgstr "Neplatný soubor"
 
 #: Source/Core/DiscIO/Src/BannerLoaderGC.cpp:40
 #, c-format
@@ -2768,44 +2771,44 @@ msgid ""
 "%s\n"
 " You may need to redump this game."
 msgstr ""
-"비적합 opening.bnr이 gcm: 에서 발견됨:\n"
+"Neplatný opening.bnr nalezen v gcm:\n"
 "%s\n"
-" 당신은 이 게임을 리덤프해야할 지도."
+"Možná budete muset hru znovu vypsat."
 
 #: Source/Core/Core/Src/OnFrame.cpp:373
 msgid "Invalid recording file"
-msgstr "비적합 기록 파일"
+msgstr "Neplatný soubor s nahrávkou"
 
 #: Source/Core/Core/Src/Core.cpp:473
 msgid "Invalid state"
-msgstr "비적합 상태"
+msgstr "Neplatný stav"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:333
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
 msgid "Italian"
-msgstr "이탈리아어"
+msgstr "italština"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:178
 msgid "JAPAN"
-msgstr "일본"
+msgstr "JAPONSKO"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT 리컴파일러 (권장)"
+msgstr "JIT Rekompilátor (doporučeno)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
 msgid "JITIL experimental recompiler"
-msgstr "JITIL 실험적 리컴파일러"
+msgstr "JITIL experimentální rekompilátor"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:334
 msgid "Japanese"
-msgstr "일본어"
+msgstr "Japonština"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "KOREA"
-msgstr "한국"
+msgstr "KOREA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:105
 msgid ""
@@ -2813,18 +2816,18 @@ msgid ""
 "texture.\n"
 "Can cause slowdown, but some games need this option enabled to work properly."
 msgstr ""
-"텍스쳐안에 실제 픽셀들을 살피기에 기반해서 텍스쳐들의 트랙을 유지한다.\n"
-"느려짐을 유발할 수 있다, 하지만 일부 게임들은 올바르게 작동하기위해 이 옵션"
-"이 필요하다."
+"Sleduje textury na základě pozorování vlastních pixelů v textuře.\n"
+"Může způsobit zpomalení, ale některé hry tuto volbu potřebují povolit pro "
+"správné fungování."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:265
 msgid "Key"
-msgstr "        [ 키 ]"
+msgstr "Klávesa"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:317
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:335
 msgid "Korean"
-msgstr "한국어"
+msgstr "Korejština"
 
 #. i18n:  Left
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:55
@@ -2833,42 +2836,42 @@ msgstr "L"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:39
 msgid "L Button"
-msgstr "L 버튼"
+msgstr "Tlačítko L"
 
 #. i18n:  Left-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:59
 msgid "L-Analog"
-msgstr "L-아날로그"
+msgstr "Levý Analog"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:699
 msgid "Language:"
-msgstr "언어:"
+msgstr "Jazyk:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:166
 msgid "Last Overwritten State"
-msgstr "마지막 덮어써진 상태"
+msgstr "Poslední Přepsaný Stav"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:173
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:175
 msgid "Last Saved State"
-msgstr "마지막 저장된 상태"
+msgstr "Poslední Uložený Stav"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:52
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 msgid "Left"
-msgstr "왼쪽"
+msgstr "Vlevo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Left Stick"
-msgstr "왼쪽 스틱"
+msgstr "Levý Stick"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:280
 msgid ""
 "Left click to detect hotkeys.\n"
 "Enter space to clear."
 msgstr ""
-"단축키를 감지하려면 좌 클릭하세요.\n"
-"지우려면 스페이스를 입력하세요."
+"Levé kliknutí pro detekci zkratky.\n"
+"Zadejte mezerník pro vyčištění."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:711
 msgid ""
@@ -2876,82 +2879,82 @@ msgid ""
 "Middle-click to clear.\n"
 "Right-click for more options."
 msgstr ""
-"좌-클릭 입력 감지.\n"
-"중-클릭 지우기.\n"
-"우-클릭 옵션들 더."
+"Levé kliknutí pro detekci vstupu.\n"
+"Prostřední kliknutí pro vyčištění.\n"
+"Pravé kliknutí pro více možností."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:716
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
 msgstr ""
-"좌/우-클릭 옵션들 더.\n"
-"중-클릭 지우기."
+"Levé/Pravé kliknutí pro více možností.\n"
+"Prostřední pro vymazání."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:207
 msgid "Less Than"
-msgstr "보다 더 적은"
+msgstr "Menší než"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:946
 msgid "Load"
-msgstr "로드"
+msgstr "Nahrát"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:408
 msgid "Load Hi-Res Textures"
-msgstr "고-해상 텍스쳐들 로드"
+msgstr "Nahrát Textury s Vys. Roz."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:259
 msgid "Load Native Mipmaps"
-msgstr "원본 밉맵들 로드"
+msgstr "Nahrát Původní Mipmapy"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
 msgid "Load State Slot 1"
-msgstr "슬롯1 상태 로드"
+msgstr "Náhrat Slot Stavu 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
 msgid "Load State Slot 2"
-msgstr "슬롯2 상태 로드"
+msgstr "Náhrat Slot Stavu 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
 msgid "Load State Slot 3"
-msgstr "슬롯3 상태 로드"
+msgstr "Náhrat Slot Stavu 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
 msgid "Load State Slot 4"
-msgstr "슬롯4 상태 로드"
+msgstr "Náhrat Slot Stavu 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:227
 msgid "Load State Slot 5"
-msgstr "슬롯5 상태 로드"
+msgstr "Náhrat Slot Stavu 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
 msgid "Load State Slot 6"
-msgstr "슬롯6 상태 로드"
+msgstr "Náhrat Slot Stavu 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:229
 msgid "Load State Slot 7"
-msgstr "슬롯7 상태 로드"
+msgstr "Náhrat Slot Stavu 7"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
 msgid "Load State Slot 8"
-msgstr "슬롯8 상태 로드"
+msgstr "Náhrat Slot Stavu 8"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:169
 msgid "Load State..."
-msgstr "상태 로드..."
+msgstr "Nahrát Stav..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:215
 #, c-format
 msgid "Load Wii System Menu (%d %c)"
-msgstr "Wii 시스템 메뉴 (%d %c) 로드"
+msgstr "Nahrát Sysémové Menu Wii (%d %c)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
-msgstr "User/Load/Textures/<game id>/ 에서 높은-해상도 텍스쳐들을 로드"
+msgstr "Načte textury vysokého rozlíšení z User/Load/Textures/<id hry>/"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:50
 msgid "Load preset values from hack patterns available."
-msgstr "핵 패턴들로 부터 사용 가능한 사전설정 값을 로드합니다."
+msgstr "Načíst přednastavené hodnoty z dostupných hackových vzorů."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
 msgid ""
@@ -2959,57 +2962,57 @@ msgid ""
 "Loading native mipmaps is the more accurate behavior, but might also "
 "decrease performance (your mileage might vary though)."
 msgstr ""
-"밉맵을 생성하는 대신 원본 밉맵들을 로드한다.\n"
-"원본 밉맵들을 로드하는 것은 좀 더 정확한 행동이다, 하지만 성능을 감소시킬지"
-"도 모른다 (마일리지가 다양할지는 몰라도)."
+"Nahraje původní mipmapy místo jejich vytvoření.\n"
+"Nahrání původních mipmap je správnější chování, ale může také snížit výkon "
+"(Váš užitek se ale může měnit)."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:135
 msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-msgstr "명시된 파일 (DOL,ELF,WAD,GCM,ISO,WAD) 로드"
+msgstr "Nahraje určený soubor (DOL, ELF, GCM, ISO, WAD)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:594
 msgid "Local"
-msgstr "지역"
+msgstr "Místní"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:610
 msgid "Lock threads to cores"
-msgstr "코어에 쓰레드 잠그기"
+msgstr "Uzamknout vlákna do jader"
 
 #: Source/Core/DolphinWX/Src/LogWindow.h:51
 msgid "Log"
-msgstr "로그"
+msgstr "Záznam"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:28
 #, fuzzy
 msgid "Log Configuration"
-msgstr "단축키 설정"
+msgstr "Nastavení klávesových zkratek"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
 #, fuzzy
 msgid "Log Types"
-msgstr "타입"
+msgstr "Typ"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:75
 #, fuzzy
 msgid "Logger Outputs"
-msgstr "출력"
+msgstr "Výstup"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:421
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:124
 msgid "Logging"
-msgstr "로깅"
+msgstr "Protokolování"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:251
 msgid "Lost connection to server!"
-msgstr "서버에 연결을 잃어버림!"
+msgstr "Připojení k serveru ztraceno!"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:150
 msgid "Low level (LLE) or high level (HLE) audio"
-msgstr "저수준(LLE) 혹은 고수준(HLE)에뮬 오디오"
+msgstr "Nízkoúrovňový (lle) nebo vysokoúrovňový (hle) zvuk"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:42
 msgid "M Button"
-msgstr "M 버튼"
+msgstr "Tlačítko M"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:120
 #, c-format
@@ -3017,37 +3020,37 @@ msgid ""
 "MD5 mismatch\n"
 " %016llx%016llx != %016llx%016llx"
 msgstr ""
-"MD5 미스매치\n"
+"MD5 se neschoduje\n"
 " %016llx%016llx != %016llx%016llx"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
 msgid "MMU Speed Hack"
-msgstr "MMU 스피드 핵"
+msgstr "MMU Hack Rychlosti"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:530
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:564
 msgid "MadCatz Gameshark files(*.gcs)"
-msgstr "MadCatz 게임샤크 파일들(*.gcs)"
+msgstr "Soubory MadCatz Gameshark (*.gcs)"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
 msgid "Main Stick"
-msgstr "메인 스틱"
+msgstr "Hlavní Stick"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:467
 msgid "Maker ID:"
-msgstr "제작사 ID:"
+msgstr "ID Výrobce:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
 msgid "Maker:"
-msgstr "제작사:"
+msgstr "Výrobce:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:454
 msgid "Memcard already has a save for this title"
-msgstr "메모리카드가 이 타이틀에 대해 저장을 이미 가짐"
+msgstr "Pam. karta už má uložení pro tento název"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:293
 msgid "Memcard already opened"
-msgstr "메모리카드가 이미 열려짐"
+msgstr "Pam. karta již otevřena"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:217
 #, c-format
@@ -3055,21 +3058,21 @@ msgid ""
 "Memcard failed to load\n"
 " Card size is invalid (%04X)"
 msgstr ""
-"메모리카드가 로드에 실패했습니다\n"
-" 카드 크기가 비적합함 (%04X)"
+"Nelze načíst pam. kartu\n"
+"Neplatná velikost karty (%04x)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
 msgid "Memory Card"
-msgstr "메모리 카드"
+msgstr "Paměťová karta"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.h:36
 msgid ""
 "Memory Card Manager WARNING-Make backups before using, should be fixed but "
 "could mangle stuff!"
 msgstr ""
-"메모리 카드 메니저 경고-사용하기 전에 백업을 만드세요, 고쳐져야 겠지만 훼손"
-"될 수 있습니다."
+"Správce Paměťových karet Varování-Před použitím zálohujte, měl by být "
+"spravený ale mohl by věci poškodit!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:348
 #, c-format
@@ -3081,237 +3084,237 @@ msgid ""
 "%s\n"
 "Would you like to copy the old file to this new location?\n"
 msgstr ""
-"슬롯 %c 안에 메모리 카드 파일이름이 올바르지 않습니다\n"
-"지역이 기술되지 않습니다\n"
+"Jméno souboru Paměťové karty ve slotu %c je nesprávné\n"
+"Nebyl zadán region\n"
 "\n"
-"슬롯 %c 경로는 바뀌지 않었습니다\n"
-"%s로\n"
-"오래된 파일을 이 새로운 위치로 복사하고 싶습니까?\n"
+"Cesta slotu %c byl změněna na\n"
+"%s\n"
+"Chtěli byste starý soubor zkopírovat do nového umístění?\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:47
 msgid "Menu"
-msgstr "메뉴"
+msgstr "Menu"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
 msgid "Mic"
-msgstr "마이크"
+msgstr "Mikrofon"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:455
 msgid "Misc"
-msgstr "기타"
+msgstr "Ostatní"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:862
 msgid "Misc Settings"
-msgstr "기타 설정"
+msgstr "Ostatní Nastavení"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:240
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:294
 msgid "Modifier"
-msgstr "수정자"
+msgstr "Modifikátor"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:116
 msgid ""
 "Modify textures to show the format they're using.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"사용하고 있는 포멧을 보여주기위해 텍스쳐들을 바꿉니다.\n"
-"이것은 단지 디버깅 목적으로만 유용합니다."
+"Změní textury tak, aby zobrazovaly formát, který používají.\n"
+"Toto je užitečné pouze pro účely ladění."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:86
 msgid "Monospaced font"
-msgstr "단일띄어쓰기 폰트"
+msgstr "Písmo se stejnou roztečí"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:269
 msgid "Motion Plus"
-msgstr "모션 플러스"
+msgstr "Motion Plus"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:273
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
-msgstr "모터"
+msgstr "Motor"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:72
 msgid "Multiply"
-msgstr "곱하기"
+msgstr "Násobit"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
-msgstr "NP 덧셈"
+msgstr "NK Přidat"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:121
 msgid "NP Begin"
-msgstr "NP 시작"
+msgstr "NK Začít"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Decimal"
-msgstr "NP 10진수"
+msgstr "NK Des. čárka"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:123
 msgid "NP Delete"
-msgstr "NP 삭제"
+msgstr "NK Delete"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:130
 msgid "NP Divide"
-msgstr "NP 나누기"
+msgstr "NK Dělení"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:117
 msgid "NP Down"
-msgstr "NP 아래"
+msgstr "NK Dolů"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:120
 msgid "NP End"
-msgstr "NP 끝"
+msgstr "NK End"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:108
 msgid "NP Enter"
-msgstr "NP 엔터"
+msgstr "NK Enter"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:124
 msgid "NP Equal"
-msgstr "NP 같은"
+msgstr "NK Rovná se"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:113
 msgid "NP Home"
-msgstr "NP 홈"
+msgstr "NK Home"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:122
 msgid "NP Insert"
-msgstr "NP 삽입"
+msgstr "NK Insert"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:114
 msgid "NP Left"
-msgstr "NP 왼쪽"
+msgstr "NK Vlevo"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:125
 msgid "NP Multiply"
-msgstr "NP 곱셈"
+msgstr "NK Násobení"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:119
 msgid "NP Page Down"
-msgstr "NP 페이지 다운"
+msgstr "NK Page Down"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:118
 msgid "NP Page Up"
-msgstr "NP 페이지 업"
+msgstr "Nk Page Up"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:116
 msgid "NP Right"
-msgstr "NP 오른쪽"
+msgstr "NK Vpravo"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:127
 msgid "NP Separator"
-msgstr "NP 분리기"
+msgstr "NP Oddělovač"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:106
 msgid "NP Space"
-msgstr "NP 스페이스"
+msgstr "NK Mezerník"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:128
 msgid "NP Subtract"
-msgstr "NP 뺄셈"
+msgstr "NK Mínus"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:107
 msgid "NP Tab"
-msgstr "NP 탭"
+msgstr "NK Tab"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:115
 msgid "NP Up"
-msgstr "NP 위"
+msgstr "NK Nahoru"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:59
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:60
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:461
 msgid "Name:"
-msgstr "이름:"
+msgstr "Jméno:"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:77
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:278
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:544
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:13
 msgid "Name: "
-msgstr "이름:"
+msgstr "Jméno: "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:529
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 msgid "Native GCI files(*.gci)"
-msgstr "원본 GCI 파일들(*.gci)"
+msgstr "Půvpdní soubory CGI(*.gci)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:149
 msgid "New Scan"
-msgstr "새로운 스캔"
+msgstr "Nový Sken"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:203
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Next Page"
-msgstr "다음 페이지"
+msgstr "Další Stránka"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:153
 msgid "Next Scan"
-msgstr "다음 스캔"
+msgstr "Další Sken"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:50
 msgid "Nickname :"
-msgstr "별명 :"
+msgstr "Přezdívka :"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:191
 msgid "No Country (SDK)"
-msgstr "국가 없음 (SDK)"
+msgstr "Žádná Země (SDK)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:308
 msgid "No ISOs or WADS found"
-msgstr "ISO나 WADS가 없음"
+msgstr "Nenalezena žádná ISO nebo WADS"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:540
 #, c-format
 msgid "No banner file found for title  %s"
-msgstr "%s 타이틀에 대한 배너 파일이 없음"
+msgstr "Nebyl nalezen žádný plakát s názvem  %s"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:485
 msgid "No docking"
-msgstr "도킹 없음"
+msgstr "Žádné připínání"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:445
 msgid "No free dir index entries"
-msgstr "빈 디렉토리 목록 엔트리들이 없음"
+msgstr "Žádné volné záznamy indexu adresáře"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:533
 #, c-format
 msgid "No save folder found for title %s"
-msgstr "%s 타이틀에 대한 저장 폴더가 없음"
+msgstr "Nebyl nalezen žádný ukládací adresář pro název %s"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:20
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:602
 msgid "None"
-msgstr "없음"
+msgstr "Žádný"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:306
 msgid "Normal"
-msgstr "보통"
+msgstr "Normální"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:336
 msgid "Norwegian Bokmaal"
-msgstr "노르웨이 북몰어"
+msgstr "Norwegian Bokmaal"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:204
 msgid "Not Equal"
-msgstr "같지 않음"
+msgstr "Nerovná se"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:351
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:936
 msgid "Not Set"
-msgstr "설정 안함"
+msgstr "Nenastaven"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:667
 msgid "Not connected"
-msgstr "연결되지 않음"
+msgstr "Nepřipojen"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:260
 msgid "Notes"
-msgstr "참고 사항"
+msgstr "Poznámky"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:14
 msgid "Notes: "
-msgstr "참고:"
+msgstr "Poznámky:"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:62
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:65
@@ -3320,7 +3323,7 @@ msgstr "참고:"
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:600
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:46
 msgid "Notice"
-msgstr "알림"
+msgstr "Upozornění"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:102
 msgid "Num Lock"
@@ -3328,16 +3331,16 @@ msgstr "Num Lock"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:80
 msgid "Number Of Codes: "
-msgstr "코드 번호:"
+msgstr "Počet Kódů:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
 msgid "Nunchuk"
-msgstr "눈처크"
+msgstr "Nunčak"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:27
 msgid "Nunchuk Acceleration"
-msgstr "눈처크 가속"
+msgstr "Zrychlení Nunčaku"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:102
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:561
@@ -3346,218 +3349,220 @@ msgstr "눈처크 가속"
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:29
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:79
 msgid "OK"
-msgstr "확인"
+msgstr "OK"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 msgid "Off"
-msgstr "끔"
+msgstr "Vypnuto"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:62
 msgid "Offset:"
-msgstr "오프셋:"
+msgstr "Logická Adresa:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:442
 #, c-format
 msgid "Only %d blocks available"
-msgstr "%d 블럭들만 유용한"
+msgstr "Pouze bloky %d jsou dostupné"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:201
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 msgid "Open"
-msgstr "열기"
+msgstr "Otevřít"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1008
 msgid "Open &containing folder"
-msgstr "담고 있는 폴더 열기(&c)"
+msgstr "Otevřít &adresář umístění"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1005
 msgid "Open Wii &save folder"
-msgstr "Wii 저장 폴더 열기(&s)"
+msgstr "Otevřít Wii adre&sář uložení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 msgid "Open file..."
-msgstr "파일 열기..."
+msgstr "Otevřít soubor..."
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:55
 #, c-format
 msgid "OpenAL: can't create context for device %s"
-msgstr "OpenAL: %s 장치에 대한 맥락(context)을 만들 수 없음"
+msgstr "OpenAL: nelze vytvořit kontext pro zařízení %s"
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:67
 msgid "OpenAL: can't find sound devices"
-msgstr "OpenAL: 사운드 장치들을 찾을 수 없음"
+msgstr "OpenAL: nelze nalézt tvuková zařízení"
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:61
 #, c-format
 msgid "OpenAL: can't open device %s"
-msgstr "OpenAL: %s 장치를 열 수 없음"
+msgstr "OpenAL: nelze otevřít zařízení %s"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:125
 msgid "Opens the debugger"
-msgstr "디버거 연다"
+msgstr "Otevřít ladící program"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:130
 msgid "Opens the logger"
-msgstr "로거를 연다"
+msgstr "Otevře protokol"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:281
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
 msgid "Options"
-msgstr "옵션"
+msgstr "Volby"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
 msgid "Orange"
-msgstr "주황"
+msgstr "Oranžová"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:474
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
 "and import the the saves to a new memcard\n"
-msgstr "파일 디렉토리안에 파일의 순서가 블럭 순서와 맞지 않습니다\n"
+msgstr ""
+"Pořadí souborů v Adresáři Souborů se neshoduje s pořadím bloku\n"
+"Klikněte pravým tlačítkem a exportujte všechna uložení,\n"
+"a importujte je do nové paměťové karty\n"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:202
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "manually stop the game."
 msgstr ""
-"게임이 구동되는 중에 다른 클라이언트가 연결해제됨!! 넷플레이 불가능됨. 수동으"
-"로 게임을 중지하라."
+"Jiný klient odpojen při běhu hry!! NetPlay je vypnut. Hru ukončete ručně."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:499
 msgid "Output"
-msgstr "출력"
+msgstr "Výstup"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:362
 msgid "P&lay Recording..."
-msgstr "(입력) 기록 재생(&l)..."
+msgstr "S&pustit nahrávku..."
 
 #: Source/Core/Core/Src/HW/GCPad.cpp:29
 msgid "Pad"
-msgstr "패드"
+msgstr "Pad"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:604
 msgid "Pad "
-msgstr "패드"
+msgstr "Pad "
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:34
 msgid "Pads"
-msgstr "패드들"
+msgstr "Pady"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:105
 msgid "Page Down"
-msgstr "페이지 다운"
+msgstr "Page Down"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:104
 msgid "Page Up"
-msgstr "페이지 업"
+msgstr "Page Up"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:47
 msgid "Pair Up"
-msgstr "연결하기"
+msgstr "Spárovat"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:35
 msgid "Paragraph"
-msgstr "단락"
+msgstr "Odstavec"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:64
 msgid "Parameters"
-msgstr "매개변수들"
+msgstr "Parametry"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:214
 #, c-format
 msgid "Partition %i"
-msgstr "파티션 %i"
+msgstr "Oddíl %i"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:292
 msgid "Patches"
-msgstr "패치"
+msgstr "Záplaty"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:597
 msgid "Paths"
-msgstr "경로"
+msgstr "Cesty"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1506
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1507
 msgid "Pause"
-msgstr "일시정지"
+msgstr "Pozastavit"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:356
 msgid "Perfect"
-msgstr "완벽한"
+msgstr "Dokonalá"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:580
 #, c-format
 msgid "Perspective %d"
-msgstr "관점 %d"
+msgstr "Perspektiva %d"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:262
 msgid "Pixel Depth"
-msgstr "픽셀 깊이"
+msgstr "Hloubka Pixelu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:261
 msgid "Pixel Lighting"
-msgstr "픽셀 광원"
+msgstr "Osvětlení Pixelů"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:444
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1515
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1516
 msgid "Play"
-msgstr " 실행  "
+msgstr "Spustit"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:211
 msgid "Play Recording"
-msgstr "(입력) 기록 재생"
+msgstr "Přehrát nahrávku"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
 msgid "Play/Pause"
-msgstr "실행/일시정지"
+msgstr "Přehrát/Pozastavit"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:355
 msgid "Playable"
-msgstr "플레이가능"
+msgstr "Hratelné"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:285
 msgid "Players"
-msgstr "플레이어"
+msgstr "Hráči"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
 msgid "Please confirm..."
-msgstr "확인해주세요..."
+msgstr "Prosím potvrďte..."
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:550
 msgid "Please create a perspective before saving"
-msgstr "저장하기전에 관점을 생성해 주세요."
+msgstr "Před uložením si prosím vytvořte perspektivu"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:36
 msgid "Plus-Minus"
-msgstr "플러스-마이너스"
+msgstr "Plus-Mínus"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:337
 msgid "Polish"
-msgstr "폴란드어"
+msgstr "Polština"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 msgid "Port 1"
-msgstr "포트 1"
+msgstr "Port 1"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:784
 msgid "Port 2"
-msgstr "포트 2"
+msgstr "Port 2"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:785
 msgid "Port 3"
-msgstr "포트 3"
+msgstr "Port 3"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:786
 msgid "Port 4"
-msgstr "포트 4"
+msgstr "Port 4"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:77
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid "Port :"
-msgstr "포트:"
+msgstr "Port :"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:222
 msgid ""
@@ -3565,65 +3570,66 @@ msgid ""
 " Are you running Dolphin from read only media or from a directory that "
 "dolphin is not located in?"
 msgstr ""
-"포터블 설정은 저장되어질 수 없었습니다\n"
-" 돌핀을 읽기 전용 미디어나 돌핀이 위치하지 않은 디렉토리에서 구동하겠습니까?"
+"Přenosná nastavení nemohla být uložena\n"
+"Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolhpin není "
+"umístěn?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:338
 msgid "Portuguese"
-msgstr "포르투갈어"
+msgstr "Portugalština"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:339
 msgid "Portuguese (Brazilian)"
-msgstr "포르투갈어 (브라질)"
+msgstr "Portugalština (Brazilská)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:433
 msgid "Post-Processing Shader:"
-msgstr "후-처리 쉐이더:"
+msgstr "Shader Následného Zpracování:"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:48
 msgid "Presets: "
-msgstr "사전설정:"
+msgstr "Předvolby:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:202
 msgid "Prev Page"
-msgstr "이전 페이지"
+msgstr "Před. stránka"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:800
 msgid "Previous Page"
-msgstr "이전 페이지"
+msgstr "Předchozí Stránka"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:184
 msgid "Previous Value"
-msgstr "이전 값"
+msgstr "Předchozí Hodnota"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:57
 msgid "Print"
-msgstr "프린트"
+msgstr "Vytisknout"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:916
 msgid "Profile"
-msgstr "프로파일"
+msgstr "Profil"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:376
 msgid "Projection Stats"
-msgstr "프로젝션 통계"
+msgstr "Statistiky Projekce"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.h:56
 msgid "Properties"
-msgstr "속성"
+msgstr "Vlastnosti"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:303
 msgid "Purge Cache"
-msgstr "캐쉬 제거(Purge)"
+msgstr "Zahodit Vyrovnávací Paměť"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:66
 msgid "Question"
-msgstr "질문"
+msgstr "Otázka"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:140
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:300
 msgid "Quit"
-msgstr "종료"
+msgstr "Ukončit"
 
 #. i18n:  Right
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:57
@@ -3632,57 +3638,57 @@ msgstr "R"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:40
 msgid "R Button"
-msgstr "R 버튼"
+msgstr "Tlačítko R"
 
 #. i18n:  Right-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:61
 msgid "R-Analog"
-msgstr "R-아날로그"
+msgstr "Pravý Analog"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:288
 msgid "RAM"
-msgstr "램"
+msgstr "RAM"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:170
 msgid "RUSSIA"
-msgstr "러시아"
+msgstr "RUSKO"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:546
 msgid "Range"
-msgstr "범위"
+msgstr "Rozsah"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:213
 msgid "Read-only mode"
-msgstr "읽기-전용 모드"
+msgstr "Režim pouze pro čtení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:391
 msgid "Real"
-msgstr "실제"
+msgstr "Opravdová"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:21
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:43
 msgid "Real Wiimote"
-msgstr "실제 위모트"
+msgstr "Opravdový Wiimote"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:175
 msgid "Reconnect Wiimote Confirm"
-msgstr "위모트 재연결 확인"
+msgstr "Potvrzení o znovupřipojení Wiimote"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:828
 msgid "Reconnect Wiimote On Load State"
-msgstr "상태 로드 시 위모트 재연결"
+msgstr "Znovupřipojit Wiimote při Nahrání Stavu"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
-msgstr "빨강"
+msgstr "Červená"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:24
 msgid "Red Left"
-msgstr "빨강 왼쪽"
+msgstr "Červená vlevo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Red Right"
-msgstr "빨강 오른쪽"
+msgstr "Červená vpravo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
 msgid ""
@@ -3690,66 +3696,66 @@ msgid ""
 "This makes the rendered picture look less blocky but also heavily decreases "
 "performance."
 msgstr ""
-"3D 그래픽들을 레스터화함으로 유발되는 앨리어싱의 양을 줄인다.\n"
-"이것은 렌더된 그림을 블럭이 덜 보이게 만들지만 심하게 성능을 감소시킨다."
+"Zmenší množství vyhlazování způsobené rastrovaním 3D obrazu.\n"
+"Tímto vypadá vykreslený obraz méně hranatý, ale také výrazně snižuje výkon."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:925
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:441
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:40
 msgid "Refresh"
-msgstr "갱신"
+msgstr "Obnovit"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:203
 msgid "Refresh List"
-msgstr "목록 새로 고침"
+msgstr "Obnovit Seznam"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:441
 msgid "Refresh game list"
-msgstr "게임 목록 새로 고침"
+msgstr "Obnovit seznam her"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:246
 msgid "Relaunch Dolphin from the install directory and save from there"
-msgstr "설치 디렉토리에서 돌핀을 다시 불러오고 그곳에서 저장합니다"
+msgstr "Znovu spustit Dolphin z instalačního adresáře a odtamtud ukládat"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:77
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:880
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:423
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:445
 msgid "Remove"
-msgstr "제거"
+msgstr "Odstranit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
 "Render the scene as a wireframe.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"장면을 와이어프레임으로 렌더한다.\n"
-"이것은 디버깅 목적으로만 유용합니다."
+"Vykreslí obraz jako drátěný model.\n"
+"Toto je užitečné pouze pro účely ladění."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:644
 msgid "Render to Main Window"
-msgstr "메인 윈도우에 렌더"
+msgstr "Vykreslit do Hlavního okna"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:550
 msgid "Render to main window."
-msgstr "메인 윈도우에 렌더"
+msgstr "Vykreslit do hlavního okna"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:365
 msgid "Rendering"
-msgstr "렌더링"
+msgstr "Vykreslování"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:552
 msgid "Required for using the Japanese ROM font."
-msgstr "일본 롬 폰트를 사용하기 위해서 요구됨."
+msgstr "Nutné pro použití Japonského písma ROM"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:937
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:207
 msgid "Reset"
-msgstr "리셋"
+msgstr "Resetovat"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:178
 msgid "Results"
-msgstr "결과"
+msgstr "Výsledky"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:29
 msgid "Return"
@@ -3758,189 +3764,190 @@ msgstr "Enter"
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:54
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:277
 msgid "Right"
-msgstr "오른쪽"
+msgstr "Vpravo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:61
 msgid "Right Stick"
-msgstr "오른쪽 스틱"
+msgstr "Pravý Stick"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:272
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
 msgid "Rumble"
-msgstr "진동"
+msgstr "Vibrace"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
 msgid "Run DSP LLE on a dedicated thread (not recommended)."
-msgstr "DSP LLE를 전용 쓰레드상에서 구동하기 (권장 안함)"
+msgstr "Spustit DSP LLE na samostatném vlákně (nedoporučeno)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:340
 msgid "Russian"
-msgstr "러시아어"
+msgstr "Ruština"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:163
 msgid "Sa&ve State"
-msgstr "상태 저장(&v) "
+msgstr "Uložit Sta&v"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:301
 msgid "Safe"
-msgstr "안전"
+msgstr "Bezpečná"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
 msgid "Sample Rate:"
-msgstr "샘플율:"
+msgstr "Vzorkovací frekvence:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:947
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:993
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:466
 msgid "Save"
-msgstr "저장"
+msgstr "Uložit"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:535
 msgid "Save GCI as..."
-msgstr "다른 이름으로 GCI 저장..."
+msgstr "Uložit GCI jako..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
 msgid "Save State Slot 1"
-msgstr "슬롯1 상태 저장"
+msgstr "Uložit do Slotu Stavu 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:233
 msgid "Save State Slot 2"
-msgstr "슬롯2 상태 저장"
+msgstr "Uložit do Slotu Stavu 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:234
 msgid "Save State Slot 3"
-msgstr "슬롯3 상태 저장"
+msgstr "Uložit do Slotu Stavu 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:235
 msgid "Save State Slot 4"
-msgstr "슬롯4 상태 저장"
+msgstr "Uložit do Slotu Stavu 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:236
 msgid "Save State Slot 5"
-msgstr "슬롯5 상태 저장"
+msgstr "Uložit do Slotu Stavu 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:237
 msgid "Save State Slot 6"
-msgstr "슬롯6 상태 저장 "
+msgstr "Uložit do Slotu Stavu 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:238
 msgid "Save State Slot 7"
-msgstr "슬롯7 상태 저장"
+msgstr "Uložit do Slotu Stavu 7"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:239
 msgid "Save State Slot 8"
-msgstr "슬롯8 상태 저장"
+msgstr "Uložit do Slotu Stavu 8"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:165
 msgid "Save State..."
-msgstr "상태 저장..."
+msgstr "Uložit Stav..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:590
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:600
 msgid "Save as..."
-msgstr "다른 이름으로 저장..."
+msgstr "Uložit jako"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1337
 msgid "Save compressed GCM/ISO"
-msgstr "압축된 GCM/ISO를 저장"
+msgstr "Uložit komprimované GCM/ISO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:466
 msgid "Save current perspective"
-msgstr "현재 관점을 저장"
+msgstr "Uložit současnou perspektivu"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1326
 msgid "Save decompressed GCM/ISO"
-msgstr "압축풀린 GCM/ISO를 저장"
+msgstr "Uložit dekomprimované GCM/ISO"
 
 #: Source/Core/Core/Src/OnFrame.cpp:427
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
-msgstr "%s 영상 상태저장이 손상되었습니다, 영상 기록 중지..."
+msgstr "Uložený stav filmu %s je poškozen, nahrávání filmu je zastaveno..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Scale:"
-msgstr "스케일:"
+msgstr "Změna Velikosti:"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:589
 msgid "Scanning for ISOs"
-msgstr "ISO들을 검사하기"
+msgstr "Skenuji pro ISO"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:590
 msgid "Scanning..."
-msgstr "스캐닝..."
+msgstr "Skenuji..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:447
 msgid "ScrShot"
-msgstr "스크린샷"
+msgstr "SnímkObrz"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:103
 msgid "Scroll Lock"
-msgstr "스크롤 락"
+msgstr "Scroll Lock"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:215
 msgid "Search Filter"
-msgstr "필터 찾기"
+msgstr "Hledat Filtr"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:878
 msgid "Search Subfolders"
-msgstr "하위폴더들 찾기"
+msgstr "Hledat Podadresáře"
 
 #: Source/Core/Common/Src/SysConf.h:110 Source/Core/Common/Src/SysConf.h:133
 #: Source/Core/Common/Src/SysConf.h:153 Source/Core/Common/Src/SysConf.h:174
 #, c-format
 msgid "Section %s not found in SYSCONF"
-msgstr "섹션 %s를 SYSCONF에서 찾을 수 없음"
+msgstr "Sekce %s nebyla v SYSCONF nalezena"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:508
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:56
 msgid "Select"
-msgstr "선택"
+msgstr "Vybrat"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:736
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1129
 msgid "Select The Recording File"
-msgstr "기록 파일 선택"
+msgstr "Vyberte Soubor s Nahrávkou"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
 "Select a hardware adapter to use.\n"
 "When in doubt, use the first one"
 msgstr ""
-"사용할 하드웨어 어댑터를 선택하세요.\n"
-"의심 스러울 때는, 처음 것을 사용"
+"Zvolte, který hardwarový adaptér se má použít.\n"
+"Jste-li na pochybách, použijte ten první"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:524
 msgid "Select a save file to import"
-msgstr "가져올 저장 파일을 선택"
+msgstr "Vyberte soubor s uloženou pozicí pro import"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:349
 msgid "Select floating windows"
-msgstr "유동적인 윈도우즈 선택"
+msgstr "Vybrat plovoucí okna"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
 msgid "Select resolution for fullscreen mode"
-msgstr "전체화면 모드에 대한 해상도 선택"
+msgstr "Vyberte rozlišení v režimu celé obrazovky"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1316
 msgid ""
 "Select the System Menu wad extracted from the update partition of a disc"
-msgstr "디스크의 업데이트 파티션에서 풀린 '시스템 메뉴' wad를 선택"
+msgstr ""
+"Vyberte wad Systémového Menu extrahovaného z aktualizovaného oddílu disku"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:671
 msgid "Select the file to load"
-msgstr "로드할 파일 선택"
+msgstr "Vyberte soubor k nahrání"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1288
 msgid "Select the save file"
-msgstr "저장 파일을 선택"
+msgstr "Vyberte soubor s uloženou hrou"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
 msgid "Select the state to load"
-msgstr "로드할 상태 선택"
+msgstr "Vyberte stav k nahrání"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1381
 msgid "Select the state to save"
-msgstr "저장할 상태 선택"
+msgstr "Vyberte stav k uložení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:88
 msgid ""
@@ -3950,15 +3957,15 @@ msgid ""
 "Force 4:3: Stretch the picture to an aspect ratio of 4:3.\n"
 "Stretch to window: Stretch the picture to the window size."
 msgstr ""
-"렌더링 때 사용할 종횡비를 선택하세요:\n"
-"자동: 원본 종횡비 (4:3)를 사용\n"
-"강제 16:9:  그림을 16:9 종횡비로 늘림\n"
-"강제 4:3: 그림을 4:3 종횡비로 늘림\n"
-"윈도우로 늘림: 그림을 윈도우 크기로 늘림"
+"Vyberte, jaký poměr stran se má použít při vykreslování:\n"
+"Auto: Použít přirozený poměr (4:3)\n"
+"Vynutit 16:9: Roztáhne obraz na poměr 16:9.\n"
+"Vynutit 4:3: Roztáhne obraz na poměr:3.\n"
+"Roztáhnout do okna: Roztáhne obraz do velikosti okna."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:87
 msgid "Selected font"
-msgstr "선택된 폰트"
+msgstr "Vybraný typ písma"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
 #, fuzzy
@@ -3967,42 +3974,45 @@ msgid ""
 "this dialog.\n"
 "The (Default) profile affects the standard settings used for every game."
 msgstr ""
-"이 다이얼로그에서 환경설정 변경에 의해 영향 받아야할 게임을 선택하세요.\n"
-"(기본) 프로파일은 모든 게임에 사용되는 표준 설정에 영향을 줍니다."
+"Zvolí, která hra by měla být změnami nastavení v tomto dialogovém okně "
+"ovlivněna.\n"
+"(Výchozí) profil ovlivní standardní nastavení používané ve všech hrách."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:272
 msgid "Send"
-msgstr "보내기"
+msgstr "Poslat"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:842
 msgid "Sensor Bar Position:"
-msgstr "센서 바 위치:"
+msgstr "Umístění Senzorové Tyče:"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:74
 msgid "Separator"
-msgstr "분리자"
+msgstr "Oddělovač"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:573
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
-msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사용하는 포트이다"
+msgstr ""
+"Sériový port 1 - Tito je port, který používají zařízení jako internetový "
+"adaptér"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:506
 msgid "Set"
-msgstr "설정"
+msgstr "Nastavit"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:646
 msgid "Set Console as NTSC-J"
-msgstr "콘솔을 NTSC-J로 설정"
+msgstr "Nastavit konzoli jako NTSC-J"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1009
 msgid "Set as &default ISO"
-msgstr "디폴트 ISO로 설정(&d)"
+msgstr "Nastavit jako &výchozí ISO"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:802
 #, c-format
 msgid "Set as default Memcard %c"
-msgstr "기본 메모리카드 %c 로 설정"
+msgstr "Nastavit jako výchozí paměťovou kartu %c"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:233
 #, c-format
@@ -4010,123 +4020,123 @@ msgid ""
 "Set install location to:\n"
 " %s ?"
 msgstr ""
-"설치 위치를\n"
-" %s 로 설정합니까?"
+"Nastavit umístění instalace do:\n"
+" %s?"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:462
 #, c-format
 msgid "SetARCode_IsActive: Index is greater than ar code list size %lu"
-msgstr "SetARCode_IsActive: 목록이 ar 코드 목록 크기 %lu 보다 더 큽니다"
+msgstr "SetARCode_IsActive: Index je větší než velikost seznamu ar kódu %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
 msgid "Settings..."
-msgstr "설정..."
+msgstr "Nastavení..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:210
 msgid "SetupWiiMem: Cant find setting file"
-msgstr "SetupWiiMem: 설정 파일을 찾을 수 없음"
+msgstr "SetupWiiMem: Nelze najít soubor s nastavením"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:255
 msgid "Shake"
-msgstr "흔들기"
+msgstr "Třes"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 msgid "Short Name:"
-msgstr "단축 이름:"
+msgstr "Krátké Jméno:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:237
 msgid "Show &Console"
-msgstr "콘솔 보기(&C)"
+msgstr "Zobrazit &Konzoli"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:235
 msgid "Show &Log"
-msgstr "로그 보기(&L)"
+msgstr "Zobrazit Záznam"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:232
 msgid "Show &Statusbar"
-msgstr "상태바 표시(&S)"
+msgstr "Zobrazit &Stavový řádek"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Toolbar"
-msgstr "툴바 표시(&T)"
+msgstr "Zobrazit Panel Nás&trojů"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:301
 msgid "Show Drives"
-msgstr "드라이브 표시"
+msgstr "Zobrazit Disky"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:374
 msgid "Show FPS"
-msgstr "FPS 보기"
+msgstr "Zobrazit Snímky za Sekundu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:291
 msgid "Show France"
-msgstr "프랑스"
+msgstr "Zobrazit Francii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:277
 msgid "Show GameCube"
-msgstr "게임큐브"
+msgstr "Zobrazit GameCbe"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:380
 #, fuzzy
 msgid "Show Input Display"
-msgstr "이탈리아"
+msgstr "Zobrazit Itálii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:293
 msgid "Show Italy"
-msgstr "이탈리아"
+msgstr "Zobrazit Itálii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:284
 msgid "Show JAP"
-msgstr "JAP (일본 방식)"
+msgstr "Zobrazit JAP"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:295
 msgid "Show Korea"
-msgstr "한국"
+msgstr "Zobrazit Koreu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:474
 msgid "Show Language:"
-msgstr "언어 보기:"
+msgstr "Zobrazit jazyk:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:236
 #, fuzzy
 msgid "Show Log &Configuration"
-msgstr "단축키 설정"
+msgstr "Nastavení klávesových zkratek"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:286
 msgid "Show PAL"
-msgstr "PAL (유럽 방식)"
+msgstr "Zobrazit PAL"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:274
 msgid "Show Platforms"
-msgstr "플랫폼 표시"
+msgstr "Zobrazit Platformy"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:283
 msgid "Show Regions"
-msgstr "지역 표시"
+msgstr "Zobrazit Regiony"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:379
 msgid "Show Shader Errors"
-msgstr "쉐이더 에러들 보기"
+msgstr "Zobrazit Chyby Shadera"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:297
 msgid "Show Taiwan"
-msgstr "타이완"
+msgstr "Zobrazit Taiwan"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:288
 msgid "Show USA"
-msgstr "USA (미국 방식)"
+msgstr "Zobrazit USA"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:279
 msgid "Show Wad"
-msgstr "Wad"
+msgstr "Zobrazit Wad"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:275
 msgid "Show Wii"
-msgstr "Wii"
+msgstr "Zobrazit Wii"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "Show a confirmation box before stopping a game."
-msgstr "게임을 멈추기 전에 확인 상자 보여주기."
+msgstr "Zobrazí rámeček s potvrzením před zastavením hry."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 msgid ""
@@ -4134,115 +4144,115 @@ msgid ""
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
 "mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
-"잠재적으로 심각한 에러가 발생했을 때 메시지 박스를 보여준다.\n"
-"이것을 끄면 짜증나고 심각하지 않은 메시지들을 피할 수도 있다, 하지만 그것은 "
-"돌핀이 갑자기 전혀 설명 없이 깨진다는 것을 의미할 수도 있다."
+"Zobrazit rámeček se zprávou, při zjištění potenciálně závažné chyby.\n"
+"Vypnutím tohoto se můžete vyhnout otravným a nezávažným zprávám, ale Dolphin "
+"může také být náhle ukončen bez jakéhokoliv vysvětlení."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:816
 msgid "Show first block"
-msgstr "첫번째 블럭 보기"
+msgstr "Zobrazit první blok"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:115
 msgid ""
 "Show projection statistics.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"프로젝션(투영) 통계들을 보여주기.\n"
-"이것은 디버깅 목적으로만 유용합니다."
+"Zobrazí statistiky projekce.\n"
+"Toto je užitečné pouze pro účely ladění."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save blocks"
-msgstr "저장 블럭들 보기"
+msgstr "Zobrazit uložené bloky"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Show save comment"
-msgstr "저장 주석 보기"
+msgstr "Zobrazit komentář uložení"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:814
 msgid "Show save icon"
-msgstr "저장 아이콘 보기"
+msgstr "Zobrazit ikonu uložení"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:812
 msgid "Show save title"
-msgstr "저장 타이틀 보기"
+msgstr "Zobrazit název uložení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
 msgid "Show the number of frames rendered per second."
-msgstr "초당 렌더되는 프레임수 보기."
+msgstr "Zobrazit počet snímků vykreslených za sekundu."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:120
 msgid "Show this help message"
-msgstr "이 도움 메시지 보기"
+msgstr "Zobrazit tuto zprávu nápovědy"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:299
 msgid "Show unknown"
-msgstr "알려지지 않음"
+msgstr "Zobrazit neznámé"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:114
 msgid ""
 "Show various statistics.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"다양한 통계들 보여주기\n"
-"이것은 디버깅 목적으로만 유용합니다."
+"Zobrazí různé statistiky.\n"
+"Jsou užitečné pouze pro účely ladění."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Sideways Wiimote"
-msgstr "사이드웨이 위모트"
+msgstr "Šikmý Wiimote"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:315
 msgid "Simplified Chinese"
-msgstr "간소화 중국어"
+msgstr "Zjednodušená čínština"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:262
 msgid "Size"
-msgstr "크기"
+msgstr "Velikost"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:608
 msgid "Skip GC BIOS"
-msgstr "게임큐브 바이오스 스킵"
+msgstr "Přeskočit GC BIOS"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:394
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:406
 #, c-format
 msgid "Slot %i"
-msgstr "슬롯 %i"
+msgstr "Slot %i"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:770
 msgid "Slot A"
-msgstr "슬롯 A"
+msgstr "Slot A"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:771
 msgid "Slot B"
-msgstr "슬롯 B"
+msgstr "Slot B"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:59
 msgid "Snapshot"
-msgstr "스냅샷"
+msgstr "Snímek"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:735
 msgid "Sound Settings"
-msgstr "사운드 설정"
+msgstr "Nastavení Zvuku"
 
 #: Source/Core/AudioCommon/Src/AudioCommon.cpp:69
 #, c-format
 msgid "Sound backend %s is not valid."
-msgstr "사운드 처리기 %s는 적합하지 않습니다."
+msgstr "Zvukový backend %s je neplatný."
 
 #: Source/Core/AudioCommon/Src/DSoundStream.cpp:59
 #, c-format
 msgid "Sound buffer creation failed: %s"
-msgstr "사운드 버퍼 생성 실패했습니다: %s"
+msgstr "Vytvoření vyrovnávací paměti zvuku selhalo: %s"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:31
 msgid "Space"
-msgstr "스페이스"
+msgstr "Mezerník"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:341
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
 msgid "Spanish"
-msgstr "스페인어"
+msgstr "Španělština"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
@@ -4258,158 +4268,160 @@ msgid ""
 "The other options are fixed resolutions for choosing a visual quality "
 "independent of your display size."
 msgstr ""
-"렌더에 사용되는 해상도를 명시한다. 고 해상도는 비주얼 품질을 향상시킬 것이지"
-"만 성능상에 꽤 버겁고 특정 게임들에서는 결함들을 일으킬지도 모른다.\n"
-"부분: 원본 해상도 대신에 당신의 화면표시 해상도를 직접적으로 사용한다. 성능 "
-"영향에 따라, 그 품질은 당신의 화면표시/윈도우크기로 스케일한다, .\n"
-"전체: 이것은 '부분'과 비슷하다, 하지만 원본 해상도의 정수 배수로 올림한다. "
-"더 정확한 모습을 보여 줄 것이지만 보통은 더 느리다.\n"
-"다른 옵션들은 당신의 화면표시 크기의 독립적인 비주얼 품질 선택에대한 해상도"
-"로 고정된다."
+"Určuje rozlišení, v kterém se má vykreslovat. Vysoké rozlišení zlepší "
+"kvalitu obrazu, ale má velké nároky na výkon a může způsobovat v určitých "
+"hrách chyby.\n"
+"Zlomkový: Používá přímo Vaše rozlišení místo původního. Kvalita se mění s "
+"velikosti okna/obrazu spolu s dopadem na výkon.\n"
+"Celistvý: Jako Zlomkový, ale zaokrouhluje nahoru na celé číslo násobku "
+"původního rozlišení. Mělo by dát přesnější zobrazení, ale většinou je "
+"pomalejší.\n"
+"Ostatní volby jsou pevná rozlišení pro volbu kvality obrazu nezávislé na "
+"Vaší velikosti displeje."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:145
 msgid "Specify a video backend"
-msgstr "비디오 처리기 명시"
+msgstr "Určit backend videa"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "Speed up Disc Transfer Rate"
-msgstr "디스크 전송율 속도 상승"
+msgstr "Zvýšit rychlost přenosu Disku"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:243
 msgid "Square Stick"
-msgstr "스퀘어 스틱"
+msgstr "Čtvercový Stick"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
 msgid "Standard Controller"
-msgstr "표준 컨트롤러"
+msgstr "Standardní Ovladač"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:306
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 msgid "Start"
-msgstr "시작"
+msgstr "Start"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:208
 msgid "Start &NetPlay"
-msgstr "넷플레이 시작(&N)"
+msgstr "Spustit &NetPlay"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:359
 msgid "Start Re&cording"
-msgstr "(입력) 기록 시작(&c)"
+msgstr "Začít na&hrávat"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:210
 msgid "Start Recording"
-msgstr "(입력) 기록 시작"
+msgstr "Začít Nahrávat"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:642
 msgid "Start Renderer in Fullscreen"
-msgstr "전체화면에서 렌더러 시작"
+msgstr "Spustit vykreslovače v Celé obrazovce"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
 msgid "Start the rendering window in fullscreen mode."
-msgstr "풀스크린 모드에서 윈도우 렌더링 시작"
+msgstr "Spustí vykreslovací okno v režimu celé obrazovky."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:263
 msgid "State"
-msgstr "상태"
+msgstr "Stav"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
 msgid "State Saves"
-msgstr "상태 저장"
+msgstr "Ukládání stavu"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
-msgstr "스틱"
+msgstr "Stick"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Stop"
-msgstr "중지"
+msgstr "Zastavit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:220
 msgid "Stretch to Window"
-msgstr "윈도우로 늘림"
+msgstr "Roztáhnout do Okna"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Strum"
-msgstr "스트럼"
+msgstr "Brnkat"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:75
 msgid "Subtract"
-msgstr "빼기"
+msgstr "Odečíst"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:78
 #, c-format
 msgid "Successfully exported file to %s"
-msgstr "성공적으로 파일을 %s로 내보냈음"
+msgstr "Soubor úspěšně exportován do %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:57
 msgid "Successfully imported save files"
-msgstr "세이브 파일들을 성공적으로 가져왔음"
+msgstr "Uložení byly úspěšně importovány"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:246
 msgid "Swing"
-msgstr "스윙"
+msgstr "Švihnutí"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:794
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:859
 msgid "System Language:"
-msgstr "시스템 언어:"
+msgstr "Jazyk Systému:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:186
 msgid "TAIWAN"
-msgstr "타이완"
+msgstr "TAIWAN"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
-msgstr "탭"
+msgstr "Tab"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:481
 msgid "Tab split"
-msgstr "탭 분리"
+msgstr "Rozdělit okno"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:37
 msgid "Table Left"
-msgstr "테이블 왼쪽"
+msgstr "Deska vlevo"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:38
 msgid "Table Right"
-msgstr "테이블 오른쪽"
+msgstr "Deska vpravo"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:375
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:447
 msgid "Take Screenshot"
-msgstr "스크린샷 얻기"
+msgstr "Vytvořit Snímek Obrazovky"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:503
 msgid "Test"
-msgstr "테스트"
+msgstr "Test"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:287
 msgid "Texture"
-msgstr "텍스쳐"
+msgstr "Textura"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:377
 msgid "Texture Format"
-msgstr "텍스쳐 포멧"
+msgstr "Formát Textury"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:210
 msgid "The WAD has been installed successfully"
-msgstr "WAD가 성공적으로 설치되었습니다"
+msgstr "WAD bylo úspěšně nainstalováno"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:197
 msgid "The address is invalid"
-msgstr "그 주소는 비적합 입니다"
+msgstr "Adresa je neplatná"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:513
 msgid "The checksum was successfully fixed"
-msgstr "체크섬이 성공적으로 고쳐졌습니다"
+msgstr "Kontrolní součet byl úspěšně opraven"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1322
 msgid "The chosen directory is already in the list"
-msgstr "선택된 디렉토리는 이미 리스트에 있다"
+msgstr "Zvolený adresář je už v seznamu"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1256
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1284
@@ -4419,8 +4431,8 @@ msgid ""
 "The file %s already exists.\n"
 "Do you wish to replace it?"
 msgstr ""
-"%s 파일이 이미 존재합니다.\n"
-"그것을 바꾸시겠습니까?"
+"Soubor %s už existuje.\n"
+"Chcete ho nahradit?"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:52
 #, c-format
@@ -4428,99 +4440,99 @@ msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
 "opened by another program."
 msgstr ""
-"%s 파일은 쓰기위해 열릴 수 없었습니다. 다른 프로그램에 의해 이미 열려져있는"
-"지 체크해주세요."
+"Soubor %s nemohl být otevřen pro zápis. Zkontrolujte, prosím, je-li už "
+"otevřen jiným programem."
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:45
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
-msgstr "%s 파일이 이미 열려 있었습니다, 파일 헤더는 기록되지 않을 것입니다."
+msgstr "Soubor %s je už otevřen, hlavička souboru nebude zapsána."
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:279
 #, c-format
 msgid "The file you specified (%s) does not exist"
-msgstr "당신이 기술한 파일 (%s)는 존재하지 않습니다"
+msgstr "Zadaný soubor (%s) neexistuje"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:599
 msgid "The name can not be empty"
-msgstr "이름은 비워둘 수 없습니다"
+msgstr "Jméno nemůže být prázdné"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:591
 msgid "The name can not contain the character ','"
-msgstr "이른은 ',' 문자를 포함할 수 없습니다"
+msgstr "Jméno nemůže obsahovat znak ','"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:451
 msgid "The save you are trying to copy has an invalid file size"
-msgstr "당신이 복사하려는 저장은 비적합 파일 크기입니다."
+msgstr "Uložená hra, kterou se snažíte zkopírovat má neplatnou délku souboru"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:420
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
 msgstr ""
-"선택된 언어는 당신의 시스템에서 지원되지 않습니다. 시스템 디폴트로 돌아갑니"
-"다."
+"Zvolený jazyk není Vašim systémem podporován. Vracím se na výchozí jazyk "
+"systému."
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:43
 msgid "The server and client's NetPlay versions are incompatible!"
-msgstr "서버와 클라이언트의 넷플레이 버전들이 호환되지 않는다!"
+msgstr "Verze serveru a Netplay klienta jsou nekompatibilní!"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:40
 msgid "The server is full!"
-msgstr "서버가 가득참!"
+msgstr "Server je plný!"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:46
 msgid "The server responded: the game is currently running!"
-msgstr "서버가 응답했습니다: 그 게임은 현재 구동중이다!"
+msgstr "Server odpověděl: hra v současnosti běží!"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:49
 msgid "The server sent an unknown error message!"
-msgstr "서버가 알려지지 않은 에러 메시지를 보냈음!"
+msgstr "Server zaslal neznámou chybovou zprávu!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:119
 #, c-format
 msgid "The specified file \"%s\" does not exist"
-msgstr "기술된 \"%s\" 파일은 존재하지 않는다"
+msgstr "Zadaný soubor \"%s\" neexistuje"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:198
 msgid "The value is invalid"
-msgstr "값이 비적합 합니다"
+msgstr "Hodnota je neplatná"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:657
 msgid "Theme"
-msgstr "테마"
+msgstr "Vzhled"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:609
 msgid "Theme selection went wrong"
-msgstr "테마 선택이 잘못되었다"
+msgstr "Výběr vzhledu se zvrtl"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:462
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
 msgstr ""
-"00000001/00000002에 대한 티켓이 있어야한다. 당신의 NAND 덤프는 아마도 미완성"
-"이다."
+"Musí existovat lístek pro 00000001/00000002. Vaše NAND vypsání je "
+"pravděpodobně neúplné"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
 msgstr ""
-"이 설정들은 핵심 돌핀 설정들을 덮어씁니다.\n"
-"결정되지않은 것은 게임이 돌핀의 설정을 사용함을 뜻합니다."
+"Tato nastavení potlačí hlavní nastavení Doplhinu.\n"
+"Neurčený znamená, že hra použije nastavení Dolphin."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:356
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
 msgstr ""
-"이 액션 리플레이 시뮬레이터는 액션 리플레이 스스로 수정한 코드를 지원하지 않"
-"는다."
+"Tento simulátor action replay nepodporuje kód, který mění samotný Action "
+"Replay."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:576
 msgid "This could cause slow down in Wii Menu and some games."
-msgstr "이것은 Wii 메뉴와 일부 게임들에서 느려짐을 유발할 수 있다."
+msgstr "Toto může způsobit zpomalení ve Wii Menu a v některých hrách."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:568
 msgid ""
@@ -4530,14 +4542,16 @@ msgid ""
 "\n"
 "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
 msgstr ""
-"이것은 사운드 병목으로 게임 스피드를 컨트롤하는 데에 쓰인다.\n"
-"이것을 끄는 것은 비정상적인 게임스피드를 유발할 수 있다, 너무 빠르다던지.\n"
+"Toto je použito pro kontrolu rychlosti hry pomocí přiškrcení zvuku.\n"
+"Vypnutí tohoto může způsobit nesprávnou rychlost hry, např. příliš rychle.\n"
+"Ale někdy zapnutím můžete způsobit nepřetržitý hluk.\n"
 "\n"
-"키보드 단축키 <TAB>:  병목을 즉각 끄려면 눌러라."
+"Klávesová Zkratka <TAB>: Podržte pro okamžité vypnutí Zaškrcení."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:567
 msgid "This is used to play music tracks, like BGM."
-msgstr "이것은 BGM같은 음악 트랙들을 재생하는 데에 쓰입니다."
+msgstr ""
+"Toto se používá pro přehrávání hudebních stop, jako např. hudba v pozadí."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:537
 msgid ""
@@ -4546,129 +4560,127 @@ msgid ""
 "Causes major speed improvements on PCs with more than one core, but can also "
 "cause occasional crashes/glitches."
 msgstr ""
-"이것은 비디오와 CPU 쓰레드들을 분리한다, 그래서 그들은 분리된 코어들 상에서 "
-"구동될 수 있다.\n"
-"두개 이상의 코어를 가진 PC들 상에서 주요 속도 향상들을 유발한다, 하지만 갑작"
-"스런 깨짐/결함들을 일으킬 수도 있다."
+"Toto rozdělí vlákna Obrazu a Procesoru, takže běží na oddělených jádrech.\n"
+"Způsobí výrazné zvýšení rychlosti na PC s více než jedním jádrem, ale také "
+"může způsobovat občasné chyby/pády."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:285
 msgid "This will let you Manually Edit the INI config file"
-msgstr "이것은 수동으로 INI 환경파일을 수정하게 해줄겁니다"
+msgstr "Tohle Vám umožní Ručně Upravovat konfigurační soubory INI"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
 msgid "Threshold"
-msgstr "한계점"
+msgstr "Práh"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:249
 msgid "Tilt"
-msgstr "기울기"
+msgstr "Naklánění"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:629
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Title"
-msgstr "    제목"
+msgstr "Název"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
 #, fuzzy
 msgid "Toggle All Log Types"
-msgstr "모두 토글"
+msgstr "Sepnout Vše"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:215
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:446
 msgid "Toggle Fullscreen"
-msgstr "전체화면 토글"
+msgstr "Přepnout na Celou Obrazovku"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
 msgid "Top"
-msgstr "위"
+msgstr "Nahoře"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:316
 msgid "Traditional Chinese"
-msgstr "전통 중국어"
+msgstr "Tradiční Čínština"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:369
 msgid "Tried to load an unknown file type."
-msgstr "알려지지 않은 파일 타입을 로드시도했다."
+msgstr "Pokus o načtení souboru neznámého typu."
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:77
 msgid "Triggers"
-msgstr "트리거"
+msgstr "Spínače"
 
 #: Source/Core/Common/Src/SysConf.h:98 Source/Core/Common/Src/SysConf.h:121
 msgid "Trying to read from invalid SYSCONF"
-msgstr "비적합 SYSCONF로 부터 읽기 시도"
+msgstr "Pokus o čtení z neplatného SYSCONF"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:43
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wiimote bt ids are not available"
 msgstr ""
-"효한 SYSCONF에서 읽기 시도\n"
-"위모트 bt id들은 유용하지 않습니다"
+"Pokus o čtení z neplatného SYSCONF\n"
+"ID bt wiimote nejsou dostupné"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:342
 msgid "Turkish"
-msgstr "터키어"
+msgstr "Turečtina"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:29
 msgid "Turntable"
-msgstr "턴테이블"
+msgstr "Točna"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:71
 msgid "Type"
-msgstr "타입"
+msgstr "Typ"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:32
 msgid "UDP Port:"
-msgstr "UDP 포트:"
+msgstr "UDP Port:"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:252
 msgid "UDP Wiimote"
-msgstr "UDP 위모트"
+msgstr "UDP Wiimote"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:194
 msgid "UNKNOWN"
-msgstr "알려지지 않음"
+msgstr "NEZNÁMÝ"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:173
 msgid "USA"
-msgstr "미국"
+msgstr "USA"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:411
 #, c-format
 msgid "Undefined %i"
-msgstr "정의되지 않은 %i"
+msgstr "Nedefinován %i"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:177
 msgid "Undo Load State"
-msgstr "상태 로드 되돌림"
+msgstr "Vrátit zpět Nahrání Stavu"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:203
 msgid "Unknown"
-msgstr "알려지지 않은"
+msgstr "Neznámé"
 
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:895
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
-msgstr "알려지지 않은 DVD 명령 %08x - 치명적 에러"
+msgstr "Neznámý příkaz DVD %08x - závažná chyba"
 
 #: Source/Core/Common/Src/SysConf.cpp:120
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
-msgstr "알려지지 않은 엔트리 타입 %i SYSCONF (%s@%x)안에!"
+msgstr "Neznámý záznam typu %i v SYSCONF (%s@%x)!"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:224
 #, c-format
 msgid "Unknown message received with id : %d"
-msgstr "id : %d의 알려지지 않은 메시지를 받었다"
+msgstr "Přijata neznámá zpráva s id : %d"
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:501
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
-msgstr ""
-"id:%d의 알려지지 않은 메시지, 플레이어:%d 플레이어 킥킹으로 부터 전달된!"
+msgstr "Neznámá zpráva s id:%d přijata od hráče:%d Vyhazuji hráče!"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:636
 #, c-format
@@ -4676,42 +4688,42 @@ msgid ""
 "Unknown pointer %#08x\n"
 "Continue?"
 msgstr ""
-"알려지지 않은 포인터 %#08x\n"
-"계속합니까?"
+"Neznámý ukazatel %#08x\n"
+"Pokračovat?"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 msgid "Up"
-msgstr "위"
+msgstr "Nahoru"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:100
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:17
 msgid "Update"
-msgstr "업데이트"
+msgstr "Aktualizovat"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:284
 msgid "Upright Wiimote"
-msgstr "업라이트 위모트"
+msgstr "Svislý Wiimote"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:832
 msgid "Use EuRGB60 Mode (PAL60)"
-msgstr "EuRGB60 모드 (PAL60) 사용"
+msgstr "Použít režim EuRGB60 (PAL60)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:606
 msgid "Use FPS For Limiting"
-msgstr "제한을 위해 FPS 이용"
+msgstr "Použít SzS pro Omezení"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:554
 msgid "Use Hex"
-msgstr "16진수 사용"
+msgstr "Použít Šestnáctkovou soustavu"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:663
 msgid "Use Panic Handlers"
-msgstr "패닉 핸들러 사용"
+msgstr "Použít Obslužné Rutiny Paniky"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:337
 msgid "Use XFB"
-msgstr "XFB 사용"
+msgstr "Použít XFB"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
 msgid ""
@@ -4720,87 +4732,87 @@ msgid ""
 "Vastly improves visual quality in games which use EFB copies but might cause "
 "glitches in some games."
 msgstr ""
-"EFB 복사에 대해 원본해상도로 다운스케일링 하는 대신 고-해상도 렌더 버퍼를 사"
-"용한다.\n"
-"EFB 복사들을 사용하는 게임들에서 비주얼 퀄리티가 대단히 향상되지만 일부 게임"
-"들에서 결함들을 일으킬지 모른다."
+"Použít vyrovnávací paměť vykreslování ve vysokém rozlišení pro EFB kopie, "
+"místo zmenšení jejich velikosti do původního rozlišení.\n"
+"Nesmírně zlepší obrazovou kvalitu v hrách, které používají EFB kopie, ale "
+"může způsobit v některých hrách chyby."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:416
 msgid "Utility"
-msgstr "유틸리티"
+msgstr "Pomůcky"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:233
 msgid "V-Sync"
-msgstr "수직-동기화"
+msgstr "V-Synch"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:197
 msgid "Value"
-msgstr "값"
+msgstr "Hodnota"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:73
 msgid "Value:"
-msgstr "값:"
+msgstr "Hodnota:"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:551
 msgid "Value: "
-msgstr "값:"
+msgstr "Hodnota:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:375
 msgid "Various Statistics"
-msgstr "다양한 통계"
+msgstr "Různé Statistiky"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:53
 msgid "Verbosity"
-msgstr "상세설명"
+msgstr "Úroveň"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:390
 msgid "Video"
-msgstr "비디오"
+msgstr "Obraz"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:673
 msgid "Video Backend:"
-msgstr "비디오 처리기 :"
+msgstr "Backend Obrazu:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:390
 msgid "Virtual"
-msgstr "가상"
+msgstr "Virtuální"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:741
 msgid "Volume"
-msgstr "볼륨"
+msgstr "Hlasitost"
 
 #: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:111
 #: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:140
 #: Source/Core/Core/Src/Boot/Boot_WiiWAD.cpp:166
 #, c-format
 msgid "WAD installation failed: error creating %s"
-msgstr "WAD 설치 실패했습니다: 에러 생성 %s"
+msgstr "Instalace WAD selhala: chyba při vytváření %s"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
 msgid ""
 "Wait for vertical blanks.\n"
 "Reduces tearing but might also decrease performance"
 msgstr ""
-"수직 주기를 기다립니다.\n"
-"갈라짐을 줄이지만 성능이 감소될지도 모릅니다."
+"Čeká na vertikální prázdná místa.\n"
+"Zmírňuje trhání, ale může také snížit výkon"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:673
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
 #: Source/Core/Common/Src/MsgHandler.cpp:67
 msgid "Warning"
-msgstr "경고"
+msgstr "Varování"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:238
 msgid "Warning - starting DOL in wrong console mode!"
-msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
+msgstr "Varování - DOL se spouští ve špatném režimu konzole!"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:288
 msgid "Warning - starting ELF in wrong console mode!"
-msgstr "경고 - 잘못된 콘솔 모드에서 ELF 시작!"
+msgstr "Varování - ELF se spouští ve špatném režimu konzole!"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:185
 msgid "Warning - starting ISO in wrong console mode!"
-msgstr "경고 - 잘못된 콘솔 모드에서 ISO 시작!"
+msgstr "Varování - ISO se spouští ve špatném režimu konzole!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:551
 #, c-format
@@ -4809,9 +4821,9 @@ msgid ""
 "%s\n"
 "Do you wish to continue?"
 msgstr ""
-"경고! '다음 폴더'안에 모든 파일을 백업하길 권고합니다:\n"
+"Varování! Je doporučeno zálohovat všechny soubory v adresáři:\n"
 "%s\n"
-"계속하고 싶습니까?"
+"Přejete si pokračovat?"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:586
 #, c-format
@@ -4821,19 +4833,19 @@ msgid ""
 "and have the same name as a file on your memcard\n"
 "Continue?"
 msgstr ""
-"경고: 이것은 '다음 폴더' 안에 있는 어느 기존 저장들도 덮어쓸 겁니다\n"
+"Varování: Toto přepíše všechny existující uložení, které jsou v adresáři:\n"
 "%s\n"
-"그리고 당신의 메모리카드에 파일로 같은 이름을 가집니다\n"
-"계속합니까?"
+"a mají stejný název jako soubor na Vaši paměťové kartě\n"
+"Pokračovat?"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:111
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:125
 msgid "WaveFileWriter - file not open."
-msgstr "WaveFileWriter - 파일이 열리지 않습니다."
+msgstr "WaveFileWriter - soubor není otevřen."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
-msgstr "훼미"
+msgstr "Whammy"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:132
 msgid ""
@@ -4847,22 +4859,24 @@ msgid ""
 "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
 "be; accurate texture cache set to \"safe\" might actually be slower!)"
 msgstr ""
-"'EFB를 램에'를 사용할 때 우리는 매우 자주 램 데이터를 비디오램 텍스쳐로 디코"
-"딩할 필요가 있다, 이것은 매우 시간이 소비되는 작업이다.\n"
-"이 옵션이 활성화되면, 텍스쳐가 변경되지 않었을 때 디코딩을 스킵할 것이다.\n"
-"이것은 훌륭한 속도향상을 가져온다, 하지만 결함들을 일으킬 수도 있다.\n"
-"이 옵션을 켠 채로 어느 문제들이 생긴다면 텍스쳐 캐쉬의 안전성 증가시키기를 시"
-"도해보거나 이 옵션을 꺼야한다.\n"
-"(알아두기: 더 안전한 텍스쳐 캐쉬는 더 적은 속도상승이 생기게 조정된다; \"안전"
-"\"으로 설정된 정확한 텍스쳐 캐쉬는 실제로 더 느려질 수도 있다!)"
+"Při použítí EFB do Ram často potřebujeme dekódovat data RAM do textury VRAM, "
+"což je časově velmi náročný úkol.\n"
+"Pokud je tato možnost zapnuta, dekódování u textury je přeskočeno, pokud se "
+"nezměnila.\n"
+"To má za výsledek pěkné zrychlení, ale také možnost chyb.\n"
+"Pokud máte problémy s touto možností zapnutou, měli byste buď zvýšit "
+"bezpečnost vyrovnávací paměti textury nebo ji vypnout.\n"
+"POZNÁMKA: Čím bezpečnější vyrovnávací paměť textury je, tím nižší bude "
+"zrychlení; precizní vyrovnávací paměť textury nastavená na \"bezpečná\" muže "
+"být i pomalejší!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:231
 msgid "Widescreen Hack"
-msgstr "와이드스크린 핵"
+msgstr "Hack Širokoúhlého obrazu"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:311
 msgid "Width"
-msgstr "너비"
+msgstr "Šířka"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:596
 msgid "Wii"
@@ -4870,28 +4884,28 @@ msgstr "Wii"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:373
 msgid "Wii Console"
-msgstr "Wii 콘솔"
+msgstr "Konzole Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:205
 msgid "Wii Save Import"
-msgstr "Wii 저장 가져오기"
+msgstr "Import uložených pozic Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1290
 msgid "Wii save files (*.bin)|*.bin"
-msgstr "Wii 저장 파일들 (*.bin)|*.bin"
+msgstr "Wii soubory s uložením (*.bin)|*.bin"
 
 #: Source/Core/DiscIO/Src/WiiWad.cpp:81
 msgid "WiiWAD: Could not read from file"
-msgstr "WiiWAD: 파일로 부터 읽을 수 없었습니다"
+msgstr "WiiWAD Nelze číst ze souboru"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:453
 #: Source/Core/Core/Src/HW/Wiimote.cpp:16
 msgid "Wiimote"
-msgstr "위모트"
+msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:76
 msgid "Wiimote "
-msgstr "위모트"
+msgstr "Wiimote "
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:174
 #, c-format
@@ -4901,404 +4915,233 @@ msgid ""
 "or maybe it is due to idle time out or other reason.\n"
 "Do you want to reconnect immediately?"
 msgstr ""
-"위모트 %i 가 시스템에 의해 연결해제되었습니다.\n"
-"아마도 이 게임은 멀티-위모트를 지원하지 않습니다.\n"
-"혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
-"당신은 즉시 재연결 하고 싶습니까?"
+"Wiimote %i byl odpojen systémem.\n"
+"Možná tato hra nepodporuje více wiimotů,\n"
+"nebo je to vypršení limitu neaktivity, nebo z jiného důvodu.\n"
+"Chcete ho hned znovu připojit?"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:669
 msgid "Wiimote Connected"
-msgstr "위모트가 연결됨"
+msgstr "Wiimote Připojen"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:827
 msgid "Wiimote Motor"
-msgstr "위모트 모터"
+msgstr "Wiimote Motor"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:850
 msgid "Wiimote Settings"
-msgstr "위모트 설정"
+msgstr "Nastavení Wiimote"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:453
 msgid "Wiimote settings"
-msgstr "위모트 설정"
+msgstr "Wiimote nastavení"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:551
 msgid "Will enable progressive scan option if supported by software."
-msgstr "소프트에 의해 지원되면 프로그레시브 스캔을 켤 것이다."
+msgstr "Povolí progresivní skenování, pokud je podporováno softwarem."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:682
 msgid "Window Size:"
-msgstr "윈도우 크기:"
+msgstr "Velikost Okna:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "Window height for windowed mode"
-msgstr "창모드에 대한 윈도우 높이"
+msgstr "Výška okna v režimu v okně"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:545
 msgid "Window width for windowed mode"
-msgstr "창모드에 대한 윈도우 넓이"
+msgstr "Šířka okna v režimu v okně"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:131
 msgid "Windows Left"
-msgstr "윈도우즈 왼쪽"
+msgstr "Klávesa Windows Vlevo"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:133
 msgid "Windows Menu"
-msgstr "윈도우즈 메뉴"
+msgstr "Klávesa Windows Menu"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:132
 msgid "Windows Right"
-msgstr "윈도우즈 오른쪽"
+msgstr "Klávesa Windows Vpravo"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:95
 msgid "Word Wrap"
-msgstr "자동 줄바꿈"
+msgstr "Zalamování textu"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1176
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1223
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1356
 msgid "Working..."
-msgstr "작동중..."
+msgstr "Pracuji..."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:61
 msgid "Write to Console"
-msgstr "콘솔에 쓰기"
+msgstr "Zapsat do Konzole"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:59
 msgid "Write to File"
-msgstr "파일에 쓰기"
+msgstr "Zapsat do Souboru"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:63
 #, fuzzy
 msgid "Write to Window"
-msgstr "윈도우에 쓰기 ->"
+msgstr "Zapsat do Okna ->"
 
 #: Source/Core/AudioCommon/Src/XAudio2Stream.cpp:51
 #, c-format
 msgid "XAudio2 CreateSourceVoice failed: %#X"
-msgstr "XAudio2 CreateSourceVoice 실패: %#X"
+msgstr "XAudio2 CreateSourceVoice selhalo: %#X"
 
 #: Source/Core/AudioCommon/Src/XAudio2Stream.cpp:133
 #, c-format
 msgid "XAudio2 init failed: %#X"
-msgstr "XAudio2 초기화 실패: %#X"
+msgstr "XAudio2 spuštění selhalo: %#X"
 
 #: Source/Core/AudioCommon/Src/XAudio2Stream.cpp:142
 #, c-format
 msgid "XAudio2 master voice creation failed: %#X"
-msgstr "XAudio2 매스터 보이스 생성 실패: %#X"
+msgstr "XAudio2 vytvoření hlavního hlasu selhalo: %#X"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:393
 msgid "XFB"
-msgstr "XFB (외부프레임버퍼)"
+msgstr "XFB"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
-msgstr "노랑"
+msgstr "Žlutá"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:64
 msgid "You can't close panes that have pages in them."
-msgstr "당신은 페이지들을 가진 창을 닫을 수 없습니다."
+msgstr "Nemůžete zavřít panely, které mají uvntř stránky."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:186
 msgid "You must choose a game!!"
-msgstr "게임을 선택해야 합니다!!"
+msgstr "Musíte si zvolit hru!!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:595
 msgid "You must enter a name!"
-msgstr "이름을 넣어야 합니다!"
+msgstr "Musíte zadat jméno!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:427
-#, fuzzy
 msgid "You must enter a valid decimal, hexadecimal or octal value."
-msgstr "적합한 10진수나 16진수 값을 넣어야 합니다."
+msgstr ""
+"Musíte zadat platnou hodnotu v desítkové, šestnáctkové nebo osmičkové "
+"soustavě."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:623
 msgid "You must enter a valid profile name."
-msgstr "적합한 프로파일 이름을 넣어야 합니다."
+msgstr "Musíte zadat platné jméno profilu."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1049
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr "변경이 적용되려면 돌핀을 재시작 해야 합니다."
+msgstr "Pro uplatnění změn musíte restartovat Dolphin."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:174
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
 msgstr ""
-"당신의 GCM/ISO 파일이 비적합(비적합 국가)인 것 같습니다.\n"
-"PAL 지역으로 계속합니까?"
+"Váš GCM/ISO soubor se zdá být neplatný (neplatná země).\n"
+"Pokračovat s regionem PAL?"
 
 #: Source/Core/Common/Src/SysConf.cpp:50
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04llx)"
 msgstr ""
-"당신의 SYSCONF 파일은 잘못된 크기임 - 0x%04x 이어야함 (하지만 0x%04llx 임)"
+"Váš soubor SYSCONF má špatnou velikost - měla by být 0x%04x (ale je 0x%04llx)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:338
 msgid "ZTP hack"
-msgstr "ZTP 핵"
+msgstr "ZTP hack"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:388
 msgid "Zero 3 code not supported"
-msgstr "Zero 3 코드는 지원되지 않습니다"
+msgstr "Kód Zero 3 není podorován"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:410
 #, c-format
 msgid "Zero code unknown to dolphin: %08x"
-msgstr "돌핀에 알려지지 않은 Zero 코드: %08x"
+msgstr "Nulový kód, který dolphin nezná: %08x"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:451
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:476
 msgid "[ waiting ]"
-msgstr "[ 대기 ]"
+msgstr "[ čekám ]"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:97
 msgid "[Custom]"
-msgstr "[사용자 지정]"
+msgstr "[Vlastní]"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:526
 msgid "^ ADD"
-msgstr "^ ADD"
+msgstr "^ PŘIDAT"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:888
 msgid "apploader (.img)"
-msgstr "앱로더 (.img)"
+msgstr "zavaděč aplikace (.img)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:196
 msgid "failed to read bk header"
-msgstr "bk 헤더 읽기에 실패했습니다"
+msgstr "čtení hlavičky bk selhalo"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:410
 #, c-format
 msgid "failed to read data from file: %s"
-msgstr "파일: %s 에서 데이터 읽기에 실패"
+msgstr "Čtení dat selhalo ze souboru: %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:98
 msgid "failed to read header"
-msgstr "헤더 읽기에 실패했습니다"
+msgstr "Nelze číst z hlavičky"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:450
 #, c-format
 msgid "iCacheJIT: Reading Opcode from %x. Please report."
-msgstr "iCacheJIT: %x 에서 옵코드 읽기. 보고해주세요."
+msgstr "iCacheJIT: Přečten Opcode z %x. Prosím nahlašte."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:109
 #, c-format
 msgid "not a wii save or read failure for file header size %x"
-msgstr "wii 저장이 아니거나 파일 헤더 크기 %x에 대한 읽기 실패 "
+msgstr "není uložená hra wii nebo nelze číst z hlavičky souboru o velikosti %x"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:447
 #, c-format
 msgid "unknown cmd 0x%08x"
-msgstr "알려지지 않은 명령 0x%08x"
+msgstr "neznámy příkaz 0x%08x"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1118
 msgid "wxExecute returned -1 on application run!"
-msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다!"
+msgstr "wxExecute při běhu aplikace vrátil -1!"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:56
 msgid "zFar Correction: "
-msgstr "z원거리 정정:"
+msgstr "Korekce z Far:"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:51
 msgid "zNear Correction: "
-msgstr "z근거리 정정:"
+msgstr "Korekce zNear:"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:511
 msgid "| OR"
-msgstr "| OR"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "프레임 스텝(&F)"
+msgstr "| NEBO"
 
 #~ msgid "32,000 Hz"
 #~ msgstr "32,000 Hz"
 
 #~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr "32-비트 플랫폼들은 fastmem을 아직 지원안함. 이 버그를 보고하라."
+#~ msgstr "32-bitové platformy fastmem ještě nepodporují. Tuto chybu nahlašte."
 
 #~ msgid "48,000 Hz"
 #~ msgstr "48,000 Hz"
 
-#~ msgid "ALSA"
-#~ msgstr "ALSA"
-
-#~ msgid "AOSound"
-#~ msgstr "AOSound"
-
-#~ msgid "Adjust window size"
-#~ msgstr "윈도우 크기 조정"
-
-#~ msgid "Alternate RFI"
-#~ msgstr "RFI 대안"
-
-#~ msgid "Bad gameini filename"
-#~ msgstr "배드 gameini 파일이름"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "플러그인 %s 를 찾을 수 없음"
-
-#~ msgid "Can't init DSP Plugin"
-#~ msgstr "사운드 플러그인을 초기화할 수 없음"
-
-#~ msgid "Can't init Video Plugin"
-#~ msgstr "비디오 플러그인을 초기화할 수 없음"
-
-#~ msgid "Can't open %s, it has a missing function"
-#~ msgstr "%s를 열수 없음, 그것은 놓친 함수를 가진다"
-
 #~ msgid "Config..."
-#~ msgstr "환경설정..."
-
-#~ msgid "Connected"
-#~ msgstr "연결된"
-
-#~ msgid "CoreAudio"
-#~ msgstr "CoreAudio"
-
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "플러그인 %s에 대한 정보를 얻을 수 없었습니다"
-
-#~ msgid "DSound"
-#~ msgstr "DSound"
-
-#~ msgid "Disconnected"
-#~ msgstr "연결해제된"
-
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "돌핀 DSP-HLE 플러그인"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "돌핀 DSP-HLE 플러그인 설정"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "돌핀 DSP-LLE 플러그인"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "돌핀 DSP-LLE 플러그인 설정"
-
-#~ msgid "Dolphin Direct3D11"
-#~ msgstr "돌핀 Direct3D11"
-
-#~ msgid "Dolphin Direct3D9"
-#~ msgstr "돌핀 Direct3D9"
+#~ msgstr "Nastavení..."
 
 #~ msgid "Dolphin OpenGL"
-#~ msgstr "돌핀 OpenGL"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "HLE 오디오 활성"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "JIT Dynarec 활성"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "DSP 코드의 다이나믹 재컴파일을 켠다.\n"
-#~ "이 변경은 에뮬레이터가 구동되고 있는 동안에는 효과가 없습니다!"
-
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "%s 로딩 에러: 정보를 읽을 수 없음"
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "플러그인 %s 로딩 에러: 파일을 찾을 수 없음. 플러그인을 다시 선택하세요."
-
-#~ msgid "Graphics Plugin"
-#~ msgstr "그래픽 플러그인"
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "만일 게임이 멈추고, 인터프리터로만 작동하거나 돌핀이 깨진다면, 이 옵션은 "
-#~ "그 게임을 고칠지 모른다."
-
-#~ msgid "Load Script..."
-#~ msgstr "스크립트 로드..."
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Lua 스크립트 콘솔"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
+#~ msgstr "Dolphin OpenGL"
 
 #~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "믹서: 지원되지 않는 샘플율."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "새로운 &Lua 콘솔"
-
-#~ msgid "No audio output"
-#~ msgstr "오디오 출력 없음"
-
-#~ msgid "OpenAL"
-#~ msgstr "OpenAL"
-
-#~ msgid "OpenGL"
-#~ msgstr "OpenGL"
-
-#~ msgid "Plugins"
-#~ msgstr "플러그인"
-
-#~ msgid "Pulse"
-#~ msgstr "진동"
-
-#~ msgid "ROM %s too short : %i/%i"
-#~ msgstr "%s 롬은 너무 짧음 : %i/%i"
-
-#~ msgid "Run"
-#~ msgstr "구동"
-
-#~ msgid "Running script...\n"
-#~ msgstr "스크립트 구동중...\n"
-
-#~ msgid "Select the script to load"
-#~ msgstr "로드할 스크립트 선택"
-
-#~ msgid "Show save banner"
-#~ msgstr "저장 배너 보기"
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
+#~ msgstr "Mixér: Nepodporovaná vzorkovací frekvence."
 
 #~ msgid "Slot"
-#~ msgstr "슬롯"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "오디오 플러그인 명시"
-
-#~ msgid "The file "
-#~ msgstr "그 파일"
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "이것은 보통 음성과 소리 효과들 재생에 사용된다."
-
-#~ msgid "Trying to load unsupported type %d"
-#~ msgstr "지원되지않는 %d 타입 로드하기 시도"
-
-#~ msgid "Type %d config not supported in plugin %s"
-#~ msgstr "%d 타입 환경은 플러그인 %s 에서 지원되지 않습니다"
-
-#~ msgid "Wiimote %i %s"
-#~ msgstr "위모트 %i %s"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom hack"
-
-#~ msgid "please someone fill this tooltip i have no idea what to say :D"
-#~ msgstr "누군가 이 툴팁을 채워주세요. 무엇을 말해야할지 모르겠네요 :D"
+#~ msgstr "Slot"
