@@ -76,8 +76,9 @@
     <msgfmt Include="nl.po" />
     <msgfmt Include="pl.po" />
     <msgfmt Include="pt_BR.po" />
-	<msgfmt Include="pt.po" />
+    <msgfmt Include="pt.po" />
     <msgfmt Include="ru.po" />
+    <msgfmt Include="sr.po" />
     <msgfmt Include="tr.po" />
     <msgfmt Include="zh_CN.po" />
     <msgfmt Include="zh_TW.po" />
@@ -101,9 +102,10 @@
     <None Include="nl.po" />
     <None Include="pl.po" />
     <None Include="pt_BR.po" />
-	<None Include="pt.po" />
+    <None Include="pt.po" />
     <None Include="ru.po" />
     <None Include="tr.po" />
+    <None Include="sr.po" />
     <None Include="zh_CN.po" />
     <None Include="zh_TW.po" />
   </ItemGroup>
