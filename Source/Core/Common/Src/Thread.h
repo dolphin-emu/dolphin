@@ -141,7 +141,7 @@ void SetCurrentThreadAffinity(u32 mask);
 #ifdef _WIN32
 		Sleep(0);
 #elif defined(_M_IX86) || defined(_M_X64)
-		usleep(1);
+		sleep(0);
 #endif
 	}
 	

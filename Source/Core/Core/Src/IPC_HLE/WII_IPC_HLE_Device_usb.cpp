@@ -533,7 +533,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			NetPlay_WiimoteUpdate(wiimote_to_update);
 			Wiimote::Update(wiimote_to_update);
 		}
-		wiimote_to_update = ++wiimote_to_update % m_WiiMotes.size();
+		wiimote_to_update = (wiimote_to_update + 1) % m_WiiMotes.size();
 		m_last_ticks = now;
 	}
 
