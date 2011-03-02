@@ -118,7 +118,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		break;
 
 	case WM_SPEAKER_ENABLE : // 0x14
-		//INFO_LOG(WIIMOTE, "WM Speaker Enable: 0x%02x", sr->data[0]);
+		//ERROR_LOG(WIIMOTE, "WM Speaker Enable: %02x", sr->enable);
 		//PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
 		m_status.speaker = sr->enable;
 		if (false == sr->ack)
@@ -140,13 +140,17 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		break;
 
 	case WM_WRITE_SPEAKER_DATA : // 0x18
+		{
+		//wm_speaker_data *spkz = (wm_speaker_data*)sr->data;
+		//ERROR_LOG(WIIMOTE, "WM_WRITE_SPEAKER_DATA len:%x %s", spkz->length,
+		//	ArrayToString(spkz->data, spkz->length, 100, false).c_str());
 		Wiimote::SpeakerData((wm_speaker_data*)sr->data);
-		// TODO: Does this need an ack?
+		}
 		return;	// no ack
 		break;
 
 	case WM_SPEAKER_MUTE : // 0x19
-		//INFO_LOG(WIIMOTE, "WM Speaker Mute: 0x%02x", sr->data[0]);
+		//ERROR_LOG(WIIMOTE, "WM Speaker Mute: %02x", sr->enable);
 		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
 		// testing
 		//if (sr->data[0] & 0x04)
@@ -353,6 +357,14 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			}
 			else
 				return;	// TODO: generate a writedata error reply
+
+			/* TODO?
+			if (region_ptr == &m_reg_speaker)
+			{
+				ERROR_LOG(WIIMOTE, "Write to speaker reg %x %s", address,
+					ArrayToString(wd->data, wd->size, 100, false).c_str());
+			}
+			*/
 
 			if (&m_reg_ext == region_ptr)
 			{

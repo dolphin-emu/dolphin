@@ -159,13 +159,19 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	//	//((wm_report_mode*)(data + 2))->continuous = false;
 	//}
 
+ 	if (rpt.first[0] == 0xa2 && rpt.first[1] == 0x18 && rpt.second == 23)
+	{
+		m_audio_reports.Push(rpt);
+ 		return;
+ 	}
+
 	m_write_reports.Push(rpt);
 }
 
 bool Wiimote::Read()
 {
 	Report rpt;
-
+	
 	rpt.first = new unsigned char[MAX_PAYLOAD];
 	rpt.second = IORead(rpt.first);
 
@@ -182,15 +188,23 @@ bool Wiimote::Read()
 bool Wiimote::Write()
 {
 	Report rpt;
+	bool audio_written = false;
+	
+	if (m_audio_reports.Pop(rpt))
+	{
+		IOWrite(rpt.first, rpt.second);
+		delete[] rpt.first;
+		audio_written = true;
+	}
+
 	if (m_write_reports.Pop(rpt))
 	{
 		IOWrite(rpt.first, rpt.second);
 		delete[] rpt.first;
-
 		return true;
-	}
+	}	
 
-	return false;
+	return audio_written;
 }
 
 // Returns the next report that should be sent
@@ -308,14 +322,19 @@ void Wiimote::ThreadFunc()
 	// main loop
 	while (IsConnected())
 	{
-		// hopefully this is alright
+#ifdef __APPLE__
 		while (Write()) {}
-
-#ifndef __APPLE__
-		// sleep if there was nothing to read
-		if (false == Read())
+		Common::SleepCurrentThread(1);
+#else
+		bool read = false;
+		while (Write() || (read = true, Read()))
+		{
+			if (m_audio_reports.Size() && !read)
+				Read();
+			Common::SleepCurrentThread(m_audio_reports.Size() ? 5 : 2);
+			read = false;
+		}
 #endif
-			Common::SleepCurrentThread(1);
 	}
 }
 

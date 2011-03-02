@@ -47,7 +47,6 @@
 #include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
 #include "NANDContentLoader.h"
-#include "CommonPaths.h"
 
 void CBoot::Load_FST(bool _bIsWii)
 {
@@ -216,19 +215,6 @@ bool CBoot::BootUp()
 		{
 			// If we can't load the bootrom file we HLE it instead
 			EmulatedBS2(_StartupPara.bWii);
-		}
-
-		// Scan for common HLE functions
-		if (!_StartupPara.bEnableDebugging)
-		{
-			PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
-			SignatureDB db;
-			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
-			{
-				db.Apply(&g_symbolDB);
-			}
-			HLE::PatchFunctions();
-			g_symbolDB.Clear();
 		}
 
 		/* Try to load the symbol map if there is one, and then scan it for

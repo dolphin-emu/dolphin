@@ -23,16 +23,18 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_usb.h"
 #include "../ConfigManager.h"
+#include "CoreTiming.h"
+
 #define WIIMOTESIZE 0x46 
 #define BTDINFSIZE WIIMOTESIZE * 0x10
+
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_ScanEnable(0)
 	, m_HCIEndpoint(0)
 	, m_ACLEndpoint(0)
-	, m_WiimoteUpdate_Freq(0)
-	, m_NumCompPackets_Freq(0)
+	, m_last_ticks(0)
 {
 	// Activate only first Wiimote by default
 		
@@ -108,8 +110,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_ACLSetup);
 	p.Do(m_HCIEndpoint);
 	p.Do(m_ACLEndpoint);
-	p.Do(m_NumCompPackets_Freq);
-	p.Do(m_WiimoteUpdate_Freq);
+	p.Do(m_last_ticks);
 
 	u32 size;
 	if (p.GetMode() == PointerWrap::MODE_READ)
@@ -163,8 +164,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	m_ScanEnable = 0;
 
-	m_NumCompPackets_Freq = 0;
-	m_WiimoteUpdate_Freq = 0;
+	m_last_ticks = 0;
 	memset(m_PacketCount, 0, sizeof(m_PacketCount));
 
 	m_HCIEndpoint.m_address = 0;
@@ -179,8 +179,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 {
 	m_ScanEnable = 0;
 
-	m_NumCompPackets_Freq = 0;
-	m_WiimoteUpdate_Freq = 0;
+	m_last_ticks = 0;
 	memset(m_PacketCount, 0, sizeof(m_PacketCount));
 
 	m_HCIEndpoint.m_address = 0;
@@ -348,6 +347,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 		return;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Send ACL Packet to ConnectionHandle 0x%04x", _ConnectionHandle);
+	IncDataPacket(_ConnectionHandle);
 	pWiiMote->ExecuteL2capCmd(_pData, _Size);
 }
 
@@ -357,11 +357,20 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 // AyuanX: Basically, our WII_IPC_HLE is efficient enough to send the packet immediately
 // rather than enqueue it to some other memory 
 // But...the only exception comes from the Wiimote_Plugin
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::IncDataPacket(u16 _ConnectionHandle)
+{
+	m_PacketCount[_ConnectionHandle & 0xff]++;
+
+	if (m_PacketCount[_ConnectionHandle & 0xff] > 10)
+	{
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
+		m_PacketCount[_ConnectionHandle & 0xff] = 10;
+	}
+}
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet from %x ready to send to stack...", _ConnectionHandle);
-
-	m_PacketCount[_ConnectionHandle & 0xff]++;
 
 	if (m_ACLEndpoint.IsValid() && !m_HCIEndpoint.IsValid() && m_EventQueue.empty())
 	{
@@ -394,9 +403,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x completed...", ((hci_event_hdr_t*)_event.m_buffer)->event);
-
-	if (_event.m_connectionHandle)
-		m_PacketCount[_event.m_connectionHandle & 0xff]++;
 
 	if (m_HCIEndpoint.IsValid())
 	{
@@ -439,6 +445,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
+	bool packet_transferred = false;
 	// check hci queue
 	if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
 	{
@@ -455,7 +462,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		WII_IPC_HLE_Interface::EnqReply(m_HCIEndpoint.m_address);
 		m_HCIEndpoint.Invalidate();
 		m_EventQueue.pop();
-		return true;
+		packet_transferred = true;
 	}
 
 	// check acl queue
@@ -478,7 +485,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		WII_IPC_HLE_Interface::EnqReply(m_ACLEndpoint.m_address);
 		m_ACLEndpoint.Invalidate();
 		m_ACLQ.pop();
-		return true;
+		packet_transferred = true;
 	}
 
 	// We wait for ScanEnable to be sent from the bt stack through HCI_CMD_WRITE_SCAN_ENABLE
@@ -486,22 +493,16 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	//
 	// FiRES: TODO find a better way to do this
 
-	// Supposedly this delay is needed for real wiimotes
-	// TODO try removing this hack, or handling real wiimotes better
-	static int counter = Core::GetRealWiimote() ? 1000 : 0;
 	// Create ACL connection
 	if (m_HCIEndpoint.IsValid() && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
 	{
-		if (--counter < 0)
+		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 		{
-			for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+			if (m_WiiMotes[i].EventPagingChanged(m_ScanEnable))
 			{
-				if (m_WiiMotes[i].EventPagingChanged(m_ScanEnable))
-				{
-					Host_SetWiiMoteConnectionState(1);
-					SendEventRequestConnection(m_WiiMotes[i]);
-					//return true;
-				}
+				Host_SetWiiMoteConnectionState(1);
+				SendEventRequestConnection(m_WiiMotes[i]);
+				//return true;
 			}
 		}
 	}
@@ -516,44 +517,29 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// The Real Wiimote sends report at a fixed frequency of 100Hz
-	// So let's make it also 100Hz here
-	// Calculation: 1500Hz (IPC_HLE) / 100Hz (WiiMote) = 15
-	if (m_ACLEndpoint.IsValid())
+	// The Real Wiimote sends report every ~6.66ms.
+	// However, we don't actually reach here at dependable intervals, so we
+	// instead just timeslice in such a way that makes the stack think we have
+	// perfect "radio quality" (WPADGetRadioSensitivity) and yet still have some
+	// idle time.
+	static int wiimote_to_update = 0;
+	const u64 interval = 729000000u / 200; // 5ms behaves well
+	u64 each_wiimote_interval = interval / m_WiiMotes.size();
+	u64 now = CoreTiming::GetTicks();
+	if (now - m_last_ticks > each_wiimote_interval)
 	{
-		if (++m_WiimoteUpdate_Freq > 15)
-			m_WiimoteUpdate_Freq = 0;
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		if (m_WiiMotes[wiimote_to_update].IsConnected())
 		{
-			if (m_WiiMotes[i].IsConnected() && m_WiimoteUpdate_Freq == 15 / (i + 1))
-			{
-				NetPlay_WiimoteUpdate(i);
-				Wiimote::Update(i);
-				//return true;
-			}
+			NetPlay_WiimoteUpdate(wiimote_to_update);
+			Wiimote::Update(wiimote_to_update);
 		}
+		wiimote_to_update = ++wiimote_to_update % m_WiiMotes.size();
+		m_last_ticks = now;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// This event should be sent periodically after ACL connection is accepted
-	// or CPU will disconnect WiiMote automatically
-	// but don't send too many or it will jam the bus and cost extra CPU time
-	//////////////////////////////////////////////////////////////////////////
-	// "When the Host has completed one or more HCI Data Packet(s) it shall send a
-	// Host_Number_Of_Completed_Packets command to the Controller, until it
-	// finally reports that all pending HCI Data Packets have been completed. The
-	// frequency at which this command is sent is manufacturer specific."
-	// -- Figuring out the "correct" rate could be annoying, so our guess will suffice :p
-	if (m_HCIEndpoint.IsValid())
-	{
-		if (++m_NumCompPackets_Freq > 500)
-		{
-			m_NumCompPackets_Freq = 0;
-			SendEventNumberOfCompletedPackets();
-		}
-	}
+ 	SendEventNumberOfCompletedPackets();
 
-	return false;
+	return packet_transferred;
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()
@@ -913,20 +899,29 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 	event_hdr->length	= sizeof(hci_num_compl_pkts_ep);
 	event->num_con_handles = 0;
 
+	u32 acc = 0;
+
 	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 	{
 		event_hdr->length += sizeof(hci_num_compl_pkts_info);
 		event->num_con_handles++;
 		info->compl_pkts = m_PacketCount[i];
 		info->con_handle = m_WiiMotes[i].GetConnectionHandle();
-		info++;
-		m_PacketCount[i] = 0;
 		
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", info->con_handle);
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", info->compl_pkts);
+
+		acc += info->compl_pkts;
+		m_PacketCount[i] = 0;
+		info++;
 	}
 
-	AddEventToQueue(Event);
+	if (acc)
+		AddEventToQueue(Event);
+	else
+	{
+		INFO_LOG(WII_IPC_WIIMOTE, "SendEventNumberOfCompletedPackets: no packets; no event");
+	}
 
 	return true;
 }
@@ -1771,11 +1766,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadBufferSize(u8* _Input)
 {
 	hci_read_buffer_size_rp Reply;
 	Reply.status = 0x00;
-	Reply.max_acl_size = 0x0FFF;	//339;
-	Reply.num_acl_pkts = 0xFF;		//10;
+	Reply.max_acl_size = 339;
+	// Due to how the widcomm stack which nintendo uses is coded, we must never
+	// let the stack think the controller is buffering more than 10 data packets
+	// - it will cause a u8 underflow and royally screw things up.
+	Reply.num_acl_pkts = 10;
 	Reply.max_sco_size = 64;
 	Reply.num_sco_pkts = 0;
-	// AyuanX: Are these parameters fixed or adjustable ???
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_BUFFER_SIZE:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "return:");

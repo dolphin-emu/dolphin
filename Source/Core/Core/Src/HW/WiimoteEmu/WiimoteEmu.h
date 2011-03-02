@@ -50,7 +50,12 @@ struct ReportFeatures
 struct AccelData
 {
 	double x,y,z;
-};	
+};
+
+struct ADPCMState
+{
+	s32 predictor, step;
+};
 
 extern const ReportFeatures reporting_mode_features[];
 
@@ -167,6 +172,8 @@ private:
 
 	wm_status_report		m_status;
 
+	ADPCMState m_adpcm_state;
+
 	// read data request queue
 	// maybe it isn't actualy a queue
 	// maybe read requests cancel any current requests
@@ -224,11 +231,17 @@ private:
 
 	struct SpeakerReg
 	{
-		u16		unknown;
+		u8		unused_0;
+		u8		unk_1;
 		u8		format;
+		// seems to always play at 6khz no matter what this is set to?
+		// or maybe it only applies to pcm input
 		u16		sample_rate;
 		u8		volume;
-		u8		unk[4];
+		u8		unk_6;
+		u8		unk_7;
+		u8		play;
+		u8		unk_9;
 
 	}	m_reg_speaker;
 };

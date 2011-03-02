@@ -98,6 +98,7 @@ private:
 	std::thread			m_wiimote_thread;
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
+	Common::FifoQueue<Report>	m_audio_reports;
 };
 
 extern Common::CriticalSection	g_refresh_critsec;

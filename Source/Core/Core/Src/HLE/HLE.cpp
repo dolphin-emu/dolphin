@@ -59,6 +59,7 @@ static const SPatch OSPatches[] =
 	// debug out is very nice ;)
 	{ "OSReport",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "DEBUGPrint",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "WUD_DEBUGPrint",					HLE_OS::HLE_GeneralDebugPrint	},
 	{ "OSPanic",						HLE_OS::HLE_OSPanic				},
 	{ "vprintf",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "printf",							HLE_OS::HLE_GeneralDebugPrint	},
@@ -93,8 +94,6 @@ static const SPatch OSPatches[] =
 
 	// Name doesn't matter, installed in CBoot::BootUp()
 	{ "HBReload",						HLE_Misc::HBReload			},
-	// hax :|
-	{ "IsBusyStrm_",					HLE_Misc::IsBusyStream },
 };
 
 static const SPatch OSBreakPoints[] =

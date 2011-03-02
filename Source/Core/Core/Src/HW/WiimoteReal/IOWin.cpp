@@ -239,6 +239,13 @@ bool Wiimote::Connect()
 
 	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
 
+	// This isn't as drastic as it sounds, since the process in which the threads
+	// reside is normal priority. Needed for keeping audio reports at a decent rate
+	if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
+	{
+		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
+	}
+
 	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", index + 1);
 
 	return true;

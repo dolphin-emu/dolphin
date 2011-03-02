@@ -171,10 +171,10 @@ private:
 	std::queue<ACLQ> m_ACLQ;
 
 	u32 m_PacketCount[4];
-	u32 m_WiimoteUpdate_Freq;
-	u32 m_NumCompPackets_Freq;
+	u64 m_last_ticks;
 
 	// Send ACL data to a device (wiimote)
+	void IncDataPacket(u16 _ConnectionHandle);
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
 	// Events
