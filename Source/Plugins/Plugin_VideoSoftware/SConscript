@@ -1,0 +1,38 @@
+# -*- python -*-
+
+Import('env')
+import os
+import sys
+
+files = [
+	'Src/BPMemLoader.cpp',
+	'Src/CPMemLoader.cpp',
+	'Src/Clipper.cpp',
+	'Src/DebugUtil.cpp',
+	'Src/EfbCopy.cpp',
+	'Src/EfbInterface.cpp',
+	'Src/HwRasterizer.cpp',
+	'Src/OpcodeDecoder.cpp',
+	'Src/Rasterizer.cpp',
+	'Src/SWCommandProcessor.cpp',
+	'Src/SWPixelEngine.cpp',
+	'Src/SWRenderer.cpp',
+	'Src/SWStatistics.cpp',
+	'Src/SWVertexLoader.cpp',
+	'Src/SWVideoConfig.cpp',
+	'Src/SWmain.cpp',
+	'Src/SetupUnit.cpp',
+	'Src/Tev.cpp',
+	'Src/TextureEncoder.cpp',
+	'Src/TextureSampler.cpp',
+	'Src/TransformUnit.cpp',
+	'Src/XFMemLoader.cpp',
+	]
+
+if not env['nowx']:
+	files += ['Src/VideoConfigDialog.cpp']
+
+if sys.platform == 'win32':
+	files += ['Src/Win32.cpp']
+
+env['LIBS'] += env.StaticLibrary('videosoftware', files)

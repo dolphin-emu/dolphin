@@ -1,0 +1,29 @@
+# -*- python -*-
+
+Import('env')
+import sys
+
+files = [
+	'Src/AudioCommon.cpp',
+	'Src/AudioCommonConfig.cpp',
+	'Src/Mixer.cpp',
+	'Src/NullSoundStream.cpp',
+	'Src/WaveFile.cpp',
+	]
+
+if sys.platform == 'darwin':
+	files += ['Src/CoreAudioSoundStream.cpp']
+elif sys.platform == 'win32':
+	files += ['Src/DSoundStream.cpp']
+	files += ['Src/XAudio2Stream.cpp']
+else:
+	if env['HAVE_ALSA']:
+		files += ['Src/AlsaSoundStream.cpp']
+	if env['HAVE_AO']:
+		files += ['Src/AOSoundStream.cpp']
+	if env['HAVE_OPENAL']:
+		files += ['Src/OpenALStream.cpp', 'Src/aldlist.cpp']
+	if env['HAVE_PULSEAUDIO']:
+		files += ['Src/PulseAudioStream.cpp']
+
+env['LIBS'] += env.StaticLibrary('audiocommon', files)

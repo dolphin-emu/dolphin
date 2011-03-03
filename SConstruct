@@ -326,16 +326,16 @@ else:
     env.Alias('install', env['prefix'])
 
 dirs = [
-    'Source/Core/Core/Src',
-    'Source/Core/Common/Src',
-    'Source/Core/DiscIO/Src',
-    'Source/Core/DolphinWX/Src',
-    'Source/Plugins/Plugin_VideoOGL/Src',
-    'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/Core/AudioCommon/Src',
-    'Source/Core/InputCommon/Src',
-    'Source/Core/VideoCommon/Src',
-    'Source/DSPTool/Src',
+    'Source/Core/Core',
+    'Source/Core/Common',
+    'Source/Core/DiscIO',
+    'Source/Core/DolphinWX',
+    'Source/Plugins/Plugin_VideoOGL',
+    'Source/Plugins/Plugin_VideoSoftware',
+    'Source/Core/AudioCommon',
+    'Source/Core/InputCommon',
+    'Source/Core/VideoCommon',
+    'Source/DSPTool',
     'Source/UnitTests',
     'Externals/Bochs_disasm',
     'Externals/CLRun',
@@ -354,7 +354,7 @@ for subdir in dirs:
     SConscript(dirs = subdir, duplicate = 0, exports = 'env',
         variant_dir = env['build_dir'] + os.sep + subdir)
     if subdir.startswith('Source/Core'):
-        env['CPPPATH'] += ['#' + subdir]
+        env['CPPPATH'] += ['#' + subdir + os.sep + 'Src']
 
 # Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)

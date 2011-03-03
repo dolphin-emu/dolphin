@@ -6,63 +6,63 @@ import sys
 from SconsTests import utils
 
 if env['nowx']:
-	files = ['MainNoGUI.cpp']
+	files = ['Src/MainNoGUI.cpp']
 else:
 	files = [
-		'AboutDolphin.cpp',
-		'ARCodeAddEdit.cpp',
-		'GeckoCodeDiag.cpp',
-		'ConfigMain.cpp',
-		'Frame.cpp',
-		'FrameAui.cpp',
-		'FrameTools.cpp',
-		'LogWindow.cpp',
-		'LogConfigWindow.cpp',
-		'GameListCtrl.cpp',
-		'HotkeyDlg.cpp',
-		'InputConfigDiag.cpp',
-		'InputConfigDiagBitmaps.cpp',
-		'ISOFile.cpp',
-		'ISOProperties.cpp',
-		'PatchAddEdit.cpp',
-		'PHackSettings.cpp',
-		'CheatsWindow.cpp',
-		'Main.cpp',
-		'MemcardManager.cpp',
-		'MemoryCards/GCMemcard.cpp',
-		'MemoryCards/WiiSaveCrypted.cpp',
-		'NetWindow.cpp',
-		'UDPConfigDiag.cpp',
-		'WiimoteConfigDiag.cpp',
-		'WXInputBase.cpp',
-		'WxUtils.cpp',
-		'Debugger/BreakpointDlg.cpp',
-		'Debugger/BreakpointView.cpp',
-		'Debugger/BreakpointWindow.cpp',
-		'Debugger/CodeView.cpp',
-		'Debugger/CodeWindow.cpp',
-		'Debugger/CodeWindowFunctions.cpp',
-		'Debugger/DebuggerPanel.cpp',
-		'Debugger/DebuggerUIUtil.cpp',
-		'Debugger/DSPDebugWindow.cpp',
-		'Debugger/DSPRegisterView.cpp',
-		'Debugger/JitWindow.cpp',
-		'Debugger/MemoryCheckDlg.cpp',
-		'Debugger/MemoryView.cpp',
-		'Debugger/MemoryWindow.cpp',
-		'Debugger/RegisterView.cpp',
-		'Debugger/RegisterWindow.cpp',
-		'VideoConfigDiag.cpp',
+		'Src/ARCodeAddEdit.cpp',
+		'Src/AboutDolphin.cpp',
+		'Src/CheatsWindow.cpp',
+		'Src/ConfigMain.cpp',
+		'Src/Debugger/BreakpointDlg.cpp',
+		'Src/Debugger/BreakpointView.cpp',
+		'Src/Debugger/BreakpointWindow.cpp',
+		'Src/Debugger/CodeView.cpp',
+		'Src/Debugger/CodeWindow.cpp',
+		'Src/Debugger/CodeWindowFunctions.cpp',
+		'Src/Debugger/DSPDebugWindow.cpp',
+		'Src/Debugger/DSPRegisterView.cpp',
+		'Src/Debugger/DebuggerPanel.cpp',
+		'Src/Debugger/DebuggerUIUtil.cpp',
+		'Src/Debugger/JitWindow.cpp',
+		'Src/Debugger/MemoryCheckDlg.cpp',
+		'Src/Debugger/MemoryView.cpp',
+		'Src/Debugger/MemoryWindow.cpp',
+		'Src/Debugger/RegisterView.cpp',
+		'Src/Debugger/RegisterWindow.cpp',
+		'Src/Frame.cpp',
+		'Src/FrameAui.cpp',
+		'Src/FrameTools.cpp',
+		'Src/GameListCtrl.cpp',
+		'Src/GeckoCodeDiag.cpp',
+		'Src/HotkeyDlg.cpp',
+		'Src/ISOFile.cpp',
+		'Src/ISOProperties.cpp',
+		'Src/InputConfigDiag.cpp',
+		'Src/InputConfigDiagBitmaps.cpp',
+		'Src/LogConfigWindow.cpp',
+		'Src/LogWindow.cpp',
+		'Src/Main.cpp',
+		'Src/MemcardManager.cpp',
+		'Src/MemoryCards/GCMemcard.cpp',
+		'Src/MemoryCards/WiiSaveCrypted.cpp',
+		'Src/NetWindow.cpp',
+		'Src/PHackSettings.cpp',
+		'Src/PatchAddEdit.cpp',
+		'Src/UDPConfigDiag.cpp',
+		'Src/VideoConfigDiag.cpp',
+		'Src/WXInputBase.cpp',
+		'Src/WiimoteConfigDiag.cpp',
+		'Src/WxUtils.cpp',
 		]
 
 if sys.platform == 'win32':
-	files += ["stdafx.cpp"]
+	files += ['Src/stdafx.cpp']
 elif sys.platform == 'darwin':
 	env['CPPPATH'] += ['#Externals']
 	env['FRAMEWORKPATH'] += ['Externals/Cg']
 	env['FRAMEWORKS'] += ['ApplicationServices', 'Carbon', 'Cocoa']
 	env['FRAMEWORKS'] += ['AudioUnit', 'IOBluetooth', 'IOKit', 'OpenGL']
-	env['FRAMEWORKSFLAGS'] = ['-Wl,-weak_framework,Cg']
+	env['FRAMEWORKSFLAGS'] = ['-Wl,-lazy_framework,Cg']
 	env['FRAMEWORKSFLAGS'] += ['-Wl,-weak_framework,OpenCL']
 	env['LIBS'] += ['iconv', 'z']
 
@@ -127,7 +127,7 @@ elif sys.platform == 'darwin':
 		)))
 
 else:
-	files += ['X11Utils.cpp']
+	files += ['Src/X11Utils.cpp']
 	exe = env['binary_dir'] + '/dolphin-emu'
 	if env['nowx']:
 		exe += '-nogui'

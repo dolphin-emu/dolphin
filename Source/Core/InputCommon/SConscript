@@ -1,0 +1,34 @@
+# -*- python -*-
+
+import sys
+Import('env')
+
+files = [
+	'Src/ControllerEmu.cpp',
+	'Src/ControllerInterface/ControllerInterface.cpp',
+	'Src/InputConfig.cpp',
+	'Src/UDPWiimote.cpp',
+	'Src/UDPWrapper.cpp',
+	]
+
+if sys.platform == 'win32':
+	files += [
+		'Src/ControllerInterface/DInput/DInput.cpp',
+		'Src/ControllerInterface/DInput/DInputJoystick.cpp',
+		'Src/ControllerInterface/DInput/DInputKeyboardMouse.cpp'
+		'Src/ControllerInterface/SDL/SDL.cpp',
+		'Src/ControllerInterface/XInput/XInput.cpp',
+		]
+elif sys.platform == 'darwin':
+	files += [
+		'Src/ControllerInterface/OSX/OSX.mm',
+		'Src/ControllerInterface/OSX/OSXKeyboard.mm',
+		'Src/ControllerInterface/OSX/OSXJoystick.mm',
+		]
+elif env['HAVE_X11']:
+	files += [
+		'Src/ControllerInterface/SDL/SDL.cpp',
+		'Src/ControllerInterface/Xlib/Xlib.cpp',
+		]
+
+env['LIBS'] += env.StaticLibrary('inputcommon', files)

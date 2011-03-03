@@ -1,0 +1,22 @@
+# -*- python -*-
+
+Import('env')
+import os
+import sys
+
+files = [
+	'Src/FramebufferManager.cpp',
+	'Src/GLUtil.cpp',
+	'Src/NativeVertexFormat.cpp',
+	'Src/PixelShaderCache.cpp',
+	'Src/PostProcessing.cpp',
+	'Src/RasterFont.cpp',
+	'Src/Render.cpp',
+	'Src/TextureCache.cpp',
+	'Src/TextureConverter.cpp',
+	'Src/VertexManager.cpp',
+	'Src/VertexShaderCache.cpp',
+	'Src/main.cpp',
+	]
+
+env['LIBS'] += env.StaticLibrary('videoogl', files)

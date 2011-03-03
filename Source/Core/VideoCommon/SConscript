@@ -1,0 +1,48 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+	'Src/BPFunctions.cpp',
+	'Src/BPMemory.cpp',
+	'Src/BPStructs.cpp',
+	'Src/CPMemory.cpp',
+	'Src/CommandProcessor.cpp',
+	'Src/DLCache.cpp',
+	'Src/Debugger.cpp',
+	'Src/Fifo.cpp',
+	'Src/FramebufferManagerBase.cpp',
+	'Src/HiresTextures.cpp',
+	'Src/ImageWrite.cpp',
+	'Src/IndexGenerator.cpp',
+	'Src/LightingShaderGen.cpp',
+	'Src/MainBase.cpp',
+	'Src/OnScreenDisplay.cpp',
+	'Src/OpcodeDecoding.cpp',
+	'Src/OpenCL.cpp',
+	'Src/OpenCL/OCLTextureDecoder.cpp',
+	'Src/PixelEngine.cpp',
+	'Src/PixelShaderGen.cpp',
+	'Src/PixelShaderManager.cpp',
+	'Src/RenderBase.cpp',
+	'Src/Statistics.cpp',
+	'Src/TextureCacheBase.cpp',
+	'Src/TextureConversionShader.cpp',
+	'Src/TextureDecoder.cpp',
+	'Src/VertexLoader.cpp',
+	'Src/VertexLoaderManager.cpp',
+	'Src/VertexLoader_Color.cpp',
+	'Src/VertexLoader_Normal.cpp',
+	'Src/VertexLoader_Position.cpp',
+	'Src/VertexLoader_TextCoord.cpp',
+	'Src/VertexManagerBase.cpp',
+	'Src/VertexShaderGen.cpp',
+	'Src/VertexShaderManager.cpp',
+	'Src/VideoConfig.cpp',
+	'Src/VideoState.cpp',
+	'Src/XFMemory.cpp',
+	'Src/XFStructs.cpp',
+	'Src/memcpy_amd.cpp',
+	]
+
+env['LIBS'] += env.StaticLibrary('videocommon', files)

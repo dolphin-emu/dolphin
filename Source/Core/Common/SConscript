@@ -1,0 +1,57 @@
+# -*- python -*-
+
+Import('env')
+import os
+import sys
+
+def createVersion(env, target, source):
+	from SconsTests import utils
+	utils.GenerateRevFile(env['flavor'], source[0].path, target[0].path)
+
+Execute(Delete('Src/svnrev.h'))
+env.Command('Src/svnrev.h', 'Src/svnrev_template.h',
+	[Delete('${TARGET.srcpath}'), createVersion])
+
+files = [
+	'Src/ABI.cpp',
+	'Src/BreakPoints.cpp',
+	'Src/CDUtils.cpp',
+	'Src/CPUDetect.cpp',
+	'Src/ColorUtil.cpp',
+	'Src/ConsoleListener.cpp',
+	'Src/Crypto/aes_cbc.cpp',
+	'Src/Crypto/aes_core.cpp',
+	'Src/Crypto/bn.cpp',
+	'Src/Crypto/ec.cpp',
+	'Src/Crypto/md5.cpp',
+	'Src/Crypto/sha1.cpp',
+	'Src/FileSearch.cpp',
+	'Src/FileUtil.cpp',
+	'Src/Hash.cpp',
+	'Src/IniFile.cpp',
+	'Src/LogManager.cpp',
+	'Src/MathUtil.cpp',
+	'Src/MemArena.cpp',
+	'Src/MemoryUtil.cpp',
+	'Src/Misc.cpp',
+	'Src/MsgHandler.cpp',
+	'Src/NandPaths.cpp',
+	'Src/SDCardUtil.cpp',
+	'Src/StringUtil.cpp',
+	'Src/SymbolDB.cpp',
+	'Src/SysConf.cpp',
+	'Src/Thread.cpp',
+	'Src/Thunk.cpp',
+	'Src/Timer.cpp',
+	'Src/Version.cpp',
+	'Src/VideoBackendBase.cpp',
+	'Src/x64Analyzer.cpp',
+	'Src/x64Emitter.cpp',
+	]
+
+if sys.platform == 'win32':
+	files += ['Src/ExtendedTrace.cpp']
+	files += ['Src/stdafx.cpp']
+
+env['CPPPATH'] += ['Src']
+env['LIBS'] += env.StaticLibrary('common', files)

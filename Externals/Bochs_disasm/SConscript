@@ -4,15 +4,15 @@ Import('env')
 import sys
 
 files = [
-	"dis_decode.cpp",
-	"dis_groups.cpp",
-	"resolve.cpp",
-	"syntax.cpp",
-	"PowerPCDisasm.cpp",
+	'PowerPCDisasm.cpp',
+	'dis_decode.cpp',
+	'dis_groups.cpp',
+	'resolve.cpp',
+	'syntax.cpp',
 	]
 
 if sys.platform == 'win32':
-	files += [ "stdafx.cpp" ]
+	files += ['stdafx.cpp']
 
 env['CPPPATH'] += ['#Externals/Bochs_disasm']
 env['LIBS'] += env.StaticLibrary('bdisasm', files)

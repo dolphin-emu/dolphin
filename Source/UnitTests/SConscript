@@ -4,9 +4,9 @@ Import('env')
 import sys
 
 files = [
-	"AudioJitTests.cpp",
-	"DSPJitTester.cpp",
-	"UnitTests.cpp",
+	'AudioJitTests.cpp',
+	'DSPJitTester.cpp',
+	'UnitTests.cpp',
 	]
 
 env.Program('tester', files)
