@@ -53,7 +53,6 @@ public:
 	~CLogWindow();
 
 	void SaveSettings();
-	void LoadSettings();
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 
 	int x, y, winpos;
@@ -63,11 +62,9 @@ private:
 	wxFont DefaultFont, MonoSpaceFont;
 	std::vector<wxFont> LogFont;
 	wxTimer *m_LogTimer;
-	FileLogListener *m_fileLog;
-	ConsoleListener *m_console;
 	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
-	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess, m_bWrapLines;
+	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
 
 	// Controls
 	wxBoxSizer *sBottom;
@@ -83,13 +80,13 @@ private:
 
 	wxTextCtrl * CreateTextCtrl(wxPanel* parent, wxWindowID id = wxID_ANY, long Style = NULL);
 	void CreateGUIControls();
-	void PopulateRight(); void UnPopulateRight();
+	void PopulateBottom();
+	void UnPopulateBottom();
 	void OnClose(wxCloseEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSubmit(wxCommandEvent& event);
 	void OnFontChange(wxCommandEvent& event);
 	void OnWrapLineCheck(wxCommandEvent& event);
-	void ToggleWrapLine(bool word_wrap);
 	void OnClear(wxCommandEvent& event);
 	void OnLogTimer(wxTimerEvent& WXUNUSED(event));
 	void UpdateLog();

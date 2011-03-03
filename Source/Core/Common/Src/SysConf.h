@@ -93,19 +93,19 @@ public:
 			return 0;
 		}
 
-		size_t index = 0;
-		for (; index < m_Entries.size() - 1; index++)
+		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+		for (; index < m_Entries.end() - 1; index++)
 		{
-			if (strcmp(m_Entries[index].name, sectionName) == 0)
+			if (strcmp(index->name, sectionName) == 0)
 				break;
 		}
-		if (index == m_Entries.size() - 1)
+		if (index == m_Entries.end() - 1)
 		{
 			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return 0;
 		}
 
-		return m_Entries[index].GetData<T>();
+		return index->GetData<T>();
 	}
 
 	bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
@@ -116,19 +116,19 @@ public:
 			return 0;
 		}
 
-		size_t index = 0;
-		for (; index < m_Entries.size() - 1; index++)
+		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+		for (; index < m_Entries.end() - 1; index++)
 		{
-			if (strcmp(m_Entries[index].name, sectionName) == 0)
+			if (strcmp(index->name, sectionName) == 0)
 				break;
 		}
-		if (index == m_Entries.size() - 1)
+		if (index == m_Entries.end() - 1)
 		{
 			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return 0;
 		}
 
-		return m_Entries[index].GetArrayData(dest, destSize);
+		return index->GetArrayData(dest, destSize);
 	}
 
 	bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
@@ -136,19 +136,19 @@ public:
 		if (!m_IsValid)
 			return false;
 
-		size_t index = 0;
-		for (; index < m_Entries.size() - 1; index++)
+		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+		for (; index < m_Entries.end() - 1; index++)
 		{
-			if (strcmp(m_Entries[index].name, sectionName) == 0)
+			if (strcmp(index->name, sectionName) == 0)
 				break;
 		}
-		if (index == m_Entries.size() - 1)
+		if (index == m_Entries.end() - 1)
 		{
 			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return false;
 		}
 
-		return m_Entries[index].SetArrayData(buffer, bufferSize);
+		return index->SetArrayData(buffer, bufferSize);
 	}
 
 	template<class T>
@@ -157,19 +157,19 @@ public:
 		if (!m_IsValid)
 			return false;
 
-		size_t index = 0;
-		for (; index < m_Entries.size() - 1; index++)
+		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+		for (; index < m_Entries.end() - 1; index++)
 		{
-			if (strcmp(m_Entries[index].name, sectionName) == 0)
+			if (strcmp(index->name, sectionName) == 0)
 				break;
 		}
-		if (index == m_Entries.size() - 1)
+		if (index == m_Entries.end() - 1)
 		{
 			PanicAlertT("Section %s not found in SYSCONF", sectionName);
 			return false;
 		}
 
-		*(T*)m_Entries[index].data = newValue;
+		*(T*)index->data = newValue;
 		return true;
 	}
 
