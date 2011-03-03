@@ -38,9 +38,10 @@ void SysConf::Clear()
 {
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
-		delete [] m_Entries.at(i).data;
-		m_Entries.at(i).data = NULL;
+		delete [] m_Entries[i].data;
+		m_Entries[i].data = NULL;
 	}
+	m_Entries.clear();
 }
 
 bool SysConf::LoadFromFile(const char *filename)
@@ -87,7 +88,7 @@ bool SysConf::LoadFromFileInternal(FILE *f)
 	// Last offset is an invalid entry. We ignore it throughout this class
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
-		SSysConfEntry& curEntry = m_Entries.at(i);
+		SSysConfEntry& curEntry = m_Entries[i];
 		if (fseeko(f, curEntry.offset, SEEK_SET) != 0) return false;
 
 		u8 description = 0;
@@ -146,19 +147,19 @@ bool SysConf::SaveToFile(const char *filename)
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
 		// Seek to after the name of this entry
-		if (fseeko(f, m_Entries.at(i).offset + m_Entries.at(i).nameLength + 1, SEEK_SET) != 0) return false;
+		if (fseeko(f, m_Entries[i].offset + m_Entries[i].nameLength + 1, SEEK_SET) != 0) return false;
 		// We may have to write array length value...
-		if (m_Entries.at(i).type == Type_BigArray)
+		if (m_Entries[i].type == Type_BigArray)
 		{
-			u16 tmpDataLength = Common::swap16(m_Entries.at(i).dataLength);
+			u16 tmpDataLength = Common::swap16(m_Entries[i].dataLength);
 			if (fwrite(&tmpDataLength, 2, 1, f) != 1) return false;
 		}
-		else if (m_Entries.at(i).type == Type_SmallArray)
+		else if (m_Entries[i].type == Type_SmallArray)
 		{
-			if (fwrite(&m_Entries.at(i).dataLength, 1, 1, f) != 1) return false;
+			if (fwrite(&m_Entries[i].dataLength, 1, 1, f) != 1) return false;
 		}
 		// Now write the actual data
-		if (fwrite(m_Entries.at(i).data, m_Entries.at(i).dataLength, 1, f) != 1) return false;
+		if (fwrite(m_Entries[i].data, m_Entries[i].dataLength, 1, f) != 1) return false;
 	}
 
 	fclose(f);

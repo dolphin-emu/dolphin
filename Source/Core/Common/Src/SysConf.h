@@ -96,7 +96,7 @@ public:
 		size_t index = 0;
 		for (; index < m_Entries.size() - 1; index++)
 		{
-			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+			if (strcmp(m_Entries[index].name, sectionName) == 0)
 				break;
 		}
 		if (index == m_Entries.size() - 1)
@@ -105,7 +105,7 @@ public:
 			return 0;
 		}
 
-		return m_Entries.at(index).GetData<T>();
+		return m_Entries[index].GetData<T>();
 	}
 
 	bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
@@ -119,7 +119,7 @@ public:
 		size_t index = 0;
 		for (; index < m_Entries.size() - 1; index++)
 		{
-			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+			if (strcmp(m_Entries[index].name, sectionName) == 0)
 				break;
 		}
 		if (index == m_Entries.size() - 1)
@@ -128,7 +128,7 @@ public:
 			return 0;
 		}
 
-		return m_Entries.at(index).GetArrayData(dest, destSize);
+		return m_Entries[index].GetArrayData(dest, destSize);
 	}
 
 	bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
@@ -139,7 +139,7 @@ public:
 		size_t index = 0;
 		for (; index < m_Entries.size() - 1; index++)
 		{
-			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+			if (strcmp(m_Entries[index].name, sectionName) == 0)
 				break;
 		}
 		if (index == m_Entries.size() - 1)
@@ -148,7 +148,7 @@ public:
 			return false;
 		}
 
-		return m_Entries.at(index).SetArrayData(buffer, bufferSize);
+		return m_Entries[index].SetArrayData(buffer, bufferSize);
 	}
 
 	template<class T>
@@ -160,7 +160,7 @@ public:
 		size_t index = 0;
 		for (; index < m_Entries.size() - 1; index++)
 		{
-			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
+			if (strcmp(m_Entries[index].name, sectionName) == 0)
 				break;
 		}
 		if (index == m_Entries.size() - 1)
@@ -169,7 +169,7 @@ public:
 			return false;
 		}
 
-		*(T*)m_Entries.at(index).data = newValue;
+		*(T*)m_Entries[index].data = newValue;
 		return true;
 	}
 
