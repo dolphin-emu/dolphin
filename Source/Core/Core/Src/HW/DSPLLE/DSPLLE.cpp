@@ -77,9 +77,10 @@ void DSPLLE::DoState(PointerWrap &p)
 }
 
 // Regular thread
-void DSPLLE::dsp_thread(DSPLLE *lpParameter)
+void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
-	DSPLLE *dsp_lle = (DSPLLE *)lpParameter;
+	Common::SetCurrentThreadName("DSP thread");
+
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
