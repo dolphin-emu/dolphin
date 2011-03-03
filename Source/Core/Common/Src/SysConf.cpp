@@ -19,10 +19,10 @@
 #include "SysConf.h"
 
 SysConf::SysConf()
-: m_IsValid(false)
+	: m_IsValid(false)
 {
-	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX).c_str()))
-		m_IsValid = true;
+	m_FilenameDefault = File::GetUserPath(F_WIISYSCONF_IDX);
+	m_IsValid = LoadFromFile(m_FilenameDefault.c_str());
 }
 
 SysConf::~SysConf()
@@ -31,7 +31,11 @@ SysConf::~SysConf()
 		return;
 
 	Save();
+	Clear();
+}
 
+void SysConf::Clear()
+{
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
 		delete [] m_Entries.at(i).data;
@@ -166,4 +170,15 @@ bool SysConf::Save()
 	if (!m_IsValid)
 		return false;
 	return SaveToFile(m_Filename.c_str());
+}
+
+bool SysConf::Reload()
+{
+	if (m_IsValid)
+		Clear();
+
+	std::string& filename = m_Filename.empty() ? m_FilenameDefault : m_Filename;
+
+	m_IsValid = LoadFromFile(filename.c_str());
+	return m_IsValid;
 }

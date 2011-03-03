@@ -323,6 +323,10 @@ void Stop()  // - Hammertime!
 	Pad::Shutdown();
 	Wiimote::Shutdown();
 	g_video_backend->Shutdown();
+	
+	// Reload sysconf file in order to see changes committed during emulation
+	if (_CoreParameter.bWii)
+		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 }

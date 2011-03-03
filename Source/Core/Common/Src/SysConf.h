@@ -78,12 +78,6 @@ struct SSysConfEntry
 
 class SysConf
 {
-private:
-	SSysConfHeader m_Header;
-	std::string m_Filename;
-	std::vector<SSysConfEntry> m_Entries;
-	bool m_IsValid;
-
 public:
 	SysConf();
 	~SysConf();
@@ -182,8 +176,17 @@ public:
 	bool Save();
 	bool SaveToFile(const char* filename);
 	bool LoadFromFile(const char* filename);
+	bool Reload();
+
 private:
 	bool LoadFromFileInternal(FILE *f);
+	void Clear();
+
+	SSysConfHeader m_Header;
+	std::string m_Filename;
+	std::string m_FilenameDefault;
+	std::vector<SSysConfEntry> m_Entries;
+	bool m_IsValid;
 };
 
 #endif // __SYSCONF_MANAGER_h__
