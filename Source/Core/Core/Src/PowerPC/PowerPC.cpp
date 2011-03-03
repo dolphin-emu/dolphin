@@ -115,6 +115,11 @@ void ResetRegisters()
 	ppcState.npc = 0;
 	ppcState.Exceptions = 0;
 
+	for (int i = 0; i < 8; i++)
+	{
+		ppcState.cr_fast[i] = 0;
+	}
+
 	TL = 0;
 	TU = 0;
 	SystemTimers::TimeBaseSet();
