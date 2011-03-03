@@ -42,4 +42,4 @@ else:
 		]
 
 env['CPPPATH'] += ['#Externals/SDL', '#Externals/SDL/include']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('SDL', files)

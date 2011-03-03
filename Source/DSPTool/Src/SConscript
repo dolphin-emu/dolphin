@@ -3,13 +3,4 @@
 Import('env')
 import sys
 
-files = [
-	'DSPTool.cpp',
-	]
-
-libs = [
-	env['common'],
-	env['dspcore'],
-	]
-
-env.Program('dsptool', files, LIBS = libs)
+env.Program('dsptool', 'DSPTool.cpp')

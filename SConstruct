@@ -126,8 +126,6 @@ if sys.platform == 'darwin':
     env['CC'] = '/Developer/usr/bin/llvm-gcc'
     env['CXX'] = '/Developer/usr/bin/llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
-    env['FRAMEWORKS'] += ['ApplicationServices', 'AudioUnit', 'Cocoa']
-    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
@@ -160,11 +158,10 @@ if sys.platform == 'darwin':
             print '\nwxWidgets r66814 or newer is required to build Dolphin.'
             print 'See http://code.google.com/p/dolphin-emu/wiki/MacOSX_Build'
             print 'for instructions on building and installing wxWidgets.\n'
-            env['wxconfiglibs'] = []
         else:
             wxconfig.ParseWXConfig(wxenv)
             env['CPPPATH'] += wxenv['CPPPATH']
-            env['wxconfiglibs'] = wxenv['LIBS']
+            env['LIBS'] += wxenv['LIBS']
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
 
@@ -329,27 +326,27 @@ else:
     env.Alias('install', env['prefix'])
 
 dirs = [
+    'Source/Core/Core/Src',
+    'Source/Core/Common/Src',
+    'Source/Core/DiscIO/Src',
+    'Source/Core/DolphinWX/Src',
+    'Source/Plugins/Plugin_VideoOGL/Src',
+    'Source/Plugins/Plugin_VideoSoftware/Src',
+    'Source/Core/AudioCommon/Src',
+    'Source/Core/InputCommon/Src',
+    'Source/Core/VideoCommon/Src',
+    'Source/DSPTool/Src',
+    'Source/UnitTests',
     'Externals/Bochs_disasm',
     'Externals/CLRun',
     'Externals/GLew',
     'Externals/LZO',
     'Externals/SDL',
     'Externals/SOIL',
-    'Externals/SFML/src',
+    'Externals/SFML',
     'Externals/libpng',
     'Externals/wxWidgets3',
     'Externals/zlib',
-    'Source/Core/AudioCommon/Src',
-    'Source/Core/Common/Src',
-    'Source/Core/Core/Src',
-    'Source/Core/DiscIO/Src',
-    'Source/Core/DolphinWX/Src',
-    'Source/Core/InputCommon/Src',
-    'Source/Core/VideoCommon/Src',
-    'Source/DSPTool/Src',
-    'Source/Plugins/Plugin_VideoOGL/Src',
-    'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/UnitTests',
     ]
 
 # Now that platform configuration is done, propagate it to modules

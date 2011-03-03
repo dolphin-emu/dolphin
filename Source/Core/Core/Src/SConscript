@@ -32,9 +32,6 @@ files = [
 	"Debugger/Debugger_SymbolMap.cpp",
 	"Debugger/Dump.cpp",
 	"Debugger/PPCDebugInterface.cpp",
-	]
-
-dspcorefiles = [
 	"DSP/assemble.cpp",
 	"DSP/disassemble.cpp",
 	"DSP/DSPAccelerator.cpp",
@@ -64,9 +61,6 @@ dspcorefiles = [
 	"DSP/Jit/DSPJitMultiplier.cpp",
 	"DSP/Jit/DSPJitMisc.cpp",
 	"DSP/Jit/DSPJitRegCache.cpp",
-	]
-
-files += [
 	"GeckoCode.cpp",
 	"GeckoCodeConfig.cpp",
 	"HLE/HLE.cpp",
@@ -206,6 +200,4 @@ elif sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 else:
 	files += [ "HW/BBA-TAP/TAP_Unix.cpp", "HW/WiimoteReal/IODummy.cpp" ]
 
-env['dspcore'] = env.StaticObject(dspcorefiles)
-env['LIBS'] += env.StaticObject(files)
-env['LIBS'] += env['dspcore']
+env['LIBS'] += env.StaticLibrary('core', files)

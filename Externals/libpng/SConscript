@@ -6,7 +6,7 @@ import sys
 if env.has_key('shared_png') and env['shared_png']:
 	Return()
 
-if env['HAVE_WX']:
+if env.has_key('HAVE_WX') and env['HAVE_WX']:
 	Return()	# Currently using libwxpng
 
 files = [
@@ -28,4 +28,4 @@ files = [
 	]
 
 env['CPPPATH'] += ['#Externals/libpng']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('png', files)

@@ -28,4 +28,4 @@ files = [
 	]
 
 env['CPPPATH'] += ['#Externals/zlib']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('z', files)

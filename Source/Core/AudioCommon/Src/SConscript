@@ -13,6 +13,9 @@ files = [
 
 if sys.platform == 'darwin':
 	files += [ 'CoreAudioSoundStream.cpp' ]
+elif sys.platform == 'win32':
+	files += [ 'DSoundStream.cpp' ]
+	files += [ 'XAudio2Stream.cpp' ]
 else:
 	if env['HAVE_ALSA']:
 		files += [ 'AlsaSoundStream.cpp' ]
@@ -22,8 +25,5 @@ else:
 		files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
 	if env['HAVE_PULSEAUDIO']:
 		files += [ 'PulseAudioStream.cpp' ]
-	if sys.platform == 'win32':
-		files += [ 'DSoundStream.cpp' ]
-		files += [ 'XAudio2Stream.cpp' ]
 
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('audiocommon', files)

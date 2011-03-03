@@ -14,4 +14,4 @@ files = [
 	]
 
 env['CPPPATH'] += ['#Externals/CLRun/include']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('clrun', files)

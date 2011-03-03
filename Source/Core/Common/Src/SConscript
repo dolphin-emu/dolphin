@@ -38,7 +38,7 @@ files = [
 	"Thunk.cpp",
 	"Timer.cpp",
 	"Version.cpp",
-	#"VideoBackendBase.cpp",
+	"VideoBackendBase.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
 	"Crypto/aes_cbc.cpp",
@@ -53,7 +53,5 @@ if sys.platform == 'win32':
 	files += [ "ExtendedTrace.cpp" ]
 	files += [ "stdafx.cpp" ]
 
-env['common'] = env.StaticObject(files)
 env['CPPPATH'] += ['.']
-env['LIBS'] += env['common']
-env['LIBS'] += env.StaticObject('VideoBackendBase.cpp')
+env['LIBS'] += env.StaticLibrary('common', files)

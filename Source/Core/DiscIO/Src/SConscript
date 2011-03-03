@@ -26,4 +26,4 @@ files = [
 	'WiiWad.cpp',
 	]
 
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('discio', files)

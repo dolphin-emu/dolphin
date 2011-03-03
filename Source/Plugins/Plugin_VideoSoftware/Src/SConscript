@@ -29,10 +29,10 @@ files = [
 	'XFMemLoader.cpp',
 	]
 
-if env['HAVE_WX']:
+if not env['nowx']:
 	files += [ 'VideoConfigDialog.cpp' ]
 
 if sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
 
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('videosoftware', files)

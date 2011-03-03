@@ -13,4 +13,4 @@ files = [
 	]
 
 env['CPPPATH'] += ['#Externals/SOIL']
-env['LIBS'] += env.StaticObject(files)
+env['LIBS'] += env.StaticLibrary('SOIL', files)

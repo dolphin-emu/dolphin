@@ -13,7 +13,7 @@ else:
 	libs = ['GL', 'GLU']
 	frames = []
 
-glew = env.StaticObject('src/glew.c')
+glew = env.StaticLibrary('GLEW', 'src/glew.c')
 libs += glew
 env.Program('glewinfo', 'src/glewinfo.c', LIBS = libs, FRAMEWORKS = frames)
 env.Program('visualinfo', 'src/visualinfo.c', LIBS = libs, FRAMEWORKS = frames)

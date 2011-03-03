@@ -235,7 +235,7 @@ void PrintObject(const T &Obj)
 	CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
 	(void)ensure_zpb_size_correct;
 
-	for(int i = 0; i < sizeof(T); i++) {
+	for (size_t i = 0; i < sizeof(T); i++) {
 		if((i > 0) && ((i & 1) == 0))
 			ss << " ";
 

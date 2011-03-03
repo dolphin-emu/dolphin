@@ -6,4 +6,4 @@ if env.has_key('shared_lzo') and env['shared_lzo']:
 	Return()
 
 env['CPPPATH'] += ['#Externals/LZO']
-env['LIBS'] += env.StaticObject('minilzo.c')
+env['LIBS'] += env.StaticLibrary('lzo2', 'minilzo.c')

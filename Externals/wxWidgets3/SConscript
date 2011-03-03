@@ -3,11 +3,13 @@
 Import('env')
 import sys
 
-if env['HAVE_WX'] or env['nowx']:
+if env['nowx']:
+	Return()
+
+if env.has_key('HAVE_WX') and env['HAVE_WX']:
 	Return()
 
 env['CPPPATH'] += ['#Externals/wxWidgets3', '#Externals/wxWidgets3/include']
-env['HAVE_WX'] = 1
 
 wxenv = env.Clone()
 
@@ -15,7 +17,7 @@ wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations']
 wxenv['CCFLAGS'] += ['-Wno-shadow', '-Wno-sign-compare']
 wxenv['CPPDEFINES'] += ['WXBUILDING']
 
-# gtk, msw, osx and shared files as of r66858
+# gtk, msw, osx and shared files as of r67106
 
 aui = [
 	'src/aui/auibar.cpp',
@@ -162,6 +164,7 @@ common = [
 	'src/common/listctrlcmn.cpp',
 	'src/common/log.cpp',
 	'src/common/longlong.cpp',
+	#'src/common/markupparser.cpp',
 	'src/common/matrix.cpp',
 	#'src/common/mediactrlcmn.cpp',
 	#'src/common/memory.cpp',
@@ -320,6 +323,7 @@ generic = [
 	'src/generic/listbkg.cpp',
 	'src/generic/listctrl.cpp',
 	'src/generic/logg.cpp',
+	#'src/generic/markuptext.cpp',
 	#'src/generic/mask.cpp',
 	'src/generic/mdig.cpp',
 	'src/generic/msgdlgg.cpp',
@@ -1241,36 +1245,13 @@ zlib = [
 	'src/zlib/zutil.c',
 	]
 
-env['LIBS'] += wxenv.StaticObject(aui)
-env['LIBS'] += wxenv.StaticObject(common)
-env['LIBS'] += wxenv.StaticObject(generic)
+files = aui + common + generic
 
-if sys.platform == 'darwin':
-	env['LIBS'] += wxenv.StaticObject(genericosx)
-	env['LIBS'] += wxenv.StaticObject(osx)
-	env['LIBS'] += wxenv.StaticObject(unix)
-elif sys.platform == 'win32':
-	env['LIBS'] += wxenv.StaticObject(msw)
+if sys.platform == 'win32':
+	files += msw
+elif sys.platform == 'darwin':
+	files += genericosx + osx + unix
 else:
-	env['LIBS'] += wxenv.StaticObject(genericgtk)
-	env['LIBS'] += wxenv.StaticObject(gtk)
-	env['LIBS'] += wxenv.StaticObject(unix)
-	env['LIBS'] += wxenv.StaticObject(unixgtk)
+	files += genericgtk + gtk + unix + unixgtk
 
-#env['LIBS'] += wxenv.StaticObject(html)
-#env['LIBS'] += wxenv.StaticObject(propgrid)
-#env['LIBS'] += wxenv.StaticObject(ribbon)
-#env['LIBS'] += wxenv.StaticObject(richtext)
-#env['LIBS'] += wxenv.StaticObject(xrc)
-#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/regex']
-#env['LIBS'] += wxenv.StaticObject(regex)
-#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/png']
-#env['LIBS'] += wxenv.StaticObject(png)
-#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/jpeg']
-#env['LIBS'] += wxenv.StaticObject(jpeg)
-#wxenv['CPPDEFINES'] += ['__WX__', 'SCI_LEXER', 'LINK_LEXERS']
-#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/stc/scintilla/include']
-#env['LIBS'] += wxenv.StaticObject(stc)
-#wxenv['CPPPATH'] += ['#Externals/wxWidgets3/src/tiff/libtiff']
-#env['LIBS'] += wxenv.StaticObject(tiff)
-#env['LIBS'] += wxenv.StaticObject(zlib)
+env['LIBS'] += wxenv.StaticLibrary('wx', files)

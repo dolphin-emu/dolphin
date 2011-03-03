@@ -22,9 +22,9 @@
 // Call sequence: This file has one of the first function called when a game is booted,
 // the boot sequence in the code is:
   
-// DolphinWX:    GameListCtrl.cpp       OnActivated
-//               BootManager.cpp        BootCore
-// Core          Core.cpp               Init                     Thread creation
+// DolphinWX:    FrameTools.cpp         StartGame
+// Core          BootManager.cpp        BootCore
+//               Core.cpp               Init                     Thread creation
 //                                      EmuThread                Calls CBoot::BootUp
 //               Boot.cpp               CBoot::BootUp()
 //                                      CBoot::EmulatedBS2_Wii() / GC() or Load_BS2()

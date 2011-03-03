@@ -5,13 +5,10 @@ import os
 import sys
 from SconsTests import utils
 
-files = []
-frameworksflags = []
-
-if not env['HAVE_WX']:
-	files += ['MainNoGUI.cpp']
+if env['nowx']:
+	files = ['MainNoGUI.cpp']
 else:
-	files += [
+	files = [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
 		'GeckoCodeDiag.cpp',
@@ -63,20 +60,18 @@ if sys.platform == 'win32':
 elif sys.platform == 'darwin':
 	env['CPPPATH'] += ['#Externals']
 	env['FRAMEWORKPATH'] += ['Externals/Cg']
+	env['FRAMEWORKS'] += ['ApplicationServices', 'Carbon', 'Cocoa']
+	env['FRAMEWORKS'] += ['AudioUnit', 'IOBluetooth', 'IOKit', 'OpenGL']
+	env['FRAMEWORKSFLAGS'] = ['-Wl,-weak_framework,Cg']
+	env['FRAMEWORKSFLAGS'] += ['-Wl,-weak_framework,OpenCL']
 	env['LIBS'] += ['iconv', 'z']
-	frameworksflags += ['-Wl,-weak_framework,Cg']
-	frameworksflags += ['-Wl,-weak_framework,OpenCL']
+
+	# XXX
+	env['FRAMEWORKSFLAGS'] += ['-Wl,-weak_framework,QuickTime']
+	env['FRAMEWORKSFLAGS'] += ['-Wl,-no_arch_warnings']
 
 	exe = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
-
-	if env['HAVE_WX']:
-		env['LIBS'] += env['wxconfiglibs']
-		frameworksflags += ['-Wl,-weak_framework,AudioToolbox']
-		frameworksflags += ['-Wl,-weak_framework,Carbon']
-		frameworksflags += ['-Wl,-weak_framework,QuickTime']
-		frameworksflags += ['-Wl,-weak_framework,WebKit']
-		frameworksflags += ['-Wl,-no_arch_warnings']
-	else:
+	if env['nowx']:
 		exe += 'NoGUI'
 
 	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
@@ -134,7 +129,7 @@ elif sys.platform == 'darwin':
 else:
 	files += ['X11Utils.cpp']
 	exe = env['binary_dir'] + '/dolphin-emu'
-	if not env['HAVE_WX']:
+	if env['nowx']:
 		exe += '-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
@@ -142,4 +137,4 @@ else:
 env.Command('dummy', '#' + env['prefix'],
 	"find $SOURCES -name .svn -exec rm -rf {} +")
 
-env.Program(exe, files, FRAMEWORKSFLAGS = frameworksflags)
+env.Program(exe, files)
