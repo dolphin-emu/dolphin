@@ -278,9 +278,9 @@ namespace this_thread
 inline void yield()
 {
 #ifdef _WIN32
-	Sleep(1);
+	Sleep(0);
 #else
-	usleep(1000 * 1);
+	sleep(0);
 #endif
 }
 

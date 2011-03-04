@@ -27,7 +27,7 @@
 #include "LookUpTables.h"
 
 #include <cmath>
-
+#include <omp.h>
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
@@ -685,33 +685,48 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 //need to add DXT support too
 PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+	//Dont use multithreading in small Textures
+	if(width > 127 && height > 127)
+	{
+		//don't span to many threads they will kill the rest of the emu :)
+		omp_set_num_threads(cpu_info.num_cores + 2 / 3);
+	}
+	else
+	{
+		omp_set_num_threads(1);
+	}
+	int Wsteps4 = (width + 3) / 4;
+	int Wsteps8 = (width + 7) / 8;
 	switch (texformat)
 	{
 	case GX_TF_C4:
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = yStep * 8; iy < 8; iy++, xStep++)
+						decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);				
 		}
 		else
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = yStep * 8; iy < 8; iy++, xStep++)
+						decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);						
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_I4:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,yStep++)
 						for (int ix = 0; ix < 4; ix++)
 						{
-							int val = src[ix];
+							int val = src[4 * yStep + ix];
 							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
 							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
 						}
@@ -719,20 +734,24 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 	   return PC_TEX_FMT_I4_AS_I8;
 	case GX_TF_I8:  // speed critical
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						memcpy(dst + (y + iy)*width+x, src, 8);
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					{
+						((u64*)dst + (y + iy)*width+x)[0] = ((u64*)(src + 8 * xStep))[0];
+					}
 		}
 		return PC_TEX_FMT_I8;
 	case GX_TF_C8:
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
 		else
 		{
@@ -740,36 +759,40 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 #if _M_SSE >= 0x301
 
 			if (cpu_info.bSSSE3) {
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 4; iy++, src += 8)
-							decodebytesC8_To_Raw16_SSSE3((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+							decodebytesC8_To_Raw16_SSSE3((u16*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 			} else
 #endif
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 4; iy++, src += 8)
-							decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+							decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src  + 8 * xStep, tlutaddr);
 			}
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_IA4:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesIA4((u16*)dst + (y + iy) * width + x, src);
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesIA4((u16*)dst + (y + iy) * width + x, src + 8 * xStep);
 		}
 		return PC_TEX_FMT_IA4_AS_IA8;
 	case GX_TF_IA8:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
+						u16 *s = (u16 *)(src + 8 * xStep);
 						for(int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
@@ -780,27 +803,30 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 		}
 		else
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x,(u16*)(src + 8 * xStep), tlutaddr);
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_RGB565:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
+						u16 *s = (u16 *)(src + 8 * xStep);
 						for(int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
@@ -808,11 +834,12 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		return PC_TEX_FMT_RGB565;
 	case GX_TF_RGB5A3:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						//decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-						decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src);
+						decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)(src + 8 * xStep));
 		}
 		return PC_TEX_FMT_BGRA32;
 	case GX_TF_RGBA8:  // speed critical
@@ -821,6 +848,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 #if _M_SSE >= 0x301
 
 			if (cpu_info.bSSSE3) {
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4) {
 					__m128i* p = (__m128i*)(src + y * width * 4);
 					for (int x = 0; x < width; x += 4) {
@@ -862,12 +890,13 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 #endif
 
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					{
+						const u8* src2 = src + 64 * yStep;
 						for (int iy = 0; iy < 4; iy++)
-							decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
-						src += 64;
+							decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src2 + 4 * iy + 16);						
 					}
 			}
 		}
@@ -894,18 +923,19 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 			}
 			return PC_TEX_FMT_DXT1;
 #else
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 			{
-				for (int x = 0; x < width; x += 8)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
 				{
-					decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
+					const u8* src2 = src + 4 * sizeof(DXTBlock) * yStep; 
+					decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src2, width);
+										src2 += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src2, width);
+										src2 += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src2, width);
+										src2 += sizeof(DXTBlock);
+					decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src2, width);										
 				}
 			}
 #endif
@@ -929,30 +959,45 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+	if(width > 127 && height > 127)
+	{
+		//don't span to many threads they will kill the rest of the emu :)
+		omp_set_num_threads(cpu_info.num_cores + 2 / 3);
+	}
+	else
+	{
+		omp_set_num_threads(1);
+	}
+	int Wsteps4 = (width + 3) / 4;
+	int Wsteps8 = (width + 7) / 8;
 	switch (texformat)
 	{
 	case GX_TF_C4:
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 		}
 		else if(tlutfmt == 0)
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+						decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
+				
 		}
 		else
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+						decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src  + 4 * xStep, tlutaddr);
 		}
 		break;
 	case GX_TF_I4:
@@ -967,11 +1012,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 				const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
 				const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
 				const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 8; iy += 2, src += 8)
+					for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+						for (int iy = 0, xStep =  4 * yStep; iy < 8; iy += 2,xStep++)
 						{
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
 							// (00000000 00000000 HhGgFfEe DdCcBbAa) -> (00000000 00000000 HHGGFFEE DDCCBBAA)
 							const __m128i i1 = _mm_and_si128(r0, kMask_xf0);
@@ -1001,11 +1047,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics.
 			// Produces a ~76% speed improvement over reference C implementation.
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 8; iy += 2, src += 8)
+					for (int x = 0, yStep = (y / 8) * Wsteps8 ; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
 						{
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 							const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
@@ -1086,17 +1133,17 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
-					{
-						for (int iy = 0; iy < 4; ++iy, src+=8)
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, xStep++)
 						{
 							const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
 
 							const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
 							__m128i *quaddst, r, rgba0, rgba1;
 							// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							r = _mm_loadl_epi64((const __m128i *)src);
+							r = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
 							rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
 							rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
@@ -1105,17 +1152,18 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							_mm_storeu_si128(quaddst, rgba0);
 							_mm_storeu_si128(quaddst+1, rgba1);
 						}
-				}
+				
 			} else
 #endif
 			// JSD optimized with SSE2 intrinsics.
 			// Produces an ~86% speed improvement over reference C implementation.
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
 					{
 						// Each loop iteration processes 4 rows from 4 64-bit reads.
-
+						const u8* src2 = src + 32 * yStep;
 						// TODO: is it more efficient to group the loads together sequentially and also the stores at the end?
 						// _mm_stream instead of _mm_store on my AMD Phenom II x410 made performance significantly WORSE, so I
 						// went with _mm_stores. Perhaps there is some edge case here creating the terrible performance or we're
@@ -1123,7 +1171,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						__m128i *quaddst;
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
@@ -1139,8 +1187,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(quaddst+1, rgba1);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						src += 8;
-						const __m128i r2 = _mm_loadl_epi64((const __m128i *)src);
+						src2 += 8;
+						const __m128i r2 = _mm_loadl_epi64((const __m128i *)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
 
@@ -1156,8 +1204,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(quaddst+1, rgba3);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						src += 8;
-						const __m128i r4 = _mm_loadl_epi64((const __m128i *)src);
+						src2 += 8;
+						const __m128i r4 = _mm_loadl_epi64((const __m128i *)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
 
@@ -1173,8 +1221,8 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(quaddst+1, rgba5);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						src += 8;
-						const __m128i r6 = _mm_loadl_epi64((const __m128i *)src);
+						src2 += 8;
+						const __m128i r6 = _mm_loadl_epi64((const __m128i *)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
 
@@ -1188,8 +1236,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(quaddst, rgba6);
 						// Store (hhhh gggg ffff eeee) out:
 						_mm_storeu_si128(quaddst+1, rgba7);
-
-						src += 8;
+						
 					}
 			}
 #if 0
@@ -1218,35 +1265,38 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
 		else if(tlutfmt == 0)
 		{
-
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 4; iy++, src += 8)
-							decodebytesC8IA8_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+							decodebytesC8IA8_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 			
 		}
 		else
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 8)
-						for (int iy = 0; iy < 4; iy++, src += 8)
-							decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src, tlutaddr);			
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+							decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);			
 
 		}
 		break;
 	case GX_TF_IA4:
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesIA4RGBA(dst + (y + iy) * width + x, src);
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+							decodebytesIA4RGBA(dst + (y + iy) * width + x, src + 8 * xStep);
 		}
 		break;
 	case GX_TF_IA8:
@@ -1256,13 +1306,14 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// Produces an ~50% speed improvement over SSE2 implementation.
 			if (cpu_info.bSSSE3)
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4)
-						for (int iy = 0; iy < 4; iy++, src += 8)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
 							const __m128i mask = _mm_set_epi8(6, 7, 7, 7, 4, 5, 5, 5, 2, 3, 3, 3, 0, 1, 1, 1);
 							// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// Shuffle to (ghhh efff cddd abbb)
 							const __m128i r1 = _mm_shuffle_epi8(r0, mask);
 							_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
@@ -1276,15 +1327,15 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 				const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
 				const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
 				const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
-
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4)
-						for (int iy = 0; iy < 4; iy++, src += 8)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
 							// Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
 
 							// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)src);
+							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src+ 8 * xStep));
 
 							// Logical shift all 16-bit words right by 8 bits (0000 0000 hgfe dcba) to (0000 0000 0h0f 0d0b)
 							// This gets us only the I components.
@@ -1340,24 +1391,27 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 		if (tlutfmt == 2)
 		{
 			// Special decoding is required for TLUT format 5A3
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 		}
 		else if (tlutfmt == 0)
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x,  (u16*)(src + 8 * xStep), tlutaddr);
 		}
 		else
 		{
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 		}
 		break;
 	case GX_TF_RGB565:
@@ -1369,12 +1423,12 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			const __m128i kMaskG1 = _mm_set1_epi32(0x00000300);
 			const __m128i kMaskB0 = _mm_set1_epi32(0x00F80000);
 			const __m128i kAlpha  = _mm_set1_epi32(0xFF000000);
-
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					{
-						__m128i *dxtsrc = (__m128i *)src;
+						__m128i *dxtsrc = (__m128i *)(src + 8 * xStep);
 						// Load 4x 16-bit colors: (0000 0000 hgfe dcba)
 						// where hg, fe, ba, and dc are 16-bit colors in big-endian order
 						const __m128i rgb565x4 = _mm_loadl_epi64(dxtsrc);
@@ -1458,103 +1512,105 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u32 *newdst = dst+(y+iy)*width+x;
-						const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
-							const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)src),mask);
-							int cmp = _mm_movemask_epi8(valV); //MSB: 0x2 = val0; 0x20=val1; 0x200 = val2; 0x2000=val3
-							if ((cmp&0x2222)==0x2222) // SSSE3 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
-							{
-								// Swizzle bits: 00012345 -> 12345123
-
-								//r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
-								const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
-								const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2) );
-
-								//g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
-								const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
-								const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2) );
-
-								//b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
-								const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
-								const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
-
-								//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-								const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
-													_mm_or_si128(_mm_slli_epi32(bV, 16), aVxff00));
-								_mm_storeu_si128( (__m128i*)newdst, final );
-							}
-							else if (!(cmp&0x2222)) // SSSE3 case #2: all 4 pixels are in RGBA4443.
-							{
-								// Swizzle bits: 00001234 -> 12341234
-
-								//r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
-								const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
-								const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 4), tmprV );
-
-								//g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
-								const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
-								const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 4), tmpgV );
-
-								//b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
-								const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
-								const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 4), tmpbV );
-								//a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
-								const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
-								const __m128i aV = _mm_or_si128(
-									_mm_slli_epi16(tmpaV, 5),
-									_mm_or_si128(
-										_mm_slli_epi16(tmpaV, 2),
-										_mm_srli_epi16(tmpaV, 1)
-									)
-								);
-
-								//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-								const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
-															_mm_or_si128(_mm_slli_epi32(bV, 16), _mm_slli_epi32(aV, 24)));
-								_mm_storeu_si128( (__m128i*)newdst, final );
-							}
-							else
-							{
-								// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-								u32 *vals = (u32*) &valV;
-								int r,g,b,a;
-								for (int i=0; i < 4; ++i)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+						{
+							u32 *newdst = dst+(y+iy)*width+x;
+							const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
+								const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)(src + 8 * xStep)),mask);
+								int cmp = _mm_movemask_epi8(valV); //MSB: 0x2 = val0; 0x20=val1; 0x200 = val2; 0x2000=val3
+								if ((cmp&0x2222)==0x2222) // SSSE3 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
 								{
-									if (vals[i] & 0x8000)
-									{
-										// Swizzle bits: 00012345 -> 12345123
-										r = (((vals[i]>>10) & 0x1f) << 3) | (((vals[i]>>10) & 0x1f) >> 2);
-										g = (((vals[i]>>5 ) & 0x1f) << 3) | (((vals[i]>>5 ) & 0x1f) >> 2);
-										b = (((vals[i]    ) & 0x1f) << 3) | (((vals[i]    ) & 0x1f) >> 2);
-										a = 0xFF;
-									}
-									else
-									{
-										a = (((vals[i]>>12) & 0x7) << 5) | (((vals[i]>>12) & 0x7) << 2) | (((vals[i]>>12) & 0x7) >> 1);
-										// Swizzle bits: 00001234 -> 12341234
-										r = (((vals[i]>>8 ) & 0xf) << 4) | ((vals[i]>>8 ) & 0xf);
-										g = (((vals[i]>>4 ) & 0xf) << 4) | ((vals[i]>>4 ) & 0xf);
-										b = (((vals[i]    ) & 0xf) << 4) | ((vals[i]    ) & 0xf);
-									}
-									newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
+									// Swizzle bits: 00012345 -> 12345123
+
+									//r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
+									const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
+									const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2) );
+
+									//g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
+									const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
+									const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2) );
+
+									//b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
+									const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
+									const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
+
+									//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+									const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+														_mm_or_si128(_mm_slli_epi32(bV, 16), aVxff00));
+									_mm_storeu_si128( (__m128i*)newdst, final );
 								}
-							}
-					}
+								else if (!(cmp&0x2222)) // SSSE3 case #2: all 4 pixels are in RGBA4443.
+								{
+									// Swizzle bits: 00001234 -> 12341234
+
+									//r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
+									const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
+									const __m128i rV = _mm_or_si128( _mm_slli_epi16(tmprV, 4), tmprV );
+
+									//g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
+									const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
+									const __m128i gV = _mm_or_si128( _mm_slli_epi16(tmpgV, 4), tmpgV );
+
+									//b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
+									const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
+									const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 4), tmpbV );
+									//a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >> 1);
+									const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
+									const __m128i aV = _mm_or_si128(
+										_mm_slli_epi16(tmpaV, 5),
+										_mm_or_si128(
+											_mm_slli_epi16(tmpaV, 2),
+											_mm_srli_epi16(tmpaV, 1)
+										)
+									);
+
+									//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
+									const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+																_mm_or_si128(_mm_slli_epi32(bV, 16), _mm_slli_epi32(aV, 24)));
+									_mm_storeu_si128( (__m128i*)newdst, final );
+								}
+								else
+								{
+									// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
+									u32 *vals = (u32*) &valV;
+									int r,g,b,a;
+									for (int i=0; i < 4; ++i)
+									{
+										if (vals[i] & 0x8000)
+										{
+											// Swizzle bits: 00012345 -> 12345123
+											r = (((vals[i]>>10) & 0x1f) << 3) | (((vals[i]>>10) & 0x1f) >> 2);
+											g = (((vals[i]>>5 ) & 0x1f) << 3) | (((vals[i]>>5 ) & 0x1f) >> 2);
+											b = (((vals[i]    ) & 0x1f) << 3) | (((vals[i]    ) & 0x1f) >> 2);
+											a = 0xFF;
+										}
+										else
+										{
+											a = (((vals[i]>>12) & 0x7) << 5) | (((vals[i]>>12) & 0x7) << 2) | (((vals[i]>>12) & 0x7) >> 1);
+											// Swizzle bits: 00001234 -> 12341234
+											r = (((vals[i]>>8 ) & 0xf) << 4) | ((vals[i]>>8 ) & 0xf);
+											g = (((vals[i]>>4 ) & 0xf) << 4) | ((vals[i]>>4 ) & 0xf);
+											b = (((vals[i]    ) & 0xf) << 4) | ((vals[i]    ) & 0xf);
+										}
+										newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
+									}
+								}
+						}
 			} else
 #endif
 			// JSD optimized with SSE2 intrinsics (2 in 4 cases)
 			// Produces a ~25% speed improvement over reference C implementation.
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4)
-						for (int iy = 0; iy < 4; iy++, src += 8)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
 							u32 *newdst = dst+(y+iy)*width+x;
-							const u16 *newsrc = (const u16*)src;
+							const u16 *newsrc = (const u16*)(src + 8 * xStep);
 
 							// TODO: weak point
 							const u16 val0 = Common::swap16(newsrc[0]);
@@ -1669,14 +1725,16 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~30% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4, src += 64)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					{
+						const u8* src2 = src + 64 * yStep;
 						const __m128i mask0312 = _mm_set_epi8(12,15,13,14,8,11,9,10,4,7,5,6,0,3,1,2);
-						const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
-						const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
-						const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
-						const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
+						const __m128i ar0 = _mm_loadu_si128((__m128i*)src2);
+						const __m128i ar1 = _mm_loadu_si128((__m128i*)src2+1);
+						const __m128i gb0 = _mm_loadu_si128((__m128i*)src2+2);
+						const __m128i gb1 = _mm_loadu_si128((__m128i*)src2+3);
 
 
 						const __m128i rgba00 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar0,gb0),mask0312);
@@ -1698,8 +1756,9 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics
 			// Produces a ~68% speed improvement over reference C implementation.
 			{
+				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0; x < width; x += 4, src += 64)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					{
 						// Input is divided up into 16-bit words. The texels are split up into AR and GB components where all
 						// AR components come grouped up first in 32 bytes followed by the GB components in 32 bytes. We are
@@ -1718,15 +1777,15 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						//           (RGBA7 RGBA6 RGBA5 RGBA4)
 						//           (RGBAb RGBAa RGBA9 RGBA8)
 						//           (RGBAf RGBAe RGBAd RGBAc)
-
+						const u8* src2 = src + 64 * yStep;
 						// Loads the 1st half of AR components ([A 7][R 7][A 6][R 6] [A 5][R 5][A 4][R 4] [A 3][R 3][A 2][R 2] [A 1][R 1][A 0][R 0])
-						const __m128i ar0 = _mm_loadu_si128((__m128i*)src);
+						const __m128i ar0 = _mm_loadu_si128((__m128i*)src2);
 						// Loads the 2nd half of AR components ([A f][R f][A e][R e] [A d][R d][A c][R c] [A b][R b][A a][R a] [A 9][R 9][A 8][R 8])
-						const __m128i ar1 = _mm_loadu_si128((__m128i*)src+1);
+						const __m128i ar1 = _mm_loadu_si128((__m128i*)src2+1);
 						// Loads the 1st half of GB components ([G 7][B 7][G 6][B 6] [G 5][B 5][G 4][B 4] [G 3][B 3][G 2][B 2] [G 1][B 1][G 0][B 0])
-						const __m128i gb0 = _mm_loadu_si128((__m128i*)src+2);
+						const __m128i gb0 = _mm_loadu_si128((__m128i*)src2+2);
 						// Loads the 2nd half of GB components ([G f][B f][G e][B e] [G d][B d][G c][B c] [G b][B b][G a][B a] [G 9][B 9][G 8][B 8])
-						const __m128i gb1 = _mm_loadu_si128((__m128i*)src+3);
+						const __m128i gb1 = _mm_loadu_si128((__m128i*)src2+3);
 						__m128i rgba00, rgba01, rgba10, rgba11;
 						const __m128i kMask_x000f = _mm_set_epi32(0x000000FFL, 0x000000FFL, 0x000000FFL, 0x000000FFL);
 						const __m128i kMask_xf000 = _mm_set_epi32(0xFF000000L, 0xFF000000L, 0xFF000000L, 0xFF000000L);
@@ -1790,7 +1849,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(dst128, rgba10);
 						dst128 = (__m128i*)( dst + (y + 3) * width + x );
 						_mm_storeu_si128(dst128, rgba11);
-					}
+					}				
 			}
 #if 0
 			// Reference C implementation.
@@ -1811,15 +1870,16 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~50% improvement for x86 and a ~40% improvement for x64 in speed over reference C implementation.
 			// The x64 compiled reference C code is faster than the x86 compiled reference C code, but the SSE2 is
 			// faster than both.
+			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 			{
-				for (int x = 0; x < width; x += 8)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 				{
 					// We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
 					// This is ideal because a single DXT block contains 2 RGBA colors when decoded from their 16-bit.
 					// Two DXT blocks therefore contain 4 RGBA colors to be processed. The processing is parallelizable
 					// at this level, so we do.
-					for (int z = 0; z < 2; ++z, src += sizeof(struct DXTBlock) * 2)
+					for (int z = 0, xStep = 2 * yStep; z < 2; ++z, xStep++)
 					{
 						// JSD NOTE: You may see many strange patterns of behavior in the below code, but they
 						// are for performance reasons. Sometimes, calculating what should be obvious hard-coded
@@ -1833,7 +1893,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i allFFs128 = _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
 
 						// Load 128 bits, i.e. two DXTBlocks (64-bits each)
-						const __m128i dxt = _mm_loadu_si128((__m128i *)src);
+						const __m128i dxt = _mm_loadu_si128((__m128i *)(src + sizeof(struct DXTBlock) * 2 * xStep));
 
 						// Copy the 2-bit indices from each DXT block:
 						GC_ALIGNED16( u32 dxttmp[4] );
@@ -2032,7 +2092,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						assert( memcmp(&(tmp0[3]), &dst32[(width * 3)], 16) == 0 );
 						assert( memcmp(&(tmp1[3]), &dst32[(width * 3) + 4], 16) == 0 );
 #endif
-					}
+					}					
 				}
 			}
 #if 0
@@ -2450,8 +2510,8 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 const char* texfmt[] = {
 	// pixel
 	"I4",		"I8",		"IA4",		"IA8",
-	"RGB565",	"RGB5A3",	"RGBA8",	"C4",
-	"C8",		"C14X2",	"0x0A",		"0x0B",
+	"RGB565",	"RGB5A3",	"RGBA8",	"0x07",
+	"C4",		"C8",		"C14X2",	"0x0B",
 	"0x0C",		"0x0D",		"CMPR",		"0x0F",
 	// Z-buffer
 	"0x10",		"Z8",		"0x12",		"Z16",
