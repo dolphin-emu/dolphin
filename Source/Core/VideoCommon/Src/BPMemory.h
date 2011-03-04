@@ -757,13 +757,23 @@ union ConstantAlpha
 #define PIXELFMT_V8 6
 #define PIXELFMT_YUV420 7
 
+#define ZC_LINEAR 0
+#define ZC_NEAR 1
+#define ZC_MID 2
+#define ZC_FAR 3
+// It seems these Z formats aren't supported/were removed ?
+#define ZC_INV_LINEAR 4
+#define ZC_INV_NEAR 5
+#define ZC_INV_MID 6
+#define ZC_INV_FAR 7
+
 union PE_CONTROL
 {
     struct
     {
-        u32 pixel_format : 3; // PIXELFMT_X
-        u32 zformat : 3; // 0 - linear, 1 - near, 2 - mid, 3 - far
-        u32 zcomploc : 1; // 1: before tex stage
+        u32 pixel_format : 3;	// PIXELFMT_X
+        u32 zformat : 3;		// Z Compression for 16bit Z format
+        u32 zcomploc : 1;		// 1: before tex stage
         u32 unused : 17;
         u32 rid : 8;
     };

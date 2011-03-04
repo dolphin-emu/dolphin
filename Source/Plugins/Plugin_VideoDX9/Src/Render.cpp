@@ -1322,10 +1322,11 @@ void Renderer::RestoreAPIState()
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	UpdateViewport();
 	SetScissorRect();
-	if (bpmem.zmode.testenable)
+	if (bpmem.zmode.testenable) {
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
-	if (bpmem.zmode.updateenable)
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+		if (bpmem.zmode.updateenable)
+			D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+	}
 	SetColorMask();
 	SetLogicOpMode();
 	SetGenerationMode();
@@ -1348,7 +1349,7 @@ void Renderer::SetDepthMode()
 	{
 		// if the test is disabled write is disabled too
 		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 	}
 }
 
