@@ -140,15 +140,10 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 void OnPixelFormatChange(const BPCmd &bp)
 {
 	int convtype = -1;
-	u32 current_format = Renderer::GetPrevPixelFormat();
-	u32 new_format = bpmem.zcontrol.pixel_format;
-	u32 old_format = current_format & 0x3;
 
-	// Check for Z compression format change
+	// TODO : Check for Z compression format change
 	// When using 16bit Z, the game may enable a special compression format which we need to handle
 	// If we don't, Z values will be completely screwed up, currently only Star Wars:RS2 uses that.
-	//if (new_format == PIXELFMT_RGB565_Z16 && bpmem.zcontrol.zformat != (current_format >> 2))
-	//	VertexShaderManager::SetZformatChanged();
 
 	/*
 	 * When changing the EFB format, the pixel data won't get converted to the new format but stays the same.
@@ -159,12 +154,15 @@ void OnPixelFormatChange(const BPCmd &bp)
 		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
 		return;
 
-	// no need to reinterpret pixel data in that cases
+	u32 old_format = Renderer::GetPrevPixelFormat();
+	u32 new_format = bpmem.zcontrol.pixel_format;
+
+	// no need to reinterpret pixel data in these cases
 	if (new_format == old_format || old_format == (unsigned int)-1)
 		goto skip;
 
 	// Check for pixel format changes
-	switch (old_format & 0x3)
+	switch (old_format)
 	{
 		case PIXELFMT_RGB8_Z24:
 		case PIXELFMT_Z24:
@@ -200,7 +198,7 @@ void OnPixelFormatChange(const BPCmd &bp)
 
 	if (convtype == -1)
 	{
-		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", old_format & 0x3, new_format);
+		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", old_format, new_format);
 		goto skip;
 	}
 
@@ -209,7 +207,7 @@ void OnPixelFormatChange(const BPCmd &bp)
 skip:
 	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", new_format, bpmem.zcontrol.zformat);
 
-	Renderer::StorePixelFormat(new_format | (bpmem.zcontrol.zformat << 2));
+	Renderer::StorePixelFormat(new_format);
 }
 
 bool GetConfig(const int &type)
