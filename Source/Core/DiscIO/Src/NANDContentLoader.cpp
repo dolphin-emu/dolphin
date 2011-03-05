@@ -366,20 +366,29 @@ CNANDContentManager::~CNANDContentManager()
 	m_Map.clear();
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName)
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName, bool forceReload)
 {
 	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
 
 	if(lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
+	{
 		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
-
+	}
+	else
+	{
+		if (!lb->second->IsValid() || forceReload)
+		{
+			delete lb->second;
+			lb->second = new CNANDContentLoader(_rName);
+		}
+	}
 	return *m_Map[_rName];
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId)
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId, bool forceReload)
 {
 	std::string _rName = Common::CreateTitleContentPath(_titleId);
-	return GetNANDLoader(_rName);
+	return GetNANDLoader(_rName, forceReload);
 }
 
 cUIDsys::cUIDsys()
@@ -411,7 +420,7 @@ cUIDsys::cUIDsys()
 		if (pFile)
 		{
 			if (fwrite(&Element, sizeof(SElement), 1, pFile) != 1)
-				ERROR_LOG(DISCIO, "fwrite failed");
+				ERROR_LOG(DISCIO, "Failed to write to %s", uidSys);
 			fclose(pFile);
 		}
 	}

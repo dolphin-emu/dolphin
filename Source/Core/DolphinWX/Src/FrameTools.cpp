@@ -202,17 +202,14 @@ void CFrame::CreateMenu()
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
-	{
-		int sysmenuVersion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetTitleVersion();
-		char sysmenuRegion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetCountryChar();
-		
-		toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu (%d %c)"), sysmenuVersion, sysmenuRegion));
-	}
-	else
-	{
-		toolsMenu->Append(IDM_INSTALL_WII_MENU, _("Install Wii Menu"));
-	}
+	toolsMenu->Append(IDM_INSTALLWAD, _("Install WAD"));
+
+	int sysmenuVersion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetTitleVersion();
+	char sysmenuRegion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetCountryChar();
+
+	toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+	toolsMenu->Enable(IDM_LOAD_WII_MENU, DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid());
+
 	toolsMenu->AppendSeparator();
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
@@ -1319,15 +1316,33 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 	{
 		
 		wxString path = wxFileSelector(
-			_("Select the System Menu wad extracted from the update partition of a disc"),
+			_("Select a Wii WAD file to install"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			_T("System Menu (*.wad)|*.wad"),
+			_T("Wii WAD file (*.wad)|*.wad"),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
-		if (CBoot::Install_WiiWAD(path.mb_str()))
+		wxProgressDialog dialog(_("Installing WAD..."),
+		_("Working..."),
+		1000, // range
+		this, // parent
+		wxPD_APP_MODAL |
+		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		);
+		
+		dialog.CenterOnParent();
+		u64 titleID = CBoot::Install_WiiWAD(path.mb_str());
+		if (titleID == TITLEID_SYSMENU)
 		{
-			GetMenuBar()->FindItem(IDM_INSTALL_WII_MENU)->Enable(false);
+			const DiscIO::INANDContentLoader & _Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+			if (_Loader.IsValid())
+			{
+				int sysmenuVersion = _Loader.GetTitleVersion();
+				char sysmenuRegion = _Loader.GetCountryChar();
+				
+				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable();
+				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetText(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+			}
 		}
 	}
 }

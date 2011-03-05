@@ -86,13 +86,13 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 }
 
 
-bool CBoot::Install_WiiWAD(const char* _pFilename)
+u64 CBoot::Install_WiiWAD(const char* _pFilename)
 {
 	if (!IsWiiWAD(_pFilename))
-		return false;
+		return 0;
 	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
 	if (ContentLoader.IsValid() == false)
-		return false;
+		return 0;
 
 	u64 TitleID = ContentLoader.GetTitleID();
 	u32 TitleID_HI = (u32)(TitleID >> 32);
@@ -111,7 +111,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	FILE* pTMDFile = fopen(TMDFileName.c_str(), "wb");
 	if (pTMDFile == NULL) {
 		PanicAlertT("WAD installation failed: error creating %s", TMDFileName.c_str());
-		return false;
+		return 0;
 	}
 
 	fwrite(ContentLoader.GetTmdHeader(), DiscIO::INANDContentLoader::TMD_HEADER_SIZE, 1, pTMDFile);
@@ -140,7 +140,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 			if (pAPPFile == NULL)
 			{
 				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
-				return false;
+				return 0;
 			}
 			
 			fwrite(Content.m_pData, Content.m_Size, 1, pAPPFile);
@@ -167,14 +167,14 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	FILE* pTicketFile = fopen(TicketFileName, "wb");
 	if (pTicketFile == NULL) {
 		PanicAlertT("WAD installation failed: error creating %s", TicketFileName);
-		return false;
+		return 0;
 	} 
 
 	DiscIO::WiiWAD Wad(_pFilename);
 	if (!Wad.IsValid())
 	{
 		fclose(pTicketFile);
-		return false;
+		return 0;
 	}
 
 	fwrite(Wad.GetTicket(), Wad.GetTicketSize(), 1, pTicketFile);
@@ -186,7 +186,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 		INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", TitleID_HI, TitleID_LO);
 	}
 
-	return true;
+	return TitleID;
 }
 
 

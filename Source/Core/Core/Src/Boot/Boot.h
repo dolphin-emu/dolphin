@@ -33,7 +33,7 @@ public:
 
 	static std::string GenerateMapFilename();
 	
-	static bool Install_WiiWAD(const char *filename);
+	static u64 Install_WiiWAD(const char *filename);
 
 private:
 	static void RunFunction(u32 _iAddr);

@@ -81,8 +81,8 @@ public:
 
     static CNANDContentManager& Access() { return m_Instance; }
 
-    const INANDContentLoader& GetNANDLoader(const std::string& _rName);
-	const INANDContentLoader& GetNANDLoader(u64 _titleId);
+    const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
+	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
 private:
 
     CNANDContentManager() {};

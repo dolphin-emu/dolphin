@@ -205,7 +205,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == NULL)
 				{
 					//WAD is valid yet cannot be booted. Install instead.
-					bool installed = CBoot::Install_WiiWAD(m_strFilename.c_str());
+					u64 installed = CBoot::Install_WiiWAD(m_strFilename.c_str());
 					if (installed)
 						SuccessAlertT("The WAD has been installed successfully");
 					return false; //do not boot

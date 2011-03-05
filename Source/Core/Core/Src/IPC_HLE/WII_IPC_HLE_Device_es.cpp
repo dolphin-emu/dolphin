@@ -824,14 +824,13 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	{
 		return -1;
 	}
-	std::string contentPath,
-				dataPath,
-				tmdPath;
-	contentPath = Common::CreateTitleContentPath(tmdTitleID) + DIR_SEP;
-	dataPath	= Common::CreateTitleDataPath(tmdTitleID) + DIR_SEP;
-	tmdPath = contentPath + "/title.tmd";
+	std::string tmdPath,
+				dataPath;
 
-	File::CreateFullPath(contentPath);
+	tmdPath = Common::CreateTitleContentPath(tmdTitleID) + DIR_SEP + "title.tmd";
+	dataPath	= Common::CreateTitleDataPath(tmdTitleID) + DIR_SEP;
+
+	File::CreateFullPath(tmdPath);
 	File::CreateFullPath(dataPath);
 	if(!File::Exists(tmdPath))
 	{

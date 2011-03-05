@@ -7,6 +7,7 @@
 #include <ws2tcpip.h>
 #define sock_t SOCKET
 #define ERRNO WSAGetLastError()
+#undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define BAD_SOCK INVALID_SOCKET
 #define close(x) closesocket(x)
