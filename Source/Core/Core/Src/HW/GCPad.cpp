@@ -99,7 +99,7 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	std::unique_lock<std::mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
-	if (!lk.owns_lock())
+	if (lk.owns_lock())
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
