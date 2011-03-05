@@ -261,13 +261,13 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 			wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
 			wxStaticText *StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Action"));
 			HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
-			HeaderSizer->AddStretchSpacer();
 			StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Key"), wxDefaultPosition, size);
-			HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
-			sHotkeys->Add(HeaderSizer, wxGBPosition(0, i), wxDefaultSpan, wxEXPAND | wxALL, 1);
+			HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);	
+			sHotkeys->Add(HeaderSizer, wxGBPosition(0, i), wxDefaultSpan, wxEXPAND | wxLEFT, (i > 0) ? 30 : 1);
 		}
 
 		int column_break = (page_breaks[j+1] + page_breaks[j] + 1) / 2;
+		
 		for (int i = page_breaks[j]; i < page_breaks[j+1]; i++)
 		{
 			// Text for the action
@@ -285,12 +285,11 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 
 			wxBoxSizer *sHotkey = new wxBoxSizer(wxHORIZONTAL);
 			sHotkey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
-			sHotkey->AddStretchSpacer();
 			sHotkey->Add(m_Button_Hotkeys[i], 0, wxALL, 2);
 			sHotkeys->Add(sHotkey,
 					wxGBPosition((i < column_break) ? i - page_breaks[j] + 1 : i - column_break + 1,
 						(i < column_break) ? 0 : 1),
-					wxDefaultSpan, wxEXPAND | wxALL, 1);
+					wxDefaultSpan, wxEXPAND | wxLEFT, (i < column_break) ? 1 : 30);
 		}
 
 		wxStaticBoxSizer *sHotkeyBox = new wxStaticBoxSizer(wxVERTICAL, Page, _("Hotkeys"));

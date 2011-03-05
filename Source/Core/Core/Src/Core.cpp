@@ -381,7 +381,8 @@ void EmuThread()
 
 	emuThreadGoing.Wait();
 
-	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
+	DisplayMessage(cpu_info.brand_string, 8000);
+	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core

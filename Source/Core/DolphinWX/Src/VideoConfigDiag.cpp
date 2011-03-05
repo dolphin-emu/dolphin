@@ -196,6 +196,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	profile_cb->Select(cur_profile);
 	_connect_macro_(profile_cb, VideoConfigDiag::Event_OnProfileChange, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	profile_cb->Enable(!Core::isRunning());
 
 	// adapter // for D3D only
 	if (vconfig.backend_info.Adapters.size())

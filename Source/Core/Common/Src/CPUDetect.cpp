@@ -174,7 +174,7 @@ void CPUInfo::Detect()
 		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
 	}
 
-	num_cores = logical_cpu_count;
+	num_cores = (logical_cpu_count == 0) ? 1 : logical_cpu_count;
 	
 	if (max_ex_fn >= 0x80000008) {
 		// Get number of cores. This is a bit complicated. Following AMD manual here.
@@ -190,11 +190,7 @@ void CPUInfo::Detect()
 					cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
 					num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
 					logical_cpu_count /= cores_x_package;
-				} else if (vendor == VENDOR_OTHER) { //trash block!!??
-					num_cores = 1;
 				}
-			} else { //trash block!!??
-				num_cores = 1;
 			}
 		} else {
 			// Use AMD's new method.
