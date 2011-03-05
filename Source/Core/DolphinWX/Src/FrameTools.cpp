@@ -1310,6 +1310,27 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 {
 	if (event.GetId() == IDM_LOAD_WII_MENU)
 	{
+		const std::string cdbPath = Common::CreateTitleDataPath(TITLEID_SYSMENU) + "/cdb.vff";
+		if (!File::Exists(cdbPath))
+		{
+			// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
+			// we create it here as it is faster ~3 minutes for me when sysmenu does it ~1 second created here
+			u8 cdbHDR[0x20] = {'V', 'F', 'F', 0x20, 0xfe, 0xff, 1, 0, 1, 0x40, 0, 0, 0, 0x20};
+			u8 cdbFAT[4] = {0xf0, 0xff, 0xff, 0xff};
+			FILE * cdbFile = fopen(cdbPath.c_str(), "wb");
+			if (cdbFile)
+			{
+				bool success = true;
+				if (fwrite(cdbHDR, 0x20, 1, cdbFile) != 1) success = false;
+				if (fwrite(cdbFAT, 0x4, 1, cdbFile) != 1) success = false;
+				fseeko(cdbFile, 0x14020, SEEK_SET);
+				if (fwrite(cdbFAT, 0x4, 1, cdbFile) != 1)success = false;
+				fseeko(cdbFile, 0x01400000 - 1, SEEK_SET); // 20 MiB file
+				if (fwrite(cdbHDR+14, 1, 1, cdbFile) != 1) success = false; // write the final 0 to 0 file from the second FAT to 20 MiB
+				fclose(cdbFile);
+				if (!success) File::Delete(cdbPath);
+			}
+		}
 		BootGame(Common::CreateTitleContentPath(TITLEID_SYSMENU));
 	}
 	else
@@ -1344,7 +1365,9 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetText(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
 			}
 		}
+
 	}
+	
 }
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
