@@ -96,7 +96,7 @@ void BPWritten(const BPCmd& bp)
 	//}
 
 	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
-	//s_bpCritical.Enter();
+	//std::lock_guard<std::mutex> lk(s_bpCritical);
 
 	// BEGIN ZTP SPEEDUP HACK CHANGES
 	// This hunk of code disables the usual pipeline flush for certain BP Writes
@@ -631,9 +631,6 @@ void BPWritten(const BPCmd& bp)
 				break;
 			}
 	}
-
-	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
-	//s_bpCritical.Leave();
 }
 }
 

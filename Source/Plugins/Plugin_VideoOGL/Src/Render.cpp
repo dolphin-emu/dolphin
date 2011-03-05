@@ -1224,7 +1224,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 #else
 	if (g_ActiveConfig.bDumpFrames)
 	{
-		s_criticalScreenshot.Enter();
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		std::string movie_file_name;
 		w = dst_rect.GetWidth();
 		h = dst_rect.GetHeight();
@@ -1256,7 +1256,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 
 		delete[] data;
-		s_criticalScreenshot.Leave();
 	}
 	else
 	{

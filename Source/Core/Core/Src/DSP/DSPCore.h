@@ -249,7 +249,7 @@ struct SDSP
 	volatile u16 mbox[2][2];
 
 	// Mutex protecting the mailbox.
-	std::mutex g_CriticalSection;
+	//std::mutex g_CriticalSection;
 
 	// Accelerator / DMA / other hardware registers. Not GPRs.
 	u16 ifx_regs[256];
