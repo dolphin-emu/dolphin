@@ -27,7 +27,9 @@
 #include "LookUpTables.h"
 
 #include <cmath>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
@@ -741,7 +743,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					{
-						((u64*)dst + (y + iy)*width+x)[0] = ((u64*)(src + 8 * xStep))[0];
+						((u64*)(dst + (y + iy) * width + x))[0] = ((u64*)(src + 8 * xStep))[0];
 					}
 		}
 		return PC_TEX_FMT_I8;
