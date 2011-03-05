@@ -900,7 +900,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					{
 						const u8* src2 = src + 64 * yStep;
 						for (int iy = 0; iy < 4; iy++)
-							decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src2 + 4 * iy + 16);						
+							decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src2 + 4 * iy, (u16*)src2 + 4 * iy + 16);						
 					}
 			}
 		}
