@@ -71,6 +71,10 @@ private:
 class Barrier
 {
 public:
+	Barrier()
+		: m_count(2), m_waiting(0)
+	{}
+
 	Barrier(size_t count)
 		: m_count(count), m_waiting(0)
 	{}
@@ -80,7 +84,7 @@ public:
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
 
-		if (m_count == ++m_waiting)
+		if (m_count >= ++m_waiting)
 		{
 			m_waiting = 0;
 			m_condvar.notify_all();

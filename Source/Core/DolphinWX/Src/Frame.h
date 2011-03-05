@@ -145,7 +145,7 @@ class CFrame : public CRenderFrame
 		#ifdef __WXGTK__
 		Common::Event panic_event;
 		bool bPanicResult;
-		Common::Event keystate_event;
+		Common::Barrier keystate_event;
 		bool bKeyStateResult;
 		#endif
 

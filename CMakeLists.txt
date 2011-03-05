@@ -155,6 +155,7 @@ if(OPENMP)
 	endif()
 endif()
 if(NOT OPENMP_FOUND)
+	add_definitions(-Wno-unknown-pragmas)
 	message("OpenMP parallelization disabled")
 endif()
 

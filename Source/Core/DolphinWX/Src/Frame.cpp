@@ -665,7 +665,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 	case IDM_KEYSTATE:
 		bKeyStateResult = wxGetKeyState(wxKeyCode(event.GetInt()));
-		keystate_event.Set();
+		keystate_event.Wait();
 		break;
 #endif
 
