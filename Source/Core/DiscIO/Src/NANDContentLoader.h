@@ -52,6 +52,7 @@ public:
     virtual ~INANDContentLoader()  {}
 
     virtual bool IsValid() const = 0;
+	virtual void RemoveTitle() const = 0;
     virtual u64 GetTitleID() const = 0;
     virtual u16 GetIosVersion() const = 0;
     virtual u32 GetBootIndex() const = 0;
@@ -83,6 +84,7 @@ public:
 
     const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
+	bool RemoveTitle(u64 _titleID);
 private:
 
     CNANDContentManager() {};

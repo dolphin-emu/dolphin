@@ -583,6 +583,37 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(0, _CommandAddress + 0x4);
 		WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", Memory::Read_U32(_CommandAddress+4));
 		return true;
+
+	case IOCTL_ES_DELETETICKET:
+		{
+			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+			if (File::Delete(Common::CreateTicketFileName(TitleID)))
+			{
+				Memory::Write_U32(0, _CommandAddress + 0x4);
+			}
+			else
+			{
+				// Presumably return -1017 when delete fails
+				Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
+			}
+		}
+		break;
+	case IOCTL_ES_DELETETITLECONTENT:
+		{
+			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+			if (DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID))
+			{
+				Memory::Write_U32(0, _CommandAddress + 0x4);
+			}
+			else
+			{
+				// Presumably return -1017 when title not installed TODO verify
+				Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
+			}
+				
+		} 
     case IOCTL_ES_GETSTOREDTMDSIZE:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_GETSTOREDTMDSIZE no in buffer");

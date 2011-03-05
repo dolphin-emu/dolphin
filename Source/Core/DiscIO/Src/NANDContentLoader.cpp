@@ -108,6 +108,7 @@ public:
 	virtual ~CNANDContentLoader();
 
 	bool IsValid() const	{ return m_Valid; }
+	void RemoveTitle(void) const;
 	u64 GetTitleID() const  { return m_TitleID; }
 	u16 GetIosVersion() const { return m_IosVersion; }
 	u32 GetBootIndex() const  { return m_BootIndex; }
@@ -389,6 +390,32 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId, bool 
 {
 	std::string _rName = Common::CreateTitleContentPath(_titleId);
 	return GetNANDLoader(_rName, forceReload);
+}
+bool CNANDContentManager::RemoveTitle(u64 _titleID)
+{
+	if (!GetNANDLoader(_titleID).IsValid())
+		return false;
+	GetNANDLoader(_titleID).RemoveTitle();
+	return GetNANDLoader(_titleID, true).IsValid();
+}
+
+void CNANDContentLoader::RemoveTitle() const
+{
+	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+	if(IsValid())
+	{
+		// remove tmd?
+		for (u32 i = 0; i < m_numEntries; i++)
+		{
+			char szFilename[1024];
+			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
+			{
+				sprintf(szFilename, "%s/%08x.app", Common::CreateTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
+				INFO_LOG(DISCIO, "Delete %s", szFilename);
+				File::Delete(szFilename);
+			}
+		}
+	}
 }
 
 cUIDsys::cUIDsys()
