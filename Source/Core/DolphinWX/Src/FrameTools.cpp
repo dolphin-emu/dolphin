@@ -1343,7 +1343,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 				char sysmenuRegion = _Loader.GetCountryChar();
 				
 				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable();
-				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetText(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
 			}
 		}
 

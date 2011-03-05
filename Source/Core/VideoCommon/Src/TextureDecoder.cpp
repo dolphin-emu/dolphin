@@ -685,6 +685,7 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 //need to add DXT support too
 PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+#ifdef _OPENMP
 	//Dont use multithreading in small Textures
 	if(width > 127 && height > 127)
 	{
@@ -695,6 +696,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 	{
 		omp_set_num_threads(1);
 	}
+#endif
 	int Wsteps4 = (width + 3) / 4;
 	int Wsteps8 = (width + 7) / 8;
 	switch (texformat)
@@ -959,6 +961,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+#ifdef _OPENMP
 	if(width > 127 && height > 127)
 	{
 		//don't span to many threads they will kill the rest of the emu :)
@@ -968,6 +971,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 	{
 		omp_set_num_threads(1);
 	}
+#endif
 	int Wsteps4 = (width + 3) / 4;
 	int Wsteps8 = (width + 7) / 8;
 	switch (texformat)
