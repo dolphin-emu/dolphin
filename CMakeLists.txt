@@ -145,6 +145,12 @@ if(NOT OPENGL_GLU_FOUND)
 	message(FATAL_ERROR "GLU is required but not found")
 endif()
 
+include(FindOpenMP REQUIRED)
+if(OPENMP_FOUND)
+	add_definitions(${OpenMP_CXX_FLAGS})
+	set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS})
+endif()
+
 include(FindALSA OPTIONAL)
 if(ALSA_FOUND)
 	add_definitions(-DHAVE_ALSA=1)

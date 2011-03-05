@@ -723,7 +723,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,yStep++)
+					for (int iy = 0; iy < 8; iy++,yStep++)
 						for (int ix = 0; ix < 4; ix++)
 						{
 							int val = src[4 * yStep + ix];
