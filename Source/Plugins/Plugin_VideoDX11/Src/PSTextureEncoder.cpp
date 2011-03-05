@@ -49,17 +49,17 @@ union EFBEncodeParams
 {
 	struct
 	{
-		UINT NumHalfCacheLinesX;
-		UINT NumBlocksY;
-		UINT PosX;
-		UINT PosY;
+		FLOAT NumHalfCacheLinesX;
+		FLOAT NumBlocksY;
+		FLOAT PosX;
+		FLOAT PosY;
 		FLOAT TexLeft;
 		FLOAT TexTop;
 		FLOAT TexRight;
 		FLOAT TexBottom;
 	};
 	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[32]; // Should be at least the size of the struct above
+	u8 pad[32]; // Pad to the next multiple of 16 bytes
 };
 
 static const char EFB_ENCODE_VS[] =
@@ -69,10 +69,10 @@ static const char EFB_ENCODE_VS[] =
 "{\n"
 	"struct\n" // Should match EFBEncodeParams above
 	"{\n"
-		"uint NumHalfCacheLinesX;\n"
-		"uint NumBlocksY;\n"
-		"uint PosX;\n" // Upper-left corner of source
-		"uint PosY;\n"
+		"float NumHalfCacheLinesX;\n"
+		"float NumBlocksY;\n"
+		"float PosX;\n" // Upper-left corner of source
+		"float PosY;\n"
 		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
 		"float TexTop;\n"
 		"float TexRight;\n"
@@ -104,10 +104,10 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"struct\n" // Should match EFBEncodeParams above
 	"{\n"
-		"uint NumHalfCacheLinesX;\n"
-		"uint NumBlocksY;\n"
-		"uint PosX;\n" // Upper-left corner of source
-		"uint PosY;\n"
+		"float NumHalfCacheLinesX;\n"
+		"float NumBlocksY;\n"
+		"float PosX;\n" // Upper-left corner of source
+		"float PosY;\n"
 		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
 		"float TexTop;\n"
 		"float TexRight;\n"
@@ -136,8 +136,8 @@ static const char EFB_ENCODE_PS[] =
 	"return (d << 24) | (c << 16) | (b << 8) | a;\n"
 "}\n"
 
-"uint UINT_44444444(uint a, uint b, uint c, uint d, uint e, uint f, uint g, uint h) {\n"
-	"return (a << 28) | (b << 24) | (c << 20) | (d << 16) | (e << 12) | (f << 8) | (g << 4) | h;\n"
+"uint UINT_44444444_BE(uint a, uint b, uint c, uint d, uint e, uint f, uint g, uint h) {\n"
+	"return (g << 28) | (h << 24) | (e << 20) | (f << 16) | (c << 12) | (d << 8) | (a << 4) | b;\n"
 "}\n"
 
 "uint UINT_1555(uint a, uint b, uint c, uint d) {\n"
@@ -156,30 +156,30 @@ static const char EFB_ENCODE_PS[] =
 	"return (a << 16) | b;\n"
 "}\n"
 
-"uint EncodeRGB5A3(uint4 pixel) {\n"
-	"if (pixel.a >= 224) {\n"
+"uint EncodeRGB5A3(float4 pixel) {\n"
+	"if (pixel.a >= 224.0/255.0) {\n"
 		// Encode to ARGB1555
-		"return UINT_1555(1, pixel.r >> 3, pixel.g >> 3, pixel.b >> 3);\n"
+		"return UINT_1555(1, pixel.r*31, pixel.g*31, pixel.b*31);\n"
 	"} else {\n"
 		// Encode to ARGB3444
-		"return UINT_3444(pixel.a >> 5, pixel.r >> 4, pixel.g >> 4, pixel.b >> 4);\n"
+		"return UINT_3444(pixel.a*7, pixel.r*15, pixel.g*15, pixel.b*15);\n"
 	"}\n"
 "}\n"
 
-"uint EncodeRGB565(uint4 pixel) {\n"
-	"return UINT_565(pixel.r >> 3, pixel.g >> 2, pixel.b >> 3);\n"
+"uint EncodeRGB565(float4 pixel) {\n"
+	"return UINT_565(pixel.r*31, pixel.g*63, pixel.b*31);\n"
 "}\n"
 
-"float2 CalcTexCoord(uint2 coord)\n"
+"float2 CalcTexCoord(float2 coord)\n"
 "{\n"
 	// Add 0.5,0.5 to sample from the center of the EFB pixel
-	"float2 efbCoord = float2(coord) + float2(0.5,0.5);\n"
+	"float2 efbCoord = coord + float2(0.5,0.5);\n"
 	"return lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), efbCoord * INV_EFB_DIMS);\n"
 "}\n"
 
 // Interface and classes for different source formats
 
-"float4 Fetch_0(uint2 coord)\n"
+"float4 Fetch_0(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
@@ -187,13 +187,13 @@ static const char EFB_ENCODE_PS[] =
 	"return result;\n"
 "}\n"
 
-"float4 Fetch_1(uint2 coord)\n"
+"float4 Fetch_1(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
 "}\n"
 
-"float4 Fetch_2(uint2 coord)\n"
+"float4 Fetch_2(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
@@ -201,7 +201,7 @@ static const char EFB_ENCODE_PS[] =
 	"return result;\n"
 "}\n"
 
-"float4 Fetch_3(uint2 coord)\n"
+"float4 Fetch_3(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 
@@ -217,13 +217,13 @@ static const char EFB_ENCODE_PS[] =
 "#ifdef DYNAMIC_MODE\n"
 "interface iFetch\n"
 "{\n"
-	"float4 Fetch(uint2 coord);\n"
+	"float4 Fetch(float2 coord);\n"
 "};\n"
 
 // Source format 0
 "class cFetch_0 : iFetch\n"
 "{\n"
-	"float4 Fetch(uint2 coord)\n"
+	"float4 Fetch(float2 coord)\n"
 	"{ return Fetch_0(coord); }\n"
 "};\n"
 
@@ -231,21 +231,21 @@ static const char EFB_ENCODE_PS[] =
 // Source format 1
 "class cFetch_1 : iFetch\n"
 "{\n"
-	"float4 Fetch(uint2 coord)\n"
+	"float4 Fetch(float2 coord)\n"
 	"{ return Fetch_1(coord); }\n"
 "};\n"
 
 // Source format 2
 "class cFetch_2 : iFetch\n"
 "{\n"
-	"float4 Fetch(uint2 coord)\n"
+	"float4 Fetch(float2 coord)\n"
 	"{ return Fetch_2(coord); }\n"
 "};\n"
 
 // Source format 3
 "class cFetch_3 : iFetch\n"
 "{\n"
-	"float4 Fetch(uint2 coord)\n"
+	"float4 Fetch(float2 coord)\n"
 	"{ return Fetch_3(coord); }\n"
 "};\n"
 
@@ -308,18 +308,18 @@ static const char EFB_ENCODE_PS[] =
 
 // Interface and classes for different scale/filter settings (on or off)
 
-"float4 ScaledFetch_0(uint2 coord)\n"
+"float4 ScaledFetch_0(float2 coord)\n"
 "{\n"
-	"return IMP_FETCH(uint2(Params.PosX,Params.PosY) + coord);\n"
+	"return IMP_FETCH(float2(Params.PosX,Params.PosY) + coord);\n"
 "}\n"
 
-"float4 ScaledFetch_1(uint2 coord)\n"
+"float4 ScaledFetch_1(float2 coord)\n"
 "{\n"
-	"uint2 ul = uint2(Params.PosX,Params.PosY) + 2*coord;\n"
-	"float4 sample0 = IMP_FETCH(ul+uint2(0,0));\n"
-	"float4 sample1 = IMP_FETCH(ul+uint2(1,0));\n"
-	"float4 sample2 = IMP_FETCH(ul+uint2(0,1));\n"
-	"float4 sample3 = IMP_FETCH(ul+uint2(1,1));\n"
+	"float2 ul = float2(Params.PosX,Params.PosY) + 2*coord;\n"
+	"float4 sample0 = IMP_FETCH(ul+float2(0,0));\n"
+	"float4 sample1 = IMP_FETCH(ul+float2(1,0));\n"
+	"float4 sample2 = IMP_FETCH(ul+float2(0,1));\n"
+	"float4 sample3 = IMP_FETCH(ul+float2(1,1));\n"
 	// Average all four samples together
 	// FIXME: Is this correct?
 	"return 0.25 * (sample0+sample1+sample2+sample3);\n"
@@ -328,20 +328,20 @@ static const char EFB_ENCODE_PS[] =
 "#ifdef DYNAMIC_MODE\n"
 "interface iScaledFetch\n"
 "{\n"
-	"float4 ScaledFetch(uint2 coord);\n"
+	"float4 ScaledFetch(float2 coord);\n"
 "};\n"
 
 // Scale off
 "class cScaledFetch_0 : iScaledFetch\n"
 "{\n"
-	"float4 ScaledFetch(uint2 coord)\n"
+	"float4 ScaledFetch(float2 coord)\n"
 	"{ return ScaledFetch_0(coord); }\n"
 "};\n"
 
 // Scale on
 "class cScaledFetch_1 : iScaledFetch\n"
 "{\n"
-	"float4 ScaledFetch(uint2 coord)\n"
+	"float4 ScaledFetch(float2 coord)\n"
 	"{ return ScaledFetch_1(coord); }\n"
 "};\n"
 
@@ -358,178 +358,177 @@ static const char EFB_ENCODE_PS[] =
 // Main EFB-sampling function: performs all steps of fetching pixels, scaling,
 // applying intensity function
 
-"uint4 SampleEFB(uint2 coord)\n"
+"float4 SampleEFB(float2 coord)\n"
 "{\n"
 	// FIXME: Does intensity happen before or after scaling? Or does
 	// it matter?
 	"float4 sample = IMP_SCALEDFETCH(coord);\n"
-	"sample = IMP_INTENSITY(sample);\n"
-	"return uint4(255.0 * sample);\n"
+	"return IMP_INTENSITY(sample);\n"
 "}\n"
 
 // Interfaces and classes for different destination formats
 
-"uint4 Generate_0(uint2 cacheCoord)\n" // R4
+"uint4 Generate_0(float2 cacheCoord)\n" // R4
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(8,8);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 4*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,8);\n"
+	"float2 subBlockUL = blockUL + float2(0, 4*(cacheCoord.x%2));\n"
 
-	"uint4 sample[32];\n"
+	"float4 sample[32];\n"
 	"for (uint y = 0; y < 4; ++y) {\n"
 		"for (uint x = 0; x < 8; ++x) {\n"
-			"sample[y*8+x] = SampleEFB(subBlockUL+uint2(x,y));\n"
+			"sample[y*8+x] = SampleEFB(subBlockUL+float2(x,y));\n"
 		"}\n"
 	"}\n"
 		
 	"uint dw[4];\n"
 	"for (uint i = 0; i < 4; ++i) {\n"
-		"dw[i] = UINT_44444444(\n"
-			"sample[8*i+0].r >> 4,\n"
-			"sample[8*i+1].r >> 4,\n"
-			"sample[8*i+2].r >> 4,\n"
-			"sample[8*i+3].r >> 4,\n"
-			"sample[8*i+4].r >> 4,\n"
-			"sample[8*i+5].r >> 4,\n"
-			"sample[8*i+6].r >> 4,\n"
-			"sample[8*i+7].r >> 4\n"
+		"dw[i] = UINT_44444444_BE(\n"
+			"15*sample[8*i+0].r,\n"
+			"15*sample[8*i+1].r,\n"
+			"15*sample[8*i+2].r,\n"
+			"15*sample[8*i+3].r,\n"
+			"15*sample[8*i+4].r,\n"
+			"15*sample[8*i+5].r,\n"
+			"15*sample[8*i+6].r,\n"
+			"15*sample[8*i+7].r\n"
 			");\n"
 	"}\n"
 
-	"return Swap4_32(uint4(dw[0], dw[1], dw[2], dw[3]));\n"
+	"return uint4(dw[0], dw[1], dw[2], dw[3]);\n"
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_1(uint2 cacheCoord)\n" // R8 (FIXME: Duplicate of R8 below?)
+"uint4 Generate_1(float2 cacheCoord)\n" // R8 (FIXME: Duplicate of R8 below?)
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"uint4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"uint4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"uint4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
+		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
+		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
+		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_2(uint2 cacheCoord)\n" // A4 R4
+"uint4 Generate_2(float2 cacheCoord)\n" // A4 R4
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 	
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
-	"uint dw0 = UINT_44444444(\n"
-		"sample0.a >> 4, sample0.r >> 4,\n"
-		"sample1.a >> 4, sample1.r >> 4,\n"
-		"sample2.a >> 4, sample2.r >> 4,\n"
-		"sample3.a >> 4, sample3.r >> 4\n"
+	"uint dw0 = UINT_44444444_BE(\n"
+		"15*sample0.a, 15*sample0.r,\n"
+		"15*sample1.a, 15*sample1.r,\n"
+		"15*sample2.a, 15*sample2.r,\n"
+		"15*sample3.a, 15*sample3.r\n"
 		");\n"
-	"uint dw1 = UINT_44444444(\n"
-		"sample4.a >> 4, sample4.r >> 4,\n"
-		"sample5.a >> 4, sample5.r >> 4,\n"
-		"sample6.a >> 4, sample6.r >> 4,\n"
-		"sample7.a >> 4, sample7.r >> 4\n"
+	"uint dw1 = UINT_44444444_BE(\n"
+		"15*sample4.a, 15*sample4.r,\n"
+		"15*sample5.a, 15*sample5.r,\n"
+		"15*sample6.a, 15*sample6.r,\n"
+		"15*sample7.a, 15*sample7.r\n"
 		");\n"
-	"uint dw2 = UINT_44444444(\n"
-		"sample8.a >> 4, sample8.r >> 4,\n"
-		"sample9.a >> 4, sample9.r >> 4,\n"
-		"sampleA.a >> 4, sampleA.r >> 4,\n"
-		"sampleB.a >> 4, sampleB.r >> 4\n"
+	"uint dw2 = UINT_44444444_BE(\n"
+		"15*sample8.a, 15*sample8.r,\n"
+		"15*sample9.a, 15*sample9.r,\n"
+		"15*sampleA.a, 15*sampleA.r,\n"
+		"15*sampleB.a, 15*sampleB.r\n"
 		");\n"
-	"uint dw3 = UINT_44444444(\n"
-		"sampleC.a >> 4, sampleC.r >> 4,\n"
-		"sampleD.a >> 4, sampleD.r >> 4,\n"
-		"sampleE.a >> 4, sampleE.r >> 4,\n"
-		"sampleF.a >> 4, sampleF.r >> 4\n"
+	"uint dw3 = UINT_44444444_BE(\n"
+		"15*sampleC.a, 15*sampleC.r,\n"
+		"15*sampleD.a, 15*sampleD.r,\n"
+		"15*sampleE.a, 15*sampleE.r,\n"
+		"15*sampleF.a, 15*sampleF.r\n"
 		");\n"
 	
-	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
+	"return uint4(dw0, dw1, dw2, dw3);\n"
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_3(uint2 cacheCoord)\n" // A8 R8
+"uint4 Generate_3(float2 cacheCoord)\n" // A8 R8
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-		"uint4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"uint4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-		"uint4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
+		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
+		"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
+		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_4(uint2 cacheCoord)\n" // R5 G6 B5
+"uint4 Generate_4(float2 cacheCoord)\n" // R5 G6 B5
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 		
 	"uint dw0 = UINT_1616(EncodeRGB565(sample0), EncodeRGB565(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB565(sample2), EncodeRGB565(sample3));\n"
@@ -539,21 +538,21 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_5(uint2 cacheCoord)\n" // 1 R5 G5 B5 or 0 A3 R4 G4 G4
+"uint4 Generate_5(float2 cacheCoord)\n" // 1 R5 G5 B5 or 0 A3 R4 G4 G4
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 		
 	"uint dw0 = UINT_1616(EncodeRGB5A3(sample0), EncodeRGB5A3(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB5A3(sample2), EncodeRGB5A3(sample3));\n"
@@ -563,232 +562,232 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_6(uint2 cacheCoord)\n" // A8 R8 A8 R8 | G8 B8 G8 B8
+"uint4 Generate_6(float2 cacheCoord)\n" // A8 R8 A8 R8 | G8 B8 G8 B8
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(4,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(4,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4;\n"
 	"if (cacheCoord.x % 4 < 2)\n"
 	"{\n"
 		// First cache line gets AR
 		"dw4 = UINT4_8888_BE(\n"
-			"uint4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-			"uint4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-			"uint4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-			"uint4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+			"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
+			"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
+			"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
+			"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
 			");\n"
 	"}\n"
 	"else\n"
 	"{\n"
 		// Second cache line gets GB
 		"dw4 = UINT4_8888_BE(\n"
-			"uint4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-			"uint4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-			"uint4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-			"uint4(sample1.b, sample3.b, sample5.b, sample7.b)\n"
+			"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
+			"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
+			"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
+			"255*float4(sample1.b, sample3.b, sample5.b, sample7.b)\n"
 			");\n"
 	"}\n"
 	
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_7(uint2 cacheCoord)\n" // A8
+"uint4 Generate_7(float2 cacheCoord)\n" // A8
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 	
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.a, sample4.a, sample8.a, sampleC.a),\n"
-		"uint4(sample1.a, sample5.a, sample9.a, sampleD.a),\n"
-		"uint4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
-		"uint4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
+		"255*float4(sample0.a, sample4.a, sample8.a, sampleC.a),\n"
+		"255*float4(sample1.a, sample5.a, sample9.a, sampleD.a),\n"
+		"255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
+		"255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_8(uint2 cacheCoord)\n" // R8
+"uint4 Generate_8(float2 cacheCoord)\n" // R8
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"uint4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"uint4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"uint4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-// FIXME: Untested
-"uint4 Generate_9(uint2 cacheCoord)\n" // G8
-"{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
-
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
-
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
-		"uint4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
-		"uint4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
-		"uint4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"uint4 Generate_A(uint2 cacheCoord)\n" // B8
-"{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
-
-	"uint2 blockUL = blockCoord * uint2(8,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
-	
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(4,0));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(5,0));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(6,0));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(7,0));\n"
-	"uint4 sample8 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample9 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sampleA = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sampleB = SampleEFB(subBlockUL+uint2(3,1));\n"
-	"uint4 sampleC = SampleEFB(subBlockUL+uint2(4,1));\n"
-	"uint4 sampleD = SampleEFB(subBlockUL+uint2(5,1));\n"
-	"uint4 sampleE = SampleEFB(subBlockUL+uint2(6,1));\n"
-	"uint4 sampleF = SampleEFB(subBlockUL+uint2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.b, sample4.b, sample8.b, sampleC.b),\n"
-		"uint4(sample1.b, sample5.b, sample9.b, sampleD.b),\n"
-		"uint4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
-		"uint4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"uint4 Generate_B(uint2 cacheCoord)\n" // G8 R8
-"{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
-
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
-
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"uint4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"uint4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-		"uint4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
+		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
+		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
+		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_C(uint2 cacheCoord)\n" // B8 G8
+"uint4 Generate_9(float2 cacheCoord)\n" // G8
 "{\n"
-	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
-	"uint2 blockUL = blockCoord * uint2(4,4);\n"
-	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x%2));\n"
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
 
-	"uint4 sample0 = SampleEFB(subBlockUL+uint2(0,0));\n"
-	"uint4 sample1 = SampleEFB(subBlockUL+uint2(1,0));\n"
-	"uint4 sample2 = SampleEFB(subBlockUL+uint2(2,0));\n"
-	"uint4 sample3 = SampleEFB(subBlockUL+uint2(3,0));\n"
-	"uint4 sample4 = SampleEFB(subBlockUL+uint2(0,1));\n"
-	"uint4 sample5 = SampleEFB(subBlockUL+uint2(1,1));\n"
-	"uint4 sample6 = SampleEFB(subBlockUL+uint2(2,1));\n"
-	"uint4 sample7 = SampleEFB(subBlockUL+uint2(3,1));\n"
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"uint4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-		"uint4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"uint4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
-		"uint4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
+		"255*float4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
+		"255*float4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
+		"255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
+		"255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+"uint4 Generate_A(float2 cacheCoord)\n" // B8
+"{\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+
+	"float2 blockUL = blockCoord * float2(8,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
+	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
+	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
+	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
+	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"255*float4(sample0.b, sample4.b, sample8.b, sampleC.b),\n"
+		"255*float4(sample1.b, sample5.b, sample9.b, sampleD.b),\n"
+		"255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
+		"255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+"uint4 Generate_B(float2 cacheCoord)\n" // G8 R8
+"{\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
+		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
+		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
+		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		");\n"
+	
+	"return dw4;\n"
+"}\n"
+
+// FIXME: Untested
+"uint4 Generate_C(float2 cacheCoord)\n" // B8 G8
+"{\n"
+	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+
+	"float2 blockUL = blockCoord * float2(4,4);\n"
+	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+
+	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+
+	"uint4 dw4 = UINT4_8888_BE(\n"
+		"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
+		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
+		"255*float4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
+		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
 		");\n"
 	
 	"return dw4;\n"
@@ -797,36 +796,36 @@ static const char EFB_ENCODE_PS[] =
 "#ifdef DYNAMIC_MODE\n"
 "interface iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord);\n"
+	"uint4 Generate(float2 cacheCoord);\n"
 "};\n"
 
 "class cGenerator_4 : iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord)\n"
+	"uint4 Generate(float2 cacheCoord)\n"
 	"{ return Generate_4(cacheCoord); }\n"
 "};\n"
 
 "class cGenerator_5 : iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord)\n"
+	"uint4 Generate(float2 cacheCoord)\n"
 	"{ return Generate_5(cacheCoord); }\n"
 "};\n"
 
 "class cGenerator_6 : iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord)\n"
+	"uint4 Generate(float2 cacheCoord)\n"
 	"{ return Generate_6(cacheCoord); }\n"
 "};\n"
 
 "class cGenerator_8 : iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord)\n"
+	"uint4 Generate(float2 cacheCoord)\n"
 	"{ return Generate_8(cacheCoord); }\n"
 "};\n"
 
 "class cGenerator_B : iGenerator\n"
 "{\n"
-	"uint4 Generate(uint2 cacheCoord)\n"
+	"uint4 Generate(float2 cacheCoord)\n"
 	"{ return Generate_B(cacheCoord); }\n"
 "};\n"
 
@@ -842,7 +841,7 @@ static const char EFB_ENCODE_PS[] =
 
 "void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 fCacheCoord : ENCODECOORD)\n"
 "{\n"
-	"uint2 cacheCoord = uint2(fCacheCoord);\n"
+	"float2 cacheCoord = floor(fCacheCoord);\n"
 	"ocol0 = IMP_GENERATOR(cacheCoord);\n"
 "}\n"
 ;
@@ -1099,10 +1098,10 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 	
 		EFBEncodeParams params = { 0 };
-		params.NumHalfCacheLinesX = cacheLinesPerRow*2;
-		params.NumBlocksY = numBlocksY;
-		params.PosX = srcRect.left;
-		params.PosY = srcRect.top;
+		params.NumHalfCacheLinesX = FLOAT(cacheLinesPerRow*2);
+		params.NumBlocksY = FLOAT(numBlocksY);
+		params.PosX = FLOAT(srcRect.left);
+		params.PosY = FLOAT(srcRect.top);
 		params.TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
 		params.TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
 		params.TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
