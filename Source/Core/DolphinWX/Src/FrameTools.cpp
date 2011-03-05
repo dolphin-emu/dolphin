@@ -1045,7 +1045,7 @@ void CFrame::DoStop()
 
 #ifdef __WXGTK__
 		// Make sure the app doesn't hang waiting on a keystate check 
-		keystate_event.Wait();
+		keystate_event.Set();
 #endif
 
 		BootManager::Stop();

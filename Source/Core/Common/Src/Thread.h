@@ -51,18 +51,29 @@ void SetCurrentThreadAffinity(u32 mask);
 class Event
 {
 public:
+	Event()
+		: is_set(false)
+	{};
+
 	void Set()
 	{
-		m_condvar.notify_one();
+		if (!is_set)
+		{
+			is_set = true;
+			m_condvar.notify_one();
+		}
 	}
 	
 	void Wait()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk);
+		if (!is_set)
+			m_condvar.wait(lk);
+		is_set = false;
 	}
 
 private:
+	bool is_set;
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 };
@@ -71,10 +82,6 @@ private:
 class Barrier
 {
 public:
-	Barrier()
-		: m_count(2), m_waiting(0)
-	{}
-
 	Barrier(size_t count)
 		: m_count(count), m_waiting(0)
 	{}
@@ -84,7 +91,7 @@ public:
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
 
-		if (m_count >= ++m_waiting)
+		if (m_count == ++m_waiting)
 		{
 			m_waiting = 0;
 			m_condvar.notify_all();
