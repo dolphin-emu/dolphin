@@ -121,8 +121,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	sizerLeft->Fit(this);
 	sizerBig->Fit(this);
-
-	sync_event.Init();
 }
 
 wxMenuBar *CCodeWindow::GetMenuBar()

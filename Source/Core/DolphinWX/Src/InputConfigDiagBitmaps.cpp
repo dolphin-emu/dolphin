@@ -22,8 +22,10 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 	wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 
 	g_controller_interface.UpdateInput();
+
 	// don't want game thread updating input when we are using it here
-	if (false == g_controller_interface.update_lock.TryEnter())
+	std::unique_lock<std::mutex> lk(g_controller_interface.update_lock, std::try_to_lock);
+	if (!lk.owns_lock())
 		return;
 
 	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage(m_pad_notebook->GetSelection());
@@ -344,6 +346,4 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			(*g)->static_bitmap->SetBitmap(bitmap);
 		}
 	}
-
-	g_controller_interface.update_lock.Leave();
 }

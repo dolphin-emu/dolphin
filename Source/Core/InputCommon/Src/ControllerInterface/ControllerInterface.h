@@ -222,7 +222,7 @@ public:
 	const std::vector<Device*>& Devices() const { return m_devices; }
 	Device* FindDevice(const DeviceQualifier& devq) const;
 
-	Common::CriticalSection		update_lock;
+	std::mutex update_lock;
 
 private:
 	bool					m_is_init;

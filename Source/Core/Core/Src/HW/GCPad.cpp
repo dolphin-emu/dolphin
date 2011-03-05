@@ -65,8 +65,9 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// wtf is this?
 	_pPADStatus->button = PAD_USE_ORIGIN;
 
-	// try lock
-	if (false == g_plugin.controls_crit.TryEnter())
+	std::unique_lock<std::mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+
+	if (!lk.owns_lock())
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
@@ -86,9 +87,6 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	
 	// get input
 	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
-
-	// leave
-	g_plugin.controls_crit.Leave();
 }
 
 // __________________________________________________________________________________________________
@@ -99,15 +97,13 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 //
 void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	// enter
-	if ( g_plugin.controls_crit.TryEnter() )
+	std::unique_lock<std::mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+
+	if (!lk.owns_lock())
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
 		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
-
-		// leave
-		g_plugin.controls_crit.Leave();
 	}
 }
 

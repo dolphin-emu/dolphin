@@ -26,7 +26,7 @@ int							GeckoSockServer::client_count;
 std::thread					GeckoSockServer::connectionThread;
 volatile bool				GeckoSockServer::server_running;
 std::queue<sf::SocketTCP>	GeckoSockServer::waiting_socks;
-Common::CriticalSection		GeckoSockServer::connection_lock;
+std::mutex					GeckoSockServer::connection_lock;
 
 GeckoSockServer::GeckoSockServer()
 	: client_running(false)
@@ -76,9 +76,8 @@ void GeckoSockServer::GeckoConnectionWaiter()
 	{
 		if (server.Accept(new_client) == sf::Socket::Done)
 		{
-			connection_lock.Enter();
+			std::lock_guard<std::mutex> lk(connection_lock);
 			waiting_socks.push(new_client);
-			connection_lock.Leave();
 		}
 		SLEEP(1);
 	}
@@ -89,7 +88,8 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 {
 	bool sock_filled = false;
 
-	connection_lock.Enter();
+	std::lock_guard<std::mutex> lk(connection_lock);
+
 	if (waiting_socks.size())
 	{
 		sock_to_fill = waiting_socks.front();
@@ -106,7 +106,6 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 		waiting_socks.pop();
 		sock_filled = true;
 	}
-	connection_lock.Leave();
 
 	return sock_filled;
 }
@@ -123,8 +122,10 @@ void GeckoSockServer::ClientThread()
 	{
 		u8 data;
 		std::size_t	got = 0;
+		
+		{
+		std::lock_guard<std::mutex> lk(transfer_lock);
 
-		transfer_lock.Enter();
 		if (client.Receive((char*)&data, sizeof(data), got)
 			== sf::Socket::Disconnected)
 			client_running = false;
@@ -138,7 +139,8 @@ void GeckoSockServer::ClientThread()
 				client_running = false;
 			send_fifo.pop();
 		}
-		transfer_lock.Leave();
+		}	// unlock transfer
+
 		SLEEP(1);
 	}
 
@@ -173,35 +175,40 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		// PC -> Gecko
 		// |= 0x08000000 if successful
 	case CMD_RECV:
-		transfer_lock.Enter();
+		{
+		std::lock_guard<std::mutex> lk(transfer_lock);
 		if (!recv_fifo.empty())
 		{
 			_uData = 0x08000000 | (recv_fifo.front() << 16);
 			recv_fifo.pop();
 		}
-		transfer_lock.Leave();
 		break;
+		}
+
 		// Gecko -> PC
 		// |= 0x04000000 if successful
 	case CMD_SEND:
-		transfer_lock.Enter();
+		{
+		std::lock_guard<std::mutex> lk(transfer_lock);
 		send_fifo.push(_uData >> 20);
-		transfer_lock.Leave();
 		_uData = 0x04000000;
 		break;
+		}
 
 		// Check if ok for Gecko -> PC, or FIFO full
 		// |= 0x04000000 if FIFO is not full
 	case CMD_CHK_TX:
 		_uData = 0x04000000;
 		break;
+
 		// Check if data in FIFO for PC -> Gecko, or FIFO empty
 		// |= 0x04000000 if data in recv FIFO
 	case CMD_CHK_RX:
-		transfer_lock.Enter();
+		{
+		std::lock_guard<std::mutex> lk(transfer_lock);
 		_uData = recv_fifo.empty() ? 0 : 0x04000000;
-		transfer_lock.Leave();
 		break;
+		}
 
 	default:
 		ERROR_LOG(EXPANSIONINTERFACE, "Uknown USBGecko command %x", _uData);

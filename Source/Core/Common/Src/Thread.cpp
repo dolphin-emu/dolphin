@@ -55,219 +55,49 @@ void SetCurrentThreadAffinity(u32 mask)
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
-	CriticalSection::CriticalSection(int spincount)
-	{
-		if (spincount)
-		{
-			if (!InitializeCriticalSectionAndSpinCount(&section, spincount))
-				ERROR_LOG(COMMON, "CriticalSection could not be initialized!\n%s", GetLastErrorMsg());
-		}
-		else
-		{
-			InitializeCriticalSection(&section);
-		}
-	}
+// Supporting functions
+void SleepCurrentThread(int ms)
+{
+	Sleep(ms);
+}
 	
-	CriticalSection::~CriticalSection()
-	{
-		DeleteCriticalSection(&section);
-	}
-	
-	void CriticalSection::Enter()
-	{
-		EnterCriticalSection(&section);
-	}
-	
-	bool CriticalSection::TryEnter()
-	{
-		return TryEnterCriticalSection(&section) ? true : false;
-	}
-	
-	void CriticalSection::Leave()
-	{
-		LeaveCriticalSection(&section);
-	}
-	
-	EventEx::EventEx()
-	{
-		InterlockedExchange(&m_Lock, 1);
-	}
-	
-	void EventEx::Init()
-	{
-		InterlockedExchange(&m_Lock, 1);
-	}
-	
-	void EventEx::Shutdown()
-	{
-		InterlockedExchange(&m_Lock, 0);
-	}
-	
-	void EventEx::Set()
-	{
-		InterlockedExchange(&m_Lock, 0);
-	}
-	
-	void EventEx::Spin()
-	{
-		while (InterlockedCompareExchange(&m_Lock, 1, 0))
-			// This only yields when there is a runnable thread on this core
-			// If not, spin
-			SwitchToThread();
-	}
-	
-	void EventEx::Wait()
-	{
-		while (InterlockedCompareExchange(&m_Lock, 1, 0))
-			// This directly enters Ring0 and enforces a sleep about 15ms
-			SleepCurrentThread(1);
-	}
-	
-	bool EventEx::MsgWait()
-	{
-		while (InterlockedCompareExchange(&m_Lock, 1, 0))
-		{
-			MSG msg;
-			while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{
-				if (msg.message == WM_QUIT) return false;
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			// This directly enters Ring0 and enforces a sleep about 15ms
-			SleepCurrentThread(1);
-		}
-		return true;
-	}
-	
-	
-	// Regular same thread loop based waiting
-	Event::Event()
-	{
-		m_hEvent = 0;
-	}
-	
-	void Event::Init()
-	{
-		m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	}
-	
-	void Event::Shutdown()
-	{
-		CloseHandle(m_hEvent);
-		m_hEvent = 0;
-	}
-	
-	void Event::Set()
-	{
-		SetEvent(m_hEvent);
-	}
-	
-	bool Event::Wait(const u32 timeout)
-	{
-		return WaitForSingleObject(m_hEvent, timeout) != WAIT_OBJECT_0;
-	}
-	
-	inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)
-	{
-		return MsgWaitForMultipleObjects(1, &handle, FALSE, timeout, 0);
-	}
-	
-	void Event::MsgWait()
-	{
-		// Adapted from MSDN example http://msdn.microsoft.com/en-us/library/ms687060.aspx
-		while (true)
-		{
-			DWORD result; 
-			MSG msg; 
-			// Read all of the messages in this next loop, 
-			// removing each message as we read it.
-			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
-			{ 
-				// If it is a quit message, exit.
-				if (msg.message == WM_QUIT)  
-					return; 
-				// Otherwise, dispatch the message.
-				TranslateMessage(&msg);
-				DispatchMessage(&msg); 
-			}
-			
-			// Wait for any message sent or posted to this queue 
-			// or for one of the passed handles be set to signaled.
-			result = MsgWaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT); 
-			
-			// The result tells us the type of event we have.
-			if (result == (WAIT_OBJECT_0 + 1))
-			{
-				// New messages have arrived. 
-				// Continue to the top of the always while loop to 
-				// dispatch them and resume waiting.
-				continue;
-			} 
-			else
-			{
-				// result == WAIT_OBJECT_0
-				// Our event got signaled
-				return;
-			}
-		}
-	}
+void SwitchCurrentThread()
+{
+	SwitchToThread();
+}
 
-	// Supporting functions
-	void SleepCurrentThread(int ms)
-	{
-		Sleep(ms);
-	}
+// Sets the debugger-visible name of the current thread.
+// Uses undocumented (actually, it is now documented) trick.
+// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
 	
-	void SwitchCurrentThread()
-	{
-		SwitchToThread();
-	}
-	
-	typedef struct tagTHREADNAME_INFO
+// This is implemented much nicer in upcoming msvc++, see:
+// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
+void SetCurrentThreadName(const char* szThreadName)
+{
+	static const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+	#pragma pack(push,8)
+	struct THREADNAME_INFO
 	{
 		DWORD dwType; // must be 0x1000
 		LPCSTR szName; // pointer to name (in user addr space)
 		DWORD dwThreadID; // thread ID (-1=caller thread)
 		DWORD dwFlags; // reserved for future use, must be zero
-	} THREADNAME_INFO;
-	// Usage: SetThreadName (-1, "MainThread");
-	//
-	// Sets the debugger-visible name of the current thread.
-	// Uses undocumented (actually, it is now documented) trick.
-	// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-	
-	// This is implemented much nicer in upcoming msvc++, see:
-	// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
-	void SetCurrentThreadName(const TCHAR* szThreadName)
+	} info;
+	#pragma pack(pop)
+
+	info.dwType = 0x1000;
+	info.szName = szThreadName;
+	info.dwThreadID = -1; //dwThreadID;
+	info.dwFlags = 0;
+
+	__try
 	{
-		THREADNAME_INFO info;
-		info.dwType = 0x1000;
-#ifdef UNICODE
-		//TODO: Find the proper way to do this.
-		char tname[256];
-		unsigned int i;
-		
-		for (i = 0; i < _tcslen(szThreadName); i++)
-		{
-			tname[i] = (char)szThreadName[i]; //poor man's unicode->ansi, TODO: fix
-		}
-		
-		tname[i] = 0;
-		info.szName = tname;
-#else
-		info.szName = szThreadName;
-#endif
-		
-		info.dwThreadID = -1; //dwThreadID;
-		info.dwFlags = 0;
-		__try
-		{
-			RaiseException(0x406D1388, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR*)&info);
-		}
-		__except(EXCEPTION_CONTINUE_EXECUTION)
-		{}
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
 	}
+	__except(EXCEPTION_CONTINUE_EXECUTION)
+	{}
+}
 	
 #else // !WIN32, so must be POSIX threads
 
@@ -293,151 +123,42 @@ void SetCurrentThreadAffinity(u32 mask)
 	SetThreadAffinity(pthread_self(), mask);
 }
 
-	static pthread_key_t threadname_key;
-	static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
-	
-	CriticalSection::CriticalSection(int spincount_unused)
-	{
-		pthread_mutex_init(&mutex, NULL);
-	}
-	
-	
-	CriticalSection::~CriticalSection()
-	{
-		pthread_mutex_destroy(&mutex);
-	}
-	
-	
-	void CriticalSection::Enter()
-	{
-#ifdef DEBUG
-		int ret = pthread_mutex_lock(&mutex);
-		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_lock(%p) failed: %s\n", 
-						   __FUNCTION__, &mutex, strerror(ret));
-#else
-		pthread_mutex_lock(&mutex);
-#endif
-	}
-	
-	
-	bool CriticalSection::TryEnter()
-	{
-		return(!pthread_mutex_trylock(&mutex));
-	}
-	
-	
-	void CriticalSection::Leave()
-	{
-#ifdef DEBUG
-		int ret = pthread_mutex_unlock(&mutex);
-		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
-						   __FUNCTION__, &mutex, strerror(ret));
-#else
-		pthread_mutex_unlock(&mutex);
-#endif
-	}
+static pthread_key_t threadname_key;
+static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
 
-	void SleepCurrentThread(int ms)
-	{
-		usleep(1000 * ms);
-	}
+void SleepCurrentThread(int ms)
+{
+	usleep(1000 * ms);
+}
 	
-	void SwitchCurrentThread()
-	{
-		usleep(1000 * 1);
-	}
+void SwitchCurrentThread()
+{
+	usleep(1000 * 1);
+}
 
-	static void FreeThreadName(void* threadname)
-	{
+static void FreeThreadName(void* threadname)
+{
+	free(threadname);
+}
+
+static void ThreadnameKeyAlloc()
+{
+	pthread_key_create(&threadname_key, FreeThreadName);
+}
+
+void SetCurrentThreadName(const char* szThreadName)
+{
+	pthread_once(&threadname_key_once, ThreadnameKeyAlloc);
+
+	void* threadname;
+	if ((threadname = pthread_getspecific(threadname_key)) != NULL)
 		free(threadname);
-	}
 
-	static void ThreadnameKeyAlloc()
-	{
-		pthread_key_create(&threadname_key, FreeThreadName);
-	}
+	pthread_setspecific(threadname_key, strdup(szThreadName));
 
-	void SetCurrentThreadName(const TCHAR* szThreadName)
-	{
-		pthread_once(&threadname_key_once, ThreadnameKeyAlloc);
+	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
+}
 
-		void* threadname;
-		if ((threadname = pthread_getspecific(threadname_key)) != NULL)
-			free(threadname);
-
-		pthread_setspecific(threadname_key, strdup(szThreadName));
-
-		INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
-	}
-	
-	
-	Event::Event()
-	{
-		is_set_ = false;
-	}
-	
-	
-	void Event::Init()
-	{
-		pthread_cond_init(&event_, 0);
-		pthread_mutex_init(&mutex_, 0);
-	}
-	
-	
-	void Event::Shutdown()
-	{
-		pthread_mutex_destroy(&mutex_);
-		pthread_cond_destroy(&event_);
-	}
-	
-	
-	void Event::Set()
-	{
-		pthread_mutex_lock(&mutex_);
-		
-		if (!is_set_)
-		{
-			is_set_ = true;
-			pthread_cond_signal(&event_);
-		}
-		
-		pthread_mutex_unlock(&mutex_);
-	}
-	
-	
-	bool Event::Wait(const u32 timeout)
-	{
-		bool timedout = false;
-		struct timespec wait;
-		pthread_mutex_lock(&mutex_);
-		
-		if (timeout != INFINITE) 
-		{
-			memset(&wait, 0, sizeof(wait));
-			struct timeval now;
-			gettimeofday(&now, NULL);
-			wait.tv_nsec = (now.tv_usec + (timeout % 1000)) * 1000;
-			wait.tv_sec = now.tv_sec + (timeout / 1000);
-		}
-		
-		while (!is_set_ && !timedout)
-		{
-			if (timeout == INFINITE) 
-			{
-				pthread_cond_wait(&event_, &mutex_);
-			}
-			else 
-			{
-				timedout = pthread_cond_timedwait(&event_, &mutex_, &wait) == ETIMEDOUT;
-			}
-		}
-		
-		is_set_ = false;
-		pthread_mutex_unlock(&mutex_);
-		
-		return timedout;
-	}
-	
 #endif
 	
 } // namespace Common

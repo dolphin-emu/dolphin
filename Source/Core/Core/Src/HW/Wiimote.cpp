@@ -93,8 +93,8 @@ void Update(int _number)
 {
 	//PanicAlert( "Wiimote_Update" );
 
-	// TODO: change this to a TryEnter, and make it give empty input on failure
-	g_plugin.controls_crit.Enter();
+	// TODO: change this to a try_to_lock, and make it give empty input on failure
+	std::lock_guard<std::mutex> lk(g_plugin.controls_lock);
 
 	static int _last_number = 4;
 	if (_number <= _last_number)
@@ -108,8 +108,6 @@ void Update(int _number)
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
 	else
 		WiimoteReal::Update(_number);
-
-	g_plugin.controls_crit.Leave();
 }
 
 // __________________________________________________________________________________________________

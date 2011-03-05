@@ -52,7 +52,7 @@ class XAudio2 : public SoundStream
 	IXAudio2MasteringVoice *pMasteringVoice;
 	IXAudio2SourceVoice *pSourceVoice;
 
-	Common::EventEx soundSyncEvent;
+	Common::Event soundSyncEvent;
 	float m_volume;
 
 

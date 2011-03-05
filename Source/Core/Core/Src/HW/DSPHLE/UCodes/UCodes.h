@@ -86,7 +86,7 @@ protected:
 	bool NeedsResumeMail();
 
 	CMailHandler& m_rMailHandler;
-	Common::CriticalSection m_csMix;
+	std::mutex m_csMix;
 
 	enum EDSP_Codes
 	{

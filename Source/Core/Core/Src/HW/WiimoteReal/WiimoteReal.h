@@ -101,7 +101,7 @@ private:
 	Common::FifoQueue<Report>	m_audio_reports;
 };
 
-extern Common::CriticalSection	g_refresh_critsec;
+extern std::mutex g_refresh_lock;
 extern Wiimote *g_wiimotes[4];
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);

@@ -47,7 +47,7 @@ public:
 
 	std::vector< ControllerEmu* >	controllers;
 
-	Common::CriticalSection		controls_crit;		// critical section for changing any control references
+	std::mutex controls_lock;		// for changing any control references
 
 	const char * const		ini_name;
 	const char * const		gui_name;

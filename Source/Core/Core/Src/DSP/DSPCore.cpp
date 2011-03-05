@@ -41,7 +41,7 @@ DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 DSPEmitter *dspjit = NULL;
 Common::Event step_event;
-Common::CriticalSection ExtIntCriticalSection;
+static std::mutex ExtIntCriticalSection;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
@@ -165,8 +165,6 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	DSPAnalyzer::Analyze();
 
-	step_event.Init();
-
 	core_state = DSPCORE_RUNNING;
 
 	return true;
@@ -183,7 +181,6 @@ void DSPCore_Shutdown()
 		delete dspjit;
 		dspjit = NULL;
 	}
-	step_event.Shutdown();
 	DSPCore_FreeMemoryPages();
 }
 
@@ -206,9 +203,8 @@ void DSPCore_SetException(u8 level)
 // Notify that an external interrupt is pending (used by thread mode)
 void DSPCore_SetExternalInterrupt(bool val)
 {
-	ExtIntCriticalSection.Enter();
+	std::lock_guard<std::mutex> lk(ExtIntCriticalSection);
 	g_dsp.external_interrupt_waiting = val;
-	ExtIntCriticalSection.Leave();
 }
 
 // Coming from the CPU

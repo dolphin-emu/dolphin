@@ -32,8 +32,6 @@ bool OpenALStream::Start()
 	ALCdevice *pDevice = NULL;
 	bool bReturn = false;
 
-	soundSyncEvent.Init();
-
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
@@ -92,8 +90,6 @@ void OpenALStream::Stop()
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(pContext);
 	alcCloseDevice(pDevice);
-
-	soundSyncEvent.Shutdown();
 }
 
 void OpenALStream::SetVolume(int volume)

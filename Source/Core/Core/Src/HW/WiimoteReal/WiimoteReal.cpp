@@ -35,7 +35,7 @@ namespace WiimoteReal
 bool g_real_wiimotes_initialized = false;
 unsigned int g_wiimotes_found = 0;
 
-Common::CriticalSection		g_refresh_critsec;
+std::mutex g_refresh_lock;
 
 Wiimote *g_wiimotes[MAX_WIIMOTES];
 
@@ -439,11 +439,11 @@ void Shutdown(void)
 // This is called from the GUI thread
 void Refresh()
 {
+	std::lock_guard<std::mutex> lk(g_refresh_lock);
+
 #ifdef _WIN32
-	g_refresh_critsec.Enter();
 	Shutdown();
 	Initialize();
-	g_refresh_critsec.Leave();
 #else
 	// Make sure real wiimotes have been initialized
 	if (!g_real_wiimotes_initialized)
@@ -457,8 +457,6 @@ void Refresh()
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i])
 			++wanted_wiimotes;
-
-	g_refresh_critsec.Enter();
 
 	// Remove wiimotes that are paired with slots no longer configured for a
 	// real wiimote or that are disconnected
@@ -486,50 +484,40 @@ void Refresh()
 
 		g_wiimotes_found = num_wiimotes;
 	}
-
-	g_refresh_critsec.Leave();
 #endif
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	g_refresh_critsec.Enter();
+	std::lock_guard<std::mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
-
-	g_refresh_critsec.Leave();
 }
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	g_refresh_critsec.Enter();
+	std::lock_guard<std::mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
-
-	g_refresh_critsec.Leave();
 }
 
 
 // Read the Wiimote once
 void Update(int _WiimoteNumber)
 {
-	g_refresh_critsec.Enter();
+	std::lock_guard<std::mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->Update();
-
-	g_refresh_critsec.Leave();
 }
 
 void StateChange(EMUSTATE_CHANGE newState)
 {
-	//g_refresh_critsec.Enter();	// enter
+	//std::lock_guard<std::mutex> lk(g_refresh_lock);
 
 	// TODO: disable/enable auto reporting, maybe
-
-	//g_refresh_critsec.Leave();	// leave
 }
 
 }; // end of namespace

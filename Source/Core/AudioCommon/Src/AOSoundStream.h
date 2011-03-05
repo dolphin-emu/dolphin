@@ -30,7 +30,7 @@ class AOSound : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
 	std::thread thread;
-	Common::CriticalSection soundCriticalSection;
+	std::mutex soundCriticalSection;
 	Common::Event soundSyncEvent;
 
 	int buf_size;

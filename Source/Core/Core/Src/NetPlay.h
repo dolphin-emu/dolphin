@@ -75,19 +75,6 @@ enum
 	CON_ERR_VERSION_MISMATCH	
 };
 
-// something like this should be in Common stuff
-class CritLocker
-{
-public:
-	//CritLocker(const CritLocker&);
-	CritLocker& operator=(const CritLocker&);
-	CritLocker(Common::CriticalSection& crit) : m_crit(crit) { m_crit.Enter(); }
-	~CritLocker() { m_crit.Leave(); }
-
-private:
-	Common::CriticalSection&	m_crit;
-};
-
 class NetPlayUI
 {
 public:
@@ -135,9 +122,9 @@ protected:
 
 	struct
 	{
-		Common::CriticalSection		game;
+		std::recursive_mutex game;
 		// lock order
-		Common::CriticalSection		players, send;
+		std::recursive_mutex players, send;
 	} m_crit;
 
 	class Player

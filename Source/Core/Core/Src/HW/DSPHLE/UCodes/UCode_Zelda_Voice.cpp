@@ -746,7 +746,7 @@ ContinueWithBlock:
 // size is in stereo samples.
 void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 {
-	m_csMix.Enter();
+	std::lock_guard<std::mutex> lk(m_csMix);
 	// Safety check
 	if (_Size > 256 * 1024 - 8)
 		_Size = 256 * 1024 - 8;
@@ -793,5 +793,4 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 
 		_Buffer += 2;
 	}
-	m_csMix.Leave();
 }

@@ -20,6 +20,7 @@
 
 #include "Log.h"
 #include "StringUtil.h"
+#include "Thread.h"
 
 #include <vector>
 #include <string.h>
@@ -102,16 +103,11 @@ private:
 
 class ConsoleListener;
 
-// Avoid <windows.h> include through Thread.h
-namespace Common {
-	class CriticalSection;
-}
-
 class LogManager : NonCopyable
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	Common::CriticalSection *logMutex;
+	std::mutex logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.

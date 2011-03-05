@@ -70,8 +70,6 @@ volatile bool interruptWaiting;
 
 CPReg cpreg; // shared between gfx and emulator thread
 
-Common::CriticalSection criticalSection;
-
 void DoState(PointerWrap &p)
 {
 	p.Do(cpreg);

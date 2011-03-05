@@ -35,7 +35,6 @@ namespace
 
 void CCPU::Init(int cpu_core)
 {
-	m_StepEvent.Init();
 	PowerPC::Init(cpu_core);
 	m_SyncEvent = 0;
 }
@@ -43,7 +42,6 @@ void CCPU::Init(int cpu_core)
 void CCPU::Shutdown()
 {
 	PowerPC::Shutdown();
-	m_StepEvent.Shutdown();
 	m_SyncEvent = 0;
 }
 

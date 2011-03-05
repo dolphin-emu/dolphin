@@ -34,7 +34,7 @@ public:
 	sf::SocketTCP client;
 	void ClientThread();
 	std::thread clientThread;
-	Common::CriticalSection transfer_lock;
+	std::mutex transfer_lock;
 
 	std::queue<u8> send_fifo;
 	std::queue<u8> recv_fifo;
@@ -50,7 +50,7 @@ private:
 	static volatile bool				server_running;
 	static std::thread					connectionThread;
 	static std::queue<sf::SocketTCP>	waiting_socks;
-	static Common::CriticalSection		connection_lock;
+	static std::mutex					connection_lock;
 };
 
 class CEXIGecko

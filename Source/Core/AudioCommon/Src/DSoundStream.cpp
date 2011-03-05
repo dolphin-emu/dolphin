@@ -119,8 +119,6 @@ void DSound::SoundLoop()
 
 bool DSound::Start()
 {
-	soundSyncEvent.Init();
-
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
         return false;
 	if (hWnd)
@@ -180,7 +178,5 @@ void DSound::Stop()
 	dsBuffer->Stop();
 	dsBuffer->Release();
 	ds->Release();
-
-	soundSyncEvent.Shutdown();
 }
 

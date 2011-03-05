@@ -248,14 +248,14 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 	{
 		using namespace WiimoteReal;
 
-		g_refresh_critsec.Enter();
+		std::lock_guard<std::mutex> lk(g_refresh_lock);
+
 		if (g_wiimotes[m_index])
 		{
 			wm_request_status rpt;
 			rpt.rumble = 0;
 			g_wiimotes[m_index]->SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
 		}
-		g_refresh_critsec.Leave();
 
 		return;
 	}

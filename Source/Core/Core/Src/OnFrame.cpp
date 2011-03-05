@@ -36,7 +36,7 @@
 #endif
 #include "State.h"
 
-Common::CriticalSection cs_frameSkip;
+std::mutex cs_frameSkip;
 
 namespace Frame {
 
@@ -95,7 +95,7 @@ void FrameUpdate()
 
 void SetFrameSkipping(unsigned int framesToSkip)
 {
-	cs_frameSkip.Enter();
+	std::lock_guard<std::mutex> lk(cs_frameSkip);
 	
 	g_framesToSkip = framesToSkip;
 	g_frameSkipCounter = 0;
@@ -104,8 +104,6 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
 		g_video_backend->Video_SetRendering(true);
-	
-	cs_frameSkip.Leave();
 }
 
 int FrameSkippingFactor()
@@ -138,15 +136,13 @@ void FrameSkipping()
 	// Frameskipping will desync movie playback
 	if (!IsPlayingInput() && !IsRecordingInput())
 	{
-		cs_frameSkip.Enter();
+		std::lock_guard<std::mutex> lk(cs_frameSkip);
 
 		g_frameSkipCounter++;
 		if (g_frameSkipCounter > g_framesToSkip || Core::report_slow(g_frameSkipCounter) == false)
 			g_frameSkipCounter = 0;
 		
 		g_video_backend->Video_SetRendering(!g_frameSkipCounter);
-		
-		cs_frameSkip.Leave();
 	}
 }
 

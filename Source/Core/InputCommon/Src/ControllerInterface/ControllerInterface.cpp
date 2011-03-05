@@ -118,10 +118,12 @@ void ControllerInterface::SetHwnd( void* const hwnd )
 //
 bool ControllerInterface::UpdateInput(const bool force)
 {
+	std::unique_lock<std::mutex> lk(update_lock, std::defer_lock);
+
 	if (force)
-		update_lock.Enter();
-	else if (false == update_lock.TryEnter())
-		return false;
+		lk.lock();
+	else if (!lk.try_lock())
+			return false;
 
 	size_t ok_count = 0;
 
@@ -137,7 +139,6 @@ bool ControllerInterface::UpdateInput(const bool force)
 			//(*d)->ClearInputState();
 	}
 
-	update_lock.Leave();
 	return (m_devices.size() == ok_count);
 }
 
@@ -148,10 +149,12 @@ bool ControllerInterface::UpdateInput(const bool force)
 //
 bool ControllerInterface::UpdateOutput(const bool force)
 {
+	std::unique_lock<std::mutex> lk(update_lock, std::defer_lock);
+
 	if (force)
-		update_lock.Enter();
-	else if (false == update_lock.TryEnter())
-		return false;
+		lk.lock();
+	else if (!lk.try_lock())
+			return false;
 
 	size_t ok_count = 0;
 
@@ -161,7 +164,6 @@ bool ControllerInterface::UpdateOutput(const bool force)
 	for (;d != e; ++d)
 		(*d)->UpdateOutput();
 
-	update_lock.Leave();
 	return (m_devices.size() == ok_count);
 }
 
@@ -470,8 +472,8 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 		else if ('`' == c)
 		{
 			// different device
-			if (false == /*XXX*/(bool)std::getline(ss, dev_str, '`'))
-				break;
+			if (std::getline(ss, dev_str, '`').eof())
+				break;	// no terminating '`' character
 		}
 		else
 			ctrl_str += c;

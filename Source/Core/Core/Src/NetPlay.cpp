@@ -27,7 +27,7 @@
 // for wiimote/ OSD messages
 #include "Core.h"
 
-Common::CriticalSection		crit_netplay_ptr;
+std::mutex crit_netplay_ptr;
 static NetPlay* netplay_ptr = NULL;
 
 #define RPT_SIZE_HACK	(1 << 16)
@@ -42,20 +42,20 @@ NetPlay::NetPlay(NetPlayUI* dialog)
 
 void NetPlay_Enable(NetPlay* const np)
 {
-	CritLocker crit(crit_netplay_ptr);	// probably safe without a lock
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 	netplay_ptr = np;
 }
 
 void NetPlay_Disable()
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 	netplay_ptr = NULL;
 }
 
 // called from ---GUI--- thread
 NetPlay::~NetPlay()
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 	netplay_ptr = NULL;
 
 	// not perfect
@@ -116,7 +116,8 @@ void NetPlay::ClearBuffers()
 // called from ---CPU--- thread
 bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
 {
-	m_crit.players.Enter();	// lock players
+	{
+	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
 	// in game mapping for this local pad
 	unsigned int in_game_num = m_local_player->pad_map[pad_nb];
@@ -138,7 +139,7 @@ bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, Ne
 		}
 	}
 
-	m_crit.players.Leave();
+	}	// unlock players
 
 	//Common::Timer bufftimer;
 	//bufftimer.Start();
@@ -181,14 +182,13 @@ void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 
 		m_wiimote_input[_number].back().assign((char*)_pData, (char*)_pData + _Size);
 		m_wiimote_input[_number].back().channel = _channelID;
 	}
-
-	m_crit.players.Leave();
 }
 
 // called from ---CPU--- thread
 void NetPlay::WiimoteUpdate(int _number)
 {
-	m_crit.players.Enter();	// lock players
+	{
+	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
 	// in game mapping for this local wiimote
 	unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
@@ -203,7 +203,7 @@ void NetPlay::WiimoteUpdate(int _number)
 		m_wiimote_input[_number].clear();
 	}
 
-	m_crit.players.Leave();
+	} // unlock players
 
 	if (0 == m_wiimote_buffer[_number].Size())
 	{
@@ -251,7 +251,7 @@ bool NetPlay::StartGame(const std::string &path)
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlay::StopGame()
 {
-	CritLocker game_lock(m_crit.game);	// lock game state
+	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
 	if (false == m_is_running)
 	{
@@ -288,7 +288,7 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 // Actual Core function which is called on every frame
 bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 
 	if (netplay_ptr)
 		return netplay_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus);
@@ -300,7 +300,7 @@ bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u
 // so all players' games get the same time
 u32 CEXIIPL::NetPlay_GetGCTime()
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 
 	if (netplay_ptr)
 		return 1272737767;	// watev
@@ -312,7 +312,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 // return the local pad num that should rumble given a ingame pad num
 u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 
 	if (netplay_ptr)
 		return netplay_ptr->GetPadNum(numPAD);
@@ -348,7 +348,7 @@ int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 //bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
 bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 {
-	CritLocker crit(crit_netplay_ptr);
+	std::lock_guard<std::mutex> lk(crit_netplay_ptr);
 
 	if (netplay_ptr)
 	//{

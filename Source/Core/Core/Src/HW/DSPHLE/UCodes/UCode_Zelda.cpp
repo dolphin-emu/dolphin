@@ -570,7 +570,7 @@ void CUCode_Zelda::ExecuteList()
 void CUCode_Zelda::DoState(PointerWrap &p)
 {
 	// It's bad if we try to save during Mix()
-	m_csMix.Enter();
+	std::lock_guard<std::mutex> lk(m_csMix);
 
 	p.Do(m_CRC);
 
@@ -618,6 +618,4 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	p.Do(m_UploadSetupInProgress);
 
 	m_rMailHandler.DoState(p);
-
-	m_csMix.Leave();
 }

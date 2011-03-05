@@ -36,9 +36,8 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 LogManager *LogManager::m_logManager = NULL;
 
-LogManager::LogManager() {
-	logMutex = new Common::CriticalSection(1);
-
+LogManager::LogManager()
+{
 	// create log files
 	m_Log[LogTypes::MASTER_LOG]			= new LogContainer("*",				"Master Log");
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");
@@ -105,7 +104,6 @@ LogManager::~LogManager() {
 
 	delete m_fileLog;
 	delete m_consoleLog;
-	delete logMutex;
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
@@ -127,15 +125,14 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 			file, line, level_to_char[(int)level],
 			log->getShortName(), temp);
 
-	logMutex->Enter();
+	std::lock_guard<std::mutex> lk(logMutex);
 	log->trigger(level, msg);
-	logMutex->Leave();
 }
 
-void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) {
-	logMutex->Enter();
+void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener)
+{
+	std::lock_guard<std::mutex> lk(logMutex);
 	m_Log[type]->removeListener(listener);
-	logMutex->Leave();
 }
 
 void LogManager::Init()

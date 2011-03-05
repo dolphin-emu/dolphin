@@ -354,8 +354,6 @@ CFrame::CFrame(wxFrame* parent,
 		bFloatWindow[i] = false;
 
 #ifdef __WXGTK__
-	panic_event.Init();
-	keystate_event.Init();
 	bKeyStateResult = false;
 #endif
 
@@ -491,11 +489,6 @@ CFrame::~CFrame()
 	#endif
 
 	ClosePages();
-
-#ifdef __WXGTK__
-	panic_event.Shutdown();
-	keystate_event.Shutdown();
-#endif
 
 	delete m_Mgr;
 }

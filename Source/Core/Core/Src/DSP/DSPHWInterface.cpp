@@ -41,7 +41,7 @@
 
 static void gdsp_do_dma();
 
-Common::CriticalSection g_CriticalSection;
+static std::mutex g_CriticalSection;
 
 void gdsp_ifx_init()
 {
@@ -56,35 +56,34 @@ void gdsp_ifx_init()
 	g_dsp.mbox[1][1] = 0;
 }
 
-
 u32 gdsp_mbox_peek(u8 mbx)
 {
+	std::unique_lock<std::mutex> lk(g_CriticalSection, std::defer_lock);
 	if (DSPHost_OnThread())
-		g_CriticalSection.Enter();
-	u32 value = ((g_dsp.mbox[mbx][0] << 16) | g_dsp.mbox[mbx][1]);
-	if (DSPHost_OnThread())
-		g_CriticalSection.Leave();
-	return value;
+		lk.lock();
+
+	return ((g_dsp.mbox[mbx][0] << 16) | g_dsp.mbox[mbx][1]);
 }
 
 void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
+	std::unique_lock<std::mutex> lk(g_CriticalSection, std::defer_lock);
 	if (DSPHost_OnThread())
-		g_CriticalSection.Enter();
-	g_dsp.mbox[mbx][0] = val & 0x7fff;
-	if (DSPHost_OnThread())
-		g_CriticalSection.Leave();
-}
+		lk.lock();
 
+	g_dsp.mbox[mbx][0] = val & 0x7fff;
+}
 
 void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
+	{
+	std::unique_lock<std::mutex> lk(g_CriticalSection, std::defer_lock);
 	if (DSPHost_OnThread())
-		g_CriticalSection.Enter();
+		lk.lock();
+
 	g_dsp.mbox[mbx][1]  = val;
 	g_dsp.mbox[mbx][0] |= 0x8000;
-	if (DSPHost_OnThread())
-		g_CriticalSection.Leave();
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)
@@ -96,29 +95,27 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 #endif
 }
 
-
 u16 gdsp_mbox_read_h(u8 mbx)
 {
+	std::unique_lock<std::mutex> lk(g_CriticalSection, std::defer_lock);
 	if (DSPHost_OnThread())
-		g_CriticalSection.Enter();
-	u16 val =  g_dsp.mbox[mbx][0];  // TODO: mask away the top bit?
-	if (DSPHost_OnThread())
-		g_CriticalSection.Leave();
-	return val;
+		lk.lock();
+
+	return g_dsp.mbox[mbx][0];  // TODO: mask away the top bit?
 }
 
 
 u16 gdsp_mbox_read_l(u8 mbx)
 {
+	u16 val;
+	{
+	std::unique_lock<std::mutex> lk(g_CriticalSection, std::defer_lock);
 	if (DSPHost_OnThread())
-		g_CriticalSection.Enter();
+		lk.lock();
 
-	u16 val = g_dsp.mbox[mbx][1];
+	val = g_dsp.mbox[mbx][1];
 	g_dsp.mbox[mbx][0] &= ~0x8000;
-
-
-	if (DSPHost_OnThread())
-		g_CriticalSection.Leave();
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)
@@ -131,7 +128,6 @@ u16 gdsp_mbox_read_l(u8 mbx)
 
 	return val;
 }
-
 
 void gdsp_ifx_write(u32 addr, u32 val)
 {

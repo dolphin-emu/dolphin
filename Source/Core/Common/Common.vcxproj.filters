@@ -121,6 +121,8 @@
     <ClInclude Include="Src\Crypto\tools.h">
       <Filter>Crypto</Filter>
     </ClInclude>
+    <ClInclude Include="Src\StdMutex.h" />
+    <ClInclude Include="Src\StdConditionVariable.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

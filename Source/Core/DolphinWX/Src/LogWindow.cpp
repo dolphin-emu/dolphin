@@ -42,7 +42,6 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, x(0), y(0), winpos(0)
 	, Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_LogSection(1)
 	, m_SJISConv(wxT(""))
 {
 #ifdef _WIN32
@@ -212,11 +211,12 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 {
 	m_Log->Clear();
 
-	m_LogSection.Enter();
+	{
+	std::lock_guard<std::mutex> lk(m_LogSection);
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
 		msgQueue.pop();
-	m_LogSection.Leave();
+	}
 
 	m_LogManager->getConsoleListener()->ClearScreen();
 }
@@ -308,7 +308,8 @@ void CLogWindow::UpdateLog()
 
 	m_LogTimer->Stop();
 
-	m_LogSection.Enter();
+	{
+	std::lock_guard<std::mutex> lk(m_LogSection);
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
 	{
@@ -348,16 +349,16 @@ void CLogWindow::UpdateLog()
 		}
 		msgQueue.pop();
 	}
-	m_LogSection.Leave();
+	}	// unlock log
 
 	m_LogTimer->Start(UPDATETIME);
 }
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 {
-	m_LogSection.Enter();
+	std::lock_guard<std::mutex> lk(m_LogSection);
+
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
 	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
-	m_LogSection.Leave();
 }

@@ -1150,19 +1150,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		s_criticalScreenshot.Enter();
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		SaveScreenshot(s_sScreenshotName, dst_rect);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
 	}
 
 	// Frame dumps are handled a little differently in Windows
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames)
 	{
-		s_criticalScreenshot.Enter();
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		if (!data || w != dst_rect.GetWidth() ||
 		             h != dst_rect.GetHeight())
 		{
@@ -1205,8 +1204,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
-
-		s_criticalScreenshot.Leave();
 	}
 	else
 	{

@@ -46,7 +46,7 @@ int OSDChoice, OSDTime;
 Renderer *g_renderer = NULL;
 
 bool s_bLastFrameDumped = false;
-Common::CriticalSection Renderer::s_criticalScreenshot;
+std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 
 volatile bool Renderer::s_bScreenshot;
@@ -182,10 +182,9 @@ bool Renderer::CalculateTargetSize(int multiplier)
 
 void Renderer::SetScreenshot(const char *filename)
 {
-	s_criticalScreenshot.Enter();
+	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = filename;
 	s_bScreenshot = true;
-	s_criticalScreenshot.Leave();
 }
 
 // Create On-Screen-Messages

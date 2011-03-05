@@ -68,7 +68,7 @@ u64 fakeDecStartTicks;
 u64 fakeTBStartValue;
 u64 fakeTBStartTicks;
 
-static Common::CriticalSection externalEventSection;
+static std::mutex externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
 
@@ -143,19 +143,18 @@ void Shutdown()
         delete ev;
     }
 
-    externalEventSection.Enter();
+    std::lock_guard<std::mutex> lk(externalEventSection);
     while(eventTsPool)
     {
         Event *ev = eventTsPool;
         eventTsPool = ev->next;
         delete ev;
     }
-    externalEventSection.Leave();
 }
 
 void DoState(PointerWrap &p)
 {
-	externalEventSection.Enter();
+	std::lock_guard<std::mutex> lk(externalEventSection);
 	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
@@ -210,7 +209,6 @@ void DoState(PointerWrap &p)
 		break;
 		}
 	}
-	externalEventSection.Leave();
 }
 
 u64 GetTicks()
@@ -227,7 +225,7 @@ u64 GetIdleTicks()
 // schedule things to be executed on the main thread.
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
-	externalEventSection.Enter();
+	std::lock_guard<std::mutex> lk(externalEventSection);
 	Event *ne = GetNewTsEvent();
 	ne->time = globalTimer + cyclesIntoFuture;
 	ne->type = event_type;
@@ -238,7 +236,6 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	if(tsLast)
 		tsLast->next = ne;
 	tsLast = ne;
-	externalEventSection.Leave();
 }
 
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
@@ -247,9 +244,8 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
 	if(Core::IsCPUThread())
 	{
-		externalEventSection.Enter();
+		std::lock_guard<std::mutex> lk(externalEventSection);
 		event_types[event_type].callback(userdata, 0);
-		externalEventSection.Leave();
 	}
 	else
 		ScheduleEvent_Threadsafe(0, event_type, userdata);
@@ -352,10 +348,9 @@ void RemoveEvent(int event_type)
 
 void RemoveThreadsafeEvent(int event_type)
 {
-	externalEventSection.Enter();
+	std::lock_guard<std::mutex> lk(externalEventSection);
 	if (!tsFirst)
 	{
-		externalEventSection.Leave();
 		return;
 	}
 	while(tsFirst)
@@ -373,7 +368,6 @@ void RemoveThreadsafeEvent(int event_type)
 	}
 	if (!tsFirst)
 	{
-		externalEventSection.Leave();
 		return;
 	}
 	Event *prev = tsFirst;
@@ -392,7 +386,6 @@ void RemoveThreadsafeEvent(int event_type)
 			ptr = ptr->next;
 		}
 	}
-	externalEventSection.Leave();
 }
 
 void RemoveAllEvents(int event_type)
@@ -438,8 +431,7 @@ void ProcessFifoWaitEvents()
 
 void MoveEvents()
 {
-
-	externalEventSection.Enter();
+	std::lock_guard<std::mutex> lk(externalEventSection);
     // Move events from async queue into main queue
 	while (tsFirst)
 	{
@@ -458,8 +450,6 @@ void MoveEvents()
         eventTsPool = ev;
         allocatedTsEvents--;
     }
-	externalEventSection.Leave();
-
 }
 
 void Advance()

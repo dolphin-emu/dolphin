@@ -215,7 +215,7 @@ static unsigned char media_buffer[0x40];
 
 // Needed because data and streaming audio access needs to be managed by the "drive"
 // (both requests can happen at the same time, audio takes precedence)
-Common::CriticalSection dvdread_section;
+static std::mutex dvdread_section;
 
 static int ejectDisc;
 static int insertDisc;
@@ -345,10 +345,8 @@ void ClearCoverInterrupt()
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
 	// We won't need the crit sec when DTK streaming has been rewritten correctly.
-	dvdread_section.Enter();
-	bool retval = VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
-	dvdread_section.Leave();
-	return retval;
+	std::lock_guard<std::mutex> lk(dvdread_section);
+	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
 }
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
@@ -360,9 +358,10 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 		return false;
 	}
 	_iNumSamples &= ~31;
-	dvdread_section.Enter();
+	{
+	std::lock_guard<std::mutex> lk(dvdread_section);
 	VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
-	dvdread_section.Leave();
+	}
 
 	//
 	// FIX THIS

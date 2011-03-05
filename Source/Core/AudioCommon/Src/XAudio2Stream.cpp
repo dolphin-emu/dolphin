@@ -22,10 +22,10 @@ struct StreamingVoiceContext : public IXAudio2VoiceCallback
 {
 	IXAudio2SourceVoice* pSourceVoice;
 	CMixer *m_mixer;
-	Common::EventEx *soundSyncEvent;
+	Common::Event *soundSyncEvent;
 	short *xaBuffer;
 
-	StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::EventEx *pSyncEvent)
+	StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::Event *pSyncEvent)
 	{
 
 		m_mixer = pMixer;
@@ -100,7 +100,6 @@ struct StreamingVoiceContext : public IXAudio2VoiceCallback
 		//
 		if( !pSourceVoice || !context) return;
 	
-		//soundSyncEvent->Init();
 		//soundSyncEvent->Wait(); //sync
 		//soundSyncEvent->Spin(); //or tight sync
 		
@@ -123,8 +122,6 @@ StreamingVoiceContext* pVoiceContext = 0;
 
 bool XAudio2::Start()
 {
-	//soundSyncEvent.Init();
-	
     // XAudio2 init
     CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	HRESULT hr;
@@ -207,5 +204,4 @@ void XAudio2::Stop()
     safe_release(pXAudio2);
 	pMasteringVoice = NULL;
     CoUninitialize();
-	//soundSyncEvent.Shutdown();
 }

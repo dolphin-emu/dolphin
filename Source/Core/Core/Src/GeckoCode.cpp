@@ -55,7 +55,7 @@ u32 GeckoCode::Code::GetAddress() const
 	return gcaddress + (use_po ? pointer_address : (base_address & 0xFE000000));
 }
 
-static Common::CriticalSection active_codes_lock;
+static std::mutex active_codes_lock;
 
 // currently running code
 static GeckoCode::Code *codes_start = NULL, *current_code = NULL;
@@ -78,7 +78,7 @@ bool MathOperation(u32& ret, const u32 left, const u32 right, const u8 type);
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-	active_codes_lock.Enter();
+	std::lock_guard<std::mutex> lk(active_codes_lock);
 
 	active_codes.clear();
 	// add enabled codes
@@ -94,8 +94,6 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 		}
 
 	inserted_asm_codes.clear();
-
-	active_codes_lock.Leave();
 }
 
 bool RunGeckoCode(GeckoCode& gecko_code)
@@ -151,24 +149,23 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 
 bool RunActiveCodes()
 {
-	if (false == SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
-		return true;
-	if (false == active_codes_lock.TryEnter())
-		return true;
-
-	std::vector<GeckoCode>::iterator
-		gcodes_iter = active_codes.begin(),
-		gcodes_end = active_codes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
-		if (gcodes_iter->enabled)
-			RunGeckoCode(*gcodes_iter);
-		// we don't need to stop all codes if one fails, maybe
-		//if (false == RunGeckoCode(*gcodes_iter))
-			//return false;
+		std::lock_guard<std::mutex> lk(active_codes_lock);
+
+		std::vector<GeckoCode>::iterator
+			gcodes_iter = active_codes.begin(),
+			gcodes_end = active_codes.end();
+		for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+		{
+			if (gcodes_iter->enabled)
+				RunGeckoCode(*gcodes_iter);
+			// we don't need to stop all codes if one fails, maybe
+			//if (false == RunGeckoCode(*gcodes_iter))
+				//return false;
+		}
 	}
 
-	active_codes_lock.Leave();
 	return true;
 }
 

@@ -24,7 +24,7 @@
 
 static std::thread connectionThread;
 static std::queue<sf::SocketTCP> waiting_socks;
-static Common::CriticalSection cs_gba;
+static std::mutex cs_gba;
 namespace { volatile bool server_running; }
 
 // --- GameBoy Advance "Link Cable" ---
@@ -47,9 +47,8 @@ void GBAConnectionWaiter()
 	{
 		if (server.Accept(new_client) == sf::Socket::Done)
 		{
-			cs_gba.Enter();
+			std::lock_guard<std::mutex> lk(cs_gba);
 			waiting_socks.push(new_client);
-			cs_gba.Leave();
 		}
 		SLEEP(1);
 	}
@@ -68,14 +67,14 @@ bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 {
 	bool sock_filled = false;
 
-	cs_gba.Enter();
+	std::lock_guard<std::mutex> lk(cs_gba);
+
 	if (waiting_socks.size())
 	{
 		sock_to_fill = waiting_socks.front();
 		waiting_socks.pop();
 		sock_filled = true;
 	}
-	cs_gba.Leave();
 
 	return sock_filled;
 }

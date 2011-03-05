@@ -52,9 +52,9 @@ struct UDPWiimote::_d
 {
 	std::thread thread;
 	std::list<sock_t> sockfds;
-	Common::CriticalSection termLock,mutex,nameMutex;
+	std::mutex termLock, mutex, nameMutex;
 	volatile bool exit;
-	sock_t bipv4_fd,bipv6_fd;
+	sock_t bipv4_fd, bipv6_fd;
 };
 
 int UDPWiimote::noinst = 0;
@@ -132,15 +132,17 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	d->exit=false;
 	initBroadcastIPv4();
 	initBroadcastIPv6();
-	d->termLock.Enter();
+
+	std::lock_guard<std::mutex> lk(d->termLock);
 	d->thread = std::thread(std::mem_fun(&UDPWiimote::mainThread), this);
-	d->termLock.Leave();
+
 	return;
 }
 
 void UDPWiimote::mainThread()
 {
-	d->termLock.Enter();
+	std::unique_lock<std::mutex> lk(d->termLock);
+
 	Common::Timer time;
 	fd_set fds;
 	struct timeval timeout;
@@ -174,11 +176,11 @@ void UDPWiimote::mainThread()
 			timeout.tv_usec=(tleft%1000)*1000;
 		}
 		
-		d->termLock.Leave(); //VERY hacky. don't like it
+		lk.unlock(); //VERY hacky. don't like it
 		if (d->exit) return; 
 		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
 		if (d->exit) return;
-		d->termLock.Enter();
+		lk.lock();
 		if (d->exit) return;
 		
 		if (rt)
@@ -200,27 +202,26 @@ void UDPWiimote::mainThread()
 					}
 					else
 					{
-						d->mutex.Enter();
+						std::lock_guard<std::mutex> lkm(d->mutex);
 						if (pharsePacket(bf,size)==0)
 						{
 							//NOTICE_LOG(WIIMOTE,"UDPWII New pack");
 						} else {
 							//NOTICE_LOG(WIIMOTE,"UDPWII Wrong pack format... ignoring");
 						}
-						d->mutex.Leave();
 					}
 				}
 		}
 	} while (!(d->exit));
-	d->termLock.Leave();
 }
 
 UDPWiimote::~UDPWiimote()
 {
 	d->exit = true;
+	{
+	std::lock_guard<std::mutex> lk(d->termLock);
 	d->thread.join();
-	d->termLock.Enter();
-	d->termLock.Leave();
+	}
 	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
 		close(*i);
 	close(d->bipv4_fd);
@@ -289,7 +290,6 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 	return 0;
 }
 
-
 void UDPWiimote::initBroadcastIPv4()
 {
 	d->bipv4_fd=socket(AF_INET, SOCK_DGRAM, 0);
@@ -342,71 +342,64 @@ void UDPWiimote::broadcastPresence()
 	*((u16*)(&(bf[1])))=htons(bcastMagic); //unique per-wiimote 16-bit ID
 	bf[3]=(u8)index; //wiimote index
 	*((u16*)(&(bf[4])))=htons(int_port); //port
-	d->nameMutex.Enter();
+	{
+	std::lock_guard<std::mutex> lk(d->nameMutex);
 	slen=displayName.size();
 	if (slen>=256)
 		slen=255;
 	bf[6]=(u8)slen; //display name size (max 255)
 	memcpy(&(bf[7]),displayName.c_str(),slen); //display name
-	d->nameMutex.Leave();
+	}
 	broadcastIPv4(bf,7+slen);
 	broadcastIPv6(bf,7+slen);
 }
 
 void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
 {
-	d->mutex.Enter();
+	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)x;
 	_y=(float)y;
 	_z=(float)z;
-	d->mutex.Leave();
 }
 
 u32 UDPWiimote::getButtons()
 {
 	u32 msk;
-	d->mutex.Enter();
+	std::lock_guard<std::mutex> lk(d->mutex);
 	msk=mask;
-	d->mutex.Leave();
 	return msk;
 }
 
 void UDPWiimote::getIR(float &_x, float &_y)
 {
-	d->mutex.Enter();
+	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)pointerX;
 	_y=(float)pointerY;
-	d->mutex.Leave();
 }
 
 void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 {
-	d->mutex.Enter();
+	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)nunX;
 	_y=(float)nunY;
 	_mask=nunMask;
-	d->mutex.Leave();
 }
 
 void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
 {
-	d->mutex.Enter();
+	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)naX;
 	_y=(float)naY;
 	_z=(float)naZ;
-	d->mutex.Leave();
 }
-
 
 const char * UDPWiimote::getPort()
 {
 	return port.c_str();
 }
 
-
 void UDPWiimote::changeName(const char * name)
 {
-	d->nameMutex.Enter();
+	std::lock_guard<std::mutex> lk(d->nameMutex);
 	displayName=name;
-	d->nameMutex.Leave();
 }

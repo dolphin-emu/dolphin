@@ -72,7 +72,7 @@ private:
 	wxChoice *m_FontChoice;
 	wxCheckBox *m_WrapLine;
 
-	Common::CriticalSection m_LogSection;
+	std::mutex m_LogSection;
 
 	wxCSConv m_SJISConv;
 

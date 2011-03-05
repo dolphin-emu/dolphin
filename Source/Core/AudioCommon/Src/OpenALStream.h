@@ -63,7 +63,7 @@ public:
 
 private:
 	std::thread thread;
-	Common::EventEx soundSyncEvent;
+	Common::Event soundSyncEvent;
 	
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];

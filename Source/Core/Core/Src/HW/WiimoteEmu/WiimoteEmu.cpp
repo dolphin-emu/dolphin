@@ -661,7 +661,7 @@ void Wiimote::Update()
 		{
 			using namespace WiimoteReal;
 	
-			g_refresh_critsec.Enter();
+			std::lock_guard<std::mutex> lk(g_refresh_lock);
 			if (g_wiimotes[m_index])
 			{
 				Report rpt = g_wiimotes[m_index]->ProcessReadQueue();
@@ -736,7 +736,6 @@ void Wiimote::Update()
 						delete[] real_data;
 				}
 			}
-			g_refresh_critsec.Leave();
 		}
 		if (Frame::IsRecordingInput())
 		{

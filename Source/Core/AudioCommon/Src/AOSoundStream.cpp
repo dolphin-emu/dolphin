@@ -47,9 +47,11 @@ void AOSound::SoundLoop()
 	while (!threadData)
 	{
 		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-		soundCriticalSection.Enter();
+		
+		{
+		std::lock_guard<std::mutex> lk(soundCriticalSection);
 		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-		soundCriticalSection.Leave();
+		}
 
 		soundSyncEvent.Wait();
 	}
@@ -58,8 +60,6 @@ void AOSound::SoundLoop()
 bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-
-	soundSyncEvent.Init();
 	
 	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
 	return true;
@@ -75,7 +75,8 @@ void AOSound::Stop()
 	threadData = 1;
 	soundSyncEvent.Set();
 
-	soundCriticalSection.Enter();
+	{
+	std::lock_guard<std::mutex> lk(soundCriticalSection);
 	thread.join();
 
 	if (device)
@@ -84,9 +85,7 @@ void AOSound::Stop()
 	ao_shutdown();
 
 	device = NULL;
-	soundCriticalSection.Leave();
-
-	soundSyncEvent.Shutdown();
+	}
 }
 
 AOSound::~AOSound()

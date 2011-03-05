@@ -1094,10 +1094,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		s_criticalScreenshot.Enter();
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		SaveScreenshot(s_sScreenshotName, dst_rect);
 		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
 	}
 	if (g_ActiveConfig.bDumpFrames)
 	{

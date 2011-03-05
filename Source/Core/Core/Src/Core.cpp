@@ -102,8 +102,8 @@ static std::thread cpuThread;
 SCoreStartupParameter g_CoreStartupParameter;
 
 // This event is set when the emuthread starts.
-Common::Event emuThreadGoing;
-Common::Event cpuRunloopQuit;
+Common::Barrier emuThreadGoing(2);
+Common::Barrier cpuRunloopQuit(2);
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -248,14 +248,11 @@ bool Init()
 	// The hardware is initialized.
 	g_bHwInit = true;
 
-	emuThreadGoing.Init();
-
 	// Start the emu thread 
 	g_EmuThread = std::thread(EmuThread);
 
 	// Wait until the emu thread is running
-	emuThreadGoing.MsgWait();
-	emuThreadGoing.Shutdown();
+	emuThreadGoing.Wait();
 
 	Host_SetWaitCursor(false);
 
@@ -359,7 +356,7 @@ void CpuThread()
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
-	cpuRunloopQuit.Set();
+	cpuRunloopQuit.Wait();
 
 	return;
 }
@@ -372,8 +369,6 @@ void EmuThread()
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	cpuRunloopQuit.Init();
-
 	Common::SetCurrentThreadName("Emuthread - starting");
 
 	if (_CoreParameter.bLockThreads)
@@ -384,7 +379,7 @@ void EmuThread()
 			Common::SetCurrentThreadAffinity(2);
 	}
 
-	emuThreadGoing.Set();
+	emuThreadGoing.Wait();
 
 	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
@@ -462,7 +457,6 @@ void EmuThread()
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
 
-	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;
 }
 
