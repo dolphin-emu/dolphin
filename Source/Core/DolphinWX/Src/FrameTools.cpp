@@ -1021,6 +1021,11 @@ void CFrame::DoStop()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
+#if defined __WXGTK__
+		wxMutexGuiLeave();
+		std::lock_guard<std::mutex> lk(keystate_lock);
+		wxMutexGuiEnter();
+#endif
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
@@ -1042,11 +1047,6 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			Frame::EndPlayInput(false);
-
-#ifdef __WXGTK__
-		// Make sure the app doesn't hang waiting on a keystate check 
-		keystate_event.Set();
-#endif
 
 		BootManager::Stop();
 

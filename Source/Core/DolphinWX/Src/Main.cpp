@@ -595,11 +595,15 @@ bool Host_GetKeyState(int keycode)
 #ifdef _WIN32
 	return GetAsyncKeyState(keycode);
 #elif defined __WXGTK__
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_KEYSTATE);
-	event.SetInt(keycode);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-	main_frame->keystate_event.Wait();
-	return main_frame->bKeyStateResult;
+	std::unique_lock<std::mutex> lk(main_frame->keystate_lock, std::defer_lock);
+	if (!lk.try_lock())
+		return false;
+
+	bool key_pressed;
+	if (!wxIsMainThread()) wxMutexGuiEnter();
+	key_pressed = wxGetKeyState(wxKeyCode(keycode));
+	if (!wxIsMainThread()) wxMutexGuiLeave();
+	return key_pressed;
 #else
 	return wxGetKeyState(wxKeyCode(keycode));
 #endif

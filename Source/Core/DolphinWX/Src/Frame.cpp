@@ -353,10 +353,6 @@ CFrame::CFrame(wxFrame* parent,
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
 
-#ifdef __WXGTK__
-	bKeyStateResult = false;
-#endif
-
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Give it a console early to show potential messages from this onward
@@ -662,10 +658,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
 					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
 		panic_event.Set();
-		break;
-	case IDM_KEYSTATE:
-		bKeyStateResult = wxGetKeyState(wxKeyCode(event.GetInt()));
-		keystate_event.Set();
 		break;
 #endif
 
