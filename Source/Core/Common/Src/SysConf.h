@@ -180,9 +180,9 @@ public:
 
 private:
 	bool LoadFromFileInternal(FILE *f);
+	void GenerateSysConf();
 	void Clear();
 
-	SSysConfHeader m_Header;
 	std::string m_Filename;
 	std::string m_FilenameDefault;
 	std::vector<SSysConfEntry> m_Entries;
