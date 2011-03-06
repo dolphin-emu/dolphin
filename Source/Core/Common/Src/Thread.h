@@ -57,6 +57,7 @@ public:
 
 	void Set()
 	{
+		std::lock_guard<std::mutex> lk(m_mutex);
 		if (!is_set)
 		{
 			is_set = true;
@@ -68,12 +69,28 @@ public:
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
 		if (!is_set)
-			m_condvar.wait(lk);
+			m_condvar.wait(lk, IsSet(this));
 		is_set = false;
 	}
 
 private:
-	bool is_set;
+	class IsSet
+	{
+	public:
+		IsSet(const Event* ev)
+			: m_event(ev)
+		{}
+
+		bool operator()()
+		{
+			return m_event->is_set;
+		}
+
+	private:
+		const Event* const m_event;
+	};
+
+	volatile bool is_set;
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 };
@@ -91,6 +108,9 @@ public:
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
 
+		// TODO: broken when next round of Wait()s
+		// is entered before all waiting threads return from the notify_all
+
 		if (m_count == ++m_waiting)
 		{
 			m_waiting = 0;
@@ -99,12 +119,28 @@ public:
 		}
 		else
 		{
-			m_condvar.wait(lk);
+			m_condvar.wait(lk, IsDoneWating(this));
 			return false;
 		}
 	}
 
 private:
+	class IsDoneWating
+	{
+	public:
+		IsDoneWating(const Barrier* bar)
+			: m_bar(bar)
+		{}
+
+		bool operator()()
+		{
+			return (0 == m_bar->m_waiting);
+		}
+
+	private:
+		const Barrier* const m_bar;
+	};
+
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 	const size_t m_count;

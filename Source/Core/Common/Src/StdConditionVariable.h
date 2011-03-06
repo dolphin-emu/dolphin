@@ -99,6 +99,7 @@ public:
 	#elif USE_CONDITION_VARIABLES
 		SleepConditionVariableCS(m_handle, lock.mutex()->native_handle(), INFINITE);
 	#else
+		// TODO: broken, the unlock and wait need to be atomic
 		lock.unlock();
 		WaitForSingleObject(m_handle, INFINITE);
 		lock.lock();

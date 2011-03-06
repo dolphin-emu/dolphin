@@ -106,7 +106,7 @@ private:
 	native_type m_handle;
 };
 
-#ifdef USE_SRWLOCKS
+#if !defined(_WIN32) || defined(USE_SRWLOCKS)
 
 class mutex
 {
