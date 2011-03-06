@@ -123,7 +123,6 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CC'] = '/Developer/usr/bin/clang'
     env['CXX'] = '/Developer/usr/bin/clang++'
-    env['CC'] = '/Developer/usr/bin/llvm-gcc'
     env['CXX'] = '/Developer/usr/bin/llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['LINKFLAGS'] += ccld
