@@ -27,9 +27,13 @@
 #include "LookUpTables.h"
 
 #include <cmath>
+
 #ifdef _OPENMP
 #include <omp.h>
+#else
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #endif
+
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
