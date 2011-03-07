@@ -65,7 +65,7 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// wtf is this?
 	_pPADStatus->button = PAD_USE_ORIGIN;
 
-	std::unique_lock<std::mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
 	if (!lk.owns_lock())
 	{
@@ -97,7 +97,7 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 //
 void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	std::unique_lock<std::mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
 	if (lk.owns_lock())
 	{

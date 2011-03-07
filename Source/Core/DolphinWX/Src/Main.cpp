@@ -595,8 +595,8 @@ bool Host_GetKeyState(int keycode)
 #ifdef _WIN32
 	return GetAsyncKeyState(keycode);
 #elif defined __WXGTK__
-	std::unique_lock<std::mutex> lk(main_frame->keystate_lock, std::defer_lock);
-	if (!lk.try_lock())
+	std::unique_lock<std::recursive_mutex> lk(main_frame->keystate_lock, std::try_to_lock);
+	if (!lk.owns_lock())
 		return false;
 
 	bool key_pressed;

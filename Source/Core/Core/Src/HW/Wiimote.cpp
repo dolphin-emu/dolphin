@@ -94,7 +94,7 @@ void Update(int _number)
 	//PanicAlert( "Wiimote_Update" );
 
 	// TODO: change this to a try_to_lock, and make it give empty input on failure
-	std::lock_guard<std::mutex> lk(g_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_plugin.controls_lock);
 
 	static int _last_number = 4;
 	if (_number <= _last_number)

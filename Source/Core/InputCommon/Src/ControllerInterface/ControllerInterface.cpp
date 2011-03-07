@@ -118,7 +118,7 @@ void ControllerInterface::SetHwnd( void* const hwnd )
 //
 bool ControllerInterface::UpdateInput(const bool force)
 {
-	std::unique_lock<std::mutex> lk(update_lock, std::defer_lock);
+	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
 	if (force)
 		lk.lock();
@@ -149,7 +149,7 @@ bool ControllerInterface::UpdateInput(const bool force)
 //
 bool ControllerInterface::UpdateOutput(const bool force)
 {
-	std::unique_lock<std::mutex> lk(update_lock, std::defer_lock);
+	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
 	if (force)
 		lk.lock();

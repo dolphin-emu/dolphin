@@ -96,8 +96,8 @@ public:
 #ifdef _WIN32
 	#ifdef USE_SRWLOCKS
 		SleepConditionVariableSRW(&m_handle, lock.mutex()->native_handle(), INFINITE, 0);
-	#elif USE_CONDITION_VARIABLES
-		SleepConditionVariableCS(m_handle, lock.mutex()->native_handle(), INFINITE);
+	#elif defined(USE_CONDITION_VARIABLES)
+		SleepConditionVariableCS(&m_handle, lock.mutex()->native_handle(), INFINITE);
 	#else
 		// TODO: broken, the unlock and wait need to be atomic
 		lock.unlock();

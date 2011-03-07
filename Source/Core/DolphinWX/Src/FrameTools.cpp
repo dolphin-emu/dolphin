@@ -1023,7 +1023,7 @@ void CFrame::DoStop()
 	{
 #if defined __WXGTK__
 		wxMutexGuiLeave();
-		std::lock_guard<std::mutex> lk(keystate_lock);
+		std::lock_guard<std::recursive_mutex> lk(keystate_lock);
 		wxMutexGuiEnter();
 #endif
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape

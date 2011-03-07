@@ -157,14 +157,15 @@ public:
 #endif
 	}
 
-	bool try_lock()
-	{
-#ifdef _WIN32
-		return (0 != TryAcquireSRWLockExclusive(&m_handle));
-#else
-		return !pthread_mutex_trylock(&m_handle);
-#endif
-	}
+	// TryAcquireSRWLockExclusive requires Windows 7!!
+//	bool try_lock()
+//	{
+//#ifdef _WIN32
+//		return (0 != TryAcquireSRWLockExclusive(&m_handle));
+//#else
+//		return !pthread_mutex_trylock(&m_handle);
+//#endif
+//	}
 
 	native_handle_type native_handle()
 	{

@@ -24,7 +24,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 	g_controller_interface.UpdateInput();
 
 	// don't want game thread updating input when we are using it here
-	std::unique_lock<std::mutex> lk(g_controller_interface.update_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(g_controller_interface.update_lock, std::try_to_lock);
 	if (!lk.owns_lock())
 		return;
 

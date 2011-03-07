@@ -278,7 +278,7 @@ void GamepadPage::ClearAll(wxCommandEvent&)
 	// no point in using the real ControllerInterface i guess
 	ControllerInterface face;
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	controller->UpdateReferences(face);
 
 	UpdateGUI();
@@ -288,7 +288,7 @@ void GamepadPage::LoadDefaults(wxCommandEvent&)
 {
 	controller->LoadDefaults(g_controller_interface);
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 
 	UpdateGUI();
@@ -298,7 +298,7 @@ void ControlDialog::SetControl(wxCommandEvent&)
 {
 	control_reference->expression = STR_FROM_WXSTR(textctrl->GetValue());
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -315,7 +315,7 @@ void GamepadPage::SetDevice(wxCommandEvent&)
 	controller->UpdateDefaultDevice();
 
 	// update references
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 }
 
@@ -334,7 +334,7 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 {
 	control_reference->expression.clear();
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -358,7 +358,7 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
 
 	control_reference->expression = STR_FROM_WXSTR(expr);
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -389,7 +389,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 
 	control_reference->expression = STR_FROM_WXSTR(expr);
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
@@ -397,13 +397,13 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 
 void GamepadPage::AdjustSetting(wxCommandEvent& event)
 {
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->range_slider->GetValue()) / SLIDER_TICK_COUNT;
 }
 
@@ -423,7 +423,7 @@ void GamepadPage::ClearControl(wxCommandEvent& event)
 	btn->control_reference->expression.clear();
 	btn->control_reference->range = 1.0f;
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	controller->UpdateReferences(g_controller_interface);
 
 	// update changes
@@ -443,7 +443,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		// apparently, this makes the "waiting" text work on Linux
 		wxTheApp->Yield();
 
-		std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
@@ -467,7 +467,7 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 		// apparently, this makes the "waiting" text work on Linux
 		wxTheApp->Yield();
 
-		std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
@@ -584,7 +584,7 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	IniFile inifile;
 	inifile.Load(fname);
 
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
 	controller->UpdateReferences(g_controller_interface);
 
@@ -648,7 +648,7 @@ void InputConfigDialog::UpdateDeviceComboBox()
 
 void GamepadPage::RefreshDevices(wxCommandEvent&)
 {
-	std::lock_guard<std::mutex> lk(m_plugin.controls_lock);
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 
 	// refresh devices
 	g_controller_interface.Shutdown();
