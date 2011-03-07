@@ -306,7 +306,6 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	updateMainFrameEvent.Init();
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
@@ -353,7 +352,6 @@ int main(int argc, char* argv[])
 #endif
 	}
 
-	updateMainFrameEvent.Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
