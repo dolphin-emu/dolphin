@@ -883,6 +883,9 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 	long item = HitTest(event.GetPosition(), flags, &subitem);
 	static int lastItem = -1;
 
+	if (GetColumnCount() <= 1)
+		return;
+
 	if (item != wxNOT_FOUND)
 	{
 		wxRect Rect;
