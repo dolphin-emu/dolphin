@@ -153,7 +153,7 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 9)  & 1) bSSSE3 = true;
 		if ((cpu_id[2] >> 19) & 1) bSSE4_1 = true;
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
-		if ((cpu_id[2] >> 29) & 1) bAVX = true;
+		if ((cpu_id[2] >> 28) & 1) bAVX = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
 	}
 	if (max_ex_fn >= 0x80000004) {
