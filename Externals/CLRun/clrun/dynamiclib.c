@@ -16,7 +16,7 @@ int loadLib(const char *filename) {
 		return -2;
 
 #ifdef _WIN32
-	library = LoadLibrary(filename);
+	library = LoadLibraryA(filename);
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 #endif
