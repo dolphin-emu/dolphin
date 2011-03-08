@@ -221,8 +221,13 @@ void XRRConfiguration::Update()
 	// Get the resolution setings for fullscreen mode
 	unsigned int fullWidth, fullHeight;
 	char *output_name = NULL;
-	sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-			"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
+			std::string::npos)
+		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+				"%ux%u", &fullWidth, &fullHeight);
+	else
+		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+				"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{
@@ -232,8 +237,15 @@ void XRRConfiguration::Update()
 			XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(dpy, screenResources, output_info->crtc);
 			if (crtc_info)
 			{
-				if (!strcmp(output_name, output_info->name))
+				if (!output_name || !strcmp(output_name, output_info->name))
 				{
+					// Use the first output for the default setting.
+					if (!output_name)
+					{
+						output_name = strdup(output_info->name);
+						SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+							StringFromFormat("%s: %ux%u", output_info->name, fullWidth, fullHeight);
+					}
 					outputInfo = output_info;
 					crtcInfo = crtc_info;
 					for (int j = 0; j < output_info->nmode && fullMode == 0; j++)
@@ -333,14 +345,14 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 				for (int k = 0; k < screenResources->nmode; k++)
 					if (output_info->modes[j] == screenResources->modes[k].id)
 					{
-						std::string strRes(screenResources->modes[k].name);
+						const std::string strRes =
+							std::string(output_info->name) + ": " +
+							std::string(screenResources->modes[k].name);
 						// Only add unique resolutions
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{
 							resos.push_back(strRes);
-							arrayStringFor_FullscreenResolution.Add(
-									wxString::FromUTF8(output_info->name) + wxT(": ") +
-									wxString::FromUTF8(screenResources->modes[k].name));
+							arrayStringFor_FullscreenResolution.Add(wxString::FromUTF8(strRes.c_str()));
 						}
 					}
 		}
