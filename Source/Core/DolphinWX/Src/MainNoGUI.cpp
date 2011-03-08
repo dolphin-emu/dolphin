@@ -274,6 +274,13 @@ void X11_MainLoop()
 
 int main(int argc, char* argv[])
 {
+#ifdef __APPLE__
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSEvent *event = [[NSEvent alloc] init];	
+	[NSApplication sharedApplication];
+	[NSApp activateIgnoringOtherApps: YES];
+	[NSApp finishLaunching];
+#endif
 	int ch, help = 0;
 	struct option longopts[] = {
 		{ "exec",	no_argument,	NULL,	'e' },
@@ -317,12 +324,6 @@ int main(int argc, char* argv[])
 	if (BootManager::BootCore(argv[optind]))
 	{
 #ifdef __APPLE__
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		NSEvent *event = [[NSEvent alloc] init];	
-		[NSApplication sharedApplication];
-		[NSApp activateIgnoringOtherApps: YES];
-		[NSApp finishLaunching];
-
 		while (running)
 		{
 			event = [NSApp nextEventMatchingMask: NSAnyEventMask
