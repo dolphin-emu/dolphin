@@ -40,6 +40,7 @@
 #include "VertexShaderCache.h"
 #include "Core.h"
 #include "OnFrame.h"
+#include "Television.h"
 
 namespace DX11
 {
@@ -49,6 +50,8 @@ static int s_fps = 0;
 static u32 s_LastAA = 0;
 
 static u32 s_blendMode;
+
+static Television s_television;
 
 ID3D11Buffer* access_efb_cbuf = NULL;
 ID3D11BlendState* clearblendstates[4] = {NULL};
@@ -213,6 +216,8 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
+	s_television.Init();
+
 	g_framebuffer_manager = new FramebufferManager;
 
 	HRESULT hr;
@@ -307,6 +312,8 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(resetblendstate);
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
+
+	s_television.Shutdown();
 }
 
 Renderer::Renderer()
@@ -930,7 +937,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// EFB is copied to XFB. In this way, flickering is reduced in games
 	// and seems to also give more FPS in ZTP
 
-	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
@@ -969,7 +975,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
 
-	if(g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
+	{
+		// TODO: Television should be used to render Virtual XFB mode as well.
+		s_television.Submit(xfbAddr, fbWidth, fbHeight);
+		s_television.Render();
+	}
+	else if(g_ActiveConfig.bUseXFB)
 	{
 		const XFBSourceBase* xfbSource;
 
@@ -993,8 +1005,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				int xfbWidth = xfbSource->srcWidth;
 				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
 
-				drawRc.bottom = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
-				drawRc.top = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
+				drawRc.top = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
+				drawRc.bottom = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
 				drawRc.left = -(xfbWidth / (float)fbWidth);
 				drawRc.right = (xfbWidth / (float)fbWidth);
 
@@ -1009,8 +1021,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			}
 			else
 			{
-				drawRc.top = -1;
-				drawRc.bottom = 1;
+				drawRc.top = 1;
+				drawRc.bottom = -1;
 				drawRc.left = -1;
 				drawRc.right = 1;
 			}
@@ -1026,6 +1038,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma);
 	}
+
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{

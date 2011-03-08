@@ -23,8 +23,12 @@
 #include "PixelShaderCache.h"
 #include "Render.h"
 #include "VertexShaderCache.h"
+#include "XFBEncoder.h"
+#include "HW/Memmap.h"
 
 namespace DX11 {
+
+static XFBEncoder s_xfbEncoder;
 
 FramebufferManager::Efb FramebufferManager::m_efb;
 
@@ -144,10 +148,14 @@ FramebufferManager::FramebufferManager()
 		m_efb.resolved_color_tex = NULL;
 		m_efb.resolved_depth_tex = NULL;
 	}
+
+	s_xfbEncoder.Init();
 }
 
 FramebufferManager::~FramebufferManager()
 {
+	s_xfbEncoder.Shutdown();
+
 	SAFE_RELEASE(m_efb.color_tex);
 	SAFE_RELEASE(m_efb.color_temp_tex);
 	SAFE_RELEASE(m_efb.color_staging_buf);
@@ -160,8 +168,8 @@ FramebufferManager::~FramebufferManager()
 
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)
 {
-	// TODO
-	PanicAlert("CopyToRealXFB not implemented, yet\n");
+	u8* dst = Memory::GetPointer(xfbAddr);
+	s_xfbEncoder.Encode(dst, fbWidth, fbHeight, sourceRc, Gamma);
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)
@@ -197,8 +205,8 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	// TODO:
-	PanicAlert("RealXFB not implemented, yet\n");
+	// DX11's XFB decoder does not use this function.
+	// YUYV data is decoded in Render::Swap.
 }
 
 void XFBSource::CopyEFB(float Gamma)

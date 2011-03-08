@@ -587,10 +587,10 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	float G = 1.0f / Gamma;
 
 	STSQVertex coords[4] = {
-		{ rDest->left , rDest->bottom, 0.0f, u1, v1, G},
-		{ rDest->right, rDest->bottom, 0.0f, u2, v1, G},
-		{ rDest->left , rDest->top   , 0.0f, u1, v2, G},
-		{ rDest->right, rDest->top   , 0.0f, u2, v2, G},
+		{ rDest->left , rDest->bottom, 0.0f, u1, v2, G},
+		{ rDest->right, rDest->bottom, 0.0f, u2, v2, G},
+		{ rDest->left , rDest->top   , 0.0f, u1, v1, G},
+		{ rDest->right, rDest->top   , 0.0f, u2, v1, G},
 	};
 
 	// only upload the data to VRAM if it changed

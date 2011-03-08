@@ -45,6 +45,12 @@
     <ClCompile Include="Src\PSTextureEncoder.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\XFBEncoder.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Television.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -91,6 +97,12 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\TextureEncoder.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XFBEncoder.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Television.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

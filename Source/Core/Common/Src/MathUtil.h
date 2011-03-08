@@ -111,6 +111,13 @@ struct Rectangle
 	T right;
 	T bottom;
 
+	Rectangle()
+	{ }
+
+	Rectangle(T theLeft, T theTop, T theRight, T theBottom)
+		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
+	{ }
+
 	T GetWidth() const { return abs(right - left); }
 	T GetHeight() const { return abs(bottom - top); }
 
@@ -124,7 +131,7 @@ struct Rectangle
 		if (bottom < y2) bottom = y2;
 	}
 
-	// If the rectangle is in an coordinate system with an upper-left origin,
+	// If the rectangle is in a coordinate system with an upper-left origin,
 	// use this Clamp.
 	void ClampUL(T x1, T y1, T x2, T y2) 
 	{
