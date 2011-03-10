@@ -126,6 +126,8 @@ elif sys.platform == 'darwin':
 			CFBundleTypeRole = 'Viewer')]
 		)))
 
+	env.Command('dummy', '#' + env['prefix'],
+		"find $SOURCES -name .svn -exec rm -rf {} +")
 else:
 	files += ['Src/X11Utils.cpp']
 	exe = env['binary_dir'] + '/dolphin-emu'
@@ -133,8 +135,5 @@ else:
 		exe += '-nogui'
 	env.InstallAs(env['data_dir'] + '/sys', '#Data/Sys')
 	env.InstallAs(env['data_dir'] + '/user', '#Data/User')
-
-env.Command('dummy', '#' + env['prefix'],
-	"find $SOURCES -name .svn -exec rm -rf {} +")
 
 env.Program(exe, files)

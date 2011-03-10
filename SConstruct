@@ -62,15 +62,10 @@ if unknown:
 # Verbose compile
 if not env['verbose']:
     env['ARCOMSTR'] = "Archiving $TARGET"
-    env['ASCOMSTR'] = "Assembling $TARGET"
-    env['ASPPCOMSTR'] = "Assembling $TARGET"
     env['CCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
     env['LINKCOMSTR'] = "Linking $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
-    env['SHCCCOMSTR'] = "Compiling $TARGET"
-    env['SHCXXCOMSTR'] = "Compiling $TARGET"
-    env['SHLINKCOMSTR'] = "Linking $TARGET"
     env['TARCOMSTR'] = "Creating $TARGET"
 
 if not env['flavor'] == 'debug':
@@ -84,10 +79,6 @@ env['CCFLAGS'] += ['-fno-exceptions', '-fno-strict-aliasing']
 if env['lint']:
     env['CCFLAGS'] += ['-Werror']
 env['CCFLAGS'] += ['-Wall', '-Wextra', '-Wshadow', '-Wno-unused-parameter']
-if env['CCVERSION'] < '4.2.0':
-    env['CCFLAGS'] += ['-Wno-pragmas']
-if env['CCVERSION'] >= '4.3.0':
-    env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
 
 env['CPPDEFINES'] = []
 if env['flavor'] == 'debug':
@@ -118,27 +109,20 @@ if sys.platform == 'darwin':
     #ccld += ['-arch', 'i386', '-msse3']
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5.4']
     env['CCFLAGS'] += ccld
+    env['CCFLAGS'] += ['-isysroot', '/Developer/SDKs/MacOSX10.6.sdk']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CC'] = '/Developer/usr/bin/clang'
+    env['CC'] = '/Developer/usr/bin/llvm-gcc'
     env['CXX'] = '/Developer/usr/bin/clang++'
     env['CXX'] = '/Developer/usr/bin/llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
-    #env['LINKFLAGS'] += ['-Wl,-read_only_relocs,suppress']
-
-    #if float(os.popen('xcode-select -version').read()[21:]) < 2000:
-    #    print 'Xcode 4 running on Snow Leopard is required to build Dolphin'
-    #    print 'It is available from http://developer.apple.com/devcenter/mac/'
-    #    Exit(1)
-
-    if env['ENV'].has_key('CC'):
-        env['CC'] = env['ENV']['CC']
-    if env['ENV'].has_key('CXX'):
-        env['CXX'] = env['ENV']['CXX']
+    env['LINKFLAGS'] += ['-Wl,-syslibroot', '/Developer/SDKs/MacOSX10.6.sdk']
+    env['LINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
     if env['nowx']:
         env['HAVE_WX'] = 0
@@ -152,8 +136,9 @@ if sys.platform == 'darwin':
                 env['flavor'] == 'debug')
         conf.Finish()
         if not env['HAVE_WX']:
-            print '\nWARNING:'
-            print 'wxWidgets 2.9.2 not found using ' + wxenv['wxconfig']
+            print '\nWARNING:\n' + 'wxWidgets 2.9.2 not found',
+            if wxenv.has_key('wxconfig'):
+                print 'using ' + wxenv['wxconfig']
             print '\nwxWidgets r66814 or newer is required to build Dolphin.'
             print 'See http://code.google.com/p/dolphin-emu/wiki/MacOSX_Build'
             print 'for instructions on building and installing wxWidgets.\n'
@@ -176,9 +161,13 @@ elif sys.platform == 'win32':
 
 else:
     env['CCFLAGS'] += ['-msse2', '-pthread']
+    if env['CCVERSION'] < '4.2.0':
+        env['CCFLAGS'] += ['-Wno-pragmas']
     if env['CCVERSION'] >= '4.2.0':
         env['CCFLAGS'] += ['-fvisibility=hidden']
         env['CXXFLAGS'] += ['-fvisibility-inlines-hidden']
+    if env['CCVERSION'] >= '4.3.0':
+        env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
     env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
     env['LINKFLAGS'] += ['-pthread']
