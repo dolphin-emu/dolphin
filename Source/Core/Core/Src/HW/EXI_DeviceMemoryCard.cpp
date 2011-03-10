@@ -50,6 +50,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 {
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
+	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -432,8 +433,11 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
-	int slot = 0;
-	if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
-		slot = 1;
-	ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
+	if (reloadOnState)
+	{
+		int slot = 0;
+		if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
+			slot = 1;
+		ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
+	}
 }
