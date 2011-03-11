@@ -516,6 +516,10 @@ Renderer::~Renderer()
 		s_bLastFrameDumped = false;
 		s_bAVIDumping = false;
 	}
+#else
+	if (s_bLastFrameDumped)
+		f_pFrameDump.Close();
+	s_bLastFrameDumped = false;
 #endif
 }
 
