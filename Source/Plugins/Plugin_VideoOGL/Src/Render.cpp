@@ -200,8 +200,6 @@ Renderer::Renderer()
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	s_bAVIDumping = false;
-#else
-	f_pFrameDump = NULL;
 #endif
 
 	bool bSuccess = true;
@@ -518,9 +516,6 @@ Renderer::~Renderer()
 		s_bLastFrameDumped = false;
 		s_bAVIDumping = false;
 	}
-#else
-	if(f_pFrameDump != NULL)
-		fclose(f_pFrameDump);
 #endif
 }
 
