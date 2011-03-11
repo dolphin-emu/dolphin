@@ -129,8 +129,8 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *o
 		return false;
 	}
 #else
-	fseeko(file_, m_blocksize*block_num, SEEK_SET);
-	if(fread(out_ptr, 1, m_blocksize * num_blocks, file_) != m_blocksize * num_blocks)
+	fseeko(file_.GetHandle(), m_blocksize*block_num, SEEK_SET);
+	if(fread(out_ptr, 1, m_blocksize * num_blocks, file_.GetHandle()) != m_blocksize * num_blocks)
 		return false;
 #endif
 	return true;

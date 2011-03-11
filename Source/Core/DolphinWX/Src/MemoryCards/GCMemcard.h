@@ -228,7 +228,7 @@ public:
 	// if remove > 0 it will pad bat.map with 0's sizeof remove
 	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
 private:
-	u32 ImportGciInternal(File::IOFile gci, const char *inputFile, std::string outputFile);
+	u32 ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile);
 
 public:
 	// delete a file from the directory

@@ -179,7 +179,7 @@ public:
 	bool Reload();
 
 private:
-	bool LoadFromFileInternal(File::IOFile f);
+	bool LoadFromFileInternal(FILE *fh);
 	void GenerateSysConf();
 	void Clear();
 

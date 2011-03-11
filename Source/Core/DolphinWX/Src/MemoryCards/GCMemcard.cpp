@@ -796,9 +796,10 @@ u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(File::IOFile gci, const char *inputFile, std::string outputFile)
+u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile)
 {
-	int offset;
+	File::IOFile gci(gcih);
+	unsigned int offset;
 	char tmp[0xD];
 	std::string fileType;
 	SplitPath(inputFile, NULL, NULL, &fileType);

@@ -71,8 +71,9 @@ bool SysConf::LoadFromFile(const char *filename)
 	return false;
 }
 
-bool SysConf::LoadFromFileInternal(File::IOFile f)
+bool SysConf::LoadFromFileInternal(FILE *fh)
 {
+	File::IOFile f(fh);
 	// Fill in infos
 	SSysConfHeader s_Header;
 	f.ReadArray(s_Header.version, 4);
