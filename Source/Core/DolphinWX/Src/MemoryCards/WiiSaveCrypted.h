@@ -48,11 +48,7 @@ public:
 private:
 	AES_KEY m_AES_KEY;
 	u8 SD_IV[0x10];
-	std::vector<std::string> FilesList; 
-
-	FILE *fpData_bin,
-		 *fpBanner_bin,
-		 *fpRawSaveFile;
+	std::vector<std::string> FilesList;
 		 
 	char pathData_bin[2048],
 		 pathSavedir[2048],

@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <iostream> // I hope this doesn't break anything
-#include <stdio.h>
 #include <stdarg.h>
 
 #include <list>
@@ -25,6 +23,7 @@
 
 #include "Common.h"
 #include "StringUtil.h"
+#include "FileUtil.h"
 
 #include "DSP/DSPCore.h"
 #include "DSPSymbols.h"
@@ -121,8 +120,9 @@ void DisasssembleRange(u16 start, u16 end)
 
 bool ReadAnnotatedAssembly(const char *filename)
 {
-	FILE *f = fopen(filename, "r");
-	if (!f) {
+	File::IOFile f(filename, "r");
+	if (!f)
+	{
 		ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename);
 		return false;
 	}
@@ -139,7 +139,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 	int symbol_count = 0;
 	Symbol current_symbol;
 
-	while (fgets(line, 512, f))
+	while (fgets(line, 512, f.GetHandle()))
 	{
 		// Scan string for the first 4-digit hex string.
 		size_t len = strlen(line);
@@ -225,7 +225,6 @@ bool ReadAnnotatedAssembly(const char *filename)
 				errors++;
 				if (errors > 10)
 				{
-					fclose(f);
 					return false;
 				}
 			}
@@ -245,7 +244,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 		lines.push_back(TabsToSpaces(4, line));
 		line_counter++;
 	}
-	fclose(f);
+
 	return true;
 }
 

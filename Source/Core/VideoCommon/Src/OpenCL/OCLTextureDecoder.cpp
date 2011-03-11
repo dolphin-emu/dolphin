@@ -105,22 +105,20 @@ void TexDecoder_OpenCL_Initialize()
 		filename = File::GetUserPath(D_OPENCL_IDX) + "kernel.bin";
 		snprintf(dolphin_rev, HEADER_SIZE, "%-31s", svn_rev_str);
 
-		FILE *input = NULL;
-
-		input = fopen(filename.c_str(), "rb");
-		if (input == NULL)
+		{
+		File::IOFile input(filename, "rb");
+		if (!input)
 		{
 			binary_size = 0;
 		}
 		else
 		{
-			binary_size = File::GetSize(input);
+			binary_size = input.GetSize();
 			header = new char[HEADER_SIZE];
 			binary = new char[binary_size];
-			fread(header, sizeof(char), HEADER_SIZE, input);
-			binary_size = fread(binary, sizeof(char),
-				binary_size - HEADER_SIZE, input);
-			fclose(input);
+			input.ReadBytes(header, HEADER_SIZE);
+			input.ReadBytes(binary, binary_size);
+		}
 		}
 
 		if (binary_size > 0)
@@ -202,19 +200,17 @@ void TexDecoder_OpenCL_Initialize()
 			if (!err)
 			{
 				filename = File::GetUserPath(D_OPENCL_IDX) + "kernel.bin";
-				FILE *output = NULL;
-				output = fopen(filename.c_str(), "wb");
 
-				if (output == NULL)
+				File::IOFile output(filename, "wb");
+				if (!output)
 				{
 					binary_size = 0;
 				}
 				else
 				{
 					// Supporting one OpenCL device for now
-					fwrite(dolphin_rev, sizeof(char), HEADER_SIZE, output);
-					fwrite(binaries[0], sizeof(char), binary_sizes[0], output);
-					fclose(output);
+					output.WriteBytes(dolphin_rev, HEADER_SIZE);
+					output.WriteBytes(binaries[0], binary_sizes[0]);
 				}
 			}
 		}

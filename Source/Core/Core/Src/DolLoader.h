@@ -21,7 +21,7 @@
 #pragma once
 
 #include "Common.h"
-
+#include "FileUtil.h"
 
 // C L A S S
 
@@ -34,11 +34,10 @@ public:
 		m_bInit(false)
 	{
 		// try to open file
-		FILE* pStream = NULL;
-		fopen_s(&pStream, _szFilename, "rb");
+		File::IOFile pStream(_szFilename, "rb");
 		if (pStream)
 		{
-			fread(&m_dolheader, 1, sizeof(SDolHeader), pStream);
+			pStream.ReadArray(&m_dolheader, 1);
 
 			// swap memory
 			u32* p = (u32*)&m_dolheader;
@@ -52,8 +51,8 @@ public:
 				{
 					u8* pTemp = new u8[m_dolheader.textSize[i]];
 
-					fseek(pStream, m_dolheader.textOffset[i], SEEK_SET);
-					fread(pTemp, 1, m_dolheader.textSize[i], pStream);
+					pStream.Seek(m_dolheader.textOffset[i], SEEK_SET);
+					pStream.ReadArray(pTemp, m_dolheader.textSize[i]);
 
 					for (size_t num=0; num<m_dolheader.textSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.textAddress[i] + num);
@@ -69,8 +68,8 @@ public:
 				{
 					u8* pTemp = new u8[m_dolheader.dataSize[i]];
 
-					fseek(pStream, m_dolheader.dataOffset[i], SEEK_SET);
-					fread(pTemp, 1, m_dolheader.dataSize[i], pStream);
+					pStream.Seek(m_dolheader.dataOffset[i], SEEK_SET);
+					pStream.ReadArray(pTemp, m_dolheader.dataSize[i]);
 
 					for (size_t num=0; num<m_dolheader.dataSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.dataAddress[i] + num);
@@ -79,7 +78,6 @@ public:
 				}
 			}
 
-			fclose(pStream);
 			m_bInit = true;
 		}
 	}

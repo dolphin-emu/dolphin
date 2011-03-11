@@ -188,8 +188,8 @@ void CompressAndDumpState(saveStruct* saveArg)
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
 
-	FILE *f = fopen(filename.c_str(), "wb");
-	if (f == NULL)
+	File::IOFile f(filename, "wb");
+	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
 		delete[] buffer;
@@ -200,7 +200,7 @@ void CompressAndDumpState(saveStruct* saveArg)
 	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.sz = bCompressed ? sz : 0;
 
-	fwrite(&header, sizeof(state_header), 1, f);
+	f.WriteArray(&header, 1);
 	if (bCompressed)
 	{
 		lzo_uint cur_len = 0;
@@ -217,8 +217,8 @@ void CompressAndDumpState(saveStruct* saveArg)
 				PanicAlertT("Internal LZO Error - compression failed");
 
 			// The size of the data to write is 'out_len'
-			fwrite(&out_len, sizeof(int), 1, f);
-			fwrite(out, out_len, 1, f);
+			f.WriteArray(&out_len, 1);
+			f.WriteBytes(out, out_len);
 
 			if (cur_len != IN_LEN)
 				break;
@@ -227,10 +227,9 @@ void CompressAndDumpState(saveStruct* saveArg)
 	}
 	else
 	{
-		fwrite(buffer, sz, 1, f);
+		f.WriteBytes(buffer, sz);
 	}
 
-	fclose(f);
 	delete[] buffer;
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
@@ -298,7 +297,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		SaveBufferStateCallback(userdata, cyclesLate);
 	}
 
-	FILE *f = fopen(cur_filename.c_str(), "rb");
+	File::IOFile f(cur_filename, "rb");
 	if (!f)
 	{
 		Core::DisplayMessage("State not found", 2000);
@@ -311,7 +310,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	state_header header;
 	size_t sz;
 
-	fread(&header, sizeof(state_header), 1, f);
+	f.ReadArray(&header, 1);
 	
 	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
 	{
@@ -320,7 +319,6 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %s)",
 			gameID), 2000);
 
-		fclose(f);
 		// Resume the clock
 		CCPU::EnableStepping(false);
 		return;
@@ -345,18 +343,17 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		{
 			lzo_uint cur_len = 0;  // number of bytes to read
 			lzo_uint new_len = 0;  // number of bytes to write
-			if (fread(&cur_len, 1, sizeof(int), f) == 0)
+
+			if (!f.ReadArray(&cur_len, 1))
 				break;
-			if (feof(f))
-				break;  // don't know if this happens.
-			fread(out, 1, cur_len, f);
+
+			f.ReadBytes(out, cur_len);
 			int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
 				PanicAlertT("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
 					"Try loading the state again", res, i, new_len);
-				fclose(f);
 				delete[] buffer;
 				// Resume the clock
 				CCPU::EnableStepping(false);
@@ -368,14 +365,13 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	}
 	else
 	{
-		sz = (int)(File::GetSize(f) - sizeof(state_header));
+		sz = (int)(f.GetSize() - sizeof(state_header));
 		buffer = new u8[sz];
-		int x;
-		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
-			PanicAlert("wtf? %d %lu", x, (unsigned long)sz);
+		if (!f.ReadBytes(buffer, sz))
+			PanicAlert("wtf? reading bytes: %lu", (unsigned long)sz);
 	}
 
-	fclose(f);
+	f.Close();
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
@@ -405,7 +401,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 
 	State_Flush();
 
-	FILE *f = fopen(cur_filename.c_str(), "rb");
+	File::IOFile f(cur_filename, "rb");
 	if (!f)
 	{
 		Core::DisplayMessage("State not found", 2000);
@@ -416,7 +412,7 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 	state_header header;
 	size_t sz;
 
-	fread(&header, sizeof(state_header), 1, f);
+	f.ReadArray(&header, 1);
 	
 	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
 	{
@@ -424,8 +420,6 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 		memcpy(gameID, header.gameID, 6);
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %s)",
 			gameID), 2000);
-
-		fclose(f);
 
 		return;
 	}
@@ -446,18 +440,17 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 		{
 			lzo_uint cur_len = 0;
 			lzo_uint new_len = 0;
-			if (fread(&cur_len, 1, sizeof(int), f) == 0)
+			if (!f.ReadArray(&cur_len, 1))
 				break;
-			if (feof(f))
-				break;  // don't know if this happens.
-			fread(out, 1, cur_len, f);
+
+			f.ReadBytes(out, cur_len);
 			int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
 				PanicAlertT("Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
 					"Try verifying the state again", res, i, new_len);
-				fclose(f);
+
 				delete [] buffer;
 				return;
 			}
@@ -468,14 +461,12 @@ void VerifyStateCallback(u64 userdata, int cyclesLate)
 	}
 	else
 	{
-		sz = (int)(File::GetSize(f) - sizeof(int));
+		sz = (int)(f.GetSize() - sizeof(int));
 		buffer = new u8[sz];
-		int x;
-		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
-			PanicAlert("wtf? %d %lu", x, (unsigned long)sz);
-	}
 
-	fclose(f);
+		if (!f.ReadBytes(buffer, sz))
+			PanicAlert("wtf? failed to read bytes: %lu", (unsigned long)sz);
+	}
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);

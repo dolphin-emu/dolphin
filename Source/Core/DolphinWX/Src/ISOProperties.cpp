@@ -136,15 +136,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	else
 	{
 		// Will fail out if GameConfig folder doesn't exist
-		FILE *f = fopen(GameIniFile.c_str(), "w");
+		std::ofstream f(GameIniFile.c_str());
 		if (f)
 		{
-			fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
-			fprintf(f, "[Core] Values set here will override the main dolphin settings.\n");
-			fprintf(f, "[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
-			fprintf(f, "[OnFrame] Add memory patches to be applied every frame here.\n");
-			fprintf(f, "[ActionReplay] Add action replay cheats here.\n");
-			fclose(f);
+			f << "# " << OpenISO->GetUniqueID() << " - " << OpenISO->GetName() << '\n'
+				<< "[Core] Values set here will override the main dolphin settings.\n"
+				<< "[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.\n"
+				<< "[OnFrame] Add memory patches to be applied every frame here.\n"
+				<< "[ActionReplay] Add action replay cheats here.\n";
+			f.close();
 		}
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();

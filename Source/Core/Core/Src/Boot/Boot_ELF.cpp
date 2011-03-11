@@ -27,11 +27,14 @@ bool CBoot::IsElfWii(const char *filename)
 {
 	/* We already check if filename existed before we called this function, so
 	   there is no need for another check, just read the file right away */
-	FILE *f = fopen(filename, "rb");
-	u64 filesize = File::GetSize(f);
-	u8 *mem = new u8[(size_t)filesize];
-	fread(mem, 1, (size_t)filesize, f);
-	fclose(f);
+
+	const u64 filesize = File::GetSize(filename);
+	u8 *const mem = new u8[(size_t)filesize];
+
+	{
+	File::IOFile f(filename, "rb");
+	f.ReadBytes(mem, (size_t)filesize);
+	}
 
 	ElfReader reader(mem);
 	// TODO: Find a more reliable way to distinguish.
@@ -44,11 +47,13 @@ bool CBoot::IsElfWii(const char *filename)
 
 bool CBoot::Boot_ELF(const char *filename)
 {
-	FILE *f = fopen(filename, "rb");
-	u64 filesize = File::GetSize(f);
+	const u64 filesize = File::GetSize(filename);
 	u8 *mem = new u8[(size_t)filesize];
-	fread(mem, 1, (size_t)filesize, f);
-	fclose(f);
+
+	{
+	File::IOFile f(filename, "rb");
+	f.ReadBytes(mem, (size_t)filesize);
+	}
 	
 	ElfReader reader(mem);
 	reader.LoadInto(0x80000000);

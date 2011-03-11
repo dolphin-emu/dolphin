@@ -19,6 +19,7 @@
 #define __FRAME_H
 
 #include "Common.h"
+#include "FileUtil.h"
 #include "../../InputCommon/Src/GCPadStatus.h"
 
 #include <string>
@@ -59,7 +60,7 @@ extern unsigned int g_framesToSkip, g_frameSkipCounter;
 extern int g_numPads;
 extern ControllerState *g_padStates;
 extern char g_playingFile[256];
-extern FILE *g_recordfd;
+extern File::IOFile g_recordfd;
 extern std::string g_recordFile;
 
 extern u64 g_frameCounter, g_lagCounter;

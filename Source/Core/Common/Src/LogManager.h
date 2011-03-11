@@ -21,10 +21,10 @@
 #include "Log.h"
 #include "StringUtil.h"
 #include "Thread.h"
+#include "FileUtil.h"
 
 #include <vector>
 #include <string.h>
-#include <stdio.h>
 
 #define	MAX_MESSAGES 8000   
 #define MAX_MSGLEN  1024
@@ -40,8 +40,7 @@ public:
 
 class FileLogListener : public LogListener {
 public:
-	FileLogListener(std::string filename);
-	~FileLogListener();
+	FileLogListener(const char *filename);
 
 	void Log(LogTypes::LOG_LEVELS, const char *msg);
 
@@ -60,8 +59,7 @@ public:
 	const char *getName() const { return "file"; }
 
 private:
-	std::string m_filename;
-	FILE *m_logfile;
+	std::ofstream m_logfile;
 	bool m_enable;
 };
 

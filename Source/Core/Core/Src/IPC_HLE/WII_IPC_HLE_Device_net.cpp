@@ -169,11 +169,10 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 	// store network configuration
-	std::string filename(File::GetUserPath(D_WIIUSER_IDX));
-	filename.append("shared2/sys/net/02/config.dat");
-	FILE *file = fopen(filename.c_str(), "rb");
-
-	if (file == NULL || fread(&m_Ifconfig, sizeof(network_config_t), 1, file) != 1)
+	const std::string filename(File::GetUserPath(D_WIIUSER_IDX) + "shared2/sys/net/02/config.dat");
+	
+	File::IOFile file(filename, "rb");
+	if (!file.ReadBytes(&m_Ifconfig, 1))
 	{
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Failed to load /shared2/sys/net/02/config.dat, using dummy configuration");
 
@@ -194,10 +193,6 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 		m_Ifconfig.connection[0].gateway[1] = 168;
 		m_Ifconfig.connection[0].gateway[2] =   1;
 		m_Ifconfig.connection[0].gateway[3] =   2;
-	}
-	if (file)
-	{
-		fclose(file);
 	}
 }
 

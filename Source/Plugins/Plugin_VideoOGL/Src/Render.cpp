@@ -111,7 +111,7 @@ RasterFont* s_pfont = NULL;
 #if defined _WIN32 || defined HAVE_LIBAV
 static bool s_bAVIDumping = false;
 #else
-static FILE* f_pFrameDump;
+static File::IOFile f_pFrameDump;
 #endif
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
@@ -1158,7 +1158,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// Frame dumps are handled a little differently in Windows
-#if defined _WIN32 || defined HAVE_LIBAV
+#if defined _WIN32 || defined HAVE_LIBAV && 0
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1236,8 +1236,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			if (!s_bLastFrameDumped)
 			{
 				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				f_pFrameDump = fopen(movie_file_name.c_str(), "wb");
-				if (f_pFrameDump == NULL)
+				f_pFrameDump.Open(movie_file_name, "wb");
+				if (!f_pFrameDump)
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
@@ -1246,11 +1246,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage(msg, 2000);
 				}
 			}
-			if (f_pFrameDump != NULL)
+			if (f_pFrameDump)
 			{
 				FlipImageData(data, w, h);
-				fwrite(data, w * 3, h, f_pFrameDump);
-				fflush(f_pFrameDump);
+				f_pFrameDump.WriteBytes(data, w * 3 * h);
+				f_pFrameDump.Flush();
 			}
 			s_bLastFrameDumped = true;
 		}
@@ -1259,11 +1259,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 	else
 	{
-		if (s_bLastFrameDumped && f_pFrameDump != NULL)
-		{
-			fclose(f_pFrameDump);
-			f_pFrameDump = NULL;
-		}
+		if (s_bLastFrameDumped)
+			f_pFrameDump.Close();
 		s_bLastFrameDumped = false;
 	}
 #endif

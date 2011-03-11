@@ -28,10 +28,10 @@
 #ifndef COMPRESSED_BLOB_H_
 #define COMPRESSED_BLOB_H_
 
-#include <stdio.h>
 #include <string>
 
 #include "Blob.h"
+#include "FileUtil.h"
 
 namespace DiscIO
 {
@@ -73,7 +73,7 @@ private:
 	u64 *block_pointers;
 	u32 *hashes;
 	int data_offset;
-	FILE *file;
+	File::IOFile m_file;
 	u64 file_size;
 	u8 *zlib_buffer;
 	int zlib_buffer_size;

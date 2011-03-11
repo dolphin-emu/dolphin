@@ -269,19 +269,21 @@ static std::map<u32, int> been_here;
 
 static void ImHere()
 {
-	static FILE *f = 0;
-	if (ImHereLog) {
+	static File::IOFile f;
+	if (ImHereLog)
+	{
 		if (!f)
 		{
 #ifdef _M_X64
-			f = fopen("log64.txt", "w");
+			f.Open("log64.txt", "w");
 #else
-			f = fopen("log32.txt", "w");
+			f.Open("log32.txt", "w");
 #endif
 		}
-		fprintf(f, "%08x\n", PC);
+		fprintf(f.GetHandle(), "%08x\n", PC);
 	}
-	if (been_here.find(PC) != been_here.end()) {
+	if (been_here.find(PC) != been_here.end())
+	{
 		been_here.find(PC)->second++;
 		if ((been_here.find(PC)->second) & 1023)
 			return;

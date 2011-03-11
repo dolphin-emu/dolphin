@@ -108,19 +108,20 @@ u64 CBoot::Install_WiiWAD(const char* _pFilename)
 	std::string TMDFileName(ContentPath);
 	TMDFileName += "title.tmd";
 
-	FILE* pTMDFile = fopen(TMDFileName.c_str(), "wb");
-	if (pTMDFile == NULL) {
+	File::IOFile pTMDFile(TMDFileName, "wb");
+	if (!pTMDFile)
+	{
 		PanicAlertT("WAD installation failed: error creating %s", TMDFileName.c_str());
 		return 0;
 	}
 
-	fwrite(ContentLoader.GetTmdHeader(), DiscIO::INANDContentLoader::TMD_HEADER_SIZE, 1, pTMDFile);
+	pTMDFile.WriteBytes(ContentLoader.GetTmdHeader(), DiscIO::INANDContentLoader::TMD_HEADER_SIZE);
 	
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
 		DiscIO::SNANDContent Content = ContentLoader.GetContent()[i];
 
-		fwrite(Content.m_Header, DiscIO::INANDContentLoader::CONTENT_HEADER_SIZE, 1, pTMDFile);
+		pTMDFile.WriteBytes(Content.m_Header, DiscIO::INANDContentLoader::CONTENT_HEADER_SIZE);
 
 		char APPFileName[1024];
 		if (Content.m_Type & 0x8000) //shared
@@ -136,15 +137,14 @@ u64 CBoot::Install_WiiWAD(const char* _pFilename)
 		if (!File::Exists(APPFileName))
 		{
 			File::CreateFullPath(APPFileName);
-			FILE* pAPPFile = fopen(APPFileName, "wb");
-			if (pAPPFile == NULL)
+			File::IOFile pAPPFile(APPFileName, "wb");
+			if (!pAPPFile)
 			{
 				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
 				return 0;
 			}
 			
-			fwrite(Content.m_pData, Content.m_Size, 1, pAPPFile);
-			fclose(pAPPFile);
+			pAPPFile.WriteBytes(Content.m_pData, Content.m_Size);
 		}
 		else
 		{
@@ -152,7 +152,7 @@ u64 CBoot::Install_WiiWAD(const char* _pFilename)
 		}
 	}
 
-	fclose(pTMDFile);
+	pTMDFile.Close();
 	
 	//Extract and copy WAD's ticket to ticket directory
 
@@ -164,8 +164,9 @@ u64 CBoot::Install_WiiWAD(const char* _pFilename)
 	sprintf(TicketFileName, "%sticket/%08x/%08x.tik",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), TitleID_HI, TitleID_LO);
 
-	FILE* pTicketFile = fopen(TicketFileName, "wb");
-	if (pTicketFile == NULL) {
+	File::IOFile pTicketFile(TicketFileName, "wb");
+	if (!pTicketFile)
+	{
 		PanicAlertT("WAD installation failed: error creating %s", TicketFileName);
 		return 0;
 	} 
@@ -173,13 +174,10 @@ u64 CBoot::Install_WiiWAD(const char* _pFilename)
 	DiscIO::WiiWAD Wad(_pFilename);
 	if (!Wad.IsValid())
 	{
-		fclose(pTicketFile);
 		return 0;
 	}
 
-	fwrite(Wad.GetTicket(), Wad.GetTicketSize(), 1, pTicketFile);
-
-	fclose(pTicketFile);
+	pTicketFile.WriteBytes(Wad.GetTicket(), Wad.GetTicketSize());
 	
 	if (!DiscIO::cUIDsys::AccessInstance().AddTitle(TitleID))
 	{

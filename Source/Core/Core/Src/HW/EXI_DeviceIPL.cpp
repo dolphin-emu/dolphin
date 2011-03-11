@@ -146,13 +146,9 @@ CEXIIPL::~CEXIIPL()
 		m_pIPL = NULL;
 	}
 
-    // SRAM
-    FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "wb");
-    if (file)
-    {
-        fwrite(&g_SRAM, 1, 64, file);
-        fclose(file);
-    }
+	// SRAM
+	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "wb");
+	file.WriteArray(&g_SRAM, 1);
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
@@ -161,13 +157,12 @@ void CEXIIPL::DoState(PointerWrap &p)
 
 void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
 {
-	FILE* pStream = fopen(filename.c_str(), "rb");
-	if (pStream != NULL)
+	File::IOFile pStream(filename, "rb");
+	if (pStream)
 	{
-		u64 filesize = File::GetSize(pStream);
+		u64 filesize = pStream.GetSize();
 
-		fread(m_pIPL + offset, 1, filesize, pStream);
-		fclose(pStream);
+		pStream.ReadBytes(m_pIPL + offset, filesize);
 
 		m_FontsLoaded = true;
 	}

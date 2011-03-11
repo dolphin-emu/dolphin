@@ -20,7 +20,7 @@
 #include "FileHandlerARC.h"
 #include "StringUtil.h"
 #include "Blob.h"
-
+#include "FileUtil.h"
 
 #define ARC_ID 0x55aa382d
 
@@ -144,16 +144,9 @@ CARCFile::ExportFile(const std::string& _rFullPath, const std::string& _rExportF
 		return(false);
 	}
 
-	FILE* pFile = fopen(_rExportFilename.c_str(), "wb");
+	File::IOFile pFile(_rExportFilename, "wb");
 
-	if (pFile == NULL)
-	{
-		return(false);
-	}
-
-	fwrite(&m_pBuffer[pFileInfo->m_Offset], (size_t) pFileInfo->m_FileSize, 1, pFile);
-	fclose(pFile);
-	return(true);
+	return pFile.WriteBytes(&m_pBuffer[pFileInfo->m_Offset], (size_t) pFileInfo->m_FileSize);
 }
 
 

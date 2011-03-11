@@ -24,16 +24,14 @@ CDump::CDump(const char* _szFilename) :
 	m_pData(NULL),
 	m_bInit(false)
 {
-	FILE* pStream = fopen(_szFilename, "rb");
-	if (pStream != NULL)
+	File::IOFile pStream(_szFilename, "rb");
+	if (pStream)
 	{
-		m_size = (size_t)File::GetSize(pStream);
+		m_size = (size_t)pStream.GetSize();
 
 		m_pData = new u8[m_size];
 
-		fread(m_pData, m_size, 1, pStream);
-
-		fclose(pStream);
+		pStream.ReadArray(m_pData, m_size);
 	}
 }
 

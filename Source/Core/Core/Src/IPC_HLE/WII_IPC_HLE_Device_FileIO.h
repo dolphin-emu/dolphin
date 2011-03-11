@@ -19,6 +19,7 @@
 #define _WII_IPC_HLE_DEVICE_FILEIO_H_
 
 #include "WII_IPC_HLE_Device.h"
+#include "FileUtil.h"
 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 void HLE_IPC_CreateVirtualFATFilesystem();
@@ -72,7 +73,7 @@ private:
         ISFS_IOCTL_SHUTDOWN
     };
 
-    FILE* m_pFileHandle;
+    File::IOFile m_pFileHandle;
     u32 m_FileLength;
 	u32 m_Mode;
 	s32 m_Seek;

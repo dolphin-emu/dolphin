@@ -15,40 +15,30 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Blob.h"
 #include "FileBlob.h"
-#include "FileUtil.h"
 
 namespace DiscIO
 {
 
-PlainFileReader::PlainFileReader(FILE* file__)
+PlainFileReader::PlainFileReader(std::FILE* file)
+	: m_file(file)
 {
-	file_ = file__;
-	size = File::GetSize(file__);
+	m_size = m_file.GetSize();
 }
 
 PlainFileReader* PlainFileReader::Create(const char* filename)
 {
-	FILE* f = fopen(filename, "rb");
+	File::IOFile f(filename, "rb");
 	if (f)
-		return new PlainFileReader(f);
+		return new PlainFileReader(f.ReleaseHandle());
 	else
 		return NULL;
 }
 
-PlainFileReader::~PlainFileReader()
-{
-	fclose(file_);
-}
-
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-	int seekStatus = fseeko(file_, offset, SEEK_SET);
-	if (seekStatus != 0)
-		return false;
-	size_t bytesRead = fread(out_ptr, 1, nbytes, file_);
-	return bytesRead == nbytes;
+	m_file.Seek(offset, SEEK_SET);
+	return m_file.ReadBytes(out_ptr, nbytes);
 }
 
 }  // namespace

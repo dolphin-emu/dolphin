@@ -67,21 +67,20 @@ CFrame* main_frame = NULL;
 LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//EnterCriticalSection(&g_uefcs);
 
-	FILE* file = NULL;
-	fopen_s(&file, "exceptioninfo.txt", "a");
-	fseeko(file, 0, SEEK_END);
-	etfprint(file, "\n");
+	File::IOFile file("exceptioninfo.txt", "a");
+	file.Seek(0, SEEK_END);
+	etfprint(file.GetHandle(), "\n");
 	//etfprint(file, g_buildtime);
 	//etfprint(file, "\n");
 	//dumpCurrentDate(file);
-	etfprintf(file, "Unhandled Exception\n  Code: 0x%08X\n",
+	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
 #ifndef _M_X64
-	STACKTRACE2(file, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
+	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
 #else
-	STACKTRACE2(file, e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
+	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
 #endif
-	fclose(file);
+	file.Close();
 	_flushall();
 
 	//LeaveCriticalSection(&g_uefcs);
@@ -211,19 +210,15 @@ bool DolphinApp::OnInit()
 #else
 			"x64");
 #endif
-		FILE* workingDir = fopen(tmp, "r");
+		std::ifstream workingDir(tmp);
 		if (!workingDir)
 		{
 			if (PanicYesNoT("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
 			{
-				FILE* portable = fopen((File::GetUserPath(D_CONFIG_IDX) + "portable").c_str(), "w");
+				std::ofstream portable((File::GetUserPath(D_CONFIG_IDX) + "portable").c_str());
 				if (!portable)
 				{
 					PanicAlertT("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
-				}
-				else
-				{
-					fclose(portable);
 				}
 			}
 			else
@@ -232,14 +227,12 @@ bool DolphinApp::OnInit()
 				sprintf(CWD, "%s", (const char*)wxGetCwd().mb_str());
 				if (PanicYesNoT("Set install location to:\n %s ?", CWD))
 				{
-					FILE* workingDirF = fopen(tmp, "w");
+					std::ofstream workingDirF(tmp);
 					if (!workingDirF)
 						PanicAlertT("Install directory could not be saved");
 					else
 					{
-						fwrite(CWD, ((std::string)CWD).size()+1, 1, workingDirF);
-						fwrite("", 1, 1, workingDirF); //seems to be needed on linux
-						fclose(workingDirF);
+						workingDirF << CWD << '\n';
 					}
 				}
 				else
@@ -248,16 +241,12 @@ bool DolphinApp::OnInit()
 		}
 		else
 		{
-			char *tmpChar;
-			size_t len = (size_t)File::GetSize(workingDir);
-			tmpChar = new char[len];
-			fread(tmpChar, len, 1, workingDir);
-			fclose(workingDir);
-			if (!wxSetWorkingDirectory(wxString::From8BitData(tmpChar)))
+			std::string tmpChar;
+			std::getline(workingDir, tmpChar);
+			if (!wxSetWorkingDirectory(wxString::From8BitData(tmpChar.c_str())))
 			{
 				INFO_LOG(CONSOLE, "set working directory failed");
 			}
-			delete [] tmpChar;
 		}
 	}
 #else

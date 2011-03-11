@@ -15,11 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <iostream> // I hope this doesn't break anything
-#include <stdio.h>
-#include <stdarg.h>
-
 #include "Common.h" // for Common::swap
+#include "FileUtil.h"
 #include "DSP/DSPCore.h"
 #include "DSPLLEGlobals.h"
 
@@ -50,19 +47,17 @@ void ProfilerInit()
 
 void ProfilerDump(u64 count)
 {
-	FILE* pFile = fopen("DSP_Prof.txt", "wt");
-	if (pFile != NULL)
+	File::IOFile pFile("DSP_Prof.txt", "wt");
+	if (pFile)
 	{
-		fprintf(pFile, "Number of DSP steps: %llu\n\n", count);
+		fprintf(pFile.GetHandle(), "Number of DSP steps: %llu\n\n", count);
 		for (int i=0; i<PROFILE_MAP_SIZE;i++)
 		{
 			if (g_profileMap[i] > 0)
 			{
-				fprintf(pFile, "0x%04X: %llu\n", i, g_profileMap[i]);
+				fprintf(pFile.GetHandle(), "0x%04X: %llu\n", i, g_profileMap[i]);
 			}
 		}
-
-		fclose(pFile);
 	}
 }
 

@@ -36,19 +36,12 @@ CSharedContent::CSharedContent()
 	lastID = 0;
 	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
-	if (File::Exists(contentMap))
+	File::IOFile pFile(contentMap, "rb");
+	SElement Element;
+	while (pFile.ReadArray(&Element, 1))
 	{
-		FILE* pFile = fopen(contentMap, "rb");
-		while(!feof(pFile))
-		{
-			SElement Element;
-			if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
-			{
-				m_Elements.push_back(Element);
-				lastID++;
-			}
-		}
-		fclose(pFile);
+		m_Elements.push_back(Element);
+		lastID++;
 	}
 }
 
@@ -84,12 +77,10 @@ std::string CSharedContent::AddSharedContent(u8* _pHash)
 		m_Elements.push_back(Element);
 
 		File::CreateFullPath(contentMap);
-		FILE* pFile = fopen(contentMap, "ab");
-		if (pFile)
-		{
-			fwrite(&Element, sizeof(SElement), 1, pFile);
-			fclose(pFile);
-		}
+
+		File::IOFile pFile(contentMap, "ab");
+		pFile.WriteArray(&Element, 1);
+
 		sprintf(tempFilename, "%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), c_ID);
 		szFilename = tempFilename;
 		lastID++;
@@ -205,16 +196,17 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 	std::string TMDFileName(_rPath);
 	TMDFileName += "/title.tmd";
 
-	FILE* pTMDFile = fopen(TMDFileName.c_str(), "rb");
-	if (pTMDFile == NULL) {
+	File::IOFile pTMDFile(TMDFileName, "rb");
+	if (!pTMDFile)
+	{
 		ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
 				  TMDFileName.c_str());
 		return false;
 	}
 	u64 Size = File::GetSize(TMDFileName);
 	u8* pTMD = new u8[(u32)Size];
-	fread(pTMD, (size_t)Size, 1, pTMDFile);
-	fclose(pTMDFile);
+	pTMDFile.ReadBytes(pTMD, (size_t)Size);
+	pTMDFile.Close();
 
 	memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
 	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
@@ -257,16 +249,15 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 
-		FILE* pFile = fopen(szFilename, "rb");
-		if (pFile != NULL)
+		File::IOFile pFile(szFilename, "rb");
+		if (pFile)
 		{
-			u64 ContentSize = File::GetSize(szFilename);
+			const u64 ContentSize = File::GetSize(szFilename);
 			rContent.m_pData = new u8[(u32)ContentSize];
 
 			_dbg_assert_msg_(BOOT, rContent.m_Size==ContentSize, "TMDLoader: Filesize doesnt fit (%s %i)... prolly you have a bad dump", szFilename, i);
 
-			fread(rContent.m_pData, (size_t)ContentSize, 1, pFile);
-			fclose(pFile);
+			pFile.ReadBytes(rContent.m_pData, (size_t)ContentSize);
 		} 
 		else 
 		{
@@ -422,34 +413,26 @@ cUIDsys::cUIDsys()
 {
 	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
 	lastUID = 0x00001000;
-	if (File::Exists(uidSys))
+
+	File::IOFile pFile(uidSys, "rb");
+	SElement Element;
+	while (pFile.ReadArray(&Element, 1))
 	{
-		FILE* pFile = fopen(uidSys, "rb");
-		while(!feof(pFile))
-		{
-			SElement Element;
-			if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
-			{
-					*(u32*)&(Element.UID) = Common::swap32(lastUID++);
-					m_Elements.push_back(Element);
-			}
-		}
-		fclose(pFile);
+		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
+		m_Elements.push_back(Element);
 	}
-	if(!m_Elements.size())
+	pFile.Close();
+
+	if (m_Elements.empty())
 	{
 		SElement Element;
 		*(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 
 		File::CreateFullPath(uidSys);
-		FILE* pFile = fopen(uidSys, "wb");
-		if (pFile)
-		{
-			if (fwrite(&Element, sizeof(SElement), 1, pFile) != 1)
-				ERROR_LOG(DISCIO, "Failed to write to %s", uidSys);
-			fclose(pFile);
-		}
+		pFile.Open(uidSys, "wb");
+		if (!pFile.WriteArray(&Element, 1))
+			ERROR_LOG(DISCIO, "Failed to write to %s", uidSys);
 	}
 }
 
@@ -480,13 +463,10 @@ bool cUIDsys::AddTitle(u64 _TitleID)
 		m_Elements.push_back(Element);
 
 		File::CreateFullPath(uidSys);
-		FILE* pFile = fopen(uidSys, "ab");
-		if (pFile)
-		{
-			if (fwrite(&Element, sizeof(SElement), 1, pFile) != 1)
-				ERROR_LOG(DISCIO, "fwrite failed");
-			fclose(pFile);
-		}
+		File::IOFile pFile(uidSys, "ab");
+
+		if (pFile.WriteArray(&Element, 1))
+			ERROR_LOG(DISCIO, "fwrite failed");
 		
 		return true;
 	}	

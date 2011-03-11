@@ -228,40 +228,31 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
+void DumpArray(const std::string& filename, const u8* data, size_t length)
+{
+	if (data)
+	{
+		File::IOFile f(filename, "wb");
+		f.WriteBytes(data, length);
+	}
+}
+
 // Write mram to file
 void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 {
-	FILE* f = fopen(File::GetUserPath(F_RAMDUMP_IDX).c_str(), "wb");
-	if (f && Memory::m_pRAM)
-	{
-		fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, f);
-		fclose(f);
-	}
+	DumpArray(File::GetUserPath(F_RAMDUMP_IDX), Memory::m_pRAM, Memory::REALRAM_SIZE);
 }
 
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
-{
-	FILE* f = NULL;
-	
+{	
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX).c_str(), "wb");
-		if (f && Memory::m_pEXRAM)
-		{
-			fwrite(Memory::m_pEXRAM, Memory::EXRAM_SIZE, 1, f);
-			fclose(f);
-		}
+		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
 	}
 	else
 	{
-		u8* aram = DSP::GetARAMPtr();
-		f = fopen(File::GetUserPath(F_ARAMDUMP_IDX).c_str(), "wb");
-		if (f && aram)
-		{
-			fwrite(aram, DSP::ARAM_SIZE, 1, f);
-			fclose(f);
-		}
+		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
 	}
 }
 

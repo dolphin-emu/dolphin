@@ -73,19 +73,17 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
  
 	card_id = 0xc221; // It's a nintendo brand memcard
  
-	FILE* pFile = NULL;
-	pFile = fopen(m_strFilename.c_str(), "rb");
+	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
 	{
 		// Measure size of the memcard file.
-		memory_card_size = (int)File::GetSize(pFile);
+		memory_card_size = (int)pFile.GetSize();
 		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
-		fread(memory_card_content, 1, memory_card_size, pFile);
-		fclose(pFile);
+		pFile.ReadBytes(memory_card_content, memory_card_size);
 		SetCardFlashID(memory_card_content, card_index);
 
 	}
@@ -103,36 +101,30 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	}
 }
 
-void innerFlush(flushStruct* data)
+void innerFlush(FlushData* data)
 {
-	FILE* pFile = NULL;
-	pFile = fopen(data->filename.c_str(), "wb");
-
+	File::IOFile pFile(data->filename, "wb");
 	if (!pFile)
 	{
 		std::string dir;
 		SplitPath(data->filename, &dir, 0, 0);
-		if(!File::IsDirectory(dir))
+		if (!File::IsDirectory(dir))
 			File::CreateFullPath(dir);
-		pFile = fopen(data->filename.c_str(), "wb");
+		pFile.Open(data->filename, "wb");
 	}
 
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlertT("Could not write memory card file %s.\n\n"
 			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
-		delete data;
 		return;
 	}
 
-	fwrite(data->memcardContent, data->memcardSize, 1, pFile);
-	fclose(pFile);
+	pFile.WriteBytes(data->memcardContent, data->memcardSize);
 
 	if (!data->bExiting)
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", data->memcardIndex ? 'B' : 'A', 
-						     data->filename.c_str()).c_str(), 4000);
-
-	delete data;
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
+			data->memcardIndex ? 'B' : 'A', data->filename.c_str()).c_str(), 4000);
 	return;
 }
 
@@ -150,14 +142,13 @@ void CEXIMemoryCard::Flush(bool exiting)
 	if(!exiting)
 		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
 
-	flushStruct *fs = new flushStruct;
-	fs->filename = m_strFilename;
-	fs->memcardContent = memory_card_content;
-	fs->memcardIndex = card_index;
-	fs->memcardSize = memory_card_size;
-	fs->bExiting = exiting;
+	flushData.filename = m_strFilename;
+	flushData.memcardContent = memory_card_content;
+	flushData.memcardIndex = card_index;
+	flushData.memcardSize = memory_card_size;
+	flushData.bExiting = exiting;
 
-	flushThread = std::thread(innerFlush, fs);
+	flushThread = std::thread(innerFlush, &flushData);
 	if (exiting)
 		flushThread.join();
 

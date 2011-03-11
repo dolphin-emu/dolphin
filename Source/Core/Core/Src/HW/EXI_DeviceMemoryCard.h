@@ -21,13 +21,13 @@
 #include "Thread.h"
 
 // Data structure to be passed to the flushing thread.
-typedef struct 
+struct FlushData
 {
 	bool bExiting;
 	std::string filename;
 	u8 *memcardContent;
 	int memcardSize, memcardIndex;
-} flushStruct;
+};
 
 class CEXIMemoryCard : public IEXIDevice
 {
@@ -91,6 +91,7 @@ private:
 	int memory_card_size; //! in bytes, must be power of 2.
 	u8 *memory_card_content; 
 
+	FlushData flushData;
 	std::thread flushThread;
 	
 protected:

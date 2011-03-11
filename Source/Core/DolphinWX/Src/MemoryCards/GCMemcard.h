@@ -71,7 +71,7 @@ class GCMemcard
 {
 private:
 	friend class CMemcardManagerDebug;
-	void* mcdFile;
+	File::IOFile mcdFile;
 
 	u32 maxBlock;
 	u32 mc_data_size;
@@ -167,11 +167,7 @@ private:
 public:
 	bool fail;
 
-	// constructor
 	GCMemcard(const char* fileName);
-
-	// destructor
-	~GCMemcard();
 
 	bool IsOpen();
 	bool IsAsciiEncoding();
@@ -232,7 +228,7 @@ public:
 	// if remove > 0 it will pad bat.map with 0's sizeof remove
 	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
 private:
-	u32 ImportGciInternal(FILE *gci, const char *inputFile, std::string outputFile);
+	u32 ImportGciInternal(File::IOFile gci, const char *inputFile, std::string outputFile);
 
 public:
 	// delete a file from the directory

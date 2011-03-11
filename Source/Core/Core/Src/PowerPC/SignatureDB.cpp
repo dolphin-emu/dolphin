@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "PPCAnalyst.h"
 #include "../HW/Memmap.h"
+#include "FileUtil.h"
 
 #include "SignatureDB.h"
 #include "PPCSymbolDB.h"
@@ -36,17 +37,17 @@ struct FuncDesc
 
 bool SignatureDB::Load(const char *filename)
 {
-	FILE *f = fopen(filename, "rb");
+	File::IOFile f(filename, "rb");
 	if (!f)
 		return false;
 	u32 fcount = 0;
-	fread(&fcount, 4, 1, f);
+	f.ReadArray(&fcount, 1);
 	for (size_t i = 0; i < fcount; i++)
 	{
 		FuncDesc temp;
         memset(&temp, 0, sizeof(temp));
 
-        fread(&temp, sizeof(temp), 1, f);
+        f.ReadArray(&temp, 1);
 		temp.name[sizeof(temp.name)-1] = 0;
 
 		DBFunc dbf;
@@ -54,20 +55,20 @@ bool SignatureDB::Load(const char *filename)
 		dbf.size = temp.size;
 	    database[temp.checkSum] = dbf;
 	}
-	fclose(f);
+
 	return true;
 }
 
 bool SignatureDB::Save(const char *filename)
 {
-	FILE *f = fopen(filename,"wb");
+	File::IOFile f(filename, "wb");
 	if (!f)
 	{
 		ERROR_LOG(OSHLE, "Database save failed");
 		return false;
 	}
-	int fcount = (int)database.size();
-	fwrite(&fcount, 4, 1, f);
+	u32 fcount = (u32)database.size();
+	f.WriteArray(&fcount, 1);
 	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); ++iter)
 	{
 		FuncDesc temp;
@@ -75,9 +76,9 @@ bool SignatureDB::Save(const char *filename)
 		temp.checkSum = iter->first;
 		temp.size = iter->second.size;
 		strncpy(temp.name, iter->second.name.c_str(), 127);
-		fwrite(&temp, sizeof(temp), 1, f);
+		f.WriteArray(&temp, 1);
 	}
-	fclose(f);
+
 	INFO_LOG(OSHLE, "Database save successful");
 	return true;
 }

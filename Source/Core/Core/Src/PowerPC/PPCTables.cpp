@@ -233,31 +233,34 @@ void PrintInstructionRunCounts()
 
 void LogCompiledInstructions()
 {
-	static int time = 0;
-	FILE *f = fopen(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time).c_str(), "w");
+	static unsigned int time = 0;
+
+	File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount > 0) {
-			fprintf(f, "%s\t%i\t%i\t%08x\n", m_allInstructions[i]->opname, m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
+			fprintf(f.GetHandle(), "%s\t%i\t%i\t%08x\n", m_allInstructions[i]->opname,
+				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
 		}
 	}
-	fclose(f);
-	f = fopen(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time).c_str(), "w");
+
+	f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount == 0) {
-			fprintf(f, "%s\t%i\t%i\n", m_allInstructions[i]->opname, m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
+			fprintf(f.GetHandle(), "%s\t%i\t%i\n", m_allInstructions[i]->opname,
+				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
 		}
 	}
-	fclose(f);
+
 #ifdef OPLOG
-	f = fopen(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time).c_str(), "w");
+	f.Open(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
-		fprintf(f, OP_TO_LOG ": %08x\n", rsplocations[i]);
+		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocations[i]);
 	}
-	fclose(f);
 #endif
-	time++;
+
+	++time;
 }
 
 }  // namespace

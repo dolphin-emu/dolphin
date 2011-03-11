@@ -35,15 +35,6 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	, m_Card(NULL)
 {}
 
-CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
-{
-	if(m_Card)
-	{
-		fclose(m_Card);
-		m_Card = NULL;
-	}
-}
-
 void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 {
 	if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
@@ -60,17 +51,17 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
 
-	std::string filename = File::GetUserPath(D_WIIUSER_IDX) + "sd.raw";
-	m_Card = fopen(filename.c_str(), "r+b");
-	if(!m_Card)
+	const std::string filename = File::GetUserPath(D_WIIUSER_IDX) + "sd.raw";
+	m_Card.Open(filename, "r+b");
+	if (!m_Card)
 	{
 		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
 		if (SDCardCreate(128, filename.c_str()))
 		{
 			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
-			m_Card = fopen(filename.c_str(), "r+b");
+			m_Card.Open(filename, "r+b");
 		}
-		if(!m_Card)
+		if (!m_Card)
 		{
 			ERROR_LOG(WII_IPC_SD, "Could not open SD Card image or create a new one, are you running from a read-only directory?");
 		}
@@ -85,11 +76,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_SD, "Close");
 
-	if(m_Card)
-	{
-		fclose(m_Card);
-		m_Card = NULL;
-	}
+	m_Card.Close();
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 
@@ -377,13 +364,12 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		{
 			u32 size = req.bsize * req.blocks;
 
-			if (fseeko(m_Card, req.arg, SEEK_SET) != 0)
-				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
+			if (!m_Card.Seek(req.arg, SEEK_SET))
+				ERROR_LOG(WII_IPC_SD, "Seek failed WTF");
 
-			u8* buffer = new u8[size];
+			u8* const buffer = new u8[size];
 
-			size_t nRead = fread(buffer, req.bsize, req.blocks, m_Card);
-			if (nRead == req.blocks)
+			if (m_Card.ReadBytes(buffer, req.bsize * req.blocks))
 			{
 				u32 i;
 				for (i = 0; i < size; ++i)
@@ -394,10 +380,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			}
 			else
 			{
-				ERROR_LOG(WII_IPC_SD, "Read Failed - "
-					"read %lx, error %i, eof? %i",
-					(unsigned long)nRead,
-					ferror(m_Card), feof(m_Card));
+				ERROR_LOG(WII_IPC_SD, "Read Failed - error: %i, eof: %i",
+					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
 
@@ -418,7 +402,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		{
 			u32 size = req.bsize * req.blocks;
 
-			if (fseeko(m_Card, req.arg, SEEK_SET) != 0)
+			if (!m_Card.Seek(req.arg, SEEK_SET))
 				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
 			u8* buffer = new u8[size];
@@ -428,13 +412,10 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				buffer[i] = Memory::Read_U8(req.addr++);
 			}
 
-			size_t nWritten = fwrite(buffer, req.bsize, req.blocks, m_Card);
-			if (nWritten != req.blocks)
+			if (!m_Card.WriteBytes(buffer, req.bsize * req.blocks))
 			{
-				ERROR_LOG(WII_IPC_SD, "Write Failed - "
-					"wrote %lx, error %i, eof? %i",
-					(unsigned long)nWritten,
-					ferror(m_Card), feof(m_Card));
+				ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i",
+					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
 

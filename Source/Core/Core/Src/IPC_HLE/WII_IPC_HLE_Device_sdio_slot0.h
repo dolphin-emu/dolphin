@@ -28,8 +28,6 @@ public:
 
 	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
 
-	virtual ~CWII_IPC_HLE_Device_sdio_slot0();
-
     bool Open(u32 _CommandAddress, u32 _Mode);
     bool Close(u32 _CommandAddress, bool _bForce);
 	bool IOCtl(u32 _CommandAddress); 
@@ -134,7 +132,7 @@ private:
 	u32 m_BlockLength;
 	u32 m_BusWidth;
 
-	FILE* m_Card;
+	File::IOFile m_Card;
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize,
 		u32 BufferIn2, u32 BufferInSize2,

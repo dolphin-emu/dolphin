@@ -86,20 +86,20 @@ CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 title)
 
 void CWiiSaveCrypted::ReadHDR()
 {
-	fpData_bin = fopen(pathData_bin, "rb");
+	File::IOFile fpData_bin(pathData_bin, "rb");
 	if (!fpData_bin)
 	{
 		PanicAlertT("Cannot open %s", pathData_bin);
 		b_valid = false;
 		return;
 	}
-	if (fread(&_encryptedHeader, HEADER_SZ, 1, fpData_bin) != 1)
+	if (!fpData_bin.ReadBytes(&_encryptedHeader, HEADER_SZ))
 	{
 		PanicAlertT("failed to read header");
 		b_valid = false;
 		return;
 	}
-	fclose(fpData_bin);
+	fpData_bin.Close();
 
 	AES_cbc_encrypt((const u8*)&_encryptedHeader, (u8*)&_header, HEADER_SZ, &m_AES_KEY, SD_IV, AES_DECRYPT);
 	_bannerSize = Common::swap32(_header.hdr.BannerSize);
@@ -129,12 +129,8 @@ void CWiiSaveCrypted::ReadHDR()
 	if (!File::Exists(pathBanner_bin) || AskYesNoT("%s already exists, overwrite?", pathBanner_bin))
 	{
 		INFO_LOG(CONSOLE, "creating file %s", pathBanner_bin);
-		fpBanner_bin = fopen(pathBanner_bin, "wb");
-		if (fpBanner_bin)
-		{
-			fwrite(_header.BNR, _bannerSize, 1, fpBanner_bin);
-			fclose(fpBanner_bin);
-		}
+		File::IOFile fpBanner_bin(pathBanner_bin, "wb");
+		fpBanner_bin.WriteBytes(_header.BNR, _bannerSize);
 	}
 }
 
@@ -149,31 +145,24 @@ void CWiiSaveCrypted::WriteHDR()
 	memcpy(_header.hdr.Md5, MD5_BLANKER, 0x10);
 	_header.hdr.Permissions = 0x3C;//0x35;
 
-	fpBanner_bin = fopen(pathBanner_bin, "rb");
-	if (fpBanner_bin)
+	File::IOFile fpBanner_bin(pathBanner_bin, "rb");
+	if (!fpBanner_bin.ReadBytes(_header.BNR, Common::swap32(_header.hdr.BannerSize)))
 	{
-		if (fread(_header.BNR,  Common::swap32(_header.hdr.BannerSize), 1, fpBanner_bin) != 1)
-		{
-			PanicAlertT("Failed to read banner.bin");
-			b_valid = false;
-			return;
-		}
-		fclose(fpBanner_bin);
+		PanicAlertT("Failed to read banner.bin");
+		b_valid = false;
+		return;
 	}
 	
 	md5((u8*)&_header, HEADER_SZ, md5_calc);
 	memcpy(_header.hdr.Md5, md5_calc, 0x10);
 
 	AES_cbc_encrypt((const unsigned char *)&_header, (u8*)&_encryptedHeader, HEADER_SZ, &m_AES_KEY, SD_IV, AES_ENCRYPT);
-	fpData_bin = fopen(pathData_bin, "wb");
-	if (fpData_bin)
+	
+	File::IOFile fpData_bin(pathData_bin, "wb");
+	if (!fpData_bin.WriteBytes(&_encryptedHeader, HEADER_SZ))
 	{
-		if (fwrite(&_encryptedHeader, HEADER_SZ, 1, fpData_bin) != 1)
-		{
-			PanicAlertT("Failed to write header for %s", pathData_bin);
-			b_valid = false;
-		}
-		fclose(fpData_bin);
+		PanicAlertT("Failed to write header for %s", pathData_bin);
+		b_valid = false;
 	}
 }
 
@@ -183,21 +172,21 @@ void CWiiSaveCrypted::ReadBKHDR()
 {
 	if (!b_valid) return;
 	
-	fpData_bin = fopen(pathData_bin, "rb");
+	File::IOFile fpData_bin(pathData_bin, "rb");
 	if (!fpData_bin)
 	{
 		PanicAlertT("Cannot open %s", pathData_bin);
 		b_valid = false;
 		return;
 	}
-	fseeko(fpData_bin, HEADER_SZ, SEEK_SET);
-	if (fread(&bkhdr, BK_SZ, 1, fpData_bin) != 1)
+	fpData_bin.Seek(HEADER_SZ, SEEK_SET);
+	if (!fpData_bin.ReadBytes(&bkhdr, BK_SZ))
 	{
 		PanicAlertT("failed to read bk header");
 		b_valid = false;
 		return;
 	}
-	fclose(fpData_bin);
+	fpData_bin.Close();
 	
 	if (bkhdr.size  != Common::swap32(BK_LISTED_SZ) ||
 		bkhdr.magic != Common::swap32(BK_HDR_MAGIC))
@@ -215,8 +204,6 @@ void CWiiSaveCrypted::ReadBKHDR()
 		WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", _sizeOfFiles, FULL_CERT_SZ, _totalSize);
 	if (_saveGameTitle != Common::swap64(bkhdr.SaveGameTitle))
 		WARN_LOG(CONSOLE, "encrypted title (%llx) does not match unencrypted title (%llx)", _saveGameTitle,  Common::swap64(bkhdr.SaveGameTitle));
-
-
 }
 
 void CWiiSaveCrypted::WriteBKHDR()
@@ -241,15 +228,11 @@ void CWiiSaveCrypted::WriteBKHDR()
 //
 	memcpy(bkhdr.MACaddress, MAC, 6);
 
-	fpData_bin = fopen(pathData_bin, "ab");
-	if(fpData_bin)
+	File::IOFile fpData_bin(pathData_bin, "ab");
+	if (!fpData_bin.WriteBytes(&bkhdr, BK_SZ))
 	{
-		if (fwrite(&bkhdr, BK_SZ, 1, fpData_bin) != 1)
-		{
-			PanicAlertT("Failed to write bkhdr");
-			b_valid = false;
-		}
-		fclose(fpData_bin);
+		PanicAlertT("Failed to write bkhdr");
+		b_valid = false;
 	}
 }
 
@@ -257,7 +240,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 {
 	if (!b_valid) return;
 
-	fpData_bin = fopen(pathData_bin, "rb");
+	File::IOFile fpData_bin(pathData_bin, "rb");
 	if (!fpData_bin)
 	{
 		PanicAlertT("Cannot open %s", pathData_bin);
@@ -272,19 +255,19 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
 	for(u32 i = 0; i < _numberOfFiles; i++)
 	{
-		fseeko(fpData_bin, lastpos, SEEK_SET);
+		fpData_bin.Seek(lastpos, SEEK_SET);
 		memset(&_tmpFileHDR, 0, FILE_HDR_SZ);
 		memset(IV, 0, 0x10);
 		_fileSize = 0;
 		
-		if (fread(&_tmpFileHDR, FILE_HDR_SZ, 1, fpData_bin) != 1)		
+		if (!fpData_bin.ReadBytes(&_tmpFileHDR, FILE_HDR_SZ))		
 		{
 			PanicAlertT("Failed to write header for file %d", i);
 			b_valid = false;
 		}
 		
 		lastpos += FILE_HDR_SZ;
-		if(Common::swap32(_tmpFileHDR.magic) != FILE_HDR_MAGIC)
+		if (Common::swap32(_tmpFileHDR.magic) != FILE_HDR_MAGIC)
 		{
 			PanicAlertT("Bad File Header");
 			break;
@@ -306,7 +289,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 				lastpos += ROUND_UP(_fileSize, BLOCK_SZ);				
 				_encryptedData = new u8[_fileSize];
 				_data = new u8[_fileSize];
-				if (fread(_encryptedData, _fileSize, 1, fpData_bin) != 1)
+				if (!fpData_bin.ReadBytes(_encryptedData, _fileSize))
 				{
 					PanicAlertT("Failed to read data from file %d", i);
 					b_valid = false;
@@ -322,19 +305,13 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 				{
 					INFO_LOG(CONSOLE, "creating file %s", pathRawSave);
 	
-					fpRawSaveFile = fopen(pathRawSave, "wb");
-					if (fpRawSaveFile)
-					{
-						fwrite(_data, _fileSize, 1, fpRawSaveFile);
-						fclose(fpRawSaveFile);
-					}
+					File::IOFile fpRawSaveFile(pathRawSave, "wb");
+					fpRawSaveFile.WriteBytes(_data, _fileSize);
 				}			
 				delete []_data;
 			}
-
 		}	
 	}
-fclose(fpData_bin);
 }
 
 void CWiiSaveCrypted::ExportWiiSaveFiles()
@@ -381,11 +358,9 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		}
 		strncpy((char *)tmpFileHDR.name, __name.c_str(), __name.length());
 		
-		fpData_bin = fopen(pathData_bin, "ab");
-		if (fpData_bin)
 		{
-			fwrite(&tmpFileHDR, FILE_HDR_SZ, 1, fpData_bin);
-			fclose(fpData_bin);
+		File::IOFile fpData_bin(pathData_bin, "ab");
+		fpData_bin.WriteBytes(&tmpFileHDR, FILE_HDR_SZ);
 		}
 
 		if (tmpFileHDR.type == 1)
@@ -396,7 +371,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				b_valid = false;
 				return;
 			}
-			fpRawSaveFile = fopen(FilesList[i].c_str(), "rb");
+			File::IOFile fpRawSaveFile(FilesList[i], "rb");
 			if (!fpRawSaveFile)
 			{
 				PanicAlertT("%s failed to open", FilesList[i].c_str());
@@ -405,20 +380,17 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 			__data = new u8[_roundedfileSize];
 			__ENCdata = new u8[_roundedfileSize];
 			memset(__data, 0, _roundedfileSize);
-			if (fread(__data, _fileSize, 1, fpRawSaveFile) != 1)
+			if (!fpRawSaveFile.ReadBytes(__data, _fileSize))
 			{
 				PanicAlertT("failed to read data from file: %s", FilesList[i].c_str());
 				b_valid = false;
 			}
-			fclose(fpRawSaveFile);
 
 			AES_cbc_encrypt((const u8*)__data, __ENCdata, _roundedfileSize, &m_AES_KEY, tmpFileHDR.IV, AES_ENCRYPT);
-			fpData_bin = fopen(pathData_bin, "ab");
-			if (fpData_bin)
-			{
-				fwrite(__ENCdata, _roundedfileSize, 1, fpData_bin);
-				fclose(fpData_bin);
-			}
+			
+			File::IOFile fpData_bin(pathData_bin, "ab");
+			fpData_bin.WriteBytes(__ENCdata, _roundedfileSize);
+
 			delete [] __data;
 			delete [] __ENCdata;
 
@@ -466,7 +438,7 @@ void CWiiSaveCrypted::do_sig()
 
 	data_size = Common::swap32(bkhdr.sizeOfFiles)  + 0x80;
 
-	fpData_bin = fopen(pathData_bin, "rb");
+	File::IOFile fpData_bin(pathData_bin, "rb");
 	if (!fpData_bin)
 	{
 		b_valid = false;
@@ -474,14 +446,15 @@ void CWiiSaveCrypted::do_sig()
 	}
 	data = new u8[data_size];
 
-	fseeko(fpData_bin, 0xf0c0, SEEK_SET);
-	if (fread(data, data_size, 1, fpData_bin) != 1)
+	fpData_bin.Seek(0xf0c0, SEEK_SET);
+	if (!fpData_bin.ReadBytes(data, data_size))
 		PanicAlert("read data for sig check");
+
 	sha1(data, data_size, hash);
 	sha1(hash, 20, hash);
-	fclose(fpData_bin);
 	delete []data;
-	fpData_bin = fopen(pathData_bin, "ab");
+
+	fpData_bin.Open(pathData_bin, "ab");
 	if (!fpData_bin)
 	{
 		b_valid = false;
@@ -490,15 +463,12 @@ void CWiiSaveCrypted::do_sig()
 	generate_ecdsa(sig, sig + 30, ap_priv, hash);
 	*(u32*)(sig + 60) = Common::swap32(0x2f536969);
 
-
-	
-	if (fwrite(sig, sizeof sig, 1, fpData_bin) != 1)
+	if (!fpData_bin.WriteArray(sig, sizeof(sig)))
 		PanicAlert("write sig");
-	if (fwrite(ng_cert, sizeof ng_cert, 1, fpData_bin) != 1)
+	if (!fpData_bin.WriteArray(ng_cert, sizeof(ng_cert)))
 		PanicAlert("write NG cert");
-	if (fwrite(ap_cert, sizeof ap_cert, 1, fpData_bin) != 1)
+	if (!fpData_bin.WriteArray(ap_cert, sizeof(ap_cert)))
 		PanicAlert("write AP cert");
-	fclose(fpData_bin);
 }
 
 

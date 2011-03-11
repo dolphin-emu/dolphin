@@ -23,7 +23,6 @@ enum {BUF_SIZE = 32*1024};
 
 WaveFileWriter::WaveFileWriter()
 {
-	file = NULL;
 	conv_buffer = 0;
 	skip_silence = false;
 }
@@ -46,7 +45,7 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 		return false;
 	}
 
-	file = fopen(filename, "wb");
+	file.Open(filename, "wb");
 	if (!file)
 	{
 		PanicAlertT("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
@@ -73,36 +72,32 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 	Write(100 * 1000 * 1000 - 32);
 
 	// We are now at offset 44
-	if (ftello(file) != 44)
-		PanicAlert("wrong offset: %lld", (long long)ftello(file));
+	if (file.Tell() != 44)
+		PanicAlert("wrong offset: %lld", (long long)file.Tell());
 
 	return true;
 }
 
 void WaveFileWriter::Stop()
 {
-	if (!file)
-		return;
-        
 	// u32 file_size = (u32)ftello(file);
-	fseeko(file, 4, SEEK_SET);
+	file.Seek(4, SEEK_SET);
 	Write(audio_size + 36);
 
-	fseeko(file, 40, SEEK_SET);
+	file.Seek(40, SEEK_SET);
 	Write(audio_size);
 
-	fclose(file);
-	file = 0;
+	file.Close();
 }
 
 void WaveFileWriter::Write(u32 value)
 {
-	fwrite(&value, 4, 1, file);
+	file.WriteArray(&value, 1);
 }
 
 void WaveFileWriter::Write4(const char *ptr)
 {
-	fwrite(ptr, 4, 1, file);
+	file.WriteBytes(ptr, 4);
 }
 
 void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
@@ -115,7 +110,7 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
 			if (sample_data[i]) all_zero = false;
 		if (all_zero) return;
 	}
-	fwrite(sample_data, count * 4, 1, file);
+	file.WriteBytes(sample_data, count * 4);
 	audio_size += count * 4;
 }
 
@@ -140,6 +135,6 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, int count)
 	for (int i = 0; i < count * 2; i++)
 		conv_buffer[i] = Common::swap16((u16)sample_data[i]);
 
-	fwrite(conv_buffer, count * 4, 1, file);
+	file.WriteBytes(conv_buffer, count * 4);
 	audio_size += count * 4;
 }

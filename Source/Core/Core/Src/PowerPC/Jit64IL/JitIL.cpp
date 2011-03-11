@@ -227,19 +227,17 @@ namespace JitILProfiler
 		{
 			char buffer[1024];
 			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(NULL));
-			FILE* file = fopen(buffer, "w");
-			setvbuf(file, NULL, _IOFBF, 1024 * 1024);
-			fprintf(file, "code hash,total elapsed,number of calls,elapsed per call\n");
+			File::IOFile file(buffer, "w");
+			setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
+			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
 			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it)
 			{
 				const u64 codeHash = it->codeHash;
 				const u64 totalElapsed = it->totalElapsed;
 				const u64 numberOfCalls = it->numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file, "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				fprintf(file.GetHandle(), "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
-			fclose(file);
-			file = NULL;
 		}
 	};
 	std::auto_ptr<JitILProfilerFinalizer> finalizer;
@@ -369,18 +367,20 @@ static std::map<u32, int> been_here;
 
 static void ImHere()
 {
-	static FILE *f = 0;
+	static File::IOFile f;
 	if (ImHereLog)
 	{
 		if (!f)
 		{
 #ifdef _M_X64
-			f = fopen("log64.txt", "w");
+			f.Open("log64.txt", "w");
 #else
-			f = fopen("log32.txt", "w");
+			f.Open("log32.txt", "w");
 #endif
 		}
-		fprintf(f, "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0], PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]); fflush(f);
+		fprintf(f.GetHandle(), "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
+			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
+		f.Flush();
 	}
 	if (been_here.find(PC) != been_here.end()) {
 		been_here.find(PC)->second++;

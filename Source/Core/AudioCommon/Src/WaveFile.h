@@ -28,16 +28,18 @@
 #ifndef _WAVEFILE_H_
 #define _WAVEFILE_H_
 
-#include <stdio.h>
+#include "FileUtil.h"
 
 class WaveFileWriter
 {
-	FILE *file;
+	File::IOFile file;
 	bool skip_silence;
 	u32 audio_size;
 	short *conv_buffer;
 	void Write(u32 value);
 	void Write4(const char *ptr);
+
+	WaveFileWriter& operator=(const WaveFileWriter&)/* = delete*/;
 
 public:
 	WaveFileWriter();

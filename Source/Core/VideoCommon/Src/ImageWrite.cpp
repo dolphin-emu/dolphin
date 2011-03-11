@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <stdio.h>
 #include <list>
 #include <vector>
 
 #include "ImageWrite.h"
+#include "FileUtil.h"
 
 #pragma pack(push, 1)
 
@@ -47,32 +47,30 @@ struct TGA_HEADER
 
 bool SaveTGA(const char* filename, int width, int height, void* pdata)
 {
-    TGA_HEADER hdr;
-    FILE* f = fopen(filename, "wb");
-    if (f == NULL)
-        return false;
+	TGA_HEADER hdr;
+	File::IOFile f(filename, "wb");
+	if (!f)
+		return false;
 
-    _assert_(sizeof(TGA_HEADER) == 18 && sizeof(hdr) == 18);
+	_assert_(sizeof(TGA_HEADER) == 18 && sizeof(hdr) == 18);
     
-    memset(&hdr, 0, sizeof(hdr));
-    hdr.imagetype = 2;
-    hdr.bits = 32;
-    hdr.width = width;
-    hdr.height = height;
-    hdr.descriptor |= 8|(1<<5); // 8bit alpha, flip vertical
+	memset(&hdr, 0, sizeof(hdr));
+	hdr.imagetype = 2;
+	hdr.bits = 32;
+	hdr.width = width;
+	hdr.height = height;
+	hdr.descriptor |= 8|(1<<5); // 8bit alpha, flip vertical
 
-    fwrite(&hdr, sizeof(hdr), 1, f);
-    fwrite(pdata, width * height * 4, 1, f);
-    fclose(f);
-    return true;
+	f.WriteArray(&hdr, 1);
+	f.WriteBytes(pdata, width * height * 4);
+
+	return true;
 }
 
 bool SaveData(const char* filename, const char* data)
 {
-    FILE *f = fopen(filename, "wb");
-    if (!f)
-        return false;
-    fwrite(data, strlen(data), 1, f);
-    fclose(f);
-    return true;
+	std::ofstream f(filename, std::ios::binary);
+	f << data;
+
+	return true;
 }

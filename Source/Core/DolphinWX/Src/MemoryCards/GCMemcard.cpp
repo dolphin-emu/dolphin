@@ -62,31 +62,28 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 }
 
 GCMemcard::GCMemcard(const char *filename)
-{
-	FILE *mcd = fopen(filename, "r+b");
-	mcdFile = mcd;
+{ 
+	mcdFile.Open(filename, "r+b");
 	fail = false;
-	if (!mcd)
+	if (!mcdFile)
 	{
 		if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
 		{
 			fail = true;
 			return;
 		}
-		mcd = fopen(filename, "wb");
-		if (!mcd)
+		mcdFile.Open(filename, "wb");
+		if (!mcdFile)
 		{
 			fail = true;
 			return;
 		}
-		mcdFile = mcd;
 		Format(!AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
-		fclose(mcd);
-		mcd = fopen(filename, "r+b");
+		mcdFile.Open(filename, "r+b");
 	}
 	else
 	{
-	//This function can be removed once more about hdr is known and we can check for a valid header
+		//This function can be removed once more about hdr is known and we can check for a valid header
 		std::string fileType;
 		SplitPath(filename, NULL, NULL, &fileType);
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
@@ -97,41 +94,39 @@ GCMemcard::GCMemcard(const char *filename)
 		}
 	}
 
-	fseeko(mcd, 0, SEEK_SET);
-	if (fread(&hdr, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
+	mcdFile.Seek(0, SEEK_SET);
+	fail = true;
+	if (!mcdFile.ReadBytes(&hdr, BLOCK_SIZE))
 	{
-		fail = true;
 		PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
 		return;
 	}
-	if (fread(&dir, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
+	else if (!mcdFile.ReadBytes(&dir, BLOCK_SIZE))
 	{
-		fail = true;
 		PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
 		return;
 	}
-	if (fread(&dir_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
+	else if (!mcdFile.ReadBytes(&dir_backup, BLOCK_SIZE))
 	{
-		fail = true;
 		PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
 		return;
 	}
-	if (fread(&bat, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
+	else if (!mcdFile.ReadBytes(&bat, BLOCK_SIZE))
 	{
-		fail = true;
 		PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
 		return;
 	}
-	if (fread(&bat_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE)
+	else if (!mcdFile.ReadBytes(&bat_backup, BLOCK_SIZE))
 	{
-		fail = true;
 		PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
 		return;
 	}
+	else
+		fail = false;
 
 	u32 csums = TestChecksums();
 	
-	if (csums&1)
+	if (csums & 0x1)
 	{
 		// header checksum error!
 		// invalid files do not always get here
@@ -140,9 +135,9 @@ GCMemcard::GCMemcard(const char *filename)
 		return;
 	}
 
-	if (csums&2) // directory checksum error!
+	if (csums & 0x2) // directory checksum error!
 	{
-		if (csums&4)
+		if (csums & 0x4)
 		{
 			// backup is also wrong!
 			fail = true;
@@ -160,9 +155,9 @@ GCMemcard::GCMemcard(const char *filename)
 		}
 	}
 
-	if (csums&8) // BAT checksum error!
+	if (csums & 0x8) // BAT checksum error!
 	{
-		if (csums&16)
+		if (csums & 0x10)
 		{
 			// backup is also wrong!
 			fail = true;
@@ -188,7 +183,7 @@ GCMemcard::GCMemcard(const char *filename)
 //		bat = bat_backup; // needed?
 	}
 
-	fseeko(mcd, 0xa000, SEEK_SET);
+	mcdFile.Seek(0xa000, SEEK_SET);
 
 	u16 sizeMb = BE16(hdr.SizeMb);
 	switch (sizeMb)
@@ -204,8 +199,7 @@ GCMemcard::GCMemcard(const char *filename)
 		mc_data_size = (maxBlock - MC_FST_BLOCKS) * BLOCK_SIZE;
 		mc_data = new u8[mc_data_size];
 
-		size_t read = fread(mc_data, 1, mc_data_size, mcd);
-		if (mc_data_size != read)
+		if (!mcdFile.ReadBytes(mc_data, mc_data_size))
 		{
 			fail = true;
 			PanicAlertT("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
@@ -218,15 +212,9 @@ GCMemcard::GCMemcard(const char *filename)
 	}
 }
 
-GCMemcard::~GCMemcard()
-{
-	if (!mcdFile) return;
-	fclose((FILE*)mcdFile);
-}
-
 bool GCMemcard::IsOpen()
 {
-	return (mcdFile!=NULL);
+	return mcdFile.IsOpen();
 }
 
 bool GCMemcard::IsAsciiEncoding()
@@ -236,16 +224,16 @@ bool GCMemcard::IsAsciiEncoding()
 
 bool GCMemcard::Save()
 {
-	bool completeWrite = true;
-	FILE *mcd=(FILE*)mcdFile;
-	fseeko(mcd, 0, SEEK_SET);
-	if (fwrite(&hdr,		1, BLOCK_SIZE, mcd) != BLOCK_SIZE) completeWrite = false;
-	if (fwrite(&dir,		1, BLOCK_SIZE, mcd) != BLOCK_SIZE) completeWrite = false;
-	if (fwrite(&dir_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE) completeWrite = false;
-	if (fwrite(&bat,		1, BLOCK_SIZE ,mcd) != BLOCK_SIZE) completeWrite = false;
-	if (fwrite(&bat_backup, 1, BLOCK_SIZE, mcd) != BLOCK_SIZE) completeWrite = false;
-	if (fwrite(mc_data, 1, mc_data_size, mcd) != mc_data_size) completeWrite = false;
-	return completeWrite;
+	mcdFile.Seek(0, SEEK_SET);
+
+	mcdFile.WriteBytes(&hdr, BLOCK_SIZE);
+	mcdFile.WriteBytes(&dir, BLOCK_SIZE);
+	mcdFile.WriteBytes(&dir_backup, BLOCK_SIZE);
+	mcdFile.WriteBytes(&bat, BLOCK_SIZE);
+	mcdFile.WriteBytes(&bat_backup, BLOCK_SIZE);
+	mcdFile.WriteBytes(mc_data, mc_data_size);
+	
+	return mcdFile.IsGood();
 }
 
 void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
@@ -269,7 +257,8 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 
 u32  GCMemcard::TestChecksums()
 {
-	if (!mcdFile) return 0xFFFFFFFF;
+	if (!mcdFile)
+		return 0xFFFFFFFF;
 
 	u16 csum1=0,
 		csum2=0;
@@ -296,12 +285,13 @@ u32  GCMemcard::TestChecksums()
 	if (BE16(bat_backup.CheckSum1) != csum1) results |= 16;
 	if (BE16(bat_backup.CheckSum2) != csum2) results |= 16;
 
-	return 0;
+	return results;
 }
 
 bool GCMemcard::FixChecksums()
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	u16 csum1=0,
 		csum2=0;
@@ -341,7 +331,9 @@ bool GCMemcard::FixChecksums()
 
 u8 GCMemcard::GetNumFiles()
 {
-	if (!mcdFile) return 0;
+	if (!mcdFile)
+		return 0;
+
 	u8 j = 0;
 	for (int i = 0; i < DIRLEN; i++)
 	{
@@ -353,13 +345,16 @@ u8 GCMemcard::GetNumFiles()
 
 u16 GCMemcard::GetFreeBlocks()
 {
-	if (!mcdFile) return 0;
+	if (!mcdFile)
+		return 0;
+
 	return BE16(bat.FreeBlocks);
 }
 
 u8 GCMemcard::TitlePresent(DEntry d)
 {
-	if (!mcdFile) return DIRLEN;
+	if (!mcdFile)
+		return DIRLEN;
 
 	u8 i = 0;
 	while(i < DIRLEN)
@@ -379,7 +374,8 @@ u8 GCMemcard::TitlePresent(DEntry d)
 
 bool GCMemcard::DEntry_GameCode(u8 index, char *buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	memcpy(buffer, dir.Dir[index].Gamecode, 4);
 	buffer[4] = 0;
@@ -388,14 +384,17 @@ bool GCMemcard::DEntry_GameCode(u8 index, char *buffer)
 
 bool GCMemcard::DEntry_Markercode(u8 index, char *buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
+
 	memcpy(buffer, dir.Dir[index].Markercode, 2);
 	buffer[2] = 0;
 	return true;
 }
 bool GCMemcard::DEntry_BIFlags(u8 index, char *buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	int x = dir.Dir[index].BIFlags;
 	for (int i = 0; i < 8; i++)
@@ -409,7 +408,9 @@ bool GCMemcard::DEntry_BIFlags(u8 index, char *buffer)
 
 bool GCMemcard::DEntry_FileName(u8 index, char *buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
+
 	memcpy (buffer, (const char*)dir.Dir[index].Filename, DENTRY_STRLEN);
 	buffer[31] = 0;
 	return true;
@@ -463,7 +464,9 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index)
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index)
 {
-	if (!mcdFile) return 0xFFFF;
+	if (!mcdFile)
+		return 0xFFFF;
+
 	u16 block = BE16(dir.Dir[index].FirstBlock);
 	if (block > (u16) maxBlock) return 0xFFFF;
 	return block;
@@ -471,7 +474,8 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index)
 
 u16 GCMemcard::DEntry_BlockCount(u8 index)
 {
-	if (!mcdFile) return 0xFFFF;
+	if (!mcdFile)
+		return 0xFFFF;
 
 	u16 blocks = BE16(dir.Dir[index].BlockCount);
 	if (blocks > (u16) maxBlock) return 0xFFFF;
@@ -485,7 +489,8 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index)
 
 bool GCMemcard::DEntry_Comment1(u8 index, char* buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
 	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - MC_FST_BLOCKS;
@@ -501,7 +506,8 @@ bool GCMemcard::DEntry_Comment1(u8 index, char* buffer)
 
 bool GCMemcard::DEntry_Comment2(u8 index, char* buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
 	u32 Comment2 = Comment1 + DENTRY_STRLEN;
@@ -518,7 +524,8 @@ bool GCMemcard::DEntry_Comment2(u8 index, char* buffer)
 
 bool GCMemcard::DEntry_Copy(u8 index, GCMemcard::DEntry& info)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	info = dir.Dir[index];
 	return true;
@@ -526,7 +533,8 @@ bool GCMemcard::DEntry_Copy(u8 index, GCMemcard::DEntry& info)
 
 u32 GCMemcard::DEntry_GetSaveData(u8 index, u8* dest, bool old)
 {
-	if (!mcdFile) return NOMEMCARD;
+	if (!mcdFile)
+		return NOMEMCARD;
 
 	u16 block = DEntry_FirstBlock(index);
 	u16 saveLength = DEntry_BlockCount(index);
@@ -564,7 +572,8 @@ u32 GCMemcard::DEntry_GetSaveData(u8 index, u8* dest, bool old)
 
 u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 {
-	if (!mcdFile) return NOMEMCARD;
+	if (!mcdFile)
+		return NOMEMCARD;
 
 	if (GetNumFiles() >= DIRLEN)
 	{
@@ -665,7 +674,8 @@ u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 
 u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
-	if (!mcdFile) return NOMEMCARD;
+	if (!mcdFile)
+		return NOMEMCARD;
 
 	//error checking
 	u16 startingblock = 0;
@@ -747,7 +757,8 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 
 u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 {
-	if (!mcdFile) return NOMEMCARD;
+	if (!mcdFile)
+		return NOMEMCARD;
 
 	DEntry tempDEntry;
 	if (!source.DEntry_Copy(index, tempDEntry)) return NOMEMCARD;
@@ -773,18 +784,19 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 
 u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 {
-	if (outputFile.empty() && !mcdFile) return OPENFAIL;
+	if (outputFile.empty() && !mcdFile)
+		return OPENFAIL;
 
-	FILE *gci = fopen(inputFile, "rb");
-	if (!gci) return OPENFAIL;
+	File::IOFile gci(inputFile, "rb");
+	if (!gci)
+		return OPENFAIL;
 
-	u32 result = ImportGciInternal(gci, inputFile, outputFile);
-	fclose(gci);
+	u32 result = ImportGciInternal(gci.ReleaseHandle(), inputFile, outputFile);
 
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string outputFile)
+u32 GCMemcard::ImportGciInternal(File::IOFile gci, const char *inputFile, std::string outputFile)
 {
 	int offset;
 	char tmp[0xD];
@@ -795,7 +807,7 @@ u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string o
 		offset = GCI;
 	else
 	{
-		fread(tmp, 1, 0xD, gci);
+		gci.ReadBytes(tmp, 0xD);
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{
 			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
@@ -813,29 +825,29 @@ u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string o
 		else
 			return OPENFAIL;
 	}
-	fseeko(gci, offset, SEEK_SET);
+	gci.Seek(offset, SEEK_SET);
 
 	DEntry *tempDEntry = new DEntry;
-	fread(tempDEntry, 1, DENTRY_SIZE, gci);
-	int fStart = (int) ftello(gci);
-	fseeko(gci, 0, SEEK_END);
-	int length = (int) ftello(gci) - fStart;
-	fseeko(gci, offset + DENTRY_SIZE, SEEK_SET);
+	gci.ReadBytes(tempDEntry, DENTRY_SIZE);
+	const int fStart = (int)gci.Tell();
+	gci.Seek(0, SEEK_END);
+	const int length = (int)gci.Tell() - fStart;
+	gci.Seek(offset + DENTRY_SIZE, SEEK_SET);
 
 	Gcs_SavConvert(tempDEntry, offset, length);
 
 	if (length != BE16(tempDEntry->BlockCount) * BLOCK_SIZE)
 		return LENGTHFAIL;
-	if (ftello(gci)  != offset + DENTRY_SIZE) // Verify correct file position
+	if (gci.Tell() != offset + DENTRY_SIZE) // Verify correct file position
 		return OPENFAIL;
 	
 	u32 size = BE16((tempDEntry->BlockCount)) * BLOCK_SIZE;
 	u8 *tempSaveData = new u8[size];
-	fread(tempSaveData, 1, size, gci);
+	gci.ReadBytes(tempSaveData, size);
 	u32 ret;
-	if(!outputFile.empty())
+	if (!outputFile.empty())
 	{
-		FILE *gci2 = fopen(outputFile.c_str(), "wb");
+		File::IOFile gci2(outputFile, "wb");
 		bool completeWrite = true;
 		if (!gci2)
 		{
@@ -843,18 +855,19 @@ u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string o
 			delete tempDEntry;
 			return OPENFAIL;
 		}
-		fseeko(gci2, 0, SEEK_SET);
+		gci2.Seek(0, SEEK_SET);
 
-		if (fwrite(tempDEntry, 1, DENTRY_SIZE, gci2) != DENTRY_SIZE) 
+		if (!gci2.WriteBytes(tempDEntry, DENTRY_SIZE)) 
 			completeWrite = false;
 		int fileBlocks = BE16(tempDEntry->BlockCount);
-		fseeko(gci2, DENTRY_SIZE, SEEK_SET);
+		gci2.Seek(DENTRY_SIZE, SEEK_SET);
 
-		if (fwrite(tempSaveData, 1, BLOCK_SIZE * fileBlocks, gci2) != (unsigned)(BLOCK_SIZE * fileBlocks))
+		if (!gci2.WriteBytes(tempSaveData, BLOCK_SIZE * fileBlocks))
 			completeWrite = false;
-		fclose(gci2);
-		if (completeWrite) ret = GCS;
-		else ret = WRITEFAIL;
+		if (completeWrite)
+			ret = GCS;
+		else
+			ret = WRITEFAIL;
 	}
 	else 
 		ret = ImportFile(*tempDEntry, tempSaveData, 0);
@@ -866,7 +879,7 @@ u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string o
 
 u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 {
-	FILE *gci;
+	File::IOFile gci;
 	int offset = GCI;
 	if (!strcasecmp(fileName, "."))
 	{
@@ -879,12 +892,12 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 		DEntry_GameCode(index, GameCode);
 		
 		sprintf(filename, "%s/%s_%s.gci", fileName2->c_str(), GameCode, dir.Dir[index].Filename);
-		gci = fopen((const char *)filename, "wb");
+		gci.Open(filename, "wb");
 		delete[] filename;
 	}
 	else
 	{
-		gci = fopen(fileName, "wb");
+		gci.Open(fileName, "wb");
 
 		std::string fileType;
 		SplitPath(fileName, NULL, NULL, &fileType);
@@ -898,10 +911,10 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 		}
 	}
 
-	if (!gci) return OPENFAIL;
-	bool completeWrite = true;
+	if (!gci)
+		return OPENFAIL;
 
-	fseeko(gci, 0, SEEK_SET);
+	gci.Seek(0, SEEK_SET);
 	
 	switch(offset)
 	{
@@ -909,54 +922,54 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 		u8 gcsHDR[GCS];
 		memset(gcsHDR, 0, GCS);
 		memcpy(gcsHDR, "GCSAVE", 6);
-		if (fwrite(gcsHDR, 1, GCS, gci) != GCS)	completeWrite = false;
+		gci.WriteArray(gcsHDR, GCS);
 		break;
+
 	case SAV:
 		u8 savHDR[SAV];
 		memset(savHDR, 0, SAV);
 		memcpy(savHDR, "DATELGC_SAVE", 0xC);
-		if (fwrite(savHDR, 1, SAV, gci) != SAV)	completeWrite = false;
+		gci.WriteArray(savHDR, SAV);
 		break;
 	}
 
 	DEntry tempDEntry;
 	if (!DEntry_Copy(index, tempDEntry))
 	{
-		fclose(gci);
 		return NOMEMCARD;
 	}
 
-
 	Gcs_SavConvert(&tempDEntry, offset);
-	if (fwrite(&tempDEntry, 1, DENTRY_SIZE, gci) != DENTRY_SIZE) completeWrite = false;
+	gci.WriteBytes(&tempDEntry, DENTRY_SIZE);
 
 	u32 size = DEntry_BlockCount(index);
 	if (size == 0xFFFF)
 	{
-		fclose(gci);
 		return FAIL;
 	}
+
 	size *= BLOCK_SIZE;
 	u8 *tempSaveData = new u8[size];
 
 	switch(DEntry_GetSaveData(index, tempSaveData, true))
 	{
 	case FAIL:
-		fclose(gci);
 		delete[] tempSaveData;
 		return FAIL;
+
 	case NOMEMCARD:
-		fclose(gci);
 		delete[] tempSaveData;
 		return NOMEMCARD;
 	}
-	fseeko(gci, DENTRY_SIZE + offset, SEEK_SET);
-	if (fwrite(tempSaveData, 1, size, gci) != size)
-		completeWrite = false;
-	fclose(gci);
+	gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
+	gci.WriteBytes(tempSaveData, size);
+
 	delete[] tempSaveData;
-	if (completeWrite) return SUCCESS;
-	else return WRITEFAIL;
+
+	if (gci.IsGood())
+		return SUCCESS;
+	else
+		return WRITEFAIL;
 }
 
 void GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
@@ -999,7 +1012,8 @@ void GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
 
 bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 {
-	if (!mcdFile) return false;
+	if (!mcdFile)
+		return false;
 
 	int flags = dir.Dir[index].BIFlags;
 	// Timesplitters 2 is the only game that I see this in
@@ -1039,7 +1053,8 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 
 u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 {
-	if (!mcdFile) return 0;
+	if (!mcdFile)
+		return 0;
 
 	// To ensure only one type of icon is used
 	// Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
@@ -1137,12 +1152,10 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 
 bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 {
-	//Currently only formats cards for slot A
-	u32 data_size = BLOCK_SIZE * (SizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
+	// Currently only formats cards for slot A
+	const u32 data_size = BLOCK_SIZE * (SizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
 
 	SRAM m_SRAM;
-	FILE * pStream;
-	u64 time, rand;
 
 	if (New)
 	{
@@ -1152,18 +1165,19 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	// Only Format 16MB memcards for now
 	if ((SizeMb != MemCard2043Mb) || (data_size != mc_data_size)) return false;
 
-	pStream = fopen(File::GetUserPath(F_GCSRAM_IDX).c_str(), "rb");
+	File::IOFile pStream(File::GetUserPath(F_GCSRAM_IDX), "rb");
 	if (pStream)
 	{
-		fread(&m_SRAM, 1, 64, pStream);
-		fclose(pStream);
+		pStream.ReadBytes(&m_SRAM, 64);
+		pStream.Close();
 	}
 	else
 	{
 		m_SRAM = sram_dump;
 	}
-	time = CEXIIPL::GetGCTime();
-	rand = Common::swap64(time);
+	
+	const u64 time = CEXIIPL::GetGCTime();
+	u64 rand = Common::swap64(time);
 
 	memset(&hdr, 0xFF, BLOCK_SIZE);
 	for(int i = 0; i < 12; i++)
@@ -1203,4 +1217,3 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	Save();
 	return true;
 }
-

@@ -19,6 +19,7 @@
 #define _DRIVE_BLOB_H
 
 #include "Blob.h"
+#include "FileUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -39,7 +40,7 @@ private:
 	PREVENT_MEDIA_REMOVAL pmrLockCDROM;
 	bool IsOK() {return hDisc != INVALID_HANDLE_VALUE;}
 #else
-	FILE* file_;
+	File::IOFile file_;
 	bool IsOK() {return file_ != 0;}
 #endif
 	s64 size;

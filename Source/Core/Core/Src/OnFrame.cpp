@@ -50,7 +50,7 @@ unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 int g_numPads = 0;
 ControllerState g_padState;
-FILE *g_recordfd = NULL;
+File::IOFile g_recordfd;
 
 u64 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0;
 bool g_bRecordingFromSaveState = false;
@@ -209,15 +209,15 @@ bool BeginRecordingInput(int controllers)
 		g_bRecordingFromSaveState = true;
 	}
 
-	g_recordfd = fopen(g_recordFile.c_str(), "wb");
-	if(!g_recordfd) {
+	if (!g_recordfd.Open(g_recordFile, "wb"))
+	{
 		PanicAlertT("Error opening file %s for recording", g_recordFile.c_str());
 		return false;
 	}
 	
 	// Write initial empty header
 	DTMHeader dummy;
-	fwrite(&dummy, sizeof(DTMHeader), 1, g_recordfd);
+	g_recordfd.WriteArray(&dummy, 1);
 	
 	g_numPads = controllers;
 	
@@ -328,7 +328,7 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.CStickX = PadStatus->substickX;
 	g_padState.CStickY = PadStatus->substickY;
 	
-	fwrite(&g_padState, sizeof(ControllerState), 1, g_recordfd);
+	g_recordfd.WriteArray(&g_padState, 1);
 
 	SetInputDisplayString(g_padState, controllerID);
 }
@@ -338,8 +338,8 @@ void RecordWiimote(int wiimote, u8 *data, s8 size)
 	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
 
-	fwrite(&size, 1, 1, g_recordfd);
-	fwrite(data, 1, size, g_recordfd);
+	g_recordfd.WriteArray(&size, 1);
+	g_recordfd.WriteArray(data, 1);
 }
 
 bool PlayInput(const char *filename)
@@ -355,11 +355,10 @@ bool PlayInput(const char *filename)
 	File::Delete(g_recordFile);
 	File::Copy(filename, g_recordFile);
 	
-	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	if(!g_recordfd)
+	if (!g_recordfd.Open(g_recordFile, "r+b"))
 		return false;
 	
-	fread(&header, sizeof(DTMHeader), 1, g_recordfd);
+	g_recordfd.ReadArray(&header, 1);
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
 		PanicAlertT("Invalid recording file");
@@ -399,19 +398,18 @@ bool PlayInput(const char *filename)
 	return true;
 	
 cleanup:
-	fclose(g_recordfd);
-	g_recordfd = NULL;
+	g_recordfd.Close();
 	return false;
 }
 
 void LoadInput(const char *filename)
 {
-	FILE *t_record = fopen(filename, "rb");
+	File::IOFile t_record(filename, "rb");
 	
 	DTMHeader header;
 	
-	fread(&header, sizeof(DTMHeader), 1, t_record);
-	fclose(t_record);
+	t_record.ReadArray(&header, 1);
+	t_record.Close();
 	
 	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A)
 	{
@@ -433,14 +431,13 @@ void LoadInput(const char *filename)
 	if (Core::g_CoreStartupParameter.bWii)
 		ChangeWiiPads();
 	
-	if (g_recordfd)
-		fclose(g_recordfd);
+	g_recordfd.Close();
 	
 	File::Delete(g_recordFile);
 	File::Copy(filename, g_recordFile);
 	
-	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	fseeko(g_recordfd, 0, SEEK_END);
+	g_recordfd.Open(g_recordFile, "r+b");
+	g_recordfd.Seek(0, SEEK_END);
 	
 	g_rerecords++;
 	
@@ -453,11 +450,16 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
-	if(!IsPlayingInput() || !IsUsingPad(controllerID))
+	if (!IsPlayingInput() || !IsUsingPad(controllerID))
 		return;
 
 	memset(PadStatus, 0, sizeof(SPADStatus));
-	fread(&g_padState, sizeof(ControllerState), 1, g_recordfd);
+
+	if (!g_recordfd.ReadArray(&g_padState, 1))
+	{
+		Core::DisplayMessage("Movie End", 2000);
+		EndPlayInput(!g_bReadOnly);
+	}
 	
 	PadStatus->triggerLeft = g_padState.TriggerL;
 	PadStatus->triggerRight = g_padState.TriggerR;
@@ -525,7 +527,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	SetInputDisplayString(g_padState, controllerID);
 
-	if(feof(g_recordfd) || g_frameCounter >= g_totalFrameCount)
+	if (g_frameCounter >= g_totalFrameCount)
 	{
 		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput(!g_bReadOnly);
@@ -538,12 +540,11 @@ bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 	if(!IsPlayingInput() || !IsUsingWiimote(wiimote))
 		return false;
 
-	fread(&count, 1, 1, g_recordfd);
+	g_recordfd.ReadArray(&count, 1);
 	size = (count > size) ? size : count;
-	fread(data, 1, size, g_recordfd);
 	
 	// TODO: merge this with the above so that there's no duplicate code
-	if(feof(g_recordfd) || g_frameCounter >= g_totalFrameCount)
+	if (g_frameCounter >= g_totalFrameCount || !g_recordfd.ReadBytes(data, size))
 	{
 		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput(!g_bReadOnly);
@@ -559,19 +560,17 @@ void EndPlayInput(bool cont)
 		// from the exact point in playback we're at now
 		// if playback ends before the end of the file.
 		SaveRecording(g_tmpRecordFile.c_str());
-		fclose(g_recordfd);
+		g_recordfd.Close();
 		File::Delete(g_recordFile);
 		File::Copy(g_tmpRecordFile, g_recordFile);
-		g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-		fseeko(g_recordfd, 0, SEEK_END);
+		g_recordfd.Open(g_recordFile, "r+b");
+		g_recordfd.Seek(0, SEEK_END);
 		g_playMode = MODE_RECORDING;
 		Core::DisplayMessage("Resuming movie recording", 2000);
 	}
 	else
 	{
-		if (g_recordfd)
-			fclose(g_recordfd);
-		g_recordfd = NULL;
+		g_recordfd.Close();
 		g_numPads = g_rerecords = 0;
 		g_totalFrameCount = g_frameCounter = g_lagCounter = 0;
 		g_playMode = MODE_NONE;
@@ -580,14 +579,14 @@ void EndPlayInput(bool cont)
 
 void SaveRecording(const char *filename)
 {
-	off_t size = ftello(g_recordfd);
+	const off_t size = g_recordfd.Tell();
 
 	// NOTE: Eventually this will not happen in
 	// read-only mode, but we need a way for the save state to
 	// store the current point in the file first.
 	// if (!g_bReadOnly)
 	{
-		rewind(g_recordfd);
+		rewind(g_recordfd.GetHandle());
 	
 		// Create the real header now and write it
 		DTMHeader header;
@@ -609,11 +608,11 @@ void SaveRecording(const char *filename)
 		// header.videoBackend; 
 		// header.audioEmulator;
 		
-		fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
+		g_recordfd.WriteArray(&header, 1);
 	}
 
 	bool success = false;
-	fclose(g_recordfd);
+	g_recordfd.Close();
 	File::Delete(filename);
 	success = File::Copy(g_recordFile, filename);
 
@@ -649,7 +648,7 @@ void SaveRecording(const char *filename)
 	else
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
 	
-	g_recordfd = fopen(g_recordFile.c_str(), "r+b");
-	fseeko(g_recordfd, size, SEEK_SET);
+	g_recordfd.Open(g_recordFile, "r+b");
+	g_recordfd.Seek(size, SEEK_SET);
 }
 };

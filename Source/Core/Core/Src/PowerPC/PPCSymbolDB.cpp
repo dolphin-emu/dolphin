@@ -15,11 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-
 #include <map>
 #include <string>
 #include <vector>
+
+#include "Common.h"
+#include "FileUtil.h"
 
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
@@ -206,19 +207,21 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // produced by SaveSymbolMap below.
 bool PPCSymbolDB::LoadMap(const char *filename)
 {
-	FILE *f = fopen(filename, "r");
+	File::IOFile f(filename, "r");
 	if (!f)
 		return false;
 
 	bool started = false;
-	while (!feof(f))
+
+	char line[512];
+	while (fgets(line, 512, f.GetHandle()))
 	{
-		char line[512], temp[256];
-		fgets(line, 511, f);
 		if (strlen(line) < 4)
 			continue;
 
+		char temp[256];
 		sscanf(line, "%s", temp);
+
 		if (strcmp(temp, "UNUSED")==0) continue;
 		if (strcmp(temp, ".text")==0)  {started = true; continue;};
 		if (strcmp(temp, ".init")==0)  {started = true; continue;};
@@ -261,7 +264,6 @@ bool PPCSymbolDB::LoadMap(const char *filename)
         }
 	}
 
-	fclose(f);
 	Index();
 	return true;
 }
@@ -287,14 +289,14 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 	if (WithCodes) Host_UpdateStatusBar("Saving code, please stand by ...");
 
 	// Make a file
-	FILE *f = fopen(mapFile.c_str(), "w");
-	if (!f) return false;
-
+	File::IOFile f(mapFile, "w");
+	if (!f)
+		return false;
 
 	// --------------------------------------------------------------------
 	// Walk through every code row
 	// -------------------------
-	fprintf(f, ".text\n"); // Write ".text" at the top
+	fprintf(f.GetHandle(), ".text\n"); // Write ".text" at the top
     XFuncMap::const_iterator itr = functions.begin();
 	u32 LastAddress = 0x80004000;
 	std::string LastSymbolName;
@@ -304,7 +306,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
         const Symbol &rSymbol = itr->second;
 		if (!WithCodes)
 		{
-			fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
+			fprintf(f.GetHandle(),"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
 			0, rSymbol.name.c_str());
 			++itr;
 		}
@@ -340,15 +342,15 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 				int Address = LastAddress + i;
 				char disasm[256];
 				debugger->disasm(Address, disasm, 256);
-				fprintf(f,"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
+				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
 			}
 			// Write a blank line after each block
-			fprintf(f, "\n");
-		}		
+			fprintf(f.GetHandle(), "\n");
+		}
     }
 	// ---------------
-    Host_UpdateStatusBar(StringFromFormat("Saved %s", mapFile.c_str()).c_str());
-    fclose(f);
-    return true;
+	Host_UpdateStatusBar(StringFromFormat("Saved %s", mapFile.c_str()).c_str());
+
+	return true;
 }
 // ===========

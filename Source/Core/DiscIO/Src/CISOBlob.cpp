@@ -21,15 +21,13 @@
 namespace DiscIO
 {
 
-CISOFileReader::CISOFileReader(FILE* file__)
+CISOFileReader::CISOFileReader(std::FILE* file)
+	: m_file(file)
 {
-	file_ = file__;
-	fseek(file_, 0, SEEK_END);
-	size = ftell(file_);
-	fseek(file_, 0, SEEK_SET);
+	m_size = m_file.GetSize();
 
 	memset(&header, 0, sizeof(header));
-	fread(&header, sizeof(header), 1, file_);
+	m_file.ReadArray(&header, 1);
 
 	CISO_Map_t count = 0;
 	int idx;
@@ -41,16 +39,11 @@ CISOFileReader* CISOFileReader::Create(const char* filename)
 {
 	if (IsCISOBlob(filename))
 	{
-		FILE* f = fopen(filename, "rb");
-		return new CISOFileReader(f);
+		File::IOFile f(filename, "rb");
+		return new CISOFileReader(f.ReleaseHandle());
 	}
 	else
 		return NULL;
-}
-
-CISOFileReader::~CISOFileReader()
-{
-	fclose(file_);
 }
 
 bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
@@ -73,9 +66,7 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 			// calcualte the base address
 			u64 file_off = CISO_HEAD_SIZE + ciso_map[block] * (u64)header.block_size + data_offset;
 
-			if (fseeko(file_, (long)file_off, SEEK_SET) != 0)
-				return false;
-			if (fread(out_ptr, 1, bytes_to_read, file_) != bytes_to_read)
+			if (!(m_file.Seek(file_off, SEEK_SET) && m_file.ReadBytes(out_ptr, bytes_to_read)))
 				return false;
 
 			out_ptr += bytes_to_read;
@@ -88,15 +79,10 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
 bool IsCISOBlob(const char* filename)
 {
-	FILE* f = fopen(filename, "rb");
-
-	if (!f)
-		return false;
+	File::IOFile f(filename, "rb");
 
 	CISO_Head_t header;
-	fread(&header, sizeof(header), 1, f);
-	fclose(f);
-	return (memcmp(header.magic, CISO_MAGIC, sizeof(header.magic)) == 0);
+	return (f.ReadArray(&header, 1) && (memcmp(header.magic, CISO_MAGIC, sizeof(header.magic)) == 0));
 }
 
 }  // namespace

@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "Common.h"
 #include "Tracer.h"
+#include "FileUtil.h"
 
 #include "Host.h"
 
@@ -27,7 +27,7 @@
 
 namespace Core {
 
-FILE *tracefile;
+File::IOFile tracefile;
 
 bool bReadTrace = false;
 bool bWriteTrace = false;
@@ -36,13 +36,13 @@ void StartTrace(bool write)
 {
 	if (write)
 	{
-		tracefile = fopen("L:\\trace.dat","wb");
+		tracefile.Open("L:\\trace.dat", "wb");
 		bReadTrace = false;
 		bWriteTrace = true;
 	}
 	else
 	{
-		tracefile = fopen("L:\\trace.dat","rb");
+		tracefile.Open("L:\\trace.dat", "rb");
 		bReadTrace = true;
 		bWriteTrace = false;
 	}
@@ -50,11 +50,7 @@ void StartTrace(bool write)
 
 void StopTrace()
 {
-	if (tracefile)
-	{
-		fclose(tracefile);
-		tracefile = NULL;
-	}
+	tracefile.Close();
 }
 
 static int stateSize = 32*4;// + 32*16 + 6*4;
@@ -63,18 +59,16 @@ int SyncTrace()
 {
 	if (bWriteTrace)
 	{
-		fwrite(&PowerPC::ppcState, stateSize, 1, tracefile);
-		fflush(tracefile);
+		tracefile.WriteBytes(&PowerPC::ppcState, stateSize);
+		tracefile.Flush();
 		return 1;
 	}
 	if (bReadTrace)
 	{
 		PowerPC::PowerPCState state;
-		if (feof(tracefile))
-		{
+		if (!tracefile.ReadBytes(&state, stateSize))
 			return 1;
-		}
-		fread(&state, stateSize, 1, tracefile);
+
 		bool difference = false;
 		for (int i=0; i<32; i++)
 		{

@@ -36,17 +36,17 @@ namespace DiscIO
 CompressedBlobReader::CompressedBlobReader(const char *filename)
 {
 	file_name = filename;
-	file = fopen(filename, "rb");
+	m_file.Open(filename, "rb");
 	file_size = File::GetSize(filename);
-	fread(&header, sizeof(CompressedBlobHeader), 1, file);
+	m_file.ReadArray(&header, 1);
 
 	SetSectorSize(header.block_size);
 
 	// cache block pointers and hashes
 	block_pointers = new u64[header.num_blocks];
-	fread(block_pointers, sizeof(u64), header.num_blocks, file);
+	m_file.ReadArray(block_pointers, header.num_blocks);
 	hashes = new u32[header.num_blocks];
-	fread(hashes, sizeof(u32), header.num_blocks, file);
+	m_file.ReadArray(hashes, header.num_blocks);
 
 	data_offset = (sizeof(CompressedBlobHeader))
 		+ (sizeof(u64)) * header.num_blocks   // skip block pointers
@@ -72,8 +72,6 @@ CompressedBlobReader::~CompressedBlobReader()
 	delete [] zlib_buffer;
 	delete [] block_pointers;
 	delete [] hashes;
-	fclose(file);
-	file = 0;
 }
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
@@ -106,8 +104,8 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// clear unused part of zlib buffer. maybe this can be deleted when it works fully.
 	memset(zlib_buffer + comp_block_size, 0, zlib_buffer_size - comp_block_size);
 	
-	fseeko(file, offset, SEEK_SET);
-	fread(zlib_buffer, 1, comp_block_size, file);
+	m_file.Seek(offset, SEEK_SET);
+	m_file.ReadBytes(zlib_buffer, comp_block_size);
 
 	u8* source = zlib_buffer;
 	u8* dest = out_ptr;
@@ -173,16 +171,11 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		scrubbing = true;
 	}
 
-	FILE* inf = fopen(infile, "rb");
-	if (!inf)
-		return false;
+	File::IOFile inf(infile, "rb");
+	File::IOFile f(outfile, "wb");
 
-	FILE* f = fopen(outfile, "wb");
-	if (!f)
-	{
-		fclose(inf);
+	if (!f || !inf)
 		return false;
-	}
 
 	callback("Files opened, ready to compress.", 0, arg);
 
@@ -201,9 +194,9 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	u8* in_buf = new u8[block_size];
 
 	// seek past the header (we will write it at the end)
-	fseeko(f, sizeof(CompressedBlobHeader), SEEK_CUR);
+	f.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
 	// seek past the offset and hash tables (we will write them at the end)
-	fseeko(f, (sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
+	f.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
 
 	// Now we are ready to write compressed data!
 	u64 position = 0;
@@ -215,7 +208,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	{
 		if (i % progress_monitor == 0)
 		{
-			u64 inpos = ftello(inf);
+			const u64 inpos = inf.Tell();
 			int ratio = 0;
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
@@ -229,9 +222,9 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		// u64 size = header.block_size;
 		std::fill(in_buf, in_buf + header.block_size, 0);
 		if (scrubbing)
-			DiscScrubber::GetNextBlock(inf, in_buf);
+			DiscScrubber::GetNextBlock(inf.GetHandle(), in_buf);
 		else
-			fread(in_buf, header.block_size, 1, inf);
+			inf.ReadBytes(in_buf, header.block_size);
 		z_stream z;
 		memset(&z, 0, sizeof(z));
 		z.zalloc = Z_NULL;
@@ -256,7 +249,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 			//PanicAlert("%i %i Store %i", i*block_size, position, comp_size);
 			// let's store uncompressed
 			offsets[i] |= 0x8000000000000000ULL;
-			fwrite(in_buf, block_size, 1, f);
+			f.WriteBytes(in_buf, block_size);
 			hashes[i] = HashAdler32(in_buf, block_size);
 			position += block_size;
 			num_stored++;
@@ -265,7 +258,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		{
 			// let's store compressed
 			//PanicAlert("Comp %i to %i", block_size, comp_size);
-			fwrite(out_buf, comp_size, 1, f);
+			f.WriteBytes(out_buf, comp_size);
 			hashes[i] = HashAdler32(out_buf, comp_size);
 			position += comp_size;
 			num_compressed++;
@@ -277,10 +270,10 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	header.compressed_data_size = position;
 
 	// Okay, go back and fill in headers
-	fseeko(f, 0, SEEK_SET);
-	fwrite(&header, sizeof(header), 1, f);
-	fwrite(offsets, sizeof(u64), header.num_blocks, f);
-	fwrite(hashes, sizeof(u32), header.num_blocks, f);
+	f.Seek(0, SEEK_SET);
+	f.WriteArray(&header, 1);
+	f.WriteArray(offsets, header.num_blocks);
+	f.WriteArray(hashes, header.num_blocks);
 
 cleanup:
 	// Cleanup
@@ -288,8 +281,7 @@ cleanup:
 	delete[] out_buf;
 	delete[] offsets;
 	delete[] hashes;
-	fclose(f);
-	fclose(inf);
+
 	DiscScrubber::Cleanup();
 	callback("Done compressing disc image.", 1.0f, arg);
 	return true;
@@ -306,7 +298,7 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
 	if (!reader) return false;
 
-	FILE* f = fopen(outfile, "wb");
+	File::IOFile f(outfile, "wb");
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
 	int progress_monitor = max<int>(1, header.num_blocks / 100);
@@ -318,19 +310,12 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 			callback("Unpacking", (float)i / (float)header.num_blocks, arg);
 		}
 		reader->Read(i * header.block_size, header.block_size, buffer);
-		fwrite(buffer, header.block_size, 1, f);
+		f.WriteBytes(buffer, header.block_size);
 	}
 
 	delete[] buffer;
 
-#ifdef _WIN32
-	// ector: _chsize sucks, not 64-bit safe
-	// F|RES: changed to _chsize_s. i think it is 64-bit safe
-	_chsize_s(_fileno(f), header.data_size);
-#else
-	ftruncate(fileno(f), header.data_size);
-#endif
-	fclose(f);
+	f.Resize(header.data_size);
 
 	delete reader;
 
@@ -339,15 +324,10 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 
 bool IsCompressedBlob(const char* filename)
 {
-	FILE* f = fopen(filename, "rb");
-
-	if (!f)
-		return false;
+	File::IOFile f(filename, "rb");
 
 	CompressedBlobHeader header;
-	fread(&header, sizeof(header), 1, f);
-	fclose(f);
-	return header.magic_cookie == kBlobCookie;
+	return f.ReadArray(&header, 1) && (header.magic_cookie == kBlobCookie);
 }
 
 }  // namespace

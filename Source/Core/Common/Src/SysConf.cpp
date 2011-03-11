@@ -57,29 +57,32 @@ bool SysConf::LoadFromFile(const char *filename)
 		else
 			return false;
 	}
-	FILE* f = fopen(filename, "rb");
 
-	if (f == NULL)
-		return false;
-	bool result = LoadFromFileInternal(f);
-	if (result)
-		m_Filename = filename;
-	fclose(f);
-	return result;
+	File::IOFile f(filename, "rb");
+	if (f.IsOpen())
+	{
+		if (LoadFromFileInternal(f.ReleaseHandle()))
+		{
+			m_Filename = filename;
+			return true;
+		}
+	}
+
+	return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE *f)
+bool SysConf::LoadFromFileInternal(File::IOFile f)
 {
 	// Fill in infos
 	SSysConfHeader s_Header;
-	if (fread(&s_Header.version, sizeof(s_Header.version), 1, f) != 1) return false;
-	if (fread(&s_Header.numEntries, sizeof(s_Header.numEntries), 1, f) != 1) return false;
+	f.ReadArray(s_Header.version, 4);
+	f.ReadArray(&s_Header.numEntries, 1);
 	s_Header.numEntries = Common::swap16(s_Header.numEntries) + 1;
 
 	for (u16 index = 0; index < s_Header.numEntries; index++)
 	{
 		SSysConfEntry tmpEntry;
-		if (fread(&tmpEntry.offset, sizeof(tmpEntry.offset), 1, f) != 1) return false;
+		f.ReadArray(&tmpEntry.offset, 1);
 		tmpEntry.offset = Common::swap16(tmpEntry.offset);
 		m_Entries.push_back(tmpEntry);
 	}
@@ -89,52 +92,62 @@ bool SysConf::LoadFromFileInternal(FILE *f)
 			i < m_Entries.end() - 1; i++)
 	{
 		SSysConfEntry& curEntry = *i;
-		if (fseeko(f, curEntry.offset, SEEK_SET) != 0) return false;
+		f.Seek(curEntry.offset, SEEK_SET);
 
 		u8 description = 0;
-		if (fread(&description, sizeof(description), 1, f) != 1) return false;
+		f.ReadArray(&description, 1);
 		// Data type
 		curEntry.type = (SysconfType)((description & 0xe0) >> 5);
 		// Length of name in bytes - 1
 		curEntry.nameLength = (description & 0x1f) + 1;
 		// Name
-		if (fread(&curEntry.name, curEntry.nameLength, 1, f) != 1) return false;
+		f.ReadArray(curEntry.name, curEntry.nameLength);
 		curEntry.name[curEntry.nameLength] = '\0';
 		// Get length of data
 		curEntry.dataLength = 0;
 		switch (curEntry.type)
 		{
 		case Type_BigArray:
-			if (fread(&curEntry.dataLength, 2, 1, f) != 1) return false;
+			f.ReadArray(&curEntry.dataLength, 1);
 			curEntry.dataLength = Common::swap16(curEntry.dataLength);
 			break;
+
 		case Type_SmallArray:
-			if (fread(&curEntry.dataLength, 1, 1, f) != 1) return false;
+			{
+			u8 dlength = 0;
+			f.ReadBytes(&dlength, 1);
+			curEntry.dataLength = dlength;
 			break;
+			}
+
 		case Type_Byte:
 		case Type_Bool:
 			curEntry.dataLength = 1;
 			break;
+
 		case Type_Short:
 			curEntry.dataLength = 2;
 			break;
+
 		case Type_Long:
 			curEntry.dataLength = 4;
 			break;
+
 		default:
 			PanicAlertT("Unknown entry type %i in SYSCONF (%s@%x)!",
 				curEntry.type, curEntry.name, curEntry.offset);
 			return false;
+			break;
 		}
 		// Fill in the actual data
 		if (curEntry.dataLength)
 		{
 			curEntry.data = new u8[curEntry.dataLength];
-			if (fread(curEntry.data, curEntry.dataLength, 1, f) != 1) return false;
+			f.ReadArray(curEntry.data, curEntry.dataLength);
 		}
 	}
 
-	return true;
+	return f.IsGood();
 }
 
 // Returns the size of the item in file
@@ -294,88 +307,87 @@ void SysConf::GenerateSysConf()
 		m_Entries.push_back(items[i]);
 
 	File::CreateFullPath(m_FilenameDefault);
-	FILE *g = fopen(m_FilenameDefault.c_str(), "wb");
+	File::IOFile g(m_FilenameDefault, "wb");
 
 	// Write the header and item offsets
-	fwrite(&s_Header.version, sizeof(s_Header.version), 1, g);
-	fwrite(&s_Header.numEntries, sizeof(u16), 1, g);
-	for (int i = 0; i < 27; ++i)
+	g.WriteArray(&s_Header.version, 1);
+	g.WriteArray(&s_Header.numEntries, 1);
+	for (int i = 0; i != 27; ++i)
 	{
-		u16 tmp_offset = Common::swap16(items[i].offset);
-		fwrite(&tmp_offset, 2, 1, g);
+		const u16 tmp_offset = Common::swap16(items[i].offset);
+		g.WriteArray(&tmp_offset, 1);
 	}
 	const u16 end_data_offset = Common::swap16(current_offset);
-	fwrite(&end_data_offset, 2, 1, g);
+	g.WriteArray(&end_data_offset, 1);
 	
 	// Write the items
 	const u8 null_byte = 0;
-	for (int i = 0; i < 27; ++i)
+	for (int i = 0; i != 27; ++i)
 	{
 		u8 description = (items[i].type << 5) | (items[i].nameLength - 1);
-		fwrite(&description, sizeof(description), 1, g);
-		fwrite(&items[i].name, items[i].nameLength, 1, g);
+		g.WriteArray(&description, 1);
+		g.WriteArray(&items[i].name, items[i].nameLength);
 		switch (items[i].type)
 		{
 			case Type_BigArray:
 				{
-					u16 tmpDataLength = Common::swap16(items[i].dataLength);
-					fwrite(&tmpDataLength, 2, 1, g);
-					fwrite(items[i].data, items[i].dataLength, 1, g);
-					fwrite(&null_byte, 1, 1, g);
+					const u16 tmpDataLength = Common::swap16(items[i].dataLength);
+					g.WriteArray(&tmpDataLength, 1);
+					g.WriteBytes(items[i].data, items[i].dataLength);
+					g.WriteArray(&null_byte, 1);
 				}
 				break;
+
 			case Type_SmallArray:
-				fwrite(&items[i].dataLength, 1, 1, g);
-				fwrite(items[i].data, items[i].dataLength, 1, g);
-				fwrite(&null_byte, 1, 1, g);
+				g.WriteArray(&items[i].dataLength, 1);
+				g.WriteBytes(items[i].data, items[i].dataLength);
+				g.WriteBytes(&null_byte, 1);
 				break;
+
 			default:
-				fwrite(items[i].data, items[i].dataLength, 1, g);
+				g.WriteBytes(items[i].data, items[i].dataLength);
 				break;
 		}
 	}
 
 	// Pad file to the correct size
-	const u64 cur_size = File::GetSize(g); 
-	for (unsigned int i = 0; i < 16380 - cur_size; ++i)
-		fwrite(&null_byte, 1, 1, g);
+	const u64 cur_size = g.GetSize();
+	for (unsigned int i = 0; i != 16380 - cur_size; ++i)
+		g.WriteBytes(&null_byte, 1);
 
 	// Write the footer
-	const char footer[5] = "SCed";
-	fwrite(&footer, 4, 1, g);
+	g.WriteBytes("SCed", 4);
 
-	fclose(g);
 	m_Filename = m_FilenameDefault;
 }
 
 bool SysConf::SaveToFile(const char *filename)
 {
-	FILE *f = fopen(filename, "r+b");
-
-	if (f == NULL)
-		return false;
+	File::IOFile f(filename, "r+b");
 
 	for (std::vector<SSysConfEntry>::iterator i = m_Entries.begin();
 			i < m_Entries.end() - 1; i++)
 	{
 		// Seek to after the name of this entry
-		if (fseeko(f, i->offset + i->nameLength + 1, SEEK_SET) != 0) return false;
+		f.Seek(i->offset + i->nameLength + 1, SEEK_SET);
+
 		// We may have to write array length value...
 		if (i->type == Type_BigArray)
 		{
-			u16 tmpDataLength = Common::swap16(i->dataLength);
-			if (fwrite(&tmpDataLength, 2, 1, f) != 1) return false;
+			const u16 tmpDataLength = Common::swap16(i->dataLength);
+			f.WriteArray(&tmpDataLength, 1);
 		}
 		else if (i->type == Type_SmallArray)
 		{
-			if (fwrite(&i->dataLength, 1, 1, f) != 1) return false;
+			const u8 len = i->dataLength;
+			f.WriteArray(&len, 1);
 		}
+
 		// Now write the actual data
-		if (fwrite(i->data, i->dataLength, 1, f) != 1) return false;
+		f.WriteBytes(i->data, i->dataLength);
 	}
 
-	fclose(f);
-	return true;
+	return f.IsGood();
 }
 
 bool SysConf::Save()

@@ -101,7 +101,7 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 	u64 remainingSize = pFileInfo->m_FileSize;
 	u64 fileOffset = pFileInfo->m_Offset;
 
-	FILE* f = fopen(_rExportFilename, "wb");
+	File::IOFile f(_rExportFilename, "wb");
 	if (!f)
 		return false;
 
@@ -122,15 +122,13 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 			break;
 		}
 
-		fwrite(buffer, readSize, 1, f);
+		f.WriteBytes(buffer, readSize);
 
 		remainingSize -= readSize;
 		fileOffset += readSize;
 
 		delete[] buffer;
 	}
-
-	fclose(f);
 
 	return result;
 }
@@ -147,11 +145,11 @@ bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 	{
 		char exportName[512];
 		sprintf(exportName, "%s/apploader.img", _rExportFolder);
-		FILE* AppFile = fopen(exportName, "wb");
+
+		File::IOFile AppFile(exportName, "wb");
 		if (AppFile)
 		{
-			fwrite(buffer, AppSize, 1, AppFile);
-			fclose(AppFile);
+			AppFile.WriteBytes(buffer, AppSize);
 			delete[] buffer;
 			return true;
 		}
@@ -189,11 +187,10 @@ bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 	{
 		char exportName[512];
 		sprintf(exportName, "%s/boot.dol", _rExportFolder);
-		FILE* DolFile = fopen(exportName, "wb");
+		File::IOFile DolFile(exportName, "wb");
 		if (DolFile)
 		{
-			fwrite(buffer, DolSize, 1, DolFile);
-			fclose(DolFile);
+			DolFile.WriteBytes(buffer, DolSize);
 			delete[] buffer;
 			return true;
 		}

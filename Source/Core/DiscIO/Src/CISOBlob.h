@@ -19,8 +19,7 @@
 #define _CISO_BLOB_H
 
 #include "Blob.h"
-
-#include <cstdio>
+#include "FileUtil.h"
 
 #define CISO_MAGIC     "CISO"
 #define CISO_HEAD_SIZE (0x8000)
@@ -32,12 +31,12 @@ namespace DiscIO
 bool IsCISOBlob(const char* filename);
 
 // Blocks that won't compress to less than 97% of the original size are stored as-is.
-typedef struct CISO_Head_t
+struct CISO_Head_t
 {
-   u8  magic[4];            // "CISO"
-   u32 block_size;          // stored as litte endian (not network byte order)
-   u8  map[CISO_MAP_SIZE];  // 0=unused, 1=used, others=invalid
-} CISO_Head_t;
+	u8  magic[4];            // "CISO"
+	u32 block_size;          // stored as litte endian (not network byte order)
+	u8  map[CISO_MAP_SIZE];  // 0=unused, 1=used, others=invalid
+};
 
 typedef u16 CISO_Map_t;
 
@@ -45,15 +44,15 @@ const CISO_Map_t CISO_UNUSED_BLOCK = (CISO_Map_t)~0;
 
 class CISOFileReader : public IBlobReader
 {
-	FILE* file_;
-	CISOFileReader(FILE* file__);
-	s64 size;
+	File::IOFile m_file;
+	CISOFileReader(std::FILE* file);
+	s64 m_size;
 
 public:
 	static CISOFileReader* Create(const char* filename);
-	~CISOFileReader();
-	u64 GetDataSize() const { return size; }
-	u64 GetRawSize() const { return size; }
+
+	u64 GetDataSize() const { return m_size; }
+	u64 GetRawSize() const { return m_size; }
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
 
 private:

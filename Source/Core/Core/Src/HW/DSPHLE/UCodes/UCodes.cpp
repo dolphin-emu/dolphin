@@ -148,12 +148,9 @@ void IUCode::PrepareBootUCode(u32 mail)
 		char binFile[MAX_PATH];
 		sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
 
-		FILE* pFile = fopen(binFile, "wb");
+		File::IOFile pFile(binFile, "wb");
 		if (pFile)
-		{
-			fwrite((u8*)Memory::GetPointer(m_NextUCode.iram_mram_addr), m_NextUCode.iram_size, 1, pFile);
-			fclose(pFile);
-		}
+		pFile.WriteArray((u8*)Memory::GetPointer(m_NextUCode.iram_mram_addr), m_NextUCode.iram_size);
 #endif
 
 		DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);

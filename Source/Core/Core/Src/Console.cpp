@@ -104,13 +104,12 @@ void Console_Submit(const char *cmd)
 		u32 end;
 		sscanf(cmd, "%s %08x %08x %s", temp, &start, &end, filename);
 
-		FILE *f = fopen(filename, "wb");
+		File::IOFile f(filename, "wb");
 		for (u32 i = start; i < end; i++)
 		{
 			u8 b = Memory::ReadUnchecked_U8(i);
-			fputc(b,f);
+			fputc(b, f.GetHandle());
 		}
-		fclose(f);
 		INFO_LOG(CONSOLE, "Dumped from %08x to %08x to %s",start,end,filename);
 	}
 	CASE("disa")

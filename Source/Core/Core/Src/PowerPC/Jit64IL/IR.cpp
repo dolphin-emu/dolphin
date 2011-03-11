@@ -1225,20 +1225,18 @@ InstLoc IRBuilder::isNeg(InstLoc I) const {
 }
 
 // TODO: Move the following code to a separated file.
-struct Writer {
-	FILE* file;
-	Writer() : file(NULL) {
+struct Writer
+{
+	File::IOFile file;
+	Writer() : file(NULL)
+	{
 		char buffer[1024];
 		sprintf(buffer, "JitIL_IR_%d.txt", (int)time(NULL));
-		file = fopen(buffer, "w");
-		setvbuf(file, NULL, _IOFBF, 1024 * 1024);
+		file.Open(buffer, "w");
+		setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
 	}
-	virtual ~Writer() {
-		if (file) {
-			fclose(file);
-			file = NULL;
-		}
-	}
+
+	virtual ~Writer() {}
 };
 
 static std::auto_ptr<Writer> writer;
@@ -1295,7 +1293,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 		writer = std::auto_ptr<Writer>(new Writer);
 	}
 
-	FILE* file = writer->file;
+	FILE* const file = writer->file.GetHandle();
 	fprintf(file, "\ncode hash:%016llx\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;

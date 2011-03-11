@@ -31,6 +31,7 @@
 #include "DSPHost.h"
 #include "DSPAnalyzer.h"
 #include "MemoryUtil.h"
+#include "FileUtil.h"
 
 #include "DSPHWInterface.h"
 #include "DSPIntUtil.h"
@@ -45,12 +46,12 @@ static std::mutex ExtIntCriticalSection;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
-	FILE *pFile = fopen(fname, "rb");
+	File::IOFile pFile(fname, "rb");
 	const size_t size_in_bytes = size_in_words * sizeof(u16);
 	if (pFile)
 	{
-		fread(rom, 1, size_in_bytes, pFile);
-		fclose(pFile);
+		pFile.ReadArray(rom, size_in_words);
+		pFile.Close();
 	
 		// Byteswap the rom.
 		for (int i = 0; i < size_in_words; i++)

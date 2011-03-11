@@ -205,16 +205,16 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		break;
 	}
 
-	FILE* pTmp = fopen(filename.c_str(), "rb");
+	{
+	File::IOFile pTmp(filename, "rb");
 	if (!pTmp)
 	{
 		PanicAlertT("SetupWiiMem: Cant find setting file");	
 		return false;
 	}
 
-	fread(Memory::GetPointer(0x3800), 256, 1, pTmp);
-	fclose(pTmp);
-
+	pTmp.ReadBytes(Memory::GetPointer(0x3800), 256);
+	}
 
 	/*
 	Set hardcoded global variables to Wii memory. These are partly collected from

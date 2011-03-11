@@ -27,8 +27,6 @@
 // - Zero backwards/forwards compatibility
 // - Serialization code for anything complex has to be manually written.
 
-#include <stdio.h>
-
 #include <map>
 #include <vector>
 #include <string>
@@ -189,63 +187,58 @@ public:
 			return false;
 				
 		// Check file size
-		u64 fileSize = File::GetSize(_rFilename);
-		u64 headerSize = sizeof(SChunkHeader);
-		if (fileSize < headerSize) {
+		const u64 fileSize = File::GetSize(_rFilename);
+		static const u64 headerSize = sizeof(SChunkHeader);
+		if (fileSize < headerSize)
+		{
 			ERROR_LOG(COMMON,"ChunkReader: File too small");
 			return false;
 		}
 
-		FILE* pFile = fopen(_rFilename.c_str(), "rb");
-		if (!pFile) { 
+		File::IOFile pFile(_rFilename, "rb");
+		if (!pFile)
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Can't open file for reading");
 			return false;
 		}
 
 		// read the header
 		SChunkHeader header;
-		if (fread(&header, 1, headerSize, pFile) != headerSize) {
-			fclose(pFile);
+		if (!pFile.ReadArray(&header, 1))
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Bad header size");
 			return false;
 		}
 		
 		// Check revision
-		if (header.Revision != _Revision) {
-			fclose(pFile);
+		if (header.Revision != _Revision)
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Wrong file revision, got %d expected %d",
-					  header.Revision, _Revision);
+				header.Revision, _Revision);
 			return false;
 		}
 		
 		// get size
-		int sz = (int)(fileSize - headerSize);
-		if (header.ExpectedSize != sz) {
-			fclose(pFile);
+		const int sz = (int)(fileSize - headerSize);
+		if (header.ExpectedSize != sz)
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Bad file size, got %d expected %d",
-					  sz, header.ExpectedSize);
+				sz, header.ExpectedSize);
 			return false;
 		}
 		
 		// read the state
 		u8* buffer = new u8[sz];
-		if ((int)fread(buffer, 1, sz, pFile) != sz) {
-			fclose(pFile);
+		if (!pFile.ReadBytes(buffer, sz))
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Error reading file");
-			return false;
-		}
-
-		// done reading
-		if (fclose(pFile)) {
-			ERROR_LOG(COMMON,"ChunkReader: Error closing file! might be corrupted!");
-			// should never happen!
 			return false;
 		}
 
 		u8 *ptr = buffer;
 		PointerWrap p(&ptr, PointerWrap::MODE_READ);
 		_class.DoState(p);
-		delete [] buffer;
+		delete[] buffer;
 		
 		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , _rFilename.c_str());
 		return true;
@@ -255,11 +248,10 @@ public:
 	template<class T>
 	static bool Save(const std::string& _rFilename, int _Revision, T& _class)
 	{
-		FILE* pFile;
-
 		INFO_LOG(COMMON, "ChunkReader: Writing %s" , _rFilename.c_str());
-		pFile = fopen(_rFilename.c_str(), "wb");
-		if (!pFile) {
+		File::IOFile pFile(_rFilename, "wb");
+		if (!pFile)
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Error opening file for write");
 			return false;
 		}
@@ -281,18 +273,15 @@ public:
 		header.ExpectedSize = (int)sz;
 		
 		// Write to file
-		if (fwrite(&header, sizeof(SChunkHeader), 1, pFile) != 1) {
+		if (!pFile.WriteArray(&header, 1))
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Failed writing header");
 			return false;
 		}
 
-		if (fwrite(buffer, sz, 1, pFile) != 1) {
+		if (!pFile.WriteBytes(buffer, sz))
+		{
 			ERROR_LOG(COMMON,"ChunkReader: Failed writing data");
-			return false;
-		}
-
-		if (fclose(pFile)) {
-			ERROR_LOG(COMMON,"ChunkReader: Error closing file! might be corrupted!");
 			return false;
 		}
 		

@@ -486,18 +486,15 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (File::Exists(TicketFilename))
 			{
 				const u32 SIZE_OF_ONE_TICKET = 676;
-				FILE* pFile = fopen(TicketFilename.c_str(), "rb");
+				File::IOFile pFile(TicketFilename, "rb");
 				if (pFile)
 				{
-					unsigned int View = 0;
 					u8 Ticket[SIZE_OF_ONE_TICKET];
-					while (View < maxViews && fread(Ticket, SIZE_OF_ONE_TICKET, 1, pFile) == 1)
+					for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(Ticket, SIZE_OF_ONE_TICKET); ++View)
 					{
 						Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
 						Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
-						View++;
 					}
-					fclose(pFile);
 				}
 			}
 			else
@@ -865,15 +862,10 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	File::CreateFullPath(dataPath);
 	if(!File::Exists(tmdPath))
 	{
-		FILE* _pTMDFile = fopen(tmdPath.c_str(), "wb");
-		if (_pTMDFile)
-		{
-			if (fwrite(_pTMD, _sz, 1, _pTMDFile) != 1)
-				ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc tmd to nand");
-			fclose(_pTMDFile);
-		}
+		File::IOFile _pTMDFile(tmdPath, "wb");
+		if (!_pTMDFile.WriteBytes(_pTMD, _sz))
+			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc tmd to nand");
 	}
 	DiscIO::cUIDsys::AccessInstance().AddTitle(tmdTitleID);
 	return 0;
 }
-

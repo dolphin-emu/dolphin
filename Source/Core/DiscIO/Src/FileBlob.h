@@ -19,23 +19,23 @@
 #define _FILE_BLOB_H
 
 #include "Blob.h"
-
-#include <cstdio>
+#include "FileUtil.h"
 
 namespace DiscIO
 {
 
 class PlainFileReader : public IBlobReader
 {
-	FILE* file_;
-	PlainFileReader(FILE* file__);
-	s64 size;
+	PlainFileReader(std::FILE* file);
+
+	File::IOFile m_file;
+	s64 m_size;
 
 public:
 	static PlainFileReader* Create(const char* filename);
-	~PlainFileReader();
-	u64 GetDataSize() const { return size; }
-	u64 GetRawSize() const { return size; }
+
+	u64 GetDataSize() const { return m_size; }
+	u64 GetRawSize() const { return m_size; }
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
 };
 

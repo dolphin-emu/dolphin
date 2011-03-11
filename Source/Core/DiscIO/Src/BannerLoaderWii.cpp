@@ -87,11 +87,10 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	if (FileSize > 0)
 	{
 		m_pBannerFile = new u8[FileSize];
-		FILE* pFile = fopen(Filename, "rb");
+		File::IOFile pFile(Filename, "rb");
 		if (pFile)
 		{
-			fread(m_pBannerFile, FileSize, 1, pFile);
-			fclose(pFile);
+			pFile.ReadBytes(m_pBannerFile, FileSize);
 			m_IsValid = true;
 		}
 	}

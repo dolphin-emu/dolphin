@@ -29,15 +29,16 @@ CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
 CDolLoader::CDolLoader(const char* _szFilename)
 	: m_isWii(false)
 {
-	u64 size = File::GetSize(_szFilename);
-	u8* tmpBuffer = new u8[(size_t)size];
+	const u64 size = File::GetSize(_szFilename);
+	u8* const tmpBuffer = new u8[(size_t)size];
 
-	FILE* pStream = fopen(_szFilename, "rb");	
-	fread(tmpBuffer, (size_t)size, 1, pStream);
-	fclose(pStream);
+	{
+	File::IOFile pStream(_szFilename, "rb");	
+	pStream.ReadBytes(tmpBuffer, (size_t)size);
+	}
 
 	Initialize(tmpBuffer, (u32)size);
-	delete [] tmpBuffer;
+	delete[] tmpBuffer;
 }
 
 CDolLoader::~CDolLoader()

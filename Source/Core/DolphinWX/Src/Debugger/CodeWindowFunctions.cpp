@@ -280,34 +280,33 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 	case IDM_RENAME_SYMBOLS:
 		{
-			wxString path = wxFileSelector(
+			const wxString path = wxFileSelector(
 				_("Apply signature file"), wxEmptyString,
 				wxEmptyString, wxEmptyString,
 				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
 				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-			if (! path.IsEmpty())
-			{
-				FILE *f = fopen(path.mb_str(), "r");
-				if (!f)
-					return;
 
-				while (!feof(f))
+			if (!path.IsEmpty())
+			{
+				std::ifstream f(path.mb_str());
+
+				std::string line;
+				while (std::getline(f, line))
 				{
-					char line[512];
-					fgets(line, 511, f);
-					if (strlen(line) < 4)
+					if (line.length() < 12)
 						continue;
 
 					u32 address, type;
-					char name[512];
-					sscanf(line, "%08x %02i %s", &address, &type, name);
+					std::string name;
+
+					std::istringstream ss(line);
+					ss >> std::hex >> address >> std::dec >> type >> name;
 
 					Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
-					if (symbol) {
-						symbol->name = line+12;
-					}
+					if (symbol)
+						symbol->name = line.substr(12);
 				}
-				fclose(f);
+
 				Host_NotifyMapLoaded();
 			}
 		}
