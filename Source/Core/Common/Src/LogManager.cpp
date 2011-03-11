@@ -83,7 +83,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manager", "MemCard Manager");
 	m_Log[LogTypes::NETPLAY]			= new LogContainer("NETPLAY",		"Netplay");
 
-	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX).c_str());
+	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
 	m_consoleLog = new ConsoleListener();
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
@@ -176,14 +176,13 @@ void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
 	}
 }
 
-FileLogListener::FileLogListener(const char *filename) {
-	m_filename = strndup(filename, 255);
-	m_logfile = fopen(filename, "a+");
+FileLogListener::FileLogListener(std::string filename) {
+	m_filename = filename;
+	m_logfile = fopen(filename.c_str(), "a+");
 	setEnable(true);
 }
 
 FileLogListener::~FileLogListener() {
-	free(m_filename);
 	if (m_logfile)
 		fclose(m_logfile);
 }

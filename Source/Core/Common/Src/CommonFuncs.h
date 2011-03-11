@@ -45,8 +45,6 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 #include <errno.h>
 #ifdef __linux__
 #include <byteswap.h>
-#else
-char * strndup(char const *s, size_t n);
 #endif
 
 // go to debugger mode
@@ -86,7 +84,6 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define unlink _unlink
 	#define snprintf _snprintf
 	#define vscprintf _vscprintf
-char* strndup (char const *s, size_t n);	
 
 // 64 bit offsets for windows
 	#define fseeko _fseeki64

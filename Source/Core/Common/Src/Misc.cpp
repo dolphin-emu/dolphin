@@ -36,27 +36,3 @@ const char *GetLastErrorMsg()
 #endif
 	return errStr;
 }
-
-#if !defined(__linux__) && !defined(_WIN32)
-// strlen with cropping after size n
-static size_t strnlen(const char *s, size_t n)
-{
-	const char *p = (const char *)memchr(s, 0, n);
-
-	return p ? (size_t)(p - s) : n;
-}
-#endif
-#if defined(_WIN32) || !(__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-// strdup with cropping after size n
-char* strndup(char const *s, size_t n)
-{
-	size_t len = strnlen(s, n);
-	char *dup = (char *)malloc(len + 1);
-
-	if (dup == NULL)
-		return NULL;
-	
-	dup[len] = '\0';
-	return (char *)memcpy(dup, s, len);
-}
-#endif

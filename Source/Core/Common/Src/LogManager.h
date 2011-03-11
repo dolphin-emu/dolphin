@@ -40,7 +40,7 @@ public:
 
 class FileLogListener : public LogListener {
 public:
-	FileLogListener(const char *filename);
+	FileLogListener(std::string filename);
 	~FileLogListener();
 
 	void Log(LogTypes::LOG_LEVELS, const char *msg);
@@ -60,7 +60,7 @@ public:
 	const char *getName() const { return "file"; }
 
 private:
-	char *m_filename;
+	std::string m_filename;
 	FILE *m_logfile;
 	bool m_enable;
 };
