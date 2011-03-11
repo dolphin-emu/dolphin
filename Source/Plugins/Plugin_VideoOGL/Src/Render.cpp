@@ -517,7 +517,7 @@ Renderer::~Renderer()
 		s_bAVIDumping = false;
 	}
 #else
-	if (s_bLastFrameDumped)
+	if (f_pFrameDump.IsOpen())
 		f_pFrameDump.Close();
 	s_bLastFrameDumped = false;
 #endif
