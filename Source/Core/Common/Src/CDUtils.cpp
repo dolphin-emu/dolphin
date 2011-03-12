@@ -23,47 +23,33 @@
 #endif
 
 #ifdef _WIN32
-// Returns a string that can be used in a CreateFile call if
-// c_drive letter is a character. If not NULL is returned.
-const char *is_cdrom(const char c_drive_letter)
+// takes a root drive path, returns true if it is a cdrom drive
+bool is_cdrom(const char drive[])
 {
-	UINT uDriveType;
-	char sz_win32_drive[4];
-
-	sz_win32_drive[0]= c_drive_letter;
-	sz_win32_drive[1]=':';
-	sz_win32_drive[2]='\\';
-	sz_win32_drive[3]='\0';
-
-	uDriveType = GetDriveType(sz_win32_drive);
-
-	switch(uDriveType)
-	{
-		case DRIVE_CDROM:
-		{
-			  char sz_win32_drive_full[] = "\\\\.\\X:";
-			  sz_win32_drive_full[4] = c_drive_letter;
-			  return __strdup(&sz_win32_drive_full[4]);
-		}
-		default:
-		{
-			//cdio_debug("Drive %c is not a CD-ROM", c_drive_letter);
-			return NULL;
-		}
-	}
+	return (DRIVE_CDROM == GetDriveType(drive));
 }
 
-// Returns a pointer to an array of strings with the device names
-std::vector<std::string> cdio_get_devices() {
+// Returns a vector with the device names
+std::vector<std::string> cdio_get_devices()
+{
 	std::vector<std::string> drives;
-	char drive_letter;
 
-	// Scan the system for CD-ROM drives.
-	for (drive_letter='A'; drive_letter <= 'Z'; drive_letter++) {
-		const char *drive_str=is_cdrom(drive_letter);
-		if (drive_str != NULL) {
-			drives.push_back(drive_str);
-			delete drive_str;
+	const DWORD buffsize = GetLogicalDriveStrings(0, NULL);
+	std::unique_ptr<char[]> buff(new char[buffsize]);
+	if (GetLogicalDriveStrings(buffsize, buff.get()) == buffsize - 1)
+	{
+		const char* drive = buff.get();
+		while (*drive)
+		{
+			if (is_cdrom(drive))
+			{
+				std::string str(drive);
+				str.pop_back();	// we don't want the final backslash
+				drives.push_back(std::move(str));
+			}
+
+			// advance to next drive
+			while (*drive++) {}
 		}
 	}
 	return drives;
