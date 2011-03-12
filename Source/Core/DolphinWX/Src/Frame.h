@@ -145,7 +145,7 @@ class CFrame : public CRenderFrame
 		#ifdef __WXGTK__
 		Common::Event panic_event;
 		bool bPanicResult;
-		std::recursive_mutex keystate_lock;
+		std::mutex keystate_lock;
 		#endif
 
 		#if defined(HAVE_XRANDR) && HAVE_XRANDR
