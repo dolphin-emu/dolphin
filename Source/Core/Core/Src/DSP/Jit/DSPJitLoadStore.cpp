@@ -39,7 +39,10 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(reg, tmp1, ZERO);
+	if (reg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(reg, tmp1, ZERO);
+	else
+		dsp_op_read_reg(reg, tmp1, ZERO);
 	dsp_op_read_reg(DSP_REG_CR, RAX, ZERO);
 	SHL(16, R(EAX), Imm8(8));
 	OR(16, R(EAX), Imm16(opc & 0xFF));
@@ -77,7 +80,6 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
 // 0000 0000 110d dddd
 // mmmm mmmm mmmm mmmm
 // Move value from data memory pointed by address M to register $D.
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lr(const UDSPInstruction opc)
 {
 	int reg = opc & DSP_REG_MASK;
@@ -91,7 +93,6 @@ void DSPEmitter::lr(const UDSPInstruction opc)
 // 0000 0000 111s ssss
 // mmmm mmmm mmmm mmmm
 // Store value from register $S to a memory pointed by address M.
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::sr(const UDSPInstruction opc)
 {
 	u8 reg   = opc & DSP_REG_MASK;
@@ -100,7 +101,10 @@ void DSPEmitter::sr(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(reg, tmp1);
+	if (reg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(reg, tmp1);
+	else
+		dsp_op_read_reg(reg, tmp1);
 	dmem_write_imm(address, tmp1);
 
 	gpr.putXReg(tmp1);
@@ -128,7 +132,6 @@ void DSPEmitter::si(const UDSPInstruction opc)
 // LRR $D, @$S
 // 0001 1000 0ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lrr(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -150,7 +153,6 @@ void DSPEmitter::lrr(const UDSPInstruction opc)
 // 0001 1000 1ssd dddd
 // Move value from data memory pointed by addressing register $S toregister $D.
 // Decrement register $S. 
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lrrd(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -173,7 +175,6 @@ void DSPEmitter::lrrd(const UDSPInstruction opc)
 // 0001 1001 0ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
 // Increment register $S. 
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lrri(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -196,7 +197,6 @@ void DSPEmitter::lrri(const UDSPInstruction opc)
 // 0001 1001 1ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
 // Add indexing register $(0x4+S) to register $S. 
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lrrn(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -219,7 +219,6 @@ void DSPEmitter::lrrn(const UDSPInstruction opc)
 // 0001 1010 0dds ssss
 // Store value from source register $S to a memory location pointed by 
 // addressing register $D. 
-// FIXME: Perform additional operation depending on source register.
 void DSPEmitter::srr(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -228,7 +227,10 @@ void DSPEmitter::srr(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(sreg, tmp1);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(sreg, tmp1);
+	else
+		dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -239,7 +241,6 @@ void DSPEmitter::srr(const UDSPInstruction opc)
 // 0001 1010 1dds ssss
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Decrement register $D. 
-// FIXME: Perform additional operation depending on source register.
 void DSPEmitter::srrd(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -248,7 +249,10 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(sreg, tmp1);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(sreg, tmp1);
+	else
+		dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -261,7 +265,6 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
 // 0001 1011 0dds ssss
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Increment register $D. 
-// FIXME: Perform additional operation depending on source register.
 void DSPEmitter::srri(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -270,7 +273,10 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(sreg, tmp1);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(sreg, tmp1);
+	else
+		dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -283,7 +289,6 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 // 0001 1011 1dds ssss
 // Store value from source register $S to a memory location pointed by
 // addressing register $D. Add DSP_REG_IX0 register to register $D.
-// FIXME: Perform additional operation depending on source register.
 void DSPEmitter::srrn(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -292,7 +297,10 @@ void DSPEmitter::srrn(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg(sreg, tmp1);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(sreg, tmp1);
+	else
+		dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -319,7 +327,7 @@ void DSPEmitter::ilrr(const UDSPInstruction opc)
 	gpr.putXReg(tmp1);
 
 	set_acc_m(dreg, R(RAX));
-	dsp_conditional_extend_accum(dreg);
+	dsp_conditional_extend_accum(dreg + DSP_REG_ACM0);
 }
 
 // ILRRD $acD.m, @$arS
@@ -340,7 +348,7 @@ void DSPEmitter::ilrrd(const UDSPInstruction opc)
 	gpr.putXReg(tmp1);
 
 	set_acc_m(dreg, R(RAX));
-	dsp_conditional_extend_accum(dreg);
+	dsp_conditional_extend_accum(dreg + DSP_REG_ACM0);
 	decrement_addr_reg(reg);
 }
 
@@ -362,7 +370,7 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 	gpr.putXReg(tmp1);
 
 	set_acc_m(dreg, R(RAX));
-	dsp_conditional_extend_accum(dreg);
+	dsp_conditional_extend_accum(dreg + DSP_REG_ACM0);
 	increment_addr_reg(reg);
 }
 
@@ -385,7 +393,7 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
 	gpr.putXReg(tmp1);
 
 	set_acc_m(dreg, R(RAX));
-	dsp_conditional_extend_accum(dreg);
+	dsp_conditional_extend_accum(dreg + DSP_REG_ACM0);
 	increase_addr_reg(reg, reg);
 }
 

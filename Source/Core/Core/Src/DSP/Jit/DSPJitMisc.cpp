@@ -239,16 +239,105 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 	}
 }
 
+void DSPEmitter::dsp_op_read_reg_and_saturate(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend)
+{
+	//we already know this is ACCM0 or ACCM1
+#ifdef _M_IX86 // All32
+	gpr.readReg(reg, host_dreg, extend);
+#else
+	OpArg acc_reg;
+	gpr.getReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, acc_reg);
+#endif
+	OpArg sr_reg;
+	gpr.getReg(DSP_REG_SR,sr_reg);
+
+	DSPJitRegCache c(gpr);
+	TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
+	FixupBranch not_40bit = J_CC(CC_Z, true);
+
+#ifdef _M_IX86 // All32
+	DSPJitRegCache c2(gpr);
+	gpr.putReg(DSP_REG_SR, false);
+	X64Reg tmp1;
+	gpr.getFreeXReg(tmp1);
+	gpr.readReg(reg-DSP_REG_ACM0+DSP_REG_ACH0, tmp1, NONE);
+	MOVSX(32,16,host_dreg,R(host_dreg));
+	SHL(32, R(tmp1), Imm8(16));
+	MOV(16,R(tmp1),R(host_dreg));
+	CMP(32,R(host_dreg), R(tmp1));
+
+	FixupBranch no_saturate = J_CC(CC_Z);
+
+	CMP(32,R(tmp1),Imm32(0));
+	FixupBranch negative = J_CC(CC_LE);
+
+	MOV(32,R(host_dreg),Imm32(0x7fff));//this works for all extend modes
+	FixupBranch done_positive = J();
+
+	SetJumpTarget(negative);
+	if (extend == NONE || extend == ZERO)
+		MOV(32,R(host_dreg),Imm32(0x00008000));
+	else
+		MOV(32,R(host_dreg),Imm32(0xffff8000));
+	FixupBranch done_negative = J();
+
+	SetJumpTarget(no_saturate);
+	if (extend == ZERO)
+		MOVZX(32,16,host_dreg,R(host_dreg));
+	SetJumpTarget(done_positive);
+	SetJumpTarget(done_negative);
+	gpr.putXReg(tmp1);
+	gpr.flushRegs(c2);
+	SetJumpTarget(not_40bit);
+	gpr.flushRegs(c);
+#else
+
+	MOVSX(64,32,host_dreg,acc_reg);
+	CMP(64,R(host_dreg),acc_reg);
+	FixupBranch no_saturate = J_CC(CC_Z);
+
+	CMP(64,acc_reg,Imm32(0));
+	FixupBranch negative = J_CC(CC_LE);
+
+	MOV(64,R(host_dreg),Imm32(0x7fff));//this works for all extend modes
+	FixupBranch done_positive = J();
+
+	SetJumpTarget(negative);
+	if (extend == NONE || extend == ZERO)
+		MOV(64,R(host_dreg),Imm32(0x00008000));
+	else
+		MOV(64,R(host_dreg),Imm32(0xffff8000));
+	FixupBranch done_negative = J();
+
+	SetJumpTarget(no_saturate);
+	SetJumpTarget(not_40bit);
+
+	MOV(64, R(host_dreg), acc_reg);
+	if (extend == NONE || extend == ZERO)
+		SHR(64, R(host_dreg), Imm8(16));
+	else
+		SAR(64, R(host_dreg), Imm8(16));
+	SetJumpTarget(done_positive);
+	SetJumpTarget(done_negative);
+	gpr.flushRegs(c);
+	gpr.putReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, false);
+#endif
+
+	gpr.putReg(DSP_REG_SR, false);
+}
+
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::mrr(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x1f;
 	u8 dreg = (opc >> 5) & 0x1f;
 
-	dsp_op_read_reg(sreg, EDX);
+	if (sreg >= DSP_REG_ACM0)
+		dsp_op_read_reg_and_saturate(sreg, EDX);
+	else
+		dsp_op_read_reg(sreg, EDX);
 	dsp_op_write_reg(dreg, EDX);
 	dsp_conditional_extend_accum(dreg);
 }
@@ -273,7 +362,6 @@ void DSPEmitter::lri(const UDSPInstruction opc)
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
 // Load immediate value I (8-bit sign extended) to accumulator register.
-// FIXME: Perform additional operation depending on destination register.
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
 	u8 reg  = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
