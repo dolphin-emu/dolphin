@@ -196,7 +196,7 @@ void SysConf::GenerateSysConf()
 	// BT.DINF
 	current_offset += create_item(items[0], Type_BigArray, "BT.DINF", 0x460, current_offset);
 	items[0].data[0] = 4;
-	for (unsigned int i = 0; i < 4; ++i)
+	for (u8 i = 0; i < 4; ++i)
 	{
 		const u8 bt_addr[6] = {i, 0x00, 0x79, 0x19, 0x02, 0x11};
 		memcpy(&items[0].data[1 + 70 * i], bt_addr, sizeof(bt_addr));

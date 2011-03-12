@@ -7,6 +7,7 @@
 
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 // GCC 4.4 provides <thread>
+#define _GLIBCXX_USE_SCHED_YIELD
 #include <thread>
 #else
 

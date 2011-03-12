@@ -248,7 +248,7 @@ void VertexLoader::CompileVertexTranslator()
 	// 01 become 00, and 10/11 become 01
 	const int tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (m_VtxDesc.Hex >> 31) & 3
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const int)((m_VtxDesc.Hex >> 31) & 3)
 	};
 	
 	// Reset pipeline

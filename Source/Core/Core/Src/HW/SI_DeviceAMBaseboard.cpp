@@ -42,7 +42,7 @@ public:
 	void start(int node)
 	{
 		m_last_start = m_ptr;
-		unsigned char hdr[3] = {0xe0, node, 0};
+		unsigned char hdr[3] = {0xe0, (unsigned char)node, 0};
 		m_csum = 0;
 		addData(hdr, 3, 1);
 	}

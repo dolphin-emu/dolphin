@@ -83,7 +83,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	// TextureCoord
 	const int tcDesc[8] = {
 		g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord,
-		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (g_VtxDesc.Hex >> 31) & 3
+		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
 	};
     const int tcElements[8] = {
         m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements, 

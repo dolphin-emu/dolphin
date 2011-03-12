@@ -361,7 +361,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 					num_draw_call++;
 					const int tc[12] = {
 						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (g_VtxDesc.Hex >> 31) & 3
+						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
 					};
 					for(int i = 0; i < 12; i++)
 					{
@@ -562,7 +562,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 					}					
 					const int tc[12] = {
 						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (g_VtxDesc.Hex >> 31) & 3
+						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
 					};
 					for(int i = 0; i < 12; i++)
 					{

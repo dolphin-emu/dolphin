@@ -294,7 +294,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			}
 			else if (viewAsType == VIEWAS_ASCII)
 			{
-				char a[4] = {(mem_data&0xff000000)>>24,
+				u32 a[4] = {(mem_data&0xff000000)>>24,
 					(mem_data&0xff0000)>>16,
 					(mem_data&0xff00)>>8,
 					mem_data&0xff};
