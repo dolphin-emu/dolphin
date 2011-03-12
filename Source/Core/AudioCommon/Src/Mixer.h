@@ -44,6 +44,8 @@ public:
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
 		m_sampleRate = BackendSampleRate;
 
+		memset(m_buffer, 0, sizeof(m_buffer));
+
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
 

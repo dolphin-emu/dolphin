@@ -62,12 +62,12 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_sampleRate == 32000)
 		{
 #if _M_SSE >= 0x301
-			static const __m128i sr_mask =
-				_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-					0x04050607L, 0x00010203L);
-
 			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
 			{
+				static const __m128i sr_mask =
+					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
+						      0x04050607L, 0x00010203L);
+
 				for (unsigned int i = 0; i < numLeft * 2; i += 8)
 				{
 					_mm_storeu_si128((__m128i *)&samples[i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&m_buffer[(m_indexR + i) & INDEX_MASK]), sr_mask));
@@ -123,7 +123,14 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 
 	// Padding
 	if (numSamples > numLeft)
-		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+	{
+		unsigned short s[2];
+		s[0] = Common::swap16(m_buffer[(m_indexR - 1) & INDEX_MASK]);
+		s[1] = Common::swap16(m_buffer[(m_indexR - 2) & INDEX_MASK]);
+		for (unsigned int i = numLeft*2; i < numSamples*2; i+=2)
+			*(u32*)(samples+i) = *(u32*)(s);
+//		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+	}
 
 	//when logging, also throttle HLE audio
 	if (m_logAudio) {
