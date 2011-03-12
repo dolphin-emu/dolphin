@@ -1036,15 +1036,24 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	if (!m_ready) // Make sure we initialized OK
 		return 0;
 
+	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
+	// texture, which is invalid.
+	EFBRectangle correctSrc = srcRect;
+	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
+
+	// Validate source rect size
+	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
+		return 0;
+
 	HRESULT hr;
 
 	unsigned int blockW = BLOCK_WIDTHS[dstFormat];
 	unsigned int blockH = BLOCK_HEIGHTS[dstFormat];
 
 	// Round up source dims to multiple of block size
-	unsigned int actualWidth = srcRect.GetWidth() / (scaleByHalf ? 2 : 1);
+	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
 	actualWidth = (actualWidth + blockW-1) & ~(blockW-1);
-	unsigned int actualHeight = srcRect.GetHeight() / (scaleByHalf ? 2 : 1);
+	unsigned int actualHeight = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
 	actualHeight = (actualHeight + blockH-1) & ~(blockH-1);
 
 	unsigned int numBlocksX = actualWidth/blockW;
@@ -1055,10 +1064,10 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		cacheLinesPerRow = numBlocksX*2;
 	else
 		cacheLinesPerRow = numBlocksX;
-	CHECK(cacheLinesPerRow*32 <= MAX_BYTES_PER_BLOCK_ROW, "cache lines per row sanity check");
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= MAX_BYTES_PER_BLOCK_ROW, "cache lines per row sanity check");
 
 	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
-	CHECK(totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
+	_assert_msg_(VIDEO, totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
 
 	size_t encodeSize = 0;
 	
@@ -1100,8 +1109,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		EFBEncodeParams params = { 0 };
 		params.NumHalfCacheLinesX = FLOAT(cacheLinesPerRow*2);
 		params.NumBlocksY = FLOAT(numBlocksY);
-		params.PosX = FLOAT(srcRect.left);
-		params.PosY = FLOAT(srcRect.top);
+		params.PosX = FLOAT(correctSrc.left);
+		params.PosY = FLOAT(correctSrc.top);
 		params.TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
 		params.TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
 		params.TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
