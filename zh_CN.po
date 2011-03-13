@@ -37,12 +37,12 @@ msgid ""
 " Create a new 16MB Memcard?"
 msgstr ""
 "\"%s\" 不存在.\n"
-" 创建一个新的 16MB 内存卡?"
+" 创建一个新的 16MB 记忆卡?"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:141
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
-msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件, 或者不是一个 GC/Wii 镜像."
+msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件, 或者不是一个 GC/Wii 光盘镜像."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:193
 #, c-format
@@ -65,7 +65,7 @@ msgstr "%s 已经存在,覆盖吗?"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:169
 #, c-format
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
-msgstr "%s failed to be scrubbed. Probably the image is corrupt."
+msgstr "压缩 %s 失败.可能镜像是坏的."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:402
 #, c-format
@@ -79,9 +79,9 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio will be garbled."
 msgstr ""
-"%s has an incorrect hash.\n"
-"Would you like to stop now to fix the problem?\n"
-"If you select \"No\", audio will be garbled."
+"%s 的散列值不正确.\n"
+"你希望现在就停止来处理这个问题吗?\n"
+"如果选择 \"否\", 声音可能会出错."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:395
 #, c-format
@@ -91,7 +91,7 @@ msgstr " %s 是一个零字节文件"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:161
 #, c-format
 msgid "%s is already compressed! Cannot compress it further."
-msgstr "%s is already compressed! Cannot compress it further."
+msgstr "%s 已经压缩过了! 无法进一步压缩它."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:378
 #, c-format
@@ -381,7 +381,7 @@ msgstr "AM-Baseboard"
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:127
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
 msgid "AR Codes"
-msgstr "动作回放代码"
+msgstr "AR 代码"
 
 #: Source/Core/DolphinWX/Src/AboutDolphin.h:33
 msgid "About Dolphin"
@@ -397,7 +397,7 @@ msgstr "准确纹理缓存"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Accurate VBeam emulation"
-msgstr "Accurate VBeam emulation"
+msgstr "精确 VBeam 模拟"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:262
 msgid "Action"
@@ -412,7 +412,7 @@ msgid ""
 "Culprit Code:\n"
 "%s"
 msgstr ""
-"动作回放代码解密错误:\n"
+"Action Replay 代码解密错误:\n"
 "奇偶校验失败\n"
 "\n"
 "错误代码:\n"
@@ -422,64 +422,64 @@ msgstr ""
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
-msgstr "动作回放错误: 无效大小 (%08x : 地址 = %08x) 于 添加代码 (%s)"
+msgstr "错误: 无效大小 (%08x : 地址 = %08x) 于 添加代码 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:756
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
 "(%s)"
-msgstr "动作回放错误: 无效大小 (%08x : 地址 = %08x) 于 填充和滑动 (%s)"
+msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 填充和滑动 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:549
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
 "Fill (%s)"
-msgstr "动作回放错误: 无效大小 (%08x : 地址 = %08x) 于 内存写入和填充 (%s)"
+msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 内存写入和填充 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:609
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
 "Pointer (%s)"
-msgstr "动作回放错误: 无效大小 (%08x : 地址 = %08x) 于 写入到指针 (%s)"
+msgstr "Action Replay 错误: 无效大小 (%08x : 地址 = %08x) 于 写入到指针 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:803
 #, fuzzy, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
-msgstr "动作回放错误: 无效数值 (%08x : 地址 = %08x) 于 内存复制 (%s)"
+msgstr "Action Replay 错误: 无效数值 (%08x : 地址 = %08x) 于 内存复制 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:684
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
-msgstr "动作回放错误: 主代码和写入到 CCXXXXXX 不支持 (%s)"
+msgstr "Action Replay 错误: 主代码和写入到 CCXXXXXX 不支持 (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
-msgstr "动作回放错误: 无效动作回放代码行: %s"
+msgstr "Action Replay 错误: 无效动作回放代码行: %s"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:873
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
-msgstr "动作回放: 条件代码: 无效大小 %08x (%s)"
+msgstr "Action Replay: 条件代码: 无效大小 %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:946
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
-msgstr "动作回放: 无效正常代码类型 %08x (%s)"
+msgstr "Action Replay: 无效正常代码类型 %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:897
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
-msgstr "动作回放: 正常代码 %i: 无效子类型 %08x (%s)"
+msgstr "Action Replay: 正常代码 %i: 无效子类型 %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:839
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
-msgstr "动作回放: 正常代码 0: 无效子类型 %08x (%s)"
+msgstr "Action Replay: 正常代码 0: 无效子类型 %08x (%s)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:203
 msgid "Adapter:"
@@ -492,7 +492,7 @@ msgstr "添加"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1188
 msgid "Add ActionReplay Code"
-msgstr "添加动作回放代码"
+msgstr "添加Action Replay代码"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1117
 msgid "Add Patch"
@@ -602,11 +602,11 @@ msgstr "抗锯齿:"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:317
 msgid "Apploader is the wrong size...is it really an apploader?"
-msgstr "应用程序载入器大小错误...这真是一个应用程序载入器(apploader)?"
+msgstr "Apploader大小错误...这真是一个apploader?"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:311
 msgid "Apploader unable to load from file"
-msgstr "应用程序载入器不能从文件载入"
+msgstr "Apploader不能从文件载入"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:917
 msgid "Apploader:"
@@ -654,7 +654,7 @@ msgstr "音频后端"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
-msgstr "AudioCommon: Error opening AO device.\n"
+msgstr "AudioCommon: 打开 AO 设备时出错.\n"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:646
@@ -800,7 +800,7 @@ msgid ""
 msgstr ""
 "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
 "vertex.\n"
-"This is the more accurate behavior but reduces performance."
+"这个行为更加精确但是降低了性能."
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:103
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
