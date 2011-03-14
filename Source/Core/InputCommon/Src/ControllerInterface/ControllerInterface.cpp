@@ -545,7 +545,11 @@ ControllerInterface::Device::Output* ControllerInterface::Device::FindOutput(con
 ControllerInterface::Device::Input* ControllerInterface::FindInput(const std::string& name, const Device* def_dev) const
 {
 	if (def_dev)
-		return def_dev->FindInput(name);
+	{
+		Device::Input* const inp = def_dev->FindInput(name);
+		if (inp)
+			return inp;
+	}
 
 	std::vector<Device*>::const_iterator
 		di = m_devices.begin(),

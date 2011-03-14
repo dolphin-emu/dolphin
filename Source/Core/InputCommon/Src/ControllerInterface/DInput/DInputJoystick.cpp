@@ -234,7 +234,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 
 	// buttons
 	for (u8 i = 0; i != js_caps.dwButtons; ++i)
-		AddInput(new Button(i, m_state_in.rgbButtons[m_index]));
+		AddInput(new Button(i, m_state_in.rgbButtons[i]));
 
 	// hats
 	for (u8 i = 0; i != js_caps.dwPOVs; ++i)
@@ -264,7 +264,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		if (SUCCEEDED(m_device->GetProperty(DIPROP_RANGE, &range.diph)))
 		{
 			const LONG base = (range.lMin + range.lMax) / 2;
-			const LONG& ax = (&m_state_in.lX)[m_index];
+			const LONG& ax = (&m_state_in.lX)[offset];
 
 			// each axis gets a negative and a positive input instance associated with it
 			AddInput(new Axis(offset, ax, base, range.lMin-base));
@@ -470,7 +470,7 @@ bool Joystick::UpdateOutput()
 std::string Joystick::Button::GetName() const
 {
 	std::ostringstream ss;
-	ss << "Button " << m_index;
+	ss << "Button " << (int)m_index;
 	return ss.str();
 }
 
@@ -481,14 +481,14 @@ std::string Joystick::Axis::GetName() const
 	if (m_index < 6)
 	{
 		ss << "Axis " << (char)('X' + (m_index % 3));
-		if ( m_index > 2 )
+		if (m_index > 2)
 			ss << 'r';
 	}
 	// slider
 	else
-		ss << "Slider " << m_index-6;
+		ss << "Slider " << (int)(m_index - 6);
 
-	ss << (m_range<0 ? '-' : '+');
+	ss << (m_range < 0 ? '-' : '+');
 	return ss.str();
 }
 

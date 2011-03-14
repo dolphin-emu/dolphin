@@ -241,14 +241,14 @@ int Joystick::GetId() const
 std::string Joystick::Button::GetName() const
 {
 	std::ostringstream ss;
-	ss << "Button " << m_index;
+	ss << "Button " << (int)m_index;
 	return ss.str();
 }
 
 std::string Joystick::Axis::GetName() const
 {
 	std::ostringstream ss;
-	ss << "Axis " << m_index << (m_range<0 ? '-' : '+');
+	ss << "Axis " << (int)m_index << (m_range<0 ? '-' : '+');
 	return ss.str();
 }
 
