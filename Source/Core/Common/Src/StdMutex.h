@@ -56,6 +56,7 @@ public:
 		InitializeCriticalSection(&m_handle);
 #else
 		pthread_mutexattr_t attr;
+		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 		pthread_mutex_init(&m_handle, &attr);
 #endif
@@ -157,17 +158,16 @@ public:
 #endif
 	}
 
-#ifdef __linux__
-	// TryAcquireSRWLockExclusive requires Windows 7!!
 	bool try_lock()
 	{
 #ifdef _WIN32
-		return (0 != TryAcquireSRWLockExclusive(&m_handle));
+		// XXX TryAcquireSRWLockExclusive requires Windows 7!
+		// return (0 != TryAcquireSRWLockExclusive(&m_handle));
+		return false;
 #else
 		return !pthread_mutex_trylock(&m_handle);
 #endif
 	}
-#endif
 
 	native_handle_type native_handle()
 	{

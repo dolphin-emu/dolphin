@@ -77,7 +77,7 @@ files = [
 	'Src/HW/DSPLLE/DSPDebugInterface.cpp',
 	'Src/HW/DSPLLE/DSPHost.cpp',
 	'Src/HW/DSPLLE/DSPLLE.cpp',
-	'Src/HW/DSPLLE/DSPLLEGlobals.cpp',
+	#'Src/HW/DSPLLE/DSPLLEGlobals.cpp',
 	'Src/HW/DSPLLE/DSPLLETools.cpp',
 	'Src/HW/DSPLLE/DSPSymbols.cpp',
 	'Src/HW/DVDInterface.cpp',
