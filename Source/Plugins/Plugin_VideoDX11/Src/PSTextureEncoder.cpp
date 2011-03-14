@@ -1265,10 +1265,8 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), NULL, &newShader);
 		CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
-		m_staticShaders[key] = newShader;
+		it = m_staticShaders.insert(std::make_pair(key, newShader)).first;
 		bytecode->Release();
-
-		it = m_staticShaders.find(key);
 	}
 
 	if (it != m_staticShaders.end())

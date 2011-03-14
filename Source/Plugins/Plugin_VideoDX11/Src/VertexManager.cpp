@@ -64,10 +64,16 @@ void VertexManager::CreateDeviceObjects()
 	m_triangleDrawIndex = 0;
 	m_lineDrawIndex = 0;
 	m_pointDrawIndex = 0;
+
+	m_lineShader.Init();
+	m_pointShader.Init();
 }
 
 void VertexManager::DestroyDeviceObjects()
 {
+	m_pointShader.Shutdown();
+	m_lineShader.Shutdown();
+
 	SAFE_RELEASE(m_vertexBuffer);
 	SAFE_RELEASE(m_indexBuffer);
 }
@@ -126,6 +132,10 @@ void VertexManager::LoadBuffers()
 	m_indexBufferCursor += iCount;
 }
 
+static const float LINE_PT_TEX_OFFSETS[8] = {
+	0.f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.f, 1.f, 1.f
+};
+
 void VertexManager::Draw(UINT stride)
 {
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
@@ -139,15 +149,31 @@ void VertexManager::Draw(UINT stride)
 	}
 	if (IndexGenerator::GetNumLines() > 0)
 	{
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		D3D::context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_lineDrawIndex, 0);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+
+		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth, texOffset))
+		{
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			D3D::context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_lineDrawIndex, 0);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+
+			D3D::context->GSSetShader(NULL, NULL, 0);
+		}
 	}
 	if (IndexGenerator::GetNumPoints() > 0)
 	{
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		D3D::context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_pointDrawIndex, 0);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+
+		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize, texOffset))
+		{
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			D3D::context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_pointDrawIndex, 0);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+
+			D3D::context->GSSetShader(NULL, NULL, 0);
+		}
 	}
 }
 

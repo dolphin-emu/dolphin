@@ -73,6 +73,37 @@ static char text[16384];
 
 #define WRITE p+=sprintf
 
+char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type)
+{
+	WRITE(p, "struct VS_OUTPUT {\n");
+	WRITE(p, "  float4 pos : POSITION;\n");
+	WRITE(p, "  float4 colors_0 : COLOR0;\n");
+	WRITE(p, "  float4 colors_1 : COLOR1;\n");
+
+	if (xfregs.numTexGen.numTexGens < 7) {
+		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
+		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens);
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens + 1);
+	} else {
+		// clip position is in w of first 4 texcoords
+		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		{
+			for (int i = 0; i < 8; ++i)
+				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
+		}
+		else
+		{
+			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
+		}
+	}	
+	WRITE(p, "};\n");
+
+	return p;
+}
+
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -102,31 +133,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		"typedef struct { float4 T0, T1, T2, T3; } s_"I_PROJECTION";\n"
 		);
 
-	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos : POSITION;\n");
-	WRITE(p, "  float4 colors_0 : COLOR0;\n");
-	WRITE(p, "  float4 colors_1 : COLOR1;\n");
-
-	if (xfregs.numTexGen.numTexGens < 7) {
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
-		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens);
-		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens + 1);
-	} else {
-		// clip position is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-		{
-			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
-		}
-		else
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
-		}
-	}	
-	WRITE(p, "};\n");
+	p = GenerateVSOutputStruct(p, components, api_type);
 
 	// uniforms
 

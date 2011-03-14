@@ -103,6 +103,7 @@ public:
 
 
 // components is included in the uid.
+char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type);
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
 void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
 

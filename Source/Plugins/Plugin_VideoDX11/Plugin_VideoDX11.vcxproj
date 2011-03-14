@@ -197,9 +197,11 @@
     <ClCompile Include="Src\D3DUtil.cpp" />
     <ClCompile Include="Src\FramebufferManager.cpp" />
     <ClCompile Include="Src\GfxState.cpp" />
+    <ClCompile Include="Src\LineGeometryShader.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
     <ClCompile Include="Src\PixelShaderCache.cpp" />
+    <ClCompile Include="Src\PointGeometryShader.cpp" />
     <ClCompile Include="Src\PSTextureEncoder.cpp" />
     <ClCompile Include="Src\Render.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
@@ -225,8 +227,10 @@
     <ClInclude Include="Src\FramebufferManager.h" />
     <ClInclude Include="Src\GfxState.h" />
     <ClInclude Include="Src\Globals.h" />
+    <ClInclude Include="Src\LineGeometryShader.h" />
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\PixelShaderCache.h" />
+    <ClInclude Include="Src\PointGeometryShader.h" />
     <ClInclude Include="Src\PSTextureEncoder.h" />
     <ClInclude Include="Src\Render.h" />
     <ClInclude Include="Src\stdafx.h" />

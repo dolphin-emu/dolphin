@@ -415,12 +415,18 @@ void Close()
 	UnloadDXGI();
 }
 
-/* just returning the 4_0 ones here */
 const char* VertexShaderVersionString()
 {
 	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "vs_5_0";
 	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "vs_4_1";
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "vs_4_0";
+}
+
+const char* GeometryShaderVersionString()
+{
+	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "gs_5_0";
+	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "gs_4_1";
+	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "gs_4_0";
 }
 
 const char* PixelShaderVersionString()

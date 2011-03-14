@@ -19,7 +19,8 @@
 #define _VERTEXMANAGER_H
 
 #include "VertexManagerBase.h"
-
+#include "LineGeometryShader.h"
+#include "PointGeometryShader.h"
 
 namespace DX11
 {
@@ -48,6 +49,9 @@ private:
 	UINT m_pointDrawIndex;
 	ID3D11Buffer* m_indexBuffer;
 	ID3D11Buffer* m_vertexBuffer;
+
+	LineGeometryShader m_lineShader;
+	PointGeometryShader m_pointShader;
 };
 
 }  // namespace

@@ -83,6 +83,61 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 }
 
 // bytecode->shader
+ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len)
+{
+	ID3D11GeometryShader* g_shader;
+	HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, NULL, &g_shader);
+	if (FAILED(hr))
+	{
+		PanicAlert("CreateGeometryShaderFromByteCode failed from %p (size %d) at %s %d\n", bytecode, len, __FILE__, __LINE__);
+		g_shader = NULL;
+	}
+	return g_shader;
+}
+
+// code->bytecode
+bool CompileGeometryShader(const char* code, unsigned int len, D3DBlob** blob,
+	const D3D_SHADER_MACRO* pDefines)
+{
+	ID3D10Blob* shaderBuffer = NULL;
+	ID3D10Blob* errorBuffer = NULL;
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_DEBUG|D3D10_SHADER_WARNINGS_ARE_ERRORS;
+#else
+	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_OPTIMIZATION_LEVEL3|D3D10_SHADER_SKIP_VALIDATION;
+#endif
+	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, pDefines, NULL, "main", D3D::GeometryShaderVersionString(),
+							flags, 0, NULL, &shaderBuffer, &errorBuffer, NULL);
+	
+	if (errorBuffer)
+	{
+		INFO_LOG(VIDEO, "Geometry shader compiler messages:\n%s\n",
+			(const char*)errorBuffer->GetBufferPointer());
+	}
+
+	if (FAILED(hr))
+	{
+		if (g_ActiveConfig.bShowShaderErrors)
+		{
+			std::string msg = (char*)errorBuffer->GetBufferPointer();
+			msg += "\n\n";
+			msg += code;
+			MessageBoxA(0, msg.c_str(), "Error compiling geometry shader", MB_ICONERROR);
+		}
+
+		*blob = NULL;
+		errorBuffer->Release();
+	}
+	else
+	{
+		*blob = new D3DBlob(shaderBuffer);
+		shaderBuffer->Release();
+	}
+	return SUCCEEDED(hr);
+}
+
+// bytecode->shader
 ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
 {
 	ID3D11PixelShader* p_shader;
@@ -138,7 +193,8 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob,
 	return SUCCEEDED(hr);
 }
 
-ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int len)
+ID3D11VertexShader* CompileAndCreateVertexShader(const char* code,
+	unsigned int len)
 {
 	D3DBlob* blob = NULL;
 	if (CompileVertexShader(code, len, &blob))
@@ -151,7 +207,22 @@ ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int 
 	return NULL;
 }
 
-ID3D11PixelShader* CompileAndCreatePixelShader(const char* code, unsigned int len)
+ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
+	unsigned int len, const D3D_SHADER_MACRO* pDefines)
+{
+	D3DBlob* blob = NULL;
+	if (CompileGeometryShader(code, len, &blob, pDefines))
+	{
+		ID3D11GeometryShader* g_shader = CreateGeometryShaderFromByteCode(blob);
+		blob->Release();
+		return g_shader;
+	}
+	PanicAlert("Failed to compile and create geometry shader from %p (size %d) at %s %d\n", code, len, __FILE__, __LINE__);
+	return NULL;
+}
+
+ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
+	unsigned int len)
 {
 	D3DBlob* blob = NULL;
 	CompilePixelShader(code, len, &blob);
