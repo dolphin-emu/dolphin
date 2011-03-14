@@ -42,7 +42,6 @@ DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 DSPEmitter *dspjit = NULL;
 Common::Event step_event;
-static std::mutex ExtIntCriticalSection;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 {
@@ -204,7 +203,6 @@ void DSPCore_SetException(u8 level)
 // Notify that an external interrupt is pending (used by thread mode)
 void DSPCore_SetExternalInterrupt(bool val)
 {
-	std::lock_guard<std::mutex> lk(ExtIntCriticalSection);
 	g_dsp.external_interrupt_waiting = val;
 }
 
@@ -274,7 +272,6 @@ int DSPCore_RunCycles(int cycles)
 
 	while (cycles > 0)
 	{
-	reswitch:
 		switch (core_state)
 		{
 		case DSPCORE_RUNNING:
@@ -289,7 +286,7 @@ int DSPCore_RunCycles(int cycles)
 		case DSPCORE_STEPPING:
 			step_event.Wait();
 			if (core_state != DSPCORE_STEPPING)
-				goto reswitch;
+				continue;
 
 			DSPInterpreter::Step();
 			cycles--;

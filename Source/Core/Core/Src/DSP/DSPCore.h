@@ -231,7 +231,7 @@ struct SDSP
 
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions
-	bool external_interrupt_waiting;
+	volatile bool external_interrupt_waiting;
 
 	// DSP hardware stacks. They're mapped to a bunch of registers, such that writes
 	// to them push and reads pop.
@@ -246,10 +246,7 @@ struct SDSP
 	u64 step_counter;
 
 	// Mailbox.
-	volatile u16 mbox[2][2];
-
-	// Mutex protecting the mailbox.
-	//std::mutex g_CriticalSection;
+	volatile u32 mbox[2];
 
 	// Accelerator / DMA / other hardware registers. Not GPRs.
 	u16 ifx_regs[256];

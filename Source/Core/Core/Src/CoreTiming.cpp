@@ -68,7 +68,7 @@ u64 fakeDecStartTicks;
 u64 fakeTBStartValue;
 u64 fakeTBStartTicks;
 
-static std::mutex externalEventSection;
+static std::recursive_mutex externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
 
@@ -143,7 +143,7 @@ void Shutdown()
         delete ev;
     }
 
-    std::lock_guard<std::mutex> lk(externalEventSection);
+    std::lock_guard<std::recursive_mutex> lk(externalEventSection);
     while(eventTsPool)
     {
         Event *ev = eventTsPool;
@@ -154,7 +154,7 @@ void Shutdown()
 
 void DoState(PointerWrap &p)
 {
-	std::lock_guard<std::mutex> lk(externalEventSection);
+	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
@@ -225,7 +225,7 @@ u64 GetIdleTicks()
 // schedule things to be executed on the main thread.
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
-	std::lock_guard<std::mutex> lk(externalEventSection);
+	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 	Event *ne = GetNewTsEvent();
 	ne->time = globalTimer + cyclesIntoFuture;
 	ne->type = event_type;
@@ -244,7 +244,7 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
 	if(Core::IsCPUThread())
 	{
-		std::lock_guard<std::mutex> lk(externalEventSection);
+		std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 		event_types[event_type].callback(userdata, 0);
 	}
 	else
@@ -348,7 +348,7 @@ void RemoveEvent(int event_type)
 
 void RemoveThreadsafeEvent(int event_type)
 {
-	std::lock_guard<std::mutex> lk(externalEventSection);
+	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 	if (!tsFirst)
 	{
 		return;
@@ -431,7 +431,7 @@ void ProcessFifoWaitEvents()
 
 void MoveEvents()
 {
-	std::lock_guard<std::mutex> lk(externalEventSection);
+	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
     // Move events from async queue into main queue
 	while (tsFirst)
 	{

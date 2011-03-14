@@ -368,7 +368,7 @@ void DSPEmitter::CompileDispatcher()
 	FixupBranch exceptionExit;
 	if (DSPHost_OnThread())
 	{
-		CMP(8, M(&g_dsp.external_interrupt_waiting), Imm8(0));
+		CMP(8, M(const_cast<bool*>(&g_dsp.external_interrupt_waiting)), Imm8(0));
 		exceptionExit = J_CC(CC_NE);
 	}
 
