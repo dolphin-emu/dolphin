@@ -88,9 +88,9 @@ elif sys.platform == 'darwin':
 	languages = [] 
 	msgfmt = env.WhereIs('msgfmt')
 	if not msgfmt == None:
-		po_files = Glob('#Languages/*.po', strings = True)
+		po_files = Glob('#Languages/po/*.po', strings = True)
 		for po in po_files:
-			index_lo = po.find('Languages/') + len('Languages/')
+			index_lo = po.find('Languages/po/') + len('Languages/po/')
 			index_hi = po.find('.po')
 			lang = po[index_lo:index_hi]
 			lproj = os.sep + lang + '.lproj'
