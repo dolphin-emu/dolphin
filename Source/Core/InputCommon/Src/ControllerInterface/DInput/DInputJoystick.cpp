@@ -233,15 +233,15 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	//m_must_poll = (js_caps.dwFlags & DIDC_POLLEDDATAFORMAT) != 0;
 
 	// buttons
-	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
-		AddInput( new Button( i ) );
+	for (u8 i = 0; i != js_caps.dwButtons; ++i)
+		AddInput(new Button(i, m_state_in.rgbButtons[m_index]));
 
 	// hats
-	for ( unsigned int i = 0; i < js_caps.dwPOVs; ++i )
+	for (u8 i = 0; i != js_caps.dwPOVs; ++i)
 	{
 		// each hat gets 4 input instances associated with it, (up down left right)
-		for ( unsigned int d = 0; d<4; ++d )
-			AddInput( new Hat( i, d ) );
+		for (u8 d = 0; d != 4; ++d)
+			AddInput(new Hat(i, m_state_in.rgdwPOV[m_index], d));
 	}
 
 	// get up to 6 axes and 2 sliders
@@ -264,9 +264,11 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		if (SUCCEEDED(m_device->GetProperty(DIPROP_RANGE, &range.diph)))
 		{
 			const LONG base = (range.lMin + range.lMax) / 2;
+			const LONG& ax = (&m_state_in.lX)[m_index];
+
 			// each axis gets a negative and a positive input instance associated with it
-			AddInput(new Axis(offset, base, range.lMin-base));
-			AddInput(new Axis(offset, base, range.lMax-base));
+			AddInput(new Axis(offset, ax, base, range.lMin-base));
+			AddInput(new Axis(offset, ax, base, range.lMax-base));
 		}
 	}
 
@@ -319,11 +321,11 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			{
 				// ugly if ladder again :/
 				if (0 == f)
-					AddOutput(new ForceConstant(i, f));
+					AddOutput(new ForceConstant(f, m_state_out[i]));
 				else if (1 == f)
-					AddOutput(new ForceRamp(i, f));
+					AddOutput(new ForceRamp(f, m_state_out[i]));
 				else
-					AddOutput(new ForcePeriodic(i, f));
+					AddOutput(new ForcePeriodic(f, m_state_out[i]));
 				
 				++i;
 				m_state_out.push_back(EffectState(pEffect));
@@ -501,44 +503,31 @@ std::string Joystick::Hat::GetName() const
 template <typename P>
 std::string Joystick::Force<P>::GetName() const
 {
-	return force_type_names[m_type].name;
+	return force_type_names[m_index].name;
 }
 
 // get / set state
 
-ControlState Joystick::GetInputState( const ControllerInterface::Device::Input* const input ) const
+ControlState Joystick::Axis::GetState() const
 {
-	return ((Input*)input)->GetState( &m_state_in );
+	return std::max(0.0f, ControlState(m_axis - m_base) / m_range);
 }
 
-void Joystick::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state )
+ControlState Joystick::Button::GetState() const
 {
-	((Output*)output)->SetState( state, &m_state_out[0] );
+	return ControlState(m_button > 0);
 }
 
-// get / set state
-
-ControlState Joystick::Axis::GetState( const DIJOYSTATE* const joystate ) const
-{
-	return std::max( 0.0f, ControlState((&joystate->lX)[m_index]-m_base) / m_range );
-}
-
-ControlState Joystick::Button::GetState( const DIJOYSTATE* const joystate ) const
-{
-	return ControlState( joystate->rgbButtons[m_index] > 0 );
-}
-
-ControlState Joystick::Hat::GetState( const DIJOYSTATE* const joystate ) const
+ControlState Joystick::Hat::GetState() const
 {
 	// can this func be simplified ?
-	const DWORD val = joystate->rgdwPOV[m_index];
 	// hat centered code from msdn
-	if ( 0xFFFF == LOWORD(val) )
+	if (0xFFFF == LOWORD(m_hat))
 		return 0;
-	return ( abs( (int)(val/4500-m_direction*2+8)%8 - 4) > 2 );
+	return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
 
-void Joystick::ForceConstant::SetState(const ControlState state, Joystick::EffectState* const joystate)
+void Joystick::ForceConstant::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
 
@@ -546,28 +535,28 @@ void Joystick::ForceConstant::SetState(const ControlState state, Joystick::Effec
 	if (val != new_val)
 	{
 		val = new_val;
-		joystate[m_index].params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params;	// tells UpdateOutput the state has changed
 
 		 // tells UpdateOutput to either start or stop the force
-		joystate[m_index].size = new_val ? sizeof(params) : 0;
+		m_state.size = new_val ? sizeof(params) : 0;
 	}
 }
 
-void Joystick::ForceRamp::SetState(const ControlState state, Joystick::EffectState* const joystate)
+void Joystick::ForceRamp::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
 
 	if (params.lStart != new_val)
 	{
 		params.lStart = params.lEnd = new_val;
-		joystate[m_index].params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params;	// tells UpdateOutput the state has changed
 
 		 // tells UpdateOutput to either start or stop the force
-		joystate[m_index].size = new_val ? sizeof(params) : 0;
+		m_state.size = new_val ? sizeof(params) : 0;
 	}
 }
 
-void Joystick::ForcePeriodic::SetState(const ControlState state, Joystick::EffectState* const joystate)
+void Joystick::ForcePeriodic::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
 
@@ -577,16 +566,16 @@ void Joystick::ForcePeriodic::SetState(const ControlState state, Joystick::Effec
 		val = new_val;
 		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS);	// zero is working fine for me
 
-		joystate[m_index].params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params;	// tells UpdateOutput the state has changed
 
 		 // tells UpdateOutput to either start or stop the force
-		joystate[m_index].size = new_val ? sizeof(params) : 0;
+		m_state.size = new_val ? sizeof(params) : 0;
 	}
 }
 
 template <typename P>
-Joystick::Force<P>::Force(const unsigned int index, const unsigned int type)
-	: m_index(index), m_type(type)
+Joystick::Force<P>::Force(u8 index, EffectState& state)
+	: m_index(index), m_state(state)
 {
 	ZeroMemory(&params, sizeof(params));
 }

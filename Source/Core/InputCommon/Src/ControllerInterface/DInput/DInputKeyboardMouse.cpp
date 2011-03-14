@@ -101,10 +101,10 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 
 	// KEYBOARD
 	// add keys
-	for (unsigned int i = 0; i < sizeof(named_keys)/sizeof(*named_keys); ++i)
-		AddInput(new Key(i));
+	for (u8 i = 0; i < sizeof(named_keys)/sizeof(*named_keys); ++i)
+		AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
 	// add lights
-	for (unsigned int i = 0; i < sizeof(named_lights)/sizeof(*named_lights); ++i)
+	for (u8 i = 0; i < sizeof(named_lights)/sizeof(*named_lights); ++i)
 		AddOutput(new Light(i));
 
 	// MOUSE
@@ -114,18 +114,20 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 	mouse_caps.dwSize = sizeof(mouse_caps);
 	m_mo_device->GetCapabilities(&mouse_caps);
 	// mouse buttons
-	for (unsigned int i = 0; i < mouse_caps.dwButtons; ++i)
-		AddInput(new Button(i));
+	for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
+		AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
 	// mouse axes
 	for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
 	{
+		const LONG& ax = (&m_state_in.mouse.lX)[i];
+
 		// each axis gets a negative and a positive input instance associated with it
-		AddInput(new Axis(i, (2==i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
-		AddInput(new Axis(i, -(2==i) ? 1 : MOUSE_AXIS_SENSITIVITY));
+		AddInput(new Axis(i, ax, (2==i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
+		AddInput(new Axis(i, ax, -(2==i) ? 1 : MOUSE_AXIS_SENSITIVITY));
 	}
 	// cursor, with a hax for-loop
 	for (unsigned int i=0; i<4; ++i)
-		AddInput(new Cursor(!!(i&2), !!(i&1)));
+		AddInput(new Cursor(!!(i&2), (&m_state_in.cursor.x)[i/2], !!(i&1)));
 }
 
 void GetMousePos(float* const x, float* const y)
@@ -244,15 +246,15 @@ std::string KeyboardMouse::GetSource() const
 	return DINPUT_SOURCE_NAME;
 }
 
-ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
-{
-	return (((Input*)input)->GetState(&m_state_in));
-}
-
-void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
-{
-	((Output*)output)->SetState(state, m_state_out);
-}
+//ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
+//{
+//	return (((Input*)input)->GetState(&m_state_in));
+//}
+//
+//void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
+//{
+//	((Output*)output)->SetState(state, m_state_out);
+//}
 
 // names
 std::string KeyboardMouse::Key::GetName() const
@@ -283,33 +285,33 @@ std::string KeyboardMouse::Cursor::GetName() const
 
 std::string KeyboardMouse::Light::GetName() const
 {
-	return named_lights[ m_index ].name;
+	return named_lights[m_index].name;
 }
 
 // get/set state
-ControlState KeyboardMouse::Key::GetState(const State* const state) const
+ControlState KeyboardMouse::Key::GetState() const
 {
-	return (state->keyboard[named_keys[m_index].code] != 0);
+	return (m_key != 0);
 }
 
-ControlState KeyboardMouse::Button::GetState(const State* const state) const
+ControlState KeyboardMouse::Button::GetState() const
 {
-	return (state->mouse.rgbButtons[m_index] != 0);
+	return (m_button != 0);
 }
 
-ControlState KeyboardMouse::Axis::GetState(const State* const state) const
+ControlState KeyboardMouse::Axis::GetState() const
 {
-	return std::max(0.0f, ControlState((&state->mouse.lX)[m_index]) / m_range);
+	return std::max(0.0f, ControlState(m_axis) / m_range);
 }
 
-ControlState KeyboardMouse::Cursor::GetState(const State* const state) const
+ControlState KeyboardMouse::Cursor::GetState() const
 {
-	return std::max(0.0f, ControlState((&state->cursor.x)[m_index]) / (m_positive ? 1.0f : -1.0f));
+	return std::max(0.0f, ControlState(m_axis) / (m_positive ? 1.0f : -1.0f));
 }
 
-void KeyboardMouse::Light::SetState(const ControlState state, unsigned char* const state_out)
+void KeyboardMouse::Light::SetState(const ControlState state)
 {
-	state_out[m_index] = (unsigned char)(state * 255);
+	//state_out[m_index] = (unsigned char)(state * 255);
 }
 
 }

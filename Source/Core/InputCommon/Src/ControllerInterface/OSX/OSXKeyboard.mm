@@ -9,7 +9,6 @@ namespace ciface
 namespace OSX
 {
 
-
 Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)
 	, m_device_name(name)
@@ -36,22 +35,10 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index)
 			(IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
 			//DeviceElementDebugPrint(e, NULL);
 
-			AddInput(new Key(e));
+			AddInput(new Key(e, m_device));
 		}
 		CFRelease(elements);
 	}
-}
-
-ControlState Keyboard::GetInputState(
-	const ControllerInterface::Device::Input* const input) const
-{
-	return ((Input*)input)->GetState(m_device);
-}
-
-void Keyboard::SetOutputState(
-	const ControllerInterface::Device::Output * const output,
-	const ControlState state)
-{
 }
 
 bool Keyboard::UpdateInput()
@@ -79,10 +66,11 @@ int Keyboard::GetId() const
 	return m_index;
 }
 
-Keyboard::Key::Key(IOHIDElementRef element)
+Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 	: m_element(element)
+	, m_device(device)
 {
-	const struct PrettyKeys {
+	static const struct PrettyKeys {
 		const uint32_t		code;
 		const char *const	name;
 	} named_keys[] = {
@@ -190,25 +178,24 @@ Keyboard::Key::Key(IOHIDElementRef element)
 		{ kHIDUsage_KeyboardRightGUI, "Right Command" },
 		{ 184, "Eject" },
 	};
-	std::stringstream ss;
-	uint32_t i, keycode;
-
-	keycode = IOHIDElementGetUsage(m_element);
-	for (i = 0; i < sizeof named_keys / sizeof *named_keys; i++)
+	
+	const uint32_t keycode = IOHIDElementGetUsage(m_element);
+	for (uint32_t i = 0; i < sizeof named_keys / sizeof *named_keys; i++)
 		if (named_keys[i].code == keycode) {
 			m_name = named_keys[i].name;
 			return;
 		}
-
+	
+	std::stringstream ss;
 	ss << "Key " << keycode;
 	m_name = ss.str();
 }
 
-ControlState Keyboard::Key::GetState(IOHIDDeviceRef device) const
+ControlState Keyboard::Key::GetState() const
 {
 	IOHIDValueRef value;
 
-	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
 		return IOHIDValueGetIntegerValue(value);
 	else
 		return 0;
@@ -218,7 +205,6 @@ std::string Keyboard::Key::GetName() const
 {
 	return m_name;
 }
-
 
 }
 }

@@ -33,108 +33,80 @@ void Init( std::vector<ControllerInterface::Device*>& devices );
 
 class Joystick : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
+private:
 
 #ifdef USE_SDL_HAPTIC
-	class EffectIDState
+	struct EffectIDState
 	{
-		friend class Joystick;
-	protected:
 		EffectIDState() : id(-1), changed(false) { memset( &effect, 0, sizeof(effect)); }
-	protected:
+
 		SDL_HapticEffect	effect;
 		int					id;
 		bool				changed;
 	};
 #endif
 
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class Joystick;
-	protected:
-		Input( const unsigned int index ) : m_index(index) {}
-		virtual ControlState GetState( SDL_Joystick* const js ) const = 0;
-		
-		const unsigned int		m_index;
-	};
-
-#ifdef USE_SDL_HAPTIC
-	class Output : public ControllerInterface::Device::Output
-	{
-		friend class Joystick;
-	protected:
-		Output( const size_t index ) : m_index(index) {}
-		virtual void SetState( const ControlState state, EffectIDState* const effect ) = 0;
-		
-		const size_t		m_index;
-	};
-#endif
-
 	class Button : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Button( const unsigned int index ) : Input(index) {}
-		ControlState GetState( SDL_Joystick* const js ) const;
+		Button(u8 index, SDL_Joystick* js) : m_js(js), m_index(index) {}
+		ControlState GetState() const;
+	private:
+		 SDL_Joystick* const m_js;
+		 const u8 m_index;
 	};
+
 	class Axis : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Axis( const unsigned int index, const Sint16 range ) : Input(index), m_range(range) {}
-		ControlState GetState( SDL_Joystick* const js ) const;
+		Axis(u8 index, SDL_Joystick* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
+		ControlState GetState() const;
 	private:
-		const Sint16		m_range;
+		SDL_Joystick* const m_js;
+		const Sint16 m_range;
+		const u8 m_index;
 	};
 
 	class Hat : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Hat( const unsigned int index, const unsigned int direction ) : Input(index), m_direction(direction) {}
-		ControlState GetState( SDL_Joystick* const js ) const;
+		Hat(u8 index, SDL_Joystick* js, u8 direction) : m_js(js), m_direction(direction), m_index(index) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int		m_direction;
+		SDL_Joystick* const m_js;
+		const u8 m_direction;
+		const u8 m_index;
 	};
 
 #ifdef USE_SDL_HAPTIC
 	class ConstantEffect : public Output
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
 		ConstantEffect( const size_t index ) : Output(index) {}
 		void SetState( const ControlState state, EffectIDState* const effect );
+	private:
+		SDL_Joystick* const m_js;
 	};
 
 	class RampEffect : public Output
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
 		RampEffect( const size_t index ) : Output(index) {}
 		void SetState( const ControlState state, EffectIDState* const effect );
+	private:
+		SDL_Joystick* const m_js;
 	};
 #endif
 
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
-	void SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state );
-
-public:
 	Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
 	~Joystick();
 
@@ -152,7 +124,6 @@ private:
 	SDL_Haptic*					m_haptic;
 #endif
 };
-
 
 }
 }

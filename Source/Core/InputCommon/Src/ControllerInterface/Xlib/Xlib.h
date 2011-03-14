@@ -15,11 +15,8 @@ void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd);
 
 class KeyboardMouse : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-	
-protected:
-	
+
+private:
 	struct State
 	{
 		char keyboard[32];
@@ -30,68 +27,53 @@ protected:
 		} cursor;
 	};
 	
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class KeyboardMouse;
-		
-	protected:
-		virtual ControlState GetState(const State* const state) const = 0;
-	};
-	
 	class Key : public Input
 	{
 		friend class KeyboardMouse;
-		
 	public:
 		std::string GetName() const;
-		
-	protected:
-		Key(Display* const display, KeyCode keycode);
-		ControlState GetState(const State* const state) const;
+		Key(Display* display, KeyCode keycode, const char* keyboard);
+		ControlState GetState() const;
 		
 	private:
+		std::string	m_keyname;
 		Display* const	m_display;
+		const char* const m_keyboard;
 		const KeyCode	m_keycode;
-		std::string		m_keyname;
-		
 	};
 	
 	class Button : public Input
 	{
-		friend class KeyboardMouse;
-		
 	public:
 		std::string GetName() const;
-		
-	protected:
-		Button(const unsigned int index) : m_index(index) {}
-		ControlState GetState(const State* const state) const;
+		Button(unsigned int index, unsigned int& buttons)
+			: m_buttons(buttons), m_index(index) {}
+		ControlState GetState() const;
 		
 	private:
+		const unsigned int& m_buttons;
 		const unsigned int m_index;
 	};
 
 	class Cursor : public Input
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
 		bool IsDetectable() { return false; }
-	protected:
-		Cursor(const unsigned int index, const bool positive) : m_index(index), m_positive(positive) {}
-		ControlState GetState(const State* const state) const;
+		Cursor(u8 index, bool positive, const float& cursor)
+			: m_cursor(cursor), m_index(index), m_positive(positive) {}
+		ControlState GetState() const;
+
 	private:
-		const unsigned int	m_index;
-		const bool			m_positive;
+		const float& m_cursor;
+		const u8 m_index;
+		const bool m_positive;
 	};
 	
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 	
-	ControlState GetInputState(const ControllerInterface::Device::Input* const input) const;
-	void SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state);
-	
-public:
 	KeyboardMouse(Window window);
 	~KeyboardMouse();
 	
@@ -100,9 +82,9 @@ public:
 	int GetId() const;
 	
 private:
-	Window			m_window;
-	Display*		m_display;
-	State			m_state;
+	Window m_window;
+	Display* m_display;
+	State m_state;
 };
 
 }

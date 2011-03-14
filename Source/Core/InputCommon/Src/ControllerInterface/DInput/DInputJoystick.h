@@ -25,11 +25,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::De
 
 class Joystick : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
-
+private:
 	struct EffectState
 	{
 		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(NULL), size(0) {}
@@ -39,88 +35,63 @@ protected:
 		u8		size;	// zero when force should stop
 	};
 
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class Joystick;
-	protected:
-		virtual ControlState GetState( const DIJOYSTATE* const joystate ) const = 0;
-	};
-
-	// can probably eliminate this base class
-	class Output : public ControllerInterface::Device::Output
-	{
-		friend class Joystick;
-	protected:
-		virtual void SetState( const ControlState state, EffectState* const joystate ) = 0;
-	};
-
 	class Button : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Button( const unsigned int index ) : m_index(index) {}
-		ControlState GetState( const DIJOYSTATE* const joystate ) const;
+		Button(u8 index, const BYTE& button) : m_index(index), m_button(button) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
+		const BYTE& m_button;
+		const u8 m_index;
 	};
 
 	class Axis : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Axis( const unsigned int index, const LONG base, const LONG range ) : m_index(index), m_base(base), m_range(range) {}
-		ControlState GetState( const DIJOYSTATE* const joystate ) const;
+		Axis(u8 index, const LONG& axis, LONG base, LONG range) : m_index(index), m_axis(axis), m_base(base), m_range(range) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const LONG			m_base;
-		const LONG			m_range;
+		const LONG& m_axis;
+		const LONG m_base, m_range;
+		const u8 m_index;
 	};
 
 	class Hat : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Hat( const unsigned int index, const unsigned int direction ) : m_index(index), m_direction(direction) {}
-		ControlState GetState( const DIJOYSTATE* const joystate ) const;
+		Hat(u8 index, const DWORD& hat, u8 direction) : m_index(index), m_hat(hat), m_direction(direction) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const unsigned int	m_direction;
+		const DWORD& m_hat;
+		const u8 m_index, m_direction;
 	};
 
 	template <typename P>
 	class Force : public Output
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Force(const unsigned int index, const unsigned int type);
-		void SetState(const ControlState state, EffectState* const joystate);
+		Force(u8 index, EffectState& state);
+		void SetState(ControlState state);
 	private:
-		const unsigned int	m_index;
-		const unsigned int	m_type;
-		P	params;
+		EffectState& m_state;
+		P params;
+		const u8 m_index;
 	};
 	typedef Force<DICONSTANTFORCE>	ForceConstant;
 	typedef Force<DIRAMPFORCE>		ForceRamp;
 	typedef Force<DIPERIODIC>		ForcePeriodic;
 
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
-	void SetOutputState( const ControllerInterface::Device::Output* const input, const ControlState state );
-
 	void ClearInputState();
 
-public:
-	Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVICE8 device, const unsigned int index );
+	Joystick(const LPDIRECTINPUTDEVICE8 device, const unsigned int index);
 	~Joystick();
 	
 	std::string GetName() const;
@@ -130,7 +101,6 @@ public:
 private:
 	const LPDIRECTINPUTDEVICE8		m_device;
 	const unsigned int				m_index;
-	//const std::string				m_name;
 
 	DIJOYSTATE						m_state_in;
 	std::vector<EffectState>		m_state_out;

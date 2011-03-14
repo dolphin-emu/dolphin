@@ -54,6 +54,8 @@ public:
 	class Device
 	{
 	public:
+		class Input;
+		class Output;
 
 		//
 		//		Control
@@ -65,7 +67,9 @@ public:
 		public:
 			virtual std::string GetName() const = 0;
 			virtual ~Control() {}
-			bool operator==(const std::string& name) const;
+
+			virtual Input* ToInput() { return NULL; }
+			virtual Output* ToOutput() { return NULL; }
 		};
 
 		//
@@ -78,6 +82,10 @@ public:
 		public:
 			// things like absolute axes/ absolute mouse position will override this
 			virtual bool IsDetectable() { return true; }
+
+			virtual ControlState GetState() const = 0;
+
+			Input* ToInput() { return this; }
 		};
 		
 		//
@@ -89,6 +97,10 @@ public:
 		{
 		public:
 			virtual ~Output() {}
+
+			virtual void SetState(ControlState state) = 0;
+
+			Output* ToOutput() { return this; }
 		};
 
 		virtual ~Device();
@@ -96,10 +108,6 @@ public:
 		virtual std::string GetName() const = 0;
 		virtual int GetId() const = 0;
 		virtual std::string GetSource() const = 0;
-
-		virtual ControlState GetInputState( const Input* const input ) const = 0;
-		virtual void SetOutputState( const Output* const output, const ControlState state ) = 0;
-
 		virtual bool UpdateInput() = 0;
 		virtual bool UpdateOutput() = 0;
 
@@ -108,6 +116,9 @@ public:
 		const std::vector<Input*>& Inputs() const { return m_inputs; }
 		const std::vector<Output*>& Outputs() const { return m_outputs; }
 
+		Input* FindInput(const std::string& name) const;
+		Output* FindOutput(const std::string& name) const;
+
 	protected:
 		void AddInput(Input* const i);
 		void AddOutput(Output* const o);
@@ -115,7 +126,6 @@ public:
 	private:
 		std::vector<Input*>		m_inputs;
 		std::vector<Output*>	m_outputs;
-
 	};
 
 	//
@@ -171,9 +181,8 @@ public:
 
 		struct DeviceControl
 		{
-			DeviceControl() : device(NULL), control(NULL), mode(0) {}
+			DeviceControl() : control(NULL), mode(0) {}
 
-			Device*				device;
 			Device::Control*	control;
 			int		mode;
 		};
@@ -211,13 +220,15 @@ public:
 	
 	void SetHwnd(void* const hwnd);
 	void Initialize();
-	// TODO: remove this hack param
 	void Shutdown();
 	bool IsInit() const { return m_is_init; }
 
 	void UpdateReference(ControlReference* control, const DeviceQualifier& default_device) const;
 	bool UpdateInput(const bool force = false);
 	bool UpdateOutput(const bool force = false);
+
+	Device::Input* FindInput(const std::string& name, const Device* def_dev) const;
+	Device::Output* FindOutput(const std::string& name, const Device* def_dev) const;
 
 	const std::vector<Device*>& Devices() const { return m_devices; }
 	Device* FindDevice(const DeviceQualifier& devq) const;
@@ -229,6 +240,8 @@ private:
 	std::vector<Device*>	m_devices;
 	void*					m_hwnd;
 };
+
+typedef std::vector<ControllerInterface::Device*> DeviceList;
 
 extern ControllerInterface g_controller_interface;
 

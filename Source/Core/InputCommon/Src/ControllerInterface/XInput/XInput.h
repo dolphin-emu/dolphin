@@ -12,101 +12,75 @@ namespace ciface
 namespace XInput
 {
 
-void Init( std::vector<ControllerInterface::Device*>& devices );
+void Init(DeviceList& devices);
 
 class Device : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
-
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class Device;
-	protected:
-		virtual ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const = 0;
-	};
-
-	class Output : public ControllerInterface::Device::Output
-	{
-		friend class Device;
-	protected:
-		virtual void SetState( const ControlState state, XINPUT_VIBRATION* const vibration ) = 0;
-	};
-
+private:
 	class Button : public Input
 	{
-		friend class Device;
 	public:
 		std::string GetName() const;
-	protected:
-		Button( const unsigned int index ) : m_index(index) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
+		Button(u8 index, const WORD& buttons) : m_index(index), m_buttons(buttons) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
+		const WORD& m_buttons;
+		u8 m_index;
 	};
 
 	class Axis : public Input
 	{
-		friend class Device;
 	public:
 		std::string GetName() const;
-	protected:
-		Axis( const unsigned int index, const SHORT range ) : m_index(index), m_range(range) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
+		Axis(u8 index, const SHORT& axis, SHORT range) : m_index(index), m_axis(axis), m_range(range) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const SHORT			m_range;
+		const SHORT& m_axis;
+		const SHORT m_range;
+		const u8 m_index;
 	};
 
 	class Trigger : public Input
 	{
-		friend class Device;
 	public:
 		std::string GetName() const;
-	protected:
-		Trigger( const unsigned int index, const BYTE range ) : m_index(index), m_range(range) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
+		Trigger(u8 index, const BYTE& trigger, BYTE range) : m_index(index), m_trigger(trigger), m_range(range) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const BYTE			m_range;
+		const BYTE& m_trigger;
+		const BYTE m_range;
+		const u8 m_index;
 	};
 
 	class Motor : public Output
 	{
-		friend class Device;
 	public:
 		std::string GetName() const;
-	protected:
-		Motor( const unsigned int index, const WORD range ) : m_index(index), m_range(range) {}
-		void SetState( const ControlState state, XINPUT_VIBRATION* const vibration );
+		Motor(u8 index, WORD& motor, WORD range) : m_index(index), m_motor(motor), m_range(range) {}
+		void SetState(ControlState state);
 	private:
-		const unsigned int	m_index;
-		const WORD			m_range;
+		WORD& m_motor;
+		const WORD m_range;
+		const u8 m_index;
 	};
 
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
-	void SetOutputState( const ControllerInterface::Device::Output* const input, const ControlState state );
-
 	void ClearInputState();
 
-public:
-	Device( const XINPUT_CAPABILITIES* const capabilities, const unsigned int index );
+	Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
 	std::string GetName() const;
 	int GetId() const;
 	std::string GetSource() const;
 
 private:
-	const unsigned int		m_index;
-	XINPUT_STATE			m_state_in;
-	XINPUT_VIBRATION		m_state_out;
-	XINPUT_VIBRATION		m_current_state_out;
-	const unsigned int		m_subtype;
+	XINPUT_STATE m_state_in;
+	XINPUT_VIBRATION m_state_out, m_current_state_out;
+	const BYTE m_subtype;
+	const u8 m_index;
 };
 
 

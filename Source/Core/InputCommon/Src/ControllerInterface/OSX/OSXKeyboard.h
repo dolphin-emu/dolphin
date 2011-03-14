@@ -9,40 +9,23 @@ namespace OSX
 
 class Keyboard : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class Keyboard;
-	protected:
-		virtual ControlState GetState(IOHIDDeviceRef device) const = 0;
-	};
-
+private:
 	class Key : public Input
 	{
-		friend class Keyboard;
 	public:
 		std::string GetName() const;
-	protected:
-		Key(IOHIDElementRef element);
-		ControlState GetState(IOHIDDeviceRef device) const;
+		Key(IOHIDElementRef element, IOHIDDeviceRef device);
+		ControlState GetState() const;
 	private:
-		IOHIDElementRef		m_element;
+		const IOHIDElementRef	m_element;
+		const IOHIDDeviceRef	m_device;
 		std::string		m_name;
 	};
 
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState(
-		const ControllerInterface::Device::Input* const input) const;
-	void SetOutputState(
-		const ControllerInterface::Device::Output* const output,
-		const ControlState state);
-
-public:
 	Keyboard(IOHIDDeviceRef device, std::string name, int index);
 
 	std::string GetName() const;
@@ -50,8 +33,8 @@ public:
 	int GetId() const;
 
 private:
-	IOHIDDeviceRef	m_device;
-	std::string	m_device_name;
+	const IOHIDDeviceRef	m_device;
+	const std::string	m_device_name;
 	int		m_index;
 };
 

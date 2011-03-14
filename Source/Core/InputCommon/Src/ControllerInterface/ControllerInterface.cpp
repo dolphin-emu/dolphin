@@ -15,10 +15,10 @@
 #ifdef CIFACE_USE_SDL
 	#include "SDL/SDL.h"
 #endif
+
 #include "Thread.h"
 
-
-#define INPUT_DETECT_THRESHOLD			0.85
+#define INPUT_DETECT_THRESHOLD			0.85f
 
 ControllerInterface g_controller_interface;
 
@@ -71,7 +71,7 @@ void ControllerInterface::Shutdown()
 			oe = (*d)->Outputs().end();
 		// set outputs to ZERO before destroying device
 		for ( ;o!=oe; ++o)
-			(*d)->SetOutputState(*o, 0);
+			(*o)->SetState(0);
 		// update output
 		(*d)->UpdateOutput();
 
@@ -234,14 +234,14 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 		ci = m_controls.begin(),
 		ce = m_controls.end();
 
-	// bit of hax for NOT to work at start of expression
+	// bit of hax for "NOT" to work at start of expression
 	if (ci != ce)
 		if (ci->mode == 2)
 			state = 1;
 
 	for (; ci!=ce; ++ci)
 	{
-		const ControlState istate = ci->device->GetInputState((Device::Input*)ci->control);
+		const ControlState istate = ci->control->ToInput()->GetState();
 
 		switch (ci->mode)
 		{
@@ -284,7 +284,7 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 		ci = m_controls.begin(),
 		ce = m_controls.end();
 	for (; ci != ce; ++ci)
-		ci->device->SetOutputState((Device::Output*)ci->control, tmp_state);
+		ci->control->ToOutput()->SetState(tmp_state);
 	
 	return state;	// just return the output, watever
 }
@@ -345,11 +345,6 @@ bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface:
 	return false;
 }
 
-bool ControllerInterface::Device::Control::operator==(const std::string& name) const
-{
-	return GetName() == name;
-}
-
 bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::DeviceQualifier& devq) const
 {
 	if (cid == devq.cid)
@@ -399,74 +394,21 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 					devq.FromString(dev_str);
 
 				// find device
-				devc.device = FindDevice(devq);
+				Device* const def_device = FindDevice(devq);
 
-				if (devc.device)
+				if (def_device)
 				{
-					// control
-
-					// inputs or outputs, i don't like this
 					if (ref->is_input)
-					{
-						std::vector<Device::Input*>::const_iterator i;
-						
-						// FIXME: Use std::find instead of a for loop
-						// i = std::find(devc.device->Inputs().begin(), devc.device->Inputs().end(), ctrl_str);
-						for(i = devc.device->Inputs().begin(); i < devc.device->Inputs().end(); ++i)
-							if(*(*i) == ctrl_str)
-								break;
-
-						if (devc.device->Inputs().end() != i)
-						{
-							devc.control = *i;
-							ref->m_controls.push_back(devc);
-						}
-						else
-						{
-							// the input wasn't found, look through all the other devices
-
-							std::vector<Device*>::const_iterator
-								deviter = m_devices.begin(),
-								devend = m_devices.end();
-
-							for(; deviter != devend; ++deviter)
-							{
-								for(i = (*deviter)->Inputs().begin(); i < (*deviter)->Inputs().end(); ++i)
-									if(*(*i) == ctrl_str)
-										break;
-
-								if ((*deviter)->Inputs().end() != i)
-								{
-									devc.device = *deviter;
-									devc.control = *i;
-									ref->m_controls.push_back(devc);
-									break;
-								}
-							}
-						}
-					}
+						devc.control = FindInput(ctrl_str, def_device);
 					else
-					{
-						std::vector<Device::Output*>::const_iterator i;
-						
-						// FIXME: Use std::find instead of a for loop
-						// i = std::find(devc.device->Outputs().begin(), devc.device->Outputs().end(), ctrl_str);
-						for(i = devc.device->Outputs().begin(); i < devc.device->Outputs().end(); ++i)
-							if(*(*i) == ctrl_str)
-								break;
+						devc.control = FindOutput(ctrl_str, def_device);
 
-						if (devc.device->Outputs().end() != i)
-						{
-							devc.control = *i;
-							ref->m_controls.push_back(devc);
-						}
-					}
-
+					if (devc.control)
+						ref->m_controls.push_back(devc);
 				}
 			}
 			// reset stuff for next ctrl
 			devc.mode = (int)f;
-			devc.device = NULL;
 			ctrl_str.clear();
 		}
 		else if ('`' == c)
@@ -516,7 +458,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 		i = device->Inputs().begin(),
 		e = device->Inputs().end();
 	for (bool* state=states; i != e; ++i)
-		*state++ = (device->GetInputState(*i) > INPUT_DETECT_THRESHOLD);
+		*state++ = ((*i)->GetState() > INPUT_DETECT_THRESHOLD);
 
 	while (time < ms)
 	{
@@ -525,7 +467,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 		for (bool* state=states; i != e; ++i,++state)
 		{
 			// detected an input
-			if ((*i)->IsDetectable() && device->GetInputState(*i) > INPUT_DETECT_THRESHOLD)
+			if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
 			{
 				// input was released at some point during Detect call
 				// return the detected input
@@ -574,4 +516,52 @@ ControllerInterface::Device::Control* ControllerInterface::OutputReference::Dete
 		device->UpdateOutput();
 	}
 	return NULL;
+}
+
+ControllerInterface::Device::Input* ControllerInterface::Device::FindInput(const std::string &name) const
+{
+	std::vector<Input*>::const_iterator
+		it = m_inputs.begin(),
+		itend = m_inputs.end();
+	for (; it != itend; ++it)
+		if ((*it)->GetName() == name)
+			return *it;
+
+	return NULL;
+}
+
+ControllerInterface::Device::Output* ControllerInterface::Device::FindOutput(const std::string &name) const
+{
+	std::vector<Output*>::const_iterator
+		it = m_outputs.begin(),
+		itend = m_outputs.end();
+	for (; it != itend; ++it)
+		if ((*it)->GetName() == name)
+			return *it;
+
+	return NULL;
+}
+
+ControllerInterface::Device::Input* ControllerInterface::FindInput(const std::string& name, const Device* def_dev) const
+{
+	if (def_dev)
+		return def_dev->FindInput(name);
+
+	std::vector<Device*>::const_iterator
+		di = m_devices.begin(),
+		de = m_devices.end();
+	for (; di != de; ++di)
+	{
+		Device::Input* const i = (*di)->FindInput(name);
+
+		if (i)
+			return i;
+	}
+
+	return NULL;
+}
+
+ControllerInterface::Device::Output* ControllerInterface::FindOutput(const std::string& name, const Device* def_dev) const
+{
+	return def_dev->FindOutput(name);
 }

@@ -18,11 +18,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterfac
 
 class KeyboardMouse : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
-
+private:
 	struct State
 	{
 		BYTE			keyboard[256];
@@ -33,90 +29,67 @@ protected:
 		} cursor;
 	};
 
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class KeyboardMouse;
-	protected:
-		virtual ControlState GetState(const State* const boardstate) const = 0;
-	};
-
-	class Output : public ControllerInterface::Device::Output
-	{
-		friend class KeyboardMouse;
-	protected:
-		virtual void SetState(const ControlState state, unsigned char* const state_out) = 0;
-	};
-
 	class Key : public Input
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
-	protected:
-		Key( const unsigned int index ) : m_index(index) {}
-		ControlState GetState(const State* const state) const;
+		Key(u8 index, const BYTE& key) : m_index(index), m_key(key) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
+		const BYTE& m_key;
+		const u8 m_index;
 	};
 
 	class Button : public Input
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
-	protected:
-		Button( const unsigned int index ) : m_index(index) {}
-		ControlState GetState(const State* const state) const;
+		Button(u8 index, const BYTE& button) : m_index(index), m_button(button) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
+		const BYTE& m_button;
+		const u8 m_index;
 	};
 
 	class Axis : public Input
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
-	protected:
-		Axis( const unsigned int index, const LONG range ) : m_index(index), m_range(range) {}
-		ControlState GetState(const State* const state) const;
+		Axis(u8 index, const LONG& axis, LONG range) : m_index(index), m_axis(axis), m_range(range) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const LONG			m_range;
+		const LONG& m_axis;
+		const LONG m_range;
+		const u8 m_index;
 	};
 
 	class Cursor : public Input
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
 		bool IsDetectable() { return false; }
-	protected:
-		Cursor(const unsigned int index, const bool positive) : m_index(index), m_positive(positive) {}
-		ControlState GetState(const State* const state) const;
+		Cursor(u8 index, const float& axis, const bool positive) : m_index(index), m_axis(axis), m_positive(positive) {}
+		ControlState GetState() const;
 	private:
-		const unsigned int	m_index;
-		const bool			m_positive;
+		const float& m_axis;
+		const u8 m_index;
+		const bool m_positive;
 	};
 
 	class Light : public Output
 	{
-		friend class KeyboardMouse;
 	public:
 		std::string GetName() const;
-	protected:
-		Light( const unsigned int index ) : m_index(index) {}
-		void SetState( const ControlState state, unsigned char* const state_out );
+		Light(u8 index) : m_index(index) {}
+		void SetState(ControlState state);
 	private:
-		const unsigned int	m_index;
+		const u8 m_index;
 	};
-	
+
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
-	void SetOutputState( const ControllerInterface::Device::Output* const input, const ControlState state );
-
-public:
 	KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
 	~KeyboardMouse();
 

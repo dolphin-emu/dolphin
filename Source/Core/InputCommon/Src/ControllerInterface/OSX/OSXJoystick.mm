@@ -35,7 +35,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 			(IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
 			//DeviceElementDebugPrint(e, NULL);
 
-			AddInput(new Button(e));
+			AddInput(new Button(e, m_device));
 		}
 		CFRelease(buttons);
 	}
@@ -59,29 +59,17 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 			//DeviceElementDebugPrint(e, NULL);
 
 			if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch) {
-				AddInput(new Hat(e, Hat::up));
-				AddInput(new Hat(e, Hat::right));
-				AddInput(new Hat(e, Hat::down));
-				AddInput(new Hat(e, Hat::left));
+				AddInput(new Hat(e, m_device, Hat::up));
+				AddInput(new Hat(e, m_device, Hat::right));
+				AddInput(new Hat(e, m_device, Hat::down));
+				AddInput(new Hat(e, m_device, Hat::left));
 			} else {
-				AddInput(new Axis(e, Axis::negative));
-				AddInput(new Axis(e, Axis::positive));
+				AddInput(new Axis(e, m_device, Axis::negative));
+				AddInput(new Axis(e, m_device, Axis::positive));
 			}
 		}
 		CFRelease(axes);
 	}
-}
-
-ControlState Joystick::GetInputState(
-	const ControllerInterface::Device::Input* const input) const
-{
-	return ((Input*)input)->GetState(m_device);
-}
-
-void Joystick::SetOutputState(
-	const ControllerInterface::Device::Output* const output,
-	const ControlState state)
-{
 }
 
 bool Joystick::UpdateInput()
@@ -109,18 +97,10 @@ int Joystick::GetId() const
 	return m_index;
 }
 
-Joystick::Button::Button(IOHIDElementRef element)
-	: m_element(element)
-{
-	std::ostringstream s;
-	s << IOHIDElementGetUsage(m_element);
-	m_name = std::string("Button ") + s.str();
-}
-
-ControlState Joystick::Button::GetState(IOHIDDeviceRef device) const
+ControlState Joystick::Button::GetState() const
 {
 	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
 		return IOHIDValueGetIntegerValue(value);
 	else
 		return 0;
@@ -128,12 +108,14 @@ ControlState Joystick::Button::GetState(IOHIDDeviceRef device) const
 
 std::string Joystick::Button::GetName() const
 {
-	return m_name;
+	std::ostringstream s;
+	s << IOHIDElementGetUsage(m_element);
+	return std::string("Button ") + s.str();
 }
 
-
-Joystick::Axis::Axis(IOHIDElementRef element, direction dir)
+Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
 	: m_element(element)
+	, m_device(device)
 	, m_direction(dir)
 {
 	// Need to parse the element a bit first
@@ -174,11 +156,11 @@ Joystick::Axis::Axis(IOHIDElementRef element, direction dir)
 	m_scale = 1 / fabs(IOHIDElementGetLogicalMax(m_element) - m_neutral);
 }
 
-ControlState Joystick::Axis::GetState(IOHIDDeviceRef device) const
+ControlState Joystick::Axis::GetState() const
 {
 	IOHIDValueRef value;
 
-	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
 	{
 		// IOHIDValueGetIntegerValue() crashes when trying
 		// to convert unusually large element values.
@@ -201,8 +183,9 @@ std::string Joystick::Axis::GetName() const
 	return m_name;
 }
 
-Joystick::Hat::Hat(IOHIDElementRef element, direction dir)
+Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
 	: m_element(element)
+	, m_device(device)
 	, m_direction(dir)
 {
 	switch (dir) {
@@ -223,12 +206,12 @@ Joystick::Hat::Hat(IOHIDElementRef element, direction dir)
 	}
 }
 
-ControlState Joystick::Hat::GetState(IOHIDDeviceRef device) const
+ControlState Joystick::Hat::GetState() const
 {
 	IOHIDValueRef value;
 	int position;
 
-	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
 	{
 		position = IOHIDValueGetIntegerValue(value);
 

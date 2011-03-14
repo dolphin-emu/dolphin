@@ -9,53 +9,40 @@ namespace OSX
 
 class Joystick : public ControllerInterface::Device
 {
-	friend class ControllerInterface;
-	friend class ControllerInterface::ControlReference;
-
-protected:
-	class Input : public ControllerInterface::Device::Input
-	{
-		friend class Joystick;
-	protected:
-		virtual ControlState GetState(IOHIDDeviceRef device) const = 0;
-	};
-
+private:
 	class Button : public Input
 	{
-		friend class Joystick;
 	public:
 		std::string GetName() const;
-	protected:
-		Button(IOHIDElementRef element);
-		ControlState GetState(IOHIDDeviceRef device) const;
+		Button(IOHIDElementRef element, IOHIDDeviceRef device)
+			: m_element(element), m_device(device) {}
+		ControlState GetState() const;
 	private:
-		IOHIDElementRef		m_element;
-		std::string		m_name;
+		const IOHIDElementRef	m_element;
+		const IOHIDDeviceRef m_device;
 	};
 
 	class Axis : public Input
 	{
-		friend class Joystick;
 	public:
 		enum direction {
 			positive = 0,
 			negative
 		};
 		std::string GetName() const;
-	protected:
-		Axis(IOHIDElementRef element, direction dir);
-		ControlState GetState(IOHIDDeviceRef device) const;
+		Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
+		ControlState GetState() const;
 	private:
-		IOHIDElementRef		m_element;
+		const IOHIDElementRef	m_element;
+		const IOHIDDeviceRef m_device;
 		std::string		m_name;
-		direction		m_direction;
+		const direction		m_direction;
 		float			m_neutral;
 		float			m_scale;
 	};
 
 	class Hat : public Input
 	{
-		friend class Joystick;
 	public:
 		enum direction {
 			up = 0,
@@ -64,25 +51,19 @@ protected:
 			left
 		};
 		std::string GetName() const;
-	protected:
-		Hat(IOHIDElementRef element, direction dir);
-		ControlState GetState(IOHIDDeviceRef device) const;
+		Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
+		ControlState GetState() const;
 	private:
-		IOHIDElementRef		m_element;
-		std::string		m_name;
-		direction		m_direction;
+		const IOHIDElementRef	m_element;
+		const IOHIDDeviceRef m_device;
+		const char*		m_name;
+		const direction		m_direction;
 	};
 
+public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState(
-		const ControllerInterface::Device::Input* const input) const;
-	void SetOutputState(
-		const ControllerInterface::Device::Output* const output,
-		const ControlState state);
-
-public:
 	Joystick(IOHIDDeviceRef device, std::string name, int index);
 
 	std::string GetName() const;
@@ -90,9 +71,9 @@ public:
 	int GetId() const;
 
 private:
-	IOHIDDeviceRef	m_device;
-	std::string	m_device_name;
-	int		m_index;
+	const IOHIDDeviceRef	m_device;
+	const std::string	m_device_name;
+	const int	m_index;
 };
 
 }

@@ -22,7 +22,7 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
 	// Keyboard Keys
 	for (int i = min_keycode; i <= max_keycode; ++i)
 	{
-		Key *temp_key = new Key(m_display, i);
+		Key *temp_key = new Key(m_display, i, m_state.keyboard);
 		if (temp_key->m_keyname.length())
 			AddInput(temp_key);
 		else
@@ -30,30 +30,20 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
 	}
 
 	// Mouse Buttons
-	AddInput(new Button(Button1Mask));
-	AddInput(new Button(Button2Mask));
-	AddInput(new Button(Button3Mask));
-	AddInput(new Button(Button4Mask));
-	AddInput(new Button(Button5Mask));
+	AddInput(new Button(Button1Mask, m_state.buttons));
+	AddInput(new Button(Button2Mask, m_state.buttons));
+	AddInput(new Button(Button3Mask, m_state.buttons));
+	AddInput(new Button(Button4Mask, m_state.buttons));
+	AddInput(new Button(Button5Mask, m_state.buttons));
 
 	// Mouse Cursor, X-/+ and Y-/+
-	for (unsigned int i=0; i<4; ++i)
-		AddInput(new Cursor(!!(i&2), !!(i&1)));
+	for (int i = 0; i != 4; ++i)
+		AddInput(new Cursor(!!(i & 2), !!(i & 1), (&m_state.cursor.x)[!!(i & 2)]));
 }
 
 KeyboardMouse::~KeyboardMouse()
 {
 	XCloseDisplay(m_display);
-}
-
-ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
-{
-	return ((Input*)input)->GetState(&m_state);
-}
-
-void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
-{
-
 }
 
 bool KeyboardMouse::UpdateInput()
@@ -96,9 +86,8 @@ int KeyboardMouse::GetId() const
 	return 0;
 }
 
-
-KeyboardMouse::Key::Key(Display* const display, KeyCode keycode)
-  : m_display(display), m_keycode(keycode)
+KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
+	: m_display(display), m_keyboard(keyboard), m_keycode(keycode)
 {
 	int i = 0;
 	KeySym keysym = 0;
@@ -122,21 +111,21 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode)
 		m_keyname = std::string(XKeysymToString(keysym));
 }
 
-ControlState KeyboardMouse::Key::GetState(const State* const state) const
+ControlState KeyboardMouse::Key::GetState() const
 {
-	KeyCode shift = XKeysymToKeycode(m_display, XK_Shift_L);
-	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0
-			&& (state->keyboard[shift/8] & (1 << (shift%8))) == 0;
+	const KeyCode shift = XKeysymToKeycode(m_display, XK_Shift_L);
+	return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0
+			&& (m_keyboard[shift / 8] & (1 << (shift % 8))) == 0;
 }
 
-ControlState KeyboardMouse::Button::GetState(const State* const state) const
+ControlState KeyboardMouse::Button::GetState() const
 {
-	return ((state->buttons & m_index) > 0);
+	return ((m_buttons & m_index) != 0);
 }
 
-ControlState KeyboardMouse::Cursor::GetState(const State* const state) const
+ControlState KeyboardMouse::Cursor::GetState() const
 {
-	return std::max(0.0f, ControlState((&state->cursor.x)[m_index]) / (m_positive ? 1.0f : -1.0f));
+	return std::max(0.0f, m_cursor / (m_positive ? 1.0f : -1.0f));
 }
 
 std::string KeyboardMouse::Key::GetName() const
