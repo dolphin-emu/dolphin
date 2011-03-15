@@ -26,6 +26,7 @@
 #include "MainBase.h"
 #include "PixelShaderManager.h"
 #include "RenderBase.h"
+#include "Render.h"
 #include "Statistics.h"
 #include "TextureCacheBase.h"
 #include "VertexShaderManager.h"
@@ -147,6 +148,9 @@ void VertexManager::Draw(UINT stride)
 		D3D::context->DrawIndexed(IndexGenerator::GetTriangleindexLen(), m_triangleDrawIndex, 0);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
+	// Disable culling for lines and points
+	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
+		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
 	if (IndexGenerator::GetNumLines() > 0)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
@@ -175,6 +179,8 @@ void VertexManager::Draw(UINT stride)
 			D3D::context->GSSetShader(NULL, NULL, 0);
 		}
 	}
+	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
+		((DX11::Renderer*)g_renderer)->RestoreCull();
 }
 
 void VertexManager::vFlush()

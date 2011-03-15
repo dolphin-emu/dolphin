@@ -1276,6 +1276,27 @@ void Renderer::RestoreState()
 	D3D::stateman->PopRasterizerState();
 }
 
+void Renderer::ApplyCullDisable()
+{
+	D3D11_RASTERIZER_DESC rastDesc = gx_state.rastdc;
+	rastDesc.CullMode = D3D11_CULL_NONE;
+
+	ID3D11RasterizerState* raststate;
+	HRESULT hr = D3D::device->CreateRasterizerState(&rastDesc, &raststate);
+	if (FAILED(hr)) PanicAlert("Failed to create culling-disabled rasterizer state at %s %d\n", __FILE__, __LINE__);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state (culling disabled) used to emulate the GX pipeline");
+
+	D3D::stateman->PushRasterizerState(raststate);
+	SAFE_RELEASE(raststate);
+
+	D3D::stateman->Apply();
+}
+
+void Renderer::RestoreCull()
+{
+	D3D::stateman->PopRasterizerState();
+}
+
 void Renderer::SetGenerationMode()
 {
 	// rastdc.FrontCounterClockwise must be false for this to work
