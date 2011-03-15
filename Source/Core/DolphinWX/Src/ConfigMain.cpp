@@ -213,7 +213,7 @@ void CConfigMain::SetSelectedTab(int tab)
 	switch (tab)
 	{
 	case ID_AUDIOPAGE:
-		this->Notebook->SetSelection(2);
+		Notebook->SetSelection(2);
 		break;
 	}
 }
@@ -947,6 +947,7 @@ void CConfigMain::CreateGUIControls()
 
 	Fit();
 	Center();
+	Notebook->SetSelection(0);
 }
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))

@@ -46,11 +46,10 @@ public:
 	void UpdateGUI();
 
 private:
-	void OnClose(wxCloseEvent& event);
+	void Cancel(wxCommandEvent& event);
 
 	InputPlugin&	m_plugin;
 	wxNotebook*		m_pad_notebook;
-	bool			m_save;
 };
 
 

@@ -461,7 +461,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
-	wxButton* const btn_close = new wxButton(this, -1, _("Close"), wxDefaultPosition);
+	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
 	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
@@ -470,6 +470,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
 	szr_main->Add(btn_close, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
 
+	notebook->SetSelection(0);
 	SetSizerAndFit(szr_main);
 	Center();
 

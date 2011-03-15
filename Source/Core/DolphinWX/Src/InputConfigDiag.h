@@ -235,6 +235,7 @@ public:
 
 	bool Destroy();
 
+	void ClickCancel(wxCommandEvent& event);
 	void ClickSave(wxCommandEvent& event);
 
 	void UpdateDeviceComboBox();

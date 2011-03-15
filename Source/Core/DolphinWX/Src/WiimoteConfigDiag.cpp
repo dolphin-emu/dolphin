@@ -67,7 +67,7 @@ WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
-	, m_plugin(plugin), m_save(false)
+	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
 	for (unsigned int i = 0; i < 4; ++i)
@@ -75,15 +75,20 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 		WiimoteConfigPage* const wpage = new WiimoteConfigPage(m_pad_notebook, i);
 		m_pad_notebook->AddPage(wpage, wxString(_("Wiimote ")) + wxChar('1'+i));
 	}
+	m_pad_notebook->SetSelection(0);
 
-	wxButton* const ok_button = new wxButton(this, -1, _("OK"), wxDefaultPosition);
+	wxButton* const ok_button = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition);
 	_connect_macro_(ok_button, WiimoteConfigDiag::Save, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition);
+	_connect_macro_(cancel_button, WiimoteConfigDiag::Cancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(WiimoteConfigDiag::OnClose), (wxObject*)0, this);
+	wxBoxSizer* const button_sizer = new wxBoxSizer(wxHORIZONTAL);
+	button_sizer->Add(cancel_button, 0, wxALIGN_RIGHT | wxRIGHT, 5);
+	button_sizer->Add(ok_button, 0, wxALIGN_RIGHT);
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_pad_notebook, 1, wxEXPAND | wxALL, 5);
-	main_sizer->Add(ok_button, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
+	main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
 
 	SetSizerAndFit(main_sizer);
 
@@ -174,15 +179,13 @@ void WiimoteConfigDiag::Save(wxCommandEvent&)
 
 	inifile.Save(ini_filename);
 
-	m_save = true;
-
 	Close();
 }
 
-void WiimoteConfigDiag::OnClose(wxCloseEvent& event)
+void WiimoteConfigDiag::Cancel(wxCommandEvent&)
 {
-	if (!m_save)
-		for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
-			((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->RevertSource();
-	event.Skip();
+	for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
+		((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->RevertSource();
+
+	Close();
 }

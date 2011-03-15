@@ -191,6 +191,11 @@ void InputConfigDialog::UpdateControlReferences()
 		(*i)->controller->UpdateReferences(g_controller_interface);
 }
 
+void InputConfigDialog::ClickCancel(wxCommandEvent&)
+{
+	Close();
+}
+
 void InputConfigDialog::ClickSave(wxCommandEvent&)
 {
 	m_plugin.SaveConfig();
@@ -974,13 +979,15 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
 
-	wxButton* const close_button = new wxButton(this, -1, _("Save"));
+	wxButton* const close_button = new wxButton(this, wxID_OK, _("Save"));
 	_connect_macro_(close_button, InputConfigDialog::ClickSave, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	_connect_macro_(close_button, InputConfigDialog::ClickSave, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"));
+	_connect_macro_(cancel_button, InputConfigDialog::ClickCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* btns = new wxBoxSizer(wxHORIZONTAL);
 	//btns->Add(new wxStaticText(this, -1, wxString::FromAscii(ver.c_str())), 0, wxLEFT|wxTOP, 5);
 	btns->AddStretchSpacer();
+	btns->Add(cancel_button, 0, 0, 0);
 	btns->Add(close_button, 0, 0, 0);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);

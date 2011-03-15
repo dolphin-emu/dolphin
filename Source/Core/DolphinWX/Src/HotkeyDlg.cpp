@@ -303,5 +303,6 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	SetSizer(sMainSizer);
 	Layout();
 	Fit();
+	Notebook->SetSelection(0);
 }
 
