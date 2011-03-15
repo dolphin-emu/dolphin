@@ -146,7 +146,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// If a game from the game list is running, show the game specific config; show the default config otherwise
 	cur_profile = 0;
-	if (Core::isRunning())
+	if (Core::IsRunning())
 	{
 		// Search which ISO has been started
 		for (long index = GameListCtrl->GetNextItem(-1); index != -1; index = GameListCtrl->GetNextItem(index))
@@ -196,7 +196,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	profile_cb->Select(cur_profile);
 	_connect_macro_(profile_cb, VideoConfigDiag::Event_OnProfileChange, wxEVT_COMMAND_CHOICE_SELECTED, this);
-	profile_cb->Enable(!Core::isRunning());
+	profile_cb->Enable(!Core::IsRunning());
 
 	// adapter // for D3D only
 	if (vconfig.backend_info.Adapters.size())
@@ -545,7 +545,7 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 
 	// If emulation hasn't started, yet, always update g_Config.
 	// Otherwise only update it if we're editing the currently running game's profile
-	if (!Core::isRunning())
+	if (!Core::IsRunning())
 	{
 		g_Config = vconfig;
 	}

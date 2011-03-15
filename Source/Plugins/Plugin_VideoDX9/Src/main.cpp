@@ -53,6 +53,7 @@
 #include "DLCache.h"
 #include "IniFile.h"
 #include "Core.h"
+#include "Host.h"
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
@@ -185,7 +186,7 @@ void VideoBackend::Video_Prepare()
 	DLCache::Init();
 
 	// Notify the core that the video backend is ready
-	Core::Callback_CoreMessage(WM_USER_CREATE);
+	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()

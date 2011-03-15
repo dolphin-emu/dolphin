@@ -35,6 +35,7 @@
 #include "Fifo.h"
 #include "Timer.h"
 #include "StringUtil.h"
+#include "Host.h"
 
 #include <cmath>
 #include <string>
@@ -316,6 +317,19 @@ void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(s_XFB_height-1);
 		}
 	}
+}
+
+void Renderer::SetWindowSize(int width, int height)
+{
+	if (width < 1)
+		width = 1;
+	if (height < 1)
+		height = 1;
+
+	// Scale the window size by the EFB scale.
+	CalculateTargetScale(width, height, width, height);
+
+	Host_RequestRenderWindowSize(width, height);
 }
 
 void UpdateViewport()

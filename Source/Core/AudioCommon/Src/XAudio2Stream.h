@@ -23,59 +23,89 @@
 #ifdef _WIN32
 #include "Thread.h"
 #include <xaudio2.h>
+#include <memory>
 
-const int NUM_BUFFERS = 3;
-const int SAMPLES_PER_BUFFER = 96;
+struct StreamingVoiceContext : public IXAudio2VoiceCallback
+{
+private:
+	CMixer* const m_mixer;
+	Common::Event& m_sound_sync_event;
+	IXAudio2SourceVoice* m_source_voice;
+	std::unique_ptr<BYTE[]> xaudio_buffer;
 
-const int NUM_CHANNELS = 2;
-const int BUFFER_SIZE = SAMPLES_PER_BUFFER * NUM_CHANNELS;
-const int BUFFER_SIZE_BYTES = BUFFER_SIZE * sizeof(s16);
+	void SubmitBuffer(PBYTE buf_data);
 
+public:
+	StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::Event& pSyncEvent);
+	
+	~StreamingVoiceContext();
+	
+	void StreamingVoiceContext::Stop();
+	void StreamingVoiceContext::Play();
+	
+	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error) {}
+	STDMETHOD_(void, OnVoiceProcessingPassStart) (UINT32) {}
+	STDMETHOD_(void, OnVoiceProcessingPassEnd) () {}
+	STDMETHOD_(void, OnBufferStart) (void*) {}
+	STDMETHOD_(void, OnLoopEnd) (void*) {}   
+	STDMETHOD_(void, OnStreamEnd) () {}
 
-#ifndef safe_delete_array
-#define safe_delete_array(p) { if(p) { delete[] (p);   (p)=NULL; } }
-#endif
-#ifndef safe_delete
-#define safe_delete(a) if( (a) != NULL ) delete (a); (a) = NULL;
-#endif
-#ifndef safe_release
-#define safe_release(p) { if(p) { (p)->Release(); (p)=NULL; } }
-#endif
-
+	STDMETHOD_(void, OnBufferEnd) (void* context);
+};
 
 #endif
 
 class XAudio2 : public SoundStream
 {
 #ifdef _WIN32
-	IXAudio2 *pXAudio2;
-	IXAudio2MasteringVoice *pMasteringVoice;
-	IXAudio2SourceVoice *pSourceVoice;
 
-	Common::Event soundSyncEvent;
+	class Releaser
+	{
+	public:
+		template <typename R>
+		void operator()(R* ptr)
+		{
+			ptr->Release();
+		}
+	};
+
+private:
+	std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
+	std::unique_ptr<StreamingVoiceContext> m_voice_context;
+	IXAudio2MasteringVoice *m_mastering_voice;
+
+	Common::Event m_sound_sync_event;
 	float m_volume;
 
+	const bool m_cleanup_com;
 
-	bool Init();
 public:
 	XAudio2(CMixer *mixer) 
-		: SoundStream(mixer),
-		pXAudio2(0),
-		pMasteringVoice(0),
-		pSourceVoice(0),
-		m_volume(1.0f) {}
+		: SoundStream(mixer)
+		, m_mastering_voice(nullptr)
+		, m_volume(1.0f)
+		, m_cleanup_com(SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
+	{}
 
-    virtual ~XAudio2() {}
+	virtual ~XAudio2()
+	{
+		Stop();
+		if (m_cleanup_com)
+			CoUninitialize();
+	}
  
 	virtual bool Start();
-	virtual void SetVolume(int volume);
-    virtual void Stop();
+	virtual void Stop();
+
+	virtual void Update();
 	virtual void Clear(bool mute);
-    static bool isValid() { return true; }
-    virtual bool usesMixer() const { return true; }
-    virtual void Update();
+	virtual void SetVolume(int volume);
+	virtual bool usesMixer() const { return true; }
+
+	static bool isValid() { return true; }
 
 #else
+
 public:
 	XAudio2(CMixer *mixer, void *hWnd = NULL)
 		: SoundStream(mixer)

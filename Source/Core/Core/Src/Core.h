@@ -34,76 +34,73 @@
 namespace Core
 {
 
-void Callback_VideoLog(const char* _szMessage);
+// Get core parameters
+// TODO: kill, use SConfig instead
+extern SCoreStartupParameter g_CoreStartupParameter;
+
 void Callback_VideoCopiedToXFB(bool video_update);
-void Callback_VideoGetWindowSize(int& x, int& y, int& width, int& height);
-void Callback_VideoRequestWindowSize(int& width, int& height);
-void Callback_CoreMessage(int Id);
 
-    enum EState
-    {
-        CORE_UNINITIALIZED,
-        CORE_PAUSE,
-        CORE_RUN,
-		CORE_STOPPING
-    };
+enum EState
+{
+    CORE_UNINITIALIZED,
+    CORE_PAUSE,
+    CORE_RUN,
+	CORE_STOPPING
+};
 
-    // Init core
-    bool Init();
-    void Stop();
+bool Init();
+void Stop();
 
-	std::string StopMessage(bool, std::string);
+std::string StopMessage(bool, std::string);
 
-	bool isRunning();
-	bool IsRunningInCurrentThread(); // this tells us whether we are running in the cpu thread.
-	bool IsCPUThread(); // this tells us whether we are the cpu thread.
+bool IsRunning();
+bool IsRunningInCurrentThread(); // this tells us whether we are running in the cpu thread.
+bool IsCPUThread(); // this tells us whether we are the cpu thread.
     
-    void SetState(EState _State);
-    EState GetState();
+void SetState(EState _State);
+EState GetState();
 
-	void ScreenShot(const std::string& name);
-	void ScreenShot();
+void SaveScreenShot();
+
+void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+
+void* GetWindowHandle();
     
-    // Get core parameters kill use SConfig instead
-    extern SCoreStartupParameter g_CoreStartupParameter; 
+void StartTrace(bool write);
 
-	void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+// This displays messages in a user-visible way.
+void DisplayMessage(const char *message, int time_in_ms);
 
-    void* GetWindowHandle();
-
-    bool GetRealWiimote();
-
-    extern bool bReadTrace;
-    extern bool bWriteTrace;
-    
-    void StartTrace(bool write);
-    void DisplayMessage(const std::string &message, int time_in_ms); // This displays messages in a user-visible way.
-    void DisplayMessage(const char *message, int time_in_ms); // This displays messages in a user-visible way.
+inline void DisplayMessage(const std::string &message, int time_in_ms)
+{
+	DisplayMessage(message.c_str(), time_in_ms);
+}
 	
-	std::string GetStateFileName();
-	void SetStateFileName(std::string val);
+std::string GetStateFileName();
+void SetStateFileName(std::string val);
     
-    int SyncTrace();
-    void SetBlockStart(u32 addr);
-    void StopTrace();
+int SyncTrace();
+void SetBlockStart(u32 addr);
+void StopTrace();
 
-	bool report_slow(int skipped);
-	void VideoThrottle();
+bool ShouldSkipFrame(int skipped);
+void VideoThrottle();
 
-	// -----------------------------------------
-	#ifdef RERECORDING
-	// -----------------
-		void FrameUpdate();
-		void FrameAdvance();
-		void FrameStepOnOff();
-		void WriteStatus();
-		void RerecordingStart();
-		void RerecordingStop();
-		void WindBack(int Counter);
-		extern int g_FrameCounter;
-		extern bool g_FrameStep;
-	#endif
-	// ---------------------------
+#ifdef RERECORDING
+
+void FrameUpdate();
+void FrameAdvance();
+void FrameStepOnOff();
+void WriteStatus();
+void RerecordingStart();
+void RerecordingStop();
+void WindBack(int Counter);
+
+extern int g_FrameCounter;
+extern bool g_FrameStep;
+
+#endif
+
 }  // namespace
 
 #endif

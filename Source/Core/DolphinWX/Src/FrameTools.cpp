@@ -922,6 +922,8 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderFrame->Show();
 	}
 
+	wxBeginBusyCursor();
+
 	if (!BootManager::BootCore(filename))
 	{
 		// Destroy the renderer frame when not rendering to main
@@ -971,13 +973,14 @@ void CFrame::StartGame(const std::string& filename)
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
 	}
+
+	wxEndBusyCursor();
 }
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
 	BootGame(drives[event.GetId()-IDM_DRIVE1]);
 }
-
 
 // Refresh the file list and browse for a favorites directory
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
@@ -994,7 +997,7 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 // Create screenshot
 void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 {
-	Core::ScreenShot();
+	Core::SaveScreenShot();
 }
 
 // Pause the emulation
@@ -1048,7 +1051,9 @@ void CFrame::DoStop()
 		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			Frame::EndPlayInput(false);
 
+		wxBeginBusyCursor();
 		BootManager::Stop();
+		wxEndBusyCursor();
 
 #if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
@@ -1353,7 +1358,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
-	if (Core::isRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
@@ -1461,7 +1466,7 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 void CFrame::UpdateGUI()
 {
 	// Save status
-	bool Initialized = Core::isRunning();
+	bool Initialized = Core::IsRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;
 	bool Paused = Core::GetState() == Core::CORE_PAUSE;
 

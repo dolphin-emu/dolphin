@@ -139,7 +139,7 @@ void FrameSkipping()
 		std::lock_guard<std::mutex> lk(cs_frameSkip);
 
 		g_frameSkipCounter++;
-		if (g_frameSkipCounter > g_framesToSkip || Core::report_slow(g_frameSkipCounter) == false)
+		if (g_frameSkipCounter > g_framesToSkip || Core::ShouldSkipFrame(g_frameSkipCounter) == false)
 			g_frameSkipCounter = 0;
 		
 		g_video_backend->Video_SetRendering(!g_frameSkipCounter);
@@ -200,7 +200,7 @@ bool BeginRecordingInput(int controllers)
 	if(File::Exists(g_recordFile))
 		File::Delete(g_recordFile);
 
-	if (Core::isRunning())
+	if (Core::IsRunning())
 	{
 		const std::string stateFilename = g_recordFile + ".sav";
 		if(File::Exists(stateFilename))

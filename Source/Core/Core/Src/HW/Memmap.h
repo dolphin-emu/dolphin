@@ -83,8 +83,8 @@ enum
 
 // Init and Shutdown
 bool IsInitialized();
-bool Init();
-bool Shutdown();
+void Init();
+void Shutdown();
 void DoState(PointerWrap &p);
 
 void Clear();

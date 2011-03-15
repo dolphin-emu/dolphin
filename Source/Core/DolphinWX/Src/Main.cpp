@@ -51,10 +51,6 @@
 
 IMPLEMENT_APP(DolphinApp)
 
-BEGIN_EVENT_TABLE(DolphinApp, wxApp)
-	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
-END_EVENT_TABLE()
-
 #include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
@@ -325,12 +321,6 @@ bool DolphinApp::OnInit()
 	SetTopWindow(main_frame);
 	main_frame->SetMinSize(wxSize(400, 300));
 
-	// Postpone final actions until event handler is running.
-	// Updating the game list makes use of wxProgressDialog which may
-	// only be run after OnInit() when the event handler is running.
-	m_afterinit = new wxTimer(this, wxID_ANY);
-	m_afterinit->Start(1, wxTIMER_ONE_SHOT);
-
 	return true;
 }
 
@@ -339,15 +329,12 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	FileToLoad = fileName;
 	LoadFile = true;
 
-	if (m_afterinit == NULL)
+	if (IsMainLoopRunning())
 		main_frame->BootGame(std::string(FileToLoad.mb_str()));
 }
 
-void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
+int DolphinApp::MainLoop()
 {
-	delete m_afterinit;
-	m_afterinit = NULL;
-
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
@@ -375,6 +362,8 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 			}	
 		}
 	}
+
+	return wxApp::MainLoop();
 }
 
 void DolphinApp::InitLanguageSupport()
@@ -582,7 +571,7 @@ void Host_UpdateBreakPointView()
 bool Host_GetKeyState(int keycode)
 {
 #ifdef _WIN32
-	return GetAsyncKeyState(keycode);
+	return (0 != GetAsyncKeyState(keycode));
 #elif defined __WXGTK__
 	std::unique_lock<std::recursive_mutex> lk(main_frame->keystate_lock, std::try_to_lock);
 	if (!lk.owns_lock())
@@ -625,14 +614,6 @@ void Host_SetStartupDebuggingParameters()
 		StartUp.bBootToPause = false;
 	}
 	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
-}
-
-void Host_SetWaitCursor(bool enable)
-{
-	if (enable)
-		wxBeginBusyCursor();
-	else
-		wxEndBusyCursor();
 }
 
 void Host_UpdateStatusBar(const char* _pText, int Field)

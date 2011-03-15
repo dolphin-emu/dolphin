@@ -101,16 +101,14 @@ void STACKALIGN CheckGatherPipe()
 void Write8(const u8 _iValue, const u32 _iAddress)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%02x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
-	m_gatherPipe[m_gatherPipeCount] = _iValue;
-	m_gatherPipeCount++;
+	FastWrite8(_iValue);
 	CheckGatherPipe();
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%04x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
-	*(u16*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap16(_iValue);
-	m_gatherPipeCount += 2;
+	FastWrite16(_iValue);
 	CheckGatherPipe();
 }
 
@@ -120,22 +118,20 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 //	float floatvalue = *(float*)&_iValue;
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%08x / %f",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue, floatvalue);
 //#endif
-	*(u32*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap32(_iValue);
-	m_gatherPipeCount += 4;
+	FastWrite32(_iValue);
 	CheckGatherPipe();
 }
 
 void Write64(const u64 _iValue, const u32 _iAddress)
 {
-	*(u64*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap64(_iValue);
-	m_gatherPipeCount += 8;
+	FastWrite64(_iValue);
 	CheckGatherPipe();
 }
 
 void FastWrite8(const u8 _iValue)
 {
 	m_gatherPipe[m_gatherPipeCount] = _iValue;
-	m_gatherPipeCount++;
+	++m_gatherPipeCount;
 }
 
 void FastWrite16(const u16 _iValue)

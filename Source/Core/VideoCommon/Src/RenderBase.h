@@ -84,6 +84,8 @@ public:
 	static float GetXFBScaleX() { return xScale; }
 	static float GetXFBScaleY() { return yScale; }
 
+	static void SetWindowSize(int width, int height);
+
 	// EFB coordinate conversion functions
 
 	// Use this to convert a whole native EFB rect to backbuffer coordinates

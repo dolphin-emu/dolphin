@@ -41,6 +41,7 @@
 #include "Core.h"
 #include "OnFrame.h"
 #include "Television.h"
+#include "Host.h"
 
 namespace DX11
 {
@@ -321,7 +322,7 @@ Renderer::Renderer()
 	int x, y, w_temp, h_temp;
 	s_blendMode = 0;
 
-	Core::Callback_VideoGetWindowSize(x, y, w_temp, h_temp);
+	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
 	D3D::Create(EmuWindow::GetWnd());
 
@@ -443,19 +444,6 @@ bool Renderer::CheckForResize()
 	}
 
 	return false;
-}
-
-void Renderer::SetWindowSize(int width, int height)
-{
-	if (width < 1)
-		width = 1;
-	if (height < 1)
-		height = 1;
-
-	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
-
-	Core::Callback_VideoRequestWindowSize(width, height);
 }
 
 bool Renderer::SetScissorRect()

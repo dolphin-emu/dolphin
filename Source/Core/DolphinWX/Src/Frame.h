@@ -88,265 +88,265 @@ class CRenderFrame : public wxFrame
 
 class CFrame : public CRenderFrame
 {
-	public:
-		CFrame(wxFrame* parent,
-			wxWindowID id = wxID_ANY,
-			const wxString& title = wxT("Dolphin"),
-			const wxPoint& pos = wxDefaultPosition,
-			const wxSize& size = wxDefaultSize,
-			bool _UseDebugger = false,
-			bool _BatchMode = false,
-			bool ShowLogWindow = false,
-			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+public:
+	CFrame(wxFrame* parent,
+		wxWindowID id = wxID_ANY,
+		const wxString& title = wxT("Dolphin"),
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		bool _UseDebugger = false,
+		bool _BatchMode = false,
+		bool ShowLogWindow = false,
+		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
-		virtual ~CFrame();
+	virtual ~CFrame();
 
-		void* GetRenderHandle()
-		{
-			#ifdef _WIN32
-				return (void *)m_RenderParent->GetHandle();
-			#elif defined(HAVE_X11) && HAVE_X11
-				return (void *)X11Utils::XWindowFromHandle(m_RenderParent->GetHandle());
-			#else
-				return m_RenderParent;
-			#endif
-		}
+	void* GetRenderHandle()
+	{
+		#ifdef _WIN32
+			return (void *)m_RenderParent->GetHandle();
+		#elif defined(HAVE_X11) && HAVE_X11
+			return (void *)X11Utils::XWindowFromHandle(m_RenderParent->GetHandle());
+		#else
+			return m_RenderParent;
+		#endif
+	}
 
-		// These have to be public		
-		CCodeWindow* g_pCodeWindow;
-		NetPlaySetupDiag* g_NetPlaySetupDiag;
-		wxCheatsWindow* g_CheatsWindow;
-		void InitBitmaps();
-		void DoPause();
-		void DoStop();
-		void DoRecordingSave();
-		bool bRenderToMain;
-		bool bNoWiimoteMsg;
-		void UpdateGUI();
-		void UpdateGameList();
-		void ToggleLogWindow(bool bShow);
-		void ToggleLogConfigWindow(bool bShow);
-		void ToggleConsole(bool bShow);		
-		void PostEvent(wxCommandEvent& event);
-		void StatusBarMessage(const char * Text, ...);
-		void ClearStatusBar();
-		void GetRenderWindowSize(int& x, int& y, int& width, int& height);
-		void OnRenderWindowSizeRequest(int width, int height);
-		void BootGame(const std::string& filename);
-		void OnRenderParentClose(wxCloseEvent& event);
-		void OnRenderParentMove(wxMoveEvent& event);
-		bool RendererHasFocus();
-		void DoFullscreen(bool bF);
-		void ToggleDisplayMode (bool bFullscreen);
-		static void ConnectWiimote(int wm_idx, bool connect);
+	// These have to be public		
+	CCodeWindow* g_pCodeWindow;
+	NetPlaySetupDiag* g_NetPlaySetupDiag;
+	wxCheatsWindow* g_CheatsWindow;
 
-		const CGameListCtrl *GetGameListCtrl() const;
+	void InitBitmaps();
+	void DoPause();
+	void DoStop();
+	void DoRecordingSave();
+	void UpdateGUI();
+	void UpdateGameList();
+	void ToggleLogWindow(bool bShow);
+	void ToggleLogConfigWindow(bool bShow);
+	void ToggleConsole(bool bShow);		
+	void PostEvent(wxCommandEvent& event);
+	void StatusBarMessage(const char * Text, ...);
+	void ClearStatusBar();
+	void GetRenderWindowSize(int& x, int& y, int& width, int& height);
+	void OnRenderWindowSizeRequest(int width, int height);
+	void BootGame(const std::string& filename);
+	void OnRenderParentClose(wxCloseEvent& event);
+	void OnRenderParentMove(wxMoveEvent& event);
+	bool RendererHasFocus();
+	void DoFullscreen(bool bF);
+	void ToggleDisplayMode (bool bFullscreen);
+	static void ConnectWiimote(int wm_idx, bool connect);
 
-		#ifdef __WXGTK__
-		Common::Event panic_event;
-		bool bPanicResult;
 		std::recursive_mutex keystate_lock;
-		#endif
+	const CGameListCtrl *GetGameListCtrl() const;
 
-		#if defined(HAVE_XRANDR) && HAVE_XRANDR
-		X11Utils::XRRConfiguration *m_XRRConfig;
-		#endif
+#ifdef __WXGTK__
+	Common::Event panic_event;
+	bool bPanicResult;
+	std::mutex keystate_lock;
+#endif
 
-		// AUI
-		wxAuiManager *m_Mgr;
-		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+	X11Utils::XRRConfiguration *m_XRRConfig;
+#endif
 
-		// Perspectives (Should find a way to make all of this private)
-		void DoAddPage(wxWindow *Win, int i, bool Float);
-		void DoRemovePage(wxWindow *, bool bHide = true);
-		struct SPerspectives
-		{
-			std::string Name;
-			wxString Perspective;
-			std::vector<int> Width, Height;
-		};
-		std::vector<SPerspectives> Perspectives;
-		u32 ActivePerspective;	
+	// AUI
+	wxAuiManager *m_Mgr;
+	wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
+	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
-	private:
-		CGameListCtrl* m_GameListCtrl;
-		wxPanel* m_Panel;
-		CRenderFrame* m_RenderFrame;
-		wxPanel* m_RenderParent;
-		CLogWindow* m_LogWindow;
-		LogConfigWindow* m_LogConfigWindow;
-		bool UseDebugger;
-		bool m_bBatchMode;
-		bool m_bEdit;
-		bool m_bTabSplit;
-		bool m_bNoDocking;
-		bool m_bGameLoading;
+	// Perspectives (Should find a way to make all of this private)
+	void DoAddPage(wxWindow *Win, int i, bool Float);
+	void DoRemovePage(wxWindow *, bool bHide = true);
+	struct SPerspectives
+	{
+		std::string Name;
+		wxString Perspective;
+		std::vector<int> Width, Height;
+	};
+	std::vector<SPerspectives> Perspectives;
+	u32 ActivePerspective;	
 
-		std::vector<std::string> drives;
+private:
+	CGameListCtrl* m_GameListCtrl;
+	wxPanel* m_Panel;
+	CRenderFrame* m_RenderFrame;
+	wxPanel* m_RenderParent;
+	CLogWindow* m_LogWindow;
+	LogConfigWindow* m_LogConfigWindow;
+	bool UseDebugger;
+	bool m_bBatchMode;
+	bool m_bEdit;
+	bool m_bTabSplit;
+	bool m_bNoDocking;
+	bool m_bGameLoading;
 
-		enum EToolbar
-		{
-			Toolbar_FileOpen,
-			Toolbar_Refresh,
-			Toolbar_Browse,
-			Toolbar_Play,
-			Toolbar_Stop,
-			Toolbar_Pause,
-			Toolbar_Screenshot,
-			Toolbar_FullScreen,
-			Toolbar_ConfigMain,
-			Toolbar_ConfigGFX,
-			Toolbar_ConfigDSP,
-			Toolbar_ConfigPAD,
-			Toolbar_Wiimote,			
-			Toolbar_Help,
-			EToolbar_Max
-		};
+	std::vector<std::string> drives;
 
-		enum EBitmapsThemes
-		{
-			BOOMY,
-			VISTA,
-			XPLASTIK,
-			KDE,
-			THEMES_MAX
-		};
+	enum EToolbar
+	{
+		Toolbar_FileOpen,
+		Toolbar_Refresh,
+		Toolbar_Browse,
+		Toolbar_Play,
+		Toolbar_Stop,
+		Toolbar_Pause,
+		Toolbar_Screenshot,
+		Toolbar_FullScreen,
+		Toolbar_ConfigMain,
+		Toolbar_ConfigGFX,
+		Toolbar_ConfigDSP,
+		Toolbar_ConfigPAD,
+		Toolbar_Wiimote,			
+		Toolbar_Help,
+		EToolbar_Max
+	};
 
-		wxBitmap m_Bitmaps[EToolbar_Max];
-		wxBitmap m_BitmapsMenu[EToolbar_Max];
+	enum EBitmapsThemes
+	{
+		BOOMY,
+		VISTA,
+		XPLASTIK,
+		KDE,
+		THEMES_MAX
+	};
 
-		void PopulateToolbar(wxAuiToolBar* toolBar);
-		void PopulateToolbarAui(wxAuiToolBar* toolBar);
-		void RecreateToolbar();
-		void CreateMenu();
+	wxBitmap m_Bitmaps[EToolbar_Max];
+	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-		// Utility
-		wxString GetMenuLabel(int Id);
-		wxWindow * GetNotebookPageFromId(wxWindowID Id);
-		wxAuiNotebook * GetNotebookFromId(u32 NBId);
-		int GetNotebookCount();
-		wxAuiNotebook *CreateEmptyNotebook();
+	void PopulateToolbar(wxAuiToolBar* toolBar);
+	void PopulateToolbarAui(wxAuiToolBar* toolBar);
+	void RecreateToolbar();
+	void CreateMenu();
 
-		// Perspectives
-		void AddRemoveBlankPage();
-		void OnNotebookPageClose(wxAuiNotebookEvent& event);
-		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
-		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
-		void OnFloatWindow(wxCommandEvent& event);
-		void ToggleFloatWindow(int Id);
-		void OnTab(wxAuiNotebookEvent& event);
-		int GetNotebookAffiliation(wxWindowID Id);
-		void ClosePages();
-		void CloseAllNotebooks();
-		void TogglePane();
-		void SetPaneSize();
-		void ResetToolbarStyle();
-		void TogglePaneStyle(bool On, int EventId);
-		void ToggleNotebookStyle(bool On, long Style);
-		void ResizeConsole();
-		// Float window
-		void DoUnfloatPage(int Id);
-		void OnFloatingPageClosed(wxCloseEvent& event);
-		void OnFloatingPageSize(wxSizeEvent& event);
-		void DoFloatNotebookPage(wxWindowID Id);
-		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
-			   	const wxString& title = wxT(""),
-			   	wxWindow * = NULL);
-		wxString AuiFullscreen, AuiCurrent;
-		void AddPane();
-		void UpdateCurrentPerspective();
-		void SaveIniPerspectives();
-		void LoadIniPerspectives();
-		void OnPaneClose(wxAuiManagerEvent& evt);
-		void ReloadPanes();
-		void DoLoadPerspective();
-		void OnDropDownToolbarSelect(wxCommandEvent& event);		
-		void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
-		void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
-		void OnSelectPerspective(wxCommandEvent& event);		
+	// Utility
+	wxString GetMenuLabel(int Id);
+	wxWindow * GetNotebookPageFromId(wxWindowID Id);
+	wxAuiNotebook * GetNotebookFromId(u32 NBId);
+	int GetNotebookCount();
+	wxAuiNotebook *CreateEmptyNotebook();
+
+	// Perspectives
+	void AddRemoveBlankPage();
+	void OnNotebookPageClose(wxAuiNotebookEvent& event);
+	void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+	void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+	void OnFloatWindow(wxCommandEvent& event);
+	void ToggleFloatWindow(int Id);
+	void OnTab(wxAuiNotebookEvent& event);
+	int GetNotebookAffiliation(wxWindowID Id);
+	void ClosePages();
+	void CloseAllNotebooks();
+	void TogglePane();
+	void SetPaneSize();
+	void ResetToolbarStyle();
+	void TogglePaneStyle(bool On, int EventId);
+	void ToggleNotebookStyle(bool On, long Style);
+	void ResizeConsole();
+	// Float window
+	void DoUnfloatPage(int Id);
+	void OnFloatingPageClosed(wxCloseEvent& event);
+	void OnFloatingPageSize(wxSizeEvent& event);
+	void DoFloatNotebookPage(wxWindowID Id);
+	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
+			const wxString& title = wxT(""),
+			wxWindow * = NULL);
+	wxString AuiFullscreen, AuiCurrent;
+	void AddPane();
+	void UpdateCurrentPerspective();
+	void SaveIniPerspectives();
+	void LoadIniPerspectives();
+	void OnPaneClose(wxAuiManagerEvent& evt);
+	void ReloadPanes();
+	void DoLoadPerspective();
+	void OnDropDownToolbarSelect(wxCommandEvent& event);		
+	void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
+	void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
+	void OnSelectPerspective(wxCommandEvent& event);		
 
 #ifdef _WIN32
-		// Override window proc for tricks like screensaver disabling
-		WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+	// Override window proc for tricks like screensaver disabling
+	WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
-		// Event functions
-		void OnQuit(wxCommandEvent& event);
-		void OnHelp(wxCommandEvent& event);
-		void OnToolBar(wxCommandEvent& event);
-		void OnAuiToolBar(wxAuiToolBarEvent& event);
+	// Event functions
+	void OnQuit(wxCommandEvent& event);
+	void OnHelp(wxCommandEvent& event);
+	void OnToolBar(wxCommandEvent& event);
+	void OnAuiToolBar(wxAuiToolBarEvent& event);
 
-		void OnOpen(wxCommandEvent& event); // File menu
-		void DoOpen(bool Boot);
-		void OnRefresh(wxCommandEvent& event);
-		void OnBrowse(wxCommandEvent& event);
-		void OnBootDrive(wxCommandEvent& event);
+	void OnOpen(wxCommandEvent& event); // File menu
+	void DoOpen(bool Boot);
+	void OnRefresh(wxCommandEvent& event);
+	void OnBrowse(wxCommandEvent& event);
+	void OnBootDrive(wxCommandEvent& event);
 
-		void OnPlay(wxCommandEvent& event); // Emulation
-		void OnStop(wxCommandEvent& event);
-		void OnReset(wxCommandEvent& event);
-		void OnRecord(wxCommandEvent& event);
-		void OnPlayRecording(wxCommandEvent& event);
-		void OnRecordExport(wxCommandEvent& event);
-		void OnRecordReadOnly(wxCommandEvent& event);
-		void OnChangeDisc(wxCommandEvent& event);
-		void OnScreenshot(wxCommandEvent& event);
-		void OnActive(wxActivateEvent& event);
-		void OnClose(wxCloseEvent &event);	
-		void OnLoadState(wxCommandEvent& event);
-		void OnSaveState(wxCommandEvent& event);
-		void OnLoadStateFromFile(wxCommandEvent& event);
-		void OnSaveStateToFile(wxCommandEvent& event);
-		void OnLoadLastState(wxCommandEvent& event);
-		void OnUndoLoadState(wxCommandEvent& event);
-		void OnUndoSaveState(wxCommandEvent& event);
+	void OnPlay(wxCommandEvent& event); // Emulation
+	void OnStop(wxCommandEvent& event);
+	void OnReset(wxCommandEvent& event);
+	void OnRecord(wxCommandEvent& event);
+	void OnPlayRecording(wxCommandEvent& event);
+	void OnRecordExport(wxCommandEvent& event);
+	void OnRecordReadOnly(wxCommandEvent& event);
+	void OnChangeDisc(wxCommandEvent& event);
+	void OnScreenshot(wxCommandEvent& event);
+	void OnActive(wxActivateEvent& event);
+	void OnClose(wxCloseEvent &event);	
+	void OnLoadState(wxCommandEvent& event);
+	void OnSaveState(wxCommandEvent& event);
+	void OnLoadStateFromFile(wxCommandEvent& event);
+	void OnSaveStateToFile(wxCommandEvent& event);
+	void OnLoadLastState(wxCommandEvent& event);
+	void OnUndoLoadState(wxCommandEvent& event);
+	void OnUndoSaveState(wxCommandEvent& event);
 		
-		void OnFrameSkip(wxCommandEvent& event);
-		void OnFrameStep(wxCommandEvent& event);
+	void OnFrameSkip(wxCommandEvent& event);
+	void OnFrameStep(wxCommandEvent& event);
 		
-		void OnConfigMain(wxCommandEvent& event); // Options
-		void OnConfigGFX(wxCommandEvent& event);
-		void OnConfigDSP(wxCommandEvent& event);
-		void OnConfigPAD(wxCommandEvent& event);
-		void OnConfigWiimote(wxCommandEvent& event);
-		void OnConfigHotkey(wxCommandEvent& event);
+	void OnConfigMain(wxCommandEvent& event); // Options
+	void OnConfigGFX(wxCommandEvent& event);
+	void OnConfigDSP(wxCommandEvent& event);
+	void OnConfigPAD(wxCommandEvent& event);
+	void OnConfigWiimote(wxCommandEvent& event);
+	void OnConfigHotkey(wxCommandEvent& event);
 
-		void OnToggleFullscreen(wxCommandEvent& event);
-		void OnToggleDualCore(wxCommandEvent& event);
-		void OnToggleSkipIdle(wxCommandEvent& event);
-		void OnToggleThrottle(wxCommandEvent& event);
-		void OnManagerResize(wxAuiManagerEvent& event);
-		void OnMove(wxMoveEvent& event);
-		void OnResize(wxSizeEvent& event);
-		void OnToggleToolbar(wxCommandEvent& event);
-		void DoToggleToolbar(bool);
-		void OnToggleStatusbar(wxCommandEvent& event);
-		void OnToggleWindow(wxCommandEvent& event);
+	void OnToggleFullscreen(wxCommandEvent& event);
+	void OnToggleDualCore(wxCommandEvent& event);
+	void OnToggleSkipIdle(wxCommandEvent& event);
+	void OnToggleThrottle(wxCommandEvent& event);
+	void OnManagerResize(wxAuiManagerEvent& event);
+	void OnMove(wxMoveEvent& event);
+	void OnResize(wxSizeEvent& event);
+	void OnToggleToolbar(wxCommandEvent& event);
+	void DoToggleToolbar(bool);
+	void OnToggleStatusbar(wxCommandEvent& event);
+	void OnToggleWindow(wxCommandEvent& event);
 
-		void OnKeyDown(wxKeyEvent& event); // Keyboard
-		void OnKeyUp(wxKeyEvent& event);
+	void OnKeyDown(wxKeyEvent& event); // Keyboard
+	void OnKeyUp(wxKeyEvent& event);
 
-		void OnMouse(wxMouseEvent& event); // Mouse
+	void OnMouse(wxMouseEvent& event); // Mouse
 		
-		void OnHostMessage(wxCommandEvent& event);
+	void OnHostMessage(wxCommandEvent& event);
 
-		void OnMemcard(wxCommandEvent& event); // Misc
-		void OnImportSave(wxCommandEvent& event);
+	void OnMemcard(wxCommandEvent& event); // Misc
+	void OnImportSave(wxCommandEvent& event);
 
-		void OnNetPlay(wxCommandEvent& event);
+	void OnNetPlay(wxCommandEvent& event);
 
-		void OnShow_CheatsWindow(wxCommandEvent& event);
-		void OnLoadWiiMenu(wxCommandEvent& event);
-		void OnConnectWiimote(wxCommandEvent& event);
-		void GameListChanged(wxCommandEvent& event);
+	void OnShow_CheatsWindow(wxCommandEvent& event);
+	void OnLoadWiiMenu(wxCommandEvent& event);
+	void OnConnectWiimote(wxCommandEvent& event);
+	void GameListChanged(wxCommandEvent& event);
 
-		void OnGameListCtrl_ItemActivated(wxListEvent& event);
-		void OnRenderParentResize(wxSizeEvent& event);
-		bool RendererIsFullscreen();
-		void StartGame(const std::string& filename);
+	void OnGameListCtrl_ItemActivated(wxListEvent& event);
+	void OnRenderParentResize(wxSizeEvent& event);
+	bool RendererIsFullscreen();
+	void StartGame(const std::string& filename);
 
-		// Event table
-		DECLARE_EVENT_TABLE();
+	// Event table
+	DECLARE_EVENT_TABLE();
 };
 
 int GetCmdForHotkey(unsigned int key);

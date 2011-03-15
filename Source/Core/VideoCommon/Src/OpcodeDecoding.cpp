@@ -213,7 +213,7 @@ bool FifoCommandRunnable()
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
 			Host_SysMessage(szTemp);
-			Core::Callback_VideoLog(szTemp);
+			INFO_LOG(VIDEO, "%s", szTemp);
 			{
                 SCPFifoStruct &fifo = CommandProcessor::fifo;
 
@@ -238,7 +238,7 @@ bool FifoCommandRunnable()
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
 				Host_SysMessage(szTmp);
-				Core::Callback_VideoLog(szTmp);
+				INFO_LOG(VIDEO, "%s", szTmp);
 			}
         }
         break;

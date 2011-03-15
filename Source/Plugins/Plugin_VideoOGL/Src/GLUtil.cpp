@@ -296,7 +296,7 @@ void XEventThread()
 				case ClientMessage:
 					if ((unsigned long) event.xclient.data.l[0] ==
 							XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", False))
-						Core::Callback_CoreMessage(WM_USER_STOP);
+						Host_Message(WM_USER_STOP);
 					if ((unsigned long) event.xclient.data.l[0] ==
 							XInternAtom(GLWin.evdpy, "RESIZE", False))
 						XMoveResizeWindow(GLWin.evdpy, GLWin.win,
@@ -317,7 +317,7 @@ void XEventThread()
 bool OpenGL_Create(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;
-	Core::Callback_VideoGetWindowSize(_tx, _ty, _twidth, _theight);
+	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
 
 	// Control window size and picture scaling
 	s_backbuffer_width = _twidth;
@@ -519,7 +519,7 @@ bool OpenGL_MakeCurrent()
 	return wglMakeCurrent(hDC, hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
 #if defined(HAVE_WX) && (HAVE_WX)
-	Core::Callback_VideoGetWindowSize(GLWin.x, GLWin.y,
+	Host_GetRenderWindowSize(GLWin.x, GLWin.y,
 			(int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y,
 			GLWin.width, GLWin.height);

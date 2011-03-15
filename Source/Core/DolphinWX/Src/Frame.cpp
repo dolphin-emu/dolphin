@@ -151,35 +151,31 @@ CPanel::CPanel(
 			case WIIMOTE_DISCONNECT:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 				{
-					if (main_frame->bNoWiimoteMsg)
-						main_frame->bNoWiimoteMsg = false;
+					const int wiimote_idx = lParam;
+					const int wiimote_num = wiimote_idx + 1;
+
+					//Auto reconnect if option is turned on.
+					//TODO: Make this only auto reconnect wiimotes that have the option activated.
+					SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
+					if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
+					{
+						GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
+						NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
+					}
 					else
 					{
-						int wiimote_idx = lParam;
-						int wiimote_num = wiimote_idx + 1;
-						//Auto reconnect if option is turned on.
-						//TODO: Make this only auto reconnect wiimotes that have the option activated.
-						SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
-						if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
-						{
+						// The Wiimote has been disconnected, we offer reconnect here.
+						wxMessageDialog *dlg = new wxMessageDialog(
+							this,
+							wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
+							_("Reconnect Wiimote Confirm"),
+							wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
+							wxDefaultPosition);
+
+						if (dlg->ShowModal() == wxID_YES)
 							GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-							NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
-						}
-						else
-						{
-							// The Wiimote has been disconnected, we offer reconnect here.
-							wxMessageDialog *dlg = new wxMessageDialog(
-								this,
-								wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
-								_("Reconnect Wiimote Confirm"),
-								wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
-								wxDefaultPosition);
 
-							if (dlg->ShowModal() == wxID_YES)
-								GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-
-							dlg->Destroy();
-						}
+						dlg->Destroy();
 					}
 				}
 			}
@@ -341,7 +337,6 @@ CFrame::CFrame(wxFrame* parent,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(NULL), g_NetPlaySetupDiag(NULL), g_CheatsWindow(NULL)
-	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
@@ -602,22 +597,10 @@ void CFrame::OnResize(wxSizeEvent& event)
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-	switch (nMsg)
-	{
-	case WM_SYSCOMMAND:
-		switch (wParam & 0xFFF0)
-		{
-		case SC_SCREENSAVE:
-		case SC_MONITORPOWER:
-			break;
-		default:
-			return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-		}
-		break;
-	default:
+	if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
+		return 0;
+	else
 		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-	}
-	return 0;
 }
 #endif
 
@@ -887,7 +870,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			DoStop();
 		// Screenshot hotkey
 		else if (IsHotkey(event, HK_SCREENSHOT))
-			Core::ScreenShot();
+			Core::SaveScreenShot();
 		// Wiimote connect and disconnect hotkeys
 		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 			WiimoteId = 0;

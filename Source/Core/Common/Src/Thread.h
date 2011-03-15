@@ -103,12 +103,12 @@ public:
 		: m_count(count), m_waiting(0)
 	{}
 
-	// block until "count" threads call Wait()
-	bool Wait()
+	// block until "count" threads call Sync()
+	bool Sync()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
 
-		// TODO: broken when next round of Wait()s
+		// TODO: broken when next round of Sync()s
 		// is entered before all waiting threads return from the notify_all
 
 		if (m_count == ++m_waiting)

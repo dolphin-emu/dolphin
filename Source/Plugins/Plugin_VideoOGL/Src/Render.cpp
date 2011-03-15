@@ -59,6 +59,7 @@
 #include "Debugger.h"
 #include "Core.h"
 #include "OnFrame.h"
+#include "Host.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -1611,19 +1612,6 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 #endif
 
 	return result;
-}
-
-void Renderer::SetWindowSize(int width, int height)
-{
-	if (width < 1)
-		width = 1;
-	if (height < 1)
-		height = 1;
-
-	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
-
-	Core::Callback_VideoRequestWindowSize(width, height);
 }
 
 }

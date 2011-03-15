@@ -69,7 +69,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	if (!OpenGL_Create(window_handle))
 	{
-		Core::Callback_VideoLog("SWRenderer::Create failed\n");
+		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
 		return false;
 	}
 

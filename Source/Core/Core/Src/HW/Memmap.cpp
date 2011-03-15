@@ -347,7 +347,7 @@ static const MemoryView views[] =
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
-bool Init()
+void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1;
@@ -366,7 +366,6 @@ bool Init()
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
 		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);
 	m_IsInitialized = true;
-	return true;
 }
 
 void DoState(PointerWrap &p)
@@ -379,7 +378,7 @@ void DoState(PointerWrap &p)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
 }
 
-bool Shutdown()
+void Shutdown()
 {
 	m_IsInitialized = false;
 	u32 flags = 0;
@@ -389,7 +388,6 @@ bool Shutdown()
 	g_arena.ReleaseSpace();
 	base = NULL;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
-	return true;
 }
 
 void Clear()

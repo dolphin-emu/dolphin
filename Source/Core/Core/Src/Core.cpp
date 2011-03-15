@@ -80,9 +80,7 @@ volatile u32 DrawnFrame = 0;
 u32 DrawnVideo = 0;
 
 // Function forwarding
-void Callback_DSPLog(const TCHAR* _szMessage, int _v);
 const char *Callback_ISOName(void);
-void Callback_DSPInterrupt();
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // Function declarations
@@ -97,13 +95,12 @@ void *g_pWindowHandle = NULL;
 std::string g_stateFileName;
 std::thread g_EmuThread;
 
-static std::thread cpuThread;
+static std::thread g_cpu_thread;
 
 SCoreStartupParameter g_CoreStartupParameter;
 
 // This event is set when the emuthread starts.
 Common::Barrier emuThreadGoing(2);
-Common::Barrier cpuRunloopQuit(2);
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -122,19 +119,6 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 {
 	DisplayMessage(text, 3000);
 	return true;
-}
-
-void DisplayMessage(const std::string &message, int time_in_ms)
-{
-	SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-	g_video_backend->Video_AddMessage(message.c_str(), time_in_ms);
-	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar) {
-			Host_UpdateStatusBar(message.c_str());
-	} else
-		Host_UpdateTitle(message.c_str());
 }
 
 void DisplayMessage(const char *message, int time_in_ms)
@@ -160,24 +144,19 @@ void *GetWindowHandle()
 	return g_pWindowHandle;
 }
 
-bool GetRealWiimote()
-{
-	return g_bRealWiimote;
-}
-
-bool isRunning()
+bool IsRunning()
 {
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
 }
 
 bool IsRunningInCurrentThread()
 {
-	return isRunning() && ((!cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
+	return IsRunning() && ((!g_cpu_thread.joinable()) || g_cpu_thread.get_id() == std::this_thread::get_id());
 }
 
 bool IsCPUThread()
 {
-	return ((!cpuThread.joinable()) || cpuThread.get_id() == std::this_thread::get_id());
+	return ((!g_cpu_thread.joinable()) || g_cpu_thread.get_id() == std::this_thread::get_id());
 }
 
 // This is called from the GUI thread. See the booting call schedule in
@@ -200,7 +179,6 @@ bool Init()
 	INFO_LOG(OSREPORT, "CPU Thread separate = %s",
 		g_CoreStartupParameter.bCPUThread ? "Yes" : "No");
 
-	Host_SetWaitCursor(true);
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	g_aspect_wide = _CoreParameter.bWii;
@@ -219,7 +197,6 @@ bool Init()
 	g_pWindowHandle = Host_GetRenderHandle();
 	if (!g_video_backend->Initialize(g_pWindowHandle))
 	{
-		Host_SetWaitCursor(false);
 		return false;
 	}
 
@@ -229,7 +206,6 @@ bool Init()
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
-		Host_SetWaitCursor(false);
 		return false;
 	}
 	Pad::Initialize(g_pWindowHandle);
@@ -252,9 +228,7 @@ bool Init()
 	g_EmuThread = std::thread(EmuThread);
 
 	// Wait until the emu thread is running
-	emuThreadGoing.Wait();
-
-	Host_SetWaitCursor(false);
+	emuThreadGoing.Sync();
 
 	return true;
 }
@@ -262,16 +236,17 @@ bool Init()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-	const SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
-	g_bStopping = true;
-	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
-
-	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
-
-	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
+
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	g_bStopping = true;
+
+	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
+
+	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
@@ -284,29 +259,22 @@ void Stop()  // - Hammertime!
 		// Video_EnterLoop() should now exit so that EmuThread()
 		// will continue concurrently with the rest of the commands
 		// in this function. We no longer rely on Postmessage.
-		INFO_LOG(CONSOLE, "%s", StopMessage(true,
-			"Wait for Video Loop to exit ...").c_str());
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
+		
 		g_video_backend->Video_ExitLoop();
-
-		// Wait until the CPU finishes exiting the main run loop
-		cpuRunloopQuit.Wait();
 	}
+
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
+	
+	g_EmuThread.join();	// Wait for emuthread to close. 
+
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
 
 	// Clear on screen messages that haven't expired
 	g_video_backend->Video_ClearMessages();
 
 	// Close the trace file
 	Core::StopTrace();
-
-	// Update mouse pointer
-	Host_SetWaitCursor(false);
-
-	INFO_LOG(CONSOLE, "%s",
-		StopMessage(true, "Stopping Emu thread ...").c_str());
-	g_EmuThread.join();	// Wait for emuthread to close. 
-
-	INFO_LOG(CONSOLE, "%s",
-		StopMessage(true, "Main thread stopped").c_str());
 
 	// Stop audio thread - Actually this does nothing when using HLE
 	// emulation, but stops the DSP Interpreter when using LLE emulation.
@@ -326,6 +294,8 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
+
+	g_bStopping = false;
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
@@ -356,8 +326,6 @@ void CpuThread()
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
-	cpuRunloopQuit.Wait();
-
 	return;
 }
 
@@ -369,7 +337,7 @@ void EmuThread()
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	Common::SetCurrentThreadName("Emuthread - starting");
+	Common::SetCurrentThreadName("Emuthread - Starting");
 
 	if (_CoreParameter.bLockThreads)
 	{
@@ -378,8 +346,6 @@ void EmuThread()
 		else				// Force to second core
 			Common::SetCurrentThreadAffinity(2);
 	}
-
-	emuThreadGoing.Wait();
 
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);
@@ -396,23 +362,29 @@ void EmuThread()
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
-	// Spawn the CPU thread
-	_dbg_assert_(OSHLE, !cpuThread.joinable());
+	// Update the window again because all stuff is initialized
+	Host_UpdateDisasmDialog();
+	Host_UpdateMainFrame();
+
+	emuThreadGoing.Sync();
+
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
-		g_video_backend->Video_Prepare();
-
 		// This thread, after creating the EmuWindow, spawns a CPU
 		// thread, and then takes over and becomes the video thread
-		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Video thread");
 
-		// Update the window again because all stuff is initialized
-		Host_UpdateDisasmDialog();
-		Host_UpdateMainFrame();
+		g_video_backend->Video_Prepare();
 
+		// Spawn the CPU thread
+		g_cpu_thread = std::thread(CpuThread);
+
+		// become the GPU thread
 		g_video_backend->Video_EnterLoop();
+
+		// We have now exited the Video Loop
+		INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
 	}
 	else // SingleCore mode
 	{
@@ -421,44 +393,27 @@ void EmuThread()
 		// waiting for the program to terminate. Without this extra
 		// thread, the video backend window hangs in single core mode
 		// because noone is pumping messages.
-
-		cpuThread = std::thread(CpuThread);
 		Common::SetCurrentThreadName("Emuthread - Idle");
 
-		// Update the window again because all stuff is initialized
-		Host_UpdateDisasmDialog();
-		Host_UpdateMainFrame();
+		// Spawn the CPU+GPU thread
+		g_cpu_thread = std::thread(CpuThread);
 
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);
 		}
-
-		// Wait for CpuThread to exit
-		INFO_LOG(CONSOLE, "%s", StopMessage(true,
-			"Stopping CPU-GPU thread ...").c_str());
-		cpuRunloopQuit.Wait();
-		INFO_LOG(CONSOLE, "%s", StopMessage(true,
-			"CPU thread stopped.").c_str());
 	}
 
-	// We have now exited the Video Loop
-	INFO_LOG(CONSOLE, "%s",
-		StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	// Wait for g_cpu_thread to exit
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 
-	// At this point, the CpuThread has already returned in SC mode.
-	// But it may still be waiting in Dual Core mode.
-	if (cpuThread.joinable())
-	{
-		// There is a CPU thread - join it.
-		cpuThread.join();
-	}
+	g_cpu_thread.join();
+
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
-
-	g_bStopping = false;
 }
 
 // Set or get the running state
@@ -496,41 +451,37 @@ EState GetState()
 	return CORE_UNINITIALIZED;
 }
 
-static inline std::string GenerateScreenshotName()
+static std::string GenerateScreenshotName()
 {
-	int index = 1;
-	std::string tempname, name;
-	std::string gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
-	tempname = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
+	const std::string& gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
-	if (!File::CreateFullPath(tempname))
+	if (!File::CreateFullPath(path))
 	{
-		//fallback to old-style screenshots, without folder.
-		tempname = File::GetUserPath(D_SCREENSHOTS_IDX);
+		// fallback to old-style screenshots, without folder.
+		path = File::GetUserPath(D_SCREENSHOTS_IDX);
 	}
-	//append gameId, tempname only contains the folder here.
-	tempname += gameId;
 
-	do
-		name = StringFromFormat("%s-%d.png", tempname.c_str(), index++);
-	while (File::Exists(name));
+	//append gameId, path only contains the folder here.
+	path += gameId;
+
+	std::string name;
+	for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
+	{}
 
 	return name;
 }
 
-void ScreenShot(const std::string& name)
+void SaveScreenShot()
 {
-	bool bPaused = (GetState() == CORE_PAUSE);
+	const bool bPaused = (GetState() == CORE_PAUSE);
 
 	SetState(CORE_PAUSE);
-	g_video_backend->Video_Screenshot(name.c_str());
-	if(!bPaused)
-		SetState(CORE_RUN);
-}
 
-void ScreenShot()
-{
-	ScreenShot(GenerateScreenshotName());
+	g_video_backend->Video_Screenshot(GenerateScreenshotName().c_str());
+	
+	if (!bPaused)
+		SetState(CORE_RUN);
 }
 
 // Apply Frame Limit and Display FPS info
@@ -630,24 +581,18 @@ void VideoThrottle()
 // Executed from GPU thread
 // reports if a frame should be skipped or not
 // depending on the framelimit set
-bool report_slow(int skipped)
+bool ShouldSkipFrame(int skipped)
 {
-	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
+	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
+		? SConfig::GetInstance().m_Framelimit * 5
 		: VideoInterface::TargetRefreshRate;
-	u32 frames = Common::AtomicLoad(DrawnFrame);
-	bool fps_slow = (Timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS) ? false : true;
+	const u32 frames = Common::AtomicLoad(DrawnFrame);
+	const bool fps_slow = !(Timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
 
 	return fps_slow;
 }
 
 // --- Callbacks for backends / engine ---
-
-// Callback_VideoLog
-// WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-void Callback_VideoLog(const char *_szMessage)
-{
-	INFO_LOG(VIDEO, "%s", _szMessage);
-}
 
 // Should be called from GPU thread when a frame is drawn
 void Callback_VideoCopiedToXFB(bool video_update)
@@ -656,36 +601,6 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		Common::AtomicIncrement(DrawnFrame);
 	Frame::FrameUpdate();
 }
-
-// Ask the host for the window size
-void Callback_VideoGetWindowSize(int& x, int& y, int& width, int& height)
-{
-	Host_GetRenderWindowSize(x, y, width, height);
-}
-
-// Suggest to the host that it sets the window to the given size.
-// The host may or may not decide to do this depending on fullscreen or not.
-// Sets width and height to the actual size of the window.
-void Callback_VideoRequestWindowSize(int& width, int& height)
-{
-	Host_RequestRenderWindowSize(width, height);
-}
-
-// Callback_DSPLog
-// WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
-void Callback_DSPLog(const TCHAR* _szMessage, int _v)
-{
-	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, "%s", _szMessage);
-}
-
-
-// Callback_DSPInterrupt
-// WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
-void Callback_DSPInterrupt()
-{
-	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-}
-
 
 // Callback_ISOName: Let the DSP emulator get the game name
 //
@@ -697,13 +612,6 @@ const char *Callback_ISOName()
 		return params.m_strName.c_str();
 	else	
 		return "";
-}
-
-// Called from ANY thread!
-// Pass the message on to the host
-void Callback_CoreMessage(int Id)
-{
-	Host_Message(Id);
 }
 
 } // Core

@@ -92,6 +92,7 @@ Make AA apply instantly during gameplay if possible
 #include "DLCache.h"
 #include "FramebufferManager.h"
 #include "Core.h"
+#include "Host.h"
 
 #include "VideoState.h"
 #include "VideoBackend.h"
@@ -211,7 +212,7 @@ void VideoBackend::Video_Prepare()
 	DLCache::Init();
 
 	// Notify the core that the video backend is ready
-	Core::Callback_CoreMessage(WM_USER_CREATE);
+	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()

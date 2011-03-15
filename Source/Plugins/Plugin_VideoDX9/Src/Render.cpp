@@ -26,6 +26,7 @@
 #include "Thread.h"
 #include "Timer.h"
 #include "Statistics.h"
+#include "Host.h"
 
 #include "VideoConfig.h"
 #include "main.h"
@@ -258,7 +259,7 @@ Renderer::Renderer()
 	// Multisample Anti-aliasing hasn't been implemented yet use supersamling instead
 	int backbuffer_ms_mode = 0;
 
-	Core::Callback_VideoGetWindowSize(x, y, w_temp, h_temp);
+	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
 	for (fullScreenRes = 0; fullScreenRes < (int)D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{
@@ -423,19 +424,6 @@ bool Renderer::CheckForResize()
 	}
 	
 	return false;
-}
-
-void Renderer::SetWindowSize(int width, int height)
-{
-	if (width < 1)
-		width = 1;
-	if (height < 1)
-		height = 1;
-
-	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
-
-	Core::Callback_VideoRequestWindowSize(width, height);
 }
 
 bool Renderer::SetScissorRect()

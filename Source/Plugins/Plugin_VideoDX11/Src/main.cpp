@@ -30,6 +30,7 @@
 #include "VertexLoaderManager.h"
 #include "VertexShaderManager.h"
 #include "Core.h"
+#include "Host.h"
 
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
@@ -204,7 +205,7 @@ void VideoBackend::Video_Prepare()
 	DLCache::Init();
 
 	// Tell the host that the window is ready
-	Core::Callback_CoreMessage(WM_USER_CREATE);
+	Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Shutdown()

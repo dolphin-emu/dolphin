@@ -24,6 +24,7 @@
 #include "RenderBase.h"
 #include "VideoBackendBase.h"
 #include "Core.h"
+#include "Host.h"
 
 namespace EmuWindow
 {
@@ -190,7 +191,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (m_hParent == NULL)
 		{
 			// Stop the game
-			PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
+			//PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
 		}
 		break;
 
@@ -319,7 +320,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	// 3. Request window sizes which actually make the client area map to a common resolution
 	HWND Ret;
 	int x=0, y=0, width=640, height=480;
-	Core::Callback_VideoGetWindowSize(x, y, width, height);
+	Host_GetRenderWindowSize(x, y, width, height);
 
 	 // TODO: Don't show if fullscreen
 	Ret = OpenWindow(hParent, hInstance, width, height, title);
