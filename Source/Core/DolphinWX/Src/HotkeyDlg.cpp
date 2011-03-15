@@ -22,10 +22,10 @@
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_CLOSE(HotkeyConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, HotkeyConfigDialog::CloseClick)
+	EVT_BUTTON(wxID_OK, HotkeyConfigDialog::CloseClick)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
 		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
-	EVT_TIMER(IDTM_BUTTON, HotkeyConfigDialog::OnButtonTimer)
+	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
 HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
@@ -35,7 +35,7 @@ HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wx
 	CreateHotkeyGUIControls();
 
 #if wxUSE_TIMER
-	m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
+	m_ButtonMappingTimer = new wxTimer(this, wxID_ANY);
 	g_Pressed = 0;
 	g_Modkey = 0;
 	ClickedButton = NULL;
@@ -46,26 +46,19 @@ HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wx
 
 HotkeyConfigDialog::~HotkeyConfigDialog()
 {
-	if (m_ButtonMappingTimer)
-		delete m_ButtonMappingTimer;
+	delete m_ButtonMappingTimer;
 }
 
-void HotkeyConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
+void HotkeyConfigDialog::OnClose(wxCloseEvent& WXUNUSED(event))
 {
-	if (m_ButtonMappingTimer)
-		m_ButtonMappingTimer->Stop();
+	m_ButtonMappingTimer->Stop();
 
 	EndModal(wxID_CLOSE);
 }
 
-void HotkeyConfigDialog::CloseClick(wxCommandEvent& event)
+void HotkeyConfigDialog::CloseClick(wxCommandEvent& WXUNUSED(event))
 {
-	switch(event.GetId())
-	{
-		case ID_CLOSE:
-			Close();
-			break;
-	}
+	Close();
 }
 
 // Save keyboard key mapping
@@ -300,10 +293,9 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		Page->SetSizer(sPage);
 	}
 
-	m_Close = new wxButton(this, ID_CLOSE, _("Close"));
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();
-	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
+	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, (wxLEFT), 5);	
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(Notebook, 0, wxEXPAND | wxALL, 5);

@@ -44,29 +44,21 @@ class HotkeyConfigDialog : public wxDialog
 				const wxString &title = _("Hotkey Configuration"),
 				const wxPoint& pos = wxDefaultPosition,
 				const wxSize& size = wxDefaultSize,
-				long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
+				long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~HotkeyConfigDialog();
-
-		wxTimer *m_ButtonMappingTimer;
 
 	private:
 		DECLARE_EVENT_TABLE();
 
-		enum
-		{
-			ID_CLOSE = 1000,
-			IDTM_BUTTON, // Timer
-			ID_APPLY
-		};
-
 		wxString OldLabel;
 
-		wxButton *m_Close, *m_Apply, *ClickedButton,
+		wxButton *ClickedButton,
 				 *m_Button_Hotkeys[NUM_HOTKEYS];
-		wxRadioButton *m_Radio_FSPause[5];
+
+		wxTimer *m_ButtonMappingTimer;
 
 		void OnClose(wxCloseEvent& event);
-		void CloseClick(wxCommandEvent& event);
+		void CloseClick(wxCommandEvent& WXUNUSED(event));
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 		void OnButtonClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
@@ -74,7 +66,6 @@ class HotkeyConfigDialog : public wxDialog
 		void CreateHotkeyGUIControls(void);
 
 		void SetButtonText(int id, const wxString &keystr, const wxString &modkeystr = wxString());
-		wxString GetButtonText(int id);
 
 		void DoGetButtons(int id);
 		void EndGetButtons(void);

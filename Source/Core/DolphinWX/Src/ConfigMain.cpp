@@ -1062,12 +1062,11 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_HOTKEY_CONFIG:
 		{
-			HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
-			m_HotkeyDialog->ShowModal();
-			m_HotkeyDialog->Destroy();
-			// Update the GUI in case menu accelerators were changed
-			main_frame->UpdateGUI();
+			HotkeyConfigDialog m_HotkeyDialog(this);
+			m_HotkeyDialog.ShowModal();
 		}
+		// Update the GUI in case menu accelerators were changed
+		main_frame->UpdateGUI();
 		break;
 	}
 }
