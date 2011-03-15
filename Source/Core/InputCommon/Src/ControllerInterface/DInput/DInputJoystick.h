@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <dinput.h>
 
+#include <list>
+
 #ifdef CIFACE_USE_XINPUT
 	// this takes so long, idk if it should be enabled :(
 	#define NO_DUPLICATE_DINPUT_XINPUT
@@ -102,10 +104,10 @@ private:
 	const LPDIRECTINPUTDEVICE8		m_device;
 	const unsigned int				m_index;
 
-	DIJOYSTATE						m_state_in;
-	std::vector<EffectState>		m_state_out;
+	DIJOYSTATE					m_state_in;
+	std::list<EffectState>		m_state_out;
 
-	bool							m_buffered;
+	bool						m_buffered;
 };
 
 }

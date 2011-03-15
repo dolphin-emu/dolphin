@@ -306,7 +306,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		//ZeroMemory(&env, sizeof(env));
 		//env.dwSize = sizeof(env);
 
-		for (unsigned int f = 0, i = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
+		for (unsigned int f = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
 		{
 			// ugly if ladder
 			if (0 == f)
@@ -319,16 +319,15 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			LPDIRECTINPUTEFFECT pEffect;
 			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
 			{
+				m_state_out.push_back(EffectState(pEffect));
+
 				// ugly if ladder again :/
 				if (0 == f)
-					AddOutput(new ForceConstant(f, m_state_out[i]));
+					AddOutput(new ForceConstant(f, m_state_out.back()));
 				else if (1 == f)
-					AddOutput(new ForceRamp(f, m_state_out[i]));
+					AddOutput(new ForceRamp(f, m_state_out.back()));
 				else
-					AddOutput(new ForcePeriodic(f, m_state_out[i]));
-				
-				++i;
-				m_state_out.push_back(EffectState(pEffect));
+					AddOutput(new ForcePeriodic(f, m_state_out.back()));
 			}
 		}
 	}
@@ -351,7 +350,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 Joystick::~Joystick()
 {
 	// release the ff effect iface's
-	std::vector<EffectState>::iterator
+	std::list<EffectState>::iterator
 		i = m_state_out.begin(),
 		e = m_state_out.end();
 	for (; i!=e; ++i)
@@ -439,7 +438,7 @@ bool Joystick::UpdateOutput()
 	eff.dwSize = sizeof(DIEFFECT);
 	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 
-	std::vector<EffectState>::iterator
+	std::list<EffectState>::iterator
 		i = m_state_out.begin(),
 		e = m_state_out.end();
 	for (; i!=e; ++i)
