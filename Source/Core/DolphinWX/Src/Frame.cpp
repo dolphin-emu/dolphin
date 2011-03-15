@@ -684,7 +684,6 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain ||
 			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
@@ -693,8 +692,10 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
 
 	// Add space for the log/console/debugger window
-	if ((SConfig::GetInstance().m_InterfaceLogWindow || SConfig::GetInstance().m_InterfaceConsole ||
-				SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+			(SConfig::GetInstance().m_InterfaceLogWindow ||
+			 SConfig::GetInstance().m_InterfaceConsole ||
+			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
 	{
 		switch (m_Mgr->GetPane(wxT("Pane 1")).dock_direction)
