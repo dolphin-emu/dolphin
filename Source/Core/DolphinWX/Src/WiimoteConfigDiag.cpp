@@ -159,7 +159,7 @@ void WiimoteConfigPage::RevertSource()
 	g_wiimote_sources[m_index] = orig_source;
 }
 
-void WiimoteConfigDiag::Save(wxCommandEvent&)
+void WiimoteConfigDiag::Save(wxCommandEvent& event)
 {
 	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
 
@@ -179,13 +179,13 @@ void WiimoteConfigDiag::Save(wxCommandEvent&)
 
 	inifile.Save(ini_filename);
 
-	Close();
+	event.Skip();
 }
 
-void WiimoteConfigDiag::Cancel(wxCommandEvent&)
+void WiimoteConfigDiag::Cancel(wxCommandEvent& event)
 {
 	for (size_t p = 0; p < m_pad_notebook->GetPageCount(); ++p)
 		((WiimoteConfigPage*)m_pad_notebook->GetPage(p))->RevertSource();
 
-	Close();
+	event.Skip();
 }

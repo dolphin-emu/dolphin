@@ -55,7 +55,7 @@ PHackData PHack_Data;
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
-	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
+	EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
@@ -280,7 +280,7 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 
 void CISOProperties::CreateGUIControls(bool IsWad)
 {
-	m_Close = new wxButton(this, ID_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EditConfig = new wxButton(this, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
 	EditConfig->SetToolTip(_("This will let you Manually Edit the INI config file"));
 
@@ -533,6 +533,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	if (IsWad)
 		m_Notebook->RemovePage(4);
 
+	m_Notebook->SetSelection(0);
 	
 	// Add notebook and buttons to the dialog
 	wxBoxSizer* sMain;
@@ -543,6 +544,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	SetSizerAndFit(sMain);
 	Layout();
+	Center();
 }
 
 void CISOProperties::OnCheckBoxClicked(wxCommandEvent& event)

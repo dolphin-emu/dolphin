@@ -1163,7 +1163,6 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 	CISOProperties ISOProperties(iso->GetFileName(), this);
-	ISOProperties.Center();
 	if(ISOProperties.ShowModal() == wxID_OK)
 		Update();
 }

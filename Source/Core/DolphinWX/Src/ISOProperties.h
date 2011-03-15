@@ -158,8 +158,7 @@ class CISOProperties : public wxDialog
 
 		enum
 		{
-			ID_CLOSE = 1000,
-			ID_TREECTRL,
+			ID_TREECTRL = 1000,
 
 			ID_NOTEBOOK,
 			ID_GAMECONFIG,

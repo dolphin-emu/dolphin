@@ -191,15 +191,15 @@ void InputConfigDialog::UpdateControlReferences()
 		(*i)->controller->UpdateReferences(g_controller_interface);
 }
 
-void InputConfigDialog::ClickCancel(wxCommandEvent&)
+void InputConfigDialog::ClickCancel(wxCommandEvent& event)
 {
-	Close();
+	event.Skip();
 }
 
-void InputConfigDialog::ClickSave(wxCommandEvent&)
+void InputConfigDialog::ClickSave(wxCommandEvent& event)
 {
 	m_plugin.SaveConfig();
-	Close();
+	event.Skip();
 }
 
 void ControlDialog::UpdateListContents()

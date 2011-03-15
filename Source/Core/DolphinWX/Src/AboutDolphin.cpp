@@ -17,35 +17,22 @@
 
 #include "Common.h"
 #include "AboutDolphin.h"
-#include "CPUDetect.h"
 #include "../resources/dolphin_logo.cpp"
 
 BEGIN_EVENT_TABLE(AboutDolphin, wxDialog)
 	EVT_CLOSE(AboutDolphin::OnClose)
-	EVT_BUTTON(wxID_CLOSE, AboutDolphin::CloseClick)
+	EVT_BUTTON(wxID_OK, AboutDolphin::CloseClick)
 END_EVENT_TABLE()
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
-				const wxString &title, const wxPoint &position,
-				const wxSize& size, long style)
+		const wxString &title, const wxPoint &position,
+		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	CreateGUIControls();
-}
-
-AboutDolphin::~AboutDolphin()
-{
-}
-
-void AboutDolphin::CreateGUIControls()
-{
-	m_Close = new wxButton(this, wxID_CLOSE, _("Close"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
 	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
-	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO,
-		wxBitmap(iDolphinLogo), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticBitmap* const sbDolphinLogo = new wxStaticBitmap(this, wxID_ANY,
+			wxBitmap(iDolphinLogo));
 
 	std::string Text = std::string(svn_rev_str) + "\n"
 		"Copyright (c) 2003-2011+ Dolphin Team\n"
@@ -74,38 +61,39 @@ void AboutDolphin::CreateGUIControls()
 		"The emulator is for educational purposes only\n"
 		"and should not be used to play games you do\n"
 		"not legally own.";
-	Message = new wxStaticText(this, ID_MESSAGE,
-		wxString::FromAscii(Text.c_str()),
-		wxDefaultPosition, wxDefaultSize, 0);
-	Message->Wrap(this->GetSize().GetWidth());
+	wxStaticText* const Message = new wxStaticText(this, wxID_ANY,
+			wxString::FromAscii(Text.c_str()));
+	Message->Wrap(GetSize().GetWidth());
 
-	sMain = new wxBoxSizer(wxVERTICAL);
-	sMainHor = new wxBoxSizer(wxHORIZONTAL);
-	sMainHor->Add(sbDolphinLogo);
-
-	sInfo = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);
 	sInfo->Add(Message, 1, wxEXPAND|wxALL, 5);
-	sMainHor->Add(sInfo);
-	sMain->Add(sMainHor, 1, wxEXPAND);
 
-	sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sButtons->Add(m_Close, 0, wxALL, 5);
+	wxBoxSizer* const sMainHor = new wxBoxSizer(wxHORIZONTAL);
+	sMainHor->Add(sbDolphinLogo);
+	sMainHor->Add(sInfo);
+
+	wxBoxSizer* const sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, wxALL, 5);
+
+	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
+	sMain->Add(sMainHor, 1, wxEXPAND);
 	sMain->Add(sButtons, 0, wxEXPAND);
 
-	this->SetSizer(sMain);
-	sMain->Layout();
+	SetSizer(sMain);
 
+	Layout();
 	Fit();
-	CenterOnParent();
+	Center();
+	SetFocus();
 }
 
-void AboutDolphin::OnClose(wxCloseEvent& WXUNUSED (event))
+void AboutDolphin::OnClose(wxCloseEvent& WXUNUSED(event))
 {
-	EndModal(wxID_OK);
+	EndModal(wxID_CLOSE);
 }
 
-void AboutDolphin::CloseClick(wxCommandEvent& WXUNUSED (event))
+void AboutDolphin::CloseClick(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 }

@@ -32,7 +32,6 @@
 #include "Frame.h"
 #include "ConfigMain.h"
 #include "CheatsWindow.h"
-#include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
 #include "ConsoleListener.h"
@@ -870,7 +869,8 @@ int GetCmdForHotkey(unsigned int key)
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
+			RendererHasFocus())
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen
