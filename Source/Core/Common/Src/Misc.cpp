@@ -17,6 +17,10 @@
 
 #include "Common.h"
 
+#ifdef __APPLE__
+#define __thread
+#endif
+
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
 // This function might change the error code.
