@@ -139,13 +139,12 @@ public:
 	void ToggleDisplayMode (bool bFullscreen);
 	static void ConnectWiimote(int wm_idx, bool connect);
 
-		std::recursive_mutex keystate_lock;
 	const CGameListCtrl *GetGameListCtrl() const;
 
 #ifdef __WXGTK__
 	Common::Event panic_event;
 	bool bPanicResult;
-	std::mutex keystate_lock;
+	std::recursive_mutex keystate_lock;
 #endif
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR

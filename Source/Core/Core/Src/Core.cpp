@@ -351,6 +351,8 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
+	emuThreadGoing.Sync();
+
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 	CBoot::BootUp();
@@ -365,8 +367,6 @@ void EmuThread()
 	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();
 	Host_UpdateMainFrame();
-
-	emuThreadGoing.Sync();
 
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
