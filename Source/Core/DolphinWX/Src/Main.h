@@ -35,12 +35,15 @@ private:
 	void InitLanguageSupport();
 	void MacOpenFile(const wxString &fileName);
 
+	DECLARE_EVENT_TABLE()
+
+	wxTimer *m_afterinit;
 	bool BatchMode;
 	bool LoadFile;
 	wxString FileToLoad;
 	wxLocale *m_locale;
 
-	int MainLoop();
+	void AfterInit(wxTimerEvent& WXUNUSED(event));
 };
 
 DECLARE_APP(DolphinApp);

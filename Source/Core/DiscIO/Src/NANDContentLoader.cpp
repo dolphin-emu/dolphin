@@ -425,7 +425,6 @@ cUIDsys::cUIDsys()
 
 	if (m_Elements.empty())
 	{
-		SElement Element;
 		*(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 
