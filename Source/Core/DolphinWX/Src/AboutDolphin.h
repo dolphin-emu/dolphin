@@ -34,12 +34,6 @@ class AboutDolphin : public wxDialog
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		void CloseClick(wxCommandEvent& event);
-		void OnClose(wxCloseEvent& event);
 };
 
 #endif //_ABOUTDOLPHIN_H_

@@ -19,11 +19,6 @@
 #include "AboutDolphin.h"
 #include "../resources/dolphin_logo.cpp"
 
-BEGIN_EVENT_TABLE(AboutDolphin, wxDialog)
-	EVT_CLOSE(AboutDolphin::OnClose)
-	EVT_BUTTON(wxID_OK, AboutDolphin::CloseClick)
-END_EVENT_TABLE()
-
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
 		const wxSize& size, long style)
@@ -66,34 +61,17 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	Message->Wrap(GetSize().GetWidth());
 
 	wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);
-	sInfo->Add(Message, 1, wxEXPAND|wxALL, 5);
+	sInfo->Add(Message, 1, wxEXPAND | wxALL, 5);
 
 	wxBoxSizer* const sMainHor = new wxBoxSizer(wxHORIZONTAL);
-	sMainHor->Add(sbDolphinLogo);
+	sMainHor->Add(sbDolphinLogo, 0, wxEXPAND | wxALL, 5);
 	sMainHor->Add(sInfo);
-
-	wxBoxSizer* const sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->AddStretchSpacer();
-	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, wxALL, 5);
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(sMainHor, 1, wxEXPAND);
-	sMain->Add(sButtons, 0, wxEXPAND);
+	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	SetSizer(sMain);
-
-	Layout();
-	Fit();
+	SetSizerAndFit(sMain);
 	Center();
 	SetFocus();
-}
-
-void AboutDolphin::OnClose(wxCloseEvent& WXUNUSED(event))
-{
-	EndModal(wxID_CLOSE);
-}
-
-void AboutDolphin::CloseClick(wxCommandEvent& WXUNUSED(event))
-{
-	Close();
 }

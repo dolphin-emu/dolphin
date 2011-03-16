@@ -144,9 +144,8 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
-	diag->ShowModal();
-	diag->Destroy();
+	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
+	diag.ShowModal();
 
 	g_Config.backend_info.Adapters.clear();
 	DX11::D3D::UnloadDXGI();

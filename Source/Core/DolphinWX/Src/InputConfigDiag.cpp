@@ -190,11 +190,6 @@ void InputConfigDialog::UpdateControlReferences()
 		(*i)->controller->UpdateReferences(g_controller_interface);
 }
 
-void InputConfigDialog::ClickCancel(wxCommandEvent& event)
-{
-	event.Skip();
-}
-
 void InputConfigDialog::ClickSave(wxCommandEvent& event)
 {
 	m_plugin.SaveConfig();
@@ -495,7 +490,6 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 
 	wxButton* const clear_button = new  wxButton(parent, -1, _("Clear"));
 	wxButton* const set_button = new wxButton(parent, -1, _("Set"));
-	wxButton* const ok_button = new wxButton(parent, wxID_OK, _("OK"));
 
 	wxButton* const select_button = new wxButton(parent, -1, _("Select"));
 	_connect_macro_(select_button, ControlDialog::SetSelectedControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
@@ -546,16 +540,14 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 	ctrls_sizer->Add(control_lbox, 1, wxEXPAND, 0);
 	ctrls_sizer->Add(button_sizer, 0, wxEXPAND, 0);
 
-	wxBoxSizer* const bottom_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
-	bottom_btns_sizer->Add(clear_button, 0, wxLEFT, 5);
-	bottom_btns_sizer->Add(set_button, 0, wxRIGHT, 5);
-	bottom_btns_sizer->AddStretchSpacer(1);
-	bottom_btns_sizer->Add(ok_button, 0, wxRIGHT, 5);
+	wxSizer* const bottom_btns_sizer = CreateButtonSizer(wxOK);
+	bottom_btns_sizer->Prepend(set_button, 0, wxRIGHT, 5);
+	bottom_btns_sizer->Prepend(clear_button, 0, wxLEFT, 5);
 
 	main_szr->Add(range_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
 	main_szr->Add(ctrls_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 	main_szr->Add(textctrl, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
-	main_szr->Add(bottom_btns_sizer, 0, wxEXPAND|wxBOTTOM, 5);
+	main_szr->Add(bottom_btns_sizer, 0, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
 	main_szr->Add(m_bound_label, 0, wxCENTER, 0);
 
 	UpdateListContents();
@@ -983,23 +975,16 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	wxButton* const close_button = new wxButton(this, wxID_OK, _("Save"));
 	_connect_macro_(close_button, InputConfigDialog::ClickSave, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"));
-	_connect_macro_(cancel_button, InputConfigDialog::ClickCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	wxBoxSizer* btns = new wxBoxSizer(wxHORIZONTAL);
-	//btns->Add(new wxStaticText(this, -1, wxString::FromAscii(ver.c_str())), 0, wxLEFT|wxTOP, 5);
-	btns->AddStretchSpacer();
-	btns->Add(cancel_button, 0, 0, 0);
-	btns->Add(close_button, 0, 0, 0);
+	wxSizer* btns = CreateButtonSizer(wxNO_DEFAULT);
+	btns->Add(cancel_button);
+	btns->Add(close_button);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
 	szr->Add(btns, 0, wxEXPAND|wxALL, 5);
 
-	SetSizerAndFit(szr);	// needed
-
-	// not needed here it seems, but it cant hurt
-	//Layout();
-
+	SetSizerAndFit(szr);
 	Center();
 
 	// live preview update timer

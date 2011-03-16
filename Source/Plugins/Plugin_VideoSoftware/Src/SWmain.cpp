@@ -57,9 +57,8 @@ void *DllDebugger(void *_hParent, bool Show)
 void VideoBackend::ShowConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDialog* const diag = new VideoConfigDialog((wxWindow*)_hParent, "Software", "gfx_software");
-	diag->ShowModal();
-	diag->Destroy();
+	VideoConfigDialog diag((wxWindow*)_hParent, "Software", "gfx_software");
+	diag.ShowModal();
 #endif
 }
 

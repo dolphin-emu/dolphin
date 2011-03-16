@@ -105,27 +105,17 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	page_general->SetSizerAndFit(szr_general);
 	}
 
-	wxButton* const btn_close = new wxButton(this, -1, wxT("Close"), wxDefaultPosition);
-	_connect_macro_(btn_close, VideoConfigDialog::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
-
-	Connect(-1, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDialog::Event_Close), (wxObject*)0, this);
-
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
-	szr_main->Add(btn_close, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
+	szr_main->Add(new wxButton(this, wxID_OK, wxT("Close"), wxDefaultPosition),
+			0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
 
 	SetSizerAndFit(szr_main);
 	Center();
+	SetFocus();
 }
 
-void VideoConfigDialog::Event_ClickClose(wxCommandEvent&)
-{
-	Close();
-}
-
-void VideoConfigDialog::Event_Close(wxCloseEvent& ev)
+VideoConfigDialog::~VideoConfigDialog()
 {
 	g_SWVideoConfig.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
-
-	EndModal(wxID_OK);
 }

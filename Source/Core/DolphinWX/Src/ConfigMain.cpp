@@ -927,32 +927,23 @@ void CConfigMain::CreateGUIControls()
 	sPathsPage->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
 	PathsPage->SetSizer(sPathsPage);
 
-	m_Ok = new wxButton(this, wxID_OK);
-
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sButtons->Add(m_Ok, 0, wxALL, 5);
-
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	InitializeGUIValues();
 	InitializeGUITooltips();
 
 	UpdateGUI();
 
-	SetSizer(sMain);
-	Layout();
-
-	Fit();
+	SetSizerAndFit(sMain);
 	Center();
-	Notebook->SetSelection(0);
+	SetFocus();
 }
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	EndModal((bRefreshList) ? wxID_OK : wxID_CLOSE);
+	EndModal((bRefreshList) ? wxID_OK : wxID_CANCEL);
 }
 
 void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))

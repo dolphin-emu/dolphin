@@ -48,227 +48,166 @@ struct PHackData
 
 class CISOProperties : public wxDialog
 {
-	public:
-
-		CISOProperties(const std::string fileName,
+public:
+	CISOProperties(const std::string fileName,
 			wxWindow* parent,
 			wxWindowID id = 1,
 			const wxString& title = _("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
-		virtual ~CISOProperties();
+	virtual ~CISOProperties();
 
-		bool bRefreshList;
+	bool bRefreshList;
 
-		void ActionReplayList_Load();
-		bool SaveGameConfig();
+	void ActionReplayList_Load();
+	bool SaveGameConfig();
 
-		PHackData PHack_Data;
+	PHackData PHack_Data;
 
-	private:
+private:
+	DECLARE_EVENT_TABLE();
 
-		DECLARE_EVENT_TABLE();
-		
-		wxStaticBoxSizer *sbGameConfig;
-		wxStaticBoxSizer *sbCoreOverrides;
-		wxStaticBoxSizer *sbWiiOverrides;
-		wxStaticBoxSizer *sbVideoOverrides;
-		wxBoxSizer *sEmuState;
-		wxBoxSizer *sPatches;
-		wxBoxSizer *sPatchButtons;
-		wxBoxSizer *sCheats;
-		wxBoxSizer *sCheatButtons;
-		wxStaticBoxSizer *sbISODetails;
-		wxGridBagSizer *sISODetails;
-		wxStaticBoxSizer *sbBannerDetails;
-		wxGridBagSizer *sBannerDetails;
+	// Core
+	wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
+	wxCheckBox *VBeam, *FastDiscSpeed, *BlockMerging, *DSPHLE;
+	// Wii
+	wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
+	// Video
+	wxCheckBox *UseZTPSpeedupHack, *PHackEnable;
+	wxButton *PHSettings;
 
-		wxButton *m_Close;
+	wxArrayString arrayStringFor_EmuState;
+	wxChoice *EmuState;
+	wxTextCtrl *EmuIssues;
+	wxArrayString arrayStringFor_Patches;
+	wxCheckListBox *Patches;
+	wxButton *EditPatch;
+	wxButton *RemovePatch;
+	wxArrayString arrayStringFor_Cheats;
+	wxCheckListBox *Cheats;
+	wxButton *EditCheat;
+	wxButton *RemoveCheat;
+	wxArrayString arrayStringFor_Speedhacks;
+	wxCheckListBox *Speedhacks;
+	wxButton *EditSpeedhack;
+	wxButton *AddSpeedhack;
+	wxButton *RemoveSpeedhack;
 
-		wxNotebook *m_Notebook;
-		wxPanel *m_GameConfig;
-		wxPanel *m_PatchPage;
-		wxPanel *m_CheatPage;
-		wxPanel *m_Information;
-		wxPanel *m_Filesystem;
+	wxTextCtrl *m_Name;
+	wxTextCtrl *m_GameID;
+	wxTextCtrl *m_Country;
+	wxTextCtrl *m_MakerID;
+	wxTextCtrl *m_Date;
+	wxTextCtrl *m_FST;
+	wxArrayString arrayStringFor_Lang;
+	wxChoice *m_Lang;
+	wxTextCtrl *m_ShortName;
+	wxTextCtrl *m_Maker;
+	wxTextCtrl *m_Comment;
+	wxStaticBitmap *m_Banner;
 
-		wxStaticText *OverrideText;
-		// Core
-		wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
-		wxCheckBox *VBeam, *FastDiscSpeed, *BlockMerging, *DSPHLE;
-		// Wii
-		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
-		// Video
-		wxCheckBox *UseZTPSpeedupHack, *PHackEnable;
-		wxButton *PHSettings;
+	wxTreeCtrl *m_Treectrl;
+	wxTreeItemId RootId;
 
-		wxButton *EditConfig;
-		wxStaticText *EmuStateText;
-		wxArrayString arrayStringFor_EmuState;
-		wxChoice *EmuState;
-		wxTextCtrl *EmuIssues;
-		wxArrayString arrayStringFor_Patches;
-		wxCheckListBox *Patches;
-		wxButton *EditPatch;
-		wxButton *AddPatch;
-		wxButton *RemovePatch;
-		wxArrayString arrayStringFor_Cheats;
-		wxCheckListBox *Cheats;
-		wxButton *EditCheat;
-		wxButton *AddCheat;
-		wxButton *RemoveCheat;
-		wxArrayString arrayStringFor_Speedhacks;
-		wxCheckListBox *Speedhacks;
-		wxButton *EditSpeedhack;
-		wxButton *AddSpeedhack;
-		wxButton *RemoveSpeedhack;
+	Gecko::CodeConfigPanel *m_geckocode_panel;
 
-		wxStaticText *m_NameText;
-		wxStaticText *m_GameIDText;
-		wxStaticText *m_CountryText;
-		wxStaticText *m_MakerIDText;
-		wxStaticText *m_DateText;
-		wxStaticText *m_FSTText;
-		wxStaticText *m_LangText;
-		wxStaticText *m_ShortText;
-		wxStaticText *m_MakerText;
-		wxStaticText *m_CommentText;
-		wxStaticText *m_BannerText;
-		wxTextCtrl *m_Name;
-		wxTextCtrl *m_GameID;
-		wxTextCtrl *m_Country;
-		wxTextCtrl *m_MakerID;
-		wxTextCtrl *m_Date;
-		wxTextCtrl *m_FST;
-		wxArrayString arrayStringFor_Lang;
-		wxChoice *m_Lang;
-		wxTextCtrl *m_ShortName;
-		wxTextCtrl *m_Maker;
-		wxTextCtrl *m_Comment;
-		wxStaticBitmap *m_Banner;
+	enum
+	{
+		ID_TREECTRL = 1000,
 
-		wxTreeCtrl *m_Treectrl;
-		wxTreeItemId RootId;
-		wxImageList *m_iconList;
+		ID_NOTEBOOK,
+		ID_GAMECONFIG,
+		ID_PATCH_PAGE,
+		ID_ARCODE_PAGE,
+		ID_SPEEDHACK_PAGE,
+		ID_INFORMATION,
+		ID_FILESYSTEM,
 
-		wxFlexGridSizer *szrPHackSettings;
+		ID_USEDUALCORE,
+		ID_IDLESKIP,
+		ID_MMU,
+		ID_MMUBAT,
+		ID_TLBHACK,
+		ID_VBEAM,
+		ID_DISCSPEED,
+		ID_MERGEBLOCKS,
+		ID_AUDIO_DSP_HLE,
+		ID_ZTP_SPEEDUP,
+		ID_PHACKENABLE,
+		ID_PHSETTINGS,
+		ID_ENABLEPROGRESSIVESCAN,
+		ID_ENABLEWIDESCREEN,
+		ID_EDITCONFIG,
+		ID_EMUSTATE,
+		ID_EMU_ISSUES,
+		ID_PATCHES_LIST,
+		ID_EDITPATCH,
+		ID_ADDPATCH,
+		ID_REMOVEPATCH,
+		ID_CHEATS_LIST,
+		ID_EDITCHEAT,
+		ID_ADDCHEAT,
+		ID_REMOVECHEAT,
 
-		Gecko::CodeConfigPanel *m_geckocode_panel;
+		ID_NAME,
+		ID_GAMEID,
+		ID_COUNTRY,
+		ID_MAKERID,
+		ID_DATE,
+		ID_FST,
+		ID_VERSION,
+		ID_LANG,
+		ID_SHORTNAME,
+		ID_LONGNAME,
+		ID_MAKER,
+		ID_COMMENT,
+		ID_BANNER,
+		IDM_EXTRACTDIR,
+		IDM_EXTRACTALL,
+		IDM_EXTRACTFILE,
+		IDM_EXTRACTAPPLOADER,
+		IDM_EXTRACTDOL,
+		IDM_BNRSAVEAS
+	};
 
-		enum
-		{
-			ID_TREECTRL = 1000,
+	void CreateGUIControls(bool);
+	void OnClose(wxCloseEvent& event);
+	void OnCloseClick(wxCommandEvent& event);
+	void OnEditConfig(wxCommandEvent& event);
+	void ListSelectionChanged(wxCommandEvent& event);
+	void PatchButtonClicked(wxCommandEvent& event);
+	void ActionReplayButtonClicked(wxCommandEvent& event);
+	void RightClickOnBanner(wxMouseEvent& event);
+	void OnBannerImageSave(wxCommandEvent& event);
+	void OnRightClickOnTree(wxTreeEvent& event);
+	void OnExtractFile(wxCommandEvent& event);
+	void OnExtractDir(wxCommandEvent& event);
+	void OnExtractDataFromHeader(wxCommandEvent& event);
+	void SetRefresh(wxCommandEvent& event);
+	void OnChangeBannerLang(wxCommandEvent& event);
+	void OnCheckBoxClicked(wxCommandEvent& event);
+	void PHackButtonClicked(wxCommandEvent& event);
 
-			ID_NOTEBOOK,
-			ID_GAMECONFIG,
-			ID_PATCH_PAGE,
-			ID_ARCODE_PAGE,
-			ID_SPEEDHACK_PAGE,
-			ID_INFORMATION,
-			ID_FILESYSTEM,
+	GameListItem *OpenGameListItem;
 
-			ID_OVERRIDE_TEXT,
-			ID_USEDUALCORE,
-			ID_IDLESKIP,
-			ID_MMU,
-			ID_MMUBAT,
-			ID_TLBHACK,
-			ID_VBEAM,
-			ID_DISCSPEED,
-			ID_MERGEBLOCKS,
-			ID_AUDIO_DSP_HLE,
-			ID_ZTP_SPEEDUP,
-			ID_PHACKENABLE,
-			ID_PHSETTINGS,
-			ID_ENABLEPROGRESSIVESCAN,
-			ID_ENABLEWIDESCREEN,
-			ID_EDITCONFIG,
-			ID_EMUSTATE_TEXT,
-			ID_EMUSTATE,
-			ID_EMUISSUES_TEXT,
-			ID_EMU_ISSUES,
-			ID_PATCHES_LIST,
-			ID_EDITPATCH,
-			ID_ADDPATCH,
-			ID_REMOVEPATCH,
-			ID_CHEATS_LIST,
-			ID_EDITCHEAT,
-			ID_ADDCHEAT,
-			ID_REMOVECHEAT,
-			
-			ID_NAME_TEXT,
-			ID_GAMEID_TEXT,
-			ID_COUNTRY_TEXT,
-			ID_MAKERID_TEXT,
-			ID_DATE_TEXT,
-			ID_FST_TEXT,
-			ID_VERSION_TEXT,
-			ID_LANG_TEXT,
-			ID_SHORTNAME_TEXT,
-			ID_LONGNAME_TEXT,
-			ID_MAKER_TEXT,
-			ID_COMMENT_TEXT,
-			ID_BANNER_TEXT,
-			
-			ID_NAME,
-			ID_GAMEID,
-			ID_COUNTRY,
-			ID_MAKERID,
-			ID_DATE,
-			ID_FST,
-			ID_VERSION,
-			ID_LANG,
-			ID_SHORTNAME,
-			ID_LONGNAME,
-			ID_MAKER,
-			ID_COMMENT,
-			ID_BANNER,
-			IDM_EXTRACTDIR,
-			IDM_EXTRACTALL,
-			IDM_EXTRACTFILE,
-			IDM_EXTRACTAPPLOADER,
-			IDM_EXTRACTDOL,
-			IDM_BNRSAVEAS
-		};
+	std::vector<const DiscIO::SFileInfo *> GCFiles;
+	typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
-		void CreateGUIControls(bool);
-		void OnClose(wxCloseEvent& event);
-		void OnCloseClick(wxCommandEvent& event);
-		void OnEditConfig(wxCommandEvent& event);
-		void ListSelectionChanged(wxCommandEvent& event);
-		void PatchButtonClicked(wxCommandEvent& event);
-		void ActionReplayButtonClicked(wxCommandEvent& event);
-		void RightClickOnBanner(wxMouseEvent& event);
-		void OnBannerImageSave(wxCommandEvent& event);
-		void OnRightClickOnTree(wxTreeEvent& event);
-		void OnExtractFile(wxCommandEvent& event);
-		void OnExtractDir(wxCommandEvent& event);
-		void OnExtractDataFromHeader(wxCommandEvent& event);
-		void SetRefresh(wxCommandEvent& event);
-		void OnChangeBannerLang(wxCommandEvent& event);
-		void OnCheckBoxClicked(wxCommandEvent& event);
-		void PHackButtonClicked(wxCommandEvent& event);
+	size_t CreateDirectoryTree(wxTreeItemId& parent,
+			std::vector<const DiscIO::SFileInfo*> fileInfos,
+			const size_t _FirstIndex, 
+			const size_t _LastIndex);
+	void ExportDir(const char* _rFullPath, const char* _rExportFilename,
+			const int partitionNum = 0);
 
-		GameListItem *OpenGameListItem;
+	IniFile GameIni;
+	std::string GameIniFile;
 
-		std::vector<const DiscIO::SFileInfo *> GCFiles;
-		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
-
-		size_t CreateDirectoryTree(wxTreeItemId& parent,
-								 std::vector<const DiscIO::SFileInfo*> fileInfos,
-								 const size_t _FirstIndex, 
-								 const size_t _LastIndex);
-		void ExportDir(const char* _rFullPath, const char* _rExportFilename,
-								 const int partitionNum = 0);
-
-		IniFile GameIni;
-		std::string GameIniFile;
-
-		void LoadGameConfig();
-		void PatchList_Load();
-		void PatchList_Save();
-		void ActionReplayList_Save();
-		void ChangeBannerDetails(int lang);
+	void LoadGameConfig();
+	void PatchList_Load();
+	void PatchList_Save();
+	void ActionReplayList_Save();
+	void ChangeBannerDetails(int lang);
 };
 #endif

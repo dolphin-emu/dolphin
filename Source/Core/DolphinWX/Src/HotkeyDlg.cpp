@@ -63,7 +63,7 @@ void HotkeyConfigDialog::EndGetButtons(void)
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
 	ClickedButton = NULL;
-	SetEscapeId(wxID_OK);
+	SetEscapeId(wxID_ANY);
 }
 
 void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
@@ -159,7 +159,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 	// Get the button
 	ClickedButton = (wxButton *)event.GetEventObject();
-	SetEscapeId(wxID_NONE);
+	SetEscapeId(wxID_CANCEL);
 	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
@@ -281,13 +281,9 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		Page->SetSizer(sPage);
 	}
 
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->AddStretchSpacer();
-	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, (wxLEFT), 5);	
-
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(Notebook, 0, wxEXPAND | wxALL, 5);
-	sMainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+	sMainSizer->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
 	SetSizerAndFit(sMainSizer);
 	SetFocus();
 }

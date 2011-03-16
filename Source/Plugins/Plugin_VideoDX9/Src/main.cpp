@@ -125,9 +125,8 @@ void VideoBackend::ShowConfig(void* parent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 	
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
-	diag->ShowModal();
-	diag->Destroy();
+	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
+	diag.ShowModal();
 
 	g_Config.backend_info.Adapters.clear();
 	DX9::D3D::Shutdown();

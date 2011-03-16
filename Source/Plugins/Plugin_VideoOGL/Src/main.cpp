@@ -152,9 +152,8 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
 
-	VideoConfigDiag *const diag = new VideoConfigDiag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
-	diag->ShowModal();
-	diag->Destroy();
+	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
+	diag.ShowModal();
 #endif
 }
 

@@ -470,9 +470,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
 	szr_main->Add(btn_close, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
 
-	notebook->SetSelection(0);
 	SetSizerAndFit(szr_main);
 	Center();
+	SetFocus();
 
 	SetUIValuesFromConfig();
 	Connect(wxID_ANY, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(VideoConfigDiag::OnUpdateUI), NULL, this);

@@ -82,7 +82,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition);
 	_connect_macro_(cancel_button, WiimoteConfigDiag::Cancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	wxBoxSizer* const button_sizer = new wxBoxSizer(wxHORIZONTAL);
+	wxSizer* const button_sizer = CreateButtonSizer(wxNO_DEFAULT);
 	button_sizer->Add(cancel_button, 0, wxALIGN_RIGHT | wxRIGHT, 5);
 	button_sizer->Add(ok_button, 0, wxALIGN_RIGHT);
 
