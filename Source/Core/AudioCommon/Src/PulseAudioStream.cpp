@@ -73,7 +73,8 @@ void PulseAudio::SoundLoop()
 bool PulseAudio::PulseInit()
 {
 	// The Sample format to use
-	static const pa_sample_spec ss = {
+	const pa_sample_spec ss =
+	{
 		PA_SAMPLE_S16LE,
 		m_mixer->GetSampleRate(),
 		2

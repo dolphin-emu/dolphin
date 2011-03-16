@@ -57,8 +57,6 @@ class HotkeyConfigDialog : public wxDialog
 
 		wxTimer *m_ButtonMappingTimer;
 
-		void OnClose(wxCloseEvent& event);
-		void CloseClick(wxCommandEvent& WXUNUSED(event));
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 		void OnButtonClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);

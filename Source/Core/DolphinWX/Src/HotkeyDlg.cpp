@@ -21,8 +21,6 @@
 #include "ConfigManager.h"
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
-	EVT_CLOSE(HotkeyConfigDialog::OnClose)
-	EVT_BUTTON(wxID_OK, HotkeyConfigDialog::CloseClick)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
 		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
@@ -49,18 +47,6 @@ HotkeyConfigDialog::~HotkeyConfigDialog()
 	delete m_ButtonMappingTimer;
 }
 
-void HotkeyConfigDialog::OnClose(wxCloseEvent& WXUNUSED(event))
-{
-	m_ButtonMappingTimer->Stop();
-
-	EndModal(wxID_CLOSE);
-}
-
-void HotkeyConfigDialog::CloseClick(wxCommandEvent& WXUNUSED(event))
-{
-	Close();
-}
-
 // Save keyboard key mapping
 void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 {
@@ -77,6 +63,7 @@ void HotkeyConfigDialog::EndGetButtons(void)
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
 	ClickedButton = NULL;
+	SetEscapeId(wxID_OK);
 }
 
 void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
@@ -172,6 +159,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 	// Get the button
 	ClickedButton = (wxButton *)event.GetEventObject();
+	SetEscapeId(wxID_NONE);
 	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
@@ -300,9 +288,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(Notebook, 0, wxEXPAND | wxALL, 5);
 	sMainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
-	SetSizer(sMainSizer);
-	Layout();
-	Fit();
-	Notebook->SetSelection(0);
+	SetSizerAndFit(sMainSizer);
+	SetFocus();
 }
 

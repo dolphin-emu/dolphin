@@ -19,27 +19,26 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	outer_sizer->Add(sizer1, 0, wxTOP | wxLEFT | wxRIGHT | wxEXPAND, 5);
 	outer_sizer->Add(sizer2, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
 
-	enable = new wxCheckBox(this,wxID_ANY,_("Enable"));
-	butt = new wxCheckBox(this,wxID_ANY,_("Buttons"));
-	accel = new wxCheckBox(this,wxID_ANY,_("Acceleration"));
-	point = new wxCheckBox(this,wxID_ANY,_("IR Pointer"));
-	nun = new wxCheckBox(this,wxID_ANY,_("Nunchuk"));
-	nunaccel = new wxCheckBox(this,wxID_ANY,_("Nunchuk Acceleration"));
+	enable = new wxCheckBox(this, wxID_ANY, _("Enable"));
+	butt = new wxCheckBox(this, wxID_ANY, _("Buttons"));
+	accel = new wxCheckBox(this, wxID_ANY, _("Acceleration"));
+	point = new wxCheckBox(this, wxID_ANY, _("IR Pointer"));
+	nun = new wxCheckBox(this, wxID_ANY, _("Nunchuk"));
+	nunaccel = new wxCheckBox(this, wxID_ANY, _("Nunchuk Acceleration"));
 
-	wxButton *const ok_butt = new wxButton(this,wxID_ANY,_("OK"));
+	wxButton *const ok_butt = new wxButton(this, wxID_OK, _("OK"));
 	
 	wxBoxSizer *const port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(new wxStaticText(this, wxID_ANY, _("UDP Port:")), 0, wxALIGN_CENTER);
 	port_tbox = new wxTextCtrl(this, wxID_ANY, wxString::FromUTF8(wrp->port.c_str()));
-	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND , 5);
+	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND, 5);
 
-	_connect_macro_(enable, UDPConfigDiag::ChangeState ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(butt, UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(accel, UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(point, UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(nun, UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(nunaccel, UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(ok_butt, UDPConfigDiag::OKPressed, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(enable, UDPConfigDiag::ChangeState, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(butt, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(accel, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(point, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(nun, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(nunaccel, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	_connect_macro_(port_tbox, UDPConfigDiag::ChangeState, wxEVT_COMMAND_TEXT_UPDATED, this);
 
 	enable->SetValue(wrp->udpEn);
@@ -61,7 +60,8 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	outer_sizer->Add(ok_butt, 0, wxALL | wxALIGN_RIGHT, 5);
 
 	SetSizerAndFit(outer_sizer);
-	Layout();
+	Center();
+	SetFocus();
 }
 
 void UDPConfigDiag::ChangeUpdateFlags(wxCommandEvent & WXUNUSED(event))
@@ -78,9 +78,4 @@ void UDPConfigDiag::ChangeState(wxCommandEvent & WXUNUSED(event))
 	wrp->udpEn=enable->GetValue();
 	wrp->port=port_tbox->GetValue().mb_str(wxConvUTF8);
 	wrp->Refresh();
-}
-
-void UDPConfigDiag::OKPressed(wxCommandEvent & WXUNUSED(event))
-{
-	Close();
 }

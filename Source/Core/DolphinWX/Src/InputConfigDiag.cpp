@@ -26,10 +26,8 @@
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {
 	UDPWrapper* const wrp = ((UDPConfigButton*)event.GetEventObject())->wrapper;
-	wxDialog * diag = new UDPConfigDiag(this, wrp);
-	diag->Center();
-	diag->ShowModal();
-	diag->Destroy();
+	UDPConfigDiag diag(this, wrp);
+	diag.ShowModal();
 }
 
 void GamepadPage::ConfigExtension(wxCommandEvent& event)
@@ -140,6 +138,7 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, Con
 	SetSizerAndFit(szr);	// needed
 
 	UpdateGUI();
+	SetFocus();
 }
 
 ControlButton::ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label)
@@ -496,6 +495,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 
 	wxButton* const clear_button = new  wxButton(parent, -1, _("Clear"));
 	wxButton* const set_button = new wxButton(parent, -1, _("Set"));
+	wxButton* const ok_button = new wxButton(parent, wxID_OK, _("OK"));
 
 	wxButton* const select_button = new wxButton(parent, -1, _("Select"));
 	_connect_macro_(select_button, ControlDialog::SetSelectedControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
@@ -548,8 +548,9 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 
 	wxBoxSizer* const bottom_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
 	bottom_btns_sizer->Add(clear_button, 0, wxLEFT, 5);
-	bottom_btns_sizer->AddStretchSpacer(1);
 	bottom_btns_sizer->Add(set_button, 0, wxRIGHT, 5);
+	bottom_btns_sizer->AddStretchSpacer(1);
+	bottom_btns_sizer->Add(ok_button, 0, wxRIGHT, 5);
 
 	main_szr->Add(range_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
 	main_szr->Add(ctrls_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
