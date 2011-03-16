@@ -351,10 +351,11 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
-	emuThreadGoing.Sync();
-
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+	emuThreadGoing.Sync();
+
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server

@@ -219,7 +219,7 @@ void X11_MainLoop()
 							State_Load(slot_number);
 					}
 					else if (key == XK_F9)
-						Core::ScreenShot();
+						Core::SaveScreenShot();
 					else if (key == XK_F11)
 						State_LoadLastSaved();
 					else if (key == XK_F12)
