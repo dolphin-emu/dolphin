@@ -20,19 +20,22 @@
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
 // This function might change the error code.
-const char *GetLastErrorMsg()
+const char* GetLastErrorMsg()
 {
-	// FIXME : not thread safe.
-	// Caused by sloppy use in logging in FileUtil.cpp, primarily. What to do, what to do ...
-	static char errStr[255] = {0};
+	static const size_t buff_size = 255;
+
 #ifdef _WIN32
-	DWORD dw = GetLastError();
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-				  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				  (LPTSTR) errStr, 254, NULL );
+	static __declspec(thread) char err_str[buff_size] = {};
+
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		err_str, buff_size, NULL);
 #else
+	static __thread char err_str[buff_size] = {};
+
 	// Thread safe (XSI-compliant)
-	strerror_r(errno, errStr, 255);
+	strerror_r(errno, err_str, buff_size);
 #endif
-	return errStr;
+
+	return err_str;
 }
