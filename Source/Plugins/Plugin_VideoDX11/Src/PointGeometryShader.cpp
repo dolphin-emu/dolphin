@@ -52,15 +52,14 @@ static const char POINT_GS_COMMON[] =
 "[maxvertexcount(4)]\n"
 "void main(point VS_OUTPUT input[1], inout TriangleStream<VS_OUTPUT> outStream)\n"
 "{\n"
-	// Correct w coordinate so screen-space math will work
 	"VS_OUTPUT ptLL = input[0];\n"
-	"ptLL.pos /= ptLL.pos.w;\n"
 	"VS_OUTPUT ptLR = ptLL;\n"
 	"VS_OUTPUT ptUL = ptLL;\n"
 	"VS_OUTPUT ptUR = ptLL;\n"
 
-	// Distance from center to upper right vertex
-	"float2 offset = float2(Params.PointSize/640, -Params.PointSize/528);\n"
+	// Offset from center to upper right vertex
+	// Lerp Params.PointSize/2 from [0,0..640,528] to [-1,1..1,-1]
+	"float2 offset = float2(Params.PointSize/640, -Params.PointSize/528) * input[0].pos.w;\n"
 
 	"ptLL.pos.xy += float2(-1,-1) * offset;\n"
 	"ptLR.pos.xy += float2(1,-1) * offset;\n"
@@ -74,6 +73,8 @@ static const char POINT_GS_COMMON[] =
 "#endif\n"
 
 	// Apply TexOffset to all tex coordinates in the vertex
+	// FIXME: The game may be able to enable TexOffset for some coords and
+	// disable for others, but where is that information stored?
 "#if NUM_TEXCOORDS >= 1\n"
 	"ptLL.tex0.xy += float2(0,1) * texOffset;\n"
 	"ptLR.tex0.xy += texOffset;\n"

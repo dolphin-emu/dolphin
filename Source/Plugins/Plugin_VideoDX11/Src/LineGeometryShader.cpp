@@ -55,12 +55,9 @@ static const char LINE_GS_COMMON[] =
 	// Pretend input[0] is on the bottom and input[1] is on top.
 	// We generate vertices to the left and right.
 
-	// Correct w coordinate so screen-space math will work
 	"VS_OUTPUT l0 = input[0];\n"
-	"l0.pos /= l0.pos.w;\n"
 	"VS_OUTPUT r0 = l0;\n"
 	"VS_OUTPUT l1 = input[1];\n"
-	"l1.pos /= l1.pos.w;\n"
 	"VS_OUTPUT r1 = l1;\n"
 
 	// GameCube/Wii's line drawing algorithm is a little quirky. It does not
@@ -81,16 +78,18 @@ static const char LINE_GS_COMMON[] =
 		"offset = float2(0, -Params.LineWidth/528);\n"
 	"}\n"
 
-	"l0.pos.xy -= offset;\n"
-	"r0.pos.xy += offset;\n"
-	"l1.pos.xy -= offset;\n"
-	"r1.pos.xy += offset;\n"
+	"l0.pos.xy -= offset * input[0].pos.w;\n"
+	"r0.pos.xy += offset * input[0].pos.w;\n"
+	"l1.pos.xy -= offset * input[1].pos.w;\n"
+	"r1.pos.xy += offset * input[1].pos.w;\n"
 
 "#ifndef NUM_TEXCOORDS\n"
 "#error NUM_TEXCOORDS not defined\n"
 "#endif\n"
 
 	// Apply TexOffset to all tex coordinates in the vertex
+	// FIXME: The game may be able to enable TexOffset for some coords and
+	// disable for others, but where is that information stored?
 "#if NUM_TEXCOORDS >= 1\n"
 	"r0.tex0.x += Params.TexOffset;\n"
 	"r1.tex0.x += Params.TexOffset;\n"
