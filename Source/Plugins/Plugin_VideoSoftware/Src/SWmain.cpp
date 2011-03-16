@@ -43,7 +43,8 @@
 namespace SW
 {
 
-static bool fifoStateRun = false;
+static volatile bool fifoStateRun = false;
+static volatile bool emuRunningState = false;
 
 
 std::string VideoSoftware::GetName()
@@ -94,11 +95,12 @@ void VideoSoftware::DoState(PointerWrap&)
 
 void VideoSoftware::RunLoop(bool enable)
 {
-	//EmulatorState(true);
+	emuRunningState = enable;
 }
 
 void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 {
+	emuRunningState = (newState == EMUSTATE_CHANGE_PLAY) ? true : false;
 }
 
 void VideoSoftware::Shutdown()
@@ -167,13 +169,26 @@ void VideoSoftware::Video_EnterLoop()
 {
     fifoStateRun = true;
 
-    while (fifoStateRun)
-    {
+	while (fifoStateRun)
+	{
 		g_video_backend->PeekMessages();
-        if (!SWCommandProcessor::RunBuffer()) {
-            Common::YieldCPU();
+
+		if (!SWCommandProcessor::RunBuffer())
+		{
+			Common::YieldCPU();
 		}
-    }
+
+		if (!emuRunningState)
+		{
+			while (!emuRunningState)
+			{
+				g_video_backend->PeekMessages();
+				Common::SleepCurrentThread(1);
+			}
+		}
+	}
+
+	
 }
 
 void VideoSoftware::Video_ExitLoop()

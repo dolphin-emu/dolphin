@@ -85,7 +85,7 @@ namespace EfbCopy
             if (bpmem.triggerEFBCopy.copy_to_xfb)
             {
                 CopyToXfb();
-                Core::Callback_VideoCopiedToXFB(false);
+                Core::Callback_VideoCopiedToXFB(true);
 
                 swstats.frameCount++;
             }
