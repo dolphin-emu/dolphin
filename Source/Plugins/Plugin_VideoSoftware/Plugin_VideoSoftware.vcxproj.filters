@@ -25,9 +25,6 @@
     <ClCompile Include="Src\SWVertexLoader.cpp" />
     <ClCompile Include="Src\VideoConfigDialog.cpp" />
     <ClCompile Include="Src\XFMemLoader.cpp" />
-    <ClCompile Include="Src\Win32.cpp">
-      <Filter>Win32</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\BPMemLoader.h" />
@@ -56,12 +53,6 @@
     <ClInclude Include="Src\VideoBackend.h" />
     <ClInclude Include="Src\VideoConfigDialog.h" />
     <ClInclude Include="Src\XFMemLoader.h" />
-    <ClInclude Include="Src\Win32.h">
-      <Filter>Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\VertexLoader_Position.h">
-      <Filter>Common</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -70,9 +61,6 @@
   <ItemGroup>
     <Filter Include="Win32">
       <UniqueIdentifier>{081288cb-a63b-4ae9-93eb-e668568520b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Common">
-      <UniqueIdentifier>{80e30848-1174-4168-a8f7-da2553f872b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

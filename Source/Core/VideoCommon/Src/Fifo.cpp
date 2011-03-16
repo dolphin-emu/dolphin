@@ -143,7 +143,7 @@ void RunGpuLoop()
 			if (!GpuRunningState) break;
 
 			fifo.isGpuReadingData = true;
-			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable;
+			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
 			
 			u32 readPtr = fifo.CPReadPointer;
 			u8 *uData = Memory::GetPointer(readPtr);

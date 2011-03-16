@@ -199,7 +199,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (wParam == WM_USER_KEYDOWN)
 		{
 			OnKeyDown(lParam);
-			FreeLookInput(wParam, lParam);
+			FreeLookInput((u32)wParam, lParam);
 		}
 		else if (wParam == WIIMOTE_DISCONNECT)
 		{

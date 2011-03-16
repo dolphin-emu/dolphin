@@ -28,24 +28,8 @@
 #include "SWCommandProcessor.h"
 #include "ChunkFile.h"
 #include "MathUtil.h"
-
-bool fifoStateRun;
-
-// set to 0 if using in video common
-#define SW_BACKEND 1
-
-#if (SW_BACKEND)
-
 #include "OpcodeDecoder.h"
 
-#else
-
-#include "SWVideoConfig.h"
-#include "OpcodeDecoding.h"
-#include "VideoCommon.h"
-extern u8* g_pVideoData;
-
-#endif
 
 namespace SWCommandProcessor
 {
@@ -425,7 +409,6 @@ bool RunBuffer()
 
     u32 availableBytes = writePos - readPos;
 
-#if (SW_BACKEND)
     while (OpcodeDecoder::CommandRunnable(availableBytes))
     {
         cpreg.status.CommandIdle = 0;
@@ -437,15 +420,6 @@ bool RunBuffer()
         _dbg_assert_(VIDEO, writePos >= readPos);
         availableBytes = writePos - readPos;
     }
-#else
-    cpreg.status.CommandIdle = 0;
-    OpcodeDecoder_Run(g_bSkipCurrentFrame);
-
-    // if data was read by the opcode decoder then the video data pointer changed
-    readPos = g_pVideoData - &commandBuffer[0];
-    _dbg_assert_(COMMANDPROCESSOR, writePos >= readPos);
-    availableBytes = writePos - readPos;
-#endif
 
     cpreg.status.CommandIdle = 1;
 
@@ -464,69 +438,10 @@ bool RunBuffer()
     return ranDecoder;
 }
 
-} // end of namespace SWCommandProcessor
-
-
-// fifo functions
-#if (SW_BACKEND)
-
-void SWFifo_EnterLoop()
-{
-    fifoStateRun = true;
-
-    while (fifoStateRun)
-    {
-		g_video_backend->PeekMessages();
-        if (!SWCommandProcessor::RunBuffer()) {
-            Common::YieldCPU();
-		}
-    }
-}
-
-#else
-
-void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
-{
-    fifoStateRun = true;
-
-    while (fifoStateRun)
-    {
-		g_VideoInitialize.pPeekMessages();
-        if (g_ActiveConfig.bEFBAccessEnable)
-			VideoFifo_CheckEFBAccess();
-		VideoFifo_CheckSwapRequest();
-
-		if (!CommandProcessor::RunBuffer()) {
-            Common::YieldCPU();
-		}
-    }
-}
-
-#endif
-
-#if 0
-void Fifo_ExitLoop()
-{
-    fifoStateRun = false;
-}
-
-void Fifo_SetRendering(bool enabled)
+void SetRendering(bool enabled)
 {
     g_bSkipCurrentFrame = !enabled;
 }
 
-// for compatibility with video common
-void Fifo_Init() {}
-void Fifo_Shutdown() {}
-void Fifo_DoState(PointerWrap &p) {}
+} // end of namespace SWCommandProcessor
 
-u8* FAKE_GetFifoStartPtr()
-{
-    return SWCommandProcessor::commandBuffer;
-}
-
-u8* FAKE_GetFifoEndPtr()
-{
-    return &SWCommandProcessor::commandBuffer[SWCommandProcessor::writePos];
-}
-#endif

@@ -19,7 +19,7 @@
 
 #include "EfbInterface.h"
 #include "BPMemLoader.h"
-#include "../../../Core/VideoCommon/Src/LookUpTables.h"
+#include "LookUpTables.h"
 #include "SWPixelEngine.h"
 
 

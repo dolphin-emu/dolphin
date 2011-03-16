@@ -7,7 +7,7 @@
 namespace SW
 {
 
-class VideoBackend : public VideoBackendLLE
+class VideoSoftware : public VideoBackend
 {
 	bool Initialize(void *&);
 	void Shutdown();
@@ -35,8 +35,16 @@ class VideoBackend : public VideoBackendLLE
 
 	void Video_SetRendering(bool bEnabled);
 
+	void Video_GatherPipeBursted();
+
 	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
+
+	readFn16  Video_CPRead16();
+	writeFn16 Video_CPWrite16();
+	readFn16  Video_PERead16();
+	writeFn16 Video_PEWrite16();
+	writeFn32 Video_PEWrite32();
 
 	void UpdateFPSDisplay(const char*);
 	unsigned int PeekMessages();

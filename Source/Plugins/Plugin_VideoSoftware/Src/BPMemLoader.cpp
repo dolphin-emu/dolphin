@@ -15,18 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "../../../Core/VideoCommon/Src/VideoCommon.h"
+#include "VideoCommon.h"
+#include "TextureDecoder.h"
 
 #include "BPMemLoader.h"
 #include "EfbCopy.h"
 #include "Rasterizer.h"
 #include "SWPixelEngine.h"
 #include "Tev.h"
-#include "../../../Core/VideoCommon/Src/TextureDecoder.h"
 #include "HW/Memmap.h"
 #include "Core.h"
 
-extern BPMemory bpmem;
 
 void InitBPMemory()
 {

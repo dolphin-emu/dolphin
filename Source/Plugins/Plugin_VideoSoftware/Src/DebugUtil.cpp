@@ -26,7 +26,7 @@
 #include "HwRasterizer.h"
 #include "StringUtil.h"
 #include "SWCommandProcessor.h"
-#include "../../../Core/VideoCommon/Src/ImageWrite.h"
+#include "ImageWrite.h"
 #include "FileUtil.h"
 
 namespace DebugUtil

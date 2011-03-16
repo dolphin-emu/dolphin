@@ -20,8 +20,7 @@
 
 
 #include "Common.h"
-
-#include "../../../Core/VideoCommon/Src/CPMemory.h"
+#include "CPMemory.h"
 
 void SWLoadCPReg(u32 sub_cmd, u32 value);
 

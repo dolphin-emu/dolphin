@@ -23,6 +23,11 @@
 
 #include "ChunkFile.h"
 
+typedef void (*writeFn16)(const u16,const u32);
+typedef void (*writeFn32)(const u32,const u32);
+typedef void (*readFn16)(u16&, const u32);
+
+
 enum FieldType
 {
 	FIELD_PROGRESSIVE = 0,
@@ -97,7 +102,6 @@ public:
 	virtual void ShowConfig(void*) {}
 
 	virtual void Video_Prepare() = 0;
-
 	virtual void Video_EnterLoop() = 0;
 	virtual void Video_ExitLoop() = 0;
 
@@ -112,10 +116,16 @@ public:
 
 	virtual void Video_SetRendering(bool bEnabled) = 0;
 
-	static void Video_GatherPipeBursted();
+	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
 	virtual void Video_AbortFrame() = 0;
+
+	virtual readFn16  Video_CPRead16() = 0;
+	virtual writeFn16 Video_CPWrite16() = 0;
+	virtual readFn16  Video_PERead16() = 0;
+	virtual writeFn16 Video_PEWrite16() = 0;
+	virtual writeFn32 Video_PEWrite32() = 0;
 
 	static void PopulateList();
 	static void ClearList();
@@ -126,7 +136,7 @@ extern std::vector<VideoBackend*> g_available_video_backends;
 extern VideoBackend* g_video_backend;
 
 // inherited by dx9/dx11/ogl backends
-class VideoBackendHLE : public VideoBackend
+class VideoBackendHardware : public VideoBackend
 {
 	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
@@ -145,14 +155,16 @@ class VideoBackendHLE : public VideoBackend
 
 	void Video_SetRendering(bool bEnabled);
 
+	void Video_GatherPipeBursted();
+
 	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
-};
 
-// inherited by software renderer
-class VideoBackendLLE : public VideoBackend
-{
-
+	readFn16  Video_CPRead16();
+	writeFn16 Video_CPWrite16();
+	readFn16  Video_PERead16();
+	writeFn16 Video_PEWrite16();
+	writeFn32 Video_PEWrite32();
 };
 
 #endif

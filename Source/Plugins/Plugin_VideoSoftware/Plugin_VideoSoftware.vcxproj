@@ -203,7 +203,6 @@
     <ClCompile Include="Src\TransformUnit.cpp" />
     <ClCompile Include="Src\SWVertexLoader.cpp" />
     <ClCompile Include="Src\VideoConfigDialog.cpp" />
-    <ClCompile Include="Src\Win32.cpp" />
     <ClCompile Include="Src\XFMemLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -230,10 +229,8 @@
     <ClInclude Include="Src\TransformUnit.h" />
     <ClInclude Include="Src\Vec3.h" />
     <ClInclude Include="Src\SWVertexLoader.h" />
-    <ClInclude Include="Src\VertexLoader_Position.h" />
     <ClInclude Include="Src\VideoBackend.h" />
     <ClInclude Include="Src\VideoConfigDialog.h" />
-    <ClInclude Include="Src\Win32.h" />
     <ClInclude Include="Src\XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>

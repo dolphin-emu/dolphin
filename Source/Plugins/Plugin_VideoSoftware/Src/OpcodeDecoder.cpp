@@ -17,7 +17,7 @@
 
 #include "Common.h"
 
-#include "../../../Core/VideoCommon/Src/DataReader.h"
+#include "DataReader.h"
 
 #include "OpcodeDecoder.h"
 #include "BPMemLoader.h"
@@ -32,19 +32,19 @@
 #include "HW/Memmap.h"
 
 typedef void (*DecodingFunction)(u32);
-DecodingFunction currentFunction = NULL;
-
-u32 minCommandSize;
-u16 streamSize;
-u16 streamAddress;
-bool readOpcode;
-SWVertexLoader vertexLoader;
-bool inObjectStream;
-u8 lastPrimCmd;
-
 
 namespace OpcodeDecoder
 {
+
+static DecodingFunction currentFunction = NULL;
+static u32 minCommandSize;
+static u16 streamSize;
+static u16 streamAddress;
+static bool readOpcode;
+static SWVertexLoader vertexLoader;
+static bool inObjectStream;
+static u8 lastPrimCmd;
+
 
 void DecodePrimitiveStream(u32 iBufferSize)
 {
@@ -106,7 +106,7 @@ void ExecuteDisplayList(u32 addr, u32 count)
         OpcodeDecoder::Run(count);
 
         // if data was read by the opcode decoder then the video data pointer changed
-        u32 readCount = g_pVideoData - dlStart;
+        u32 readCount = (u32)(g_pVideoData - dlStart);
         dlStart = g_pVideoData;
 
         _assert_msg_(VIDEO, count >= readCount, "Display list underrun"); 

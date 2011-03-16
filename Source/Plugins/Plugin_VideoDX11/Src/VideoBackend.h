@@ -7,7 +7,7 @@
 namespace DX11
 {
 
-class VideoBackend : public VideoBackendHLE
+class VideoBackend : public VideoBackendHardware
 {
 	bool Initialize(void *&);
 	void Shutdown();

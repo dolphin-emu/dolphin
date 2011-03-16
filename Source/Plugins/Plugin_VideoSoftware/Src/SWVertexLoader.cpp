@@ -19,9 +19,9 @@
 
 #include "SWVertexLoader.h"
 #include "VertexLoader_Position.h"
-#include "../../../Core/VideoCommon/Src/VertexLoader_Normal.h"
-#include "../../../Core/VideoCommon/Src/VertexLoader_Color.h"
-#include "../../../Core/VideoCommon/Src/VertexLoader_TextCoord.h"
+#include "VertexLoader_Normal.h"
+#include "VertexLoader_Color.h"
+#include "VertexLoader_TextCoord.h"
 
 #include "CPMemLoader.h"
 #include "XFMemLoader.h"
@@ -30,14 +30,15 @@
 #include "SetupUnit.h"
 #include "SWStatistics.h"
 #include "VertexManagerBase.h"
-#include "../../../Core/VideoCommon/Src/DataReader.h"
+#include "DataReader.h"
 
 // Vertex loaders read these
-static int tcIndex;
-static int colIndex;
-static int colElements[2];
-static float posScale;
-static float tcScale[8];
+extern int tcIndex;
+extern int colIndex;
+extern int colElements[2];
+extern float posScale;
+extern float tcScale[8];
+
 
 SWVertexLoader::SWVertexLoader() :
     m_VertexSize(0),
@@ -165,7 +166,8 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	AddAttributeLoader(LoadPosition);
 
 	// Normals
-	if (g_VtxDesc.Normal != NOT_PRESENT) {
+	if (g_VtxDesc.Normal != NOT_PRESENT)
+	{
 		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal, m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal, m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3, true);
 		if (m_normalLoader == 0)

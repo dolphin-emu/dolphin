@@ -20,8 +20,7 @@
 
 
 #include "Common.h"
-
-#include "../../../Core/VideoCommon/Src/BPMemory.h"
+#include "BPMemory.h"
 
 void InitBPMemory();
 void SWBPWritten(int address, int newvalue);

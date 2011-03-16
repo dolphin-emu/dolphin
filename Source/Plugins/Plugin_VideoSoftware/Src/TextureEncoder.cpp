@@ -17,11 +17,11 @@
 
 #include "TextureEncoder.h"
 #include "EfbInterface.h"
-#include "../../../Core/VideoCommon/Src/LookUpTables.h"
-
 #include "BPMemLoader.h"
 
-#include "../../../Core/VideoCommon/Src/TextureDecoder.h"
+#include "LookUpTables.h"
+#include "TextureDecoder.h"
+
 
 namespace TextureEncoder
 {

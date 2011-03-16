@@ -359,6 +359,9 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ProjectReference Include="..\..\Plugins\Plugin_VideoOGL\Plugin_VideoOGL.vcxproj">
       <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoSoftware\Plugin_VideoSoftware.vcxproj">
+      <Project>{9e9da440-e9ad-413c-b648-91030e792211}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
       <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
     </ProjectReference>

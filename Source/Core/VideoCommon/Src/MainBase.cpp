@@ -39,24 +39,24 @@ static struct
 
 static u32 s_AccessEFBResult = 0;
 
-void VideoBackendHLE::EmuStateChange(EMUSTATE_CHANGE newState)
+void VideoBackendHardware::EmuStateChange(EMUSTATE_CHANGE newState)
 {
 	EmulatorState((newState == EMUSTATE_CHANGE_PLAY) ? true : false);
 }
 
 // Enter and exit the video loop
-void VideoBackendHLE::Video_EnterLoop()
+void VideoBackendHardware::Video_EnterLoop()
 {
 	RunGpuLoop();
 }
 
-void VideoBackendHLE::Video_ExitLoop()
+void VideoBackendHardware::Video_ExitLoop()
 {
 	ExitGpuLoop();
 	s_FifoShuttingDown = true;
 }
 
-void VideoBackendHLE::Video_SetRendering(bool bEnabled)
+void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 {
 	Fifo_SetRendering(bEnabled);
 }
@@ -94,7 +94,7 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendHLE::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void VideoBackendHardware::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
 	{
@@ -108,7 +108,7 @@ void VideoBackendHLE::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendHLE::Video_EndField()
+void VideoBackendHardware::Video_EndField()
 {
 	if (s_BackendInitialized)
 	{
@@ -116,18 +116,18 @@ void VideoBackendHLE::Video_EndField()
 	}
 }
 
-void VideoBackendHLE::Video_AddMessage(const char* pstr, u32 milliseconds)
+void VideoBackendHardware::Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	OSD::AddMessage(pstr, milliseconds);
 }
 
-void VideoBackendHLE::Video_ClearMessages()
+void VideoBackendHardware::Video_ClearMessages()
 {
 	OSD::ClearMessages();
 }
 
 // Screenshot
-bool VideoBackendHLE::Video_Screenshot(const char *_szFilename)
+bool VideoBackendHardware::Video_Screenshot(const char *_szFilename)
 {
 	Renderer::SetScreenshot(_szFilename);
 	return true;
@@ -143,7 +143,7 @@ void VideoFifo_CheckEFBAccess()
 	}
 }
 
-u32 VideoBackendHLE::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
+u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
 	if (s_BackendInitialized)
 	{
@@ -202,7 +202,7 @@ void VideoFifo_CheckStateRequest()
 }
 
 // Run from the CPU thread
-void VideoBackendHLE::DoState(PointerWrap& p)
+void VideoBackendHardware::DoState(PointerWrap& p)
 {
 	s_doStateArgs.ptr = p.ptr;
 	s_doStateArgs.mode = p.mode;
@@ -217,7 +217,7 @@ void VideoBackendHLE::DoState(PointerWrap& p)
 		VideoFifo_CheckStateRequest();
 }
 
-void VideoBackendHLE::RunLoop(bool enable)
+void VideoBackendHardware::RunLoop(bool enable)
 {
 	VideoCommon_RunLoop(enable);
 }
@@ -228,17 +228,39 @@ void VideoFifo_CheckAsyncRequest()
 	VideoFifo_CheckEFBAccess();
 }
 
-void VideoBackend::Video_GatherPipeBursted()
+void VideoBackendHardware::Video_GatherPipeBursted()
 {
 	CommandProcessor::GatherPipeBursted();
 }
 
-bool VideoBackendHLE::Video_IsPossibleWaitingSetDrawDone()
+bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 {
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
 }
 
-void VideoBackendHLE::Video_AbortFrame()
+void VideoBackendHardware::Video_AbortFrame()
 {
 	CommandProcessor::AbortFrame();
+}
+
+readFn16 VideoBackendHardware::Video_CPRead16()
+{
+	return CommandProcessor::Read16;
+}
+writeFn16 VideoBackendHardware::Video_CPWrite16()
+{
+	return CommandProcessor::Write16;
+}
+
+readFn16  VideoBackendHardware::Video_PERead16()
+{
+	return PixelEngine::Read16;
+}
+writeFn16 VideoBackendHardware::Video_PEWrite16()
+{
+	return PixelEngine::Write16;
+}
+writeFn32 VideoBackendHardware::Video_PEWrite32()
+{
+	return PixelEngine::Write32;
 }
