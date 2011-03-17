@@ -538,9 +538,8 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 	if (false == ((NetPlayServer*)netplay_ptr)->GetPadMapping(pid, mapping))
 		return;
 
-	PadMapDiag* const pmd = new PadMapDiag(this, mapping);
-	pmd->ShowModal();
-	pmd->Destroy();
+	PadMapDiag pmd(this, mapping);
+	pmd.ShowModal();
 
 	if (false == ((NetPlayServer*)netplay_ptr)->SetPadMapping(pid, mapping))
 		PanicAlertT("Could not set pads. The player left or the game is currently running!\n"
@@ -551,9 +550,7 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	: wxDialog(parent, wxID_ANY, _("Change Game"), wxDefaultPosition, wxDefaultSize)
 	, m_game_name(game_name)
 {
-	wxPanel* const panel = new wxPanel(this);
-
-	m_game_lbox = new wxListBox(panel, wxID_ANY);
+	m_game_lbox = new wxListBox(this, wxID_ANY);
 	_connect_macro_(m_game_lbox, ChangeGameDiag::OnPick, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, this);
 
 	// fill list with games
@@ -562,44 +559,39 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	while (std::getline(ss,game))
 		m_game_lbox->Append(wxString(game.c_str(), *wxConvCurrent));
 
-	wxButton* const ok_btn = new wxButton(panel, wxID_ANY, _("Change"));
+	wxButton* const ok_btn = new wxButton(this, wxID_OK, _("Change"));
 	_connect_macro_(ok_btn, ChangeGameDiag::OnPick, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_game_lbox, 1, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
 	szr->Add(ok_btn, 0, wxALL | wxALIGN_RIGHT, 5);
 
-	panel->SetSizerAndFit(szr);
-
-	wxBoxSizer* const dlg_szr = new wxBoxSizer(wxVERTICAL);
-	dlg_szr->Add(panel, 1, wxEXPAND);
-	SetSizerAndFit(dlg_szr);
+	SetSizerAndFit(szr);
+	SetFocus();
 }
 
-void ChangeGameDiag::OnPick(wxCommandEvent&)
+void ChangeGameDiag::OnPick(wxCommandEvent& event)
 {
 	// return the selected game name
 	m_game_name = m_game_lbox->GetStringSelection();
-	Destroy();
+	EndModal(wxID_OK);
 }
 
 PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
 	, m_mapping(map)
 {
-	wxPanel* const panel = new wxPanel(this);
-
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
 
 	h_szr->AddSpacer(20);
 
 	// labels
 	wxBoxSizer* const label_szr = new wxBoxSizer(wxVERTICAL);
-	label_szr->Add(new wxStaticText(panel,wxID_ANY, _("Local")), 0, wxALIGN_TOP);
+	label_szr->Add(new wxStaticText(this, wxID_ANY, _("Local")), 0, wxALIGN_TOP);
 	label_szr->AddStretchSpacer(1);
-	label_szr->Add(new wxStaticText(panel,wxID_ANY, _("In-Game")), 0, wxALIGN_BOTTOM);
+	label_szr->Add(new wxStaticText(this, wxID_ANY, _("In-Game")), 0, wxALIGN_BOTTOM);
 
-	h_szr->Add(label_szr, 1, wxTOP | wxBOTTOM | wxEXPAND, 20);
+	h_szr->Add(label_szr, 1, wxTOP | wxEXPAND, 20);
 
 	// set up choices
 	wxString pad_names[5];
@@ -610,25 +602,27 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 	for (unsigned int i=0; i<4; ++i)
 	{
 		wxChoice* const pad_cbox = m_map_cbox[i]
-			= new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 5, pad_names);
+			= new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 5, pad_names);
 		pad_cbox->Select(m_mapping[i] + 1);
 
 		_connect_macro_(pad_cbox, PadMapDiag::OnAdjust, wxEVT_COMMAND_CHOICE_SELECTED, this);
 
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(panel,wxID_ANY, pad_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
+		v_szr->Add(new wxStaticText(this,wxID_ANY, pad_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
 		v_szr->Add(pad_cbox, 1);
 
-		h_szr->Add(v_szr, 1, wxTOP | wxBOTTOM | wxEXPAND, 20);
+		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
 	}
 
 	h_szr->AddSpacer(20);
 
-	panel->SetSizerAndFit(h_szr);
-
-	wxBoxSizer* const dlg_szr = new wxBoxSizer(wxVERTICAL);
-	dlg_szr->Add(panel, 1, wxEXPAND);
-	SetSizerAndFit(dlg_szr);
+	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
+	main_szr->Add(h_szr);
+	main_szr->AddSpacer(5);
+	main_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
+	main_szr->AddSpacer(5);
+	SetSizerAndFit(main_szr);
+	SetFocus();
 }
 
 void PadMapDiag::OnAdjust(wxCommandEvent& event)

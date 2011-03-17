@@ -58,9 +58,6 @@ class CMemcardManager : public wxDialog
 		IniFile MemcardManagerIni;
 		IniFile::Section* iniMemcardSection;
 
-		wxBoxSizer *sMain,
-				   *sButtons,
-				   *sPages[2];
 		wxButton *m_CopyFrom[2],
 				 *m_SaveImport[2],
 				 *m_SaveExport[2],
@@ -69,7 +66,6 @@ class CMemcardManager : public wxDialog
 				 *m_PrevPage[2],
 				 *m_ConvertToGci;
 		wxFilePickerCtrl *m_MemcardPath[2];
-		wxStaticBoxSizer *sMemcard[2];
 		wxStaticText *t_Status[2];
 
 		enum
@@ -124,7 +120,6 @@ class CMemcardManager : public wxDialog
 		GCMemcard *memoryCard[2];
 
 		void CreateGUIControls();
-		void OnClose(wxCloseEvent& event);
 		void CopyDeleteClick(wxCommandEvent& event);
 		bool ReloadMemcard(const char *fileName, int card);
 		void OnMenuChange(wxCommandEvent& event);

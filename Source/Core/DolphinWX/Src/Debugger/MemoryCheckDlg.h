@@ -36,9 +36,7 @@ class MemoryCheckDlg : public wxDialog
 		wxTextCtrl* m_pEditEndAddress;
 		wxTextCtrl* m_pEditStartAddress;
 
-		void OnClose(wxCloseEvent& WXUNUSED(event));
-		void OnOK(wxCommandEvent& WXUNUSED(event));
-		void OnCancel(wxCommandEvent& WXUNUSED(event));
+		void OnOK(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE();
 };

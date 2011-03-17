@@ -21,9 +21,7 @@
 #include "BreakpointWindow.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
-	EVT_CLOSE(BreakPointDlg::OnClose)
 	EVT_BUTTON(wxID_OK, BreakPointDlg::OnOK)
-	EVT_BUTTON(wxID_CANCEL, BreakPointDlg::OnCancel)
 END_EVENT_TABLE()
 
 BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
@@ -31,30 +29,16 @@ BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
 	, Parent(_Parent)
 {
 	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, wxT("80000000"));
-	wxButton *m_pButtonOK = new wxButton(this, wxID_OK, wxT("OK"));
-	wxButton *m_pButtonCancel = new wxButton(this, wxID_CANCEL, wxT("Cancel"));
-
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->AddStretchSpacer();
-	sButtons->Add(m_pButtonCancel, 0);
-	sButtons->Add(m_pButtonOK, 0);
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(m_pEditAddress, 0, wxEXPAND | wxALL, 5);
-	sMainSizer->Add(sButtons, 0, wxALL, 5);
+	sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALL, 5);
 
-	SetSizer(sMainSizer);
-	Layout();
-	Fit();
+	SetSizerAndFit(sMainSizer);
+	SetFocus();
 }
 
-void BreakPointDlg::OnClose(wxCloseEvent& WXUNUSED(event))
-{
-	EndModal(wxID_CLOSE);
-	Destroy();
-}
-
-void BreakPointDlg::OnOK(wxCommandEvent& WXUNUSED(event))
+void BreakPointDlg::OnOK(wxCommandEvent& event)
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
@@ -66,9 +50,6 @@ void BreakPointDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 		PanicAlert("The address %s is invalid.", (const char *)AddressString.ToUTF8());
-}
 
-void BreakPointDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
-{
-	Close();
+	event.Skip();
 }

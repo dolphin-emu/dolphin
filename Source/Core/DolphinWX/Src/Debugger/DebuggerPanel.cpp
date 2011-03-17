@@ -69,7 +69,7 @@ void GFXDebuggerPanel::OnClose(wxCloseEvent& event)
 	// save the window position when we hide the window
 	SaveSettings();
 
-	event.Skip(); // This means wxDialog's Destroy is used
+	event.Skip();
 }
 
 void GFXDebuggerPanel::SaveSettings() const

@@ -537,8 +537,8 @@ void CheatSearchTab::CreateARCode(wxCommandEvent&)
 	{
 		const u32 address = search_results[sel].address | ((search_type_size & ~1) << 24);
 
-		CreateCodeDialog* const arcode_dlg = new CreateCodeDialog(this, address);
-		arcode_dlg->ShowModal();
+		CreateCodeDialog arcode_dlg(this, address);
+		arcode_dlg.ShowModal();
 	}
 }
 
@@ -546,52 +546,45 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	: wxDialog(parent, -1, _("Create AR Code"), wxDefaultPosition)
 	, code_address(address)
 {
-	wxPanel* const panel = new wxPanel(this);
+	wxStaticText* const label_name = new wxStaticText(this, -1, _("Name: "));
+	textctrl_name = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(256,-1));
 
-	wxStaticText* const label_name = new wxStaticText(panel, -1, _("Name: "));
-	textctrl_name = new wxTextCtrl(panel, -1, wxEmptyString, wxDefaultPosition, wxSize(256,-1));
-
-	wxStaticText* const label_code = new wxStaticText(panel, -1, _("Code: "));
-	textctrl_code = new wxTextCtrl(panel, -1, wxString::Format(wxT("0x%08x"), address));
+	wxStaticText* const label_code = new wxStaticText(this, -1, _("Code: "));
+	textctrl_code = new wxTextCtrl(this, -1, wxString::Format(wxT("0x%08x"), address));
 	textctrl_code->Disable();
 
-	wxStaticText* const label_value = new wxStaticText(panel, -1, _("Value: "));
-	textctrl_value = new wxTextCtrl(panel, -1, wxT("0"));
+	wxStaticText* const label_value = new wxStaticText(this, -1, _("Value: "));
+	textctrl_value = new wxTextCtrl(this, -1, wxT("0"));
 
-	checkbox_use_hex = new wxCheckBox(panel, -1, _("Use Hex"));
+	checkbox_use_hex = new wxCheckBox(this, -1, _("Use Hex"));
 	checkbox_use_hex->SetValue(true);
 
 	wxBoxSizer* const sizer_value_label = new wxBoxSizer(wxHORIZONTAL);
 	sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
-	sizer_value_label->Add(checkbox_use_hex, 0, 0, 0);
+	sizer_value_label->Add(checkbox_use_hex);
 
-	wxButton* const btn_ok = new wxButton(panel, -1, _("OK"));
+	wxButton* const btn_ok = new wxButton(this, wxID_OK, _("OK"));
 	_connect_macro_(btn_ok, CreateCodeDialog::PressOK, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const btn_cancel = new wxButton(panel, -1, _("Cancel"));
+	wxButton* const btn_cancel = new wxButton(this, wxID_CANCEL, _("Cancel"));
 	_connect_macro_(btn_cancel, CreateCodeDialog::PressCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	// button sizer
-	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+	wxSizer* const sizer_buttons = CreateButtonSizer(wxNO_DEFAULT);
 	sizer_buttons->Add(btn_ok, 0, wxRIGHT, 5);
-	sizer_buttons->Add(btn_cancel, 0, 0, 0);
+	sizer_buttons->Add(btn_cancel);
 
 	// main sizer
-	wxBoxSizer* const sizer_panel = new wxBoxSizer(wxVERTICAL);
-	sizer_panel->Add(label_name, 0, wxALL, 5);
-	sizer_panel->Add(textctrl_name, 0, wxALL, 5);
-	sizer_panel->Add(label_code, 0, wxALL, 5);
-	sizer_panel->Add(textctrl_code, 0, wxALL, 5);
-	sizer_panel->Add(sizer_value_label, 0, wxALL, 5);
-	sizer_panel->Add(textctrl_value, 0, wxALL, 5);
-	sizer_panel->Add(sizer_buttons, 0, wxALL | wxALIGN_RIGHT, 5);
-
-	panel->SetSizerAndFit(sizer_panel);
-
-	// panel sizer
-	wxBoxSizer* const sizer_main = new wxBoxSizer(wxHORIZONTAL);
-	sizer_main->Add(panel, 1, wxEXPAND, 5);
+	wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
+	sizer_main->Add(label_name, 0, wxALL, 5);
+	sizer_main->Add(textctrl_name, 0, wxALL, 5);
+	sizer_main->Add(label_code, 0, wxALL, 5);
+	sizer_main->Add(textctrl_code, 0, wxALL, 5);
+	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
+	sizer_main->Add(textctrl_value, 0, wxALL, 5);
+	sizer_main->Add(sizer_buttons, 0, wxALL | wxALIGN_RIGHT, 5);
 
 	SetSizerAndFit(sizer_main);
+	SetFocus();
 }
 
 void CreateCodeDialog::PressOK(wxCommandEvent&)

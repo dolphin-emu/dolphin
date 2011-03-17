@@ -40,20 +40,14 @@ class CPHackSettings : public wxDialog
 		wxCheckBox *PHackSZNear;
 		wxCheckBox *PHackSZFar;
 		wxCheckBox *PHackExP;
-		wxStaticText *PHackChoiceText;
-		wxStaticText *PHackZNearText;
-		wxStaticText *PHackZFarText;
 		wxTextCtrl *PHackZNear;
 		wxTextCtrl *PHackZFar;
 
 		enum {
-			ID_PHACK_CHOICE_TEXT = 1000,
-			ID_PHACK_CHOICE,
+			ID_PHACK_CHOICE = 1000,
 			ID_PHACK_SZNEAR,
 			ID_PHACK_SZFAR,
-			ID_PHACK_ZNEAR_TEXT,
 			ID_PHACK_ZNEAR,
-			ID_PHACK_ZFAR_TEXT,
 			ID_PHACK_ZFAR,
 			ID_PHACK_EXP
 		};
@@ -63,7 +57,6 @@ class CPHackSettings : public wxDialog
 		void SetRefresh(wxCommandEvent& event);
 		void CreateGUIControls();
 
-		void OnClose(wxCloseEvent& event);
 		void SavePHackData(wxCommandEvent& event);
 		void LoadPHackData();
 };

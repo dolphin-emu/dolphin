@@ -22,7 +22,6 @@ extern PHackData PHack_Data;
 
 BEGIN_EVENT_TABLE(CPHackSettings, wxDialog)
 	EVT_CHOICE(ID_PHACK_CHOICE, CPHackSettings::SetRefresh)
-	EVT_CLOSE(CPHackSettings::OnClose)
 	EVT_BUTTON(wxID_OK, CPHackSettings::SavePHackData)
 END_EVENT_TABLE()
 
@@ -45,20 +44,20 @@ CPHackSettings::~CPHackSettings()
 
 void CPHackSettings::CreateGUIControls()
 {
-	PHackChoiceText = new wxStaticText(this, ID_PHACK_CHOICE_TEXT, _("Presets: "), wxDefaultPosition, wxDefaultSize);
-	PHackChoice = new wxChoice(this, ID_PHACK_CHOICE, wxDefaultPosition, wxDefaultSize, wxArrayString(0, wxString("", *wxConvCurrent)), 0, wxDefaultValidator);
+	wxStaticText *PHackChoiceText = new wxStaticText(this, wxID_ANY, _("Presets: "));
+	PHackChoice = new wxChoice(this, ID_PHACK_CHOICE, wxDefaultPosition, wxDefaultSize, wxArrayString(0, wxString("", *wxConvCurrent)));
 	PHackChoice->SetToolTip(_("Load preset values from hack patterns available."));
-	PHackZNearText = new wxStaticText(this, ID_PHACK_ZNEAR_TEXT, _("zNear Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZNear = new wxTextCtrl(this, ID_PHACK_ZNEAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *PHackZNearText = new wxStaticText(this, wxID_ANY, _("zNear Correction: "));
+	PHackZNear = new wxTextCtrl(this, ID_PHACK_ZNEAR);
 	PHackZNear->SetToolTip(_("Adds the specified value to zNear Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZNear = new wxCheckBox(this, ID_PHACK_SZNEAR, _("(-)+zNear"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackSZNear = new wxCheckBox(this, ID_PHACK_SZNEAR, _("(-)+zNear"));
 	PHackSZNear->SetToolTip(_("Changes sign to zNear Parameter (after correction)"));
-	PHackZFarText = new wxStaticText(this, ID_PHACK_ZFAR_TEXT, _("zFar Correction: "), wxDefaultPosition, wxDefaultSize);
-	PHackZFar = new wxTextCtrl(this, ID_PHACK_ZFAR, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *PHackZFarText = new wxStaticText(this, wxID_ANY, _("zFar Correction: "));
+	PHackZFar = new wxTextCtrl(this, ID_PHACK_ZFAR);
 	PHackZFar->SetToolTip(_("Adds the specified value to zFar Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
-	PHackSZFar = new wxCheckBox(this, ID_PHACK_SZFAR, _("(-)+zFar"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackSZFar = new wxCheckBox(this, ID_PHACK_SZFAR, _("(-)+zFar"));
 	PHackSZFar->SetToolTip(_("Changes sign to zFar Parameter (after correction)"));
-	PHackExP = new wxCheckBox(this, ID_PHACK_EXP, _("Extra Parameter"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE, wxDefaultValidator);
+	PHackExP = new wxCheckBox(this, ID_PHACK_EXP, _("Extra Parameter"));
 	PHackExP->SetToolTip(_("Extra Parameter useful in '\'Metroid: Other M'\' only."));
 
 	wxStaticBoxSizer *sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, this, _("Parameters"));
@@ -72,20 +71,14 @@ void CPHackSettings::CreateGUIControls()
 	szrPHackSettings->Add(PHackSZFar, 0, wxEXPAND|wxLEFT, 5);
 	szrPHackSettings->Add(PHackExP, 0, wxEXPAND|wxTOP|wxBOTTOM, 5);
 
-	wxBoxSizer* sPHackButtons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxButton* bCancel = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	sPHackButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sPHackButtons->Add(bOK, 0, wxALL, 5);
-	sPHackButtons->Add(bCancel, 0, wxALL, 5);
-	
 	wxBoxSizer* sPHack = new wxBoxSizer(wxVERTICAL);
 	sPHack->Add(PHackChoiceText, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5);
 	sPHack->Add(PHackChoice, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 	sPHack->Add(sbPHackSettings, 0, wxEXPAND|wxALL, 5);
-	sPHack->Add(sPHackButtons, 0, wxEXPAND, 5);
+	sPHack->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 
 	SetSizerAndFit(sPHack);
+	SetFocus();
 }
 
 void CPHackSettings::LoadPHackData()
@@ -141,12 +134,7 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 	}
 }
 
-void CPHackSettings::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	Destroy();
-}
-
-void CPHackSettings::SavePHackData(wxCommandEvent& WXUNUSED (event))
+void CPHackSettings::SavePHackData(wxCommandEvent& event)
 {
 	PHack_Data.PHackSZNear = PHackSZNear->GetValue();
 	PHack_Data.PHackSZFar = PHackSZFar->GetValue();
@@ -156,4 +144,5 @@ void CPHackSettings::SavePHackData(wxCommandEvent& WXUNUSED (event))
 	PHack_Data.PHZFar = PHackZFar->GetValue().char_str();
 
 	AcceptAndClose();
+	event.Skip();
 }

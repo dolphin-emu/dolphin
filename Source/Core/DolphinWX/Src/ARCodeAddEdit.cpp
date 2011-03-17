@@ -21,39 +21,28 @@
 extern std::vector<ActionReplay::ARCode> arCodes;
 
 BEGIN_EVENT_TABLE(CARCodeAddEdit, wxDialog)
-	EVT_CLOSE(CARCodeAddEdit::OnClose)
 	EVT_BUTTON(wxID_OK, CARCodeAddEdit::SaveCheatData)
 	EVT_SPIN(ID_ENTRY_SELECT, CARCodeAddEdit::ChangeEntry)
 END_EVENT_TABLE()
 
 CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
-{
-	selection  = _selection;
-	CreateGUIControls(selection);
-}
-
-CARCodeAddEdit::~CARCodeAddEdit()
-{
-}
-
-void CARCodeAddEdit::CreateGUIControls(int _selection)
+	, selection(_selection)
 {
 	ActionReplay::ARCode tempEntries;
 	wxString currentName = _("Insert name here..");
-	
-	if (_selection == -1)
+
+	if (selection == -1)
 	{
 		tempEntries.name = "";
 	}
 	else
 	{
-	    currentName = wxString(arCodes.at(_selection).name.c_str(), *wxConvCurrent);
-	    tempEntries = arCodes.at(_selection);
+		currentName = wxString(arCodes.at(selection).name.c_str(), *wxConvCurrent);
+		tempEntries = arCodes.at(selection);
 	}
 
 	wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* sEditCheatButtons = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Cheat Code"));
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 
@@ -62,11 +51,9 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
 	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1); 
-	EntrySelection->SetValue((int)(arCodes.size() - _selection));
+	EntrySelection->SetValue((int)(arCodes.size() - selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
-	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxButton* bCancel = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);
 	sgEntry->Add(EditCheatName,		wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
@@ -76,19 +63,11 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	sgEntry->AddGrowableRow(1);
 	sbEntry->Add(sgEntry, 1, wxEXPAND|wxALL);
 
-	sEditCheatButtons->AddStretchSpacer();
-	sEditCheatButtons->Add(bOK, 0, wxALL, 5);
-	sEditCheatButtons->Add(bCancel, 0, wxALL, 5);
-
 	sEditCheat->Add(sbEntry, 1, wxEXPAND|wxALL, 5);
-	sEditCheat->Add(sEditCheatButtons, 0, wxEXPAND, 5);
+	sEditCheat->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxALL, 5);
 
 	SetSizerAndFit(sEditCheat);
-}
-
-void CARCodeAddEdit::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	Destroy();
+	SetFocus();
 }
 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)

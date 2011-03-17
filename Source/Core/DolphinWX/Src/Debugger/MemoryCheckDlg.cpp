@@ -23,10 +23,8 @@
 
 #define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
 
-BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
-	EVT_CLOSE(MemoryCheckDlg::OnClose)
+BEGIN_EVENT_TABLE(MemoryCheckDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
-	EVT_BUTTON(wxID_CANCEL, MemoryCheckDlg::OnCancel)
 END_EVENT_TABLE()
 
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
@@ -57,11 +55,6 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	sFlags->Add(m_log_flag);
 	sFlags->Add(m_break_flag);
 
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->AddStretchSpacer();
-	sButtons->Add(new wxButton(this, wxID_CANCEL, _("Cancel")));
-	sButtons->Add(new wxButton(this, wxID_OK, wxT("OK")));
-
 	wxBoxSizer *sControls = new wxBoxSizer(wxHORIZONTAL);
 	sControls->Add(sAddressRangeBox, 0, wxEXPAND);
 	sControls->Add(sActionBox, 0, wxEXPAND);
@@ -69,20 +62,13 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(sControls, 0, wxEXPAND | wxALL, 5);
-	sMainSizer->Add(sButtons, 0, wxEXPAND | wxALL, 5);
+	sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	SetSizer(sMainSizer);
-	Layout();
-	Fit();
+	SetSizerAndFit(sMainSizer);
+	SetFocus();
 }
 
-void MemoryCheckDlg::OnClose(wxCloseEvent& WXUNUSED(event))
-{
-	EndModal(wxID_CLOSE);
-	Destroy();
-}
-
-void MemoryCheckDlg::OnOK(wxCommandEvent& WXUNUSED(event))
+void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 {
 	wxString StartAddressString = m_pEditStartAddress->GetLineText(0);
 	wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
@@ -115,9 +101,6 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 		m_parent->NotifyUpdate();
 		Close();
 	}
-}
 
-void MemoryCheckDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
-{
-	Close();
+	event.Skip();
 }

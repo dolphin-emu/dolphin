@@ -72,8 +72,6 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 }
 
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
-	EVT_CLOSE(CMemcardManager::OnClose)
-
 	EVT_BUTTON(ID_COPYFROM_A,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_COPYFROM_B,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_DELETE_A,CMemcardManager::CopyDeleteClick)
@@ -186,6 +184,8 @@ void CMemcardManager::CreateGUIControls()
 	const wxChar* ARROW[2] = {_T("<-"), _T("->")};
 
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, _("Convert to GCI"));
+
+	wxStaticBoxSizer *sMemcard[2];
 	
 	for (int slot = SLOT_A; slot <= SLOT_B; slot++)
 	{
@@ -204,11 +204,11 @@ void CMemcardManager::CreateGUIControls()
 
 		t_Status[slot] = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition,wxDefaultSize, 0, wxEmptyString);
 
-		sPages[slot] = new wxBoxSizer(wxHORIZONTAL);
-		sPages[slot]->Add(m_PrevPage[slot], 0, wxEXPAND|wxALL, 1);
-		sPages[slot]->Add(t_Status[slot],0, wxEXPAND|wxALL, 5);
-		sPages[slot]->Add(0, 0, 1, wxEXPAND|wxALL, 0);
-		sPages[slot]->Add(m_NextPage[slot], 0, wxEXPAND|wxALL, 1);
+		wxBoxSizer * const sPages = new wxBoxSizer(wxHORIZONTAL);
+		sPages->Add(m_PrevPage[slot], 0, wxEXPAND|wxALL, 1);
+		sPages->Add(t_Status[slot],0, wxEXPAND|wxALL, 5);
+		sPages->Add(0, 0, 1, wxEXPAND|wxALL, 0);
+		sPages->Add(m_NextPage[slot], 0, wxEXPAND|wxALL, 1);
 
 		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
 			 wxString::From8BitData(File::GetUserPath(D_GCUSER_IDX).c_str()), _("Choose a memory card:"),
@@ -222,10 +222,10 @@ void CMemcardManager::CreateGUIControls()
 		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, _("Memory Card") + wxString::Format(wxT(" %c"), 'A' + slot));
 		sMemcard[slot]->Add(m_MemcardPath[slot], 0, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(m_MemcardList[slot], 1, wxEXPAND|wxALL, 5);
-		sMemcard[slot]->Add(sPages[slot], 0, wxEXPAND|wxALL, 1);
+		sMemcard[slot]->Add(sPages, 0, wxEXPAND|wxALL, 1);
 	}
 
-	sButtons = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer * const sButtons = new wxBoxSizer(wxVERTICAL);
 	sButtons->AddStretchSpacer(2);
 	sButtons->Add(m_CopyFrom[SLOT_B], 0, wxEXPAND, 5);
 	sButtons->Add(m_CopyFrom[SLOT_A], 0, wxEXPAND, 5);
@@ -240,17 +240,18 @@ void CMemcardManager::CreateGUIControls()
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_Delete[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->Add(m_Delete[SLOT_B], 0, wxEXPAND, 5);
-	sButtons->AddStretchSpacer(1);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, wxEXPAND, 5);
+	sButtons->AddStretchSpacer();
 
-	sMain = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer * const sMain = new wxBoxSizer(wxHORIZONTAL);
 	sMain->Add(sMemcard[SLOT_A], 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 0);
 	sMain->Add(sMemcard[SLOT_B], 1, wxEXPAND|wxALL, 5);
 
-	this->SetSizer(sMain);
-	sMain->SetSizeHints(this);
-	Fit();
+	SetSizerAndFit(sMain);
 	Center();
+	SetFocus();
 
 	for (int i = SLOT_A; i <= SLOT_B; i++)
 	{
@@ -266,11 +267,6 @@ void CMemcardManager::CreateGUIControls()
 			ChangePath(i);
 		}
 	}
-}
-
-void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	EndModal(wxID_OK);
 }
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)

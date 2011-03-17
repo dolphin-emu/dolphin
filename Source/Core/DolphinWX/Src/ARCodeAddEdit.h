@@ -31,7 +31,6 @@ class CARCodeAddEdit : public wxDialog
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
-		virtual ~CARCodeAddEdit();
 
 	private:
 		DECLARE_EVENT_TABLE();
@@ -47,8 +46,6 @@ class CARCodeAddEdit : public wxDialog
 			ID_EDITCHEAT_CODE
 		};
 
-		void CreateGUIControls(int selection);
-		void OnClose(wxCloseEvent& event);
 		void SaveCheatData(wxCommandEvent& event);
 		void ChangeEntry(wxSpinEvent& event);
 		void UpdateTextCtrl(ActionReplay::ARCode arCode);

@@ -58,7 +58,6 @@ class CPatchAddEdit : public wxDialog
 		};
 
 		void CreateGUIControls(int selection);
-		void OnClose(wxCloseEvent& event);
 		void ChangeEntry(wxSpinEvent& event);
 		void SavePatchData(wxCommandEvent& event);
 		void AddRemoveEntry(wxCommandEvent& event);
