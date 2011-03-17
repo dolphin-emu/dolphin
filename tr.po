@@ -53,9 +53,6 @@ msgstr ""
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopyala%1$s"
 
-msgid "%d %%"
-msgstr "%d %%"
-
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
@@ -5123,6 +5120,9 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
 msgid "| OR"
 msgstr "| VEYA"
+
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "&Kare Adımlama"

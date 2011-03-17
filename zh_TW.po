@@ -49,9 +49,6 @@ msgstr "\"%s\" 為無效的 GCM/ISO 檔案，或非 GC/Wii ISO。"
 msgid "%1$sCopy%1$s"
 msgstr "%1$s複製%1$s"
 
-msgid "%d %%"
-msgstr "%d %%"
-
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
@@ -5040,6 +5037,9 @@ msgstr "zNear 修正："
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
 msgid "| OR"
 msgstr "| 或"
+
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "畫格步進(&F)"
