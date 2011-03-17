@@ -392,8 +392,8 @@ void Shutdown()
 {
 	Flush();
 
-	g_current_buffer.swap(std::vector<u8>());
-	g_undo_load_buffer.swap(std::vector<u8>());
+	g_current_buffer.clear();
+	g_undo_load_buffer.clear();
 }
 
 static std::string MakeStateFilename(int number)
