@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-14 08:00-0500\n"
-"PO-Revision-Date: 2011-03-03 20:46+0100\n"
+"PO-Revision-Date: 2011-03-14 19:17+0100\n"
 "Last-Translator: Pascal\n"
 "Language-Team: \n"
 "Language: French\n"
@@ -2625,7 +2625,7 @@ msgid ""
 msgstr ""
 "Si vous définissez le limitateur de vitesse (Image /s max) à une valeur plus "
 "élevée que la vitesse du jeu (NTSC:60, PAL:50), vous devez aussi désactiver "
-"Audio Throttle dans le DSP pour que cela fonctionne."
+"le contrôle audio dans le DSP pour que cela fonctionne."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 msgid "Import Save"
@@ -2698,9 +2698,8 @@ msgid "Insert name here.."
 msgstr "Indiquer un nom ici..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "Installer le Menu Wii"
+msgstr "Installer un WAD"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2722,9 +2721,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "Installation du WAD dans le Menu Wii..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1327
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "Installation du WAD dans le Menu Wii..."
+msgstr "Installation du WAD..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:274
 msgid "Integral [recommended]"
@@ -2972,9 +2970,9 @@ msgstr "Charger un état..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1346
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Charger le Menu Système Wii (%d %c)"
+msgstr "Charger le Menu Système Wii %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3400,7 +3398,7 @@ msgstr "Ouvrir"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1010
 msgid "Open &containing folder"
-msgstr "Ouvrir le dossier contenant"
+msgstr "Ouvrir l'emplacement du fichier"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1007
 msgid "Open Wii &save folder"
@@ -3943,9 +3941,8 @@ msgid "Select The Recording File"
 msgstr "Sélectionner le fichier d'enregistrement"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Sélectionner un fichier de sauvegarde à importer"
+msgstr "Sélectionner un fichier WAD de Wii à installer"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -5092,14 +5089,15 @@ msgstr ""
 "Voulez-vous continuer en tant que région PAL ?"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"Votre fichier SYSCONF n'a pas la bonne taille - il devrait être de  0x%04x "
-"(au lieu de 0x%04llx)"
+"Votre fichier SYSCONF n'a pas la bonne taille.\n"
+"Il devrait être de 0x%04x (au lieu de 0x%04llx).\n"
+"Voulez-vous en générer un nouveau ?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "ZTP hack"

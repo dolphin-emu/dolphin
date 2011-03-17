@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-14 08:00-0500\n"
-"PO-Revision-Date: 2011-03-03 10:22+0100\n"
+"PO-Revision-Date: 2011-03-15 10:27+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -91,12 +91,12 @@ msgstr "%s má velikost 0 bajtů"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:159
 #, c-format
 msgid "%s is already compressed! Cannot compress it further."
-msgstr "%s je už komprimován! Nelze komprimovat dále."
+msgstr "%s je už komprimován! Nelze dále komprimovat."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:355
 #, c-format
 msgid "%s is too long for the filename, max chars is 45"
-msgstr "%s má příliš mnoho znaků, max znaků je 45"
+msgstr "%s je jako jméno příliš dlouhé, max znaků je 45"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:199
 #, c-format
@@ -136,11 +136,11 @@ msgstr "&Body přerušení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:125
 msgid "&Browse for ISOs..."
-msgstr "&Brouzdat pro ISO"
+msgstr "&Procházet pro ISO..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:202
 msgid "&Cheats Manager"
-msgstr "Správce &cheatů"
+msgstr "Správce &Cheatů"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:187
 msgid "&DSP Settings"
@@ -180,7 +180,7 @@ msgstr "&Nápověda"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:190
 msgid "&Hotkey Settings"
-msgstr "Nastavení Klávesových Zkratek"
+msgstr "Nastavení &Klávesových Zkratek"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:246
 msgid "&JIT"
@@ -502,7 +502,7 @@ msgstr "Přidat kód ActionReplay"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1117
 msgid "Add Patch"
-msgstr "Přidat záplatu"
+msgstr "Přidat Záplatu"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:480
 msgid "Add new pane"
@@ -607,7 +607,7 @@ msgstr ""
 "Povolí procesoru číst či zapisovat do EFB (vyrovnávací paměť vykreslování).\n"
 "Toto je potřeba pro některé funkce hraní (např. star pointer v Super Mario "
 "Galaxy) a také pro jisté vizuální efekty (např. Monster Hunter Tri),\n"
-"ale zapnutí této možnosti může mít také velký negativní dopad ny výkon pokud "
+"ale zapnutí této možnosti může mít také velký negativní dopad na výkon pokud "
 "hra tuto funkci hodně využívá."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:240
@@ -645,11 +645,11 @@ msgid ""
 "They will be gone forever!"
 msgstr ""
 "Jste si jisti, že chcete tyto soubory smazat?\n"
-"Tímto budou navždycky ztraceny!"
+"Budou navždy ztraceny!"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1136
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
-msgstr "Opravdu chcete smazat tento soubor? Tímto bude navždy pryč!"
+msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:865
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:223
@@ -890,7 +890,7 @@ msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
 msgstr ""
-"Změnit jazyk uživatelského rozhraní.\n"
+"Změní jazyk uživatelského rozhraní.\n"
 "Vyžaduje restart."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:60
@@ -924,11 +924,11 @@ msgstr "Správce Cheatů"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:325
 msgid "Chinese (Simplified)"
-msgstr "Čínština (Zjednodušeně)"
+msgstr "Čínština (Zjednodušená)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Chinese (Traditional)"
-msgstr "Zjednodušená Čínština"
+msgstr "Čínština (Tradiční)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:895
 msgid "Choose a DVD root directory:"
@@ -1124,7 +1124,7 @@ msgstr "Ctrl"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:188
 msgid "Convert to GCI"
-msgstr "Převést do GCI"
+msgstr "Převést na GCI"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:291
 msgid "Copy"
@@ -1195,7 +1195,7 @@ msgid ""
 "Are you running Dolphin from a CD/DVD, or is the save file maybe write "
 "protected?"
 msgstr ""
-"Nelze zapsat soubor pamětové karty %s.\n"
+"Nelze zapsat soubor paměťové karty %s.\n"
 "\n"
 "Spouštíte Dolphina z CD/DVD, nebo je snad soubor s uložením chráněný proti "
 "zápisu?"
@@ -1593,7 +1593,7 @@ msgstr "Atrapa"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:727
 msgid "Dump Audio"
-msgstr "Uložit Zvuk"
+msgstr "Vypsat Zvuk"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
 msgid "Dump EFB Target"
@@ -1641,9 +1641,9 @@ msgid ""
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"CHYBA: Tato verze Dolphinu vyžaduje ovladač TAP-Win32 verze alespoň %d. %d "
-"-- Pokud jste nedávno aktualizovali Vaši Dolphin instalaci, je zapotřebí v "
-"tomto bodě restartovat, aby Windows nový ovladač uviděl."
+"CHYBA: Tato verze Dolphinu vyžaduje ovladač TAP-Win32 verze alespoň %d.%d -- "
+"Pokud jste nedávno Vaši instalaci Dolphin aktualizovali, je zapotřebí v "
+"tomto bodě restartovat, aby Windows uviděl nový ovladač."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:161
 msgid "EUROPE"
@@ -1836,7 +1836,7 @@ msgid ""
 "Enables anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles."
 msgstr ""
-"Povolí aniztropní fillrování.\n"
+"Povolí aniztropní filtrování.\n"
 "Zlepší obrazovou kvalitu textur, které jsou v zorných úhlech šikmé."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
@@ -1862,7 +1862,7 @@ msgstr ""
 "Povoluje reinterpretaci dat uvnitř EFB, když se formát pixelů změní.\n"
 "Některé hry závisejí na této funkci pro jisté efekty, takže pokud máte "
 "chyby, tuto možnost zapněte.\n"
-"V závislosti na tom, jak hra tuto funkci využivá bude mít rychlostní zisk "
+"V závislosti na tom, jak hra tuto funkci využívá bude mít rychlostní zisk "
 "způsobený touto volbou rozsah od žádný až po kritický."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
@@ -1931,7 +1931,7 @@ msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
 "fonts correctly, or crash."
 msgstr ""
-"Chyba: Pokus o přístup k písmům %s, ale ty nejsou načtena. hry nemusí "
+"Chyba: Pokus o přístup k písmům %s, ale ty nejsou načtena. Hry nemusí "
 "zobrazit písma správně, nebo se můžou zhroutit"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:30
@@ -2664,9 +2664,8 @@ msgid "Insert name here.."
 msgstr "Zde vložte jméno..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "Instalovat Wii Menu"
+msgstr "Instalovat WAD"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2688,9 +2687,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "Instaluji WAD do Wii Menu..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1327
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "Instaluji WAD do Wii Menu..."
+msgstr "Instaluji WAD..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:274
 msgid "Integral [recommended]"
@@ -2937,9 +2935,9 @@ msgstr "Nahrát Stav..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1346
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Nahrát Sysémové Menu Wii (%d %c)"
+msgstr "Nahrát Systémové Menu Wii %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3010,7 +3008,7 @@ msgid ""
 "MD5 mismatch\n"
 " %016llx%016llx != %016llx%016llx"
 msgstr ""
-"MD5 se neschoduje\n"
+"MD5 se neshoduje\n"
 " %016llx%016llx != %016llx%016llx"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
@@ -3227,7 +3225,7 @@ msgstr "Jméno: "
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:529
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:563
 msgid "Native GCI files(*.gci)"
-msgstr "Půvpdní soubory CGI(*.gci)"
+msgstr "Původní soubory CGI(*.gci)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:156
 msgid "New Scan"
@@ -3378,7 +3376,7 @@ msgstr "OpenAL: nelze vytvořit kontext pro zařízení %s"
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:65
 msgid "OpenAL: can't find sound devices"
-msgstr "OpenAL: nelze nalézt tvuková zařízení"
+msgstr "OpenAL: nelze nalézt zvuková zařízení"
 
 #: Source/Core/AudioCommon/Src/OpenALStream.cpp:59
 #, c-format
@@ -3561,7 +3559,7 @@ msgid ""
 "dolphin is not located in?"
 msgstr ""
 "Přenosná nastavení nemohla být uložena\n"
-"Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolhpin není "
+"Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolphin není "
 "umístěn?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:341
@@ -3898,9 +3896,8 @@ msgid "Select The Recording File"
 msgstr "Vyberte Soubor s Nahrávkou"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Vyberte soubor s uloženou pozicí pro import"
+msgstr "Vyberte soubor Wii WAD k instalování"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -4066,7 +4063,7 @@ msgstr "Zobrazit Francii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:270
 msgid "Show GameCube"
-msgstr "Zobrazit GameCbe"
+msgstr "Zobrazit GameCube"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:381
 msgid "Show Input Display"
@@ -4090,7 +4087,7 @@ msgstr "Jazyk Zobrazení:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:229
 msgid "Show Log &Configuration"
-msgstr "Zobrazeniz Nastavení &Záznamu"
+msgstr "Zobrazit Nastavení &Záznamu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:279
 msgid "Show PAL"
@@ -5023,7 +5020,7 @@ msgstr "Musíte zadat platné jméno profilu."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1058
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr "Pro uplatnění změn musíte restartovat Dolphin."
+msgstr "Pro uplatnění změn musíte Dolphin restartovat."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:174
 msgid ""
@@ -5034,13 +5031,15 @@ msgstr ""
 "Pokračovat s regionem PAL?"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"Váš soubor SYSCONF má špatnou velikost - měla by být 0x%04x (ale je 0x%04llx)"
+"Váš soubor SYSCONF má špatnou velikost.\n"
+"Měl by být 0x%04x (ale je 0x%04llx)\n"
+"Chcete vytvořit nový?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "ZTP hack"
@@ -5048,7 +5047,7 @@ msgstr "ZTP hack"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:388
 msgid "Zero 3 code not supported"
-msgstr "Kód Zero 3 není podorován"
+msgstr "Kód Zero 3 není podporován"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:410
 #, c-format
@@ -5088,7 +5087,7 @@ msgstr "Nelze číst z hlavičky"
 #: Source/Core/Core/Src/HW/Memmap.cpp:450
 #, c-format
 msgid "iCacheJIT: Reading Opcode from %x. Please report."
-msgstr "iCacheJIT: Přečten Opcode z %x. Prosím nahlašte."
+msgstr "iCacheJIT: Přečten Opcode z %x. Prosím nahlaste."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:109
 #, c-format

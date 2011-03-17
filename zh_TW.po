@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-14 08:00-0500\n"
-"PO-Revision-Date: 2011-03-06 16:46+0800\n"
+"PO-Revision-Date: 2011-03-15 02:51+0800\n"
 "Last-Translator: khiav <khiav1118@yahoo.com.tw>\n"
 "Language-Team: khiav&yrbn <http://khiav.99k.org/>\n"
 "Language: Traditional Chinese\n"
@@ -48,6 +48,9 @@ msgstr "\"%s\" 為無效的 GCM/ISO 檔案，或非 GC/Wii ISO。"
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$s複製%1$s"
+
+msgid "%d %%"
+msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
@@ -2619,9 +2622,8 @@ msgid "Insert name here.."
 msgstr "在這裡插入名稱.."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "安裝 Wii 選單"
+msgstr "安裝 WAD"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2641,7 +2643,6 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "正在安裝 WAD 至 Wii 選單..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1327
-#, fuzzy
 msgid "Installing WAD..."
 msgstr "正在安裝 WAD 至 Wii 選單..."
 
@@ -2889,9 +2890,9 @@ msgstr "讀取進度檔..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1346
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "讀取 Wii 系統選單 (%d %c)"
+msgstr "讀取 Wii 系統選單 (%d%c)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3845,9 +3846,8 @@ msgid "Select The Recording File"
 msgstr "選擇已錄製的檔案"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "選擇要匯入的存檔"
+msgstr "選擇要安裝的 Wii WAD"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -4957,12 +4957,15 @@ msgstr ""
 "是否以 PAL 制式繼續？"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
-msgstr "SYSCONF 檔案為不正確的大小 - 應該是 0x%04x (而非 0x%04llx)"
+msgstr ""
+"SYSCONF 檔案為不正確的大小。\n"
+"應該是 0x%04x (而非 0x%04llx)\n"
+"是否要建立新的檔案？"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "ZTP hack"
@@ -5037,9 +5040,6 @@ msgstr "zNear 修正："
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "畫格步進(&F)"

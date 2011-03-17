@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-14 08:00-0500\n"
-"PO-Revision-Date: 2011-03-03 19:24+0200\n"
+"PO-Revision-Date: 2011-03-14 17:12+0200\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -52,6 +52,9 @@ msgstr ""
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopyala%1$s"
+
+msgid "%d %%"
+msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:412
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
@@ -2523,7 +2526,7 @@ msgstr "Kısayol Tuşu Yapılandırması"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:659
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:295
 msgid "Hotkeys"
-msgstr "Tuşlar..."
+msgstr "Tuşlar"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:335
 msgid "Hungarian"
@@ -2674,9 +2677,8 @@ msgid "Insert name here.."
 msgstr "Adı buraya yazın..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "Wii Menüsü kurulumu"
+msgstr "WAD Kur"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2698,9 +2700,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "WAD dosyası Wii Menüsüne kuruluyor..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1327
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "WAD dosyası Wii Menüsüne kuruluyor..."
+msgstr "WAD kuruluyor..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:274
 msgid "Integral [recommended]"
@@ -2947,9 +2948,9 @@ msgstr "Durumu Yükle..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1346
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Wii Menüsünü Yükle (%d %c)"
+msgstr "Wii Sistem Menüsünü Yükle %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3910,9 +3911,8 @@ msgid "Select The Recording File"
 msgstr "Çekim Dosyasını Seç"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Almak için bir kayıt dosyası seçin"
+msgstr "Kurmak için bir Wii WAD dosyası seçin"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -5040,13 +5040,15 @@ msgstr ""
 "PAL gibi davranılsın mı?"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"SYSCONF dosyanızın boyutu hatalı - 0x%04x olmalıdır (sizinki: 0x%04llx)"
+"SYSCONF dosyanızın boyutu hatalı. \n"
+"0x%04x olmalıdır (sizinki: 0x%04llx) \n"
+"Yenisini oluşturmak ister misiniz?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "ZTP hack"
@@ -5121,9 +5123,6 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:498
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "&Kare Adımlama"
