@@ -205,7 +205,7 @@ bool BeginRecordingInput(int controllers)
 		const std::string stateFilename = g_recordFile + ".sav";
 		if(File::Exists(stateFilename))
 			File::Delete(stateFilename);
-		State_SaveAs(stateFilename.c_str());
+		State::SaveAs(stateFilename.c_str());
 		g_bRecordingFromSaveState = true;
 	}
 

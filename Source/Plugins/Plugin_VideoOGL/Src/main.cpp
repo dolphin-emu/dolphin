@@ -173,7 +173,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 	if (!OpenGL_Create(window_handle))
 		return false;
 
-	OSD::AddMessage("Dolphin OpenGL Video Backend.", 5000);
 	s_BackendInitialized = true;
 
 	return true;

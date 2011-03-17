@@ -44,7 +44,7 @@ namespace HW
 	{
 		CoreTiming::Init();
 
-		State_Init();
+		State::Init();
 
 		// Init the whole Hardware
 		AudioInterface::Init();
@@ -82,7 +82,7 @@ namespace HW
 			WII_IPC_HLE_Interface::Shutdown();
 		}
 		
-		State_Shutdown();
+		State::Shutdown();
 		CoreTiming::Shutdown();
 	}
 

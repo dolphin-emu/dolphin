@@ -885,20 +885,20 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
 			if (event.GetModifiers() == wxMOD_NONE)
-				State_Load(slot_number);
+				State::Load(slot_number);
 			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State_Save(slot_number);
+				State::Save(slot_number);
 			else
 				event.Skip();
 		}*/
 		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
-			State_LoadLastSaved();
+			State::LoadLastSaved();
 		else if (event.GetKeyCode() == WXK_F12)
 		{
 			if (event.GetModifiers() == wxMOD_NONE)
-				State_UndoSaveState();
+				State::UndoSaveState();
 			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State_UndoLoadState();
+				State::UndoLoadState();
 			else
 				event.Skip();
 		}

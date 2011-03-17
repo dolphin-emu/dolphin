@@ -1401,8 +1401,8 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 		this);
 
-	if(!path.IsEmpty())
-		State_LoadAs((const char*)path.mb_str());
+	if (!path.IsEmpty())
+		State::LoadAs((const char*)path.mb_str());
 }
 
 void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
@@ -1415,23 +1415,23 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		wxFD_SAVE,
 		this);
 
-	if(! path.IsEmpty())
-		State_SaveAs((const char*)path.mb_str());
+	if (!path.IsEmpty())
+		State::SaveAs((const char*)path.mb_str());
 }
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 {
-	State_LoadLastSaved();
+	State::LoadLastSaved();
 }
 
 void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	State_UndoLoadState();
+	State::UndoLoadState();
 }
 
 void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 {
-	State_UndoSaveState();
+	State::UndoSaveState();
 }
 
 
@@ -1439,14 +1439,14 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 {
 	int id = event.GetId();
 	int slot = id - IDM_LOADSLOT1 + 1;
-	State_Load(slot);
+	State::Load(slot);
 }
 
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
 	int id = event.GetId();
 	int slot = id - IDM_SAVESLOT1 + 1;
-	State_Save(slot);
+	State::Save(slot);
 }
 
 void CFrame::OnFrameSkip(wxCommandEvent& event)

@@ -57,6 +57,7 @@
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"
+#include "OnScreenDisplay.h"
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
@@ -200,6 +201,8 @@ bool Init()
 		return false;
 	}
 
+	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
+
 	HW::Init();	
 	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
 				_CoreParameter.bWii, _CoreParameter.bDSPThread))
@@ -321,7 +324,7 @@ void CpuThread()
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 
 	if (!g_stateFileName.empty())
-		State_LoadAs(g_stateFileName);
+		State::LoadAs(g_stateFileName);
 
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();

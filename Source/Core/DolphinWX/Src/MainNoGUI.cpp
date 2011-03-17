@@ -214,20 +214,20 @@ void X11_MainLoop()
 					{
 						int slot_number = key - XK_F1 + 1;
 						if (event.xkey.state & ShiftMask)
-							State_Save(slot_number);
+							State::Save(slot_number);
 						else
-							State_Load(slot_number);
+							State::Load(slot_number);
 					}
 					else if (key == XK_F9)
 						Core::SaveScreenShot();
 					else if (key == XK_F11)
-						State_LoadLastSaved();
+						State::LoadLastSaved();
 					else if (key == XK_F12)
 					{
 						if (event.xkey.state & ShiftMask)
-							State_UndoLoadState();
+							State::UndoLoadState();
 						else
-							State_UndoSaveState();
+							State::UndoSaveState();
 					}
 					break;
 				case FocusIn:

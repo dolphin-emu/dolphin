@@ -22,44 +22,37 @@
 
 #include <string>
 
-typedef struct
+namespace State
 {
-	u8 *buffer;
-	size_t size;
-} saveStruct;
 
-void State_Init();
-void State_Shutdown();
+void Init();
+void Shutdown();
+
+void EnableCompression(bool compression);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main cpu thread.
 //    If we're in the main cpu thread then they run immediately instead
 //    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
-void State_Save(int slot);
-void State_Load(int slot);
-void State_Verify(int slot);
+void Save(int slot);
+void Load(int slot);
+void Verify(int slot);
 
-void State_SaveAs(const std::string &filename);
-void State_LoadAs(const std::string &filename);
-void State_VerifyAt(const std::string &filename);
+void SaveAs(const std::string &filename);
+void LoadAs(const std::string &filename);
+void VerifyAt(const std::string &filename);
 
-void State_LoadFromBuffer(u8 **buffer);
-void State_SaveToBuffer(u8 **buffer);
-void State_VerifyBuffer(u8 **buffer);
+void SaveToBuffer(u8 **buffer);
+void LoadFromBuffer(u8 **buffer);
+void VerifyBuffer(u8 **buffer);
 
-void State_LoadLastSaved();
-void State_UndoSaveState();
-void State_UndoLoadState();
+void LoadLastSaved();
+void UndoSaveState();
+void UndoLoadState();
 
-size_t State_GetSize();
-void State_Flush(); // wait until previously scheduled savestate event (if any) is done
+void Flush(); // wait until previously scheduled savestate event (if any) is done
 
-
-typedef struct  
-{
-	u8 gameID[6];
-	size_t sz;
-} state_header;
+}
 
 #endif

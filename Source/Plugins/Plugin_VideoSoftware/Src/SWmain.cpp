@@ -178,17 +178,12 @@ void VideoSoftware::Video_EnterLoop()
 			Common::YieldCPU();
 		}
 
-		if (!emuRunningState)
+		while (!emuRunningState && fifoStateRun)
 		{
-			while (!emuRunningState && fifoStateRun)
-			{
-				g_video_backend->PeekMessages();
-				Common::SleepCurrentThread(1);
-			}
+			g_video_backend->PeekMessages();
+			Common::SleepCurrentThread(1);
 		}
-	}
-
-	
+	}	
 }
 
 void VideoSoftware::Video_ExitLoop()

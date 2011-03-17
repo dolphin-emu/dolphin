@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <regex>
 
 #include <windows.h>
 #include <dbt.h>
@@ -406,6 +407,9 @@ int UnPair()
 // negative number on failure
 int PairUp(bool unpair)
 {
+	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01"
+	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}");
+
 	int nPaired = 0;
 
 	BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
@@ -451,9 +455,7 @@ int PairUp(bool unpair)
 			DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
 					btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
 
-			// TODO: Probably could just check for "Nintendo RVL"
-			if (0 == wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") ||
-					0 == wcscmp(btdi.szName, L"Nintendo RVL-CNT-01"))
+			if (std::regex_match(btdi.szName, wiimote_device_name))
 			{
 				if (unpair)
 				{

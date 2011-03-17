@@ -270,7 +270,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// - EFB
 	// EFB scale
 	wxBoxSizer* const efb_scale_szr = new wxBoxSizer(wxHORIZONTAL);
-	// TODO: give this a label (?)
 	const wxString efbscale_choices[] = { _("Fractional"), _("Integral [recommended]"),
 		wxT("1x"), wxT("2x"), wxT("3x"), wxT("0.75x"), wxT("0.5x"), wxT("0.375x") };
 

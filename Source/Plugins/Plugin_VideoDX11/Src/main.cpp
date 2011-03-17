@@ -171,7 +171,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 		return false;
 	}
 
-	OSD::AddMessage("Dolphin Direct3D11 Video Backend.", 5000);
 	s_BackendInitialized = true;
 
 	return true;
