@@ -297,7 +297,7 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-
+	Frame::g_InputCounter = 0;
 	g_bStopping = false;
 }
 
@@ -551,7 +551,7 @@ void VideoThrottle()
 		#else	// Summary information
 		std::string SFPS;
 		if (Frame::g_recordfd)
-			SFPS = StringFromFormat("Frame: %d | FPS: %u - VPS: %u - SPEED: %u%%", Frame::g_frameCounter, FPS, VPS, Speed);
+			SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", Frame::g_frameCounter, Frame::g_InputCounter, FPS, VPS, Speed);
 		else
 			SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 		#endif

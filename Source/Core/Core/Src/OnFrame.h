@@ -63,7 +63,7 @@ extern char g_playingFile[256];
 extern File::IOFile g_recordfd;
 extern std::string g_recordFile;
 
-extern u64 g_frameCounter, g_lagCounter;
+extern u32 g_frameCounter, g_lagCounter, g_InputCounter;
 
 extern int g_numRerecords;
 
@@ -94,6 +94,7 @@ struct DTMHeader {
 #pragma pack(pop)
 
 void FrameUpdate();
+void InputUpdate();
 
 void SetPolledDevice();
 

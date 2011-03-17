@@ -32,7 +32,7 @@
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
-
+#include "../Core.h"
 
 // --- standard gamecube controller ---
 CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber)
@@ -140,11 +140,19 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	Frame::SetPolledDevice();
 
 	if(Frame::IsPlayingInput())
+	{
 		Frame::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
+		if(!Core::g_CoreStartupParameter.bWii)
+			Frame::InputUpdate();
+	}
 	else 
 	{
 		if(Frame::IsRecordingInput())
+		{
 			Frame::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
+			if(!Core::g_CoreStartupParameter.bWii)
+				Frame::InputUpdate();
+		}
 	}
 
 	// Thankfully changing mode does not change the high bits ;)

@@ -52,7 +52,7 @@ int g_numPads = 0;
 ControllerState g_padState;
 File::IOFile g_recordfd;
 
-u64 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0;
+u32 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0, g_InputCounter = 0;
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
 
@@ -91,6 +91,11 @@ void FrameUpdate()
 		FrameSkipping();
 	
 	g_bPolled = false;
+}
+
+void InputUpdate()
+{
+	g_InputCounter++;
 }
 
 void SetFrameSkipping(unsigned int framesToSkip)
@@ -337,7 +342,7 @@ void RecordWiimote(int wiimote, u8 *data, s8 size)
 {
 	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
-
+	g_InputCounter++;
 	g_recordfd.WriteArray(&size, 1);
 	g_recordfd.WriteArray(data, 1);
 }
@@ -539,7 +544,7 @@ bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 	s8 count = 0;
 	if(!IsPlayingInput() || !IsUsingWiimote(wiimote))
 		return false;
-
+	g_InputCounter++;
 	g_recordfd.ReadArray(&count, 1);
 	size = (count > size) ? size : count;
 	

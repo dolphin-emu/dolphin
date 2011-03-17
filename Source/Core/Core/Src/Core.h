@@ -96,7 +96,7 @@ void RerecordingStart();
 void RerecordingStop();
 void WindBack(int Counter);
 
-extern int g_FrameCounter;
+extern int g_FrameCounter,g_InputCounter;
 extern bool g_FrameStep;
 
 #endif
