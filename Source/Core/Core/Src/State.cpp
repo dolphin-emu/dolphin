@@ -65,7 +65,7 @@ static std::vector<u8> g_current_buffer;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int VERSION = 4;
+static const int STATE_VERSION = 4;
 
 struct StateHeader
 {
@@ -82,9 +82,9 @@ void EnableCompression(bool compression)
 
 void DoState(PointerWrap &p)
 {
-	u32 cookie = 0xBAADBABE + VERSION;
+	u32 cookie = 0xBAADBABE + STATE_VERSION;
 	p.Do(cookie);
-	if (cookie != 0xBAADBABE + VERSION)
+	if (cookie != 0xBAADBABE + STATE_VERSION)
 	{
 		p.SetMode(PointerWrap::MODE_MEASURE);
 		return;
