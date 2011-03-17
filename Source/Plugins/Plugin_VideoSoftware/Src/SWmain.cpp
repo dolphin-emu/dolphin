@@ -180,7 +180,7 @@ void VideoSoftware::Video_EnterLoop()
 
 		if (!emuRunningState)
 		{
-			while (!emuRunningState)
+			while (!emuRunningState && fifoStateRun)
 			{
 				g_video_backend->PeekMessages();
 				Common::SleepCurrentThread(1);
