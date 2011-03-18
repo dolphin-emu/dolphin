@@ -392,8 +392,17 @@ void Shutdown()
 {
 	Flush();
 
-	g_current_buffer.clear();
-	g_undo_load_buffer.clear();
+	// swapping with an empty vector, rather than clear()ing
+	// this gives a better guarantee to free the allocated memory right NOW
+	{
+	std::vector<u8> tmp;
+	g_current_buffer.swap(tmp);
+	}
+
+	{
+	std::vector<u8> tmp;
+	g_undo_load_buffer.swap(tmp);
+	}
 }
 
 static std::string MakeStateFilename(int number)

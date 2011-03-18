@@ -37,7 +37,9 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 	// show config diag, if "none" isn't selected
 	if (ex->switch_extension)
 	{
-		wxDialog dlg(this, -1, WXTSTR_FROM_CSTR(ex->attachments[ex->switch_extension]->GetName().c_str()));
+		wxDialog dlg(this, -1,
+			WXTSTR_FROM_CSTR(ex->attachments[ex->switch_extension]->GetName().c_str()),
+			wxDefaultPosition, wxDefaultSize);
 
 		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 		const std::size_t orig_size = control_groups.size();
