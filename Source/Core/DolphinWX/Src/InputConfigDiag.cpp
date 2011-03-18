@@ -37,21 +37,19 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 	// show config diag, if "none" isn't selected
 	if (ex->switch_extension)
 	{
-		wxDialog* const dlg = new wxDialog(this, -1, WXTSTR_FROM_CSTR(ex->attachments[ex->switch_extension]->GetName().c_str()), wxDefaultPosition);
-		wxPanel* const pnl = new wxPanel(dlg, -1, wxDefaultPosition);
-		wxBoxSizer* const pnl_szr = new wxBoxSizer(wxHORIZONTAL);
+		wxDialog dlg(this, -1, WXTSTR_FROM_CSTR(ex->attachments[ex->switch_extension]->GetName().c_str()));
 
+		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 		const std::size_t orig_size = control_groups.size();
 
-		ControlGroupsSizer* const szr = new ControlGroupsSizer(ex->attachments[ex->switch_extension], pnl, this, &control_groups);
-		pnl->SetSizerAndFit(szr);	// needed
-		pnl_szr->Add(pnl, 0, wxLEFT, 5);
-		dlg->SetSizerAndFit(pnl_szr);	// needed
+		ControlGroupsSizer* const szr =
+			new ControlGroupsSizer(ex->attachments[ex->switch_extension], &dlg, this, &control_groups);
+		main_szr->Add(szr, 0, wxLEFT, 5);
+		main_szr->Add(dlg.CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		dlg.SetSizerAndFit(main_szr);
+		dlg.Center();
 
-		dlg->Center();
-
-		dlg->ShowModal();
-		dlg->Destroy();
+		dlg.ShowModal();
 
 		// remove the new groups that were just added, now that the window closed
 		control_groups.resize(orig_size);
