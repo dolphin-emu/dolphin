@@ -377,9 +377,15 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 	MOV(16, R(RDX), Imm16(loop_pc));
 	dsp_reg_store_stack(2);
 	gpr.flushRegs(c);
+	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+	FixupBranch exit = J(true);
 
 	SetJumpTarget(cnt);
-	MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+	//		dsp_skip_inst();
+	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+	WriteBranchExit(*this);
+	gpr.flushRegs(c,false);
+	SetJumpTarget(exit);
 }
 
 // LOOPI #I
@@ -395,7 +401,7 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 	u16 cnt = opc & 0xff;
 	u16 loop_pc = compilePC + 1;
 
-	if (cnt) 
+	if (cnt)
 	{
 		MOV(16, R(RDX), Imm16(compilePC + 1));
 		dsp_reg_store_stack(0);
@@ -405,6 +411,12 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 		dsp_reg_store_stack(3);
 
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC + 1));
+	}
+	else
+	{
+//		dsp_skip_inst();
+		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+		WriteBranchExit(*this);
 	}
 }
 

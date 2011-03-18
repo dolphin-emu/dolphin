@@ -193,6 +193,8 @@ void loop(const UDSPInstruction opc)
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
+	else
+		dsp_skip_inst();
 }
 
 // LOOPI #I
@@ -214,6 +216,8 @@ void loopi(const UDSPInstruction opc)
 		dsp_reg_store_stack(2, loop_pc);
 		dsp_reg_store_stack(3, cnt);
 	}
+	else
+		dsp_skip_inst();
 }
 
 
