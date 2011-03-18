@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-17 08:30-0500\n"
-"PO-Revision-Date: 2011-02-23 09:59+0100\n"
+"PO-Revision-Date: 2011-03-17 18:30+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
 "Language: Hungarian\n"
@@ -49,6 +49,9 @@ msgstr "\"%s\" egy érvénytelen GCM/ISO fájl, vagy nem GC/Wii ISO."
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$sMásolás%1$s"
+
+msgid "%d %%"
+msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
@@ -261,7 +264,7 @@ msgstr "&Wiimote beállítások"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1002
 msgid "&Wiki"
-msgstr ""
+msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
@@ -642,7 +645,7 @@ msgstr "Elfogadás"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "Arab"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -2085,6 +2088,9 @@ msgid ""
 "%s\n"
 "This file is required to use DSP LLE"
 msgstr ""
+"DSP ROM betöltése sikertelen:\n"
+"%s\n"
+"Ez a fájl szükséges a DSP LLE használatához"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:63
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:72
@@ -2679,9 +2685,8 @@ msgid "Insert name here.."
 msgstr "Írj be ide nevet..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "Wii menü telepítése"
+msgstr "WAD telepítése"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2702,9 +2707,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "WAD telepítés a Wii menübe..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1332
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "WAD telepítés a Wii menübe..."
+msgstr "WAD telepítése..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid "Integral [recommended]"
@@ -2943,9 +2947,9 @@ msgstr "Állás betöltése..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Wii rendszer menü betöltése (%d %c)"
+msgstr "Wii rendszer menü betöltése %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3907,9 +3911,8 @@ msgid "Select The Recording File"
 msgstr "Válassz rögzítendő fájlt"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Válassz importálandó mentési fájlt"
+msgstr "Válassz telepítendő Wii WAD fájlt"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -3990,7 +3993,7 @@ msgstr "Separator"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:346
 msgid "Serbian"
-msgstr ""
+msgstr "Szerb"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:580
 msgid ""
@@ -4257,7 +4260,7 @@ msgstr "Spanyol"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:856
 msgid "Speaker Volume:"
-msgstr ""
+msgstr "Hangszóró hangerő:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
@@ -5050,14 +5053,15 @@ msgstr ""
 "Folytatod a PAL régióval?"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"A SYSCONF fájl mérete nem megfelelő - 0x%04x méretűnek kellene lennie (de 0x"
-"%04llx)"
+"A SYSCONF fájl mérete nem megfelelő.\n"
+"0x%04x méretűnek kellene lennie (azonban 0x%04llx méretű)\n"
+"Akarsz újat létrehozni?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
 msgid "ZTP hack"
@@ -5132,9 +5136,6 @@ msgstr "zNear javítás: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:497
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "&Képkocka léptetés"

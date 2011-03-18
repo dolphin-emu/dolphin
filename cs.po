@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-17 08:30-0500\n"
-"PO-Revision-Date: 2011-03-15 10:27+0100\n"
+"PO-Revision-Date: 2011-03-18 13:01+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -340,13 +340,11 @@ msgstr ""
 msgid ""
 "ALERT:\n"
 "\n"
-"NetPlay will currently only work properly when using the following "
-"settings:\n"
+"NetPlay will currently only work properly when using the following settings:\n"
 " - Dual Core [OFF]\n"
 " - Audio Throttle [OFF]\n"
 " - DSP-HLE with \"Null Audio\" or DSP-LLE\n"
-" - Manually set the exact number of controllers that will be used to "
-"[Standard Controller]\n"
+" - Manually set the exact number of controllers that will be used to [Standard Controller]\n"
 "\n"
 "All players should try to use the same Dolphin version and settings.\n"
 "Disable all memory cards or send them to all players before starting.\n"
@@ -356,13 +354,11 @@ msgid ""
 msgstr ""
 "POZOR:\n"
 "\n"
-"Netplay bude v současnosti správně fungovat pouze při použití následujících "
-"nastavení:\n"
+"Netplay bude v současnosti správně fungovat pouze při použití následujících nastavení:\n"
 " - Dvojité Jádro [VYPNUTO]\n"
 " - Přiškrcení Zvuku [VYPNUTO]\n"
 " - DSP-HLE s \"Nulovým Zvukem\" nebo DSP-LLE\n"
-" - Ručně nastavit přesné číslo ovladačů, které budou použity na [Standardní "
-"Ovladač]\n"
+" - Ručně nastavit přesné číslo ovladačů, které budou použity na [Standardní Ovladač]\n"
 "\n"
 "Všichni hráči by měli používat stejné nastavení i verzi Dolphina.\n"
 "Zakázat všechny paměťové karty nebo je poslat hračům před spuštěním.\n"
@@ -417,38 +413,23 @@ msgstr ""
 
 #: Source/Core/Core/Src/ActionReplay.cpp:669
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
-msgstr ""
-"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Kódu Přidat "
-"(%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
+msgstr "Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Kódu Přidat (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:756
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
-"(%s)"
-msgstr ""
-"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Naplnit a "
-"Sesunout (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)"
+msgstr "Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Naplnit a Sesunout (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:549
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
-"Fill (%s)"
-msgstr ""
-"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Ram Zápisu A "
-"Naplnění (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And Fill (%s)"
+msgstr "Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Ram Zápisu A Naplnění (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:609
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
-"Pointer (%s)"
-msgstr ""
-"Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Zápisu Do "
-"Ukazatele (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Write To Pointer (%s)"
+msgstr "Chyba Action Replay: Neplatná velikost (%08x : adresa = %08x) v Zápisu Do Ukazatele (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:803
 #, c-format
@@ -457,10 +438,8 @@ msgstr "Chyba Action Replay: Neplatná hodnota (%08x) v Kopii Paměti (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:684
 #, c-format
-msgid ""
-"Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
-msgstr ""
-"Chyba Action Replay: Hlavní Kód a Zápis do CCXXXXXX nejsou zavedeny (%s)"
+msgid "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
+msgstr "Chyba Action Replay: Hlavní Kód a Zápis do CCXXXXXX nejsou zavedeny (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -522,16 +501,14 @@ msgstr "Adresa :"
 msgid ""
 "Adds the specified value to zFar Parameter.\n"
 "Two ways to express the floating point values.\n"
-"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, "
-"the acquired value will be ''0.0002''.\n"
+"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, the acquired value will be ''0.0002''.\n"
 "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
 "Přidá zadanou hodnotu do Parametru ZFar.\n"
 "Dva způsoby jak vyjádřit hodnoty v plovoucí desetinné čárce.\n"
-"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná "
-"hodnota bude \"0.0002\".\n"
+"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná hodnota bude \"0.0002\".\n"
 "Hodnoty: (0->+/-Celé číslo) nebo (0->+/-PDČ[6 desetinných míst])\n"
 "\n"
 "Poznámka: Zkontrolujte Konzoli/Okno protokolu pro získané hodnoty"
@@ -540,16 +517,14 @@ msgstr ""
 msgid ""
 "Adds the specified value to zNear Parameter.\n"
 "Two ways to express the floating point values.\n"
-"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, "
-"the acquired value will be ''0.0002''.\n"
+"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, the acquired value will be ''0.0002''.\n"
 "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
 "Přidá zadanou hodnotu do Parametru zNear.\n"
 "Dva způsoby jak vyjádřit hodnoty v plovoucí desetinné čárce.\n"
-"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná "
-"hodnota bude \"0.0002\".\n"
+"Příklad: přímé zadání \"200\" nebo \"0.0002\" má stejný účinek, získaná hodnota bude \"0.0002\".\n"
 "Hodnoty: (0->+/-Celé číslo) nebo (0->+/-PDČ[6 desetinných míst])\n"
 "\n"
 "Poznámka: Zkontrolujte Konzoli/Okno protokolu pro získané hodnoty\""
@@ -598,17 +573,12 @@ msgstr "Všechny soubory (*.*)|*.*"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
 msgid ""
 "Allows the CPU to read or write to the EFB (render buffer).\n"
-"This is needed for certain gameplay functionality (e.g. star pointer in "
-"Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-"Hunter Tri),\n"
-"but enabling this option can also have a huge negative impact on performance "
-"if the game uses this functionality heavily."
+"This is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\n"
+"but enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily."
 msgstr ""
 "Povolí procesoru číst či zapisovat do EFB (vyrovnávací paměť vykreslování).\n"
-"Toto je potřeba pro některé funkce hraní (např. star pointer v Super Mario "
-"Galaxy) a také pro jisté vizuální efekty (např. Monster Hunter Tri),\n"
-"ale zapnutí této možnosti může mít také velký negativní dopad na výkon pokud "
-"hra tuto funkci hodně využívá."
+"Toto je potřeba pro některé funkce hraní (např. star pointer v Super Mario Galaxy) a také pro jisté vizuální efekty (např. Monster Hunter Tri),\n"
+"ale zapnutí této možnosti může mít také velký negativní dopad na výkon pokud hra tuto funkci hodně využívá."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:240
 msgid "Anisotropic Filtering:"
@@ -636,7 +606,7 @@ msgstr "Použít"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "Arabština"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -687,12 +657,10 @@ msgstr "Auto [doporučeno]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:554
 msgid ""
-"Auto size the window to match the game's output resolution adjusted by the "
-"EFB scale.\n"
+"Auto size the window to match the game's output resolution adjusted by the EFB scale.\n"
 "It is best to set the aspect ratio to stretch when using this."
 msgstr ""
-"Automaticky upravovat velikost okna pro shodu s výstupním rozlišením hry "
-"nastavená pomocí změny velikosti EFB.\n"
+"Automaticky upravovat velikost okna pro shodu s výstupním rozlišením hry nastavená pomocí změny velikosti EFB.\n"
 "Při používání tohoto je nejlepší nastavit poměr stran na roztáhnutí."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
@@ -813,12 +781,10 @@ msgstr "Jádro Emulátoru Procesoru"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
-"Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-"vertex.\n"
+"Calculates lighting of 3D graphics on a per-pixel basis rather than per vertex.\n"
 "This is the more accurate behavior but reduces performance."
 msgstr ""
-"Spočítá osvětlení 3D obrazu na základě pixelu, raději než na základě "
-"vertexu.\n"
+"Spočítá osvětlení 3D obrazu na základě pixelu, raději než na základě vertexu.\n"
 "Toto je správnější chování, ale snižuje výkon."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:977
@@ -954,12 +920,8 @@ msgid "Choose a memory card:"
 msgstr "Zvolte paměťovou kartu:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:898
-msgid ""
-"Choose file to use as apploader: (applies to discs constructed from "
-"directories only)"
-msgstr ""
-"Zvolte soubor, který má být použit jako zavaděč aplikace: (platí pouze pro "
-"disky sestavené z adresářů)"
+msgid "Choose file to use as apploader: (applies to discs constructed from directories only)"
+msgstr "Zvolte soubor, který má být použit jako zavaděč aplikace: (platí pouze pro disky sestavené z adresářů)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:770
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:809
@@ -986,11 +948,8 @@ msgid "Clear failed."
 msgstr "Vyčištění selhalo"
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:259
-msgid ""
-"Client disconnect while game is running!! NetPlay is disabled. You must "
-"manually stop the game."
-msgstr ""
-"Klient odpojen při běhu hry!! NetPlay je vypnut. Hru musíte ukončit ručně."
+msgid "Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game."
+msgstr "Klient odpojen při běhu hry!! NetPlay je vypnut. Hru musíte ukončit ručně."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:463
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:136
@@ -1162,14 +1121,8 @@ msgstr "Nezle spustit backend %s."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:136
 #, c-format
-msgid ""
-"Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
-"most PC DVD drives."
-msgstr ""
-"\"%s\" nelze číst. Buď není v mechanice žádný disk, nebo toto není záloha GC/"
-"Wii. Nezapomeňte, že původní disky GameCube a Wii nepřečte většina PC DVD "
-"mechanik."
+msgid "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii backup.  Please note that original Gamecube and Wii discs cannot be read by most PC DVD drives."
+msgstr "\"%s\" nelze číst. Buď není v mechanice žádný disk, nebo toto není záloha GC/Wii. Nezapomeňte, že původní disky GameCube a Wii nepřečte většina PC DVD mechanik."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:273
 #, c-format
@@ -1194,13 +1147,11 @@ msgstr ""
 msgid ""
 "Could not write memory card file %s.\n"
 "\n"
-"Are you running Dolphin from a CD/DVD, or is the save file maybe write "
-"protected?"
+"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?"
 msgstr ""
 "Nelze zapsat soubor paměťové karty %s.\n"
 "\n"
-"Spouštíte Dolphina z CD/DVD, nebo je snad soubor s uložením chráněný proti "
-"zápisu?"
+"Spouštíte Dolphina z CD/DVD, nebo je snad soubor s uložením chráněný proti zápisu?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1041
 msgid "Couldn't find open command for extension 'ini'!"
@@ -1238,10 +1189,8 @@ msgid "Created by KDE-Look.org"
 msgstr "Vytvořil KDE-look.org"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:566
-msgid ""
-"Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-msgstr ""
-"Vytvořil Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
+msgid "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
+msgstr "Vytvořil Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:567
 msgid "Created by VistaIcons.com"
@@ -1399,12 +1348,8 @@ msgstr "Zjistit"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:234
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:329
-msgid ""
-"Detected attempt to read more data from the DVD than fit inside the out "
-"buffer. Clamp."
-msgstr ""
-"Zjištěn pokus o přečtení více dat z DVD, než se vejde do výstupní paměti. "
-"Zásek."
+msgid "Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp."
+msgstr "Zjištěn pokus o přečtení více dat z DVD, než se vejde do výstupní paměti. Zásek."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:131
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:902
@@ -1453,20 +1398,12 @@ msgid "Disable Textures"
 msgstr "Zakázat Textury"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:110
-msgid ""
-"Disable fog. Improves performance but causes glitches in games which rely on "
-"proper fog emulation."
-msgstr ""
-"Zakáže mlhu. Zlepší výkon, ale způsobuje chyby v hrách, které závisejí na "
-"správné emulaci mlhy"
+msgid "Disable fog. Improves performance but causes glitches in games which rely on proper fog emulation."
+msgstr "Zakáže mlhu. Zlepší výkon, ale způsobuje chyby v hrách, které závisejí na správné emulaci mlhy"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:108
-msgid ""
-"Disable lighting. Improves performance but causes lighting to disappear in "
-"games which use it."
-msgstr ""
-"Zakáže osvětlení. Zlepší výkon, ale způsobí, že osvětlení zmizí v hrách, "
-"které ho používají."
+msgid "Disable lighting. Improves performance but causes lighting to disappear in games which use it."
+msgstr "Zakáže osvětlení. Zlepší výkon, ale způsobí, že osvětlení zmizí v hrách, které ho používají."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
@@ -1548,12 +1485,8 @@ msgid "Dolphin at &Google Code"
 msgstr "Dolphin na &Google Code"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:303
-msgid ""
-"Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
-"files..."
-msgstr ""
-"Dolphin nemohl nalézt žádná GX/Wii ISO. Klikněte zde dvakrát k prohledání "
-"souborů..."
+msgid "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for files..."
+msgstr "Dolphin nemohl nalézt žádná GX/Wii ISO. Klikněte zde dvakrát k prohledání souborů..."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:216
 msgid ""
@@ -1564,12 +1497,8 @@ msgstr ""
 "Ponechat Dolphina přenosného?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:307
-msgid ""
-"Dolphin is currently set to hide all games.  Doubleclick here to show all "
-"games..."
-msgstr ""
-"Dolphin je v současnosti nastaven na skrytí všech her. Klikněte zde dvakrát "
-"pro zobrazení všech her..."
+msgid "Dolphin is currently set to hide all games.  Doubleclick here to show all games..."
+msgstr "Dolphin je v současnosti nastaven na skrytí všech her. Klikněte zde dvakrát pro zobrazení všech her..."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
@@ -1637,15 +1566,8 @@ msgstr "EFB Kopie Změněné Velikosti"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:249
 #, c-format
-msgid ""
-"ERROR:  This version of Dolphin requires a TAP-Win32 driver that is at least "
-"version %d.%d -- If you recently upgraded your Dolphin distribution, a "
-"reboot is probably required at this point to get Windows to see the new "
-"driver."
-msgstr ""
-"CHYBA: Tato verze Dolphinu vyžaduje ovladač TAP-Win32 verze alespoň %d.%d -- "
-"Pokud jste nedávno Vaši instalaci Dolphin aktualizovali, je zapotřebí v "
-"tomto bodě restartovat, aby Windows uviděl nový ovladač."
+msgid "ERROR:  This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver."
+msgstr "CHYBA: Tato verze Dolphinu vyžaduje ovladač TAP-Win32 verze alespoň %d.%d -- Pokud jste nedávno Vaši instalaci Dolphin aktualizovali, je zapotřebí v tomto bodě restartovat, aby Windows uviděl nový ovladač."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:163
 msgid "EUROPE"
@@ -1691,12 +1613,10 @@ msgstr "Emulovat změny formátů"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:103
 msgid ""
 "Emulate frame buffer copies directly to textures.\n"
-"This is not so accurate, but it's good enough for the way many games use "
-"framebuffer copies."
+"This is not so accurate, but it's good enough for the way many games use framebuffer copies."
 msgstr ""
 "Emuluje kopie vyrovnávací paměti snímku přímo do textur.\n"
-"Není to precizní, ale pro způsob jakým spousta her používá kopie vyrovnávací "
-"paměti snímku to stačí."
+"Není to precizní, ale pro způsob jakým spousta her používá kopie vyrovnávací paměti snímku to stačí."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:22
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:34
@@ -1800,34 +1720,20 @@ msgid "Enable cache"
 msgstr "Povolit vyrovnávací paměť"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
-msgid ""
-"Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = "
-"Compatible)"
-msgstr ""
-"Zapnout rychlý přístup k disku. Některé hry to potřebují. (ZAPNUTO = rychlé, "
-"VYPNUTO = Kompatibilní)"
+msgid "Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"
+msgstr "Zapnout rychlý přístup k disku. Některé hry to potřebují. (ZAPNUTO = rychlé, VYPNUTO = Kompatibilní)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:799
 msgid "Enable pages"
 msgstr "Zapnout stránky"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-msgid ""
-"Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
-"ANY other game."
-msgstr ""
-"Povolte toto pro zrychlení The Legend of Zelda: Twilight Princess. Zakažte "
-"pro VŠECHNY ostatní hry."
+msgid "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."
+msgstr "Povolte toto pro zrychlení The Legend of Zelda: Twilight Princess. Zakažte pro VŠECHNY ostatní hry."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
-msgid ""
-"Enables Block Address Translation (BAT); a function of the Memory Management "
-"Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = "
-"Fast)"
-msgstr ""
-"Povolit Překlad Adres Bloků (BAT); funkce Jednotky Správy Paměti. Přesně "
-"napodobuje hardware, ale je emulován pomalu. (ZAPNUTO = Kompatibilní, "
-"VYPNUTO = Rychlé)"
+msgid "Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"
+msgstr "Povolit Překlad Adres Bloků (BAT); funkce Jednotky Správy Paměti. Přesně napodobuje hardware, ale je emulován pomalu. (ZAPNUTO = Kompatibilní, VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
 msgid "Enables Custom Projection Hack"
@@ -1844,36 +1750,24 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
 msgid ""
 "Enables emulation of Embedded Frame Buffer copies, if the game uses them.\n"
-"Games often need this for post-processing or other things, but if you can "
-"live without it, you can sometimes get a big speedup."
+"Games often need this for post-processing or other things, but if you can live without it, you can sometimes get a big speedup."
 msgstr ""
-"Povolí emulaci Vnořených kopií Vyrovnávací paměti snímků, pokud je hra "
-"používá.\n"
-"Hry toto často potřebují pro následné zpracování nebo jiné věci, ale pokud "
-"toto oželíte, můžete někdy získat velké zrychlení."
+"Povolí emulaci Vnořených kopií Vyrovnávací paměti snímků, pokud je hra používá.\n"
+"Hry toto často potřebují pro následné zpracování nebo jiné věci, ale pokud toto oželíte, můžete někdy získat velké zrychlení."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
 msgid ""
-"Enables reinterpreting the data inside the EFB when the pixel format "
-"changes.\n"
-"Some games depend on this function for certain effects, so enable it if "
-"you're having glitches.\n"
-"Depending on how the game uses this function, the speed hits caused by this "
-"option range from none to critical."
+"Enables reinterpreting the data inside the EFB when the pixel format changes.\n"
+"Some games depend on this function for certain effects, so enable it if you're having glitches.\n"
+"Depending on how the game uses this function, the speed hits caused by this option range from none to critical."
 msgstr ""
 "Povoluje reinterpretaci dat uvnitř EFB, když se formát pixelů změní.\n"
-"Některé hry závisejí na této funkci pro jisté efekty, takže pokud máte "
-"chyby, tuto možnost zapněte.\n"
-"V závislosti na tom, jak hra tuto funkci využívá bude mít rychlostní zisk "
-"způsobený touto volbou rozsah od žádný až po kritický."
+"Některé hry závisejí na této funkci pro jisté efekty, takže pokud máte chyby, tuto možnost zapněte.\n"
+"V závislosti na tom, jak hra tuto funkci využívá bude mít rychlostní zisk způsobený touto volbou rozsah od žádný až po kritický."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
-msgid ""
-"Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
-"OFF = Fast)"
-msgstr ""
-"Povolí Jednotku Správy Paměti, potřebnou v nějakých hrách. (ZAPNUTO = "
-"Kompatibilní, VYPNUTO = Rychlé)"
+msgid "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"
+msgstr "Povolí Jednotku Správy Paměti, potřebnou v nějakých hrách. (ZAPNUTO = Kompatibilní, VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
@@ -1915,8 +1809,7 @@ msgstr "Chyba"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:401
 msgid "Error loading selected language. Falling back to system default."
-msgstr ""
-"Chyba při nahrávání zvoleného jazyka. Vracím se na výchozí jazyk systému."
+msgstr "Chyba při nahrávání zvoleného jazyka. Vracím se na výchozí jazyk systému."
 
 #: Source/Core/Core/Src/OnFrame.cpp:219
 #, c-format
@@ -1925,12 +1818,8 @@ msgstr "Chyba při otevírání souboru %s pro nahrávání"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:273
 #, c-format
-msgid ""
-"Error: Trying to access %s fonts but they are not loaded. Games may not show "
-"fonts correctly, or crash."
-msgstr ""
-"Chyba: Pokus o přístup k písmům %s, ale ty nejsou načtena. Hry nemusí "
-"zobrazit písma správně, nebo se můžou zhroutit"
+msgid "Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash."
+msgstr "Chyba: Pokus o přístup k písmům %s, ale ty nejsou načtena. Hry nemusí zobrazit písma správně, nebo se můžou zhroutit"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:30
 msgid "Escape"
@@ -2174,12 +2063,10 @@ msgstr "Rychlá verze MMU. Nefunguje v každé hře."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:106
 msgid ""
-"Faster variants look at fewer pixels and thus have more potential for "
-"errors.\n"
+"Faster variants look at fewer pixels and thus have more potential for errors.\n"
 "Slower variants look at more pixels and thus are safer."
 msgstr ""
-"Rychlejší varianty se dívají na méně pixelů a tudíž mají větší potenciál k "
-"chybám.\n"
+"Rychlejší varianty se dívají na méně pixelů a tudíž mají větší potenciál k chybám.\n"
 "Pomalejší varianty se dívají na více pixelů a tudíž jsou bezpečnější."
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
@@ -2259,12 +2146,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 msgid ""
 "Forces bilinear texture filtering even if the game explicitly disabled it.\n"
-"Improves texture quality (especially when using a high internal resolution) "
-"but causes glitches in some games."
+"Improves texture quality (especially when using a high internal resolution) but causes glitches in some games."
 msgstr ""
 "Vynutí bilineární filtrování textur i když ho hra výslovně zakázala.\n"
-"Zlepší kvalitu textur (zvláště pokud používáte vysoké vnitřní rozlišení), "
-"ale v některých hrách způsobuje chyby."
+"Zlepší kvalitu textur (zvláště pokud používáte vysoké vnitřní rozlišení), ale v některých hrách způsobuje chyby."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2323,12 +2208,10 @@ msgstr "Rozlišení Displeje v režimu Celé Obrazovky:"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:104
 msgid ""
 "Fully emulate embedded frame buffer copies.\n"
-"This is more accurate than EFB Copy to Texture, and some games need this to "
-"work properly, but it can also be very slow."
+"This is more accurate than EFB Copy to Texture, and some games need this to work properly, but it can also be very slow."
 msgstr ""
 "Plně emuluje kopie vnořených snímků vyrovnávací paměti.\n"
-"Toto je preciznější než EFB Kopie do Textury, a některé hry toto potřebují "
-"ke správnému fungování, ale může být velmi pomalé."
+"Toto je preciznější než EFB Kopie do Textury, a některé hry toto potřebují ke správnému fungování, ale může být velmi pomalé."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
 msgid "GCI File(*.gci)"
@@ -2491,9 +2374,7 @@ msgid "Hide Mouse Cursor"
 msgstr "Skrýt kurzor myši"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
-msgid ""
-"Hide the cursor when it is over the rendering window and the rendering "
-"window has focus."
+msgid "Hide the cursor when it is over the rendering window and the rendering window has focus."
 msgstr "Skrýt kurzor, když je nad vykreslovacím oknem a okno je aktivní"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
@@ -2530,13 +2411,11 @@ msgstr "IOCTL_ES_GETVIEWS: Pokus o získání dat z neznámého lístku: %08x/%0
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:769
 #, c-format
 msgid ""
-"IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available "
-"in your nand dump\n"
+"IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 "TitleID %016llx.\n"
 " Dolphin will likely hang now"
 msgstr ""
-"IOCTL_ES_LAUNCH: Hra se pokusila znovu načíst ios nebo název, který není "
-"dostupný ve Vašem nand výpisu\n"
+"IOCTL_ES_LAUNCH: Hra se pokusila znovu načíst ios nebo název, který není dostupný ve Vašem nand výpisu\n"
 "IDNázvu %016llx.\n"
 "Dolphin se teď pravděpodobně zasekne"
 
@@ -2577,19 +2456,12 @@ msgid "Icon"
 msgstr "Ikona"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
-msgid ""
-"If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-msgstr ""
-"Pokud jsou SzS nestálé, tato volba může pomoci. (ZAPNUTO = Kompatibilní, "
-"VYPNUTO = Rychlé)"
+msgid "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
+msgstr "Pokud jsou SzS nestálé, tato volba může pomoci. (ZAPNUTO = Kompatibilní, VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:545
-msgid ""
-"If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you "
-"also have to disable Audio Throttle in DSP to make it effective."
-msgstr ""
-"Pokud nastavíte limit snímků větší než plná rychlost hry (NTSC:60, PAL:50), "
-"měli byste také vypnout Přiškrcení Zvuku v DSP, aby to bylo účinné."
+msgid "If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."
+msgstr "Pokud nastavíte limit snímků větší než plná rychlost hry (NTSC:60, PAL:50), měli byste také vypnout Přiškrcení Zvuku v DSP, aby to bylo účinné."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:787
 msgid "Import Save"
@@ -2674,11 +2546,8 @@ msgid "Install to Wii Menu"
 msgstr "Instalovat do Wii Menu"
 
 #: Source/Core/Core/Src/MemTools.cpp:248
-msgid ""
-"InstallExceptionHandler called, but this platform does not yet support it."
-msgstr ""
-"Byl zavolán InstallExceptionHandler, ale tato platforma toto ještě "
-"nepodporuje."
+msgid "InstallExceptionHandler called, but this platform does not yet support it."
+msgstr "Byl zavolán InstallExceptionHandler, ale tato platforma toto ještě nepodporuje."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1192
 msgid "Installing WAD to Wii Menu..."
@@ -2791,13 +2660,11 @@ msgstr "KOREA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:105
 msgid ""
-"Keeps track of textures based on looking at the actual pixels in the "
-"texture.\n"
+"Keeps track of textures based on looking at the actual pixels in the texture.\n"
 "Can cause slowdown, but some games need this option enabled to work properly."
 msgstr ""
 "Sleduje textury na základě pozorování vlastních pixelů v textuře.\n"
-"Může způsobit zpomalení, ale některé hry tuto volbu potřebují povolit pro "
-"správné fungování."
+"Může způsobit zpomalení, ale některé hry tuto volbu potřebují povolit pro správné fungování."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:245
 msgid "Key"
@@ -2939,12 +2806,10 @@ msgstr "Načíst přednastavené hodnoty z dostupných hackových vzorů."
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
 msgid ""
 "Loads native mipmaps instead of generating them.\n"
-"Loading native mipmaps is the more accurate behavior, but might also "
-"decrease performance (your mileage might vary though)."
+"Loading native mipmaps is the more accurate behavior, but might also decrease performance (your mileage might vary though)."
 msgstr ""
 "Nahraje původní mipmapy místo jejich vytvoření.\n"
-"Nahrání původních mipmap je správnější chování, ale může také snížit výkon "
-"(Váš užitek se ale může měnit)."
+"Nahrání původních mipmap je správnější chování, ale může také snížit výkon (Váš užitek se ale může měnit)."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:134
 msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
@@ -3044,12 +2909,8 @@ msgid "Memory Card"
 msgstr "Paměťová karta"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.h:36
-msgid ""
-"Memory Card Manager WARNING-Make backups before using, should be fixed but "
-"could mangle stuff!"
-msgstr ""
-"Správce Paměťových karet Varování-Před použitím zálohujte, měl by být "
-"spravený ale mohl by věci poškodit!"
+msgid "Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"
+msgstr "Správce Paměťových karet Varování-Před použitím zálohujte, měl by být spravený ale mohl by věci poškodit!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:348
 #, c-format
@@ -3397,11 +3258,8 @@ msgstr ""
 "a importujte je do nové paměťové karty\n"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
-msgid ""
-"Other client disconnected while game is running!! NetPlay is disabled. You "
-"manually stop the game."
-msgstr ""
-"Jiný klient odpojen při běhu hry!! NetPlay je vypnut. Hru ukončete ručně."
+msgid "Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game."
+msgstr "Jiný klient odpojen při běhu hry!! NetPlay je vypnut. Hru ukončete ručně."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:485
 msgid "Output"
@@ -3541,12 +3399,10 @@ msgstr "Port :"
 #: Source/Core/DolphinWX/Src/Main.cpp:221
 msgid ""
 "Portable Setting could not be saved\n"
-" Are you running Dolphin from read only media or from a directory that "
-"dolphin is not located in?"
+" Are you running Dolphin from read only media or from a directory that dolphin is not located in?"
 msgstr ""
 "Přenosná nastavení nemohla být uložena\n"
-"Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolphin není "
-"umístěn?"
+"Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolphin není umístěn?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:343
 msgid "Portuguese"
@@ -3667,8 +3523,7 @@ msgstr "Červená vpravo"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
-"This makes the rendered picture look less blocky but also heavily decreases "
-"performance."
+"This makes the rendered picture look less blocky but also heavily decreases performance."
 msgstr ""
 "Zmenší množství vyhlazování způsobené rastrovaním 3D obrazu.\n"
 "Tímto vypadá vykreslený obraz méně hranatý, ale také výrazně snižuje výkon."
@@ -3865,8 +3720,10 @@ msgstr "Hledat Filtr"
 msgid "Search Subfolders"
 msgstr "Hledat Podadresáře"
 
-#: Source/Core/Common/Src/SysConf.h:104 Source/Core/Common/Src/SysConf.h:127
-#: Source/Core/Common/Src/SysConf.h:147 Source/Core/Common/Src/SysConf.h:168
+#: Source/Core/Common/Src/SysConf.h:104
+#: Source/Core/Common/Src/SysConf.h:127
+#: Source/Core/Common/Src/SysConf.h:147
+#: Source/Core/Common/Src/SysConf.h:168
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "Sekce %s nebyla v SYSCONF nalezena"
@@ -3941,12 +3798,10 @@ msgstr "Vybraný typ písma"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
 msgid ""
-"Selects which game should be affected by the configuration changes done in "
-"this dialog.\n"
+"Selects which game should be affected by the configuration changes done in this dialog.\n"
 "The (Default) profile affects the standard settings used for every game."
 msgstr ""
-"Zvolí, která hra by měla být změnami nastavení v tomto dialogovém okně "
-"ovlivněna.\n"
+"Zvolí, která hra by měla být změnami nastavení v tomto dialogovém okně ovlivněna.\n"
 "(Výchozí) profil ovlivní standardní nastavení používané ve všech hrách."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:275
@@ -3966,11 +3821,8 @@ msgid "Serbian"
 msgstr "Srbština"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:580
-msgid ""
-"Serial Port 1 - This is the port which devices such as the net adapter use"
-msgstr ""
-"Sériový port 1 - Tito je port, který používají zařízení jako internetový "
-"adaptér"
+msgid "Serial Port 1 - This is the port which devices such as the net adapter use"
+msgstr "Sériový port 1 - Tito je port, který používají zařízení jako internetový adaptér"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
@@ -4114,12 +3966,10 @@ msgstr "Zobrazí rámeček s potvrzením před zastavením hry."
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:563
 msgid ""
 "Show a message box when a potentially serious error has occured.\n"
-"Disabling this may avoid annoying and non-fatal messages, but it may also "
-"mean that Dolphin suddenly crashes without any explanation at all."
+"Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
 "Zobrazit rámeček se zprávou, při zjištění potenciálně závažné chyby.\n"
-"Vypnutím tohoto se můžete vyhnout otravným a nezávažným zprávám, ale Dolphin "
-"může také být náhle ukončen bez jakéhokoliv vysvětlení."
+"Vypnutím tohoto se můžete vyhnout otravným a nezávažným zprávám, ale Dolphin může také být náhle ukončen bez jakéhokoliv vysvětlení."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:812
 msgid "Show first block"
@@ -4233,28 +4083,15 @@ msgstr "Hlasitost Reproduktoru:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
-"Specifies the resolution used to render at. A high resolution will improve "
-"visual quality but is also quite heavy on performance and might cause "
-"glitches in certain games.\n"
-"Fractional: Uses your display resolution directly instead of the native "
-"resolution. The quality scales with your display/window size, as does the "
-"performance impact.\n"
-"Integral: This is like Fractional, but rounds up to an integer multiple of "
-"the native resolution. Should give a more accurate look but is usually "
-"slower.\n"
-"The other options are fixed resolutions for choosing a visual quality "
-"independent of your display size."
+"Specifies the resolution used to render at. A high resolution will improve visual quality but is also quite heavy on performance and might cause glitches in certain games.\n"
+"Fractional: Uses your display resolution directly instead of the native resolution. The quality scales with your display/window size, as does the performance impact.\n"
+"Integral: This is like Fractional, but rounds up to an integer multiple of the native resolution. Should give a more accurate look but is usually slower.\n"
+"The other options are fixed resolutions for choosing a visual quality independent of your display size."
 msgstr ""
-"Určuje rozlišení, v kterém se má vykreslovat. Vysoké rozlišení zlepší "
-"kvalitu obrazu, ale má velké nároky na výkon a může způsobovat v určitých "
-"hrách chyby.\n"
-"Zlomkový: Používá přímo Vaše rozlišení místo původního. Kvalita se mění s "
-"velikosti okna/obrazu spolu s dopadem na výkon.\n"
-"Celistvý: Jako Zlomkový, ale zaokrouhluje nahoru na celé číslo násobku "
-"původního rozlišení. Mělo by dát přesnější zobrazení, ale většinou je "
-"pomalejší.\n"
-"Ostatní volby jsou pevná rozlišení pro volbu kvality obrazu nezávislé na "
-"Vaší velikosti displeje."
+"Určuje rozlišení, v kterém se má vykreslovat. Vysoké rozlišení zlepší kvalitu obrazu, ale má velké nároky na výkon a může způsobovat v určitých hrách chyby.\n"
+"Zlomkový: Používá přímo Vaše rozlišení místo původního. Kvalita se mění s velikosti okna/obrazu spolu s dopadem na výkon.\n"
+"Celistvý: Jako Zlomkový, ale zaokrouhluje nahoru na celé číslo násobku původního rozlišení. Mělo by dát přesnější zobrazení, ale většinou je pomalejší.\n"
+"Ostatní volby jsou pevná rozlišení pro volbu kvality obrazu nezávislé na Vaší velikosti displeje."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:144
 msgid "Specify a video backend"
@@ -4413,12 +4250,8 @@ msgstr ""
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:51
 #, c-format
-msgid ""
-"The file %s could not be opened for writing. Please check if it's already "
-"opened by another program."
-msgstr ""
-"Soubor %s nemohl být otevřen pro zápis. Zkontrolujte, prosím, je-li už "
-"otevřen jiným programem."
+msgid "The file %s could not be opened for writing. Please check if it's already opened by another program."
+msgstr "Soubor %s nemohl být otevřen pro zápis. Zkontrolujte, prosím, je-li už otevřen jiným programem."
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:44
 #, c-format
@@ -4443,12 +4276,8 @@ msgid "The save you are trying to copy has an invalid file size"
 msgstr "Uložená hra, kterou se snažíte zkopírovat má neplatnou délku souboru"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:408
-msgid ""
-"The selected language is not supported by your system. Falling back to "
-"system default."
-msgstr ""
-"Zvolený jazyk není Vašim systémem podporován. Vracím se na výchozí jazyk "
-"systému."
+msgid "The selected language is not supported by your system. Falling back to system default."
+msgstr "Zvolený jazyk není Vašim systémem podporován. Vracím se na výchozí jazyk systému."
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:43
 msgid "The server and client's NetPlay versions are incompatible!"
@@ -4484,12 +4313,8 @@ msgid "Theme selection went wrong"
 msgstr "Výběr vzhledu se zvrtl"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:464
-msgid ""
-"There must be a ticket for 00000001/00000002. Your NAND dump is probably "
-"incomplete."
-msgstr ""
-"Musí existovat lístek pro 00000001/00000002. Vaše NAND vypsání je "
-"pravděpodobně neúplné"
+msgid "There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete."
+msgstr "Musí existovat lístek pro 00000001/00000002. Vaše NAND vypsání je pravděpodobně neúplné"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
 msgid ""
@@ -4500,12 +4325,8 @@ msgstr ""
 "Neurčený znamená, že hra použije nastavení Dolphin."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:356
-msgid ""
-"This action replay simulator does not support codes that modify Action "
-"Replay itself."
-msgstr ""
-"Tento simulátor action replay nepodporuje kód, který mění samotný Action "
-"Replay."
+msgid "This action replay simulator does not support codes that modify Action Replay itself."
+msgstr "Tento simulátor action replay nepodporuje kód, který mění samotný Action Replay."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:583
 msgid "This could cause slow down in Wii Menu and some games."
@@ -4527,19 +4348,15 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
 msgid "This is used to play music tracks, like BGM."
-msgstr ""
-"Toto se používá pro přehrávání hudebních stop, jako např. hudba v pozadí."
+msgstr "Toto se používá pro přehrávání hudebních stop, jako např. hudba v pozadí."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
 msgid ""
-"This splits the Video and CPU threads, so they can be run on separate "
-"cores.\n"
-"Causes major speed improvements on PCs with more than one core, but can also "
-"cause occasional crashes/glitches."
+"This splits the Video and CPU threads, so they can be run on separate cores.\n"
+"Causes major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."
 msgstr ""
 "Toto rozdělí vlákna Obrazu a Procesoru, takže běží na oddělených jádrech.\n"
-"Způsobí výrazné zvýšení rychlosti na PC s více než jedním jádrem, ale také "
-"může způsobovat občasné chyby/pády."
+"Způsobí výrazné zvýšení rychlosti na PC s více než jedním jádrem, ale také může způsobovat občasné chyby/pády."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:284
 msgid "This will let you Manually Edit the INI config file"
@@ -4584,7 +4401,8 @@ msgstr "Pokus o načtení souboru neznámého typu."
 msgid "Triggers"
 msgstr "Spínače"
 
-#: Source/Core/Common/Src/SysConf.h:92 Source/Core/Common/Src/SysConf.h:115
+#: Source/Core/Common/Src/SysConf.h:92
+#: Source/Core/Common/Src/SysConf.h:115
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Pokus o čtení z neplatného SYSCONF"
 
@@ -4699,15 +4517,11 @@ msgstr "Použít Obslužné Rutiny Paniky"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
 msgid ""
-"Uses the high-resolution render buffer for EFB copies instead of scaling "
-"them down to native resolution.\n"
-"Vastly improves visual quality in games which use EFB copies but might cause "
-"glitches in some games."
+"Uses the high-resolution render buffer for EFB copies instead of scaling them down to native resolution.\n"
+"Vastly improves visual quality in games which use EFB copies but might cause glitches in some games."
 msgstr ""
-"Použít vyrovnávací paměť vykreslování ve vysokém rozlišení pro EFB kopie, "
-"místo zmenšení jejich velikosti do původního rozlišení.\n"
-"Nesmírně zlepší obrazovou kvalitu v hrách, které používají EFB kopie, ale "
-"může způsobit v některých hrách chyby."
+"Použít vyrovnávací paměť vykreslování ve vysokém rozlišení pro EFB kopie, místo zmenšení jejich velikosti do původního rozlišení.\n"
+"Nesmírně zlepší obrazovou kvalitu v hrách, které používají EFB kopie, ale může způsobit v některých hrách chyby."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:416
 msgid "Utility"
@@ -4821,26 +4635,17 @@ msgstr "Whammy"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:132
 msgid ""
-"When using EFB to RAM we very often need to decode RAM data to a VRAM "
-"texture, which is a very time-consuming task.\n"
-"With this option enabled, we'll skip decoding a texture if it didn't "
-"change.\n"
+"When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\n"
+"With this option enabled, we'll skip decoding a texture if it didn't change.\n"
 "This results in a nice speedup, but possibly causes glitches.\n"
-"If you have any problems with this option enabled you should either try "
-"increasing the safety of the texture cache or disable this option.\n"
-"(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-"be; accurate texture cache set to \"safe\" might actually be slower!)"
+"If you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n"
+"(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)"
 msgstr ""
-"Při použítí EFB do Ram často potřebujeme dekódovat data RAM do textury VRAM, "
-"což je časově velmi náročný úkol.\n"
-"Pokud je tato možnost zapnuta, dekódování u textury je přeskočeno, pokud se "
-"nezměnila.\n"
+"Při použítí EFB do Ram často potřebujeme dekódovat data RAM do textury VRAM, což je časově velmi náročný úkol.\n"
+"Pokud je tato možnost zapnuta, dekódování u textury je přeskočeno, pokud se nezměnila.\n"
 "To má za výsledek pěkné zrychlení, ale také možnost chyb.\n"
-"Pokud máte problémy s touto možností zapnutou, měli byste buď zvýšit "
-"bezpečnost vyrovnávací paměti textury nebo ji vypnout.\n"
-"POZNÁMKA: Čím bezpečnější vyrovnávací paměť textury je, tím nižší bude "
-"zrychlení; precizní vyrovnávací paměť textury nastavená na \"bezpečná\" muže "
-"být i pomalejší!"
+"Pokud máte problémy s touto možností zapnutou, měli byste buď zvýšit bezpečnost vyrovnávací paměti textury nebo ji vypnout.\n"
+"POZNÁMKA: Čím bezpečnější vyrovnávací paměť textury je, tím nižší bude zrychlení; precizní vyrovnávací paměť textury nastavená na \"bezpečná\" muže být i pomalejší!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:232
 msgid "Widescreen Hack"
@@ -4996,9 +4801,7 @@ msgstr "Musíte zadat jméno!"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:434
 msgid "You must enter a valid decimal, hexadecimal or octal value."
-msgstr ""
-"Musíte zadat platnou hodnotu v desítkové, šestnáctkové nebo osmičkové "
-"soustavě."
+msgstr "Musíte zadat platnou hodnotu v desítkové, šestnáctkové nebo osmičkové soustavě."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:607
 msgid "You must enter a valid profile name."

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-17 08:30-0500\n"
-"PO-Revision-Date: 2011-03-05 23:40+0200\n"
+"PO-Revision-Date: 2011-03-17 18:03+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
 "Language: Greek\n"
@@ -51,6 +51,9 @@ msgstr ""
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$sΑντιγραφή%1$s"
+
+msgid "%d %%"
+msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
@@ -295,9 +298,20 @@ msgstr "16 bit"
 msgid "32 bit"
 msgstr "32 bit"
 
+msgid "32,000 Hz"
+msgstr "32,000 Hz"
+
+msgid "32-bit platforms do not support fastmem yet. Report this bug."
+msgstr ""
+"Οι πλατφόρμες 32-bit δενυποστηρίζουν ακόμα τη λειτουργία fastmem. Αναφέρετε "
+"αυτό το bug."
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:266
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D Vision (Προϋποθέτει Πλήρη Οθόνη)"
+
+msgid "48,000 Hz"
+msgstr "48,000 Hz"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:165
 msgid "8 bit"
@@ -374,6 +388,9 @@ msgstr ""
 "Η υποστήριξη Wiimote δεν έχει ακόμα υλοποιηθεί.\n"
 "\n"
 "Θα πρέπει να έχετε κάνει προώθηση της πόρτας TCP στον host!!"
+
+msgid "ALSA"
+msgstr "ALSA"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:90
@@ -605,6 +622,9 @@ msgstr ""
 "αλλά η ενεργοποίηση αυτής της επιλογής μπορεί να έχει και τεράστια αρνητική "
 "επίδραση στις επιδόσεις, αν το παιχνίδι χρησιμοποιεί πολύ αυτή τη λειτουργία."
 
+msgid "Alternate RFI"
+msgstr "Εναλλακτικό RFI"
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:240
 msgid "Anisotropic Filtering:"
 msgstr "Ανισοτροπικό Φιλτράρισμα:"
@@ -631,7 +651,7 @@ msgstr "Εφαρμογή"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "Αραβικά"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -714,6 +734,9 @@ msgstr "Πίσω"
 msgid "Bad File Header"
 msgstr "Μη Έγκυρη Κεφαλίδα Αρχείου"
 
+msgid "Bad gameini filename"
+msgstr "Προβληματικό αρχείο gameini"
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:624
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:255
 msgid "Banner"
@@ -742,6 +765,9 @@ msgstr "Βασικές Ρυθμίσεις"
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:22
 msgid "Bass"
 msgstr "Μπάσο"
+
+msgid "Bleach Versus Crusade"
+msgstr "Bleach Versus Crusade"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:164
 msgid "Block Allocation Table checksum failed"
@@ -817,6 +843,18 @@ msgid ""
 msgstr ""
 "Υπολογίζει τον φωτισμό των γραφικών 3D ανά pixel και όχι ανά vertex.\n"
 "Αυτή είναι πιο ακριβής συμπεριφορά αλλά μειώνει τις επιδόσεις."
+
+msgid "Can't find plugin %s"
+msgstr "Δε βρέθηκε το plugin %s"
+
+msgid "Can't init DSP Plugin"
+msgstr "Δεν μπόρεσε να εκκινήσει το DSP Plugin"
+
+msgid "Can't init Video Plugin"
+msgstr "Δεν μπόρεσε να εκκινήσει το Video Plugin"
+
+msgid "Can't open %s, it has a missing function"
+msgstr "Αδυναμία ανοίγματος του %s, απουσιάζει μία λειτουργία"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:977
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
@@ -1288,6 +1326,9 @@ msgstr "Τσέχικα"
 msgid "D-Pad"
 msgstr "Ψηφιακό Pad"
 
+msgid "DList Cache"
+msgstr "DList Cache"
+
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:444
 msgid "DSP"
 msgstr "Ήχος (DSP)"
@@ -1522,6 +1563,18 @@ msgstr "Ιστοσελίδα του &Dolphin"
 msgid "Dolphin Configuration"
 msgstr "Ρυθμίσεις Dolphin"
 
+msgid "Dolphin DSP-HLE Plugin"
+msgstr "Dolphin Plugin DSP-HLE"
+
+msgid "Dolphin DSP-HLE Plugin Settings"
+msgstr "Ρυθμίσεις Dolphin Plugin DSP-HLE"
+
+msgid "Dolphin DSP-LLE Plugin"
+msgstr "Dolphin Plugin DSP-LLE"
+
+msgid "Dolphin DSP-LLE Plugin Settings"
+msgstr "Ρυθμίσεις Dolphin Plugin DSP-LLE"
+
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
 msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "Ρυθμίσεις Εξοιμοιωμένου Dolphin Wiimote"
@@ -1739,6 +1792,9 @@ msgstr "Ενεργοποίηση Πρόσβασης CPU"
 msgid "Enable Cheats"
 msgstr "Ενεργοποίηση Cheat"
 
+msgid "Enable Copy to EFB"
+msgstr "Ενεργοποίηση Αντιγραφή στον EFB"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
 msgid "Enable DTK Music"
 msgstr "Ενεργοποίηση Μουσικής DTK"
@@ -1912,6 +1968,15 @@ msgstr "Ίσο"
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 msgid "Error"
 msgstr "Σφάλμα"
+
+msgid "Error loading %s: can't read info"
+msgstr "Αποτυχία φόρτωσης %s: αδυναμία ανάγνωσης πληροφοριών"
+
+msgid ""
+"Error loading plugin %s: can't find file. Please re-select your plugins."
+msgstr ""
+"Αποτυχία φόρτωσης του plugin %s: αδυναμία εύρεσης του αρχείου. Παρακαλώ "
+"επιλέξτε ξανα τα plugin σας."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:401
 msgid "Error loading selected language. Falling back to system default."
@@ -2580,6 +2645,13 @@ msgstr "ΙΤΑΛΙΑ"
 msgid "Icon"
 msgstr "Εικονίδιο"
 
+msgid ""
+"If a game hangs, works only in the Interpreter or Dolphin crashes, this "
+"option may fix the game."
+msgstr ""
+"Εάν ένα παιχνίδι κολλήσει, δουλεύει μόνο στον Interpreter ή το Dolphin "
+"κρασάρει, αυτή η επιλογή μπορεί να φτιάξει το παιχνίδι."
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
 msgid ""
 "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
@@ -2668,9 +2740,8 @@ msgid "Insert name here.."
 msgstr "Εισάγετε όνομα εδώ..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:206
-#, fuzzy
 msgid "Install WAD"
-msgstr "Εγκατάσταση Μενού Wii"
+msgstr "Εγκατάσταση WAD"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2690,9 +2761,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "Γίνεται εγκατάσταση WAD στο Μενού Wii..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1332
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "Γίνεται εγκατάσταση WAD στο Μενού Wii..."
+msgstr "Γίνεται εγκατάσταση WAD..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid "Integral [recommended]"
@@ -2930,9 +3000,9 @@ msgstr "Φόρτωση Σημείου Αποθήκευσης..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Φόρτωση Μενού Συστήματος Wii (%d %c)"
+msgstr "Φόρτωση Μενού Συστήματος Wii %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3078,6 +3148,9 @@ msgstr ""
 msgid "Menu"
 msgstr "Μενού"
 
+msgid "Metroid Other M"
+msgstr "Metroid Other M"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:88
 msgid "Mic"
 msgstr "Μικρόφωνο"
@@ -3089,6 +3162,9 @@ msgstr "Διάφορα"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:873
 msgid "Misc Settings"
 msgstr "Διάφορες Ρυθμίσεις"
+
+msgid "Mixer: Unsupported sample rate."
+msgstr "Mixer: Μη υποστηριζόμενος ρυθμός δειγματοληψίας."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:240
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:294
@@ -3246,6 +3322,9 @@ msgstr "Καμία Χώρα (SDK)"
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:309
 msgid "No ISOs or WADS found"
 msgstr "Δε βρέθηκαν ISO ή WAD"
+
+msgid "No audio output"
+msgstr "Δεν υπάρχει έξοδος ήχου"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:512
 #, c-format
@@ -3513,6 +3592,9 @@ msgstr "Παρακαλώ επιβεβαιώστε..."
 msgid "Please create a perspective before saving"
 msgstr "Παρακαλώ δημιουργήστε μια οπτική πριν την αποθήκευση"
 
+msgid "Plugins"
+msgstr "Plugins"
+
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:36
 msgid "Plus-Minus"
 msgstr "Plus-Minus"
@@ -3595,6 +3677,9 @@ msgstr "Projection Στατιστικά"
 #: Source/Core/DolphinWX/Src/ISOProperties.h:55
 msgid "Properties"
 msgstr "Ιδιότητες"
+
+msgid "Pulse"
+msgstr "Pulse"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:296
 msgid "Purge Cache"
@@ -3759,6 +3844,9 @@ msgstr "Δόνηση"
 msgid "Run DSP LLE on a dedicated thread (not recommended)."
 msgstr "Εκτέλεση DSP LLE σε ξεχωριστό νήμα (δεν προτείνεται)."
 
+msgid "Running script...\n"
+msgstr "Εκτέλεση  script...\n"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:345
 msgid "Russian"
 msgstr "Ρώσικα"
@@ -3890,9 +3978,8 @@ msgid "Select The Recording File"
 msgstr "Επιλέξτε το Αρχείο Εγγραφής"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Επιλέξτε ένα αρχείο αποθήκευσης για εισαγωγή"
+msgstr "Επιλέξτε ένα Wii WAD αρχείο για εγκατάσταση"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -4194,6 +4281,9 @@ msgstr "Κινέζικα Απλοποιημένα"
 msgid "Size"
 msgstr "Μέγεθος"
 
+msgid "Skies of Arcadia"
+msgstr "Skies of Arcadia"
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:615
 msgid "Skip GC BIOS"
 msgstr "Παράλειψη GC BIOS"
@@ -4215,6 +4305,9 @@ msgstr "Θέση Β"
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:59
 msgid "Snapshot"
 msgstr "Στιγμιότυπο"
+
+msgid "Sonic and the Black Knight"
+msgstr "Sonic and the Black Knight"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
@@ -4414,6 +4507,9 @@ msgstr "Το checksum διορθώθηκε με επιτυχία"
 msgid "The chosen directory is already in the list"
 msgstr "Ο επιλεγμένος φάκελος βρίσκεται ήδη στη λίστα"
 
+msgid "The file "
+msgstr "Το αρχείο "
+
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1273
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1301
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1367
@@ -4550,6 +4646,9 @@ msgstr ""
 msgid "This is used to play music tracks, like BGM."
 msgstr "Χρησιμοποιείται για την αναπαραγωγή μουσικών κομματιών, όπως BGM."
 
+msgid "This is usually used to play voice and sound effects."
+msgstr "Χρησιμοποιείται συνήθως για την αναπαραγωγή φωνής και ηχητικών εφέ."
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
@@ -4629,6 +4728,9 @@ msgstr "Πικάπ"
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:70
 msgid "Type"
 msgstr "Τύπος"
+
+msgid "Type %d config not supported in plugin %s"
+msgstr "Ο τύπος ρύθμισης %d δεν υποστηρίζεται στο plugin %s"
 
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:32
 msgid "UDP Port:"
@@ -4718,6 +4820,9 @@ msgstr "Χρήση Hex"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:670
 msgid "Use Panic Handlers"
 msgstr "Χρήση Οθονών Πανικού"
+
+msgid "Use XFB"
+msgstr "Χρήση XFB"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
 msgid ""
@@ -5044,18 +5149,22 @@ msgstr ""
 "Συνέχεια με περιοχή PAL;"
 
 #: Source/Core/Common/Src/SysConf.cpp:51
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"Το αρχείο SYSCONF έχει λάθος μέγεθος - θα έπρεπε να είναι 0x%04x (αλλά είναι "
-"0x%04llx)"
+"Το αρχείο SYSCONF έχει λάθος μέγεθος.\n"
+"Θα έπρεπε να είναι 0x%04x (αλλά είναι 0x%04llx)\n"
+"Θέλετε να δημιουργηθεί ένα καινούριο;"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
 msgid "ZTP hack"
 msgstr "ZTP hack"
+
+msgid "Zelda Twilight Princess Bloom hack"
+msgstr "Zelda Twilight Princess Bloom hack"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:388
 msgid "Zero 3 code not supported"
@@ -5082,6 +5191,10 @@ msgstr "^ ADD"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:899
 msgid "apploader (.img)"
 msgstr "apploader (.img)"
+
+#, fuzzy
+msgid "audio_plugin"
+msgstr "Επιλέξτε ένα plugin ήχου"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:185
 msgid "failed to read bk header"
@@ -5113,6 +5226,10 @@ msgstr ""
 msgid "unknown cmd 0x%08x"
 msgstr "άγνωστη εντολή 0x%08x"
 
+#, fuzzy
+msgid "video_plugin"
+msgstr "Επιλέξτε ένα plugin βίντεο"
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1044
 msgid "wxExecute returned -1 on application run!"
 msgstr "Το wxExecute επέστρεψε -1 κατά την εκκίνηση της εφαρμογής!"
@@ -5129,26 +5246,9 @@ msgstr "zNear Διόρθωση: "
 msgid "| OR"
 msgstr "| OR"
 
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
 #, fuzzy
 #~ msgid "&Frame Stepping"
 #~ msgstr "Παράλειψη Κ&αρέ"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr ""
-#~ "Οι πλατφόρμες 32-bit δενυποστηρίζουν ακόμα τη λειτουργία fastmem. "
-#~ "Αναφέρετε αυτό το bug."
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "ALSA"
-#~ msgstr "ALSA"
 
 #, fuzzy
 #~ msgid "AOSound"
@@ -5157,27 +5257,6 @@ msgstr "| OR"
 #, fuzzy
 #~ msgid "Adjust window size"
 #~ msgstr "Μέγεθος Παραθύρου:"
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Εναλλακτικό RFI"
-
-#~ msgid "Bad gameini filename"
-#~ msgstr "Προβληματικό αρχείο gameini"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "Δε βρέθηκε το plugin %s"
-
-#~ msgid "Can't init DSP Plugin"
-#~ msgstr "Δεν μπόρεσε να εκκινήσει το DSP Plugin"
-
-#~ msgid "Can't init Video Plugin"
-#~ msgstr "Δεν μπόρεσε να εκκινήσει το Video Plugin"
-
-#~ msgid "Can't open %s, it has a missing function"
-#~ msgstr "Αδυναμία ανοίγματος του %s, απουσιάζει μία λειτουργία"
 
 #, fuzzy
 #~ msgid "Config..."
@@ -5195,9 +5274,6 @@ msgstr "| OR"
 #~ msgid "Could not get info about plugin %s"
 #~ msgstr "Αποτυχία δημιουργίας %s"
 
-#~ msgid "DList Cache"
-#~ msgstr "DList Cache"
-
 #, fuzzy
 #~ msgid "DSound"
 #~ msgstr "&Ήχος"
@@ -5210,18 +5286,6 @@ msgstr "| OR"
 #~ msgid "Distance Alpha Pass"
 #~ msgstr "Απενεργοποίηση Dest. Alpha Pass"
 
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "Dolphin Plugin DSP-HLE"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "Ρυθμίσεις Dolphin Plugin DSP-HLE"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "Dolphin Plugin DSP-LLE"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "Ρυθμίσεις Dolphin Plugin DSP-LLE"
-
 #, fuzzy
 #~ msgid "Dolphin Direct3D11"
 #~ msgstr "Direct3D11"
@@ -5233,9 +5297,6 @@ msgstr "| OR"
 #, fuzzy
 #~ msgid "Dolphin OpenGL"
 #~ msgstr "Dolphin"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Ενεργοποίηση Αντιγραφή στον EFB"
 
 #, fuzzy
 #~ msgid "Enable EFB To Texture"
@@ -5258,15 +5319,6 @@ msgstr "| OR"
 #~ msgid "Error allocating buffer"
 #~ msgstr "Σφάλμα κατά τη δέσμευση buffer"
 
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "Αποτυχία φόρτωσης %s: αδυναμία ανάγνωσης πληροφοριών"
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "Αποτυχία φόρτωσης του plugin %s: αδυναμία εύρεσης του αρχείου. Παρακαλώ "
-#~ "επιλέξτε ξανα τα plugin σας."
-
 #, fuzzy
 #~ msgid "Failed to load DSP ROM: %s"
 #~ msgstr "Αποτυχία μεταφόρτωσης κωδικών."
@@ -5278,13 +5330,6 @@ msgstr "| OR"
 #, fuzzy
 #~ msgid "Graphics Plugin"
 #~ msgstr "Γραφικά"
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Εάν ένα παιχνίδι κολλήσει, δουλεύει μόνο στον Interpreter ή το Dolphin "
-#~ "κρασάρει, αυτή η επιλογή μπορεί να φτιάξει το παιχνίδι."
 
 #~ msgid ""
 #~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
@@ -5301,18 +5346,9 @@ msgstr "| OR"
 #~ msgid "Lua Script Console"
 #~ msgstr "Εγγραφή στην Κονσόλα"
 
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "Mixer: Μη υποστηριζόμενος ρυθμός δειγματοληψίας."
-
 #, fuzzy
 #~ msgid "New &Lua Console"
 #~ msgstr "Εμφάνιση &Κονσόλας"
-
-#~ msgid "No audio output"
-#~ msgstr "Δεν υπάρχει έξοδος ήχου"
 
 #, fuzzy
 #~ msgid "OpenAL"
@@ -5322,18 +5358,9 @@ msgstr "| OR"
 #~ msgid "OpenGL"
 #~ msgstr "Άνοιγμα"
 
-#~ msgid "Plugins"
-#~ msgstr "Plugins"
-
-#~ msgid "Pulse"
-#~ msgstr "Pulse"
-
 #, fuzzy
 #~ msgid "Run"
 #~ msgstr "Return"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Εκτέλεση  script...\n"
 
 #~ msgid ""
 #~ "Select the System Menu wad extracted from the update partition of a disc"
@@ -5349,46 +5376,21 @@ msgstr "| OR"
 #~ msgid "Show save banner"
 #~ msgstr "Εμφάνιση αποθηκευμένου εικονιδίου"
 
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
 #, fuzzy
 #~ msgid "Slot"
 #~ msgstr "Θέση Α"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
 
 #, fuzzy
 #~ msgid "Specify an audio plugin"
 #~ msgstr "Επιλέξτε ένα backend βίντεο"
 
-#~ msgid "The file "
-#~ msgstr "Το αρχείο "
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "Χρησιμοποιείται συνήθως για την αναπαραγωγή φωνής και ηχητικών εφέ."
-
 #, fuzzy
 #~ msgid "Trying to load unsupported type %d"
 #~ msgstr "Προσπάθεια φόρτωσης ενός άγνωστου τύπου αρχείο."
 
-#~ msgid "Type %d config not supported in plugin %s"
-#~ msgstr "Ο τύπος ρύθμισης %d δεν υποστηρίζεται στο plugin %s"
-
-#~ msgid "Use XFB"
-#~ msgstr "Χρήση XFB"
-
 #, fuzzy
 #~ msgid "Wiimote %i %s"
 #~ msgstr "Wiimote "
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom hack"
-
-#, fuzzy
-#~ msgid "audio_plugin"
-#~ msgstr "Επιλέξτε ένα plugin ήχου"
 
 #, fuzzy
 #~ msgid "batch"
@@ -5397,7 +5399,3 @@ msgstr "| OR"
 #, fuzzy
 #~ msgid "debugger"
 #~ msgstr "Άνοιγμα του debugger"
-
-#, fuzzy
-#~ msgid "video_plugin"
-#~ msgstr "Επιλέξτε ένα plugin βίντεο"
