@@ -64,7 +64,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
 				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5);
 
-	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		for (int i = 0; i < 2; ++i) {
 			uid->values[3 + i] = xfregs.color[i].enablelighting ?
@@ -75,7 +75,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 				(u32)xfregs.alpha[i].matsource) << 15;
 		}
 	}
-	uid->values[4] |= (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
+	uid->values[4] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 
 	int hdr = 5;
 	u32 *pcurvalue = &uid->values[hdr];
@@ -445,7 +445,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
 	WRITE(p, "uniform float4 "I_FOG"[3] : register(c%d);\n", C_FOG);
 
-	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		WRITE(p,"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n");
 		WRITE(p,"typedef struct { Light lights[8]; } s_"I_PLIGHTS";\n");
@@ -478,13 +478,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);		
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
 				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
@@ -528,7 +528,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float2 wrappedcoord, tempcoord;\n"
 			"  float4 cc0, cc1, cc2, cprev,crastemp,ckonsttemp;\n\n");
 	
-	if(g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGen.numTexGens < 7) 
 		{

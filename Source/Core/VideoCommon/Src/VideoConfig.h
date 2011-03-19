@@ -133,7 +133,7 @@ struct VideoConfig
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
-	bool bEnablePixelLigting;
+	bool bEnablePixelLighting;
 	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
@@ -156,8 +156,6 @@ struct VideoConfig
 		std::vector<std::string> PPShaders; // post-processing shaders
 
 		bool bUseRGBATextures; // used for D3D11 in TextureCache
-		bool bSupportsEFBToRAM;
-		bool bSupportsRealXFB;
 		bool bSupports3DVision;
 		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL

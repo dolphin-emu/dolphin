@@ -43,8 +43,6 @@ VideoConfig::VideoConfig()
 	backend_info.APIType = API_NONE;
 	backend_info.bAllowSignedBytes = false;
 	backend_info.bUseRGBATextures = false;
-	backend_info.bSupportsEFBToRAM = false;
-	backend_info.bSupportsRealXFB = false;
 	backend_info.bSupports3DVision = false;
 }
 
@@ -81,7 +79,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphStereo", &bAnaglyphStereo, false);
 	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
-	iniFile.Get("Settings", "EnablePixelLigting", &bEnablePixelLigting, 0);
+	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
 	
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
@@ -122,9 +120,6 @@ void VideoConfig::Load(const char *ini_file)
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
-
-	VerifyValidity();
-
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
@@ -158,7 +153,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphStereo", &bAnaglyphStereo);
 	iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation);
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
-	iniFile.GetIfExists("Video_Settings", "EnablePixelLigting", &bEnablePixelLigting);
+	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth);
 
 	iniFile.GetIfExists("Video_Settings", "ShowShaderErrors", &bShowShaderErrors);
@@ -217,20 +212,16 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video", "UseNativeMips", &bUseNativeMips);
 	iniFile.GetIfExists("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
 	iniFile.GetIfExists("Video", "DlistCachingEnable", &bDlistCachingEnable);
-
-	VerifyValidity();
 }
 
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
-	if (iAdapter >= (int)backend_info.Adapters.size()) iAdapter = 0;
-	if (!backend_info.bSupportsEFBToRAM) bCopyEFBToTexture = true;
+	if (iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupportsRealXFB) bUseRealXFB = false;
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
-	if (!backend_info.bSupportsPixelLighting) bEnablePixelLigting = false;
+	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -264,7 +255,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereo", bAnaglyphStereo);
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	iniFile.Set("Settings", "EnablePixelLigting", bEnablePixelLigting);
+	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
 	iniFile.Set("Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 	
 
@@ -343,7 +334,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	SET_IF_DIFFERS("Video_Settings", "EnablePixelLigting", bEnablePixelLigting);
+	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	SET_IF_DIFFERS("Video_Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 
 	SET_IF_DIFFERS("Video_Settings", "ShowShaderErrors", bShowShaderErrors);

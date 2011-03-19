@@ -257,7 +257,7 @@ void PixelShaderManager::SetConstants()
 		s_bFogRangeAdjustChanged = false;
 	}
 
-	if (g_ActiveConfig.bEnablePixelLigting && g_ActiveConfig.backend_info.bSupportsPixelLighting)  // config check added because the code in here was crashing for me inside SetPSConstant4f
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)  // config check added because the code in here was crashing for me inside SetPSConstant4f
 	{
 		if (nLightsChanged[0] >= 0)
 		{

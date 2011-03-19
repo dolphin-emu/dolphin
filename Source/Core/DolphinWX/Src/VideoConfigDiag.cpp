@@ -259,7 +259,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(native_mips = new SettingCheckBox(page_general, _("Load Native Mipmaps"), wxGetTranslation(native_mips_tooltip), vconfig.bUseNativeMips));
 	szr_enh->Add(efb_scaled_copy = new SettingCheckBox(page_general, _("EFB Scaled Copy"), wxGetTranslation(scaled_efb_copy_tooltip), vconfig.bCopyEFBScaled));	
-	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), vconfig.bEnablePixelLigting));
+	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), vconfig.bEnablePixelLighting));
 	szr_enh->Add(pixel_depth =  new SettingCheckBox(page_general, _("Pixel Depth"), wxGetTranslation(pixel_depth_tooltip), vconfig.bEnablePerPixelDepth));
 	szr_enh->Add(force_filtering = new SettingCheckBox(page_general, _("Force Bi/Trilinear Filtering"), wxGetTranslation(force_filtering_tooltip), vconfig.bForceFiltering));
 	
@@ -527,8 +527,8 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 
 	// EFB copy
 	efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
-	efbcopy_ram->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM);
-	cache_efb_copies->Enable(vconfig.bEFBCopyEnable && vconfig.backend_info.bSupportsEFBToRAM && !vconfig.bCopyEFBToTexture);
+	efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
+	cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
 
 	// EFB format change emulation
 	emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
@@ -540,7 +540,7 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 
 	// XFB
 	virtual_xfb->Enable(vconfig.bUseXFB);
-	real_xfb->Enable(vconfig.bUseXFB && vconfig.backend_info.bSupportsRealXFB);
+	real_xfb->Enable(vconfig.bUseXFB);
 
 	// If emulation hasn't started, yet, always update g_Config.
 	// Otherwise only update it if we're editing the currently running game's profile
@@ -562,6 +562,7 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 void VideoConfigDiag::SetUIValuesFromConfig()
 {
 	if (choice_adapter) choice_adapter->SetSelection(vconfig.iAdapter);
+	vconfig.VerifyValidity();
 	choice_aspect->SetSelection(vconfig.iAspectRatio);
 	widescreen_hack->SetValue(vconfig.bWidescreenHack);
 	vsync->SetValue(vconfig.bVSync);
@@ -571,7 +572,7 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 
 	native_mips->SetValue(vconfig.bUseNativeMips);
 	efb_scaled_copy->SetValue(vconfig.bCopyEFBScaled);
-	pixel_lighting->SetValue(vconfig.bEnablePixelLigting);
+	pixel_lighting->SetValue(vconfig.bEnablePixelLighting);
 	pixel_depth->SetValue(vconfig.bEnablePerPixelDepth);
 	force_filtering->SetValue(vconfig.bForceFiltering);
 	_3d_vision->SetValue(vconfig.b3DVision);
