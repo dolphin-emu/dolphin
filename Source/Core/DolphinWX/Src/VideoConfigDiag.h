@@ -161,7 +161,9 @@ protected:
 	SettingCheckBox* opencl;
 	SettingCheckBox* dlcache;
 	SettingCheckBox* hotkeys;
-
+#ifdef _OPENMP
+	SettingCheckBox* ompdecoder;
+#endif
 	wxChoice* choice_ppshader;
 
 	// TODO: Add options for

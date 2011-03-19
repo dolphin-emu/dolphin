@@ -96,6 +96,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
 	
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
+#ifdef _OPENMP
+	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
+#endif
 
 	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
@@ -170,6 +173,9 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
+#ifdef _OPENMP
+	iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder);
+#endif
 
 	iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering);
 	iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
@@ -272,6 +278,9 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
 
 	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
+#ifdef _OPENMP
+	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);
+#endif
 	
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
@@ -351,6 +360,9 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
 
 	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);
+#ifdef _OPENMP
+	SET_IF_DIFFERS("Video_Settings", "OMPDecoder", bOMPDecoder);
+#endif
 
 	SET_IF_DIFFERS("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	SET_IF_DIFFERS("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)

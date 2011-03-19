@@ -693,7 +693,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 {
 #ifdef _OPENMP
 	//Dont use multithreading in small Textures
-	if(width > 127 && height > 127)
+	if ((width > 127 && height > 127) && g_ActiveConfig.bOMPDecoder)
 	{
 		//don't span to many threads they will kill the rest of the emu :)
 		omp_set_num_threads((cpu_info.num_cores + 2) / 3);
@@ -968,7 +968,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 #ifdef _OPENMP
-	if(width > 127 && height > 127)
+	if ((width > 127 && height > 127) && g_ActiveConfig.bOMPDecoder)
 	{
 		//don't span to many threads they will kill the rest of the emu :)
 		omp_set_num_threads((cpu_info.num_cores + 2) / 3);

@@ -121,6 +121,9 @@ struct VideoConfig
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
+#ifdef _OPENMP
+	bool bOMPDecoder;
+#endif
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;

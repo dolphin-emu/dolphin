@@ -127,6 +127,7 @@ wxString free_look_tooltip = wxT("");
 wxString crop_tooltip = wxT("");
 wxString opencl_tooltip = wxT("");
 wxString dlc_tooltip = wxT("");
+wxString omp_tooltip = wxT("Uses multiple threads to decode the textures in the game.");
 wxString hotkeys_tooltip = wxT("");
 wxString ppshader_tooltip = wxT("");
 wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
@@ -426,6 +427,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(opencl = new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, vconfig.bEnableOpenCL), 0, wxLEFT|wxBOTTOM, 5);
 	szr_misc->Add(dlcache = new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, vconfig.bDlistCachingEnable), 0, wxBOTTOM, 5);
 	szr_misc->Add(hotkeys = new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, vconfig.bOSDHotKey), 0, wxLEFT|wxBOTTOM, 5);
+#ifdef _OPENMP
+	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), omp_tooltip, vconfig.bOMPDecoder), 0, wxBOTTOM, 5);
+#endif
 
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
@@ -626,6 +630,9 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	crop->SetValue(vconfig.bCrop);
 	opencl->SetValue(vconfig.bEnableOpenCL);
 	dlcache->SetValue(vconfig.bDlistCachingEnable);
+#ifdef _OPENMP
+	ompdecoder->SetValue(vconfig.bOMPDecoder);
+#endif
 	hotkeys->SetValue(vconfig.bOSDHotKey);
 
 	if (choice_ppshader)
