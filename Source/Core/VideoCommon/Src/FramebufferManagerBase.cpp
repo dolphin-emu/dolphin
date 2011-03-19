@@ -33,6 +33,8 @@ FramebufferManagerBase::~FramebufferManagerBase()
 
 const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
+	if (!g_ActiveConfig.bUseXFB) return NULL;
+
 	if (g_ActiveConfig.bUseRealXFB)
 		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	else
