@@ -28,12 +28,29 @@
 std::vector<VideoBackend*> g_available_video_backends;
 VideoBackend* g_video_backend = NULL;
 
+#ifdef _WIN32
+// http://msdn.microsoft.com/en-us/library/ms725491.aspx
+static bool IsGteVista() 
+{
+	OSVERSIONINFOEX osvi;
+	DWORDLONG dwlConditionMask = 0;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	osvi.dwMajorVersion = 6;
+
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+
+	return VerifyVersionInfo(&osvi, VER_MAJORVERSION, dwlConditionMask);
+}
+#endif
+
 void VideoBackend::PopulateList()
 {
 #ifdef _WIN32
 	g_available_video_backends.push_back(new DX9::VideoBackend);
-	// TODO: if (winver >= VISTA) :p
-	g_available_video_backends.push_back(new DX11::VideoBackend);
+	if (IsGteVista())
+		g_available_video_backends.push_back(new DX11::VideoBackend);
 #endif
 	g_available_video_backends.push_back(new OGL::VideoBackend);
 	g_available_video_backends.push_back(new SW::VideoSoftware);
