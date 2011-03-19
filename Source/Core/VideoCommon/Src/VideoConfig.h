@@ -80,9 +80,10 @@ struct VideoConfig
 	bool bUseRealXFB;
 	bool bUseNativeMips;
 
-	// OpenCL
+	// OpenCL/OpenMP
 	bool bEnableOpenCL;
-	
+	bool bOMPDecoder;
+
 	// Enhancements
 	int iMultisampleMode;
 	int iEFBScale;
@@ -121,9 +122,7 @@ struct VideoConfig
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
-#ifdef _OPENMP
-	bool bOMPDecoder;
-#endif
+
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;

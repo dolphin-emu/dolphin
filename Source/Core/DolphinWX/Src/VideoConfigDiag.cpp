@@ -427,9 +427,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(opencl = new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, vconfig.bEnableOpenCL), 0, wxLEFT|wxBOTTOM, 5);
 	szr_misc->Add(dlcache = new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, vconfig.bDlistCachingEnable), 0, wxBOTTOM, 5);
 	szr_misc->Add(hotkeys = new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, vconfig.bOSDHotKey), 0, wxLEFT|wxBOTTOM, 5);
-#ifdef _OPENMP
 	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), omp_tooltip, vconfig.bOMPDecoder), 0, wxBOTTOM, 5);
-#endif
 
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
@@ -630,9 +628,7 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	crop->SetValue(vconfig.bCrop);
 	opencl->SetValue(vconfig.bEnableOpenCL);
 	dlcache->SetValue(vconfig.bDlistCachingEnable);
-#ifdef _OPENMP
 	ompdecoder->SetValue(vconfig.bOMPDecoder);
-#endif
 	hotkeys->SetValue(vconfig.bOSDHotKey);
 
 	if (choice_ppshader)
