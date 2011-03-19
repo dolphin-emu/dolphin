@@ -48,7 +48,7 @@ struct ControllerState {
 	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
 	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
 	
-}; // Total: 58 + 6 = 64 bits per frame
+}; // Total: 60 + 4 = 64 bits per frame
 #pragma pack(pop)
 
 // Global declarations
@@ -78,6 +78,7 @@ struct DTMHeader {
 
     bool bFromSaveState;	// false indicates that the recording started from bootup, true for savestate
     u64 frameCount;			// Number of frames in the recording
+	u64 InputCount;			// Number of input frames in recording
     u64 lagCount;			// Number of lag frames in the recording
     u64 uniqueID;			// A Unique ID comprised of: md5(time + Game ID)
     u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
@@ -87,9 +88,7 @@ struct DTMHeader {
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
     u8  padBackend[16];		// UTF-8 representation of the input backend
 
-    u8	padding[7];		// Padding to align the header to 1024 bits
-
-    u8  reserved[128];		// Increasing size from 128 bytes to 256 bytes, just because we can
+    u8  reserved[127];		// Make heading 256 bytes, just because we can
 };
 #pragma pack(pop)
 

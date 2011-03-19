@@ -228,7 +228,7 @@ bool BeginRecordingInput(int controllers)
 	
 	g_frameCounter = 0;
 	g_lagCounter = 0;
-	
+	g_InputCounter = 0;
 	g_playMode = MODE_RECORDING;
 	
 	Core::DisplayMessage("Starting movie recording", 2000);
@@ -428,7 +428,8 @@ void LoadInput(const char *filename)
 	
 	g_frameCounter = header.frameCount;
 	g_totalFrameCount = header.frameCount;
-	
+	g_InputCounter = header.InputCount;
+
 	g_numPads = header.numControllers;
 	
 	ChangePads(true);
@@ -606,6 +607,7 @@ void SaveRecording(const char *filename)
 		header.frameCount = g_frameCounter;
 		header.lagCount = g_lagCounter; 
 		header.numRerecords = g_rerecords;
+		header.InputCount = g_InputCounter;
 		
 		// TODO
 		header.uniqueID = 0; 

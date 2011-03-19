@@ -147,6 +147,7 @@ void TexDecoder_OpenCL_Initialize()
 			delete binary;
 		}
 
+		// If an error occurred using the kernel binary, recompile the kernels
 		if (err)
 		{
 			std::string code;
@@ -182,7 +183,7 @@ void TexDecoder_OpenCL_Initialize()
 			binaries = (char **)malloc(sizeof(char *)*nDevices);
 			for (u32 i = 0; i < nDevices; ++i)
 			{
-				if( binary_sizes[i] != 0 )
+				if (binary_sizes[i] != 0)
 				{
 					binaries[i] = (char *)malloc(HEADER_SIZE + binary_sizes[i]);
 				}
@@ -213,9 +214,23 @@ void TexDecoder_OpenCL_Initialize()
 					output.WriteBytes(binaries[0], binary_sizes[0]);
 				}
 			}
+			for (u32 i = 0; i < nDevices; ++i)
+			{
+				if (binary_sizes[i] != NULL)
+				{
+					free(binaries[i]);
+				}
+			}
+			if (binaries != NULL)
+				free(binaries);
+			if (binary_sizes != NULL)
+				free(binary_sizes);
+			if (devices != NULL)
+				free(devices);
 		}
 
-		for (int i = 0; i <= GX_TF_CMPR; ++i) {
+		for (int i = 0; i <= GX_TF_CMPR; ++i)
+		{
 			if (g_DecodeParametersNative[i].name)
 				g_DecodeParametersNative[i].kernel =
 				OpenCL::CompileKernel(g_program,
