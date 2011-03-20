@@ -109,6 +109,7 @@ void DSPEmitter::Default(UDSPInstruction inst)
 
 	// Fall back to interpreter
 	gpr.pushRegs();
+	_assert_msg_(DSPLLE, opTable[inst]->intFunc, "No function for %04x",inst);
 	ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
 	gpr.popRegs();
 }

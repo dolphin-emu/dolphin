@@ -267,7 +267,7 @@ void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
 // NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::ifcc(const UDSPInstruction opc)
 {
-	MOV(16, M(&g_dsp.pc), Imm16((compilePC + 1) + opTable[compilePC + 1]->size));
+	MOV(16, M(&g_dsp.pc), Imm16((compilePC + 1) + opTable[dsp_imem_read(compilePC + 1)]->size));
 	ReJitConditional<r_ifcc>(opc, *this);
 	WriteBranchExit(*this);
 }
@@ -382,7 +382,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 
 	SetJumpTarget(cnt);
 	//		dsp_skip_inst();
-	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 	WriteBranchExit(*this);
 	gpr.flushRegs(c,false);
 	SetJumpTarget(exit);
@@ -415,7 +415,7 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 	else
 	{
 //		dsp_skip_inst();
-		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 		WriteBranchExit(*this);
 	}
 }
@@ -452,7 +452,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	SetJumpTarget(cnt);
 	//		g_dsp.pc = loop_pc;
 	//		dsp_skip_inst();
-	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+	MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 	WriteBranchExit(*this);
 	gpr.flushRegs(c,false);
 	SetJumpTarget(exit);
@@ -488,7 +488,7 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
 	{
 //		g_dsp.pc = loop_pc;
 //		dsp_skip_inst();
-		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[loop_pc]->size));
+		MOV(16, M(&g_dsp.pc), Imm16(loop_pc + opTable[dsp_imem_read(loop_pc)]->size));
 		WriteBranchExit(*this);
 	}
 }
