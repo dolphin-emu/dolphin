@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.wxwindows.IDENTIFIER</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+		<string>en</string>
+		<string>fr</string>
+		<string>it</string>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>EXECUTABLE</string>
+	<key>CFBundleIconFile</key>
+	<string>wxmac.icns</string>
+	<key>CFBundleName</key>
+	<string>EXECUTABLE</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>VERSION</string>
+	<key>CFBundleShortVersionString</key>
+	<string>VERSION</string>
+	<key>CFBundleGetInfoString</key>
+	<string>EXECUTABLE version VERSION, (c) 2002-2008 wxWidgets</string>
+	<key>CFBundleLongVersionString</key>
+	<string>VERSION, (c) 2002-2008 wxWidgets</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright 2002-2008 wxWidgets</string>
+	<key>LSRequiresCarbon</key>
+	<true/>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+</dict>
+</plist>
