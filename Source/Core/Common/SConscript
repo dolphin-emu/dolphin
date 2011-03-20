@@ -5,8 +5,11 @@ import os
 import sys
 
 def createVersion(env, target, source):
-	from SconsTests import utils
-	utils.GenerateRevFile(env['flavor'], source[0].path, target[0].path)
+        tmpstr = open(source[0].path, 'r').read().\
+		replace("$WCMODS?$WCREV$M:$WCREV$$", env['svnrev'])
+        outfile = open(target[0].path, 'w')
+        outfile.write(tmpstr + '\n')
+        outfile.close()
 
 Execute(Delete('Src/svnrev.h'))
 env.Command('Src/svnrev.h', 'Src/svnrev_template.h',

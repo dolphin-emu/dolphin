@@ -6,9 +6,6 @@ import sys
 if env.has_key('shared_png') and env['shared_png']:
 	Return()
 
-if env.has_key('HAVE_WX') and env['HAVE_WX']:
-	Return()	# Currently using libwxpng
-
 files = [
 	'png.c',
 	'pngerror.c',

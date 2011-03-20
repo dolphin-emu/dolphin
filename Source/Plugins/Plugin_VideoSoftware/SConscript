@@ -32,7 +32,4 @@ files = [
 if not env['nowx']:
 	files += ['Src/VideoConfigDialog.cpp']
 
-if sys.platform == 'win32':
-	files += ['Src/Win32.cpp']
-
 env['LIBS'] += env.StaticLibrary('videosoftware', files)

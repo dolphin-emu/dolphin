@@ -216,7 +216,7 @@ void TexDecoder_OpenCL_Initialize()
 			}
 			for (u32 i = 0; i < nDevices; ++i)
 			{
-				if (binary_sizes[i] != NULL)
+				if (binary_sizes[i] != 0)
 				{
 					free(binaries[i]);
 				}

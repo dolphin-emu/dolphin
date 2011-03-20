@@ -313,7 +313,7 @@
 
 #define wxUSE_XRC 0
 
-#define wxUSE_XML 1
+#define wxUSE_XML 0
 
 #define wxUSE_AUI 1
 

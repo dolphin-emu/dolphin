@@ -1,12 +1,9 @@
+#!/usr/bin/env python Externals/scons-local/scons.py
 # -*- python -*-
 
 import os
 import sys
 import platform
-
-# Home made tests
-from SconsTests import utils
-from SconsTests import wxconfig
 
 # Some features need at least SCons 1.2
 EnsureSConsVersion(1, 2)
@@ -15,14 +12,13 @@ EnsureSConsVersion(1, 2)
 env = Environment(ENV = os.environ)
 
 # Handle command line options
-vars = Variables('args.cache')
+vars = Variables()
 
 vars.AddVariables(
     BoolVariable('verbose', 'Set to show compilation lines', False),
     BoolVariable('bundle', 'Set to create distribution bundle', False),
     BoolVariable('lint', 'Set for lint build (fail on warnings)', False),
     BoolVariable('nowx', 'Set for building without wxWidgets', False),
-    PathVariable('wxconfig', 'Path to wxconfig', None),
     EnumVariable('flavor', 'Choose a build flavor', 'release', allowed_values =
                 ('release','devel','debug','fastlog','prof'), ignorecase = 2),
     )
@@ -30,10 +26,10 @@ vars.AddVariables(
 if env['PLATFORM'] == 'posix': vars.AddVariables(
     PathVariable('destdir', 'Temporary install location (for package building)',
                  None, PathVariable.PathAccept),
-    EnumVariable('install', 'Choose a local or global installation', 'local',
+    EnumVariable('install', 'Choose a local or global installation', 'global',
                  allowed_values = ('local', 'global'), ignorecase = 2),
     PathVariable('prefix', 'Installation prefix (only used for a global build)',
-                 '/usr', PathVariable.PathAccept),
+                 '/usr/local', PathVariable.PathAccept),
     PathVariable('userdir', 'Set the name of the user data directory in home',
                  '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
@@ -49,15 +45,13 @@ if env['PLATFORM'] == 'posix': vars.AddVariables(
     PathVariable('CXX', 'The C++ compiler', 'g++', PathVariable.PathAccept),
     )
 
-# Save the given command line options
-vars.Update(env)
-vars.Save('args.cache', env)
-
 # Die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
     print "Unknown variables:", unknown.keys()
     Exit(1)
+else:
+    vars.Update(env)
 
 # Verbose compile
 if not env['verbose']:
@@ -68,13 +62,11 @@ if not env['verbose']:
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
     env['TARCOMSTR'] = "Creating $TARGET"
 
-if not env['flavor'] == 'debug':
-    env['CCFLAGS'] += ['-O3']
+env['CCFLAGS'] = ['-fno-exceptions', '-fno-strict-aliasing']
 if env['flavor'] == 'release':
-    env['CCFLAGS'] += ['-fomit-frame-pointer']
-elif not env['flavor'] == 'fastlog':
-    env['CCFLAGS'] += ['-ggdb']
-env['CCFLAGS'] += ['-fno-exceptions', '-fno-strict-aliasing']
+    env['CCFLAGS'] += ['-O3', '-fomit-frame-pointer']
+else:
+    env['CCFLAGS'] += ['-O3', '-ggdb']
 
 if env['lint']:
     env['CCFLAGS'] += ['-Werror']
@@ -100,7 +92,7 @@ if not env.has_key('install') or env['install'] == 'local':
     if env['flavor'] == 'debug' or env['flavor'] == 'prof':
         env['prefix'] += '-' + env['flavor']
 
-rev = utils.GenerateRevFile(env['flavor'], '.', None)
+env['svnrev'] = os.popen('svnversion -n .').read().split(':')[0]
 
 # OS X specifics
 if sys.platform == 'darwin':
@@ -121,37 +113,17 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
-    env['LINKFLAGS'] += ['-Wl,-syslibroot', '/Developer/SDKs/MacOSX10.6.sdk']
+    env['LINKFLAGS'] += ['-Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk']
     env['LINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
-    if env['nowx']:
-        env['HAVE_WX'] = 0
-    else:
+    if not env['nowx']:
         env['CPPDEFINES'] += ['__WXOSX_COCOA__']
-        wxenv = env.Clone(CPPPATH = '', LIBPATH = '', LIBS = '')
-        conf = wxenv.Configure(conf_dir = None, log_file = None,
-            custom_tests = {'CheckWXConfig' : wxconfig.CheckWXConfig})
-        env['HAVE_WX'] = \
-            conf.CheckWXConfig(2.92, 'aui adv core base gl'.split(),
-                env['flavor'] == 'debug')
-        conf.Finish()
-        if not env['HAVE_WX']:
-            print '\nWARNING:\n' + 'wxWidgets 2.9.2 not found',
-            if wxenv.has_key('wxconfig'):
-                print 'using ' + wxenv['wxconfig']
-            print '\nwxWidgets r66814 or newer is required to build Dolphin.'
-            print 'See http://code.google.com/p/dolphin-emu/wiki/MacOSX_Build'
-            print 'for instructions on building and installing wxWidgets.\n'
-        else:
-            wxconfig.ParseWXConfig(wxenv)
-            env['CPPPATH'] += wxenv['CPPPATH']
-            env['LIBS'] += wxenv['LIBS']
 
     env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
 
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
-        dmg = env['prefix'] + '/Dolphin-r' + rev + '.dmg'
+        dmg = env['prefix'] + '/Dolphin-r' + env['svnrev'] + '.dmg'
         env.Command(dmg, app, 'rm -f ' + dmg +
             ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
             ' && hdiutil internet-enable -yes ' + dmg)
@@ -170,6 +142,8 @@ else:
         env['CCFLAGS'] += ['-Wno-array-bounds', '-Wno-unused-result']
     env['CPPDEFINES'] += ['HAVE_CONFIG_H']
     env['CPPPATH'].insert(0, '#') # Make sure we pick up our own config.h
+    env['CPPPATH'] += ['/usr/pkg/include', '/usr/local/include']
+    env['LIBPATH'] += ['/usr/pkg/lib', '/usr/local/lib']
     env['LINKFLAGS'] += ['-pthread']
     env['RPATH'] = []
     if sys.platform == 'linux2':
@@ -177,85 +151,85 @@ else:
         env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
         env['LIBS'] += ['dl']
 
-    conf = env.Configure(config_h = "#config.h", custom_tests = {
-        'CheckPKG'       : utils.CheckPKG,
-        'CheckPKGConfig' : utils.CheckPKGConfig,
-        'CheckPortaudio' : utils.CheckPortaudio,
-        'CheckSDL'       : utils.CheckSDL,
-        'CheckWXConfig'  : wxconfig.CheckWXConfig,
-    })
+    conf = env.Configure(config_h = "#config.h")
 
-    if not conf.CheckPKGConfig('0.15.0'):
-        print "Can't find pkg-config, some tests will fail"
-
-    conf.CheckPKG('iconv')
+    conf.CheckLib('iconv')
 
     if env['shared_glew']:
-        env['shared_glew'] = conf.CheckPKG('GLEW')
+        env['shared_glew'] = conf.CheckLib('GLEW')
     if env['shared_png']:
-        env['shared_png'] = conf.CheckPKG('libpng')
+        env['shared_png'] = conf.CheckLib('png')
     if env['shared_sdl']:
-        env['shared_sdl'] = conf.CheckPKG('SDL')
+        env['shared_sdl'] = conf.CheckLib('SDL')
     if env['shared_zlib']:
-        env['shared_zlib'] = conf.CheckPKG('z')
+        env['shared_zlib'] = conf.CheckLib('z')
     if env['shared_lzo']:
-        env['shared_lzo'] = conf.CheckPKG('lzo2')
+        env['shared_lzo'] = conf.CheckLib('lzo2')
     # TODO:  Check the version of sfml.  It should be at least version 1.5
     if env['shared_sfml']:
-        env['shared_sfml'] = conf.CheckPKG('sfml-network') and \
+        env['shared_sfml'] = conf.CheckLib('sfml-network') and \
                              conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     if env['shared_soil']:
-        env['shared_soil'] = conf.CheckPKG('SOIL')
+        env['shared_soil'] = conf.CheckLib('SOIL')
     for var in env.items():
         if var[0].startswith('shared_') and var[1] == False:
             print "Shared library " + var[0][7:] + " not detected, " \
                   "falling back to the static library"
 
     if env['nowx']:
-        env['HAVE_WX'] = 0
+        conf.Define('HAVE_WX', 0)
     else:
-        if not conf.CheckPKG('gtk+-2.0'):
+        if not conf.CheckLib('gtk-x11-2.0'):
             print "gtk+-2.0 developement headers not detected"
             print "gtk+-2.0 is required to build the WX GUI"
             Exit(1)
         env['CPPDEFINES'] += ['__WXGTK__']
+        env['CPPPATH'] += ['/usr/include/atk-1.0']
+        env['CPPPATH'] += ['/usr/include/cairo']
+        env['CPPPATH'] += ['/usr/include/glib-2.0']
+        env['CPPPATH'] += ['/usr/include/gtk-2.0']
+        env['CPPPATH'] += ['/usr/include/pango-1.0']
+        env['CPPPATH'] += ['/usr/pkg/include/atk-1.0']
+        env['CPPPATH'] += ['/usr/pkg/include/cairo']
+        env['CPPPATH'] += ['/usr/pkg/include/glib-2.0']
+        env['CPPPATH'] += ['/usr/pkg/include/gtk-2.0']
+        env['CPPPATH'] += ['/usr/pkg/include/pango-1.0']
+        env['CPPPATH'] += ['/usr/local/include/atk-1.0']
+        env['CPPPATH'] += ['/usr/local/include/cairo']
+        env['CPPPATH'] += ['/usr/local/include/glib-2.0']
+        env['CPPPATH'] += ['/usr/local/include/gtk-2.0']
+        env['CPPPATH'] += ['/usr/local/include/pango-1.0']
         conf.Define('HAVE_WX', 1)
-        env['HAVE_WX'] = conf.CheckWXConfig(2.8, 'aui adv core base'.split(),
-            env['flavor'] == 'debug')
-        if env['HAVE_WX']:
-            wxconfig.ParseWXConfig(env)
-        else:
-            print "wxWidgets not found - see config.log"
 
-    env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
-    conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
+    env['HAVE_BLUEZ'] = conf.CheckLib('bluez')
+    conf.Define('HAVE_BLUEZ', int(env['HAVE_BLUEZ']))
 
-    env['HAVE_ALSA'] = conf.CheckPKG('alsa')
-    conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
-    env['HAVE_AO'] = conf.CheckPKG('ao')
-    conf.Define('HAVE_AO', env['HAVE_AO'])
-    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
-    conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
-    env['HAVE_PORTAUDIO'] = conf.CheckPortaudio(1890)
-    conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
-    conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
+    env['HAVE_ALSA'] = conf.CheckLib('alsa')
+    conf.Define('HAVE_ALSA', int(env['HAVE_ALSA']))
+    env['HAVE_AO'] = conf.CheckLib('ao')
+    conf.Define('HAVE_AO', int(env['HAVE_AO']))
+    env['HAVE_OPENAL'] = conf.CheckLib('openal')
+    conf.Define('HAVE_OPENAL', int(env['HAVE_OPENAL']))
+    env['HAVE_PORTAUDIO'] = conf.CheckLib('portaudio')
+    conf.Define('HAVE_PORTAUDIO', int(env['HAVE_PORTAUDIO']))
+    env['HAVE_PULSEAUDIO'] = conf.CheckLib('libpulse')
+    conf.Define('HAVE_PULSEAUDIO', int(env['HAVE_PULSEAUDIO']))
 
-    env['HAVE_X11'] = conf.CheckPKG('x11')
-    env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
-    conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
-    conf.Define('HAVE_X11', env['HAVE_X11'])
+    env['HAVE_X11'] = conf.CheckLib('X11')
+    env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckLib('Xrandr')
+    conf.Define('HAVE_XRANDR', int(env['HAVE_XRANDR']))
+    conf.Define('HAVE_X11', int(env['HAVE_X11']))
 
-    if not conf.CheckPKG('GL'):
+    if not conf.CheckLib('GL'):
         print "Must have OpenGL to build"
         Exit(1)
-    if not conf.CheckPKG('GLU'):
+    if not conf.CheckLib('GLU'):
         print "Must have GLU to build"
         Exit(1)
-    if not conf.CheckPKG('Cg') and sys.platform == 'linux2':
+    if not conf.CheckLib('Cg') and sys.platform == 'linux2':
         print "Must have Cg toolkit from NVidia to build"
         Exit(1)
-    if not conf.CheckPKG('CgGL') and sys.platform == 'linux2':
+    if not conf.CheckLib('CgGL') and sys.platform == 'linux2':
         print "Must have CgGL to build"
         Exit(1)
 
@@ -272,12 +246,12 @@ else:
         proflibs = ['/usr/lib/oprofile', '/usr/local/lib/oprofile']
         env['LIBPATH'] += ['proflibs']
         env['RPATH'] += ['proflibs']
-        if conf.CheckPKG('opagent'):
+        if conf.CheckLib('opagent'):
             conf.Define('USE_OPROFILE', 1)
         else:
             print "Can't build prof without oprofile, disabling"
 
-    tarname = 'dolphin-' + rev
+    tarname = 'dolphin-' + env['svnrev']
     env['TARFLAGS'] = '-cj'
     env['TARSUFFIX'] = '.tar.bz2'
 

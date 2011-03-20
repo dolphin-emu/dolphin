@@ -13,11 +13,10 @@ env['CPPPATH'] += ['#Externals/wxWidgets3', '#Externals/wxWidgets3/include']
 
 wxenv = env.Clone()
 
-wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations']
-wxenv['CCFLAGS'] += ['-Wno-shadow', '-Wno-sign-compare']
+wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations', '-Wno-shadow']
 wxenv['CPPDEFINES'] += ['WXBUILDING']
 
-# gtk, msw, osx and shared files as of r67106
+# gtk, msw, osx and shared files as of r67258
 
 aui = [
 	'src/aui/auibar.cpp',
@@ -145,15 +144,15 @@ common = [
 	'src/common/imagbmp.cpp',
 	'src/common/image.cpp',
 	'src/common/imagfill.cpp',
-	'src/common/imaggif.cpp',
-	'src/common/imagiff.cpp',
+	#'src/common/imaggif.cpp',
+	#'src/common/imagiff.cpp',
 	#'src/common/imagjpeg.cpp',
-	'src/common/imagpcx.cpp',
+	#'src/common/imagpcx.cpp',
 	'src/common/imagpng.cpp',
-	'src/common/imagpnm.cpp',
-	'src/common/imagtga.cpp',
+	#'src/common/imagpnm.cpp',
+	#'src/common/imagtga.cpp',
 	#'src/common/imagtiff.cpp',
-	'src/common/imagxpm.cpp',
+	#'src/common/imagxpm.cpp',
 	'src/common/init.cpp',
 	'src/common/intl.cpp',
 	'src/common/ipcbase.cpp',
@@ -299,7 +298,7 @@ generic = [
 	'src/generic/commandlinkbuttong.cpp',
 	'src/generic/datavgen.cpp',
 	'src/generic/datectlg.cpp',
-	'src/generic/dbgrptg.cpp',
+	#'src/generic/dbgrptg.cpp',
 	'src/generic/dcpsg.cpp',
 	'src/generic/dirctrlg.cpp',
 	'src/generic/dragimgg.cpp',
@@ -647,6 +646,7 @@ msw = [
 	'src/msw/ole/uuid.cpp',
 	'src/msw/ownerdrw.cpp',
 	'src/msw/palette.cpp',
+	'src/msw/panel.cpp',
 	'src/msw/pen.cpp',
 	'src/msw/penwin.cpp',
 	'src/msw/popupwin.cpp',

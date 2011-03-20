@@ -3,7 +3,6 @@
 Import('env')
 import os
 import sys
-from SconsTests import utils
 
 if env['nowx']:
 	files = ['Src/MainNoGUI.cpp']
@@ -113,8 +112,7 @@ elif sys.platform == 'darwin':
 		CFBundleIdentifier = 'com.dolphin-emulator.dolphin',
 		CFBundleLocalizations = languages,
 		CFBundlePackageType = 'APPL',
-		CFBundleShortVersionString =
-			utils.GenerateRevFile('', Dir('#None').abspath, None),
+		CFBundleShortVersionString = env['svnrev'],
 		CFBundleVersion = '3.0',
 		LSMinimumSystemVersion = '10.5.4',
 		LSRequiresCarbon = True,

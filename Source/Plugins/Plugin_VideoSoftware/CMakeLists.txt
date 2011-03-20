@@ -33,10 +33,6 @@ set(LIBS	videocommon
 			${X11_LIBRARIES}
 			${wxWidgets_LIBRARIES})
 
-if(WIN32)
-	set(SRCS ${SRCS} Src/Win32.cpp)
-endif()
-
 if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
