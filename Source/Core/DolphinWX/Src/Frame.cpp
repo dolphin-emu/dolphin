@@ -991,9 +991,9 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool bF)
 {
+	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
 	ToggleDisplayMode(bF);
 
-	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)
