@@ -991,13 +991,11 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool bF)
 {
-#ifndef __linux__
+#ifdef _WIN32	// See r7388
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
 #endif
 	ToggleDisplayMode(bF);
-#ifdef __linux__
-	// Linux needs the wxWidgets window to go to fullscreen after the display resolution
-	// is changed in order for the backbuffer to get the correct size.
+#ifndef _WIN32	// See r7388
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
 #endif
 

@@ -199,12 +199,14 @@ else:
         env['CPPPATH'] += ['/usr/local/include/glib-2.0']
         env['CPPPATH'] += ['/usr/local/include/gtk-2.0']
         env['CPPPATH'] += ['/usr/local/include/pango-1.0']
+        env['CPPPATH'] += ['/usr/lib/glib-2.0/include']
+        env['CPPPATH'] += ['/usr/lib/gtk-2.0/include']
         conf.Define('HAVE_WX', 1)
 
-    env['HAVE_BLUEZ'] = conf.CheckLib('bluez')
+    env['HAVE_BLUEZ'] = conf.CheckLib('bluetooth')
     conf.Define('HAVE_BLUEZ', int(env['HAVE_BLUEZ']))
 
-    env['HAVE_ALSA'] = conf.CheckLib('alsa')
+    env['HAVE_ALSA'] = conf.CheckLib('asound')
     conf.Define('HAVE_ALSA', int(env['HAVE_ALSA']))
     env['HAVE_AO'] = conf.CheckLib('ao')
     conf.Define('HAVE_AO', int(env['HAVE_AO']))
@@ -212,7 +214,7 @@ else:
     conf.Define('HAVE_OPENAL', int(env['HAVE_OPENAL']))
     env['HAVE_PORTAUDIO'] = conf.CheckLib('portaudio')
     conf.Define('HAVE_PORTAUDIO', int(env['HAVE_PORTAUDIO']))
-    env['HAVE_PULSEAUDIO'] = conf.CheckLib('libpulse')
+    env['HAVE_PULSEAUDIO'] = conf.CheckLib('pulse')
     conf.Define('HAVE_PULSEAUDIO', int(env['HAVE_PULSEAUDIO']))
 
     env['HAVE_X11'] = conf.CheckLib('X11')

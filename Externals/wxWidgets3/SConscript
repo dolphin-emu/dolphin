@@ -6,9 +6,6 @@ import sys
 if env['nowx']:
 	Return()
 
-if env.has_key('HAVE_WX') and env['HAVE_WX']:
-	Return()
-
 env['CPPPATH'] += ['#Externals/wxWidgets3', '#Externals/wxWidgets3/include']
 
 wxenv = env.Clone()
