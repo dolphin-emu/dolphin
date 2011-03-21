@@ -149,7 +149,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
 
-	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL");
+	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
 	diag.ShowModal();
 #endif
 }
@@ -160,8 +160,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	LoadConfig();
-	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str(), true,
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 
 	g_Config.UpdateProjectionHack();
 

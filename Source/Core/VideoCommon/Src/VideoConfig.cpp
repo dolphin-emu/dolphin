@@ -45,83 +45,88 @@ VideoConfig::VideoConfig()
 	backend_info.bSupports3DVision = false;
 }
 
-void VideoConfig::Load(const char *ini_file)
+void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const char *game_ini_file)
 {
 	std::string temp;
 	IniFile iniFile;
-	iniFile.Load(ini_file);
+	iniFile.Load(main_ini_file);
+
+	#define SET_STATE(evaluate, member) evaluate; UI_State.member = true;
+
+	SET_STATE(iniFile.Get("Hardware", "VSync", &bVSync, false), bVSync); // Hardware
+	SET_STATE(iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false), bWidescreenHack);
+	SET_STATE(iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO), iAspectRatio);
+	SET_STATE(iniFile.Get("Settings", "Crop", &bCrop, false), bCrop);
+	SET_STATE(iniFile.Get("Settings", "UseXFB", &bUseXFB, false), bUseXFB);
+	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, false);
+	SET_STATE(iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true), bUseNativeMips);
 	
-	iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
-	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
-	iniFile.Get("Settings", "Crop", &bCrop, false);
-	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
-	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
-	
-	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
+	SET_STATE(iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false), bSafeTextureCache); // Settings
 	//Safe texture cache params
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);
 
-	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
-	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
-	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
-	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
-	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
-	iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
-	iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
-	iniFile.Get("Settings", "HiresTextures", &bHiresTextures, 0);
-	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
-	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
-	iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
-	iniFile.Get("Settings", "UseFFV1", &bUseFFV1, 0);
-	iniFile.Get("Settings", "AnaglyphStereo", &bAnaglyphStereo, false);
-	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
-	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
-	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
-	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
+	SET_STATE(iniFile.Get("Settings", "ShowFPS", &bShowFPS, false), bShowFPS); // Settings
+	SET_STATE(iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false), bShowInputDisplay);
+	SET_STATE(iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false), bOverlayStats);
+	SET_STATE(iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false), bOverlayProjStats);
+	SET_STATE(iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false), bShowEFBCopyRegions);
+	SET_STATE(iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0), iCompileDLsLevel);
+	SET_STATE(iniFile.Get("Settings", "DumpTextures", &bDumpTextures, false), bDumpTextures);
+	SET_STATE(iniFile.Get("Settings", "HiresTextures", &bHiresTextures, false), bHiresTextures);
+	SET_STATE(iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, false), bDumpEFBTarget) ;
+	SET_STATE(iniFile.Get("Settings", "DumpFrames", &bDumpFrames, false), bDumpFrames);
+	SET_STATE(iniFile.Get("Settings", "FreeLook", &bFreeLook, false), bFreeLook);
+	SET_STATE(iniFile.Get("Settings", "UseFFV1", &bUseFFV1, false), bUseFFV1);
+	SET_STATE(iniFile.Get("Settings", "AnaglyphStereo", &bAnaglyphStereo, false), bAnaglyphStereo);
+	SET_STATE(iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200), iAnaglyphStereoSeparation);
+	SET_STATE(iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0), iAnaglyphFocalAngle);
+	SET_STATE(iniFile.Get("Settings", "EnablePixelLigting", &bEnablePixelLighting, false), bEnablePixelLighting);
+	SET_STATE(iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, false), bEnablePerPixelDepth);
 	
-	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
-	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 1); // integral
+	SET_STATE(iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, false), bShowShaderErrors);
+	SET_STATE(iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0), iMultisampleMode);
+	SET_STATE(iniFile.Get("Settings", "EFBScale", &iEFBScale, 1), iEFBScale); // integral
 	
-	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
+	SET_STATE(iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false), bDstAlphaPass);
 	
-	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
-	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
-	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
-	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
-	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
-	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
+	SET_STATE(iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, false), bTexFmtOverlayEnable);
+	SET_STATE(iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, false), bTexFmtOverlayCenter);
+	SET_STATE(iniFile.Get("Settings", "WireFrame", &bWireFrame, false), bWireFrame);
+	SET_STATE(iniFile.Get("Settings", "DisableLighting", &bDisableLighting, false), bDisableLighting);
+	SET_STATE(iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, false), bDisableTexturing);
+	SET_STATE(iniFile.Get("Settings", "DisableFog", &bDisableFog, false), bDisableFog);
 	
-	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
+	SET_STATE(iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false), bEnableOpenCL);
 #ifdef _OPENMP
-	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
+	SET_STATE(iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false), bOMPDecoder);
 #endif
 
-	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
-	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
+	SET_STATE(iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, false), bForceFiltering);
+	SET_STATE(iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
-	iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false);
+	SET_STATE(iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false), b3DVision);
 	
-	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
-	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
-	iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true);
-	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
+	SET_STATE(iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true), bEFBAccessEnable);
+	SET_STATE(iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false), bDlistCachingEnable);
+	SET_STATE(iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true), bEFBCopyEnable);
+	SET_STATE(iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, false), bOSDHotKey);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
-	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
-	iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
-	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, true);
+	SET_STATE(iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true), bCopyEFBScaled);
+	SET_STATE(iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false), bEFBCopyCacheEnable);
+	SET_STATE(iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, true), bEFBEmulateFormatChanges);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1)
 		iAdapter = 0;
+	SET_STATE(true, iAdapter);
 	
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
+	if (filecheck_passed)
+		GameIniLoad(game_ini_file);
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
@@ -129,94 +134,91 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 
-	iniFile.GetIfExists("Video_Hardware", "VSync", &bVSync);
-	iniFile.GetIfExists("Video_Settings", "wideScreenHack", &bWidescreenHack);
-	iniFile.GetIfExists("Video_Settings", "AspectRatio", &iAspectRatio);
-	iniFile.GetIfExists("Video_Settings", "Crop", &bCrop);
-	iniFile.GetIfExists("Video_Settings", "UseXFB", &bUseXFB);
-	iniFile.GetIfExists("Video_Settings", "UseRealXFB", &bUseRealXFB);
-	iniFile.GetIfExists("Video_Settings", "UseNativeMips", &bUseNativeMips);
+	#define SET_UISTATE(check, member) UI_State.member = (check) ? true : false
 
-	iniFile.GetIfExists("Video_Settings", "SafeTextureCache", &bSafeTextureCache);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hardware", "VSync", &bVSync), bVSync);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "wideScreenHack", &bWidescreenHack), bWidescreenHack);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AspectRatio", &iAspectRatio), iAspectRatio);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "Crop", &bCrop), bCrop);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "UseXFB", &bUseXFB), bUseXFB);
+	
+	iniFile.GetIfExists("Video_Settings", "UseRealXFB", &bUseRealXFB);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "UseNativeMips", &bUseNativeMips), bUseNativeMips);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "SafeTextureCache", &bSafeTextureCache), bSafeTextureCache);
+	
 	iniFile.GetIfExists("Video_Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
 
-	iniFile.GetIfExists("Video_Settings", "ShowFPS", &bShowFPS);
-	iniFile.GetIfExists("Video_Settings", "ShowInputDisplay", &bShowInputDisplay);
-	iniFile.GetIfExists("Video_Settings", "OverlayStats", &bOverlayStats);
-	iniFile.GetIfExists("Video_Settings", "OverlayProjStats", &bOverlayProjStats);
-	iniFile.GetIfExists("Video_Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions);
-	iniFile.GetIfExists("Video_Settings", "DLOptimize", &iCompileDLsLevel);
-	iniFile.GetIfExists("Video_Settings", "DumpTextures", &bDumpTextures);
-	iniFile.GetIfExists("Video_Settings", "HiresTextures", &bHiresTextures);
-	iniFile.GetIfExists("Video_Settings", "DumpEFBTarget", &bDumpEFBTarget);
-	iniFile.GetIfExists("Video_Settings", "DumpFrames", &bDumpFrames);
-	iniFile.GetIfExists("Video_Settings", "FreeLook", &bFreeLook);
-	iniFile.GetIfExists("Video_Settings", "UseFFV1", &bUseFFV1);
-	iniFile.GetIfExists("Video_Settings", "AnaglyphStereo", &bAnaglyphStereo);
-	iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation);
-	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
-	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
-	iniFile.GetIfExists("Video_Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowFPS", &bShowFPS), bShowFPS);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowInputDisplay", &bShowInputDisplay), bShowInputDisplay);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "OverlayStats", &bOverlayStats), bOverlayStats);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "OverlayProjStats", &bOverlayProjStats), bOverlayProjStats);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions), bShowEFBCopyRegions);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DLOptimize", &iCompileDLsLevel), iCompileDLsLevel);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DumpTextures", &bDumpTextures), bDumpTextures);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "HiresTextures", &bHiresTextures), bHiresTextures);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DumpEFBTarget", &bDumpEFBTarget), bDumpEFBTarget);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DumpFrames", &bDumpFrames), bDumpFrames);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "FreeLook", &bFreeLook), bFreeLook);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "UseFFV1", &bUseFFV1), bUseFFV1);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AnaglyphStereo", &bAnaglyphStereo), bAnaglyphStereo);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation), iAnaglyphStereoSeparation);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle), iAnaglyphFocalAngle);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnablePixelLigting", &bEnablePixelLighting), bEnablePixelLighting);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth), bEnablePerPixelDepth);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowShaderErrors", &bShowShaderErrors), bShowShaderErrors);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode), iMultisampleMode);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale), iEFBScale); // integral
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass), bDstAlphaPass);
 
-	iniFile.GetIfExists("Video_Settings", "ShowShaderErrors", &bShowShaderErrors);
-	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
-
-	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
-
-	iniFile.GetIfExists("Video_Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable);
-	iniFile.GetIfExists("Video_Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter);
-	iniFile.GetIfExists("Video_Settings", "WireFrame", &bWireFrame);
-	iniFile.GetIfExists("Video_Settings", "DisableLighting", &bDisableLighting);
-	iniFile.GetIfExists("Video_Settings", "DisableTexturing", &bDisableTexturing);
-	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
-
-	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable), bTexFmtOverlayEnable);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter), bTexFmtOverlayCenter);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "WireFrame", &bWireFrame), bWireFrame);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DisableLighting", &bDisableLighting), bDisableLighting);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DisableTexturing", &bDisableTexturing), bDisableTexturing);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog), bDisableFog);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL), bEnableOpenCL);
 #ifdef _OPENMP
-	iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder), bOMPDecoder);
 #endif
-
-	iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering);
-	iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
+	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering), bForceFiltering);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	iniFile.GetIfExists("Video_Enhancements", "PostProcessingShader", &sPostProcessingShader);
-	iniFile.GetIfExists("Video_Enhancements", "Enable3dVision", &b3DVision);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "Enable3dVision", &b3DVision), b3DVision);
 
-	iniFile.GetIfExists("Video_Hacks", "EFBAccessEnable", &bEFBAccessEnable);
-	iniFile.GetIfExists("Video_Hacks", "DlistCachingEnable", &bDlistCachingEnable);
-	iniFile.GetIfExists("Video_Hacks", "EFBCopyEnable", &bEFBCopyEnable);
-	iniFile.GetIfExists("Video_Hacks", "EFBCopyDisableHotKey", &bOSDHotKey);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBAccessEnable", &bEFBAccessEnable), bEFBAccessEnable);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "DlistCachingEnable", &bDlistCachingEnable), bDlistCachingEnable);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBCopyEnable", &bEFBCopyEnable), bEFBCopyEnable);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBCopyDisableHotKey", &bOSDHotKey), bOSDHotKey);
+	
 	iniFile.GetIfExists("Video_Hacks", "EFBToTextureEnable", &bCopyEFBToTexture);
-	iniFile.GetIfExists("Video_Hacks", "EFBScaledCopy", &bCopyEFBScaled);
-	iniFile.GetIfExists("Video_Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable);
-	iniFile.GetIfExists("Video_Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges);
+	
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBScaledCopy", &bCopyEFBScaled), bCopyEFBScaled);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable), bEFBCopyCacheEnable);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges), bEFBEmulateFormatChanges);
 
-	iniFile.GetIfExists("Video_Hardware", "Adapter", &iAdapter);
-
-
-	iniFile.GetIfExists("Video", "ForceFiltering", &bForceFiltering);
-	iniFile.GetIfExists("Video", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	iniFile.GetIfExists("Video", "EFBCopyEnable", &bEFBCopyEnable);
-	iniFile.GetIfExists("Video", "EFBCopyDisableHotKey", &bOSDHotKey);
-	iniFile.GetIfExists("Video", "EFBAccessEnable", &bEFBAccessEnable);
-	iniFile.GetIfExists("Video", "EFBToTextureEnable", &bCopyEFBToTexture);	
-	iniFile.GetIfExists("Video", "EFBScaledCopy", &bCopyEFBScaled);
-	iniFile.GetIfExists("Video", "SafeTextureCache", &bSafeTextureCache);
-	iniFile.GetIfExists("Video", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
-
-	iniFile.GetIfExists("Video", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video", "EFBScale", &iEFBScale);
-	iniFile.GetIfExists("Video", "DstAlphaPass", &bDstAlphaPass);
-	iniFile.GetIfExists("Video", "UseXFB", &bUseXFB);
-	iniFile.GetIfExists("Video", "UseRealXFB", &bUseRealXFB);
+	SET_UISTATE(iniFile.GetIfExists("Video_Hardware", "Adapter", &iAdapter), iAdapter);
+	
 	iniFile.GetIfExists("Video", "ProjectionHack", &iPhackvalue[0]);
 	iniFile.GetIfExists("Video", "PH_SZNear", &iPhackvalue[1]);
 	iniFile.GetIfExists("Video", "PH_SZFar", &iPhackvalue[2]);
 	iniFile.GetIfExists("Video", "PH_ExtraParam", &iPhackvalue[3]);
 	iniFile.GetIfExists("Video", "PH_ZNear", &sPhackvalue[0]);
 	iniFile.GetIfExists("Video", "PH_ZFar", &sPhackvalue[1]);
-	iniFile.GetIfExists("Video", "UseNativeMips", &bUseNativeMips);
-	iniFile.GetIfExists("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
-	iniFile.GetIfExists("Video", "DlistCachingEnable", &bDlistCachingEnable);
+
+	SET_UISTATE(iniFile.GetIfExists("Video", "ZTPSpeedupHack", &bZTPSpeedHack), bZTPSpeedHack);
+
+	VerifyValidity();
 }
 
 void VideoConfig::VerifyValidity()
@@ -233,6 +235,7 @@ void VideoConfig::Save(const char *ini_file)
 {
 	IniFile iniFile;
 	iniFile.Load(ini_file);
+
 	iniFile.Set("Hardware", "VSync", bVSync);
 	iniFile.Set("Settings", "AspectRatio", iAspectRatio);
 	iniFile.Set("Settings", "Crop", bCrop);
@@ -260,7 +263,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereo", bAnaglyphStereo);
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
+	iniFile.Set("Settings", "EnablePixelLigting", bEnablePixelLighting);
 	iniFile.Set("Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 	
 
@@ -270,7 +273,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "EFBScale", iEFBScale);
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
-	iniFile.Set("Settings", "Wireframe", bWireFrame);
+	iniFile.Set("Settings", "WireFrame", bWireFrame);
 	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
 	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
@@ -300,168 +303,79 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Save(ini_file);
 }
 
-// haxhaxhax
-static void SetUndetermined(bool& val)
+void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 {
-	// lul, storing a u8 inside a bool
-	*reinterpret_cast<u8*>(&val) = 2;
-}
 
-static void SetUndetermined(int& val)
-{
-	val = -1;
-}
+	IniFile iniFile;
+	iniFile.Load(game_ini);
 
-void VideoConfig::SetAllUndetermined()
-{
-	// video hardware
-	SetUndetermined(bVSync);
-	SetUndetermined(iAdapter);
+	#define CHECK_UISTATE(section, key, member){\
+		if (UI_State.member) iniFile.Set((section), (key), (member)); else iniFile.DeleteKey((section), (key)); }
 
-	// video settings
-	SetUndetermined(bWidescreenHack);
-	SetUndetermined(iAspectRatio);
-	SetUndetermined(bCrop);
-	SetUndetermined(bUseXFB);
-	SetUndetermined(bUseRealXFB);
-	SetUndetermined(bUseNativeMips);
+	CHECK_UISTATE("Video_Hardware", "VSync", bVSync);
+	CHECK_UISTATE("Video_Settings", "wideScreenHack", bWidescreenHack);
+	CHECK_UISTATE("Video_Settings", "AspectRatio", iAspectRatio);
+	CHECK_UISTATE("Video_Settings", "Crop", bCrop);
+	CHECK_UISTATE("Video_Settings", "UseXFB", bUseXFB);
+	iniFile.Set("Video_Settings", "UseRealXFB", bUseRealXFB);
+	CHECK_UISTATE("Video_Settings", "UseNativeMips", bUseNativeMips);
 
-	SetUndetermined(bSafeTextureCache);
-	SetUndetermined(iSafeTextureCache_ColorSamples);
+	CHECK_UISTATE("Video_Settings", "SafeTextureCache", bSafeTextureCache);
+	iniFile.Set("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 
-	SetUndetermined(bShowFPS);
-	SetUndetermined(bShowInputDisplay);
-	SetUndetermined(bOverlayStats);
-	SetUndetermined(bOverlayProjStats);
-	SetUndetermined(bShowEFBCopyRegions);
-	SetUndetermined(iCompileDLsLevel);
-	SetUndetermined(bDumpTextures);
-	SetUndetermined(bHiresTextures);
-	SetUndetermined(bDumpEFBTarget);
-	SetUndetermined(bDumpFrames);
-	SetUndetermined(bFreeLook);
-	SetUndetermined(bUseFFV1);
-	SetUndetermined(bAnaglyphStereo);
-	SetUndetermined(iAnaglyphStereoSeparation);
-	SetUndetermined(iAnaglyphFocalAngle);
-	SetUndetermined(bEnablePixelLighting);
-	SetUndetermined(bEnablePerPixelDepth);
+	CHECK_UISTATE("Video_Settings", "ShowFPS", bShowFPS);
+	CHECK_UISTATE("Video_Settings", "ShowInputDisplay", bShowInputDisplay);
+	CHECK_UISTATE("Video_Settings", "OverlayStats", bOverlayStats);
+	CHECK_UISTATE("Video_Settings", "OverlayProjStats", bOverlayProjStats);
+	CHECK_UISTATE("Video_Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
+	CHECK_UISTATE("Video_Settings", "DLOptimize", iCompileDLsLevel);
+	CHECK_UISTATE("Video_Settings", "DumpTextures", bDumpTextures);
+	CHECK_UISTATE("Video_Settings", "HiresTextures", bHiresTextures);
+	CHECK_UISTATE("Video_Settings", "DumpEFBTarget", bDumpEFBTarget);
+	CHECK_UISTATE("Video_Settings", "DumpFrames", bDumpFrames);
+	CHECK_UISTATE("Video_Settings", "FreeLook", bFreeLook);
+	CHECK_UISTATE("Video_Settings", "UseFFV1", bUseFFV1);
+	CHECK_UISTATE("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
+	CHECK_UISTATE("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
+	CHECK_UISTATE("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
+	CHECK_UISTATE("Video_Settings", "EnablePixelLigting", bEnablePixelLighting);
+	CHECK_UISTATE("Video_Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 
-	SetUndetermined(bShowShaderErrors);
-	SetUndetermined(iMultisampleMode);
-	SetUndetermined(iEFBScale);
+	CHECK_UISTATE("Video_Settings", "ShowShaderErrors", bShowShaderErrors);
+	CHECK_UISTATE("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_UISTATE("Video_Settings", "EFBScale", iEFBScale); // integral
 
-	SetUndetermined(bDstAlphaPass);
+	CHECK_UISTATE("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 
-	SetUndetermined(bTexFmtOverlayEnable);
-	SetUndetermined(bTexFmtOverlayCenter);
-	SetUndetermined(bWireFrame);
-	SetUndetermined(bDisableLighting);
-	SetUndetermined(bDisableTexturing);
-	SetUndetermined(bDisableFog);
+	CHECK_UISTATE("Video_Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
+	CHECK_UISTATE("Video_Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
+	CHECK_UISTATE("Video_Settings", "WireFrame", bWireFrame);
+	CHECK_UISTATE("Video_Settings", "DisableLighting", bDisableLighting);
+	CHECK_UISTATE("Video_Settings", "DisableTexturing", bDisableTexturing);
+	CHECK_UISTATE("Video_Settings", "DisableFog", bDisableFog);
 
-	SetUndetermined(bEnableOpenCL);
+	CHECK_UISTATE("Video_Settings", "EnableOpenCL", bEnableOpenCL);
 #ifdef _OPENMP
-	SetUndetermined(bOMPDecoder);
+	CHECK_UISTATE("Video_Settings", "OMPDecoder", bOMPDecoder);
 #endif
 
-	// video enhancements
-	SetUndetermined(bForceFiltering);
-	SetUndetermined(iMaxAnisotropy);
-	//SetUndetermined(sPostProcessingShader);
-	SetUndetermined(b3DVision);
+	CHECK_UISTATE("Video_Enhancements", "ForceFiltering", bForceFiltering);
+	CHECK_UISTATE("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
+	iniFile.Set("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+	CHECK_UISTATE("Video_Enhancements", "Enable3dVision", b3DVision);
 
-	// video hacks
-	SetUndetermined(bEFBAccessEnable);
-	SetUndetermined(bDlistCachingEnable);
-	SetUndetermined(bEFBCopyEnable);
-	SetUndetermined(bOSDHotKey);
-	SetUndetermined(bCopyEFBToTexture);
-	SetUndetermined(bCopyEFBScaled);
-	SetUndetermined(bEFBCopyCacheEnable);
-	SetUndetermined(bEFBEmulateFormatChanges);
+	CHECK_UISTATE("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
+	CHECK_UISTATE("Video_Hacks", "DlistCachingEnable", bDlistCachingEnable);
+	CHECK_UISTATE("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
+	CHECK_UISTATE("Video_Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
+	iniFile.Set("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
+	CHECK_UISTATE("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
+	CHECK_UISTATE("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
+	CHECK_UISTATE("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
-	// this doesn't belong here, o well
-	backend_info = BackendInfo();
-}
+	CHECK_UISTATE("Video_Hardware", "Adapter", iAdapter);
 
-void VideoConfig::GameIniSave(const char* game_ini)
-{
-	IniFile ini_file;
-	ini_file.Load(game_ini);
-
-	// video hardware
-	IniFile::Section& vid_hardware = *ini_file.GetOrCreateSection("Video_Hardware");
-	SetIfDetermined(vid_hardware, "VSync", bVSync);
-	SetIfDetermined(vid_hardware, "Adapter", iAdapter);
-
-	// video settings
-	IniFile::Section& vid_settings = *ini_file.GetOrCreateSection("Video_Settings");
-	SetIfDetermined(vid_settings, "wideScreenHack", bWidescreenHack);
-	SetIfDetermined(vid_settings, "AspectRatio", iAspectRatio);
-	SetIfDetermined(vid_settings, "Crop", bCrop);
-	SetIfDetermined(vid_settings, "UseXFB", bUseXFB);
-	SetIfDetermined(vid_settings, "UseRealXFB", bUseRealXFB);
-	SetIfDetermined(vid_settings, "UseNativeMips", bUseNativeMips);
-
-	SetIfDetermined(vid_settings, "SafeTextureCache", bSafeTextureCache);
-	SetIfDetermined(vid_settings, "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-
-	SetIfDetermined(vid_settings, "ShowFPS", bShowFPS);
-	SetIfDetermined(vid_settings, "ShowInputDisplay", bShowInputDisplay);
-	SetIfDetermined(vid_settings, "OverlayStats", bOverlayStats);
-	SetIfDetermined(vid_settings, "OverlayProjStats", bOverlayProjStats);
-	SetIfDetermined(vid_settings, "ShowEFBCopyRegions", bShowEFBCopyRegions);
-	SetIfDetermined(vid_settings, "DLOptimize", iCompileDLsLevel);
-	SetIfDetermined(vid_settings, "DumpTextures", bDumpTextures);
-	SetIfDetermined(vid_settings, "HiresTextures", bHiresTextures);
-	SetIfDetermined(vid_settings, "DumpEFBTarget", bDumpEFBTarget);
-	SetIfDetermined(vid_settings, "DumpFrames", bDumpFrames);
-	SetIfDetermined(vid_settings, "FreeLook", bFreeLook);
-	SetIfDetermined(vid_settings, "UseFFV1", bUseFFV1);
-	SetIfDetermined(vid_settings, "AnaglyphStereo", bAnaglyphStereo);
-	SetIfDetermined(vid_settings, "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
-	SetIfDetermined(vid_settings, "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	SetIfDetermined(vid_settings, "EnablePixelLighting", bEnablePixelLighting);
-	SetIfDetermined(vid_settings, "EnablePerPixelDepth", bEnablePerPixelDepth);
-
-	SetIfDetermined(vid_settings, "ShowShaderErrors", bShowShaderErrors);
-	SetIfDetermined(vid_settings, "MSAA", iMultisampleMode);
-	SetIfDetermined(vid_settings, "EFBScale", iEFBScale); // integral
-
-	SetIfDetermined(vid_settings, "DstAlphaPass", bDstAlphaPass);
-
-	SetIfDetermined(vid_settings, "TexFmtOverlayEnable", bTexFmtOverlayEnable);
-	SetIfDetermined(vid_settings, "TexFmtOverlayCenter", bTexFmtOverlayCenter);
-	SetIfDetermined(vid_settings, "WireFrame", bWireFrame);
-	SetIfDetermined(vid_settings, "DisableLighting", bDisableLighting);
-	SetIfDetermined(vid_settings, "DisableTexturing", bDisableTexturing);
-	SetIfDetermined(vid_settings, "DisableFog", bDisableFog);
-
-	SetIfDetermined(vid_settings, "EnableOpenCL", bEnableOpenCL);
-#ifdef _OPENMP
-	SetIfDetermined(vid_settings, "OMPDecoder", bOMPDecoder);
-#endif
-
-	// video enhancements
-	IniFile::Section& vid_enhancements = *ini_file.GetOrCreateSection("Video_Enhancements");
-	SetIfDetermined(vid_enhancements, "ForceFiltering", bForceFiltering);
-	SetIfDetermined(vid_enhancements, "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	//SetIfDetermined(vid_enhancements, "PostProcessingShader", sPostProcessingShader);
-	SetIfDetermined(vid_enhancements, "Enable3dVision", b3DVision);
-
-	// video hacks
-	IniFile::Section& vid_hacks = *ini_file.GetOrCreateSection("Video_Hacks");
-	SetIfDetermined(vid_hacks, "EFBAccessEnable", bEFBAccessEnable);
-	SetIfDetermined(vid_hacks, "DlistCachingEnable", bDlistCachingEnable);
-	SetIfDetermined(vid_hacks, "EFBCopyEnable", bEFBCopyEnable);
-	SetIfDetermined(vid_hacks, "EFBCopyDisableHotKey", bOSDHotKey);
-	SetIfDetermined(vid_hacks, "EFBToTextureEnable", bCopyEFBToTexture);
-	SetIfDetermined(vid_hacks, "EFBScaledCopy", bCopyEFBScaled);
-	SetIfDetermined(vid_hacks, "EFBCopyCacheEnable", bEFBCopyCacheEnable);
-	SetIfDetermined(vid_hacks, "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-
-	ini_file.Save(game_ini);
+	iniFile.Save(game_ini);
 }
 
 

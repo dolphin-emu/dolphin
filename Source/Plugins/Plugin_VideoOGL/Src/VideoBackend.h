@@ -9,9 +9,6 @@ namespace OGL
 
 class VideoBackend : public VideoBackendHardware
 {
-public:
-	VideoBackend() : VideoBackendHardware("gfx_opengl") {}
-
 	bool Initialize(void *&);
 	void Shutdown();
 

@@ -9,9 +9,6 @@ namespace DX11
 
 class VideoBackend : public VideoBackendHardware
 {
-public:
-	VideoBackend() : VideoBackendHardware("gfx_dx11") {}
-
 	bool Initialize(void *&);
 	void Shutdown();
 

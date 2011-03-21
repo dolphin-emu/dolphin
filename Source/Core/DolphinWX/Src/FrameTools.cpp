@@ -1161,11 +1161,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
 {
 	if (g_video_backend)
-	{
-		g_video_backend->LoadConfig();
 		g_video_backend->ShowConfig(this);
-		g_video_backend->SaveConfig();
-	}
 }
 
 void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))

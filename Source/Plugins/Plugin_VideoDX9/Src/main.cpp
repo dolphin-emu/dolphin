@@ -123,7 +123,7 @@ void VideoBackend::ShowConfig(void* parent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 	
-	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"));
+	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
 	diag.ShowModal();
 
 	g_Config.backend_info.Adapters.clear();
@@ -137,9 +137,10 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	LoadConfig();
-	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
-	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx9.ini").c_str(), true, 
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
+	
+	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
