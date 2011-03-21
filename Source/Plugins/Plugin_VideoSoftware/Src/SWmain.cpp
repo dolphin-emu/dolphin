@@ -67,7 +67,7 @@ void VideoSoftware::ShowConfig(void *_hParent)
 
 bool VideoSoftware::Initialize(void *&window_handle)
 {
-    g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+    LoadConfig();
 
 	if (!OpenGL_Create(window_handle))
 	{

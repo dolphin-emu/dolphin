@@ -9,6 +9,9 @@ namespace SW
 
 class VideoSoftware : public VideoBackend
 {
+public:
+	VideoSoftware() : VideoBackend("gfx_software") {}
+
 	bool Initialize(void *&);
 	void Shutdown();
 

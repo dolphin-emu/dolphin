@@ -9,6 +9,9 @@ namespace DX9
 
 class VideoBackend : public VideoBackendHardware
 {
+public:
+	VideoBackend() : VideoBackendHardware("gfx_dx9") {}
+
 	bool Initialize(void *&);
 	void Shutdown();
 

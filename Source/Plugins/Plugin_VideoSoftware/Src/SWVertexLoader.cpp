@@ -168,8 +168,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	// Normals
 	if (g_VtxDesc.Normal != NOT_PRESENT)
 	{
-		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal, m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
-		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal, m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3, true);
+		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal,
+			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+		
+		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
+			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+		
 		if (m_normalLoader == 0)
 		{
 			ERROR_LOG(VIDEO, "VertexLoader_Normal::GetFunction returned zero!");

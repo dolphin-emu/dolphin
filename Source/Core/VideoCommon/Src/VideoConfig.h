@@ -27,6 +27,7 @@
 
 #include "Common.h"
 #include "VideoCommon.h"
+#include "IniFile.h"
 
 #include <vector>
 #include <string>
@@ -66,8 +67,11 @@ struct VideoConfig
 	void GameIniLoad(const char *ini_file);
 	void VerifyValidity();
 	void Save(const char *ini_file);
-	void GameIniSave(const char* default_ini, const char* game_ini);
+	void GameIniSave(const char* game_ini);
 	void UpdateProjectionHack();
+
+	// some hacks used for per-game config
+	void SetAllUndetermined();
 
 	// General
 	bool bVSync;
@@ -149,7 +153,7 @@ struct VideoConfig
 	int iAdapter;
 
 	// Static config per API
-	struct
+	struct BackendInfo
 	{
 		API_TYPE APIType;
 
@@ -159,11 +163,33 @@ struct VideoConfig
 
 		bool bUseRGBATextures; // used for D3D11 in TextureCache
 		bool bSupports3DVision;
-		bool bAllowSignedBytes; // D3D9 doesn't support signed bytes (?)
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 	} backend_info;
+
+	// haxhaxhax
+	static bool IsUndetermined(const bool& val)
+	{
+		// lul, storing a u8 inside a bool
+		return (*reinterpret_cast<const u8*>(&val) > 1);
+	}
+
+	static bool IsUndetermined(int val)
+	{
+		return (val < 0);
+	}
+
+private:
+
+	template <typename T>
+	void SetIfDetermined(IniFile::Section& sect, const char* key, const T& value)
+	{
+		if (IsUndetermined(value))
+			sect.Delete(key);
+		else
+			sect.Set(key, value);
+	}
 };
 
 extern VideoConfig g_Config;

@@ -685,17 +685,13 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 	return PC_TEX_FMT_NONE;
 }
 
-//switch endianness, unswizzle
-//TODO: to save memory, don't blindly convert everything to argb8888
-//also ARGB order needs to be swapped later, to accommodate modern hardware better
-//need to add DXT support too
-PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+inline void SetOpenMPThreadCount(int width, int height)
 {
 #ifdef _OPENMP
-	//Dont use multithreading in small Textures
-	if ((width > 127 && height > 127) && g_ActiveConfig.bOMPDecoder)
+	// Dont use multithreading in small Textures
+	if (g_ActiveConfig.bOMPDecoder && width > 127 && height > 127)
 	{
-		//don't span to many threads they will kill the rest of the emu :)
+		// don't span to many threads they will kill the rest of the emu :)
 		omp_set_num_threads((cpu_info.num_cores + 2) / 3);
 	}
 	else
@@ -703,8 +699,19 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		omp_set_num_threads(1);
 	}
 #endif
-	int Wsteps4 = (width + 3) / 4;
-	int Wsteps8 = (width + 7) / 8;
+}
+
+//switch endianness, unswizzle
+//TODO: to save memory, don't blindly convert everything to argb8888
+//also ARGB order needs to be swapped later, to accommodate modern hardware better
+//need to add DXT support too
+PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+{
+	SetOpenMPThreadCount(width, height);
+
+	const int Wsteps4 = (width + 3) / 4;
+	const int Wsteps8 = (width + 7) / 8;
+
 	switch (texformat)
 	{
 	case GX_TF_C4:
@@ -967,19 +974,11 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 
 PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-#ifdef _OPENMP
-	if ((width > 127 && height > 127) && g_ActiveConfig.bOMPDecoder)
-	{
-		//don't span to many threads they will kill the rest of the emu :)
-		omp_set_num_threads((cpu_info.num_cores + 2) / 3);
-	}
-	else
-	{
-		omp_set_num_threads(1);
-	}
-#endif
-	int Wsteps4 = (width + 3) / 4;
-	int Wsteps8 = (width + 7) / 8;
+	SetOpenMPThreadCount(width, height);
+
+	const int Wsteps4 = (width + 3) / 4;
+	const int Wsteps8 = (width + 7) / 8;
+
 	switch (texformat)
 	{
 	case GX_TF_C4:

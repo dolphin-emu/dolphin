@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VideoBackendBase.h"
+#include "../../VideoCommon/Src/VideoConfig.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -72,4 +73,14 @@ void VideoBackend::ActivateBackend(const std::string& name)
 	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
 		if (name == (*it)->GetName())
 			g_video_backend = *it;
+}
+
+void VideoBackend::LoadConfig()
+{
+	g_Config.Load(((File::GetUserPath(D_CONFIG_IDX) + ini_name) + ".ini").c_str());
+}
+
+void VideoBackend::SaveConfig()
+{
+	g_Config.Save(((File::GetUserPath(D_CONFIG_IDX) + ini_name) + ".ini").c_str());
 }

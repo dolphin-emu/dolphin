@@ -132,7 +132,6 @@ void InitBackendInfo()
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bSupports3DVision = false;
-	g_Config.backend_info.bAllowSignedBytes = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
 	g_Config.backend_info.bSupportsPixelLighting = true;
@@ -150,7 +149,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
 
-	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
+	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL");
 	diag.ShowModal();
 #endif
 }
@@ -161,7 +160,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
+	LoadConfig();
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 
 	g_Config.UpdateProjectionHack();

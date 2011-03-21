@@ -29,10 +29,12 @@ public:
     static void Init(void);
 
     // GetSize
-    static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3);
+    static unsigned int GetSize(unsigned int _type, unsigned int _format,
+		unsigned int _elements, unsigned int _index3);
 
     // GetFunction
-    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3, bool allow_signed_bytes);
+    static TPipelineFunction GetFunction(unsigned int _type,
+		unsigned int _format, unsigned int _elements, unsigned int _index3);
 
 private:
     enum ENormalType

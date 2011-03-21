@@ -98,6 +98,7 @@ private:
 	void OnKeyPress(wxListEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
+	void OnGameVideoConfig(wxCommandEvent&);
 	void OnWiki(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
 	void OnOpenSaveFolder(wxCommandEvent& event);

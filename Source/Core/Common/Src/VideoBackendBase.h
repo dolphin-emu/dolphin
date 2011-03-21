@@ -83,6 +83,10 @@ struct SCPFifoStruct
 class VideoBackend
 {
 public:
+	const char* const ini_name;
+
+	VideoBackend(const char* _ini_name) : ini_name(_ini_name) {}
+
 	virtual ~VideoBackend() {}
 
 	virtual void EmuStateChange(EMUSTATE_CHANGE) = 0;
@@ -127,6 +131,9 @@ public:
 	virtual writeFn16 Video_PEWrite16() = 0;
 	virtual writeFn32 Video_PEWrite32() = 0;
 
+	void LoadConfig();
+	void SaveConfig();
+
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
@@ -138,6 +145,9 @@ extern VideoBackend* g_video_backend;
 // inherited by dx9/dx11/ogl backends
 class VideoBackendHardware : public VideoBackend
 {
+protected:
+	VideoBackendHardware(const char* _ini_name) : VideoBackend(_ini_name) {}
+
 	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
 

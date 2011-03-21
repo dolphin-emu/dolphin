@@ -296,9 +296,14 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Normals
 	vtx_decl.num_normals = 0;
-	if (m_VtxDesc.Normal != NOT_PRESENT) {
-		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3, g_Config.backend_info.bAllowSignedBytes);
+	if (m_VtxDesc.Normal != NOT_PRESENT)
+	{
+		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
+			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
+		
+		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal,
+			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
+
 		if (pFunc == 0)
 		{
 			char temp[256];

@@ -83,7 +83,6 @@ void InitBackendInfo()
 	g_Config.backend_info.APIType = API_D3D11;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
 	g_Config.backend_info.bSupports3DVision = false;
-	g_Config.backend_info.bAllowSignedBytes = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
@@ -142,7 +141,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 
-	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
+	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"));
 	diag.ShowModal();
 
 	g_Config.backend_info.Adapters.clear();
@@ -157,7 +156,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini").c_str());
+	LoadConfig();
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 	UpdateActiveConfig();

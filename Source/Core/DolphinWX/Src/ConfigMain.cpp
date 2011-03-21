@@ -1377,7 +1377,11 @@ void CConfigMain::OnSelectionChanged(wxCommandEvent& ev)
 void CConfigMain::OnConfig(wxCommandEvent&)
 {
 	if (g_video_backend)
+	{
+		g_video_backend->LoadConfig();
 		g_video_backend->ShowConfig(this);
+		g_video_backend->SaveConfig();
+	}
 }
 
 // Search for avaliable resolutions

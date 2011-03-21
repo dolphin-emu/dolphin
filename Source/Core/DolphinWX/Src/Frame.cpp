@@ -127,17 +127,8 @@ CPanel::CPanel(
 		case WM_USER:
 			switch(wParam)
 			{
-			// Pause
-			case WM_USER_PAUSE:
-				main_frame->DoPause();
-				break;
-
-			// Stop
 			case WM_USER_STOP:
 				main_frame->DoStop();
-				break;
-
-			case WM_USER_CREATE:
 				break;
 
 			case WM_USER_SETCURSOR:
@@ -180,6 +171,7 @@ CPanel::CPanel(
 				}
 			}
 			break;
+
 		default:
 			// By default let wxWidgets do what it normally does with this event
 			return wxPanel::MSWWindowProc(nMsg, wParam, lParam);

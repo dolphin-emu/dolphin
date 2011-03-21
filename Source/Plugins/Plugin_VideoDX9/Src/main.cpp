@@ -89,13 +89,13 @@ std::string VideoBackend::GetName()
 void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_D3D9;
-	g_Config.backend_info.bUseRGBATextures = true;
+	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bSupports3DVision = true;
-	g_Config.backend_info.bAllowSignedBytes = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	
+	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 }
 
@@ -123,7 +123,7 @@ void VideoBackend::ShowConfig(void* parent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 	
-	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
+	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"));
 	diag.ShowModal();
 
 	g_Config.backend_info.Adapters.clear();
@@ -137,7 +137,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx9.ini").c_str());
+	LoadConfig();
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();

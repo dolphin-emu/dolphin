@@ -29,6 +29,7 @@
 #include "Blob.h"
 #include "Core.h"
 #include "ISOProperties.h"
+#include "VideoConfigDiag.h"
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "CDUtils.h"
@@ -124,6 +125,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 	EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
 	EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
+	EVT_MENU(IDM_GAMEVIDEOCONFIG, CGameListCtrl::OnGameVideoConfig)
 	EVT_MENU(IDM_GAMEWIKI, CGameListCtrl::OnWiki)
 	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
@@ -999,6 +1001,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		{
 			wxMenu* popupMenu = new wxMenu;
 			popupMenu->Append(IDM_PROPERTIES, _("&Properties"));
+			popupMenu->Append(IDM_GAMEVIDEOCONFIG, _("&Graphics Configuration"));
 			popupMenu->Append(IDM_GAMEWIKI, _("&Wiki"));
 			popupMenu->AppendSeparator();
 
@@ -1165,6 +1168,31 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	CISOProperties ISOProperties(iso->GetFileName(), this);
 	if(ISOProperties.ShowModal() == wxID_OK)
 		Update();
+}
+
+void CGameListCtrl::OnGameVideoConfig(wxCommandEvent&)
+{
+	const GameListItem* const iso = GetSelectedISO();
+	if (!iso)
+		return;
+
+	VideoConfig const vc = g_Config;
+
+	g_Config.SetAllUndetermined();
+
+	// ugly
+	DiscIO::IVolume* const open_iso = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
+	std::string const unique_id = open_iso->GetUniqueID();
+	std::string const ini_path = File::GetUserPath(D_GAMECONFIG_IDX) + unique_id + ".ini";
+	g_Config.GameIniLoad(ini_path.c_str());
+	delete open_iso;
+
+	VideoConfigDiag vcd(this, unique_id, true);
+	vcd.ShowModal();
+
+	g_Config.GameIniSave(ini_path.c_str());
+
+	g_Config = vc;
 }
 
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
