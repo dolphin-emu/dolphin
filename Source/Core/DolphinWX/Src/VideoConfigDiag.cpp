@@ -161,7 +161,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	if (vconfig.backend_info.Adapters.size())
 	{
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
-	auto const choice_adapter = new SettingChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_tooltip));
+	SettingChoice * const choice_adapter =
+		new SettingChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_tooltip));
 
 	std::vector<std::string>::const_iterator
 		it = vconfig.backend_info.Adapters.begin(),
@@ -180,7 +181,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 		_("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect Ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	auto const choice_aspect = new SettingChoice(page_general,
+	SettingChoice * const choice_aspect = new SettingChoice(page_general,
 		vconfig.iAspectRatio, wxGetTranslation(ar_tooltip), sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
 	szr_basic->Add(choice_aspect, 1, 0, 0);
 	}
@@ -206,7 +207,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	if (!vconfig.backend_info.AAModes.empty())
 	{
 		szr_enh->Add(new wxStaticText(page_general, -1, _("Anti-Aliasing:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-		auto const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_tooltip));
+		SettingChoice * const choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_tooltip));
 
 		std::vector<std::string>::const_iterator
 			it = vconfig.backend_info.AAModes.begin(),
@@ -229,7 +230,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	szr_enh->Add(new SettingCheckBox(page_general, _("Force Bi/Trilinear Filtering"),
 		wxGetTranslation(force_filtering_tooltip), vconfig.bForceFiltering));
 	
-	auto const _3d_vision = new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision);
+	SettingCheckBox * const _3d_vision = new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision);
 	_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 	szr_enh->Add(_3d_vision);
 
@@ -239,21 +240,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	const wxString efbscale_choices[] = { _("Fractional"), _("Integral [recommended]"),
 		wxT("1x"), wxT("2x"), wxT("3x"), wxT("0.75x"), wxT("0.5x"), wxT("0.375x") };
 
-	auto const choice_efbscale = new SettingChoice(page_general,
+	SettingChoice * const choice_efbscale = new SettingChoice(page_general,
 			vconfig.iEFBScale, wxGetTranslation(internal_res_tooltip), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
 
 	efb_scale_szr->Add(new wxStaticText(page_general, -1, _("Scale:")), 0, wxALIGN_CENTER_VERTICAL, 5);
 	//efb_scale_szr->AddStretchSpacer(1);
 	efb_scale_szr->Add(choice_efbscale, 0, wxBOTTOM | wxLEFT, 5);
 
-	auto const emulate_efb_format_changes = new SettingCheckBox(page_general, _("Emulate Format Changes"),
+	SettingCheckBox * const emulate_efb_format_changes = new SettingCheckBox(page_general, _("Emulate Format Changes"),
 		wxGetTranslation(efb_emulate_format_changes_tooltip), vconfig.bEFBEmulateFormatChanges);
 
 	// EFB copy
-	auto const efbcopy_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(efb_copy_tooltip), vconfig.bEFBCopyEnable);
-	auto const efbcopy_texture = new SettingRadioButton(page_general, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	auto const efbcopy_ram = new SettingRadioButton(page_general, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), vconfig.bCopyEFBToTexture, true);
-	auto const cache_efb_copies = new SettingCheckBox(page_general, _("Enable Cache"), wxGetTranslation(cache_efb_copies_tooltip), vconfig.bEFBCopyCacheEnable);
+	SettingCheckBox * const efbcopy_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(efb_copy_tooltip), vconfig.bEFBCopyEnable);
+	SettingRadioButton * const efbcopy_texture = new SettingRadioButton(page_general, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
+	SettingRadioButton * const efbcopy_ram = new SettingRadioButton(page_general, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), vconfig.bCopyEFBToTexture, true);
+	SettingCheckBox * const cache_efb_copies = new SettingCheckBox(page_general, _("Enable Cache"), wxGetTranslation(cache_efb_copies_tooltip), vconfig.bEFBCopyCacheEnable);
 	
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Copy"));
 	
@@ -265,18 +266,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 
 
 	// - safe texture cache
-	auto const stc_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(stc_tooltip), vconfig.bSafeTextureCache);
+	SettingCheckBox * const stc_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(stc_tooltip), vconfig.bSafeTextureCache);
 
-	auto const stc_safe = new wxRadioButton(page_general, -1, _("Safe"),
+	wxRadioButton * const stc_safe = new wxRadioButton(page_general, -1, _("Safe"),
 		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	stc_safe->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 
-	auto const stc_normal = new wxRadioButton(page_general, -1, _("Normal"));
+	wxRadioButton * const stc_normal = new wxRadioButton(page_general, -1, _("Normal"));
 	stc_normal->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 
-	auto const stc_fast = new wxRadioButton(page_general, -1, _("Fast"));
+	wxRadioButton * const stc_fast = new wxRadioButton(page_general, -1, _("Fast"));
 	stc_fast->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 
@@ -360,9 +361,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	
 	// - XFB
 	{
-	auto const enable_xfb = new SettingCheckBox(page_advanced, _("Enable"), wxGetTranslation(xfb_tooltip), vconfig.bUseXFB);
-	auto const virtual_xfb = new SettingRadioButton(page_advanced, _("Virtual"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB, true, wxRB_GROUP);
-	auto const real_xfb = new SettingRadioButton(page_advanced, _("Real"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB);
+	SettingCheckBox * const enable_xfb = new SettingCheckBox(page_advanced, _("Enable"), wxGetTranslation(xfb_tooltip), vconfig.bUseXFB);
+	SettingRadioButton * const virtual_xfb = new SettingRadioButton(page_advanced, _("Virtual"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB, true, wxRB_GROUP);
+	SettingRadioButton * const real_xfb = new SettingRadioButton(page_advanced, _("Real"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB);
 
 	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_advanced, _("XFB"));
 	szr_advanced->Add(group_xfb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -387,7 +388,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 	szr_utility->Add(new SettingCheckBox(page_advanced, _("Free Look"),
 		free_look_tooltip, vconfig.bFreeLook));
 #if !defined WIN32 && defined HAVE_LIBAV
-	szr_utility->Add(frame_dumps_via_ffv1 = new SettingCheckBox(page_advanced, _("Dump Frames With FFV1"), use_ffv1_tooltip, vconfig.bUseFFV1));
+	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Frames With FFV1"), use_ffv1_tooltip, vconfig.bUseFFV1));
 #endif
 
 	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Utility"));
@@ -409,13 +410,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, boo
 		hotkeys_tooltip, vconfig.bOSDHotKey), 0, wxLEFT|wxBOTTOM, 5);
 	szr_misc->Add(new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"),
 		omp_tooltip, vconfig.bOMPDecoder), 0, wxBOTTOM, 5);
+	szr_misc->AddSpacer(0);
 
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
 	{
 		szr_misc->Add(new wxStaticText(page_advanced, -1, _("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
-		auto const choice_ppshader = new wxChoice(page_advanced, -1, wxDefaultPosition);
+		wxChoice * const choice_ppshader = new wxChoice(page_advanced, -1, wxDefaultPosition);
 		choice_ppshader->SetToolTip(wxGetTranslation(ppshader_tooltip));
 		choice_ppshader->AppendString(_("(off)"));
 
