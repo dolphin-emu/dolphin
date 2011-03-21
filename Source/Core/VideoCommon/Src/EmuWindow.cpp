@@ -176,7 +176,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		{
 			// This basically throws away the left button down input when b3DVision is activated so WX 
 			// can't get access to it, stopping focus pulling on mouse click. 
-			// (Input plugins use a different system so it doesn't cause any weirdness)
+			// (Input plugins use a different system so it doesn't cause too much weirdness)
 			break;
 		}
 	case WM_LBUTTONUP:
@@ -309,7 +309,14 @@ void Show()
 	ShowWindow(m_hWnd, SW_SHOW);
 	BringWindowToTop(m_hWnd);
 	UpdateWindow(m_hWnd);
-	SetFocus(m_hParent);
+	
+	if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
+	{
+		SetActiveWindow(m_hParent);
+		SetFocus(m_hWnd);
+	}
+	else
+		SetFocus(m_hParent);
 }
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)

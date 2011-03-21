@@ -185,10 +185,18 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 
 	pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
 
-	RECT client;
-	GetClientRect(hWnd, &client);
-	xres = pp->BackBufferWidth  = client.right - client.left;
-	yres = pp->BackBufferHeight = client.bottom - client.top;
+	if(g_Config.b3DVision)
+	{
+		xres = pp->BackBufferWidth  = adapters[adapter].resolutions[f].xres;
+		yres = pp->BackBufferHeight = adapters[adapter].resolutions[f].yres;
+	}
+	else
+	{
+		RECT client;
+		GetClientRect(hWnd, &client);
+		xres = pp->BackBufferWidth  = client.right - client.left;
+		yres = pp->BackBufferHeight = client.bottom - client.top;
+	}
 	pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 	pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 	pp->Windowed = !g_Config.b3DVision;
