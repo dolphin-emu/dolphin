@@ -585,7 +585,7 @@ void EndPlayInput(bool cont)
 
 void SaveRecording(const char *filename)
 {
-	const off_t size = g_recordfd.Tell();
+	const u64 size = g_recordfd.Tell();
 
 	// NOTE: Eventually this will not happen in
 	// read-only mode, but we need a way for the save state to

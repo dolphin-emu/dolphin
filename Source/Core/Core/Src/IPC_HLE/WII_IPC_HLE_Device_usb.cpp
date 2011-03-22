@@ -111,47 +111,24 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_HCIEndpoint);
 	p.Do(m_ACLEndpoint);
 	p.Do(m_last_ticks);
+	m_acl_pool.DoState(p);
 
-	u32 size;
-	if (p.GetMode() == PointerWrap::MODE_READ)
+	if (p.GetMode() == PointerWrap::MODE_READ &&
+		SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
-		u8 buf[sizeof(ACLQ)];
-		p.Do(size);
-		while (!m_ACLQ.empty())
-			m_ACLQ.pop();
-		for (u32 i = 0; i < size; i++)
-		{
-			p.DoVoid((void *)buf, sizeof(ACLQ));
-			m_ACLQ.push(*(ACLQ *)buf);
-		}
-		if (SConfig::GetInstance().m_WiimoteReconnectOnLoad)
-		{
-			// Reset the connection of all connected wiimotes
-                	for (unsigned int i = 0; i < 4; i++)
-	                {
-        	                if (m_WiiMotes[i].IsConnected())
-                	        {
-                        	        m_WiiMotes[i].Activate(false);
-                                	m_WiiMotes[i].Activate(true);
-	                        }
-        	                else
-                	        {
-                        	        m_WiiMotes[i].Activate(false);
-	                        }
-        	        }
-		}
-	}
-	else
-	{
-		size = m_ACLQ.size();
-		p.Do(size);
-		for (u32 i = 0; i < size; i++)
-		{
-			ACLQ tmp = m_ACLQ.front();
-			m_ACLQ.pop();
-			m_ACLQ.push(tmp);
-			p.DoVoid((void *)&tmp, sizeof(ACLQ));
-		}
+		// Reset the connection of all connected wiimotes
+        for (unsigned int i = 0; i < 4; i++)
+	    {
+        	if (m_WiiMotes[i].IsConnected())
+            {
+                    m_WiiMotes[i].Activate(false);
+                    m_WiiMotes[i].Activate(true);
+	        }
+        	else
+            {
+                    m_WiiMotes[i].Activate(false);
+	        }
+        }
 	}
 }
 
@@ -361,10 +338,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::IncDataPacket(u16 _ConnectionHandle)
 {
 	m_PacketCount[_ConnectionHandle & 0xff]++;
 
-	if (m_PacketCount[_ConnectionHandle & 0xff] > 10)
+	if (m_PacketCount[_ConnectionHandle & 0xff] > m_acl_pkts_num)
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
-		m_PacketCount[_ConnectionHandle & 0xff] = 10;
+		m_PacketCount[_ConnectionHandle & 0xff] = m_acl_pkts_num;
 	}
 }
 
@@ -390,8 +367,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	else
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, "
-			"queueing(%lu)...", (unsigned long)m_ACLQ.size());
-		m_ACLQ.push(ACLQ(_pData, _Size, _ConnectionHandle));
+			"queueing(%lu)...", m_acl_pool.GetWritePos());
+		m_acl_pool.Store(_pData, _Size, _ConnectionHandle);
 	}
 }
 
@@ -446,6 +423,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
 	bool packet_transferred = false;
+
 	// check hci queue
 	if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
 	{
@@ -466,25 +444,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	}
 
 	// check acl queue
-	// We give priority to HCI events, so ACL data won't be sent to host if HCI event queue contains events.
-	if (!m_ACLQ.empty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
+	if (!m_acl_pool.IsEmpty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
 	{
-		const ACLQ& acl_data = m_ACLQ.front();
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
-			"queue(%lu) to %08x", (unsigned long)m_ACLQ.size()-1,
-			m_ACLEndpoint.m_address);
-
-		hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(m_ACLEndpoint.m_buffer);
-		pHeader->con_handle	= HCI_MK_CON_HANDLE(acl_data.m_conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
-		pHeader->length		= acl_data.m_size;
-
-		// Write the packet to the buffer
-		memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), acl_data.m_buffer, pHeader->length);
-
-		m_ACLEndpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + acl_data.m_size);
-		WII_IPC_HLE_Interface::EnqReply(m_ACLEndpoint.m_address);
-		m_ACLEndpoint.Invalidate();
-		m_ACLQ.pop();
+		m_acl_pool.WriteToEndpoint(m_ACLEndpoint);
 		packet_transferred = true;
 	}
 
@@ -502,7 +464,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			{
 				Host_SetWiiMoteConnectionState(1);
 				SendEventRequestConnection(m_WiiMotes[i]);
-				//return true;
 			}
 		}
 	}
@@ -540,6 +501,30 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
  	SendEventNumberOfCompletedPackets();
 
 	return packet_transferred;
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
+{
+	const u8 *data = m_pool + m_acl_pkt_size * m_read_ptr;
+	const u16 size = m_info[m_read_ptr].size;
+	const u16 conn_handle = m_info[m_read_ptr].conn_handle;
+
+	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
+		"queue(%lu) to %08x", GetReadPos(),	endpoint.m_address);
+
+	hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_buffer);
+	pHeader->con_handle	= HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
+	pHeader->length		= size;
+
+	// Write the packet to the buffer
+	memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), data, pHeader->length);
+
+	endpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
+
+	m_read_ptr = (m_read_ptr + 1) % m_acl_pkts_num;
+
+	WII_IPC_HLE_Interface::EnqReply(endpoint.m_address);
+	endpoint.Invalidate();
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()
@@ -1766,11 +1751,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadBufferSize(u8* _Input)
 {
 	hci_read_buffer_size_rp Reply;
 	Reply.status = 0x00;
-	Reply.max_acl_size = 339;
+	Reply.max_acl_size = m_acl_pkt_size;
 	// Due to how the widcomm stack which nintendo uses is coded, we must never
 	// let the stack think the controller is buffering more than 10 data packets
 	// - it will cause a u8 underflow and royally screw things up.
-	Reply.num_acl_pkts = 10;
+	Reply.num_acl_pkts = m_acl_pkts_num;
 	Reply.max_sco_size = 64;
 	Reply.num_sco_pkts = 0;
 

@@ -30,7 +30,7 @@
 
 #ifdef _OPENMP
 #include <omp.h>
-#else
+#elif defined __GNUC__
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #endif
 

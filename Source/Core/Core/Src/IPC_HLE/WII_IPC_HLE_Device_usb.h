@@ -156,19 +156,64 @@ private:
 	
 	u32 m_ACLSetup;
 	CtrlBuffer m_ACLEndpoint;
-	struct ACLQ
+
+	static const int m_acl_pkt_size = 339;
+	static const int m_acl_pkts_num = 10;
+
+	class ACLPool
 	{
-		u8* m_buffer;
-		size_t m_size;
-		u16 m_conn_handle;
-		ACLQ(const u8* data, const size_t size, const u16 conn_handle)
-			: m_size(size), m_conn_handle(conn_handle)
+		u8 m_pool[m_acl_pkt_size * m_acl_pkts_num];
+		int m_read_ptr;
+		int m_write_ptr;
+
+		struct
 		{
-			m_buffer = new u8[m_size];	// TODO: memleak
-			memcpy(m_buffer, data, m_size);
+			u16 size;
+			u16 conn_handle;
+		} m_info[m_acl_pkts_num];
+
+	public:
+		ACLPool()
+			: m_read_ptr(0)
+			, m_write_ptr(0)
+		{}
+
+		void Store(const u8* data, const u16 size, const u16 conn_handle)
+		{
+			_dbg_assert_msg_(WII_IPC_WIIMOTE,
+				size < m_acl_pkt_size, "acl packet too large for pool");
+			memcpy(m_pool + m_acl_pkt_size * m_write_ptr, data, size);
+			m_info[m_write_ptr].size = size;
+			m_info[m_write_ptr].conn_handle = conn_handle;
+			m_write_ptr = (m_write_ptr + 1) % m_acl_pkts_num;
 		}
-	};
-	std::queue<ACLQ> m_ACLQ;
+
+		void WriteToEndpoint(CtrlBuffer& endpoint);
+
+		bool IsEmpty() const
+		{
+			return m_write_ptr == m_read_ptr;
+		}
+
+		int GetWritePos() const
+		{
+			return m_write_ptr;
+		}
+
+		int GetReadPos() const
+		{
+			return m_read_ptr;
+		}
+
+		// For SaveStates
+		void DoState(PointerWrap &p)
+		{
+			p.Do(m_write_ptr);
+			p.Do(m_read_ptr);
+			p.DoArray(m_pool, sizeof(m_pool));
+			p.DoArray(m_info, sizeof(m_info));
+		}
+	} m_acl_pool;
 
 	u32 m_PacketCount[4];
 	u64 m_last_ticks;
