@@ -255,7 +255,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
 		if (!item) continue;
-		profile_cb->AppendString(wxString(item->GetName(0).c_str(), wxConvUTF8));
+		profile_cb->AppendString(wxString::FromAscii(item->GetName(0).c_str()));
 	}
 
 	profile_cb->Select(cur_profile);
