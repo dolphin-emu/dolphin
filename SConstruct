@@ -183,24 +183,8 @@ else:
             print "gtk+-2.0 developement headers not detected"
             print "gtk+-2.0 is required to build the WX GUI"
             Exit(1)
+        env.ParseConfig('pkg-config --cflags --libs gtk+-2.0')
         env['CPPDEFINES'] += ['__WXGTK__']
-        env['CPPPATH'] += ['/usr/include/atk-1.0']
-        env['CPPPATH'] += ['/usr/include/cairo']
-        env['CPPPATH'] += ['/usr/include/glib-2.0']
-        env['CPPPATH'] += ['/usr/include/gtk-2.0']
-        env['CPPPATH'] += ['/usr/include/pango-1.0']
-        env['CPPPATH'] += ['/usr/pkg/include/atk-1.0']
-        env['CPPPATH'] += ['/usr/pkg/include/cairo']
-        env['CPPPATH'] += ['/usr/pkg/include/glib-2.0']
-        env['CPPPATH'] += ['/usr/pkg/include/gtk-2.0']
-        env['CPPPATH'] += ['/usr/pkg/include/pango-1.0']
-        env['CPPPATH'] += ['/usr/local/include/atk-1.0']
-        env['CPPPATH'] += ['/usr/local/include/cairo']
-        env['CPPPATH'] += ['/usr/local/include/glib-2.0']
-        env['CPPPATH'] += ['/usr/local/include/gtk-2.0']
-        env['CPPPATH'] += ['/usr/local/include/pango-1.0']
-        env['CPPPATH'] += ['/usr/lib/glib-2.0/include']
-        env['CPPPATH'] += ['/usr/lib/gtk-2.0/include']
         conf.Define('HAVE_WX', 1)
 
     env['HAVE_BLUEZ'] = conf.CheckLib('bluetooth')

@@ -21,6 +21,7 @@
 #include <wx/fontmap.h>
 
 #include <algorithm>
+#include <memory>
 
 #include "FileSearch.h"
 #include "StringUtil.h"

@@ -118,7 +118,7 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1)
 		iAdapter = 0;
-	SET_STATE(true, iAdapter);
+	SET_STATE((void)true, iAdapter);
 	
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
