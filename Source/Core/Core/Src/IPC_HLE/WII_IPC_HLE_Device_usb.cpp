@@ -338,7 +338,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::IncDataPacket(u16 _ConnectionHandle)
 {
 	m_PacketCount[_ConnectionHandle & 0xff]++;
 
-	if (m_PacketCount[_ConnectionHandle & 0xff] > m_acl_pkts_num)
+	if (m_PacketCount[_ConnectionHandle & 0xff] > (unsigned int)m_acl_pkts_num)
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
 		m_PacketCount[_ConnectionHandle & 0xff] = m_acl_pkts_num;
@@ -367,7 +367,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	else
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, "
-			"queueing(%lu)...", m_acl_pool.GetWritePos());
+			"queueing(%d)...", m_acl_pool.GetWritePos());
 		m_acl_pool.Store(_pData, _Size, _ConnectionHandle);
 	}
 }
@@ -510,7 +510,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& e
 	const u16 conn_handle = m_info[m_read_ptr].conn_handle;
 
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
-		"queue(%lu) to %08x", GetReadPos(),	endpoint.m_address);
+		"queue(%d) to %08x", GetReadPos(),	endpoint.m_address);
 
 	hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_buffer);
 	pHeader->con_handle	= HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);

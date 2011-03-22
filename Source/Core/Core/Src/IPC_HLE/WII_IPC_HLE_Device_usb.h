@@ -210,8 +210,8 @@ private:
 		{
 			p.Do(m_write_ptr);
 			p.Do(m_read_ptr);
-			p.DoArray(m_pool, sizeof(m_pool));
-			p.DoArray(m_info, sizeof(m_info));
+			p.DoArray((u8 *)m_pool, sizeof(m_pool));
+			p.DoArray((u8 *)m_info, sizeof(m_info));
 		}
 	} m_acl_pool;
 
