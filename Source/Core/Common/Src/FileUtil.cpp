@@ -677,7 +677,7 @@ bool WriteStringToFile(bool text_file, const std::string &str, const char *filen
 	if (!f)
 		return false;
 	size_t len = str.size();
-	if (len != fwrite(str.data(), 1, str.size(), f))
+	if (len != fwrite(str.data(), 1, str.size(), f))	// TODO: string::data() may not be contiguous
 	{
 		fclose(f);
 		return false;

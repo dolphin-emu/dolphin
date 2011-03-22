@@ -18,8 +18,8 @@
 #ifndef _DSPEMULATOR_H_
 #define _DSPEMULATOR_H_
 
-
 #include "ChunkFile.h"
+#include "SoundStream.h"
 
 class DSPEmulator
 {
@@ -43,6 +43,9 @@ public:
 	virtual void DSP_Update(int cycles) = 0;
 	virtual void DSP_StopSoundStream() = 0;
 	virtual void DSP_ClearAudioBuffer(bool mute) = 0;
+
+protected:
+	SoundStream *soundStream;
 };
 
 DSPEmulator *CreateDSPEmulator(bool LLE);

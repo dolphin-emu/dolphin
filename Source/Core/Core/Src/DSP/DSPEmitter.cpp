@@ -41,7 +41,6 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	blocks = new DSPCompiledCode[MAX_BLOCKS];
 	blockLinks = new Block[MAX_BLOCKS];
 	blockSize = new u16[MAX_BLOCKS];
-	unresolvedJumps = new std::list<u16>[MAX_BLOCKS];
 	
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;

@@ -52,7 +52,7 @@ public:
 
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();
-	const GameListItem *GetISO(int index) const;
+	const GameListItem *GetISO(size_t index) const;
 
 	enum
 	{
@@ -71,7 +71,7 @@ private:
 	std::vector<int> m_FlagImageIndex;
 	std::vector<int> m_PlatformImageIndex;
 	std::vector<int> m_EmuStateImageIndex;
-	std::vector<GameListItem> m_ISOFiles;
+	std::vector<GameListItem*> m_ISOFiles;
 
 	// NetPlay string for the gamelist
 	std::string m_gameList;

@@ -48,7 +48,6 @@ private:
 	static void dsp_thread(DSPLLE* lpParameter);
 
 	std::thread m_hDSPThread;
-	SoundStream *soundStream;
 	bool m_InitMixer;
 	void *m_hWnd;
 	bool m_bWii;

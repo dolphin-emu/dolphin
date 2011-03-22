@@ -22,6 +22,7 @@
 #include <math.h>
 #ifdef _WIN32
 #include <windows.h>
+#include <array>
 #else
 #include <stdarg.h>
 #endif
@@ -175,8 +176,8 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	bool DAft = true;
 	std::string SLog = "";
 
-	HWND hWnd = GetConsoleWindow();
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	const HWND hWnd = GetConsoleWindow();
+	const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	// Get console info
 	CONSOLE_SCREEN_BUFFER_INFO ConInfo;
@@ -189,30 +190,30 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	DWORD cCharsRead = 0;
 	COORD coordScreen = { 0, 0 };
 
-	std::vector<char*> Str;
-	std::vector<WORD*> Attr;
+	static const int MAX_BYTES = 1024 * 16;
+
+	std::vector<std::array<CHAR, MAX_BYTES>> Str;
+	std::vector<std::array<WORD, MAX_BYTES>> Attr;
+
 	// ReadConsoleOutputAttribute seems to have a limit at this level
-	const int MAX_BYTES = 1024 * 16;
-	int ReadBufferSize = MAX_BYTES - 32;
+	static const int ReadBufferSize = MAX_BYTES - 32;
+
 	DWORD cAttrRead = ReadBufferSize;
 	DWORD BytesRead = 0;
-	int i = 0;
-	int LastAttrRead = 0;
 	while (BytesRead < BufferSize)
 	{
-		Str.push_back(new char[MAX_BYTES]);
-		if (!ReadConsoleOutputCharacter(hConsole, Str[i], ReadBufferSize, coordScreen, &cCharsRead))
+		Str.resize(Str.size() + 1);
+		if (!ReadConsoleOutputCharacter(hConsole, Str.back().data(), ReadBufferSize, coordScreen, &cCharsRead))
 			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
-		Attr.push_back(new WORD[MAX_BYTES]);
-		if (!ReadConsoleOutputAttribute(hConsole, Attr[i], ReadBufferSize, coordScreen, &cAttrRead))
+
+		Attr.resize(Attr.size() + 1);
+		if (!ReadConsoleOutputAttribute(hConsole, Attr.back().data(), ReadBufferSize, coordScreen, &cAttrRead))
 			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
 
 		// Break on error
 		if (cAttrRead == 0) break;
 		BytesRead += cAttrRead;
-		i++;
 		coordScreen = GetCoordinates(BytesRead, ConInfo.dwSize.X);
-		LastAttrRead = cAttrRead;
 	}
 	// Letter space
 	int LWidth = (int)(floor((float)Width / 8.0f) - 1.0f);
@@ -232,16 +233,16 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	DWORD cAttrWritten = 0;
 	for (size_t i = 0; i < Attr.size(); i++)
 	{
-		if (!WriteConsoleOutputCharacter(hConsole, Str[i], ReadBufferSize, coordScreen, &cCharsWritten))
+		if (!WriteConsoleOutputCharacter(hConsole, Str[i].data(), ReadBufferSize, coordScreen, &cCharsWritten))
 			SLog += StringFromFormat("WriteConsoleOutputCharacter error");
-		if (!WriteConsoleOutputAttribute(hConsole, Attr[i], ReadBufferSize, coordScreen, &cAttrWritten))
+		if (!WriteConsoleOutputAttribute(hConsole, Attr[i].data(), ReadBufferSize, coordScreen, &cAttrWritten))
 			SLog += StringFromFormat("WriteConsoleOutputAttribute error");
 
 		BytesWritten += cAttrWritten;
 		coordScreen = GetCoordinates(BytesWritten, LBufWidth);
 	}	
 
-	int OldCursor = ConInfo.dwCursorPosition.Y * ConInfo.dwSize.X + ConInfo.dwCursorPosition.X;
+	const int OldCursor = ConInfo.dwCursorPosition.Y * ConInfo.dwSize.X + ConInfo.dwCursorPosition.X;
 	COORD Coo = GetCoordinates(OldCursor, LBufWidth);
 	SetConsoleCursorPosition(hConsole, Coo);
 

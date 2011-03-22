@@ -26,7 +26,7 @@
 #endif
 
 class PointerWrap;
-class GameListItem
+class GameListItem : NonCopyable
 {
 public:
 	GameListItem(const std::string& _rFileName);
@@ -78,7 +78,7 @@ private:
 #endif
 	bool m_Valid;
 	bool m_BlobCompressed;
-	u8* m_pImage;
+	std::vector<u8> m_pImage;
 	u32 m_ImageSize;
 
 	bool LoadFromCache();

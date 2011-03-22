@@ -147,6 +147,12 @@ CGameListCtrl::~CGameListCtrl()
 {
 	if (m_imageListSmall)
 		delete m_imageListSmall;
+
+	while (!m_ISOFiles.empty())	// so lazy
+	{
+		delete m_ISOFiles.back();
+		m_ISOFiles.pop_back();
+	}
 }
 
 void CGameListCtrl::InitBitmaps()
@@ -276,7 +282,7 @@ void CGameListCtrl::Update()
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
-			if (m_ISOFiles[i].IsCompressed())
+			if (m_ISOFiles[i]->IsCompressed())
 				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
@@ -375,7 +381,7 @@ void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 			if (GetItemRect(i, itemRect))
 			{
 				int itemY = itemRect.GetTop();
-				const GameListItem& rISOFile = m_ISOFiles[GetItemData(i)];
+				const GameListItem& rISOFile = *m_ISOFiles[GetItemData(i)];
 
 				m_imageListSmall->Draw(m_PlatformImageIndex[rISOFile.GetPlatform()],
 						dc, itemRect.GetX()+3, itemY);
@@ -415,7 +421,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
 #endif
 
-	GameListItem& rISOFile = m_ISOFiles[_Index];
+	GameListItem& rISOFile = *m_ISOFiles[_Index];
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
 	// Insert a first row with the platform image, that will be used as the Index
@@ -612,7 +618,9 @@ void CGameListCtrl::ScanForISOs()
 			if (!Cont)
 				break;
 
-			GameListItem ISOFile(rFilenames[i]);
+			GameListItem* const iso_file = new GameListItem(rFilenames[i]);
+			const GameListItem& ISOFile = *iso_file;
+
 			if (ISOFile.IsValid())
 			{
 				bool list = true;
@@ -665,21 +673,21 @@ void CGameListCtrl::ScanForISOs()
 				}
 
 				if (list)
-					m_ISOFiles.push_back(ISOFile);
+					m_ISOFiles.push_back(iso_file);
 			}
 		}
 	}
 
 	if (SConfig::GetInstance().m_ListDrives)
 	{
-		std::vector<std::string> drives = cdio_get_devices();
-		GameListItem * Drive[24];
-		// Another silly Windows limitation of 24 drive letters
-		for (u32 i = 0; i < drives.size() && i < 24; i++)
+		const std::vector<std::string> drives = cdio_get_devices();
+
+		for (std::vector<std::string>::const_iterator iter = drives.begin(); iter != drives.end(); ++iter)
 		{
-			Drive[i] = new GameListItem(drives[i].c_str());
-			if (Drive[i]->IsValid())
-				m_ISOFiles.push_back(*Drive[i]);
+			std::auto_ptr<GameListItem> gli(new GameListItem(*iter));
+
+			if (gli->IsValid())
+				m_ISOFiles.push_back(gli.release());
 		}
 	}
 
@@ -692,10 +700,12 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 		event.Veto();
 }
 
-const GameListItem *CGameListCtrl::GetISO(int index) const
+const GameListItem *CGameListCtrl::GetISO(size_t index) const
 {
-	if (index >= (int)m_ISOFiles.size()) return NULL;
-	return &m_ISOFiles[index];
+	if (index < m_ISOFiles.size())
+		return m_ISOFiles[index];
+	else
+		return NULL;
 }
 
 CGameListCtrl *caller;
@@ -906,7 +916,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				return;
 			}
 
-			const GameListItem& rISO = m_ISOFiles[GetItemData(item)];
+			const GameListItem& rISO = *m_ISOFiles[GetItemData(item)];
 
 			IniFile ini;
 			ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + rISO.GetUniqueID() + ".ini");
@@ -1061,7 +1071,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 			if (GetSelectedItemCount() > 1)
 				SetItemState(item, 0, wxLIST_STATE_SELECTED);
 
-			return &m_ISOFiles[GetItemData(item)];
+			return m_ISOFiles[GetItemData(item)];
 		}
 	}
 }

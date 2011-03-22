@@ -260,7 +260,7 @@ public:
 	u16 startAddr;
 	Block *blockLinks;
 	u16 *blockSize;
-	std::list<u16> *unresolvedJumps;
+	std::list<u16> unresolvedJumps[MAX_BLOCKS];
 
 	DSPJitRegCache gpr;
 private:

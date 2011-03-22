@@ -47,8 +47,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_FileSize(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
-	, m_pImage(NULL)
-	, m_ImageSize(0)
 {
 	if (LoadFromCache())
 	{
@@ -100,9 +98,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						pBannerLoader->GetDescription(m_Description);
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
-							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
-							//use malloc(), since wxImage::Create below calls free() afterwards.
-							m_pImage = (u8*)malloc(m_ImageSize);
+							// resize vector to image size
+							m_pImage.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
 
 							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
 							{
@@ -124,14 +121,14 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			// If not Gamecube, create a cache file only if we have an image.
 			// Wii isos create their images after you have generated the first savegame
-			if (m_Platform == GAMECUBE_DISC || m_pImage)
+			if (m_Platform == GAMECUBE_DISC || !m_pImage.empty())
 				SaveToCache();
 		}
 	}
 
-	if (m_pImage)
+	if (!m_pImage.empty())
 	{
-		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, m_pImage);
+		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, &m_pImage[0], true);
 	}
 	else
 	{
@@ -173,7 +170,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_VolumeSize);
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
-	p.DoBuffer(&m_pImage, m_ImageSize);
+	p.Do(m_pImage);
 	p.Do(m_Platform);
 }
 

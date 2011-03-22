@@ -164,7 +164,7 @@ private:
 		ACLQ(const u8* data, const size_t size, const u16 conn_handle)
 			: m_size(size), m_conn_handle(conn_handle)
 		{
-			m_buffer = new u8[m_size];
+			m_buffer = new u8[m_size];	// TODO: memleak
 			memcpy(m_buffer, data, m_size);
 		}
 	};

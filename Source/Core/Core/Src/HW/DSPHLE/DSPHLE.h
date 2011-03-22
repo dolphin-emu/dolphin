@@ -61,7 +61,6 @@ private:
 	bool m_bWii;
 	
 	bool m_InitMixer;
-	SoundStream *soundStream;
 
 	// Fake mailbox utility
 	struct DSPState

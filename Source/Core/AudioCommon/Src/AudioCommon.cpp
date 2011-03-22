@@ -31,6 +31,8 @@ namespace AudioCommon
 {	
 	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
 	{
+		// TODO: possible memleak with mixer
+
 		std::string backend = ac_Config.sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);

@@ -119,9 +119,12 @@ public:
 
 	// Store vectors.
 	template<class T>
-	void Do(std::vector<T> &x) {
-		// TODO
-		PanicAlert("Do(vector<>) does not yet work.");
+	void Do(std::vector<T> &x)
+	{
+		u32 vec_size = (u32)x.size();
+		Do(vec_size);
+		x.resize(vec_size);
+		DoArray(&x[0], vec_size);
 	}
 	
 	// Store strings.
@@ -137,23 +140,6 @@ public:
 		case MODE_VERIFY: _dbg_assert_msg_(COMMON, !strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (char*)*ptr, ptr); break;
 		}
 		(*ptr) += stringLen;
-	}
- 
-	void DoBuffer(u8** pBuffer, u32& _Size) 
-	{
-		Do(_Size);	
-		
-		if (_Size > 0) {
-			switch (mode) {
-			case MODE_READ:		delete[] *pBuffer; *pBuffer = new u8[_Size]; memcpy(*pBuffer, *ptr, _Size); break;
-			case MODE_WRITE:	memcpy(*ptr, *pBuffer, _Size); break;
-			case MODE_MEASURE:	break;
-			case MODE_VERIFY: if(*pBuffer) for(u32 i = 0; i < _Size; i++) _dbg_assert_msg_(COMMON, (*pBuffer)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", (*pBuffer)[i], (*pBuffer)[i], &(*pBuffer)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
-			}
-		} else 	{
-			*pBuffer = NULL;
-		}
-		(*ptr) += _Size;
 	}
 	
     template<class T>
@@ -260,9 +246,9 @@ public:
 		u8 *ptr = 0;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
-		size_t sz = (size_t)ptr;
-		u8 *buffer = new u8[sz];
-		ptr = buffer;
+		size_t const sz = (size_t)ptr;
+		std::vector<u8> buffer(sz);
+		ptr = &buffer[0];
 		p.SetMode(PointerWrap::MODE_WRITE);
 		_class.DoState(p);
 		
@@ -279,7 +265,7 @@ public:
 			return false;
 		}
 
-		if (!pFile.WriteBytes(buffer, sz))
+		if (!pFile.WriteBytes(&buffer[0], sz))
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Failed writing data");
 			return false;

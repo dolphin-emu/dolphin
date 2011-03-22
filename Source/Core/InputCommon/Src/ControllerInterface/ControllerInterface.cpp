@@ -447,7 +447,7 @@ ControllerInterface::Device* ControllerInterface::FindDevice(const ControllerInt
 ControllerInterface::Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
 {
 	unsigned int time = 0;
-	bool* const states = new bool[device->Inputs().size()];
+	std::vector<bool> states(device->Inputs().size());
 
 	if (device->Inputs().size() == 0)
 		return NULL;
@@ -457,14 +457,14 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 	std::vector<Device::Input*>::const_iterator
 		i = device->Inputs().begin(),
 		e = device->Inputs().end();
-	for (bool* state=states; i != e; ++i)
+	for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
 		*state++ = ((*i)->GetState() > INPUT_DETECT_THRESHOLD);
 
 	while (time < ms)
 	{
 		device->UpdateInput();
 		i = device->Inputs().begin();
-		for (bool* state=states; i != e; ++i,++state)
+		for (std::vector<bool>::iterator state = states.begin(); i != e; ++i,++state)
 		{
 			// detected an input
 			if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
@@ -479,8 +479,6 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 		}
 		Common::SleepCurrentThread(10); time += 10;
 	}
-
-	delete[] states;
 
 	// no input was detected
 	return NULL;
