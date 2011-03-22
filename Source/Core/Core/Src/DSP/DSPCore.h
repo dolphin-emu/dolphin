@@ -164,9 +164,9 @@
 #define SR_400				0x0400 // unknown
 #define SR_EXT_INT_ENABLE	0x0800 // Appears in zelda - seems to disable external interupts
 #define SR_1000				0x1000 // unknown
-#define SR_MUL_MODIFY		0x2000 // 1 = normal. 0 = x2   (M0, M2)
+#define SR_MUL_MODIFY		0x2000 // 1 = normal. 0 = x2   (M0, M2) (Free mul by 2)
 #define SR_40_MODE_BIT		0x4000 // 0 = "16", 1 = "40"  (SET16, SET40)  Controls sign extension when loading mid accums and data saturation for stores from mid accums.
-#define SR_MUL_UNSIGNED		0x8000 // 0 = normal. 1 = unsigned  (CLR15, SET15) If set, treats ax?.l as unsigned.
+#define SR_MUL_UNSIGNED		0x8000 // 0 = normal. 1 = unsigned  (CLR15, SET15) If set, treats ax?.l as unsigned (MULX family only).
 
 // This should be the bits affected by CMP. Does not include logic zero.
 #define SR_CMP_MASK		0x3f

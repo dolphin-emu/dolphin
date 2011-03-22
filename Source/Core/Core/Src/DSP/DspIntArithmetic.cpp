@@ -750,7 +750,6 @@ void abs(const UDSPInstruction opc)
 // 0110 0srd xxxx xxxx
 // Moves register $axS.R (sign extended) to middle accumulator $acD.hm.
 // Sets $acD.l to 0.
-// TODO: Check what happens to acD.h.
 //
 // flags out: --xx xx00
 void movr(const UDSPInstruction opc)

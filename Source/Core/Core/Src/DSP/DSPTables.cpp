@@ -27,8 +27,9 @@
 void nop(const UDSPInstruction opc)
 {
 	// The real nop is 0. Anything else is bad.
-	if (opc)
-		DSPInterpreter::unknown(opc);
+	if (opc) {
+		ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
+	}
 }
  
 const DSPOPCTemplate opcodes[] =
@@ -300,7 +301,7 @@ const DSPOPCTemplate opcodes[] =
 };
 
 const DSPOPCTemplate cw = 
-	{"CW",		0x0000, 0x0000, NULL, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
+	{"CW",		0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 
 // extended opcodes
 

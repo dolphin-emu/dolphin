@@ -142,50 +142,33 @@ void sbset(const UDSPInstruction opc)
 	g_dsp.r.sr |= (1 << bit);
 }
 
-// This is a bunch of flag setters, flipping bits in SR. So far so good,
-// but it's harder to know exactly what effect they have.
+// This is a bunch of flag setters, flipping bits in SR. 
 void srbith(const UDSPInstruction opc)
 {
 	zeroWriteBackLog();
 	switch ((opc >> 8) & 0xf)
 	{
-	// M0/M2 change the multiplier mode (it can multiply by 2 for free).
 	case 0xa:  // M2
 		g_dsp.r.sr &= ~SR_MUL_MODIFY;
 		break;
 	case 0xb:  // M0
 		g_dsp.r.sr |= SR_MUL_MODIFY;
 		break;
-
-	// If set, treat multiplicands as unsigned.
-	// If clear, treat them as signed.
 	case 0xc:  // CLR15
 		g_dsp.r.sr &= ~SR_MUL_UNSIGNED;
 		break;
 	case 0xd:  // SET15
 		g_dsp.r.sr |= SR_MUL_UNSIGNED;
 		break;
-
-	// Automatic 40-bit sign extension when loading ACx.M.
-    // SET40 changes something very important: see the LRI instruction above.
 	case 0xe:  // SET16 (CLR40)
 		g_dsp.r.sr &= ~SR_40_MODE_BIT;
 		break;
-
 	case 0xf:  // SET40
 		g_dsp.r.sr |= SR_40_MODE_BIT;
 		break;
-
 	default:
 		break;
 	}
-}
-
-//----
-
-void unknown(const UDSPInstruction opc)
-{
-	ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x, pc 0x%04x", opc, g_dsp.pc);
 }
 
 }  // namespace

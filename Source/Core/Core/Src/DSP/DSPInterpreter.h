@@ -45,7 +45,6 @@ u16  ReadCR();
 typedef void (*DSPInterpreterFunc)(const UDSPInstruction opc);
 
 // All the opcode functions.
-void unknown(const UDSPInstruction opc);
 void call(const UDSPInstruction opc);
 void callr(const UDSPInstruction opc);
 void ifcc(const UDSPInstruction opc);

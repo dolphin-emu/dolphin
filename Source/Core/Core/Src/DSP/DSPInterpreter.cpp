@@ -35,11 +35,9 @@ namespace DSPInterpreter {
 
 volatile u32 gdsp_running;
 
-// NOTE: These have nothing to do with g_dsp.r[DSP_REG_CR].
+// NOTE: These have nothing to do with g_dsp.r.cr !
 
-// Hm, should instructions that change CR use this? Probably not (but they
-// should call UpdateCachedCR())
-void WriteCR(u16 val)
+void WriteCR(u16 val) 
 {
 	// reset
 	if (val & 1)
@@ -52,8 +50,9 @@ void WriteCR(u16 val)
 	{
 		// this looks like a hack! OSInitAudioSystem ucode
 		// should send this mail - not dsp core itself
-		gdsp_mbox_write_h(GDSP_MBOX_DSP, 0x8054);
-		gdsp_mbox_write_l(GDSP_MBOX_DSP, 0x4348);
+		// this doesnt work anymore
+		//gdsp_mbox_write_h(GDSP_MBOX_DSP, 0x8054);
+		//gdsp_mbox_write_l(GDSP_MBOX_DSP, 0x4348);
 		val |= 0x800;
 	}
 
@@ -61,7 +60,6 @@ void WriteCR(u16 val)
 	g_dsp.cr = val;
 }
 
-// Hm, should instructions that read CR use this? (Probably not).
 u16 ReadCR()
 {
 	if (g_dsp.pc & 0x8000)
