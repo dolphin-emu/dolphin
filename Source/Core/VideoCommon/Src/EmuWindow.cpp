@@ -211,16 +211,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
-
-	if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
-	{
-		case WM_USER_KEYDOWN:
-		case WM_SYSKEYDOWN:
-		case WM_KEYDOWN:
-			PostMessage(m_hParent, iMsg, wParam, lParam);
-		break;
-	}
-
 	case WM_SETCURSOR:
 		PostMessage(m_hParent, WM_USER, WM_USER_SETCURSOR, 0);
 		return true;
