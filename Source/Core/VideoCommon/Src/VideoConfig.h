@@ -166,6 +166,7 @@ public:
 		bool iAspectRatio;
 		bool bCrop;
 		bool bUseXFB;
+		bool bUseRealXFB;
 		bool bUseNativeMips;
 		bool bEnableOpenCL;
 		bool iMultisampleMode;
@@ -198,11 +199,13 @@ public:
 		bool bOMPDecoder;
 		bool bDlistCachingEnable;
 		bool bEFBCopyEnable;
+		bool bCopyEFBToTexture;
 		bool bEFBCopyCacheEnable;
 		bool bEFBEmulateFormatChanges;
 		bool bOSDHotKey;
 		bool bCopyEFBScaled;
 		bool bSafeTextureCache;
+		bool iSafeTextureCache_ColorSamples;
 		bool bZTPSpeedHack;
 		bool bEnablePixelLighting;
 		bool bEnablePerPixelDepth;

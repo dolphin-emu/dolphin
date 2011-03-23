@@ -810,7 +810,6 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 			else ((wxChoice*)p)->SetSelection(0); break; } }
 
 	if (choice_adapter) SET_CHOICE(choice_adapter, iAdapter);
-	cur_vconfig.VerifyValidity();
 	SET_CHOICE(choice_aspect, iAspectRatio);
 	SET_CHOICE(widescreen_hack, bWidescreenHack);
 	SET_CHOICE(vsync, bVSync);
