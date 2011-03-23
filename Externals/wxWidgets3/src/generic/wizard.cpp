@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp 66985 2011-02-20 18:18:51Z VS $
+// RCS-ID:      $Id: wizard.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,7 +316,7 @@ void wxWizard::AddBitmapRow(wxBoxSizer *mainColumn)
     mainColumn->Add(
         m_sizerBmpAndPage,
         1, // Vertically stretchable
-        wxEXPAND // Horizonal stretching, no border
+        wxEXPAND // Horizontal stretching, no border
     );
     mainColumn->Add(0,5,
         0, // No vertical stretching

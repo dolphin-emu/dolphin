@@ -854,7 +854,7 @@ bool wxMacDataViewDataBrowserListViewControl::DeleteColumn(wxDataViewColumn* col
 
 void wxMacDataViewDataBrowserListViewControl::DoSetExpanderColumn(wxDataViewColumn const* columnPtr)
 {
-  SetDisclosureColumn(columnPtr->GetNativeData()->GetPropertyID(),false); // second parameter explicitely passed to ensure that arrow is centered
+  SetDisclosureColumn(columnPtr->GetNativeData()->GetPropertyID(),false); // second parameter explicitly passed to ensure that arrow is centered
 }
 
 wxDataViewColumn* wxMacDataViewDataBrowserListViewControl::GetColumn(unsigned int pos) const
@@ -2489,7 +2489,7 @@ wxDataViewColumn::~wxDataViewColumn()
 
 int wxDataViewColumn::GetWidth() const
 {
-    // FIXME: This returns the last programatically set width and will not work if
+    // FIXME: This returns the last programmatically set width and will not work if
     //        the user changes the column's width by dragging it with the mouse.
     return m_width;
 }

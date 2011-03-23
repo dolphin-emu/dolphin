@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: app.cpp 67288 2011-03-22 17:15:56Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,6 +219,7 @@ void wxGUIAppTraits::AfterChildWaitLoop(void *dataOrig)
     delete data;
 }
 
+#if wxUSE_THREADS
 bool wxGUIAppTraits::DoMessageFromThreadWait()
 {
     // we should return false only if the app should exit, i.e. only if
@@ -258,6 +259,7 @@ DWORD wxGUIAppTraits::WaitForThread(WXHANDLE hThread, int flags)
                QS_ALLPOSTMESSAGE
              );
 }
+#endif // wxUSE_THREADS
 
 wxPortId wxGUIAppTraits::GetToolkitVersion(int *majVer, int *minVer) const
 {

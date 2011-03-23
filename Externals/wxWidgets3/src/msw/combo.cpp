@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.cpp 66385 2010-12-16 17:21:49Z JMS $
+// RCS-ID:      $Id: combo.cpp 67276 2011-03-22 09:56:40Z JMS $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -202,14 +202,17 @@ bool wxComboCtrl::Create(wxWindow *parent,
     if ( style & wxCC_STD_BUTTON )
         m_iFlags |= wxCC_POPUP_ON_MOUSE_UP;
 
+    // Prepare background for double-buffering or better background theme
+    // support, whichever is possible.
+    SetDoubleBuffered(true);
+    if ( !IsDoubleBuffered() )
+        SetBackgroundStyle( wxBG_STYLE_PAINT );
+
     // Create textctrl, if necessary
     CreateTextCtrl( wxNO_BORDER );
 
     // Add keyboard input handlers for main control and textctrl
     InstallInputHandlers();
-
-    // Prepare background for double-buffering
-    SetBackgroundStyle( wxBG_STYLE_CUSTOM );
 
     // SetInitialSize should be called last
     SetInitialSize(size);
@@ -434,7 +437,8 @@ void wxComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
     // TODO: Convert drawing in this function to Windows API Code
 
     wxSize sz = GetClientSize();
-    wxAutoBufferedPaintDC dc(this);
+    wxDC* dcPtr = wxAutoBufferedPaintDCFactory(this);
+    wxDC& dc = *dcPtr;
 
     const wxRect& rectButton = m_btnArea;
     wxRect rectTextField = m_tcArea;
@@ -640,6 +644,8 @@ void wxComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
         else
             wxComboPopup::DefaultPaintComboControl(this,dc,rectTextField);
     }
+
+    delete dcPtr;
 }
 
 void wxComboCtrl::OnMouseEvent( wxMouseEvent& event )

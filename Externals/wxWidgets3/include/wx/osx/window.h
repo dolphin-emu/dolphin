@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.h 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: window.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ public:
     wxWindowMac *FindItemByHWND(WXHWND hWnd, bool controlOnly = false) const;
 
     virtual void        TriggerScrollEvent( wxEventType scrollEvent ) ;
-    // this should not be overriden in classes above wxWindowMac
+    // this should not be overridden in classes above wxWindowMac
     // because it is called from its destructor via DeleteChildren
     virtual void        RemoveChild( wxWindowBase *child );
 

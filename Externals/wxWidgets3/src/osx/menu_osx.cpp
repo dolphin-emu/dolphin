@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu_osx.cpp 67230 2011-03-18 14:20:12Z SC $
+// RCS-ID:      $Id: menu_osx.cpp 67272 2011-03-22 06:44:08Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -497,6 +497,8 @@ wxMenuBar* wxMenuBar::s_macCommonMenuBar = NULL ;
 bool     wxMenuBar::s_macAutoWindowMenu = true ;
 WXHMENU  wxMenuBar::s_macWindowMenuHandle = NULL ;
 
+const int firstMenuPos = 1; // to account for the 0th application menu on mac
+
 void wxMenuBar::Init()
 {
     m_eventHandler = this;
@@ -806,7 +808,7 @@ void wxMenuBar::EnableTop(size_t pos, bool enable)
 {
     wxCHECK_RET( IsAttached(), wxT("doesn't work with unattached menubars") );
 
-    m_rootMenu->FindItemByPosition( pos )->Enable(enable);
+    m_rootMenu->FindItemByPosition(pos+firstMenuPos)->Enable(enable);
 
     Refresh();
 }
@@ -840,8 +842,6 @@ wxString wxMenuBar::GetMenuLabel(size_t pos) const
 // ---------------------------------------------------------------------------
 // wxMenuBar construction
 // ---------------------------------------------------------------------------
-
-const int firstMenuPos = 1; // to account for the 0th application menu on mac
 
 wxMenu *wxMenuBar::Replace(size_t pos, wxMenu *menu, const wxString& title)
 {

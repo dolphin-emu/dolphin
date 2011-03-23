@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: utils.cpp 65746 2010-10-03 17:16:09Z VZ $
+// RCS-ID:      $Id: utils.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -303,7 +303,7 @@ bool wxGetUserName(wxChar *buf, int maxSize)
     // Get the computer name of a DC for the domain.
     if ( NetGetDCName( NULL, wszDomain, &ComputerName ) != NERR_Success )
     {
-        wxLogError(wxT("Can not find domain controller"));
+        wxLogError(wxT("Cannot find domain controller"));
 
         goto error;
     }

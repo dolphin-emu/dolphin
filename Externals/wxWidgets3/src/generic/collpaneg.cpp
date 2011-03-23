@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpaneg.cpp 62431 2009-10-16 16:25:43Z VZ $
+// Id:          $Id: collpaneg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ void wxGenericCollapsiblePane::OnStateChange(const wxSize& sz)
 
     if (this->HasFlag(wxCP_NO_TLW_RESIZE))
     {
-        // the user asked to explicitely handle the resizing itself...
+        // the user asked to explicitly handle the resizing itself...
         return;
     }
 

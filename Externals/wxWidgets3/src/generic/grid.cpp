@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin, Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp 66792 2011-01-27 18:35:01Z SC $
+// RCS-ID:      $Id: grid.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -6918,7 +6918,7 @@ void wxGrid::SetCellHighlightPenWidth(int width)
         m_cellHighlightPenWidth = width;
 
         // Just redrawing the cell highlight is not enough since that won't
-        // make any visible change if the the thickness is getting smaller.
+        // make any visible change if the thickness is getting smaller.
         int row = m_currentCellCoords.GetRow();
         int col = m_currentCellCoords.GetCol();
         if ( row == -1 || col == -1 || GetColWidth(col) <= 0 || GetRowHeight(row) <= 0 )
@@ -6936,7 +6936,7 @@ void wxGrid::SetCellHighlightROPenWidth(int width)
         m_cellHighlightROPenWidth = width;
 
         // Just redrawing the cell highlight is not enough since that won't
-        // make any visible change if the the thickness is getting smaller.
+        // make any visible change if the thickness is getting smaller.
         int row = m_currentCellCoords.GetRow();
         int col = m_currentCellCoords.GetCol();
         if ( row == -1 || col == -1 ||

@@ -2,7 +2,7 @@
 // Name:        src/common/imagpng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.cpp 67219 2011-03-16 12:46:03Z DS $
+// RCS-ID:      $Id: imagpng.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@
 // constants
 // ----------------------------------------------------------------------------
 
-// image can not have any transparent pixels at all, have only 100% opaque
+// image cannot have any transparent pixels at all, have only 100% opaque
 // and/or 100% transparent pixels in which case a simple mask is enough to
 // store this information in wxImage or have a real alpha channel in which case
 // we need to have it in wxImage as well

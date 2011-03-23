@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.06.2003
-// RCS-ID:      $Id: basemsw.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: basemsw.cpp 67288 2011-03-22 17:15:56Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,10 +43,12 @@
 // wxAppTraits implementation
 // ============================================================================
 
+#if wxUSE_THREADS
 WXDWORD wxAppTraits::DoSimpleWaitForThread(WXHANDLE hThread)
 {
     return ::WaitForSingleObject((HANDLE)hThread, INFINITE);
 }
+#endif // wxUSE_THREADS
 
 // ============================================================================
 // wxConsoleAppTraits implementation
@@ -63,11 +65,18 @@ void wxConsoleAppTraits::AfterChildWaitLoop(void * WXUNUSED(data))
     // nothing to do here
 }
 
+#if wxUSE_THREADS
 bool wxConsoleAppTraits::DoMessageFromThreadWait()
 {
     // nothing to process here
     return true;
 }
+
+WXDWORD wxConsoleAppTraits::WaitForThread(WXHANDLE hThread, int WXUNUSED(flags))
+{
+    return DoSimpleWaitForThread(hThread);
+}
+#endif // wxUSE_THREADS
 
 #if wxUSE_TIMER
 
@@ -87,11 +96,6 @@ wxEventLoopBase *wxConsoleAppTraits::CreateEventLoop()
 #endif // wxUSE_CONSOLE_EVENTLOOP/!wxUSE_CONSOLE_EVENTLOOP
 }
 
-
-WXDWORD wxConsoleAppTraits::WaitForThread(WXHANDLE hThread, int WXUNUSED(flags))
-{
-    return DoSimpleWaitForThread(hThread);
-}
 
 bool wxConsoleAppTraits::WriteToStderr(const wxString& text)
 {

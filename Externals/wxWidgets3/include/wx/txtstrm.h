@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/1998
-// RCS-ID:      $Id: txtstrm.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: txtstrm.h 67286 2011-03-22 17:15:45Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,6 +44,8 @@ public:
     wxTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t"));
 #endif
     ~wxTextInputStream();
+
+    const wxInputStream& GetInputStream() const { return m_input; }
 
     wxUint32 Read32(int base = 10); // base may be between 2 and 36, inclusive, or the special 0 (= C format)
     wxUint16 Read16(int base = 10);
@@ -115,6 +117,8 @@ public:
     wxTextOutputStream(wxOutputStream& s, wxEOL mode = wxEOL_NATIVE);
 #endif
     virtual ~wxTextOutputStream();
+
+    const wxOutputStream& GetOutputStream() const { return m_output; }
 
     void SetMode( wxEOL mode = wxEOL_NATIVE );
     wxEOL GetMode() { return m_mode; }

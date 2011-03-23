@@ -4,7 +4,7 @@
 // Author:      Julian Smart and Guillermo Rodriguez Garcia
 // Modified by: Francesco Montorsi
 // Created:     13/8/99
-// RCS-ID:      $Id: animateg.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: animateg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart and Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -504,7 +504,7 @@ void wxAnimationCtrl::IncrementalUpdateBackingStore()
 
         case wxANIM_TOPREVIOUS:
             // this disposal should never be used too often.
-            // E.g. GIF specification explicitely say to keep the usage of this
+            // E.g. GIF specification explicitly say to keep the usage of this
             //      disposal limited to the minimum.
             // In fact it may require a lot of time to restore
             if (m_currentFrame == 1)
@@ -627,7 +627,7 @@ void wxAnimationCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     if ( m_backingStore.IsOk() )
     {
-        // NOTE: we draw the bitmap explicitely ignoring the mask (if any);
+        // NOTE: we draw the bitmap explicitly ignoring the mask (if any);
         //       i.e. we don't want to combine the backing store with the
         //       possibly wrong preexisting contents of the window!
         dc.DrawBitmap(m_backingStore, 0, 0, false /* no mask */);

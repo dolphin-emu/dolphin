@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     07/05/2009
-// RCS-ID:      $Id: any.cpp 66630 2011-01-07 17:49:18Z SC $
+// RCS-ID:      $Id: any.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,7 @@ bool wxConvertAnyToVariant(const wxAny& any, wxVariant* variant)
         if ( any.GetAs(&ll) )
         {
             // NB: Do not use LONG_MAX here. Explicitly using 32-bit
-            //     integer constraint yields more consistent behavior across
+            //     integer constraint yields more consistent behaviour across
             //     builds.
             if ( ll > wxINT32_MAX || ll < wxINT32_MIN )
                 *variant = wxLongLong(ll);

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003
-// RCS-ID:      $Id: apptrait.h 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: apptrait.h 67288 2011-03-22 17:15:56Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,11 @@ public:
     virtual void AfterChildWaitLoop(void *data);
 #if wxUSE_TIMER
     virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer);
-#endif
+#endif // wxUSE_TIMER
+#if wxUSE_THREADS
     virtual bool DoMessageFromThreadWait();
     virtual WXDWORD WaitForThread(WXHANDLE hThread, int flags);
+#endif // wxUSE_THREADS
 #ifndef __WXWINCE__
     virtual bool CanUseStderr() { return true; }
     virtual bool WriteToStderr(const wxString& text);
@@ -43,10 +45,12 @@ public:
     virtual void AfterChildWaitLoop(void *data);
 #if wxUSE_TIMER
     virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer);
-#endif
+#endif // wxUSE_TIMER
+#if wxUSE_THREADS
     virtual bool DoMessageFromThreadWait();
-    virtual wxPortId GetToolkitVersion(int *majVer = NULL, int *minVer = NULL) const;
     virtual WXDWORD WaitForThread(WXHANDLE hThread, int flags);
+#endif // wxUSE_THREADS
+    virtual wxPortId GetToolkitVersion(int *majVer = NULL, int *minVer = NULL) const;
 
 #ifndef __WXWINCE__
     virtual bool CanUseStderr();

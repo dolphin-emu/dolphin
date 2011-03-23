@@ -3,7 +3,7 @@
 // Purpose:     macros for implementing type-safe vararg passing of strings
 // Author:      Vaclav Slavik
 // Created:     2007-02-19
-// RCS-ID:      $Id: strvararg.h 65046 2010-07-22 13:42:49Z VZ $
+// RCS-ID:      $Id: strvararg.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2007 REA Elektronik GmbH
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,7 +207,7 @@ public:
         { return const_cast<wxFormatString*>(this)->AsChar(); }
 private:
     // InputAsChar() returns the value passed to ctor, only converted
-    // to char, while AsChar() takes the the string returned by InputAsChar()
+    // to char, while AsChar() takes the string returned by InputAsChar()
     // and does format string conversion on it as well (and similarly for
     // ..AsWChar() below)
     const char* InputAsChar();

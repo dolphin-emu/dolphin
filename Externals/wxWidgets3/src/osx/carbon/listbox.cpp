@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.cpp 67230 2011-03-18 14:20:12Z SC $
+// RCS-ID:      $Id: listbox.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ int wxMacDataBrowserListControl::DoListHitTest(const wxPoint& inpoint) const
                 // index(bounds) greater then key(point)
                 high = mid - 1;
             else
-                // index(bounds) less then key(point)
+                // index(bounds) less than key(point)
                 low = mid + 1;
         }
     }

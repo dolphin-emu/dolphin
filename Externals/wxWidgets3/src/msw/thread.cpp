@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: Vadim Zeitlin to make it work :-)
 // Created:     04/22/98
-// RCS-ID:      $Id: thread.cpp 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: thread.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Wolfram Gloger (1996, 1997), Guilhem Lavaux (1998);
 //                  Vadim Zeitlin (1999-2002)
 // Licence:     wxWindows licence
@@ -546,7 +546,7 @@ THREAD_RETVAL wxThreadInternal::DoThreadStart(wxThread *thread)
         // store the thread object in the TLS
         if ( !::TlsSetValue(gs_tlsThisThread, thread) )
         {
-            wxLogSysError(_("Can not start thread: error writing TLS."));
+            wxLogSysError(_("Cannot start thread: error writing TLS."));
 
             return THREAD_ERROR_EXIT;
         }
@@ -806,7 +806,7 @@ wxThreadInternal::WaitForTerminate(wxCriticalSection& cs,
         {
             case 0xFFFFFFFF:
                 // error
-                wxLogSysError(_("Can not wait for thread termination"));
+                wxLogSysError(_("Cannot wait for thread termination"));
                 Kill();
                 return wxTHREAD_KILLED;
 
@@ -883,7 +883,7 @@ bool wxThreadInternal::Suspend()
     DWORD nSuspendCount = ::SuspendThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Can not suspend thread %x"), m_hThread);
+        wxLogSysError(_("Cannot suspend thread %x"), m_hThread);
 
         return false;
     }
@@ -898,7 +898,7 @@ bool wxThreadInternal::Resume()
     DWORD nSuspendCount = ::ResumeThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Can not resume thread %x"), m_hThread);
+        wxLogSysError(_("Cannot resume thread %x"), m_hThread);
 
         return false;
     }
@@ -1264,7 +1264,7 @@ bool wxThreadModule::OnInit()
         ::TlsFree(gs_tlsThisThread);
         gs_tlsThisThread = 0xFFFFFFFF;
 
-        wxLogSysError(_("Thread module initialization failed: can not store value in thread local storage"));
+        wxLogSysError(_("Thread module initialization failed: cannot store value in thread local storage"));
 
         return false;
     }

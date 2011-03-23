@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.cpp 66785 2011-01-27 12:38:24Z SC $
+// RCS-ID:      $Id: glcanvas.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -311,7 +311,7 @@ that previously allocated surface is associated with the context (e.g., no
 new surface is created) and the subsequent call to aglSetDrawable will
 attach that surface. This allows multiple contexts to be attached to a single
 surface. Using the default buffer name zero, returns to one surface per
-context behavior.
+context behaviour.
 */
 
 /*

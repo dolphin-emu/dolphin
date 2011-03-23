@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: datetime.h 65649 2010-09-26 22:11:21Z VZ $
+// RCS-ID:      $Id: datetime.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,7 @@ public:
         // the time in the current time zone
         Local,
 
-        // zones from GMT (= Greenwhich Mean Time): they're guaranteed to be
+        // zones from GMT (= Greenwich Mean Time): they're guaranteed to be
         // consequent numbers, so writing something like `GMT0 + offset' is
         // safe if abs(offset) <= 12
 

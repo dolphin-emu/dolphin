@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp 67018 2011-02-25 09:38:35Z JS $
+// Id:          $Id: listctrl.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1046,7 +1046,7 @@ void wxListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
 
 // NB: The code below is not really Mac-specific, but since we are close
 // to 2.8 release and I don't have time to test on other platforms, I
-// defined this only for wxMac. If this behavior is desired on
+// defined this only for wxMac. If this behaviour is desired on
 // other platforms, please go ahead and revise or remove the #ifdef.
 #ifdef __WXMAC__
         if ( !m_owner->IsVirtual() && (item.m_mask & wxLIST_MASK_STATE) &&

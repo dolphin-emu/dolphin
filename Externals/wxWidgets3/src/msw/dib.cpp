@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.03.03 (replaces the old file with the same name)
-// RCS-ID:      $Id: dib.cpp 66157 2010-11-15 00:22:01Z VZ $
+// RCS-ID:      $Id: dib.cpp 67287 2011-03-22 17:15:49Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -760,7 +760,14 @@ wxImage wxDIB::ConvertToImage() const
     }
 
     const int bpp = GetDepth();
+
+    // Remember if we have any "real" transparency, i.e. either any partially
+    // transparent pixels or not all pixels are fully opaque or fully
+    // transparent.
     bool hasAlpha = false;
+    bool hasOpaque = false;
+    bool hasTransparent = false;
+
     if ( bpp == 32 )
     {
         // 32 bit bitmaps may be either 0RGB or ARGB and we don't know in
@@ -793,13 +800,30 @@ wxImage wxDIB::ConvertToImage() const
                 // premultiplication done in Create() above
                 const unsigned char a = *src;
                 *alpha++ = a;
+
+                // Check what kind of alpha do we have.
+                switch ( a )
+                {
+                    case 0:
+                        hasTransparent = true;
+                        break;
+
+                    default:
+                        // Anything in between means we have real transparency
+                        // and must use alpha channel.
+                        hasAlpha = true;
+                        break;
+
+                    case 255:
+                        hasOpaque = true;
+                        break;
+                }
+
                 if ( a > 0 )
                 {
                     dst[0] = (dst[0] * 255) / a;
                     dst[1] = (dst[1] * 255) / a;
                     dst[2] = (dst[2] * 255) / a;
-
-                    hasAlpha = true;
                 }
 
                 src++;
@@ -816,6 +840,9 @@ wxImage wxDIB::ConvertToImage() const
         // and to the next one in the DIB
         srcLineStart += srcBytesPerLine;
     }
+
+    if ( hasOpaque && hasTransparent )
+        hasAlpha = true;
 
     if ( !hasAlpha && image.HasAlpha() )
         image.ClearAlpha();

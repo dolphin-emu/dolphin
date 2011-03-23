@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp 67214 2011-03-16 07:22:56Z SC $
+// Id:          $Id: treectlg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -3699,7 +3699,7 @@ void wxGenericTreeCtrl::OnMouse( wxMouseEvent &event )
             event.Skip(!GetEventHandler()->ProcessEvent(nevent));
 
             // Consistent with MSW (for now), send the ITEM_MENU *after*
-            // the RIGHT_CLICK event. TODO: This behavior may change.
+            // the RIGHT_CLICK event. TODO: This behaviour may change.
             wxTreeEvent nevent2(wxEVT_COMMAND_TREE_ITEM_MENU,  this, item);
             nevent2.m_pointDrag = CalcScrolledPosition(pt);
             GetEventHandler()->ProcessEvent(nevent2);

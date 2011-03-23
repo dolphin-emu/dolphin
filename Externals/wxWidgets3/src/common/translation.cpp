@@ -5,7 +5,7 @@
 //              Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     2010-04-23
-// RCS-ID:      $Id: translation.cpp 66728 2011-01-22 14:38:36Z DS $
+// RCS-ID:      $Id: translation.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -904,7 +904,7 @@ bool wxMsgCatalogFile::LoadFile(const wxString& filename,
     if ( !fileMsg.IsOpened() )
         return false;
 
-    // get the file size (assume it is less than 4Gb...)
+    // get the file size (assume it is less than 4GB...)
     wxFileOffset lenFile = fileMsg.Length();
     if ( lenFile == wxInvalidOffset )
         return false;

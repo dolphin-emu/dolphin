@@ -5,7 +5,7 @@
 // Modified by: Mark Johnson, wxWindows@mj10777.de
 //              20000917 : RmDir, GetLastResult, GetList
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: ftp.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ public:
     // this function tries its best to deliver the size in bytes using BINARY
     // (the SIZE command reports different sizes depending on whether
     // type is set to ASCII or BINARY)
-    // returns -1 if file is non-existant or size could not be found
+    // returns -1 if file is non-existent or size could not be found
     int GetFileSize(const wxString& fileName);
 
        // Check to see if a file exists in the current dir

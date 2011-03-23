@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: fontpickerg.cpp 63945 2010-04-12 00:37:02Z VZ $
+// RCS-ID:      $Id: fontpickerg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ void wxGenericFontButton::InitFontData()
 
 void wxGenericFontButton::OnButtonClick(wxCommandEvent& WXUNUSED(ev))
 {
-    // update the wxFontData to be shown in the the dialog
+    // update the wxFontData to be shown in the dialog
     m_data.SetInitialFont(m_selectedFont);
 
     // create the font dialog and display it

@@ -2,7 +2,7 @@
 // Name:        src/gtk/app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp 66120 2010-11-11 12:09:30Z VZ $
+// Id:          $Id: app.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ static void wx_add_idle_hooks()
         }
     }
     // "size_allocate" hook
-    // Needed to match the behavior of the old idle system,
+    // Needed to match the behaviour of the old idle system,
     // but probably not necessary.
     {
         static bool hook_installed;
@@ -125,7 +125,7 @@ bool wxApp::DoIdle()
 
 #if wxDEBUG_LEVEL
         // don't generate the idle events while the assert modal dialog is shown,
-        // this matches the behavior of wxMSW
+        // this matches the behaviour of wxMSW
         if (m_isInAssert)
             return false;
 #endif
@@ -439,7 +439,7 @@ bool wxApp::Initialize(int& argc_, wxChar **argv_)
         return false;
     }
 
-    // we can not enter threads before gtk_init is done
+    // we cannot enter threads before gtk_init is done
     gdk_threads_enter();
 
 #if wxUSE_INTL

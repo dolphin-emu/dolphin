@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl.h 64533 2010-06-09 14:28:08Z FM $
+// RCS-ID:      $Id: mediactrl.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ enum wxMediaState
 enum wxMediaCtrlPlayerControls
 {
     wxMEDIACTRLPLAYERCONTROLS_NONE           =   0,
-    //Step controls like fastfoward, step one frame etc.
+    //Step controls like fastforward, step one frame etc.
     wxMEDIACTRLPLAYERCONTROLS_STEP           =   1 << 0,
     //Volume controls like the speaker icon, volume slider, etc.
     wxMEDIACTRLPLAYERCONTROLS_VOLUME         =   1 << 1,

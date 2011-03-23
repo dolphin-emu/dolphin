@@ -2931,7 +2931,7 @@ void wxAuiNotebook::SetArtProvider(wxAuiTabArt* art)
 // specified tab ctrl height, overriding all other considerations,
 // such as text or bitmap height.  It overrides any call to
 // SetUniformBitmapSize().  Specifying a height of -1 reverts
-// any previous call and returns to the default behavior
+// any previous call and returns to the default behaviour
 
 void wxAuiNotebook::SetTabCtrlHeight(int height)
 {

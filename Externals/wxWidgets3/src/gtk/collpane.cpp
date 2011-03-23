@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpane.cpp 65680 2010-09-30 11:44:45Z VZ $
+// Id:          $Id: collpane.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ gtk_collapsiblepane_expanded_callback(GObject * WXUNUSED(object),
         wxCollapsiblePaneEvent ev(p, p->GetId(), p->IsCollapsed());
         p->HandleWindowEvent(ev);
 
-        // the user asked to explicitely handle the resizing itself...
+        // the user asked to explicitly handle the resizing itself...
         return;
     }
 
@@ -272,7 +272,7 @@ void wxCollapsiblePane::OnSize(wxSizeEvent &ev)
     // is expanded or shrunk, the pane window won't be updated!
     m_pPane->SetSize(ev.GetSize().x, ev.GetSize().y - m_szCollapsed.y);
 
-    // we need to explicitely call m_pPane->Layout() or else it won't correctly relayout
+    // we need to explicitly call m_pPane->Layout() or else it won't correctly relayout
     // (even if SetAutoLayout(true) has been called on it!)
     m_pPane->Layout();
 }

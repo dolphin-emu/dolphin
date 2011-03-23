@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2/13/2005
-// RCS-ID:      $Id: hidjoystick.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: hidjoystick.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -778,7 +778,7 @@ void* wxJoystickThread::Entry()
 //---------------------------------------------------------------------------
 // wxJoystickThread::HIDCallback (static)
 //
-// Callback for the native HID device when it recieves input.
+// Callback for the native HID device when it receives input.
 //
 // This is where the REAL dirty work gets done.
 //

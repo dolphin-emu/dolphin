@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: wincmn.cpp 67285 2011-03-22 17:15:38Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1064,7 +1064,7 @@ void wxWindowBase::SendSizeEvent(int flags)
     wxSizeEvent event(GetSize(), GetId());
     event.SetEventObject(this);
     if ( flags & wxSEND_EVENT_POST )
-        wxPostEvent(this, event);
+        wxPostEvent(GetEventHandler(), event);
     else
         HandleWindowEvent(event);
 }

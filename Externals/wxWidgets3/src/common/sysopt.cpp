@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2001-07-10
-// RCS-ID:      $Id: sysopt.cpp 64651 2010-06-20 17:43:15Z VZ $
+// RCS-ID:      $Id: sysopt.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ wxString wxSystemOptions::GetOption(const wxString& name)
     {
         val = gs_optionValues[idx];
     }
-    else // not set explicitely
+    else // not set explicitly
     {
         // look in the environment: first for a variable named "wx_appname_name"
         // which can be set to affect the behaviour or just this application

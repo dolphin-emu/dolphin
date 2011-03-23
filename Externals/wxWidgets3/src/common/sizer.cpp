@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp 67029 2011-02-26 15:44:14Z SC $
+// RCS-ID:      $Id: sizer.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2093,7 +2093,7 @@ void wxBoxSizer::RecalcSizes()
 
     // Check for the degenerated case when we don't have enough space for even
     // the min sizes of all the items: in this case we really can't do much
-    // more than to to allocate the min size to as many of fixed size items as
+    // more than to allocate the min size to as many of fixed size items as
     // possible (on the assumption that variable size items such as text zones
     // or list boxes may use scrollbars to show their content even if their
     // size is less than min size but that fixed size items such as buttons

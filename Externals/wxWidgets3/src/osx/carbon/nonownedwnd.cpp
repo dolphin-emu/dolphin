@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxNonOwnedWindow
 // Author:      Stefan Csomor
 // Created:     2008-03-24
-// RCS-ID:      $Id: nonownedwnd.cpp 66028 2010-11-05 21:38:25Z VZ $
+// RCS-ID:      $Id: nonownedwnd.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor 2008
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -237,12 +237,12 @@ void wxNonOwnedWindowCarbonImpl::MacSetUnifiedAppearance( bool set )
         set ? kWindowNoAttributes : kWindowUnifiedTitleAndToolbarAttribute) ;
 
     // For some reason, Tiger uses white as the background color for this appearance,
-    // while most apps using it use the typical striped background. Restore that behavior
+    // while most apps using it use the typical striped background. Restore that behaviour
     // for wx.
     // TODO: Determine if we need this on Leopard as well. (should be harmless either way,
     // though)
     // since when creating the peering is not yet completely set-up we call both setters
-    // explicitely
+    // explicitly
     m_wxPeer->SetBackgroundColour( wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW) ) ;
     SetBackgroundColour( wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW) ) ;
 }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.cpp 66996 2011-02-22 13:26:06Z VZ $
+// RCS-ID:      $Id: filefn.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1345,7 +1345,7 @@ wxString wxFindFirstFile(const wxString& spec, int flags)
 
     if ( !gs_dir->IsOpened() )
     {
-        wxLogSysError(_("Can not enumerate files '%s'"), spec);
+        wxLogSysError(_("Cannot enumerate files '%s'"), spec);
         return wxEmptyString;
     }
 

@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     09.08.00
- * RCS-ID:      $Id: chkconf.h 67128 2011-03-05 11:16:55Z VZ $
+ * RCS-ID:      $Id: chkconf.h 67280 2011-03-22 14:17:38Z DS $
  * Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -21,10 +21,10 @@
     If you get an error saying "wxUSE_FOO must be defined", it means that you
     are not using the correct up-to-date version of setup.h. This happens most
     often when using svn or daily snapshots and a new symbol was added to
-    setup0.h and you haven't updated your local setup.h to to reflect it. If
+    setup0.h and you haven't updated your local setup.h to reflect it. If
     this is the case, you need to propagate the changes from setup0.h to your
     setup.h and, if using makefiles under MSW, also remove setup.h under the
-    build directory (lib/$(COMPILER)_{lib,dll}/msw[u][d][dll]/wx) so that it
+    build directory (lib/$(COMPILER)_{lib,dll}/msw[u][d][dll]/wx) so that
     the new setup.h is copied there.
 
     If you get an error of the form "wxFoo requires wxBar", then the settings

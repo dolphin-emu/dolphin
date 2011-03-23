@@ -4,7 +4,7 @@
 // Author:      Markus Greither and Vadim Zeitlin
 // Modified by:
 // Created:     23/03/2001
-// RCS-ID:      $Id: fdrepdlg.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: fdrepdlg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Markus Greither
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ wxFindReplaceDialogImpl::FindMessageHandler(wxWindow * WXUNUSED(win),
 #if wxUSE_UNICODE_MSLU
     // This is a hack for a MSLU problem: Versions up to 1.0.4011
     // of UNICOWS.DLL send the correct UNICODE item after button press
-    // and a bogus ANSI mode item right after this, so lets ignore
+    // and a bogus ANSI mode item right after this, so let's ignore
     // the second bogus message
     if ( wxUsingUnicowsDll() && s_lastMsgFlags == pFR->Flags )
     {

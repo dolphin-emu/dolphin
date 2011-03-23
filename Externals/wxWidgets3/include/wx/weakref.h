@@ -3,7 +3,7 @@
 // Purpose:     wxWeakRef - Generic weak references for wxWidgets
 // Author:      Arne Steinarson
 // Created:     27 Dec 07
-// RCS-ID:      $Id: weakref.h 66780 2011-01-27 11:00:26Z SC $
+// RCS-ID:      $Id: weakref.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2007 Arne Steinarson
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 // Some compilers (VC6, Borland, g++ < 3.3) have problem with template specialization.
 // However, this is only used for optimization purposes (a smaller wxWeakRef pointer)
 // (and the corner case of wxWeakRef<wxObject>). So for those compilers, we can fall
-// back to the non-optimal case, where we use a the same type of weak ref (static one)
+// back to the non-optimal case, where we use the same type of weak ref (static one)
 // in all cases. See defs.h for various setting these defines depending on compiler.
 
 #if !defined(HAVE_PARTIAL_SPECIALIZATION) || \

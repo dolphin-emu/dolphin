@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gauge.h 64648 2010-06-20 17:43:02Z VZ $
+// RCS-ID:      $Id: gauge.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ public:
     virtual void SetRange(int range);
     virtual void SetValue(int pos);
 
-    // overriden base class virtuals
+    // overridden base class virtuals
     virtual bool SetForegroundColour(const wxColour& col);
     virtual bool SetBackgroundColour(const wxColour& col);
 

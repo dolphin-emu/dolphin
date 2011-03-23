@@ -5,7 +5,7 @@
 // Modified by: Robin Dunn (moved QT code from mediactrl.cpp)
 //
 // Created:     11/07/04
-// RCS-ID:      $Id: mediactrl_qt.cpp 65486 2010-09-09 20:33:56Z VZ $
+// RCS-ID:      $Id: mediactrl_qt.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1162,7 +1162,7 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
 //---------------------------------------------------------------------------
 // wxQTMediaBackend::MCFilterProc (static)
 //
-// Callback for when the movie controller recieves a message
+// Callback for when the movie controller receives a message
 //---------------------------------------------------------------------------
 Boolean wxQTMediaBackend::MCFilterProc(MovieController WXUNUSED(theController),
                                short action,

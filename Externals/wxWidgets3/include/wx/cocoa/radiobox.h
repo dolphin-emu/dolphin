@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/03/18
-// RCS-ID:      $Id: radiobox.h 52834 2008-03-26 15:06:00Z FM $
+// RCS-ID:      $Id: radiobox.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@ public:
     virtual void SetString(unsigned int n, const wxString& label);
     // change the individual radio button state
 protected:
-    // We don't want the typical wxCocoaNSBox behavior because our real
+    // We don't want the typical wxCocoaNSBox behaviour because our real
     // implementation is by using an NSMatrix as the NSBox's contentView.
     WX_NSMatrix GetNSMatrix() const;
     void AssociateNSBox(WX_NSBox theBox);

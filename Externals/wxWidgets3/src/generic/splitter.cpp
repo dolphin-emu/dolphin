@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.cpp 66232 2010-11-22 01:23:16Z VZ $
+// RCS-ID:      $Id: splitter.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -741,7 +741,7 @@ bool wxSplitterWindow::DoSplit(wxSplitMode mode,
         return false;
 
     wxCHECK_MSG( window1 && window2, false,
-                 wxT("can not split with NULL window(s)") );
+                 wxT("cannot split with NULL window(s)") );
 
     wxCHECK_MSG( window1->GetParent() == this && window2->GetParent() == this, false,
                   wxT("windows in the splitter should have it as parent!") );

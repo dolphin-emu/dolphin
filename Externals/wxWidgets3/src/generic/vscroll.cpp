@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson, David Warkentin
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.cpp 63761 2010-03-28 14:37:30Z VS $
+// RCS-ID:      $Id: vscroll.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -822,7 +822,7 @@ void wxVarHVScrollHelper::RefreshRowColumn(size_t row, size_t column)
         h_rect.x += OnGetColumnWidth(n);
     }
 
-    // refresh but specialize the behavior if we have a single target window
+    // refresh but specialize the behaviour if we have a single target window
     if ( wxVarVScrollHelper::GetTargetWindow() == wxVarHScrollHelper::GetTargetWindow() )
     {
         v_rect.x = h_rect.x;
@@ -889,7 +889,7 @@ void wxVarHVScrollHelper::RefreshRowsColumns(size_t fromRow, size_t toRow,
         h_rect.width += OnGetColumnWidth(nBetween);
     }
 
-    // refresh but specialize the behavior if we have a single target window
+    // refresh but specialize the behaviour if we have a single target window
     if ( wxVarVScrollHelper::GetTargetWindow() == wxVarHScrollHelper::GetTargetWindow() )
     {
         v_rect.x = h_rect.x;

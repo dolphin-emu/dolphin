@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     01/29/05
-// RCS-ID:      $Id: mediactrl_am.cpp 65845 2010-10-18 23:43:14Z VZ $
+// RCS-ID:      $Id: mediactrl_am.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1823,8 +1823,8 @@ void wxAMMediaBackend::FinishLoad()
 bool wxAMMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
 {
     // Note that IMediaPlayer doesn't have a statusbar by
-    // default but IActiveMovie does - so lets try to keep
-    // the interface consistant
+    // default but IActiveMovie does - so let's try to keep
+    // the interface consistent.
     if(!flags)
     {
         GetAM()->put_Enabled(VARIANT_FALSE);

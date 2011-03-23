@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: button.cpp 67187 2011-03-14 11:54:39Z VZ $
+// RCS-ID:      $Id: button.cpp 67284 2011-03-22 17:15:34Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -115,6 +115,10 @@ using namespace wxMSWImpl;
     #define BCM_SETSHIELD       0x160c
 #endif
 
+#if wxUSE_UXTHEME
+extern wxWindowMSW *wxWindowBeingErased; // From src/msw/window.cpp
+#endif // wxUSE_UXTHEME
+
 // ----------------------------------------------------------------------------
 // button image data
 // ----------------------------------------------------------------------------
@@ -153,6 +157,7 @@ public:
     wxODButtonImageData(wxButton *btn, const wxBitmap& bitmap)
     {
         SetBitmap(bitmap, wxButton::State_Normal);
+        SetBitmap(bitmap.ConvertToDisabled(), wxButton::State_Disabled);
 
         m_dir = wxLEFT;
 
@@ -221,10 +226,11 @@ public:
                 wxButton::State_Max),
           m_hwndBtn(GetHwndOf(btn))
     {
-        // initialize all bitmaps to normal state
+        // initialize all bitmaps except for the disabled one to normal state
         for ( int n = 0; n < wxButton::State_Max; n++ )
         {
-            m_iml.Add(bitmap);
+            m_iml.Add(n == wxButton::State_Disabled ? bitmap.ConvertToDisabled()
+                                                    : bitmap);
         }
 
         m_data.himl = GetHimagelistOf(&m_iml);
@@ -1315,7 +1321,20 @@ void DrawXPBackground(wxButton *button, HDC hdc, RECT& rectBtn, UINT state)
                     iState
                  ) )
     {
+        // Set this button as the one whose background is being erased: this
+        // allows our WM_ERASEBKGND handler used by DrawThemeParentBackground()
+        // to correctly align the background brush with this window instead of
+        // the parent window to which WM_ERASEBKGND is sent. Notice that this
+        // doesn't work with custom user-defined EVT_ERASE_BACKGROUND handlers
+        // as they won't be aligned but unfortunately all the attempts to fix
+        // it by shifting DC origin before calling DrawThemeParentBackground()
+        // failed to work so we at least do this, even though this is far from
+        // being the perfect solution.
+        wxWindowBeingErased = button;
+
         engine->DrawThemeParentBackground(GetHwndOf(button), hdc, &rectBtn);
+
+        wxWindowBeingErased = NULL;
     }
 
     // draw background

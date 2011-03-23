@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: stattext.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: stattext.h 67280 2011-03-22 14:17:38Z DS $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +39,7 @@ public:
     // This function will modify the value returned by GetLabel()!
     void Wrap(int width);
 
-    // overriden base virtuals
+    // overridden base virtuals
     virtual bool AcceptsFocus() const { return false; }
     virtual bool HasTransparentBackground() { return true; }
 

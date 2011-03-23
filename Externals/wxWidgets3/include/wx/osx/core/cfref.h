@@ -4,7 +4,7 @@
 // Author:      David Elliott <dfe@cox.net>
 // Modified by: Stefan Csomor
 // Created:     2007/05/10
-// RCS-ID:      $Id: cfref.h 64943 2010-07-13 13:29:58Z VZ $
+// RCS-ID:      $Id: cfref.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2007 David Elliott <dfe@cox.net>, Stefan Csomor
 // Licence:     wxWindows licence
 // Notes:       See http://developer.apple.com/documentation/CoreFoundation/Conceptual/CFMemoryMgmt/index.html
@@ -172,7 +172,7 @@ public:
         @param p        The raw pointer to assume ownership of.  May be NULL.
         @discussion Like shared_ptr, it is assumed that the caller has a strong reference to p and intends
                     to transfer ownership of that reference to this ref holder.  If the object comes from
-                    a Create or Copy method then this is the correct behavior.  If the object comes from
+                    a Create or Copy method then this is the correct behaviour.  If the object comes from
                     a Get method then you must CFRetain it yourself before passing it to this constructor.
                     A handy way to do this is to use the non-member wxCFRefFromGet factory funcion.
                     This method is templated and takes an otherType *p.  This prevents implicit conversion
@@ -364,7 +364,7 @@ inline wxCFWeakRef<refType> static_cfref_cast(const wxCFRef<otherRefType> &other
 }
 
 /*! @function   CFRelease
-    @abstract   Overloads CFRelease so that the user is warned of bad behavior.
+    @abstract   Overloads CFRelease so that the user is warned of bad behaviour.
     @discussion It is rarely appropriate to retain or release a wxCFRef.  If one absolutely
                 must do it he can explicitly get() the raw pointer
                 Normally, this function is unimplemented resulting in a linker error if used.
@@ -373,7 +373,7 @@ template <class T>
 inline void CFRelease(const wxCFRef<T*> & cfref) DEPRECATED_ATTRIBUTE;
 
 /*! @function   CFRetain
-    @abstract   Overloads CFRetain so that the user is warned of bad behavior.
+    @abstract   Overloads CFRetain so that the user is warned of bad behaviour.
     @discussion It is rarely appropriate to retain or release a wxCFRef.  If one absolutely
                 must do it he can explicitly get() the raw pointer
                 Normally, this function is unimplemented resulting in a linker error if used.

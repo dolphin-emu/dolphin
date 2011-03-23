@@ -2,7 +2,7 @@
 // Name:        src/common/imagtiff.cpp
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.cpp 66717 2011-01-19 13:47:18Z DS $
+// RCS-ID:      $Id: imagtiff.cpp 67264 2011-03-20 19:48:03Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -402,42 +402,78 @@ bool wxTIFFHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
             alpha -= 2*w;
     }
 
-    // set the image resolution if it's available
-    uint16 tiffRes;
-    if ( TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &tiffRes) )
+
+    uint16 spp, bpp, compression;
+    /*
+    Read some baseline TIFF tags which helps when re-saving a TIFF
+    to be similar to the original image.
+    */
+    if ( TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp) )
     {
-        wxImageResolution res;
-        switch ( tiffRes )
+        image->SetOption(wxIMAGE_OPTION_SAMPLESPERPIXEL, spp);
+    }
+
+    if ( TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bpp) )
+    {
+        image->SetOption(wxIMAGE_OPTION_BITSPERSAMPLE, bpp);
+    }
+
+    if ( TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &compression) )
+    {
+        image->SetOption(wxIMAGE_OPTION_COMPRESSION, compression);
+    }
+
+    // Set the resolution unit.
+    wxImageResolution resUnit = wxIMAGE_RESOLUTION_NONE;
+    uint16 tiffRes;
+    if ( TIFFGetFieldDefaulted(tif, TIFFTAG_RESOLUTIONUNIT, &tiffRes) )
+    {
+        switch (tiffRes)
         {
             default:
                 wxLogWarning(_("Unknown TIFF resolution unit %d ignored"),
-                             tiffRes);
+                    tiffRes);
                 // fall through
 
             case RESUNIT_NONE:
-                res = wxIMAGE_RESOLUTION_NONE;
+                resUnit = wxIMAGE_RESOLUTION_NONE;
                 break;
 
             case RESUNIT_INCH:
-                res = wxIMAGE_RESOLUTION_INCHES;
+                resUnit = wxIMAGE_RESOLUTION_INCHES;
                 break;
 
             case RESUNIT_CENTIMETER:
-                res = wxIMAGE_RESOLUTION_CM;
+                resUnit = wxIMAGE_RESOLUTION_CM;
                 break;
-        }
-
-        if ( res != wxIMAGE_RESOLUTION_NONE )
-        {
-            float xres, yres;
-            if ( TIFFGetField(tif, TIFFTAG_XRESOLUTION, &xres) )
-                image->SetOption(wxIMAGE_OPTION_RESOLUTIONX, wxRound(xres));
-
-            if ( TIFFGetField(tif, TIFFTAG_YRESOLUTION, &yres) )
-                image->SetOption(wxIMAGE_OPTION_RESOLUTIONY, wxRound(yres));
         }
     }
 
+    image->SetOption(wxIMAGE_OPTION_RESOLUTIONUNIT, resUnit);
+
+    /*
+    Set the image resolution if it's available. Resolution tag is not
+    dependant on RESOLUTIONUNIT != RESUNIT_NONE (according to TIFF spec).
+    */
+    float resX, resY;
+
+    if ( TIFFGetField(tif, TIFFTAG_XRESOLUTION, &resX) )
+    {
+        /*
+        Use a string value to not lose precision.
+        rounding to int as cm and then converting to inch may
+        result in whole integer rounding error, eg. 201 instead of 200 dpi.
+        If an app wants an int, GetOptionInt will convert and round down.
+        */
+        image->SetOption(wxIMAGE_OPTION_RESOLUTIONX,
+            wxString::FromCDouble((double) resX));
+    }
+
+    if ( TIFFGetField(tif, TIFFTAG_YRESOLUTION, &resY) )
+    {
+        image->SetOption(wxIMAGE_OPTION_RESOLUTIONY,
+            wxString::FromCDouble((double) resY));
+    }
 
     _TIFFfree( raster );
 

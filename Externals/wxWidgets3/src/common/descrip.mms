@@ -2,7 +2,7 @@
 #                                                                            *
 # Make file for VMS                                                          *
 # Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                             *
-# Date : 28 January 2011                                                     *
+# Date : 21 March 2011                                                       *
 #                                                                            *
 #*****************************************************************************
 .first
@@ -222,7 +222,7 @@ OBJECTS2=tbarbase.obj,srchcmn.obj,\
 		statlinecmn.obj,radiobtncmn.obj,bmpbtncmn.obj,checklstcmn.obj,\
 		statbmpcmn.obj,dirctrlcmn.obj,gridcmn.obj,odcombocmn.obj,\
 		spinbtncmn.obj,scrolbarcmn.obj,colourdata.obj,fontdata.obj,\
-		valnum.obj,numformatter.obj
+		valnum.obj,numformatter.obj,markupparser.obj
 
 OBJECTS_MOTIF=radiocmn.obj,combocmn.obj
 
@@ -699,3 +699,4 @@ colourdata.obj : colourdata.cpp
 fontdata.obj : fontdata.cpp
 valnum.obj : valnum.cpp
 numformatter.obj : numformatter.cpp
+markupparser.obj : markupparser.cpp

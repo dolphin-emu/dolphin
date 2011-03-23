@@ -9,7 +9,7 @@
 //              robust Abort(), support for arbitrary FTP commands, ...)
 //              Randall Fox (support for active mode)
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: ftp.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 1998-2004 wxWidgets team
 // Licence:     wxWindows licence
@@ -686,7 +686,7 @@ public:
 
         // when checking the result, the stream will
         // almost always show an error, even if the file was
-        // properly transfered, thus, lets just grab the result
+        // properly transfered, thus, let's just grab the result
 
         // we are looking for "226 transfer completed"
         char code = m_ftp->GetResult();

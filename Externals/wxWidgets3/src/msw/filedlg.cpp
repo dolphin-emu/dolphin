@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlg.cpp 62722 2009-11-26 16:17:00Z VZ $
+// RCS-ID:      $Id: filedlg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -225,7 +225,7 @@ void wxFileDialog::DoCentre(int dir)
 
 void wxFileDialog::MSWOnInitDone(WXHWND hDlg)
 {
-    // note the the dialog is the parent window: hDlg is a child of it when
+    // note the dialog is the parent window: hDlg is a child of it when
     // OFN_EXPLORER is used
     HWND hFileDlg = ::GetParent((HWND)hDlg);
 

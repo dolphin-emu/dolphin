@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.1998
-// RCS-ID:      $Id: registry.h 66851 2011-02-06 01:01:01Z VZ $
+// RCS-ID:      $Id: registry.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ public:
     // get StdKey from root HKEY
   static StdKey GetStdKeyFromHkey(WXHKEY hkey);
 
-  // extacts the std key prefix from the string (return value) and
+  // extracts the std key prefix from the string (return value) and
   // leaves only the part after it (i.e. modifies the string passed!)
   static StdKey ExtractKeyName(wxString& str);
 

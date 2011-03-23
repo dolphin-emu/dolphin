@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:
-// RCS-ID:      $Id: dcgraph.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dcgraph.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -341,7 +341,7 @@ void wxGCDCImpl::DestroyClippingRegion()
 {
     m_graphicContext->ResetClip();
     // currently the clip eg of a window extends to the area between the scrollbars
-    // so we must explicitely make sure it only covers the area we want it to draw
+    // so we must explicitly make sure it only covers the area we want it to draw
     int width, height ;
     GetOwner()->GetSize( &width , &height ) ;
     m_graphicContext->Clip( DeviceToLogicalX(0) , DeviceToLogicalY(0) , DeviceToLogicalXRel(width), DeviceToLogicalYRel(height) );

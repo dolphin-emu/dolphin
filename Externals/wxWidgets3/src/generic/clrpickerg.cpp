@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi (readapted code written by Vadim Zeitlin)
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: clrpickerg.cpp 52836 2008-03-26 15:49:31Z JS $
+// RCS-ID:      $Id: clrpickerg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ void wxGenericColourButton::InitColourData()
 
 void wxGenericColourButton::OnButtonClick(wxCommandEvent& WXUNUSED(ev))
 {
-    // update the wxColouData to be shown in the the dialog
+    // update the wxColouData to be shown in the dialog
     ms_data.SetColour(m_colour);
 
     // create the colour dialog and display it

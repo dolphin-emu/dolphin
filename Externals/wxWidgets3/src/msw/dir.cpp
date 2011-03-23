@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     08.12.99
-// RCS-ID:      $Id: dir.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dir.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ bool wxDirData::Read(wxString *filename)
 
         if ( err != ERROR_FILE_NOT_FOUND && err != ERROR_NO_MORE_FILES )
         {
-            wxLogSysError(err, _("Can not enumerate files in directory '%s'"),
+            wxLogSysError(err, _("Cannot enumerate files in directory '%s'"),
                           m_dirname.c_str());
         }
 #endif // __WIN32__

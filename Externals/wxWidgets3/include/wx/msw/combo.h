@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.h 66385 2010-12-16 17:21:49Z JMS $
+// RCS-ID:      $Id: combo.h 67276 2011-03-22 09:56:40Z JMS $
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,8 @@ protected:
     // event handlers
     void OnPaintEvent( wxPaintEvent& event );
     void OnMouseEvent( wxMouseEvent& event );
+
+    virtual bool HasTransparentBackground() { return IsDoubleBuffered(); }
 
 private:
     void Init();

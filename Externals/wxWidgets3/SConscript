@@ -13,7 +13,7 @@ wxenv = env.Clone()
 wxenv['CCFLAGS'] += ['-Wno-deprecated-declarations', '-Wno-shadow']
 wxenv['CPPDEFINES'] += ['WXBUILDING']
 
-# gtk, msw, osx and shared files as of r67258
+# gtk, msw, osx and shared files as of r67291
 
 aui = [
 	'src/aui/auibar.cpp',
@@ -843,6 +843,7 @@ osx = [
 	'src/osx/cocoa/gauge.mm',
 	'src/osx/cocoa/glcanvas.mm',
 	'src/osx/cocoa/listbox.mm',
+	#'src/osx/cocoa/mediactrl.mm',
 	'src/osx/cocoa/menu.mm',
 	'src/osx/cocoa/menuitem.mm',
 	'src/osx/cocoa/msgdlg.mm',

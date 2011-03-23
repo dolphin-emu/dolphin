@@ -34,7 +34,7 @@ wxString ConcatenateDataViewItemValues(wxDataViewCtrl const* dataViewCtrlPtr, wx
 // for the carbon and cocoa environment.
 // ATTENTION
 //  All methods assume that the passed column pointers are
-//  valid (unless a NULL pointer is explicitely allowed
+//  valid (unless a NULL pointer is explicitly allowed
 //  to be passed)!
 // ATTENTION
 // ---------------------------------------------------------

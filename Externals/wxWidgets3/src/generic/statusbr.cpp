@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp 62432 2009-10-16 21:32:51Z VZ $
+// RCS-ID:      $Id: statusbr.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -345,7 +345,7 @@ int wxStatusBarGeneric::GetFieldFromPoint(const wxPoint& pt) const
     if (m_widthsAbs.IsEmpty())
         return wxNOT_FOUND;
 
-    // NOTE: we explicitely don't take in count the borders since they are only
+    // NOTE: we explicitly don't take in count the borders since they are only
     //       useful when rendering the status text, not for hit-test computations
 
     if (pt.y <= 0 || pt.y >= m_lastClientHeight)

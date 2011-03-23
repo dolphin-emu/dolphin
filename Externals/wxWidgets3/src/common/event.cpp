@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp 65521 2010-09-11 10:18:41Z VZ $
+// RCS-ID:      $Id: event.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -959,7 +959,7 @@ void wxEventHashTable::InitHashTable()
         table = table->baseTable;
     }
 
-    // Lets free some memory.
+    // Let's free some memory.
     size_t i;
     for(i = 0; i < m_size; i++)
     {

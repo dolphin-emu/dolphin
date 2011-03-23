@@ -3,7 +3,7 @@
 // Purpose:     native GTK+ wxAboutBox() implementation
 // Author:      Vadim Zeitlin
 // Created:     2006-10-08
-// RCS-ID:      $Id: aboutdlg.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: aboutdlg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* WXUNUSED(parent))
                 transCredits << translators[n] << wxT('\n');
             }
         }
-        else // no translators explicitely specified
+        else // no translators explicitly specified
         {
             // maybe we have translator credits in the message catalog?
             wxString translator = _("translator-credits");

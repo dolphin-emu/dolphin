@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp 67250 2011-03-20 00:00:29Z VZ $
+// RCS-ID:      $Id: window.cpp 67281 2011-03-22 15:07:20Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -181,6 +181,13 @@
 #if wxUSE_MENUS_NATIVE
 extern wxMenu *wxCurrentPopupMenu;
 #endif
+
+#if wxUSE_UXTHEME
+// This is a hack used by the owner-drawn wxButton implementation to ensure
+// that the brush used for erasing its background is correctly aligned with the
+// control.
+extern wxWindowMSW *wxWindowBeingErased = NULL;
+#endif // wxUSE_UXTHEME
 
 namespace
 {
@@ -4921,9 +4928,17 @@ wxWindowMSW::MSWGetBgBrushForChild(WXHDC hDC, wxWindowMSW *child)
 
 WXHBRUSH wxWindowMSW::MSWGetBgBrush(WXHDC hDC)
 {
+    // Use the special wxWindowBeingErased variable if it is set as the child
+    // being erased.
+    wxWindowMSW * const child =
+#if wxUSE_UXTHEME
+                                wxWindowBeingErased ? wxWindowBeingErased :
+#endif
+                                this;
+
     for ( wxWindowMSW *win = this; win; win = win->GetParent() )
     {
-        WXHBRUSH hBrush = win->MSWGetBgBrushForChild(hDC, this);
+        WXHBRUSH hBrush = win->MSWGetBgBrushForChild(hDC, child);
         if ( hBrush )
             return hBrush;
 

@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combocmn.cpp 67256 2011-03-20 11:15:17Z JMS $
+// RCS-ID:      $Id: combocmn.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ wxCONSTRUCTOR_5( wxComboBox, wxWindow*, Parent, wxWindowID, Id, \
 #endif
 
 // NB: Let's not be afraid to use wxGTK's wxPopupTransientWindow as a
-//     'perfect' popup, as it can succesfully host child controls even in
+//     'perfect' popup, as it can successfully host child controls even in
 //     popups that are shown in modal dialogs.
 
 #define USE_TRANSIENT_POPUP           1 // Use wxPopupWindowTransient (preferred, if it works properly on platform)
@@ -1647,27 +1647,28 @@ void wxComboCtrlBase::DrawButton( wxDC& dc, const wxRect& rect, int flags )
     if ( !enabled )
         drawState |= wxCONTROL_DISABLED;
 
+    // Need to clear button background even if m_btn is present
+    // and also when using custom bitmap for the button
+    if ( (flags & Button_PaintBackground) &&
+            (!HasTransparentBackground() ||
+             !(m_iFlags & wxCC_IFLAG_BUTTON_OUTSIDE)) )
+    {
+        wxColour bgCol;
+
+        if ( m_iFlags & wxCC_IFLAG_BUTTON_OUTSIDE )
+            bgCol = GetParent()->GetBackgroundColour();
+        else
+            bgCol = GetBackgroundColour();
+
+        dc.SetBrush(bgCol);
+        dc.SetPen(bgCol);
+        dc.DrawRectangle(rect);
+    }
+
     if ( !m_bmpNormal.Ok() )
     {
         if ( flags & Button_BitmapOnly )
             return;
-
-        // Need to clear button background even if m_btn is present
-        if ( (flags & Button_PaintBackground) &&
-                (!HasTransparentBackground() ||
-                 !(m_iFlags & wxCC_IFLAG_BUTTON_OUTSIDE)) )
-        {
-            wxColour bgCol;
-
-            if ( m_iFlags & wxCC_IFLAG_BUTTON_OUTSIDE )
-                bgCol = GetParent()->GetBackgroundColour();
-            else
-                bgCol = GetBackgroundColour();
-
-            dc.SetBrush(bgCol);
-            dc.SetPen(bgCol);
-            dc.DrawRectangle(rect);
-        }
 
         // Draw standard button
         wxRendererNative::Get().DrawComboBoxDropButton(this,
@@ -1692,17 +1693,6 @@ void wxComboCtrlBase::DrawButton( wxDC& dc, const wxRect& rect, int flags )
 
         if ( m_blankButtonBg )
         {
-            // If using blank button background, we need to clear its background
-            // with button face colour instead of colour for rest of the control.
-            if ( flags & Button_PaintBackground )
-            {
-                wxColour bgCol = GetParent()->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-                //wxColour bgCol = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-                dc.SetPen(bgCol);
-                dc.SetBrush(bgCol);
-                dc.DrawRectangle(rect);
-            }
-
             if ( !(flags & Button_BitmapOnly) )
             {
                 wxRendererNative::Get().DrawPushButton(this,
@@ -1710,14 +1700,6 @@ void wxComboCtrlBase::DrawButton( wxDC& dc, const wxRect& rect, int flags )
                                                        drawRect,
                                                        drawState);
             }
-        }
-        else
-
-        {
-            // Need to clear button background even if m_btn is present
-            // (assume non-button background was cleared just before this call so brushes are good)
-            if ( flags & Button_PaintBackground )
-                dc.DrawRectangle(rect);
         }
 
         // Draw bitmap centered in drawRect
@@ -2663,7 +2645,7 @@ void wxComboCtrlBase::OnSetValue(const wxString& value)
         bool found = true;
         wxString trueValue = value;
 
-        // Conform to wxComboBox behavior: read-only control can only accept
+        // Conform to wxComboBox behaviour: read-only control can only accept
         // valid list items and empty string
         if ( m_popupInterface && HasFlag(wxCB_READONLY) && value.length() )
         {

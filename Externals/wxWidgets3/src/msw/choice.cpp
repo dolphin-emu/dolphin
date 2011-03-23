@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     04/01/98
-// RCS-ID:      $Id: choice.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: choice.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -556,7 +556,7 @@ void wxChoice::DoSetSize(int x, int y,
     // make the control itself of the requested height: notice that this
     // must be done after changing its size or it has no effect (apparently
     // the height is reset to default during the control layout) and that it's
-    // useless to to do it when using the deferred sizing -- in this case it
+    // useless to do it when using the deferred sizing -- in this case it
     // will be done from MSWEndDeferWindowPos()
 #if wxUSE_DEFERRED_SIZING
     if ( m_pendingSize == wxDefaultSize )

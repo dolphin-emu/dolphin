@@ -4,7 +4,7 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2005-05-17
-// RCS-ID:      $Id: framemanager.cpp 66796 2011-01-28 02:21:42Z BP $
+// RCS-ID:      $Id: framemanager.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (C) Copyright 2005-2006, Kirix Corporation, All Rights Reserved
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -801,7 +801,7 @@ wxAuiManager* wxAuiManager::GetManager(wxWindow* window)
 
 void wxAuiManager::UpdateHintWindowConfig()
 {
-    // find out if the the system can do transparent frames
+    // find out if the system can do transparent frames
     bool can_do_transparent = false;
 
     wxWindow* w = m_frame;
@@ -3401,7 +3401,7 @@ void wxAuiManager::OnHintActivate(wxActivateEvent& WXUNUSED(event))
     // Do nothing so this event isn't handled in the base handlers.
 
     // Letting the hint window activate without this handler can lead to
-    // weird behavior on Mac where the menu is switched out to the top
+    // weird behaviour on Mac where the menu is switched out to the top
     // window's menu in MDI applications when it shouldn't be. So since
     // we don't want user interaction with the hint window anyway, we just
     // prevent it from activating here.
@@ -3434,7 +3434,7 @@ void wxAuiManager::StartPaneDrag(wxWindow* pane_window,
 // CalculateHintRect() calculates the drop hint rectangle.  The method
 // first calls DoDrop() to determine the exact position the pane would
 // be at were if dropped.  If the pane would indeed become docked at the
-// specified drop point, the the rectangle hint will be returned in
+// specified drop point, the rectangle hint will be returned in
 // screen coordinates.  Otherwise, an empty rectangle is returned.
 // |pane_window| is the window pointer of the pane being dragged, |pt| is
 // the mouse position, in client coordinates.  |offset| describes the offset
@@ -3851,7 +3851,7 @@ void wxAuiManager::OnRender(wxAuiManagerEvent& evt)
 // Render() fire a render event, which is normally handled by
 // wxAuiManager::OnRender().  This allows the render function to
 // be overridden via the render event.  This can be useful for paintin
-// custom graphics in the main window. Default behavior can be
+// custom graphics in the main window. Default behaviour can be
 // invoked in the overridden function by calling OnRender()
 
 void wxAuiManager::Render(wxDC* dc)

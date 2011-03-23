@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.cpp 66852 2011-02-06 01:01:09Z VZ $
+// RCS-ID:      $Id: docview.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -425,7 +425,7 @@ bool wxDocument::Revert()
 #if WXWIN_COMPATIBILITY_2_8
 bool wxDocument::GetPrintableName(wxString& buf) const
 {
-    // this function can not only be overridden by the user code but also
+    // this function cannot only be overridden by the user code but also
     // called by it so we need to ensure that we return the same thing as
     // GetUserReadableName() but we can't call it because this would result in
     // an infinite recursion, hence we use the helper DoGetUserReadableName()

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderer.cpp 65947 2010-10-30 15:57:32Z VS $
+// RCS-ID:      $Id: renderer.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -632,7 +632,7 @@ void wxRendererGTK::DrawTextCtrl(wxWindow* win, wxDC& dc, const wxRect& rect, in
   );
 }
 
-// Draw the equivallent of a wxComboBox
+// Draw the equivalent of a wxComboBox
 void wxRendererGTK::DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, int flags)
 {
     GtkWidget *combo = wxGTKPrivate::GetComboBoxWidget();

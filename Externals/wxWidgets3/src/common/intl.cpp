@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp 66002 2010-11-03 16:29:13Z VZ $
+// RCS-ID:      $Id: intl.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -293,7 +293,7 @@ bool wxLocale::DoInit(const wxString& name,
 
     if ( m_pszOldLocale == NULL )
     {
-        wxLogError(_("locale '%s' can not be set."), szLocale);
+        wxLogError(_("locale '%s' cannot be set."), szLocale);
     }
 
     // the short name will be used to look for catalog files as well,

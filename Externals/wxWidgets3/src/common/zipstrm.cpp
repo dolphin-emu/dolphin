@@ -2,7 +2,7 @@
 // Name:        src/common/zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: zipstrm.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1773,7 +1773,7 @@ bool wxZipInputStream::OpenDecompressor(bool raw /*=false*/)
     return IsOk();
 }
 
-// Can be overriden to add support for additional decompression methods
+// Can be overridden to add support for additional decompression methods
 //
 wxInputStream *wxZipInputStream::OpenDecompressor(wxInputStream& stream)
 {
@@ -2128,7 +2128,7 @@ bool wxZipOutputStream::DoCreate(wxZipEntry *entry, bool raw /*=false*/)
     return true;
 }
 
-// Can be overriden to add support for additional compression methods
+// Can be overridden to add support for additional compression methods
 //
 wxOutputStream *wxZipOutputStream::OpenCompressor(
     wxOutputStream& stream,

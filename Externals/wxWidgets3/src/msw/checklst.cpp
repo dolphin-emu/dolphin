@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.11.97
-// RCS-ID:      $Id: checklst.cpp 66557 2011-01-04 09:13:49Z SC $
+// RCS-ID:      $Id: checklst.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -410,7 +410,7 @@ void wxCheckListBox::OnLeftClick(wxMouseEvent& event)
     }
     else
     {
-        // implement default behavior on click outside of client zone
+        // implement default behaviour on click outside of client zone
         event.Skip();
     }
 }

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp 67181 2011-03-13 13:53:54Z VZ $
+// RCS-ID:      $Id: string.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -2008,16 +2008,16 @@ int wxString::DoPrintfUtf8(const char *format, ...)
     Since EILSEQ and EINVAL are rather common but EOVERFLOW is not and since
     EILSEQ and EINVAL are specifically defined to mean the error is other than
     an undersized buffer and no other errno are defined we treat those two
-    as meaning hard errors and everything else gets the old behavior which
+    as meaning hard errors and everything else gets the old behaviour which
     is to keep looping and increasing buffer size until the function succeeds.
 
-    In practice it's impossible to determine before compilation which behavior
-    may be used.  The vswprintf function may have vsnprintf-like behavior or
-    vice-versa.  Behavior detected on one release can theoretically change
+    In practice it's impossible to determine before compilation which behaviour
+    may be used.  The vswprintf function may have vsnprintf-like behaviour or
+    vice-versa.  Behaviour detected on one release can theoretically change
     with an updated release.  Not to mention that configure testing for it
     would require the test to be run on the host system, not the build system
     which makes cross compilation difficult. Therefore, we make no assumptions
-    about behavior and try our best to handle every known case, including the
+    about behaviour and try our best to handle every known case, including the
     case where wxVsnprintf returns a negative number and fails to set errno.
 
     There is yet one more non-standard implementation and that is our own.
@@ -2028,9 +2028,9 @@ int wxString::DoPrintfUtf8(const char *format, ...)
     at the given buffer size minus 1.  It is supposed to do this even if it
     turns out that the buffer is sized too small.
 
-    Darwin (tested on 10.5) follows the C99 behavior exactly.
+    Darwin (tested on 10.5) follows the C99 behaviour exactly.
 
-    Glibc 2.6 almost follows the C99 behavior except vswprintf never sets
+    Glibc 2.6 almost follows the C99 behaviour except vswprintf never sets
     errno even when it fails.  However, it only seems to ever fail due
     to an undersized buffer.
 */

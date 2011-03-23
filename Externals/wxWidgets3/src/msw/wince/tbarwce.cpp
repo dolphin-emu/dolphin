@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.cpp 61724 2009-08-21 10:41:26Z VZ $
+// RCS-ID:      $Id: tbarwce.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -525,7 +525,7 @@ bool wxToolMenuBar::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD id_)
     if ( !tool->CanBeToggled() || tool->GetKind() != wxITEM_RADIO || toggled )
     {
         // OnLeftClick() can veto the button state change - for buttons which
-        // may be toggled only, of couse
+        // may be toggled only, of course.
         if ( !OnLeftClick((int)id, toggled) && tool->CanBeToggled() )
         {
             // revert back

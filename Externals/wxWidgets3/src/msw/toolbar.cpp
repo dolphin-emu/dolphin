@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp 67074 2011-02-27 15:09:13Z DS $
+// RCS-ID:      $Id: toolbar.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1296,7 +1296,7 @@ bool wxToolBar::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD id_)
     // Without the two lines of code below, if the toolbar was repainted during
     // OnLeftClick(), then it could end up without the tool bitmap temporarily
     // (see http://lists.nongnu.org/archive/html/lmi/2008-10/msg00014.html).
-    // The Update() call bellow ensures that this won't happen, by repainting
+    // The Update() call below ensures that this won't happen, by repainting
     // invalidated areas of the toolbar immediately.
     //
     // To complicate matters, the tool would be drawn in depressed state (this
@@ -1323,7 +1323,7 @@ bool wxToolBar::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD id_)
     ::SendMessage(GetHwnd(), TB_SETSTATE, id, MAKELONG(state, 0));
 
     // OnLeftClick() can veto the button state change - for buttons which
-    // may be toggled only, of couse
+    // may be toggled only, of course.
     if ( !allowLeftClick && tool->CanBeToggled() )
     {
         // revert back

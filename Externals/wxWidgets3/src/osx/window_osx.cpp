@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window_osx.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: window_osx.cpp 67282 2011-03-22 16:39:26Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -298,7 +298,8 @@ void wxWindowMac::SetPeer(wxOSXWidgetImpl* peer)
 {
     if ( GetPeer() )
     {
-        GetPeer()->RemoveFromParent();
+        if ( !GetPeer()->IsRootControl() )
+            GetPeer()->RemoveFromParent();
         wxDELETE(m_peer);
     }
 

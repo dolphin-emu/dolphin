@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.02.01
-// RCS-ID:      $Id: gauge.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: gauge.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1996-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
     virtual void SetBezelFace(int w);
     virtual int GetBezelFace() const;
 
-    // overriden base class virtuals
+    // overridden base class virtuals
     virtual bool AcceptsFocus() const { return false; }
 
 protected:

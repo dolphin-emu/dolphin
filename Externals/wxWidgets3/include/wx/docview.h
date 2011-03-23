@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.h 66852 2011-02-06 01:01:09Z VZ $
+// RCS-ID:      $Id: docview.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -184,8 +184,8 @@ protected:
     bool                  m_savedYet;
 
     // Called by OnSaveDocument and OnOpenDocument to implement standard
-    // Save/Load behavior. Re-implement in derived class for custom
-    // behavior.
+    // Save/Load behaviour. Re-implement in derived class for custom
+    // behaviour.
     virtual bool DoSaveDocument(const wxString& file);
     virtual bool DoOpenDocument(const wxString& file);
 

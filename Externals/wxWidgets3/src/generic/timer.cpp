@@ -2,7 +2,7 @@
 // Name:        src/generic/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Vaclav Slavik
-// Id:          $Id: timer.cpp 64656 2010-06-20 18:18:23Z VZ $
+// Id:          $Id: timer.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@
 
     #ifdef __DOS__
         // Under DOS the MGL timer has a 24hr period, so consider the 12 hours
-        // before y to be 'less' and the the 12 hours after 'greater' modulo
+        // before y to be 'less' and the 12 hours after 'greater' modulo
         // 24 hours.
         inline bool wxTickGreaterEqual(wxTimerTick_t x, wxTimerTick_t y)
         {

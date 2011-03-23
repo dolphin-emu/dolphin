@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin on 2008-11-04 to use the base classes
 // Created:     04/01/98
-// RCS-ID:      $Id: mdi.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: mdi.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2008-2009 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -1111,7 +1111,7 @@ bool wxMDIChildFrame::HandleMDIActivate(long WXUNUSED(activate),
 
         WXHMENU hMenuParent = parent->m_hMenu;
 
-        // activate the the parent menu only when there is no other child
+        // activate the parent menu only when there is no other child
         // that has been activated
         if ( hMenuParent && !hwndAct )
             hMenuToSet = hMenuParent;

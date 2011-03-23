@@ -2,7 +2,7 @@
 #                                                                            *
 # Make file for VMS                                                          *
 # Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                             *
-# Date : 15 December 2010                                                    *
+# Date : 21 March 2011                                                       *
 #                                                                            *
 #*****************************************************************************
 .first
@@ -94,7 +94,8 @@ OBJECTS = \
 		filectrlg.obj,srchctlg.obj,notifmsgg.obj,headerctrlg.obj,\
 		grideditors.obj,vlbox.obj,vscroll.obj,stattextg.obj,\
 		editlbox.obj,datavgen.obj,dbgrptg.obj,dragimgg.obj,\
-		richmsgdlgg.obj,commandlinkbuttong.obj,spinctlg.obj
+		richmsgdlgg.obj,commandlinkbuttong.obj,spinctlg.obj,\
+		markuptext.obj
 
 SOURCES = \
 		aboutdlgg.cpp,\
@@ -166,7 +167,7 @@ SOURCES = \
 		icon.cpp,bmpcboxg.cpp,filectrlg.cpp,srchctlg.cpp,notifmsgg.cpp\
 		,headerctrlg.cpp,grideditors.cpp,stattextg.cpp,editlbox.cpp,\
 		datavgen.cpp,dbgrptg.cpp,dragimgg.cpp,richmsgdlgg.cpp,\
-		commandlinkbuttong.cpp,spinctlg.cpp
+		commandlinkbuttong.cpp,spinctlg.cpp markuptext.cpp
 
 .ifdef __WXMOTIF__
 OBJECTS0=statusbr.obj,statline.obj,notebook.obj,spinctlg.obj,collpaneg.obj,\
@@ -302,3 +303,4 @@ dragimgg.obj : dragimgg.cpp
 richmsgdlgg.obj : richmsgdlgg.cpp
 commandlinkbuttong.obj : commandlinkbuttong.cpp
 spinctlg.obj : spinctlg.cpp
+markuptext.obj : markuptext.cpp

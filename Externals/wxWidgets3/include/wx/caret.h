@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.05.99
-// RCS-ID:      $Id: caret.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: caret.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ public:
     virtual void OnKillFocus() { }
 
 protected:
-    // these functions may be overriden in the derived classes, but they
+    // these functions may be overridden in the derived classes, but they
     // should call the base class version first
     virtual bool DoCreate(wxWindowBase *window, int width, int height)
     {

@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.h 61724 2009-08-21 10:41:26Z VZ $
+// RCS-ID:      $Id: gprint.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -290,7 +290,7 @@ protected:
     void SetPrintData(const wxPrintData& data);
     wxPrintData& GetPrintData() { return m_printData; }
 
-    // overriden for wxPrinterDC Impl
+    // overridden for wxPrinterDC Impl
     virtual wxRect GetPaperRect() const;
     virtual int GetResolution() const;
 

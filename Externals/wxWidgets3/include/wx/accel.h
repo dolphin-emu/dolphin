@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     31.05.01 (extracted from other files)
-// RCS-ID:      $Id: accel.h 65497 2010-09-10 11:44:35Z VZ $
+// RCS-ID:      $Id: accel.h 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ public:
 
     // returns a wxString for the this accelerator.
     // this function formats it using the <flags>-<keycode> format
-    // where <flags> maybe a hyphen-separed list of "shift|alt|ctrl"
+    // where <flags> maybe a hyphen-separated list of "shift|alt|ctrl"
     wxString ToString() const;
 
     // returns true if the given string correctly initialized this object

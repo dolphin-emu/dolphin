@@ -3,7 +3,7 @@
 // Author:      Anthony Bretaudeau
 // Purpose:     GTK printing support
 // Created:     2007-08-25
-// RCS-ID:      $Id: print.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: print.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) 2007 wxWidgets development team
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2213,7 +2213,7 @@ void wxGtkPrinterDCImpl::SetPrintData(const wxPrintData& data)
     m_printData = data;
 }
 
-// overriden for wxPrinterDC Impl
+// overridden for wxPrinterDC Impl
 
 wxRect wxGtkPrinterDCImpl::GetPaperRect() const
 {

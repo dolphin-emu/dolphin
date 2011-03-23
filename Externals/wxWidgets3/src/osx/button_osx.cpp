@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button_osx.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: button_osx.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -211,7 +211,7 @@ bool wxDisclosureTriangle::Create(wxWindow *parent, wxWindowID id, const wxStrin
     SetPeer(wxWidgetImpl::CreateDisclosureTriangle(this, parent, id, label, pos, size, style, GetExtraStyle() ));
 
     MacPostControlCreate( pos, size );
-    // passing the text in the param doesn't seem to work, so lets do it again
+    // passing the text in the param doesn't seem to work, so let's do it again
     SetLabel( label );
 
     return true;
