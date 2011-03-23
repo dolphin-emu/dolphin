@@ -41,7 +41,8 @@ public:
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
 	int GetPlatform() const {return m_Platform;}
-	const std::string& GetIssues() const {return m_Issues;}
+	const std::string& GetIssues() const { return m_issues; }
+	int GetEmuState() const { return m_emu_state; }
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
@@ -65,7 +66,9 @@ private:
 	std::string m_Company;
 	std::string m_Description[6];
 	std::string m_UniqueID;
-	std::string m_Issues;
+
+	std::string m_issues;
+	int m_emu_state;
 
 	u64 m_FileSize;
 	u64 m_VolumeSize;

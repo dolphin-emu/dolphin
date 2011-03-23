@@ -18,6 +18,7 @@
 #ifndef __GAMELIST_CTRL_H_
 #define __GAMELIST_CTRL_H_
 
+#include <memory>
 #include <vector>
 
 #include <wx/listctrl.h>
@@ -72,6 +73,15 @@ private:
 	std::vector<int> m_PlatformImageIndex;
 	std::vector<int> m_EmuStateImageIndex;
 	std::vector<GameListItem*> m_ISOFiles;
+
+	void ClearIsoFiles()
+	{
+		while (!m_ISOFiles.empty())	// so lazy
+		{
+			delete m_ISOFiles.back();
+			m_ISOFiles.pop_back();
+		}
+	}
 
 	// NetPlay string for the gamelist
 	std::string m_gameList;

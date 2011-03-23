@@ -27,6 +27,7 @@
 #include "ISOFile.h"
 #include "StringUtil.h"
 #include "Hash.h"
+#include "IniFile.h"
 
 #include "Filesystem.h"
 #include "BannerLoader.h"
@@ -47,6 +48,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_FileSize(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
+	, m_emu_state(0)
 {
 	if (LoadFromCache())
 	{
@@ -124,6 +126,14 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			if (m_Platform == GAMECUBE_DISC || !m_pImage.empty())
 				SaveToCache();
 		}
+	}
+
+	if (IsValid())
+	{
+		IniFile ini;
+		ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + m_UniqueID + ".ini");
+		ini.Get("EmuState", "EmulationStateId", &m_emu_state);
+		ini.Get("EmuState", "EmulationIssues", &m_issues);
 	}
 
 	if (!m_pImage.empty())
