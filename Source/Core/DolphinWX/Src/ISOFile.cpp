@@ -121,9 +121,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			m_Valid = true;
 
-			// If not Gamecube, create a cache file only if we have an image.
+			// Create a cache file only if we have an image.
 			// Wii isos create their images after you have generated the first savegame
-			if (m_Platform == GAMECUBE_DISC || !m_pImage.empty())
+			if (!m_pImage.empty())
 				SaveToCache();
 		}
 	}
