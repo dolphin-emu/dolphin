@@ -5,6 +5,7 @@
 
 #include <wx/intl.h>
 
+#include "Frame.h"
 #include "ISOFile.h"
 #include "GameListCtrl.h"
 
@@ -129,7 +130,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
-wxString VideoConfigDiag::FormatString(const GameListItem *item)
+static wxString FormatString(const GameListItem *item)
 {
 	wxString title;
 	if (item->GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN
