@@ -5,7 +5,6 @@
 
 #include <wx/intl.h>
 
-#include "Frame.h"
 #include "ISOFile.h"
 #include "GameListCtrl.h"
 
@@ -130,6 +129,39 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
+wxString VideoConfigDiag::FormatString(const GameListItem *item)
+{
+	wxString title;
+	if (item->GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN
+	|| item->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
+	|| item->GetPlatform() == GameListItem::WII_WAD)
+	{
+#ifdef _WIN32
+		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+		{
+			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		}
+		else
+		{
+			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		}
+#else
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#endif
+
+		title = wxString(item->GetName(0).c_str(), SJISConv);
+	}
+
+	else // Do the same for PAL/US Games (assuming ISO 8859-1)
+	{
+		title = wxString::From8BitData(item->GetName(0).c_str());
+	}
+
+	return title;
+}
+
 // TODO: implement some hack to increase the tooltip display duration, because some of these are way too long for anyone to read in 5 seconds.
 
 wxString profile_tooltip = wxTRANSLATE("Selects which game should be affected by the configuration changes done in this dialog.\nThe (Default) profile affects the standard settings used for every game.");
@@ -182,6 +214,7 @@ wxString ppshader_tooltip = wxT("");
 wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
 wxString def_profile = _("< as Default Profile >");
+
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
@@ -255,7 +288,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(index));
 		if (!item) continue;
-		profile_cb->AppendString(wxString::FromAscii(item->GetName(0).c_str()));
+		profile_cb->AppendString(FormatString(item));
 	}
 
 	profile_cb->Select(cur_profile);

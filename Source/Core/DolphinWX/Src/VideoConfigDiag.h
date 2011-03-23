@@ -6,6 +6,7 @@
 #include <string>
 
 #include "VideoConfig.h"
+#include "Frame.h"
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
@@ -16,6 +17,8 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#include <wx/fontmap.h>
+
 
 template <typename U>
 class BoolSettingCB : public wxCheckBox
@@ -120,6 +123,9 @@ protected:
 			cur_vconfig.sPostProcessingShader.clear();
 		ev.Skip();
 	}
+
+	//Retrieve a title game with correct format
+	wxString FormatString(const GameListItem *item);
 
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
