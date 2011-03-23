@@ -513,7 +513,7 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 			return false;
 		}
 		if (strlen(pathData_bin) == 0) 
-		strcpy(pathData_bin, ".");// If no path was passed, use current dir
+			strcpy(pathData_bin, "."); // If no path was passed, use current dir
 		sprintf(pathData_bin, "%s/private/wii/title/%s/data.bin", pathData_bin, _saveGameString);
 		File::CreateFullPath(pathData_bin);
 	}

@@ -1571,7 +1571,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = new u8[3 * W * H];		// TODO: possible memleak, and new'd data is given to wxImage which requires malloc
+	u8 *data = (u8 *)malloc((sizeof(u8) * 3 * W * H));
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -1579,6 +1579,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
+		free(data);
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
@@ -1608,7 +1609,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 #else
 	bool result = SaveTGA(filename.c_str(), W, H, data);
-	delete[] data;
+	free(data);
 #endif
 
 	return result;

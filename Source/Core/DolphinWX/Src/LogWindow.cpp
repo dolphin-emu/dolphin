@@ -33,7 +33,6 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CHOICE(IDM_FONT, CLogWindow::OnFontChange)
 	EVT_CHECKBOX(IDM_WRAPLINE, CLogWindow::OnWrapLineCheck)
 	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
-	EVT_SIZE(CLogWindow::OnSize)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
@@ -169,18 +168,6 @@ CLogWindow::~CLogWindow()
 void CLogWindow::OnClose(wxCloseEvent& event)
 {
 	SaveSettings();
-	event.Skip();
-}
-
-void CLogWindow::OnSize(wxSizeEvent& event)
-{
-	if (!Parent->g_pCodeWindow &&
-		   	Parent->m_Mgr->GetPane(wxT("Pane 1")).IsShown())
-	{
-		x = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
-		y = Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
-		winpos = Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
-	}
 	event.Skip();
 }
 

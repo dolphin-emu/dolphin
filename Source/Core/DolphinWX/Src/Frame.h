@@ -238,6 +238,7 @@ private:
 	int GetNotebookAffiliation(wxWindowID Id);
 	void ClosePages();
 	void CloseAllNotebooks();
+	void ShowResizePane();
 	void TogglePane();
 	void SetPaneSize();
 	void ResetToolbarStyle();

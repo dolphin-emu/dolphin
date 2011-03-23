@@ -80,7 +80,7 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 	SET_STATE(iniFile.Get("Settings", "AnaglyphStereo", &bAnaglyphStereo, false), bAnaglyphStereo);
 	SET_STATE(iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200), iAnaglyphStereoSeparation);
 	SET_STATE(iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0), iAnaglyphFocalAngle);
-	SET_STATE(iniFile.Get("Settings", "EnablePixelLigting", &bEnablePixelLighting, false), bEnablePixelLighting);
+	SET_STATE(iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, false), bEnablePixelLighting);
 	SET_STATE(iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, false), bEnablePerPixelDepth);
 	
 	SET_STATE(iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, false), bShowShaderErrors);
@@ -170,7 +170,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation), iAnaglyphStereoSeparation);
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle), iAnaglyphFocalAngle);
 	
-	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnablePixelLigting", &bEnablePixelLighting), bEnablePixelLighting);
+	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting), bEnablePixelLighting);
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth), bEnablePerPixelDepth);
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowShaderErrors", &bShowShaderErrors), bShowShaderErrors);
 	
@@ -263,7 +263,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereo", bAnaglyphStereo);
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	iniFile.Set("Settings", "EnablePixelLigting", bEnablePixelLighting);
+	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
 	iniFile.Set("Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 	
 
@@ -338,7 +338,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	CHECK_UISTATE("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
 	CHECK_UISTATE("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	CHECK_UISTATE("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	CHECK_UISTATE("Video_Settings", "EnablePixelLigting", bEnablePixelLighting);
+	CHECK_UISTATE("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_UISTATE("Video_Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
 
 	CHECK_UISTATE("Video_Settings", "ShowShaderErrors", bShowShaderErrors);

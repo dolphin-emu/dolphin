@@ -385,23 +385,14 @@ CFrame::CFrame(wxFrame* parent,
 	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-	if (g_pCodeWindow)
-	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(_T("Pane 0")).Caption(_T("Pane 0"))
-				.CenterPane().PaneBorder(false).Show());
-		AuiFullscreen = m_Mgr->SavePerspective();
-	}
-	else
-	{
-		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-				.Name(_T("Pane 0")).Caption(_T("Pane 0")).PaneBorder(false)
-				.CaptionVisible(false).Layer(0).Center().Show());
+	m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
+			.Name(_T("Pane 0")).Caption(_T("Pane 0")).PaneBorder(false)
+			.CaptionVisible(false).Layer(0).Center().Show());
+	if (!g_pCodeWindow)
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
 				.Name(_T("Pane 1")).Caption(_("Logging")).CaptionVisible(true)
 				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
-		AuiFullscreen = m_Mgr->SavePerspective();
-	}
+	AuiFullscreen = m_Mgr->SavePerspective();
 
 	// Create toolbar
 	RecreateToolbar();
@@ -535,7 +526,12 @@ void CFrame::OnClose(wxCloseEvent& event)
 	// Save GUI settings
 	if (g_pCodeWindow) SaveIniPerspectives();
 	// Close the log window now so that its settings are saved
-	else m_LogWindow->Close();
+	else
+	{
+		m_LogWindow->Close();
+		m_LogWindow = NULL;
+	}
+
 
 	// Uninit
 	m_Mgr->UnInit();
@@ -582,6 +578,13 @@ void CFrame::OnResize(wxSizeEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
 	}
+
+	// Make sure the logger pane is a sane size
+	if (!g_pCodeWindow && m_LogWindow && m_Mgr->GetPane(_T("Pane 1")).IsShown() &&
+			!m_Mgr->GetPane(_T("Pane 1")).IsFloating() &&
+			(m_LogWindow->x > GetClientRect().GetWidth() ||
+			 m_LogWindow->y > GetClientRect().GetHeight()))
+		ShowResizePane();
 }
 
 // Host messages
