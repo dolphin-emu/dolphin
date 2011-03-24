@@ -360,6 +360,8 @@ void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 	wxControl::OnPaint(event);
 
 	// Draw the flags, platform icons and emustate icons on top if there's games to show
+	if (m_ISOFiles.empty())
+		return;
 
 	// Retrieve the topmost shown item and get drawing offsets
 	const long
