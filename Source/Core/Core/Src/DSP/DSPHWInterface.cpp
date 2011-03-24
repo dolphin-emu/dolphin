@@ -81,6 +81,11 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 u16 gdsp_mbox_read_h(u8 mbx)
 {
+	if (init_hax && mbx)
+	{
+		return 0x8054;
+	}
+
 	return (u16)(Common::AtomicLoad(g_dsp.mbox[mbx]) >> 16); // TODO: mask away the top bit?
 }
 
@@ -88,6 +93,13 @@ u16 gdsp_mbox_read_l(u8 mbx)
 {
 	const u32 value = Common::AtomicLoadAcquire(g_dsp.mbox[mbx]);
 	Common::AtomicStoreRelease(g_dsp.mbox[mbx], value & ~0x80000000);
+
+	if (init_hax && mbx)
+	{
+		init_hax = false;
+		DSPCore_Reset();
+		return 0x4348;
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)

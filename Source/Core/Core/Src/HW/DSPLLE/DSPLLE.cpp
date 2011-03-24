@@ -91,7 +91,7 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			}
 			else
 			{
-				DSPInterpreter::RunCycles(cycles);
+				DSPInterpreter::RunCyclesThread(cycles);
 			}
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
