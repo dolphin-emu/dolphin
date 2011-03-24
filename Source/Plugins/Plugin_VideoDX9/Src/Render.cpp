@@ -913,6 +913,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
+		if (g_ActiveConfig.bDumpFrames && data)
+			AVIDump::AddFrame(data);
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
