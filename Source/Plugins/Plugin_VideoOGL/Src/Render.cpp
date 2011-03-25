@@ -984,7 +984,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		#ifdef _WIN32
 			AVIDump::AddFrame((char *) data);
 		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data);
+			AVIDump::AddFrame(data, w, h);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -1002,7 +1002,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		#ifdef _WIN32
 			AVIDump::AddFrame((char *) data);
 		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data);
+			AVIDump::AddFrame(data, w, h);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -1196,7 +1196,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					AVIDump::AddFrame((char *) data);
 				#else
 					FlipImageData(data, w, h);
-					AVIDump::AddFrame(data);
+					AVIDump::AddFrame(data, w, h);
 				#endif
 			}
 

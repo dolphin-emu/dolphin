@@ -924,8 +924,11 @@ void CFrame::StartGame(const std::string& filename)
 
 	wxBeginBusyCursor();
 
+	DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+
 	if (!BootManager::BootCore(filename))
 	{
+		DoFullscreen(false);
 		// Destroy the renderer frame when not rendering to main
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
@@ -939,8 +942,6 @@ void CFrame::StartGame(const std::string& filename)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
-
-		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 #ifdef _WIN32
 		::SetFocus((HWND)m_RenderParent->GetHandle());

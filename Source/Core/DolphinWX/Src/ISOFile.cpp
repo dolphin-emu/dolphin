@@ -45,10 +45,10 @@ static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
 GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
+	, m_emu_state(0)
 	, m_FileSize(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
-	, m_emu_state(0)
 {
 	if (LoadFromCache())
 	{

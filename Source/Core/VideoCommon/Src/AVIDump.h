@@ -39,7 +39,7 @@ class AVIDump
 		static void AddFrame(char *data);
 #else
 		static bool Start(int w, int h);
-		static void AddFrame(uint8_t *data);
+		static void AddFrame(uint8_t *data, int width, int height);
 #endif
 		static void Stop();
 };

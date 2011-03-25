@@ -214,7 +214,6 @@ AVStream *s_Stream = NULL;
 AVFrame *s_BGRFrame = NULL, *s_YUVFrame = NULL;
 uint8_t *s_YUVBuffer = NULL;
 uint8_t *s_OutBuffer = NULL;
-struct SwsContext *s_SwsContext = NULL;
 int s_width;
 int s_height;
 int s_size;
@@ -254,31 +253,20 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	if (g_Config.bUseFFV1)
-	{
-		s_FormatContext->oformat->video_codec = CODEC_ID_FFV1;
-	}
-
-	s_Stream->codec->codec_id = s_FormatContext->oformat->video_codec;
+	s_Stream->codec->codec_id =
+		g_Config.bUseFFV1 ?  CODEC_ID_FFV1 : s_FormatContext->oformat->video_codec;
 	s_Stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_Stream->codec->bit_rate = 400000;
 	s_Stream->codec->width = s_width;
 	s_Stream->codec->height = s_height;
 	s_Stream->codec->time_base = (AVRational){1, VideoInterface::TargetRefreshRate};
 	s_Stream->codec->gop_size = 12;
-	s_Stream->codec->pix_fmt = (g_Config.bUseFFV1) ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
+	s_Stream->codec->pix_fmt = g_Config.bUseFFV1 ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
 
 	av_set_parameters(s_FormatContext, NULL);
 
 	if (!(codec = avcodec_find_encoder(s_Stream->codec->codec_id)) ||
 			(avcodec_open(s_Stream->codec, codec) < 0))
-	{
-		CloseFile();
-		return false;
-	}
-
-	if(!(s_SwsContext = sws_getContext(s_width, s_height, PIX_FMT_BGR24, s_width, s_height,
-					s_Stream->codec->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL)))
 	{
 		CloseFile();
 		return false;
@@ -307,13 +295,20 @@ bool AVIDump::CreateFile()
 	return true;
 }
 
-void AVIDump::AddFrame(uint8_t *data)
+void AVIDump::AddFrame(uint8_t *data, int width, int height)
 {
-	avpicture_fill((AVPicture *)s_BGRFrame, data, PIX_FMT_BGR24, s_width, s_height);
+	avpicture_fill((AVPicture *)s_BGRFrame, data, PIX_FMT_BGR24, width, height);
 
-	// Convert image from BGR24 to YUV420P
-	sws_scale(s_SwsContext, s_BGRFrame->data, s_BGRFrame->linesize, 0,
-			s_height, s_YUVFrame->data, s_YUVFrame->linesize);
+	// Convert image from BGR24 to desired pixel format, and scale to initial
+	// width and height
+	struct SwsContext *s_SwsContext;
+	if ((s_SwsContext = sws_getContext(width, height, PIX_FMT_BGR24, s_width, s_height,
+					s_Stream->codec->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL)))
+	{
+		sws_scale(s_SwsContext, s_BGRFrame->data, s_BGRFrame->linesize, 0,
+				height, s_YUVFrame->data, s_YUVFrame->linesize);
+		sws_freeContext(s_SwsContext);
+	}
 
 	// Encode and write the image
 	int outsize = avcodec_encode_video(s_Stream->codec, s_OutBuffer, s_size, s_YUVFrame);
@@ -372,15 +367,12 @@ void AVIDump::CloseFile()
 		av_free(s_YUVFrame);
 	s_YUVFrame = NULL;
 
-	if (s_SwsContext)
-		sws_freeContext(s_SwsContext);
-	s_SwsContext = NULL;
-
 	if (s_FormatContext)
 	{
 		if (s_FormatContext->pb)
 			url_fclose(s_FormatContext->pb);
 		av_free(s_FormatContext);
+		s_FormatContext = NULL;
 	}
 }
 
