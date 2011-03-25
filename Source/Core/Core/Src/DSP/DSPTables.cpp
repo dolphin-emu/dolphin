@@ -329,6 +329,11 @@ const DSPOPCTemplate opcodes_ext[] =
 	{"LSNM",	0x008c, 0x00ce, DSPInterpreter::Ext::lsnm, &DSPEmitter::lsnm, 1, 2, {{P_REG18, 1, 0, 4, 0x0030}, {P_ACCM, 1, 0, 0, 0x0001}}, false, false, false, false, false},
 	{"SLNM",	0x008e, 0x00ce, DSPInterpreter::Ext::slnm, &DSPEmitter::slnm, 1, 2, {{P_ACCM, 1, 0, 0, 0x0001}, {P_REG18, 1, 0, 4, 0x0030}}, false, false, false, false, false},
 
+	{"LDAX",	0x00c3, 0x00cf, DSPInterpreter::Ext::ldax,   &DSPEmitter::ldax,   1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false},
+	{"LDAXN",	0x00c7, 0x00cf, DSPInterpreter::Ext::ldaxn,  &DSPEmitter::ldaxn,  1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false},
+	{"LDAXM",	0x00cb, 0x00cf, DSPInterpreter::Ext::ldaxm,  &DSPEmitter::ldaxm,  1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false},
+	{"LDAXNM",	0x00cf, 0x00cf, DSPInterpreter::Ext::ldaxnm, &DSPEmitter::ldaxnm, 1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false},
+
 	{"LD",		0x00c0, 0x00cc, DSPInterpreter::Ext::ld,   &DSPEmitter::ld,   1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
 	{"LDN",		0x00c4, 0x00cc, DSPInterpreter::Ext::ldn,  &DSPEmitter::ldn,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
 	{"LDM",		0x00c8, 0x00cc, DSPInterpreter::Ext::ldm,  &DSPEmitter::ldm,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false},
@@ -527,22 +532,27 @@ const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
 void InitInstructionTable()
 {
 	// ext op table
-	for (int i = 0; i < EXT_OPTABLE_SIZE; i++) 
+	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)
 		extOpTable[i] = &cw;
 
-	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)  
+	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)
     {
 		for (int j = 0; j < opcodes_ext_size; j++)
 		{
 			u16 mask = opcodes_ext[j].opcode_mask;
-			if ((mask & i) == opcodes_ext[j].opcode) 
+			if ((mask & i) == opcodes_ext[j].opcode)
 			{
-				if (extOpTable[i] == &cw) 
+				if (extOpTable[i] == &cw)
 					extOpTable[i] = &opcodes_ext[j];
 				else
-					ERROR_LOG(DSPLLE, "opcode ext table place %d already in use for %s", i, opcodes_ext[j].name); 	
+				{
+					//if the entry already in the table
+					//is a strict subset, allow it
+					if ((extOpTable[i]->opcode_mask | opcodes_ext[j].opcode_mask) != extOpTable[i]->opcode_mask)
+						ERROR_LOG(DSPLLE, "opcode ext table place %d already in use by %s when inserting %s", i, extOpTable[i]->name, opcodes_ext[j].name);
+				}
 			}
-		}   
+		}
 	}
 
 	// op table

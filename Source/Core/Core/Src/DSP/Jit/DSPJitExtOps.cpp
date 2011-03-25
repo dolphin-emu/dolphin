@@ -415,61 +415,65 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 // points into an invalid memory page (ie 0x2000), then AX0.H keeps its old
 // value. (not implemented yet) If AR3 points into an invalid memory page, then
 // AX0.L gets the same value as AX0.H. (not implemented yet)
-
-// LD $axr.h, @$ard
-// xxxx xxxx 11dr 0011
 void DSPEmitter::ld(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
 
-	if (sreg != DSP_REG_AR3) {
-		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+	pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
-		// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		dsp_op_read_reg(sreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true);
-		SetJumpTarget(not_equal); // else
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	// 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true);
+	SetJumpTarget(not_equal); // else
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
 
-		increment_addr_reg(sreg);
+	increment_addr_reg(sreg);
 
-	} else {
-		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
+	increment_addr_reg(DSP_REG_AR3);
+}
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(dreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE, true);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true); // else
-		SetJumpTarget(not_equal);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+// LDAX $axR, @$arS
+// xxxx xxxx 11sr 0011
+void DSPEmitter::ldax(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
 
-		increment_addr_reg(dreg);
-	}
+	pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
+
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE, true);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true); // else
+	SetJumpTarget(not_equal);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
+
+	increment_addr_reg(sreg);
 
 	increment_addr_reg(DSP_REG_AR3);
 }
@@ -482,51 +486,59 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
 
-	if (sreg != DSP_REG_AR3) {
-		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+	pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(sreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true);
-		SetJumpTarget(not_equal); // else
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true);
+	SetJumpTarget(not_equal); // else
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
 
-		increase_addr_reg(sreg, sreg);
-	} else {
-		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
+	increase_addr_reg(sreg, sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(dreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true); // else
-		SetJumpTarget(not_equal);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	increment_addr_reg(DSP_REG_AR3);
+}
 
-		increase_addr_reg(dreg, dreg);
-	}
+// LDAXN $axR, @$arS
+// xxxx xxxx 11sr 0111
+void DSPEmitter::ldaxn(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+
+	pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
+
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true); // else
+	SetJumpTarget(not_equal);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
+
+	increase_addr_reg(sreg, sreg);
 
 	increment_addr_reg(DSP_REG_AR3);
 }
@@ -539,51 +551,59 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
 
-	if (sreg != DSP_REG_AR3) {
-		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+	pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(sreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true);
-		SetJumpTarget(not_equal); // else
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true);
+	SetJumpTarget(not_equal); // else
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
 
-		increment_addr_reg(sreg);
-	} else {
-		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
+	increment_addr_reg(sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(dreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true); // else
-		SetJumpTarget(not_equal);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	increase_addr_reg(DSP_REG_AR3, DSP_REG_AR3);
+}
 
-		increment_addr_reg(dreg);
-	}
+// LDAXM $axR, @$arS
+// xxxx xxxx 11sr 1011
+void DSPEmitter::ldaxm(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+
+	pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
+
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true); // else
+	SetJumpTarget(not_equal);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
+
+	increment_addr_reg(sreg);
 
 	increase_addr_reg(DSP_REG_AR3, DSP_REG_AR3);
 }
@@ -596,51 +616,59 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
 
-	if (sreg != DSP_REG_AR3) {
-		pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
+	pushExtValueFromMem((dreg << 1) + DSP_REG_AXL0, sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(sreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true);
-		SetJumpTarget(not_equal); // else
-		pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true);
+	SetJumpTarget(not_equal); // else
+	pushExtValueFromMem2((rreg << 1) + DSP_REG_AXL1, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
 
-		increase_addr_reg(sreg, sreg);
-	} else {
-		pushExtValueFromMem(rreg + DSP_REG_AXH0, dreg);
+	increase_addr_reg(sreg, sreg);
 
-		X64Reg tmp;
-		gpr.getFreeXReg(tmp);
-		//if (IsSameMemArea(g_dsp.r[dreg], g_dsp.r[DSP_REG_AR3])) {
-		dsp_op_read_reg(dreg, RCX, NONE);
-		dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
-		XOR(16, R(ECX), R(tmp));
-		gpr.putXReg(tmp);
-		DSPJitRegCache c(gpr);
-		TEST(16, R(ECX), Imm16(0xfc00));
-		FixupBranch not_equal = J_CC(CC_NE,true);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, dreg);
-		gpr.flushRegs(c);
-		FixupBranch after = J(true); // else
-		SetJumpTarget(not_equal);
-		pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
-		gpr.flushRegs(c);
-		SetJumpTarget(after);
+	increase_addr_reg(DSP_REG_AR3, DSP_REG_AR3);
+}
 
-		increase_addr_reg(dreg, dreg);
-	}
+// LDAXNM $axR, @$arS
+// xxxx xxxx 11sr 1111
+void DSPEmitter::ldaxnm(const UDSPInstruction opc)
+{
+	u8 sreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+
+	pushExtValueFromMem(rreg + DSP_REG_AXH0, sreg);
+
+	X64Reg tmp;
+	gpr.getFreeXReg(tmp);
+	//if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
+	dsp_op_read_reg(sreg, RCX, NONE);
+	dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+	XOR(16, R(ECX), R(tmp));
+	gpr.putXReg(tmp);
+	DSPJitRegCache c(gpr);
+	TEST(16, R(ECX), Imm16(0xfc00));
+	FixupBranch not_equal = J_CC(CC_NE,true);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, sreg);
+	gpr.flushRegs(c);
+	FixupBranch after = J(true); // else
+	SetJumpTarget(not_equal);
+	pushExtValueFromMem2(rreg + DSP_REG_AXL0, DSP_REG_AR3);
+	gpr.flushRegs(c);
+	SetJumpTarget(after);
+
+	increase_addr_reg(sreg, sreg);
 
 	increase_addr_reg(DSP_REG_AR3, DSP_REG_AR3);
 }
