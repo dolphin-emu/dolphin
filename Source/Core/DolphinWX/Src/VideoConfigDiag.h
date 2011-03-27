@@ -18,6 +18,15 @@
 #include <wx/spinctrl.h>
 #include <wx/fontmap.h>
 
+enum tmp_MemberClass {
+	Def_Data,
+	State
+};
+
+enum tmp_TypeClass {
+	only_2State,
+	allow_3State
+};
 
 template <typename U>
 class BoolSettingCB : public wxCheckBox
@@ -30,17 +39,77 @@ public:
 
 	void UpdateValue(wxCommandEvent& ev)
 	{
-		if (m_state) *m_state = (ev.GetInt() != wxCHK_UNDETERMINED);
-		m_setting = (ev.GetInt() == wxCHK_UNDETERMINED) ? d_setting : ((ev.GetInt() != 0) & true); // discriminate CheckBox 3State
-		m_setting = m_setting ^ m_reverse;
+		m_setting = (ev.GetInt() != 0) ^ m_reverse;
 		ev.Skip();
 	}
 
+	void UpdateValue_variant(wxCommandEvent& ev)
+	{
+		bool style = (this->GetWindowStyle() == (wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER));
+
+		if (style)
+		{
+			// changing state value should be done here, never outside this block
+			UpdateUIState(ev.GetInt() != wxCHK_UNDETERMINED);
+		}
+
+		m_setting = (ev.GetInt() == wxCHK_CHECKED);
+		if (m_state)
+		{
+			// if state = false and Checkbox ctrl allow 3RD STATE, then data = default_data
+			m_setting = (style && !*m_state) ? *d_setting : m_setting;
+		}
+
+		m_setting = m_setting ^ m_reverse;
+
+		if (!style && m_state) // this guarantees bidirectional access to default value
+			if (!*m_state) *d_setting = m_setting;
+
+		ev.Skip();
+	}
+
+	// manual updating with an optional value if 'enter_updating' is passed and state is true
+	void UpdateUIState(bool state, bool enter_updating = false, bool value = false)
+	{
+		if (m_state && this->GetWindowStyle() == (wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER))
+		{
+			*m_state = state;
+			if (!*m_state)
+				m_setting = *d_setting ^ m_reverse;
+
+			if (enter_updating && *m_state)
+				m_setting = value ^ m_reverse;
+		}
+	}
+
+	void ChangeRefDataMember(tmp_MemberClass type, void *newRef)
+	{
+		switch (type)
+		{
+			case Def_Data:
+				d_setting = (bool*)newRef;
+				break;
+			case State:
+				m_state = (bool*)newRef;
+				break;
+		}
+	}
+
+	// This method returns what kind of support has the Object (2State or 3State).
+	// NOTE: this doesn't return a run-time Control-state, since a 3State Control
+	// can to switch to 2State and vice-versa, while a 2State Object only can't.
+	tmp_TypeClass getTypeClass()
+	{
+		return type;
+	}
+
+
 private:
 	bool &m_setting;
-	bool &d_setting;
+	bool *d_setting;
 	bool *m_state;
 	const bool m_reverse;
+	const tmp_TypeClass type;
 };
 
 template <typename W>
@@ -88,14 +157,50 @@ public:
 	// overload constructor
 	SettingChoice(wxWindow* parent, int &setting, int &def_setting, bool &state, int &cur_index, const wxString& tooltip, int num = 0, const wxString choices[] = NULL, long style = 0);
 
-
 	void UpdateValue(wxCommandEvent& ev);
 	void UpdateValue_variant(wxCommandEvent& ev);
+
+	// manual updating with an optional value if 'enter_updating' is passed and state is true
+	void UpdateUIState(bool state, bool enter_updating = false, int value = 0)
+	{
+		if (m_state && m_index != 0)
+		{
+			*m_state = state;
+			if (!*m_state)
+				m_setting = *d_setting;
+
+			if (enter_updating && *m_state)
+				m_setting = value;
+		}
+	}
+
+	void ChangeRefDataMember(tmp_MemberClass type, void *newRef)
+	{
+		switch (type)
+		{
+			case Def_Data:
+				d_setting = (int*)newRef;
+				break;
+			case State:
+				m_state = (bool*)newRef;
+				break;
+		}
+	}
+
+	// This method returns what kind of support has the Object (2State or 3State).
+	// NOTE: this doesn't return a run-time Control-state, since a 3State Control
+	// can to switch to 2State and vice-versa, while a 2State Object only can't.
+	tmp_TypeClass getTypeClass()
+	{
+		return type;
+	}
+
 private:
 	int &m_setting;
-	int &d_setting;
 	int &m_index;
+	int *d_setting;
 	bool *m_state;
+	const tmp_TypeClass type;
 };
 
 class CGameListCtrl;
@@ -124,6 +229,7 @@ protected:
 	}
 
 	void Event_ClickClose(wxCommandEvent&);
+	void Event_ClickDefault(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
 	void Event_OnProfileChange(wxCommandEvent& ev);
@@ -141,8 +247,8 @@ protected:
 	SettingChoice* profile_cb; // "General" tab
 	wxStaticText* profile_text; // "Advanced" tab
 
-	wxChoice* choice_adapter;
-	wxChoice* choice_aspect;
+	SettingChoice* choice_adapter;
+	SettingChoice* choice_aspect;
 	SettingCheckBox* widescreen_hack;
 	SettingCheckBox* vsync;
 
@@ -157,7 +263,7 @@ protected:
 	SettingCheckBox* force_filtering;
 	SettingCheckBox* _3d_vision;
 
-	wxChoice* choice_efbscale;
+	SettingChoice* choice_efbscale;
 	SettingCheckBox* efbaccess_enable;
 	SettingCheckBox* emulate_efb_format_changes;
 
@@ -203,6 +309,7 @@ protected:
 	SettingCheckBox* ompdecoder;
 	wxChoice* choice_ppshader;
 
+	wxButton* btn_default;
 	// TODO: Add options for
 	//cur_vconfig.bTexFmtOverlayCenter
 	//cur_vconfig.bAnaglyphStereo
@@ -210,7 +317,7 @@ protected:
 	//cur_vconfig.iAnaglyphFocalAngle
 	//cur_vconfig.bShowEFBCopyRegions
 	//cur_vconfig.iCompileDLsLevel
-
+	wxPoint CenterCoords;
 	VideoConfig cur_vconfig;
 	VideoConfig def_vconfig;
 	std::string ininame;
