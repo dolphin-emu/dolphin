@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-17 08:30-0500\n"
-"PO-Revision-Date: 2011-03-17 00:05+0100\n"
+"PO-Revision-Date: 2011-03-18 20:14+0100\n"
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -643,7 +643,7 @@ msgstr "Aplicar"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "Árabe"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -1273,7 +1273,7 @@ msgstr "Cortar"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
-msgstr "Crossfade"
+msgstr "Fundido"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:676
 #, c-format
@@ -1445,8 +1445,8 @@ msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
 msgstr ""
-"Falló el checksum del directorio\n"
-" y falló el checksum del directorio backup"
+"Falló la suma de verificación del directorio\n"
+" y falló la suma de verificación del directorio backup"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:363
 msgid "Disable Dest. Alpha Pass"

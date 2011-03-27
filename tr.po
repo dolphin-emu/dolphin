@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-03-17 08:30-0500\n"
-"PO-Revision-Date: 2011-03-14 17:12+0200\n"
+"PO-Revision-Date: 2011-03-18 16:58+0200\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -52,6 +52,9 @@ msgstr ""
 #, c-format
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopyala%1$s"
+
+msgid "%d %%"
+msgstr "%d %%"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
@@ -640,7 +643,7 @@ msgstr "Uygula"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "Arapça"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -5106,9 +5109,6 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:497
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "&Kare Adımlama"
