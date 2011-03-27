@@ -58,6 +58,12 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/DSP/Jit/DSPJitMultiplier.cpp
 			Src/DSP/Jit/DSPJitUtil.cpp
 			Src/DSP/Jit/DSPJitMisc.cpp
+			Src/FifoPlayer/FifoAnalyzer.cpp
+			Src/FifoPlayer/FifoDataFile.cpp
+			Src/FifoPlayer/FifoPlaybackAnalyzer.cpp
+			Src/FifoPlayer/FifoPlayer.cpp
+			Src/FifoPlayer/FifoRecordAnalyzer.cpp
+			Src/FifoPlayer/FifoRecorder.cpp
 			Src/HLE/HLE.cpp
 			Src/HLE/HLE_Misc.cpp
 			Src/HLE/HLE_OS.cpp

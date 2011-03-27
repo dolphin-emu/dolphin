@@ -272,6 +272,7 @@ EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_INSTALLWAD, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
+EVT_MENU(IDM_FIFOPLAYER, CFrame::OnFifoPlayer)
 
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
@@ -332,7 +333,8 @@ CFrame::CFrame(wxFrame* parent,
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
-	, m_LogWindow(NULL), m_LogConfigWindow(NULL), UseDebugger(_UseDebugger)
+	, m_LogWindow(NULL), m_LogConfigWindow(NULL)
+	, m_FifoPlayerDlg(NULL), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bGameLoading(false)
 {

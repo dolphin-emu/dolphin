@@ -28,14 +28,20 @@
 
 #include "RenderBase.h"
 #include "Atomic.h"
+#include "BPMemory.h"
+#include "CommandProcessor.h"
+#include "CPMemory.h"
 #include "MainBase.h"
 #include "VideoConfig.h"
 #include "FramebufferManagerBase.h"
 #include "TextureCacheBase.h"
 #include "Fifo.h"
+#include "OpcodeDecoding.h"
 #include "Timer.h"
 #include "StringUtil.h"
 #include "Host.h"
+#include "XFMemory.h"
+#include "FifoPlayer/FifoRecorder.h"
 
 #include <cmath>
 #include <string>
@@ -75,6 +81,7 @@ int Renderer::s_LastEFBScale;
 
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
+bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 
@@ -91,6 +98,8 @@ Renderer::~Renderer()
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
+	CheckFifoRecording();
+
 	if (!fbWidth || !fbHeight)
 		return;
 
@@ -330,6 +339,43 @@ void Renderer::SetWindowSize(int width, int height)
 	CalculateTargetScale(width, height, width, height);
 
 	Host_RequestRenderWindowSize(width, height);
+}
+
+void Renderer::CheckFifoRecording()
+{
+	bool wasRecording = g_bRecordFifoData;
+	g_bRecordFifoData = FifoRecorder::GetInstance().IsRecording();
+
+	if (g_bRecordFifoData)
+	{
+		if (!wasRecording)
+		{
+			// Disable display list caching because the recorder does not handle it
+			s_EnableDLCachingAfterRecording = g_ActiveConfig.bDlistCachingEnable;
+			g_ActiveConfig.bDlistCachingEnable = false;
+
+			RecordVideoMemory();
+		}
+
+		FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
+	}
+	else if (wasRecording)
+	{
+		g_ActiveConfig.bDlistCachingEnable = s_EnableDLCachingAfterRecording;
+	}
+}
+
+void Renderer::RecordVideoMemory()
+{
+	u32 *bpMem = (u32*)&bpmem;
+	u32 cpMem[256];
+	u32 *xfMem = (u32*)xfmem;
+	u32 *xfRegs = (u32*)&xfregs;
+
+	memset(cpMem, 0, 256 * 4);
+	FillCPMemoryArray(cpMem);
+
+	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
 void UpdateViewport()

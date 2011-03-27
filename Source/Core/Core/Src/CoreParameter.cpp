@@ -29,6 +29,7 @@
 #include "CoreParameter.h"
 #include "ConfigManager.h"
 #include "Core.h" // for bWii
+#include "FifoPlayer/FifoDataFile.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),
@@ -196,6 +197,21 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				Region = USA_DIR; 
 				m_BootType = BOOT_DOL;
 				bNTSC = true;
+			}
+			else if (!strcasecmp(Extension.c_str(), ".dff"))
+			{
+				bWii = true;
+				Region = USA_DIR;
+				bNTSC = true;
+				m_BootType = BOOT_DFF;
+
+				FifoDataFile *ddfFile = FifoDataFile::Load(m_strFilename.c_str(), true);
+
+				if (ddfFile)
+				{
+					bWii = ddfFile->GetIsWii();
+					delete ddfFile;
+				}
 			}
 			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{

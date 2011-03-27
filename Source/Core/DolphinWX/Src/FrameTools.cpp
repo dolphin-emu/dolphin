@@ -51,6 +51,7 @@ Core::GetWindowHandle().
 #include "BootManager.h"
 #include "LogWindow.h"
 #include "LogConfigWindow.h"
+#include "FifoPlayerDlg.h"
 #include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
@@ -210,6 +211,9 @@ void CFrame::CreateMenu()
 
 	toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
 	toolsMenu->Enable(IDM_LOAD_WII_MENU, DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid());
+
+	
+	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
 
 	toolsMenu->AppendSeparator();
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
@@ -664,7 +668,7 @@ void CFrame::DoOpen(bool Boot)
 			_("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			_("All GC/Wii files (elf, dol, gcm, iso, ciso, gcz, wad)") +
-			wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.ciso;*.gcz;*.wad|%s"),
+			wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.ciso;*.gcz;*.wad;*.dff|%s"),
 				wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 			this);
@@ -1355,6 +1359,19 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 
 	}
 	
+}
+
+void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED (event))
+{
+	if (m_FifoPlayerDlg)
+	{
+		m_FifoPlayerDlg->Show();
+		m_FifoPlayerDlg->SetFocus();
+	}
+	else
+	{
+		m_FifoPlayerDlg = new FifoPlayerDlg(this);
+	}
 }
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)

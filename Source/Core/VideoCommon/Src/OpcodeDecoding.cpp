@@ -33,6 +33,7 @@
 #include "Core.h"
 #include "Host.h"
 #include "HW/Memmap.h"
+#include "FifoPlayer/FifoRecorder.h"
 
 #include "VertexLoaderManager.h"
 
@@ -50,6 +51,8 @@
 #include "VideoConfig.h"
 
 u8* g_pVideoData = 0;
+bool g_bRecordFifoData = false;
+
 #if _M_SSE >= 0x301
 DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 	DataReadU32xN_SSSE3<1>,
@@ -254,6 +257,8 @@ bool FifoCommandRunnable()
 
 static void Decode()
 {
+    u8 *opcodeStart = g_pVideoData;
+
     int cmd_byte = DataReadU8();
     switch (cmd_byte)
     {
@@ -338,10 +343,16 @@ static void Decode()
         }
         break;
     }
+
+	// Display lists get added directly into the FIFO stream
+	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
+		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, g_pVideoData - opcodeStart);
 }
 
 static void DecodeSemiNop()
 {
+    u8 *opcodeStart = g_pVideoData;
+
     int cmd_byte = DataReadU8();
     switch (cmd_byte)
     {
@@ -416,6 +427,9 @@ static void DecodeSemiNop()
         }
         break;
     }
+
+	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
+		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, g_pVideoData - opcodeStart);
 }
 
 void OpcodeDecoder_Init()

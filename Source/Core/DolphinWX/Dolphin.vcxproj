@@ -232,6 +232,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\Debugger\DebuggerUIUtil.cpp" />
     <ClCompile Include="Src\Debugger\DSPDebugWindow.cpp" />
     <ClCompile Include="Src\Debugger\DSPRegisterView.cpp" />
+    <ClCompile Include="Src\FifoPlayerDlg.cpp" />
     <ClCompile Include="Src\Frame.cpp" />
     <ClCompile Include="Src\FrameAui.cpp" />
     <ClCompile Include="Src\FrameTools.cpp" />
@@ -294,6 +295,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\Debugger\DebuggerUIUtil.h" />
     <ClInclude Include="Src\Debugger\DSPDebugWindow.h" />
     <ClInclude Include="Src\Debugger\DSPRegisterView.h" />
+    <ClInclude Include="Src\FifoPlayerDlg.h" />
     <ClInclude Include="Src\Frame.h" />
     <ClInclude Include="Src\GameListCtrl.h" />
     <ClInclude Include="Src\GeckoCodeDiag.h" />

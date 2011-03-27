@@ -48,6 +48,7 @@ static inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int len
 class CGameListCtrl;
 class GameListItem;
 class CLogWindow;
+class FifoPlayerDlg;
 class NetPlaySetupDiag;
 class wxCheatsWindow;
 
@@ -175,6 +176,7 @@ private:
 	wxPanel* m_RenderParent;
 	CLogWindow* m_LogWindow;
 	LogConfigWindow* m_LogConfigWindow;
+	FifoPlayerDlg* m_FifoPlayerDlg;
 	bool UseDebugger;
 	bool m_bBatchMode;
 	bool m_bEdit;
@@ -337,6 +339,7 @@ private:
 
 	void OnShow_CheatsWindow(wxCommandEvent& event);
 	void OnLoadWiiMenu(wxCommandEvent& event);
+	void OnFifoPlayer(wxCommandEvent& event);
 	void OnConnectWiimote(wxCommandEvent& event);
 	void GameListChanged(wxCommandEvent& event);
 

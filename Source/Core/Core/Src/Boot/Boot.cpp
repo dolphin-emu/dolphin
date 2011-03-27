@@ -364,6 +364,10 @@ bool CBoot::BootUp()
 		break;
 	}
 
+	case SCoreStartupParameter::BOOT_DFF:
+		// do nothing
+		break;
+
 	default:
 	{
 		PanicAlertT("Tried to load an unknown file type.");

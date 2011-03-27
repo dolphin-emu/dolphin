@@ -214,6 +214,27 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	}
 }
 
+void FillCPMemoryArray(u32 *memory)
+{
+	memory[0x30] = MatrixIndexA.Hex;
+	memory[0x40] = MatrixIndexB.Hex;
+	memory[0x50] = (u32)g_VtxDesc.Hex;
+	memory[0x60] = (u32)(g_VtxDesc.Hex >> 17);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		memory[0x70 + i] = g_VtxAttr[i].g0.Hex;
+		memory[0x80 + i] = g_VtxAttr[i].g1.Hex;
+		memory[0x90 + i] = g_VtxAttr[i].g2.Hex;
+	}
+
+	for (int i = 0; i < 16; ++i)
+	{
+		memory[0xA0 + i] = arraybases[i];
+		memory[0xB0 + i] = arraystrides[i];
+	}
+}
+
 void RecomputeCachedArraybases()
 {
 	for (int i = 0; i < 16; i++)

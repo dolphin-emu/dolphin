@@ -243,6 +243,12 @@
     <ClCompile Include="Src\DSP\Jit\DSPJitRegCache.cpp" />
     <ClCompile Include="Src\DSP\Jit\DSPJitUtil.cpp" />
     <ClCompile Include="Src\DSP\LabelMap.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoAnalyzer.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoDataFile.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoPlayer.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoRecordAnalyzer.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoRecorder.cpp" />
     <ClCompile Include="Src\GeckoCode.cpp" />
     <ClCompile Include="Src\GeckoCodeConfig.cpp" />
     <ClCompile Include="Src\HLE\HLE.cpp" />
@@ -433,6 +439,13 @@
     <ClInclude Include="Src\DSP\Jit\DSPJitRegCache.h" />
     <ClInclude Include="Src\DSP\Jit\DSPJitUtil.h" />
     <ClInclude Include="Src\DSP\LabelMap.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoAnalyzer.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoPlaybackAnalyzer.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoDataFile.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoFileStruct.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoPlayer.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="Src\GeckoCode.h" />
     <ClInclude Include="Src\GeckoCodeConfig.h" />
     <ClInclude Include="Src\HLE\HLE.h" />

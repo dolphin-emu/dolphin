@@ -153,7 +153,8 @@ struct SCoreStartupParameter
 		BOOT_ELF,
 		BOOT_DOL,
 		BOOT_WII_NAND,
-		BOOT_BS2
+		BOOT_BS2,
+		BOOT_DFF
 	};
 	EBootType m_BootType;
 

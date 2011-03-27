@@ -35,6 +35,7 @@
 #include "CPUDetect.h"
 #include "CoreTiming.h"
 #include "Boot/Boot.h"
+#include "FifoPlayer/FifoPlayer.h"
 
 #include "HW/Memmap.h"
 #include "HW/ProcessorInterface.h"
@@ -332,6 +333,33 @@ void CpuThread()
 	return;
 }
 
+void FifoPlayerThread()
+{
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	if (_CoreParameter.bCPUThread)
+	{
+		Common::SetCurrentThreadName("FIFO player thread");
+	}
+	else
+	{
+		g_video_backend->Video_Prepare();
+		Common::SetCurrentThreadName("FIFO-GPU thread");
+	}
+
+	if (_CoreParameter.bLockThreads)
+		Common::SetCurrentThreadAffinity(1);  // Force to first core
+
+	// Enter CPU run loop. When we leave it - we are done.
+	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
+	{
+		FifoPlayer::GetInstance().Play();
+		FifoPlayer::GetInstance().Close();
+	}
+
+	return;
+}
+
 // Initalize and create emulation thread
 // Call browser: Init():g_EmuThread().
 // See the BootManager.cpp file description for a complete call schedule.
@@ -372,6 +400,13 @@ void EmuThread()
 	Host_UpdateDisasmDialog();
 	Host_UpdateMainFrame();
 
+	// Determine the cpu thread function
+	void (*cpuThreadFunc)(void);
+	if (_CoreParameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
+		cpuThreadFunc = FifoPlayerThread;
+	else
+		cpuThreadFunc = CpuThread;
+
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -382,7 +417,7 @@ void EmuThread()
 		g_video_backend->Video_Prepare();
 
 		// Spawn the CPU thread
-		g_cpu_thread = std::thread(CpuThread);
+		g_cpu_thread = std::thread(cpuThreadFunc);
 
 		// become the GPU thread
 		g_video_backend->Video_EnterLoop();
@@ -400,7 +435,7 @@ void EmuThread()
 		Common::SetCurrentThreadName("Emuthread - Idle");
 
 		// Spawn the CPU+GPU thread
-		g_cpu_thread = std::thread(CpuThread);
+		g_cpu_thread = std::thread(cpuThreadFunc);
 
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
