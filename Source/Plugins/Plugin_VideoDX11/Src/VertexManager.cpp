@@ -155,8 +155,10 @@ void VertexManager::Draw(UINT stride)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+		float vpWidth = 2.0f * xfregs.rawViewport[0];
+		float vpHeight = -2.0f * xfregs.rawViewport[1];
 
-		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth, texOffset))
+		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth, texOffset, vpWidth, vpHeight))
 		{
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_lineDrawIndex, 0);
@@ -169,8 +171,10 @@ void VertexManager::Draw(UINT stride)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+		float vpWidth = 2.0f * xfregs.rawViewport[0];
+		float vpHeight = -2.0f * xfregs.rawViewport[1];
 
-		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize, texOffset))
+		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize, texOffset, vpWidth, vpHeight))
 		{
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_pointDrawIndex, 0);

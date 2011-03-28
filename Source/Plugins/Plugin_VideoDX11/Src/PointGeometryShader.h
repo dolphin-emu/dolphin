@@ -38,7 +38,8 @@ public:
 	void Init();
 	void Shutdown();
 	// Returns true on success, false on failure
-	bool SetShader(u32 components, float pointSize, float texOffset);
+	bool SetShader(u32 components, float pointSize, float texOffset,
+		float vpWidth, float vpHeight);
 
 private:
 

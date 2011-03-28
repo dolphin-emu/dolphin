@@ -31,6 +31,8 @@ union PointGSParams
 	{
 		FLOAT PointSize; // In units of 1/6 of an EFB pixel
 		FLOAT TexOffset;
+		FLOAT VpWidth; // Width and height of viewport in EFB pixels
+		FLOAT VpHeight;
 	};
 	// Constant buffers must be a multiple of 16 bytes in size.
 	u8 pad[16]; // Pad to the next multiple of 16 bytes
@@ -46,6 +48,8 @@ static const char POINT_GS_COMMON[] =
 	"{\n"
 		"float PointSize;\n"
 		"float TexOffset;\n"
+		"float VpWidth;\n"
+		"float VpHeight;\n"
 	"} Params;\n"
 "}\n"
 
@@ -58,8 +62,8 @@ static const char POINT_GS_COMMON[] =
 	"VS_OUTPUT ptUR = ptLL;\n"
 
 	// Offset from center to upper right vertex
-	// Lerp Params.PointSize/2 from [0,0..640,528] to [-1,1..1,-1]
-	"float2 offset = float2(Params.PointSize/640, -Params.PointSize/528) * input[0].pos.w;\n"
+	// Lerp Params.PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
+	"float2 offset = float2(Params.PointSize/Params.VpWidth, -Params.PointSize/Params.VpHeight) * input[0].pos.w;\n"
 
 	"ptLL.pos.xy += float2(-1,-1) * offset;\n"
 	"ptLR.pos.xy += float2(1,-1) * offset;\n"
@@ -157,7 +161,8 @@ void PointGeometryShader::Shutdown()
 	SAFE_RELEASE(m_paramsBuffer);
 }
 
-bool PointGeometryShader::SetShader(u32 components, float pointSize, float texOffset)
+bool PointGeometryShader::SetShader(u32 components, float pointSize,
+	float texOffset, float vpWidth, float vpHeight)
 {
 	if (!m_ready)
 		return false;
@@ -201,7 +206,12 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize, float texOf
 			PointGSParams params = { 0 };
 			params.PointSize = pointSize;
 			params.TexOffset = texOffset;
+			params.VpWidth = vpWidth;
+			params.VpHeight = vpHeight;
 			D3D::context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
+			
+			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
+				pointSize, texOffset, vpWidth, vpHeight);
 
 			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
 			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);

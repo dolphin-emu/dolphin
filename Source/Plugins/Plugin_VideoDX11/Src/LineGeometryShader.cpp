@@ -31,6 +31,8 @@ union LineGSParams
 	{
 		FLOAT LineWidth; // In units of 1/6 of an EFB pixel
 		FLOAT TexOffset;
+		FLOAT VpWidth; // Width and height of the viewport in EFB pixels
+		FLOAT VpHeight;
 	};
 	// Constant buffers must be a multiple of 16 bytes in size.
 	u8 pad[16]; // Pad to the next multiple of 16 bytes
@@ -46,6 +48,8 @@ static const char LINE_GS_COMMON[] =
 	"{\n"
 		"float LineWidth;\n"
 		"float TexOffset;\n"
+		"float VpWidth;\n"
+		"float VpHeight;\n"
 	"} Params;\n"
 "}\n"
 
@@ -65,17 +69,17 @@ static const char LINE_GS_COMMON[] =
 	// horizontal depending the slope of the line.
 
 	"float2 offset;\n"
-	"float2 to = input[1].pos.xy - input[0].pos.xy;\n"
+	"float2 to = abs(input[1].pos.xy - input[0].pos.xy);\n"
 	// FIXME: What does real hardware do when line is at a 45-degree angle?
 	// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-	"if (abs(to.y) > abs(to.x)) {\n"
+	"if (Params.VpHeight*to.y > Params.VpWidth*to.x) {\n"
 		// Line is more tall. Extend geometry left and right.
-		// Lerp Params.LineWidth/2 from [0..640] to [-1..1]
-		"offset = float2(Params.LineWidth/640, 0);\n"
+		// Lerp Params.LineWidth/2 from [0..VpWidth] to [-1..1]
+		"offset = float2(Params.LineWidth/Params.VpWidth, 0);\n"
 	"} else {\n"
 		// Line is more wide. Extend geometry up and down.
-		// Lerp Params.LineWidth/2 from [0..528] to [1..-1]
-		"offset = float2(0, -Params.LineWidth/528);\n"
+		// Lerp Params.LineWidth/2 from [0..VpHeight] to [1..-1]
+		"offset = float2(0, -Params.LineWidth/Params.VpHeight);\n"
 	"}\n"
 
 	"l0.pos.xy -= offset * input[0].pos.w;\n"
@@ -164,7 +168,8 @@ void LineGeometryShader::Shutdown()
 	SAFE_RELEASE(m_paramsBuffer);
 }
 
-bool LineGeometryShader::SetShader(u32 components, float lineWidth, float texOffset)
+bool LineGeometryShader::SetShader(u32 components, float lineWidth,
+	float texOffset, float vpWidth, float vpHeight)
 {
 	if (!m_ready)
 		return false;
@@ -208,7 +213,12 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth, float texOff
 			LineGSParams params = { 0 };
 			params.LineWidth = lineWidth;
 			params.TexOffset = texOffset;
+			params.VpWidth = vpWidth;
+			params.VpHeight = vpHeight;
 			D3D::context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
+
+			DEBUG_LOG(VIDEO, "Line params: width %f, texOffset %f, vpWidth %f, vpHeight %f",
+				lineWidth, texOffset, vpWidth, vpHeight);
 
 			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
 			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
