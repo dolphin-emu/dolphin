@@ -1,6 +1,5 @@
 #include "VideoConfigDiag.h"
 
-#include <typeinfo>
 #include "FileUtil.h"
 #include "TextureCacheBase.h"
 
@@ -128,30 +127,23 @@ static void ScanLayouts(wxWindow *obj)
 		wxWindow *ctrl = node->GetData();
 		if (ctrl->IsKindOf(CLASSINFO(wxCheckBox)))
 		{
-			if (typeid(*ctrl) == typeid(SettingCheckBox)) // this checks the exact instance's class
+			if (((SettingCheckBox*)ctrl)->getTypeClass() == allow_3State)
 			{
-				if (((SettingCheckBox*)ctrl)->getTypeClass() == allow_3State)
-				{
-					((SettingCheckBox*)ctrl)->UpdateUIState(false);
-					((SettingCheckBox*)ctrl)->Set3StateValue(wxCHK_UNDETERMINED);
-				}
+				((SettingCheckBox*)ctrl)->UpdateUIState(false);
+				((SettingCheckBox*)ctrl)->Set3StateValue(wxCHK_UNDETERMINED);
 			}
 		}
 		if (ctrl->IsKindOf(CLASSINFO(wxChoice)))
 		{
-			if (typeid(*ctrl) == typeid(SettingChoice))
+			if (((SettingChoice*)ctrl)->getTypeClass() == allow_3State)
 			{
-				if (((SettingChoice*)ctrl)->getTypeClass() == allow_3State)
-				{
-					((SettingChoice*)ctrl)->UpdateUIState(false);
-					((SettingChoice*)ctrl)->Select(0);
-				}
+				((SettingChoice*)ctrl)->UpdateUIState(false);
+				((SettingChoice*)ctrl)->Select(0);
 			}
 		}
 		if (ctrl->IsKindOf(CLASSINFO(wxRadioButton)))
 		{
-			if (typeid(*ctrl) == typeid(wxRadioButton))
-				ctrl->Disable();
+			ctrl->Disable();
 		}
 
 		if (ctrl->GetChildren().GetCount() > 0)
@@ -760,7 +752,7 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(ompdecoder, bOMPDecoder);
 		CHANGE_DATAREF(opencl, bEnableOpenCL);
 		CHANGE_DATAREF(crop, bCrop);
-
+		/*
 		if (cur_vconfig.backend_info.PPShaders.size())
 		{
 			if (cur_profile == 0)
@@ -770,7 +762,7 @@ void VideoConfigDiag::ChangeStyle()
 
 			choice_ppshader->GetParent()->Layout();
 		}
-
+		*/
 		Fit(); // wraps sizes of the outer layout
 		if (CenterCoords == this->GetScreenPosition())
 		{
