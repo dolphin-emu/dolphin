@@ -197,8 +197,8 @@ public:
 
 private:
 	int &m_setting;
-	int &m_index;
 	int *d_setting;
+	int &m_index;
 	bool *m_state;
 	const tmp_TypeClass type;
 };
