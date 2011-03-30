@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include <fstream>
+#include <functional>
 
 // Update this to the current SVN revision every time you change shader generation code.
 // We don't automatically get this from SVN_REV because that would mean regenerating the
@@ -43,12 +44,15 @@ enum
 // value_type[value_size]   value;
 //}
 
-template <typename K, typename V>
-class LinearDiskCacheReader
-{
-public:
-	virtual void Read(const K &key, const V *value, u32 value_size) = 0;
-};
+// Example reader:
+//
+//class LinearDiskCacheReader
+//{
+//public:
+//	template <typename F>
+//	void operator()(const K& key, u32 value_size, F get_data) const
+//	{...}
+//};
 
 // Dead simple unsorted key-value store with append functionality.
 // No random read functionality, all reading is done in OpenAndRead.
@@ -67,48 +71,45 @@ class LinearDiskCache
 {
 public:
 	// return number of read entries
-	u32 OpenAndRead(const char *filename, LinearDiskCacheReader<K, V> &reader)
+	template <typename LinearDiskCacheReader>
+	u32 OpenAndRead(const char* filename, LinearDiskCacheReader& reader)
 	{
-		using std::ios_base;
+		using std::ios;
 
 		// close any currently opened file
 		Close();
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary | ios_base::app);
+		m_file.open(filename, ios::in | ios::out | ios::binary | ios::app);
 		
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
 			u32 num_entries = 0;
-			K key;
 
-			V *value = NULL;
 			u32 value_size;
-
-			while (Read(&value_size))
+			K key;
+			while (Read(&value_size) && Read(&key))
 			{
-				delete[] value;
-				value = new V[value_size];
+				std::streamoff const pos = m_file.tellg();
 
-				// read key/value and pass to reader
-				if (Read(&key) && Read(value, value_size))
-					reader.Read(key, value, value_size);
-				else
-					break;
+				// pass key and value_size to reader with callback function to read the data
+				reader(key, value_size, [this, &value_size](V* data){ Read(data, value_size); });
+
+				// seek past data (in case reader didn't read it for whatever reason)
+				m_file.seekg(pos + (value_size * sizeof(V)), ios::beg);
 
 				++num_entries;
 			}
 			m_file.clear();
 
-			delete[] value;
 			return num_entries;
 		}
 
 		// failed to open file for reading or bad header
 		// close and recreate file
 		Close();
-		m_file.open(filename, ios_base::out | ios_base::trunc | ios_base::binary);
+		m_file.open(filename, ios::out | ios::trunc | ios::binary);
 		WriteHeader();
 		return 0;
 	}

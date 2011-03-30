@@ -66,12 +66,16 @@ static LPDIRECT3DPIXELSHADER9 s_ClearProgram = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgba6_to_rgb8 = NULL;
 static LPDIRECT3DPIXELSHADER9 s_rgb8_to_rgba6 = NULL;
 
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+class PixelShaderCacheInserter
 {
 public:
-	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
+	template <typename F>
+	void operator()(const PIXELSHADERUID& key, u32 value_size, F get_data) const
 	{
-		PixelShaderCache::InsertByteCode(key, value, value_size, false);
+		std::unique_ptr<u8[]> value(new u8[value_size]);
+		get_data(value.get());
+
+		PixelShaderCache::InsertByteCode(key, value.get(), value_size, false);
 	}
 };
 
@@ -281,8 +285,8 @@ void PixelShaderCache::Init()
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	g_ps_disk_cache.OpenAndRead(cache_filename, PixelShaderCacheInserter());
 }
 
 // ONLY to be used during shutdown.

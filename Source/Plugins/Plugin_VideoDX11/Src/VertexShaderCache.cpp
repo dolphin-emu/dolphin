@@ -68,14 +68,15 @@ ID3D11Buffer*const& VertexShaderCache::GetConstantBuffer()
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+class VertexShaderCacheInserter
 {
 public:
-	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
+	template <typename F>
+	void operator()(const VERTEXSHADERUID& key, u32 value_size, F get_data) const
 	{
 		ID3D10Blob* blob = nullptr;
 		PD3D10CreateBlob(value_size, &blob);
-		memcpy(blob->GetBufferPointer(), value, value_size);	// TODO: i would like to eliminate this memcpy
+		get_data((u8*)blob->GetBufferPointer());	// read data from file into blob
 
 		VertexShaderCache::InsertByteCode(key, SharedPtr<ID3D10Blob>::FromPtr(blob));
 	}
@@ -176,9 +177,9 @@ void VertexShaderCache::Init()
 
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	VertexShaderCacheInserter inserter;
-	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+
+	g_vs_disk_cache.OpenAndRead(cache_filename, VertexShaderCacheInserter());
 }
 
 void VertexShaderCache::Clear()

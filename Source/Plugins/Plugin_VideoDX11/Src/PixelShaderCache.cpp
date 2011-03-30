@@ -306,12 +306,16 @@ ID3D11Buffer*const& PixelShaderCache::GetConstantBuffer()
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+class PixelShaderCacheInserter
 {
 public:
-	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
+	template <typename F>
+	void operator()(const PIXELSHADERUID& key, u32 value_size, F get_data) const
 	{
-		PixelShaderCache::InsertByteCode(key, value, value_size);
+		std::unique_ptr<u8[]> value(new u8[value_size]);
+		get_data(value.get());
+
+		PixelShaderCache::InsertByteCode(key, value.get(), value_size);
 	}
 };
 
@@ -353,9 +357,9 @@ void PixelShaderCache::Init()
 
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+
+	g_ps_disk_cache.OpenAndRead(cache_filename, PixelShaderCacheInserter());
 }
 
 // ONLY to be used during shutdown.
