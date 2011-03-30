@@ -121,4 +121,28 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	dt->z = u8(trim(accel.z * (calib->one_g.z - calib->zero_g.z) + calib->zero_g.z));
 }
 
+void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
+{
+	// ugly macroooo
+	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
+
+	// Stick
+	set_control(m_stick, 0, "W");	// up
+	set_control(m_stick, 1, "S");	// down
+	set_control(m_stick, 2, "A");	// left
+	set_control(m_stick, 3, "D");	// right
+
+	// Buttons
+#ifdef _WIN32
+	set_control(m_buttons, 0, "LCONTROL");	// C
+	set_control(m_buttons, 1, "LSHIFT");	// Z
+#elif __APPLE__
+	set_control(m_buttons, 0, "Left Control");	// C
+	set_control(m_buttons, 1, "Left Shift");	// Z
+#else
+	set_control(m_buttons, 0, "Control_L");	// C
+	set_control(m_buttons, 1, "Shift_L");	// Z
+#endif
+}
+
 }

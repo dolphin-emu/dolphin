@@ -21,6 +21,8 @@ public:
 		BUTTON_Z = 0x01,
 	};
 
+	void LoadDefaults(const ControllerInterface& ciface);
+
 private:
 	Tilt*			m_tilt;
 	Force*			m_swing;
