@@ -110,7 +110,7 @@ SharedPtr<ID3D10Blob> CompileVertexShader(const char* code, unsigned int len)
 SharedPtr<ID3D10Blob> CompileGeometryShader(const char* code, unsigned int len,
 	const D3D_SHADER_MACRO* pDefines)
 {
-	return CompileShader(code, len, D3D::GeometryShaderVersionString());
+	return CompileShader(code, len, D3D::GeometryShaderVersionString(), pDefines);
 }
 
 // code->bytecode
