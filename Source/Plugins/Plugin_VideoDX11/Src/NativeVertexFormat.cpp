@@ -17,7 +17,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "D3DBase.h"
-#include "D3DBlob.h"
 #include "NativeVertexFormat.h"
 #include "VertexManager.h"
 #include "VertexShaderCache.h"
@@ -30,12 +29,11 @@ class D3DVertexFormat : public NativeVertexFormat
 	D3D11_INPUT_ELEMENT_DESC m_elems[32];
 	UINT m_num_elems;
 
-	DX11::D3DBlob* m_vs_bytecode;
-	ID3D11InputLayout* m_layout;
+	SharedPtr<ID3D10Blob> m_vs_bytecode;
+	SharedPtr<ID3D11InputLayout> m_layout;
 
 public:
-	D3DVertexFormat() : m_num_elems(0), m_vs_bytecode(NULL), m_layout(NULL) {}
-	~D3DVertexFormat() { SAFE_RELEASE(m_vs_bytecode); SAFE_RELEASE(m_layout); }
+	D3DVertexFormat() : m_num_elems(0) {}
 
 	void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	void SetupVertexPointers();
@@ -141,17 +139,15 @@ void D3DVertexFormat::SetupVertexPointers()
 {
 	if (m_vs_bytecode != DX11::VertexShaderCache::GetActiveShaderBytecode())
 	{
-		SAFE_RELEASE(m_vs_bytecode);
-		SAFE_RELEASE(m_layout);
-
 		m_vs_bytecode = DX11::VertexShaderCache::GetActiveShaderBytecode();
-		m_vs_bytecode->AddRef();
 
-		HRESULT hr = DX11::D3D::device->CreateInputLayout(m_elems, m_num_elems, m_vs_bytecode->Data(), m_vs_bytecode->Size(), &m_layout);
-		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-		DX11::D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout, "input layout used to emulate the GX pipeline");
+		m_layout = CreateInputLayoutShared(m_elems, m_num_elems,
+			m_vs_bytecode->GetBufferPointer(), m_vs_bytecode->GetBufferSize());
+		if (!m_layout)
+			PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
+		DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
 	}
-	DX11::D3D::context->IASetInputLayout(m_layout);
+	DX11::D3D::g_context->IASetInputLayout(m_layout);
 }
 
 } // namespace DX11

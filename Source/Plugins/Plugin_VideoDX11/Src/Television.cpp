@@ -71,43 +71,35 @@ static const char YUYV_DECODER_PS[] =
 ;
 
 Television::Television()
-	: m_yuyvTexture(NULL), m_yuyvTextureSRV(NULL), m_pShader(NULL)
-{ }
-
-void Television::Init()
+	: m_yuyvTextureSRV(NULL)
 {
-	HRESULT hr;
-
 	// Create YUYV texture for real XFB mode
 
 	// This texture format is designed for YUYV data.
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 		DXGI_FORMAT_G8R8_G8B8_UNORM, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 1, 1);
-	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_yuyvTexture);
-	CHECK(SUCCEEDED(hr), "create tv yuyv texture");
+	m_yuyvTexture = CreateTexture2DShared(&t2dd, NULL);
+	CHECK(m_yuyvTexture, "create tv yuyv texture");
 	D3D::SetDebugObjectName(m_yuyvTexture, "tv yuyv texture");
 
 	// Create shader resource view for YUYV texture
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-		m_yuyvTexture, D3D11_SRV_DIMENSION_TEXTURE2D,
-		DXGI_FORMAT_G8R8_G8B8_UNORM);
-	hr = D3D::device->CreateShaderResourceView(m_yuyvTexture, &srvd, &m_yuyvTextureSRV);
+		m_yuyvTexture, D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_G8R8_G8B8_UNORM);
+	HRESULT hr = D3D::g_device->CreateShaderResourceView(m_yuyvTexture, &srvd, &m_yuyvTextureSRV);
 	CHECK(SUCCEEDED(hr), "create tv yuyv texture srv");
 	D3D::SetDebugObjectName(m_yuyvTextureSRV, "tv yuyv texture srv");
 
 	// Create YUYV-decoding pixel shader
 
 	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS, sizeof(YUYV_DECODER_PS));
-	CHECK(m_pShader != NULL, "compile and create yuyv decoder pixel shader");
+	CHECK(m_pShader, "compile and create yuyv decoder pixel shader");
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
 }
 
-void Television::Shutdown()
+Television::~Television()
 {
-	SAFE_RELEASE(m_pShader);
 	SAFE_RELEASE(m_yuyvTextureSRV);
-	SAFE_RELEASE(m_yuyvTexture);
 }
 
 void Television::Submit(u32 xfbAddr, u32 width, u32 height)
@@ -119,7 +111,7 @@ void Television::Submit(u32 xfbAddr, u32 width, u32 height)
 	// Load data from GameCube RAM to YUYV texture
 	u8* yuyvSrc = Memory::GetPointer(xfbAddr);
 	D3D11_BOX box = CD3D11_BOX(0, 0, 0, width, height, 1);
-	D3D::context->UpdateSubresource(m_yuyvTexture, 0, &box, yuyvSrc, 2*width, 2*width*height);
+	D3D::g_context->UpdateSubresource(m_yuyvTexture, 0, &box, yuyvSrc, 2*width, 2*width*height);
 }
 
 void Television::Render()

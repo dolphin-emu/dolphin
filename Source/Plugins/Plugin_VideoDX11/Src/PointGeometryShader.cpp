@@ -128,37 +128,17 @@ static const char POINT_GS_COMMON[] =
 ;
 
 PointGeometryShader::PointGeometryShader()
-	: m_ready(false), m_paramsBuffer(NULL)
-{ }
-
-void PointGeometryShader::Init()
+	: m_ready(false)
 {
-	m_ready = false;
-
-	HRESULT hr;
-
 	// Create constant buffer for uploading data to geometry shader
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(PointGSParams),
 		D3D11_BIND_CONSTANT_BUFFER);
-	hr = D3D::device->CreateBuffer(&bd, NULL, &m_paramsBuffer);
-	CHECK(SUCCEEDED(hr), "create point geometry shader params buffer");
+	m_paramsBuffer = CreateBufferShared(&bd, NULL);
+	CHECK(m_paramsBuffer, "create point geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "point geometry shader params buffer");
 
 	m_ready = true;
-}
-
-void PointGeometryShader::Shutdown()
-{
-	m_ready = false;
-
-	for (ComboMap::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it)
-	{
-		SAFE_RELEASE(it->second);
-	}
-	m_shaders.clear();
-
-	SAFE_RELEASE(m_paramsBuffer);
 }
 
 bool PointGeometryShader::SetShader(u32 components, float pointSize,
@@ -187,12 +167,13 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 			{ "NUM_TEXCOORDS", numTexCoordsStr.str().c_str() },
 			{ NULL, NULL }
 		};
-		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
+		
+		auto const newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Point geometry shader for components 0x%.08X failed to compile", components);
 			// Add dummy shader to prevent trying to compile again
-			m_shaders[components] = NULL;
+			m_shaders[components].reset();
 			return false;
 		}
 
@@ -203,18 +184,18 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 	{
 		if (shaderIt->second)
 		{
-			PointGSParams params = { 0 };
+			PointGSParams params = {};
 			params.PointSize = pointSize;
 			params.TexOffset = texOffset;
 			params.VpWidth = vpWidth;
 			params.VpHeight = vpHeight;
-			D3D::context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
+			D3D::g_context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
 			
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);
 
-			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
-			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
+			D3D::g_context->GSSetShader(shaderIt->second, NULL, 0);
+			D3D::g_context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
 
 			return true;
 		}

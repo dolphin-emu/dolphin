@@ -33,12 +33,11 @@ public:
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
-		D3DTexture2D *const texture;
+		std::unique_ptr<D3DTexture2D> const texture;
 
 		D3D11_USAGE usage;
 
-		TCacheEntry(D3DTexture2D *_tex) : texture(_tex) {}
-		~TCacheEntry();
+		TCacheEntry(std::unique_ptr<D3DTexture2D>&& _tex) : texture(std::move(_tex)) {}
 
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);

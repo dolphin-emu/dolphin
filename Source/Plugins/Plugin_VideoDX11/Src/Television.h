@@ -20,22 +20,16 @@
 
 #include "VideoCommon.h"
 
-struct ID3D11Texture2D;
-struct ID3D11ShaderResourceView;
-struct ID3D11PixelShader;
+#include "D3DUtil.h"
 
 namespace DX11
 {
 
 class Television
 {
-
 public:
-
 	Television();
-
-	void Init();
-	void Shutdown();
+	~Television();
 
 	// Submit video data to be drawn. This will change the current state of the
 	// TV. xfbAddr points to YUYV data stored in GameCube/Wii RAM, but the XFB
@@ -54,10 +48,9 @@ private:
 
 	// Used for real XFB mode
 
-	ID3D11Texture2D* m_yuyvTexture;
+	SharedPtr<ID3D11Texture2D> m_yuyvTexture;
 	ID3D11ShaderResourceView* m_yuyvTextureSRV;
-	ID3D11PixelShader* m_pShader;
-
+	SharedPtr<ID3D11PixelShader> m_pShader;
 };
 
 }

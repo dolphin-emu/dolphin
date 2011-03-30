@@ -115,7 +115,10 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGBA6ToRGB8()
 		"	ocol0 /= 255.f;\n"
 		"}\n"
 	};
-	if (!s_rgba6_to_rgb8) s_rgba6_to_rgb8 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
+
+	if (!s_rgba6_to_rgb8)
+		s_rgba6_to_rgb8 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
+
 	return s_rgba6_to_rgb8;
 }
 

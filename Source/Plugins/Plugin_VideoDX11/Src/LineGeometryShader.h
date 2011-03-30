@@ -19,9 +19,7 @@
 #define _LINEGEOMETRYSHADER_H
 
 #include "VideoCommon.h"
-
-struct ID3D11Buffer;
-struct ID3D11GeometryShader;
+#include "D3DUtil.h"
 
 namespace DX11
 {
@@ -30,27 +28,21 @@ namespace DX11
 // vertex format.
 class LineGeometryShader
 {
-
 public:
-
 	LineGeometryShader();
 
-	void Init();
-	void Shutdown();
 	// Returns true on success, false on failure
 	bool SetShader(u32 components, float lineWidth, float texOffset,
 		float vpWidth, float vpHeight);
 
 private:
-
 	bool m_ready;
 
-	ID3D11Buffer* m_paramsBuffer;
+	SharedPtr<ID3D11Buffer> m_paramsBuffer;
 
-	typedef std::map<u32, ID3D11GeometryShader*> ComboMap;
+	typedef std::map<u32, SharedPtr<ID3D11GeometryShader>> ComboMap;
 
 	ComboMap m_shaders;
-
 };
 
 }

@@ -19,48 +19,32 @@
 #define _PSTEXTUREENCODER_H
 
 #include "TextureEncoder.h"
-
-struct ID3D11Texture2D;
-struct ID3D11RenderTargetView;
-struct ID3D11Buffer;
-struct ID3D11InputLayout;
-struct ID3D11VertexShader;
-struct ID3D11PixelShader;
-struct ID3D11ClassLinkage;
-struct ID3D11ClassInstance;
-struct ID3D11BlendState;
-struct ID3D11DepthStencilState;
-struct ID3D11RasterizerState;
-struct ID3D11SamplerState;
+#include "D3DUtil.h"
 
 namespace DX11
 {
 
 class PSTextureEncoder : public TextureEncoder
 {
-
 public:
-
 	PSTextureEncoder();
+	~PSTextureEncoder();
 
-	void Init();
-	void Shutdown();
 	size_t Encode(u8* dst, unsigned int dstFormat,
 		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 		bool scaleByHalf);
 
 private:
-	
 	bool m_ready;
 
-	ID3D11Texture2D* m_out;
+	SharedPtr<ID3D11Texture2D> m_out;
 	ID3D11RenderTargetView* m_outRTV;
-	ID3D11Texture2D* m_outStage;
-	ID3D11Buffer* m_encodeParams;
-	ID3D11Buffer* m_quad;
-	ID3D11VertexShader* m_vShader;
-	ID3D11InputLayout* m_quadLayout;
-	ID3D11BlendState* m_efbEncodeBlendState;
+	SharedPtr<ID3D11Texture2D> m_outStage;
+	SharedPtr<ID3D11Buffer> m_encodeParams;
+	SharedPtr<ID3D11Buffer> m_quad;
+	SharedPtr<ID3D11VertexShader> m_vShader;
+	SharedPtr<ID3D11InputLayout> m_quadLayout;
+	SharedPtr<ID3D11BlendState> m_efbEncodeBlendState;
 	ID3D11DepthStencilState* m_efbEncodeDepthState;
 	ID3D11RasterizerState* m_efbEncodeRastState;
 	ID3D11SamplerState* m_efbSampler;
@@ -80,7 +64,7 @@ private:
 			| (scaleByHalf ? (1<<0) : 0);
 	}
 
-	typedef std::map<ComboKey, ID3D11PixelShader*> ComboMap;
+	typedef std::map<ComboKey, SharedPtr<ID3D11PixelShader>> ComboMap;
 
 	ComboMap m_staticShaders;
 
@@ -91,7 +75,7 @@ private:
 	bool SetDynamicShader(unsigned int dstFormat, unsigned int srcFormat,
 		bool isIntensity, bool scaleByHalf);
 
-	ID3D11PixelShader* m_dynamicShader;
+	SharedPtr<ID3D11PixelShader> m_dynamicShader;
 	ID3D11ClassLinkage* m_classLinkage;
 
 	// Interface slots
@@ -111,7 +95,6 @@ private:
 	ID3D11ClassInstance* m_generatorClass[16];
 
 	std::vector<ID3D11ClassInstance*> m_linkageArray;
-
 };
 
 }

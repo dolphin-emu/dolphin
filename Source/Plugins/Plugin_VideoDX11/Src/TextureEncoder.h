@@ -116,18 +116,13 @@ static const UINT MAX_BYTES_PER_ENCODE = MAX_BYTES_PER_BLOCK_ROW*(EFB_HEIGHT/4);
 
 class TextureEncoder
 {
-
 public:
+	virtual ~TextureEncoder() {}
 
-	virtual ~TextureEncoder() { }
-
-	virtual void Init() = 0;
-	virtual void Shutdown() = 0;
 	// Returns size in bytes of encoded block of memory
 	virtual size_t Encode(u8* dst, unsigned int dstFormat,
 		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 		bool scaleByHalf) = 0;
-
 };
 
 }

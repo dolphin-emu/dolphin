@@ -31,23 +31,18 @@
 namespace DX11
 {
 
-static TextureEncoder* g_encoder = NULL;
+static std::unique_ptr<TextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 25;
-ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
-
-TextureCache::TCacheEntry::~TCacheEntry()
-{
-	texture->Release();
-}
+static SharedPtr<ID3D11Buffer> efbcopycbuf[MAX_COPY_BUFFERS];
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
+	D3D::g_context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const char filename[])
 {
-	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
+	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::g_context, texture->GetTex(), D3DX11_IFF_PNG, filename));
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
@@ -56,7 +51,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
 
 	if (autogen_mips)
-		PD3DX11FilterTexture(D3D::context, texture->GetTex(), 0, D3DX11_DEFAULT);
+		PD3DX11FilterTexture(D3D::g_context, texture->GetTex(), 0, D3DX11_DEFAULT);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -81,18 +76,16 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
 		width, height, 1, tex_levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
-	ID3D11Texture2D *pTexture;
-	const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, data, &pTexture);
-	CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
+	auto const pTexture = CreateTexture2DShared(&texdesc, data);
+	CHECK(pTexture, "Create texture of the TextureCache");
 
-	TCacheEntry* const entry = new TCacheEntry(new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
+	std::unique_ptr<D3DTexture2D> tx(new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
+	auto const entry = new TCacheEntry(std::move(tx));
 	entry->usage = usage;
 
 	// TODO: better debug names
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
-
-	SAFE_RELEASE(pTexture);
+	D3D::SetDebugObjectName(entry->texture->GetTex(), "a texture of the TextureCache");
+	D3D::SetDebugObjectName(entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
 
 	return entry;
 }
@@ -108,7 +101,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		// stretch picture with increased internal resolution
 		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
-		D3D::context->RSSetViewports(1, &vp);
+		D3D::g_context->RSSetViewports(1, &vp);
 
 		// set transformation
 		if (NULL == efbcopycbuf[cbufid])
@@ -116,11 +109,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 			D3D11_SUBRESOURCE_DATA data;
 			data.pSysMem = colmat;
-			HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
-			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
-			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+			efbcopycbuf[cbufid] = CreateBufferShared(&cbdesc, &data);
+			CHECK(efbcopycbuf[cbufid], "Create efb copy constant buffer %d", cbufid);
+			D3D::SetDebugObjectName(efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 		}
-		D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
+		D3D::g_context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
 
 		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		// TODO: try targetSource.asRECT();
@@ -132,7 +125,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		else
 			D3D::SetPointCopySampler();
 
-		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
+		D3D::g_context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
 
 		// Create texture copy
 		D3D::drawShadedTexQuad(
@@ -141,7 +134,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			(srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
 			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	
 		g_renderer->RestoreAPIState();
 	}
@@ -150,7 +143,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
 		size_t encodeSize = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		hash = GetHash64(dst, encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		hash = GetHash64(dst, (int)encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		if (g_ActiveConfig.bEFBCopyCacheEnable)
 		{
 			// If the texture in RAM is already in the texture cache,
@@ -159,7 +152,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				return;
 		}
 
-		TextureCache::MakeRangeDynamic(dstAddr, encodeSize);
+		TextureCache::MakeRangeDynamic(dstAddr, (u32)encodeSize);
 	}
 }
 
@@ -174,18 +167,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 TextureCache::TextureCache()
 {
 	// FIXME: Is it safe here?
-	g_encoder = new PSTextureEncoder;
-	g_encoder->Init();
+	g_encoder.reset(new PSTextureEncoder);
 }
 
 TextureCache::~TextureCache()
 {
-	for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
-		SAFE_RELEASE(efbcopycbuf[k]);
-
-	g_encoder->Shutdown();
-	delete g_encoder;
-	g_encoder = NULL;
+	g_encoder.reset();
 }
 
 }
