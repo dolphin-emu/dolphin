@@ -39,6 +39,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/XFStructs.cpp
 			Src/memcpy_amd.cpp)
 
+set(LIBS core)
 if(wxWidgets_FOUND AND WIN32)
 	set(SRCS ${SRCS} Src/EmuWindow.cpp)
 endif()
@@ -48,9 +49,11 @@ if(LIBAV_FOUND OR WIN32)
 endif()
 
 add_library(videocommon STATIC ${SRCS})
+target_link_libraries(videocommon ${LIBS})
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	if(LIBAV_FOUND)
-		target_link_libraries(videocommon ${LIBAV_LIBRARIES})
+		target_link_libraries(videocommon ${LIBS} ${LIBAV_LIBRARIES})
 		add_definitions(-D__STDC_CONSTANT_MACROS)
 	endif()
 endif()
