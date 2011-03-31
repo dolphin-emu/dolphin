@@ -59,7 +59,9 @@
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"
 #include "OnScreenDisplay.h"
+#ifdef _WIN32
 #include "EmuWindow.h"
+#endif
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
@@ -240,7 +242,9 @@ void Stop()  // - Hammertime!
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
 
+#ifdef _WIN32
 	EmuWindow::Close();
+#endif
 
 	// Clear on screen messages that haven't expired
 	g_video_backend->Video_ClearMessages();
