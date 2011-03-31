@@ -45,6 +45,12 @@ void SysConf::Clear()
 bool SysConf::LoadFromFile(const char *filename)
 {
 	// Basic check
+	if (!File::Exists(filename))
+	{
+		GenerateSysConf();
+		return true;
+	}
+		
 	u64 size = File::GetSize(filename);
 	if (size != SYSCONF_SIZE)
 	{
