@@ -341,6 +341,8 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
+	HW::Init();	
+
 	if (!g_video_backend->Initialize(g_pWindowHandle))
 	{
 		PanicAlert("Failed to initialize video backend!");
@@ -349,7 +351,6 @@ void EmuThread()
 
 	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
 
-	HW::Init();	
 	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
 				_CoreParameter.bWii, _CoreParameter.bDSPThread))
 	{
