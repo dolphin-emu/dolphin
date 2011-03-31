@@ -127,9 +127,6 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 	}
 
-	// Boot to pause or not
-	Core::SetState(StartUp.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
-
 	return true;
 }
 

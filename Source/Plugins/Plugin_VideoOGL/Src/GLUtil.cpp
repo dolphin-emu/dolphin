@@ -617,7 +617,7 @@ void OpenGL_Shutdown()
 		ERROR_LOG(VIDEO, "Release Device Context Failed.");
 		hDC = NULL;
 	}
-	EmuWindow::Close();
+	
 #elif defined(HAVE_X11) && HAVE_X11
 	DestroyXWindow();
 	if (GLWin.ctx && !glXMakeCurrent(GLWin.dpy, None, NULL))

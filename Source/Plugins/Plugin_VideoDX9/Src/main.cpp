@@ -214,7 +214,6 @@ void VideoBackend::Shutdown()
 		g_renderer = NULL;
 	}
 	D3D::Shutdown();
-	EmuWindow::Close();
 }
 
 }

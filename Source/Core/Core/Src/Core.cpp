@@ -59,6 +59,7 @@
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"
 #include "OnScreenDisplay.h"
+#include "EmuWindow.h"
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
@@ -100,9 +101,6 @@ std::thread g_EmuThread;
 static std::thread g_cpu_thread;
 
 SCoreStartupParameter g_CoreStartupParameter;
-
-// This event is set when the emuthread starts.
-Common::Barrier emuThreadGoing(2);
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -197,42 +195,9 @@ bool Init()
 	// then it is updated to the render window handle,
 	// within g_video_backend->Initialize()
 	g_pWindowHandle = Host_GetRenderHandle();
-	if (!g_video_backend->Initialize(g_pWindowHandle))
-	{
-		return false;
-	}
-
-	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
-
-	HW::Init();	
-	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
-				_CoreParameter.bWii, _CoreParameter.bDSPThread))
-	{
-		HW::Shutdown();
-		g_video_backend->Shutdown();
-		return false;
-	}
-	Pad::Initialize(g_pWindowHandle);
-	// Load and Init Wiimotes - only if we are booting in wii mode	
-	if (g_CoreStartupParameter.bWii)
-	{
-		Wiimote::Initialize(g_pWindowHandle);
-
-		// Activate wiimotes which don't have source set to "None"
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
-			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->
-					Activate(true);
-	}
-
-	// The hardware is initialized.
-	g_bHwInit = true;
 
 	// Start the emu thread 
 	g_EmuThread = std::thread(EmuThread);
-
-	// Wait until the emu thread is running
-	emuThreadGoing.Sync();
 
 	return true;
 }
@@ -255,6 +220,7 @@ void Stop()  // - Hammertime!
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 	PowerPC::Stop();
+
 	// Kick it if it's waiting (code stepping wait loop)
 	CCPU::StepOpcode();
 
@@ -270,28 +236,17 @@ void Stop()  // - Hammertime!
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 	
-	g_EmuThread.join();	// Wait for emuthread to close. 
+	g_EmuThread.join();	// Wait for emuthread to close.
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
+
+	EmuWindow::Close();
 
 	// Clear on screen messages that haven't expired
 	g_video_backend->Video_ClearMessages();
 
 	// Close the trace file
 	Core::StopTrace();
-
-	// Stop audio thread - Actually this does nothing when using HLE
-	// emulation, but stops the DSP Interpreter when using LLE emulation.
-	DSP::GetDSPEmulator()->DSP_StopSoundStream();
-	
-	// We must set up this flag before executing HW::Shutdown()
-	g_bHwInit = false;
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-	HW::Shutdown();
-	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-	Pad::Shutdown();
-	Wiimote::Shutdown();
-	g_video_backend->Shutdown();
 	
 	// Reload sysconf file in order to see changes committed during emulation
 	if (_CoreParameter.bWii)
@@ -382,10 +337,45 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
+	if (!g_video_backend->Initialize(g_pWindowHandle))
+	{
+		PanicAlert("Failed to initialize video backend!");
+		return;
+	}
+
+	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
+
+	HW::Init();	
+	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
+				_CoreParameter.bWii, _CoreParameter.bDSPThread))
+	{
+		HW::Shutdown();
+		g_video_backend->Shutdown();
+		PanicAlert("Failed to initialize DSP emulator!");
+		return;
+	}
+
+	Pad::Initialize(g_pWindowHandle);
+	// Load and Init Wiimotes - only if we are booting in wii mode	
+	if (g_CoreStartupParameter.bWii)
+	{
+		Wiimote::Initialize(g_pWindowHandle);
+
+		// Activate wiimotes which don't have source set to "None"
+		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+			if (g_wiimote_sources[i])
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->
+					Activate(true);
+	}
+
+	// The hardware is initialized.
+	g_bHwInit = true;
+
+	// Boot to pause or not
+	Core::SetState(_CoreParameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
+
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-
-	emuThreadGoing.Sync();
 
 	CBoot::BootUp();
 
@@ -453,6 +443,19 @@ void EmuThread()
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
+
+	// Stop audio thread - Actually this does nothing when using HLE
+	// emulation, but stops the DSP Interpreter when using LLE emulation.
+	DSP::GetDSPEmulator()->DSP_StopSoundStream();
+	
+	// We must set up this flag before executing HW::Shutdown()
+	g_bHwInit = false;
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+	HW::Shutdown();
+	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+	Pad::Shutdown();
+	Wiimote::Shutdown();
+	g_video_backend->Shutdown();
 }
 
 // Set or get the running state

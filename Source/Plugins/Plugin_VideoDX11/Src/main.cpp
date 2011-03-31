@@ -231,7 +231,6 @@ void VideoBackend::Shutdown()
 		delete g_renderer;
 		g_renderer = NULL;
 	}
-	EmuWindow::Close();
 }
 
 }
