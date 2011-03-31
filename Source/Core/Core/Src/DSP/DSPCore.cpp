@@ -62,7 +62,15 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 		return true;
 	}
 
-	PanicAlertT("Failed to load DSP ROM:\n%s\nThis file is required to use DSP LLE", fname);
+	PanicAlertT(
+		"Failed to load DSP ROM:\t%s\n"
+		"\n"
+		"This file is required to use DSP LLE.\n"
+		"It is not included with Dolphin as it contains copyrighted data.\n"
+		"Use DSPSpy to dump the file from your physical console.\n"
+		"\n"
+		"You may use the DSP HLE engine which does not require ROM dumps.\n"
+		"(Choose it from the \"Audio\" tab of the configuration dialog.)", fname);
 	return false;
 }
 
