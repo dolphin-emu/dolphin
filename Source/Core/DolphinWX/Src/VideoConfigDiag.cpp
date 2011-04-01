@@ -248,6 +248,7 @@ wxString scaled_efb_copy_tooltip = wxTRANSLATE("Uses the high-resolution render 
 wxString pixel_lighting_tooltip = wxTRANSLATE("Calculates lighting of 3D graphics on a per-pixel basis rather than per vertex.\nThis is the more accurate behavior but reduces performance.");
 wxString pixel_depth_tooltip = wxT("");
 wxString force_filtering_tooltip = wxTRANSLATE("Forces bilinear texture filtering even if the game explicitly disabled it.\nImproves texture quality (especially when using a high internal resolution) but causes glitches in some games.");
+wxString force_no_filtering_tooltip = wxTRANSLATE("Forces no texture filtering even if the game explicitly enabled it.\nGood for some 2D games.");
 wxString _3d_vision_tooltip = wxT("");
 wxString internal_res_tooltip = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality but is also quite heavy on performance and might cause glitches in certain games.\nFractional: Uses your display resolution directly instead of the native resolution. The quality scales with your display/window size, as does the performance impact.\nIntegral: This is like Fractional, but rounds up to an integer multiple of the native resolution. Should give a more accurate look but is usually slower.\nThe other options are fixed resolutions for choosing a visual quality independent of your display size.");
 wxString efb_access_tooltip = wxTRANSLATE("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\nbut enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily.");
@@ -441,6 +442,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), SET_PARAMS(bEnablePixelLighting), false, cb_style));
 	szr_enh->Add(pixel_depth =  new SettingCheckBox(page_general, _("Pixel Depth"), wxGetTranslation(pixel_depth_tooltip), SET_PARAMS(bEnablePerPixelDepth), false, cb_style));
 	szr_enh->Add(force_filtering = new SettingCheckBox(page_general, _("Force Bi/Trilinear Filtering"), wxGetTranslation(force_filtering_tooltip), SET_PARAMS(bForceFiltering), false, cb_style));
+	szr_enh->Add(force_no_filtering = new SettingCheckBox(page_general, _("Force No Filtering"), wxGetTranslation(force_no_filtering_tooltip), SET_PARAMS(bForceNoFiltering), false, cb_style));
 	
 	_3d_vision = new SettingCheckBox(page_general, _("3D Vision (Requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), SET_PARAMS(b3DVision), false, cb_style);
 	szr_enh->Add(_3d_vision);
@@ -712,6 +714,7 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(pixel_lighting, bEnablePixelLighting);
 		CHANGE_DATAREF(pixel_depth, bEnablePerPixelDepth);
 		CHANGE_DATAREF(force_filtering, bForceFiltering);
+		CHANGE_DATAREF(force_no_filtering, bForceNoFiltering);
 		CHANGE_DATAREF(_3d_vision, b3DVision);
 
 		if (cur_profile == 0) choice_efbscale->Delete(0);
@@ -938,6 +941,7 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	SET_CHOICE(pixel_lighting, bEnablePixelLighting);
 	SET_CHOICE(pixel_depth, bEnablePerPixelDepth);
 	SET_CHOICE(force_filtering, bForceFiltering);
+	SET_CHOICE(force_no_filtering, bForceNoFiltering);
 	SET_CHOICE(_3d_vision, b3DVision);
 
 	SET_CHOICE(choice_efbscale, iEFBScale);

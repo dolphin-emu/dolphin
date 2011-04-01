@@ -348,13 +348,15 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 	//mode1 = newmode1;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+		((newmode.mag_filter && !g_Config.bForceNoFiltering) || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
 	if (bHaveMipMaps) 
 	{
 		// TODO: not used anywhere
 		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
 			mode.min_filter += 4; // take equivalent forced linear
+		else if (g_ActiveConfig.bForceNoFiltering && newmode.min_filter >= 4)
+			mode.min_filter -= 4;
 
 		int filt = newmode.min_filter;            
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
@@ -364,7 +366,7 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 	}
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			(g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+			(g_ActiveConfig.bForceFiltering || (newmode.min_filter >= 4 && !g_ActiveConfig.bForceNoFiltering)) ? GL_LINEAR : GL_NEAREST);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);

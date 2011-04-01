@@ -1346,6 +1346,10 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	}
+	else if (g_ActiveConfig.bForceNoFiltering)
+	{
+		gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
 	else if (tm0.min_filter & 4) // linear min filter
 	{
 		if (tm0.mag_filter) // linear mag filter

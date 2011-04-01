@@ -102,6 +102,7 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 #endif
 
 	SET_STATE(iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, false), bForceFiltering);
+	SET_STATE(iniFile.Get("Enhancements", "ForceNoFiltering", &bForceNoFiltering, false), bForceNoFiltering);
 	SET_STATE(iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
 	SET_STATE(iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false), b3DVision);
@@ -195,6 +196,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder), bOMPDecoder);
 #endif
 	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering), bForceFiltering);
+	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "ForceNoFiltering", &bForceNoFiltering), bForceNoFiltering);
 	
 	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	iniFile.GetIfExists("Video_Enhancements", "PostProcessingShader", &sPostProcessingShader);
@@ -294,6 +296,7 @@ void VideoConfig::Save(const char *ini_file)
 #endif
 	
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
+	iniFile.Set("Enhancements", "ForceNoFiltering", bForceNoFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
 	iniFile.Set("Enhancements", "Enable3dVision", b3DVision);
@@ -377,6 +380,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 #endif
 
 	CHECK_UISTATE("Video_Enhancements", "ForceFiltering", bForceFiltering);
+	CHECK_UISTATE("Video_Enhancements", "ForceNoFiltering", bForceNoFiltering);
 	CHECK_UISTATE("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	iniFile.Set("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
 	CHECK_UISTATE("Video_Enhancements", "Enable3dVision", b3DVision);

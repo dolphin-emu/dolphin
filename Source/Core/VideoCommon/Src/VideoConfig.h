@@ -96,6 +96,7 @@ public:
 	int iMultisampleMode;
 	int iEFBScale;
 	bool bForceFiltering;
+	bool bForceNoFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
 
@@ -172,6 +173,7 @@ public:
 		bool iMultisampleMode;
 		bool iEFBScale;
 		bool bForceFiltering;
+		bool bForceNoFiltering;
 		bool iMaxAnisotropy;
 		bool bShowFPS;
 		bool bShowInputDisplay;
