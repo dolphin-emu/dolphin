@@ -344,7 +344,7 @@ CFrame::CFrame(wxFrame* parent,
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Give it a console early to show potential messages from this onward
-	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
+	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
 	// Start debugging mazimized

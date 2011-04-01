@@ -86,17 +86,20 @@ LogManager::LogManager()
 	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX).c_str());
 	m_consoleLog = new ConsoleListener();
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
-		m_Log[i]->setEnable(true);
-		m_Log[i]->addListener(m_fileLog);
-		m_Log[i]->addListener(m_consoleLog);
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		m_Log[i]->SetEnable(true);
+		m_Log[i]->AddListener(m_fileLog);
+		m_Log[i]->AddListener(m_consoleLog);
 	}
 }
 
-LogManager::~LogManager() {
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
-		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
-		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_consoleLog);
+LogManager::~LogManager()
+{
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_fileLog);
+		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_consoleLog);
 	}
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -107,32 +110,24 @@ LogManager::~LogManager() {
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-					 const char *file, int line, const char *format, 
-					 va_list args) {
-
+	const char *file, int line, const char *format, va_list args)
+{
 	char temp[MAX_MSGLEN];
 	char msg[MAX_MSGLEN * 2];
 	LogContainer *log = m_Log[type];
 
-	if (! log->isEnable() || level > log->getLevel() || ! log->hasListeners())
+	if (!log->IsEnabled() || level > log->GetLevel() || ! log->HasListeners())
 		return;
 
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
 	static const char level_to_char[7] = "-NEWID";
 	sprintf(msg, "%s %s:%u %c[%s]: %s\n",
-			Common::Timer::GetTimeFormatted().c_str(),
-			file, line, level_to_char[(int)level],
-			log->getShortName(), temp);
+		Common::Timer::GetTimeFormatted().c_str(),
+		file, line, level_to_char[(int)level],
+		log->GetShortName(), temp);
 
-	std::lock_guard<std::mutex> lk(logMutex);
-	log->trigger(level, msg);
-}
-
-void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener)
-{
-	std::lock_guard<std::mutex> lk(logMutex);
-	m_Log[type]->removeListener(listener);
+	log->Trigger(level, msg);
 }
 
 void LogManager::Init()
@@ -147,31 +142,33 @@ void LogManager::Shutdown()
 }
 
 LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)
-	: m_enable(enable) {
+	: m_enable(enable)
+{
 	strncpy(m_fullName, fullName, 128);
 	strncpy(m_shortName, shortName, 32);
 	m_level = LogTypes::LWARNING;
 }
 
 // LogContainer
-void LogContainer::addListener(LogListener *listener) {
-	if (!isListener(listener))
-		listeners.push_back(listener);
+void LogContainer::AddListener(LogListener *listener)
+{
+	std::lock_guard<std::mutex> lk(m_listeners_lock);
+	m_listeners.insert(listener);
 }
 
-void LogContainer::removeListener(LogListener *listener) {
-	std::vector<LogListener *>::iterator i = std::find(listeners.begin(), listeners.end(), listener);
-	if (listeners.end() != i)
-		listeners.erase(i);
+void LogContainer::RemoveListener(LogListener *listener)
+{
+	std::lock_guard<std::mutex> lk(m_listeners_lock);
+	m_listeners.erase(listener);
 }
 
-bool LogContainer::isListener(LogListener *listener) const {
-	return listeners.end() != std::find(listeners.begin(), listeners.end(), listener);
-}
+void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
+{
+	std::lock_guard<std::mutex> lk(m_listeners_lock);
 
-void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
-	std::vector<LogListener *>::const_iterator i;
-	for (i = listeners.begin(); i != listeners.end(); ++i) {
+	std::set<LogListener*>::const_iterator i;
+	for (i = m_listeners.begin(); i != m_listeners.end(); ++i)
+	{
 		(*i)->Log(level, msg);
 	}
 }
@@ -179,13 +176,14 @@ void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
 FileLogListener::FileLogListener(const char *filename)
 {
 	m_logfile.open(filename, std::ios::app);
-	setEnable(true);
+	SetEnable(true);
 }
 
 void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
 {
-	if (!m_enable || !isValid())
+	if (!IsEnabled() || !IsValid())
 		return;
 
+	std::lock_guard<std::mutex> lk(m_log_lock);
 	m_logfile << msg << std::flush;
 }

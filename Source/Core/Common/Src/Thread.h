@@ -68,8 +68,7 @@ public:
 	void Wait()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
-		if (!is_set)
-			m_condvar.wait(lk, IsSet(this));
+		m_condvar.wait(lk, IsSet(this));
 		is_set = false;
 	}
 

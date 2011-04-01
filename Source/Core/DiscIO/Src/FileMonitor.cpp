@@ -93,9 +93,11 @@ void ReadGC(std::string FileName)
 void CheckFile(std::string File, u64 Size)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+		return;
 	// Do nothing if we found the same file again
-	if (CurrentFile == File) return;
+	if (CurrentFile == File)
+		return;
 
 	if (Size > 0) Size = (Size / 1000);
 	std::string Str = StringFromFormat("%s kB %s", ThousandSeparate(Size, 7).c_str(), File.c_str());
@@ -119,7 +121,7 @@ void FindFilename(u64 offset)
 	// Don't do anything if a game is not running
 	if (Core::GetState() != Core::CORE_RUN) return;
 	// Or if the log is unselected
-	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON)) return;
 	if (!FileAccess) return;
 
 	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)

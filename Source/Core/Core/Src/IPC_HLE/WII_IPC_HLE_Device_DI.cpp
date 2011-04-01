@@ -209,7 +209,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
 
 			// Don't do anything if the log is unselected
-			if (LogManager::GetInstance()->isEnable(LogTypes::FILEMON))
+			if (LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 			{
 				const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
 				if (pFilename != NULL)

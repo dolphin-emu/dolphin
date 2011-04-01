@@ -69,7 +69,7 @@ void LogConfigWindow::CreateGUIControls()
 	m_checks = new wxCheckListBox(this, wxID_ANY);
 	_connect_macro_(m_checks, LogConfigWindow::OnLogCheck, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		m_checks->Append(wxString::FromAscii(m_LogManager->getFullName((LogTypes::LOG_TYPE)i)));
+		m_checks->Append(wxString::FromAscii(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 
 	// Sizers
 	wxStaticBoxSizer* sbOutputs = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));
@@ -110,7 +110,7 @@ void LogConfigWindow::LoadSettings()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool log_enabled;
-		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
+		ini.Get("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
 		if (log_enabled) enableAll = false;
 		m_checks->Check(i, log_enabled);
 	}
@@ -126,7 +126,7 @@ void LogConfigWindow::SaveSettings()
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
 	ini.Set("Options", "WriteToWindow", m_writeWindow);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-		ini.Set("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
+		ini.Set("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
@@ -134,7 +134,7 @@ void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 {
 	int v = m_verbosity->GetSelection() + 1;
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		m_LogManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
+		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)v);
 	event.Skip();
 }
 
@@ -146,9 +146,9 @@ void LogConfigWindow::OnWriteFileChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeFile)
-				m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_LogManager->getFileListener());
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 			else
-				m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_LogManager->getFileListener());
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 		}
 	}
 }
@@ -161,9 +161,9 @@ void LogConfigWindow::OnWriteConsoleChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeConsole)
-				m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_LogManager->getConsoleListener());
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 			else
-				m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_LogManager->getConsoleListener());
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 		}
 	}
 }
@@ -176,9 +176,9 @@ void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeWindow)
-				m_LogManager->addListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
 			else
-				m_LogManager->removeListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
 		}
 	}
 }
@@ -197,22 +197,22 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 
 	m_checks->Check(_logType, enable);
 
-	m_LogManager->setEnable(logType, enable);
+	m_LogManager->SetEnable(logType, enable);
 
 	if (enable)
 	{
 		if (m_writeWindow)
-			m_LogManager->addListener(logType, (LogListener *)m_LogWindow);
+			m_LogManager->AddListener(logType, (LogListener *)m_LogWindow);
 		if (m_writeFile)
-			m_LogManager->addListener(logType, m_LogManager->getFileListener());
+			m_LogManager->AddListener(logType, m_LogManager->GetFileListener());
 		if (m_writeConsole)
-			m_LogManager->addListener(logType, m_LogManager->getConsoleListener());
+			m_LogManager->AddListener(logType, m_LogManager->GetConsoleListener());
 	}
 	else
 	{
-		m_LogManager->removeListener(logType, (LogListener *)m_LogWindow);
-		m_LogManager->removeListener(logType, m_LogManager->getFileListener());
-		m_LogManager->removeListener(logType, m_LogManager->getConsoleListener());
+		m_LogManager->RemoveListener(logType, (LogListener *)m_LogWindow);
+		m_LogManager->RemoveListener(logType, m_LogManager->GetFileListener());
+		m_LogManager->RemoveListener(logType, m_LogManager->GetConsoleListener());
 	}
 }
 

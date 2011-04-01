@@ -23,80 +23,70 @@
 #include "Thread.h"
 #include "FileUtil.h"
 
-#include <vector>
+#include <set>
 #include <string.h>
 
 #define	MAX_MESSAGES 8000   
 #define MAX_MSGLEN  1024
 
 
-// pure virtual interface (well, except the destructor which we just leave empty).
-class LogListener {
+// pure virtual interface
+class LogListener
+{
 public:
 	virtual ~LogListener() {}
+
 	virtual void Log(LogTypes::LOG_LEVELS, const char *msg) = 0;
-	virtual const char *getName() const = 0;
 };
 
-class FileLogListener : public LogListener {
+class FileLogListener : public LogListener
+{
 public:
 	FileLogListener(const char *filename);
 
 	void Log(LogTypes::LOG_LEVELS, const char *msg);
 
-	bool isValid() {
-		return (m_logfile != NULL);
-	}
+	bool IsValid() { return (m_logfile != NULL); }
+	bool IsEnabled() const { return m_enable; }
+	void SetEnable(bool enable) { m_enable = enable; }
 
-	bool isEnable() {
-		return m_enable;
-	}
-
-	void setEnable(bool enable) {
-		m_enable = enable;
-	}
-
-	const char *getName() const { return "file"; }
+	const char* GetName() const { return "file"; }
 
 private:
+	std::mutex m_log_lock;
 	std::ofstream m_logfile;
 	bool m_enable;
 };
 
-class LogContainer {
+class LogContainer
+{
 public:
 	LogContainer(const char* shortName, const char* fullName, bool enable = false);
 	
-	const char *getShortName() const { return m_shortName; }
-	const char *getFullName() const { return m_fullName; }
+	const char* GetShortName() const { return m_shortName; }
+	const char* GetFullName() const { return m_fullName; }
 
-	bool isListener(LogListener *listener) const;
-	void addListener(LogListener *listener);
-	void removeListener(LogListener *listener);
+	void AddListener(LogListener* listener);
+	void RemoveListener(LogListener* listener);
 
-	void trigger(LogTypes::LOG_LEVELS, const char *msg);
+	void Trigger(LogTypes::LOG_LEVELS, const char *msg);
 
-	bool isEnable() const { return m_enable; }
-	void setEnable(bool enable) {
-		m_enable = enable;
-	}
+	bool IsEnabled() const { return m_enable; }
+	void SetEnable(bool enable) { m_enable = enable; }
 
-	LogTypes::LOG_LEVELS getLevel() const {
-		return m_level;
-	}
+	LogTypes::LOG_LEVELS GetLevel() const { return m_level;	}
 
-	void setLevel(LogTypes::LOG_LEVELS level) {
-		m_level = level;
-	}
-	bool hasListeners() const { return listeners.size() > 0; }
+	void SetLevel(LogTypes::LOG_LEVELS level) {	m_level = level; }
+
+	bool HasListeners() const { return !m_listeners.empty(); }
 
 private:
 	char m_fullName[128];
 	char m_shortName[32];
 	bool m_enable;
 	LogTypes::LOG_LEVELS m_level;
-
-	std::vector<LogListener *> listeners;
+	std::mutex m_listeners_lock;
+	std::set<LogListener*> m_listeners;
 };
 
 class ConsoleListener;
@@ -105,7 +95,6 @@ class LogManager : NonCopyable
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	std::mutex logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.
@@ -119,49 +108,58 @@ public:
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 			 const char *file, int line, const char *fmt, va_list args);
 
-	void setLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) {
-		m_Log[type]->setLevel(level);
+	void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
+	{
+		m_Log[type]->SetLevel(level);
 	}
 
-	void setEnable(LogTypes::LOG_TYPE type, bool enable) {
-		m_Log[type]->setEnable(enable);
+	void SetEnable(LogTypes::LOG_TYPE type, bool enable)
+	{
+		m_Log[type]->SetEnable(enable);
 	}
 
-	bool isEnable(LogTypes::LOG_TYPE type) {
-		return m_Log[type]->isEnable();
+	bool IsEnabled(LogTypes::LOG_TYPE type) const
+	{
+		return m_Log[type]->IsEnabled();
 	}
 
-	const char *getShortName(LogTypes::LOG_TYPE type) const {
-		return m_Log[type]->getShortName();
+	const char* GetShortName(LogTypes::LOG_TYPE type) const
+	{
+		return m_Log[type]->GetShortName();
 	}
 
-	const char *getFullName(LogTypes::LOG_TYPE type) const {
-		return m_Log[type]->getFullName();
+	const char* GetFullName(LogTypes::LOG_TYPE type) const
+	{
+		return m_Log[type]->GetFullName();
 	}
 
-	bool isListener(LogTypes::LOG_TYPE type, LogListener *listener) const {
-		return m_Log[type]->isListener(listener);
+	void AddListener(LogTypes::LOG_TYPE type, LogListener *listener)
+	{
+		m_Log[type]->AddListener(listener);
 	}
 
-	void addListener(LogTypes::LOG_TYPE type, LogListener *listener) {
-		m_Log[type]->addListener(listener);
+	void RemoveListener(LogTypes::LOG_TYPE type, LogListener *listener)
+	{
+		m_Log[type]->RemoveListener(listener);
 	}
 
-	void removeListener(LogTypes::LOG_TYPE type, LogListener *listener);
-
-	FileLogListener *getFileListener() {
+	FileLogListener *GetFileListener() const
+	{
 		return m_fileLog;
 	}
 
-	ConsoleListener *getConsoleListener() {
+	ConsoleListener *GetConsoleListener() const
+	{
 		return m_consoleLog;
 	}
 
-	static LogManager* GetInstance() {
+	static LogManager* GetInstance()
+	{
 		return m_logManager;
 	}
 
-	static void SetInstance(LogManager *logManager) {
+	static void SetInstance(LogManager *logManager)
+	{
 		m_logManager = logManager;
 	}
 

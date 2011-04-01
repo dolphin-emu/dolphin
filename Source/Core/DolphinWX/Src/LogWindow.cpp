@@ -87,23 +87,23 @@ void CLogWindow::CreateGUIControls()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &enable, true);
+		ini.Get("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
 		if (m_writeWindow && enable)
-			m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, this);
 		else
-			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, this);
 
 		if (m_writeFile && enable)
-			m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_LogManager->getFileListener());
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 		else
-			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_LogManager->getFileListener());
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 
 		if (m_writeConsole && enable)
-			m_LogManager->addListener((LogTypes::LOG_TYPE)i, m_LogManager->getConsoleListener());
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 		else
-			m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_LogManager->getConsoleListener());
-		m_LogManager->setLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 
 	// Font
@@ -159,7 +159,7 @@ CLogWindow::~CLogWindow()
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
+		m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, this);
 	}
 	m_LogTimer->Stop();
 	delete m_LogTimer;
@@ -205,7 +205,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 		msgQueue.pop();
 	}
 
-	m_LogManager->getConsoleListener()->ClearScreen();
+	m_LogManager->GetConsoleListener()->ClearScreen();
 }
 
 void CLogWindow::UnPopulateBottom()

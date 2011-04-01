@@ -142,7 +142,7 @@ void CFrame::ToggleConsole(bool bShow)
 		// If the console doesn't exist, we create it
 		if (!GetConsoleWindow())
 		{
-			ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
+			ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
 			Console->Open();
 		}
 		else
@@ -747,7 +747,7 @@ void CFrame::ResizeConsole()
 		/*max out the width in the word wrap mode*/ 100;
 	int WindowHeight = InternalHeight + MenuBar;
 	// Resize buffer
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+	ConsoleListener* Console = LogManager::GetInstance()->GetConsoleListener();
 	Console->PixelSpace(0,0, InternalWidth, InternalHeight, false);
 	// Move the window to hide the border
 	MoveWindow(GetConsoleWindow(), -Border-wxBorder, -MenuBar-wxBorder,
