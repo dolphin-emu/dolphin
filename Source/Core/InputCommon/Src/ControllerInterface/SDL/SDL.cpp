@@ -93,7 +93,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 #ifdef USE_SDL_HAPTIC
 	// try to get supported ff effects
 	m_haptic = SDL_HapticOpenFromJoystick( m_joystick );
-	if ( m_haptic  )
+	if (m_haptic)
 	{
 		//SDL_HapticSetGain( m_haptic, 1000 );
 		//SDL_HapticSetAutocenter( m_haptic, 0 );
@@ -101,17 +101,17 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		const unsigned int supported_effects = SDL_HapticQuery( m_haptic );
 
 		// constant effect
-		if ( supported_effects & SDL_HAPTIC_CONSTANT )
+		if (supported_effects & SDL_HAPTIC_CONSTANT)
 		{
-			AddOutput( new ConstantEffect( m_state_out.size() ) );
-			m_state_out.push_back( EffectIDState() );
+			m_state_out.push_back(EffectIDState());
+			AddOutput(new ConstantEffect(m_state_out.back()));
 		}
 
 		// ramp effect
-		if ( supported_effects & SDL_HAPTIC_RAMP )
+		if (supported_effects & SDL_HAPTIC_RAMP)
 		{
-			AddOutput( new RampEffect( m_state_out.size() ) );
-			m_state_out.push_back( EffectIDState() );
+			m_state_out.push_back(EffectIDState());
+			AddOutput(new RampEffect(m_state_out.back()));
 		}
 	}
 #endif
@@ -125,9 +125,10 @@ Joystick::~Joystick()
 	{	
 		// stop/destroy all effects
 		SDL_HapticStopAll(m_haptic);
-		std::vector<EffectIDState>::iterator i = m_state_out.begin(),
+		std::list<EffectIDState>::iterator
+			i = m_state_out.begin(),
 			e = m_state_out.end();
-		for ( ; i!=e; ++i)
+		for ( ; i != e; ++i)
 			if (i->id != -1)
 				SDL_HapticDestroyEffect(m_haptic, i->id);
 		// close haptic first
@@ -150,36 +151,36 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
-void Joystick::ConstantEffect::SetState( const ControlState state, Joystick::EffectIDState* const effect )
+void Joystick::ConstantEffect::SetState(const ControlState state)
 {
 	if (state)
 	{
-		effect->effect.type = SDL_HAPTIC_CONSTANT;
-		effect->effect.constant.length = SDL_HAPTIC_INFINITY;
+		m_effect.effect.type = SDL_HAPTIC_CONSTANT;
+		m_effect.effect.constant.length = SDL_HAPTIC_INFINITY;
 	}
 	else
-		effect->effect.type = 0;
+		m_effect.effect.type = 0;
 
-	Sint16 old = effect->effect.constant.level;
-	effect->effect.constant.level = state * 0x7FFF;
-	if (old != effect->effect.constant.level)
-		effect->changed = true;
+	const Sint16 old = m_effect.effect.constant.level;
+	m_effect.effect.constant.level = state * 0x7FFF;
+	if (old != m_effect.effect.constant.level)
+		m_effect.changed = true;
 }
 
-void Joystick::RampEffect::SetState( const ControlState state, Joystick::EffectIDState* const effect )
+void Joystick::RampEffect::SetState(const ControlState state)
 {
 	if (state)
 	{
-		effect->effect.type = SDL_HAPTIC_RAMP;
-		effect->effect.ramp.length = SDL_HAPTIC_INFINITY;
+		m_effect.effect.type = SDL_HAPTIC_RAMP;
+		m_effect.effect.ramp.length = SDL_HAPTIC_INFINITY;
 	}
 	else
-		effect->effect.type = 0;
+		m_effect.effect.type = 0;
 	
-	Sint16 old = effect->effect.ramp.start;
-	effect->effect.ramp.start = state * 0x7FFF;
-	if (old != effect->effect.ramp.start)
-		effect->changed = true;
+	const Sint16 old = m_effect.effect.ramp.start;
+	m_effect.effect.ramp.start = state * 0x7FFF;
+	if (old != m_effect.effect.ramp.start)
+		m_effect.changed = true;
 }
 #endif
 
@@ -194,9 +195,11 @@ bool Joystick::UpdateInput()
 bool Joystick::UpdateOutput()
 {
 #ifdef USE_SDL_HAPTIC
-	std::vector<EffectIDState>::iterator i = m_state_out.begin(),
+	std::list<EffectIDState>::iterator
+		i = m_state_out.begin(),
 		e = m_state_out.end();
-	for ( ; i!=e; ++i)
+	for ( ; i != e; ++i)
+	{
 		if (i->changed)	// if SetState was called on this output
 		{
 			if (-1 == i->id)	// effect isn't currently uploaded
@@ -219,6 +222,7 @@ bool Joystick::UpdateOutput()
 
 			i->changed = false;
 		}
+	}
 #endif
 	return true;
 }

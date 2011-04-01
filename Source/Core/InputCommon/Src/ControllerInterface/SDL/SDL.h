@@ -3,6 +3,8 @@
 
 #include "../ControllerInterface.h"
 
+#include <list>
+
 #ifdef _WIN32
 	#include <SDL.h>
 #else
@@ -38,7 +40,7 @@ private:
 #ifdef USE_SDL_HAPTIC
 	struct EffectIDState
 	{
-		EffectIDState() : id(-1), changed(false) { memset( &effect, 0, sizeof(effect)); }
+		EffectIDState() : effect(SDL_HapticEffect()), id(-1), changed(false) {}
 
 		SDL_HapticEffect	effect;
 		int					id;
@@ -86,20 +88,20 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		ConstantEffect( const size_t index ) : Output(index) {}
-		void SetState( const ControlState state, EffectIDState* const effect );
+		ConstantEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
 	private:
-		SDL_Joystick* const m_js;
+		EffectIDState& m_effect;
 	};
 
 	class RampEffect : public Output
 	{
 	public:
 		std::string GetName() const;
-		RampEffect( const size_t index ) : Output(index) {}
-		void SetState( const ControlState state, EffectIDState* const effect );
+		RampEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
 	private:
-		SDL_Joystick* const m_js;
+		EffectIDState& m_effect;
 	};
 #endif
 
@@ -120,7 +122,7 @@ private:
 	const unsigned int			m_index;
 
 #ifdef USE_SDL_HAPTIC
-	std::vector<EffectIDState>	m_state_out;
+	std::list<EffectIDState>	m_state_out;
 	SDL_Haptic*					m_haptic;
 #endif
 };
