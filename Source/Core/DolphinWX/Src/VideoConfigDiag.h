@@ -261,7 +261,6 @@ protected:
 	SettingCheckBox* pixel_lighting;
 	SettingCheckBox* pixel_depth;
 	SettingCheckBox* force_filtering;
-	SettingCheckBox* force_no_filtering;
 	SettingCheckBox* _3d_vision;
 
 	SettingChoice* choice_efbscale;

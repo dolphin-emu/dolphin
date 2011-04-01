@@ -1381,10 +1381,6 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		min = mag = mip = D3DTEXF_LINEAR;
 	}
-	else if (g_ActiveConfig.bForceNoFiltering)
-	{
-		min = mag = mip = D3DTEXF_POINT;
-	}
 	else
 	{
 		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
