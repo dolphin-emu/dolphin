@@ -178,13 +178,10 @@ bool Renderer::CalculateTargetSize(int multiplier)
 	newEFBWidth *= multiplier;
 	newEFBHeight *= multiplier;
 
-	s_Fulltarget_width = newEFBWidth;
-	s_Fulltarget_height = newEFBHeight;
-
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
-		s_target_width  = newEFBWidth;
-		s_target_height = newEFBHeight;
+		s_Fulltarget_width = s_target_width  = newEFBWidth;
+		s_Fulltarget_height = s_target_height = newEFBHeight;
 		return true;
 	}
 	return false;

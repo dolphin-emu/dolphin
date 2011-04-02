@@ -707,6 +707,7 @@ void Renderer::UpdateViewport()
 	float newy = (float)Y;
 	float newwidth = (float)Width;
 	float newheight = (float)Height;
+	// TODO: If the size hasn't changed for X frames, we should probably shrink the EFB texture for performance reasons
 	if (sizeChanged)
 	{
 		// Make sure that the requested size is actually supported by the GFX driver

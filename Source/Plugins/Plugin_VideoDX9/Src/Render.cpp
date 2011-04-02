@@ -747,6 +747,8 @@ void Renderer::UpdateViewport()
 			sizeChanged = true;
 		}
 	}
+
+	// TODO: If the size hasn't changed for X frames, we should probably shrink the EFB texture for performance reasons
 	if (sizeChanged)
 	{
 		const int ideal_width = s_Fulltarget_width;
