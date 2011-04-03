@@ -429,6 +429,7 @@ void BPWritten(const BPCmd& bp)
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
+		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
 		OnPixelFormatChange(bp);
 		break;
 
