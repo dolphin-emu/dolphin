@@ -103,7 +103,7 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 
 	SET_STATE(iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, false), bForceFiltering);
 	SET_STATE(iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
+	SET_STATE(iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, ""), sPostProcessingShader);
 	SET_STATE(iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false), b3DVision);
 	
 	SET_STATE(iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true), bEFBAccessEnable);
@@ -197,7 +197,11 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering), bForceFiltering);
 	
 	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy), iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	iniFile.GetIfExists("Video_Enhancements", "PostProcessingShader", &sPostProcessingShader);
+	
+	{
+	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "PostProcessingShader", &sPostProcessingShader), sPostProcessingShader);
+	sPostProcessingShader = (sPostProcessingShader == "off") ? "" : sPostProcessingShader;
+	}
 	
 	SET_UISTATE(iniFile.GetIfExists("Video_Enhancements", "Enable3dVision", &b3DVision), b3DVision);
 
@@ -378,7 +382,12 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 
 	CHECK_UISTATE("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_UISTATE("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	iniFile.Set("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+	
+	{
+	sPostProcessingShader = (UI_State.sPostProcessingShader && sPostProcessingShader.empty()) ? "off" : sPostProcessingShader;
+	CHECK_UISTATE("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+	}
+	
 	CHECK_UISTATE("Video_Enhancements", "Enable3dVision", b3DVision);
 
 	CHECK_UISTATE("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);

@@ -568,7 +568,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 void CISOProperties::OnCheckBoxClicked(wxCommandEvent& event)
 {
-	bool choice = (bool)event.GetInt();
+	bool choice = (event.GetInt() != 0);
 	
 	if (event.GetId() == ID_PHACKENABLE)
 	{

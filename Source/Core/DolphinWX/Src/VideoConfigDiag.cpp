@@ -13,47 +13,43 @@
 #include "Core.h"
 #include "Host.h"
 
-
 extern CFrame* main_frame;
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
-// template instantiation
-template class BoolSettingCB<wxCheckBox>;
-template class BoolSettingRB<wxRadioButton>;
+_pattern::_pattern(bool *state, const tmp_TypeClass type): m_uistate(state), _type(type) {}
 
-template <>
-SettingCheckBox::BoolSettingCB(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool &def_setting, bool &state, bool reverse, long style)
-	: wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
+IMPLEMENT_CLASS(SettingCheckBox, wxCheckBox) // this allows to register the class in RTTI passing through wxWidgets
+SettingCheckBox::SettingCheckBox(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool &def_setting, bool &state, bool reverse, long style)
+	: _pattern(&state, allow_3State)
+	, wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
 	, m_setting(setting)
 	, d_setting(&def_setting)
-	, m_state(&state)
 	, m_reverse(reverse)
-	, type(allow_3State)
-{
-	SetToolTip(tooltip);
-	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingCheckBox::UpdateValue_variant, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-}
-
-// without 3sate support
-template <>
-SettingCheckBox::BoolSettingCB(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool reverse, long style)
-	: wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
-	, m_setting(setting)
-	, d_setting(&setting)
-	, m_state(0)
-	, m_reverse(reverse)
-	, type(only_2State)
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
 	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 }
 
-template <>
-SettingRadioButton::BoolSettingRB(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool reverse, long style)
-	: wxRadioButton(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
+// without 3sate support
+SettingCheckBox::SettingCheckBox(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool reverse, long style)
+	: _pattern(0, only_2State)
+	, wxCheckBox(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
+	, m_setting(setting)
+	, d_setting(&setting)
+	, m_reverse(reverse)
+{
+	SetToolTip(tooltip);
+	SetValue(m_setting ^ m_reverse);
+	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+}
+
+
+IMPLEMENT_CLASS(SettingRadioButton, wxRadioButton)
+SettingRadioButton::SettingRadioButton(wxWindow* parent, const wxString& label, const wxString& tooltip, bool &setting, bool reverse, long style)
+	: _pattern(0, only_2State)
+	, wxRadioButton(parent, -1, label, wxDefaultPosition, wxDefaultSize, style)
 	, m_setting(setting)
 	, m_reverse(reverse)
 {
@@ -62,61 +58,38 @@ SettingRadioButton::BoolSettingRB(wxWindow* parent, const wxString& label, const
 	_connect_macro_(this, SettingRadioButton::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 }
 
-SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
-	: wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
-	, m_setting(setting)
-	, d_setting(&setting)
-	, m_index(setting)
-	, m_state(0)
-	, type(only_2State)
-{
-	SetToolTip(tooltip);
-	Select(m_setting);
-	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
-}
 
-void SettingChoice::UpdateValue(wxCommandEvent& ev)
-{
-	m_setting = ev.GetInt();
-	ev.Skip();
-}
-
-// variant
-SettingChoice::SettingChoice(wxWindow* parent, int &setting, int &def_setting, bool &state, int &cur_index, const wxString& tooltip, int num, const wxString choices[], long style)
-	: wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
+IMPLEMENT_CLASS(IntSettingChoice, wxChoice)
+IMPLEMENT_CLASS(StringSettingChoice, wxChoice)
+template <typename V>
+SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, V &def_setting, bool &state, int &cur_index, const wxString& tooltip, int num, const wxString choices[], long style)
+	: _pattern(&state, allow_3State)	
+	, wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
 	, m_setting(setting)
 	, d_setting(&def_setting)
 	, m_index(cur_index)
-	, m_state(&state)
-	, type(allow_3State)
 {
 	SetToolTip(tooltip);
-	Select(m_setting);
-	_connect_macro_(this, SettingChoice::UpdateValue_variant, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	void *p = &m_setting;
+	if (sizeof(m_setting) == sizeof(int)) Select(*(int*)p);
+	if (sizeof(m_setting) == sizeof(std::string)) SetStringSelection(wxString::FromAscii((*(std::string*)p).c_str()));
+	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
 }
 
-void SettingChoice::UpdateValue_variant(wxCommandEvent& ev)
+// without 3sate support
+template <typename V>
+SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, const wxString& tooltip, int num, const wxString choices[], long style)
+	: _pattern(0, only_2State)	
+	, wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
+	, m_setting(setting)
+	, d_setting(&setting)
+	, m_index(setting)
 {
-	m_setting = ev.GetInt();
-	if (m_index != 0) // Choice ctrl without 3RD option
-	{
-		// changing state value should be done here, never outside this block
-		if (m_setting == 0)
-		{
-			UpdateUIState(false);
-		}
-		else
-		{
-			UpdateUIState(true);
-			m_setting -= 1;
-		}
-	}
-	else // Choice ctrl with 3RD option
-	{
-		if (m_state)
-			if (!*m_state) *d_setting = m_setting;
-	}
-	ev.Skip();
+	SetToolTip(tooltip);
+	void *p = &m_setting;
+	if (sizeof(m_setting) == sizeof(int)) Select(*(int*)p);
+	if (sizeof(m_setting) == sizeof(std::string)) SetStringSelection(wxString::FromAscii((*(std::string*)p).c_str()));
+	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
 }
 
 static void ScanLayouts(wxWindow *obj)
@@ -125,7 +98,7 @@ static void ScanLayouts(wxWindow *obj)
 	for(wxWindowList::compatibility_iterator node = container.GetFirst(); node; node = node->GetNext())
 	{ 
 		wxWindow *ctrl = node->GetData();
-		if (ctrl->IsKindOf(CLASSINFO(wxCheckBox)))
+		if (ctrl->IsKindOf(CLASSINFO(SettingCheckBox)))
 		{
 			if (((SettingCheckBox*)ctrl)->getTypeClass() == allow_3State)
 			{
@@ -133,18 +106,23 @@ static void ScanLayouts(wxWindow *obj)
 				((SettingCheckBox*)ctrl)->Set3StateValue(wxCHK_UNDETERMINED);
 			}
 		}
-		if (ctrl->IsKindOf(CLASSINFO(wxChoice)))
+		if (ctrl->IsKindOf(CLASSINFO(IntSettingChoice)))
 		{
-			if (((SettingChoice*)ctrl)->getTypeClass() == allow_3State)
+			if (((IntSettingChoice*)ctrl)->getTypeClass() == allow_3State)
 			{
-				((SettingChoice*)ctrl)->UpdateUIState(false);
-				((SettingChoice*)ctrl)->Select(0);
+				((IntSettingChoice*)ctrl)->UpdateUIState(false);
+				((IntSettingChoice*)ctrl)->Select(0);
 			}
 		}
-		if (ctrl->IsKindOf(CLASSINFO(wxRadioButton)))
+		if (ctrl->IsKindOf(CLASSINFO(StringSettingChoice)))
 		{
-			ctrl->Disable();
+			if (((StringSettingChoice*)ctrl)->getTypeClass() == allow_3State)
+			{
+				((StringSettingChoice*)ctrl)->UpdateUIState(false);
+				((StringSettingChoice*)ctrl)->Select(0);
+			}
 		}
+
 
 		if (ctrl->GetChildren().GetCount() > 0)
 			ScanLayouts(ctrl); // Exponential Recursive Calls
@@ -155,26 +133,6 @@ static void ScanLayouts(wxWindow *obj)
 void VideoConfigDiag::Event_ClickDefault(wxCommandEvent&)
 {
 	ScanLayouts(this); // set UIstate and values
-
-	{	// select the RadioButton options here
-		efbcopy_texture->SetValue(cur_vconfig.bCopyEFBToTexture);
-		efbcopy_ram->SetValue(!cur_vconfig.bCopyEFBToTexture);
-
-		stc_safe->SetValue(0 == cur_vconfig.iSafeTextureCache_ColorSamples);
-		stc_normal->SetValue(512 == cur_vconfig.iSafeTextureCache_ColorSamples);
-		stc_fast->SetValue(128 == cur_vconfig.iSafeTextureCache_ColorSamples);
-
-		virtual_xfb->SetValue(!cur_vconfig.bUseRealXFB);
-		real_xfb->SetValue(cur_vconfig.bUseRealXFB);
-	}
-
-	if (!Core::IsRunning())
-	{
-		g_Config = cur_vconfig; // update&apply all changes immediately
-	}
-	else if (GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1))->GetUniqueID() ==
-					SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
-			g_Config = cur_vconfig;
 }
 
 void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
@@ -312,6 +270,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// If a game from the game list is running, show the game specific config; show the default config otherwise
 	long cb_style = wxCHK_3STATE;
 	cur_profile = 0;
+
 	if (Core::IsRunning())
 	{
 		// Search which ISO has been started
@@ -338,7 +297,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		const GameListItem* item = GameListCtrl->GetISO(GameListCtrl->GetItemData(cur_profile - 1));
 		game_ini = File::GetUserPath(D_GAMECONFIG_IDX) + item->GetUniqueID() + ".ini";
-		cb_style = wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER;
+		cb_style |= wxCHK_ALLOW_3RD_STATE_FOR_USER;
 	}
 
 	cur_vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str(), (cur_profile != 0), game_ini.c_str());
@@ -357,7 +316,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// game specific config
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Configuration profile:")), 1, wxALIGN_CENTER_VERTICAL, 5);
-	profile_cb = new SettingChoice(page_general, cur_profile, wxGetTranslation(profile_tooltip));
+	profile_cb = new IntSettingChoice(page_general, cur_profile, wxGetTranslation(profile_tooltip));
 	szr_basic->Add(profile_cb, 1, 0, 0);
 
 	profile_cb->AppendString(_("(Default)"));
@@ -375,7 +334,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	if (cur_vconfig.backend_info.Adapters.size())
 	{
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
-	choice_adapter = new SettingChoice(page_general, SET_PARAMS(iAdapter), cur_profile, wxGetTranslation(adapter_tooltip));
+	choice_adapter = new IntSettingChoice(page_general, SET_PARAMS(iAdapter), cur_profile, wxGetTranslation(adapter_tooltip));
 
 	std::vector<std::string>::const_iterator
 		it = cur_vconfig.backend_info.Adapters.begin(),
@@ -395,7 +354,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		_("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect Ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	choice_aspect = new SettingChoice(page_general,
+	choice_aspect = new IntSettingChoice(page_general,
 		SET_PARAMS(iAspectRatio), cur_profile, wxGetTranslation(ar_tooltip), sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
 
 	if (cur_profile != 0)
@@ -417,14 +376,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(new wxStaticText(page_general, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
-	szr_enh->Add(anisotropic_filtering = new SettingChoice(page_general, SET_PARAMS(iMaxAnisotropy), cur_profile, wxGetTranslation(af_tooltip), 5, af_choices));
+	szr_enh->Add(anisotropic_filtering = new IntSettingChoice(page_general, SET_PARAMS(iMaxAnisotropy), cur_profile, wxGetTranslation(af_tooltip), 5, af_choices));
 	
 	if (cur_profile != 0)
 		anisotropic_filtering->Insert(def_profile, 0);
 	
 	text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
-	choice_aamode = new SettingChoice(page_general, SET_PARAMS(iMultisampleMode), cur_profile, wxGetTranslation(aa_tooltip));
+	choice_aamode = new IntSettingChoice(page_general, SET_PARAMS(iMultisampleMode), cur_profile, wxGetTranslation(aa_tooltip));
 
 	std::vector<std::string>::const_iterator
 		it = cur_vconfig.backend_info.AAModes.begin(),
@@ -451,7 +410,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	const wxString efbscale_choices[] = { _("Fractional"), _("Integral [recommended]"),
 		wxT("1x"), wxT("2x"), wxT("3x"), wxT("0.75x"), wxT("0.5x"), wxT("0.375x") };
 
-	choice_efbscale = new SettingChoice(page_general,
+	choice_efbscale = new IntSettingChoice(page_general,
 			SET_PARAMS(iEFBScale), cur_profile, wxGetTranslation(internal_res_tooltip), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
 
 	if (cur_profile != 0)
@@ -600,22 +559,24 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - misc
 	{
-	wxGridSizer* const szr_misc = new wxGridSizer(2);
+	wxGridSizer* const szr_misc = new wxGridSizer(2, 5, 5);
 
-	szr_misc->Add(crop = new SettingCheckBox(page_advanced, _("Crop"), crop_tooltip, SET_PARAMS(bCrop), false, cb_style), 0, wxBOTTOM, 5);
-	szr_misc->Add(opencl = new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, SET_PARAMS(bEnableOpenCL), false, cb_style), 0, wxLEFT|wxBOTTOM, 5);
-	szr_misc->Add(dlcache = new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, SET_PARAMS(bDlistCachingEnable), false, cb_style), 0, wxBOTTOM, 5);
-	szr_misc->Add(hotkeys = new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, SET_PARAMS(bOSDHotKey), false, cb_style), 0, wxLEFT|wxBOTTOM, 5);
-	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), omp_tooltip, SET_PARAMS(bOMPDecoder), false, cb_style), 0, wxBOTTOM, 5);
-	szr_misc->AddStretchSpacer(1);
+	szr_misc->Add(crop = new SettingCheckBox(page_advanced, _("Crop"), crop_tooltip, SET_PARAMS(bCrop), false, cb_style));
+	szr_misc->Add(opencl = new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, SET_PARAMS(bEnableOpenCL), false, cb_style));
+	szr_misc->Add(dlcache = new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, SET_PARAMS(bDlistCachingEnable), false, cb_style));
+	szr_misc->Add(hotkeys = new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, SET_PARAMS(bOSDHotKey), false, cb_style));
+	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), omp_tooltip, SET_PARAMS(bOMPDecoder), false, cb_style));
 
 	// postproc shader
+	wxBoxSizer* const box_pps = new wxBoxSizer(wxHORIZONTAL);
 	if (cur_vconfig.backend_info.PPShaders.size())
 	{
-		szr_misc->Add(new wxStaticText(page_advanced, -1, _("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+		wxFlexGridSizer* const szr_pps = new wxFlexGridSizer(2, 5, 5);
+		szr_pps->AddStretchSpacer(); szr_pps->AddStretchSpacer();
+		szr_pps->Add(new wxStaticText(page_advanced, -1, _("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 
-		choice_ppshader = new wxChoice(page_advanced, -1, wxDefaultPosition);
-		choice_ppshader->SetToolTip(wxGetTranslation(ppshader_tooltip));
+		choice_ppshader = new StringSettingChoice(page_advanced, SET_PARAMS(sPostProcessingShader), cur_profile, wxGetTranslation(ppshader_tooltip));
+
 		choice_ppshader->AppendString(_("(off)"));
 
 		std::vector<std::string>::const_iterator
@@ -627,14 +588,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		if (cur_profile != 0)
 			choice_ppshader->Insert(def_profile, 0);
 
-		_connect_macro_(choice_ppshader, VideoConfigDiag::Event_PPShader, wxEVT_COMMAND_CHOICE_SELECTED, this);
-
-		szr_misc->Add(choice_ppshader, 0, wxLEFT, 5);
+		szr_pps->Add(choice_ppshader);
+		box_pps->Add(szr_pps, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
 	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
 	szr_advanced->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_misc->Add(box_pps);
 	}
 
 	page_advanced->SetSizerAndFit(szr_advanced);
@@ -673,13 +634,13 @@ void VideoConfigDiag::ChangeStyle()
 	if (prev_profile != cur_profile && !(prev_profile && cur_profile))
 	{
 
-	// set State and Rebind all controls
-	#define CHANGE_DATAREF(ctrl, member) { void *p;\
-		p = &(CONFIG(member, 0)); ctrl->ChangeRefDataMember(Def_Data,p);\
-		p = &(CONFIG(UI_State.member, 1)); ctrl->ChangeRefDataMember(State,p);\
-		if (sizeof(cur_vconfig.member) == sizeof(bool)) ctrl->SetWindowStyle(cb_style); }
+		const long cb_style = (cur_profile == 0) ? wxCHK_3STATE : wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER;
 
-		long cb_style = (cur_profile == 0) ? wxCHK_3STATE : wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER;
+		// set State and Rebind all controls
+		#define CHANGE_DATAREF(ctrl, member) { void *p;\
+			p = &(CONFIG(member, 0)); ctrl->ChangeRefDataMember(Def_Data,p);\
+			p = &(CONFIG(UI_State.member, 1)); ctrl->ChangeRefDataMember(State,p);\
+			if (sizeof(cur_vconfig.member) == sizeof(bool)) ctrl->SetWindowStyle(cb_style); }
 		
 		if (cur_vconfig.backend_info.Adapters.size())
 		{
@@ -717,7 +678,7 @@ void VideoConfigDiag::ChangeStyle()
 		if (cur_profile == 0) choice_efbscale->Delete(0);
 		else choice_efbscale->Insert(def_profile, 0);
 		choice_efbscale->GetParent()->Layout();
-		CHANGE_DATAREF(choice_efbscale,iEFBScale);
+		CHANGE_DATAREF(choice_efbscale, iEFBScale);
 
 		CHANGE_DATAREF(efbaccess_enable, bEFBAccessEnable);
 		CHANGE_DATAREF(emulate_efb_format_changes, bEFBEmulateFormatChanges);
@@ -752,7 +713,7 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(ompdecoder, bOMPDecoder);
 		CHANGE_DATAREF(opencl, bEnableOpenCL);
 		CHANGE_DATAREF(crop, bCrop);
-		/*
+		
 		if (cur_vconfig.backend_info.PPShaders.size())
 		{
 			if (cur_profile == 0)
@@ -761,8 +722,9 @@ void VideoConfigDiag::ChangeStyle()
 				choice_ppshader->Insert(def_profile, 0);
 
 			choice_ppshader->GetParent()->Layout();
+			CHANGE_DATAREF(choice_ppshader, sPostProcessingShader);
 		}
-		*/
+		
 		Fit(); // wraps sizes of the outer layout
 		if (CenterCoords == this->GetScreenPosition())
 		{
@@ -846,37 +808,30 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 	virtual_xfb->Enable(enable_group);
 	real_xfb->Enable(enable_group);
 
-	// here where we check Radio Button Groups  and if main CheckBox has 3rd state activated
+	// here where we check Radio Button Groups and if main CheckBox has 3rd state activated
 	// NOTE: this code block just before g_Config is updated
 	if (cur_profile != 0)
 	{
-		if (ev.GetId() == efbcopy_enable->GetId())
+		// ID check is to reduce drastically the CPU load, since too many SetValue() calls at once,
+		// are very expensive inside this procedure
+		if (ev.GetId() == efbcopy_enable->GetId() && efbcopy_enable->Get3StateValue() == wxCHK_UNDETERMINED)
 		{
-			if (efbcopy_enable->Get3StateValue() == wxCHK_UNDETERMINED)
-			{
-				cur_vconfig.bCopyEFBToTexture = def_vconfig.bCopyEFBToTexture;
-				efbcopy_texture->SetValue(cur_vconfig.bCopyEFBToTexture);
-				efbcopy_ram->SetValue(!cur_vconfig.bCopyEFBToTexture);
-			}
+			cur_vconfig.bCopyEFBToTexture = def_vconfig.bCopyEFBToTexture;
+			efbcopy_texture->SetValue(cur_vconfig.bCopyEFBToTexture);
+			efbcopy_ram->SetValue(!cur_vconfig.bCopyEFBToTexture);
 		}
-		if (ev.GetId() == stc_enable->GetId())
+		if (ev.GetId() == stc_enable->GetId() && stc_enable->Get3StateValue() == wxCHK_UNDETERMINED)
 		{
-			if (stc_enable->Get3StateValue() == wxCHK_UNDETERMINED)
-			{
-				cur_vconfig.iSafeTextureCache_ColorSamples = def_vconfig.iSafeTextureCache_ColorSamples;
-				stc_safe->SetValue(0 == cur_vconfig.iSafeTextureCache_ColorSamples);
-				stc_normal->SetValue(512 == cur_vconfig.iSafeTextureCache_ColorSamples);
-				stc_fast->SetValue(128 == cur_vconfig.iSafeTextureCache_ColorSamples);
-			}
+			cur_vconfig.iSafeTextureCache_ColorSamples = def_vconfig.iSafeTextureCache_ColorSamples;
+			stc_safe->SetValue(0 == cur_vconfig.iSafeTextureCache_ColorSamples);
+			stc_normal->SetValue(512 == cur_vconfig.iSafeTextureCache_ColorSamples);
+			stc_fast->SetValue(128 == cur_vconfig.iSafeTextureCache_ColorSamples);
 		}
-		if (ev.GetId() == enable_xfb->GetId()) //XFB
+		if (ev.GetId() == enable_xfb->GetId() && enable_xfb->Get3StateValue() == wxCHK_UNDETERMINED)
 		{
-			if (enable_xfb->Get3StateValue() == wxCHK_UNDETERMINED)
-			{
-				cur_vconfig.bUseRealXFB = def_vconfig.bUseRealXFB;
-				virtual_xfb->SetValue(!cur_vconfig.bUseRealXFB);
-				real_xfb->SetValue(cur_vconfig.bUseRealXFB);
-			}
+			cur_vconfig.bUseRealXFB = def_vconfig.bUseRealXFB;
+			virtual_xfb->SetValue(!cur_vconfig.bUseRealXFB);
+			real_xfb->SetValue(cur_vconfig.bUseRealXFB);
 		}
 	}
 	
@@ -892,38 +847,39 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 					SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID)
 			g_Config = cur_vconfig;
 	}
-	else
+	else // here, if we're editing the Default profile and a game is running...
 	{
 		// RadioButton instant update from Default profile
 		if (!g_Config.UI_State.bSafeTextureCache)
-		{
 			g_Config.iSafeTextureCache_ColorSamples = cur_vconfig.iSafeTextureCache_ColorSamples;
-		}
-		if (!g_Config.UI_State.bUseXFB)
-		{
-			g_Config.bUseRealXFB = cur_vconfig.bUseRealXFB;
-		}
-		if (!g_Config.UI_State.bEFBCopyEnable)
-		{
-			g_Config.bCopyEFBToTexture = cur_vconfig.bCopyEFBToTexture;
-		}
-	}
 
+		if (!g_Config.UI_State.bUseXFB)
+			g_Config.bUseRealXFB = cur_vconfig.bUseRealXFB;
+
+		if (!g_Config.UI_State.bEFBCopyEnable)
+			g_Config.bCopyEFBToTexture = cur_vconfig.bCopyEFBToTexture;
+
+		// other controls (checkbox, choice dropdown) handle 'the instant update' internally inside their own class
+	}
 	ev.Skip();
 }
 
 void VideoConfigDiag::SetUIValuesFromConfig()
 {
 	
-	int inc = (cur_profile != 0) ? 1 : 0;
+	const int inc = (cur_profile != 0) ? 1 : 0;
 	
 	#define SET_CHOICE(control, member) {\
-		void *p = control;\
+		void *p = control; void *m = &cur_vconfig.member;\
 		switch (sizeof(cur_vconfig.member)) {\
-		case sizeof(bool): if (cur_vconfig.UI_State.member) ((SettingCheckBox*)p)->Set3StateValue((wxCheckBoxState)cur_vconfig.member);\
+		case sizeof(bool): if (cur_vconfig.UI_State.member) ((SettingCheckBox*)p)->Set3StateValue((wxCheckBoxState)*(bool*)m);\
 			else ((SettingCheckBox*)p)->Set3StateValue(wxCHK_UNDETERMINED); break;\
-		case sizeof(int): if (cur_vconfig.UI_State.member) ((SettingChoice*)p)->SetSelection(cur_vconfig.member + inc);\
-			else ((SettingChoice*)p)->SetSelection(0); break; } }
+		case sizeof(int): if (cur_vconfig.UI_State.member) ((IntSettingChoice*)p)->SetSelection(*(int*)m + inc);\
+			else ((IntSettingChoice*)p)->SetSelection(0); break;\
+		case sizeof(std::string): if (cur_vconfig.UI_State.member) {\
+			if ((*(std::string*)m).empty()) ((StringSettingChoice*)p)->SetSelection(inc);\
+			else ((StringSettingChoice*)p)->SetStringSelection(wxString::FromAscii((*(std::string*)m).c_str())); }\
+			else ((StringSettingChoice*)p)->SetSelection(0); break; } }
 
 	if (choice_adapter) SET_CHOICE(choice_adapter, iAdapter);
 	SET_CHOICE(choice_aspect, iAspectRatio);
@@ -986,10 +942,5 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	SET_CHOICE(dlcache, bDlistCachingEnable);
 	SET_CHOICE(ompdecoder, bOMPDecoder);
 	SET_CHOICE(hotkeys, bOSDHotKey);
-
-	if (choice_ppshader)
-	{
-		if (cur_vconfig.sPostProcessingShader.empty()) choice_ppshader->Select(0);
-		else choice_ppshader->SetStringSelection(wxString::FromAscii(cur_vconfig.sPostProcessingShader.c_str()));
-	}
+	if (choice_ppshader) SET_CHOICE(choice_ppshader, sPostProcessingShader);
 }

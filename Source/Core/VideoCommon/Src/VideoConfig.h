@@ -173,6 +173,7 @@ public:
 		bool iEFBScale;
 		bool bForceFiltering;
 		bool iMaxAnisotropy;
+		bool sPostProcessingShader;
 		bool bShowFPS;
 		bool bShowInputDisplay;
 		bool bOverlayStats;
