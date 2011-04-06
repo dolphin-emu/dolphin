@@ -923,11 +923,7 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 		case sizeof(bool): if (cur_vconfig.UI_State.member) ((SettingCheckBox*)p)->Set3StateValue((wxCheckBoxState)*(bool*)m);\
 			else ((SettingCheckBox*)p)->Set3StateValue(wxCHK_UNDETERMINED); break;\
 		case sizeof(int): if (cur_vconfig.UI_State.member) ((IntSettingChoice*)p)->SetSelection(*(int*)m + inc);\
-			else ((IntSettingChoice*)p)->SetSelection(0); break;\
-		case sizeof(std::string): if (cur_vconfig.UI_State.member) {\
-			if ((*(std::string*)m).empty()) ((StringSettingChoice*)p)->SetSelection(inc);\
-			else ((StringSettingChoice*)p)->SetStringSelection(wxString::FromAscii((*(std::string*)m).c_str())); }\
-			else ((StringSettingChoice*)p)->SetSelection(0); break; } }
+			else ((IntSettingChoice*)p)->SetSelection(0); break; } }
 
 	if (choice_adapter) SET_CHOICE(choice_adapter, iAdapter);
 	SET_CHOICE(choice_aspect, iAspectRatio);
@@ -990,5 +986,14 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	SET_CHOICE(dlcache, bDlistCachingEnable);
 	SET_CHOICE(ompdecoder, bOMPDecoder);
 	SET_CHOICE(hotkeys, bOSDHotKey);
-	if (choice_ppshader) SET_CHOICE(choice_ppshader, sPostProcessingShader);
+	if (choice_ppshader)
+	{
+		std::string m = cur_vconfig.sPostProcessingShader;
+		if (cur_vconfig.UI_State.sPostProcessingShader)
+		{
+			if (m.empty()) choice_ppshader->SetSelection(inc);
+			else choice_ppshader->SetStringSelection(wxString::FromAscii(m.c_str()));
+		}
+			else choice_ppshader->SetSelection(0);
+	}
 }
