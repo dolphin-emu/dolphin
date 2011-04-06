@@ -58,9 +58,57 @@ SettingRadioButton::SettingRadioButton(wxWindow* parent, const wxString& label, 
 	_connect_macro_(this, SettingRadioButton::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
 }
 
+// partial specialization (SettingChoice template)
+template<>
+void StringSettingChoice::UpdateValue(wxCommandEvent& ev)
+{
+	m_setting = ev.GetString().mb_str();
+	if (_type == allow_3State)
+	{
+		if (m_index != 0) // Choice ctrl with 3RD option
+		{
+			// changing state value should be done here, never outside this block
+			if (ev.GetInt() == 0)
+			{
+				UpdateUIState(false);
+			}
+			else
+			{
+				UpdateUIState(true);
+				if (ev.GetInt() == 1) m_setting.clear();
+			}
+		}
+		else // Choice ctrl without 3RD option
+		{
+			if (m_uistate)
+				if (!*m_uistate) *d_setting = m_setting;
+		}
+	}
+	ev.Skip();
+}
 
-IMPLEMENT_CLASS(IntSettingChoice, wxChoice)
-IMPLEMENT_CLASS(StringSettingChoice, wxChoice)
+template<>
+wxClassInfo IntSettingChoice::ms_classInfo(wxT("IntSettingChoice"),
+		&wxChoice::ms_classInfo, NULL, (int)sizeof(IntSettingChoice),
+		(wxObjectConstructorFn) NULL); 
+
+template<>
+wxClassInfo *IntSettingChoice::GetClassInfo() const
+{
+	return &IntSettingChoice::ms_classInfo;
+}
+
+template<>
+wxClassInfo StringSettingChoice::ms_classInfo(wxT("StringSettingChoice"),
+		&wxChoice::ms_classInfo, NULL, (int)sizeof(StringSettingChoice),
+		(wxObjectConstructorFn) NULL); 
+
+template<>
+wxClassInfo *StringSettingChoice::GetClassInfo() const
+{
+	return &StringSettingChoice::ms_classInfo;
+}
+
 template <typename V>
 SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, V &def_setting, bool &state, int &cur_index, const wxString& tooltip, int num, const wxString choices[], long style)
 	: _pattern(&state, allow_3State)	

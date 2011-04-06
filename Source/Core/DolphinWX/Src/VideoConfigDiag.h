@@ -192,34 +192,6 @@ private:
 	int &m_index;
 };
 
-// partial specialization (SettingChoice template)
-void SettingChoice<std::string>::UpdateValue(wxCommandEvent& ev)
-{
-	m_setting = ev.GetString().mb_str();
-	if (_type == allow_3State)
-	{
-		if (m_index != 0) // Choice ctrl with 3RD option
-		{
-			// changing state value should be done here, never outside this block
-			if (ev.GetInt() == 0)
-			{
-				UpdateUIState(false);
-			}
-			else
-			{
-				UpdateUIState(true);
-				if (ev.GetInt() == 1) m_setting.clear();
-			}
-		}
-		else // Choice ctrl without 3RD option
-		{
-			if (m_uistate)
-				if (!*m_uistate) *d_setting = m_setting;
-		}
-	}
-	ev.Skip();
-}
-
 typedef SettingChoice<int> IntSettingChoice;
 typedef SettingChoice<std::string> StringSettingChoice;
 
