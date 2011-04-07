@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 08:52-0500\n"
+"POT-Creation-Date: 2011-04-06 21:26-0500\n"
 "PO-Revision-Date: 2011-03-17 18:30+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
@@ -271,7 +271,7 @@ msgstr "(-)+zFar"
 msgid "(-)+zNear"
 msgstr "(-)+zNear"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:322
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:370
 msgid "(Default)"
 msgstr "(Alap)"
 
@@ -279,7 +279,7 @@ msgstr "(Alap)"
 msgid "(UNKNOWN)"
 msgstr "(ISMERETLEN)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:580
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:628
 msgid "(off)"
 msgstr "(ki)"
 
@@ -291,7 +291,7 @@ msgstr "16 bit"
 msgid "32 bit"
 msgstr "32 bit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:452
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D Vision (teljes képernyőn működik)"
 
@@ -299,7 +299,7 @@ msgstr "3D Vision (teljes képernyőn működik)"
 msgid "8 bit"
 msgstr "8 bit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:246
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
 msgstr ""
 
@@ -394,7 +394,7 @@ msgstr "A Dolphin névjegye"
 msgid "Acceleration"
 msgstr "Gyorsítás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
 msgid "Accurate Texture Cache"
 msgstr "Pontos textúra gyorsítótár"
 
@@ -492,7 +492,7 @@ msgstr "Action Replay: Szabályszerű kód %i: Érvénytelen alfaj %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Szabályszerű kód 0: Érvénytelen alfaj %08x (%s)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:336
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
 msgid "Adapter:"
 msgstr "Adapter:"
 
@@ -565,7 +565,7 @@ msgstr ""
 "Az analóg irányító gombok aktiválásához szükséges lenyomás érzékenységének "
 "beállítása."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:483
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:531
 msgid "Advanced"
 msgstr "Haladó"
 
@@ -602,7 +602,7 @@ msgstr "Minden tömörített GC/Wii ISO fájl (gcz)"
 msgid "All files (*.*)|*.*"
 msgstr "Minden fájl (*.*)|*.*"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:211
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:259
 msgid ""
 "Allows the CPU to read or write to the EFB (render buffer).\n"
 "This is needed for certain gameplay functionality (e.g. star pointer in "
@@ -619,11 +619,11 @@ msgstr ""
 "de ennek az opciónak a használata erős teljesítmény csökkenést okozhat ha a "
 "játék nagymértékben használja ezt a funkciót."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:377
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
 msgid "Anisotropic Filtering:"
 msgstr "Anizotrópikus szűrés:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
 msgid "Anti-Aliasing:"
 msgstr "Élsimítás:"
 
@@ -666,7 +666,7 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Biztos törlöd ezt a fájlt? Végleg el fog veszni!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:867
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:356
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
 msgid "Aspect Ratio:"
 msgstr "Képarány:"
 
@@ -691,7 +691,7 @@ msgstr "AudioCommon: Hiba az AO eszköz megnyitásakor.\n"
 msgid "Auto"
 msgstr "Automatikus"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Auto [recommended]"
 msgstr "Automatikus [ajánlott]"
 
@@ -743,7 +743,7 @@ msgstr "Játék kép:"
 msgid "Bar"
 msgstr "Vevő"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:454
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
 msgid "Basic"
 msgstr "Alap"
 
@@ -821,7 +821,7 @@ msgstr "C-kar"
 msgid "CPU Emulator Engine"
 msgstr "Processzor emulátor motor"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:206
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:254
 msgid ""
 "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
 "vertex.\n"
@@ -1003,7 +1003,7 @@ msgstr ""
 "A kliens kapcsolata megszakadt játék közben! A NetPlay kikapcsolva. Kézileg "
 "kell leállítanod a játékot."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:609
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:657
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:136
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:555
@@ -1052,11 +1052,11 @@ msgstr "ISO tömörítése"
 msgid "Config"
 msgstr "Beállítások"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:488
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:536
 msgid "Configuration profile"
 msgstr "Beállítás profil"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:318
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:366
 msgid "Configuration profile:"
 msgstr "Beállítás profil:"
 
@@ -1140,7 +1140,7 @@ msgstr "Irányítás"
 msgid "Convert to GCI"
 msgstr "Konvertálás: GCI"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:477
 msgid "Copy"
 msgstr "Másolat"
 
@@ -1267,7 +1267,7 @@ msgstr ""
 msgid "Creator: "
 msgstr "Készítő:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:612
 msgid "Crop"
 msgstr "Levágás"
 
@@ -1448,23 +1448,23 @@ msgstr ""
 "Könyvtár ellenőrző összeg hibás\n"
 " és a könyvtár biztonsági mentés ellenőrző összeg hibás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
 msgid "Disable Dest. Alpha Pass"
 msgstr "Dest. Alpha Pass kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:549
 msgid "Disable Fog"
 msgstr "Köd kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:547
 msgid "Disable Lighting"
 msgstr "Fényhatások kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:500
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
 msgid "Disable Textures"
 msgstr "Textúrák kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:221
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:269
 msgid ""
 "Disable fog. Improves performance but causes glitches in games which rely on "
 "proper fog emulation."
@@ -1472,7 +1472,7 @@ msgstr ""
 "Köd kikapcsolása. Növeli a teljesítményt de képhibákat okoz azokban a "
 "játékban, amelykben fontos a megfelelő köd emuláció."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:219
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:267
 msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
@@ -1480,7 +1480,7 @@ msgstr ""
 "Fényhatások kikapcsolása. Növeli a teljesítményt de egyúttal a fényhatások "
 "eltűnnek azokban a játékokban, amelyek alkalmazzák."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:220
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:268
 msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
@@ -1488,7 +1488,7 @@ msgstr ""
 "Kikapcsolja a textúrákat.\n"
 "Csak hibakeresési tevékenységhez hasznos."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:222
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:270
 msgid ""
 "Disables an alpha-setting pass.\n"
 "Breaks certain effects but might help performance."
@@ -1509,7 +1509,7 @@ msgstr "Lemez olvasási hiba"
 msgid "Display"
 msgstr "Kijelző"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:224
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:272
 msgid "Display the inputs read by the emulator."
 msgstr "Megjeleníti az emulátor által beolvasott bemeneteket."
 
@@ -1525,7 +1525,7 @@ msgstr "Le akarod állítani az éppen működő emulációt?"
 msgid "Dolphin"
 msgstr "Dolphin"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:256
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin %s grafikai beállítások"
@@ -1614,19 +1614,19 @@ msgstr "Utánzat"
 msgid "Dump Audio"
 msgstr "Hang mentése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:596
 msgid "Dump EFB Target"
 msgstr "EFB cél letárolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:549
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:597
 msgid "Dump Frames"
 msgstr "Képkockák letárolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:594
 msgid "Dump Textures"
 msgstr "Textúrák letárolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:230
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
 msgstr "Játék textúrák lementése User/Dump/Textures/<játék azonosító>/ helyre"
 
@@ -1640,15 +1640,15 @@ msgstr "Holland"
 msgid "E&xit"
 msgstr "K&ilépés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:509
 msgid "EFB"
 msgstr "EFB"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:517
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:565
 msgid "EFB Copy Regions"
 msgstr "EFB másolat régiók"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:399
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:447
 msgid "EFB Scaled Copy"
 msgstr "EFB méretezett másolat"
 
@@ -1706,11 +1706,11 @@ msgstr "Effektus"
 msgid "Emu Thread already running"
 msgstr "Az emuláció már fut"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:422
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:470
 msgid "Emulate format changes"
 msgstr "Formátum változások emulálása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:214
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:262
 msgid ""
 "Emulate frame buffer copies directly to textures.\n"
 "This is not so accurate, but it's good enough for the way many games use "
@@ -1733,9 +1733,9 @@ msgstr "Emuláció állapota:"
 msgid "Emulator Display Settings"
 msgstr "Emulátor kijelző beállítások"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:438
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:528
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:486
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:576
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
 msgid "Enable"
 msgstr "Használat"
@@ -1756,7 +1756,7 @@ msgstr "BAT használata"
 msgid "Enable Block Merging"
 msgstr "Blokk csatlakozás használata"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:464
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:512
 msgid "Enable CPU Access"
 msgstr "Processzor hozzáférés engedélyezése"
 
@@ -1768,7 +1768,7 @@ msgstr "Csalások használata"
 msgid "Enable DTK Music"
 msgstr "DTK zene bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:566
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:614
 msgid "Enable Display List Caching"
 msgstr "Kijelző lista gyorsítótárazás használata"
 
@@ -1780,7 +1780,7 @@ msgstr "Dual Core használata"
 msgid "Enable Dual Core (speedup)"
 msgstr "Dual Core használata (gyorsítás)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:567
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:615
 msgid "Enable Hotkeys"
 msgstr "Gyorsbillentyűk használata"
 
@@ -1796,7 +1796,7 @@ msgstr "Tétlen állapot mellőzése (gyorsítás)"
 msgid "Enable MMU"
 msgstr "MMU használata"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:613
 msgid "Enable OpenCL"
 msgstr "OpenCL használata"
 
@@ -1813,11 +1813,11 @@ msgstr "Képernyővédő használata (besülés elleni védelem)"
 msgid "Enable WideScreen"
 msgstr "Széleskijelző bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:498
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
 msgid "Enable Wireframe"
 msgstr "Vonalháló bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:428
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:476
 msgid "Enable cache"
 msgstr "Gyorsítótár elérés"
 
@@ -1855,7 +1855,7 @@ msgstr ""
 msgid "Enables Custom Projection Hack"
 msgstr "Egyedi megjelenítési hack használata"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:202
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:250
 msgid ""
 "Enables anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles."
@@ -1863,7 +1863,7 @@ msgstr ""
 "Bekapcsolja az anizotrópikus szűrést.\n"
 "Fokozza a ferde látószögű textúrák vizuális minőségét."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:261
 msgid ""
 "Enables emulation of Embedded Frame Buffer copies, if the game uses them.\n"
 "Games often need this for post-processing or other things, but if you can "
@@ -1874,7 +1874,7 @@ msgstr ""
 "A játékok gyakran használják ezt utófeldolgozáshoz vagy más dolgokhoz, de ha "
 "mellőzni tudod, akkor néha nagy sebesség növekedéshez juthatsz."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:212
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:260
 msgid ""
 "Enables reinterpreting the data inside the EFB when the pixel format "
 "changes.\n"
@@ -1908,7 +1908,7 @@ msgstr "Vége"
 msgid "English"
 msgstr "Angol"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:457
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "Enhancements"
 msgstr "Kép javítások"
 
@@ -2201,7 +2201,7 @@ msgstr "Fejléc írása sikertelen a(z) %s számára"
 msgid "Failed to write header for file %d"
 msgstr "Fejléc írása sikertelen a(z) %d fájl számára"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:449
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:497
 msgid "Fast"
 msgstr "Gyors"
 
@@ -2209,7 +2209,7 @@ msgstr "Gyors"
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "MMU gyors verziója. Nem működik minden játéknál."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:217
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:265
 msgid ""
 "Faster variants look at fewer pixels and thus have more potential for "
 "errors.\n"
@@ -2284,19 +2284,19 @@ msgstr "Első blokk"
 msgid "Fix Checksums"
 msgstr "Állandó ellenőrzőösszeg"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Force 16:9"
 msgstr "Kényszerített 16:9"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Force 4:3"
 msgstr "Kényszerített 4:3"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:450
 msgid "Force Bi/Trilinear Filtering"
 msgstr "Bi/trilineáris szűrés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:200
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:248
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Note that this might cause graphical glitches"
@@ -2304,7 +2304,7 @@ msgstr ""
 "A játék kiemeneti grafikája kényszerített szélesvásznú felbontású lesz.\n"
 "Fontos, hogy ez által grafikai hibák keletkezhetnek"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:208
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:256
 msgid ""
 "Forces bilinear texture filtering even if the game explicitly disabled it.\n"
 "Improves texture quality (especially when using a high internal resolution) "
@@ -2327,7 +2327,7 @@ msgstr ""
 msgid "Forward"
 msgstr "Előre"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:458
 msgid "Fractional"
 msgstr "Szakaszos"
 
@@ -2355,7 +2355,7 @@ msgstr "Képkocka léptetés"
 msgid "Frame S&kipping"
 msgstr "Képkocka k&ihagyás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:552
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:600
 msgid "Frame dumps use FFV1"
 msgstr "Képkocka mentések FFV1 használatával"
 
@@ -2367,7 +2367,7 @@ msgstr "Képkocka korlát:"
 msgid "Frames To Record"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
 msgstr "Szabad nézet"
 
@@ -2394,7 +2394,7 @@ msgstr "Teljes méret"
 msgid "Fullscreen Display Resolution:"
 msgstr "Teljes nézet felbontása:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:215
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid ""
 "Fully emulate embedded frame buffer copies.\n"
 "This is more accurate than EFB Copy to Texture, and some games need this to "
@@ -2472,7 +2472,7 @@ msgstr ""
 "(vagy rossz a kód vagy a kód típus még nem támogatott.)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:599
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:310
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:358
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 msgid "General"
 msgstr "Általános"
@@ -2712,7 +2712,7 @@ msgstr "Elindul"
 msgid "Info"
 msgstr "Infó"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:569
 #: Source/Core/Common/Src/MsgHandler.cpp:64
 msgid "Information"
 msgstr "Információk"
@@ -2767,7 +2767,7 @@ msgstr "WAD telepítés a Wii menübe..."
 msgid "Installing WAD..."
 msgstr "WAD telepítése..."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:458
 msgid "Integral [recommended]"
 msgstr "Teljes [ajánlott]"
 
@@ -2868,7 +2868,7 @@ msgstr "Japán"
 msgid "KOREA"
 msgstr "KOREA"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:216
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:264
 msgid ""
 "Keeps track of textures based on looking at the actual pixels in the "
 "texture.\n"
@@ -2958,11 +2958,11 @@ msgstr "Kevesebb mint"
 msgid "Load"
 msgstr "Betöltés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:547
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:595
 msgid "Load Hi-Res Textures"
 msgstr "Nagyfelbontású textúrák betöltése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:398
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:446
 msgid "Load Native Mipmaps"
 msgstr "Natív mipmapek betöltése"
 
@@ -3008,7 +3008,7 @@ msgstr "Állás betöltése..."
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii rendszer menü betöltése %d%c"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:231
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
 msgstr ""
 "Nagyfelbontású textúrák betöltése a User/Load/Textures/<játék azonosító>/ "
@@ -3018,7 +3018,7 @@ msgstr ""
 msgid "Load preset values from hack patterns available."
 msgstr "Gombkiosztási értékek betöltése a hack mintákból rendelkezésre áll."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:252
 msgid ""
 "Loads native mipmaps instead of generating them.\n"
 "Loading native mipmaps is the more accurate behavior, but might also "
@@ -3163,7 +3163,7 @@ msgstr "Menü"
 msgid "Mic"
 msgstr "Mikrofon"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:595
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:643
 msgid "Misc"
 msgstr "Egyebek"
 
@@ -3176,7 +3176,7 @@ msgstr "Egyéb beállítások"
 msgid "Modifier"
 msgstr "Változó"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:227
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:275
 msgid ""
 "Modify textures to show the format they're using.\n"
 "This is only useful for debugging purposes."
@@ -3360,7 +3360,7 @@ msgstr "%s játékhoz nem található mentési mappa"
 msgid "None"
 msgstr "Nincs"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:445
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Normal"
 msgstr "Normál"
 
@@ -3473,7 +3473,7 @@ msgstr "OpenAL: nem található hang eszköz"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: %s eszköz nem nyitható meg"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:568
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
 msgstr ""
 
@@ -3580,11 +3580,11 @@ msgstr "Tökéletes"
 msgid "Perspective %d"
 msgstr "%d perspektíva"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:449
 msgid "Pixel Depth"
 msgstr "Képpont mélység"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:448
 msgid "Pixel Lighting"
 msgstr "Képpont fényhatások"
 
@@ -3670,7 +3670,7 @@ msgstr "Portugál"
 msgid "Portuguese (Brazilian)"
 msgstr "Portugál (brazíliai)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:576
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:624
 msgid "Post-Processing Shader:"
 msgstr "Utófeldolgozás árnyaló:"
 
@@ -3698,7 +3698,7 @@ msgstr "Nyomtatás"
 msgid "Profile"
 msgstr "Profil"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:515
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:563
 msgid "Projection Stats"
 msgstr "Kivetítési statisztikák"
 
@@ -3733,7 +3733,7 @@ msgstr "R gomb"
 msgid "R-Analog"
 msgstr "Jobb analóg"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:427
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:475
 msgid "RAM"
 msgstr "RAM"
 
@@ -3749,7 +3749,7 @@ msgstr "Hatótáv"
 msgid "Read-only mode"
 msgstr "Írásvédett mód"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:578
 msgid "Real"
 msgstr "Valódi"
 
@@ -3794,7 +3794,7 @@ msgstr "Vörös balra"
 msgid "Red Right"
 msgstr "Vörös jobbra"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:203
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:251
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
 "This makes the rendered picture look less blocky but also heavily decreases "
@@ -3831,7 +3831,7 @@ msgstr ""
 msgid "Remove"
 msgstr "Törlés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:218
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:266
 msgid ""
 "Render the scene as a wireframe.\n"
 "This is only useful for debugging purposes."
@@ -3847,7 +3847,7 @@ msgstr "Megjelenítés a főablakban"
 msgid "Render to main window."
 msgstr "Megjelenítés a főablakban."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:552
 msgid "Rendering"
 msgstr "Megjelenítés"
 
@@ -3894,7 +3894,7 @@ msgstr "Orosz"
 msgid "Sa&ve State"
 msgstr "Ál&lás mentése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:488
 msgid "Safe"
 msgstr "Biztonságos"
 
@@ -3971,7 +3971,7 @@ msgstr "Kitömörített GCM/ISO mentése"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "%s állásmentés videója sérült, videó rögzítése leáll..."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:419
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:467
 msgid "Scale:"
 msgstr "Arányosítás:"
 
@@ -4019,7 +4019,7 @@ msgstr "Válassz rögzítendő fájlt"
 msgid "Select a Wii WAD file to install"
 msgstr "Válassz telepítendő Wii WAD fájlt"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:198
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:246
 msgid ""
 "Select a hardware adapter to use.\n"
 "When in doubt, use the first one"
@@ -4055,7 +4055,7 @@ msgstr "Válassz betöltendő állásmentést"
 msgid "Select the state to save"
 msgstr "Válassz mentendő állást"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:199
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:247
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio (4:3)\n"
@@ -4073,7 +4073,7 @@ msgstr ""
 msgid "Selected font"
 msgstr "Kiválasztott betűtípus"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:197
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:245
 msgid ""
 "Selects which game should be affected by the configuration changes done in "
 "this dialog.\n"
@@ -4110,7 +4110,7 @@ msgstr ""
 msgid "Set"
 msgstr "Beáll."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:605
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
 msgstr ""
 
@@ -4178,7 +4178,7 @@ msgstr "Eszközsor &mutatása"
 msgid "Show Drives"
 msgstr "Meghajtók mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:513
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:561
 msgid "Show FPS"
 msgstr "FPS kijelzése"
 
@@ -4190,7 +4190,7 @@ msgstr "Franciaország mutatása"
 msgid "Show GameCube"
 msgstr "GameCube mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:519
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:567
 msgid "Show Input Display"
 msgstr "Bemeneti kijelző megjelenítése"
 
@@ -4226,7 +4226,7 @@ msgstr "Platformok mutatása"
 msgid "Show Regions"
 msgstr "Régiók mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:518
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:566
 msgid "Show Shader Errors"
 msgstr "Árnyaló hibáinak megjelenítése"
 
@@ -4265,7 +4265,7 @@ msgstr ""
 msgid "Show first block"
 msgstr "Az első blokk megjelenítése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:226
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:274
 msgid ""
 "Show projection statistics.\n"
 "This is only useful for debugging purposes."
@@ -4289,7 +4289,7 @@ msgstr "Mentendő ikonok megjelenítése"
 msgid "Show save title"
 msgstr "Mentendő címek megjelenítése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:223
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:271
 msgid "Show the number of frames rendered per second."
 msgstr "Kijelzi a másodpercenként megjelenített képkockák számát "
 
@@ -4301,7 +4301,7 @@ msgstr "A súgó üzenet megjelenítése"
 msgid "Show unknown"
 msgstr "Ismeretlen mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:225
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid ""
 "Show various statistics.\n"
 "This is only useful for debugging purposes."
@@ -4371,7 +4371,7 @@ msgstr "Spanyol"
 msgid "Speaker Volume:"
 msgstr "Hangszóró hangerő:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:210
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:258
 msgid ""
 "Specifies the resolution used to render at. A high resolution will improve "
 "visual quality but is also quite heavy on performance and might cause "
@@ -4457,7 +4457,7 @@ msgstr "Kar"
 msgid "Stop"
 msgstr "Leállítás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Stretch to Window"
 msgstr "Ablakhoz igazítás"
 
@@ -4517,11 +4517,11 @@ msgstr "Pillanatkép készítése"
 msgid "Test"
 msgstr "Teszt"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:426
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:474
 msgid "Texture"
 msgstr "Textúra"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
 msgid "Texture Format"
 msgstr "Textúra formátum"
 
@@ -4846,7 +4846,11 @@ msgstr "Hexa használat"
 msgid "Use Panic Handlers"
 msgstr "Hibaüzenetek megjelenítése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:205
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
+msgid "Uses multiple threads to decode the textures in the game."
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:253
 msgid ""
 "Uses the high-resolution render buffer for EFB copies instead of scaling "
 "them down to native resolution.\n"
@@ -4858,11 +4862,11 @@ msgstr ""
 "Hatalmas mértékben növeli a teljesítményt az EFB másolatokat használó "
 "játékokban, de néhány játékban grafikai hibákat okozhat."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:555
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:603
 msgid "Utility"
 msgstr "Kellékek"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:371
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:419
 msgid "V-Sync"
 msgstr "Várakozás a képfrissítésre"
 
@@ -4878,7 +4882,7 @@ msgstr "Érték:"
 msgid "Value: "
 msgstr "Érték:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:514
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:562
 msgid "Various Statistics"
 msgstr "Különféle statisztikák"
 
@@ -4894,7 +4898,7 @@ msgstr "Kép"
 msgid "Video Backend:"
 msgstr "Videó feldolgozó:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:529
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:577
 msgid "Virtual"
 msgstr "Virtuális"
 
@@ -4909,7 +4913,7 @@ msgstr "Hangerő"
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD telepítési hiba: hiba naplózása %s"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:201
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:249
 msgid ""
 "Wait for vertical blanks.\n"
 "Reduces tearing but might also decrease performance"
@@ -4968,7 +4972,7 @@ msgstr "WaveFileWriter - fájl nincs megnyitva."
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:244
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:292
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
 "texture, which is a very time-consuming task.\n"
@@ -4992,7 +4996,7 @@ msgstr ""
 "kisebb lesz a sebesség növekedés; a pontos textúra gyorsítótár a "
 "\"biztonságos\" beállításon valójában lassabb lehet!)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:369
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:417
 msgid "Widescreen Hack"
 msgstr "Szélesvásznú hack"
 
@@ -5125,7 +5129,7 @@ msgstr "XAudio2 iniciálási hiba: %#X"
 msgid "XAudio2 master voice creation failed: %#X"
 msgstr "XAudio2 fő hang létrehozási hiba: %#X"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:532
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:580
 msgid "XFB"
 msgstr "XFB"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 08:52-0500\n"
+"POT-Creation-Date: 2011-04-06 21:26-0500\n"
 "PO-Revision-Date: 2011-01-20 14:40+0300\n"
 "Last-Translator: firnis <firnis@ya.ru>\n"
 "Language-Team: Russian <>\n"
@@ -275,7 +275,7 @@ msgstr ""
 msgid "(-)+zNear"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:322
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:370
 #, fuzzy
 msgid "(Default)"
 msgstr "Сброс"
@@ -285,7 +285,7 @@ msgstr "Сброс"
 msgid "(UNKNOWN)"
 msgstr "НЕИЗВЕСТНО"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:580
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:628
 msgid "(off)"
 msgstr "(отключен)"
 
@@ -297,7 +297,7 @@ msgstr "16 бит"
 msgid "32 bit"
 msgstr "32 бита"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:452
 msgid "3D Vision (Requires Fullscreen)"
 msgstr "3D режим (только в полноэкранном режиме)"
 
@@ -305,7 +305,7 @@ msgstr "3D режим (только в полноэкранном режиме)"
 msgid "8 bit"
 msgstr "8 бит"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:246
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
 msgstr ""
 
@@ -399,7 +399,7 @@ msgstr "Об эмуляторе Dolphin"
 msgid "Acceleration"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
 msgid "Accurate Texture Cache"
 msgstr "Включить аккуратное кэширование текстур"
 
@@ -486,7 +486,7 @@ msgstr ""
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:336
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
 msgid "Adapter:"
 msgstr "Адаптер:"
 
@@ -543,7 +543,7 @@ msgstr ""
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:483
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:531
 msgid "Advanced"
 msgstr "Расширенные"
 
@@ -581,7 +581,7 @@ msgstr "Сжатые образа дисков GC/Wii (gcz)"
 msgid "All files (*.*)|*.*"
 msgstr "Все файлы (*.*)|*.*"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:211
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:259
 msgid ""
 "Allows the CPU to read or write to the EFB (render buffer).\n"
 "This is needed for certain gameplay functionality (e.g. star pointer in "
@@ -596,11 +596,11 @@ msgstr ""
 "Но включение этой опции приведет к огромной потери производительности, если "
 "игра часто использует эту функцию."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:377
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
 msgid "Anisotropic Filtering:"
 msgstr "Анизотропная фильтрация"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
 msgid "Anti-Aliasing:"
 msgstr "Сглаживание:"
 
@@ -642,7 +642,7 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Вы уверены, что хотите удалить этот файл? Он исчезнет навсегда!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:867
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:356
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
 msgid "Aspect Ratio:"
 msgstr "Соотношение сторон:"
 
@@ -668,7 +668,7 @@ msgstr "AudioCommon: Ошибка открытия устройства выво
 msgid "Auto"
 msgstr "Авто"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Auto [recommended]"
 msgstr "Авто [рекомендуется]"
 
@@ -721,7 +721,7 @@ msgstr "Логотип:"
 msgid "Bar"
 msgstr "Панель"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:454
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
 msgid "Basic"
 msgstr "Основные"
 
@@ -799,7 +799,7 @@ msgstr ""
 msgid "CPU Emulator Engine"
 msgstr "Режим эмуляции CPU"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:206
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:254
 msgid ""
 "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
 "vertex.\n"
@@ -981,7 +981,7 @@ msgstr ""
 "Клиент отсоединился во время игры! Сетевая игра остановлена. Вы должны "
 "остановить игру."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:609
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:657
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:136
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:555
@@ -1030,12 +1030,12 @@ msgstr "Сжатие образа"
 msgid "Config"
 msgstr "Настройки"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:488
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:536
 #, fuzzy
 msgid "Configuration profile"
 msgstr "Настройка управления"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:318
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:366
 #, fuzzy
 msgid "Configuration profile:"
 msgstr "Настройка управления"
@@ -1120,7 +1120,7 @@ msgstr "Ctrl"
 msgid "Convert to GCI"
 msgstr "Конвертировать в GCI"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:477
 msgid "Copy"
 msgstr "Копия"
 
@@ -1243,7 +1243,7 @@ msgstr ""
 msgid "Creator: "
 msgstr "Создатель:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:612
 msgid "Crop"
 msgstr "обрезать"
 
@@ -1425,23 +1425,23 @@ msgid ""
 " and Directory backup checksum failed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
 msgid "Disable Dest. Alpha Pass"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:549
 msgid "Disable Fog"
 msgstr "Отключить туман"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:547
 msgid "Disable Lighting"
 msgstr "Отключить освещение"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:500
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
 msgid "Disable Textures"
 msgstr "Отключить текстуры"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:221
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:269
 msgid ""
 "Disable fog. Improves performance but causes glitches in games which rely on "
 "proper fog emulation."
@@ -1449,7 +1449,7 @@ msgstr ""
 "Отключение тумана улучшает производительность, но влечет за собой глюки в "
 "играх, которые зависят от его правильной эмуляции."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:219
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:267
 msgid ""
 "Disable lighting. Improves performance but causes lighting to disappear in "
 "games which use it."
@@ -1457,7 +1457,7 @@ msgstr ""
 "Отключение освещения улучшает производительность, но освещение полностью "
 "пропадет в играх, которые его используют."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:220
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:268
 msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
@@ -1465,7 +1465,7 @@ msgstr ""
 "Отключание текстур.\n"
 "Полезно только во время отладки."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:222
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:270
 msgid ""
 "Disables an alpha-setting pass.\n"
 "Breaks certain effects but might help performance."
@@ -1484,7 +1484,7 @@ msgstr "Ошибка чтения диска"
 msgid "Display"
 msgstr "Изображение"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:224
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:272
 msgid "Display the inputs read by the emulator."
 msgstr ""
 
@@ -1500,7 +1500,7 @@ msgstr "Вы хотите остановить эмуляцию?"
 msgid "Dolphin"
 msgstr "Dolphin"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:256
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Настройки графики %s"
@@ -1587,19 +1587,19 @@ msgstr ""
 msgid "Dump Audio"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:596
 msgid "Dump EFB Target"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:549
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:597
 msgid "Dump Frames"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:594
 msgid "Dump Textures"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:230
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
 msgstr "Сохраняет текстуры игры в User/Dump/Textures/<id игры>/ "
 
@@ -1614,15 +1614,15 @@ msgstr "Dutch"
 msgid "E&xit"
 msgstr "&Закрыть"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:461
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:509
 msgid "EFB"
 msgstr "EFB"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:517
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:565
 msgid "EFB Copy Regions"
 msgstr "Регионы копии EFB"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:399
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:447
 msgid "EFB Scaled Copy"
 msgstr ""
 
@@ -1679,11 +1679,11 @@ msgstr "Эффект"
 msgid "Emu Thread already running"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:422
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:470
 msgid "Emulate format changes"
 msgstr "Эмулировать изменения формата"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:214
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:262
 msgid ""
 "Emulate frame buffer copies directly to textures.\n"
 "This is not so accurate, but it's good enough for the way many games use "
@@ -1703,9 +1703,9 @@ msgstr "Качество эмуляции:"
 msgid "Emulator Display Settings"
 msgstr "Настройки изображения"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:438
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:528
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:486
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:576
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:22
 msgid "Enable"
 msgstr "Включить"
@@ -1726,7 +1726,7 @@ msgstr "Включить BAT"
 msgid "Enable Block Merging"
 msgstr "Включить совмещение блоков"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:464
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:512
 msgid "Enable CPU Access"
 msgstr "Включить доступ CPU к EFB"
 
@@ -1738,7 +1738,7 @@ msgstr "Включить чит-коды"
 msgid "Enable DTK Music"
 msgstr "Включить DTK-музыку"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:566
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:614
 msgid "Enable Display List Caching"
 msgstr ""
 
@@ -1750,7 +1750,7 @@ msgstr "Включить DualCore-режим"
 msgid "Enable Dual Core (speedup)"
 msgstr "Включить DualCore-режим (ускорение)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:567
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:615
 msgid "Enable Hotkeys"
 msgstr "Включить горячие клавиши"
 
@@ -1766,7 +1766,7 @@ msgstr "Включить IdleSkipping-режим (ускорение)"
 msgid "Enable MMU"
 msgstr "Включить MMU"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:565
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:613
 msgid "Enable OpenCL"
 msgstr "Включить OpenCL"
 
@@ -1783,11 +1783,11 @@ msgstr "Включить хранитель экрана"
 msgid "Enable WideScreen"
 msgstr "Включить широкий экран"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:498
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
 msgid "Enable Wireframe"
 msgstr "Включить каркас моделей"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:428
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:476
 msgid "Enable cache"
 msgstr "кэшировать"
 
@@ -1825,7 +1825,7 @@ msgstr ""
 msgid "Enables Custom Projection Hack"
 msgstr "Projection-хак: "
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:202
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:250
 msgid ""
 "Enables anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles."
@@ -1834,14 +1834,14 @@ msgstr ""
 "Повышает визуальное качество текстур, находящихся под наклоном\n"
 "к углу обзора."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:261
 msgid ""
 "Enables emulation of Embedded Frame Buffer copies, if the game uses them.\n"
 "Games often need this for post-processing or other things, but if you can "
 "live without it, you can sometimes get a big speedup."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:212
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:260
 msgid ""
 "Enables reinterpreting the data inside the EFB when the pixel format "
 "changes.\n"
@@ -1871,7 +1871,7 @@ msgstr "End"
 msgid "English"
 msgstr "English"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:457
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "Enhancements"
 msgstr "Улучшения"
 
@@ -2150,7 +2150,7 @@ msgstr "Ошибка записи заголовка для %s"
 msgid "Failed to write header for file %d"
 msgstr "Ошибка записи заголовка для файла %d"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:449
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:497
 msgid "Fast"
 msgstr "быстрое"
 
@@ -2158,7 +2158,7 @@ msgstr "быстрое"
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "Более быстрая верси MMU (работает не со всеми играми)."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:217
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:265
 msgid ""
 "Faster variants look at fewer pixels and thus have more potential for "
 "errors.\n"
@@ -2228,25 +2228,25 @@ msgstr ""
 msgid "Fix Checksums"
 msgstr "Исправить контрольную сумму"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Force 16:9"
 msgstr "16:9"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Force 4:3"
 msgstr "4:3"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:450
 msgid "Force Bi/Trilinear Filtering"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:200
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:248
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Note that this might cause graphical glitches"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:208
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:256
 msgid ""
 "Forces bilinear texture filtering even if the game explicitly disabled it.\n"
 "Improves texture quality (especially when using a high internal resolution) "
@@ -2265,7 +2265,7 @@ msgstr ""
 msgid "Forward"
 msgstr "Вперед"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:458
 msgid "Fractional"
 msgstr "Дробный"
 
@@ -2294,7 +2294,7 @@ msgstr "Расширенные"
 msgid "Frame S&kipping"
 msgstr "&Пропуск кадров"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:552
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:600
 msgid "Frame dumps use FFV1"
 msgstr ""
 
@@ -2306,7 +2306,7 @@ msgstr "Лимит кадров:"
 msgid "Frames To Record"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
 msgstr "Свободный обзор"
 
@@ -2334,7 +2334,7 @@ msgstr "ПолнЭкран"
 msgid "Fullscreen Display Resolution:"
 msgstr "Разрешение полноэкранного режима:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:215
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid ""
 "Fully emulate embedded frame buffer copies.\n"
 "This is more accurate than EFB Copy to Texture, and some games need this to "
@@ -2409,7 +2409,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:599
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:310
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:358
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 msgid "General"
 msgstr "Общие"
@@ -2656,7 +2656,7 @@ msgstr ""
 msgid "Info"
 msgstr "Информация"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:569
 #: Source/Core/Common/Src/MsgHandler.cpp:64
 msgid "Information"
 msgstr "Информация"
@@ -2713,7 +2713,7 @@ msgstr "Устанавливается WAD в меню Wii..."
 msgid "Installing WAD..."
 msgstr "Устанавливается WAD в меню Wii..."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:458
 msgid "Integral [recommended]"
 msgstr "Интегральный [рекомендуется]"
 
@@ -2816,7 +2816,7 @@ msgstr "Japanese"
 msgid "KOREA"
 msgstr "КОРЕЯ"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:216
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:264
 msgid ""
 "Keeps track of textures based on looking at the actual pixels in the "
 "texture.\n"
@@ -2899,11 +2899,11 @@ msgstr "Меньше чем"
 msgid "Load"
 msgstr "Загр."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:547
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:595
 msgid "Load Hi-Res Textures"
 msgstr "Load Hi-Res Textures"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:398
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:446
 msgid "Load Native Mipmaps"
 msgstr ""
 
@@ -2957,7 +2957,7 @@ msgstr "Загрузить игру..."
 msgid "Load Wii System Menu %d%c"
 msgstr "Загрузить Wii System Menu (%d %c)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:231
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
 msgstr "Загрузить текстуры высокой четкости из User/Load/Textures/<id игры>/"
 
@@ -2965,7 +2965,7 @@ msgstr "Загрузить текстуры высокой четкости из
 msgid "Load preset values from hack patterns available."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:252
 msgid ""
 "Loads native mipmaps instead of generating them.\n"
 "Loading native mipmaps is the more accurate behavior, but might also "
@@ -3102,7 +3102,7 @@ msgstr "Меню"
 msgid "Mic"
 msgstr "Мик."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:595
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:643
 msgid "Misc"
 msgstr "Разное"
 
@@ -3115,7 +3115,7 @@ msgstr "Разное"
 msgid "Modifier"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:227
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:275
 msgid ""
 "Modify textures to show the format they're using.\n"
 "This is only useful for debugging purposes."
@@ -3299,7 +3299,7 @@ msgstr "Не найдена папка с сохранениями для %s"
 msgid "None"
 msgstr "Отсутствует"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:445
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Normal"
 msgstr "обычное"
 
@@ -3413,7 +3413,7 @@ msgstr "OpenAL: не найдена аудио-карта"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: ошибка открытия устройства %s"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:568
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
 msgstr ""
 
@@ -3515,11 +3515,11 @@ msgstr "Отлично"
 msgid "Perspective %d"
 msgstr "Точка %d"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:449
 msgid "Pixel Depth"
 msgstr "Глубина пикселя"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:448
 msgid "Pixel Lighting"
 msgstr "Освещение пикселя"
 
@@ -3610,7 +3610,7 @@ msgstr "Portuguese"
 msgid "Portuguese (Brazilian)"
 msgstr "Portuguese (Brazilian)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:576
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:624
 msgid "Post-Processing Shader:"
 msgstr "Шейдер пост-обработки:"
 
@@ -3639,7 +3639,7 @@ msgstr "Print"
 msgid "Profile"
 msgstr "Профиль"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:515
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:563
 msgid "Projection Stats"
 msgstr "Статистика проекций"
 
@@ -3675,7 +3675,7 @@ msgstr ""
 msgid "R-Analog"
 msgstr "R-Analog"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:427
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:475
 msgid "RAM"
 msgstr "Память"
 
@@ -3691,7 +3691,7 @@ msgstr ""
 msgid "Read-only mode"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:578
 msgid "Real"
 msgstr "Настоящий"
 
@@ -3737,7 +3737,7 @@ msgstr "Красная слева"
 msgid "Red Right"
 msgstr "Красная справа"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:203
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:251
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
 "This makes the rendered picture look less blocky but also heavily decreases "
@@ -3773,7 +3773,7 @@ msgstr ""
 msgid "Remove"
 msgstr "Удалить"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:218
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:266
 msgid ""
 "Render the scene as a wireframe.\n"
 "This is only useful for debugging purposes."
@@ -3789,7 +3789,7 @@ msgstr "Выводить изображение в главное окно"
 msgid "Render to main window."
 msgstr "Выводит картинку в основном окне."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:552
 msgid "Rendering"
 msgstr "Визуализация"
 
@@ -3836,7 +3836,7 @@ msgstr "Русский"
 msgid "Sa&ve State"
 msgstr "Быстрое &сохранение"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:488
 msgid "Safe"
 msgstr "безопасное"
 
@@ -3922,7 +3922,7 @@ msgstr "Выберите место для сохранения несжатог
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:419
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:467
 msgid "Scale:"
 msgstr "Масштаб:"
 
@@ -3971,7 +3971,7 @@ msgstr "Выберите файл для записи игрового проц�
 msgid "Select a Wii WAD file to install"
 msgstr "Выберите файл сохранения для импорта"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:198
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:246
 msgid ""
 "Select a hardware adapter to use.\n"
 "When in doubt, use the first one"
@@ -4007,7 +4007,7 @@ msgstr "Выберите файл сохранения для загрузки"
 msgid "Select the state to save"
 msgstr "Выберите или укажите файл для быстрого сохранения"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:199
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:247
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio (4:3)\n"
@@ -4025,7 +4025,7 @@ msgstr ""
 msgid "Selected font"
 msgstr "Выбранный шрифт"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:197
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:245
 msgid ""
 "Selects which game should be affected by the configuration changes done in "
 "this dialog.\n"
@@ -4059,7 +4059,7 @@ msgstr ""
 msgid "Set"
 msgstr "Выбрать"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:605
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
 msgstr ""
 
@@ -4126,7 +4126,7 @@ msgstr "Отображать панель &инструментов"
 msgid "Show Drives"
 msgstr "Отображать игры на DVD"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:513
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:561
 msgid "Show FPS"
 msgstr "Показывать FPS"
 
@@ -4138,7 +4138,7 @@ msgstr "Франции"
 msgid "Show GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:519
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:567
 #, fuzzy
 msgid "Show Input Display"
 msgstr "Италии"
@@ -4176,7 +4176,7 @@ msgstr "Отображать игры платформ..."
 msgid "Show Regions"
 msgstr "Отображать игры регионов..."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:518
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:566
 msgid "Show Shader Errors"
 msgstr "Показывать ошибки шейдеров"
 
@@ -4218,7 +4218,7 @@ msgstr ""
 msgid "Show first block"
 msgstr "Показать блоки"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:226
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:274
 msgid ""
 "Show projection statistics.\n"
 "This is only useful for debugging purposes."
@@ -4242,7 +4242,7 @@ msgstr "Показать иконку"
 msgid "Show save title"
 msgstr "Показать заголовок"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:223
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:271
 msgid "Show the number of frames rendered per second."
 msgstr "Показывать кол-во отрисовываемых кадров в секунду."
 
@@ -4254,7 +4254,7 @@ msgstr "Показывает это сообщения помощи"
 msgid "Show unknown"
 msgstr "Неизвестные"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:225
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:273
 msgid ""
 "Show various statistics.\n"
 "This is only useful for debugging purposes."
@@ -4329,7 +4329,7 @@ msgstr "Spanish"
 msgid "Speaker Volume:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:210
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:258
 msgid ""
 "Specifies the resolution used to render at. A high resolution will improve "
 "visual quality but is also quite heavy on performance and might cause "
@@ -4408,7 +4408,7 @@ msgstr ""
 msgid "Stop"
 msgstr "Стоп"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:354
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Stretch to Window"
 msgstr "Растянуть по окну"
 
@@ -4468,11 +4468,11 @@ msgstr "Сделать скриншот"
 msgid "Test"
 msgstr "Проверить"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:426
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:474
 msgid "Texture"
 msgstr "Текстура"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
 msgid "Texture Format"
 msgstr "Формат текстур"
 
@@ -4805,7 +4805,11 @@ msgstr ""
 msgid "Use Panic Handlers"
 msgstr "Показывать panic-уведомления (ошибки)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:205
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
+msgid "Uses multiple threads to decode the textures in the game."
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:253
 msgid ""
 "Uses the high-resolution render buffer for EFB copies instead of scaling "
 "them down to native resolution.\n"
@@ -4813,11 +4817,11 @@ msgid ""
 "glitches in some games."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:555
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:603
 msgid "Utility"
 msgstr "Утилиты"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:371
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:419
 msgid "V-Sync"
 msgstr "V-Sync"
 
@@ -4833,7 +4837,7 @@ msgstr "Значение:"
 msgid "Value: "
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:514
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:562
 msgid "Various Statistics"
 msgstr "Различная статистика"
 
@@ -4850,7 +4854,7 @@ msgstr "Видео"
 msgid "Video Backend:"
 msgstr "Система вывода"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:529
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:577
 msgid "Virtual"
 msgstr "Виртуальный"
 
@@ -4865,7 +4869,7 @@ msgstr "Громкость"
 msgid "WAD installation failed: error creating %s"
 msgstr "Ошибка установки WAD: ошибка создания %s"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:201
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:249
 msgid ""
 "Wait for vertical blanks.\n"
 "Reduces tearing but might also decrease performance"
@@ -4923,7 +4927,7 @@ msgstr "WaveFileWriter - файл не открыт."
 msgid "Whammy"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:244
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:292
 #, fuzzy
 msgid ""
 "When using EFB to RAM we very often need to decode RAM data to a VRAM "
@@ -4946,7 +4950,7 @@ msgstr ""
 "(ЗАМЕЧАНИЕ: Чем безопаснее кэш, тем меньше ускорение. Чаще быстрее будет "
 "вариант с отключением этой опции, чем включением безопасного кэша)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:369
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:417
 msgid "Widescreen Hack"
 msgstr ""
 
@@ -5080,7 +5084,7 @@ msgstr "XAudio2 ошибка инициализации: %#X"
 msgid "XAudio2 master voice creation failed: %#X"
 msgstr "XAudio2 ошибка создания master voice: %#X"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:532
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:580
 msgid "XFB"
 msgstr "XFB"
 
