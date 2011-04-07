@@ -286,12 +286,12 @@ wxString free_look_tooltip = wxT("");
 wxString crop_tooltip = wxT("");
 wxString opencl_tooltip = wxT("");
 wxString dlc_tooltip = wxT("");
-wxString omp_tooltip = wxT("Uses multiple threads to decode the textures in the game.");
+wxString omp_tooltip = wxTRANSLATE("Uses multiple threads to decode the textures in the game.");
 wxString hotkeys_tooltip = wxT("");
 wxString ppshader_tooltip = wxT("");
 wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
-wxString def_profile = _("< as Default Profile >");
+wxString def_profile = wxTRANSLATE("< as Default Profile >");
 
 // this macro decides the config which binds all controls:
 // default config = main data from cur_vconfig, default and state data from g_Config
@@ -391,7 +391,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_adapter->AppendString(wxString::FromAscii(it->c_str()));
 
 	if (cur_profile != 0)
-		choice_adapter->Insert(def_profile, 0);
+		choice_adapter->Insert(wxGetTranslation(def_profile), 0);
 
 	szr_basic->Add(choice_adapter, 1, 0, 0);
 	}
@@ -406,7 +406,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		SET_PARAMS(iAspectRatio), cur_profile, wxGetTranslation(ar_tooltip), sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
 
 	if (cur_profile != 0)
-		choice_aspect->Insert(def_profile, 0);
+		choice_aspect->Insert(wxGetTranslation(def_profile), 0);
 
 	szr_basic->Add(choice_aspect, 1, 0, 0);
 	}
@@ -427,7 +427,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(anisotropic_filtering = new IntSettingChoice(page_general, SET_PARAMS(iMaxAnisotropy), cur_profile, wxGetTranslation(af_tooltip), 5, af_choices));
 	
 	if (cur_profile != 0)
-		anisotropic_filtering->Insert(def_profile, 0);
+		anisotropic_filtering->Insert(wxGetTranslation(def_profile), 0);
 	
 	text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -440,7 +440,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_aamode->AppendString(wxGetTranslation(wxString::FromAscii(it->c_str())));
 
 	if (cur_profile != 0)
-		choice_aamode->Insert(def_profile, 0);
+		choice_aamode->Insert(wxGetTranslation(def_profile), 0);
 
 	szr_enh->Add(choice_aamode);
 	szr_enh->Add(native_mips = new SettingCheckBox(page_general, _("Load Native Mipmaps"), wxGetTranslation(native_mips_tooltip), SET_PARAMS(bUseNativeMips), false, cb_style));
@@ -462,7 +462,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			SET_PARAMS(iEFBScale), cur_profile, wxGetTranslation(internal_res_tooltip), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
 
 	if (cur_profile != 0)
-		choice_efbscale->Insert(def_profile, 0);
+		choice_efbscale->Insert(wxGetTranslation(def_profile), 0);
 
 	efb_scale_szr->Add(new wxStaticText(page_general, -1, _("Scale:")), 0, wxALIGN_CENTER_VERTICAL, 5);
 	efb_scale_szr->Add(choice_efbscale, 1,  wxLEFT, 5);
@@ -613,7 +613,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(opencl = new SettingCheckBox(page_advanced, _("Enable OpenCL"), opencl_tooltip, SET_PARAMS(bEnableOpenCL), false, cb_style));
 	szr_misc->Add(dlcache = new SettingCheckBox(page_advanced, _("Enable Display List Caching"), dlc_tooltip, SET_PARAMS(bDlistCachingEnable), false, cb_style));
 	szr_misc->Add(hotkeys = new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, SET_PARAMS(bOSDHotKey), false, cb_style));
-	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), omp_tooltip, SET_PARAMS(bOMPDecoder), false, cb_style));
+	szr_misc->Add(ompdecoder = new SettingCheckBox(page_advanced, _("OpenMP Texture Decoder"), wxGetTranslation(omp_tooltip), SET_PARAMS(bOMPDecoder), false, cb_style));
 
 	// postproc shader
 	wxBoxSizer* const box_pps = new wxBoxSizer(wxHORIZONTAL);
@@ -634,7 +634,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			choice_ppshader->AppendString(wxString::FromAscii(it->c_str()));
 
 		if (cur_profile != 0)
-			choice_ppshader->Insert(def_profile, 0);
+			choice_ppshader->Insert(wxGetTranslation(def_profile), 0);
 
 		szr_pps->Add(choice_ppshader);
 		box_pps->Add(szr_pps, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -693,13 +693,13 @@ void VideoConfigDiag::ChangeStyle()
 		if (cur_vconfig.backend_info.Adapters.size())
 		{
 			if (cur_profile == 0) choice_adapter->Delete(0);
-			else choice_adapter->Insert(def_profile, 0);
+			else choice_adapter->Insert(wxGetTranslation(def_profile), 0);
 
 			choice_adapter->GetParent()->Layout(); // redraws all elements inside the parent container
 			CHANGE_DATAREF(choice_adapter, iAdapter);
 		}
 		if (cur_profile == 0) choice_aspect->Delete(0);
-		else choice_aspect->Insert(def_profile, 0);
+		else choice_aspect->Insert(wxGetTranslation(def_profile), 0);
 		choice_aspect->GetParent()->Layout();
 		CHANGE_DATAREF(choice_aspect, iAspectRatio);
 
@@ -707,12 +707,12 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(vsync, bVSync);
 
 		if (cur_profile == 0) anisotropic_filtering->Delete(0);
-		else anisotropic_filtering->Insert(def_profile, 0);
+		else anisotropic_filtering->Insert(wxGetTranslation(def_profile), 0);
 		anisotropic_filtering->GetParent()->Layout();
 		CHANGE_DATAREF(anisotropic_filtering, iMaxAnisotropy);
 
 		if (cur_profile == 0) choice_aamode->Delete(0);
-		else choice_aamode->Insert(def_profile, 0);
+		else choice_aamode->Insert(wxGetTranslation(def_profile), 0);
 		choice_aamode->GetParent()->Layout();
 		CHANGE_DATAREF(choice_aamode, iMultisampleMode);
 
@@ -724,7 +724,7 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(_3d_vision, b3DVision);
 
 		if (cur_profile == 0) choice_efbscale->Delete(0);
-		else choice_efbscale->Insert(def_profile, 0);
+		else choice_efbscale->Insert(wxGetTranslation(def_profile), 0);
 		choice_efbscale->GetParent()->Layout();
 		CHANGE_DATAREF(choice_efbscale, iEFBScale);
 
@@ -767,7 +767,7 @@ void VideoConfigDiag::ChangeStyle()
 			if (cur_profile == 0)
 				choice_ppshader->Delete(0);
 			else
-				choice_ppshader->Insert(def_profile, 0);
+				choice_ppshader->Insert(wxGetTranslation(def_profile), 0);
 
 			choice_ppshader->GetParent()->Layout();
 			CHANGE_DATAREF(choice_ppshader, sPostProcessingShader);
