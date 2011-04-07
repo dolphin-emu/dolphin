@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-06 21:26-0500\n"
-"PO-Revision-Date: 2011-03-18 20:14+0100\n"
+"PO-Revision-Date: 2011-04-07 00:25+0100\n"
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -303,7 +303,7 @@ msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
-msgstr ""
+msgstr "<como Perfil por defecto>"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
@@ -1548,9 +1548,8 @@ msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "Configuración de wiimote emulado de Dolphin"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:289
-#, fuzzy
 msgid "Dolphin FIFO"
-msgstr "Dolphin"
+msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1195
 msgid "Dolphin GCPad Configuration"
@@ -1676,7 +1675,7 @@ msgstr "EUROPA"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:145
 msgid "Early Memory Updates"
-msgstr ""
+msgstr "Actualización de memoria tempranas"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:464
 msgid "Edit"
@@ -2070,12 +2069,11 @@ msgstr "Extrayendo..."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:418
 msgid "FIFO Byte"
-msgstr ""
+msgstr "Byte de FIFO"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:38
-#, fuzzy
 msgid "FIFO Player"
-msgstr "Jugadores"
+msgstr "Jugador FIFO"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:166
 msgid "FRANCE"
@@ -2114,6 +2112,14 @@ msgid ""
 "You may use the DSP HLE engine which does not require ROM dumps.\n"
 "(Choose it from the \"Audio\" tab of the configuration dialog.)"
 msgstr ""
+"Falló al cargar DSP ROM:\t%s\n"
+"\n"
+"Este fichero es requerido para usar DSP LLE.\n"
+"No está incluido con Dolphin porqye contiene datos con copyright.\n"
+"Usa DSPSpy paraextraer el fichero de tu Wii física.\n"
+"\n"
+"Puedes usar el motor DSP HLE que no requiere extraer la ROM.\n"
+"(Elígelo en la pestaña  \"Audio\" de la ventana de configuración.)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:63
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:72
@@ -2220,14 +2226,12 @@ msgstr ""
 "Las variantes lentas buscan por mas pixeles, y por lo tanto son más seguras."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:216
-#, fuzzy
 msgid "Fifo Player"
-msgstr "Jugadores"
+msgstr "Jugador Fifo"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:88
-#, fuzzy
 msgid "File Info"
-msgstr "Información del código"
+msgstr "Información del fichero"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
@@ -2333,23 +2337,20 @@ msgstr "Fraccional"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:383
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
-#, fuzzy
 msgid "Frame"
-msgstr "Volcar frames"
+msgstr "Frame"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:393
-#, fuzzy
 msgid "Frame "
-msgstr "Avanzar &frame"
+msgstr "Frame "
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:189
 msgid "Frame Advance"
 msgstr "Avanzar &frame"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:105
-#, fuzzy
 msgid "Frame Range"
-msgstr "Avanzar &frame"
+msgstr "Información de la grabación"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:149
 msgid "Frame S&kipping"
@@ -2365,7 +2366,7 @@ msgstr "Límite de frames:"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:189
 msgid "Frames To Record"
-msgstr ""
+msgstr "Frames a grabar"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
@@ -2384,7 +2385,7 @@ msgstr "Cuerdas"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:107
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:126
 msgid "From"
-msgstr ""
+msgstr "Desde"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:443
 msgid "FullScr"
@@ -3119,9 +3120,8 @@ msgstr ""
 " El tamaño de la tarjeta no es válido (%04X)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:438
-#, fuzzy
 msgid "Memory Byte"
-msgstr "&Memoria"
+msgstr "Byte de memoria"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
@@ -3337,16 +3337,15 @@ msgstr "Sin Uniones"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:385
 msgid "No file loaded"
-msgstr ""
+msgstr "No se ha cargado ningún fichero"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid "No free dir index entries"
 msgstr "No hay entradas de índice de directorio libres"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:421
-#, fuzzy
 msgid "No recorded file"
-msgstr "Archivo de grabación no válido"
+msgstr "No hay grabaciones guardadas"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:505
 #, c-format
@@ -3421,11 +3420,11 @@ msgstr "Aceptar"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:403
 msgid "Object"
-msgstr ""
+msgstr "Objeto"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:124
 msgid "Object Range"
-msgstr ""
+msgstr "Rango de objeto"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Off"
@@ -3473,7 +3472,7 @@ msgstr "OpenAL: no se puede abrir el dispositivo %s"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
-msgstr ""
+msgstr "Descodificador de texturas OpenMP"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Opens the debugger"
@@ -3606,9 +3605,8 @@ msgid "Playable"
 msgstr "Jugable"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:143
-#, fuzzy
 msgid "Playback Options"
-msgstr "Opciones"
+msgstr "Opciones de reproducción"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Players"
@@ -3768,18 +3766,16 @@ msgstr "Reconectar Wiimote al cargar estado"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:336
-#, fuzzy
 msgid "Record"
-msgstr "Reproducir grabación"
+msgstr "Grabar"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:159
-#, fuzzy
 msgid "Recording Info"
-msgstr "Reproducir grabación"
+msgstr "Información de la grabación"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
-msgstr ""
+msgstr "Opciones de grabación"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
@@ -4111,7 +4107,7 @@ msgstr "Definir"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
-msgstr ""
+msgstr "Establecer todos los valores predeterminados"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Set Console as NTSC-J"
@@ -4707,9 +4703,8 @@ msgid "Title"
 msgstr "Título"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
-#, fuzzy
 msgid "To"
-msgstr "Superior"
+msgstr "A"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
 msgid "Toggle All Log Types"
@@ -4840,7 +4835,7 @@ msgstr "Usar Modo EuRGB60 (PAL60)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:613
 msgid "Use FPS For Limiting"
-msgstr "Use FPS For Limiting"
+msgstr "Usar FPS para limitar"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:559
 msgid "Use Hex"
@@ -5240,7 +5235,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format

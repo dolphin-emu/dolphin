@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-06 21:26-0500\n"
-"PO-Revision-Date: 2011-03-04 00:43+0900\n"
+"PO-Revision-Date: 2011-03-18 13:59+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
 "Language: Korean\n"
@@ -639,7 +639,7 @@ msgstr "적용"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:326
 msgid "Arabic"
-msgstr ""
+msgstr "아랍어"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:618
 #, c-format
@@ -1827,7 +1827,7 @@ msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
 msgstr ""
-"The Legend of Zelda: Twilight Princess를 스피드업 하려면 켬. 다른 게임을 위해"
+"The Legend of Zelda: Twilight Princess를 속도를 올리려면 켬. 다른 게임을 위해"
 "서는 끔."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
@@ -2719,9 +2719,8 @@ msgid "Insert name here.."
 msgstr "이름을 여기에 넣으시오..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:207
-#, fuzzy
 msgid "Install WAD"
-msgstr "Wii 메뉴 설치"
+msgstr "WAD 설치"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid "Install directory could not be saved"
@@ -2743,9 +2742,8 @@ msgid "Installing WAD to Wii Menu..."
 msgstr "WAD를 Wii 메뉴에 설치하기..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1337
-#, fuzzy
 msgid "Installing WAD..."
-msgstr "WAD를 Wii 메뉴에 설치하기..."
+msgstr "WAD 설치하기..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:458
 msgid "Integral [recommended]"
@@ -2983,9 +2981,9 @@ msgstr "상태 로드..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:212
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1356
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Wii 시스템 메뉴 (%d %c) 로드"
+msgstr "Wii 시스템 메뉴 %d %c 로드"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
@@ -3986,9 +3984,8 @@ msgid "Select The Recording File"
 msgstr "기록 파일 선택"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1331
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "가져올 저장 파일을 선택"
+msgstr "설치할 Wii WAD 파일 선택"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:246
 msgid ""
@@ -5022,7 +5019,7 @@ msgstr "위모트 설정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
 msgid "Will enable progressive scan option if supported by software."
-msgstr "소프트에 의해 지원되면 프로그레시브 스캔을 켤 것이다."
+msgstr "소프트에 의해 지원된다면 프로그레시브 스캔을 켭니다."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:689
 msgid "Window Size:"
@@ -5127,13 +5124,15 @@ msgstr ""
 "PAL 지역으로 계속합니까?"
 
 #: Source/Core/Common/Src/SysConf.cpp:57
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
 "It should be 0x%04x (but is 0x%04llx)\n"
 "Do you want to generate a new one?"
 msgstr ""
-"당신의 SYSCONF 파일은 잘못된 크기임 - 0x%04x 이어야함 (하지만 0x%04llx 임)"
+"SYSCONF 파일 크기가 잘못되어있습니다 \n"
+"0x%04x 이어야합니다 (하지만 0x%04llx 임) \n"
+"새로 생성하시겠습니까?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
 msgid "ZTP hack"
