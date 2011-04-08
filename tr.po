@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-06 21:26-0500\n"
-"PO-Revision-Date: 2011-03-18 16:58+0200\n"
+"PO-Revision-Date: 2011-04-07 21:30+0200\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -304,7 +304,7 @@ msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
-msgstr ""
+msgstr "< Varsayılan Profil Olarak >"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
@@ -1546,9 +1546,8 @@ msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "Dolphin Taklit Wiimote Yapılandırması"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:289
-#, fuzzy
 msgid "Dolphin FIFO"
-msgstr "Dolphin"
+msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1195
 msgid "Dolphin GCPad Configuration"
@@ -1674,7 +1673,7 @@ msgstr "AVRUPA"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:145
 msgid "Early Memory Updates"
-msgstr ""
+msgstr "Erken Hafıza Güncellemeleri"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:464
 msgid "Edit"
@@ -2067,12 +2066,11 @@ msgstr "Genişletiliyor..."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:418
 msgid "FIFO Byte"
-msgstr ""
+msgstr "FIFO Baytı"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:38
-#, fuzzy
 msgid "FIFO Player"
-msgstr "Oyuncular"
+msgstr "FIFO Oynatıcısı"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:166
 msgid "FRANCE"
@@ -2111,6 +2109,14 @@ msgid ""
 "You may use the DSP HLE engine which does not require ROM dumps.\n"
 "(Choose it from the \"Audio\" tab of the configuration dialog.)"
 msgstr ""
+"DSP ROM \t%s yüklenemedi.\n"
+"\n"
+"Bu dosya, DSP LLE'yi kullanabilmek için gereklidir.\n"
+"Telif hakkına sahip veri içerdiğinden Dolphin ile verilememektedir.\n"
+"DSPSpy kullanarak dosyayı fiziksel konsolunuzdan dökebilirsiniz.\n"
+"\n"
+"ROM dökümü gerektirmeyen DSP HLE'yi kullanabilirsiniz..\n"
+"(Bunu yapılandırma diyalogundaki \"Audio\" sekmesinden yapabilirsiniz.)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:63
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:72
@@ -2216,14 +2222,12 @@ msgstr ""
 "Yavaş varyantlar daha çok piksele bakar ve daha güvenlidir."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:216
-#, fuzzy
 msgid "Fifo Player"
-msgstr "Oyuncular"
+msgstr "Fifo Oynatıcısı"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:88
-#, fuzzy
 msgid "File Info"
-msgstr "Kod Bilgisi"
+msgstr "Dosya Bilgisi"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
@@ -2327,23 +2331,20 @@ msgstr "Kesirli"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:383
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
-#, fuzzy
 msgid "Frame"
-msgstr "Kareleri Dök"
+msgstr "Kare"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:393
-#, fuzzy
 msgid "Frame "
-msgstr "Gelişmiş Kareleme"
+msgstr "Kare"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:189
 msgid "Frame Advance"
 msgstr "Gelişmiş Kareleme"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:105
-#, fuzzy
 msgid "Frame Range"
-msgstr "Gelişmiş Kareleme"
+msgstr "Kare Aralığı"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:149
 msgid "Frame S&kipping"
@@ -2359,7 +2360,7 @@ msgstr "Kare Sınırı:"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:189
 msgid "Frames To Record"
-msgstr ""
+msgstr "Çekilecek Kareler"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
@@ -2378,7 +2379,7 @@ msgstr "Perdeler"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:107
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:126
 msgid "From"
-msgstr ""
+msgstr "Buradan"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:443
 msgid "FullScr"
@@ -3110,9 +3111,8 @@ msgstr ""
 "Kart boyutu hatalı (%04X)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:438
-#, fuzzy
 msgid "Memory Byte"
-msgstr "Hafıza (&M)"
+msgstr "Hafıza Baytı"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
@@ -3328,16 +3328,15 @@ msgstr "Yerleştirme yok"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:385
 msgid "No file loaded"
-msgstr ""
+msgstr "Dosya Yüklenmedi"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid "No free dir index entries"
 msgstr "Boş dizin indeks girişi yok"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:421
-#, fuzzy
 msgid "No recorded file"
-msgstr "Hatalı çekim dosyası"
+msgstr "Çekilmiş Dosya Yok"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:505
 #, c-format
@@ -3412,11 +3411,11 @@ msgstr "Tamam"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:403
 msgid "Object"
-msgstr ""
+msgstr "Nesne"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:124
 msgid "Object Range"
-msgstr ""
+msgstr "Nesne Aralığı"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Off"
@@ -3464,7 +3463,7 @@ msgstr "OpenAL: Sürücü %s açılamıyor"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
-msgstr ""
+msgstr "OpenMP Doku Çözücü"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Opens the debugger"
@@ -3596,9 +3595,8 @@ msgid "Playable"
 msgstr "Oynanabilir"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:143
-#, fuzzy
 msgid "Playback Options"
-msgstr "Seçenekler"
+msgstr "Oynatma Seçenekleri"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Players"
@@ -3758,18 +3756,16 @@ msgstr "Durum yüklendiğinde Wiimote'u yeniden bağla"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:336
-#, fuzzy
 msgid "Record"
-msgstr "Çekimi Oynat"
+msgstr "Çek"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:159
-#, fuzzy
 msgid "Recording Info"
-msgstr "Çekimi Oynat"
+msgstr "Çekim Bilgisi"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
-msgstr ""
+msgstr "Çekim Seçenekleri"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
@@ -4097,7 +4093,7 @@ msgstr "Ayarla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
-msgstr ""
+msgstr "Tümünü Varsayılana Ayarla"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Set Console as NTSC-J"
@@ -4682,9 +4678,8 @@ msgid "Title"
 msgstr "Başlık"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
-#, fuzzy
 msgid "To"
-msgstr "Üst"
+msgstr "Buraya"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
 msgid "Toggle All Log Types"
@@ -4826,7 +4821,7 @@ msgstr "Önemli Hataları Bildir"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
 msgid "Uses multiple threads to decode the textures in the game."
-msgstr ""
+msgstr "Oyundaki dokuları çözmek için birden fazla işlem birimi kullan."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:253
 msgid ""
@@ -5210,7 +5205,7 @@ msgstr "Bir Wii kaydı değil veya bu başlık boyutu için okuma hatası: %x"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format

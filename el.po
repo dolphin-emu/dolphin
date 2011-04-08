@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-06 21:26-0500\n"
-"PO-Revision-Date: 2011-03-17 18:03+0200\n"
+"PO-Revision-Date: 2011-04-07 23:23+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
 "Language: Greek\n"
@@ -305,7 +305,7 @@ msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
-msgstr ""
+msgstr "<όπως το Προεπιλεγμένο Προφίλ>"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
@@ -1532,9 +1532,8 @@ msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "Ρυθμίσεις Εξοιμοιωμένου Dolphin Wiimote"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:289
-#, fuzzy
 msgid "Dolphin FIFO"
-msgstr "Dolphin"
+msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1195
 msgid "Dolphin GCPad Configuration"
@@ -1660,7 +1659,7 @@ msgstr "ΕΥΡΩΠΗ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:145
 msgid "Early Memory Updates"
-msgstr ""
+msgstr "Ενημερώσεις Μνήμης Νωρίς"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:464
 msgid "Edit"
@@ -2061,12 +2060,11 @@ msgstr "Γίνεται εξαγωγή..."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:418
 msgid "FIFO Byte"
-msgstr ""
+msgstr "FIFO Byte"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:38
-#, fuzzy
 msgid "FIFO Player"
-msgstr "Παίχτες"
+msgstr "Αναπαραγωγή FIFO"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:166
 msgid "FRANCE"
@@ -2105,6 +2103,16 @@ msgid ""
 "You may use the DSP HLE engine which does not require ROM dumps.\n"
 "(Choose it from the \"Audio\" tab of the configuration dialog.)"
 msgstr ""
+"Αποτυχία φόρτωσης DSP ROM:\t%s\n"
+"\n"
+"Αυτό το αρχείο χρειάζεται για να χρησιμοποιηθεί το DSP LLE.\n"
+"Δεν συμπεριλαμβάνεται με το Dolphin γιατί περιέχει δεδομένα πνευματικής "
+"ιδιοκτησίας.\n"
+"Χρησιμοποιήστε το DSPSpy για να εξάγετε το αρχείο από την κονσόλα σας.\n"
+"\n"
+"Μπορείτε να χρησιμοποιήσετε την  DSP HLE μηχανή η οποία δεν χρειάζεται ROM "
+"dumps.\n"
+"(Επιλέξτε την από την καρτέλα \"Ήχος\" του παραθύρου των γενικών ρυθμίσεων.)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:63
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:72
@@ -2208,14 +2216,12 @@ msgstr ""
 "Οι αργότερες επιλογές ελέγχουν περισσότερα pixel κι έτσι είναι ασφαλέστερες."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:216
-#, fuzzy
 msgid "Fifo Player"
-msgstr "Παίχτες"
+msgstr "Αναπαραγωγή Fifo"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:88
-#, fuzzy
 msgid "File Info"
-msgstr "Πληροφορίες Κωδικού"
+msgstr "Πληροφορίες Αρχείου"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
@@ -2320,23 +2326,20 @@ msgstr "Κλασματική"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:383
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
-#, fuzzy
 msgid "Frame"
-msgstr "Εξαγωγή Καρέ"
+msgstr "Καρέ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:393
-#, fuzzy
 msgid "Frame "
-msgstr "Προώθηση ανά Καρέ"
+msgstr "Καρέ"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:189
 msgid "Frame Advance"
 msgstr "Προώθηση ανά Καρέ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:105
-#, fuzzy
 msgid "Frame Range"
-msgstr "Προώθηση ανά Καρέ"
+msgstr "Εύρος Καρέ"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:149
 msgid "Frame S&kipping"
@@ -2352,7 +2355,7 @@ msgstr "Περιορισμός Καρέ:"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:189
 msgid "Frames To Record"
-msgstr ""
+msgstr "Καρέ Προς Εγγραφή"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
@@ -2371,7 +2374,7 @@ msgstr "Frets"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:107
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:126
 msgid "From"
-msgstr ""
+msgstr "Από"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:443
 msgid "FullScr"
@@ -3103,9 +3106,8 @@ msgstr ""
 " Το μέγεθος της κάρτας δεν είναι έγκυρο (%04X)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:438
-#, fuzzy
 msgid "Memory Byte"
-msgstr "&Μνήμη"
+msgstr "Memory Byte"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
@@ -3321,16 +3323,15 @@ msgstr "Απενεργοποίηση του docking"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:385
 msgid "No file loaded"
-msgstr ""
+msgstr "Δεν φορτώθηκε αρχείο"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid "No free dir index entries"
 msgstr "Δεν υπάρχουν ελεύθερες εγγραφές φακέλων"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:421
-#, fuzzy
 msgid "No recorded file"
-msgstr "Μη έγκυρο αρχείο εγγραφής"
+msgstr "Κανένα εγγεγραμένο αρχείο"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:505
 #, c-format
@@ -3405,11 +3406,11 @@ msgstr "Εντάξει"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:403
 msgid "Object"
-msgstr ""
+msgstr "Αντικείμενο"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:124
 msgid "Object Range"
-msgstr ""
+msgstr "Εύρος Αντικειμένου"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Off"
@@ -3457,7 +3458,7 @@ msgstr "OpenAL: αδυναμία ανοίγματος της συσκευής %s
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
-msgstr ""
+msgstr "OpenMP Αποκωδικοποιητής Υφών"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Opens the debugger"
@@ -3586,9 +3587,8 @@ msgid "Playable"
 msgstr "Παίζεται"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:143
-#, fuzzy
 msgid "Playback Options"
-msgstr "Ρυθμίσεις"
+msgstr "Ρυθμίσεις Αναπαραγωγής"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Players"
@@ -3748,18 +3748,16 @@ msgstr "Επανασύνδεση Wiimote Στην Φόρτωση Σημείου 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:336
-#, fuzzy
 msgid "Record"
-msgstr "Αναπαραγωγή Εγγραφής"
+msgstr "Εγγραφή"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:159
-#, fuzzy
 msgid "Recording Info"
-msgstr "Αναπαραγωγή Εγγραφής"
+msgstr "Πληροφορίες Εγγραφής"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
-msgstr ""
+msgstr "Ρυθμίσεις Εγγραφής"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
@@ -4093,7 +4091,7 @@ msgstr "Ορισμός"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
-msgstr ""
+msgstr "Θέσε Όλα σε Προεπιλογή"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Set Console as NTSC-J"
@@ -4692,9 +4690,8 @@ msgid "Title"
 msgstr "Τίτλος"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
-#, fuzzy
 msgid "To"
-msgstr "Κορυφή"
+msgstr "Εώς"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
 msgid "Toggle All Log Types"
@@ -4837,6 +4834,8 @@ msgstr "Χρήση Οθονών Πανικού"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
 msgid "Uses multiple threads to decode the textures in the game."
 msgstr ""
+"Χρησιμοποιεί πολλαπλά νήματα επεξεργασίας για αποκωδικοποίηση των υφών στο "
+"παιχνίδι."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:253
 msgid ""
@@ -5230,7 +5229,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format
@@ -5356,7 +5355,7 @@ msgstr "| OR"
 
 #, fuzzy
 #~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin"
+#~ msgstr "Dolphin FIFO"
 
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Ενεργοποίηση Αντιγραφή στον EFB"
@@ -5419,12 +5418,13 @@ msgstr "| OR"
 #~ "Εάν ένα παιχνίδι κολλήσει, δουλεύει μόνο στον Interpreter ή το Dolphin "
 #~ "κρασάρει, αυτή η επιλογή μπορεί να φτιάξει το παιχνίδι."
 
+#, fuzzy
 #~ msgid ""
 #~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
 #~ "Try verifying the state again"
 #~ msgstr ""
 #~ "Εσωτερικό Σφάλμα LZO - αποτυχία αποσυμπίεσης (%d) (%ld, %ld) \n"
-#~ "Δοκιμάστε να επιβεβαιώσετε ξανά  το σημείο αποθήκευσης"
+#~ "Δοκιμάστε να φορτώσετε ξανά το σημείο αποθήκευσης"
 
 #, fuzzy
 #~ msgid "Load Script..."
