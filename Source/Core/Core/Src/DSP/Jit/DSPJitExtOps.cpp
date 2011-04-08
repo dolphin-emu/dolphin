@@ -187,10 +187,7 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -217,10 +214,7 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -246,10 +240,7 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -276,10 +267,7 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -304,10 +292,7 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -333,10 +318,7 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -362,10 +344,7 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -391,10 +370,7 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
