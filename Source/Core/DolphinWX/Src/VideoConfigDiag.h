@@ -245,10 +245,6 @@ protected:
 	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
-	void Event_StcSafe(wxCommandEvent &ev) { cur_vconfig.iSafeTextureCache_ColorSamples = 0; ev.Skip(); }
-	void Event_StcNormal(wxCommandEvent &ev) { cur_vconfig.iSafeTextureCache_ColorSamples = 512; ev.Skip(); }
-	void Event_StcFast(wxCommandEvent &ev) { cur_vconfig.iSafeTextureCache_ColorSamples = 128; ev.Skip(); }
-
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_ClickDefault(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
@@ -277,8 +273,6 @@ protected:
 	wxStaticText* text_aamode;
 	IntSettingChoice* choice_aamode;
 
-	SettingCheckBox* native_mips;
-	SettingCheckBox* efb_scaled_copy;
 	SettingCheckBox* pixel_lighting;
 	SettingCheckBox* pixel_depth;
 	SettingCheckBox* force_filtering;
@@ -289,14 +283,8 @@ protected:
 	SettingCheckBox* emulate_efb_format_changes;
 
 	SettingCheckBox* efbcopy_enable;
-	SettingRadioButton* efbcopy_texture;
-	SettingRadioButton* efbcopy_ram;
-	SettingCheckBox* cache_efb_copies;
-
-	SettingCheckBox* stc_enable;
-	wxRadioButton* stc_safe;
-	wxRadioButton* stc_normal;
-	wxRadioButton* stc_fast;
+	SettingCheckBox* efbcopy_virtual;
+	SettingCheckBox* efbcopy_ram;
 
 	SettingCheckBox* wireframe;
 	SettingCheckBox* disable_lighting;

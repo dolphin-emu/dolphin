@@ -59,11 +59,6 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 	SET_STATE(iniFile.Get("Settings", "Crop", &bCrop, false), bCrop);
 	SET_STATE(iniFile.Get("Settings", "UseXFB", &bUseXFB, false), bUseXFB);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, false);
-	SET_STATE(iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true), bUseNativeMips);
-	
-	SET_STATE(iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false), bSafeTextureCache); // Settings
-	//Safe texture cache params
-	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 512);
 
 	SET_STATE(iniFile.Get("Settings", "ShowFPS", &bShowFPS, false), bShowFPS); // Settings
 	SET_STATE(iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false), bShowInputDisplay);
@@ -109,10 +104,9 @@ void VideoConfig::Load(const char *main_ini_file, bool filecheck_passed, const c
 	SET_STATE(iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true), bEFBAccessEnable);
 	SET_STATE(iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false), bDlistCachingEnable);
 	SET_STATE(iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true), bEFBCopyEnable);
+	SET_STATE(iniFile.Get("Hacks", "EFBCopyRAMEnable", &bEFBCopyRAMEnable, true), bEFBCopyRAMEnable);
+	SET_STATE(iniFile.Get("Hacks", "EFBCopyVirtualEnable", &bEFBCopyVirtualEnable, true), bEFBCopyVirtualEnable);
 	SET_STATE(iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, false), bOSDHotKey);
-	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
-	SET_STATE(iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true), bCopyEFBScaled);
-	SET_STATE(iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false), bEFBCopyCacheEnable);
 	SET_STATE(iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, true), bEFBEmulateFormatChanges);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
@@ -148,14 +142,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	if (UI_State.bUseXFB)
 		iniFile.GetIfExists("Video_Settings", "UseRealXFB", &bUseRealXFB);
 	}
-	
-	{ // CheckBox+RadioButtons group
-	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "SafeTextureCache", &bSafeTextureCache), bSafeTextureCache);
-	if (UI_State.bSafeTextureCache)
-		iniFile.GetIfExists("Video_Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
-	}
-	
-	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "UseNativeMips", &bUseNativeMips), bUseNativeMips);
+
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowFPS", &bShowFPS), bShowFPS);
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "ShowInputDisplay", &bShowInputDisplay), bShowInputDisplay);
 	SET_UISTATE(iniFile.GetIfExists("Video_Settings", "OverlayStats", &bOverlayStats), bOverlayStats);
@@ -212,12 +199,13 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	{ // CheckBox+RadioButtons group
 	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBCopyEnable", &bEFBCopyEnable), bEFBCopyEnable);
 	if (UI_State.bEFBCopyEnable)
-		iniFile.GetIfExists("Video_Hacks", "EFBToTextureEnable", &bCopyEFBToTexture);
-
-	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable), bEFBCopyCacheEnable);
+	{
+		// FIXME: Shouldn't we use SET_UISTATE here?
+		iniFile.GetIfExists("Video_Hacks", "EFBCopyRAMEnable", &bEFBCopyRAMEnable);
+		iniFile.GetIfExists("Video_Hacks", "EFBCopyVirtualEnable", &bEFBCopyVirtualEnable);
+	}
 	}
 	
-	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBScaledCopy", &bCopyEFBScaled), bCopyEFBScaled);
 	SET_UISTATE(iniFile.GetIfExists("Video_Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges), bEFBEmulateFormatChanges);
 
 	SET_UISTATE(iniFile.GetIfExists("Video_Hardware", "Adapter", &iAdapter), iAdapter);
@@ -255,11 +243,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
-	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
-
-	iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
-	//safe texture cache params
-	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 
 	iniFile.Set("Settings", "ShowFPS", bShowFPS);
 	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
@@ -306,9 +289,8 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	iniFile.Set("Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
-	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
-	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
-	iniFile.Set("Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
+	iniFile.Set("Hacks", "EFBCopyRAMEnable", bEFBCopyRAMEnable);
+	iniFile.Set("Hacks", "EFBCopyVirtualEnable", bEFBCopyVirtualEnable);
 	iniFile.Set("Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
@@ -334,14 +316,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	CHECK_UISTATE("Video_Settings", "UseXFB", bUseXFB);
 	UI_State.bUseRealXFB = UI_State.bUseXFB;
 	CHECK_UISTATE("Video_Settings", "UseRealXFB", bUseRealXFB);
-	}
-
-	CHECK_UISTATE("Video_Settings", "UseNativeMips", bUseNativeMips);
-	
-	{ // CheckBox+RadioButtons group
-	CHECK_UISTATE("Video_Settings", "SafeTextureCache", bSafeTextureCache);
-	UI_State.iSafeTextureCache_ColorSamples = UI_State.bSafeTextureCache;
-	CHECK_UISTATE("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	}
 
 	CHECK_UISTATE("Video_Settings", "ShowFPS", bShowFPS);
@@ -396,13 +370,13 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	
 	{ // CheckBox+RadioButtons group
 	CHECK_UISTATE("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
-	UI_State.bCopyEFBToTexture = UI_State.bEFBCopyEnable;
-	CHECK_UISTATE("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
-
-	CHECK_UISTATE("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
+	// FIXME: Why are we setting these to bEFBCopyEnable?
+	UI_State.bEFBCopyRAMEnable = UI_State.bEFBCopyEnable;
+	UI_State.bEFBCopyVirtualEnable = UI_State.bEFBCopyEnable;
+	CHECK_UISTATE("Video_Hacks", "EFBCopyRAMEnable", bEFBCopyRAMEnable);
+	CHECK_UISTATE("Video_Hacks", "EFBCopyVirtualEnable", bEFBCopyVirtualEnable);
 	}
 
-	CHECK_UISTATE("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_UISTATE("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	CHECK_UISTATE("Video_Hardware", "Adapter", iAdapter);

@@ -249,8 +249,6 @@ wxString ws_hack_tooltip = wxTRANSLATE("Force the game to output graphics for wi
 wxString vsync_tooltip = wxTRANSLATE("Wait for vertical blanks.\nReduces tearing but might also decrease performance");
 wxString af_tooltip = wxTRANSLATE("Enables anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.");
 wxString aa_tooltip = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky but also heavily decreases performance.");
-wxString native_mips_tooltip = wxTRANSLATE("Loads native mipmaps instead of generating them.\nLoading native mipmaps is the more accurate behavior, but might also decrease performance (your mileage might vary though).");
-wxString scaled_efb_copy_tooltip = wxTRANSLATE("Uses the high-resolution render buffer for EFB copies instead of scaling them down to native resolution.\nVastly improves visual quality in games which use EFB copies but might cause glitches in some games.");
 wxString pixel_lighting_tooltip = wxTRANSLATE("Calculates lighting of 3D graphics on a per-pixel basis rather than per vertex.\nThis is the more accurate behavior but reduces performance.");
 wxString pixel_depth_tooltip = wxT("");
 wxString force_filtering_tooltip = wxTRANSLATE("Forces bilinear texture filtering even if the game explicitly disabled it.\nImproves texture quality (especially when using a high internal resolution) but causes glitches in some games.");
@@ -259,10 +257,8 @@ wxString internal_res_tooltip = wxTRANSLATE("Specifies the resolution used to re
 wxString efb_access_tooltip = wxTRANSLATE("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\nbut enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily.");
 wxString efb_emulate_format_changes_tooltip = wxTRANSLATE("Enables reinterpreting the data inside the EFB when the pixel format changes.\nSome games depend on this function for certain effects, so enable it if you're having glitches.\nDepending on how the game uses this function, the speed hits caused by this option range from none to critical.");
 wxString efb_copy_tooltip = wxTRANSLATE("Enables emulation of Embedded Frame Buffer copies, if the game uses them.\nGames often need this for post-processing or other things, but if you can live without it, you can sometimes get a big speedup.");
-wxString efb_copy_texture_tooltip = wxTRANSLATE("Emulate frame buffer copies directly to textures.\nThis is not so accurate, but it's good enough for the way many games use framebuffer copies.");
-wxString efb_copy_ram_tooltip = wxTRANSLATE("Fully emulate embedded frame buffer copies.\nThis is more accurate than EFB Copy to Texture, and some games need this to work properly, but it can also be very slow.");
-wxString stc_tooltip = wxTRANSLATE("Keeps track of textures based on looking at the actual pixels in the texture.\nCan cause slowdown, but some games need this option enabled to work properly.");
-wxString stc_speed_tooltip = wxTRANSLATE("Faster variants look at fewer pixels and thus have more potential for errors.\nSlower variants look at more pixels and thus are safer.");
+wxString efb_virtual_tooltip = wxTRANSLATE("Perform fake frame buffer copies to textures.\nThe copies will have high resolution.");
+wxString efb_ram_tooltip = wxTRANSLATE("Perform real frame buffer copies to RAM.\nThis is the most accurate and is required for some games.\nEnable both Virtual and RAM to get high-resolution copies while retaining compatibility.");
 wxString wireframe_tooltip = wxTRANSLATE("Render the scene as a wireframe.\nThis is only useful for debugging purposes.");
 wxString disable_lighting_tooltip = wxTRANSLATE("Disable lighting. Improves performance but causes lighting to disappear in games which use it.");
 wxString disable_textures_tooltip = wxTRANSLATE("Disable texturing.\nThis is only useful for debugging purposes.");
@@ -289,7 +285,6 @@ wxString dlc_tooltip = wxT("");
 wxString omp_tooltip = wxTRANSLATE("Uses multiple threads to decode the textures in the game.");
 wxString hotkeys_tooltip = wxT("");
 wxString ppshader_tooltip = wxT("");
-wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
 
 wxString def_profile = wxTRANSLATE("< as Default Profile >");
 
@@ -443,8 +438,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_aamode->Insert(wxGetTranslation(def_profile), 0);
 
 	szr_enh->Add(choice_aamode);
-	szr_enh->Add(native_mips = new SettingCheckBox(page_general, _("Load Native Mipmaps"), wxGetTranslation(native_mips_tooltip), SET_PARAMS(bUseNativeMips), false, cb_style));
-	szr_enh->Add(efb_scaled_copy = new SettingCheckBox(page_general, _("EFB Scaled Copy"), wxGetTranslation(scaled_efb_copy_tooltip), SET_PARAMS(bCopyEFBScaled), false, cb_style));
 	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), SET_PARAMS(bEnablePixelLighting), false, cb_style));
 	szr_enh->Add(pixel_depth =  new SettingCheckBox(page_general, _("Pixel Depth"), wxGetTranslation(pixel_depth_tooltip), SET_PARAMS(bEnablePerPixelDepth), false, cb_style));
 	szr_enh->Add(force_filtering = new SettingCheckBox(page_general, _("Force Bi/Trilinear Filtering"), wxGetTranslation(force_filtering_tooltip), SET_PARAMS(bForceFiltering), false, cb_style));
@@ -471,33 +464,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// EFB copy
 	efbcopy_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(efb_copy_tooltip), SET_PARAMS(bEFBCopyEnable), false, cb_style);
-	efbcopy_texture = new SettingRadioButton(page_general, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), cur_vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	efbcopy_ram = new SettingRadioButton(page_general, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), cur_vconfig.bCopyEFBToTexture, true);
-	cache_efb_copies = new SettingCheckBox(page_general, _("Enable cache"), wxGetTranslation(cache_efb_copies_tooltip), SET_PARAMS(bEFBCopyCacheEnable), false, cb_style);
+	efbcopy_virtual = new SettingCheckBox(page_general, _("Virtual"), wxGetTranslation(efb_virtual_tooltip), SET_PARAMS(bEFBCopyVirtualEnable), false, cb_style);
+	efbcopy_ram = new SettingCheckBox(page_general, _("RAM"), wxGetTranslation(efb_ram_tooltip), SET_PARAMS(bEFBCopyRAMEnable), false, cb_style);
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Copy"));
 	group_efbcopy->Add(efbcopy_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
-	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
+	group_efbcopy->Add(efbcopy_virtual, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
-	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
-
-
-	// - safe texture cache
-	stc_enable = new SettingCheckBox(page_general, _("Enable"), wxGetTranslation(stc_tooltip), SET_PARAMS(bSafeTextureCache), false, cb_style);
-
-	stc_safe = new wxRadioButton(page_general, -1, _("Safe"),
-		wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	stc_safe->SetToolTip(wxGetTranslation(stc_speed_tooltip));
-	_connect_macro_(stc_safe, VideoConfigDiag::Event_StcSafe, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-
-	stc_normal = new wxRadioButton(page_general, -1, _("Normal"));
-	stc_normal->SetToolTip(wxGetTranslation(stc_speed_tooltip));
-	_connect_macro_(stc_normal, VideoConfigDiag::Event_StcNormal, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-
-	stc_fast = new wxRadioButton(page_general, -1, _("Fast"));
-	stc_fast->SetToolTip(wxGetTranslation(stc_speed_tooltip));
-	_connect_macro_(stc_fast, VideoConfigDiag::Event_StcFast, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
-
 
 	wxStaticBoxSizer* const group_basic = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Basic"));
 	szr_general->Add(group_basic, 0, wxEXPAND | wxALL, 5);
@@ -512,14 +485,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_efb->Add(efbaccess_enable = new SettingCheckBox(page_general, _("Enable CPU Access"), wxGetTranslation(efb_access_tooltip), SET_PARAMS(bEFBAccessEnable), false, cb_style), 0, wxBOTTOM | wxLEFT, 5);
 	group_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
 	group_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
-
-	wxStaticBoxSizer* const group_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Accurate Texture Cache"));
-	szr_general->Add(group_safetex, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	group_safetex->Add(stc_enable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	group_safetex->AddStretchSpacer(1);
-	group_safetex->Add(stc_safe, 0, wxRIGHT, 5);
-	group_safetex->Add(stc_normal, 0, wxRIGHT, 5);
-	group_safetex->Add(stc_fast, 0, wxRIGHT, 5);
 	}
 
 	page_general->SetSizerAndFit(szr_general);
@@ -716,8 +681,6 @@ void VideoConfigDiag::ChangeStyle()
 		choice_aamode->GetParent()->Layout();
 		CHANGE_DATAREF(choice_aamode, iMultisampleMode);
 
-		CHANGE_DATAREF(native_mips, bUseNativeMips);
-		CHANGE_DATAREF(efb_scaled_copy, bCopyEFBScaled);
 		CHANGE_DATAREF(pixel_lighting, bEnablePixelLighting);
 		CHANGE_DATAREF(pixel_depth, bEnablePerPixelDepth);
 		CHANGE_DATAREF(force_filtering, bForceFiltering);
@@ -731,8 +694,8 @@ void VideoConfigDiag::ChangeStyle()
 		CHANGE_DATAREF(efbaccess_enable, bEFBAccessEnable);
 		CHANGE_DATAREF(emulate_efb_format_changes, bEFBEmulateFormatChanges);
 		CHANGE_DATAREF(efbcopy_enable, bEFBCopyEnable);
-		CHANGE_DATAREF(cache_efb_copies, bEFBCopyCacheEnable);
-		CHANGE_DATAREF(stc_enable, bSafeTextureCache);
+		CHANGE_DATAREF(efbcopy_ram, bEFBCopyRAMEnable);
+		CHANGE_DATAREF(efbcopy_virtual, bEFBCopyVirtualEnable);
 		CHANGE_DATAREF(wireframe, bWireFrame);
 		CHANGE_DATAREF(disable_lighting, bDisableLighting);
 		CHANGE_DATAREF(disable_textures, bDisableTexturing);
@@ -838,18 +801,11 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 
 	// EFB copy
 	enable_group = cur_vconfig.bEFBCopyEnable && (efbcopy_enable->Get3StateValue() != wxCHK_UNDETERMINED);
-	efbcopy_texture->Enable(enable_group);
+	efbcopy_virtual->Enable(enable_group);
 	efbcopy_ram->Enable(enable_group);
-	cache_efb_copies->Enable(cur_vconfig.bEFBCopyEnable && !cur_vconfig.bCopyEFBToTexture);
 
 	// EFB format change emulation
 	emulate_efb_format_changes->Enable(cur_vconfig.backend_info.bSupportsFormatReinterpretation);
-
-	// ATC
-	enable_group = cur_vconfig.bSafeTextureCache && (stc_enable->Get3StateValue() != wxCHK_UNDETERMINED);
-	stc_safe->Enable(enable_group);
-	stc_normal->Enable(enable_group);
-	stc_fast->Enable(enable_group);
 
 	// XFB
 	enable_group = cur_vconfig.bUseXFB && (enable_xfb->Get3StateValue() != wxCHK_UNDETERMINED);
@@ -864,16 +820,10 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 		// are very expensive inside this procedure
 		if (ev.GetId() == efbcopy_enable->GetId() && efbcopy_enable->Get3StateValue() == wxCHK_UNDETERMINED)
 		{
-			cur_vconfig.bCopyEFBToTexture = def_vconfig.bCopyEFBToTexture;
-			efbcopy_texture->SetValue(cur_vconfig.bCopyEFBToTexture);
-			efbcopy_ram->SetValue(!cur_vconfig.bCopyEFBToTexture);
-		}
-		if (ev.GetId() == stc_enable->GetId() && stc_enable->Get3StateValue() == wxCHK_UNDETERMINED)
-		{
-			cur_vconfig.iSafeTextureCache_ColorSamples = def_vconfig.iSafeTextureCache_ColorSamples;
-			stc_safe->SetValue(0 == cur_vconfig.iSafeTextureCache_ColorSamples);
-			stc_normal->SetValue(512 == cur_vconfig.iSafeTextureCache_ColorSamples);
-			stc_fast->SetValue(128 == cur_vconfig.iSafeTextureCache_ColorSamples);
+			cur_vconfig.bEFBCopyRAMEnable = def_vconfig.bEFBCopyRAMEnable;
+			cur_vconfig.bEFBCopyVirtualEnable = def_vconfig.bEFBCopyVirtualEnable;
+			efbcopy_ram->SetValue(cur_vconfig.bEFBCopyRAMEnable);
+			efbcopy_virtual->SetValue(cur_vconfig.bEFBCopyVirtualEnable);
 		}
 		if (ev.GetId() == enable_xfb->GetId() && enable_xfb->Get3StateValue() == wxCHK_UNDETERMINED)
 		{
@@ -898,14 +848,15 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 	else // here, if we're editing the Default profile and a game is running...
 	{
 		// RadioButton instant update from Default profile
-		if (!g_Config.UI_State.bSafeTextureCache)
-			g_Config.iSafeTextureCache_ColorSamples = cur_vconfig.iSafeTextureCache_ColorSamples;
 
 		if (!g_Config.UI_State.bUseXFB)
 			g_Config.bUseRealXFB = cur_vconfig.bUseRealXFB;
 
 		if (!g_Config.UI_State.bEFBCopyEnable)
-			g_Config.bCopyEFBToTexture = cur_vconfig.bCopyEFBToTexture;
+		{
+			g_Config.bEFBCopyRAMEnable = cur_vconfig.bEFBCopyRAMEnable;
+			g_Config.bEFBCopyVirtualEnable = cur_vconfig.bEFBCopyVirtualEnable;
+		}
 
 		// other controls (checkbox, choice dropdown) handle 'the instant update' internally inside their own class
 	}
@@ -933,8 +884,6 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	SET_CHOICE(anisotropic_filtering, iMaxAnisotropy);
 	SET_CHOICE(choice_aamode, iMultisampleMode);
 
-	SET_CHOICE(native_mips, bUseNativeMips);
-	SET_CHOICE(efb_scaled_copy,bCopyEFBScaled);
 	SET_CHOICE(pixel_lighting, bEnablePixelLighting);
 	SET_CHOICE(pixel_depth, bEnablePerPixelDepth);
 	SET_CHOICE(force_filtering, bForceFiltering);
@@ -945,14 +894,9 @@ void VideoConfigDiag::SetUIValuesFromConfig()
 	SET_CHOICE(emulate_efb_format_changes, bEFBEmulateFormatChanges);
 
 	SET_CHOICE(efbcopy_enable, bEFBCopyEnable);
-	efbcopy_texture->SetValue(cur_vconfig.bCopyEFBToTexture);
-	efbcopy_ram->SetValue(!cur_vconfig.bCopyEFBToTexture);
-	SET_CHOICE(cache_efb_copies, bEFBCopyCacheEnable);
-
-	SET_CHOICE(stc_enable, bSafeTextureCache);
-	stc_safe->SetValue(0 == cur_vconfig.iSafeTextureCache_ColorSamples);
-	stc_normal->SetValue(512 == cur_vconfig.iSafeTextureCache_ColorSamples);
-	stc_fast->SetValue(128 == cur_vconfig.iSafeTextureCache_ColorSamples);
+	// FIXME: Shouldn't we use SET_CHOICE here?
+	efbcopy_ram->SetValue(cur_vconfig.bEFBCopyRAMEnable);
+	efbcopy_virtual->SetValue(cur_vconfig.bEFBCopyVirtualEnable);
 
 	SET_CHOICE(wireframe, bWireFrame);
 	SET_CHOICE(disable_lighting, bDisableLighting);

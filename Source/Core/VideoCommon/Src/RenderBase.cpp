@@ -253,8 +253,17 @@ void Renderer::DrawDebugText()
 				break;
 			}
 
-			const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-				(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+			const char* efbcopy_text = "Disabled";
+			if (g_ActiveConfig.bEFBCopyEnable)
+			{
+				// TODO: Decide what names to use for these things
+				if (g_ActiveConfig.bEFBCopyVirtualEnable && g_ActiveConfig.bEFBCopyRAMEnable)
+					efbcopy_text = "to Virtual Lookaside and RAM";
+				else if (g_ActiveConfig.bEFBCopyRAMEnable)
+					efbcopy_text = "to RAM";
+				else if (g_ActiveConfig.bEFBCopyVirtualEnable)
+					efbcopy_text = "to Virtual Lookaside";
+			}
 
 			// The rows
 			const std::string lines[] =

@@ -379,8 +379,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		true, bScaleByHalf > 0 && !bFromZBuffer);
 
-	u64 hash = GetHash64(dest_ptr, size_in_bytes,
-			g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	u64 hash = GetHash64(dest_ptr, size_in_bytes, size_in_bytes);
 
 	//if (g_ActiveConfig.bEFBCopyCacheEnable)
 	//{
