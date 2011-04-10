@@ -184,7 +184,7 @@ void VideoFifo_CheckStateRequest()
 	if (Common::AtomicLoadAcquire(s_doStateRequested))
 	{
 		// Clear all caches that touch RAM
-		TextureCache::Invalidate(false);
+		//TextureCache::Invalidate(false);
 		VertexLoaderManager::MarkAllDirty();
 
 		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
@@ -210,7 +210,6 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 	{
 		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
-			//Common::SleepCurrentThread(1);
 			Common::YieldCPU();
 	}
 	else

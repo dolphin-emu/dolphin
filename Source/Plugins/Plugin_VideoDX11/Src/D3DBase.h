@@ -35,6 +35,8 @@ namespace DX11
 
 class D3DTexture2D;
 
+SharedPtr<ID3D11Texture1D> CreateTexture1DShared(
+	const D3D11_TEXTURE1D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
 SharedPtr<ID3D11Texture2D> CreateTexture2DShared(
 	const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
 

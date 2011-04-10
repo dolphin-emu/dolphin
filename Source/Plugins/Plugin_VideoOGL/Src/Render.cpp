@@ -1016,8 +1016,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Textured triangles are necessary because of post-processing shaders
 
 	// Disable all other stages
-	for (int i = 1; i < 8; ++i)
-		OGL::TextureCache::DisableStage(i);
+	//for (int i = 1; i < 8; ++i)
+	//	OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
 	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
@@ -1145,7 +1145,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	OGL::TextureCache::DisableStage(0);
+	//OGL::TextureCache::DisableStage(0);
 
 	// Save screenshot
 	if (s_bScreenshot)
@@ -1356,7 +1356,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
+	//TextureCache::Cleanup();
 
 	frameCount++;
 
@@ -1378,12 +1378,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	g_Config.iSaveTargetId = 0;
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
+	//if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+	//	g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	//	TextureCache::Invalidate(false);
 
-	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
-		TextureCache::ClearRenderTargets();
+	//if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
+	//	TextureCache::ClearRenderTargets();
 
 	UpdateActiveConfig();
 

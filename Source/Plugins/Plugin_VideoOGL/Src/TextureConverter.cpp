@@ -39,8 +39,6 @@ namespace OGL
 namespace TextureConverter
 {
 
-using OGL::TextureCache;
-
 static GLuint s_texConvFrameBuffer = 0;
 static GLuint s_srcTexture = 0;			// for decoding from RAM
 static GLuint s_srcTextureWidth = 0;
@@ -188,8 +186,9 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);	
 	GL_REPORT_ERRORD();
 	
-	for (int i = 1; i < 8; ++i)
-		TextureCache::DisableStage(i);
+	// TODO: Disable stages for real
+	//for (int i = 1; i < 8; ++i)
+	//	TextureCache::DisableStage(i);
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
@@ -281,7 +280,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	// Invalidate any existing texture covering this memory range.
 	// TODO - don't delete the texture if it already exists, just replace the contents.
-	TextureCache::InvalidateRange(address, size_in_bytes);
+	//TextureCache::InvalidateRange(address, size_in_bytes);
 	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
@@ -316,7 +315,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureCache::DisableStage(0);
+	//TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
     GL_REPORT_ERRORD();
 }
@@ -382,15 +381,17 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	u64 hash = GetHash64(dest_ptr, size_in_bytes,
 			g_ActiveConfig.iSafeTextureCache_ColorSamples);
-	if (g_ActiveConfig.bEFBCopyCacheEnable)
-	{
-		// If the texture in RAM is already in the texture cache,
-		// do not copy it again as it has not changed.
-		if (TextureCache::Find(address, hash))
-			return hash;
-	}
 
-	TextureCache::MakeRangeDynamic(address,size_in_bytes);
+	//if (g_ActiveConfig.bEFBCopyCacheEnable)
+	//{
+	//	// If the texture in RAM is already in the texture cache,
+	//	// do not copy it again as it has not changed.
+	//	if (TextureCache::Find(address, hash))
+	//		return hash;
+	//}
+
+	//TextureCache::MakeRangeDynamic(address,size_in_bytes);
+
 	return hash;
 }
 
@@ -401,7 +402,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureCache::DisableStage(0);
+	//TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
     GL_REPORT_ERRORD();
 }
@@ -429,8 +430,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	GL_REPORT_FBO_ERROR();
 
-    for (int i = 1; i < 8; ++i)
-		TextureCache::DisableStage(i);
+  //  for (int i = 1; i < 8; ++i)
+		//TextureCache::DisableStage(i);
 
 	// activate source texture
 	// set srcAddr as data for source texture
@@ -466,7 +467,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-    TextureCache::DisableStage(0);
+    //TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();
 

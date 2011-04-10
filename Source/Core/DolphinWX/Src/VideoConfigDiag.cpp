@@ -203,7 +203,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 
 	EndModal(wxID_OK);
 
-	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
+	//TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
 

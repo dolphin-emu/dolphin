@@ -28,7 +28,7 @@
 #include "RenderBase.h"
 #include "Render.h"
 #include "Statistics.h"
-#include "TextureCacheBase.h"
+#include "TextureCache.h"
 #include "VertexShaderManager.h"
 #include "VideoConfig.h"
 
@@ -188,21 +188,42 @@ void VertexManager::vFlush()
 		{
 			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
-			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
-				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
 
-			if (tentry)
+			//const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
+			//	(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
+			//	tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
+			//	tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+			//	tex.texTlut[i&3].tlut_format,
+			//	(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+			//	(tex.texMode1[i&3].max_lod >> 4));
+
+			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			u32 levels = (tex.texMode1[i&3].max_lod >> 4) + 1;
+			u32 format = tex.texImage0[i&3].format;
+			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
+			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
+			
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
+				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+			if (entry)
 			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+				entry->Bind(i);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
+
+			//if (tentry)
+			//{
+			//	// 0s are probably for no manual wrapping needed.
+			//	PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+			//}
+			//else
+			//	ERROR_LOG(VIDEO, "error loading texture");
 		}
 	}
 

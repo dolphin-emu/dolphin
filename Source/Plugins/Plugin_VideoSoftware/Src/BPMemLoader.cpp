@@ -105,10 +105,11 @@ void SWBPWritten(int address, int newvalue)
 			else
 				ptr = Memory::GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
 
-			if (ptr)
-				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
-			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+			// TODO: Fix
+			//if (ptr)
+			//	memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
+			//else
+			//	PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
 			break;
         }
 	

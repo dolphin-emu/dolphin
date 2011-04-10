@@ -149,30 +149,36 @@ void VertexManager::vFlush()
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
-				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
 
-			if (tentry)
-			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+			//TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
+			//	(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
+			//	tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
+			//	tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+			//	tex.texTlut[i&3].tlut_format,
+			//	(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+			//	(tex.texMode1[i&3].max_lod >> 4));
+			
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
 
-				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				{
-					// save the textures
-					char strfile[255];
-					sprintf(strfile, "%stex%.3d_%d.tga",
-							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-					tentry->Save(strfile);
-				}
-			}
-			else
-				ERROR_LOG(VIDEO, "error loading texture");
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			// TODO: Reimplement
+			//if (tentry)
+			//{
+			//	// 0s are probably for no manual wrapping needed.
+
+			//	if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
+			//	{
+			//		// save the textures
+			//		char strfile[255];
+			//		sprintf(strfile, "%stex%.3d_%d.tga",
+			//				File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
+			//		tentry->Save(strfile);
+			//	}
+			//}
+			//else
+			//	ERROR_LOG(VIDEO, "error loading texture");
 		}
 	}
 

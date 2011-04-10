@@ -151,6 +151,11 @@ void ShutdownUtils();
 void SetPointCopySampler();
 void SetLinearCopySampler();
 
+// Draw a quad that fills the viewport using an encoding shader that takes the
+// raw pixel position as input
+void drawEncoderQuad(SharedPtr<ID3D11PixelShader> pShader,
+	ID3D11ClassInstance* const* ppClassInstances = NULL, UINT numClassInstances = 0);
+
 void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	const D3D11_RECT* rSource,
 	int SourceWidth, int SourceHeight,

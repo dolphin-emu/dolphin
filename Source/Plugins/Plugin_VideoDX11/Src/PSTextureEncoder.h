@@ -41,13 +41,6 @@ private:
 	ID3D11RenderTargetView* m_outRTV;
 	SharedPtr<ID3D11Texture2D> m_outStage;
 	SharedPtr<ID3D11Buffer> m_encodeParams;
-	SharedPtr<ID3D11Buffer> m_quad;
-	SharedPtr<ID3D11VertexShader> m_vShader;
-	SharedPtr<ID3D11InputLayout> m_quadLayout;
-	SharedPtr<ID3D11BlendState> m_efbEncodeBlendState;
-	ID3D11DepthStencilState* m_efbEncodeDepthState;
-	ID3D11RasterizerState* m_efbEncodeRastState;
-	ID3D11SamplerState* m_efbSampler;
 
 	// Stuff only used in static-linking mode (SM4.0-compatible)
 
@@ -64,7 +57,7 @@ private:
 			| (scaleByHalf ? (1<<0) : 0);
 	}
 
-	typedef std::map<ComboKey, SharedPtr<ID3D11PixelShader>> ComboMap;
+	typedef std::map<ComboKey, SharedPtr<ID3D11PixelShader> > ComboMap;
 
 	ComboMap m_staticShaders;
 
@@ -95,6 +88,10 @@ private:
 	ID3D11ClassInstance* m_generatorClass[16];
 
 	std::vector<ID3D11ClassInstance*> m_linkageArray;
+
+	SharedPtr<ID3D11PixelShader> m_useThisPS;
+	ID3D11ClassInstance* const* m_useTheseInstances;
+	UINT m_useNumInstances;
 };
 
 }

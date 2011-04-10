@@ -212,6 +212,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\Television.cpp" />
+    <ClCompile Include="Src\TexCopyLookaside.cpp" />
     <ClCompile Include="Src\TextureCache.cpp" />
     <ClCompile Include="Src\VertexManager.cpp" />
     <ClCompile Include="Src\VertexShaderCache.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="Src\Render.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\Television.h" />
+    <ClInclude Include="Src\TexCopyLookaside.h" />
     <ClInclude Include="Src\TextureCache.h" />
     <ClInclude Include="Src\TextureEncoder.h" />
     <ClInclude Include="Src\VertexManager.h" />

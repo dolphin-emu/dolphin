@@ -15,69 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TEXTUREMNGR_H_
-#define _TEXTUREMNGR_H_
-
-#include <map>
-
-#include "VideoCommon.h"
-#include "GLUtil.h"
-#include "BPStructs.h"
+#ifndef _VIDEOOGL_TEXTURECACHE_H
+#define _VIDEOOGL_TEXTURECACHE_H
 
 #include "TextureCacheBase.h"
 
 namespace OGL
 {
 
-class TextureCache : public ::TextureCache
-{
-public:
-	static void DisableStage(unsigned int stage);
-
-private:
-	struct TCacheEntry : TCacheEntryBase
-	{
-		GLuint texture;
-
-		PC_TexFormat pcfmt;
-
-		int gl_format;
-		int gl_iformat;
-		int gl_type;
-
-		bool bHaveMipMaps;
-
-		//TexMode0 mode; // current filter and clamp modes that texture is set to
-		//TexMode1 mode1; // current filter and clamp modes that texture is set to
-
-		TCacheEntry();
-		~TCacheEntry();
-
-		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level, bool autogen_mips = false);
-
-		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat);
-
-		void Bind(unsigned int stage);
-		bool Save(const char filename[]);
-
-	private:
-		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
-	};
-
-	~TextureCache();
-
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
-
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
-};
-
+// TODO: Reimplement
+	
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
 
 }
 
-#endif // _TEXTUREMNGR_H_
+#endif // _VIDEOOGL_TEXTURECACHE_H

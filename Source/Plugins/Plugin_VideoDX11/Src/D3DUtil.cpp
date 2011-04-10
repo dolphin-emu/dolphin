@@ -468,6 +468,29 @@ int stq_offset, stsq_offset, cq_offset, clearq_offset;
 // observer variables for ring buffer wraps
 bool stq_observer, stsq_observer, cq_observer, clearq_observer;
 
+static const D3D11_INPUT_ELEMENT_DESC ENCODER_QUAD_LAYOUT_DESC[] = {
+	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+
+static const struct EncoderQuadVertex
+{
+	float posX;
+	float posY;
+} ENCODER_QUAD_VERTS[4] = { { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } };
+
+static const char ENCODER_VS[] =
+"// dolphin-emu generic encoder vertex shader\n"
+
+"float4 main(in float2 Pos : POSITION) : SV_Position\n"
+"{\n"
+	"return float4(Pos, 0, 1);\n"
+"}\n"
+;
+
+static SharedPtr<ID3D11Buffer> s_encoderQuad;
+static SharedPtr<ID3D11InputLayout> s_encoderQuadLayout;
+static SharedPtr<ID3D11VertexShader> s_encoderVShader;
+
 void InitUtils()
 {
 	util_vbuf.reset(new UtilVertexBuffer(0x4000));
@@ -504,6 +527,23 @@ void InitUtils()
 	util_vbuf->AddWrapObserver(&clearq_observer);
 
 	font.Init();
+	
+	// Create resources for encoder quads
+
+	// Create vertex quad
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(ENCODER_QUAD_VERTS),
+		D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_IMMUTABLE);
+	D3D11_SUBRESOURCE_DATA srd = { ENCODER_QUAD_VERTS, 0, 0 };
+	s_encoderQuad = CreateBufferShared(&bd, &srd);
+
+	// Create vertex shader
+	SharedPtr<ID3D10Blob> bytecode;
+	s_encoderVShader = D3D::CompileAndCreateVertexShader(ENCODER_VS, sizeof(ENCODER_VS), std::addressof(bytecode));
+
+	// Create input layout
+	s_encoderQuadLayout = CreateInputLayoutShared(ENCODER_QUAD_LAYOUT_DESC,
+		sizeof(ENCODER_QUAD_LAYOUT_DESC) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+		bytecode->GetBufferPointer(), bytecode->GetBufferSize());
 }
 
 void ShutdownUtils()
@@ -522,6 +562,26 @@ void SetPointCopySampler()
 void SetLinearCopySampler()
 {
 	D3D::g_context->PSSetSamplers(0, 1, &linear_copy_sampler);
+}
+
+void drawEncoderQuad(SharedPtr<ID3D11PixelShader> pShader,
+	ID3D11ClassInstance* const* ppClassInstances, UINT numClassInstances)
+{
+	// Set up state
+	D3D::g_context->PSSetShader(pShader, ppClassInstances, numClassInstances);
+	D3D::g_context->VSSetShader(s_encoderVShader, NULL, 0);
+	D3D::g_context->IASetInputLayout(s_encoderQuadLayout);
+	D3D::g_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	UINT stride = sizeof(EncoderQuadVertex);
+	UINT offset = 0;
+	D3D::g_context->IASetVertexBuffers(0, 1, &s_encoderQuad, &stride, &offset);
+
+	// Encode!
+	D3D::g_context->Draw(4, 0);
+
+	// Clean up state
+	D3D::g_context->VSSetShader(NULL, NULL, 0);
+	D3D::g_context->PSSetShader(NULL, NULL, 0);
 }
 
 void drawShadedTexQuad(ID3D11ShaderResourceView* texture,

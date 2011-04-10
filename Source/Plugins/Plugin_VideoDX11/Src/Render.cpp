@@ -246,17 +246,7 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName(cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
 	D3D::SetDebugObjectName(cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
-	D3D11_BLEND_DESC blenddesc;
-	blenddesc.AlphaToCoverageEnable = FALSE;
-	blenddesc.IndependentBlendEnable = FALSE;
-	blenddesc.RenderTarget[0].BlendEnable = FALSE;
-	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	blenddesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	D3D11_BLEND_DESC blenddesc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
 	resetblendstate = CreateBlendStateShared(&blenddesc);
 	CHECK(resetblendstate, "Create blend state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName(resetblendstate, "blend state for Renderer::ResetAPIState");
@@ -275,17 +265,15 @@ void SetupDeviceObjects()
 
 	CHECK(clearblendstates[1] && clearblendstates[2] && clearblendstates[3], "Create blend state for Renderer::ClearScreen");
 
-	ddesc.DepthEnable	   = FALSE;
-	ddesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc		 = D3D11_COMPARISON_LESS;
-	ddesc.StencilEnable	 = FALSE;
-	ddesc.StencilReadMask   = D3D11_DEFAULT_STENCIL_READ_MASK;
-	ddesc.StencilWriteMask  = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	ddesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	ddesc.DepthEnable = FALSE;
 	hr = D3D::g_device->CreateDepthStencilState(&ddesc, &resetdepthstate);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName(resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
 
-	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
+	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	rastdesc.CullMode = D3D11_CULL_NONE;
+	rastdesc.DepthClipEnable = FALSE;
 	hr = D3D::g_device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName(resetraststate, "rasterizer state for Renderer::ResetAPIState");
@@ -1065,12 +1053,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
+	//TextureCache::Cleanup();
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
+	//if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+	//	g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	//	TextureCache::Invalidate(false);
 
 	// Enable any configuration changes
 	UpdateActiveConfig();

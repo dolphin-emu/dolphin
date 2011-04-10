@@ -121,10 +121,10 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
 	
-	if (TextureCache::DeferredInvalidate)
-	{
-		TextureCache::Invalidate(false);
-	}
+	//if (TextureCache::DeferredInvalidate)
+	//{
+	//	TextureCache::Invalidate(false);
+	//}
 }
 
 void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)

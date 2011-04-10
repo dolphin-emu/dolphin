@@ -25,6 +25,7 @@
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
 #include "NativeVertexFormat.h"
+#include "BPMemory.h"
 
 //void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;

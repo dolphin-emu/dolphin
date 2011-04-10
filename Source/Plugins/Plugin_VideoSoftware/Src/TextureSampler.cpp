@@ -182,16 +182,17 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
         WrapCoord(imageSPlus1, tm0.wrap_s, imageWidth);
         WrapCoord(imageTPlus1, tm0.wrap_t, imageHeight);
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+		// TODO: Fix
+        //TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
         SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+        //TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
         AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+        //TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
         AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+        //TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
         AddTexel(sampledTex, texel, (fractS) * (fractT));
 
         sample[0] = (u8)(texel[0] >> 14);
@@ -209,7 +210,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		WrapCoord(imageS, tm0.wrap_s, imageWidth);
         WrapCoord(imageT, tm0.wrap_t, imageHeight);
 
-        TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);   
+        //TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);   
     }
 }
 

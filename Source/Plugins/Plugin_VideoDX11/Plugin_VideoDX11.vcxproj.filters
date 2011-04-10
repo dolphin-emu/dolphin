@@ -54,6 +54,9 @@
     <ClCompile Include="Src\PointGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\TexCopyLookaside.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -109,6 +112,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\PointGeometryShader.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TexCopyLookaside.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

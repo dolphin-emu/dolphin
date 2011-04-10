@@ -190,7 +190,7 @@ void VideoBackend::Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	g_texture_cache = new TextureCache;
+	//g_texture_cache = new TextureCache;
 
 	BPInit();
 	g_vertex_manager = new VertexManager;
@@ -232,7 +232,7 @@ void VideoBackend::Shutdown()
 		PixelShaderManager::Shutdown();
 		PixelShaderCache::Shutdown();
 		delete g_vertex_manager;
-		delete g_texture_cache;
+		//delete g_texture_cache;
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;

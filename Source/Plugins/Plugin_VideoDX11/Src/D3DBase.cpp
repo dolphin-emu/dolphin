@@ -96,6 +96,16 @@ HRESULT D3D11CreateDeviceAndSwapChainShared(IDXGIAdapter *pAdapter,
 	return hr;
 }
 
+SharedPtr<ID3D11Texture1D> CreateTexture1DShared(
+	const D3D11_TEXTURE1D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
+{
+	ID3D11Texture1D* texture = nullptr;
+
+	D3D::g_device->CreateTexture1D(pDesc, pInitialData, &texture);
+
+	return SharedPtr<ID3D11Texture1D>::FromPtr(texture);
+}
+
 SharedPtr<ID3D11Texture2D> CreateTexture2DShared(
 	const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData)
 {

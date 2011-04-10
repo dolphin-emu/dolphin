@@ -15,46 +15,174 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef _VIDEODX11_TEXTURECACHE_H
+#define _VIDEODX11_TEXTURECACHE_H
 
 #include "TextureCacheBase.h"
-
-#include "D3DTexture.h"
+#include "D3DUtil.h"
 
 namespace DX11
 {
 
-class TextureCache : public ::TextureCache
+class D3DTexture2D;
+class TextureEncoder;
+class TexCopyLookaside;
+	
+class TCacheEntry : public TCacheEntryBase
 {
+
 public:
+
+	TCacheEntry();
+
+	void EvictFromTmem();
+	void Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat);
+	void Bind(int stage);
+
+private:
+
+	// Returns true if there is new loaded data
+	bool Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if there is new loaded data
+	bool LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	void CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	void ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	bool LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl);
+
+	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool loadedChanged);
+
+	// Returns true if TLUT changed, false if not
+	bool RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	void CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Run the depalettizing shader
+	void DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+	
+#if 0
+	void XXXRefreshFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if successful
+	bool XXXRefreshFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl);
+
+	void XXXRecreateTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+	void XXXReloadTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	void XXXHandleTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+#endif
+
+	bool m_inTmem;
+	u32 m_ramAddr;
+
+	// Attributes of the currently-loaded texture
+	u32 m_curWidth;
+	u32 m_curHeight;
+	u32 m_curLevels;
+	u32 m_curFormat;
+	u64 m_curHash;
+
+	// Attributes of currently-loaded palette (if any)
+	u64 m_curPaletteHash;
+	u32 m_curTlutFormat;
+	u32 m_lastPalettedFormat;
+
+	// Attributes of current depalettized texture (if any)
+	unsigned int m_curDepalWidth;
+	unsigned int m_curDepalHeight;
+	unsigned int m_curDepalLevels;
+	
+	// If format is paletted, this texture contains palette indices.
+	// If format is not paletted, this texture contains bindable data.
+	// If entry is from TCL, this texture is not used.
+	std::unique_ptr<D3DTexture2D> m_ramTexture;
+
+	// If format is paletted, this texture contains depalettized data.
+	// If format is not paletted, this texture is not used.
+	std::unique_ptr<D3DTexture2D> m_depalettizedStorage;
+
+	// If format is paletted, this contains the palette's RGBA data.
+	SharedPtr<ID3D11Texture1D> m_palette;
+	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
+
+#if 0
+	// Attributes of currently-loaded palette (if any)
+	u32 m_curTlutAddr;
+	u32 m_curTlutFormat;
+	u64 m_curTlutHash;
+
+
+	// If format is paletted, this contains depalettized data
+	SharedPtr<ID3D11Texture1D> m_palette;
+	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
+	std::unique_ptr<D3DTexture2D> m_depalettized;
+#endif
+	
+	bool m_fromTcl;
+	D3DTexture2D* m_loaded;
+	D3DTexture2D* m_depalettized;
+	D3DTexture2D* m_bindMe;
+
+};
+
+typedef std::map<u32, TexCopyLookaside*> TexCopyLookasideMap;
+
+class TextureCache : public TextureCacheBase
+{
+
+public:
+
 	TextureCache();
 	~TextureCache();
 
+	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+	u8* GetDecodeTemp() { return m_decodeTemp; }
+	TexCopyLookasideMap& GetTclMap() { return m_tclMap; }
+	
+	SharedPtr<ID3D11PixelShader> GetDepal4Shader();
+	SharedPtr<ID3D11PixelShader> GetDepal8Shader();
+	SharedPtr<ID3D11PixelShader> GetDepalUintShader();
+
+protected:
+
+	TCacheEntry* CreateEntry();
+
 private:
-	struct TCacheEntry : TCacheEntryBase
-	{
-		std::unique_ptr<D3DTexture2D> const texture;
 
-		D3D11_USAGE usage;
+	u8 m_decodeTemp[1024*1024*4];
 
-		TCacheEntry(std::unique_ptr<D3DTexture2D>&& _tex) : texture(std::move(_tex)) {}
+	// FIXME: Should the EFB encoder be embedded in the texture cache class?
+	std::unique_ptr<TextureEncoder> m_encoder;
+	TexCopyLookasideMap m_tclMap;
 
-		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
+	// Depalettizing shader for 4-bit indices as normalized float
+	SharedPtr<ID3D11PixelShader> m_depal4Shader;
+	// Depalettizing shader for 8-bit indices as normalized float
+	SharedPtr<ID3D11PixelShader> m_depal8Shader;
+	// Depalettizing shader for indices as uint
+	SharedPtr<ID3D11PixelShader> m_depalUintShader;
 
-		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat);
-
-		void Bind(unsigned int stage);
-		bool Save(const char filename[]);
-	};
-
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
-
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
 };
 
 }
+
+#endif

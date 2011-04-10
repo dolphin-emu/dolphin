@@ -182,7 +182,8 @@ void VideoBackend::Video_Prepare()
 
 	// internal interfaces
 	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
+	//g_texture_cache = new TextureCache;
+	g_textureCache = new TextureCache;
 	g_vertex_manager = new VertexManager;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
@@ -227,7 +228,9 @@ void VideoBackend::Shutdown()
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
 		delete g_vertex_manager;
-		delete g_texture_cache;
+		//delete g_texture_cache;
+		delete g_textureCache;
+		g_textureCache = NULL;
 		delete g_renderer;
 		g_renderer = NULL;
 	}

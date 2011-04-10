@@ -45,55 +45,21 @@
 namespace DX11
 {
 	
-union EFBEncodeParams
+struct EFBEncodeParams
 {
-	struct
-	{
-		FLOAT NumHalfCacheLinesX;
-		FLOAT NumBlocksY;
-		FLOAT PosX;
-		FLOAT PosY;
-		FLOAT TexLeft;
-		FLOAT TexTop;
-		FLOAT TexRight;
-		FLOAT TexBottom;
-	};
-	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[32]; // Pad to the next multiple of 16 bytes
+	FLOAT TexLeft;
+	FLOAT TexTop;
+	FLOAT TexRight;
+	FLOAT TexBottom;
+	FLOAT Pos[2];
 };
 
-static const char EFB_ENCODE_VS[] =
-"// dolphin-emu EFB encoder vertex shader\n"
-
-"cbuffer cbParams : register(b0)\n"
-"{\n"
-	"struct\n" // Should match EFBEncodeParams above
-	"{\n"
-		"float NumHalfCacheLinesX;\n"
-		"float NumBlocksY;\n"
-		"float PosX;\n" // Upper-left corner of source
-		"float PosY;\n"
-		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
-		"float TexTop;\n"
-		"float TexRight;\n"
-		"float TexBottom;\n"
-	"} Params;\n"
-"}\n"
-
-"struct Output\n"
-"{\n"
-	"float4 Pos : SV_Position;\n"
-	"float2 Coord : ENCODECOORD;\n"
-"};\n"
-
-"Output main(in float2 Pos : POSITION)\n"
-"{\n"
-	"Output result;\n"
-	"result.Pos = float4(2*Pos.x-1, -2*Pos.y+1, 0.0, 1.0);\n"
-	"result.Coord = Pos * float2(Params.NumHalfCacheLinesX, Params.NumBlocksY);\n"
-	"return result;\n"
-"}\n"
-;
+union EFBEncodeParams_Padded
+{
+	EFBEncodeParams params;
+	// Constant buffers must be a multiple of 16 bytes in size.
+	u8 pad[(sizeof(EFBEncodeParams) + 15) & ~15];
+};
 
 static const char EFB_ENCODE_PS[] =
 "// dolphin-emu EFB encoder pixel shader\n"
@@ -104,14 +70,11 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"struct\n" // Should match EFBEncodeParams above
 	"{\n"
-		"float NumHalfCacheLinesX;\n"
-		"float NumBlocksY;\n"
-		"float PosX;\n" // Upper-left corner of source
-		"float PosY;\n"
 		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
 		"float TexTop;\n"
 		"float TexRight;\n"
 		"float TexBottom;\n"
+		"float2 Pos;\n" // Upper-left corner of source
 	"} Params;\n"
 "}\n"
 
@@ -310,12 +273,12 @@ static const char EFB_ENCODE_PS[] =
 
 "float4 ScaledFetch_0(float2 coord)\n"
 "{\n"
-	"return IMP_FETCH(float2(Params.PosX,Params.PosY) + coord);\n"
+	"return IMP_FETCH(Params.Pos + coord);\n"
 "}\n"
 
 "float4 ScaledFetch_1(float2 coord)\n"
 "{\n"
-	"float2 ul = float2(Params.PosX,Params.PosY) + 2*coord;\n"
+	"float2 ul = Params.Pos + 2*coord;\n"
 	"float4 sample0 = IMP_FETCH(ul+float2(0,0));\n"
 	"float4 sample1 = IMP_FETCH(ul+float2(1,0));\n"
 	"float4 sample2 = IMP_FETCH(ul+float2(0,1));\n"
@@ -839,27 +802,15 @@ static const char EFB_ENCODE_PS[] =
 "#error No generator specified\n"
 "#endif\n"
 
-"void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 fCacheCoord : ENCODECOORD)\n"
+"void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position)\n"
 "{\n"
-	"float2 cacheCoord = floor(fCacheCoord);\n"
+	"float2 cacheCoord = floor(Pos.xy);\n"
 	"ocol0 = IMP_GENERATOR(cacheCoord);\n"
 "}\n"
 ;
 
-static const D3D11_INPUT_ELEMENT_DESC QUAD_LAYOUT_DESC[] = {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-};
-
-static const struct QuadVertex
-{
-	float posX;
-	float posY;
-} QUAD_VERTS[4] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
-
 PSTextureEncoder::PSTextureEncoder()
 	: m_ready(false), m_outRTV(NULL),
-	m_efbEncodeDepthState(NULL),
-	m_efbEncodeRastState(NULL), m_efbSampler(NULL),
 	m_classLinkage(NULL)
 {
 	m_ready = false;
@@ -902,34 +853,11 @@ PSTextureEncoder::PSTextureEncoder()
 
 	// Create constant buffer for uploading data to shaders
 
-	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams),
-		D3D11_BIND_CONSTANT_BUFFER);
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams_Padded),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	m_encodeParams = CreateBufferShared(&bd, NULL);
 	CHECK(m_encodeParams, "create efb encode params buffer");
 	D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
-
-	// Create vertex quad
-
-	bd = CD3D11_BUFFER_DESC(sizeof(QUAD_VERTS), D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_IMMUTABLE);
-	D3D11_SUBRESOURCE_DATA srd = { QUAD_VERTS, 0, 0 };
-
-	m_quad = CreateBufferShared(&bd, &srd);
-	CHECK(m_quad, "create efb encode quad vertex buffer");
-	D3D::SetDebugObjectName(m_quad, "efb encoder quad vertex buffer");
-
-	// Create vertex shader
-	SharedPtr<ID3D10Blob> bytecode;
-	m_vShader = D3D::CompileAndCreateVertexShader(EFB_ENCODE_VS, sizeof(EFB_ENCODE_VS), std::addressof(bytecode));
-	CHECK(m_vShader, "compile/create efb encode vertex shader");
-	D3D::SetDebugObjectName(m_vShader, "efb encoder vertex shader");
-
-	// Create input layout for vertex quad using bytecode from vertex shader
-	m_quadLayout = CreateInputLayoutShared(QUAD_LAYOUT_DESC,
-		sizeof(QUAD_LAYOUT_DESC) / sizeof(D3D11_INPUT_ELEMENT_DESC),
-		bytecode->GetBufferPointer(), bytecode->GetBufferSize());
-	CHECK(m_quadLayout, "create efb encode quad vertex layout");
-	D3D::SetDebugObjectName(m_quadLayout, "efb encoder quad layout");
 
 	// Create pixel shader
 
@@ -939,42 +867,6 @@ PSTextureEncoder::PSTextureEncoder()
 	if (!InitStaticMode())
 #endif
 		return;
-
-	// Create blend state
-	{
-	auto const bld = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
-	m_efbEncodeBlendState = CreateBlendStateShared(&bld);
-	CHECK(SUCCEEDED(hr), "create efb encode blend state");
-	D3D::SetDebugObjectName(m_efbEncodeBlendState, "efb encoder blend state");
-	}
-
-	// Create depth state
-	{
-	auto dsd = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	dsd.DepthEnable = FALSE;
-	hr = D3D::g_device->CreateDepthStencilState(&dsd, &m_efbEncodeDepthState);
-	CHECK(SUCCEEDED(hr), "create efb encode depth state");
-	D3D::SetDebugObjectName(m_efbEncodeDepthState, "efb encoder depth state");
-	}
-
-	// Create rasterizer state
-	{
-	auto rd = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-	rd.CullMode = D3D11_CULL_NONE;
-	rd.DepthClipEnable = FALSE;
-	hr = D3D::g_device->CreateRasterizerState(&rd, &m_efbEncodeRastState);
-	CHECK(SUCCEEDED(hr), "create efb encode rast state");
-	D3D::SetDebugObjectName(m_efbEncodeRastState, "efb encoder rast state");
-	}
-
-	// Create efb texture sampler
-	{
-	auto sd = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	hr = D3D::g_device->CreateSamplerState(&sd, &m_efbSampler);
-	CHECK(SUCCEEDED(hr), "create efb encode texture sampler");
-	D3D::SetDebugObjectName(m_efbSampler, "efb encoder texture sampler");
-	}
 
 	m_ready = true;
 }
@@ -992,9 +884,6 @@ PSTextureEncoder::~PSTextureEncoder()
 	
 	SAFE_RELEASE(m_classLinkage);
 
-	SAFE_RELEASE(m_efbSampler);
-	SAFE_RELEASE(m_efbEncodeRastState);
-	SAFE_RELEASE(m_efbEncodeDepthState);
 	SAFE_RELEASE(m_outRTV);
 }
 
@@ -1043,6 +932,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	// Reset API
 
 	g_renderer->ResetAPIState();
+	D3D::stateman->Apply();
 
 	// Set up all the state for EFB encoding
 	
@@ -1052,21 +942,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
 #endif
 	{
-		D3D::g_context->VSSetShader(m_vShader, NULL, 0);
-
-		D3D::stateman->PushBlendState(m_efbEncodeBlendState);
-		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
-		D3D::stateman->PushRasterizerState(m_efbEncodeRastState);
-		D3D::stateman->Apply();
-	
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::g_context->RSSetViewports(1, &vp);
-
-		D3D::g_context->IASetInputLayout(m_quadLayout);
-		D3D::g_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		UINT stride = sizeof(QuadVertex);
-		UINT offset = 0;
-		D3D::g_context->IASetVertexBuffers(0, 1, &m_quad, &stride, &offset);
 	
 		EFBRectangle fullSrcRect;
 		fullSrcRect.left = 0;
@@ -1074,19 +951,22 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		fullSrcRect.right = EFB_WIDTH;
 		fullSrcRect.bottom = EFB_HEIGHT;
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
-	
-		EFBEncodeParams params = { 0 };
-		params.NumHalfCacheLinesX = FLOAT(cacheLinesPerRow*2);
-		params.NumBlocksY = FLOAT(numBlocksY);
-		params.PosX = FLOAT(correctSrc.left);
-		params.PosY = FLOAT(correctSrc.top);
-		params.TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
-		params.TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
-		params.TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
-		params.TexBottom = float(targetRect.bottom) / g_renderer->GetFullTargetHeight();
-		D3D::g_context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
 
-		D3D::g_context->VSSetConstantBuffers(0, 1, &m_encodeParams);
+		D3D11_MAPPED_SUBRESOURCE map;
+		hr = D3D::g_context->Map(m_encodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		if (SUCCEEDED(hr))
+		{
+			EFBEncodeParams* params = (EFBEncodeParams*)map.pData;
+			params->TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
+			params->TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
+			params->TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
+			params->TexBottom = float(targetRect.bottom) / g_renderer->GetFullTargetHeight();
+			params->Pos[0] = FLOAT(correctSrc.left);
+			params->Pos[1] = FLOAT(correctSrc.top);
+			D3D::g_context->Unmap(m_encodeParams, 0);
+		}
+		else
+			ERROR_LOG(VIDEO, "Failed to map encode params buffer");
 	
 		D3D::g_context->OMSetRenderTargets(1, &m_outRTV, NULL);
 
@@ -1096,13 +976,15 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		D3D::g_context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 		D3D::g_context->PSSetShaderResources(0, 1, &pEFB);
-		D3D::g_context->PSSetSamplers(0, 1, &m_efbSampler);
+		D3D::SetPointCopySampler();
 
 		// Encode!
 
-		D3D::g_context->Draw(4, 0);
+		D3D::drawEncoderQuad(m_useThisPS, m_useTheseInstances, m_useNumInstances);
 
 		// Copy to staging buffer
+		
+		D3D::g_context->OMSetRenderTargets(0, NULL, NULL);
 
 		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow*2, numBlocksY, 1);
 		D3D::g_context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
@@ -1110,25 +992,11 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		// Clean up state
 	
 		IUnknown* nullDummy = NULL;
-
-		D3D::g_context->PSSetSamplers(0, 1, (ID3D11SamplerState**)&nullDummy);
 		D3D::g_context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
 		D3D::g_context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-	
-		D3D::g_context->OMSetRenderTargets(0, NULL, NULL);
-
-		D3D::g_context->VSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-		
-		D3D::stateman->PopRasterizerState();
-		D3D::stateman->PopDepthState();
-		D3D::stateman->PopBlendState();
-
-		D3D::g_context->PSSetShader(NULL, NULL, 0);
-		D3D::g_context->VSSetShader(NULL, NULL, 0);
 
 		// Transfer staging buffer to GameCube/Wii RAM
 
-		D3D11_MAPPED_SUBRESOURCE map = { 0 };
 		hr = D3D::g_context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
 		CHECK(SUCCEEDED(hr), "map staging buffer");
 
@@ -1242,7 +1110,9 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	{
 		if (it->second)
 		{
-			D3D::g_context->PSSetShader(it->second, NULL, 0);
+			m_useThisPS = it->second;
+			m_useTheseInstances = NULL;
+			m_useNumInstances = 0;
 			return true;
 		}
 		else
@@ -1394,9 +1264,9 @@ bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
 	if (m_generatorSlot != UINT(-1))
 		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
 	
-	D3D::g_context->PSSetShader(m_dynamicShader,
-		m_linkageArray.empty() ? NULL : &m_linkageArray[0],
-		(UINT)m_linkageArray.size());
+	m_useThisPS = m_dynamicShader;
+	m_useTheseInstances = m_linkageArray.empty() ? NULL : &m_linkageArray[0];
+	m_useNumInstances = (UINT)m_linkageArray.size();
 
 	return true;
 }

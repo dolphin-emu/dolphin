@@ -23,6 +23,7 @@
 #include "TextureDecoder.h"
 #include "Fifo.h"
 #include "CommandProcessor.h"
+#include "TextureCacheBase.h"
 #include "PixelEngine.h"
 
 static void DoState(PointerWrap &p)
@@ -41,7 +42,7 @@ static void DoState(PointerWrap &p)
     p.Do(xfregs);
     p.DoArray(xfmem, XFMEM_SIZE);
     // Texture decoder
-    p.DoArray(texMem, TMEM_SIZE);
+    p.DoArray(g_textureCache->GetCache(), TMEM_SIZE);
  
     // FIFO
     Fifo_DoState(p);

@@ -29,6 +29,7 @@
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
+#include "TextureCacheBase.h"
 #include "Thread.h"
 
 using namespace BPFunctions;
@@ -104,28 +105,31 @@ void BPWritten(const BPCmd& bp)
 	// This significantly increases speed while in hyrule field. In depth discussion
 	// on how this Hack came to be can be found at: http://forums.dolphin-emu.com/thread-10638.html
 	// -fircrestsk8
-	if (g_ActiveConfig.bZTPSpeedHack)
-	{
-		if (!mapTexFound)
-		{
-			if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
-				numWrites = 0;
-			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
-			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
-				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
-				mapTexFound = true;
-				WARN_LOG(VIDEO, "\nZTP map texture found at address %08x\n", mapTexAddress);
-			}
-			FlushPipeline();
-		}
-		else if ( (bpmem.tex[0].texImage3[0].hex << 5) != mapTexAddress ||
-					bpmem.tevorders[0].getEnable(0) == 0 ||
-					bp.address == BPMEM_TREF)
-		{
-			FlushPipeline();
-		}
-	}  // END ZTP SPEEDUP HACK
-	else FlushPipeline();
+	//if (g_ActiveConfig.bZTPSpeedHack)
+	//{
+	//	if (!mapTexFound)
+	//	{
+	//		if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
+	//			numWrites = 0;
+	//		else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
+	//		{								// then it is safe to assume the map texture address is currently loaded into the BP memory
+	//			mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
+	//			mapTexFound = true;
+	//			WARN_LOG(VIDEO, "\nZTP map texture found at address %08x\n", mapTexAddress);
+	//		}
+	//		FlushPipeline();
+	//	}
+	//	else if ( (bpmem.tex[0].texImage3[0].hex << 5) != mapTexAddress ||
+	//				bpmem.tevorders[0].getEnable(0) == 0 ||
+	//				bp.address == BPMEM_TREF)// ||
+	//				//bp.address == BPMEM_LINEPTWIDTH)
+	//	{
+	//		FlushPipeline();
+	//	}
+	//}  // END ZTP SPEEDUP HACK
+	//else FlushPipeline();
+
+	FlushPipeline();
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
@@ -293,24 +297,19 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
 		{
-			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
-			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
-
-			u8 *ptr = 0;
-
+			u8 *ptr;
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
 				ptr = GetPointer(bpmem.tlutXferSrc << 5);
 			else
 				ptr = GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
 
-			if (ptr)
-				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
-			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+			// Writes to this register trigger a load
+			u32 tmemAddr = ((bp.newvalue & 0x3FF) << 9) + TMEM_HALF;
+			u32 size = (bp.newvalue & 0x1FFC00) >> 5;
+			DEBUG_LOG(VIDEO, "Loading tlut to 0x%.05X", tmemAddr);
+			g_textureCache->Load(tmemAddr, ptr, size);
 
-			// TODO(ector) : kill all textures that use this palette
-			// Not sure if it's a good idea, though. For now, we hash texture palettes
 			break;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -426,6 +425,7 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
+		g_textureCache->Invalidate();
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
