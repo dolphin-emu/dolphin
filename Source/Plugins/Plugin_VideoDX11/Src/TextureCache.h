@@ -71,23 +71,6 @@ private:
 	// Run the depalettizing shader
 	void DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
-	
-#if 0
-	void XXXRefreshFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
-
-	// Returns true if successful
-	bool XXXRefreshFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl);
-
-	void XXXRecreateTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
-	void XXXReloadTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
-
-	void XXXHandleTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
-#endif
 
 	bool m_inTmem;
 	u32 m_ramAddr;
@@ -121,19 +104,6 @@ private:
 	// If format is paletted, this contains the palette's RGBA data.
 	SharedPtr<ID3D11Texture1D> m_palette;
 	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
-
-#if 0
-	// Attributes of currently-loaded palette (if any)
-	u32 m_curTlutAddr;
-	u32 m_curTlutFormat;
-	u64 m_curTlutHash;
-
-
-	// If format is paletted, this contains depalettized data
-	SharedPtr<ID3D11Texture1D> m_palette;
-	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
-	std::unique_ptr<D3DTexture2D> m_depalettized;
-#endif
 	
 	bool m_fromTcl;
 	D3DTexture2D* m_loaded;

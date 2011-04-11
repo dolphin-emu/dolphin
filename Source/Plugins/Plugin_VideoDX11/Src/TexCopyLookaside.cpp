@@ -216,7 +216,7 @@ static bool IsDstFormatBG(unsigned int dstFormat)
 
 static bool IsDstFormatA(unsigned int dstFormat)
 {
-	return dstFormat == 0x7; // G8
+	return dstFormat == 0x7; // A8
 }
 
 static bool IsDstFormatR(unsigned int dstFormat)
@@ -287,7 +287,11 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	
 	D3DTexture2D* efbTexture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::GetEFBDepthTexture() :
-		FramebufferManager::GetEFBColorTexture();
+	// FIXME: Resolving EFB here will cause minor artifacts if the texture is
+	// interpreted with a palette. On DX10.1+ hardware, it would be better to
+	// copy into a multisampled fake-base, have the depalettizer work with
+	// multisampled textures, then resolve after depalettization.
+		FramebufferManager::GetResolvedEFBColorTexture();
 
 	if (recreateFakeBase)
 	{
