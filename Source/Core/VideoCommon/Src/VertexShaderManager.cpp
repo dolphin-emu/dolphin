@@ -299,7 +299,7 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		SetVSConstant4f(C_DEPTHPARAMS,xfregs.rawViewport[5]/ 16777216.0f,xfregs.rawViewport[2]/ 16777216.0f,0.0f,0.0f);
+		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport();
 	}

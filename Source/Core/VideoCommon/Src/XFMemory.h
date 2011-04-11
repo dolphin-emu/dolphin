@@ -229,7 +229,7 @@ struct Viewport
 {
 	float wd;
 	float ht;
-	float nearZ;
+	float zRange;
 	float xOrig;
 	float yOrig;
 	float farZ;
@@ -259,7 +259,7 @@ struct XFRegisters
     u32 unk7;                       // 0x1017
     u32 MatrixIndexA;				// 0x1018
     u32 MatrixIndexB;				// 0x1019
-    float rawViewport[6];           // 0x101a - 0x101f
+    Viewport viewport;              // 0x101a - 0x101f
     float rawProjection[7];         // 0x1020 - 0x1026
     u32 unk8[24];                   // 0x1027 - 0x103e
     NumTexGen numTexGen;            // 0x103f

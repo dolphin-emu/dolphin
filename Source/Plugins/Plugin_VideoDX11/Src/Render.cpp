@@ -663,10 +663,10 @@ void Renderer::UpdateViewport()
 
 	// TODO: ceil, floor or just cast to int?
 	// TODO: Directly use the floats instead of rounding them?
-	int X = Renderer::EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff)) + Renderer::TargetStrideX();
-	int Y = Renderer::EFBToScaledY((int)ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - scissorYOff)) + Renderer::TargetStrideY();
-	int Width = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.rawViewport[0]));
-	int Height = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.rawViewport[1]));
+	int X = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff)) + Renderer::TargetStrideX();
+	int Y = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff)) + Renderer::TargetStrideY();
+	int Width = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int Height = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
 	if (Width < 0)
 	{
 		X += Width;
@@ -729,8 +729,8 @@ void Renderer::UpdateViewport()
 
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
-										0.f,	// (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-										1.f);   //  xfregs.rawViewport[5] / 16777216.0f;
+										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
+										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::g_context->RSSetViewports(1, &vp);
 }
 
