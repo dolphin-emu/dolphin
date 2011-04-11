@@ -707,10 +707,10 @@ void Renderer::UpdateViewport()
 	int scissorYOff = bpmem.scissorOffset.y << 1;
 
 	// TODO: ceil, floor or just cast to int?
-	int X = EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff)) + TargetStrideX();
-	int Y = EFBToScaledY((int)ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - scissorYOff)) + TargetStrideY();
-	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.rawViewport[0]));
-	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.rawViewport[1]));
+	int X = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff)) + TargetStrideX();
+	int Y = EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff)) + TargetStrideY();
+	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
 	if (Width < 0)
 	{
 		X += Width;
@@ -794,8 +794,8 @@ void Renderer::UpdateViewport()
 	vp.Height = Height;
 	
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	vp.MinZ = 0.0f; // (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	vp.MaxZ = 1.0f; // xfregs.rawViewport[5] / 16777216.0f;
+	vp.MinZ = 0.0f; // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
+	vp.MaxZ = 1.0f; // xfregs.viewport.farZ / 16777216.0f;
 	D3D::dev->SetViewport(&vp);
 }
 
@@ -1367,7 +1367,7 @@ void Renderer::SetDitherMode()
 void Renderer::SetLineWidth()
 {
 	// We can't change line width in D3D unless we use ID3DXLine
-	float fratio = xfregs.rawViewport[0] != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
+	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
 	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
 	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }

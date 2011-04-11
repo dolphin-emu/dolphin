@@ -148,7 +148,7 @@ void PixelShaderManager::SetConstants()
 		// [5] = 16777215 * farz
 
 		//ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        SetPSConstant4f(C_ZBIAS+1, xfregs.rawViewport[2] / 16777216.0f, xfregs.rawViewport[5] / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
+		SetPSConstant4f(C_ZBIAS+1, xfregs.viewport.farZ / 16777216.0f, xfregs.viewport.zRange / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
@@ -245,14 +245,14 @@ void PixelShaderManager::SetConstants()
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
 			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
 			// normalice center to make calculations easy
-			float ScreenSpaceCenter = center / (2.0f * xfregs.rawViewport[0]);
+			float ScreenSpaceCenter = center / (2.0f * xfregs.viewport.wd);
 			ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
 			//bpmem.fogRange.K seems to be  a table of precalculated coeficients for the adjust factor
 			//observations: bpmem.fogRange.K[0].LO apears to be the lowest value and bpmem.fogRange.K[4].HI the largest
 			// they always seems to be larger than 256 so my teory is :
 			// they are the coeficients from the center to th e border of the screen
 			// so to simplify i use the hi coeficient as K in the shader taking 256 as the scale
-			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.rawViewport[0])), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
+			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd)), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
 		}		
 		s_bFogRangeAdjustChanged = false;
 	}

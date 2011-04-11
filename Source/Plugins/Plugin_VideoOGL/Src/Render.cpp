@@ -830,12 +830,12 @@ void Renderer::UpdateViewport()
 	int scissorYOff = bpmem.scissorOffset.y << 1;
 
 	// TODO: ceil, floor or just cast to int?
-	int X = EFBToScaledX((int)ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (float)scissorXOff));
-	int Y = EFBToScaledY((int)ceil((float)EFB_HEIGHT - xfregs.rawViewport[4] + xfregs.rawViewport[1] + (float)scissorYOff));
-	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.rawViewport[0]));
-	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.rawViewport[1]));
-	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
+	int X = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - (float)scissorXOff));
+	int Y = EFBToScaledY((int)ceil((float)EFB_HEIGHT - xfregs.viewport.yOrig + xfregs.viewport.ht + (float)scissorYOff));
+	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
+	double GLNear = (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
+	double GLFar = xfregs.viewport.farZ / 16777216.0f;
 	if (Width < 0)
 	{
 		X += Width;
@@ -1482,7 +1482,7 @@ void Renderer::SetDitherMode()
 
 void Renderer::SetLineWidth()
 {
-	float fratio = xfregs.rawViewport[0] != 0 ?
+	float fratio = xfregs.viewport.wd != 0 ?
 		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 	if (bpmem.lineptwidth.linesize > 0)
 		// scale by ratio of widths

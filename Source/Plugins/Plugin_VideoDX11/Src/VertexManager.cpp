@@ -133,8 +133,8 @@ void VertexManager::Draw(UINT stride)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-		float vpWidth = 2.0f * xfregs.rawViewport[0];
-		float vpHeight = -2.0f * xfregs.rawViewport[1];
+		float vpWidth = 2.0f * xfregs.viewport.wd;
+		float vpHeight = -2.0f * xfregs.viewport.ht;
 
 		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth, texOffset, vpWidth, vpHeight))
 		{
@@ -149,8 +149,8 @@ void VertexManager::Draw(UINT stride)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-		float vpWidth = 2.0f * xfregs.rawViewport[0];
-		float vpHeight = -2.0f * xfregs.rawViewport[1];
+		float vpWidth = 2.0f * xfregs.viewport.wd;
+		float vpHeight = -2.0f * xfregs.viewport.ht;
 
 		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize, texOffset, vpWidth, vpHeight))
 		{
