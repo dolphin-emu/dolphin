@@ -1,4 +1,3 @@
-
 #include "GeckoCode.h"
 
 #include "Thread.h"
@@ -687,12 +686,12 @@ bool MathOperation(u32& ret, const u32 left, const u32 right, const u8 type)
 
 		// TODO: these float ops good?
 		// A : fadds (single float add)
-	case 0xA :
+	case 0x9 :
 		*(float*)&ret = *(float*)&left + *(float*)&right;
 		break;
 
 		// B : fmuls (single float mul)
-	case 0xB :
+	case 0xA :
 		*(float*)&ret = *(float*)&left * *(float*)&right;
 		break;
 

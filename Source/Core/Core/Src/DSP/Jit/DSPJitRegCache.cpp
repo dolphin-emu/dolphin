@@ -418,6 +418,21 @@ void DSPJitRegCache::pushRegs() {
 			movToMemory(i);
 	}
 
+	int push_count = 0;
+	for(unsigned int i = 0; i < NUMXREGS; i++) {
+		if (xregs[i].guest_reg == DSP_REG_USED)
+			push_count++;
+	}
+
+	//hardcoding alignment to 16 bytes
+#ifdef _M_X64
+	if (push_count & 1)
+		emitter.SUB(64,R(RSP),Imm32(8));
+#else
+	if (push_count & 3)
+		emitter.SUB(32,R(ESP),Imm32(16 - 4 * (push_count & 3)));
+#endif
+
 	for(unsigned int i = 0; i < NUMXREGS; i++) {
 		if (xregs[i].guest_reg == DSP_REG_USED) {
 			emitter.PUSH((X64Reg)i);
@@ -452,6 +467,12 @@ void DSPJitRegCache::popRegs() {
 #else
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
+	int push_count = 0;
+	for(unsigned int i = 0; i < NUMXREGS; i++) {
+		if (xregs[i].pushed)
+			push_count++;
+	}
+
 	for(int i = NUMXREGS-1; i >= 0; i--) {
 		if (xregs[i].pushed) {
 			emitter.POP((X64Reg)i);
@@ -459,6 +480,15 @@ void DSPJitRegCache::popRegs() {
 			xregs[i].guest_reg = DSP_REG_USED;
 		}
 	}
+
+	//hardcoding alignment to 16 bytes
+#ifdef _M_X64
+	if (push_count & 1)
+		emitter.ADD(64,R(RSP),Imm32(8));
+#else
+	if (push_count & 3)
+		emitter.ADD(32,R(ESP),Imm32(16 - 4 * (push_count & 3)));
+#endif
 
 	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++) {
 		if (regs[i].host_reg != INVALID_REG)

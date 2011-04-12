@@ -317,36 +317,36 @@ void SysConf::GenerateSysConf()
 	File::IOFile g(m_FilenameDefault, "wb");
 
 	// Write the header and item offsets
-	g.WriteArray(&s_Header.version, 1);
-	g.WriteArray(&s_Header.numEntries, 1);
+	g.WriteBytes(&s_Header.version, sizeof(s_Header.version));
+	g.WriteBytes(&s_Header.numEntries, sizeof(u16));
 	for (int i = 0; i != 27; ++i)
 	{
 		const u16 tmp_offset = Common::swap16(items[i].offset);
-		g.WriteArray(&tmp_offset, 1);
+		g.WriteBytes(&tmp_offset, 2);
 	}
 	const u16 end_data_offset = Common::swap16(current_offset);
-	g.WriteArray(&end_data_offset, 1);
+	g.WriteBytes(&end_data_offset, 2);
 	
 	// Write the items
 	const u8 null_byte = 0;
 	for (int i = 0; i != 27; ++i)
 	{
 		u8 description = (items[i].type << 5) | (items[i].nameLength - 1);
-		g.WriteArray(&description, 1);
-		g.WriteArray(&items[i].name, items[i].nameLength);
+		g.WriteBytes(&description, sizeof(description));
+		g.WriteBytes(&items[i].name, items[i].nameLength);
 		switch (items[i].type)
 		{
 			case Type_BigArray:
 				{
 					const u16 tmpDataLength = Common::swap16(items[i].dataLength);
-					g.WriteArray(&tmpDataLength, 1);
+					g.WriteBytes(&tmpDataLength, 2);
 					g.WriteBytes(items[i].data, items[i].dataLength);
-					g.WriteArray(&null_byte, 1);
+					g.WriteBytes(&null_byte, 1);
 				}
 				break;
 
 			case Type_SmallArray:
-				g.WriteArray(&items[i].dataLength, 1);
+				g.WriteBytes(&items[i].dataLength, 1);
 				g.WriteBytes(items[i].data, items[i].dataLength);
 				g.WriteBytes(&null_byte, 1);
 				break;
