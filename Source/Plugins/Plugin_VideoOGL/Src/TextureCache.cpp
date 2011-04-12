@@ -57,4 +57,26 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
     return SaveTGA(filename, width, height, &data[0]);
 }
 
+void TCacheEntry::EvictFromTmem()
+{
+	// TODO: Implement
+}
+
+void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	// TODO: Implement
+}
+
+void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+{
+	// TODO: Implement
+}
+
+TCacheEntry* TextureCache::CreateEntry()
+{
+	return new TCacheEntry;
+}
+
 }

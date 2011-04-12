@@ -169,7 +169,7 @@ void VideoBackend::Video_Prepare()
 
 	// internal interfaces
 	g_renderer = new Renderer;
-	//g_texture_cache = new TextureCache;
+	g_textureCache = new TextureCache;
 	g_vertex_manager = new VertexManager;
 	// VideoCommon
 	BPInit();
@@ -209,7 +209,9 @@ void VideoBackend::Shutdown()
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
 		delete g_vertex_manager;
-		//delete g_texture_cache;
+		g_vertex_manager = NULL;
+		delete g_textureCache;
+		g_textureCache = NULL;
 		delete g_renderer;
 		g_renderer = NULL;
 	}
