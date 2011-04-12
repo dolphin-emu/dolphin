@@ -28,7 +28,12 @@ public:
 
 	unsigned int GetRealWidth() const { return m_realW; }
 	unsigned int GetRealHeight() const { return m_realH; }
+
 	u64 GetHash() const { return m_hash; }
+	void SetHash(u64 hash) { m_hash = hash; }
+
+	bool IsDirty() const { return m_dirty; }
+	void ResetDirty() { m_dirty = false; }
 
 private:
 
@@ -44,10 +49,13 @@ private:
 	unsigned int m_virtualW;
 	unsigned int m_virtualH;
 	unsigned int m_dstFormat;
+
+	// This is not maintained by TexCopyLookaside. It must be handled externally.
 	u64 m_hash;
 
 	// Fake base: Created and updated at the time of EFB copy
 	std::unique_ptr<D3DTexture2D> m_fakeBase;
+	bool m_dirty;
 
 };
 

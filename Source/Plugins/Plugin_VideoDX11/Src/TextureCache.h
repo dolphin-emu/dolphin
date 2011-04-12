@@ -41,12 +41,10 @@ public:
 
 private:
 
-	// Returns true if there is new loaded data
-	bool Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+	void Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
-	// Returns true if there is new loaded data
-	bool LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
 	void CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -59,7 +57,7 @@ private:
 		u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl);
 
 	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat, bool loadedChanged);
+		u32 format, u32 tlutAddr, u32 tlutFormat);
 
 	// Returns true if TLUT changed, false if not
 	bool RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -86,20 +84,21 @@ private:
 	u64 m_curPaletteHash;
 	u32 m_curTlutFormat;
 	u32 m_lastPalettedFormat;
-
-	// Attributes of current depalettized texture (if any)
-	unsigned int m_curDepalWidth;
-	unsigned int m_curDepalHeight;
-	unsigned int m_curDepalLevels;
 	
 	// If format is paletted, this texture contains palette indices.
 	// If format is not paletted, this texture contains bindable data.
 	// If entry is from TCL, this texture is not used.
 	std::unique_ptr<D3DTexture2D> m_ramTexture;
 
-	// If format is paletted, this texture contains depalettized data.
-	// If format is not paletted, this texture is not used.
-	std::unique_ptr<D3DTexture2D> m_depalettizedStorage;
+	// If loaded texture is paletted, this contains depalettized data.
+	// Otherwise, this is not used.
+	struct
+	{
+		std::unique_ptr<D3DTexture2D> tex;
+		UINT width;
+		UINT height;
+		UINT levels;
+	} m_depalStorage;
 
 	// If format is paletted, this contains the palette's RGBA data.
 	SharedPtr<ID3D11Texture1D> m_palette;
@@ -107,12 +106,13 @@ private:
 	
 	bool m_fromTcl;
 	D3DTexture2D* m_loaded;
+	bool m_loadedDirty;
 	D3DTexture2D* m_depalettized;
 	D3DTexture2D* m_bindMe;
 
 };
 
-typedef std::map<u32, TexCopyLookaside*> TexCopyLookasideMap;
+typedef std::map<u32, std::unique_ptr<TexCopyLookaside> > TexCopyLookasideMap;
 
 class TextureCache : public TextureCacheBase
 {
@@ -120,7 +120,6 @@ class TextureCache : public TextureCacheBase
 public:
 
 	TextureCache();
-	~TextureCache();
 
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);

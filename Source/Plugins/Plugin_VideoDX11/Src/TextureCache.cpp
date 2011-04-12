@@ -17,6 +17,7 @@
 
 #include "TextureCache.h"
 
+#include "VideoConfig.h"
 #include "D3DBase.h"
 #include "D3DTexture.h"
 #include "D3DShader.h"
@@ -81,6 +82,7 @@ void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
 {
 	m_fromTcl = false;
 	m_loaded = NULL;
+	m_loadedDirty = false;
 	m_depalettized = NULL;
 	m_bindMe = NULL;
 
@@ -88,8 +90,8 @@ void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
 	unsigned int maxLevels = ComputeMaxLevels(width, height);
 	levels = std::min(levels, maxLevels);
 
-	bool loadedChanged = Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
-	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, loadedChanged);
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 	m_bindMe = m_depalettized;
 }
@@ -102,33 +104,41 @@ void TCacheEntry::Bind(int stage)
 		D3D::g_context->PSSetShaderResources(stage, 0, NULL);
 }
 
-bool TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	bool refreshFromRam = true;
-
-	// First, see if there is a tex-copy lookaside available at this RAM address
+	
+	// See if there is a TCL available at this address
 	TexCopyLookasideMap& tclMap = ((TextureCache*)g_textureCache)->GetTclMap();
 	TexCopyLookasideMap::iterator tclIt = tclMap.find(ramAddr);
 
-	bool loadedChanged = false;
-
 	if (tclIt != tclMap.end())
 	{
-		if (LoadFromTcl(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, tclIt->second))
+		if (g_ActiveConfig.bEFBCopyVirtualEnable)
 		{
-			refreshFromRam = false;
-			loadedChanged = true; // FIXME: Should check with hashes
+			// Try to load from the TCL instead of RAM.
+			// FIXME: If TCL keeps failing to load, its memory region may have
+			// been deallocated by the game. We ought to delete TCL that aren't
+			// being used.
+			if (LoadFromTcl(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, tclIt->second.get()))
+				refreshFromRam = false;
+		}
+		else
+		{
+			// User must have turned off virtual copies mid-game. Delete any
+			// that are found.
+			// FIXME: Is it desirable to delete them as they are found instead
+			// of just deleting them all at once?
+			tclMap.erase(tclIt);
 		}
 	}
 
 	if (refreshFromRam)
-		loadedChanged = LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
-
-	return loadedChanged;
+		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 }
 
-bool TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	const u8* src = Memory::GetPointer(ramAddr);
@@ -174,8 +184,7 @@ bool TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 	m_fromTcl = false;
 	m_loaded = m_ramTexture.get();
-
-	return reloadTexture;
+	m_loadedDirty = reloadTexture;
 }
 
 void TCacheEntry::CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -192,6 +201,7 @@ void TCacheEntry::CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			(format == GX_TF_C14X2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R8_UINT),
 			width, height, 1, levels);
 
+		m_ramTexture.reset();
 		SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
 		m_ramTexture.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
 	}
@@ -203,6 +213,7 @@ void TCacheEntry::CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 			DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, levels);
 
+		m_ramTexture.reset();
 		SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
 		m_ramTexture.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
 	}
@@ -348,10 +359,14 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl)
 {
-	if (width != tcl->GetRealWidth() || height != tcl->GetRealHeight() || levels != 1)
+	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		INFO_LOG(VIDEO, "Tex-copy lookaside was incompatible; falling back to RAM");
-		return false;
+		// Only make these checks if there is a RAM copy to fall back on.
+		if (width != tcl->GetRealWidth() || height != tcl->GetRealHeight() || levels != 1)
+		{
+			INFO_LOG(VIDEO, "Tex-copy lookaside was incompatible; falling back to RAM");
+			return false;
+		}
 	}
 
 	// Would real hardware reload data from RAM to TMEM?
@@ -363,11 +378,21 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 	// Otherwise, it's acceptable to just use the fake texture as is.
 	if (loadToTmem)
 	{
-		// FIXME: Only the top-level mip is hashed.
-		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 		const u8* src = Memory::GetPointer(ramAddr);
-		newHash = GetHash64(src, sizeInBytes, sizeInBytes);
-		DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+
+		if (g_ActiveConfig.bEFBCopyRAMEnable)
+		{
+			// We made a RAM copy, so check its hash for changes
+			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		}
+		else
+		{
+			// We must be doing virtual copies only, so look for canary data.
+			newHash = *(u64*)src;
+		}
+
 		if (newHash != tcl->GetHash())
 		{
 			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
@@ -392,11 +417,13 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 	m_fromTcl = true;
 	m_loaded = fakeTexture;
+	m_loadedDirty = tcl->IsDirty();
+	tcl->ResetDirty();
 	return true;
 }
 
 void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat, bool loadedChanged)
+	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	if (IsPaletted(format))
 	{
@@ -405,8 +432,10 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		D3D11_TEXTURE2D_DESC loadedDesc;
 		m_loaded->GetTex()->GetDesc(&loadedDesc);
 
-		bool recreateDepal = !m_depalettizedStorage || loadedDesc.Width != m_curDepalWidth
-			|| loadedDesc.Height != m_curDepalHeight || loadedDesc.MipLevels != m_curDepalLevels;
+		bool recreateDepal = !m_depalStorage.tex ||
+			loadedDesc.Width != m_depalStorage.width ||
+			loadedDesc.Height != m_depalStorage.height ||
+			loadedDesc.MipLevels != m_depalStorage.levels;
 
 		if (recreateDepal)
 		{
@@ -416,24 +445,21 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 				DXGI_FORMAT_R8G8B8A8_UNORM, loadedDesc.Width, loadedDesc.Height, 1, loadedDesc.MipLevels,
 				D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
+			m_depalStorage.tex.reset();
 			SharedPtr<ID3D11Texture2D> newDepal = CreateTexture2DShared(&t2dd, NULL);
-			m_depalettizedStorage.reset(new D3DTexture2D(newDepal,
+			m_depalStorage.tex.reset(new D3DTexture2D(newDepal,
 				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
 		}
 
-		bool runDepalShader = recreateDepal || loadedChanged || paletteChanged;
+		bool runDepalShader = recreateDepal || m_loadedDirty || paletteChanged;
 		if (runDepalShader)
 			DepalettizeShader(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
-		m_curDepalWidth = loadedDesc.Width;
-		m_curDepalHeight = loadedDesc.Height;
-		m_curDepalLevels = loadedDesc.MipLevels;
-
-		m_depalettized = m_depalettizedStorage.get();
+		m_depalettized = m_depalStorage.tex.get();
 	}
 	else
 	{
-		m_depalettizedStorage.reset();
+		m_depalStorage.tex.reset();
 		m_paletteSRV.reset();
 		m_palette.reset();
 		m_depalettized = m_loaded;
@@ -594,7 +620,7 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 	else
 		depalettizeShader = ((TextureCache*)g_textureCache)->GetDepalUintShader();
 
-	D3D::g_context->OMSetRenderTargets(1, &m_depalettizedStorage->GetRTV(), NULL);
+	D3D::g_context->OMSetRenderTargets(1, &m_depalStorage.tex->GetRTV(), NULL);
 	D3D::g_context->PSSetShaderResources(8, 1, &m_loaded->GetSRV());
 	D3D::g_context->PSSetShaderResources(9, 1, &m_paletteSRV);
 
@@ -617,33 +643,47 @@ TextureCache::TextureCache()
 	m_encoder.reset(new PSTextureEncoder);
 }
 
-TextureCache::~TextureCache()
-{
-	for (TexCopyLookasideMap::iterator it = m_tclMap.begin(); it != m_tclMap.end(); ++it)
-	{
-		delete it->second;
-	}
-	m_tclMap.clear();
-}
-
 void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
-	// TODO: Should add TCacheEntry for the rendered texture, possibly with
-	// enhanced resolution
 	u8* dst = Memory::GetPointer(dstAddr);
-	m_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-	TexCopyLookasideMap::iterator tclIt = m_tclMap.find(dstAddr);
-	if (tclIt == m_tclMap.end())
+	u64 encodedHash = 0;
+	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		tclIt = m_tclMap.insert(std::make_pair(dstAddr, new TexCopyLookaside)).first;
+		// Take the hash of the encoded data to detect if the game overwrites
+		// it.
+		size_t encodeSize = m_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		encodedHash = GetHash64(dst, encodeSize, encodeSize);
+		DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016X", dstAddr, encodedHash);
+	}
+	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
+	{
+		static u64 canaryEgg = 0x79706F4342464500; // '\0EFBCopy'
+
+		// We aren't encoding to RAM but we are making a TCL, so put a piece of
+		// canary data in RAM to detect if the game overwrites it.
+		encodedHash = canaryEgg;
+		++canaryEgg;
+
+		// There will be at least 32 bytes that are safe to write here.
+		*(u64*)dst = encodedHash;
 	}
 
-	TexCopyLookaside* tcl = tclIt->second;
+	if (g_ActiveConfig.bEFBCopyVirtualEnable)
+	{
+		TexCopyLookasideMap::iterator tclIt = m_tclMap.find(dstAddr);
+		if (tclIt == m_tclMap.end())
+		{
+			tclIt = m_tclMap.insert(std::make_pair(dstAddr, new TexCopyLookaside)).first;
+		}
 
-	tcl->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		TexCopyLookaside* tcl = tclIt->second.get();
+
+		tcl->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		tcl->SetHash(encodedHash);
+	}
 }
 
 static const char DEPALETTIZE4_SHADER[] =

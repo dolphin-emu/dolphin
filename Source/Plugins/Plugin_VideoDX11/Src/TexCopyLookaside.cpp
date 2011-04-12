@@ -186,7 +186,7 @@ static SharedPtr<ID3D11PixelShader> GetFakeEncodeShader(bool scale, bool depth)
 }
 
 TexCopyLookaside::TexCopyLookaside()
-	: m_hash(0)
+	: m_hash(0), m_dirty(true)
 { }
 
 static bool IsDstFormatRGB(unsigned int dstFormat)
@@ -239,12 +239,6 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
-	u64 newHash = m_hash;
-
-	// If Update doesn't succeed, hash will be 0.
-	// FIXME: Cleaner way
-	m_hash = 0;
-
 	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
 	// texture, which is invalid.
 	EFBRectangle correctSrc = srcRect;
@@ -252,32 +246,6 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 
 	unsigned int newRealW = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
 	unsigned int newRealH = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
-	
-	// NOTE: This code assumes that the real texture has already been encoded to RAM!
-	u8* src = Memory::GetPointer(dstAddr);
-	// "Preliminary" texture format: Encoded data will most likely be used for
-	// this texture format. This also determines the encoded size.
-	unsigned int prelimTexFormat;
-	switch (dstFormat)
-	{
-	case 0x0: prelimTexFormat = GX_TF_I4; break; // R4 - TODO: This may be palettized!
-	case 0x1: prelimTexFormat = GX_TF_I8; break; // R8 - TODO: This may be palettized!
-	case 0x2: prelimTexFormat = GX_TF_IA4; break; // A4 R4
-	case 0x3: prelimTexFormat = GX_TF_IA8; break; // A8 R8
-	case 0x4: prelimTexFormat = GX_TF_RGB565; break; // R5 G6 B5
-	case 0x5: prelimTexFormat = GX_TF_RGB5A3; break; // 1 R5 G5 B5 or 0 A3 R4 G4 B4
-	case 0x6: prelimTexFormat = GX_TF_RGBA8; break; // A8 R8 A8 R8 | G8 B8 G8 B8
-	case 0x7: prelimTexFormat = GX_TF_I8; break; // A8 - TODO: This may be palettized!
-	case 0x8: prelimTexFormat = GX_TF_I8; break; // R8 - TODO: This may be palettized!
-	case 0x9: prelimTexFormat = GX_TF_I8; break; // G8 - TODO: This may be palettized!
-	case 0xA: prelimTexFormat = GX_TF_I8; break; // B8 - TODO: This may be palettized!
-	case 0xB: prelimTexFormat = GX_TF_IA8; break; // G8 R8
-	case 0xC: prelimTexFormat = GX_TF_IA8; break; // B8 G8
-	default: return;
-	}
-	u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(newRealW, newRealH, prelimTexFormat);
-	newHash = GetHash64(src, sizeInBytes, sizeInBytes);
-	DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016X", dstAddr, newHash);
 
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(correctSrc);
 	unsigned int newVirtualW = targetRect.GetWidth() / (scaleByHalf ? 2 : 1);
@@ -301,6 +269,7 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 			DXGI_FORMAT_R8G8B8A8_UNORM, newVirtualW, newVirtualH,
 			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
+		m_fakeBase.reset();
 		SharedPtr<ID3D11Texture2D> newFakeBase = CreateTexture2DShared(&t2dd, NULL);
 		m_fakeBase.reset(new D3DTexture2D(newFakeBase,
 			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
@@ -467,6 +436,7 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	else
 	{
 		ERROR_LOG(VIDEO, "Not implemented: Cannot fake this combination of formats");
+		m_fakeBase.reset();
 		return;
 	}
 
@@ -476,7 +446,7 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	m_virtualW = newVirtualW;
 	m_virtualH = newVirtualH;
 	m_dstFormat = dstFormat;
-	m_hash = newHash;
+	m_dirty = true;
 }
 
 D3DTexture2D* TexCopyLookaside::FakeTexture(u32 ramAddr, u32 width, u32 height,
@@ -497,10 +467,6 @@ D3DTexture2D* TexCopyLookaside::FakeTexture(u32 ramAddr, u32 width, u32 height,
 
 	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
 		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
-	
-	// FIXME: How do we handle levels > 1?
-	if (!m_hash || width != m_realW || height != m_realH || levels != 1)
-		return NULL;
 
 	return m_fakeBase.get();
 }
