@@ -20,6 +20,8 @@
 
 #include "TextureCacheBase.h"
 
+#include "GLUtil.h"
+
 namespace OGL
 {
 	
@@ -29,9 +31,32 @@ class TCacheEntry : public TCacheEntryBase
 {
 
 public:
+
+	TCacheEntry();
+	~TCacheEntry();
 	
 	void EvictFromTmem();
 	void Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	GLuint GetTexture() { return m_texture; }
+
+private:
+
+	bool m_inTmem;
+	u32 m_ramAddr;
+	
+	// Attributes of the currently-loaded texture
+	u32 m_curWidth;
+	u32 m_curHeight;
+	u32 m_curLevels;
+	u32 m_curFormat;
+	u64 m_curHash;
+
+	// Attributes of currently-loaded palette (if any)
+	u64 m_curPaletteHash;
+	u32 m_curTlutFormat;
+
+	GLuint m_texture;
 
 };
 
@@ -43,9 +68,15 @@ public:
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
+	u8* GetDecodeTemp() { return m_decodeTemp; }
+
 protected:
 
 	TCacheEntry* CreateEntry();
+
+private:
+
+	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 
 };
 

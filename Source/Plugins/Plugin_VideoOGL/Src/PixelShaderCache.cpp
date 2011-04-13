@@ -250,7 +250,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 
 #if defined HAVE_CG && HAVE_CG
 	char stropt[128];
-	sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
+	sprintf(stropt, "MaxLocalParams=64,NumInstructionSlots=%d", s_nMaxPixelInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 

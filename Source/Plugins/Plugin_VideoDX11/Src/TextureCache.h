@@ -137,7 +137,7 @@ protected:
 
 private:
 
-	u8 m_decodeTemp[1024*1024*4];
+	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 
 	// FIXME: Should the EFB encoder be embedded in the texture cache class?
 	std::unique_ptr<TextureEncoder> m_encoder;

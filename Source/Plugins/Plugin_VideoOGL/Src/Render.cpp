@@ -1016,8 +1016,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Textured triangles are necessary because of post-processing shaders
 
 	// Disable all other stages
-	//for (int i = 1; i < 8; ++i)
-	//	OGL::TextureCache::DisableStage(i);
+	for (int i = 0; i < 8; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
 
 	// Update GLViewPort
 	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
@@ -1145,7 +1149,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	//OGL::TextureCache::DisableStage(0);
+	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 
 	// Save screenshot
 	if (s_bScreenshot)
