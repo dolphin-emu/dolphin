@@ -174,8 +174,13 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 //	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
 //	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
 	//64bit move to memory does not work. use 2 32bits
-	MOV(32, M(&g_dsp.r.prod.val), Imm32(0xfff00000U));
-	MOV(32, M(&g_dsp.r.prod.val+4), Imm32(0x001000ffU));
+	//MOV(32, M(&g_dsp.r.prod.val), Imm32(0xfff00000U));
+	//MOV(32, M(&g_dsp.r.prod.val+4), Imm32(0x001000ffU));
+	//2x32 causing probs with gbakey, 4x16 working ok
+	MOV(16, M(&g_dsp.r.prod.l), Imm16(0x0000));
+	MOV(16, M(&g_dsp.r.prod.m), Imm16(0xfff0));
+	MOV(16, M(&g_dsp.r.prod.h), Imm16(0x00ff));
+	MOV(16, M(&g_dsp.r.prod.m2),Imm16(0x0010));
 #else
 	Default(opc);
 #endif
