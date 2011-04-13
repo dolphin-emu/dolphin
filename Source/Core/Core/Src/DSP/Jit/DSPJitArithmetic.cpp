@@ -786,6 +786,7 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
 	MOV(64, R(RAX), R(tmp1));
 //	u16 acx = (u16)dsp_get_ax_l(sreg);
 	get_ax_l(sreg, RDX);
+	MOVZX(64, 16, RDX, R(RDX));
 //	u64 res = acc + acx;
 	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, (s64)res);
