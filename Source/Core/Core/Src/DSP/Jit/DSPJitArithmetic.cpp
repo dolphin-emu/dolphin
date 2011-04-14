@@ -1401,7 +1401,7 @@ void DSPEmitter::asr16(const UDSPInstruction opc)
 //	s64 acc = dsp_get_long_acc(areg);
 	get_long_acc(areg);
 //	acc >>= 16;
-	SHR(64, R(RAX), Imm8(16));
+	SAR(64, R(RAX), Imm8(16));
 //	dsp_set_long_acc(areg, acc);
 	set_long_acc(areg);
 //	Update_SR_Register64(dsp_get_long_acc(areg));
@@ -1528,7 +1528,7 @@ void DSPEmitter::asr(const UDSPInstruction opc)
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg);
 //	acc >>= shift;
-	SHR(64, R(RAX), Imm8((u8)shift));
+	SAR(64, R(RAX), Imm8((u8)shift));
 
 //	dsp_set_long_acc(dreg, acc);
 	set_long_acc(dreg);
@@ -1586,7 +1586,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	SHL(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
-	SAR(64, R(RDX), R(RCX));
+	SHR(64, R(RDX), R(RCX));
 	SetJumpTarget(noShift);
 	SetJumpTarget(exit);
 
@@ -1705,7 +1705,7 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SAR(64, R(RDX), R(RCX));
+	SHR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
 	SHL(64, R(RDX), R(RCX));
@@ -1828,7 +1828,7 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
 	ADD(16, R(RCX), Imm16(0x40));
-	SAR(64, R(RDX), R(RCX));
+	SHR(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);
 	SHL(64, R(RDX), R(RCX));
