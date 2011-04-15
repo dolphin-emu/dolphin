@@ -33,7 +33,7 @@ public:
 
 	// Returns true on success, false on failure
 	bool SetShader(u32 components, float lineWidth, float texOffset,
-		float vpWidth, float vpHeight);
+		float vpWidth, float vpHeight, const bool* texOffsetEnable);
 
 private:
 	bool m_ready;

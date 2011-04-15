@@ -25,17 +25,20 @@
 namespace DX11
 {
 
-union LineGSParams
+struct LineGSParams
 {
-	struct
-	{
-		FLOAT LineWidth; // In units of 1/6 of an EFB pixel
-		FLOAT TexOffset;
-		FLOAT VpWidth; // Width and height of the viewport in EFB pixels
-		FLOAT VpHeight;
-	};
+	FLOAT LineWidth; // In units of 1/6 of an EFB pixel
+	FLOAT TexOffset;
+	FLOAT VpWidth; // Width and height of the viewport in EFB pixels
+	FLOAT VpHeight;
+	FLOAT TexOffsetEnable[8]; // For each tex coordinate, whether to apply offset to it (1 on, 0 off)
+};
+
+union LineGSParams_Padded
+{
+	LineGSParams params;
 	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[16]; // Pad to the next multiple of 16 bytes
+	u8 pad[(sizeof(LineGSParams) + 15) & ~15];
 };
 
 static const char LINE_GS_COMMON[] =
@@ -50,6 +53,7 @@ static const char LINE_GS_COMMON[] =
 		"float TexOffset;\n"
 		"float VpWidth;\n"
 		"float VpHeight;\n"
+		"float TexOffsetEnable[8];\n"
 	"} Params;\n"
 "}\n"
 
@@ -91,40 +95,39 @@ static const char LINE_GS_COMMON[] =
 "#error NUM_TEXCOORDS not defined\n"
 "#endif\n"
 
-	// Apply TexOffset to all tex coordinates in the vertex
-	// FIXME: The game may be able to enable TexOffset for some coords and
-	// disable for others, but where is that information stored?
+	// Apply TexOffset to all tex coordinates in the vertex.
+	// They can each be enabled seperately.
 "#if NUM_TEXCOORDS >= 1\n"
-	"r0.tex0.x += Params.TexOffset;\n"
-	"r1.tex0.x += Params.TexOffset;\n"
+	"r0.tex0.x += Params.TexOffset * Params.TexOffsetEnable[0];\n"
+	"r1.tex0.x += Params.TexOffset * Params.TexOffsetEnable[0];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 2\n"
-	"r0.tex1.x += Params.TexOffset;\n"
-	"r1.tex1.x += Params.TexOffset;\n"
+	"r0.tex1.x += Params.TexOffset * Params.TexOffsetEnable[1];\n"
+	"r1.tex1.x += Params.TexOffset * Params.TexOffsetEnable[1];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 3\n"
-	"r0.tex2.x += Params.TexOffset;\n"
-	"r1.tex2.x += Params.TexOffset;\n"
+	"r0.tex2.x += Params.TexOffset * Params.TexOffsetEnable[2];\n"
+	"r1.tex2.x += Params.TexOffset * Params.TexOffsetEnable[2];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 4\n"
-	"r0.tex3.x += Params.TexOffset;\n"
-	"r1.tex3.x += Params.TexOffset;\n"
+	"r0.tex3.x += Params.TexOffset * Params.TexOffsetEnable[3];\n"
+	"r1.tex3.x += Params.TexOffset * Params.TexOffsetEnable[3];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 5\n"
-	"r0.tex4.x += Params.TexOffset;\n"
-	"r1.tex4.x += Params.TexOffset;\n"
+	"r0.tex4.x += Params.TexOffset * Params.TexOffsetEnable[4];\n"
+	"r1.tex4.x += Params.TexOffset * Params.TexOffsetEnable[4];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 6\n"
-	"r0.tex5.x += Params.TexOffset;\n"
-	"r1.tex5.x += Params.TexOffset;\n"
+	"r0.tex5.x += Params.TexOffset * Params.TexOffsetEnable[5];\n"
+	"r1.tex5.x += Params.TexOffset * Params.TexOffsetEnable[5];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 7\n"
-	"r0.tex6.x += Params.TexOffset;\n"
-	"r1.tex6.x += Params.TexOffset;\n"
+	"r0.tex6.x += Params.TexOffset * Params.TexOffsetEnable[6];\n"
+	"r1.tex6.x += Params.TexOffset * Params.TexOffsetEnable[6];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 8\n"
-	"r0.tex7.x += Params.TexOffset;\n"
-	"r1.tex7.x += Params.TexOffset;\n"
+	"r0.tex7.x += Params.TexOffset * Params.TexOffsetEnable[7];\n"
+	"r1.tex7.x += Params.TexOffset * Params.TexOffsetEnable[7];\n"
 "#endif\n"
 
 	"outStream.Append(l0);\n"
@@ -139,8 +142,8 @@ LineGeometryShader::LineGeometryShader()
 {
 	// Create constant buffer for uploading data to geometry shader
 	
-	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(LineGSParams),
-		D3D11_BIND_CONSTANT_BUFFER);
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(LineGSParams_Padded),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	m_paramsBuffer = CreateBufferShared(&bd, NULL);
 	CHECK(m_paramsBuffer, "create line geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "line geometry shader params buffer");
@@ -149,7 +152,7 @@ LineGeometryShader::LineGeometryShader()
 }
 
 bool LineGeometryShader::SetShader(u32 components, float lineWidth,
-	float texOffset, float vpWidth, float vpHeight)
+	float texOffset, float vpWidth, float vpHeight, const bool* texOffsetEnable)
 {
 	if (!m_ready)
 		return false;
@@ -191,12 +194,22 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 	{
 		if (shaderIt->second)
 		{
-			LineGSParams params = {};
-			params.LineWidth = lineWidth;
-			params.TexOffset = texOffset;
-			params.VpWidth = vpWidth;
-			params.VpHeight = vpHeight;
-			D3D::g_context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
+			D3D11_MAPPED_SUBRESOURCE map;
+			HRESULT hr = D3D::g_context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			if (SUCCEEDED(hr))
+			{
+				LineGSParams* params = (LineGSParams*)map.pData;
+				params->LineWidth = lineWidth;
+				params->TexOffset = texOffset;
+				params->VpWidth = vpWidth;
+				params->VpHeight = vpHeight;
+				for (int i = 0; i < 8; ++i)
+					params->TexOffsetEnable[i] = texOffsetEnable[i] ? 1.f : 0.f;
+
+				D3D::g_context->Unmap(m_paramsBuffer, 0);
+			}
+			else
+				ERROR_LOG(VIDEO, "Failed to map line gs params buffer");
 
 			DEBUG_LOG(VIDEO, "Line params: width %f, texOffset %f, vpWidth %f, vpHeight %f",
 				lineWidth, texOffset, vpWidth, vpHeight);

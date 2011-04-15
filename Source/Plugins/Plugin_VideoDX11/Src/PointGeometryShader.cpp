@@ -25,17 +25,20 @@
 namespace DX11
 {
 
-union PointGSParams
+struct PointGSParams
 {
-	struct
-	{
-		FLOAT PointSize; // In units of 1/6 of an EFB pixel
-		FLOAT TexOffset;
-		FLOAT VpWidth; // Width and height of viewport in EFB pixels
-		FLOAT VpHeight;
-	};
+	FLOAT PointSize; // In units of 1/6 of an EFB pixel
+	FLOAT TexOffset;
+	FLOAT VpWidth; // Width and height of viewport in EFB pixels
+	FLOAT VpHeight;
+	FLOAT TexOffsetEnable[8]; // For each tex coordinate, whether to apply offset to it (1 on, 0 off)
+};
+
+union PointGSParams_Padded
+{
+	PointGSParams params;
 	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[16]; // Pad to the next multiple of 16 bytes
+	u8 pad[(sizeof(PointGSParams) + 15) & ~15];
 };
 
 static const char POINT_GS_COMMON[] =
@@ -50,6 +53,7 @@ static const char POINT_GS_COMMON[] =
 		"float TexOffset;\n"
 		"float VpWidth;\n"
 		"float VpHeight;\n"
+		"float TexOffsetEnable[8];\n"
 	"} Params;\n"
 "}\n"
 
@@ -80,44 +84,44 @@ static const char POINT_GS_COMMON[] =
 	// FIXME: The game may be able to enable TexOffset for some coords and
 	// disable for others, but where is that information stored?
 "#if NUM_TEXCOORDS >= 1\n"
-	"ptLL.tex0.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex0.xy += texOffset;\n"
-	"ptUR.tex0.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex0.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[0];\n"
+	"ptLR.tex0.xy += texOffset * Params.TexOffsetEnable[0];\n"
+	"ptUR.tex0.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[0];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 2\n"
-	"ptLL.tex1.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex1.xy += texOffset;\n"
-	"ptUR.tex1.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex1.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[1];\n"
+	"ptLR.tex1.xy += texOffset * Params.TexOffsetEnable[1];\n"
+	"ptUR.tex1.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[1];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 3\n"
-	"ptLL.tex2.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex2.xy += texOffset;\n"
-	"ptUR.tex2.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex2.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[2];\n"
+	"ptLR.tex2.xy += texOffset * Params.TexOffsetEnable[2];\n"
+	"ptUR.tex2.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[2];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 4\n"
-	"ptLL.tex3.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex3.xy += texOffset;\n"
-	"ptUR.tex3.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex3.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[3];\n"
+	"ptLR.tex3.xy += texOffset * Params.TexOffsetEnable[3];\n"
+	"ptUR.tex3.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[3];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 5\n"
-	"ptLL.tex4.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex4.xy += texOffset;\n"
-	"ptUR.tex4.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex4.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[4];\n"
+	"ptLR.tex4.xy += texOffset * Params.TexOffsetEnable[4];\n"
+	"ptUR.tex4.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[4];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 6\n"
-	"ptLL.tex5.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex5.xy += texOffset;\n"
-	"ptUR.tex5.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex5.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[5];\n"
+	"ptLR.tex5.xy += texOffset * Params.TexOffsetEnable[5];\n"
+	"ptUR.tex5.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[5];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 7\n"
-	"ptLL.tex6.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex6.xy += texOffset;\n"
-	"ptUR.tex6.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex6.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[6];\n"
+	"ptLR.tex6.xy += texOffset * Params.TexOffsetEnable[6];\n"
+	"ptUR.tex6.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[6];\n"
 "#endif\n"
 "#if NUM_TEXCOORDS >= 8\n"
-	"ptLL.tex7.xy += float2(0,1) * texOffset;\n"
-	"ptLR.tex7.xy += texOffset;\n"
-	"ptUR.tex7.xy += float2(1,0) * texOffset;\n"
+	"ptLL.tex7.xy += float2(0,1) * texOffset * Params.TexOffsetEnable[7];\n"
+	"ptLR.tex7.xy += texOffset * Params.TexOffsetEnable[7];\n"
+	"ptUR.tex7.xy += float2(1,0) * texOffset * Params.TexOffsetEnable[7];\n"
 "#endif\n"
 
 	"outStream.Append(ptLL);\n"
@@ -132,8 +136,8 @@ PointGeometryShader::PointGeometryShader()
 {
 	// Create constant buffer for uploading data to geometry shader
 
-	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(PointGSParams),
-		D3D11_BIND_CONSTANT_BUFFER);
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(PointGSParams_Padded),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	m_paramsBuffer = CreateBufferShared(&bd, NULL);
 	CHECK(m_paramsBuffer, "create point geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "point geometry shader params buffer");
@@ -142,7 +146,7 @@ PointGeometryShader::PointGeometryShader()
 }
 
 bool PointGeometryShader::SetShader(u32 components, float pointSize,
-	float texOffset, float vpWidth, float vpHeight)
+	float texOffset, float vpWidth, float vpHeight, const bool* texOffsetEnable)
 {
 	if (!m_ready)
 		return false;
@@ -184,12 +188,22 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 	{
 		if (shaderIt->second)
 		{
-			PointGSParams params = {};
-			params.PointSize = pointSize;
-			params.TexOffset = texOffset;
-			params.VpWidth = vpWidth;
-			params.VpHeight = vpHeight;
-			D3D::g_context->UpdateSubresource(m_paramsBuffer, 0, NULL, &params, 0, 0);
+			D3D11_MAPPED_SUBRESOURCE map;
+			HRESULT hr = D3D::g_context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			if (SUCCEEDED(hr))
+			{
+				PointGSParams* params = (PointGSParams*)map.pData;
+				params->PointSize = pointSize;
+				params->TexOffset = texOffset;
+				params->VpWidth = vpWidth;
+				params->VpHeight = vpHeight;
+				for (int i = 0; i < 8; ++i)
+					params->TexOffsetEnable[i] = texOffsetEnable[i] ? 1.f : 0.f;
+
+				D3D::g_context->Unmap(m_paramsBuffer, 0);
+			}
+			else
+				ERROR_LOG(VIDEO, "Failed to map point gs params buffer");
 			
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);

@@ -172,10 +172,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	if(bUsingJIT) 
 		dspjit = new DSPEmitter();
 
-	DSPAnalyzer::Analyze();
-
 	core_state = DSPCORE_RUNNING;
-
 	return true;
 }
 
@@ -201,7 +198,8 @@ void DSPCore_Reset()
 	g_dsp.r.wr[1] = 0xffff;
 	g_dsp.r.wr[2] = 0xffff;
 	g_dsp.r.wr[3] = 0xffff;
-	
+
+	DSPAnalyzer::Analyze();
 }
 
 void DSPCore_SetException(u8 level)
