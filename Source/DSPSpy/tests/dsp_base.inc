@@ -108,6 +108,7 @@ MEM_LO:		equ	0x0f7F
 ; This is where we jump when we're done testing, see above.
 ; We just fall into a loop, playing dead until someone resets the DSP.	
 end_of_test:
+	nop
 	jmp		end_of_test
 
 ; Utility function to do DMA.

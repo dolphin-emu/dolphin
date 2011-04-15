@@ -96,6 +96,14 @@ void DSPEmitter::checkExceptions(u32 retval)
 	SetJumpTarget(skipCheck);
 }
 
+bool DSPEmitter::FlagsNeeded()
+{
+	if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR) 
+		return true; 
+	else
+		return false;
+}
+
 void DSPEmitter::Default(UDSPInstruction inst)
 {
 	if (opTable[inst]->reads_pc)
@@ -169,11 +177,6 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 			popExtValueToReg();
 		}
 	}
-}
-
-void DSPEmitter::unknown_instruction(UDSPInstruction inst)
-{
-	PanicAlert("unknown_instruction %04x - Fix me ;)", inst);
 }
 
 void DSPEmitter::Compile(u16 start_addr)

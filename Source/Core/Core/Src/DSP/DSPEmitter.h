@@ -40,13 +40,14 @@ public:
 	Block m_compiledCode;
 
 	void EmitInstruction(UDSPInstruction inst);
-	void unknown_instruction(UDSPInstruction inst);
 	void ClearIRAM();
 
 	void CompileDispatcher();
 	Block CompileStub();
 	void Compile(u16 start_addr);
 	void ClearCallFlag();
+
+	bool FlagsNeeded();
 
 	void Default(UDSPInstruction inst);
 

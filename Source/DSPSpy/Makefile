@@ -41,9 +41,9 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 ifeq ($(HW_TYPE), gamecube)
-LIBS	:=	-lfat -lasnd -lmodplay -lz -ldb -logc -lm
+LIBS	:=	-lfat -lasnd -lmodplay -ldb -logc -lm
 else
-LIBS	:=	-lfat -lasnd -lmodplay -lwiiuse -lbte -lz -logc -lm
+LIBS	:=	-lfat -lasnd -lmodplay -lwiiuse -lbte -logc -lm
 endif
 
 #---------------------------------------------------------------------------------
