@@ -790,6 +790,9 @@ union TCInfo
         u32 scale_minus_1 : 16;
         u32 range_bias : 1;
         u32 cylindric_wrap : 1;
+		// These bits only have effect in the s field of TCoordInfo
+		u32 line_offset : 1;
+		u32 point_offset : 1;
     };
     u32 hex;
 };
