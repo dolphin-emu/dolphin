@@ -287,6 +287,9 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	
 	RET();
 
+	pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(8 * sizeof(u8*));
+
 	pairedStoreQuantized[0] = storePairedFloat;
 	pairedStoreQuantized[1] = storePairedIllegal;
 	pairedStoreQuantized[2] = storePairedIllegal;
@@ -360,6 +363,9 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	CVTTSS2SI(EAX, R(XMM0));
 	SafeWriteRegToReg(EAX, ECX, 16, 0, true);
 	RET();
+
+	singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(8 * sizeof(u8*));
 
 	singleStoreQuantized[0] = storeSingleFloat;
 	singleStoreQuantized[1] = storeSingleIllegal;
@@ -537,6 +543,9 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 	MULSS(XMM0, R(XMM1));
 	UNPCKLPS(XMM0, M((void*)m_one));
 	RET();
+
+	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(16 * sizeof(u8*));
 
 	pairedLoadQuantized[0] = loadPairedFloatTwo;
 	pairedLoadQuantized[1] = loadPairedIllegal;

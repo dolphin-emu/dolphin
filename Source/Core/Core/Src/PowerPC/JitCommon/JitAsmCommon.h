@@ -56,19 +56,19 @@ public:
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,
 	//            converted to a pair of floats.
 	// Trashes: EAX ECX EDX
-	const u8 GC_ALIGNED16(*pairedLoadQuantized[16]);
+	const u8 **pairedLoadQuantized;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom two 32-bit slots hold the pair of floats to be written.
 	// Out: Nothing.
 	// Trashes: EAX ECX EDX
-	const u8 GC_ALIGNED16(*pairedStoreQuantized[8]);
+	const u8 **pairedStoreQuantized;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom 32-bit slot holds the float to be written.
-	const u8 GC_ALIGNED16(*singleStoreQuantized[8]);
+	const u8 **singleStoreQuantized;
 
 private:
 	ThunkManager thunks;
