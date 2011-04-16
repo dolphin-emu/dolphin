@@ -36,7 +36,8 @@ namespace DX11
 // isIntensity 1, scaleByHalf 1).
 
 // Format: 1 - R8
-// FIXME: Unseen. May or may not be a duplicate of format 8.
+// Used in Metroid Prime for the thermal visor. May or may not be a duplicate
+// of format 8.
 
 // Format: 2 - A4 R4
 // FIXME: Unseen.

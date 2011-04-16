@@ -655,8 +655,11 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 		// Take the hash of the encoded data to detect if the game overwrites
 		// it.
 		size_t encodeSize = m_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		encodedHash = GetHash64(dst, encodeSize, encodeSize);
-		DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016X", dstAddr, encodedHash);
+		if (encodeSize)
+		{
+			encodedHash = GetHash64(dst, encodeSize, encodeSize);
+			DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016X", dstAddr, encodedHash);
+		}
 	}
 	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
 	{

@@ -19,11 +19,10 @@ namespace DX11
 
 struct FakeEncodeParams
 {
-	FLOAT PreColorMatrix[4][4]; // Matrix to apply to read pixel BEFORE the others
-	FLOAT PreColorAdd[4];
-	FLOAT ColorMatrix[4][4];
-	FLOAT ColorAdd[4];
-	FLOAT Pos[2]; // Top-left encode position in virtual texture pixels
+	FLOAT Matrix[4][4];
+	FLOAT Add[4];
+	FLOAT Pos[2]; // Top-left of source in texels
+	BOOL DisableAlpha; // If true, alpha will read as 1 from the source
 };
 
 union FakeEncodeParams_Padded
@@ -46,11 +45,10 @@ static const char FAKE_ENCODE_PS[] =
 "{\n"
 	"struct\n"
 	"{\n"
-		"float4x4 PreColorMatrix;\n"
-		"float4 PreColorAdd;\n"
-		"float4x4 ColorMatrix;\n"
-		"float4 ColorAdd;\n"
+		"float4x4 Matrix;\n"
+		"float4 Add;\n"
 		"float2 Pos;\n"
+		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
@@ -60,8 +58,9 @@ static const char FAKE_ENCODE_PS[] =
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
 	"float4 pixel = EFBTexture.Load(int3(Params.Pos + pos.xy, 0));\n"
-	"pixel = mul(pixel, Params.PreColorMatrix) + Params.PreColorAdd;\n"
-	"ocol0 = mul(pixel, Params.ColorMatrix) + Params.ColorAdd;\n"
+	"if (Params.DisableAlpha)\n"
+		"pixel.a = 1;\n"
+	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
 "}\n"
 ;
 
@@ -72,11 +71,10 @@ static const char FAKE_ENCODE_SCALE_PS[] =
 "{\n"
 	"struct\n"
 	"{\n"
-		"float4x4 PreColorMatrix;\n"
-		"float4 PreColorAdd;\n"
-		"float4x4 ColorMatrix;\n"
-		"float4 ColorAdd;\n"
+		"float4x4 Matrix;\n"
+		"float4 Add;\n"
 		"float2 Pos;\n"
+		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
@@ -88,17 +86,15 @@ static const char FAKE_ENCODE_SCALE_PS[] =
 	"float2 tl = floor(pos.xy);\n"
 	
 	"float4 pixel0 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(0,0), 0));\n"
-	"pixel0 = mul(pixel0, Params.PreColorMatrix) + Params.PreColorAdd;\n"
 	"float4 pixel1 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(1,0), 0));\n"
-	"pixel1 = mul(pixel1, Params.PreColorMatrix) + Params.PreColorAdd;\n"
 	"float4 pixel2 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(0,1), 0));\n"
-	"pixel2 = mul(pixel2, Params.PreColorMatrix) + Params.PreColorAdd;\n"
 	"float4 pixel3 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(1,1), 0));\n"
-	"pixel3 = mul(pixel3, Params.PreColorMatrix) + Params.PreColorAdd;\n"
 
 	"float4 pixel = 0.25 * (pixel0 + pixel1 + pixel2 + pixel3);\n"
+	"if (Params.DisableAlpha)\n"
+		"pixel.a = 1;\n"
 
-	"ocol0 = mul(pixel, Params.ColorMatrix) + Params.ColorAdd;\n"
+	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
 "}\n"
 ;
 
@@ -109,11 +105,10 @@ static const char FAKE_ENCODE_DEPTH_PS[] =
 "{\n"
 	"struct\n"
 	"{\n"
-		"float4x4 PreColorMatrix;\n"
-		"float4 PreColorAdd;\n"
-		"float4x4 ColorMatrix;\n"
-		"float4 ColorAdd;\n"
+		"float4x4 Matrix;\n"
+		"float4 Add;\n"
 		"float2 Pos;\n"
+		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
@@ -130,9 +125,10 @@ static const char FAKE_ENCODE_DEPTH_PS[] =
 		"(depth24 >> 8) & 0xFF,\n"  // g
 		"depth24 & 0xFF,\n"         // b
 		"255);\n"                   // a
+
 	"float4 pixel = bytes / 255.0;\n"
-	"pixel = mul(pixel, Params.PreColorMatrix) + Params.PreColorAdd;\n"
-	"ocol0 = mul(pixel, Params.ColorMatrix) + Params.ColorAdd;\n"
+
+	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
 "}\n"
 ;
 
@@ -483,19 +479,13 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 	
 	DEBUG_LOG(VIDEO, "Doing fake encode shader");
 
-	static const float RGB_MATRIX[3][4] = {
-		{ 1, 0, 0, 0 },
-		{ 0, 1, 0, 0 },
-		{ 0, 0, 1, 0 }
+	static const float YUVA_MATRIX[4][4] = {
+		{ 0.257f, 0.504f, 0.098f, 0.f },
+		{ -0.148f, -0.291f, 0.439f, 0.f },
+		{ 0.439f, -0.368f, -0.071f, 0.f },
+		{ 0.f, 0.f, 0.f, 1.f }
 	};
-	static const float RGB_ADD[3] = { 0, 0, 0 };
-
-	static const float YUV_MATRIX[3][4] = {
-		{ 0.257f, 0.504f, 0.098f, 0 },
-		{ -0.148f, -0.291f, 0.439f, 0 },
-		{ 0.439f, -0.368f, -0.071f, 0 }
-	};
-	static const float YUV_ADD[3] = { 16.0f/255.0f, 128.0f/255.0f, 128.0f/255.0f };
+	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
 
 	D3D11_MAPPED_SUBRESOURCE map;
 	HRESULT hr = D3D::g_context->Map(s_fakeEncodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
@@ -506,37 +496,31 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 		// Choose a pre-color matrix: Either RGBA or YUVA
 		if (yuva)
 		{
-			memcpy(params->PreColorMatrix, YUV_MATRIX, sizeof(YUV_MATRIX));
-			memcpy(params->PreColorAdd, YUV_ADD, sizeof(YUV_ADD));
+			// Combine yuva matrix with colorMatrix
+			for (int row = 0; row < 4; ++row)
+			{
+				for (int col = 0; col < 4; ++col)
+				{
+					params->Matrix[row][col] =
+						colorMatrix[4*row+0] * YUVA_MATRIX[0][col] +
+						colorMatrix[4*row+1] * YUVA_MATRIX[1][col] +
+						colorMatrix[4*row+2] * YUVA_MATRIX[2][col] +
+						colorMatrix[4*row+3] * YUVA_MATRIX[3][col];
+				}
+			}
+			for (int i = 0; i < 3; ++i)
+				params->Add[i] = colorAdd[i] + YUV_ADD[i];
+			params->Add[3] = colorAdd[3];
 		}
 		else
 		{
-			memcpy(params->PreColorMatrix, RGB_MATRIX, sizeof(RGB_MATRIX));
-			memcpy(params->PreColorAdd, RGB_ADD, sizeof(RGB_ADD));
+			memcpy(params->Matrix, colorMatrix, 4*4*sizeof(float));
+			memcpy(params->Add, colorAdd, 4*sizeof(float));
 		}
 
-		// If src format has no alpha channel, adjust pre-matrix to set alpha
-		// to 1
-		if (srcFormat != PIXELFMT_RGBA6_Z24)
-		{
-			// No alpha channel
-			params->PreColorMatrix[3][0] = params->PreColorMatrix[3][1] =
-				params->PreColorMatrix[3][2] = params->PreColorMatrix[3][3] = 0;
-			params->PreColorAdd[3] = 1;
-		}
-		else
-		{
-			// Alpha channel
-			params->PreColorMatrix[3][0] = params->PreColorMatrix[3][1] =
-				params->PreColorMatrix[3][2] = 0;
-			params->PreColorMatrix[3][3] = 1;
-			params->PreColorAdd[3] = 0;
-		}
-
-		memcpy(params->ColorMatrix, colorMatrix, 4*4*sizeof(float));
-		memcpy(params->ColorAdd, colorAdd, 4*sizeof(float));
 		params->Pos[0] = FLOAT(posX);
 		params->Pos[1] = FLOAT(posY);
+		params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
 		D3D::g_context->Unmap(s_fakeEncodeParams, 0);
 	}
 	else
