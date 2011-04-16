@@ -33,9 +33,7 @@ union FakeEncodeParams_Padded
 };
 
 // TODO: Make part of a class
-static SharedPtr<ID3D11PixelShader> s_fakeEncodeShader;
-static SharedPtr<ID3D11PixelShader> s_fakeEncodeDepthShader;
-static SharedPtr<ID3D11PixelShader> s_fakeEncodeScaleShader;
+static SharedPtr<ID3D11PixelShader> s_fakeEncodeShaders[4];
 static SharedPtr<ID3D11Buffer> s_fakeEncodeParams;
 
 static const char FAKE_ENCODE_PS[] =
@@ -43,7 +41,7 @@ static const char FAKE_ENCODE_PS[] =
 
 "cbuffer cbParams : register(b0)\n"
 "{\n"
-	"struct\n"
+	"struct\n" // Should match struct FakeEncodeParams above
 	"{\n"
 		"float4x4 Matrix;\n"
 		"float4 Add;\n"
@@ -55,70 +53,21 @@ static const char FAKE_ENCODE_PS[] =
 // Use t8 because t0..7 are being used by the vertex manager
 "Texture2D<float4> EFBTexture : register(t8);\n"
 
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
+// DEPTH should be 1 on, 0 off
+"#ifndef DEPTH\n"
+"#error DEPTH not defined.\n"
+"#endif\n"
+
+// SCALE should be 1 on, 0 off
+"#ifndef SCALE\n"
+"#error SCALE not defined.\n"
+"#endif\n"
+
+"#if DEPTH\n"
+// Fetch from depth buffer by translating X8 Z24 into A8 R8 G8 B8
+"float4 Fetch(float2 pos)\n"
 "{\n"
-	"float4 pixel = EFBTexture.Load(int3(Params.Pos + pos.xy, 0));\n"
-	"if (Params.DisableAlpha)\n"
-		"pixel.a = 1;\n"
-	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
-"}\n"
-;
-
-static const char FAKE_ENCODE_SCALE_PS[] =
-"// dolphin-emu fake texture encoder pixel shader for scaled textures\n"
-
-"cbuffer cbParams : register(b0)\n"
-"{\n"
-	"struct\n"
-	"{\n"
-		"float4x4 Matrix;\n"
-		"float4 Add;\n"
-		"float2 Pos;\n"
-		"bool DisableAlpha;\n"
-	"} Params;\n"
-"}\n"
-
-// Use t8 because t0..7 are being used by the vertex manager
-"Texture2D<float4> EFBTexture : register(t8);\n"
-
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
-"{\n"
-	"float2 tl = floor(pos.xy);\n"
-	
-	"float4 pixel0 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(0,0), 0));\n"
-	"float4 pixel1 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(1,0), 0));\n"
-	"float4 pixel2 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(0,1), 0));\n"
-	"float4 pixel3 = EFBTexture.Load(int3(Params.Pos + 2*tl + float2(1,1), 0));\n"
-
-	"float4 pixel = 0.25 * (pixel0 + pixel1 + pixel2 + pixel3);\n"
-	"if (Params.DisableAlpha)\n"
-		"pixel.a = 1;\n"
-
-	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
-"}\n"
-;
-
-static const char FAKE_ENCODE_DEPTH_PS[] =
-"// dolphin-emu fake texture encoder pixel shader for depth\n"
-
-"cbuffer cbParams : register(b0)\n"
-"{\n"
-	"struct\n"
-	"{\n"
-		"float4x4 Matrix;\n"
-		"float4 Add;\n"
-		"float2 Pos;\n"
-		"bool DisableAlpha;\n"
-	"} Params;\n"
-"}\n"
-
-// Use t8 because t0..7 are being used by the vertex manager
-// FIXME: Can depth textures be loaded like this?
-"Texture2D<float4> EFBTexture : register(t8);\n"
-
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
-"{\n"
-	"float fDepth = EFBTexture.Load(int3(Params.Pos + pos.xy, 0)).r;\n"
+	"float fDepth = EFBTexture.Load(int3(pos, 0)).r;\n"
 	"uint depth24 = 0xFFFFFF * fDepth;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
@@ -126,14 +75,52 @@ static const char FAKE_ENCODE_DEPTH_PS[] =
 		"depth24 & 0xFF,\n"         // b
 		"255);\n"                   // a
 
-	"float4 pixel = bytes / 255.0;\n"
+	"return bytes / 255.0;\n"
+"}\n"
+"#else\n"
+// Fetch from color buffer
+"float4 Fetch(float2 pos)\n"
+"{\n"
+	"return EFBTexture.Load(int3(pos, 0));\n"
+"}\n"
+"#endif\n"
 
+"#if SCALE\n"
+// Scaling is on
+"float4 ScaledFetch(float2 pos)\n"
+"{\n"
+	"float2 tl = floor(pos);\n"
+
+	// FIXME: Is box filter applied to depth fetches? It is here.
+	"float4 pixel0 = Fetch(Params.Pos + 2*tl + float2(0,0));\n"
+	"float4 pixel1 = Fetch(Params.Pos + 2*tl + float2(1,0));\n"
+	"float4 pixel2 = Fetch(Params.Pos + 2*tl + float2(0,1));\n"
+	"float4 pixel3 = Fetch(Params.Pos + 2*tl + float2(1,1));\n"
+
+	"return 0.25 * (pixel0 + pixel1 + pixel2 + pixel3);\n"
+"}\n"
+"#else\n"
+// Scaling is off
+"float4 ScaledFetch(float2 pos)\n"
+"{\n"
+	"return Fetch(Params.Pos + pos);\n"
+"}\n"
+"#endif\n"
+
+"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
+"{\n"
+	"float4 pixel = ScaledFetch(pos.xy);\n"
+	"if (Params.DisableAlpha)\n"
+		"pixel.a = 1;\n"
 	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
 "}\n"
 ;
 
 static SharedPtr<ID3D11PixelShader> GetFakeEncodeShader(bool scale, bool depth)
 {
+	// There are 4 different combinations of scale and depth.
+	int key = (depth ? (1<<1) : 0) | (scale ? 1 : 0);
+
 	if (!s_fakeEncodeParams)
 	{
 		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(FakeEncodeParams_Padded),
@@ -143,42 +130,21 @@ static SharedPtr<ID3D11PixelShader> GetFakeEncodeShader(bool scale, bool depth)
 			ERROR_LOG(VIDEO, "Failed to create fake encode params buffer");
 	}
 
-	if (depth)
+	if (!s_fakeEncodeShaders[key])
 	{
-		if (!s_fakeEncodeDepthShader)
-		{
-			s_fakeEncodeDepthShader = D3D::CompileAndCreatePixelShader(
-				FAKE_ENCODE_DEPTH_PS, sizeof(FAKE_ENCODE_DEPTH_PS));
-			if (!s_fakeEncodeDepthShader)
-				ERROR_LOG(VIDEO, "Failed to compile fake encoder pixel shader for depth");
-		}
+		D3D_SHADER_MACRO macros[] = {
+			{ "DEPTH", depth ? "1" : "0" },
+			{ "SCALE", scale ? "1" : "0" },
+			{ NULL, NULL }
+		};
 
-		return s_fakeEncodeDepthShader;
+		s_fakeEncodeShaders[key] = D3D::CompileAndCreatePixelShader(
+			FAKE_ENCODE_PS, sizeof(FAKE_ENCODE_PS), macros);
+		if (!s_fakeEncodeShaders[key])
+			ERROR_LOG(VIDEO, "Failed to compile fake encoder pixel shader");
 	}
-	else if (scale)
-	{
-		if (!s_fakeEncodeScaleShader)
-		{
-			s_fakeEncodeScaleShader = D3D::CompileAndCreatePixelShader(
-				FAKE_ENCODE_SCALE_PS, sizeof(FAKE_ENCODE_SCALE_PS));
-			if (!s_fakeEncodeScaleShader)
-				ERROR_LOG(VIDEO, "Failed to compile fake encoder pixel shader for scale");
-		}
 
-		return s_fakeEncodeScaleShader;
-	}
-	else
-	{
-		if (!s_fakeEncodeShader)
-		{
-			s_fakeEncodeShader = D3D::CompileAndCreatePixelShader(
-				FAKE_ENCODE_PS, sizeof(FAKE_ENCODE_PS));
-			if (!s_fakeEncodeShader)
-				ERROR_LOG(VIDEO, "Failed to compile fake encoder pixel shader");
-		}
-
-		return s_fakeEncodeShader;
-	}
+	return s_fakeEncodeShaders[key];
 }
 
 TexCopyLookaside::TexCopyLookaside()
