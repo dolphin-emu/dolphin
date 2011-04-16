@@ -23,6 +23,7 @@
 #include "VertexShaderManager.h"
 #include "TextureConverter.h"
 #include "BPMemory.h"
+#include "Render.h"
 #include "HW/Memmap.h"
 
 namespace OGL
@@ -199,10 +200,10 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int s
 {
 	// TODO: Support virtual EFB copies
 
+	g_renderer->ResetAPIState();
+
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		// FIXME: Why isn't this working?!
-
 		GLuint sourceTex = (srcFormat == PIXELFMT_Z24) ?
 			FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 			FramebufferManager::ResolveAndGetRenderTarget(srcRect);
@@ -210,7 +211,11 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int s
 		TextureConverter::EncodeToRamFromTexture(dstAddr, sourceTex,
 			srcFormat == PIXELFMT_Z24, isIntensity, dstFormat, scaleByHalf,
 			srcRect);
+
+		GL_REPORT_ERRORD();
 	}
+
+	g_renderer->RestoreAPIState();
 
 	// FIXME: These lines are necessary for the emulator to work, but why?
 	FramebufferManager::SetFramebuffer(0);
