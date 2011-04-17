@@ -217,7 +217,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			{
 				WiiPartition partition = WiiDisc.at(i);
 				wxTreeItemId PartitionRoot =
-					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i));
+					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0);
 				CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);	
 				if (i == 1)
 					m_Treectrl->Expand(PartitionRoot);

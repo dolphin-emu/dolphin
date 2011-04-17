@@ -532,7 +532,7 @@ void CConfigMain::InitializeGUIValues()
 	// video backend list
 	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
 	{
-		GraphicSelection->AppendString(wxString::FromUTF8((*it)->GetName().c_str()));
+		GraphicSelection->AppendString(wxGetTranslation(wxString::FromUTF8((*it)->GetName().c_str())));
 		if (*it == g_video_backend)
 			GraphicSelection->Select(it - g_available_video_backends.begin());
 	}

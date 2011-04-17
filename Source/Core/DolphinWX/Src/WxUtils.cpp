@@ -41,6 +41,10 @@ void Explore(const char *path)
 		wxPath = wxT("file://") + wxPath;
 	}
 
+#ifdef __WXGTK__
+	wxPath.Replace(wxT(" "), wxT("\\ "));
+#endif
+
 	if (! ::wxLaunchDefaultBrowser(wxPath))
 	{
 		// WARN_LOG
