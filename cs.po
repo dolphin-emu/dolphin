@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 21:26-0500\n"
+"POT-Creation-Date: 2011-04-17 20:11-0500\n"
 "PO-Revision-Date: 2011-04-07 08:11+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
@@ -2450,7 +2450,7 @@ msgstr "Gamecube Pad nastavení"
 msgid "Gecko Codes"
 msgstr "Kódy Gecko"
 
-#: Source/Core/Core/Src/GeckoCode.cpp:140
+#: Source/Core/Core/Src/GeckoCode.cpp:139
 #, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
@@ -4312,6 +4312,10 @@ msgstr "Slot B"
 msgid "Snapshot"
 msgstr "Snímek"
 
+#: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:52
+msgid "Software Renderer"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
 msgstr "Nastavení Zvuku"
@@ -4670,6 +4674,7 @@ msgid "Title"
 msgstr "Název"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:133
 msgid "To"
 msgstr "Do"
 

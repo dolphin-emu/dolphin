@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 21:26-0500\n"
+"POT-Creation-Date: 2011-04-17 20:11-0500\n"
 "PO-Revision-Date: 2011-03-17 18:30+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
@@ -2462,7 +2462,7 @@ msgstr "Gamecube irányító beállítások"
 msgid "Gecko Codes"
 msgstr "Gecko kódok"
 
-#: Source/Core/Core/Src/GeckoCode.cpp:140
+#: Source/Core/Core/Src/GeckoCode.cpp:139
 #, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
@@ -4343,6 +4343,10 @@ msgstr "B hely"
 msgid "Snapshot"
 msgstr "Pillanatkép"
 
+#: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:52
+msgid "Software Renderer"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
 msgstr "Hang beállítások"
@@ -4702,6 +4706,7 @@ msgid "Title"
 msgstr "Cím"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:133
 #, fuzzy
 msgid "To"
 msgstr "Fent"

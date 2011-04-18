@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-06 21:26-0500\n"
+"POT-Creation-Date: 2011-04-17 20:11-0500\n"
 "PO-Revision-Date: 2011-01-20 14:40+0300\n"
 "Last-Translator: firnis <firnis@ya.ru>\n"
 "Language-Team: Russian <>\n"
@@ -2401,7 +2401,7 @@ msgstr "Настройка контроллера GameCube"
 msgid "Gecko Codes"
 msgstr "Gecko-коды"
 
-#: Source/Core/Core/Src/GeckoCode.cpp:140
+#: Source/Core/Core/Src/GeckoCode.cpp:139
 #, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
@@ -4300,6 +4300,10 @@ msgstr "Слот"
 msgid "Snapshot"
 msgstr ""
 
+#: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:52
+msgid "Software Renderer"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
 msgstr "Настройки эмуляции звука"
@@ -4660,6 +4664,7 @@ msgid "Title"
 msgstr "Название"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:133
 #, fuzzy
 msgid "To"
 msgstr "сверху"
