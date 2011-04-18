@@ -80,8 +80,11 @@ void StringSettingChoice::UpdateValue(wxCommandEvent& ev)
 		}
 		else // Choice ctrl without 3RD option
 		{
+			if (ev.GetInt() == 0)
+				m_setting.clear();
 			if (m_uistate)
-				if (!*m_uistate) *d_setting = m_setting;
+				if (!*m_uistate)
+					*d_setting = m_setting;
 		}
 	}
 	ev.Skip();
@@ -118,13 +121,10 @@ SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, V &def_setting, bo
 	, m_index(cur_index)
 {
 	SetToolTip(tooltip);
-	void *p = &m_setting;
-	if (sizeof(m_setting) == sizeof(int)) Select(*(int*)p);
-	if (sizeof(m_setting) == sizeof(std::string)) SetStringSelection(wxString::FromAscii((*(std::string*)p).c_str()));
 	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
 }
 
-// without 3sate support
+// without 3state support
 template <typename V>
 SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, const wxString& tooltip, int num, const wxString choices[], long style)
 	: _pattern(0, only_2State)	
@@ -134,9 +134,6 @@ SettingChoice<V>::SettingChoice(wxWindow* parent, V &setting, const wxString& to
 	, m_index(setting)
 {
 	SetToolTip(tooltip);
-	void *p = &m_setting;
-	if (sizeof(m_setting) == sizeof(int)) Select(*(int*)p);
-	if (sizeof(m_setting) == sizeof(std::string)) SetStringSelection(wxString::FromAscii((*(std::string*)p).c_str()));
 	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
 }
 
