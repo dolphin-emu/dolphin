@@ -136,7 +136,12 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_INSTALLWAD, CGameListCtrl::OnInstallWAD)
 END_EVENT_TABLE()
 
-int CGameListCtrl::MarginWidth(wxOwnerDrawn().GetMarginWidth());
+#ifdef _WIN32
+	int CGameListCtrl::MarginWidth(wxOwnerDrawn().GetMarginWidth());
+#else
+	int CGameListCtrl::MarginWidth(0);
+#endif
+
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(0)
@@ -962,10 +967,13 @@ void CGameListCtrl::OnLeftClick(wxMouseEvent& event)
 
 void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 {
+
+#ifdef _WIN32
 	// [HACK]
 	// Restore initial ms_nLastMarginWidth's value.
 	// This should be done whenever a popup menu is created at run-time
 	wxOwnerDrawn().SetMarginWidth(MarginWidth);
+#endif
 	
 	// Focus the clicked item.
 	int flags;
