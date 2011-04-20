@@ -160,7 +160,7 @@ wxCheckListBoxItem::wxCheckListBoxItem(wxCheckListBox *pParent, size_t nIndex)
 
     // fix appearance for check list boxes: they don't look quite the same as
     // menu icons
-    SetMarginWidth(::GetSystemMetrics(SM_CXMENUCHECK) -
+    SetOwnMarginWidth(::GetSystemMetrics(SM_CXMENUCHECK) -
                       2*wxSystemSettings::GetMetric(wxSYS_EDGE_X) + 1);
     SetBackgroundColour(pParent->GetBackgroundColour());
 }

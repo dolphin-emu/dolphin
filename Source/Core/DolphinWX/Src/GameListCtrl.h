@@ -96,11 +96,6 @@ private:
 	void SetBackgroundColor();
 	void ScanForISOs();
 	
-	// stores inital ms_nLastMarginWidth's value. This is a static/shared wxWidgets member
-	// affected by an 'illegal' access from the wxCheckListBox controls.
-	// NOTE: workaround valid and necessary only with v.2.8.x, since newer versions have fixed this issue.
-	static int MarginWidth;
-
 	DECLARE_EVENT_TABLE()
 
 	// events

@@ -88,6 +88,16 @@ public:
           m_bOwnerDrawn = true;
   }
 
+ // Same as wxOwnerDrawn::SetMarginWidth() but does not affect 
+ // ms_nLastMarginWidth. Exists solely to work around bug #4068, 
+ // and will not exist in wxWidgets 2.9.0 and later.
+  void SetOwnMarginWidth(int nWidth)
+  {
+	  m_nMarginWidth = (size_t) nWidth; 
+	  if ( ((size_t) nWidth) != ms_nDefaultMarginWidth )
+		  m_bOwnerDrawn = true;
+  }
+
   int GetMarginWidth() const { return (int) m_nMarginWidth; }
   static int GetDefaultMarginWidth() { return (int) ms_nDefaultMarginWidth; }
 
