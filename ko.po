@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-17 20:11-0500\n"
-"PO-Revision-Date: 2011-03-18 13:59+0900\n"
+"PO-Revision-Date: 2011-04-19 22:03+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
 "Language: Korean\n"
@@ -301,7 +301,7 @@ msgstr "8 비트"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
-msgstr ""
+msgstr "< 기본 프로파일 따름 >"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
@@ -395,7 +395,7 @@ msgstr "가속"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
 msgid "Accurate Texture Cache"
-msgstr "정확한 텍스쳐 캐쉬"
+msgstr "정확한 텍스처 캐쉬"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
 msgid "Accurate VBeam emulation"
@@ -1454,7 +1454,7 @@ msgstr "광원 끔"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
 msgid "Disable Textures"
-msgstr "텍스쳐들 끔"
+msgstr "텍스처들 끔"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:269
 msgid ""
@@ -1476,7 +1476,7 @@ msgid ""
 "Disable texturing.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"텍스쳐링 끔.\n"
+"텍스처링 끔.\n"
 "이것은 디버깅 목적으로만 유용합니다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:270
@@ -1534,9 +1534,8 @@ msgid "Dolphin Emulated Wiimote Configuration"
 msgstr "돌핀 에뮬된 위모트 환경설정"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:289
-#, fuzzy
 msgid "Dolphin FIFO"
-msgstr "돌핀"
+msgstr "돌핀 FIFO"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1195
 msgid "Dolphin GCPad Configuration"
@@ -1615,11 +1614,11 @@ msgstr "프레임들 덤프"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:594
 msgid "Dump Textures"
-msgstr "텍스쳐들 덤프"
+msgstr "텍스처들 덤프"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
 msgid "Dump game textures to User/Dump/Textures/<game id>/"
-msgstr "User/Dump/Textures/<game id>/ 에 게임 텍스쳐들을 덤프"
+msgstr "User/Dump/Textures/<game id>/ 에 게임 텍스처들을 덤프"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:331
@@ -1661,7 +1660,7 @@ msgstr "유럽"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:145
 msgid "Early Memory Updates"
-msgstr ""
+msgstr "빠른 메모리 업데이트"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:464
 msgid "Edit"
@@ -1706,7 +1705,7 @@ msgid ""
 "This is not so accurate, but it's good enough for the way many games use "
 "framebuffer copies."
 msgstr ""
-"텍스쳐들에 직접적으로 프레임버퍼 복사들을 에뮬레이트.\n"
+"텍스처들에 직접적으로 프레임버퍼 복사들을 에뮬레이트.\n"
 "이것은 그리 정확하지는 않습니다, 하지만 많은 게임들이 프레임버퍼 복사들을 사"
 "용하는 방법으로 충분히 좋다."
 
@@ -1849,7 +1848,7 @@ msgid ""
 "Enhances visual quality of textures that are at oblique viewing angles."
 msgstr ""
 "비등방성 필터링 활성.\n"
-"비스듬한 보기 각도들에 있는 텍스쳐들의 비주얼 품질을 향상시킨다"
+"비스듬한 보기 각도들에 있는 텍스처들의 비주얼 품질을 향상시킨다"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:261
 msgid ""
@@ -2050,12 +2049,11 @@ msgstr "압축풀기..."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:418
 msgid "FIFO Byte"
-msgstr ""
+msgstr "FIFO 바이트"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:38
-#, fuzzy
 msgid "FIFO Player"
-msgstr "플레이어"
+msgstr "FIFO 플레이어"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:166
 msgid "FRANCE"
@@ -2094,6 +2092,14 @@ msgid ""
 "You may use the DSP HLE engine which does not require ROM dumps.\n"
 "(Choose it from the \"Audio\" tab of the configuration dialog.)"
 msgstr ""
+"DSP 롬을 로드하는 데 실패했습니다:\t%s\n"
+"\n"
+"이 파일은 DSP LLE 사용에 요구됩니다.\n"
+"그것은 저작권 데이터를 포함해서 돌핀에는 포함되지 않습니다.\n"
+"물리적 콘솔에서 그 파일을 덤프하기위해 DSPSpy를 사용하세요.\n"
+"\n"
+"롬 덤프들을 요구하지 않는 DSP HLE 엔진을 사용할 수도 있습니다.\n"
+"(환경설정의 \"오디오\" 탭에서 그것을 선택하세요.)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:63
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:72
@@ -2200,14 +2206,12 @@ msgstr ""
 "더 느린 형태는 더 많은 픽셀들을 살펴봐서 더 안전하다."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:216
-#, fuzzy
 msgid "Fifo Player"
-msgstr "플레이어"
+msgstr "FIFO 플레이어"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:88
-#, fuzzy
 msgid "File Info"
-msgstr "코드 정보"
+msgstr "파일 정보"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
 msgid "File contained no codes."
@@ -2289,8 +2293,8 @@ msgid ""
 "Improves texture quality (especially when using a high internal resolution) "
 "but causes glitches in some games."
 msgstr ""
-"게임이 명백히 그것을 껐더라도 이선형 텍스쳐 필터링을 강제시킨다.\n"
-"텍스쳐 품질을 향상시킨다(특히 높은 내부 해상도를 사용할 때) 하지만 일부 게임"
+"게임이 명백히 그것을 껐더라도 이선형 텍스처 필터링을 강제시킨다.\n"
+"텍스처 품질을 향상시킨다(특히 높은 내부 해상도를 사용할 때) 하지만 일부 게임"
 "들에서는 결함들을 유발한다."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
@@ -2311,23 +2315,20 @@ msgstr "부분"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:383
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
-#, fuzzy
 msgid "Frame"
-msgstr "프레임들 덤프"
+msgstr "프레임"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:393
-#, fuzzy
 msgid "Frame "
-msgstr "프레임 진행"
+msgstr "프레임"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:189
 msgid "Frame Advance"
 msgstr "프레임 진행"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:105
-#, fuzzy
 msgid "Frame Range"
-msgstr "프레임 진행"
+msgstr "프레임 범위"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:149
 msgid "Frame S&kipping"
@@ -2343,7 +2344,7 @@ msgstr "프레임제한:"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:189
 msgid "Frames To Record"
-msgstr ""
+msgstr "녹화할 프레임"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:598
 msgid "Free Look"
@@ -2362,7 +2363,7 @@ msgstr "프렛들"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:107
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:126
 msgid "From"
-msgstr ""
+msgstr "From"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:443
 msgid "FullScr"
@@ -2379,7 +2380,7 @@ msgid ""
 "work properly, but it can also be very slow."
 msgstr ""
 "내장프레임버퍼 복사들을 완전히 에뮬레이트한다.\n"
-"이것은 '텍스쳐에 EFB를 복사'보다 더 정확하다, 그리고 일부 게임들은 올바르게 "
+"이것은 '텍스처에 EFB를 복사'보다 더 정확하다, 그리고 일부 게임들은 올바르게 "
 "작동하기위해 이것이 필요하다, 하지만 매우 느릴 수도 있다."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
@@ -2852,7 +2853,7 @@ msgid ""
 "texture.\n"
 "Can cause slowdown, but some games need this option enabled to work properly."
 msgstr ""
-"텍스쳐안에 실제 픽셀들을 살피기에 기반해서 텍스쳐들의 트랙을 유지한다.\n"
+"텍스처안에 실제 픽셀들을 살피기에 기반해서 텍스처들의 트랙을 유지한다.\n"
 "느려짐을 유발할 수 있다, 하지만 일부 게임들은 올바르게 작동하기위해 이 옵션"
 "이 필요하다."
 
@@ -2937,7 +2938,7 @@ msgstr "로드"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:595
 msgid "Load Hi-Res Textures"
-msgstr "고-해상 텍스쳐들 로드"
+msgstr "고-해상 텍스처들 로드"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:446
 msgid "Load Native Mipmaps"
@@ -2987,7 +2988,7 @@ msgstr "Wii 시스템 메뉴 %d %c 로드"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Load high-resolution textures from User/Load/Textures/<game id>/"
-msgstr "User/Load/Textures/<game id>/ 에서 높은-해상도 텍스쳐들을 로드"
+msgstr "User/Load/Textures/<game id>/ 에서 높은-해상도 텍스처들을 로드"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:49
 msgid "Load preset values from hack patterns available."
@@ -3096,9 +3097,8 @@ msgstr ""
 " 카드 크기가 비적합함 (%04X)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:438
-#, fuzzy
 msgid "Memory Byte"
-msgstr "메모리(&M)"
+msgstr "메모리 바이트"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
@@ -3156,7 +3156,7 @@ msgid ""
 "Modify textures to show the format they're using.\n"
 "This is only useful for debugging purposes."
 msgstr ""
-"사용하고 있는 포멧을 보여주기위해 텍스쳐들을 바꿉니다.\n"
+"사용하고 있는 포멧을 보여주기위해 텍스처들을 바꿉니다.\n"
 "이것은 단지 디버깅 목적으로만 유용합니다."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:113
@@ -3314,16 +3314,15 @@ msgstr "도킹 없음"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:385
 msgid "No file loaded"
-msgstr ""
+msgstr "로드된 파일이 없음"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid "No free dir index entries"
 msgstr "빈 디렉토리 목록 엔트리들이 없음"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:421
-#, fuzzy
 msgid "No recorded file"
-msgstr "비적합 기록 파일"
+msgstr "녹화된 파일이 없음"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:505
 #, c-format
@@ -3398,11 +3397,11 @@ msgstr "확인"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:403
 msgid "Object"
-msgstr ""
+msgstr "오브젝트"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:124
 msgid "Object Range"
-msgstr ""
+msgstr "오브젝트 범위"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Off"
@@ -3450,7 +3449,7 @@ msgstr "OpenAL: %s 장치를 열 수 없음"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:616
 msgid "OpenMP Texture Decoder"
-msgstr ""
+msgstr "OpenMP 텍스처 디코더"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Opens the debugger"
@@ -3579,9 +3578,8 @@ msgid "Playable"
 msgstr "플레이가능"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:143
-#, fuzzy
 msgid "Playback Options"
-msgstr "옵션"
+msgstr "재생 옵션"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Players"
@@ -3740,18 +3738,16 @@ msgstr "상태 로드 시 위모트 재연결"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:336
-#, fuzzy
 msgid "Record"
-msgstr "(입력) 기록 재생"
+msgstr "녹화"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:159
-#, fuzzy
 msgid "Recording Info"
-msgstr "(입력) 기록 재생"
+msgstr "녹화 정보"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
-msgstr ""
+msgstr "녹화 옵션"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Red"
@@ -4077,7 +4073,7 @@ msgstr "설정"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
-msgstr ""
+msgstr "모두 디폴트로 설정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Set Console as NTSC-J"
@@ -4308,7 +4304,7 @@ msgstr "스냅샷"
 
 #: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:52
 msgid "Software Renderer"
-msgstr ""
+msgstr "소프트웨어 렌더러"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
@@ -4476,7 +4472,7 @@ msgstr "테이블 오른쪽"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:372
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:444
 msgid "Take Screenshot"
-msgstr "스크린샷 얻기"
+msgstr "스크린샷 찍기"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Test"
@@ -4484,11 +4480,11 @@ msgstr "테스트"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:474
 msgid "Texture"
-msgstr "텍스쳐"
+msgstr "텍스처"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
 msgid "Texture Format"
-msgstr "텍스쳐 포멧"
+msgstr "텍스처 포멧"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:226
 msgid "The WAD has been installed successfully"
@@ -4666,9 +4662,8 @@ msgstr "    제목"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:114
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:133
-#, fuzzy
 msgid "To"
-msgstr "위"
+msgstr "To"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
 msgid "Toggle All Log Types"
@@ -4811,7 +4806,7 @@ msgstr "패닉 핸들러 사용"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
 msgid "Uses multiple threads to decode the textures in the game."
-msgstr ""
+msgstr "게임에서 텍스처들을 디코드하기 위해 멀티 쓰레드를 사용합니다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:253
 msgid ""
@@ -4947,14 +4942,14 @@ msgid ""
 "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
 "be; accurate texture cache set to \"safe\" might actually be slower!)"
 msgstr ""
-"'EFB를 램에'를 사용할 때 우리는 매우 자주 램 데이터를 비디오램 텍스쳐로 디코"
+"'EFB를 램에'를 사용할 때 우리는 매우 자주 램 데이터를 비디오램 텍스처로 디코"
 "딩할 필요가 있다, 이것은 매우 시간이 소비되는 작업이다.\n"
-"이 옵션이 활성화되면, 텍스쳐가 변경되지 않었을 때 디코딩을 스킵할 것이다.\n"
+"이 옵션이 활성화되면, 텍스처가 변경되지 않었을 때 디코딩을 스킵할 것이다.\n"
 "이것은 훌륭한 속도향상을 가져온다, 하지만 결함들을 일으킬 수도 있다.\n"
-"이 옵션을 켠 채로 어느 문제들이 생긴다면 텍스쳐 캐쉬의 안전성 증가시키기를 시"
+"이 옵션을 켠 채로 어느 문제들이 생긴다면 텍스처 캐쉬의 안전성 증가시키기를 시"
 "도해보거나 이 옵션을 꺼야한다.\n"
-"(알아두기: 더 안전한 텍스쳐 캐쉬는 더 적은 속도상승이 생기게 조정된다; \"안전"
-"\"으로 설정된 정확한 텍스쳐 캐쉬는 실제로 더 느려질 수도 있다!)"
+"(알아두기: 더 안전한 텍스처 캐쉬는 더 적은 속도상승이 생기게 조정된다; \"안전"
+"\"으로 설정된 정확한 텍스처 캐쉬는 실제로 더 느려질 수도 있다!)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:417
 msgid "Widescreen Hack"
@@ -5194,7 +5189,7 @@ msgstr "wii 저장이 아니거나 파일 헤더 크기 %x에 대한 읽기 실�
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr ""
+msgstr "들"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format
@@ -5311,7 +5306,7 @@ msgstr "| OR"
 #~ msgstr "EFB에 복사 활성"
 
 #~ msgid "Enable EFB To Texture"
-#~ msgstr "'EFB를 텍스쳐에' 활성"
+#~ msgstr "'EFB를 텍스처에' 활성"
 
 #~ msgid "Enable HLE Audio"
 #~ msgstr "HLE 오디오 활성"

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-17 20:11-0500\n"
-"PO-Revision-Date: 2011-04-07 23:23+0200\n"
+"PO-Revision-Date: 2011-04-18 23:43+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
 "Language: Greek\n"
@@ -69,6 +69,7 @@ msgstr "%s υπάρχει ήδη, θέλετε αντικατάσταση;"
 #, c-format
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
 msgstr ""
+"%s απέτυχε να γίνει scrubbed. Πιθανότατα το αρχείο εικόνας είναι φθαρμένο."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:377
 #, c-format
@@ -1408,6 +1409,8 @@ msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
 msgstr ""
+"Εντοπίστηκε προσπάθεια ανάγνωσης περισσότερων δεδομένων από το DVD από όσα "
+"χωράνε μέσα στο buffer. Clamp."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:131
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:902
@@ -1436,6 +1439,8 @@ msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
 msgstr ""
+"Το checksum του Καταλόγου απέτυχε\n"
+" καθώς και το checksum του εφεδρικού Καταλόγου απέτυχε"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
 msgid "Disable Dest. Alpha Pass"
@@ -2606,6 +2611,10 @@ msgid ""
 "TitleID %016llx.\n"
 " Dolphin will likely hang now"
 msgstr ""
+"IOCTL_ES_LAUNCH: Το παιχνίδι προσπάθησε να επαναφορτώσει ios ή έναν τίτλο "
+"που δεν είναι διαθέσιμος στο nand dump\n"
+"TitleID %016llx.\n"
+"Το Dolphin πιθανότατα θα κολλήσει τώρα."
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:304
 msgid "IOCTL_ES_READCONTENT - bad destination"
@@ -2746,6 +2755,8 @@ msgstr "Εγκατάσταση στο Μενού Wii"
 msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr ""
+"InstallExceptionHandler καλέστηκε, αλλά αυτή η πλατφόρμα δεν το υποστηρίζει "
+"ακόμα."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1175
 msgid "Installing WAD to Wii Menu..."
@@ -3483,6 +3494,10 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the the saves to a new memcard\n"
 msgstr ""
+"Η σειρά των αρχείων στον Κατάλογο Αρχείων δεν ταιριάζει με την σειρά των "
+"block.\n"
+"Κάντε δεξί κλίκ, εξάγετε όλα τα αρχεία αποθήκευσης\n"
+"και εισάγετέ τα σε μία νέα κάρτα μνήμης.\n"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
 msgid ""
@@ -4091,7 +4106,7 @@ msgstr "Ορισμός"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:653
 msgid "Set All to Default"
-msgstr "Θέσε Όλα σε Προεπιλογή"
+msgstr "Ορισμός Όλων ως Προεπιλογή"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Set Console as NTSC-J"
@@ -4325,7 +4340,7 @@ msgstr "Στιγμιότυπο"
 
 #: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:52
 msgid "Software Renderer"
-msgstr ""
+msgstr "Απεικόνιση Λογισμικού"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:742
 msgid "Sound Settings"
@@ -5234,7 +5249,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr "s"
+msgstr "."
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-04-17 20:11-0500\n"
-"PO-Revision-Date: 2011-04-08 09:00+0300\n"
+"PO-Revision-Date: 2011-04-18 21:18+0300\n"
 "Last-Translator: ءيءء <سس>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -295,7 +295,7 @@ msgstr "8 بت"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
 msgid "< as Default Profile >"
-msgstr ""
+msgstr "< الوضع الافتراضي >"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
@@ -303,7 +303,7 @@ msgstr "<أدخل اسم هنا>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
 msgid "<No resolutions found>"
-msgstr ""
+msgstr "<لم يتم العثور على القرارات>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:80
 msgid "<Nothing>"
@@ -332,6 +332,8 @@ msgid ""
 "A supported bluetooth device was not found!\n"
 "(Only the Microsoft bluetooth stack is supported.)"
 msgstr ""
+"لم يتم العثور على جهاز بلوتوث!\n"
+"(فقط بلوتوث مايكروسوفت معتمد.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:93
 msgid ""
@@ -569,7 +571,7 @@ msgstr "تنعيم :"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:317
 msgid "Apploader is the wrong size...is it really an apploader?"
-msgstr ""
+msgstr "محمل التطبيق هو حجم الخطأ... هل حقا محمل التطبيق؟"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:311
 msgid "Apploader unable to load from file"
@@ -832,6 +834,8 @@ msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
 msgstr ""
+"تغيير لغة واجهة المستخدم.\n"
+"يتطلب إعادة التشغيل."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:59
 msgid "Changes sign to zFar Parameter (after correction)"
@@ -1102,6 +1106,9 @@ msgid ""
 "backup.  Please note that original Gamecube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
+"لا يمكن قراءة \"%s\".  لا يوجد قرص في محرك الأقراص ، أو أنها ليست GC/Wii "
+"backup.    يرجى ملاحظة أن جيم كيوب الأصلي وأقراص الوي لا يمكن قراءتها من قبل "
+"معظم أجهزة الكمبيوتر محركات الأقراص دي في دي."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:289
 #, c-format
@@ -1137,6 +1144,8 @@ msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
 msgstr ""
+"لا يمكن التهيئة الأساسية.\n"
+"تحقق التكوين الخاص بك."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:178
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:491
@@ -1446,11 +1455,11 @@ msgstr "اعدادات دولفين"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
 msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "تحكم الوي  اعدادات "
+msgstr "اعدادات تحكم الوي"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:289
 msgid "Dolphin FIFO"
-msgstr ""
+msgstr "دولفين"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1195
 msgid "Dolphin GCPad Configuration"
@@ -1501,7 +1510,7 @@ msgstr "تحميل اسرار للعبة"
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:276
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
-msgstr ""
+msgstr "%lu وأضاف %lu تم تحميل الاسرار  "
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:31
 msgid "Drums"
@@ -1521,7 +1530,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:597
 msgid "Dump Frames"
-msgstr ""
+msgstr "تفريغ الإطارات"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:594
 msgid "Dump Textures"
@@ -2542,7 +2551,7 @@ msgstr "SD Card ادرج   "
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:33
 msgid "Insert name here.."
-msgstr "إدراج اسم هنا.."
+msgstr "أدخل اسم هنا.."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:207
 msgid "Install WAD"
@@ -2654,7 +2663,7 @@ msgstr "JIT Recompiler (موصى به)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:278
 msgid "JITIL experimental recompiler"
-msgstr ""
+msgstr "JITIL recompiler (تجريبي )"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:318
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:339
@@ -2688,7 +2697,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:39
 msgid "L Button"
-msgstr "L زر"
+msgstr ""
 
 #. i18n:  Left-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:59
@@ -2715,7 +2724,7 @@ msgstr "اليسار"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Left Stick"
-msgstr "العصا اليسار"
+msgstr "العصا الأيسر"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:261
 msgid ""
@@ -2852,7 +2861,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:42
 msgid "M Button"
-msgstr "m زر"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:120
 #, c-format
@@ -3196,7 +3205,7 @@ msgstr "نطاق الهدف"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 msgid "Off"
-msgstr ""
+msgstr "إيقاف"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:61
 msgid "Offset:"
@@ -3304,7 +3313,7 @@ msgstr "أعلى الصفحة"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:48
 msgid "Pair Up"
-msgstr ""
+msgstr "اقتران"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:35
 msgid "Paragraph"
@@ -3624,7 +3633,7 @@ msgstr "اليمين"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:61
 msgid "Right Stick"
-msgstr "العصا اليمنى"
+msgstr "العصا الايمن"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:288
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:82
@@ -3900,7 +3909,7 @@ msgstr "اظهار &لوحة المراقبة"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:232
 msgid "Show &Log"
-msgstr "اضهار السجل"
+msgstr "اظهار السجل"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:229
 msgid "Show &Statusbar"
@@ -3984,7 +3993,7 @@ msgstr "الوي"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:562
 msgid "Show a confirmation box before stopping a game."
-msgstr "ظهور رسالة قبل وقف لعبة."
+msgstr "ظهور رسالة قبل وقف اللعبة."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:563
 msgid ""
@@ -4021,7 +4030,7 @@ msgstr "إظهارعنوان الحفظ "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:271
 msgid "Show the number of frames rendered per second."
-msgstr "إظهار عدد من الإطارات المقدمة في الثانية الواحدة."
+msgstr "إظهار عدد الإطارات المقدمة في الثانية الواحدة"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:119
 msgid "Show this help message"
@@ -4351,7 +4360,7 @@ msgstr ""
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
-msgstr "تجاوز هذه الإعدادات الأساسية إعدادات دولفين."
+msgstr "تجاوز هذه الإعدادات إعدادات دولفين الأساسية ."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:356
 msgid ""
@@ -4614,7 +4623,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
 #: Source/Core/Common/Src/MsgHandler.cpp:66
 msgid "Warning"
-msgstr "تحذير"
+msgstr "تنبيه"
 
 #: Source/Core/Core/Src/Boot/Boot.cpp:238
 msgid "Warning - starting DOL in wrong console mode!"
