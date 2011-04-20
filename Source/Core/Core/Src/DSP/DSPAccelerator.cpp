@@ -101,6 +101,8 @@ void dsp_write_aram_d3(u16 value)
 {
 	// Zelda ucode writes a bunch of zeros to ARAM through d3 during
 	// initialization.  Don't know if it ever does it later, too.
+	// Pikmin 2 Wii writes non-stop to 0x10008000-0x1000801f (non-zero values too)
+	// Zelda TP WII writes non-stop to 0x10000000-0x1000001f (non-zero values too)
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {

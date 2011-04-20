@@ -727,7 +727,7 @@ void Do_ARAM_DMA()
 // (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & (0x10000000 | g_ARAM.mask));
+	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
 	if (g_ARAM.wii_mode)
 		return g_ARAM.ptr[(_iAddress & 0x10000000)?(_iAddress & 0x13ffffff):(_iAddress & 0x01ffffff)];
 	else
@@ -736,8 +736,11 @@ u8 ReadARAM(u32 _iAddress)
 
 void WriteARAM(u8 value, u32 _uAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x (0x%08x)", _uAddress, _uAddress & g_ARAM.mask);
-	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
+	if (g_ARAM.wii_mode)
+		g_ARAM.ptr[(_uAddress & 0x10000000)?(_uAddress & 0x13ffffff):(_uAddress & 0x01ffffff)] = value;
+	else
+		g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
 u8 *GetARAMPtr()
