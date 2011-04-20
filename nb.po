@@ -52,9 +52,6 @@ msgstr "\"%s\" er en ugyldig GCM/ISO-fil, eller ikke en GC/Wii ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopier%1$s"
 
-msgid "%d %%"
-msgstr "%d %%"
-
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:414
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:739
@@ -5238,6 +5235,9 @@ msgstr "zNear Korreksjon: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:497
 msgid "| OR"
 msgstr "| ELLER"
+
+#~ msgid "%d %%"
+#~ msgstr "%d %%"
 
 #~ msgid "&Frame Stepping"
 #~ msgstr "&Bilde-etter-bilde Modus"
