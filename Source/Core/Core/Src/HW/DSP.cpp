@@ -259,11 +259,10 @@ void Init(bool hle)
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		// On the Wii, ARAM is simply mapped to EXRAM.
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;
 		g_ARAM.mask = Memory::EXRAM_MASK;
-		g_ARAM.ptr = Memory::GetPointer(0x10000000);
+		g_ARAM.ptr = Memory::GetPointer(0);
 	}
 	else
 	{
@@ -725,11 +724,12 @@ void Do_ARAM_DMA()
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the wii sports ucode is processed incorrectly?
+// (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & g_ARAM.mask);
-	if (g_ARAM.wii_mode && _iAddress < Memory::REALRAM_SIZE)
-		return Memory::Read_U8(_iAddress);
+	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & (0x10000000 | g_ARAM.mask));
+	if (g_ARAM.wii_mode)
+		return g_ARAM.ptr[(_iAddress & 0x10000000)?(_iAddress & 0x13ffffff):(_iAddress & 0x01ffffff)];
 	else
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
