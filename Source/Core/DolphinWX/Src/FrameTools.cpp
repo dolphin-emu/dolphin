@@ -206,11 +206,20 @@ void CFrame::CreateMenu()
 
 	toolsMenu->Append(IDM_INSTALLWAD, _("Install WAD"));
 
-	int sysmenuVersion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetTitleVersion();
-	char sysmenuRegion = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).GetCountryChar();
+	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+	if (SysMenu_Loader.IsValid())
+	{
+		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
+		char sysmenuRegion = SysMenu_Loader.GetCountryChar();
+				
+		toolsMenu->Append(IDM_LOAD_WII_MENU)->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+	}
+	else
+	{		
+		toolsMenu->Append(IDM_LOAD_WII_MENU, _("Load Wii System Menu"));
+		toolsMenu->Enable(IDM_LOAD_WII_MENU, false);
+	}
 
-	toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
-	toolsMenu->Enable(IDM_LOAD_WII_MENU, DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid());
 
 	
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
@@ -1346,14 +1355,18 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 		u64 titleID = CBoot::Install_WiiWAD(path.mb_str());
 		if (titleID == TITLEID_SYSMENU)
 		{
-			const DiscIO::INANDContentLoader & _Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
-			if (_Loader.IsValid())
+			const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+			if (SysMenu_Loader.IsValid())
 			{
-				int sysmenuVersion = _Loader.GetTitleVersion();
-				char sysmenuRegion = _Loader.GetCountryChar();
+				int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
+				char sysmenuRegion = SysMenu_Loader.GetCountryChar();
 				
 				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable();
 				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+			}
+			else
+			{
+				GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(false);
 			}
 		}
 
