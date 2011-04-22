@@ -167,7 +167,8 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 #endif
 }
 
-void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg) const
+void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
+    bool warn_64bit_offset) const
 {
 	if (_operandReg == 0xff)
 		_operandReg = (X64Reg)this->operandReg;
@@ -185,8 +186,9 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg) const
 #ifdef _M_X64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
-		_assert_msg_(DYNA_REC, distance < 0x80000000LL
-			     && distance >=  -0x80000000LL,
+		_assert_msg_(DYNA_REC, (distance < 0x80000000LL
+					&& distance >=  -0x80000000LL) ||
+			     !warn_64bit_offset,
 			     "WriteRest: op out of range (0x%llx uses 0x%llx)",
 			     ripAddr, offset);
 		s32 offs = (s32)distance;
@@ -772,7 +774,7 @@ void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 	if (bits == 16) Write8(0x66); //TODO: performance warning
 	src.WriteRex(this, bits, bits);
 	Write8(0x8D);
-	src.WriteRest(this);
+	src.WriteRest(this, 0, (X64Reg)0xFF, bits == 64);
 }
 
 //shift can be either imm8 or cl
