@@ -49,7 +49,7 @@ static volatile bool emuRunningState = false;
 
 std::string VideoSoftware::GetName()
 {
-	return "Software Renderer";
+	return _trans("Software Renderer");
 }
 
 void *DllDebugger(void *_hParent, bool Show)

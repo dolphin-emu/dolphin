@@ -37,6 +37,8 @@ public:
     static void Enable(bool flag);
         // set the delay after which the tooltip appears
     static void SetDelay(long milliseconds);
+	    // set the delay after which the tooltip disappears
+	static void SetAutoPop(long milliseconds);
 
     // implementation only from now on
     // -------------------------------

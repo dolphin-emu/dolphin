@@ -259,11 +259,10 @@ void Init(bool hle)
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		// On the Wii, ARAM is simply mapped to EXRAM.
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;
 		g_ARAM.mask = Memory::EXRAM_MASK;
-		g_ARAM.ptr = Memory::GetPointer(0x10000000);
+		g_ARAM.ptr = Memory::GetPointer(0);
 	}
 	else
 	{
@@ -274,7 +273,8 @@ void Init(bool hle)
 		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
 	}
 
-	g_audioDMA.AudioDMAControl.Hex = 0;
+	memset(&g_audioDMA, 0, sizeof(g_audioDMA));
+	memset(&g_arDMA, 0, sizeof(g_arDMA));
 
 	g_dspState.DSPControl.Hex = 0;
     g_dspState.DSPControl.DSPHalt = 1;
@@ -682,8 +682,7 @@ void Do_ARAM_DMA()
 {
 	// Fake the DMA taking time to complete. The delay is not accurate, but
 	// seems like a good estimate
-	CoreTiming::ScheduleEvent_Threadsafe(
-		g_arDMA.Cnt.count >> 1, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+	CoreTiming::ScheduleEvent_Threadsafe(g_arDMA.Cnt.count >> 1, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
@@ -725,19 +724,23 @@ void Do_ARAM_DMA()
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the wii sports ucode is processed incorrectly?
+// (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & g_ARAM.mask);
-	if (g_ARAM.wii_mode && _iAddress < Memory::REALRAM_SIZE)
-		return Memory::Read_U8(_iAddress);
+	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
+	if (g_ARAM.wii_mode)
+		return g_ARAM.ptr[(_iAddress & 0x10000000)?(_iAddress & 0x13ffffff):(_iAddress & 0x01ffffff)];
 	else
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
 
 void WriteARAM(u8 value, u32 _uAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x (0x%08x)", _uAddress, _uAddress & g_ARAM.mask);
-	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
+	if (g_ARAM.wii_mode)
+		g_ARAM.ptr[(_uAddress & 0x10000000)?(_uAddress & 0x13ffffff):(_uAddress & 0x01ffffff)] = value;
+	else
+		g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
 u8 *GetARAMPtr()

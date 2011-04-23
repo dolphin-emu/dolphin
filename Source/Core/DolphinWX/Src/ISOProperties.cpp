@@ -76,7 +76,6 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_EXTRACTAPPLOADER, CISOProperties::OnExtractDataFromHeader)
 	EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
-	EVT_CHECKBOX(ID_PHACKENABLE, CISOProperties::OnCheckBoxClicked)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -217,7 +216,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			{
 				WiiPartition partition = WiiDisc.at(i);
 				wxTreeItemId PartitionRoot =
-					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i));
+					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0);
 				CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);	
 				if (i == 1)
 					m_Treectrl->Expand(PartitionRoot);
@@ -566,16 +565,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SetFocus();
 }
 
-void CISOProperties::OnCheckBoxClicked(wxCommandEvent& event)
-{
-	bool choice = (event.GetInt() != 0);
-	
-	if (event.GetId() == ID_PHACKENABLE)
-	{
-		PHSettings->Enable(choice);
-	}
-}
-
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
@@ -907,7 +896,6 @@ void CISOProperties::LoadGameConfig()
 
 	GameIni.Get("Video", "ProjectionHack", &bTemp);
 	PHackEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	PHSettings->Enable(bTemp);
 	
 	GameIni.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
 	GameIni.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);

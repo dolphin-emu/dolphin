@@ -1863,7 +1863,7 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
 //	u16 accm = (u16)dsp_get_acc_m(1 - dreg);
 	get_acc_m(1 - dreg);
 //	s64 acc = dsp_get_long_acc(dreg);
-	get_long_acc(dreg);
+	get_long_acc(dreg, RDX);
 
 //	if ((accm & 0x3f) == 0)
 //		shift = 0;

@@ -429,6 +429,8 @@ CFrame::CFrame(wxFrame* parent,
 	// Create cursors
 	#ifdef _WIN32
 		CreateCursor();
+		SetToolTip(_(""));
+		GetToolTip()->SetAutoPop(25000);
 	#endif
 
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR

@@ -25,6 +25,7 @@
 #include <wx/listctrl.h>
 #include <wx/artprov.h>
 #include <wx/aui/aui.h>
+#include <wx/tooltip.h>
 #include <string>
 #include <vector>
 

@@ -287,9 +287,10 @@ void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 
 	CMixer *pMixer = soundStream->GetMixer();
 
-	if (pMixer != 0 && address != 0)
+	if (pMixer && address)
 	{
-		const short *samples = (const short *)&g_dsp.cpu_ram[address & Memory::RAM_MASK];
+		address &= (address & 0x10000000) ? 0x13ffffff : 0x01ffffff;
+		const short *samples = (const short *)&g_dsp.cpu_ram[address];
 		pMixer->PushSamples(samples, num_samples);
 	}
 

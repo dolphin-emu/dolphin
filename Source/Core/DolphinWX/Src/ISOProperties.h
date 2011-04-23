@@ -186,7 +186,6 @@ private:
 	void OnExtractDataFromHeader(wxCommandEvent& event);
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
-	void OnCheckBoxClicked(wxCommandEvent& event);
 	void PHackButtonClicked(wxCommandEvent& event);
 
 	GameListItem *OpenGameListItem;
