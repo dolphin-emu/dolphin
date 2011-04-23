@@ -737,8 +737,10 @@ u8 ReadARAM(u32 _iAddress)
 void WriteARAM(u8 value, u32 _uAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
+	//TODO: verify this on WII (SSBB/U)
 	if (g_ARAM.wii_mode)
-		g_ARAM.ptr[(_uAddress & 0x10000000)?(_uAddress & 0x13ffffff):(_uAddress & 0x01ffffff)] = value;
+		//g_ARAM.ptr[(_uAddress & 0x10000000)?(_uAddress & 0x13ffffff):(_uAddress & 0x01ffffff)] = value;
+		g_ARAM.ptr[(_uAddress | 0x10000000) & 0x13ffffff] = value;
 	else
 		g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
