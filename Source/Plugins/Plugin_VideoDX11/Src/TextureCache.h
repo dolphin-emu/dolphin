@@ -101,7 +101,7 @@ private:
 	} m_depalStorage;
 
 	// If format is paletted, this contains the palette's RGBA data.
-	SharedPtr<ID3D11Texture1D> m_palette;
+	SharedPtr<ID3D11Buffer> m_palette;
 	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
 	
 	bool m_fromTcl;

@@ -548,7 +548,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 				D3D::g_context->Unmap(m_palette, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "Failed to map palette texture");
+				ERROR_LOG(VIDEO, "Failed to map palette buffer");
 		}
 
 		m_curPaletteHash = newPaletteHash;
@@ -566,18 +566,18 @@ void TCacheEntry::CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 l
 {
 	unsigned int numColors = TexDecoder_GetNumColors(format);
 
-	D3D11_TEXTURE1D_DESC t1dd = CD3D11_TEXTURE1D_DESC(
-		DXGI_FORMAT_R8G8B8A8_UNORM, numColors, 1, 1, D3D11_BIND_SHADER_RESOURCE,
-		D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(
+		numColors*4, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
+		D3D11_CPU_ACCESS_WRITE);
 
-	ID3D11Texture1D* newPalette = NULL;
-	HRESULT hr = D3D::g_device->CreateTexture1D(&t1dd, NULL, &newPalette);
+	ID3D11Buffer* newPalette = NULL;
+	HRESULT hr = D3D::g_device->CreateBuffer(&bd, NULL, &newPalette);
 	if (FAILED(hr))
-		ERROR_LOG(VIDEO, "Failed to create new palette texture");
-	m_palette = SharedPtr<ID3D11Texture1D>::FromPtr(newPalette);
+		ERROR_LOG(VIDEO, "Failed to create new palette buffer");
+	m_palette = SharedPtr<ID3D11Buffer>::FromPtr(newPalette);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-		m_palette, D3D11_SRV_DIMENSION_TEXTURE1D);
+		m_palette, DXGI_FORMAT_R8G8B8A8_UNORM, 0, numColors);
 	ID3D11ShaderResourceView* newPaletteSRV = NULL;
 	hr = D3D::g_device->CreateShaderResourceView(m_palette, &srvd, &newPaletteSRV);
 	if (FAILED(hr))
@@ -694,12 +694,12 @@ static const char DEPALETTIZE4_SHADER[] =
 
 // Use t8 and t9 because t0..7 are being used by the vertex manager
 "Texture2D Base : register(t8);\n"
-"Texture1D<float4> Palette : register(t9);\n"
+"Buffer<float4> Palette : register(t9);\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
 	"float sample = Base.Load(int3(pos.x, pos.y, 0)).r;\n"
-	"ocol0 = Palette.Load(int2(sample * 15, 0));\n"
+	"ocol0 = Palette.Load(sample * 15);\n"
 "}\n"
 ;
 
@@ -720,12 +720,12 @@ static const char DEPALETTIZE8_SHADER[] =
 
 // Use t8 and t9 because t0..7 are being used by the vertex manager
 "Texture2D Base : register(t8);\n"
-"Texture1D<float4> Palette : register(t9);\n"
+"Buffer<float4> Palette : register(t9);\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
 	"float sample = Base.Load(int3(pos.x, pos.y, 0)).r;\n"
-	"ocol0 = Palette.Load(int2(sample * 255, 0));\n"
+	"ocol0 = Palette.Load(sample * 255);\n"
 "}\n"
 ;
 
@@ -746,12 +746,12 @@ static const char DEPALETTIZE_UINT_SHADER[] =
 
 // Use t8 and t9 because t0..7 are being used by the vertex manager
 "Texture2D<uint> Base : register(t8);\n"
-"Texture1D<float4> Palette : register(t9);\n"
+"Buffer<float4> Palette : register(t9);\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
 	"uint index = Base.Load(int3(pos.x, pos.y, 0));\n"
-	"ocol0 = Palette.Load(int2(index, 0));\n"
+	"ocol0 = Palette.Load(index);\n"
 "}\n"
 ;
 
