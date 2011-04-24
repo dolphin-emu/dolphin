@@ -30,28 +30,44 @@
 
 class CMailHandler;
 
+inline bool ExramRead(u32 _uAddress)
+{
+	if (_uAddress & 0x10000000)
+		return true;
+	else
+		return false;
+}
+
 inline u8 HLEMemory_Read_U8(u32 _uAddress)
 {
-	_uAddress &= Memory::RAM_MASK;
-	return Memory::m_pRAM[_uAddress];
+	if (ExramRead(_uAddress))
+		return Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	else
+		return Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
 }
 
 inline u16 HLEMemory_Read_U16(u32 _uAddress)
 {
-	_uAddress &= Memory::RAM_MASK;
-	return Common::swap16(*(u16*)&Memory::m_pRAM[_uAddress]);
+	if (ExramRead(_uAddress))
+		return Common::swap16(*(u16*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	else
+		return Common::swap16(*(u16*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
 }
 
 inline u32 HLEMemory_Read_U32(u32 _uAddress)
 {
-	_uAddress &= Memory::RAM_MASK;
-	return Common::swap32(*(u32*)&Memory::m_pRAM[_uAddress]);
+	if (ExramRead(_uAddress))
+		return Common::swap32(*(u32*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	else
+		return Common::swap32(*(u32*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
 }
 
 inline void* HLEMemory_Get_Pointer(u32 _uAddress)
 {
-	_uAddress &= Memory::RAM_MASK;
-	return &Memory::m_pRAM[_uAddress];
+	if (ExramRead(_uAddress))
+		return &Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	else
+		return &Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
 }
 
 class IUCode
