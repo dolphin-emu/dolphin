@@ -71,9 +71,18 @@ protected:
 	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
-	void Event_StcSafe(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 0; ev.Skip(); }
-	void Event_StcNormal(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 512; ev.Skip(); }
-	void Event_StcFast(wxCommandEvent &ev) { vconfig.iSafeTextureCache_ColorSamples = 128; ev.Skip(); }
+	void Event_Stc(wxCommandEvent &ev)
+	{
+		int samples[] = { 0, 512, 128 };
+		if (ev.GetInt() < 3)
+		{
+			vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
+			vconfig.bSafeTextureCache = true;
+		}
+		else vconfig.bSafeTextureCache = false;
+
+		ev.Skip();
+	}
 
 	void Event_PPShader(wxCommandEvent &ev)
 	{
@@ -109,11 +118,6 @@ protected:
 		// EFB format change emulation
 		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
 
-		// ATC
-		stc_safe->Enable(vconfig.bSafeTextureCache);
-		stc_normal->Enable(vconfig.bSafeTextureCache);
-		stc_fast->Enable(vconfig.bSafeTextureCache);
-
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
@@ -132,10 +136,6 @@ protected:
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
 	SettingCheckBox* emulate_efb_format_changes;
-
-	wxRadioButton* stc_safe;
-	wxRadioButton* stc_normal;
-	wxRadioButton* stc_fast;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
