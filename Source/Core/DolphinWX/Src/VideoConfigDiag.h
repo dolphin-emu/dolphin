@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "VideoConfig.h"
 
@@ -125,6 +126,18 @@ protected:
 		ev.Skip();
 	}
 
+	// Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
+	SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
+	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = NULL, long style = 0);
+	SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
+
+	// Same as above but only connects enter/leave window events
+	wxControl* RegisterControl(wxControl* const control, const wxString& description);
+
+	void Evt_EnterControl(wxMouseEvent& ev);
+	void Evt_LeaveControl(wxMouseEvent& ev);
+	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
+
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 
@@ -139,6 +152,9 @@ protected:
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
+
+	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
+	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
 
 	VideoConfig &vconfig;
 	std::string ininame;

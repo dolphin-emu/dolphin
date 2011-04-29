@@ -62,53 +62,54 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
-wxString adapter_tooltip = wxTRANSLATE("Select a hardware adapter to use.\nWhen in doubt, use the first one");
-wxString ar_tooltip = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio (4:3)\nForce 16:9: Stretch the picture to an aspect ratio of 16:9.\nForce 4:3: Stretch the picture to an aspect ratio of 4:3.\nStretch to window: Stretch the picture to the window size.");
-wxString ws_hack_tooltip = wxTRANSLATE("Force the game to output graphics for widescreen resolutions.\nNote that this might cause graphical glitches");
-wxString vsync_tooltip = wxTRANSLATE("Wait for vertical blanks.\nReduces tearing but might also decrease performance");
-wxString af_tooltip = wxTRANSLATE("Enables anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.");
-wxString aa_tooltip = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky but also heavily decreases performance.");
-wxString native_mips_tooltip = wxTRANSLATE("Loads native mipmaps instead of generating them.\nLoading native mipmaps is the more accurate behavior, but might also decrease performance (your mileage might vary though).");
-wxString scaled_efb_copy_tooltip = wxTRANSLATE("Uses the high-resolution render buffer for EFB copies instead of scaling them down to native resolution.\nVastly improves visual quality in games which use EFB copies but might cause glitches in some games.");
-wxString pixel_lighting_tooltip = wxTRANSLATE("Calculates lighting of 3D graphics on a per-pixel basis rather than per vertex.\nThis is the more accurate behavior but reduces performance.");
-wxString pixel_depth_tooltip = wxT("");
-wxString force_filtering_tooltip = wxTRANSLATE("Forces bilinear texture filtering even if the game explicitly disabled it.\nImproves texture quality (especially when using a high internal resolution) but causes glitches in some games.");
-wxString _3d_vision_tooltip = wxT("");
-wxString internal_res_tooltip = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality but is also quite heavy on performance and might cause glitches in certain games.\nFractional: Uses your display resolution directly instead of the native resolution. The quality scales with your display/window size, as does the performance impact.\nIntegral: This is like Fractional, but rounds up to an integer multiple of the native resolution. Should give a more accurate look but is usually slower.\nThe other options are fixed resolutions for choosing a visual quality independent of your display size.");
-wxString efb_access_tooltip = wxTRANSLATE("Allows the CPU to read or write to the EFB (render buffer).\nThis is needed for certain gameplay functionality (e.g. star pointer in Super Mario Galaxy) as well as for certain visual effects (e.g. Monster Hunter Tri),\nbut enabling this option can also have a huge negative impact on performance if the game uses this functionality heavily.");
-wxString efb_emulate_format_changes_tooltip = wxTRANSLATE("Enables reinterpreting the data inside the EFB when the pixel format changes.\nSome games depend on this function for certain effects, so enable it if you're having glitches.\nDepending on how the game uses this function, the speed hits caused by this option range from none to critical.");
-wxString efb_copy_tooltip = wxTRANSLATE("Enables emulation of Embedded Frame Buffer copies, if the game uses them.\nGames often need this for post-processing or other things, but if you can live without it, you can sometimes get a big speedup.");
-wxString efb_copy_texture_tooltip = wxTRANSLATE("Emulate frame buffer copies directly to textures.\nThis is not so accurate, but it's good enough for the way many games use framebuffer copies.");
-wxString efb_copy_ram_tooltip = wxTRANSLATE("Fully emulate embedded frame buffer copies.\nThis is more accurate than EFB Copy to Texture, and some games need this to work properly, but it can also be very slow.");
-wxString stc_tooltip = wxTRANSLATE("Keeps track of textures based on looking at the actual pixels in the texture.\nCan cause slowdown, but some games need this option enabled to work properly.");
-wxString stc_speed_tooltip = wxTRANSLATE("Faster variants look at fewer pixels and thus have more potential for errors.\nSlower variants look at more pixels and thus are safer.");
-wxString wireframe_tooltip = wxTRANSLATE("Render the scene as a wireframe.\nThis is only useful for debugging purposes.");
-wxString disable_lighting_tooltip = wxTRANSLATE("Disable lighting. Improves performance but causes lighting to disappear in games which use it.");
-wxString disable_textures_tooltip = wxTRANSLATE("Disable texturing.\nThis is only useful for debugging purposes.");
-wxString disable_fog_tooltip = wxTRANSLATE("Disable fog. Improves performance but causes glitches in games which rely on proper fog emulation.");
-wxString disable_alphapass_tooltip = wxTRANSLATE("Disables an alpha-setting pass.\nBreaks certain effects but might help performance.");
-wxString show_fps_tooltip = wxTRANSLATE("Show the number of frames rendered per second.");
-wxString show_input_display_tooltip = wxTRANSLATE("Display the inputs read by the emulator.");
-wxString show_stats_tooltip = wxTRANSLATE("Show various statistics.\nThis is only useful for debugging purposes.");
-wxString proj_stats_tooltip = wxTRANSLATE("Show projection statistics.\nThis is only useful for debugging purposes.");
-wxString texfmt_tooltip = wxTRANSLATE("Modify textures to show the format they're using.\nThis is only useful for debugging purposes.");
-wxString efb_copy_regions_tooltip = wxT("");
-wxString xfb_tooltip = wxT("");
-wxString dump_textures_tooltip = wxTRANSLATE("Dump game textures to User/Dump/Textures/<game id>/");
-wxString load_hires_textures_tooltip = wxTRANSLATE("Load high-resolution textures from User/Load/Textures/<game id>/");
-wxString dump_efb_tooltip = wxT("");
-wxString dump_frames_tooltip = wxT("");
+wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
+wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio\nForce 16:9: Stretch the picture to an aspect ratio of 16:9.\nForce 4:3: Stretch the picture to an aspect ratio of 4:3.\nStretch to Window: Stretch the picture to the window size.\n\nIf unsure, select Auto.");
+wxString ws_hack_desc = wxTRANSLATE("Force the game to output graphics for widescreen resolutions.\nCauses graphical glitches is some games.\n\nIf unsure, leave this unchecked.");
+wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
+wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
+wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
+wxString fast_mipmaps_desc = wxTRANSLATE("Automatically generate mipmaps rather than decoding them from memory.\nIncreases performance a bit but might cause minor texture defects.\n\nIf unsure, leave this checked.");
+wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
+wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
+wxString pixel_depth_desc = wxTRANSLATE("Calculate depth values of 3D graphics per-pixel rather than per vertex.\nIn contrast to pixel lighting (which is merely an enhancement), per-pixel depth calculations are necessary to properly emulate a small number of games.\n\nIf unsure, leave this checked.");
+wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
+wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\n\nRequires fullscreen to work.\nIf unsure, leave this unchecked.");
+wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
+wxString efb_access_desc = wxTRANSLATE("Ignore any requests of the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
+wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games though.\n\nIf unsure, leave this checked.");
+wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nThese are often used for post-processing or render-to-texture effects, so while checking this setting gives a great speedup it almost always also causes issues.\n\nIf unsure, leave this unchecked.");
+wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis is not so accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
+wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
+wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the second-fastest value from the right.");
+wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
+wxString disable_lighting_desc = wxTRANSLATE("Improves performance but causes lighting to disappear in most games.\n\nIf unsure, leave this unchecked.");
+wxString disable_textures_desc = wxTRANSLATE("Disable texturing.\n\nIf unsure, leave this unchecked.");
+wxString disable_fog_desc = wxTRANSLATE("Improves performance but causes glitches in most games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
+wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
+wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
+wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
+wxString show_stats_desc = wxTRANSLATE("Show various statistics.\n\nIf unsure, leave this unchecked.");
+wxString texfmt_desc = wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n\nIf unsure, leave this unchecked.");
+wxString efb_copy_regions_desc = wxTRANSLATE("[BROKEN]\nHighlight regions the EFB was copied from.\n\nIf unsure, leave this unchecked.");
+wxString xfb_desc = wxTRANSLATE("Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many games which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
+wxString xfb_virtual_desc = wxTRANSLATE("Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB emulation while not being as slow as real XFB emulation. However, it may still fail for a lot of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
+wxString xfb_real_desc = wxTRANSLATE("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits high-resolution rendering but is necessary to emulate a number of games properly.\n\nIf unsure, check virtual XFB emulation instead.");
+wxString dump_textures_desc = wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/\n\nIf unsure, leave this unchecked.");
+wxString load_hires_textures_desc = wxTRANSLATE("Load custom textures from User/Load/Textures/<game_id>/\n\nIf unsure, leave this unchecked.");
+wxString dump_efb_desc = wxTRANSLATE("Dump the contents of EFB copies to User/Dump/Textures/\n\nIf unsure, leave this unchecked.");
+wxString dump_frames_desc = wxTRANSLATE("Dump all rendered frames to an AVI file in User/Dump/Frames/\n\nIf unsure, leave this unchecked.");
 #if !defined WIN32 && defined HAVE_LIBAV
-wxString use_ffv1_tooltip = wxT("");
+wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
-wxString free_look_tooltip = wxT("");
-wxString crop_tooltip = wxT("");
-wxString opencl_tooltip = wxT("");
-wxString dlc_tooltip = wxT("");
-wxString omp_tooltip = wxTRANSLATE("Uses multiple threads to decode the textures in the game.");
-wxString hotkeys_tooltip = wxT("");
-wxString ppshader_tooltip = wxT("");
-wxString cache_efb_copies_tooltip = wxTRANSLATE("When using EFB to RAM we very often need to decode RAM data to a VRAM texture, which is a very time-consuming task.\nWith this option enabled, we'll skip decoding a texture if it didn't change.\nThis results in a nice speedup, but possibly causes glitches.\nIf you have any problems with this option enabled you should either try increasing the safety of the texture cache or disable this option.\n(NOTE: The safer the texture cache is adjusted the lower the speedup will be; accurate texture cache set to \"safe\" might actually be slower!)");
+wxString free_look_desc = wxTRANSLATE("[PARTIALLY BROKEN]\nEnable moving the camera arbitrarily\nUse WASD to move. R to reset the view.\n0/9 to move faster/slower.\nAdditionally the middle/right mouse button can be used to rotate the view.\n\nIf unsure, leave this unchecked.");
+wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
+wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
+wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
+wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
+wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5, 6 and 7 within the emulation window.\n\nIf unsure, leave this unchecked.");
+wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
+wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
@@ -140,7 +141,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	//	_("OpenGL"), _("Direct3D 9"), _("Direct3D 11") };
 
 	//szr_basic->Add(new wxStaticText(page_general, -1, _("Graphics API:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	//wxChoice* const choice_gfxapi = new SettingChoice(page_general,
+	//wxChoice* const choice_gfxapi = CreateChoice(page_general,
 	//	g_gfxapi, sizeof(gfxapi_choices)/sizeof(*gfxapi_choices), gfxapi_choices);
 	//szr_basic->Add(choice_gfxapi, 1, 0, 0);
 	// TODO: Connect with Event_Backend()
@@ -150,7 +151,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	if (vconfig.backend_info.Adapters.size())
 	{
 		szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
-		wxChoice* const choice_adapter = new SettingChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_tooltip));
+		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
 		std::vector<std::string>::const_iterator
 			it = vconfig.backend_info.Adapters.begin(),
@@ -168,7 +169,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	const wxString ar_choices[] = { _("Auto"), _("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
 	szr_basic->Add(new wxStaticText(page_general, -1, _("Aspect Ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	wxChoice* const choice_aspect = new SettingChoice(page_general, vconfig.iAspectRatio, wxGetTranslation(ar_tooltip),
+	wxChoice* const choice_aspect = CreateChoice(page_general, vconfig.iAspectRatio, wxGetTranslation(ar_desc),
 														sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
 	szr_basic->Add(choice_aspect, 1, 0, 0);
 	}
@@ -176,14 +177,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// widescreen hack
 	{
 	szr_basic->AddStretchSpacer(1);
-	szr_basic->Add(new SettingCheckBox(page_general, _("Widescreen Hack"), wxGetTranslation(ws_hack_tooltip), vconfig.bWidescreenHack), 1, 0, 0);
+	szr_basic->Add(CreateCheckBox(page_general, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack), 1, 0, 0);
 	szr_basic->AddStretchSpacer(1);
-	szr_basic->Add(new SettingCheckBox(page_general, _("V-Sync"), wxGetTranslation(vsync_tooltip), vconfig.bVSync), 1, 0, 0);
+	szr_basic->Add(CreateCheckBox(page_general, _("V-Sync"), wxGetTranslation(vsync_desc), vconfig.bVSync), 1, 0, 0);
 	szr_basic->AddStretchSpacer(1);
 	}
 
 	// other basic stuff
-	szr_basic->Add(new SettingCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_tooltip), vconfig.bShowFPS));
+	szr_basic->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
 
 	// - enhancements
 	wxFlexGridSizer* const szr_enh = new wxFlexGridSizer(2, 5, 5);
@@ -193,15 +194,15 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxT("1x Native (640x528)"), wxT("2x Native (1280x1056)"), wxT("3x Native (1920x1584)"),
 		wxT("0.75x Native (480x396)"), wxT("0.5x Native (320x264)"), wxT("0.375x Native (240x198)") };
 
-	wxChoice *const choice_efbscale = new SettingChoice(page_general,
-		vconfig.iEFBScale, wxGetTranslation(internal_res_tooltip), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
+	wxChoice *const choice_efbscale = CreateChoice(page_general,
+		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
 
 	szr_enh->Add(new wxStaticText(page_general, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_efbscale);
 
 	// AA
 	text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
-	choice_aamode = new SettingChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_tooltip));
+	choice_aamode = CreateChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
 	std::vector<std::string>::const_iterator
 		it = vconfig.backend_info.AAModes.begin(),
@@ -216,21 +217,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// AF
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
 	szr_enh->Add(new wxStaticText(page_general, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	szr_enh->Add(new SettingChoice(page_general, vconfig.iMaxAnisotropy, wxGetTranslation(af_tooltip), 5, af_choices));
+	szr_enh->Add(CreateChoice(page_general, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
 
 	// Scaled copy, PL, Bilinear filter, 3D Vision
-	szr_enh->Add(new SettingCheckBox(page_general, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_tooltip), vconfig.bCopyEFBScaled));
-	szr_enh->AddStretchSpacer();
-	szr_enh->Add(pixel_lighting = new SettingCheckBox(page_general, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_tooltip), vconfig.bEnablePixelLighting));
-	szr_enh->AddStretchSpacer();
-	szr_enh->Add(new SettingCheckBox(page_general, _("Force Texture Filtering"), wxGetTranslation(force_filtering_tooltip), vconfig.bForceFiltering));
-	szr_enh->AddStretchSpacer();
+	szr_enh->Add(CreateCheckBox(page_general, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
+	szr_enh->Add(pixel_lighting = CreateCheckBox(page_general, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
+	szr_enh->Add(CreateCheckBox(page_general, _("Force Texture Filtering"), wxGetTranslation(force_filtering_desc), vconfig.bForceFiltering));
 
 	// 3D Vision
-	_3d_vision = new SettingCheckBox(page_general, _("3D Vision (requires Fullscreen)"), wxGetTranslation(_3d_vision_tooltip), vconfig.b3DVision);
+	_3d_vision = CreateCheckBox(page_general, _("3D Vision"), wxGetTranslation(_3d_vision_desc), vconfig.b3DVision);
 	_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 	szr_enh->Add(_3d_vision);
-	szr_enh->AddStretchSpacer();
 	// TODO: Add anaglyph 3d here
 
 	// postproc shader
@@ -238,7 +235,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 
 		wxChoice *const choice_ppshader = new wxChoice(page_general, -1, wxDefaultPosition);
-		choice_ppshader->SetToolTip(wxGetTranslation(ppshader_tooltip));
+		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
 		std::vector<std::string>::const_iterator
@@ -254,7 +251,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		_connect_macro_(choice_ppshader, VideoConfigDiag::Event_PPShader, wxEVT_COMMAND_CHOICE_SELECTED, this);
 
-		szr_enh->Add(new wxStaticText(page_general, -1, _("Post-Processing Shader:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+		szr_enh->Add(new wxStaticText(page_general, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_enh->Add(choice_ppshader, 0, wxLEFT, 5);
 	}
 
@@ -267,6 +264,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_general->Add(group_enh, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
+	szr_general->AddStretchSpacer();
+	CreateDescriptionArea(page_general, szr_general);
 	page_general->SetSizerAndFit(szr_general);
 	}
 
@@ -277,18 +276,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxBoxSizer* const szr_hacks = new wxBoxSizer(wxVERTICAL);
 
 	// - EFB hacks
-	wxStaticBoxSizer* const szr_efb = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("EFB Hacks"));
+	wxStaticBoxSizer* const szr_efb = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Embedded Frame Buffer"));
 
 	// format change emulation
-	emulate_efb_format_changes = new SettingCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_tooltip), vconfig.bEFBEmulateFormatChanges, true);
+	emulate_efb_format_changes = CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true);
 
 	// EFB copies
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("EFB Copies"));
 
-	SettingCheckBox* efbcopy_disable = new SettingCheckBox(page_hacks, _("Disable"), wxGetTranslation(efb_copy_tooltip), vconfig.bEFBCopyEnable, true);
-	efbcopy_texture = new SettingRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_tooltip), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	efbcopy_ram = new SettingRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_tooltip), vconfig.bCopyEFBToTexture, true);
-	cache_efb_copies = new SettingCheckBox(page_hacks, _("Enable Cache"), wxGetTranslation(cache_efb_copies_tooltip), vconfig.bEFBCopyCacheEnable);
+	SettingCheckBox* efbcopy_disable = CreateCheckBox(page_hacks, _("Disable"), wxGetTranslation(efb_copy_desc), vconfig.bEFBCopyEnable, true);
+	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
+	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
+	cache_efb_copies = CreateCheckBox(page_hacks, _("Enable Cache"), wxGetTranslation(cache_efb_copies_desc), vconfig.bEFBCopyCacheEnable);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
@@ -296,7 +295,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
 	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
 
-	szr_efb->Add(new SettingCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_tooltip), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
+	szr_efb->Add(CreateCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_desc), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(group_efbcopy, 0, wxEXPAND | wxBOTTOM, 5);
 	szr_hacks->Add(szr_efb, 0, wxEXPAND | wxALL, 5);
@@ -306,8 +305,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
 	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 3, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
-	stc_slider->SetToolTip(wxGetTranslation(stc_speed_tooltip));
 	_connect_macro_(stc_slider, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_SLIDER_UPDATED, this);
+	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
 	if (vconfig.bSafeTextureCache)
 	{
@@ -327,11 +326,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - XFB
 	{
-	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("XFB"));
+	wxStaticBoxSizer* const group_xfb = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("External Frame Buffer"));
 
-	SettingCheckBox* disable_xfb = new SettingCheckBox(page_hacks, _("Disable"), wxGetTranslation(xfb_tooltip), vconfig.bUseXFB, true);
-	virtual_xfb = new SettingRadioButton(page_hacks, _("Virtual"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB, true, wxRB_GROUP);
-	real_xfb = new SettingRadioButton(page_hacks, _("Real"), wxGetTranslation(xfb_tooltip), vconfig.bUseRealXFB);
+	SettingCheckBox* disable_xfb = CreateCheckBox(page_hacks, _("Disable"), wxGetTranslation(xfb_desc), vconfig.bUseXFB, true);
+	virtual_xfb = CreateRadioButton(page_hacks, _("Virtual"), wxGetTranslation(xfb_virtual_desc), vconfig.bUseRealXFB, true, wxRB_GROUP);
+	real_xfb = CreateRadioButton(page_hacks, _("Real"), wxGetTranslation(xfb_real_desc), vconfig.bUseRealXFB);
 
 	group_xfb->Add(disable_xfb, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_xfb->AddStretchSpacer(1);
@@ -344,20 +343,22 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_other = new wxGridSizer(2, 2);
 
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Fast Mipmaps"), wxGetTranslation(native_mips_tooltip), vconfig.bUseNativeMips, true));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Cache Display Lists"), dlc_tooltip, vconfig.bDlistCachingEnable));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Disable Lighting"), wxGetTranslation(disable_lighting_tooltip), vconfig.bDisableLighting));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_tooltip), vconfig.bDisableFog));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Disable Per-Pixel Depth"), wxGetTranslation(pixel_depth_tooltip), vconfig.bEnablePerPixelDepth, true));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_tooltip), vconfig.bDstAlphaPass));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("OpenCL Texture Decoder"), opencl_tooltip, vconfig.bEnableOpenCL));
-	szr_other->Add(new SettingCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_tooltip), vconfig.bOMPDecoder));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Mipmaps"), wxGetTranslation(fast_mipmaps_desc), vconfig.bUseNativeMips, true));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Lighting"), wxGetTranslation(disable_lighting_desc), vconfig.bDisableLighting));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Per-Pixel Depth"), wxGetTranslation(pixel_depth_desc), vconfig.bEnablePerPixelDepth, true));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
+	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
+	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 
-	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other Hacks"));
+	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	szr_hacks->Add(group_other, 0, wxEXPAND | wxALL, 5);
 	}
 
+	szr_hacks->AddStretchSpacer();
+	CreateDescriptionArea(page_hacks, szr_hacks);
 	page_hacks->SetSizerAndFit(szr_hacks);
 	}
 
@@ -371,12 +372,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_debug = new wxGridSizer(2, 5, 5);
 
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Enable Wireframe"), wxGetTranslation(wireframe_tooltip), vconfig.bWireFrame));
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Show EFB Copy Regions"), wxGetTranslation(efb_copy_regions_tooltip), vconfig.bShowEFBCopyRegions));
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Show Statistics"), wxGetTranslation(show_stats_tooltip), vconfig.bOverlayStats));
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Projection Statistics"), wxGetTranslation(proj_stats_tooltip), vconfig.bOverlayProjStats));
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Texture Format Overlay"), wxGetTranslation(texfmt_tooltip), vconfig.bTexFmtOverlayEnable));
-	szr_debug->Add(new SettingCheckBox(page_advanced, _("Disable Textures"), wxGetTranslation(disable_textures_tooltip), vconfig.bDisableTexturing));
+	szr_debug->Add(CreateCheckBox(page_advanced, _("Enable Wireframe"), wxGetTranslation(wireframe_desc), vconfig.bWireFrame));
+	szr_debug->Add(CreateCheckBox(page_advanced, _("Show EFB Copy Regions"), wxGetTranslation(efb_copy_regions_desc), vconfig.bShowEFBCopyRegions));
+	szr_debug->Add(CreateCheckBox(page_advanced, _("Show Statistics"), wxGetTranslation(show_stats_desc), vconfig.bOverlayStats));
+	szr_debug->Add(CreateCheckBox(page_advanced, _("Texture Format Overlay"), wxGetTranslation(texfmt_desc), vconfig.bTexFmtOverlayEnable));
+	szr_debug->Add(CreateCheckBox(page_advanced, _("Disable Textures"), wxGetTranslation(disable_textures_desc), vconfig.bDisableTexturing));
 
 	wxStaticBoxSizer* const group_debug = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Debugging"));
 	szr_advanced->Add(group_debug, 0, wxEXPAND | wxALL, 5);
@@ -387,13 +387,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_utility = new wxGridSizer(2, 5, 5);
 
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Textures"), wxGetTranslation(dump_textures_tooltip), vconfig.bDumpTextures));
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Load Custom Textures"), wxGetTranslation(load_hires_textures_tooltip), vconfig.bHiresTextures));
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump EFB Target"), dump_efb_tooltip, vconfig.bDumpEFBTarget));
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Dump Frames"), dump_frames_tooltip, vconfig.bDumpFrames));
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Free Look"), free_look_tooltip, vconfig.bFreeLook));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump Textures"), wxGetTranslation(dump_textures_desc), vconfig.bDumpTextures));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Load Custom Textures"), wxGetTranslation(load_hires_textures_desc), vconfig.bHiresTextures));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"), wxGetTranslation(dump_efb_desc), vconfig.bDumpEFBTarget));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump Frames"), wxGetTranslation(dump_frames_desc), vconfig.bDumpFrames));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"), wxGetTranslation(free_look_desc), vconfig.bFreeLook));
 #if !defined WIN32 && defined HAVE_LIBAV
-	szr_utility->Add(new SettingCheckBox(page_advanced, _("Frame Dumps use FFV1"), use_ffv1_tooltip, vconfig.bUseFFV1));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps use FFV1"), wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
 #endif
 
 	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Utility"));
@@ -405,16 +405,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_misc = new wxGridSizer(2, 2);
 
-	szr_misc->Add(new SettingCheckBox(page_advanced, _("Hide Shader Errors"), wxT(""), vconfig.bShowShaderErrors, true));
-	szr_misc->Add(new SettingCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_tooltip), vconfig.bShowInputDisplay));
-	szr_misc->Add(new SettingCheckBox(page_advanced, _("Crop"), crop_tooltip, vconfig.bCrop));
-	szr_misc->Add(new SettingCheckBox(page_advanced, _("Enable Hotkeys"), hotkeys_tooltip, vconfig.bOSDHotKey));
+	szr_misc->Add(CreateCheckBox(page_advanced, _("Hide Shader Errors"), wxGetTranslation(shader_errors_desc), vconfig.bShowShaderErrors, true));
+	szr_misc->Add(CreateCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_desc), vconfig.bShowInputDisplay));
+	szr_misc->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
+	szr_misc->Add(CreateCheckBox(page_advanced, _("Enable Hotkeys"), wxGetTranslation(hotkeys_desc), vconfig.bOSDHotKey));
 
 	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
 	szr_advanced->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	}
 
+	szr_advanced->AddStretchSpacer();
+	CreateDescriptionArea(page_advanced, szr_advanced);
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
@@ -434,4 +436,85 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	SetFocus();
 
 	UpdateWindowUI();
+}
+
+SettingCheckBox* VideoConfigDiag::CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)
+{
+	SettingCheckBox* const cb = new SettingCheckBox(parent, label, wxString(), setting, reverse, style);
+	RegisterControl(cb, description);
+	return cb;
+}
+
+SettingChoice* VideoConfigDiag::CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num, const wxString choices[], long style)
+{
+	SettingChoice* const ch = new SettingChoice(parent, setting, wxString(), num, choices, style);
+	RegisterControl(ch, description);
+	return ch;
+}
+
+SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)
+{
+	SettingRadioButton* const rb = new SettingRadioButton(parent, label, wxString(), setting, reverse, style);
+	RegisterControl(rb, description);
+	return rb;
+}
+
+wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
+{
+	ctrl_descs.insert(std::pair<wxWindow*,wxString>(control, description));
+	control->Connect(wxID_ANY, wxEVT_ENTER_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_EnterControl), NULL, this);
+	control->Connect(wxID_ANY, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_LeaveControl), NULL, this);
+	return control;
+}
+
+void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
+{
+	// TODO: Re-Fit the sizer if necessary!
+
+	// Get settings control object from event
+	wxWindow* ctrl = (wxWindow*)ev.GetEventObject();
+	if (!ctrl) return;
+
+	// look up description text object from the control's parent (which is the wxPanel of the current tab)
+	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
+	if (!descr_text) return;
+
+	// look up the description of the selected control and assign it to the current description text object's label
+	descr_text->SetLabel(ctrl_descs[ctrl]);
+	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
+
+	ev.Skip();
+}
+
+// TODO: Don't hardcode the size of the description area via line breaks
+#define DEFAULT_DESC_TEXT "Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n"
+void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
+{
+	// look up description text control and reset its label
+	wxWindow* ctrl = (wxWindow*)ev.GetEventObject();
+	if (!ctrl) return;
+	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
+	if (!descr_text) return;
+
+	descr_text->SetLabel(_(DEFAULT_DESC_TEXT));
+	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
+	ev.Skip();
+}
+
+void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer)
+{
+	// Create description frame
+	wxStaticBoxSizer* const desc_sizer = new wxStaticBoxSizer(wxVERTICAL, page, _("Description"));
+	sizer->Add(desc_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+	// Need to call SetSizerAndFit here, since we don't want the description texts to change the dialog width
+	page->SetSizerAndFit(sizer);
+
+	// Create description text
+	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, _(DEFAULT_DESC_TEXT));
+	desc_text->Wrap(desc_sizer->GetSize().x - 20);
+	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+	// Store description text object for later lookup
+	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
 }
