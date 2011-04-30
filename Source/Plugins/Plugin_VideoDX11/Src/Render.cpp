@@ -781,8 +781,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight());
 
 	ID3D11PixelShader* pixel_shader;
-	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6();
-	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8();
+	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6(true);
+	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8(true);
 	else
 	{
 		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
