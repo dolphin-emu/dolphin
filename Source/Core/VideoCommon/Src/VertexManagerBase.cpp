@@ -11,6 +11,7 @@
 #include "RenderBase.h"
 
 #include "VertexManagerBase.h"
+#include "VideoConfig.h"
 
 VertexManager *g_vertex_manager;
 
@@ -158,6 +159,16 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
+	// Disable Lighting	
+	// TODO - Is this a good spot for this code?
+	if (g_ActiveConfig.bDisableLighting) 
+	{
+		for (u32 i = 0; i < xfregs.numChan.numColorChans; i++)
+		{
+			xfregs.alpha[i].enablelighting = false;
+			xfregs.color[i].enablelighting = false;
+		}
+	}
 	g_vertex_manager->vFlush();
 }
 

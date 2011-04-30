@@ -289,17 +289,6 @@ void GLVertexFormat::EnableComponents(u32 components)
 			}
 		}
 
-		// Disable Lighting	
-		// TODO - Is this a good spot for this code?
-		if (g_ActiveConfig.bDisableLighting) 
-		{
-			for (u32 i = 0; i < xfregs.numChan.numColorChans; i++)
-			{
-				xfregs.alpha[i].enablelighting = false;
-				xfregs.color[i].enablelighting = false;
-			}
-		}
-
 		s_prevcomponents = components;
 	}
 }
