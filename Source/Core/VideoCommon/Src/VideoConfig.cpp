@@ -57,11 +57,11 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
+	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, false);
 	
-	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
+	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, true); // Settings
 	//Safe texture cache params
-	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);
+	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
 
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
@@ -81,9 +81,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
 	
-	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
+	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 1);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 1); // integral
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
 	
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 	
@@ -106,10 +106,10 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
 	iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true);
 	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
-	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
+	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, true);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
-	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, true);
+	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 
