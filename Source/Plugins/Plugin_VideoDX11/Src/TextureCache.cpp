@@ -17,18 +17,18 @@
 
 #include "TextureCache.h"
 
-#include "VideoConfig.h"
 #include "D3DBase.h"
 #include "D3DTexture.h"
 #include "D3DShader.h"
-#include "PSTextureEncoder.h"
-#include "VertexShaderCache.h"
 #include "FramebufferManager.h"
-#include "Render.h"
-#include "TexCopyLookaside.h"
-#include "LookUpTables.h"
 #include "GfxState.h"
 #include "HW/Memmap.h"
+#include "LookUpTables.h"
+#include "PSTextureEncoder.h"
+#include "Render.h"
+#include "TexCopyLookaside.h"
+#include "VertexShaderCache.h"
+#include "VideoConfig.h"
 
 namespace DX11
 {
@@ -593,52 +593,30 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 {
 	DEBUG_LOG(VIDEO, "Depalettizing texture with new TLUT");
 
-	// Reset API
-
-	g_renderer->ResetAPIState();
-	D3D::stateman->Apply();
-
-	D3D11_TEXTURE2D_DESC loadedDesc;
-	m_loaded->GetTex()->GetDesc(&loadedDesc);
-
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(loadedDesc.Width), FLOAT(loadedDesc.Height));
-	D3D::g_context->RSSetViewports(1, &vp);
-
 	// Re-encode with a different palette
+
+	DepalettizeShader::BaseType baseType;
 
 	SharedPtr<ID3D11PixelShader> depalettizeShader;
 	if (m_fromTcl)
 	{
+		// If the base came from a TCL, it will have UNORM type
 		if (format == GX_TF_C4)
-			depalettizeShader = ((TextureCache*)g_textureCache)->GetDepal4Shader();
+			baseType = DepalettizeShader::Unorm4;
 		else if (format == GX_TF_C8)
-			depalettizeShader = ((TextureCache*)g_textureCache)->GetDepal8Shader();
+			baseType = DepalettizeShader::Unorm8;
 		else if (format == GX_TF_C14X2)
 		{
 			// TODO: When would this happen and how would we handle it?
-			depalettizeShader = ((TextureCache*)g_textureCache)->GetDepal8Shader();
 			ERROR_LOG(VIDEO, "Not implemented: Reinterpret TCL as C14X2!");
+			return;
 		}
 	}
 	else
-		depalettizeShader = ((TextureCache*)g_textureCache)->GetDepalUintShader();
+		baseType = DepalettizeShader::Uint;
 
-	D3D::g_context->OMSetRenderTargets(1, &m_depalStorage.tex->GetRTV(), NULL);
-	D3D::g_context->PSSetShaderResources(8, 1, &m_loaded->GetSRV());
-	D3D::g_context->PSSetShaderResources(9, 1, &m_paletteSRV);
-
-	D3D::drawEncoderQuad(depalettizeShader);
-
-	ID3D11ShaderResourceView* nullDummy = NULL;
-	D3D::g_context->PSSetShaderResources(8, 1, &nullDummy);
-	D3D::g_context->PSSetShaderResources(9, 1, &nullDummy);
-	
-	// Restore API
-
-	g_renderer->RestoreAPIState();
-	D3D::g_context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	((TextureCache*)g_textureCache)->GetDepalShader().Depalettize(
+		m_depalStorage.tex.get(), m_loaded, baseType, m_paletteSRV);
 }
 
 TextureCache::TextureCache()
@@ -690,84 +668,6 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 		tcl->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 		tcl->SetHash(encodedHash);
 	}
-}
-
-static const char DEPALETTIZE4_SHADER[] =
-"// dolphin-emu depalettizing shader for 4-bit normalized-float indices\n"
-
-// Use t8 and t9 because t0..7 are being used by the vertex manager
-"Texture2D Base : register(t8);\n"
-"Buffer<float4> Palette : register(t9);\n"
-
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
-"{\n"
-	"float sample = Base.Load(int3(pos.x, pos.y, 0)).r;\n"
-	"ocol0 = Palette.Load(sample * 15);\n"
-"}\n"
-;
-
-SharedPtr<ID3D11PixelShader> TextureCache::GetDepal4Shader()
-{
-	if (!m_depal4Shader)
-	{
-		m_depal4Shader = D3D::CompileAndCreatePixelShader(DEPALETTIZE4_SHADER, sizeof(DEPALETTIZE4_SHADER));
-		if (!m_depal4Shader)
-			ERROR_LOG(VIDEO, "Failed to create depalettizing shader");
-	}
-
-	return m_depal4Shader;
-}
-
-static const char DEPALETTIZE8_SHADER[] =
-"// dolphin-emu depalettizing shader for 8-bit normalized-float indices\n"
-
-// Use t8 and t9 because t0..7 are being used by the vertex manager
-"Texture2D Base : register(t8);\n"
-"Buffer<float4> Palette : register(t9);\n"
-
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
-"{\n"
-	"float sample = Base.Load(int3(pos.x, pos.y, 0)).r;\n"
-	"ocol0 = Palette.Load(sample * 255);\n"
-"}\n"
-;
-
-SharedPtr<ID3D11PixelShader> TextureCache::GetDepal8Shader()
-{
-	if (!m_depal8Shader)
-	{
-		m_depal8Shader = D3D::CompileAndCreatePixelShader(DEPALETTIZE8_SHADER, sizeof(DEPALETTIZE8_SHADER));
-		if (!m_depal8Shader)
-			ERROR_LOG(VIDEO, "Failed to create depalettizing shader");
-	}
-
-	return m_depal8Shader;
-}
-
-static const char DEPALETTIZE_UINT_SHADER[] =
-"// dolphin-emu depalettizing shader for uint indices\n"
-
-// Use t8 and t9 because t0..7 are being used by the vertex manager
-"Texture2D<uint> Base : register(t8);\n"
-"Buffer<float4> Palette : register(t9);\n"
-
-"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
-"{\n"
-	"uint index = Base.Load(int3(pos.x, pos.y, 0));\n"
-	"ocol0 = Palette.Load(index);\n"
-"}\n"
-;
-
-SharedPtr<ID3D11PixelShader> TextureCache::GetDepalUintShader()
-{
-	if (!m_depalUintShader)
-	{
-		m_depalUintShader = D3D::CompileAndCreatePixelShader(DEPALETTIZE_UINT_SHADER, sizeof(DEPALETTIZE_UINT_SHADER));
-		if (!m_depalUintShader)
-			ERROR_LOG(VIDEO, "Failed to create depalettizing shader");
-	}
-
-	return m_depalUintShader;
 }
 
 TCacheEntry* TextureCache::CreateEntry()

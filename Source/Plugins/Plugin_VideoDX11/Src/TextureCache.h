@@ -19,7 +19,9 @@
 #define _VIDEODX11_TEXTURECACHE_H
 
 #include "TextureCacheBase.h"
+
 #include "D3DUtil.h"
+#include "DepalettizeShader.h"
 
 namespace DX11
 {
@@ -127,9 +129,7 @@ public:
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 	TexCopyLookasideMap& GetTclMap() { return m_tclMap; }
 	
-	SharedPtr<ID3D11PixelShader> GetDepal4Shader();
-	SharedPtr<ID3D11PixelShader> GetDepal8Shader();
-	SharedPtr<ID3D11PixelShader> GetDepalUintShader();
+	DepalettizeShader& GetDepalShader() { return m_depalShader; }
 
 protected:
 
@@ -143,12 +143,7 @@ private:
 	std::unique_ptr<TextureEncoder> m_encoder;
 	TexCopyLookasideMap m_tclMap;
 
-	// Depalettizing shader for 4-bit indices as normalized float
-	SharedPtr<ID3D11PixelShader> m_depal4Shader;
-	// Depalettizing shader for 8-bit indices as normalized float
-	SharedPtr<ID3D11PixelShader> m_depal8Shader;
-	// Depalettizing shader for indices as uint
-	SharedPtr<ID3D11PixelShader> m_depalUintShader;
+	DepalettizeShader m_depalShader;
 
 };
 
