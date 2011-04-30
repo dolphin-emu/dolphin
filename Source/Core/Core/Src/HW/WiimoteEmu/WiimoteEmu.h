@@ -170,6 +170,8 @@ private:
 
 	u8		m_shake_step[3];
 
+	bool	m_sensor_bar_on_top;
+
 	wm_status_report		m_status;
 
 	ADPCMState m_adpcm_state;

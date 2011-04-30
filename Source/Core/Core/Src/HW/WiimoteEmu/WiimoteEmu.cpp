@@ -29,6 +29,7 @@
 #include "Timer.h"
 #include "Common.h"
 #include "../../Host.h"
+#include "../../ConfigManager.h"
 
 #include "UDPTLayer.h"
 
@@ -299,6 +300,9 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 
+	// TODO: This value should probably be re-read if SYSCONF gets changed
+	m_sensor_bar_on_top = (bool)SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR");
+
 	// --- reset eeprom/register/values to default ---
 	Reset();
 }
@@ -474,7 +478,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		for (int i=0; i<4; i++)
 		{
 			v[i].x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
-			v[i].y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
+			if (m_sensor_bar_on_top) v[i].y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
+			else v[i].y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
 			v[i].z=0;
 		}
 
