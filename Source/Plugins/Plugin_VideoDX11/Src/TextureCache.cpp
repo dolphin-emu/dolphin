@@ -449,6 +449,9 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 			SharedPtr<ID3D11Texture2D> newDepal = CreateTexture2DShared(&t2dd, NULL);
 			m_depalStorage.tex.reset(new D3DTexture2D(newDepal,
 				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
+			m_depalStorage.width = t2dd.Width;
+			m_depalStorage.height = t2dd.Height;
+			m_depalStorage.levels = t2dd.MipLevels;
 		}
 
 		bool runDepalShader = recreateDepal || m_loadedDirty || paletteChanged;
