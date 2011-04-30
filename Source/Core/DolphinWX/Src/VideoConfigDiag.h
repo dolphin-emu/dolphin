@@ -72,19 +72,6 @@ protected:
 	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
-	void Event_Stc(wxCommandEvent &ev)
-	{
-		int samples[] = { 0, 512, 128 };
-		if (ev.GetInt() < 3)
-		{
-			vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
-			vconfig.bSafeTextureCache = true;
-		}
-		else vconfig.bSafeTextureCache = false;
-
-		ev.Skip();
-	}
-
 	void Event_PPShader(wxCommandEvent &ev)
 	{
 		const int sel = ev.GetInt();
@@ -112,9 +99,8 @@ protected:
 		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 
 		// EFB copy
-		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
+		efbcopy_virtual->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
-		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
 
 		// EFB format change emulation
 		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
