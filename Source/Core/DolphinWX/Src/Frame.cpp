@@ -429,7 +429,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Create cursors
 	#ifdef _WIN32
 		CreateCursor();
-		SetToolTip(_(""));
+		SetToolTip(wxT(""));
 		GetToolTip()->SetAutoPop(25000);
 	#endif
 

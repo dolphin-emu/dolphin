@@ -52,6 +52,7 @@ static const wxLanguage langIds[] =
 {
 	wxLANGUAGE_DEFAULT,
 	wxLANGUAGE_ARABIC,
+	wxLANGUAGE_CATALAN,
 	wxLANGUAGE_CHINESE_SIMPLIFIED,
 	wxLANGUAGE_CHINESE_TRADITIONAL,
 	wxLANGUAGE_CZECH,
@@ -324,6 +325,7 @@ void CConfigMain::InitializeGUILists()
 	// keep these in sync with the langIds array at the beginning of this file
 	arrayStringFor_InterfaceLang.Add(_("<System>"));
 	arrayStringFor_InterfaceLang.Add(_("Arabic"));
+	arrayStringFor_InterfaceLang.Add(_("Catalan"));
 	arrayStringFor_InterfaceLang.Add(_("Chinese (Simplified)"));
 	arrayStringFor_InterfaceLang.Add(_("Chinese (Traditional)"));
 	arrayStringFor_InterfaceLang.Add(_("Czech"));

@@ -172,6 +172,13 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	/* Post the mouse events to the main window, it's nessesary because in difference to the
 	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
 	case WM_LBUTTONDOWN:
+		if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
+		{
+			// This basically throws away the left button down input when b3DVision is activated so WX
+			// can't get access to it, stopping focus pulling on mouse click.
+			// (Input plugins use a different system so it doesn't cause too much weirdness)
+			break;
+		}
 	case WM_LBUTTONUP:
 	case WM_LBUTTONDBLCLK:
 		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
@@ -306,13 +313,6 @@ void Show()
 	BringWindowToTop(m_hWnd);
 	UpdateWindow(m_hWnd);
 	SetFocus(m_hParent);
-
-	if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
-	{
-		SetActiveWindow(m_hParent);
-		SetForegroundWindow(m_hWnd);
-	}
-		
 }
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)

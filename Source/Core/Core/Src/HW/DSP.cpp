@@ -262,7 +262,7 @@ void Init(bool hle)
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;
 		g_ARAM.mask = Memory::EXRAM_MASK;
-		g_ARAM.ptr = Memory::GetPointer(0);
+		g_ARAM.ptr = Memory::GetPointer(0x10000000);
 	}
 	else
 	{
@@ -729,7 +729,12 @@ u8 ReadARAM(u32 _iAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
 	if (g_ARAM.wii_mode)
-		return g_ARAM.ptr[(_iAddress & 0x10000000)?(_iAddress & 0x13ffffff):(_iAddress & 0x01ffffff)];
+	{	
+		if (_iAddress & 0x10000000)
+			return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+		else 
+			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+	}
 	else
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
@@ -737,10 +742,8 @@ u8 ReadARAM(u32 _iAddress)
 void WriteARAM(u8 value, u32 _uAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
-	if (g_ARAM.wii_mode)
-		g_ARAM.ptr[(_uAddress & 0x10000000)?(_uAddress & 0x13ffffff):(_uAddress & 0x01ffffff)] = value;
-	else
-		g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	//TODO: verify this on WII
+	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
 u8 *GetARAMPtr()

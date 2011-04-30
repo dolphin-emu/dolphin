@@ -150,7 +150,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_PlayPage->SetSizer(sPlayPage);
 	m_PlayPage->Layout();
 	sPlayPage->Fit(m_PlayPage);
-	m_Notebook->AddPage(m_PlayPage, wxT("Play"), true);
+	m_Notebook->AddPage(m_PlayPage, _("Play"), true);
 	m_RecordPage = new wxPanel(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	wxBoxSizer* sRecordPage;
 	sRecordPage = new wxBoxSizer(wxVERTICAL);

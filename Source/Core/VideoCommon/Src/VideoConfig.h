@@ -61,17 +61,9 @@ class IniFile;
 // NEVER inherit from this class.
 struct VideoConfig
 {
-
-private:
-	// According to new structure-design this member MUST BE private
-	void GameIniLoad(const char *ini_file);
-
-public:
 	VideoConfig();
-	// You can choose what "INI snapshot" you wish to load...
-	// GameIni is loaded over MainIni file only if 'fileCheck' argument is passed with success
-	void Load(const char *main_ini_file, bool fileCheck = false, const char *game_ini_file = "");
-
+	void Load(const char *ini_file);
+	void GameIniLoad(const char *ini_file);
 	void VerifyValidity();
 	void Save(const char *ini_file);
 	void GameIniSave(const char* default_ini, const char* game_ini);
@@ -85,7 +77,7 @@ public:
 	int iAspectRatio;
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
-	bool bUseRealXFB; // joined to radio button
+	bool bUseRealXFB;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;
@@ -116,7 +108,7 @@ public:
 	
 	// Utility
 	bool bDumpTextures;
-	bool bHiresTextures;	
+	bool bHiresTextures;
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
 	bool bUseFFV1;
@@ -125,7 +117,6 @@ public:
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
 	bool b3DVision;
-	
 	
 	// Hacks
 	bool bEFBAccessEnable;
@@ -138,6 +129,10 @@ public:
 
 	bool bEFBEmulateFormatChanges;
 	bool bOSDHotKey;
+	bool bCopyEFBToTexture;	
+	bool bCopyEFBScaled;
+	bool bSafeTextureCache;
+	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
@@ -154,62 +149,6 @@ public:
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
-
-	// UI Controls state
-	struct
-	{
-		// IMPORTANT: each member inside this struct MUST HAVE same name corresponding to data member
-		bool bVSync;
-		bool bWidescreenHack;
-		bool iAspectRatio;
-		bool bCrop;
-		bool bUseXFB;
-		bool bUseRealXFB;
-		bool bEnableOpenCL;
-		bool iMultisampleMode;
-		bool iEFBScale;
-		bool bForceFiltering;
-		bool iMaxAnisotropy;
-		bool sPostProcessingShader;
-		bool bShowFPS;
-		bool bShowInputDisplay;
-		bool bOverlayStats;
-		bool bOverlayProjStats;
-		bool bTexFmtOverlayEnable;
-		bool bTexFmtOverlayCenter;
-		bool bShowEFBCopyRegions;
-		bool bWireFrame;
-		bool bDisableLighting;
-		bool bDisableTexturing;
-		bool bDstAlphaPass;
-		bool bDisableFog;
-		bool bDumpTextures;
-		bool bHiresTextures;
-		bool bDumpEFBTarget;
-		bool bDumpFrames;
-		bool bUseFFV1;
-		bool bFreeLook;
-		bool bAnaglyphStereo;
-		bool b3DVision;
-		bool iAnaglyphStereoSeparation;
-		bool iAnaglyphFocalAngle;
-		bool bEFBAccessEnable;
-		bool bOMPDecoder;
-		bool bDlistCachingEnable;
-		bool bEFBCopyEnable;
-		bool bEFBCopyRAMEnable;
-		bool bEFBCopyVirtualEnable;
-		bool bEFBEmulateFormatChanges;
-		bool bOSDHotKey;
-		bool bZTPSpeedHack;
-		bool bEnablePixelLighting;
-		bool bEnablePerPixelDepth;
-		bool iLog;
-		bool iSaveTargetId;
-		bool iCompileDLsLevel;
-		bool bShowShaderErrors;
-		bool iAdapter;
-	} UI_State;
 
 	// Static config per API
 	struct

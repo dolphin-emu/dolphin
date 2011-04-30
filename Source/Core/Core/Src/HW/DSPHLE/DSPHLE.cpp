@@ -240,12 +240,7 @@ void DSPHLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 	if (pMixer && address)
 	{
 		short* samples = (short*)HLEMemory_Get_Pointer(address);
-		// Internal sample rate is always 32khz
 		pMixer->PushSamples(samples, num_samples);
-
-		// FIXME: Write the audio to a file
-		//if (log_ai)
-		//	g_wave_writer.AddStereoSamples(samples, 8);
 	}
 
 	soundStream->Update();
