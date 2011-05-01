@@ -76,9 +76,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
 	
-	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
+	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 1);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 1); // integral
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
 	
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 	
@@ -103,7 +103,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBCopyRAMEnable", &bEFBCopyRAMEnable, true);
 	iniFile.Get("Hacks", "EFBCopyVirtualEnable", &bEFBCopyVirtualEnable, true);
-	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, true);
+	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 

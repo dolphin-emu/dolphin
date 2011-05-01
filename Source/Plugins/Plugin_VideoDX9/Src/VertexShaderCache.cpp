@@ -75,9 +75,9 @@ void VertexShaderCache::Init()
 	char* vProg = new char[2048];
 	sprintf(vProg,"struct VSOUTPUT\n"
 						"{\n"
-						   "float4 vPosition : POSITION;\n"
-						   "float2 vTexCoord : TEXCOORD0;\n"
-						   "float vTexCoord1 : TEXCOORD1;\n"
+							"float4 vPosition : POSITION;\n"
+							"float2 vTexCoord : TEXCOORD0;\n"
+							"float vTexCoord1 : TEXCOORD1;\n"
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
 						"{\n"
@@ -92,8 +92,8 @@ void VertexShaderCache::Init()
 
 	sprintf(vProg,"struct VSOUTPUT\n"
 						"{\n"
-						   "float4 vPosition   : POSITION;\n"
-						   "float4 vColor0   : COLOR0;\n"						   
+							"float4 vPosition   : POSITION;\n"
+							"float4 vColor0   : COLOR0;\n"
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float4 inColor0: COLOR0)\n"
 						"{\n"
@@ -104,40 +104,40 @@ void VertexShaderCache::Init()
 						"}\n");
 
 	ClearVertexShader = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
-	
 	sprintf(vProg,	"struct VSOUTPUT\n"
 						"{\n"
-						   "float4 vPosition   : POSITION;\n"
-						   "float4 vTexCoord   : TEXCOORD0;\n"
-						   "float vTexCoord1   : TEXCOORD1;\n"						   
+							"float4 vPosition   : POSITION;\n"
+							"float2 vTexCoord   : TEXCOORD0;\n"
+							"float vTexCoord1   : TEXCOORD1;\n"
 						"};\n"
-						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
+						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inInvTexSize : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
 						"{\n"
-						   "VSOUTPUT OUT;"
-						   "OUT.vPosition = inPosition;\n"
-						   "OUT.vTexCoord  = inTEX0.xyyx;\n"
-						   "OUT.vTexCoord1 = inTEX2;\n"
-						   "return OUT;\n"
+							"VSOUTPUT OUT;"
+							"OUT.vPosition = inPosition;\n"
+							// HACK: Scale the texture coordinate range from (0,width) to (0,width-1), otherwise the linear filter won't average our samples correctly
+							"OUT.vTexCoord  = inTEX0 * (float2(1.f,1.f) / inInvTexSize - float2(1.f,1.f)) * inInvTexSize;\n"
+							"OUT.vTexCoord1 = inTEX2;\n"
+							"return OUT;\n"
 						"}\n");
-	SimpleVertexShader[1] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
+	SimpleVertexShader[1] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
 
 	sprintf(vProg,	"struct VSOUTPUT\n"
 						"{\n"
-						   "float4 vPosition   : POSITION;\n"
-						   "float4 vTexCoord   : TEXCOORD0;\n"
-						   "float  vTexCoord1   : TEXCOORD1;\n"
-						   "float4 vTexCoord2   : TEXCOORD2;\n"   
-						   "float4 vTexCoord3   : TEXCOORD3;\n"						   
+							"float4 vPosition   : POSITION;\n"
+							"float4 vTexCoord   : TEXCOORD0;\n"
+							"float  vTexCoord1   : TEXCOORD1;\n"
+							"float4 vTexCoord2   : TEXCOORD2;\n"   
+							"float4 vTexCoord3   : TEXCOORD3;\n"
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
 						"{\n"
-						   "VSOUTPUT OUT;"
-						   "OUT.vPosition = inPosition;\n"
-						   "OUT.vTexCoord  = inTEX0.xyyx;\n"
-						   "OUT.vTexCoord1 = inTEX2.x;\n"
-						   "OUT.vTexCoord2 = inTEX0.xyyx + (float4(-1.0f,-0.5f, 1.0f,-0.5f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord3 = inTEX0.xyyx + (float4( 1.0f, 0.5f,-1.0f, 0.5f) * inTEX1.xyyx);\n"						   
-						   "return OUT;\n"
+							"VSOUTPUT OUT;"
+							"OUT.vPosition = inPosition;\n"
+							"OUT.vTexCoord  = inTEX0.xyyx;\n"
+							"OUT.vTexCoord1 = inTEX2.x;\n"
+							"OUT.vTexCoord2 = inTEX0.xyyx + (float4(-1.0f,-0.5f, 1.0f,-0.5f) * inTEX1.xyyx);\n"
+							"OUT.vTexCoord3 = inTEX0.xyyx + (float4( 1.0f, 0.5f,-1.0f, 0.5f) * inTEX1.xyyx);\n"	
+							"return OUT;\n"
 						"}\n");
 	SimpleVertexShader[2] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
 	
