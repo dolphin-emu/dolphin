@@ -175,13 +175,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// widescreen hack
-	{
 	szr_basic->AddStretchSpacer(1);
 	szr_basic->Add(CreateCheckBox(page_general, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack), 1, 0, 0);
 	szr_basic->AddStretchSpacer(1);
 	szr_basic->Add(CreateCheckBox(page_general, _("V-Sync"), wxGetTranslation(vsync_desc), vconfig.bVSync), 1, 0, 0);
 	szr_basic->AddStretchSpacer(1);
-	}
 
 	// other basic stuff
 	szr_basic->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
@@ -190,6 +188,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_enh = new wxFlexGridSizer(2, 5, 5);
 
 	// Internal resolution
+	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
 		wxT("1x Native (640x528)"), wxT("2x Native (1280x1056)"), wxT("3x Native (1920x1584)"),
 		wxT("0.75x Native (480x396)"), wxT("0.5x Native (320x264)"), wxT("0.375x Native (240x198)") };
@@ -199,8 +198,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(new wxStaticText(page_general, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_efbscale);
+	}
 
 	// AA
+	{
 	text_aamode = new wxStaticText(page_general, -1, _("Anti-Aliasing:"));
 	choice_aamode = CreateChoice(page_general, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
@@ -213,11 +214,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_aamode);
+	}
 
 	// AF
+	{
 	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
 	szr_enh->Add(new wxStaticText(page_general, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(CreateChoice(page_general, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
+	}
 
 	// Scaled copy, PL, Bilinear filter, 3D Vision
 	szr_enh->Add(CreateCheckBox(page_general, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
@@ -301,6 +305,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_hacks->Add(szr_efb, 0, wxEXPAND | wxALL, 5);
 
 	// Texture cache
+	{
 	wxStaticBoxSizer* const szr_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("Texture Cache"));
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
@@ -323,6 +328,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_safetex->Add(stc_slider, 2, wxRIGHT, 0);
 	szr_safetex->Add(new wxStaticText(page_hacks, wxID_ANY, _("Fast")), 0, wxRIGHT|wxTOP|wxBOTTOM, 5);
 	szr_hacks->Add(szr_safetex, 0, wxEXPAND | wxALL, 5);
+	}
 
 	// - XFB
 	{
@@ -341,7 +347,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - other hacks
 	{
-	wxGridSizer* const szr_other = new wxGridSizer(2, 2);
+	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Mipmaps"), wxGetTranslation(fast_mipmaps_desc), vconfig.bUseNativeMips, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
@@ -403,7 +409,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - misc
 	{
-	wxGridSizer* const szr_misc = new wxGridSizer(2, 2);
+	wxGridSizer* const szr_misc = new wxGridSizer(2, 5, 5);
 
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Hide Shader Errors"), wxGetTranslation(shader_errors_desc), vconfig.bShowShaderErrors, true));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_desc), vconfig.bShowInputDisplay));
@@ -419,8 +425,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	CreateDescriptionArea(page_advanced, szr_advanced);
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
-
-	// -- DEBUG --
 
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
 	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
