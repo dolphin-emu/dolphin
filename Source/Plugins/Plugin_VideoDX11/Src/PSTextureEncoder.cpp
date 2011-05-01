@@ -17,41 +17,27 @@
 
 #include "PSTextureEncoder.h"
 
+#include "BPMemory.h"
 #include "D3DBase.h"
 #include "D3DShader.h"
-#include "GfxState.h"
-#include "BPMemory.h"
 #include "FramebufferManager.h"
-#include "Render.h"
+#include "GfxState.h"
 #include "HW/Memmap.h"
+#include "Render.h"
 #include "TextureCache.h"
-
-// "Static mode" will compile a new EFB encoder shader for every combination of
-// encoding configurations. It's compatible with Shader Model 4.
-
-// "Dynamic mode" will use the dynamic-linking feature of Shader Model 5. Only
-// one shader needs to be compiled.
-
-// Unfortunately, the June 2010 DirectX SDK includes a broken HLSL compiler
-// which cripples dynamic linking for us.
-// See <http://www.gamedev.net/topic/587232-dx11-dynamic-linking-compilation-warnings/>.
-// Dynamic mode is disabled for now. To enable it, uncomment the line below.
-
-//#define USE_DYNAMIC_MODE
-
-// FIXME: When Microsoft fixes their HLSL compiler, make Dolphin enable dynamic
-// mode on Shader Model 5-compatible cards.
 
 namespace DX11
 {
 	
 struct EFBEncodeParams
 {
-	FLOAT TexLeft;
-	FLOAT TexTop;
-	FLOAT TexRight;
-	FLOAT TexBottom;
-	FLOAT Pos[2];
+	FLOAT Matrix[4][4];
+	FLOAT Add[4];
+	// Rectangle within EFBTexture containing the EFB (in texels)
+	FLOAT TexUL[2]; // Upper left
+	FLOAT TexLR[2]; // Lower right
+	FLOAT Pos[2]; // Upper left of source (in EFB pixels)
+	BOOL DisableAlpha; // If true, alpha will read as 1 from source
 };
 
 union EFBEncodeParams_Padded
@@ -70,24 +56,20 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"struct\n" // Should match EFBEncodeParams above
 	"{\n"
-		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
-		"float TexTop;\n"
-		"float TexRight;\n"
-		"float TexBottom;\n"
-		"float2 Pos;\n" // Upper-left corner of source
+		"float4x4 Matrix;\n"
+		"float4 Add;\n"
+		"float2 TexUL;\n"
+		"float2 TexLR;\n"
+		"float2 Pos;\n"
+		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
 "Texture2D EFBTexture : register(t0);\n"
-"sampler EFBSampler : register(s0);\n"
 
 // Constants
 
 "static const float2 INV_EFB_DIMS = float2(1.0/640.0, 1.0/528.0);\n"
-
-// FIXME: Is this correct?
-"static const float3 INTENSITY_COEFFS = float3(0.257, 0.504, 0.098);\n"
-"static const float INTENSITY_ADD = 16.0/255.0;\n"
 
 // Utility functions
 
@@ -137,38 +119,21 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	// Add 0.5,0.5 to sample from the center of the EFB pixel
 	"float2 efbCoord = coord + float2(0.5,0.5);\n"
-	"return lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), efbCoord * INV_EFB_DIMS);\n"
+	"return lerp(Params.TexUL, Params.TexLR, efbCoord * INV_EFB_DIMS);\n"
 "}\n"
 
 // Interface and classes for different source formats
 
-"float4 Fetch_0(float2 coord)\n"
+"float4 Fetch_Color(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
-	"result.a = 1.0;\n"
-	"return result;\n"
+	"return EFBTexture.Load(int3(texCoord, 0));\n"
 "}\n"
 
-"float4 Fetch_1(float2 coord)\n"
+"float4 Fetch_Depth(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
-"}\n"
-
-"float4 Fetch_2(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
-	"result.a = 1.0;\n"
-	"return result;\n"
-"}\n"
-
-"float4 Fetch_3(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-
-	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
+	"uint depth24 = 0xFFFFFF * EFBTexture.Load(int3(texCoord, 0)).r;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g
@@ -177,97 +142,9 @@ static const char EFB_ENCODE_PS[] =
 	"return bytes / 255.0;\n"
 "}\n"
 
-"#ifdef DYNAMIC_MODE\n"
-"interface iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord);\n"
-"};\n"
-
-// Source format 0
-"class cFetch_0 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_0(coord); }\n"
-"};\n"
-
-
-// Source format 1
-"class cFetch_1 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_1(coord); }\n"
-"};\n"
-
-// Source format 2
-"class cFetch_2 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_2(coord); }\n"
-"};\n"
-
-// Source format 3
-"class cFetch_3 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_3(coord); }\n"
-"};\n"
-
-// Declare fetch interface; must be set by application
-"iFetch g_fetch;\n"
-"#define IMP_FETCH g_fetch.Fetch\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
 "#ifndef IMP_FETCH\n"
 "#error No Fetch specified\n"
 "#endif\n"
-
-// Interface and classes for different intensity settings (on or off)
-
-"float4 Intensity_0(float4 sample)\n"
-"{\n"
-	"return sample;\n"
-"}\n"
-
-"float4 Intensity_1(float4 sample)\n"
-"{\n"
-	"sample.r = dot(INTENSITY_COEFFS, sample.rgb) + INTENSITY_ADD;\n"
-	// FIXME: Is this correct? What happens if you use one of the non-R
-	// formats with intensity on?
-	"sample = sample.rrrr;\n"
-	"return sample;\n"
-"}\n"
-
-"#ifdef DYNAMIC_MODE\n"
-"interface iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample);\n"
-"};\n"
-
-// Intensity off
-"class cIntensity_0 : iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample)\n"
-	"{ return Intensity_0(sample); }\n"
-"};\n"
-
-// Intensity on
-"class cIntensity_1 : iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample)\n"
-	"{ return Intensity_1(sample); }\n"
-"};\n"
-
-// Declare intensity interface; must be set by application
-"iIntensity g_intensity;\n"
-"#define IMP_INTENSITY g_intensity.Intensity\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
-"#ifndef IMP_INTENSITY\n"
-"#error No Intensity specified\n"
-"#endif\n"
-
 
 // Interface and classes for different scale/filter settings (on or off)
 
@@ -288,45 +165,19 @@ static const char EFB_ENCODE_PS[] =
 	"return 0.25 * (sample0+sample1+sample2+sample3);\n"
 "}\n"
 
-"#ifdef DYNAMIC_MODE\n"
-"interface iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord);\n"
-"};\n"
-
-// Scale off
-"class cScaledFetch_0 : iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord)\n"
-	"{ return ScaledFetch_0(coord); }\n"
-"};\n"
-
-// Scale on
-"class cScaledFetch_1 : iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord)\n"
-	"{ return ScaledFetch_1(coord); }\n"
-"};\n"
-
-// Declare scaled fetch interface; must be set by application code
-"iScaledFetch g_scaledFetch;\n"
-"#define IMP_SCALEDFETCH g_scaledFetch.ScaledFetch\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
 "#ifndef IMP_SCALEDFETCH\n"
 "#error No ScaledFetch specified\n"
 "#endif\n"
 
 // Main EFB-sampling function: performs all steps of fetching pixels, scaling,
-// applying intensity function
+// and applying transforms
 
 "float4 SampleEFB(float2 coord)\n"
 "{\n"
-	// FIXME: Does intensity happen before or after scaling? Or does
-	// it matter?
 	"float4 sample = IMP_SCALEDFETCH(coord);\n"
-	"return IMP_INTENSITY(sample);\n"
+	"if (Params.DisableAlpha)\n"
+		"sample.a = 1;\n"
+	"return mul(sample, Params.Matrix) + Params.Add;\n"
 "}\n"
 
 // Interfaces and classes for different destination formats
@@ -756,48 +607,6 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"#ifdef DYNAMIC_MODE\n"
-"interface iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord);\n"
-"};\n"
-
-"class cGenerator_4 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_4(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_5 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_5(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_6 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_6(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_8 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_8(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_B : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_B(cacheCoord); }\n"
-"};\n"
-
-// Declare generator interface; must be set by application
-"iGenerator g_generator;\n"
-"#define IMP_GENERATOR g_generator.Generate\n"
-
-"#endif\n"
-
 "#ifndef IMP_GENERATOR\n"
 "#error No generator specified\n"
 "#endif\n"
@@ -810,20 +619,8 @@ static const char EFB_ENCODE_PS[] =
 ;
 
 PSTextureEncoder::PSTextureEncoder()
-	: m_ready(false), m_outRTV(NULL),
-	m_classLinkage(NULL)
+	: m_ready(false), m_outRTV(NULL)
 {
-	m_ready = false;
-
-	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
-	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
-
 	// Create output texture RGBA format
 
 	// This format allows us to generate one cache line in two pixels.
@@ -861,11 +658,7 @@ PSTextureEncoder::PSTextureEncoder()
 
 	// Create pixel shader
 
-#ifdef USE_DYNAMIC_MODE
-	if (!InitDynamicMode())
-#else
 	if (!InitStaticMode())
-#endif
 		return;
 
 	m_ready = true;
@@ -873,17 +666,6 @@ PSTextureEncoder::PSTextureEncoder()
 
 PSTextureEncoder::~PSTextureEncoder()
 {
-	for (size_t i = 0; i < 4; ++i)
-		SAFE_RELEASE(m_fetchClass[i]);
-	for (size_t i = 0; i < 2; ++i)
-		SAFE_RELEASE(m_scaledFetchClass[i]);
-	for (size_t i = 0; i < 2; ++i)
-		SAFE_RELEASE(m_intensityClass[i]);
-	for (size_t i = 0; i < 16; ++i)
-		SAFE_RELEASE(m_generatorClass[i]);
-	
-	SAFE_RELEASE(m_classLinkage);
-
 	SAFE_RELEASE(m_outRTV);
 }
 
@@ -936,11 +718,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 	// Set up all the state for EFB encoding
 	
-#ifdef USE_DYNAMIC_MODE
-	if (SetDynamicShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
-#else
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
-#endif
 	{
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::g_context->RSSetViewports(1, &vp);
@@ -951,18 +729,50 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		fullSrcRect.right = EFB_WIDTH;
 		fullSrcRect.bottom = EFB_HEIGHT;
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
+		
+		static const float RGBA_MATRIX[4][4] = {
+			{ 1.f, 0.f, 0.f, 0.f },
+			{ 0.f, 1.f, 0.f, 0.f },
+			{ 0.f, 0.f, 1.f, 0.f },
+			{ 0.f, 0.f, 0.f, 1.f }
+		};
+		static const float RGBA_ADD[4] = { 0.f, 0.f, 0.f, 0.f };
+
+		static const float YUVA_MATRIX[4][4] = {
+			{ 0.257f, 0.504f, 0.098f, 0.f },
+			{ -0.148f, -0.291f, 0.439f, 0.f },
+			{ 0.439f, -0.368f, -0.071f, 0.f },
+			{ 0.f, 0.f, 0.f, 1.f }
+		};
+		static const float YUVA_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f, 0.f };
 
 		D3D11_MAPPED_SUBRESOURCE map;
 		hr = D3D::g_context->Map(m_encodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		if (SUCCEEDED(hr))
 		{
 			EFBEncodeParams* params = (EFBEncodeParams*)map.pData;
-			params->TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
-			params->TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
-			params->TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
-			params->TexBottom = float(targetRect.bottom) / g_renderer->GetFullTargetHeight();
+			
+			// Choose a pre-color matrix: Either RGBA or YUVA
+			if (isIntensity)
+			{
+				memcpy(params->Matrix, YUVA_MATRIX, 4*4*sizeof(float));
+				memcpy(params->Add, YUVA_ADD, 4*sizeof(float));
+			}
+			else
+			{
+				memcpy(params->Matrix, RGBA_MATRIX, 4*4*sizeof(float));
+				memcpy(params->Add, RGBA_ADD, 4*sizeof(float));
+			}
+
+			params->TexUL[0] = FLOAT(targetRect.left);
+			params->TexUL[1] = FLOAT(targetRect.top);
+			params->TexLR[0] = FLOAT(targetRect.right);
+			params->TexLR[1] = FLOAT(targetRect.bottom);
 			params->Pos[0] = FLOAT(correctSrc.left);
 			params->Pos[1] = FLOAT(correctSrc.top);
+
+			params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
+
 			D3D::g_context->Unmap(m_encodeParams, 0);
 		}
 		else
@@ -979,11 +789,10 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		D3D::g_context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 		D3D::g_context->PSSetShaderResources(0, 1, &pEFB);
-		D3D::SetPointCopySampler();
 
 		// Encode!
 
-		D3D::drawEncoderQuad(m_useThisPS, m_useTheseInstances, m_useNumInstances);
+		D3D::drawEncoderQuad(m_useThisPS, NULL, 0);
 
 		// Copy to staging buffer
 		
@@ -1031,33 +840,18 @@ bool PSTextureEncoder::InitStaticMode()
 	return true;
 }
 
-static const char* FETCH_FUNC_NAMES[4] = {
-	"Fetch_0", "Fetch_1", "Fetch_2", "Fetch_3"
-};
-
-static const char* SCALEDFETCH_FUNC_NAMES[2] = {
-	"ScaledFetch_0", "ScaledFetch_1"
-};
-
-static const char* INTENSITY_FUNC_NAMES[2] = {
-	"Intensity_0", "Intensity_1"
-};
-
 bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
 	bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
-	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
-	size_t intensityNum = isIntensity ? 1 : 0;
-	size_t generatorNum = dstFormat;
-
-	ComboKey key = MakeComboKey(dstFormat, srcFormat, isIntensity, scaleByHalf);
+	ComboKey key = MakeComboKey(dstFormat, srcFormat == PIXELFMT_Z24, scaleByHalf);
 
 	ComboMap::iterator it = m_staticShaders.find(key);
 	if (it == m_staticShaders.end())
 	{
+		const char* fetchFuncName = (srcFormat == PIXELFMT_Z24) ? "Fetch_Depth" : "Fetch_Color";
+		const char* scaledFetchFuncName = scaleByHalf ? "ScaledFetch_1" : "ScaledFetch_0";
 		const char* generatorFuncName = NULL;
-		switch (generatorNum)
+		switch (dstFormat)
 		{
 		case 0x0: generatorFuncName = "Generate_0"; break;
 		case 0x1: generatorFuncName = "Generate_1"; break;
@@ -1073,7 +867,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		case 0xB: generatorFuncName = "Generate_B"; break;
 		case 0xC: generatorFuncName = "Generate_C"; break;
 		default:
-			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
+			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", dstFormat);
 			m_staticShaders[key].reset();
 			return false;
 			break;
@@ -1084,9 +878,8 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 
 		// Shader permutation not found, so compile it
 		D3D_SHADER_MACRO macros[] = {
-			{ "IMP_FETCH", FETCH_FUNC_NAMES[fetchNum] },
-			{ "IMP_SCALEDFETCH", SCALEDFETCH_FUNC_NAMES[scaledFetchNum] },
-			{ "IMP_INTENSITY", INTENSITY_FUNC_NAMES[intensityNum] },
+			{ "IMP_FETCH", fetchFuncName },
+			{ "IMP_SCALEDFETCH", scaledFetchFuncName },
 			{ "IMP_GENERATOR", generatorFuncName },
 			{ NULL, NULL }
 		};
@@ -1094,7 +887,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		auto const bytecode = D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), macros);
 		if (!bytecode)
 		{
-			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d failed to compile",
+			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d scaleByHalf %d failed to compile",
 				dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 			// Add dummy shader to map to prevent trying to compile over and
 			// over again
@@ -1114,8 +907,6 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		if (it->second)
 		{
 			m_useThisPS = it->second;
-			m_useTheseInstances = NULL;
-			m_useNumInstances = 0;
 			return true;
 		}
 		else
@@ -1123,155 +914,6 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	}
 	else
 		return false;
-}
-
-bool PSTextureEncoder::InitDynamicMode()
-{
-	const D3D_SHADER_MACRO macros[] = {
-		{ "DYNAMIC_MODE", NULL },
-		{ NULL, NULL }
-	};
-
-	HRESULT hr = D3D::g_device->CreateClassLinkage(&m_classLinkage);
-	CHECK(SUCCEEDED(hr), "create efb encode class linkage");
-	D3D::SetDebugObjectName(m_classLinkage, "efb encoder class linkage");
-
-	SharedPtr<ID3D10Blob> bytecode;
-	m_dynamicShader = D3D::CompileAndCreatePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), macros, std::addressof(bytecode));
-	CHECK(m_dynamicShader, "compile/create efb encode pixel shader");
-	D3D::SetDebugObjectName(m_dynamicShader, "efb encoder pixel shader");
-	
-	// Use D3DReflect
-
-	ID3D11ShaderReflection* reflect = NULL;
-	hr = PD3DReflect(bytecode->GetBufferPointer(), bytecode->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&reflect);
-	CHECK(SUCCEEDED(hr), "reflect on efb encoder shader");
-
-	// Get number of slots and create dynamic linkage array
-
-	UINT numSlots = reflect->GetNumInterfaceSlots();
-	m_linkageArray.resize(numSlots, NULL);
-
-	// Get interface slots
-
-	ID3D11ShaderReflectionVariable* var = reflect->GetVariableByName("g_fetch");
-	m_fetchSlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_scaledFetch");
-	m_scaledFetchSlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_intensity");
-	m_intensitySlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_generator");
-	m_generatorSlot = var->GetInterfaceSlot(0);
-
-	INFO_LOG(VIDEO, "fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
-		m_fetchSlot, m_scaledFetchSlot, m_intensitySlot, m_generatorSlot);
-
-	// Class instances will be created at the time they are used
-
-	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
-	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
-
-	reflect->Release();
-
-	return true;
-}
-
-static const char* FETCH_CLASS_NAMES[4] = {
-	"cFetch_0", "cFetch_1", "cFetch_2", "cFetch_3"
-};
-
-static const char* SCALEDFETCH_CLASS_NAMES[2] = {
-	"cScaledFetch_0", "cScaledFetch_1"
-};
-
-static const char* INTENSITY_CLASS_NAMES[2] = {
-	"cIntensity_0", "cIntensity_1"
-};
-
-bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
-	unsigned int srcFormat, bool isIntensity, bool scaleByHalf)
-{
-	size_t fetchNum = srcFormat;
-	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
-	size_t intensityNum = isIntensity ? 1 : 0;
-	size_t generatorNum = dstFormat;
-
-	// FIXME: Not all the possible generators are available as classes yet.
-	// When dynamic mode is usable, implement them.
-	const char* generatorName = NULL;
-	switch (generatorNum)
-	{
-	case 0x4: generatorName = "cGenerator_4"; break;
-	case 0x5: generatorName = "cGenerator_5"; break;
-	case 0x6: generatorName = "cGenerator_6"; break;
-	case 0x8: generatorName = "cGenerator_8"; break;
-	case 0xB: generatorName = "cGenerator_B"; break;
-	default:
-		WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
-		return false;
-		break;
-	}
-
-	// Make sure class instances are available
-	if (!m_fetchClass[fetchNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			FETCH_CLASS_NAMES[fetchNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			FETCH_CLASS_NAMES[fetchNum], 0, 0, 0, 0, &m_fetchClass[fetchNum]);
-		CHECK(SUCCEEDED(hr), "create fetch class instance");
-	}
-	if (!m_scaledFetchClass[scaledFetchNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			SCALEDFETCH_CLASS_NAMES[scaledFetchNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			SCALEDFETCH_CLASS_NAMES[scaledFetchNum], 0, 0, 0, 0,
-			&m_scaledFetchClass[scaledFetchNum]);
-		CHECK(SUCCEEDED(hr), "create scaled fetch class instance");
-	}
-	if (!m_intensityClass[intensityNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			INTENSITY_CLASS_NAMES[intensityNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			INTENSITY_CLASS_NAMES[intensityNum], 0, 0, 0, 0,
-			&m_intensityClass[intensityNum]);
-		CHECK(SUCCEEDED(hr), "create intensity class instance");
-	}
-	if (!m_generatorClass[generatorNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			generatorName, dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			generatorName, 0, 0, 0, 0, &m_generatorClass[generatorNum]);
-		CHECK(SUCCEEDED(hr), "create generator class instance");
-	}
-
-	// Assemble dynamic linkage array
-	if (m_fetchSlot != UINT(-1))
-		m_linkageArray[m_fetchSlot] = m_fetchClass[fetchNum];
-	if (m_scaledFetchSlot != UINT(-1))
-		m_linkageArray[m_scaledFetchSlot] = m_scaledFetchClass[scaledFetchNum];
-	if (m_intensitySlot != UINT(-1))
-		m_linkageArray[m_intensitySlot] = m_intensityClass[intensityNum];
-	if (m_generatorSlot != UINT(-1))
-		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
-	
-	m_useThisPS = m_dynamicShader;
-	m_useTheseInstances = m_linkageArray.empty() ? NULL : &m_linkageArray[0];
-	m_useNumInstances = (UINT)m_linkageArray.size();
-
-	return true;
 }
 
 }
