@@ -448,7 +448,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
-	if (!IsPlayingInput() || !IsUsingPad(controllerID))
+	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
 		return;
 
 	memset(PadStatus, 0, sizeof(SPADStatus));
@@ -538,7 +538,7 @@ bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 {
 	s8 count = 0;
 	
-	if(!IsPlayingInput() || !IsUsingWiimote(wiimote))
+	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == NULL)
 		return false;
 	
 	if (inputOffset > tmpLength)
@@ -578,11 +578,11 @@ void EndPlayInput(bool cont)
 	}
 	else
 	{
-		delete tmpInput;
-		tmpInput = NULL;
 		g_numPads = g_rerecords = 0;
 		g_totalFrameCount = g_frameCounter = g_lagCounter = 0;
 		g_playMode = MODE_NONE;
+		delete tmpInput;
+		tmpInput = NULL;
 		Core::DisplayMessage("Movie End", 2000);
 	}
 }
