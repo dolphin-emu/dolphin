@@ -236,7 +236,9 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	DoState(p);
 	
 	if ((Frame::IsRecordingInput() || Frame::IsPlayingInput()) && !Frame::IsRecordingInputFromSaveState())
-		Frame::SaveRecording(StringFromFormat("%s.dtm", g_current_filename.c_str()).c_str());
+		Frame::SaveRecording((g_current_filename + ".dtm").c_str());
+	else if (!Frame::IsRecordingInput() && !Frame::IsPlayingInput())
+		File::Delete(g_current_filename + ".dtm");
 
 	Core::DisplayMessage("Saving State...", 1000);
 

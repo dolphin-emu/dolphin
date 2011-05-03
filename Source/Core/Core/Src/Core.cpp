@@ -593,7 +593,7 @@ void VideoThrottle()
 
 		#else	// Summary information
 		std::string SFPS;
-		if (Frame::g_recordfd)
+		if (Frame::IsPlayingInput() || Frame::IsRecordingInput())
 			SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", Frame::g_frameCounter, Frame::g_InputCounter, FPS, VPS, Speed);
 		else
 			SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);

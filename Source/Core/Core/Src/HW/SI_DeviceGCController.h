@@ -89,7 +89,7 @@ private:
 	// y, X, start for 3 seconds updates origin with current status
 	//   Technically, the above is only on standard pad, wavebird does not support it for example
 	// b, x, start for 3 seconds triggers reset (PI reset button interrupt)
-	u32 m_TButtonComboStart, m_TButtonCombo;
+	u64 m_TButtonComboStart, m_TButtonCombo;
 	// Type of button combo from the last/current poll
 	EButtonCombo m_LastButtonCombo;
 

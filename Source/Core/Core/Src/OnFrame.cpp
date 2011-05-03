@@ -36,6 +36,9 @@
 #endif
 #include "State.h"
 
+// large enough for just over 24 hours of single-player recording
+#define MAX_DTM_LENGTH (40 * 1024 * 1024)
+
 std::mutex cs_frameSkip;
 
 namespace Frame {
@@ -46,19 +49,19 @@ bool g_bReadOnly = true;
 u32 g_rerecords = 0;
 PlayMode g_playMode = MODE_NONE;
 
-unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
+u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 
-int g_numPads = 0;
+u8 g_numPads = 0;
 ControllerState g_padState;
-File::IOFile g_recordfd;
+DTMHeader tmpHeader;
+u8 *tmpInput = NULL;
+u64 inputOffset = 0, tmpLength = 0;
 
-u32 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0, g_InputCounter = 0;
+u64 g_frameCounter = 0, g_lagCounter = 0, g_totalFrameCount = 0, g_InputCounter = 0;
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
 
-int g_numRerecords = 0;
-std::string g_recordFile = "0.dtm";
-std::string g_tmpRecordFile = "1.dtm";
+std::string tmpStateFilename = "dtm.sav";
 
 std::string g_InputDisplay[4];
 
@@ -109,11 +112,6 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
 		g_video_backend->Video_SetRendering(true);
-}
-
-int FrameSkippingFactor()
-{
-	return g_framesToSkip;
 }
 
 void SetPolledDevice()
@@ -199,37 +197,29 @@ void ChangeWiiPads()
 
 bool BeginRecordingInput(int controllers)
 {
-	if(g_playMode != MODE_NONE || controllers == 0 || g_recordfd != NULL)
+	if(g_playMode != MODE_NONE || controllers == 0)
 		return false;
-
-	if(File::Exists(g_recordFile))
-		File::Delete(g_recordFile);
 
 	if (Core::IsRunning())
 	{
-		const std::string stateFilename = g_recordFile + ".sav";
-		if(File::Exists(stateFilename))
-			File::Delete(stateFilename);
-		State::SaveAs(stateFilename.c_str());
+		if(File::Exists(tmpStateFilename))
+			File::Delete(tmpStateFilename);
+
+		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
 	}
-
-	if (!g_recordfd.Open(g_recordFile, "wb"))
-	{
-		PanicAlertT("Error opening file %s for recording", g_recordFile.c_str());
-		return false;
-	}
-	
-	// Write initial empty header
-	DTMHeader dummy;
-	g_recordfd.WriteArray(&dummy, 1);
 	
 	g_numPads = controllers;
 	
 	g_frameCounter = 0;
 	g_lagCounter = 0;
 	g_InputCounter = 0;
+	g_rerecords = 0;
 	g_playMode = MODE_RECORDING;
+	inputOffset = 0;
+	delete tmpInput;
+	tmpInput = new u8[MAX_DTM_LENGTH];
+	
 	
 	Core::DisplayMessage("Starting movie recording", 2000);
 	
@@ -333,7 +323,8 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.CStickX = PadStatus->substickX;
 	g_padState.CStickY = PadStatus->substickY;
 	
-	g_recordfd.WriteArray(&g_padState, 1);
+	memcpy(&(tmpInput[inputOffset]), &g_padState, 8);
+	inputOffset += 8;
 
 	SetInputDisplayString(g_padState, controllerID);
 }
@@ -343,35 +334,33 @@ void RecordWiimote(int wiimote, u8 *data, s8 size)
 	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
 	g_InputCounter++;
-	g_recordfd.WriteArray(&size, 1);
-	g_recordfd.WriteArray(data, 1);
+	tmpInput[inputOffset++] = (u8) size;
+	memcpy(&(tmpInput[inputOffset]), data, size);
+	inputOffset += size; 
 }
 
 bool PlayInput(const char *filename)
 {
-	if(!filename || g_playMode != MODE_NONE || g_recordfd)
+	if(!filename || g_playMode != MODE_NONE)
 		return false;
-	
+
 	if(!File::Exists(filename))
 		return false;
 	
-	DTMHeader header;
+	File::IOFile g_recordfd;
 	
-	File::Delete(g_recordFile);
-	File::Copy(filename, g_recordFile);
-	
-	if (!g_recordfd.Open(g_recordFile, "r+b"))
+	if (!g_recordfd.Open(filename, "rb"))
 		return false;
 	
-	g_recordfd.ReadArray(&header, 1);
+	g_recordfd.ReadArray(&tmpHeader, 1);
 	
-	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A) {
+	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A) {
 		PanicAlertT("Invalid recording file");
 		goto cleanup;
 	}
 	
 	// Load savestate (and skip to frame data)
-	if(header.bFromSaveState)
+	if(tmpHeader.bFromSaveState)
 	{
 		const std::string stateFilename = std::string(filename) + ".sav";
 		if(File::Exists(stateFilename))
@@ -381,24 +370,29 @@ bool PlayInput(const char *filename)
 	
 	/* TODO: Put this verification somewhere we have the gameID of the played game
 	// TODO: Replace with Unique ID
-	if(header.uniqueID != 0) {
+	if(tmpHeader.uniqueID != 0) {
 		PanicAlert("Recording Unique ID Verification Failed");
 		goto cleanup;
 	}
 	
-	if(strncmp((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
+	if(strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
 		PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
 		goto cleanup;
 	}
 	*/
 	
-	g_numPads = header.numControllers;
-	g_numRerecords = header.numRerecords;
-	g_totalFrameCount = header.frameCount;
-	
-	ChangePads();
+	g_numPads = tmpHeader.numControllers;
+	g_rerecords = tmpHeader.numRerecords;
+	g_totalFrameCount = tmpHeader.frameCount;
 	
 	g_playMode = MODE_PLAYING;
+	
+	tmpLength = g_recordfd.GetSize() - 256;
+	delete tmpInput;
+	tmpInput = new u8[MAX_DTM_LENGTH];
+	g_recordfd.ReadArray(tmpInput, tmpLength);
+	inputOffset = 0;
+	g_recordfd.Close();
 	
 	return true;
 	
@@ -409,43 +403,41 @@ cleanup:
 
 void LoadInput(const char *filename)
 {
-	File::IOFile t_record(filename, "rb");
+	File::IOFile t_record(filename, "r+b");
 	
-	DTMHeader header;
+	t_record.ReadArray(&tmpHeader, 1);
 	
-	t_record.ReadArray(&header, 1);
-	t_record.Close();
-	
-	if(header.filetype[0] != 'D' || header.filetype[1] != 'T' || header.filetype[2] != 'M' || header.filetype[3] != 0x1A)
+	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A)
 	{
 		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
 		EndPlayInput(false);
 		return;
 	}
 	
-	if (g_rerecords == 0)
-		g_rerecords = header.numRerecords;
+	tmpHeader.numRerecords++;
 	
-	g_frameCounter = header.frameCount;
-	g_totalFrameCount = header.frameCount;
-	g_InputCounter = header.InputCount;
+	t_record.Seek(0, SEEK_SET);
+	t_record.WriteArray(&tmpHeader, 1);
+	
+	g_frameCounter = tmpHeader.frameCount;
+	g_totalFrameCount = tmpHeader.frameCount;
+	g_InputCounter = tmpHeader.InputCount;
 
-	g_numPads = header.numControllers;
+	g_numPads = tmpHeader.numControllers;
 	
 	ChangePads(true);
 
 	if (Core::g_CoreStartupParameter.bWii)
 		ChangeWiiPads();
+
+	inputOffset = t_record.GetSize() - 256;
+	delete tmpInput;
+	tmpInput = new u8[MAX_DTM_LENGTH];
+	t_record.ReadArray(tmpInput, inputOffset);
+
+	t_record.Close();
 	
-	g_recordfd.Close();
-	
-	File::Delete(g_recordFile);
-	File::Copy(filename, g_recordFile);
-	
-	g_recordfd.Open(g_recordFile, "r+b");
-	g_recordfd.Seek(0, SEEK_END);
-	
-	g_rerecords++;
+	g_rerecords = tmpHeader.numRerecords;
 	
 	Core::DisplayMessage("Resuming movie recording", 2000);
 	
@@ -461,11 +453,14 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	memset(PadStatus, 0, sizeof(SPADStatus));
 
-	if (!g_recordfd.ReadArray(&g_padState, 1))
+	if (inputOffset + 8 > tmpLength)
 	{
-		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput(!g_bReadOnly);
+		return;
 	}
+	
+	memcpy(&g_padState, &(tmpInput[inputOffset]), 8);
+	inputOffset += 8;
 	
 	PadStatus->triggerLeft = g_padState.TriggerL;
 	PadStatus->triggerRight = g_padState.TriggerR;
@@ -535,7 +530,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	if (g_frameCounter >= g_totalFrameCount)
 	{
-		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput(!g_bReadOnly);
 	}
 }
@@ -543,16 +537,33 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 {
 	s8 count = 0;
+	
 	if(!IsPlayingInput() || !IsUsingWiimote(wiimote))
 		return false;
-	g_InputCounter++;
-	g_recordfd.ReadArray(&count, 1);
+	
+	if (inputOffset > tmpLength)
+	{
+		EndPlayInput(!g_bReadOnly);
+		return false;
+	}
+	
+	count = (s8) (tmpInput[inputOffset++]);
+
+	if (inputOffset + count > tmpLength)
+	{
+		EndPlayInput(!g_bReadOnly);
+		return false;
+	}
+	
+	memcpy(data, &(tmpInput[inputOffset]), count);
+	inputOffset += count;
 	size = (count > size) ? size : count;
 	
+	g_InputCounter++;
+	
 	// TODO: merge this with the above so that there's no duplicate code
-	if (g_frameCounter >= g_totalFrameCount || !g_recordfd.ReadBytes(data, size))
+	if (g_frameCounter >= g_totalFrameCount)
 	{
-		Core::DisplayMessage("Movie End", 2000);
 		EndPlayInput(!g_bReadOnly);
 	}
 	return true;
@@ -560,40 +571,31 @@ bool PlayWiimote(int wiimote, u8 *data, s8 &size)
 
 void EndPlayInput(bool cont) 
 {
-	if (cont && g_recordfd)
+	if (cont)
 	{
-		// The save and restore here is to resume rerecording
-		// from the exact point in playback we're at now
-		// if playback ends before the end of the file.
-		SaveRecording(g_tmpRecordFile.c_str());
-		g_recordfd.Close();
-		File::Delete(g_recordFile);
-		File::Copy(g_tmpRecordFile, g_recordFile);
-		g_recordfd.Open(g_recordFile, "r+b");
-		g_recordfd.Seek(0, SEEK_END);
 		g_playMode = MODE_RECORDING;
 		Core::DisplayMessage("Resuming movie recording", 2000);
 	}
 	else
 	{
-		g_recordfd.Close();
+		delete tmpInput;
+		tmpInput = NULL;
 		g_numPads = g_rerecords = 0;
 		g_totalFrameCount = g_frameCounter = g_lagCounter = 0;
 		g_playMode = MODE_NONE;
+		Core::DisplayMessage("Movie End", 2000);
 	}
 }
 
 void SaveRecording(const char *filename)
 {
-	const u64 size = g_recordfd.Tell();
-
+	File::IOFile save_record(filename, "wb");
+	
 	// NOTE: Eventually this will not happen in
 	// read-only mode, but we need a way for the save state to
 	// store the current point in the file first.
 	// if (!g_bReadOnly)
 	{
-		rewind(g_recordfd.GetHandle());
-	
 		// Create the real header now and write it
 		DTMHeader header;
 		memset(&header, 0, sizeof(DTMHeader));
@@ -615,47 +617,21 @@ void SaveRecording(const char *filename)
 		// header.videoBackend; 
 		// header.audioEmulator;
 		
-		g_recordfd.WriteArray(&header, 1);
+		save_record.WriteArray(&header, 1);
 	}
 
-	bool success = false;
-	g_recordfd.Close();
-	File::Delete(filename);
-	success = File::Copy(g_recordFile, filename);
+	bool success = save_record.WriteArray(tmpInput, inputOffset);
 
 	if (success && g_bRecordingFromSaveState)
 	{
-		std::string tmpStateFilename = g_recordFile;
-		tmpStateFilename.append(".sav");
 		std::string stateFilename = filename;
 		stateFilename.append(".sav");
 		success = File::Copy(tmpStateFilename, stateFilename);
-	}
-
-	if (success /* && !g_bReadOnly*/)
-	{
-#ifdef WIN32
-		int fd;
-		if (!_sopen_s(&fd, filename, _O_RDWR, _SH_DENYNO, _S_IREAD | _S_IWRITE))
-		{
-			success = (_chsize_s(fd, size) == 0);
-			_close(fd);
-		}
-		else
-		{
-			success = false;
-		}
-#else
-		success = !truncate(filename, size);			
-#endif
 	}
 	
 	if (success)
 		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
 	else
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
-	
-	g_recordfd.Open(g_recordFile, "r+b");
-	g_recordfd.Seek(size, SEEK_SET);
 }
 };

@@ -55,17 +55,16 @@ struct ControllerState {
 extern bool g_bFrameStep, g_bPolled, g_bReadOnly;
 extern PlayMode g_playMode;
 
-extern unsigned int g_framesToSkip, g_frameSkipCounter;
+extern u32 g_framesToSkip, g_frameSkipCounter;
 
-extern int g_numPads;
+extern u8 g_numPads;
 extern ControllerState *g_padStates;
 extern char g_playingFile[256];
-extern File::IOFile g_recordfd;
 extern std::string g_recordFile;
 
-extern u32 g_frameCounter, g_lagCounter, g_InputCounter;
+extern u64 g_frameCounter, g_lagCounter, g_InputCounter;
 
-extern int g_numRerecords;
+extern u32 g_rerecords;
 
 #pragma pack(push,1)
 struct DTMHeader {
@@ -112,7 +111,6 @@ void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
-int FrameSkippingFactor();
 void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
