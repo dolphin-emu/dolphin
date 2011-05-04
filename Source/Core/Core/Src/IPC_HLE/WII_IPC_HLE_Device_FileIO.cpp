@@ -207,6 +207,9 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 		}
 		else
 		{
+			// Must clear the failbits, since subsequent seeks don't care about
+			// past failure on Wii
+			m_pFileHandle.Clear();
 			ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed - %s", m_Name.c_str());
 		}
 	}

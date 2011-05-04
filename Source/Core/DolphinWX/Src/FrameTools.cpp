@@ -1142,7 +1142,7 @@ void CFrame::DoRecordingSave()
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			_("Dolphin TAS Movies (*.dtm)") + 
 				wxString::Format(wxT("|*.dtm|%s"), wxGetTranslation(wxALL_FILES)),
-			wxFD_SAVE | wxFD_PREVIEW,
+			wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT,
 			this);
 
 	if(path.IsEmpty())

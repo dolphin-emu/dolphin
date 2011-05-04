@@ -29,6 +29,7 @@
 #include "Boot_DOL.h"
 #include "Volume.h"
 #include "VolumeCreator.h"
+#include "CommonPaths.h"
 
 
 bool CBoot::IsWiiWAD(const char *filename)
@@ -42,15 +43,8 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	if (!ContentLoader.IsValid())
 		return false;
 
-	// create Home directory
-	char Path[260+1];
-	u64 TitleID = ContentLoader.GetTitleID();
-	char* pTitleID = (char*)&TitleID;
-	sprintf(Path, "%stitle/%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
-			File::GetUserPath(D_WIIUSER_IDX).c_str(),
-			(u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
-			(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-	File::CreateFullPath(Path);
+	// create data directory
+	File::CreateFullPath(Common::CreateTitleDataPath(ContentLoader.GetTitleID()) + DIR_SEP);
 
 	// setup wii mem
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
@@ -84,7 +78,6 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	return true;
 }
-
 
 u64 CBoot::Install_WiiWAD(const char* _pFilename)
 {
