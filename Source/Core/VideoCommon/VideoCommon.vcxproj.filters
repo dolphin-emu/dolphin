@@ -119,6 +119,12 @@
     <ClCompile Include="Src\LightingShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Tmem.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\EFBCopy.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\CommandProcessor.h" />
@@ -245,6 +251,12 @@
     </ClInclude>
     <ClInclude Include="Src\LightingShaderGen.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Tmem.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\EFBCopy.h">
+      <Filter>Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

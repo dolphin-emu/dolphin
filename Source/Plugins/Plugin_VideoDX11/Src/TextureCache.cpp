@@ -22,11 +22,13 @@
 #include "D3DShader.h"
 #include "FramebufferManager.h"
 #include "GfxState.h"
+#include "Hash.h"
 #include "HW/Memmap.h"
 #include "LookUpTables.h"
 #include "PSTextureEncoder.h"
 #include "Render.h"
 #include "TexCopyLookaside.h"
+#include "Tmem.h"
 #include "VertexShaderCache.h"
 #include "VideoConfig.h"
 
@@ -34,13 +36,8 @@ namespace DX11
 {
 
 TCacheEntry::TCacheEntry()
-	: m_inTmem(false), m_fromTcl(false), m_loaded(NULL), m_depalettized(NULL), m_bindMe(NULL)
+	: m_fromTcl(false), m_loaded(NULL), m_depalettized(NULL), m_bindMe(NULL)
 { }
-
-void TCacheEntry::EvictFromTmem()
-{
-	m_inTmem = false;
-}
 
 inline bool IsPaletted(u32 format)
 {
@@ -77,8 +74,8 @@ static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 	return levels;
 }
 
-void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat)
+void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	m_fromTcl = false;
 	m_loaded = NULL;
@@ -90,7 +87,7 @@ void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
 	unsigned int maxLevels = ComputeMaxLevels(width, height);
 	levels = std::min(levels, maxLevels);
 
-	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
 	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 	m_bindMe = m_depalettized;
@@ -105,7 +102,7 @@ void TCacheEntry::Bind(int stage)
 }
 
 void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat)
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	bool refreshFromRam = true;
 	
@@ -121,7 +118,8 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// FIXME: If TCL keeps failing to load, its memory region may have
 			// been deallocated by the game. We ought to delete TCL that aren't
 			// being used.
-			if (LoadFromTcl(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, tclIt->second.get()))
+			if (LoadFromTcl(ramAddr, width, height, levels, format, tlutAddr,
+				tlutFormat, invalidated, tclIt->second.get()))
 				refreshFromRam = false;
 		}
 		else
@@ -135,16 +133,13 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 
 	if (refreshFromRam)
-		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
 }
 
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat)
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	const u8* src = Memory::GetPointer(ramAddr);
-
-	// Would real hardware reload data from RAM to TMEM?
-	bool loadToTmem = !m_inTmem || ramAddr != m_ramAddr;
 
 	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
 
@@ -161,7 +156,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u64 newHash = m_curHash;
 
 	bool reloadTexture = recreateTexture || format != m_curFormat;
-	if (reloadTexture || loadToTmem)
+	if (reloadTexture || invalidated)
 	{
 		// FIXME: Only the top-level mip is hashed.
 		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
@@ -172,9 +167,6 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 	if (reloadTexture)
 		ReloadRamTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
-
-	m_inTmem = true;
-	m_ramAddr = ramAddr;
 
 	m_curWidth = width;
 	m_curHeight = height;
@@ -357,7 +349,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 }
 
 bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl)
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, TexCopyLookaside* tcl)
 {
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
@@ -369,14 +361,11 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 		}
 	}
 
-	// Would real hardware reload data from RAM to TMEM?
-	bool loadToTmem = !m_inTmem || ramAddr != m_ramAddr;
-
 	u64 newHash = m_curHash;
 
 	// If texture will be loaded to TMEM, make sure mem hash matches TCL hash.
 	// Otherwise, it's acceptable to just use the fake texture as is.
-	if (loadToTmem)
+	if (invalidated)
 	{
 		const u8* src = Memory::GetPointer(ramAddr);
 
@@ -405,9 +394,6 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 		return false;
 
 	m_ramTexture.reset();
-
-	m_inTmem = true;
-	m_ramAddr = ramAddr;
 
 	m_curWidth = width;
 	m_curHeight = height;
@@ -528,7 +514,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 		if (recreatePaletteTex)
 			CreatePaletteTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
-		const u16* tlut = (const u16*)&g_textureCache->GetCache()[tlutAddr];
+		const u16* tlut = (const u16*)&g_texMem[tlutAddr];
 		u32 paletteSize = TexDecoder_GetPaletteSize(format);
 		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
 		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016X", tlutAddr, newPaletteHash);

@@ -15,20 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "D3DBase.h"
-#include "PixelShaderCache.h"
 #include "VertexManager.h"
-#include "VertexShaderCache.h"
 
 #include "BPMemory.h"
+#include "D3DBase.h"
 #include "Debugger.h"
 #include "IndexGenerator.h"
 #include "MainBase.h"
+#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "RenderBase.h"
 #include "Render.h"
 #include "Statistics.h"
 #include "TextureCache.h"
+#include "Tmem.h"
+#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VideoConfig.h"
 

@@ -19,21 +19,26 @@
 
 TextureCacheBase* g_textureCache = NULL;
 
-TextureCacheBase::~TextureCacheBase()
+TCacheEntryBase::TCacheEntryBase()
+	: m_validation(0)
+{ }
+
+void TCacheEntryBase::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
+	u32 tlutAddr, u32 tlutFormat, u32 validation)
 {
-	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it)
-	{
-		delete it->second;
-	}
-	m_map.clear();
+	RefreshInternal(ramAddr, width, height, levels, format, tlutAddr, tlutFormat,
+		validation > m_validation);
+
+	m_validation = validation;
 }
+
+TextureCacheBase::TextureCacheBase()
+	: m_validation(1)
+{ }
 
 void TextureCacheBase::Invalidate()
 {
-	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it)
-	{
-		it->second->EvictFromTmem();
-	}
+	++m_validation;
 }
 
 TCacheEntryBase* TextureCacheBase::LoadEntry(u32 ramAddr,
@@ -47,12 +52,8 @@ TCacheEntryBase* TextureCacheBase::LoadEntry(u32 ramAddr,
 	}
 
 	// Refresh the entry if necessary (entry will check)
-	it->second->Refresh(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+	it->second->Refresh(ramAddr, width, height, levels, format, tlutAddr,
+		tlutFormat, m_validation);
 
-	return it->second;
-}
-
-void TextureCacheBase::Load(u32 tmemAddr, const u8* src, u32 size)
-{
-	memcpy(&m_cache[tmemAddr], src, size);
+	return it->second.get();
 }

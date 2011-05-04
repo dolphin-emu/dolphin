@@ -31,6 +31,7 @@
 #include "VertexShaderManager.h"
 #include "TextureCacheBase.h"
 #include "Thread.h"
+#include "Tmem.h"
 
 using namespace BPFunctions;
 
@@ -308,7 +309,7 @@ void BPWritten(const BPCmd& bp)
 			u32 tmemAddr = ((bp.newvalue & 0x3FF) << 9) + TMEM_HALF;
 			u32 size = (bp.newvalue & 0x1FFC00) >> 5;
 			DEBUG_LOG(VIDEO, "Loading tlut to 0x%.05X", tmemAddr);
-			g_textureCache->Load(tmemAddr, ptr, size);
+			LoadTmem(tmemAddr, ptr, size);
 
 			break;
 		}

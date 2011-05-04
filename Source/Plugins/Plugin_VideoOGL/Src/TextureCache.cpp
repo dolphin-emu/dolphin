@@ -17,14 +17,16 @@
 
 #include "TextureCache.h"
 
-#include "GLUtil.h"
-#include "ImageWrite.h"
-#include "FramebufferManager.h"
-#include "VertexShaderManager.h"
-#include "TextureConverter.h"
 #include "BPMemory.h"
-#include "Render.h"
+#include "FramebufferManager.h"
+#include "GLUtil.h"
+#include "Hash.h"
 #include "HW/Memmap.h"
+#include "ImageWrite.h"
+#include "Render.h"
+#include "TextureConverter.h"
+#include "Tmem.h"
+#include "VertexShaderManager.h"
 
 namespace OGL
 {
@@ -46,7 +48,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 }
 
 TCacheEntry::TCacheEntry()
-	: m_inTmem(false), m_texture(0)
+	: m_texture(0)
 {
 	glGenTextures(1, &m_texture);
 }
@@ -57,27 +59,19 @@ TCacheEntry::~TCacheEntry()
 	m_texture = 0;
 }
 
-void TCacheEntry::EvictFromTmem()
-{
-	m_inTmem = false;
-}
-
 inline bool IsPaletted(u32 format)
 {
 	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
 }
 
-void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat)
+void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	int blockW = TexDecoder_GetBlockWidthInTexels(format);
 	int blockH = TexDecoder_GetBlockHeightInTexels(format);
 
 	const u8* src = Memory::GetPointer(ramAddr);
-	const u16* tlut = (const u16*)&g_textureCache->GetCache()[tlutAddr];
-	
-	// Would real hardware reload data from RAM to TMEM?
-	bool loadToTmem = !m_inTmem || ramAddr != m_ramAddr;
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
 	
 	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
 
@@ -95,7 +89,7 @@ void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
 	// TODO: Use a shader to depalettize textures, like the DX11 plugin
 	bool reloadTexture = dimsChanged || format != m_curFormat ||
 		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
-	if (reloadTexture || loadToTmem)
+	if (reloadTexture || invalidated)
 	{
 		// FIXME: Only the top-level mip is hashed.
 		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
@@ -181,9 +175,6 @@ void TCacheEntry::Refresh(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
-	m_inTmem = true;
-	m_ramAddr = ramAddr;
 
 	m_curWidth = width;
 	m_curHeight = height;

@@ -182,6 +182,7 @@
     <ClCompile Include="Src\CPMemory.cpp" />
     <ClCompile Include="Src\Debugger.cpp" />
     <ClCompile Include="Src\DLCache.cpp" />
+    <ClCompile Include="Src\EFBCopy.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
     <ClCompile Include="Src\FramebufferManagerBase.cpp" />
@@ -203,6 +204,7 @@
     <ClCompile Include="Src\TextureCacheBase.cpp" />
     <ClCompile Include="Src\TextureConversionShader.cpp" />
     <ClCompile Include="Src\TextureDecoder.cpp" />
+    <ClCompile Include="Src\Tmem.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp" />
     <ClCompile Include="Src\VertexLoaderManager.cpp" />
     <ClCompile Include="Src\VertexLoader_Color.cpp" />
@@ -227,6 +229,7 @@
     <ClInclude Include="Src\DataReader.h" />
     <ClInclude Include="Src\Debugger.h" />
     <ClInclude Include="Src\DLCache.h" />
+    <ClInclude Include="Src\EFBCopy.h" />
     <ClInclude Include="Src\EmuWindow.h" />
     <ClInclude Include="Src\Fifo.h" />
     <ClInclude Include="Src\FramebufferManagerBase.h" />
@@ -249,6 +252,7 @@
     <ClInclude Include="Src\TextureCacheBase.h" />
     <ClInclude Include="Src\TextureConversionShader.h" />
     <ClInclude Include="Src\TextureDecoder.h" />
+    <ClInclude Include="Src\Tmem.h" />
     <ClInclude Include="Src\VertexLoader.h" />
     <ClInclude Include="Src\VertexLoaderManager.h" />
     <ClInclude Include="Src\VertexLoader_Color.h" />

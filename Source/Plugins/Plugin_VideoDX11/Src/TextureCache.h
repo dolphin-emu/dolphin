@@ -37,17 +37,20 @@ public:
 
 	TCacheEntry();
 
-	void EvictFromTmem();
-	void Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat);
 	void Bind(int stage);
+	
+protected:
+
+	void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 private:
 
 	void Load(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 	void CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
@@ -56,7 +59,7 @@ private:
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
 	bool LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat, TexCopyLookaside* tcl);
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, TexCopyLookaside* tcl);
 
 	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
@@ -71,9 +74,6 @@ private:
 	// Run the depalettizing shader
 	void DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
-
-	bool m_inTmem;
-	u32 m_ramAddr;
 
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
@@ -137,13 +137,13 @@ protected:
 
 private:
 
-	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
-
 	// FIXME: Should the EFB encoder be embedded in the texture cache class?
 	std::unique_ptr<TextureEncoder> m_encoder;
 	TexCopyLookasideMap m_tclMap;
 
 	DepalettizeShader m_depalShader;
+
+	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 
 };
 

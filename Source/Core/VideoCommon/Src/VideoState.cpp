@@ -18,13 +18,14 @@
 #include "VideoState.h"
 
 #include "BPMemory.h"
-#include "CPMemory.h"
-#include "XFMemory.h"
-#include "TextureDecoder.h"
-#include "Fifo.h"
 #include "CommandProcessor.h"
-#include "TextureCacheBase.h"
+#include "CPMemory.h"
+#include "Fifo.h"
 #include "PixelEngine.h"
+#include "TextureDecoder.h"
+#include "TextureCacheBase.h"
+#include "Tmem.h"
+#include "XFMemory.h"
 
 static void DoState(PointerWrap &p)
 {
@@ -42,7 +43,7 @@ static void DoState(PointerWrap &p)
     p.Do(xfregs);
     p.DoArray(xfmem, XFMEM_SIZE);
     // Texture decoder
-    p.DoArray(g_textureCache->GetCache(), TMEM_SIZE);
+    p.DoArray(g_texMem, TMEM_SIZE);
  
     // FIFO
     Fifo_DoState(p);

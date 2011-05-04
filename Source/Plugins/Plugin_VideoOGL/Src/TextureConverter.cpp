@@ -20,18 +20,19 @@
 
 #include <math.h>
 
+#include "ImageWrite.h"
+#include "FileUtil.h"
+#include "FramebufferManager.h"
+#include "Globals.h"
+#include "Hash.h"
+#include "HW/Memmap.h"
+#include "PixelShaderCache.h"
+#include "Render.h"
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
 #include "TextureCache.h"
-#include "PixelShaderCache.h"
 #include "VertexShaderManager.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
 #include "VideoConfig.h"
-#include "ImageWrite.h"
-#include "Render.h"
-#include "FileUtil.h"
-#include "HW/Memmap.h"
 
 namespace OGL
 {

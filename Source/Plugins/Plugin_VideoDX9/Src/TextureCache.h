@@ -26,10 +26,10 @@ namespace DX9
 class TCacheEntry : public TCacheEntryBase
 {
 
-public:
-	
-	void EvictFromTmem();
-	void Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat);
+protected:
+
+	void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 };
 

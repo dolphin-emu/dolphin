@@ -15,26 +15,38 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "TextureCache.h"
+#include "EFBCopy.h"
 
-namespace DX9
-{
+const unsigned int EFB_COPY_BLOCK_WIDTHS[16] = {
+	8, // R4
+	8, // R8_1
+	8, // RA4
+	4, // RA8
+	4, // RGB565
+	4, // RGB5A3
+	4, // RGBA8
+	8, // A8
+	8, // R8
+	8, // G8
+	8, // B8
+	4, // RG8
+	4, // GB8
+	0, 0, 0 // Unknown formats
+};
 
-void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
-{
-	// TODO: Implement
-}
-
-void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
-{
-	// TODO: Implement
-}
-
-TCacheEntry* TextureCache::CreateEntry()
-{
-	return new TCacheEntry;
-}
-
-}
+const unsigned int EFB_COPY_BLOCK_HEIGHTS[16] = {
+	8, // R4
+	4, // R8_1
+	4, // RA4
+	4, // RA8
+	4, // RGB565
+	4, // RGB5A3
+	4, // RGBA8
+	4, // A8
+	4, // R8
+	4, // G8
+	4, // B8
+	4, // RG8
+	4, // GB8
+	0, 0, 0 // Unknown formats
+};

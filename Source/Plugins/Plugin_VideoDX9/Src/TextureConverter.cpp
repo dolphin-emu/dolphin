@@ -19,19 +19,20 @@
 // This kind of stuff would be a LOT nicer with OpenCL.
 
 #include "TextureConverter.h"
-#include "TextureConversionShader.h"
-#include "PixelShaderCache.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
+
 #include "FramebufferManager.h"
-#include "Globals.h"
-#include "VideoConfig.h"
+#include "FileUtil.h"
+#include "Hash.h"
+#include "HW/Memmap.h"
 #include "ImageWrite.h"
+#include "Math.h"
+#include "PixelShaderCache.h"
 #include "Render.h"
 #include "TextureCache.h"
-#include "Math.h"
-#include "FileUtil.h"
-#include "HW/Memmap.h"
+#include "TextureConversionShader.h"
+#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
+#include "VideoConfig.h"
 
 namespace DX9
 {

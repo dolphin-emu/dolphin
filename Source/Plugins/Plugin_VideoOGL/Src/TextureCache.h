@@ -34,17 +34,16 @@ public:
 
 	TCacheEntry();
 	~TCacheEntry();
-	
-	void EvictFromTmem();
-	void Refresh(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat);
 
 	GLuint GetTexture() { return m_texture; }
 
+protected:
+
+	void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
 private:
 
-	bool m_inTmem;
-	u32 m_ramAddr;
-	
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
 	u32 m_curHeight;

@@ -20,6 +20,7 @@
 #include "BPMemory.h"
 #include "D3DBase.h"
 #include "D3DShader.h"
+#include "EFBCopy.h"
 #include "FramebufferManager.h"
 #include "GfxState.h"
 #include "HW/Memmap.h"
@@ -182,7 +183,7 @@ static const char EFB_ENCODE_PS[] =
 
 // Interfaces and classes for different destination formats
 
-"uint4 Generate_0(float2 cacheCoord)\n" // R4
+"uint4 Generate_R4(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -214,42 +215,7 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_1(float2 cacheCoord)\n" // R8 (FIXME: Duplicate of R8 below?)
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-// FIXME: Untested
-"uint4 Generate_2(float2 cacheCoord)\n" // A4 R4
+"uint4 Generate_RA4(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -302,7 +268,7 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_3(float2 cacheCoord)\n" // A8 R8
+"uint4 Generate_RA8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -328,7 +294,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_4(float2 cacheCoord)\n" // R5 G6 B5
+"uint4 Generate_RGB565(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -352,7 +318,7 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_5(float2 cacheCoord)\n" // 1 R5 G5 B5 or 0 A3 R4 G4 G4
+"uint4 Generate_RGB5A3(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -376,7 +342,7 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_6(float2 cacheCoord)\n" // A8 R8 A8 R8 | G8 B8 G8 B8
+"uint4 Generate_RGBA8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(4,1));\n"
 
@@ -417,7 +383,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_7(float2 cacheCoord)\n" // A8
+"uint4 Generate_A8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -451,7 +417,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_8(float2 cacheCoord)\n" // R8
+"uint4 Generate_R8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -486,7 +452,7 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_9(float2 cacheCoord)\n" // G8
+"uint4 Generate_G8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -520,7 +486,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_A(float2 cacheCoord)\n" // B8
+"uint4 Generate_B8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -554,7 +520,7 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_B(float2 cacheCoord)\n" // G8 R8
+"uint4 Generate_RG8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -581,7 +547,7 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_C(float2 cacheCoord)\n" // B8 G8
+"uint4 Generate_GB8(float2 cacheCoord)\n"
 "{\n"
 	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
 
@@ -687,8 +653,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 	HRESULT hr;
 
-	unsigned int blockW = BLOCK_WIDTHS[dstFormat];
-	unsigned int blockH = BLOCK_HEIGHTS[dstFormat];
+	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
 
 	// Round up source dims to multiple of block size
 	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
@@ -704,10 +670,10 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		cacheLinesPerRow = numBlocksX*2;
 	else
 		cacheLinesPerRow = numBlocksX;
-	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= MAX_BYTES_PER_BLOCK_ROW, "cache lines per row sanity check");
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= EFB_COPY_MAX_BYTES_PER_ROW, "cache lines per row sanity check");
 
 	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
-	_assert_msg_(VIDEO, totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
+	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
 
 	size_t encodeSize = 0;
 	
@@ -853,19 +819,22 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		const char* generatorFuncName = NULL;
 		switch (dstFormat)
 		{
-		case 0x0: generatorFuncName = "Generate_0"; break;
-		case 0x1: generatorFuncName = "Generate_1"; break;
-		case 0x2: generatorFuncName = "Generate_2"; break;
-		case 0x3: generatorFuncName = "Generate_3"; break;
-		case 0x4: generatorFuncName = "Generate_4"; break;
-		case 0x5: generatorFuncName = "Generate_5"; break;
-		case 0x6: generatorFuncName = "Generate_6"; break;
-		case 0x7: generatorFuncName = "Generate_7"; break;
-		case 0x8: generatorFuncName = "Generate_8"; break;
-		case 0x9: generatorFuncName = "Generate_9"; break;
-		case 0xA: generatorFuncName = "Generate_A"; break;
-		case 0xB: generatorFuncName = "Generate_B"; break;
-		case 0xC: generatorFuncName = "Generate_C"; break;
+			// TODO: Many generators could be merged. For example, we
+			// could use one generator for A8, R8, G8 and B8 if we use the
+			// color matrix parameter.
+		case EFB_COPY_R4: generatorFuncName = "Generate_R4"; break;
+		case EFB_COPY_R8_1: generatorFuncName = "Generate_R8"; break;
+		case EFB_COPY_RA4: generatorFuncName = "Generate_RA4"; break;
+		case EFB_COPY_RA8: generatorFuncName = "Generate_RA8"; break;
+		case EFB_COPY_RGB565: generatorFuncName = "Generate_RGB565"; break;
+		case EFB_COPY_RGB5A3: generatorFuncName = "Generate_RGB5A3"; break;
+		case EFB_COPY_RGBA8: generatorFuncName = "Generate_RGBA8"; break;
+		case EFB_COPY_A8: generatorFuncName = "Generate_A8"; break;
+		case EFB_COPY_R8: generatorFuncName = "Generate_R8"; break;
+		case EFB_COPY_G8: generatorFuncName = "Generate_G8"; break;
+		case EFB_COPY_B8: generatorFuncName = "Generate_B8"; break;
+		case EFB_COPY_RG8: generatorFuncName = "Generate_RG8"; break;
+		case EFB_COPY_GB8: generatorFuncName = "Generate_GB8"; break;
 		default:
 			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", dstFormat);
 			m_staticShaders[key].reset();

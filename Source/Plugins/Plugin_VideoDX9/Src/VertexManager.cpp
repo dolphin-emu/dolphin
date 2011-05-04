@@ -15,27 +15,28 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "FileUtil.h"
-
-#include "D3DBase.h"
-#include "Fifo.h"
-#include "Statistics.h"
 #include "VertexManager.h"
-#include "OpcodeDecoding.h"
-#include "IndexGenerator.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
-#include "PixelShaderManager.h"
-#include "PixelShaderCache.h"
-#include "NativeVertexFormat.h"
-#include "TextureCache.h"
-#include "main.h"
 
 #include "BPStructs.h"
-#include "XFStructs.h"
+#include "Common.h"
+#include "D3DBase.h"
 #include "Debugger.h"
+#include "Fifo.h"
+#include "FileUtil.h"
+#include "main.h"
+#include "NativeVertexFormat.h"
+#include "OpcodeDecoding.h"
+#include "IndexGenerator.h"
+#include "PixelShaderManager.h"
+#include "PixelShaderCache.h"
+#include "Statistics.h"
+#include "TextureCache.h"
+#include "Tmem.h"
+#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
 #include "VideoConfig.h"
+#include "XFStructs.h"
+
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
