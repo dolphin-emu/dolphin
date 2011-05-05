@@ -157,7 +157,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 		{
 			unsigned int AISampleRate, DACSampleRate;
 			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate), m_hWnd); 
+			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			m_InitMixer = true;
