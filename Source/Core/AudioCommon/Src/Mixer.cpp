@@ -58,8 +58,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (m_AIplaying) {
 		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
 
-		// Do re-sampling if needed
-		if (m_sampleRate == 32000)
+		if (AudioInterface::GetAIDSampleRate() == m_sampleRate) // (1:1)
 		{
 #if _M_SSE >= 0x301
 			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
@@ -91,7 +90,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 			//remember fractional offset
 
 			static u32 frac = 0;
-			const u32 ratio = (u32)( 65536.0f * 32000.0f / (float)m_sampleRate );
+			const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
 
 			for (u32 i = 0; i < numLeft * 2; i+=2) {
 				u32 m_indexR2 = m_indexR + 2; //next sample
@@ -199,10 +198,12 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 
 	m_indexW += num_samples * 2;
 
-	if (m_sampleRate == 32000)
+	if (AudioInterface::GetAIDSampleRate() == m_sampleRate)
 		Common::AtomicAdd(m_numSamples, num_samples);
-	else // Assume 48000 otherwise
+	else if ((AudioInterface::GetAIDSampleRate() == 32000) && (m_sampleRate == 48000))
 		Common::AtomicAdd(m_numSamples, num_samples * 3 / 2);
+	else
+		Common::AtomicAdd(m_numSamples, num_samples * 2 / 3);
 
 	return;
 }

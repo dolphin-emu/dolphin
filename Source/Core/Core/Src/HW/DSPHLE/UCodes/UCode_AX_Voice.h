@@ -22,6 +22,7 @@
 #include "UCode_AX_ADPCM.h"
 #include "UCode_AX.h"
 #include "Mixer.h"
+#include "../../AudioInterface.h"
 
 // MRAM -> ARAM for GC
 inline bool ReadPB(u32 addr, AXPB &PB)
@@ -104,7 +105,7 @@ inline void MixAddVoice(ParamBlockType &pb,
 	if (pb.running)
 	{
 		const u32 ratio = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo)
-			* /*ratioFactor:*/(32000.0f / (float)soundStream->GetMixer()->GetSampleRate()));
+			* /*ratioFactor:*/((float)AudioInterface::GetAIDSampleRate() / (float)soundStream->GetMixer()->GetSampleRate()));
 		u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 
