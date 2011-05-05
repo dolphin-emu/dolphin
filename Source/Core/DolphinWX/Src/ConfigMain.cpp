@@ -1288,8 +1288,16 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.AR", WiiAspectRatio->GetSelection());
 		break;
 	case ID_WII_IPL_LNG:
-		SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", WiiSystemLang->GetSelection());
+	{
+		int wii_system_lang = WiiSystemLang->GetSelection();
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
+		u8 country_code = GetSADRCountryCode(wii_system_lang);
+		if(!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
+		{
+			PanicAlert("Failed to update country code in SYSCONF");
+		}
 		break;
+	}
 	// Wii - Devices
 	case ID_WII_SD_CARD:
 		SConfig::GetInstance().m_WiiSDCard = WiiSDCard->IsChecked();
@@ -1436,3 +1444,43 @@ void CConfigMain::AddResolutions()
 	}
 #endif
 }
+
+// Change from IPL.LNG value to IPL.SADR country code
+inline u8 CConfigMain::GetSADRCountryCode(int language)
+{
+	//http://wiibrew.org/wiki/Country_Codes
+	u8 countrycode = language;
+	switch (countrycode)
+	{
+	case 0: //Japanese
+		countrycode = 1; //Japan
+		break;
+	case 1: //English
+		countrycode = 49; // United States
+		break;
+	case 2:	//German
+		countrycode = 78; //Germany
+		break;
+	case 3: //French
+		countrycode = 77; //France
+		break;
+	case 4: //Spanish
+		countrycode = 105; //Spain
+		break;
+	case 5: //Italian
+		countrycode = 83; //Italy
+		break;
+	case 6:	//Dutch
+		countrycode = 94; //Netherlands
+		break;
+	case 7: //Simplified Chinese
+	case 8: //Traditional Chinese
+		countrycode = 157; //China
+		break;
+	case 9: //Korean
+		countrycode = 136; //Korea
+		break;
+	}
+	return countrycode;
+}
+

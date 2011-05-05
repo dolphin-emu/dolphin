@@ -42,7 +42,7 @@ CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 	{
 		u16 titlever = 0;
 		Read(TmdOffset + 0x01dc, 2, (u8*)&titlever);
-		m_Country = DiscIO::GetSysMenuRegion(Common::swap16(titlever));
+		m_Country = GetSysMenuRegion(Common::swap16(titlever));
 	}
 }
 

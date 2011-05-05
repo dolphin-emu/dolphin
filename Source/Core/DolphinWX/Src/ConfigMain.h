@@ -292,6 +292,8 @@ private:
 	void ChooseEXIDevice(std::string deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);
+	// Change from IPL.LNG value to country code
+	inline u8 GetSADRCountryCode(int language);
 
 	void ISOPathsSelectionChanged(wxCommandEvent& event);
 	void RecursiveDirectoryChanged(wxCommandEvent& event);

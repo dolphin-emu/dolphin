@@ -219,7 +219,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 	m_IosVersion = Common::swap16(pTMD + 0x018a);
 	m_Country = *(u8*)&m_TitleID;
 	if (m_Country == 2) // SYSMENU
-		m_Country = DiscIO::GetSysMenuRegion(m_TileVersion);
+		m_Country = GetSysMenuRegion(m_TileVersion);
 
 	m_Content.resize(m_numEntries);
 
@@ -305,7 +305,7 @@ bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u
 	m_IosVersion = Common::swap16(pTMD + 0x018a);
 	m_Country = *(u8*)&m_TitleID;
 	if (m_Country == 2) // SYSMENU
-		m_Country = DiscIO::GetSysMenuRegion(m_TileVersion);
+		m_Country = GetSysMenuRegion(m_TileVersion);
 
 	u8* p = pDataApp;
 

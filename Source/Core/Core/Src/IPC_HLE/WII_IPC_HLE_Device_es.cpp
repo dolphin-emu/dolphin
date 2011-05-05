@@ -515,9 +515,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			u32 TitleID_HI = (u32)(TitleID >> 32);
             const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
 
-            _dbg_assert_msg_(WII_IPC_ES, Loader.IsValid(), "Loader not valid for TitleID %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+			// Assert if title is not a disc title and the loader is not valid
+			_dbg_assert_msg_(WII_IPC_ES, (TitleID_HI == 0x00010000) || (TitleID_HI == 0x00010004) || Loader.IsValid(), "Loader not valid for TitleID %08x/%08x", TitleID_HI, (u32)TitleID);
+
             u32 TMDViewCnt = 0;
             if (Loader.IsValid())
             {
@@ -528,10 +531,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             }
             Memory::Write_U32(TMDViewCnt, Buffer.PayloadBuffer[0].m_Address);
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);		
+            Memory::Write_U32(0, _CommandAddress + 0x4);
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
-            return true;            
+            return true;
         }
         break;
 
