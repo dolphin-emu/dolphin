@@ -148,11 +148,16 @@ void VertexManager::vFlush()
 
 			if (entry)
 			{
-				// TODO: Implement
+				D3D::SetTexture(i, entry->GetTexture());
 			}
 			else
+			{
 				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
+				D3D::SetTexture(i, NULL);
+			}
 		}
+		else
+			D3D::SetTexture(i, NULL);
 	}
 
 	// set global constants

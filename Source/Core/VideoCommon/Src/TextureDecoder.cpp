@@ -641,9 +641,9 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 	case GX_TF_C4:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_I4:
-		return PC_TEX_FMT_IA8;
+		return PC_TEX_FMT_I4_AS_I8;
 	case GX_TF_I8:  // speed critical
-		return PC_TEX_FMT_IA8;
+		return PC_TEX_FMT_I8;
 	case GX_TF_C8:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_IA4:
@@ -660,9 +660,7 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 		return PC_TEX_FMT_BGRA32;
 	case GX_TF_CMPR:  // speed critical
 		// The metroid games use this format almost exclusively.
-		{
-			return PC_TEX_FMT_BGRA32;
-		}
+		return PC_TEX_FMT_BGRA32;
 	}
 
 	// The "copy" texture formats, too?

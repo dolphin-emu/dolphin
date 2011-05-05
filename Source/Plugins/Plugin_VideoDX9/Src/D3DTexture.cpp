@@ -149,10 +149,8 @@ void ConvertRGBA_BGRA_SSSE3(u32 *dst, const int dstPitch, u32 *pIn, const int wi
 LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int levels)
 {
 	u32* pBuffer = (u32*)buffer;
-	LPDIRECT3DTEXTURE9 pTexture;
+	LPDIRECT3DTEXTURE9 pTexture = NULL;
 
-	// crazy bitmagic, sorry :)
-	bool isPow2 = !((width&(width-1)) || (height&(height-1)));
 	bool bExpand = false;
 
 	if (fmt == D3DFMT_A8P8) {
@@ -167,7 +165,11 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		hr = dev->CreateTexture(width, height, 0, D3DUSAGE_AUTOGENMIPMAP, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 
 	if (FAILED(hr))
+	{
+		ERROR_LOG(VIDEO, "Failed to create texture");
 		return 0;
+	}
+
 	int level = 0;
 	D3DLOCKED_RECT Lock;
 	pTexture->LockRect(level, &Lock, NULL, 0);
@@ -279,30 +281,38 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	return pTexture;
 }
 
-LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, D3DFORMAT fmt)
+LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, const int levels, D3DFORMAT fmt)
 {
 	LPDIRECT3DTEXTURE9 pTexture;
-	// crazy bitmagic, sorry :)
-	bool isPow2 = !((width&(width-1)) || (height&(height-1)));
 	bool bExpand = false;
 	HRESULT hr;
 	// TODO(ector): Allow mipmaps for non-pow textures on newer cards?
 	// TODO(ector): Use the game-specified mipmaps?
-	if (!isPow2)
-		hr = dev->CreateTexture(width, height, 1, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
+	if (levels > 0)
+		hr = dev->CreateTexture(width, height, levels, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 	else
 		hr = dev->CreateTexture(width, height, 0, D3DUSAGE_AUTOGENMIPMAP, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 
 	if (FAILED(hr))
+	{
+		ERROR_LOG(VIDEO, "Failed to create texture");
 		return 0;
+	}
+
 	return pTexture;
 }
 
 void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int level)
 {
-	u32* pBuffer = (u32*)buffer;
 	D3DLOCKED_RECT Lock;
-	pTexture->LockRect(level, &Lock, NULL, 0);
+	HRESULT hr = pTexture->LockRect(level, &Lock, NULL, 0);
+	if (FAILED(hr))
+	{
+		ERROR_LOG(VIDEO, "Failed to lock texture");
+		return;
+	}
+
+	u32* pBuffer = (u32*)buffer;
 	u32* pIn = pBuffer;
 
 	bool bExpand = false;
@@ -411,7 +421,10 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		memcpy(Lock.pBits,buffer,((width+3)/4)*((height+3)/4)*8);
 		break;
 	}
-	pTexture->UnlockRect(level); 
+
+	hr = pTexture->UnlockRect(level);
+	if (FAILED(hr))
+		ERROR_LOG(VIDEO, "Failed to unlock texture");
 }
 
 }  // namespace
