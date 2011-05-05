@@ -18,6 +18,9 @@
 #include "DSPMemoryMap.h"
 #include "DSPIntExtOps.h"
 
+//not needed for game ucodes (it slows down interpreter/dspjit32 + easier to compare int VS dspjit64 without it)
+//#define PRECISE_BACKLOG 
+
 // Extended opcodes do not exist on their own. These opcodes can only be
 // attached to opcodes that allow extending (8 (or 7) lower bits of opcode not used by
 // opcode). Extended opcodes do not modify program counter $pc register.
@@ -518,7 +521,11 @@ void applyWriteBackLog()
 	// always make sure to have an extra entry at the end w/ -1 to avoid
 	// infinitive loops
 	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
+#ifdef PRECISE_BACKLOG
 		dsp_op_write_reg(writeBackLogIdx[i], dsp_op_read_reg(writeBackLogIdx[i]) | writeBackLog[i]);
+#else
+		dsp_op_write_reg(writeBackLogIdx[i], writeBackLog[i]);
+#endif
 		// Clear back log
 		writeBackLogIdx[i] = -1;
 	}
@@ -529,20 +536,22 @@ void applyWriteBackLog()
 // apply the ext command output, because if the main op didn't change the value
 // then 0 | ext output = ext output and if it did then bitwise or is still the
 // right thing to do
+// Only needed for cases when when mainop and extended are modifying the same ACC
+// Games are not doing that + in motorola (similar dsp) dox this is forbidden to do.
 void zeroWriteBackLog()
 {
+#ifdef PRECISE_BACKLOG
 	// always make sure to have an extra entry at the end w/ -1 to avoid
 	// infinitive loops
 	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
 		dsp_op_write_reg(writeBackLogIdx[i], 0);
 	}
+#endif
 }
 
-//needed for 0x3... cases when main and extended are modifying the same ACC 
-//games are not doing that + in motorola (similar dsp) dox this is forbidden to do
-//ex. corner case -> 0x3060: main opcode modifies .m, and extended .l -> .l shoudnt be zeroed because of .m write...
 void zeroWriteBackLogPreserveAcc(u8 acc) 
 {
+#ifdef PRECISE_BACKLOG
 	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
 		
 		// acc0
@@ -557,4 +566,5 @@ void zeroWriteBackLogPreserveAcc(u8 acc)
 
 		dsp_op_write_reg(writeBackLogIdx[i], 0);
 	}
+#endif
 }
