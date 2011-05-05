@@ -8,6 +8,7 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 #include "D3DShader.h"
+#include "EFBCopy.h"
 #include "Render.h"
 #include "TextureDecoder.h"
 #include "VertexShaderCache.h"
@@ -151,51 +152,71 @@ TexCopyLookaside::TexCopyLookaside()
 	: m_hash(0), m_dirty(true)
 { }
 
-static bool IsDstFormatRGB(unsigned int dstFormat)
-{
-	return dstFormat == 0x4; // RGB565
-}
+static const float RGBA_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+};
 
-static bool IsDstFormatRGBA(unsigned int dstFormat)
-{
-	return dstFormat == 0x5 || dstFormat == 0x6; // RGB5A3 or RGBA8
-}
+static const float RGB0_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 0
+};
 
-static bool IsDstFormatAR(unsigned int dstFormat)
-{
-	return dstFormat == 0x2 || dstFormat == 0x3; // RA4 or RA8
-}
+static const float RRRA_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	0, 0, 0, 1
+};
 
-static bool IsDstFormatGR(unsigned int dstFormat)
-{
-	return dstFormat == 0xB; // GR
-}
+static const float AAAA_MATRIX[4*4] = {
+	0, 0, 0, 1,
+	0, 0, 0, 1,
+	0, 0, 0, 1,
+	0, 0, 0, 1
+};
 
-static bool IsDstFormatBG(unsigned int dstFormat)
-{
-	return dstFormat == 0xC; // BG
-}
+static const float RRRR_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0
+};
 
-static bool IsDstFormatA(unsigned int dstFormat)
-{
-	return dstFormat == 0x7; // A8
-}
+static const float GGGG_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 1, 0, 0
+};
 
-static bool IsDstFormatR(unsigned int dstFormat)
-{
-	return dstFormat == 0x0 || dstFormat == 0x1 || dstFormat == 0x8;
-	// R4 or R8 or R8
-}
+static const float BBBB_MATRIX[4*4] = {
+	0, 0, 1, 0,
+	0, 0, 1, 0,
+	0, 0, 1, 0,
+	0, 0, 1, 0
+};
 
-static bool IsDstFormatG(unsigned int dstFormat)
-{
-	return dstFormat == 0x9; // G8
-}
+static const float RRRG_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	0, 1, 0, 0
+};
 
-static bool IsDstFormatB(unsigned int dstFormat)
-{
-	return dstFormat == 0xA; // B8
-}
+static const float GGGB_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0
+};
+
+static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
+static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
 void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
@@ -237,7 +258,8 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
 	}
 
-	if (IsDstFormatRGBA(dstFormat) && srcFormat == PIXELFMT_RGBA6_Z24 && !isIntensity && !scaleByHalf)
+	if ((dstFormat == EFB_COPY_RGB5A3 || dstFormat == EFB_COPY_RGBA8) &&
+		srcFormat == PIXELFMT_RGBA6_Z24 && !isIntensity && !scaleByHalf)
 	{
 		// If dst format is rgba, src format is rgba, and no other filters are applied...
 
@@ -249,157 +271,54 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 		D3D11_BOX srcBox = CD3D11_BOX(targetRect.left, targetRect.top, 0, targetRect.right, targetRect.bottom, 1);
 		D3D::g_context->CopySubresourceRegion(m_fakeBase->GetTex(), 0, 0, 0, 0, efbTexture->GetTex(), 0, &srcBox);
 	}
-	else if (IsDstFormatRGBA(dstFormat))
-	{
-		// Copy rgba
-
-		float colorMatrix[4][4] = {
-			{ 1, 0, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 0, 1, 0 },
-			{ 0, 0, 0, 1 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatRGB(dstFormat))
-	{
-		// Copy rgb, set a to 1
-
-		float colorMatrix[4][4] = {
-			{ 1, 0, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 0, 1, 0 },
-			{ 0, 0, 0, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 1 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatAR(dstFormat))
-	{
-		// Replicate r to all color channels, copy a to alpha
-
-		float colorMatrix[4][4] = {
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 0, 0, 0, 1 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatGR(dstFormat))
-	{
-		// Replicate r to all color channels, copy g to alpha
-		// FIXME: Is this a good way?
-
-		float colorMatrix[4][4] = {
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 0, 1, 0, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatBG(dstFormat))
-	{
-		// Replicate g to all color channels, copy b to alpha
-		// FIXME: Is this a good way?
-
-		float colorMatrix[4][4] = {
-			{ 0, 1, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 0, 1, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatA(dstFormat))
-	{
-		// Replicate a to all channels
-
-		float colorMatrix[4][4] = {
-			{ 0, 0, 0, 1 },
-			{ 0, 0, 0, 1 },
-			{ 0, 0, 0, 1 },
-			{ 0, 0, 0, 1 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatR(dstFormat))
-	{
-		// Replicate r to all channels
-
-		float colorMatrix[4][4] = {
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 },
-			{ 1, 0, 0, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatG(dstFormat))
-	{
-		// Replicate g to all channels
-
-		float colorMatrix[4][4] = {
-			{ 0, 1, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 1, 0, 0 },
-			{ 0, 1, 0, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
-	else if (IsDstFormatB(dstFormat))
-	{
-		// Replicate b to all channels
-
-		float colorMatrix[4][4] = {
-			{ 0, 0, 1, 0 },
-			{ 0, 0, 1, 0 },
-			{ 0, 0, 1, 0 },
-			{ 0, 0, 1, 0 }
-		};
-		float colorAdd[4] = { 0, 0, 0, 0 };
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			&colorMatrix[0][0], colorAdd);
-	}
 	else
 	{
-		ERROR_LOG(VIDEO, "Not implemented: Cannot fake this combination of formats");
-		m_fakeBase.reset();
-		return;
+		const float* colorMatrix;
+		const float* colorAdd = ZERO_ADD;
+
+		switch (dstFormat)
+		{
+		case EFB_COPY_R4:
+		case EFB_COPY_R8_1:
+		case EFB_COPY_R8:
+			colorMatrix = RRRR_MATRIX;
+			break;
+		case EFB_COPY_RA4:
+		case EFB_COPY_RA8:
+			colorMatrix = RRRA_MATRIX;
+			break;
+		case EFB_COPY_RGB565:
+			colorMatrix = RGB0_MATRIX;
+			colorAdd = A1_ADD;
+			break;
+		case EFB_COPY_RGB5A3:
+		case EFB_COPY_RGBA8:
+			colorMatrix = RGBA_MATRIX;
+			break;
+		case EFB_COPY_A8:
+			colorMatrix = AAAA_MATRIX;
+			break;
+		case EFB_COPY_G8:
+			colorMatrix = GGGG_MATRIX;
+			break;
+		case EFB_COPY_B8:
+			colorMatrix = BBBB_MATRIX;
+			break;
+		case EFB_COPY_RG8:
+			colorMatrix = RRRG_MATRIX;
+			break;
+		case EFB_COPY_GB8:
+			colorMatrix = GGGB_MATRIX;
+			break;
+		default:
+			ERROR_LOG(VIDEO, "Couldn't fake this EFB copy format 0x%X", dstFormat);
+			m_fakeBase.reset();
+			return;
+		}
+
+		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
+			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
+			colorMatrix, colorAdd);
 	}
 
 	// Fake base texture was created successfully
@@ -418,7 +337,7 @@ D3DTexture2D* TexCopyLookaside::FakeTexture(u32 ramAddr, u32 width, u32 height,
 	// reinterpret or fall back to RAM if necessary
 
 	static const char* DST_FORMAT_NAMES[] = {
-		"R4", "0x1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
+		"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
 		"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
 	};
 
