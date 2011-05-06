@@ -191,29 +191,13 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int s
 {
 	// TODO: Support virtual EFB copies
 
-	g_renderer->ResetAPIState();
-
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		GLuint sourceTex = (srcFormat == PIXELFMT_Z24) ?
-			FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
-			FramebufferManager::ResolveAndGetRenderTarget(srcRect);
+		u8* dst = Memory::GetPointer(dstAddr);
 
-		TextureConverter::EncodeToRamFromTexture(dstAddr, sourceTex,
-			srcFormat == PIXELFMT_Z24, isIntensity, dstFormat, scaleByHalf,
-			srcRect);
-
-		GL_REPORT_ERRORD();
+		TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
+			isIntensity, scaleByHalf);
 	}
-
-	g_renderer->RestoreAPIState();
-
-	// FIXME: These lines are necessary for the emulator to work, but why?
-	FramebufferManager::SetFramebuffer(0);
-	VertexShaderManager::SetViewportChanged();
-	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 TCacheEntry* TextureCache::CreateEntry()

@@ -165,27 +165,13 @@ void TCacheEntry::CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT 
 void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
-	g_renderer->ResetAPIState();
-
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		LPDIRECT3DTEXTURE9 sourceTex = (srcFormat == PIXELFMT_Z24) ?
-			FramebufferManager::GetEFBDepthTexture() :
-			FramebufferManager::GetEFBColorTexture();
+		u8* dst = Memory::GetPointer(dstAddr);
 
-		TextureConverter::EncodeToRamFromTexture(dstAddr, sourceTex,
-			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
-			srcFormat == PIXELFMT_Z24, isIntensity, dstFormat, scaleByHalf,
-			srcRect);
+		TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
+			isIntensity, scaleByHalf);
 	}
-
-	g_renderer->RestoreAPIState();
-
-	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-	D3D::SetTexture(0, NULL);
-	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 }
 
 TCacheEntry* TextureCache::CreateEntry()

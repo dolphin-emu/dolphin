@@ -20,12 +20,13 @@
 #include <math.h>
 #include <locale.h>
 
+#include "BPMemory.h"
+#include "EFBCopy.h"
+#include "PixelShaderGen.h"
+#include "PixelShaderManager.h"
+#include "RenderBase.h"
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
-#include "PixelShaderManager.h"
-#include "PixelShaderGen.h"
-#include "BPMemory.h"
-#include "RenderBase.h"
 
 #define WRITE p+=sprintf
 
@@ -36,34 +37,25 @@ static int s_incrementSampleXCount = 0;
 namespace TextureConversionShader
 {
 
-u16 GetEncodedSampleCount(u32 format)
+u16 GetEncodedSampleCount(u32 dstFormat)
 {
-    switch (format) {    
-	case GX_TF_I4: return 8;     
-	case GX_TF_I8: return 4;
-	case GX_TF_IA4: return 4;
-    case GX_TF_IA8: return 2;
-	case GX_TF_RGB565: return 2;
-	case GX_TF_RGB5A3: return 2;
-	case GX_TF_RGBA8: return 1;
-	case GX_CTF_R4: return 8;
-    case GX_CTF_RA4: return 4;
-    case GX_CTF_RA8: return 2;
-    case GX_CTF_A8: return 4;
-    case GX_CTF_R8: return 4;
-    case GX_CTF_G8: return 4;
-    case GX_CTF_B8: return 4;
-    case GX_CTF_RG8: return 2;
-    case GX_CTF_GB8: return 2;
-	case GX_TF_Z8: return 4;
-	case GX_TF_Z16: return 2;
-	case GX_TF_Z24X8: return 1;
-	case GX_CTF_Z4: return 8;
-	case GX_CTF_Z8M: return 4;
-	case GX_CTF_Z8L: return 4;
-	case GX_CTF_Z16L: return 2;
-    default: return 1;
-    }
+	switch (dstFormat)
+	{
+	case EFB_COPY_R4: return 8;
+	case EFB_COPY_R8_1: return 4;
+	case EFB_COPY_RA4: return 4;
+	case EFB_COPY_RA8: return 2;
+	case EFB_COPY_RGB565: return 2;
+	case EFB_COPY_RGB5A3: return 2;
+	case EFB_COPY_RGBA8: return 1;
+	case EFB_COPY_A8: return 4;
+	case EFB_COPY_R8: return 4;
+	case EFB_COPY_G8: return 4;
+	case EFB_COPY_B8: return 4;
+	case EFB_COPY_RG8: return 2;
+	case EFB_COPY_GB8: return 2;
+	default: return 1;
+	}
 }
 
 // block dimensions : widthStride, heightStride 
@@ -783,86 +775,86 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
     WriteEncoderEnd(p);
 }
 
-const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
+const char *GenerateEncodingShader(u32 dstFormat, bool isDepth, bool isIntensity,
+	API_TYPE ApiType)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	char *p = text;
 
-	switch(format)
+	switch(dstFormat)
 	{
-	case GX_TF_I4:
-		WriteI4Encoder(p,ApiType);
+	case EFB_COPY_R4:
+		if (isDepth)
+			WriteC4Encoder(p, "b", ApiType); // FIXME: Is this correct?
+		else if (isIntensity)
+			WriteI4Encoder(p, ApiType);
+		else
+			WriteC4Encoder(p, "r", ApiType);
 		break;
-	case GX_TF_I8:
-		WriteI8Encoder(p,ApiType);
+	case EFB_COPY_R8_1:
+	case EFB_COPY_R8:
+		if (isDepth)
+			WriteC8Encoder(p, "b", ApiType); // FIXME: Is this correct?
+		else if (isIntensity)
+			WriteI8Encoder(p, ApiType);
+		else
+			WriteC8Encoder(p, "r", ApiType);
 		break;
-	case GX_TF_IA4:
-		WriteIA4Encoder(p,ApiType);
+	case EFB_COPY_RA4:
+		if (isIntensity)
+			WriteIA4Encoder(p, ApiType);
+		else
+			WriteCC4Encoder(p, "ar", ApiType);
 		break;
-	case GX_TF_IA8:
-		WriteIA8Encoder(p,ApiType);
+	case EFB_COPY_RA8:
+		if (isIntensity)
+			WriteIA8Encoder(p, ApiType);
+		else
+			WriteCC8Encoder(p, "ar", ApiType);
 		break;
-	case GX_TF_RGB565:
-		WriteRGB565Encoder(p,ApiType);
+	case EFB_COPY_RGB565:
+		WriteRGB565Encoder(p, ApiType);
 		break;
-	case GX_TF_RGB5A3:
-		WriteRGB5A3Encoder(p,ApiType);
+	case EFB_COPY_RGB5A3:
+		WriteRGB5A3Encoder(p, ApiType);
 		break;
-	case GX_TF_RGBA8:
-		WriteRGBA8Encoder(p,ApiType);
+	case EFB_COPY_RGBA8:
+		if (isDepth)
+			WriteZ24Encoder(p, ApiType);
+		else
+			WriteRGBA8Encoder(p, ApiType);
 		break;
-	case GX_CTF_R4:
-		WriteC4Encoder(p, "r",ApiType);
+	case EFB_COPY_A8:
+		WriteC8Encoder(p, "a", ApiType);
 		break;
-	case GX_CTF_RA4:
-		WriteCC4Encoder(p, "ar",ApiType);
+	case EFB_COPY_G8:
+		if (isDepth)
+			WriteZ8Encoder(p, "256.0f", ApiType);
+		else
+			WriteC8Encoder(p, "g", ApiType);
 		break;
-	case GX_CTF_RA8:
-		WriteCC8Encoder(p, "ar",ApiType);
+	case EFB_COPY_B8:
+		if (isDepth)
+			WriteZ8Encoder(p, "65536.0f", ApiType);
+		else
+			WriteC8Encoder(p, "b", ApiType);
 		break;
-	case GX_CTF_A8:
-		WriteC8Encoder(p, "a",ApiType);
+	case EFB_COPY_RG8:
+		if (isDepth)
+			WriteZ16Encoder(p, ApiType);
+		else
+			WriteCC8Encoder(p, "rg", ApiType);
 		break;
-	case GX_CTF_R8:
-		WriteC8Encoder(p, "r",ApiType);
-		break;
-	case GX_CTF_G8:
-		WriteC8Encoder(p, "g",ApiType);
-		break;
-	case GX_CTF_B8:
-		WriteC8Encoder(p, "b",ApiType);
-		break;
-	case GX_CTF_RG8:
-		WriteCC8Encoder(p, "rg",ApiType);
-		break;
-	case GX_CTF_GB8:
-		WriteCC8Encoder(p, "gb",ApiType);
-		break;
-	case GX_TF_Z8:
-		WriteC8Encoder(p, "b",ApiType);
-		break;
-	case GX_TF_Z16:
-		WriteZ16Encoder(p,ApiType);
-		break;
-	case GX_TF_Z24X8:
-		WriteZ24Encoder(p,ApiType);
-		break;
-	case GX_CTF_Z4:
-		WriteC4Encoder(p, "b",ApiType);
-		break;
-	case GX_CTF_Z8M:
-		WriteZ8Encoder(p, "256.0f",ApiType);
-		break;
-	case GX_CTF_Z8L:
-		WriteZ8Encoder(p, "65536.0f" ,ApiType);
-		break;
-	case GX_CTF_Z16L:
-		WriteZ16LEncoder(p,ApiType);
+	case EFB_COPY_GB8:
+		if (isDepth)
+			WriteZ16LEncoder(p, ApiType);
+		else
+			WriteCC8Encoder(p, "gb", ApiType);
 		break;
 	default:
-		PanicAlert("Unknown texture copy format: 0x%x\n", format);
+		PanicAlert("Unknown texture copy format: 0x%x\n", dstFormat);
 		break;		
 	}
 
