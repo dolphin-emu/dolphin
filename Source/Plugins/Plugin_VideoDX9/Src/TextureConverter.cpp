@@ -290,32 +290,25 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then read back the results.
 	// TODO: make this less slow.
-
-	D3DLOCKED_RECT drect;
 	
 	hr = D3D::dev->GetRenderTargetData(Rendersurf,s_texConvReadSurface);
+
+	D3DLOCKED_RECT drect;
 	hr = s_texConvReadSurface->LockRect(&drect, &DstRect, D3DLOCK_READONLY);
-	int writeStride = bpmem.copyMipMapStrideChannels * 32;
 
-	if (writeStride != readStride && toTexture)
+	int srcRowsPerBlockRow = readStride / (dstWidth*4); // 4 bytes per pixel
+
+	int readLoops = dstHeight / srcRowsPerBlockRow;
+	const u8 *Source = (const u8*)drect.pBits;
+	for (int i = 0; i < readLoops; i++)
 	{
-		// writing to a texture of a different size
-
-		int readHeight = readStride / dstWidth;
-
-		int readStart = 0;
-		int readLoops = dstHeight / (readHeight/4); // 4 bytes per pixel
-		u8 *Source = (u8*)drect.pBits;
-		for (int i = 0; i < readLoops; i++)
+		for (int j = 0; j < srcRowsPerBlockRow; ++j)
 		{
-			int readDist = dstWidth*readHeight;
-            memcpy(destAddr,Source,readDist);
-			Source += readDist;
-			destAddr += writeStride;
+			memcpy(destAddr + j*dstWidth*4, Source, dstWidth*4);
+			Source += drect.Pitch;
 		}
+		destAddr += bpmem.copyMipMapStrideChannels*32;
 	}
-	else
-		memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);// 4 bytes per pixel
 	
 	hr = s_texConvReadSurface->UnlockRect();
 }
