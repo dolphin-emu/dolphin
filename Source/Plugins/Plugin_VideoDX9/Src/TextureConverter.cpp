@@ -293,34 +293,25 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0), Gamma);
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then read back the results.
-	// TODO: make this less slow.
-
-	D3DLOCKED_RECT drect;
 	
 	hr = D3D::dev->GetRenderTargetData(Rendersurf,s_texConvReadSurface);
+
+	D3DLOCKED_RECT drect;
 	hr = s_texConvReadSurface->LockRect(&drect, &DstRect, D3DLOCK_READONLY);
-	int writeStride = bpmem.copyMipMapStrideChannels * 32;
 
-	// FIXME: The following pays no attention to drect.Pitch!
-	if (writeStride != readStride && toTexture)
+	int srcRowsPerBlockRow = readStride / (dstWidth*4); // 4 bytes per pixel
+
+	int readLoops = dstHeight / srcRowsPerBlockRow;
+	const u8 *Source = (const u8*)drect.pBits;
+	for (int i = 0; i < readLoops; i++)
 	{
-		// writing to a texture of a different size
-
-		int readHeight = readStride / dstWidth;
-
-		int readStart = 0;
-		int readLoops = dstHeight / (readHeight/4); // 4 bytes per pixel
-		u8 *Source = (u8*)drect.pBits;
-		for (int i = 0; i < readLoops; i++)
+		for (int j = 0; j < srcRowsPerBlockRow; ++j)
 		{
-			int readDist = dstWidth*readHeight;
-            memcpy(destAddr,Source,readDist);
-			Source += readDist;
-			destAddr += writeStride;
+			memcpy(destAddr+j*dstWidth*4, Source, dstWidth*4);
+			Source += drect.Pitch;
 		}
+		destAddr += bpmem.copyMipMapStrideChannels*32;
 	}
-	else
-		memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);// 4 bytes per pixel
 	
 	hr = s_texConvReadSurface->UnlockRect();
 }
@@ -388,13 +379,9 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	scaledSource.bottom = actualHeight;
 	scaledSource.left = 0;
 	scaledSource.right = actualWidth / samples;
-	int cacheBytes = 32;
-    if (dstFormat == EFB_COPY_RGBA8)
-        cacheBytes = 64;
 	
-    int readStride = (actualWidth * cacheBytes) / blockW;
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dst,
-		actualWidth / samples, actualHeight, readStride, true, scaleByHalf, 1.0f);
+		actualWidth / samples, actualHeight, cacheLinesPerRow*32, true, scaleByHalf, 1.0f);
 
 	g_renderer->RestoreAPIState();
 
