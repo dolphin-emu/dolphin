@@ -300,11 +300,8 @@ void ExecuteCommand(u32 _Address)
                 pDevice = AccessDeviceByID(DeviceID);
 				CmdSuccess = pDevice->Open(_Address, Mode);
 
-				if(strcmp(pDevice->GetDeviceName().c_str(), "/dev/net/kd/request"))
-				{
-					INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-				}
+                INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+                    pDevice->GetDeviceName().c_str(), DeviceID, Mode);
             }
         }
         break;
