@@ -200,32 +200,6 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 	return pDevice;
 }
 
-// Try to make sure the game is always reading the setting.txt file we provide
-void CopySettingsFile(std::string& DeviceName)
-{
-	std::string Source = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP;
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
-		Source += "setting-usa.txt";
-	else
-		Source += "setting-eur.txt";
-
-	std::string Target = File::GetUserPath(D_WIIUSER_IDX) + DeviceName;
-
-	// Check if the target dir exists, otherwise create it
-	std::string TargetDir = Target.substr(0, Target.find_last_of(DIR_SEP));
-	if (!File::IsDirectory(TargetDir))
-		File::CreateFullPath(Target);
-
-	if (File::Copy(Source, Target))
-	{
-		INFO_LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());
-	}
-	else
-	{
-		ERROR_LOG(WII_IPC_FILEIO, "Could not copy %s to %s", Source.c_str(), Target.c_str());
-		PanicAlertT("Could not copy %s to %s", Source.c_str(), Target.c_str());
-	}
-}
 
 void DoState(PointerWrap &p)
 {
@@ -291,10 +265,6 @@ void ExecuteCommand(u32 _Address)
 			//   generate a DeviceID to be used for access to this device until it is Closed.
             std::string DeviceName;
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
-
-			// The game may try to read setting.txt here, in that case copy it so it can read it
-			if (DeviceName.find("setting.txt") != std::string::npos)
-				CopySettingsFile(DeviceName);
 
             u32 Mode = Memory::Read_U32(_Address + 0x10);
             DeviceID = GetDeviceIDByName(DeviceName);

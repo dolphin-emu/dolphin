@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
+#include "NandPaths.h"
 
 #include "../PowerPC/PowerPC.h"
 #include "../Core.h"
@@ -181,39 +182,47 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	// \title\00000001\00000002\data\setting.txt directly after the read the
 	// SYSCONF file. The games also read it to 0x3800, what is a little strange
 	// however is that it only reads the first 100 bytes of it.
-	std::string filename(File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING);
+	std::string region_filename,
+				settings_Filename(Common::CreateTitleDataPath(TITLEID_SYSMENU)+ DIR_SEP + WII_SETTING);
+
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{
 	case DiscIO::IVolume::COUNTRY_KOREA:
 	case DiscIO::IVolume::COUNTRY_TAIWAN: 
 		// TODO: Determine if Korea / Taiwan have their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
+		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
 		break;
 
 	case DiscIO::IVolume::COUNTRY_USA:
-		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
+		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
 		break;
 
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
+		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
 		break;
 
 	default:
 		// PanicAlertT("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
-		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
+		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
 		break;
 	}
 
 	{
-	File::IOFile pTmp(filename, "rb");
-	if (!pTmp)
+	if (File::Exists(settings_Filename))
+	{
+		File::Delete(settings_Filename);
+	}
+	File::CreateFullPath(settings_Filename);
+	File::Copy(region_filename, settings_Filename);
+	File::IOFile settingsFile(settings_Filename, "rb");
+	if (!settingsFile)
 	{
 		PanicAlertT("SetupWiiMem: Cant find setting file");	
 		return false;
 	}
 
-	pTmp.ReadBytes(Memory::GetPointer(0x3800), 256);
+	settingsFile.ReadBytes(Memory::GetPointer(0x3800), 256);
 	}
 
 	/*

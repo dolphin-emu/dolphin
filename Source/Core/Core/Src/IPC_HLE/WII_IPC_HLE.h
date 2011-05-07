@@ -52,8 +52,6 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
 
 void DeleteDeviceByID(u32 _ID);
 
-void CopySettingsFile(std::string& DeviceName);
-
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
 
 // Update

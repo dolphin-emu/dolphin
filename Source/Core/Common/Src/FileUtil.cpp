@@ -121,7 +121,7 @@ bool Delete(const std::string &filename)
 	// We can't delete a directory
 	if (IsDirectory(filename))
 	{
-		WARN_LOG(COMMON, "Delete: %s is a directory", filename.c_str());
+		WARN_LOG(COMMON, "Delete failed: %s is a directory", filename.c_str());
 		return false;
 	}
 
