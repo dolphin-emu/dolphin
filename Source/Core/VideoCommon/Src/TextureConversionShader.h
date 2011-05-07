@@ -26,8 +26,8 @@ namespace TextureConversionShader
 u16 GetEncodedSampleCount(u32 dstFormat);
 const char *GenerateEncodingShader(u32 dstFormat, bool isDepth, bool isIntensity,
 	API_TYPE ApiType);
-void SetShaderParameters(float width, float height, float offsetX, float offsetY,
-	float widthStride, float heightStride,float buffW = 0.0f,float buffH = 0.0f);
+void SetShaderParameters(float srcLeft, float srcTop, float srcRight, float srcBottom,
+	float texWidth, float texHeight);
 
 }
 

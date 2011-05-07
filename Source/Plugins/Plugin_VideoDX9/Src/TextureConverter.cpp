@@ -361,16 +361,15 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 		? FramebufferManager::GetEFBDepthTexture()
 		: FramebufferManager::GetEFBColorTexture();
 
+	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
+
 	float sampleStride = scaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
-		(float)actualWidth,
-		(float)Renderer::EFBToScaledY(actualHeight), // TODO: Why do we scale this?
-		(float)(Renderer::EFBToScaledX(correctSrc.left) + Renderer::TargetStrideX()),
-		(float)(Renderer::EFBToScaledY(correctSrc.top) + Renderer::TargetStrideY()),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride),
-		(float)Renderer::GetFullTargetWidth(),
-		(float)Renderer::GetFullTargetHeight());
+		(float)targetRect.left / Renderer::GetFullTargetWidth(),
+		(float)targetRect.top / Renderer::GetFullTargetHeight(),
+		(float)targetRect.right / Renderer::GetFullTargetWidth(),
+		(float)targetRect.bottom / Renderer::GetFullTargetHeight(),
+		actualWidth, actualHeight);
 
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(dstFormat);
 
@@ -391,15 +390,16 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
 {
-	TextureConversionShader::SetShaderParameters(
-		(float)dstWidth, 
-		(float)dstHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
-		1.0f,
-		(float)Renderer::GetFullTargetWidth(),
-		(float)Renderer::GetFullTargetHeight());
+	// TODO: Set correct parameters
+	//TextureConversionShader::SetShaderParameters(
+	//	(float)dstWidth, 
+	//	(float)dstHeight, 
+	//	0.0f , 
+	//	0.0f, 
+	//	1.0f, 
+	//	1.0f,
+	//	(float)Renderer::GetFullTargetWidth(),
+	//	(float)Renderer::GetFullTargetHeight());
 	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false,Gamma);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
@@ -451,16 +451,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		
-	TextureConversionShader::SetShaderParameters(
-		(float)srcFmtWidth, 
-		(float)srcHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
-		1.0f,
-		(float)srcFmtWidth,
-		(float)srcHeight);
+
+	// TODO: Implement
+	//TextureConversionShader::SetShaderParameters(
+	//	(float)srcFmtWidth, 
+	//	(float)srcHeight, 
+	//	0.0f , 
+	//	0.0f, 
+	//	1.0f, 
+	//	1.0f,
+	//	(float)srcFmtWidth,
+	//	(float)srcHeight);
 	D3D::drawShadedTexQuad(
 		s_srcTexture,
 		&sourcerect, 

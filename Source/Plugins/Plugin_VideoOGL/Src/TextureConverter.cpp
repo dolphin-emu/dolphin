@@ -301,14 +301,13 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 		? FramebufferManager::ResolveAndGetDepthTarget(srcRect)
 		: FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
+	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
+
     float sampleStride = scaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
-		(float)actualWidth,
-		(float)Renderer::EFBToScaledY(actualHeight), // TODO: Why do we scale this?
-		(float)Renderer::EFBToScaledX(correctSrc.left),
-		(float)Renderer::EFBToScaledY(EFB_HEIGHT - correctSrc.top - actualHeight),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride));
+		(float)targetRect.left, (float)targetRect.top,
+		(float)targetRect.right, (float)targetRect.bottom,
+		actualWidth, actualHeight);
 
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(dstFormat);
 
