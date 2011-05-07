@@ -235,7 +235,7 @@ void SysConf::GenerateSysConf()
 
 	// IPL.SADR
 	current_offset += create_item(items[7], Type_BigArray, "IPL.SADR", 0x1007, current_offset);
-	items[7].data[0] = 0x6c;
+	items[7].data[0] = 0x6c; //(Switzerland) TODO should this default be changed?
 
 	// IPL.CB
 	current_offset += create_item(items[8], Type_Long, "IPL.CB", 4, current_offset);
