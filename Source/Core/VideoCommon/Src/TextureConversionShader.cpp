@@ -15,18 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "TextureConversionShader.h"
 
-#include <stdio.h>
-#include <math.h>
-#include <locale.h>
-
-#include "BPMemory.h"
 #include "EFBCopy.h"
 #include "PixelShaderGen.h"
-#include "PixelShaderManager.h"
 #include "RenderBase.h"
-#include "TextureConversionShader.h"
-#include "TextureDecoder.h"
 
 #define WRITE p+=sprintf
 
@@ -60,14 +53,14 @@ u16 GetEncodedSampleCount(u32 dstFormat)
 
 // block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
-void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
+void WriteSwizzler(char*& p, u32 dstFormat, API_TYPE ApiType)
 {
 	WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);	
 
-    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
-	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
-	float samples = (float)GetEncodedSampleCount(format);
+	float blkW = (float)EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	float blkH = (float)EFB_COPY_BLOCK_HEIGHTS[dstFormat];
+	float samples = (float)GetEncodedSampleCount(dstFormat);
 	if(ApiType == API_OPENGL)
 	{
 		WRITE(p,"uniform samplerRECT samp0 : register(s0);\n");
@@ -129,13 +122,13 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 // block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
-void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
+void Write32BitSwizzler(char*& p, u32 dstFormat, API_TYPE ApiType)
 {
     WRITE(p, "uniform float4 blkDims : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "uniform float4 textureDims : register(c%d);\n", C_COLORMATRIX + 1);
 
-    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
-	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
+	float blkW = (float)EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	float blkH = (float)EFB_COPY_BLOCK_HEIGHTS[dstFormat];
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 	if(ApiType == API_OPENGL)
@@ -264,7 +257,7 @@ void WriteEncoderEnd(char* p)
 
 void WriteI8Encoder(char* p, API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_I8,ApiType);
+	WriteSwizzler(p, EFB_COPY_R8, ApiType);
 	WRITE(p, "  float3 texSample;\n");	
 
 	WriteSampleColor(p, "rgb", "texSample",ApiType);
@@ -289,7 +282,7 @@ void WriteI8Encoder(char* p, API_TYPE ApiType)
 
 void WriteI4Encoder(char* p, API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_I4,ApiType);
+	WriteSwizzler(p, EFB_COPY_R4, ApiType);
 	WRITE(p, "  float3 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -337,7 +330,7 @@ void WriteI4Encoder(char* p, API_TYPE ApiType)
 
 void WriteIA8Encoder(char* p,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_IA8,ApiType);
+	WriteSwizzler(p, EFB_COPY_RA8, ApiType);
 	WRITE(p, "  float4 texSample;\n");	
 
 	WriteSampleColor(p, "rgba", "texSample",ApiType);
@@ -356,7 +349,7 @@ void WriteIA8Encoder(char* p,API_TYPE ApiType)
 
 void WriteIA4Encoder(char* p,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_IA4,ApiType);
+	WriteSwizzler(p, EFB_COPY_RA4, ApiType);
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -391,7 +384,7 @@ void WriteIA4Encoder(char* p,API_TYPE ApiType)
 
 void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_RGB565,ApiType);
+	WriteSwizzler(p, EFB_COPY_RGB565, ApiType);
 
 	WriteSampleColor(p, "rgb", "float3 texSample0",ApiType);
 	WriteIncrementSampleX(p,ApiType);
@@ -416,7 +409,7 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 
 void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_RGB5A3,ApiType);
+	WriteSwizzler(p, EFB_COPY_RGB5A3, ApiType);
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float color0;\n");
@@ -483,7 +476,7 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 
 void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_TF_RGB5A3,ApiType);
+	WriteSwizzler(p, EFB_COPY_RGB5A3, ApiType);
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
@@ -509,7 +502,7 @@ void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
 
 void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
-	Write32BitSwizzler(p, GX_TF_RGBA8,ApiType);
+	Write32BitSwizzler(p, EFB_COPY_RGBA8, ApiType);
 
 	WRITE(p, "  float cl1 = xb - (halfxb * 2);\n");
 	WRITE(p, "  float cl0 = 1.0f - cl1;\n");
@@ -539,7 +532,7 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 
 void WriteC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_CTF_R4,ApiType);
+	WriteSwizzler(p, EFB_COPY_R4, ApiType);
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
 
@@ -575,7 +568,7 @@ void WriteC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 
 void WriteC8Encoder(char* p, const char* comp,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_CTF_R8,ApiType);
+	WriteSwizzler(p, EFB_COPY_R8, ApiType);
 
 	WriteSampleColor(p, comp, "ocol0.b",ApiType);
 	WriteIncrementSampleX(p,ApiType);
@@ -593,7 +586,7 @@ void WriteC8Encoder(char* p, const char* comp,API_TYPE ApiType)
 
 void WriteCC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_CTF_RA4,ApiType);
+	WriteSwizzler(p, EFB_COPY_RA4, ApiType);
 	WRITE(p, "  float2 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -626,7 +619,7 @@ void WriteCC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 
 void WriteCC8Encoder(char* p, const char* comp, API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_CTF_RA8,ApiType);
+	WriteSwizzler(p, EFB_COPY_RA8, ApiType);
 
 	WriteSampleColor(p, comp, "ocol0.bg",ApiType);
 	WriteIncrementSampleX(p,ApiType);
@@ -638,7 +631,7 @@ void WriteCC8Encoder(char* p, const char* comp, API_TYPE ApiType)
 
 void WriteZ8Encoder(char* p, const char* multiplier,API_TYPE ApiType)
 {
-	WriteSwizzler(p, GX_CTF_Z8M,ApiType);
+	WriteSwizzler(p, EFB_COPY_G8, ApiType);
 
     WRITE(p, " float depth;\n");
 
@@ -662,7 +655,7 @@ void WriteZ8Encoder(char* p, const char* multiplier,API_TYPE ApiType)
 
 void WriteZ16Encoder(char* p,API_TYPE ApiType)
 {
-    WriteSwizzler(p, GX_TF_Z16,ApiType);
+    WriteSwizzler(p, EFB_COPY_RG8, ApiType);
 
     WRITE(p, "  float depth;\n");
     WRITE(p, "  float3 expanded;\n");
@@ -696,7 +689,7 @@ void WriteZ16Encoder(char* p,API_TYPE ApiType)
 
 void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 {
-    WriteSwizzler(p, GX_CTF_Z16L,ApiType);
+    WriteSwizzler(p, EFB_COPY_GB8, ApiType);
 
     WRITE(p, "  float depth;\n");
     WRITE(p, "  float3 expanded;\n");
@@ -734,7 +727,7 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 
 void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
-	Write32BitSwizzler(p, GX_TF_Z24X8,ApiType);
+	Write32BitSwizzler(p, EFB_COPY_RGBA8, ApiType);
 
 	WRITE(p, "  float cl = xb - (halfxb * 2);\n");
 

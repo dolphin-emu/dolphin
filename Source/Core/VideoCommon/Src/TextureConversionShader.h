@@ -18,8 +18,6 @@
 #ifndef _TEXTURECONVERSIONSHADER_H_
 #define _TEXTURECONVERSIONSHADER_H_
 
-#include "Common.h"
-#include "TextureDecoder.h"
 #include "VideoCommon.h"
 
 namespace TextureConversionShader
@@ -27,7 +25,7 @@ namespace TextureConversionShader
 
 u16 GetEncodedSampleCount(u32 dstFormat);
 const char *GenerateEncodingShader(u32 dstFormat, bool isDepth, bool isIntensity,
-	API_TYPE ApiType = API_OPENGL);
+	API_TYPE ApiType);
 void SetShaderParameters(float width, float height, float offsetX, float offsetY,
 	float widthStride, float heightStride,float buffW = 0.0f,float buffH = 0.0f);
 
