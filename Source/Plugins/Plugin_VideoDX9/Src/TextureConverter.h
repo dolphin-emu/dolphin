@@ -35,7 +35,8 @@ namespace TextureConverter
 void Init();
 void Shutdown();
 
-void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+// Returns hash of encoded data
+u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,

@@ -666,7 +666,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	unsigned int numBlocksY = actualHeight/blockH;
 
 	unsigned int cacheLinesPerRow;
-	if (dstFormat == 0x6) // RGBA takes two cache lines per block; all others take one
+	if (dstFormat == EFB_COPY_RGBA8) // RGBA takes two cache lines per block; all others take one
 		cacheLinesPerRow = numBlocksX*2;
 	else
 		cacheLinesPerRow = numBlocksX;

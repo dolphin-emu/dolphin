@@ -21,6 +21,7 @@
 #include "TextureCacheBase.h"
 
 #include "D3DUtil.h"
+#include "VirtualEFBCopy.h"
 
 namespace DX9
 {
@@ -33,7 +34,7 @@ public:
 	TCacheEntry();
 	~TCacheEntry();
 
-	LPDIRECT3DTEXTURE9 GetTexture() { return m_texture; }
+	LPDIRECT3DTEXTURE9 GetTexture() { return m_bindMe; }
 
 protected:
 
@@ -43,6 +44,12 @@ protected:
 private:
 
 	void CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT d3dFormat);
+
+	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
+		u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
 
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
@@ -56,9 +63,13 @@ private:
 	u32 m_curTlutFormat;
 
 	D3DFORMAT m_curD3DFormat;
-	LPDIRECT3DTEXTURE9 m_texture;
+	LPDIRECT3DTEXTURE9 m_ramTexture;
+
+	LPDIRECT3DTEXTURE9 m_bindMe;
 
 };
+
+typedef std::map<u32, std::unique_ptr<VirtualEFBCopy> > VirtualEFBCopyMap;
 
 class TextureCache : public TextureCacheBase
 {
@@ -68,6 +79,9 @@ public:
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
+	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
+	VirtualCopyShaderManager& GetVirtShaderManager() { return m_virtShaderManager; }
+
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 
 protected:
@@ -75,6 +89,9 @@ protected:
 	TCacheEntry* CreateEntry();
 
 private:
+
+	VirtualEFBCopyMap m_virtCopyMap;
+	VirtualCopyShaderManager m_virtShaderManager;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 

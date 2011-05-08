@@ -316,7 +316,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	hr = s_texConvReadSurface->UnlockRect();
 }
 
-void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
@@ -326,7 +326,7 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 	// Validate source rect size
 	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
-		return;
+		return 0;
 
 	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
 	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
@@ -353,7 +353,7 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(
 		dstFormat, srcFormat == PIXELFMT_Z24, isIntensity);
 	if (!texconv_shader)
-		return;
+		return 0;
 	
 	g_renderer->ResetAPIState();
 
@@ -386,6 +386,8 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+
+	return GetHash64(dst, totalCacheLines*32, totalCacheLines*32);
 }
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
