@@ -118,6 +118,7 @@ static File::IOFile f_pFrameDump;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
+static int s_LastMultisampleMode = 0;
 
 bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
@@ -191,6 +192,55 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 }
 #endif
 
+int GetNumMSAASamples(int MSAAMode)
+{
+	// required for MSAA
+	if (!s_bHaveFramebufferBlit)
+		return 1;
+
+	switch (MSAAMode)
+	{
+		case MULTISAMPLE_OFF:
+			return 1;
+
+		case MULTISAMPLE_2X:
+			return 2;
+
+		case MULTISAMPLE_4X:
+		case MULTISAMPLE_CSAA_8X:
+		case MULTISAMPLE_CSAA_16X:
+			return 4;
+
+		case MULTISAMPLE_8X:
+		case MULTISAMPLE_CSAA_8XQ:
+		case MULTISAMPLE_CSAA_16XQ:
+			return 8;
+
+		default:
+			return 1;
+	}
+}
+
+int GetNumMSAACoverageSamples(int MSAAMode)
+{
+	if (!s_bHaveCoverageMSAA)
+		return 0;
+
+	switch (g_ActiveConfig.iMultisampleMode)
+	{
+		case MULTISAMPLE_CSAA_8X:
+		case MULTISAMPLE_CSAA_8XQ:
+			return 8;
+
+		case MULTISAMPLE_CSAA_16X:
+		case MULTISAMPLE_CSAA_16XQ:
+			return 16;
+
+		default:
+			return 0;
+	}
+}
+
 // Init functions
 Renderer::Renderer()
 {
@@ -198,50 +248,10 @@ Renderer::Renderer()
 	OSDInternalH = 0;
 
 	s_fps=0;
-
+	s_blendMode = 0;
 #if defined _WIN32 || defined HAVE_LIBAV
 	s_bAVIDumping = false;
 #endif
-
-	bool bSuccess = true;
-	s_blendMode = 0;
-	s_MSAACoverageSamples = 0;
-	GLint numvertexattribs = 0;
-
-	switch (g_ActiveConfig.iMultisampleMode)
-	{
-		case MULTISAMPLE_OFF:
-			s_MSAASamples = 1;
-			break;
-		case MULTISAMPLE_2X:
-			s_MSAASamples = 2;
-			break;
-		case MULTISAMPLE_4X:
-			s_MSAASamples = 4;
-			break;
-		case MULTISAMPLE_8X:
-			s_MSAASamples = 8;
-			break;
-		case MULTISAMPLE_CSAA_8X:
-			s_MSAASamples = 4;
-			s_MSAACoverageSamples = 8;
-			break;
-		case MULTISAMPLE_CSAA_8XQ:
-			s_MSAASamples = 8;
-			s_MSAACoverageSamples = 8;
-			break;
-		case MULTISAMPLE_CSAA_16X:
-			s_MSAASamples = 4;
-			s_MSAACoverageSamples = 16;
-			break;
-		case MULTISAMPLE_CSAA_16XQ:
-			s_MSAASamples = 8;
-			s_MSAACoverageSamples = 16;
-			break;
-		default:
-			s_MSAASamples = 1;
-			break;
-	}
 
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
@@ -268,6 +278,8 @@ Renderer::Renderer()
 				glGetString(GL_RENDERER),
 				glGetString(GL_VERSION)).c_str(), 5000);
 
+	bool bSuccess = true;
+	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
 	if (numvertexattribs < 11)
 	{
@@ -299,17 +311,11 @@ Renderer::Renderer()
 	}
 
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
-	if (!s_bHaveFramebufferBlit)
-	{
-		// MSAA ain't gonna work. turn it off if enabled.
-		s_MSAASamples = 1;
-	}
-
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
-	if (!s_bHaveCoverageMSAA)
-	{
-		s_MSAACoverageSamples = 0;
-	}
+
+	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
+	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
+	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 
 	if (!bSuccess)
 		return;	// TODO: fail
@@ -1274,7 +1280,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	SetWindowSize(fbWidth, fbHeight);
 
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
-	
+
 	bool xfbchanged = false;
 
 	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
@@ -1299,14 +1305,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	}
 
-	if (xfbchanged || WindowResized)
+	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 	{
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
 		CalculateXYScale(dst_rect);
 
-		if (CalculateTargetSize())
+		if (CalculateTargetSize() || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 		{
+			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
+			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
+			s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
+
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
