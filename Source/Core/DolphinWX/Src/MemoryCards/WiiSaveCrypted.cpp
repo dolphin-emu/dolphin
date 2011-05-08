@@ -248,14 +248,13 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 		return;
 	}
 
-	int lastpos = HEADER_SZ + BK_SZ;
+	fpData_bin.Seek(HEADER_SZ + BK_SZ, SEEK_SET);
 
 
 	FileHDR _tmpFileHDR;
 
 	for(u32 i = 0; i < _numberOfFiles; i++)
 	{
-		fpData_bin.Seek(lastpos, SEEK_SET);
 		memset(&_tmpFileHDR, 0, FILE_HDR_SZ);
 		memset(IV, 0, 0x10);
 		_fileSize = 0;
@@ -266,7 +265,6 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 			b_valid = false;
 		}
 		
-		lastpos += FILE_HDR_SZ;
 		if (Common::swap32(_tmpFileHDR.magic) != FILE_HDR_MAGIC)
 		{
 			PanicAlertT("Bad File Header");
@@ -287,7 +285,6 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 			{
 				_fileSize = Common::swap32(_tmpFileHDR.size);
 				u32 RoundedFileSize = ROUND_UP(_fileSize, BLOCK_SZ);
-				lastpos += 	RoundedFileSize;
 				_encryptedData = new u8[RoundedFileSize];
 				_data = new u8[RoundedFileSize];
 				if (!fpData_bin.ReadBytes(_encryptedData, RoundedFileSize))
