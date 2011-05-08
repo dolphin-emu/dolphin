@@ -286,10 +286,11 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 			if (_tmpFileHDR.type == 1)
 			{
 				_fileSize = Common::swap32(_tmpFileHDR.size);
-				lastpos += ROUND_UP(_fileSize, BLOCK_SZ);				
-				_encryptedData = new u8[_fileSize];
-				_data = new u8[_fileSize];
-				if (!fpData_bin.ReadBytes(_encryptedData, _fileSize))
+				u32 RoundedFileSize = ROUND_UP(_fileSize, BLOCK_SZ);
+				lastpos += 	RoundedFileSize;
+				_encryptedData = new u8[RoundedFileSize];
+				_data = new u8[RoundedFileSize];
+				if (!fpData_bin.ReadBytes(_encryptedData, RoundedFileSize))
 				{
 					PanicAlertT("Failed to read data from file %d", i);
 					b_valid = false;
@@ -298,7 +299,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 				
 				
 				memcpy(IV, _tmpFileHDR.IV, 0x10);
-				AES_cbc_encrypt((const unsigned char *)_encryptedData, _data, _fileSize, &m_AES_KEY, IV, AES_DECRYPT);
+				AES_cbc_encrypt((const unsigned char *)_encryptedData, _data, RoundedFileSize, &m_AES_KEY, IV, AES_DECRYPT);
 				delete []_encryptedData;
 	
 				if (!File::Exists(pathRawSave) || AskYesNoT("%s already exists, overwrite?", pathRawSave))
