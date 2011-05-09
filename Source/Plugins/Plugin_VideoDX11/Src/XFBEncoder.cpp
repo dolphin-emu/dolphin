@@ -289,10 +289,10 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	XFBEncodeParams params = { 0 };
 	params.Width = FLOAT(width);
 	params.Height = FLOAT(height);
-	params.TexLeft = FLOAT(targetRect.left) / g_renderer->GetFullTargetWidth();
-	params.TexTop = FLOAT(targetRect.top) / g_renderer->GetFullTargetHeight();
-	params.TexRight = FLOAT(targetRect.right) / g_renderer->GetFullTargetWidth();
-	params.TexBottom = FLOAT(targetRect.bottom) / g_renderer->GetFullTargetHeight();
+	params.TexLeft = FLOAT(targetRect.left) / g_renderer->GetTargetWidth();
+	params.TexTop = FLOAT(targetRect.top) / g_renderer->GetTargetHeight();
+	params.TexRight = FLOAT(targetRect.right) / g_renderer->GetTargetWidth();
+	params.TexBottom = FLOAT(targetRect.bottom) / g_renderer->GetTargetHeight();
 	params.Gamma = gamma;
 	D3D::g_context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
 

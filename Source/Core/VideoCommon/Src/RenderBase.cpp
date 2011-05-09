@@ -62,10 +62,6 @@ volatile bool Renderer::s_bScreenshot;
 int Renderer::s_target_width;
 int Renderer::s_target_height;
 
-// The custom resolution
-int Renderer::s_Fulltarget_width;
-int Renderer::s_Fulltarget_height;
-
 // TODO: Add functionality to reinit all the render targets when the window is resized.
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
@@ -180,8 +176,8 @@ bool Renderer::CalculateTargetSize(int multiplier)
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
-		s_Fulltarget_width = s_target_width  = newEFBWidth;
-		s_Fulltarget_height = s_target_height = newEFBHeight;
+		s_target_width = newEFBWidth;
+		s_target_height = newEFBHeight;
 		return true;
 	}
 	return false;
@@ -384,7 +380,7 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void UpdateViewport()
+void UpdateViewport(Matrix44& vpCorrection)
 {
-	g_renderer->UpdateViewport();
+	g_renderer->UpdateViewport(vpCorrection);
 }

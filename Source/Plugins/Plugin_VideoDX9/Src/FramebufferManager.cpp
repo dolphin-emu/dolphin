@@ -44,8 +44,8 @@ FramebufferManager::Efb FramebufferManager::s_efb;
 FramebufferManager::FramebufferManager()
 {
 	bool depth_textures_supported = true;
-	int target_width = Renderer::GetFullTargetWidth();
-	int target_height = Renderer::GetFullTargetHeight();
+	int target_width = Renderer::GetTargetWidth();
+	int target_height = Renderer::GetTargetHeight();
 	s_efb.color_surface_Format = D3DFMT_A8R8G8B8;
 
 	// EFB color texture - primary render target
@@ -217,8 +217,8 @@ void XFBSource::CopyEFB(float Gamma)
 	D3D::drawShadedTexQuad(
 		FramebufferManager::GetEFBColorTexture(), 
 		&sourcerect, 
-		Renderer::GetFullTargetWidth(), 
-		Renderer::GetFullTargetHeight(), 
+		Renderer::GetTargetWidth(), 
+		Renderer::GetTargetHeight(), 
 		texWidth, 
 		texHeight, 
 		PixelShaderCache::GetColorCopyProgram( g_ActiveConfig.iMultisampleMode), 

@@ -54,8 +54,8 @@ D3DTexture2D* FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-	const unsigned int target_width = Renderer::GetFullTargetWidth();
-	const unsigned int target_height = Renderer::GetFullTargetHeight();
+	const unsigned int target_width = Renderer::GetTargetWidth();
+	const unsigned int target_height = Renderer::GetTargetHeight();
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
 	// EFB color texture - primary render target
@@ -221,7 +221,7 @@ void XFBSource::CopyEFB(float Gamma)
 	D3D::SetLinearCopySampler();
 
 	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), sourceRc.AsRECT(),
-		Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
+		Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 		PixelShaderCache::GetColorCopyProgram(true), VertexShaderCache::GetSimpleVertexShader(),
 		VertexShaderCache::GetSimpleInputLayout(),Gamma);
 

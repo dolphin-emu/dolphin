@@ -365,10 +365,10 @@ u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 	float sampleStride = scaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
-		(float)targetRect.left / Renderer::GetFullTargetWidth(),
-		(float)targetRect.top / Renderer::GetFullTargetHeight(),
-		(float)targetRect.right / Renderer::GetFullTargetWidth(),
-		(float)targetRect.bottom / Renderer::GetFullTargetHeight(),
+		(float)targetRect.left / Renderer::GetTargetWidth(),
+		(float)targetRect.top / Renderer::GetTargetHeight(),
+		(float)targetRect.right / Renderer::GetTargetWidth(),
+		(float)targetRect.bottom / Renderer::GetTargetHeight(),
 		actualWidth, actualHeight);
 
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(dstFormat);

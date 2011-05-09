@@ -323,10 +323,10 @@ void VirtualEFBCopy::VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int src
 	D3D::dev->SetPixelShaderConstantF(C_ADD_LOC, colorAdd, 1);
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
 	FLOAT cSourceRect[4] = {
-		FLOAT(targetRect.left) / Renderer::GetFullTargetWidth(),
-		FLOAT(targetRect.top) / Renderer::GetFullTargetHeight(),
-		FLOAT(targetRect.right) / Renderer::GetFullTargetWidth(),
-		FLOAT(targetRect.bottom) / Renderer::GetFullTargetHeight()
+		FLOAT(targetRect.left) / Renderer::GetTargetWidth(),
+		FLOAT(targetRect.top) / Renderer::GetTargetHeight(),
+		FLOAT(targetRect.right) / Renderer::GetTargetWidth(),
+		FLOAT(targetRect.bottom) / Renderer::GetTargetHeight()
 	};
 	D3D::dev->SetPixelShaderConstantF(C_SOURCERECT_LOC, cSourceRect, 1);
 	BOOL cDisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24) ? TRUE : FALSE;

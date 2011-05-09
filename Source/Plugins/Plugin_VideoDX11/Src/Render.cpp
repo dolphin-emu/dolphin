@@ -364,8 +364,7 @@ Renderer::Renderer()
 	D3D::g_context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
 	D3D::g_context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)(s_Fulltarget_width - s_target_width) / 2.f,
-						(float)(s_Fulltarget_height - s_target_height) / 2.f,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f,
 						(float)s_target_width, (float)s_target_height);
 	D3D::g_context->RSSetViewports(1, &vp);
 	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
@@ -390,10 +389,10 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = EFBToScaledX(rc.left) + TargetStrideX();
-	result.top    = EFBToScaledY(rc.top) + TargetStrideY();
-	result.right  = EFBToScaledX(rc.right) + TargetStrideX();
-	result.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
+	result.left   = EFBToScaledX(rc.left);
+	result.top    = EFBToScaledY(rc.top);
+	result.right  = EFBToScaledX(rc.right);
+	result.bottom = EFBToScaledY(rc.bottom);
 	return result;
 }
 
@@ -445,10 +444,10 @@ bool Renderer::SetScissorRect()
 	if (rc.top > EFB_HEIGHT) rc.top = EFB_HEIGHT;
 	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
 
-	rc.left = EFBToScaledX(rc.left) + TargetStrideX();
-	rc.right = EFBToScaledX(rc.right) + TargetStrideX();
-	rc.top = EFBToScaledY(rc.top) + TargetStrideY();
-	rc.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
+	rc.left = EFBToScaledX(rc.left);
+	rc.right = EFBToScaledX(rc.right);
+	rc.top = EFBToScaledY(rc.top);
+	rc.bottom = EFBToScaledY(rc.bottom);
 
 	if (rc.left > rc.right)
 	{
@@ -471,8 +470,8 @@ bool Renderer::SetScissorRect()
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		*rc.AsRECT() = CD3D11_RECT(TargetStrideX(), TargetStrideY(),
-									TargetStrideX() + s_target_width, TargetStrideY() + s_target_height);
+		*rc.AsRECT() = CD3D11_RECT(0, 0,
+									s_target_width, s_target_height);
 		D3D::g_context->RSSetScissorRects(1, rc.AsRECT());
 		return false;
 	}
@@ -558,8 +557,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
-								Renderer::GetFullTargetWidth(),
-								Renderer::GetFullTargetHeight(),
+								Renderer::GetTargetWidth(),
+								Renderer::GetTargetHeight(),
 								PixelShaderCache::GetDepthMatrixProgram(true),
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
@@ -635,18 +634,31 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		ResetAPIState();
 
 		D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
-		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-									- (float)RectToLock.top	* 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
-									  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
+		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+									- (float)RectToLock.top	* 2.f / (float)Renderer::GetTargetHeight() + 1.f,
+									  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
 		return 0;
 	}
 }
 
+static void ViewportCorrectionMatrix(Matrix44& result,
+	float ix, float iy, float iw, float ih, // Intended viewport (x, y, width, height)
+	float ax, float ay, float aw, float ah) // Actual viewport
+{
+	Matrix44::LoadIdentity(result);
+	if (aw == 0.f || ah == 0.f)
+		return;
+	result.data[4*0+0] = iw / aw;
+	result.data[4*0+3] = (iw - 2.f * (ax - ix)) / aw - 1.f;
+	result.data[4*1+1] = ih / ah;
+	result.data[4*1+3] = (-ih + 2.f * (ay - iy)) / ah + 1.f;
+}
+
 // Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::UpdateViewport(Matrix44& vpCorrection)
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -655,78 +667,58 @@ void Renderer::UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
-	const int old_fulltarget_w = Renderer::GetFullTargetWidth();
-	const int old_fulltarget_h = Renderer::GetFullTargetHeight();
 
-	int scissorXOff = bpmem.scissorOffset.x << 1;
-	int scissorYOff = bpmem.scissorOffset.y << 1;
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	// TODO: ceil, floor or just cast to int?
 	// TODO: Directly use the floats instead of rounding them?
-	int X = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff)) + Renderer::TargetStrideX();
-	int Y = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff)) + Renderer::TargetStrideY();
-	int Width = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
-	int Height = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
-	if (Width < 0)
+	float efbLeft = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
+	float efbTop = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
+	float efbWidth = 2.f * xfregs.viewport.wd;
+	float efbHeight = -2.f * xfregs.viewport.ht;
+	
+	// TODO: ceil, floor or just cast to int?
+	int intendedX = EFBToScaledX((int)ceil(efbLeft));
+	int intendedY = EFBToScaledY((int)ceil(efbTop));
+	int intendedWidth = EFBToScaledX((int)ceil(efbWidth));
+	int intendedHeight = EFBToScaledY((int)ceil(efbHeight));
+	if (intendedWidth < 0)
 	{
-		X += Width;
-		Width *= -1;
+		intendedX += intendedWidth;
+		intendedWidth = -intendedWidth;
 	}
-	if (Height < 0)
+	if (intendedHeight < 0)
 	{
-		Y += Height;
-		Height *= -1;
+		intendedY += intendedHeight;
+		intendedHeight = -intendedHeight;
 	}
-	bool sizeChanged = false;
+
+	int X = intendedX;
 	if (X < 0)
-	{
-		s_Fulltarget_width -= 2 * X;
 		X = 0;
-		sizeChanged = true;
-	}
+
+	int Y = intendedY;
 	if (Y < 0)
-	{
-		s_Fulltarget_height -= 2 * Y;
 		Y = 0;
-		sizeChanged = true;
-	}
+
+	int Width = intendedWidth;
+	if (X + Width > GetTargetWidth())
+		Width = GetTargetWidth() - X;
+
+	int Height = intendedHeight;
+	if (Y + Height > GetTargetHeight())
+		Height = GetTargetHeight() - Y;
+	
+	// If GX viewport is off the render target, we must clamp our viewport into
+	// the bounds. Use the correction matrix to compensate.
+	ViewportCorrectionMatrix(vpCorrection,
+		intendedX, intendedY, intendedWidth, intendedHeight,
+		X, Y, Width, Height);
 
 	float newx = (float)X;
 	float newy = (float)Y;
 	float newwidth = (float)Width;
 	float newheight = (float)Height;
-	// TODO: If the size hasn't changed for X frames, we should probably shrink the EFB texture for performance reasons
-	if (sizeChanged)
-	{
-		// Make sure that the requested size is actually supported by the GFX driver
-		if (Renderer::GetFullTargetWidth() > (int)D3D::GetMaxTextureSize() || Renderer::GetFullTargetHeight() > (int)D3D::GetMaxTextureSize())
-		{
-			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight());
-
-			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
-			newx *= (float)(old_fulltarget_w-1) / (float)(Renderer::GetFullTargetWidth()-1);
-			newy *= (float)(old_fulltarget_h-1) / (float)(Renderer::GetFullTargetHeight()-1);
-			newwidth *= (float)(old_fulltarget_w-1) / (float)(Renderer::GetFullTargetWidth()-1);
-			newheight *= (float)(old_fulltarget_h-1) / (float)(Renderer::GetFullTargetHeight()-1);
-
-			s_Fulltarget_width = old_fulltarget_w;
-			s_Fulltarget_height = old_fulltarget_h;
-		}
-		else
-		{
-			D3D::g_context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-			
-			delete g_framebuffer_manager;
-			g_framebuffer_manager = new FramebufferManager;
-
-			D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-			float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
-			D3D::g_context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-			D3D::g_context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
-		}
-	}
-
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
@@ -766,7 +758,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	// TODO: MSAA support..
-	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight());
+	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 
 	ID3D11PixelShader* pixel_shader;
 	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6(true);
@@ -780,12 +772,14 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	// convert data and set the target texture as our new EFB
 	g_renderer->ResetAPIState();
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetFullTargetWidth(), (float)g_renderer->GetFullTargetHeight());
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
 	D3D::g_context->RSSetViewports(1, &vp);
 
 	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), NULL);
 	D3D::SetPointCopySampler();
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source,
+		g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+		pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 	g_renderer->RestoreAPIState();
 
@@ -1007,7 +1001,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma);
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(),
+			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+			PixelShaderCache::GetColorCopyProgram(false),
+			VertexShaderCache::GetSimpleVertexShader(),
+			VertexShaderCache::GetSimpleInputLayout(), Gamma);
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -1134,8 +1132,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	Renderer::RestoreAPIState();
 	D3D::BeginFrame();
 	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	UpdateViewport();
-	VertexShaderManager::SetViewportChanged();
+	VertexShaderManager::SetViewportChanged(); // Causes viewport to be recomputed
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1155,7 +1152,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	UpdateViewport();
+	VertexShaderManager::SetViewportChanged();
 	SetScissorRect();
 }
 
