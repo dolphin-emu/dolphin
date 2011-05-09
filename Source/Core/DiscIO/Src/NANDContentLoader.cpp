@@ -24,6 +24,7 @@
 #include "FileUtil.h"
 #include "Log.h"
 #include "WiiWad.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -105,12 +106,14 @@ public:
 	u32 GetBootIndex() const  { return m_BootIndex; }
 	size_t GetContentSize() const { return m_Content.size(); }
 	const SNANDContent* GetContentByIndex(int _Index) const;
-	const u8* GetTicketView() const { return m_TicketView; }
-	const u8* GetTmdHeader() const { return m_TmdHeader; }
+	const u8* GetTMDView() const { return m_TMDView; }
+	const u8* GetTMDHeader() const { return m_TMDHeader; }
+	const u32 GetTIKSize() const { return m_TIKSize; }
+	const u8* GetTIK() const { return m_TIK; }
 
 	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
-	u16 GetTitleVersion() const {return m_TileVersion;}
+	u16 GetTitleVersion() const {return m_TitleVersion;}
 	u16 GetNumEntries() const {return m_numEntries;}
 	DiscIO::IVolume::ECountry GetCountry() const;
 	u8 GetCountryChar() const {return m_Country; }
@@ -118,26 +121,27 @@ public:
 private:
 
 	bool m_Valid;
+	bool m_isWAD;
+	std::string m_Path;
 	u64 m_TitleID;
 	u16 m_IosVersion;
 	u32 m_BootIndex;
 	u16 m_numEntries;
-	u16 m_TileVersion;
-	u8 m_TicketView[TICKET_VIEW_SIZE];
-	u8 m_TmdHeader[TMD_HEADER_SIZE];
+	u16 m_TitleVersion;
+	u8 m_TMDView[TMD_VIEW_SIZE];
+	u8 m_TMDHeader[TMD_HEADER_SIZE];
+	u32 m_TIKSize;
+	u8 *m_TIK;
 	u8 m_Country;
 
 	std::vector<SNANDContent> m_Content;
 
 
-	bool CreateFromDirectory(const std::string& _rPath);
-	bool CreateFromWAD(const std::string& _rName);
+	bool Initialize(const std::string& _rName);
 
 	void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
 
 	void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
-
-	bool ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD);
 };
 
 
@@ -145,22 +149,13 @@ private:
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	: m_Valid(false)
+	, m_isWAD(false)
 	, m_TitleID(-1)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
+	, m_TIK(NULL)
 {
-	if (File::IsDirectory(_rName))
-	{
-		m_Valid = CreateFromDirectory(_rName);
-	}
-	else if (File::Exists(_rName))
-	{
-		m_Valid = CreateFromWAD(_rName);
-	}
-	else
-	{
-//		_dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
-	}
+	m_Valid = Initialize(_rName);
 }
 
 CNANDContentLoader::~CNANDContentLoader()
@@ -170,6 +165,11 @@ CNANDContentLoader::~CNANDContentLoader()
 		delete [] m_Content[i].m_pData;
 	}
 	m_Content.clear();
+	if (m_TIK)
+	{
+		delete []m_TIK;
+		m_TIK = NULL;
+	}
 }
 
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
@@ -182,57 +182,89 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 	return NULL;
 }
 
-bool CNANDContentLoader::CreateFromWAD(const std::string& _rName)
+bool CNANDContentLoader::Initialize(const std::string& _rName)
 {
+	m_Path = _rName;
 	WiiWAD Wad(_rName);
-	if (!Wad.IsValid())
-		return false;
-
-	return ParseTMD(Wad.GetDataApp(), Wad.GetDataAppSize(), Wad.GetTicket(), Wad.GetTMD());
-}
-
-bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
-{
-	std::string TMDFileName(_rPath);
-	TMDFileName += "/title.tmd";
-
-	File::IOFile pTMDFile(TMDFileName, "rb");
-	if (!pTMDFile)
+	u8* pDataApp = NULL;
+	u8* pTMD = NULL;
+	u8 DecryptTitleKey[16];
+	u8 IV[16];
+	if (Wad.IsValid())
 	{
-		ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
-				  TMDFileName.c_str());
-		return false;
+		m_isWAD = true;
+		m_TIKSize = Wad.GetTicketSize();
+		m_TIK = new u8[m_TIKSize];
+		memcpy(m_TIK, Wad.GetTicket(), m_TIKSize);
+		GetKeyFromTicket(m_TIK, DecryptTitleKey);
+		u32 pTMDSize = Wad.GetTMDSize();
+		pTMD = new u8[pTMDSize];
+		memcpy(pTMD, Wad.GetTMD(), pTMDSize);
+		pDataApp = Wad.GetDataApp();
 	}
-	u64 Size = File::GetSize(TMDFileName);
-	u8* pTMD = new u8[(u32)Size];
-	pTMDFile.ReadBytes(pTMD, (size_t)Size);
-	pTMDFile.Close();
+	else
+	{
+		std::string TMDFileName(m_Path);
+		if (File::IsDirectory(TMDFileName))
+		{
+			TMDFileName += "title.tmd";
+		}
+		else
+		{
+			SplitPath(TMDFileName, &m_Path, NULL, NULL);
+		}
+		File::IOFile pTMDFile(TMDFileName, "rb");
+		if (!pTMDFile)
+		{
+			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+					  TMDFileName.c_str());
+			return false;
+		}
+		u32 pTMDSize = (u32)File::GetSize(TMDFileName);
+		pTMD = new u8[pTMDSize];
+		pTMDFile.ReadBytes(pTMD, (size_t)pTMDSize);
+		pTMDFile.Close();
+	}
+	if (!pTMD)
+		return false;
+	memcpy(m_TMDView, pTMD + 0x180, TMD_VIEW_SIZE);
+	memcpy(m_TMDHeader, pTMD, TMD_HEADER_SIZE);
 
-	memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
-	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
 
-	
-	m_TileVersion = Common::swap16(pTMD + 0x01dc);
+	m_TitleVersion = Common::swap16(pTMD + 0x01dc);
 	m_numEntries = Common::swap16(pTMD + 0x01de);
 	m_BootIndex = Common::swap16(pTMD + 0x01e0);
 	m_TitleID = Common::swap64(pTMD + 0x018c);
 	m_IosVersion = Common::swap16(pTMD + 0x018a);
 	m_Country = *(u8*)&m_TitleID;
 	if (m_Country == 2) // SYSMENU
-		m_Country = GetSysMenuRegion(m_TileVersion);
+		m_Country = GetSysMenuRegion(m_TitleVersion);
 
 	m_Content.resize(m_numEntries);
 
-	for (u32 i = 0; i < m_numEntries; i++) 
+
+	for (u32 i=0; i<m_numEntries; i++) 
 	{
 		SNANDContent& rContent = m_Content[i];
-
+				
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
 		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-		rContent.m_Size = (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
+		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
+		if (m_isWAD)
+		{
+		u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
+		rContent.m_pData = new u8[RoundedSize];
+		
+		memset(IV, 0, sizeof IV);
+		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
+		AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+
+		pDataApp += RoundedSize;
+		continue;
+		}
 
 		rContent.m_pData = NULL;		 
 		char szFilename[1024];
@@ -244,7 +276,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 		}
 		else
 		{
-			sprintf(szFilename, "%s/%08x.app", _rPath.c_str(), rContent.m_ContentID);
+			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
 		}
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
@@ -270,7 +302,6 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 	delete [] pTMD;
 	return true;
 }
-
 void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
 	AES_KEY AESKey;
@@ -288,52 +319,6 @@ void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
 	AESDecode(CommonKey, IV, pTicket + 0x01bf, 16, pTicketKey);
 }
 
-bool CNANDContentLoader::ParseTMD(u8* pDataApp, u32 pDataAppSize, u8* pTicket, u8* pTMD)
-{
-	u8 DecryptTitleKey[16];
-	u8 IV[16];
-
-	GetKeyFromTicket(pTicket, DecryptTitleKey);
-
-	memcpy(m_TicketView, pTMD + 0x180, TICKET_VIEW_SIZE);
-	memcpy(m_TmdHeader, pTMD, TMD_HEADER_SIZE);
-	
-	m_TileVersion = Common::swap16(pTMD + 0x01dc);
-	m_numEntries = Common::swap16(pTMD + 0x01de);
-	m_BootIndex = Common::swap16(pTMD + 0x01e0);
-	m_TitleID = Common::swap64(pTMD + 0x018c);
-	m_IosVersion = Common::swap16(pTMD + 0x018a);
-	m_Country = *(u8*)&m_TitleID;
-	if (m_Country == 2) // SYSMENU
-		m_Country = GetSysMenuRegion(m_TileVersion);
-
-	u8* p = pDataApp;
-
-	m_Content.resize(m_numEntries);
-
-	for (u32 i=0; i<m_numEntries; i++) 
-	{
-		SNANDContent& rContent = m_Content[i];
-				
-		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
-		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
-		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
-		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
-		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
-		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
-
-		u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
-		rContent.m_pData = new u8[RoundedSize];
-		
-		memset(IV, 0, sizeof IV);
-		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, p, RoundedSize, rContent.m_pData);
-
-		p += RoundedSize;
-	}
-
-	return true;
-}
 
 DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 {
@@ -379,7 +364,7 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 
 const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId, bool forceReload)
 {
-	std::string _rName = Common::CreateTitleContentPath(_titleId);
+	std::string _rName = Common::GetTitleContentPath(_titleId);
 	return GetNANDLoader(_rName, forceReload);
 }
 bool CNANDContentManager::RemoveTitle(u64 _titleID)
@@ -401,7 +386,7 @@ void CNANDContentLoader::RemoveTitle() const
 			char szFilename[1024];
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
 			{
-				sprintf(szFilename, "%s/%08x.app", Common::CreateTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
+				sprintf(szFilename, "%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
 				INFO_LOG(DISCIO, "Delete %s", szFilename);
 				File::Delete(szFilename);
 			}
@@ -450,25 +435,24 @@ u32 cUIDsys::GetUIDFromTitle(u64 _Title)
 	return 0;
 }
 
-bool cUIDsys::AddTitle(u64 _TitleID)
+void cUIDsys::AddTitle(u64 _TitleID)
 {
 	if (GetUIDFromTitle(_TitleID))
-		return false;
-	else
 	{
-		SElement Element;
-		*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
-		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
-		m_Elements.push_back(Element);
+		INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", (u32)(_TitleID >> 32), (u32)_TitleID);
+		return;
+	}
 
-		File::CreateFullPath(uidSys);
-		File::IOFile pFile(uidSys, "ab");
+	SElement Element;
+	*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
+	*(u32*)&(Element.UID) = Common::swap32(lastUID++);
+	m_Elements.push_back(Element);
 
-		if (pFile.WriteArray(&Element, 1))
-			ERROR_LOG(DISCIO, "fwrite failed");
-		
-		return true;
-	}	
+	File::CreateFullPath(uidSys);
+	File::IOFile pFile(uidSys, "ab");
+
+	if (pFile.WriteArray(&Element, 1))
+		ERROR_LOG(DISCIO, "fwrite failed");
 }
 
 void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
@@ -480,6 +464,91 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 			_TitleIDs.push_back(Common::swap64(m_Elements[i].titleID));
 	}
 }
+
+u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
+{
+	if (fileName.find(".wad") == std::string::npos)
+		return 0;
+	const INANDContentLoader& ContentLoader = GetNANDLoader(fileName);
+	if (ContentLoader.IsValid() == false)
+		return 0;
+
+	u64 TitleID = ContentLoader.GetTitleID();
+
+	//copy WAD's tmd header and contents to content directory
+
+	std::string ContentPath(Common::GetTitleContentPath(TitleID));
+	std::string TMDFileName(Common::GetTMDFileName(TitleID));
+	File::CreateFullPath(TMDFileName);
+
+	File::IOFile pTMDFile(TMDFileName, "wb");
+	if (!pTMDFile)
+	{
+		PanicAlertT("WAD installation failed: error creating %s", TMDFileName.c_str());
+		return 0;
+	}
+
+	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), INANDContentLoader::TMD_HEADER_SIZE);
+	
+	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
+	{
+		SNANDContent Content = ContentLoader.GetContent()[i];
+
+		pTMDFile.WriteBytes(Content.m_Header, INANDContentLoader::CONTENT_HEADER_SIZE);
+
+		char APPFileName[1024];
+		if (Content.m_Type & 0x8000) //shared
+		{
+			sprintf(APPFileName, "%s", 
+				CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash).c_str());
+		}
+		else
+		{
+			sprintf(APPFileName, "%s%08x.app", ContentPath.c_str(), Content.m_ContentID);
+		}
+
+		if (!File::Exists(APPFileName))
+		{
+			File::CreateFullPath(APPFileName);
+			File::IOFile pAPPFile(APPFileName, "wb");
+			if (!pAPPFile)
+			{
+				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
+				return 0;
+			}
+			
+			pAPPFile.WriteBytes(Content.m_pData, Content.m_Size);
+		}
+		else
+		{
+			INFO_LOG(DISCIO, "Content %s already exists.", APPFileName);
+		}
+	}
+
+	pTMDFile.Close();
+	
+	//Extract and copy WAD's ticket to ticket directory
+	std::string TicketFileName = Common::GetTicketFileName(TitleID);
+
+	File::CreateFullPath(TicketFileName);
+	File::IOFile pTicketFile(TicketFileName, "wb");
+	if (!pTicketFile)
+	{
+		PanicAlertT("WAD installation failed: error creating %s", TicketFileName);
+		return 0;
+	} 
+
+	if (ContentLoader.GetTIK())
+	{
+		pTicketFile.WriteBytes(ContentLoader.GetTIK(), ContentLoader.GetTIKSize());
+	}
+
+	cUIDsys::AccessInstance().AddTitle(TitleID);
+
+
+	return TitleID;
+}
+
 
 } // namespace end
 

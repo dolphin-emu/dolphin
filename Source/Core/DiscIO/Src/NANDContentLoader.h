@@ -58,8 +58,10 @@ public:
     virtual u32 GetBootIndex() const = 0;
     virtual size_t GetContentSize() const = 0;
     virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
-    virtual const u8* GetTicketView() const = 0;
-    virtual const u8* GetTmdHeader() const = 0;
+	virtual const u8* GetTMDView() const = 0;
+	virtual const u8* GetTMDHeader() const = 0;
+	virtual const u32 GetTIKSize() const = 0;
+	virtual const u8* GetTIK() const = 0;
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
     virtual u16 GetTitleVersion() const = 0;
     virtual u16 GetNumEntries() const = 0;
@@ -68,9 +70,10 @@ public:
 
     enum
     {
-        TICKET_VIEW_SIZE = 0x58,
+        TMD_VIEW_SIZE = 0x58,
         TMD_HEADER_SIZE = 0x1e4,
-		CONTENT_HEADER_SIZE = 0x24
+		CONTENT_HEADER_SIZE = 0x24,
+		TICKET_SIZE = 0x2A4
     };
 };
 
@@ -81,6 +84,7 @@ class CNANDContentManager
 public:
 
     static CNANDContentManager& Access() { return m_Instance; }
+	u64 Install_WiiWAD(std::string &fileName);
 
     const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
@@ -135,7 +139,7 @@ public:
 	static cUIDsys& AccessInstance() { return m_Instance; }
 
 	u32 GetUIDFromTitle(u64 _Title);
-	bool AddTitle(u64 _Title);
+	void AddTitle(u64 _Title);
 	void GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned = false);
 private:
 

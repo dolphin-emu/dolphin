@@ -64,7 +64,7 @@ Core::GetWindowHandle().
 #include "HW/GCPad.h"
 #include "HW/Wiimote.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+//#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
@@ -1326,8 +1326,7 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-	HLE_IPC_CreateVirtualFATFilesystem();
-	BootGame(Common::CreateTitleContentPath(TITLEID_SYSMENU));
+	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1372,7 +1371,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 	dialog.CenterOnParent();
 
-	u64 titleID = CBoot::Install_WiiWAD(fileName.c_str());
+	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
 	if (titleID == TITLEID_SYSMENU)
 	{
 		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);

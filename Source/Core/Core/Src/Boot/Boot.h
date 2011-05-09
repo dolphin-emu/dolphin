@@ -29,11 +29,7 @@ public:
 
 	static bool BootUp();
 	static bool IsElfWii(const char *filename);
-	static bool IsWiiWAD(const char *filename);	
-
 	static std::string GenerateMapFilename();
-	
-	static u64 Install_WiiWAD(const char *filename);
 
 private:
 	static void RunFunction(u32 _iAddr);
