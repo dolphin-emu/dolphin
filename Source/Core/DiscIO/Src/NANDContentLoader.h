@@ -60,7 +60,7 @@ public:
     virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
 	virtual const u8* GetTMDView() const = 0;
 	virtual const u8* GetTMDHeader() const = 0;
-	virtual const u32 GetTIKSize() const = 0;
+	virtual u32 GetTIKSize() const = 0;
 	virtual const u8* GetTIK() const = 0;
     virtual const std::vector<SNANDContent>& GetContent() const = 0;    
     virtual u16 GetTitleVersion() const = 0;
