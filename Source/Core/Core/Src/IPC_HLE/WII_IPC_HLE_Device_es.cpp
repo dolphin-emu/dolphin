@@ -444,32 +444,41 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWCNT no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
 
-            u32 ViewCount = 0;
-            if (File::Exists(TicketFilename))
-            {
-                const u32 SIZE_OF_ONE_TICKET = 676;
+			u32 retVal = 0;
+			std::string ContentPath = Common::GetTitleContentPath(TitleID);
+			if (m_TitleID == TitleID)
+				ContentPath = m_ContentFile;
 
-                u32 FileSize = (u32)(File::GetSize(TicketFilename));
-                _dbg_assert_msg_(WII_IPC_ES, (FileSize % SIZE_OF_ONE_TICKET) == 0, "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
+			const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(ContentPath);
+			u32 ViewCount = Loader.GetTIKSize() / DiscIO::INANDContentLoader::TICKET_SIZE;
 
-                ViewCount = FileSize / SIZE_OF_ONE_TICKET;
-                _dbg_assert_msg_(WII_IPC_ES, (ViewCount>0) && (ViewCount<=4), "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
-            }
-            else
-            {
-                if (TitleID == TITLEID_SYSMENU)
-                {
-                    PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
-                }
-                ViewCount = 0;
-            }
+			if (!ViewCount)
+			{
+				std::string TicketFilename = Common::GetTicketFileName(TitleID);
+				if (File::Exists(TicketFilename))
+				{
+					u32 FileSize = (u32)File::GetSize(TicketFilename);
+					_dbg_assert_msg_(WII_IPC_ES, (FileSize % DiscIO::INANDContentLoader::TICKET_SIZE) == 0, "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
+					
+					ViewCount = FileSize / DiscIO::INANDContentLoader::TICKET_SIZE;
+					_dbg_assert_msg_(WII_IPC_ES, (ViewCount>0) && (ViewCount<=4), "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
+				}
+				else
+				{
+					if (TitleID == TITLEID_SYSMENU)
+					{
+						PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
+					}
+					ViewCount = 0;
+					//retVal = ES_NO_TICKET_INSTALLED;
+				}
+			}
             
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)", (u32)(TitleID>>32), (u32)TitleID, ViewCount);
 
             Memory::Write_U32(ViewCount, Buffer.PayloadBuffer[0].m_Address);
-            Memory::Write_U32(0, _CommandAddress + 0x4);
+            Memory::Write_U32(retVal, _CommandAddress + 0x4);
             return true;
         }
         break;
@@ -481,30 +490,49 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			u32 maxViews = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+			u32 retVal = 0;
+			std::string ContentPath = Common::GetTitleContentPath(TitleID);
+			if (m_TitleID == TitleID)
+				ContentPath = m_ContentFile;
 
-			std::string TicketFilename = Common::CreateTicketFileName(TitleID);
-			if (File::Exists(TicketFilename))
+			const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(ContentPath);
+			
+			const u8 *Ticket = Loader.GetTIK();
+			if (Ticket)
 			{
-				const u32 SIZE_OF_ONE_TICKET = 676;
-				File::IOFile pFile(TicketFilename, "rb");
-				if (pFile)
+				u32 viewCnt = Loader.GetTIKSize() / DiscIO::INANDContentLoader::TICKET_SIZE;
+				for (unsigned int View = 0; View != maxViews && View < viewCnt; ++View)
 				{
-					u8 Ticket[SIZE_OF_ONE_TICKET];
-					for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(Ticket, SIZE_OF_ONE_TICKET); ++View)
-					{
-						Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-						Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
-					}
+					Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
+					Memory::WriteBigEData(Ticket + 0x1D0 + (View * DiscIO::INANDContentLoader::TICKET_SIZE),
+						Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 				}
 			}
 			else
 			{
-				PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+				std::string TicketFilename = Common::GetTicketFileName(TitleID);
+				if (File::Exists(TicketFilename))
+				{
+					File::IOFile pFile(TicketFilename, "rb");
+					if (pFile)
+					{
+						u8 Ticket[DiscIO::INANDContentLoader::TICKET_SIZE];
+						for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(Ticket, DiscIO::INANDContentLoader::TICKET_SIZE); ++View)
+						{
+							Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
+							Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
+						}
+					}
+				}
+				else
+				{
+					//retVal = ES_NO_TICKET_INSTALLED;
+					PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+				}
 			}
-
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
-			Memory::Write_U32(0, _CommandAddress + 0x4);
+			Memory::Write_U32(retVal, _CommandAddress + 0x4);
 			return true;
 		}
         break;
@@ -516,7 +544,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			u32 TitleID_HI = (u32)(TitleID >> 32);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
+
+			std::string ContentPath = Common::GetTitleContentPath(TitleID);
+			if (m_TitleID == TitleID)
+				ContentPath = m_ContentFile;
+			const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(ContentPath);
 
 			// Assert if title is not a disc title and the loader is not valid
 			_dbg_assert_msg_(WII_IPC_ES, (TitleID_HI == 0x00010000) || (TitleID_HI == 0x00010004) || Loader.IsValid(), "Loader not valid for TitleID %08x/%08x", TitleID_HI, (u32)TitleID);
@@ -524,7 +556,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u32 TMDViewCnt = 0;
             if (Loader.IsValid())
             {
-                TMDViewCnt += DiscIO::INANDContentLoader::TICKET_VIEW_SIZE; 
+                TMDViewCnt += DiscIO::INANDContentLoader::TMD_VIEW_SIZE; 
                 TMDViewCnt += 2; // title version
                 TMDViewCnt += 2; // num entries
                 TMDViewCnt += (u32)Loader.GetContentSize() * (4+2+2+8); // content id, index, type, size
@@ -545,7 +577,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-            const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);            
+			std::string ContentPath = Common::GetTitleContentPath(TitleID);
+			if (m_TitleID == TitleID)
+				ContentPath = m_ContentFile;
+			const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(ContentPath);        
 
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -554,8 +589,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             {
                 u32 Address = Buffer.PayloadBuffer[0].m_Address;
 
-                Memory::WriteBigEData(Loader.GetTicketView(), Address, DiscIO::INANDContentLoader::TICKET_VIEW_SIZE);
-                Address += DiscIO::INANDContentLoader::TICKET_VIEW_SIZE;
+                Memory::WriteBigEData(Loader.GetTMDView(), Address, DiscIO::INANDContentLoader::TMD_VIEW_SIZE);
+                Address += DiscIO::INANDContentLoader::TMD_VIEW_SIZE;
                 
                 Memory::Write_U16(Loader.GetTitleVersion(), Address); Address += 2;
                 Memory::Write_U16(Loader.GetNumEntries(), Address); Address += 2;
@@ -588,7 +623,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
-			if (File::Delete(Common::CreateTicketFileName(TitleID)))
+			if (File::Delete(Common::GetTicketFileName(TitleID)))
 			{
 				Memory::Write_U32(0, _CommandAddress + 0x4);
 			}
@@ -661,7 +696,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             {
                 u32 Address = Buffer.PayloadBuffer[0].m_Address;
 
-				Memory::WriteBigEData(Loader.GetTmdHeader(), Address, DiscIO::INANDContentLoader::TMD_HEADER_SIZE);
+				Memory::WriteBigEData(Loader.GetTMDHeader(), Address, DiscIO::INANDContentLoader::TMD_HEADER_SIZE);
                 Address += DiscIO::INANDContentLoader::TMD_HEADER_SIZE;
                 
                 const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
@@ -736,7 +771,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
 					if (pContent)
 					{
-						LoadWAD(Common::CreateTitleContentPath(TitleID));
+						LoadWAD(Common::GetTitleContentPath(TitleID));
 						CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
 						DolLoader.Load(); // TODO: Check why sysmenu does not load the DOL correctly
 						PC = DolLoader.GetEntryPoint() | 0x80000000;
@@ -855,11 +890,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	{
 		return -1;
 	}
-	std::string tmdPath,
-				dataPath;
-
-	tmdPath = Common::CreateTitleContentPath(tmdTitleID) + DIR_SEP + "title.tmd";
-	dataPath	= Common::CreateTitleDataPath(tmdTitleID) + DIR_SEP;
+	std::string tmdPath  = Common::GetTMDFileName(tmdTitleID),
+				dataPath = Common::GetTitleDataPath(tmdTitleID);
 
 	File::CreateFullPath(tmdPath);
 	File::CreateFullPath(dataPath);

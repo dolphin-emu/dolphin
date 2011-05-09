@@ -51,8 +51,9 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 void HLE_IPC_CreateVirtualFATFilesystem()
 {
-	const std::string cdbPath = Common::CreateTitleDataPath(TITLEID_SYSMENU) + "/cdb.vff";
-	if (!File::Exists(cdbPath))
+	const int cdbSize = 0x01400000;
+	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU) + "cdb.vff";
+	if (File::GetSize(cdbPath) < cdbSize)
 	{
 		// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
 		// we create it here as it is faster ~3 minutes for me when sysmenu does it ~1 second created here
@@ -67,15 +68,16 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 			cdbFile.Seek(0x14020, SEEK_SET);
 			cdbFile.WriteBytes(cdbFAT, 0x4);
 			// 20 MiB file
-			cdbFile.Seek(0x01400000 - 1, SEEK_SET);
+			cdbFile.Seek(cdbSize - 1, SEEK_SET);
 			// write the final 0 to 0 file from the second FAT to 20 MiB
 			cdbFile.WriteBytes(cdbHDR + 14, 1);
-			
 			if (!cdbFile.IsGood())
 			{
 				cdbFile.Close();
 				File::Delete(cdbPath);
 			}
+			cdbFile.Flush();
+			cdbFile.Close();
 		}
 	}
 }

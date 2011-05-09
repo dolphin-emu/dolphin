@@ -23,7 +23,7 @@
 namespace Common
 {
 
-std::string CreateTicketFileName(u64 _titleID)
+std::string GetTicketFileName(u64 _titleID)
 {
 	char TicketFilename[1024];
 	sprintf(TicketFilename, "%sticket/%08x/%08x.tik",
@@ -32,19 +32,23 @@ std::string CreateTicketFileName(u64 _titleID)
 	return TicketFilename;
 }
 
-std::string CreateTitleDataPath(u64 _titleID)
+std::string GetTitleDataPath(u64 _titleID)
 {
 	char path[1024];
-	sprintf(path, "%stitle/%08x/%08x/data",
+	sprintf(path, "%stitle/%08x/%08x/data/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(_titleID >> 32), (u32)_titleID);
 
 	return path;
 }
 
-std::string CreateTitleContentPath(u64 _titleID)
+std::string GetTMDFileName(u64 _titleID)
+{
+	return GetTitleContentPath(_titleID) + "title.tmd";
+}
+std::string GetTitleContentPath(u64 _titleID)
 {
 	char ContentPath[1024];
-	sprintf(ContentPath, "%stitle/%08x/%08x/content",
+	sprintf(ContentPath, "%stitle/%08x/%08x/content/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(_titleID >> 32), (u32)_titleID);
 
 	return ContentPath;
@@ -52,7 +56,7 @@ std::string CreateTitleContentPath(u64 _titleID)
 
 bool CheckTitleTMD(u64 _titleID)
 {
-	const std::string TitlePath = CreateTitleContentPath(_titleID) + "/title.tmd";
+	const std::string TitlePath = GetTMDFileName(_titleID);
 	if (File::Exists(TitlePath))
 	{
 		File::IOFile pTMDFile(TitlePath, "rb");
@@ -67,10 +71,10 @@ bool CheckTitleTMD(u64 _titleID)
 
 bool CheckTitleTIK(u64 _titleID)
 {
-	const std::string TikPath = Common::CreateTicketFileName(_titleID);	
-	if (File::Exists(TikPath))
+	const std::string ticketFileName = Common::GetTicketFileName(_titleID);	
+	if (File::Exists(ticketFileName))
 	{
-		File::IOFile pTIKFile(TikPath, "rb");
+		File::IOFile pTIKFile(ticketFileName, "rb");
 		u64 TitleID = 0;
 		pTIKFile.Seek(0x1dC, SEEK_SET);
 		if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))

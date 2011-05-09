@@ -79,7 +79,7 @@ public:
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
 	const FifoFrameInfo &GetFrame(int frame) const { return m_Frames[frame]; }
-	int GetFrameCount() { return m_Frames.size(); }
+	int GetFrameCount() { return (int)m_Frames.size(); }
 
 	bool Save(const char *filename);
 

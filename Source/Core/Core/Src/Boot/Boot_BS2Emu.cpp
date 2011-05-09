@@ -183,7 +183,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	// SYSCONF file. The games also read it to 0x3800, what is a little strange
 	// however is that it only reads the first 100 bytes of it.
 	std::string region_filename,
-				settings_Filename(Common::CreateTitleDataPath(TITLEID_SYSMENU)+ DIR_SEP + WII_SETTING);
+				settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
 
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{

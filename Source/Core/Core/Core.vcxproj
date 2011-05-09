@@ -405,7 +405,6 @@
     <ClInclude Include="Src\Boot\Boot.h" />
     <ClInclude Include="Src\Boot\Boot_DOL.h" />
     <ClInclude Include="Src\Boot\Boot_ELF.h" />
-    <ClInclude Include="Src\Boot\Boot_WiiWAD.h" />
     <ClInclude Include="Src\Boot\ElfReader.h" />
     <ClInclude Include="Src\Boot\ElfTypes.h" />
     <ClInclude Include="Src\ConfigManager.h" />

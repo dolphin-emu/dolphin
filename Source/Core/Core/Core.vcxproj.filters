@@ -575,9 +575,6 @@
     <ClInclude Include="Src\ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Boot\Boot_WiiWAD.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Boot\Boot.h">
       <Filter>Boot</Filter>
     </ClInclude>
