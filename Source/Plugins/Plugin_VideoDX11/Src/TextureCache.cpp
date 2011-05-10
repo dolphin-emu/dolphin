@@ -553,6 +553,9 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 void TCacheEntry::CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
+	m_paletteSRV.reset();
+	m_palette.reset();
+
 	unsigned int numColors = TexDecoder_GetNumColors(format);
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(
@@ -566,7 +569,7 @@ void TCacheEntry::CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 l
 	m_palette = SharedPtr<ID3D11Buffer>::FromPtr(newPalette);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-		m_palette, DXGI_FORMAT_R8G8B8A8_UNORM, 0, numColors);
+		D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_R8G8B8A8_UNORM, 0, numColors);
 	ID3D11ShaderResourceView* newPaletteSRV = NULL;
 	hr = D3D::g_device->CreateShaderResourceView(m_palette, &srvd, &newPaletteSRV);
 	if (FAILED(hr))

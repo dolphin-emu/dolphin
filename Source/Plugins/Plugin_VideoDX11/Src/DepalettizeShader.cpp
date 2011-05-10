@@ -28,7 +28,7 @@ static const char DEPALETTIZE_SHADER[] =
 "#if NUM_COLORS == 0\n"
 "Texture2D<uint> Base : register(t8);\n"
 "#else\n"
-"Texture2D<float> Base : register(t8);\n"
+"Texture2D<float4> Base : register(t8);\n"
 "#endif\n"
 
 "Buffer<float4> Palette : register(t9);\n"
@@ -39,7 +39,7 @@ static const char DEPALETTIZE_SHADER[] =
 	"uint sample = Base.Load(int3(pos.xy, 0));\n"
 	"ocol0 = Palette.Load(sample);\n"
 "#else\n"
-	"float sample = Base.Load(int3(pos.xy, 0));\n"
+	"float sample = Base.Load(int3(pos.xy, 0)).r;\n"
 	"ocol0 = Palette.Load(sample * (NUM_COLORS-1));\n"
 "#endif\n"
 "}\n"

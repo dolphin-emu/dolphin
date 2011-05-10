@@ -377,11 +377,11 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 	
 	DEBUG_LOG(VIDEO, "Doing fake encode shader");
 
-	static const float YUVA_MATRIX[4][4] = {
-		{ 0.257f, 0.504f, 0.098f, 0.f },
-		{ -0.148f, -0.291f, 0.439f, 0.f },
-		{ 0.439f, -0.368f, -0.071f, 0.f },
-		{ 0.f, 0.f, 0.f, 1.f }
+	static const float YUVA_MATRIX[16] = {
+		0.257f, 0.504f, 0.098f, 0.f,
+		-0.148f, -0.291f, 0.439f, 0.f,
+		0.439f, -0.368f, -0.071f, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	};
 	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
 
@@ -394,18 +394,16 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 		// Choose a pre-color matrix: Either RGBA or YUVA
 		if (yuva)
 		{
-			// Combine yuva matrix with colorMatrix
-			for (int row = 0; row < 4; ++row)
-			{
-				for (int col = 0; col < 4; ++col)
-				{
-					params->Matrix[row][col] =
-						colorMatrix[4*row+0] * YUVA_MATRIX[0][col] +
-						colorMatrix[4*row+1] * YUVA_MATRIX[1][col] +
-						colorMatrix[4*row+2] * YUVA_MATRIX[2][col] +
-						colorMatrix[4*row+3] * YUVA_MATRIX[3][col];
-				}
-			}
+			// Combine YUVA matrix with color matrix
+			Matrix44 colorMat;
+			Matrix44::Set(colorMat, colorMatrix);
+			Matrix44 yuvaMat;
+			Matrix44::Set(yuvaMat, YUVA_MATRIX);
+			Matrix44 combinedMat;
+			Matrix44::Multiply(colorMat, yuvaMat, combinedMat);
+
+			memcpy(params->Matrix, combinedMat.data, 4*4*sizeof(float));
+
 			for (int i = 0; i < 3; ++i)
 				params->Add[i] = colorAdd[i] + YUV_ADD[i];
 			params->Add[3] = colorAdd[3];

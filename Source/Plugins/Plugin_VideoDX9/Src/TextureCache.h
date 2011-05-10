@@ -76,6 +76,9 @@ class TextureCache : public TextureCacheBase
 
 public:
 
+	// Call before resetting the swap chain
+	void TeardownDeviceObjects();
+
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 

@@ -262,6 +262,14 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	return true;
 }
 
+void TextureCache::TeardownDeviceObjects()
+{
+	// When the window is resized, we have to release all D3DPOOL_DEFAULT
+	// resources. Virtual copies contain these, so they will all disappear.
+	// TODO: Can we store virtual copies in D3DPOOL_MANAGED resources?
+	m_virtCopyMap.clear();
+}
+
 void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
