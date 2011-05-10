@@ -46,10 +46,30 @@ inline bool IsPaletted(u32 format)
 	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
 }
 
+// Compute the maximum number of mips a texture of given dims could have
+// Some games (Luigi's Mansion for example) try to use too many mip levels.
+static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
+{
+	if (width == 0 || height == 0)
+		return 0;
+	unsigned int max = std::max(width, height);
+	unsigned int levels = 0;
+	while (max > 0)
+	{
+		++levels;
+		max /= 2;
+	}
+	return levels;
+}
+
 void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	m_bindMe = NULL;
+	
+	// This is the earliest possible place to correct mip levels. Do so.
+	unsigned int maxLevels = ComputeMaxLevels(width, height);
+	levels = std::min(levels, maxLevels);
 
 	bool refreshFromRam = true;
 

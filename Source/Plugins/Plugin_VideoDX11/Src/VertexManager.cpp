@@ -19,6 +19,7 @@
 
 #include "BPMemory.h"
 #include "D3DBase.h"
+#include "D3DTexture.h"
 #include "Debugger.h"
 #include "IndexGenerator.h"
 #include "MainBase.h"
@@ -193,11 +194,11 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
+	D3DTexture2D* bindThese[8] = { 0 };
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
-			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
 
 			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
@@ -207,27 +208,37 @@ void VertexManager::vFlush()
 			u32 format = tex.texImage0[i&3].format;
 			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
 			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
-			
-			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
 
 			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
 				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 			if (entry)
-			{
-				entry->Bind(i);
-			}
+				bindThese[i] = entry->GetTexture();
 			else
 				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
-
-			//if (tentry)
-			//{
-			//	// 0s are probably for no manual wrapping needed.
-			//	PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
-			//}
-			//else
-			//	ERROR_LOG(VIDEO, "error loading texture");
 		}
+	}
+
+	// Bind and set samplers down here, because TextureCache::LoadEntry may
+	// clobber the render state.
+	for (int i = 0; i < 8; ++i)
+	{
+		if (usedtextures & (1 << i))
+		{
+			g_renderer->SetSamplerState(i & 3, i >> 2);
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+		
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+			
+			if (bindThese[i])
+				D3D::g_context->PSSetShaderResources(i, 1, &bindThese[i]->GetSRV());
+			else
+				D3D::g_context->PSSetShaderResources(i, 0, NULL);
+		}
+		else
+			D3D::g_context->PSSetShaderResources(i, 0, NULL);
 	}
 
 	// set global constants

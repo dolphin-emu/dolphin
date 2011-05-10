@@ -37,7 +37,7 @@ public:
 
 	TCacheEntry();
 
-	void Bind(int stage);
+	D3DTexture2D* GetTexture() { return m_bindMe; }
 	
 protected:
 

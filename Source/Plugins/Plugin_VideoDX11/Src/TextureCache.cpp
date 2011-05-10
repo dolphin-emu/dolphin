@@ -93,14 +93,6 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 	m_bindMe = m_depalettized;
 }
 
-void TCacheEntry::Bind(int stage)
-{
-	if (m_bindMe)
-		D3D::g_context->PSSetShaderResources(stage, 1, &m_bindMe->GetSRV());
-	else
-		D3D::g_context->PSSetShaderResources(stage, 0, NULL);
-}
-
 void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {

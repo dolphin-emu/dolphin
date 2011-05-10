@@ -37,7 +37,11 @@ public:
 
 private:
 
-	LPDIRECT3DPIXELSHADER9 m_shader; // TODO: Depth and Scale options
+	inline int MakeKey(bool scale, bool depth) {
+		return (scale ? (1<<1) : 0) | (depth ? (1<<0) : 0);
+	}
+
+	LPDIRECT3DPIXELSHADER9 m_shaders[4];
 
 };
 

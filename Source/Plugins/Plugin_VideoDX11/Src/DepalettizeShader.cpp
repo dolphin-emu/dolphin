@@ -23,15 +23,13 @@ static const char DEPALETTIZE_SHADER[] =
 "#error NUM_COLORS was not defined\n"
 "#endif\n"
 
-// Use t8 and t9 because t0..7 are being used by the vertex manager
-
 "#if NUM_COLORS == 0\n"
-"Texture2D<uint> Base : register(t8);\n"
+"Texture2D<uint> Base : register(t0);\n"
 "#else\n"
-"Texture2D<float4> Base : register(t8);\n"
+"Texture2D<float4> Base : register(t0);\n"
 "#endif\n"
 
-"Buffer<float4> Palette : register(t9);\n"
+"Buffer<float4> Palette : register(t1);\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
@@ -65,14 +63,14 @@ void DepalettizeShader::Depalettize(D3DTexture2D* dstTex, D3DTexture2D* baseTex,
 	D3D::g_context->RSSetViewports(1, &vp);
 
 	D3D::g_context->OMSetRenderTargets(1, &dstTex->GetRTV(), NULL);
-	D3D::g_context->PSSetShaderResources(8, 1, &baseTex->GetSRV());
-	D3D::g_context->PSSetShaderResources(9, 1, &paletteSRV);
+	D3D::g_context->PSSetShaderResources(0, 1, &baseTex->GetSRV());
+	D3D::g_context->PSSetShaderResources(1, 1, &paletteSRV);
 
 	D3D::drawEncoderQuad(shader);
 
 	ID3D11ShaderResourceView* nullDummy = NULL;
-	D3D::g_context->PSSetShaderResources(8, 1, &nullDummy);
-	D3D::g_context->PSSetShaderResources(9, 1, &nullDummy);
+	D3D::g_context->PSSetShaderResources(0, 1, &nullDummy);
+	D3D::g_context->PSSetShaderResources(1, 1, &nullDummy);
 
 	g_renderer->RestoreAPIState();
 	D3D::g_context->OMSetRenderTargets(1,

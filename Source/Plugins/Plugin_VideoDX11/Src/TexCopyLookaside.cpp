@@ -64,8 +64,7 @@ static const char FAKE_ENCODE_PS[] =
 	"} Params;\n"
 "}\n"
 
-// Use t8 because t0..7 are being used by the vertex manager
-"Texture2D<float4> EFBTexture : register(t8);\n"
+"Texture2D<float4> EFBTexture : register(t0);\n"
 
 // DEPTH should be 1 on, 0 off
 "#ifndef DEPTH\n"
@@ -434,12 +433,12 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 
 	D3D::g_context->OMSetRenderTargets(1, &m_fakeBase->GetRTV(), NULL);
 	D3D::g_context->PSSetConstantBuffers(0, 1, &s_fakeEncodeParams);
-	D3D::g_context->PSSetShaderResources(8, 1, &texSrc->GetSRV());
+	D3D::g_context->PSSetShaderResources(0, 1, &texSrc->GetSRV());
 
 	D3D::drawEncoderQuad(fakeEncode);
 
 	IUnknown* nullDummy = NULL;
-	D3D::g_context->PSSetShaderResources(8, 1, (ID3D11ShaderResourceView**)&nullDummy);
+	D3D::g_context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
 	D3D::g_context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
 	
 	// Restore API

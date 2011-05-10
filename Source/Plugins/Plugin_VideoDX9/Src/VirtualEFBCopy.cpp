@@ -32,7 +32,8 @@ namespace DX9
 static const UINT C_MATRIX_LOC = 0;
 static const UINT C_ADD_LOC = 4;
 static const UINT C_SOURCERECT_LOC = 5;
-static const UINT C_DISABLEALPHA_LOC = 6;
+static const UINT C_HALFTEXEL_LOC = 6;
+static const UINT C_DISABLEALPHA_LOC = 7;
 
 static const char VIRTUAL_EFB_COPY_PS[] =
 "// dolphin-emu DX9 virtual efb copy pixel shader\n"
@@ -44,18 +45,82 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 "uniform float4 c_Add : register(c4);\n"
 // c_SourceRect: left, top, right, bottom of source rectangle in texture coordinates
 "uniform float4 c_SourceRect : register(c5);\n"
+// c_HalfTexel: Offset of a half of a texel in texture coordinates (used when scaling)
+"uniform float4 c_HalfTexel : register(c6);\n"
 // c_DisableAlpha: If true, alpha will read as 1 from the source
-"uniform bool c_DisableAlpha : register(c6);\n"
+"uniform bool c_DisableAlpha : register(c7);\n"
 
 // Samplers
 "uniform sampler s_EFBTexture : register(s0);\n"
 
+// DEPTH should be 1 on, 0 off
+"#ifndef DEPTH\n"
+"#error DEPTH not defined.\n"
+"#endif\n"
+
+// SCALE should be 1 on, 0 off
+"#ifndef SCALE\n"
+"#error SCALE not defined.\n"
+"#endif\n"
+
+"#if DEPTH\n"
+"float4 Fetch(float2 coord)\n"
+"{\n"
+	// DX9 doesn't have strict floating-point precision requirements. This is a
+	// careful way of translating Z24 to R8 G8 B8.
+	// Ref: <http://www.horde3d.org/forums/viewtopic.php?f=1&t=569>
+	// Ref: <http://code.google.com/p/dolphin-emu/source/detail?r=6217>
+	"float depth = 255.99998474121094 * tex2D(s_EFBTexture, coord).r;\n"
+	"float4 result = depth.rrrr;\n"
+
+	"result.a = floor(result.a);\n" // bits 31..24
+
+	"result.rgb -= result.a;\n"
+	"result.rgb *= 256.0;\n"
+	"result.r = floor(result.r);\n" // bits 23..16
+
+	"result.gb -= result.r;\n"
+	"result.gb *= 256.0;\n"
+	"result.g = floor(result.g);\n" // bits 15..8
+
+	"result.b -= result.g;\n"
+	"result.b *= 256.0;\n"
+	"result.b = floor(result.b);\n" // bits 7..0
+
+	"result = float4(result.arg / 255.0, 1.0);\n"
+	"return result;\n"
+"}\n"
+"#else\n"
+"float4 Fetch(float2 coord)\n"
+"{\n"
+	"return tex2D(s_EFBTexture, coord);\n"
+"}\n"
+"#endif\n" // #if DEPTH
+
+"#if SCALE\n"
+"float4 ScaledFetch(float2 coord)\n"
+"{\n"
+	// coord is in the center of a 2x2 square of texels. Sample from the center
+	// of these texels and average them.
+	"float4 s0 = Fetch(coord + c_HalfTexel.xy*float2(-1,-1));\n"
+	"float4 s1 = Fetch(coord + c_HalfTexel.xy*float2(1,-1));\n"
+	"float4 s2 = Fetch(coord + c_HalfTexel.xy*float2(-1,1));\n"
+	"float4 s3 = Fetch(coord + c_HalfTexel.xy*float2(1,1));\n"
+	// Box filter
+	"return 0.25 * (s0 + s1 + s2 + s3);\n"
+"}\n"
+"#else\n"
+"float4 ScaledFetch(float2 coord)\n"
+"{\n"
+	"return Fetch(coord);\n"
+"}\n"
+"#endif\n" // #if SCALE
+
 // Main entry point
 "void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)\n"
 "{\n"
-	// TODO: Implement fully
 	"float2 coord = lerp(c_SourceRect.xy, c_SourceRect.zw, uv0.xy);\n"
-	"float4 pixel = tex2D(s_EFBTexture, coord);\n"
+	"float4 pixel = ScaledFetch(coord);\n"
 	"if (c_DisableAlpha)\n"
 		"pixel.a = 1;\n"
 	"ocol0 = mul(pixel, c_Matrix) + c_Add;\n"
@@ -63,31 +128,39 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 ;
 
 VirtualCopyShaderManager::VirtualCopyShaderManager()
-	: m_shader(NULL)
-{ }
+{
+	memset(m_shaders, 0, sizeof(m_shaders));
+}
 
 VirtualCopyShaderManager::~VirtualCopyShaderManager()
 {
-	SAFE_RELEASE(m_shader);
+	for (int i = 0; i < 4; ++i)
+		SAFE_RELEASE(m_shaders[i]);
 }
 
 LPDIRECT3DPIXELSHADER9 VirtualCopyShaderManager::GetShader(bool scale, bool depth)
 {
-	if (!m_shader)
+	int key = MakeKey(scale, depth);
+	if (!m_shaders[key])
 	{
 		INFO_LOG(VIDEO, "Compiling virtual efb copy shader scale %d, depth %d",
 			scale ? 1 : 0, depth ? 1 : 0);
 
-		m_shader = D3D::CompileAndCreatePixelShader(VIRTUAL_EFB_COPY_PS,
-			sizeof(VIRTUAL_EFB_COPY_PS));
-		if (!m_shader)
+		D3DXMACRO macros[] = {
+			{ "DEPTH", depth ? "1" : "0" },
+			{ "SCALE", scale ? "1" : "0" },
+			{ NULL, NULL }
+		};
+		m_shaders[key] = D3D::CompileAndCreatePixelShader(VIRTUAL_EFB_COPY_PS,
+			sizeof(VIRTUAL_EFB_COPY_PS), macros);
+		if (!m_shaders[key])
 		{
 			ERROR_LOG(VIDEO, "Failed to create virtual EFB copy pixel shader");
 			return NULL;
 		}
 	}
 
-	return m_shader;
+	return m_shaders[key];
 }
 
 VirtualEFBCopy::VirtualEFBCopy()
@@ -251,7 +324,7 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
 	}
 
 	VirtualizeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
-		srcRect, newVirtualW, newVirtualH,
+		correctSrc, newVirtualW, newVirtualH,
 		colorMatrix, colorAdd);
 
 	m_realW = newRealW;
@@ -329,6 +402,13 @@ void VirtualEFBCopy::VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int src
 		FLOAT(targetRect.bottom) / Renderer::GetTargetHeight()
 	};
 	D3D::dev->SetPixelShaderConstantF(C_SOURCERECT_LOC, cSourceRect, 1);
+	// FIXME: I'm not sure if the box filter is sampling the right locations.
+	// It seems to be very slightly off.
+	FLOAT cHalfTexel[4] = {
+		0.5f / targetRect.GetWidth(), 0.5f / targetRect.GetHeight(),
+		0.f, 0.f
+	};
+	D3D::dev->SetPixelShaderConstantF(C_HALFTEXEL_LOC, cHalfTexel, 1);
 	BOOL cDisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24) ? TRUE : FALSE;
 	D3D::dev->SetPixelShaderConstantB(C_DISABLEALPHA_LOC, &cDisableAlpha, 1);
 

@@ -126,11 +126,11 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
+	LPDIRECT3DTEXTURE9 bindThese[8] = { 0 };
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
-			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
 
 			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
@@ -140,21 +140,31 @@ void VertexManager::vFlush()
 			u32 format = tex.texImage0[i&3].format;
 			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
 			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
-			
-			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
 
 			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
 				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 			if (entry)
-			{
-				D3D::SetTexture(i, entry->GetTexture());
-			}
+				bindThese[i] = entry->GetTexture();
 			else
-			{
 				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
-				D3D::SetTexture(i, NULL);
-			}
+		}
+	}
+
+	// Bind and set samplers down here, because TextureCache::LoadEntry may
+	// clobber the render state.
+	for (int i = 0; i < 8; ++i)
+	{
+		if (usedtextures & (1 << i))
+		{
+			g_renderer->SetSamplerState(i & 3, i >> 2);
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+		
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			D3D::SetTexture(i, bindThese[i]);
 		}
 		else
 			D3D::SetTexture(i, NULL);
