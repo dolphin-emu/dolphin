@@ -22,6 +22,7 @@
 
 #include "D3DUtil.h"
 #include "VirtualEFBCopy.h"
+#include "DepalettizeShader.h"
 
 namespace DX9
 {
@@ -43,6 +44,9 @@ protected:
 
 private:
 
+	void Load(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
+		u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
 	void CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT d3dFormat);
 
 	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
@@ -51,19 +55,55 @@ private:
 	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
 
+	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if palette is dirty
+	bool RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat);
+
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
 	u32 m_curHeight;
 	u32 m_curLevels;
 	u32 m_curFormat;
 	u64 m_curHash;
-
-	// Attributes of currently-loaded palette (if any)
-	u64 m_curPaletteHash;
+	
 	u32 m_curTlutFormat;
+	u64 m_curPaletteHash; // Hash of palette data in TMEM
 
 	D3DFORMAT m_curD3DFormat;
 	LPDIRECT3DTEXTURE9 m_ramTexture;
+
+	// Currently-loaded palette (if any)
+	struct Palette
+	{
+		Palette()
+			: tex(NULL)
+		{ }
+
+		LPDIRECT3DTEXTURE9 tex;
+		D3DFORMAT d3dFormat;
+		UINT numColors;
+	} m_palette;
+
+	// If loaded texture is paletted, this contains depalettized data.
+	// Otherwise, this is not used.
+	struct DepalStorage
+	{
+		DepalStorage()
+			: tex(NULL)
+		{ }
+
+		LPDIRECT3DTEXTURE9 tex;
+		UINT width;
+		UINT height;
+		// FIXME: Can paletted textures have more than one mip level?
+	} m_depalStorage;
+
+	LPDIRECT3DTEXTURE9 m_loaded;
+	bool m_loadedDirty;
+	bool m_loadedIsPaletted;
+	LPDIRECT3DTEXTURE9 m_depalettized;
 
 	LPDIRECT3DTEXTURE9 m_bindMe;
 
@@ -84,6 +124,7 @@ public:
 
 	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
 	VirtualCopyShaderManager& GetVirtShaderManager() { return m_virtShaderManager; }
+	DepalettizeShader& GetDepalShader() { return m_depalShader; }
 
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 
@@ -95,6 +136,7 @@ private:
 
 	VirtualEFBCopyMap m_virtCopyMap;
 	VirtualCopyShaderManager m_virtShaderManager;
+	DepalettizeShader m_depalShader;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 

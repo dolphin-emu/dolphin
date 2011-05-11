@@ -22,6 +22,7 @@
 #include "FramebufferManager.h"
 #include "Hash.h"
 #include "HW/Memmap.h"
+#include "LookUpTables.h"
 #include "Render.h"
 #include "TextureConverter.h"
 #include "Tmem.h"
@@ -31,6 +32,10 @@ namespace DX9
 {
 
 #define SAFE_RELEASE(p) if (p) { (p)->Release(); (p) = NULL; }
+	
+inline bool IsPaletted(u32 format) {
+	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
+}
 
 TCacheEntry::TCacheEntry()
 	: m_ramTexture(NULL), m_bindMe(NULL)
@@ -38,12 +43,9 @@ TCacheEntry::TCacheEntry()
 
 TCacheEntry::~TCacheEntry()
 {
+	SAFE_RELEASE(m_depalStorage.tex);
+	SAFE_RELEASE(m_palette.tex);
 	SAFE_RELEASE(m_ramTexture);
-}
-
-inline bool IsPaletted(u32 format)
-{
-	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
 }
 
 // Compute the maximum number of mips a texture of given dims could have
@@ -62,15 +64,28 @@ static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 	return levels;
 }
 
-void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height,
+	u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
+	m_loaded = NULL;
+	m_loadedDirty = false;
+	m_loadedIsPaletted = false;
+	m_depalettized = NULL;
 	m_bindMe = NULL;
 	
 	// This is the earliest possible place to correct mip levels. Do so.
 	unsigned int maxLevels = ComputeMaxLevels(width, height);
 	levels = std::min(levels, maxLevels);
 
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+	m_bindMe = m_depalettized;
+}
+
+void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
 	bool refreshFromRam = true;
 
 	// See if there is a virtual EFB copy available at this address
@@ -220,7 +235,10 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curTlutFormat = tlutFormat;
 
 	m_curD3DFormat = d3dFormat;
-	m_bindMe = m_ramTexture;
+	m_loaded = m_ramTexture;
+	m_loadedDirty = reloadTexture;
+	// TODO: Depalettize RAM textures
+	m_loadedIsPaletted = false;
 }
 
 bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -277,9 +295,174 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	m_curFormat = format;
 	m_curHash = newHash;
 
-	m_bindMe = virtualized;
+	m_loaded = virtualized;
+	m_loadedDirty = virt->IsDirty();
 	virt->ResetDirty();
+	m_loadedIsPaletted = IsPaletted(format);
 	return true;
+}
+
+void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	if (m_loadedIsPaletted)
+	{
+		bool paletteDirty = RefreshPalette(format, tlutAddr, tlutFormat);
+
+		D3DSURFACE_DESC loadedDesc;
+		m_loaded->GetLevelDesc(0, &loadedDesc);
+
+		bool recreateDepal = !m_depalStorage.tex ||
+			loadedDesc.Width != m_depalStorage.width ||
+			loadedDesc.Height != m_depalStorage.height;
+
+		if (recreateDepal)
+		{
+			// Create depalettized texture storage
+
+			// TODO: Delete on device reset
+			SAFE_RELEASE(m_depalStorage.tex);
+			HRESULT hr = D3D::dev->CreateTexture(loadedDesc.Width, loadedDesc.Height,
+				1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT,
+				&m_depalStorage.tex, NULL);
+			if (FAILED(hr))
+			{
+				ERROR_LOG(VIDEO, "Failed to create texture for depalettized image");
+				return;
+			}
+
+			m_depalStorage.width = loadedDesc.Width;
+			m_depalStorage.height = loadedDesc.Height;
+		}
+
+		bool runDepalShader = recreateDepal || m_loadedDirty || paletteDirty;
+		if (runDepalShader)
+		{
+			DepalettizeShader::BaseType baseType = DepalettizeShader::Unorm8;
+			// TODO: Support GX_TF_C14X2
+			if (format == GX_TF_C4)
+				baseType = DepalettizeShader::Unorm4;
+			else if (format == GX_TF_C8)
+				baseType = DepalettizeShader::Unorm8;
+
+			((TextureCache*)g_textureCache)->GetDepalShader().Depalettize(
+				m_depalStorage.tex, m_loaded, baseType, m_palette.tex);
+		}
+
+		m_depalettized = m_depalStorage.tex;
+	}
+	else
+	{
+		SAFE_RELEASE(m_depalStorage.tex);
+		SAFE_RELEASE(m_palette.tex);
+		m_depalettized = m_loaded;
+	}
+}
+
+// TODO: Move this stuff into TextureDecoder or something
+
+static void DecodeIA8Palette(u32* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		u8 intensity = src[i] & 0xFF;
+		u8 alpha = src[i] >> 8;
+		dst[i] = (alpha << 24) | (intensity << 16) | (intensity << 8) | intensity;
+	}
+}
+
+static void DecodeRGB565Palette(u32* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		u16 color = Common::swap16(src[i]);
+		u8 red8 = Convert5To8(color >> 11);
+		u8 green8 = Convert6To8((color >> 5) & 0x3F);
+		u8 blue8 = Convert5To8(color & 0x1F);
+		dst[i] = (0xFF << 24) | (red8 << 16) | (green8 << 8) | blue8;
+	}
+}
+
+static inline u32 decode5A3(u16 val)
+{
+	int r,g,b,a;
+	if ((val & 0x8000))
+	{
+		a = 0xFF;
+		r = Convert5To8((val >> 10) & 0x1F);
+		g = Convert5To8((val >> 5) & 0x1F);
+		b = Convert5To8(val & 0x1F);
+	}
+	else
+	{
+		a = Convert3To8((val >> 12) & 0x7);
+		r = Convert4To8((val >> 8) & 0xF);
+		g = Convert4To8((val >> 4) & 0xF);
+		b = Convert4To8(val & 0xF);
+	}
+	return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		dst[i] = decode5A3(Common::swap16(src[i]));
+	}
+}
+
+bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	HRESULT hr;
+
+	// TODO: Do R5G6B5 format and others
+	D3DFORMAT d3dFormat = D3DFMT_A8R8G8B8;
+	UINT numColors = TexDecoder_GetNumColors(format);
+
+	bool recreatePaletteTex = !m_palette.tex || d3dFormat != m_palette.d3dFormat
+		|| numColors != m_palette.numColors;
+	if (recreatePaletteTex)
+	{
+		SAFE_RELEASE(m_palette.tex);
+		hr = D3D::dev->CreateTexture(numColors, 1, 1, 0, d3dFormat, D3DPOOL_MANAGED, &m_palette.tex, NULL);
+		if (FAILED(hr)) {
+			ERROR_LOG(VIDEO, "Failed to create palette texture");
+			return false;
+		}
+
+		m_palette.d3dFormat = d3dFormat;
+		m_palette.numColors = numColors;
+	}
+
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+	u32 paletteSize = numColors*2;
+	u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+
+	bool reloadPalette = recreatePaletteTex ||
+		tlutFormat != m_curTlutFormat || newPaletteHash != m_curPaletteHash;
+	if (reloadPalette)
+	{
+		D3DLOCKED_RECT lock;
+		hr = m_palette.tex->LockRect(0, &lock, NULL, 0);
+		if (FAILED(hr)) {
+			ERROR_LOG(VIDEO, "Failed to lock palette texture");
+			return false;
+		}
+
+		switch (tlutFormat)
+		{
+		case GX_TL_IA8: DecodeIA8Palette((u32*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB565: DecodeRGB565Palette((u32*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)lock.pBits, tlut, numColors); break;
+		}
+
+		m_palette.tex->UnlockRect(0);
+
+		m_curTlutFormat = tlutFormat;
+		m_curPaletteHash = newPaletteHash;
+	}
+
+	return reloadPalette;
 }
 
 void TextureCache::TeardownDeviceObjects()

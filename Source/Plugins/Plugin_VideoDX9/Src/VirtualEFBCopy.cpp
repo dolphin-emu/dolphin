@@ -354,13 +354,6 @@ LPDIRECT3DTEXTURE9 VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height
 		"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x7",
 		"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
 	};
-
-	if (!force && IsPaletted(format))
-	{
-		// TODO: Support interpreting virtual EFB copies with palettes
-		INFO_LOG(VIDEO, "Paletted virtual EFB copies not implemented; falling back to RAM");
-		return NULL;
-	}
 	
 	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
 		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
@@ -392,8 +385,39 @@ void VirtualEFBCopy::VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int src
 	D3D::dev->SetViewport(&vp);
 
 	// Set shader constants
-	D3D::dev->SetPixelShaderConstantF(C_MATRIX_LOC, colorMatrix, 4);
-	D3D::dev->SetPixelShaderConstantF(C_ADD_LOC, colorAdd, 1);
+
+	// TODO: Move this to a common place
+	static const float YUVA_MATRIX[16] = {
+		0.257f, 0.504f, 0.098f, 0.f,
+		-0.148f, -0.291f, 0.439f, 0.f,
+		0.439f, -0.368f, -0.071f, 0.f,
+		0.f, 0.f, 0.f, 1.f
+	};
+	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
+
+	if (yuva)
+	{
+		// Combine YUVA matrix with color matrix
+		Matrix44 colorMat;
+		Matrix44::Set(colorMat, colorMatrix);
+		Matrix44 yuvaMat;
+		Matrix44::Set(yuvaMat, YUVA_MATRIX);
+		Matrix44 combinedMat;
+		Matrix44::Multiply(yuvaMat, colorMat, combinedMat);
+
+		float combinedAdd[4];
+		for (int i = 0; i < 3; ++i)
+			combinedAdd[i] = colorAdd[i] + YUV_ADD[i];
+		combinedAdd[3] = colorAdd[3];
+
+		D3D::dev->SetPixelShaderConstantF(C_MATRIX_LOC, combinedMat.data, 4);
+		D3D::dev->SetPixelShaderConstantF(C_ADD_LOC, combinedAdd, 1);
+	}
+	else
+	{
+		D3D::dev->SetPixelShaderConstantF(C_MATRIX_LOC, colorMatrix, 4);
+		D3D::dev->SetPixelShaderConstantF(C_ADD_LOC, colorAdd, 1);
+	}
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
 	FLOAT cSourceRect[4] = {
 		FLOAT(targetRect.left) / Renderer::GetTargetWidth(),

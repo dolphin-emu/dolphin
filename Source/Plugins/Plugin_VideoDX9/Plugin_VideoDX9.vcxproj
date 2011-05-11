@@ -197,6 +197,7 @@
     <ClCompile Include="Src\D3DShader.cpp" />
     <ClCompile Include="Src\D3DTexture.cpp" />
     <ClCompile Include="Src\D3DUtil.cpp" />
+    <ClCompile Include="Src\DepalettizeShader.cpp" />
     <ClCompile Include="Src\FramebufferManager.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
@@ -221,6 +222,7 @@
     <ClInclude Include="Src\D3DShader.h" />
     <ClInclude Include="Src\D3DTexture.h" />
     <ClInclude Include="Src\D3DUtil.h" />
+    <ClInclude Include="Src\DepalettizeShader.h" />
     <ClInclude Include="Src\FramebufferManager.h" />
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\main.h" />

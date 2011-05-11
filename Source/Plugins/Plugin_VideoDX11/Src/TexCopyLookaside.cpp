@@ -399,7 +399,7 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 			Matrix44 yuvaMat;
 			Matrix44::Set(yuvaMat, YUVA_MATRIX);
 			Matrix44 combinedMat;
-			Matrix44::Multiply(colorMat, yuvaMat, combinedMat);
+			Matrix44::Multiply(yuvaMat, colorMat, combinedMat);
 
 			memcpy(params->Matrix, combinedMat.data, 4*4*sizeof(float));
 

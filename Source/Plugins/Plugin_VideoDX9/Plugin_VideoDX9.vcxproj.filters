@@ -42,6 +42,9 @@
     <ClCompile Include="Src\VirtualEFBCopy.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\DepalettizeShader.cpp">
+      <Filter>D3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -83,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="Src\VirtualEFBCopy.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\DepalettizeShader.h">
+      <Filter>D3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
