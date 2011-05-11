@@ -80,7 +80,11 @@ void DepalettizeShader::Depalettize(LPDIRECT3DTEXTURE9 dstTex,
 
 	// Set shader inputs
 	// Texture 0 will be set to baseTex by drawShadedTexQuad
+	D3D::SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	D3D::SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	D3D::SetTexture(1, paletteTex);
+	D3D::SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	D3D::SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	
 	// Depalettize!
 	RECT rectSrc = { 0, 0, 1, 1 };

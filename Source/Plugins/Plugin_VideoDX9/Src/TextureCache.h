@@ -35,6 +35,8 @@ public:
 	TCacheEntry();
 	~TCacheEntry();
 
+	void TeardownDeviceObjects();
+
 	LPDIRECT3DTEXTURE9 GetTexture() { return m_bindMe; }
 
 protected:

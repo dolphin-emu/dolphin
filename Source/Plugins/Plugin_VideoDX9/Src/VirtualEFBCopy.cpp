@@ -435,6 +435,9 @@ void VirtualEFBCopy::VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int src
 	D3D::dev->SetPixelShaderConstantF(C_HALFTEXEL_LOC, cHalfTexel, 1);
 	BOOL cDisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24) ? TRUE : FALSE;
 	D3D::dev->SetPixelShaderConstantB(C_DISABLEALPHA_LOC, &cDisableAlpha, 1);
+	
+	D3D::SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	D3D::SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
 	// Encode!
 	RECT rectSrc = { 0, 0, 1, 1 };

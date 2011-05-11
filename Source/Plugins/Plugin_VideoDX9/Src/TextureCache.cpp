@@ -48,6 +48,12 @@ TCacheEntry::~TCacheEntry()
 	SAFE_RELEASE(m_ramTexture);
 }
 
+void TCacheEntry::TeardownDeviceObjects()
+{
+	SAFE_RELEASE(m_palette.tex);
+	SAFE_RELEASE(m_depalStorage.tex);
+}
+
 // Compute the maximum number of mips a texture of given dims could have
 // Some games (Luigi's Mansion for example) try to use too many mip levels.
 static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
@@ -320,7 +326,6 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		{
 			// Create depalettized texture storage
 
-			// TODO: Delete on device reset
 			SAFE_RELEASE(m_depalStorage.tex);
 			HRESULT hr = D3D::dev->CreateTexture(loadedDesc.Width, loadedDesc.Height,
 				1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT,
@@ -424,7 +429,8 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 	if (recreatePaletteTex)
 	{
 		SAFE_RELEASE(m_palette.tex);
-		hr = D3D::dev->CreateTexture(numColors, 1, 1, 0, d3dFormat, D3DPOOL_MANAGED, &m_palette.tex, NULL);
+		hr = D3D::dev->CreateTexture(numColors, 1, 1, D3DUSAGE_DYNAMIC, d3dFormat,
+			D3DPOOL_DEFAULT, &m_palette.tex, NULL);
 		if (FAILED(hr)) {
 			ERROR_LOG(VIDEO, "Failed to create palette texture");
 			return false;
@@ -443,7 +449,7 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 	if (reloadPalette)
 	{
 		D3DLOCKED_RECT lock;
-		hr = m_palette.tex->LockRect(0, &lock, NULL, 0);
+		hr = m_palette.tex->LockRect(0, &lock, NULL, D3DLOCK_DISCARD);
 		if (FAILED(hr)) {
 			ERROR_LOG(VIDEO, "Failed to lock palette texture");
 			return false;
@@ -471,6 +477,9 @@ void TextureCache::TeardownDeviceObjects()
 	// resources. Virtual copies contain these, so they will all disappear.
 	// TODO: Can we store virtual copies in D3DPOOL_MANAGED resources?
 	m_virtCopyMap.clear();
+	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it) {
+		((TCacheEntry*)it->second.get())->TeardownDeviceObjects();
+	}
 }
 
 void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
