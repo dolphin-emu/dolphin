@@ -644,9 +644,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 }
 
+// Viewport correction:
+// Say you want a viewport at (ix, iy) with size (iw, ih),
+// but your viewport must be clamped at (ax, ay) with size (aw, ah).
+// Just multiply the projection matrix with the following to get the same
+// effect:
+// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
+// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
+// [         0         0     1                              0   ]
+// [         0         0     0                              1   ]
 static void ViewportCorrectionMatrix(Matrix44& result,
 	float ix, float iy, float iw, float ih, // Intended viewport (x, y, width, height)
-	float ax, float ay, float aw, float ah) // Actual viewport
+	float ax, float ay, float aw, float ah) // Actual viewport (x, y, width, height)
 {
 	Matrix44::LoadIdentity(result);
 	if (aw == 0.f || ah == 0.f)
@@ -672,55 +681,43 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: Directly use the floats instead of rounding them?
-	float efbLeft = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
-	float efbTop = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
-	float efbWidth = 2.f * xfregs.viewport.wd;
-	float efbHeight = -2.f * xfregs.viewport.ht;
-	
-	// TODO: ceil, floor or just cast to int?
-	int intendedX = EFBToScaledX((int)ceil(efbLeft));
-	int intendedY = EFBToScaledY((int)ceil(efbTop));
-	int intendedWidth = EFBToScaledX((int)ceil(efbWidth));
-	int intendedHeight = EFBToScaledY((int)ceil(efbHeight));
-	if (intendedWidth < 0)
+	int intendedX = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
+	int intendedY = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
+	int intendedWd = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int intendedHt = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
+	if (intendedWd < 0)
 	{
-		intendedX += intendedWidth;
-		intendedWidth = -intendedWidth;
+		intendedX += intendedWd;
+		intendedWd = -intendedWd;
 	}
-	if (intendedHeight < 0)
+	if (intendedHt < 0)
 	{
-		intendedY += intendedHeight;
-		intendedHeight = -intendedHeight;
+		intendedY += intendedHt;
+		intendedHt = -intendedHt;
 	}
 
+	// In D3D, the viewport rectangle must fit within the render target.
 	int X = intendedX;
 	if (X < 0)
 		X = 0;
-
 	int Y = intendedY;
 	if (Y < 0)
 		Y = 0;
+	int Wd = intendedWd;
+	if (X + Wd > GetTargetWidth())
+		Wd = GetTargetWidth() - X;
+	int Ht = intendedHt;
+	if (Y + Ht > GetTargetHeight())
+		Ht = GetTargetHeight() - Y;
 
-	int Width = intendedWidth;
-	if (X + Width > GetTargetWidth())
-		Width = GetTargetWidth() - X;
-
-	int Height = intendedHeight;
-	if (Y + Height > GetTargetHeight())
-		Height = GetTargetHeight() - Y;
-	
-	// If GX viewport is off the render target, we must clamp our viewport into
-	// the bounds. Use the correction matrix to compensate.
+	// If GX viewport is off the render target, we must clamp our viewport
+	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWidth, intendedHeight,
-		X, Y, Width, Height);
+		intendedX, intendedY, intendedWd, intendedHt,
+		X, Y, Wd, Ht);
 
-	float newx = (float)X;
-	float newy = (float)Y;
-	float newwidth = (float)Width;
-	float newheight = (float)Height;
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::g_context->RSSetViewports(1, &vp);
@@ -1132,7 +1129,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	Renderer::RestoreAPIState();
 	D3D::BeginFrame();
 	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	VertexShaderManager::SetViewportChanged(); // Causes viewport to be recomputed
+	VertexShaderManager::SetViewportChanged();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;

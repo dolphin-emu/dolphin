@@ -112,7 +112,6 @@ public:
 	// Finish up the current frame, print some stats
 	virtual void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;
 
-	// Returns a viewport correction matrix
 	virtual void UpdateViewport(Matrix44& vpCorrection) = 0;
 
 	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;

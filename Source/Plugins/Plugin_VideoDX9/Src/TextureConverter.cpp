@@ -211,7 +211,7 @@ void Shutdown()
 		TrnBuffers[i].Width = 0;
 		TrnBuffers[i].Height = 0;
 	}
-	WorkingBuffers = 0;	
+	WorkingBuffers = 0;
 }
 
 void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
@@ -392,16 +392,15 @@ u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
 {
-	// TODO: Set correct parameters
-	//TextureConversionShader::SetShaderParameters(
-	//	(float)dstWidth, 
-	//	(float)dstHeight, 
-	//	0.0f , 
-	//	0.0f, 
-	//	1.0f, 
-	//	1.0f,
-	//	(float)Renderer::GetFullTargetWidth(),
-	//	(float)Renderer::GetFullTargetHeight());
+	TextureConversionShader::SetShaderParameters(
+		(float)dstWidth, 
+		(float)dstHeight, 
+		0.0f , 
+		0.0f, 
+		1.0f, 
+		1.0f,
+		(float)Renderer::GetTargetWidth(),
+		(float)Renderer::GetTargetHeight());
 	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false,Gamma);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());

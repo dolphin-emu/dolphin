@@ -692,9 +692,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 }
 
+// Viewport correction:
+// Say you want a viewport at (ix, iy) with size (iw, ih),
+// but your viewport must be clamped at (ax, ay) with size (aw, ah).
+// Just multiply the projection matrix with the following to get the same
+// effect:
+// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
+// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
+// [         0         0     1                              0   ]
+// [         0         0     0                              1   ]
 static void ViewportCorrectionMatrix(Matrix44& result,
 	float ix, float iy, float iw, float ih, // Intended viewport (x, y, width, height)
-	float ax, float ay, float aw, float ah) // Actual viewport
+	float ax, float ay, float aw, float ah) // Actual viewport (x, y, width, height)
 {
 	Matrix44::LoadIdentity(result);
 	if (aw == 0.f || ah == 0.f)
@@ -718,56 +727,48 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
-
-	float efbLeft = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
-	float efbTop = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
-	float efbWidth = 2.f * xfregs.viewport.wd;
-	float efbHeight = -2.f * xfregs.viewport.ht;
 	
 	// TODO: ceil, floor or just cast to int?
-	int intendedX = EFBToScaledX((int)ceil(efbLeft));
-	int intendedY = EFBToScaledY((int)ceil(efbTop));
-	int intendedWidth = EFBToScaledX((int)ceil(efbWidth));
-	int intendedHeight = EFBToScaledY((int)ceil(efbHeight));
-	if (intendedWidth < 0)
+	int intendedX = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
+	int intendedY = EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
+	int intendedWd = EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int intendedHt = EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
+	if (intendedWd < 0)
 	{
-		intendedX += intendedWidth;
-		intendedWidth = -intendedWidth;
+		intendedX += intendedWd;
+		intendedWd = -intendedWd;
 	}
-	if (intendedHeight < 0)
+	if (intendedHt < 0)
 	{
-		intendedY += intendedHeight;
-		intendedHeight = -intendedHeight;
+		intendedY += intendedHt;
+		intendedHt = -intendedHt;
 	}
 
-	// In D3D9, the viewport rectangle must fit within the render target.
+	// In D3D, the viewport rectangle must fit within the render target.
 	int X = intendedX;
 	if (X < 0)
 		X = 0;
-
 	int Y = intendedY;
 	if (Y < 0)
 		Y = 0;
+	int Wd = intendedWd;
+	if (X + Wd > GetTargetWidth())
+		Wd = GetTargetWidth() - X;
+	int Ht = intendedHt;
+	if (Y + Ht > GetTargetHeight())
+		Ht = GetTargetHeight() - Y;
 
-	int Width = intendedWidth;
-	if (X + Width > GetTargetWidth())
-		Width = GetTargetWidth() - X;
-
-	int Height = intendedHeight;
-	if (Y + Height > GetTargetHeight())
-		Height = GetTargetHeight() - Y;
-	
-	// If GX viewport is off the render target, we must clamp our viewport into
-	// the bounds. Use the correction matrix to compensate.
+	// If GX viewport is off the render target, we must clamp our viewport
+	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWidth, intendedHeight,
-		X, Y, Width, Height);
+		intendedX, intendedY, intendedWd, intendedHt,
+		X, Y, Wd, Ht);
 
 	D3DVIEWPORT9 vp;
 	vp.X = X;
 	vp.Y = Y;
-	vp.Width = Width;
-	vp.Height = Height;
+	vp.Width = Wd;
+	vp.Height = Ht;
 	
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f; // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
@@ -806,8 +807,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-	D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF),
-		PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	RestoreAPIState();
 }
 
@@ -954,9 +954,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
-		D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(),
-			0, 1.0,
-			PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+		D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), 0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	}
 	else
 	{
@@ -1049,8 +1047,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			Renderer::GetTargetWidth(),Renderer::GetTargetHeight(),
 			Width,Height,
 			PixelShaderCache::GetColorCopyProgram(g_ActiveConfig.iMultisampleMode),
-			VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),
-			Gamma);		
+			VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),Gamma);		
 		
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
@@ -1254,7 +1251,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	VertexShaderManager::SetViewportChanged(); // Causes viewport to be recomputed
+	VertexShaderManager::SetViewportChanged();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1297,7 +1294,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	D3D::SetRenderState(D3DRS_FILLMODE, g_ActiveConfig.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-	VertexShaderManager::SetViewportChanged(); // Causes viewport to be reset later
+	VertexShaderManager::SetViewportChanged();
 	SetScissorRect();
 	if (bpmem.zmode.testenable) {
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);

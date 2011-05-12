@@ -108,7 +108,7 @@ public:
 	const SNANDContent* GetContentByIndex(int _Index) const;
 	const u8* GetTMDView() const { return m_TMDView; }
 	const u8* GetTMDHeader() const { return m_TMDHeader; }
-	const u32 GetTIKSize() const { return m_TIKSize; }
+	u32 GetTIKSize() const { return m_TIKSize; }
 	const u8* GetTIK() const { return m_TIK; }
 
 	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
@@ -534,7 +534,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	File::IOFile pTicketFile(TicketFileName, "wb");
 	if (!pTicketFile)
 	{
-		PanicAlertT("WAD installation failed: error creating %s", TicketFileName);
+		PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
 		return 0;
 	} 
 

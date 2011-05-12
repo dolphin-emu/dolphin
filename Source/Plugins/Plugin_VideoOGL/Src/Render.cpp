@@ -832,8 +832,8 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
 
-	int scissorXOff = bpmem.scissorOffset.x << 1;
-	int scissorYOff = bpmem.scissorOffset.y << 1;
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
 	int X = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - (float)scissorXOff));

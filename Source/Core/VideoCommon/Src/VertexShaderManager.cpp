@@ -49,7 +49,7 @@ static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
-void UpdateViewport();
+void UpdateViewport(Matrix44& vpCorrection);
 
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -423,19 +423,18 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
 			Matrix44::Set(mtxB, g_fProjectionMatrix);
 			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
+			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
 
-			Matrix44::Multiply(mtxA, s_viewportCorrection, mtxB);
-
-			SetMultiVSConstant4fv(C_PROJECTION, 4, &mtxB.data[0]);
+			SetMultiVSConstant4fv(C_PROJECTION, 4, mtxB.data);
 		}
 		else
 		{
 			Matrix44 projMtx;
-			Matrix44::Set(projMtx, &g_fProjectionMatrix[0]);
+			Matrix44::Set(projMtx, g_fProjectionMatrix);
 
 			Matrix44 correctedMtx;
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			SetMultiVSConstant4fv(C_PROJECTION, 4, &correctedMtx.data[0]);
+			SetMultiVSConstant4fv(C_PROJECTION, 4, correctedMtx.data);
 		}
 	}
 }
