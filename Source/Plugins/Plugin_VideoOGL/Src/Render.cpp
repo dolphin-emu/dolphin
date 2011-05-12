@@ -625,10 +625,10 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = EFBToScaledX(rc.left) + TargetStrideX();
-	result.top    = EFBToScaledY(EFB_HEIGHT - rc.top) + TargetStrideY();
-	result.right  = EFBToScaledX(rc.right) - (TargetStrideX() * 2);
-	result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom) - (TargetStrideY() * 2);
+	result.left   = EFBToScaledX(rc.left);
+	result.top    = EFBToScaledY(EFB_HEIGHT - rc.top);
+	result.right  = EFBToScaledX(rc.right);
+	result.bottom = EFBToScaledY(EFB_HEIGHT - rc.bottom);
 	return result;
 }
 
@@ -822,7 +822,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 // Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::UpdateViewport(Matrix44& vpCorrection)
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -832,8 +832,8 @@ void Renderer::UpdateViewport()
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
 
-	int scissorXOff = bpmem.scissorOffset.x << 1;
-	int scissorYOff = bpmem.scissorOffset.y << 1;
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
 	int X = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - (float)scissorXOff));
@@ -852,6 +852,10 @@ void Renderer::UpdateViewport()
 		Y += Height;
 		Height *= -1;
 	}
+
+	// OpenGL does not require any viewport correct
+	Matrix44::LoadIdentity(vpCorrection);
+
 	// Update the view port
 	glViewport(X, Y, Width, Height);
 	glDepthRange(GLNear, GLFar);
@@ -1432,7 +1436,7 @@ void Renderer::RestoreAPIState()
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);
-	UpdateViewport();
+	VertexShaderManager::SetViewportChanged();
 
 	if (g_ActiveConfig.bWireFrame)
  		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

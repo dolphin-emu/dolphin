@@ -130,7 +130,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		// Create texture copy
 		D3D::drawShadedTexQuad(
 			(srcFormat == PIXELFMT_Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
-			&sourcerect, Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
+			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			(srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
 			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 

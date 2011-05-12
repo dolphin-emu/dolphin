@@ -43,12 +43,13 @@ static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
 static int nLightsChanged[2]; // min,max
 
+static Matrix44 s_viewportCorrection;
 static Matrix33 s_viewRotationMatrix;
 static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
-void UpdateViewport();
+void UpdateViewport(Matrix44& vpCorrection);
 
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -301,7 +302,8 @@ void VertexShaderManager::SetConstants()
 		bViewportChanged = false;
 		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
 		// This is so implementation-dependent that we can't have it here.
-		UpdateViewport();
+		UpdateViewport(s_viewportCorrection);
+		bProjectionChanged = true;
 	}
 
 	if (bProjectionChanged)
@@ -421,12 +423,18 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
 			Matrix44::Set(mtxB, g_fProjectionMatrix);
 			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
+			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
 
-			SetMultiVSConstant4fv(C_PROJECTION, 4, &mtxA.data[0]);
+			SetMultiVSConstant4fv(C_PROJECTION, 4, mtxB.data);
 		}
 		else
 		{
-			SetMultiVSConstant4fv(C_PROJECTION, 4, &g_fProjectionMatrix[0]);
+			Matrix44 projMtx;
+			Matrix44::Set(projMtx, g_fProjectionMatrix);
+
+			Matrix44 correctedMtx;
+			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
+			SetMultiVSConstant4fv(C_PROJECTION, 4, correctedMtx.data);
 		}
 	}
 }

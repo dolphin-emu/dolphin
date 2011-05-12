@@ -66,12 +66,6 @@ public:
 	virtual void ApplyState(bool bUseDstAlpha) = 0;
 	virtual void RestoreState() = 0;
 
-	// Real internal resolution:
-	// D3D doesn't support viewports larger than the target size, so we need to resize the target to the viewport size for those.
-	// OpenGL supports this, so GetFullTargetWidth returns the same as GetTargetWidth there.
-	static int GetFullTargetWidth() { return s_Fulltarget_width; }
-	static int GetFullTargetHeight() { return s_Fulltarget_height; }
-
 	// Ideal internal resolution - determined by display resolution (automatic scaling) and/or a multiple of the native EFB resolution
 	static int GetTargetWidth() { return s_target_width; }
 	static int GetTargetHeight() { return s_target_height; }
@@ -99,12 +93,6 @@ public:
 	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
 	static float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
 
-	// Returns the offset at which the EFB will be drawn onto the backbuffer
-	// NOTE: Never calculate this manually (e.g. to "increase accuracy"), since you might end up getting off-by-one errors.
-	//		This is a per-frame constant, so it won't cause any issues.
-	static int TargetStrideX() { return (s_Fulltarget_width - s_target_width) / 2; }
-	static int TargetStrideY() { return (s_Fulltarget_height - s_target_height) / 2; }
-
 	// Random utilities
 	static void SetScreenshot(const char *filename);
 	static void DrawDebugText();
@@ -124,7 +112,7 @@ public:
 	// Finish up the current frame, print some stats
 	virtual void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;
 
-	virtual void UpdateViewport() = 0;
+	virtual void UpdateViewport(Matrix44& vpCorrection) = 0;
 
 	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;
 
@@ -160,10 +148,6 @@ protected:
 	static int s_target_width;
 	static int s_target_height;
 
-	// The custom resolution
-	static int s_Fulltarget_width;
-	static int s_Fulltarget_height;
-
 	// TODO: Add functionality to reinit all the render targets when the window is resized.
 	static int s_backbuffer_width;
 	static int s_backbuffer_height;
@@ -189,7 +173,7 @@ private:
 
 extern Renderer *g_renderer;
 
-void UpdateViewport();
+void UpdateViewport(Matrix44& vpCorrection);
 
 template <typename R>
 void GetScissorRect(MathUtil::Rectangle<R> &rect)

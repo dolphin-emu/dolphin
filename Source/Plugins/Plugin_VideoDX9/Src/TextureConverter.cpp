@@ -207,7 +207,7 @@ void Shutdown()
 		TrnBuffers[i].Width = 0;
 		TrnBuffers[i].Height = 0;
 	}
-	WorkingBuffers = 0;	
+	WorkingBuffers = 0;
 }
 
 void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
@@ -358,12 +358,12 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
-		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
+		(float)Renderer::EFBToScaledX(source.left),
+		(float)Renderer::EFBToScaledY(source.top),
 		Renderer::EFBToScaledXf(sampleStride),
 		Renderer::EFBToScaledYf(sampleStride),
-		(float)Renderer::GetFullTargetWidth(),
-		(float)Renderer::GetFullTargetHeight());
+		(float)Renderer::GetTargetWidth(),
+		(float)Renderer::GetTargetHeight());
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -422,8 +422,8 @@ u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)(Renderer::EFBToScaledX(source.left) + Renderer::TargetStrideX()),
-		(float)(Renderer::EFBToScaledY(source.top) + Renderer::TargetStrideY()),
+		(float)Renderer::EFBToScaledX(source.left),
+		(float)Renderer::EFBToScaledY(source.top),
 		Renderer::EFBToScaledXf(sampleStride),
 		Renderer::EFBToScaledYf(sampleStride),
 		(float)SourceW,
@@ -461,8 +461,8 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		0.0f, 
 		1.0f, 
 		1.0f,
-		(float)Renderer::GetFullTargetWidth(),
-		(float)Renderer::GetFullTargetHeight());
+		(float)Renderer::GetTargetWidth(),
+		(float)Renderer::GetTargetHeight());
 	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false,Gamma);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());

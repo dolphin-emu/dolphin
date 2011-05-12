@@ -1080,10 +1080,10 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		params.NumBlocksY = FLOAT(numBlocksY);
 		params.PosX = FLOAT(correctSrc.left);
 		params.PosY = FLOAT(correctSrc.top);
-		params.TexLeft = float(targetRect.left) / g_renderer->GetFullTargetWidth();
-		params.TexTop = float(targetRect.top) / g_renderer->GetFullTargetHeight();
-		params.TexRight = float(targetRect.right) / g_renderer->GetFullTargetWidth();
-		params.TexBottom = float(targetRect.bottom) / g_renderer->GetFullTargetHeight();
+		params.TexLeft = float(targetRect.left) / g_renderer->GetTargetWidth();
+		params.TexTop = float(targetRect.top) / g_renderer->GetTargetHeight();
+		params.TexRight = float(targetRect.right) / g_renderer->GetTargetWidth();
+		params.TexBottom = float(targetRect.bottom) / g_renderer->GetTargetHeight();
 		D3D::g_context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
 
 		D3D::g_context->VSSetConstantBuffers(0, 1, &m_encodeParams);

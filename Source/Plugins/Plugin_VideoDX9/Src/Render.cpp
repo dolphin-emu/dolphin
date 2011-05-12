@@ -294,7 +294,7 @@ Renderer::Renderer()
 	CalculateTargetSize(SupersampleCoeficient);
 
 	// Make sure to use valid texture sizes
-	D3D::FixTextureSize(s_Fulltarget_width, s_Fulltarget_height);
+	D3D::FixTextureSize(s_target_width, s_target_height);
 
 	s_bLastFrameDumped = false;
 	s_bAVIDumping = false;
@@ -323,8 +323,8 @@ Renderer::Renderer()
 	
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	vp.X = TargetStrideX();
-	vp.Y = TargetStrideY();
+	vp.X = 0;
+	vp.Y = 0;
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
 	D3D::dev->SetViewport(&vp);
@@ -356,10 +356,10 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = EFBToScaledX(rc.left) + TargetStrideX();
-	result.top    = EFBToScaledY(rc.top) + TargetStrideY();
-	result.right  = EFBToScaledX(rc.right) + TargetStrideX();
-	result.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
+	result.left   = EFBToScaledX(rc.left);
+	result.top    = EFBToScaledY(rc.top);
+	result.right  = EFBToScaledX(rc.right);
+	result.bottom = EFBToScaledY(rc.bottom);
 	return result;
 }
 
@@ -454,10 +454,10 @@ bool Renderer::SetScissorRect()
 		rc.top = temp;
 	}
 
-	rc.left   = EFBToScaledX(rc.left) + TargetStrideX();
-	rc.top    = EFBToScaledY(rc.top) + TargetStrideY();
-	rc.right  = EFBToScaledX(rc.right) + TargetStrideX();
-	rc.bottom = EFBToScaledY(rc.bottom) + TargetStrideY();
+	rc.left   = EFBToScaledX(rc.left);
+	rc.top    = EFBToScaledY(rc.top);
+	rc.right  = EFBToScaledX(rc.right);
+	rc.bottom = EFBToScaledY(rc.bottom);
 
 	// Check that the coordinates are good
 	if (rc.right != rc.left && rc.bottom != rc.top)
@@ -468,10 +468,10 @@ bool Renderer::SetScissorRect()
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc.left   = TargetStrideX();
-		rc.top    = TargetStrideY();
-		rc.right  = TargetStrideX() + s_target_width;
-		rc.bottom = TargetStrideY() + s_target_height;
+		rc.left   = 0;
+		rc.top    = 0;
+		rc.right  = s_target_width;
+		rc.bottom = s_target_height;
 		D3D::dev->SetScissorRect(rc.AsRECT());
 	}
 	return false;
@@ -606,8 +606,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::drawShadedTexQuad(
 			read_texture,
 			&RectToLock,
-			Renderer::GetFullTargetWidth(),
-			Renderer::GetFullTargetHeight(),
+			Renderer::GetTargetWidth(),
+			Renderer::GetTargetHeight(),
 			4, 4,
 			PixelShaderCache::GetDepthMatrixProgram(0, bformat != FOURCC_RAWZ),
 			VertexShaderCache::GetSimpleVertexShader(0));
@@ -680,18 +680,40 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	{
 		// TODO: Speed this up by batching pokes?
 		ResetAPIState();
-		D3D::drawColorQuad(GetFullTargetWidth(), GetFullTargetHeight(), poke_data,
-							  (float)RectToLock.left   * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-							- (float)RectToLock.top    * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f,
-							  (float)RectToLock.right  * 2.f / (float)Renderer::GetFullTargetWidth()  - 1.f,
-							- (float)RectToLock.bottom * 2.f / (float)Renderer::GetFullTargetHeight() + 1.f);
+		D3D::drawColorQuad(GetTargetWidth(), GetTargetHeight(), poke_data,
+							  (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+							- (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
+							  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+							- (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
 		RestoreAPIState();
 		return 0;
 	}
 }
 
+// Viewport correction:
+// Say you want a viewport at (ix, iy) with size (iw, ih),
+// but your viewport must be clamped at (ax, ay) with size (aw, ah).
+// Just multiply the projection matrix with the following to get the same
+// effect:
+// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
+// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
+// [         0         0     1                              0   ]
+// [         0         0     0                              1   ]
+static void ViewportCorrectionMatrix(Matrix44& result,
+	float ix, float iy, float iw, float ih, // Intended viewport (x, y, width, height)
+	float ax, float ay, float aw, float ah) // Actual viewport (x, y, width, height)
+{
+	Matrix44::LoadIdentity(result);
+	if (aw == 0.f || ah == 0.f)
+		return;
+	result.data[4*0+0] = iw / aw;
+	result.data[4*0+3] = (iw - 2.f * (ax - ix)) / aw - 1.f;
+	result.data[4*1+1] = ih / ah;
+	result.data[4*1+3] = (-ih + 2.f * (ay - iy)) / ah + 1.f;
+}
+
 // Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::UpdateViewport(Matrix44& vpCorrection)
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -700,98 +722,51 @@ void Renderer::UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
-	const int old_fulltarget_w = Renderer::GetFullTargetWidth();
-	const int old_fulltarget_h = Renderer::GetFullTargetHeight();
 
-	int scissorXOff = bpmem.scissorOffset.x << 1;
-	int scissorYOff = bpmem.scissorOffset.y << 1;
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
-	int X = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff)) + TargetStrideX();
-	int Y = EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff)) + TargetStrideY();
-	int Width = EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
-	int Height = EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
-	if (Width < 0)
+	int intendedX = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
+	int intendedY = EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
+	int intendedWd = EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
+	int intendedHt = EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
+	if (intendedWd < 0)
 	{
-		X += Width;
-		Width *= -1;
+		intendedX += intendedWd;
+		intendedWd = -intendedWd;
 	}
-	if (Height < 0)
+	if (intendedHt < 0)
 	{
-		Y += Height;
-		Height *= -1;
+		intendedY += intendedHt;
+		intendedHt = -intendedHt;
 	}
-	bool sizeChanged = false;
+
+	// In D3D, the viewport rectangle must fit within the render target.
+	int X = intendedX;
 	if (X < 0)
-	{
-		s_Fulltarget_width -= 2 * X;
 		X = 0;
-		sizeChanged=true;
-	}
+	int Y = intendedY;
 	if (Y < 0)
-	{
-		s_Fulltarget_height -= 2 * Y;
 		Y = 0;
-		sizeChanged = true;
-	}
-	if (!IS_AMD)
-	{
-		if(X + Width > Renderer::GetFullTargetWidth())
-		{
-			s_Fulltarget_width += (X + Width - Renderer::GetFullTargetWidth()) * 2;
-			sizeChanged = true;
-		}
-		if(Y + Height > Renderer::GetFullTargetHeight())
-		{
-			s_Fulltarget_height += (Y + Height - Renderer::GetFullTargetHeight()) * 2;
-			sizeChanged = true;
-		}
-	}
+	int Wd = intendedWd;
+	if (X + Wd > GetTargetWidth())
+		Wd = GetTargetWidth() - X;
+	int Ht = intendedHt;
+	if (Y + Ht > GetTargetHeight())
+		Ht = GetTargetHeight() - Y;
 
-	// TODO: If the size hasn't changed for X frames, we should probably shrink the EFB texture for performance reasons
-	if (sizeChanged)
-	{
-		const int ideal_width = s_Fulltarget_width;
-		const int ideal_height = s_Fulltarget_height;
-
-		// Make sure that the requested size is actually supported by the GFX driver
-		D3D::FixTextureSize(s_Fulltarget_width, s_Fulltarget_height);
-
-		// If the new EFB size is big enough for the requested viewport, we just recreate the internal buffer.
-		// Otherwise we use a hack to make the viewport fit into the smaller buffer by rendering at a lower resolution.
-		if (s_Fulltarget_width < ideal_width || s_Fulltarget_height < ideal_height)
-		{
-			// HACK: Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d, keeping the %dx%d EFB now\n", ideal_width, ideal_height, old_fulltarget_w, old_fulltarget_h);
-
-			// Modify the viewport to fit to the old EFB size (effectively makes us render at a lower resolution)
-			X = X * old_fulltarget_w / ideal_width;
-			Y = Y * old_fulltarget_h / ideal_height;
-			Width = Width * old_fulltarget_w / ideal_width;
-			Height = Height * old_fulltarget_h / ideal_height;
-
-			s_Fulltarget_width = old_fulltarget_w;
-			s_Fulltarget_height = old_fulltarget_h;
-		}
-		else
-		{
-			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-
-			delete g_framebuffer_manager;
-			g_framebuffer_manager = new FramebufferManager;
-
-			D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
-			D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-			D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
-		}
-	}
+	// If GX viewport is off the render target, we must clamp our viewport
+	// within the bounds. Use the correction matrix to compensate.
+	ViewportCorrectionMatrix(vpCorrection,
+		intendedX, intendedY, intendedWd, intendedHt,
+		X, Y, Wd, Ht);
 
 	D3DVIEWPORT9 vp;
 	vp.X = X;
 	vp.Y = Y;
-	vp.Width = Width;
-	vp.Height = Height;
+	vp.Width = Wd;
+	vp.Height = Ht;
 	
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f; // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
@@ -830,14 +805,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-	D3D::drawClearQuad(GetFullTargetWidth(), GetFullTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	RestoreAPIState();
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	RECT source;
-	SetRect(&source, 0, 0, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight());
+	SetRect(&source, 0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 
 	LPDIRECT3DPIXELSHADER9 pixel_shader;
 	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6();
@@ -854,13 +829,16 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3DVIEWPORT9 vp;
 	vp.X = 0;
 	vp.Y = 0;
-	vp.Width  = g_renderer->GetFullTargetWidth();
-	vp.Height = g_renderer->GetFullTargetHeight();
+	vp.Width  = g_renderer->GetTargetWidth();
+	vp.Height = g_renderer->GetTargetHeight();
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture(), &source, g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), g_renderer->GetFullTargetWidth(), g_renderer->GetFullTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(0));
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture(), &source,
+		g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+		g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+		pixel_shader, VertexShaderCache::GetSimpleVertexShader(0));
 	FramebufferManager::SwapReinterpretTexture();
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);	
 	g_renderer->RestoreAPIState();
@@ -974,7 +952,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
-		D3D::drawClearQuad(GetFullTargetWidth(), GetFullTargetHeight(), 0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+		D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), 0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	}
 	else
 	{
@@ -1063,7 +1041,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_ActiveConfig.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),Gamma);		
+		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),
+			Renderer::GetTargetWidth(),Renderer::GetTargetHeight(),
+			Width,Height,
+			PixelShaderCache::GetColorCopyProgram(g_ActiveConfig.iMultisampleMode),
+			VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),Gamma);		
 		
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
@@ -1267,7 +1249,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
@@ -1311,7 +1292,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	D3D::SetRenderState(D3DRS_FILLMODE, g_ActiveConfig.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-	UpdateViewport();
+	VertexShaderManager::SetViewportChanged();
 	SetScissorRect();
 	if (bpmem.zmode.testenable) {
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);

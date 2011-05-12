@@ -132,7 +132,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		int SSAAMode = g_ActiveConfig.iMultisampleMode;
 
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
-			Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
+			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			virtualW, virtualH,
 			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
 			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, (srcFormat == PIXELFMT_Z24) && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
@@ -146,8 +146,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		hash = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
-			Renderer::GetFullTargetWidth(), 
-			Renderer::GetFullTargetHeight(),
+			Renderer::GetTargetWidth(), 
+			Renderer::GetTargetHeight(),
 			srcFormat == PIXELFMT_Z24, 
 			isIntensity, 
 			dstFormat, 
