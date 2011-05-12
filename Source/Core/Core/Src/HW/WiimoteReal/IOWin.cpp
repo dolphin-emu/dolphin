@@ -31,7 +31,6 @@
 #define NTDDI_VERSION	NTDDI_WINXPSP2
 #include <bthdef.h>
 #include <BluetoothAPIs.h>
-#pragma comment(lib, "Bthprops.lib")
 
 typedef struct _HIDD_ATTRIBUTES
 {
@@ -45,11 +44,32 @@ typedef VOID (__stdcall *PHidD_GetHidGuid)(LPGUID);
 typedef BOOLEAN (__stdcall *PHidD_GetAttributes)(HANDLE, PHIDD_ATTRIBUTES);
 typedef BOOLEAN (__stdcall *PHidD_SetOutputReport)(HANDLE, PVOID, ULONG);
 
+typedef BOOL (__stdcall *PBth_BluetoothFindDeviceClose)(HBLUETOOTH_DEVICE_FIND);
+typedef HBLUETOOTH_DEVICE_FIND (__stdcall *PBth_BluetoothFindFirstDevice)(const BLUETOOTH_DEVICE_SEARCH_PARAMS*, BLUETOOTH_DEVICE_INFO*);
+typedef HBLUETOOTH_RADIO_FIND (__stdcall *PBth_BluetoothFindFirstRadio)(const BLUETOOTH_FIND_RADIO_PARAMS*,HANDLE*);
+typedef BOOL (__stdcall *PBth_BluetoothFindNextDevice)(HBLUETOOTH_DEVICE_FIND, BLUETOOTH_DEVICE_INFO*);
+typedef BOOL (__stdcall *PBth_BluetoothFindNextRadio)(HBLUETOOTH_RADIO_FIND, HANDLE*);
+typedef BOOL (__stdcall *PBth_BluetoothFindRadioClose)(HBLUETOOTH_RADIO_FIND);
+typedef DWORD (__stdcall *PBth_BluetoothGetRadioInfo)(HANDLE, PBLUETOOTH_RADIO_INFO);
+typedef DWORD (__stdcall *PBth_BluetoothRemoveDevice)(const BLUETOOTH_ADDRESS*);
+typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH_DEVICE_INFO*, const GUID*, DWORD);
+
 PHidD_GetHidGuid HidD_GetHidGuid = NULL;
 PHidD_GetAttributes HidD_GetAttributes = NULL;
 PHidD_SetOutputReport HidD_SetOutputReport = NULL;
 
+PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = NULL;
+PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = NULL;
+PBth_BluetoothFindFirstRadio Bth_BluetoothFindFirstRadio = NULL;
+PBth_BluetoothFindNextDevice Bth_BluetoothFindNextDevice = NULL;
+PBth_BluetoothFindNextRadio Bth_BluetoothFindNextRadio = NULL;
+PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = NULL;
+PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = NULL;
+PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = NULL;
+PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = NULL;
+
 HINSTANCE hid_lib = NULL;
+HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
@@ -70,6 +90,33 @@ inline void init_lib()
 		if (!HidD_GetHidGuid || !HidD_GetAttributes || !HidD_SetOutputReport)
 		{
 			PanicAlertT("Failed to load hid.dll");
+			exit(EXIT_FAILURE);
+		}
+
+		bthprops_lib = LoadLibrary(_T("bthprops.cpl"));
+		if (!bthprops_lib)
+		{
+			PanicAlertT("Failed to load bthprops.cpl");
+			exit(EXIT_FAILURE);
+		}
+
+		Bth_BluetoothFindDeviceClose = (PBth_BluetoothFindDeviceClose)GetProcAddress(bthprops_lib, "BluetoothFindDeviceClose");
+		Bth_BluetoothFindFirstDevice = (PBth_BluetoothFindFirstDevice)GetProcAddress(bthprops_lib, "BluetoothFindFirstDevice");
+		Bth_BluetoothFindFirstRadio = (PBth_BluetoothFindFirstRadio)GetProcAddress(bthprops_lib, "BluetoothFindFirstRadio");
+		Bth_BluetoothFindNextDevice = (PBth_BluetoothFindNextDevice)GetProcAddress(bthprops_lib, "BluetoothFindNextDevice");
+		Bth_BluetoothFindNextRadio = (PBth_BluetoothFindNextRadio)GetProcAddress(bthprops_lib, "BluetoothFindNextRadio");
+		Bth_BluetoothFindRadioClose = (PBth_BluetoothFindRadioClose)GetProcAddress(bthprops_lib, "BluetoothFindRadioClose");
+		Bth_BluetoothGetRadioInfo = (PBth_BluetoothGetRadioInfo)GetProcAddress(bthprops_lib, "BluetoothGetRadioInfo");
+		Bth_BluetoothRemoveDevice = (PBth_BluetoothRemoveDevice)GetProcAddress(bthprops_lib, "BluetoothRemoveDevice");
+		Bth_BluetoothSetServiceState = (PBth_BluetoothSetServiceState)GetProcAddress(bthprops_lib, "BluetoothSetServiceState");
+
+		if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
+			!Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
+			!Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
+			!Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
+			!Bth_BluetoothSetServiceState)
+		{
+			PanicAlertT("Failed to load bthprops.cpl");
 			exit(EXIT_FAILURE);
 		}
 
@@ -407,6 +454,8 @@ int UnPair()
 // negative number on failure
 int PairUp(bool unpair)
 {
+	init_lib();
+
 	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01"
 	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}");
 
@@ -429,7 +478,7 @@ int PairUp(bool unpair)
 	HANDLE hRadio;
 
 	// Enumerate BT radios
-	HBLUETOOTH_RADIO_FIND hFindRadio = BluetoothFindFirstRadio(&radioParam, &hRadio);
+	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
 
 	if (NULL == hFindRadio)
 		return -1;
@@ -440,7 +489,7 @@ int PairUp(bool unpair)
 		radioInfo.dwSize = sizeof(radioInfo);
 
 		// TODO: check for SUCCEEDED()
-		BluetoothGetRadioInfo(hRadio, &radioInfo);
+		Bth_BluetoothGetRadioInfo(hRadio, &radioInfo);
 
 		srch.hRadio = hRadio;
 
@@ -448,7 +497,7 @@ int PairUp(bool unpair)
 		btdi.dwSize = sizeof(btdi);
 
 		// Enumerate BT devices
-		HBLUETOOTH_DEVICE_FIND hFindDevice = BluetoothFindFirstDevice(&srch, &btdi);
+		HBLUETOOTH_DEVICE_FIND hFindDevice = Bth_BluetoothFindFirstDevice(&srch, &btdi);
 		while (hFindDevice)
 		{
 			// btdi.szName is sometimes missings it's content - it's a bt feature..
@@ -459,7 +508,7 @@ int PairUp(bool unpair)
 			{
 				if (unpair)
 				{
-					if (SUCCEEDED(BluetoothRemoveDevice(&btdi.Address)))
+					if (SUCCEEDED(Bth_BluetoothRemoveDevice(&btdi.Address)))
 					{
 						NOTICE_LOG(WIIMOTE,
 								"Pair-Up: Automatically removed BT Device on shutdown: %08x",
@@ -479,11 +528,11 @@ int PairUp(bool unpair)
 							// much ignore the return value here.  It either worked
 							// (ERROR_SUCCESS), or the device did not exist
 							// (ERROR_NOT_FOUND).  In both cases, there is nothing left.
-							BluetoothRemoveDevice(&btdi.Address);
+							Bth_BluetoothRemoveDevice(&btdi.Address);
 						}
 
 						// Activate service
-						const DWORD hr = BluetoothSetServiceState(hRadio, &btdi,
+						const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
 								&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
 						if (SUCCEEDED(hr))
 							++nPaired;
@@ -493,16 +542,16 @@ int PairUp(bool unpair)
 				}
 			}
 
-			if (false == BluetoothFindNextDevice(hFindDevice, &btdi))
+			if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
 			{
-				BluetoothFindDeviceClose(hFindDevice);
+				Bth_BluetoothFindDeviceClose(hFindDevice);
 				hFindDevice = NULL;
 			}
 		}
 
-		if (false == BluetoothFindNextRadio(hFindRadio, &hRadio))
+		if (false == Bth_BluetoothFindNextRadio(hFindRadio, &hRadio))
 		{
-			BluetoothFindRadioClose(hFindRadio);
+			Bth_BluetoothFindRadioClose(hFindRadio);
 			hFindRadio = NULL;
 		}
 	}
