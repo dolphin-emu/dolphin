@@ -358,8 +358,11 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 	else
 	{
-		SAFE_RELEASE(m_depalStorage.tex);
-		SAFE_RELEASE(m_palette.tex);
+		// XXX: Don't clear the palette here. Metroid Prime's thermal visor image
+		// is interpreted as I4 and then as C4 on every frame. We don't want to
+		// recreate these textures every time.
+		//SAFE_RELEASE(m_depalStorage.tex);
+		//SAFE_RELEASE(m_palette.tex);
 		m_depalettized = m_loaded;
 	}
 }

@@ -22,6 +22,7 @@
 
 #include "D3DUtil.h"
 #include "DepalettizeShader.h"
+#include "VirtualEFBCopy.h"
 
 namespace DX11
 {
@@ -58,8 +59,8 @@ private:
 	void ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
-	bool LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, TexCopyLookaside* tcl);
+	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* tcl);
 
 	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
@@ -106,7 +107,7 @@ private:
 	SharedPtr<ID3D11Buffer> m_palette;
 	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
 	
-	bool m_fromTcl;
+	bool m_fromVirtCopy;
 	D3DTexture2D* m_loaded;
 	bool m_loadedDirty;
 	D3DTexture2D* m_depalettized;
@@ -114,7 +115,7 @@ private:
 
 };
 
-typedef std::map<u32, std::unique_ptr<TexCopyLookaside> > TexCopyLookasideMap;
+typedef std::map<u32, std::unique_ptr<VirtualEFBCopy> > VirtualEFBCopyMap;
 
 class TextureCache : public TextureCacheBase
 {
@@ -127,8 +128,9 @@ public:
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	u8* GetDecodeTemp() { return m_decodeTemp; }
-	TexCopyLookasideMap& GetTclMap() { return m_tclMap; }
+	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
 	
+	VirtualCopyShaderManager& GetVirtShaderManager() { return m_virtShaderManager; }
 	DepalettizeShader& GetDepalShader() { return m_depalShader; }
 
 protected:
@@ -139,8 +141,9 @@ private:
 
 	// FIXME: Should the EFB encoder be embedded in the texture cache class?
 	std::unique_ptr<TextureEncoder> m_encoder;
-	TexCopyLookasideMap m_tclMap;
+	VirtualEFBCopyMap m_virtCopyMap;
 
+	VirtualCopyShaderManager m_virtShaderManager;
 	DepalettizeShader m_depalShader;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);

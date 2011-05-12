@@ -54,11 +54,11 @@
     <ClCompile Include="Src\PointGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TexCopyLookaside.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Src\DepalettizeShader.cpp">
       <Filter>D3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\VirtualEFBCopy.cpp">
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -117,11 +117,11 @@
     <ClInclude Include="Src\PointGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\TexCopyLookaside.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Src\DepalettizeShader.h">
       <Filter>D3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VirtualEFBCopy.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

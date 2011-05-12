@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VIDEODX11_TEXCOPYLOOKASIDE_H
-#define _VIDEODX11_TEXCOPYLOOKASIDE_H
+#ifndef _VIDEODX11_VIRTUALEFBCOPY_H
+#define _VIDEODX11_VIRTUALEFBCOPY_H
 
 #include "VideoCommon.h"
 #include "D3DBase.h"
@@ -24,12 +24,31 @@
 namespace DX11
 {
 
-class TexCopyLookaside
+class VirtualCopyShaderManager
 {
 
 public:
 
-	TexCopyLookaside();
+	SharedPtr<ID3D11PixelShader> GetShader(bool scale, bool depth);
+	SharedPtr<ID3D11Buffer> GetParams() { return m_shaderParams; }
+
+private:
+	
+	inline int MakeKey(bool scale, bool depth) {
+		return (scale ? (1<<1) : 0) | (depth ? (1<<0) : 0);
+	}
+
+	SharedPtr<ID3D11PixelShader> m_shaders[4];
+	SharedPtr<ID3D11Buffer> m_shaderParams;
+
+};
+
+class VirtualEFBCopy
+{
+
+public:
+
+	VirtualEFBCopy();
 
 	void Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
@@ -63,7 +82,7 @@ private:
 	unsigned int m_virtualH;
 	unsigned int m_dstFormat;
 
-	// This is not maintained by TexCopyLookaside. It must be handled externally.
+	// This is not maintained by VirtualEFBCopy. It must be handled externally.
 	u64 m_hash;
 
 	// Fake base: Created and updated at the time of EFB copy

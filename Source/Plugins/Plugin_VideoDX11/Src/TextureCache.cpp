@@ -27,16 +27,16 @@
 #include "LookUpTables.h"
 #include "PSTextureEncoder.h"
 #include "Render.h"
-#include "TexCopyLookaside.h"
 #include "Tmem.h"
 #include "VertexShaderCache.h"
 #include "VideoConfig.h"
+#include "VirtualEFBCopy.h"
 
 namespace DX11
 {
 
 TCacheEntry::TCacheEntry()
-	: m_fromTcl(false), m_loaded(NULL), m_depalettized(NULL), m_bindMe(NULL)
+	: m_fromVirtCopy(false), m_loaded(NULL), m_depalettized(NULL), m_bindMe(NULL)
 { }
 
 inline bool IsPaletted(u32 format)
@@ -77,7 +77,7 @@ static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
-	m_fromTcl = false;
+	m_fromVirtCopy = false;
 	m_loaded = NULL;
 	m_loadedDirty = false;
 	m_depalettized = NULL;
@@ -99,10 +99,10 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 	bool refreshFromRam = true;
 	
 	// See if there is a TCL available at this address
-	TexCopyLookasideMap& tclMap = ((TextureCache*)g_textureCache)->GetTclMap();
-	TexCopyLookasideMap::iterator tclIt = tclMap.find(ramAddr);
+	VirtualEFBCopyMap& virtMap = ((TextureCache*)g_textureCache)->GetVirtCopyMap();
+	VirtualEFBCopyMap::iterator virtIt = virtMap.find(ramAddr);
 
-	if (tclIt != tclMap.end())
+	if (virtIt != virtMap.end())
 	{
 		if (g_ActiveConfig.bEFBCopyVirtualEnable)
 		{
@@ -110,8 +110,8 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// FIXME: If TCL keeps failing to load, its memory region may have
 			// been deallocated by the game. We ought to delete TCL that aren't
 			// being used.
-			if (LoadFromTcl(ramAddr, width, height, levels, format, tlutAddr,
-				tlutFormat, invalidated, tclIt->second.get()))
+			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
+				tlutFormat, invalidated, virtIt->second.get()))
 				refreshFromRam = false;
 		}
 		else
@@ -120,7 +120,7 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// that are found.
 			// FIXME: Is it desirable to delete them as they are found instead
 			// of just deleting them all at once?
-			tclMap.erase(tclIt);
+			virtMap.erase(virtIt);
 		}
 	}
 
@@ -166,7 +166,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curFormat = format;
 	m_curHash = newHash;
 
-	m_fromTcl = false;
+	m_fromVirtCopy = false;
 	m_loaded = m_ramTexture.get();
 	m_loadedDirty = reloadTexture;
 }
@@ -340,15 +340,15 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 	}
 }
 
-bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, TexCopyLookaside* tcl)
+bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt)
 {
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
 		// Only make these checks if there is a RAM copy to fall back on.
-		if (width != tcl->GetRealWidth() || height != tcl->GetRealHeight() || levels != 1)
+		if (width != virt->GetRealWidth() || height != virt->GetRealHeight() || levels != 1)
 		{
-			INFO_LOG(VIDEO, "Tex-copy lookaside was incompatible; falling back to RAM");
+			INFO_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");
 			return false;
 		}
 	}
@@ -374,14 +374,14 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 			newHash = *(u64*)src;
 		}
 
-		if (newHash != tcl->GetHash())
+		if (newHash != virt->GetHash())
 		{
 			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
 			return false;
 		}
 	}
 
-	D3DTexture2D* fakeTexture = tcl->FakeTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+	D3DTexture2D* fakeTexture = virt->FakeTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 	if (!fakeTexture)
 		return false;
 
@@ -393,10 +393,10 @@ bool TCacheEntry::LoadFromTcl(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curFormat = format;
 	m_curHash = newHash;
 
-	m_fromTcl = true;
+	m_fromVirtCopy = true;
 	m_loaded = fakeTexture;
-	m_loadedDirty = tcl->IsDirty();
-	tcl->ResetDirty();
+	m_loadedDirty = virt->IsDirty();
+	virt->ResetDirty();
 	return true;
 }
 
@@ -423,6 +423,9 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 				DXGI_FORMAT_R8G8B8A8_UNORM, loadedDesc.Width, loadedDesc.Height, 1, loadedDesc.MipLevels,
 				D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
+			INFO_LOG(VIDEO, "Creating depal-storage of size %dx%d for texture at 0x%.08X",
+				loadedDesc.Width, loadedDesc.Height, ramAddr);
+
 			m_depalStorage.tex.reset();
 			SharedPtr<ID3D11Texture2D> newDepal = CreateTexture2DShared(&t2dd, NULL);
 			m_depalStorage.tex.reset(new D3DTexture2D(newDepal,
@@ -440,9 +443,12 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 	else
 	{
-		m_depalStorage.tex.reset();
-		m_paletteSRV.reset();
-		m_palette.reset();
+		// XXX: Don't clear the palette here. Metroid Prime's thermal visor image
+		// is interpreted as I4 and then as C4 on every frame. We don't want to
+		// recreate these textures every time.
+		//m_depalStorage.tex.reset();
+		//m_paletteSRV.reset();
+		//m_palette.reset();
 		m_depalettized = m_loaded;
 	}
 }
@@ -579,7 +585,7 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 	DepalettizeShader::BaseType baseType;
 
 	SharedPtr<ID3D11PixelShader> depalettizeShader;
-	if (m_fromTcl)
+	if (m_fromVirtCopy)
 	{
 		// If the base came from a TCL, it will have UNORM type
 		if (format == GX_TF_C4)
@@ -638,16 +644,16 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 
 	if (g_ActiveConfig.bEFBCopyVirtualEnable)
 	{
-		TexCopyLookasideMap::iterator tclIt = m_tclMap.find(dstAddr);
-		if (tclIt == m_tclMap.end())
+		VirtualEFBCopyMap::iterator virtIt = m_virtCopyMap.find(dstAddr);
+		if (virtIt == m_virtCopyMap.end())
 		{
-			tclIt = m_tclMap.insert(std::make_pair(dstAddr, new TexCopyLookaside)).first;
+			virtIt = m_virtCopyMap.insert(std::make_pair(dstAddr, new VirtualEFBCopy)).first;
 		}
 
-		TexCopyLookaside* tcl = tclIt->second.get();
+		VirtualEFBCopy* virt = virtIt->second.get();
 
-		tcl->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		tcl->SetHash(encodedHash);
+		virt->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		virt->SetHash(encodedHash);
 	}
 }
 

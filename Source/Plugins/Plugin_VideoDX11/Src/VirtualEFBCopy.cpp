@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "TexCopyLookaside.h"
+#include "VirtualEFBCopy.h"
 
 #include "FramebufferManager.h"
 #include "D3DBase.h"
@@ -23,6 +23,7 @@
 #include "D3DShader.h"
 #include "EFBCopy.h"
 #include "Render.h"
+#include "TextureCache.h"
 #include "TextureDecoder.h"
 #include "VertexShaderCache.h"
 #include "GfxState.h"
@@ -31,7 +32,7 @@
 namespace DX11
 {
 
-struct FakeEncodeParams
+struct VirtCopyShaderParams
 {
 	FLOAT Matrix[4][4];
 	FLOAT Add[4];
@@ -39,19 +40,15 @@ struct FakeEncodeParams
 	BOOL DisableAlpha; // If true, alpha will read as 1 from the source
 };
 
-union FakeEncodeParams_Padded
+union VirtCopyShaderParams_Padded
 {
-	FakeEncodeParams params;
+	VirtCopyShaderParams params;
 	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[(sizeof(FakeEncodeParams) + 15) & ~15];
+	u8 pad[(sizeof(VirtCopyShaderParams) + 15) & ~15];
 };
 
-// TODO: Make part of a class
-static SharedPtr<ID3D11PixelShader> s_fakeEncodeShaders[4];
-static SharedPtr<ID3D11Buffer> s_fakeEncodeParams;
-
-static const char FAKE_ENCODE_PS[] =
-"// dolphin-emu fake texture encoder pixel shader\n"
+static const char VIRTUAL_EFB_COPY_PS[] =
+"// dolphin-emu DX11 virtual efb copy pixel shader\n"
 
 "cbuffer cbParams : register(b0)\n"
 "{\n"
@@ -129,21 +126,21 @@ static const char FAKE_ENCODE_PS[] =
 "}\n"
 ;
 
-static SharedPtr<ID3D11PixelShader> GetFakeEncodeShader(bool scale, bool depth)
+SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, bool depth)
 {
 	// There are 4 different combinations of scale and depth.
 	int key = (depth ? (1<<1) : 0) | (scale ? 1 : 0);
 
-	if (!s_fakeEncodeParams)
+	if (!m_shaderParams)
 	{
-		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(FakeEncodeParams_Padded),
+		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(VirtCopyShaderParams_Padded),
 			D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		s_fakeEncodeParams = CreateBufferShared(&bd, NULL);
-		if (!s_fakeEncodeParams)
+		m_shaderParams = CreateBufferShared(&bd, NULL);
+		if (!m_shaderParams)
 			ERROR_LOG(VIDEO, "Failed to create fake encode params buffer");
 	}
 
-	if (!s_fakeEncodeShaders[key])
+	if (!m_shaders[key])
 	{
 		D3D_SHADER_MACRO macros[] = {
 			{ "DEPTH", depth ? "1" : "0" },
@@ -151,16 +148,16 @@ static SharedPtr<ID3D11PixelShader> GetFakeEncodeShader(bool scale, bool depth)
 			{ NULL, NULL }
 		};
 
-		s_fakeEncodeShaders[key] = D3D::CompileAndCreatePixelShader(
-			FAKE_ENCODE_PS, sizeof(FAKE_ENCODE_PS), macros);
-		if (!s_fakeEncodeShaders[key])
+		m_shaders[key] = D3D::CompileAndCreatePixelShader(
+			VIRTUAL_EFB_COPY_PS, sizeof(VIRTUAL_EFB_COPY_PS), macros);
+		if (!m_shaders[key])
 			ERROR_LOG(VIDEO, "Failed to compile fake encoder pixel shader");
 	}
 
-	return s_fakeEncodeShaders[key];
+	return m_shaders[key];
 }
 
-TexCopyLookaside::TexCopyLookaside()
+VirtualEFBCopy::VirtualEFBCopy()
 	: m_hash(0), m_dirty(true)
 { }
 
@@ -230,7 +227,7 @@ static const float GGGB_MATRIX[4*4] = {
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
-void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
+void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
@@ -342,7 +339,7 @@ void TexCopyLookaside::Update(u32 dstAddr, unsigned int dstFormat,
 	m_dirty = true;
 }
 
-D3DTexture2D* TexCopyLookaside::FakeTexture(u32 ramAddr, u32 width, u32 height,
+D3DTexture2D* VirtualEFBCopy::FakeTexture(u32 ramAddr, u32 width, u32 height,
 	u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
@@ -358,19 +355,20 @@ D3DTexture2D* TexCopyLookaside::FakeTexture(u32 ramAddr, u32 width, u32 height,
 		"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
 	};
 
-	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
-		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
+	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s at ram addr 0x%.08X",
+		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format], ramAddr);
 
 	return m_fakeBase.get();
 }
 
-void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFormat,
+void VirtualEFBCopy::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFormat,
 	bool yuva, bool scale,
 	unsigned int posX, unsigned int posY,
 	unsigned int virtualW, unsigned int virtualH,
 	const float* colorMatrix, const float* colorAdd)
 {
-	SharedPtr<ID3D11PixelShader> fakeEncode = GetFakeEncodeShader(scale, srcFormat == PIXELFMT_Z24);
+	VirtualCopyShaderManager& virtShaderMan = ((TextureCache*)g_textureCache)->GetVirtShaderManager();
+	SharedPtr<ID3D11PixelShader> fakeEncode = virtShaderMan.GetShader(scale, srcFormat == PIXELFMT_Z24);
 	if (!fakeEncode)
 		return;
 	
@@ -384,11 +382,13 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 	};
 	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
 
+	SharedPtr<ID3D11Buffer> paramsBuffer = virtShaderMan.GetParams();
+
 	D3D11_MAPPED_SUBRESOURCE map;
-	HRESULT hr = D3D::g_context->Map(s_fakeEncodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	HRESULT hr = D3D::g_context->Map(paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 	if (SUCCEEDED(hr))
 	{
-		FakeEncodeParams* params = (FakeEncodeParams*)map.pData;
+		VirtCopyShaderParams* params = (VirtCopyShaderParams*)map.pData;
 
 		// Choose a pre-color matrix: Either RGBA or YUVA
 		if (yuva)
@@ -416,7 +416,7 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 		params->Pos[0] = FLOAT(posX);
 		params->Pos[1] = FLOAT(posY);
 		params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
-		D3D::g_context->Unmap(s_fakeEncodeParams, 0);
+		D3D::g_context->Unmap(paramsBuffer, 0);
 	}
 	else
 		ERROR_LOG(VIDEO, "Failed to map fake-encode params buffer");
@@ -432,7 +432,7 @@ void TexCopyLookaside::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFor
 	// Re-encode with a different palette
 
 	D3D::g_context->OMSetRenderTargets(1, &m_fakeBase->GetRTV(), NULL);
-	D3D::g_context->PSSetConstantBuffers(0, 1, &s_fakeEncodeParams);
+	D3D::g_context->PSSetConstantBuffers(0, 1, &paramsBuffer);
 	D3D::g_context->PSSetShaderResources(0, 1, &texSrc->GetSRV());
 
 	D3D::drawEncoderQuad(fakeEncode);
