@@ -393,12 +393,8 @@ u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
 {
 	TextureConversionShader::SetShaderParameters(
-		(float)dstWidth, 
-		(float)dstHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
-		1.0f,
+		0.f, 0.f,
+		1.f, 1.f,
 		(float)Renderer::GetTargetWidth(),
 		(float)Renderer::GetTargetHeight());
 	g_renderer->ResetAPIState();
