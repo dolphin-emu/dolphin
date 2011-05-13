@@ -47,6 +47,8 @@ private:
 	SharedPtr<ID3D11Buffer> m_indexBuffer;
 	SharedPtr<ID3D11Buffer> m_vertexBuffer;
 
+	SharedPtr<ID3D11Buffer> m_unpackMatricesBuffer;
+
 	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;
 };

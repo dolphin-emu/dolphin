@@ -67,6 +67,13 @@ VertexManager::VertexManager()
 	m_triangleDrawIndex = 0;
 	m_lineDrawIndex = 0;
 	m_pointDrawIndex = 0;
+
+	bufdesc = CD3D11_BUFFER_DESC(8*16*sizeof(float),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+	m_unpackMatricesBuffer = CreateBufferShared(&bufdesc, NULL);
+	CHECK(m_unpackMatricesBuffer, "Failed to create unpacking matrices buffer.");
+	D3D::SetDebugObjectName(m_unpackMatricesBuffer, "unpacking matrices buffer");
 }
 
 void VertexManager::LoadBuffers()
@@ -119,6 +126,8 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
+	D3D::g_context->PSSetConstantBuffers(1, 1, &m_unpackMatricesBuffer);
+
 	D3D::g_context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
 	D3D::g_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
@@ -175,6 +184,9 @@ void VertexManager::Draw(UINT stride)
 	}
 	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
+
+	ID3D11Buffer* nullDummy = NULL;
+	D3D::g_context->PSSetConstantBuffers(1, 1, &nullDummy);
 }
 
 void VertexManager::vFlush()
@@ -194,7 +206,7 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
-	D3DTexture2D* bindThese[8] = { 0 };
+	TCacheEntry* texEntries[8] = { NULL };
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
@@ -209,21 +221,19 @@ void VertexManager::vFlush()
 			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
 			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
 
-			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
+			texEntries[i] = (TCacheEntry*)g_textureCache->LoadEntry(
 				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
-
-			if (entry)
-				bindThese[i] = entry->GetTexture();
-			else
-				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
 		}
+		else
+			texEntries[i] = NULL;
 	}
 
 	// Bind and set samplers down here, because TextureCache::LoadEntry may
 	// clobber the render state.
+	ID3D11ShaderResourceView* bindThese[8] = { NULL };
 	for (int i = 0; i < 8; ++i)
 	{
-		if (usedtextures & (1 << i))
+		if (texEntries[i])
 		{
 			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
@@ -231,15 +241,31 @@ void VertexManager::vFlush()
 			u32 width = tex.texImage0[i&3].width+1;
 			u32 height = tex.texImage0[i&3].height+1;
 			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
-			
-			if (bindThese[i])
-				D3D::g_context->PSSetShaderResources(i, 1, &bindThese[i]->GetSRV());
-			else
-				D3D::g_context->PSSetShaderResources(i, 0, NULL);
+
+			bindThese[i] = texEntries[i]->GetTexture()->GetSRV();
 		}
 		else
-			D3D::g_context->PSSetShaderResources(i, 0, NULL);
+			bindThese[i] = NULL;
 	}
+	D3D::g_context->PSSetShaderResources(0, 8, bindThese);
+
+	// Load texture unpacking matrices
+	D3D11_MAPPED_SUBRESOURCE map;
+	HRESULT hr = D3D::g_context->Map(m_unpackMatricesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	if (SUCCEEDED(hr))
+	{
+		float* dst = (float*)map.pData;
+		for (int i = 0; i < 8; ++i)
+		{
+			if (bindThese[i])
+			{
+				memcpy(&dst[i*16], texEntries[i]->GetUnpackMatrix().data, 16*sizeof(float));
+			}
+		}
+		D3D::g_context->Unmap(m_unpackMatricesBuffer, 0);
+	}
+	else
+		ERROR_LOG(VIDEO, "Failed to map buffer for unpack matrices");
 
 	// set global constants
 	VertexShaderManager::SetConstants();

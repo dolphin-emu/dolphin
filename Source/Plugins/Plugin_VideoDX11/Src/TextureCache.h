@@ -39,6 +39,8 @@ public:
 	TCacheEntry();
 
 	D3DTexture2D* GetTexture() { return m_bindMe; }
+
+	const Matrix44& GetUnpackMatrix() const { return m_unpackMatrix; }
 	
 protected:
 
@@ -115,6 +117,7 @@ private:
 	bool m_loadedDirty;
 	D3DTexture2D* m_depalettized;
 	D3DTexture2D* m_bindMe;
+	Matrix44 m_unpackMatrix;
 
 };
 

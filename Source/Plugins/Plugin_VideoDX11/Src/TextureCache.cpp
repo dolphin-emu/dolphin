@@ -131,6 +131,14 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	DXGI_FORMAT dxFormat = DXGI_FORMAT_UNKNOWN;
 	switch (format)
 	{
+	case GX_TF_I4:
+	case GX_TF_I8:
+		dxFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+	case GX_TF_IA4:
+	case GX_TF_IA8:
+		dxFormat = DXGI_FORMAT_R8G8_UNORM;
+		break;
 	case GX_TF_C4:
 	case GX_TF_C8:
 		dxFormat = DXGI_FORMAT_R8_UINT;
@@ -188,7 +196,67 @@ void TCacheEntry::CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FO
 	m_ramStorage.dxFormat = dxFormat;
 }
 
-static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
+// TODO: Move this stuff into TextureDecoder.cpp, use SSE versions
+
+static void DecodeI4ToR8(u8* dst, const u8* src, u32 width, u32 height)
+{
+	int Wsteps8 = (width + 7) / 8;
+
+	for (int y = 0; y < height; y += 8)
+	{
+		for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
+			{
+				for (int ix = 0; ix < 4; ix++)
+				{
+					int val = src[4 * xStep + ix];
+					dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
+					dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
+				}
+			}
+		}
+	}
+}
+
+static void DecodeI8ToR8(u8* dst, const u8* src, u32 width, u32 height)
+{
+	int Wsteps8 = (width + 7) / 8;
+
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			{
+				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
+			}
+		}
+	}
+}
+
+static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
+{
+	int Wsteps8 = (width + 7) / 8;
+
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			{
+				for (int ix = 0; ix < 8; ++ix)
+				{
+					u8 val = src[8 * xStep + ix];
+					dst[((y + iy) * width + x + ix) * 2] = Convert4To8(val >> 4);
+					dst[((y + iy) * width + (x + ix)) * 2 + 1] = Convert4To8(val & 0xF);
+				}
+			}
+		}
+	}
+}
+
+static void DecodeIA8ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 {
 	int Wsteps4 = (width + 3) / 4;
 
@@ -200,24 +268,9 @@ static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
 			{
 				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 				u16 *s = (u16 *)(src + 8 * xStep);
+				// Don't bother doing swap16. The unpack matrix will take care of it.
 				for(int j = 0; j < 4; j++)
-					*ptr++ = Common::swap16(*s++);
-			}
-		}
-	}
-}
-
-static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	int Wsteps8 = (width + 7) / 8;
-
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-			{
-				((u64*)(dst + (y + iy) * width + x))[0] = ((u64*)(src + 8 * xStep))[0];
+					*ptr++ = *s++;
 			}
 		}
 	}
@@ -244,6 +297,55 @@ static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 	}
 }
 
+static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	int Wsteps8 = (width + 7) / 8;
+
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			{
+				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
+			}
+		}
+	}
+}
+
+static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	int Wsteps4 = (width + 3) / 4;
+
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+		{
+			for (int iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
+			{
+				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
+				u16 *s = (u16 *)(src + 8 * xStep);
+				for(int j = 0; j < 4; j++)
+					*ptr++ = (Common::swap16(*s++) & 0x3FFF);
+			}
+		}
+	}
+}
+
+static const float UNPACK_R_TO_I_MATRIX[16] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0
+};
+
+static const float UNPACK_RG_TO_IA_MATRIX[16] = {
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	1, 0, 0, 0
+};
+
 void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
@@ -269,25 +371,49 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		UINT srcRowPitch;
 		switch (format)
 		{
+		case GX_TF_I4:
+			DecodeI4ToR8(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = actualWidth;
+			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
+			break;
+		case GX_TF_I8:
+			DecodeI8ToR8(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = actualWidth;
+			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
+			break;
+		case GX_TF_IA4:
+			DecodeIA4ToRG8(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = 2*actualWidth;
+			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+			break;
+		case GX_TF_IA8:
+			DecodeIA8ToRG8(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = 2*actualWidth;
+			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+			break;
 		case GX_TF_C4:
 			// 4-bit indices (expanded to 8 bits)
 			DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
+			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;
 		case GX_TF_C8:
 			// 8-bit indices
 			DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
+			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;
 		case GX_TF_C14X2:
 			// 16-bit indices
 			DecodeC14X2Base(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
+			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;
 		default:
 			// RGBA
 			TexDecoder_Decode(decodeTemp, src, actualWidth, actualHeight, format, NULL, tlutFormat, true);
 			srcRowPitch = 4*actualWidth;
+			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;
 		}
 
@@ -356,6 +482,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	m_curHash = newHash;
 
 	m_fromVirtCopy = true;
+	Matrix44::LoadIdentity(m_unpackMatrix);
 	m_loaded = fakeTexture;
 	m_loadedDirty = virt->IsDirty();
 	virt->ResetDirty();
