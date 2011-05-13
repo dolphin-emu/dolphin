@@ -64,14 +64,7 @@ static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 {
 	if (width == 0 || height == 0)
 		return 0;
-	unsigned int max = std::max(width, height);
-	unsigned int levels = 0;
-	while (max > 0)
-	{
-		++levels;
-		max /= 2;
-	}
-	return levels;
+	return floorLog2( std::max(width, height) ) + 1;
 }
 
 void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -135,15 +128,26 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
 
-	// Does changing format require creating a new texture?
-	bool formatRequiresRecreate = (IsPaletted(format) != IsPaletted(m_curFormat))
-		|| (IsPaletted(format) && ((format == GX_TF_C14X2) != (m_curFormat == GX_TF_C14X2)));
+	DXGI_FORMAT dxFormat = DXGI_FORMAT_UNKNOWN;
+	switch (format)
+	{
+	case GX_TF_C4:
+	case GX_TF_C8:
+		dxFormat = DXGI_FORMAT_R8_UINT;
+		break;
+	case GX_TF_C14X2:
+		dxFormat = DXGI_FORMAT_R16_UINT;
+		break;
+	default:
+		dxFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	}
 
 	// Should we create a new D3D texture?
-	bool recreateTexture = !m_ramTexture || dimsChanged || formatRequiresRecreate;
+	bool recreateTexture = !m_ramStorage.tex || dimsChanged || dxFormat != m_ramStorage.dxFormat;
 
 	if (recreateTexture)
-		CreateRamTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+		CreateRamTexture(width, height, levels, dxFormat);
 
 	u64 newHash = m_curHash;
 
@@ -167,40 +171,21 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curHash = newHash;
 
 	m_fromVirtCopy = false;
-	m_loaded = m_ramTexture.get();
+	m_loaded = m_ramStorage.tex.get();
 	m_loadedDirty = reloadTexture;
 }
 
-void TCacheEntry::CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
-	u32 format, u32 tlutAddr, u32 tlutFormat)
+void TCacheEntry::CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FORMAT dxFormat)
 {
-	if (IsPaletted(format))
-	{
-		INFO_LOG(VIDEO, "Creating %dx%d %d-level format 0x%X texture at 0x%.08X with tlut at 0x%.05X tlut-format %d",
-			width, height, levels, format, ramAddr, tlutAddr, tlutFormat);
+	INFO_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
+		width, height, levels);
+	
+	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height, 1, levels);
 
-		// Create texture with color indices (palette is applied later)
-
-		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-			(format == GX_TF_C14X2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R8_UINT),
-			width, height, 1, levels);
-
-		m_ramTexture.reset();
-		SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
-		m_ramTexture.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
-	}
-	else
-	{
-		INFO_LOG(VIDEO, "Creating %dx%d %d-level format 0x%X texture at 0x%.08X",
-			width, height, levels, format, ramAddr);
-
-		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-			DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, levels);
-
-		m_ramTexture.reset();
-		SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
-		m_ramTexture.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
-	}
+	m_ramStorage.tex.reset();
+	SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
+	m_ramStorage.tex.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
+	m_ramStorage.dxFormat = dxFormat;
 }
 
 static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
@@ -267,76 +252,53 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 
 	const u8* src = Memory::GetPointer(ramAddr);
 
-	if (IsPaletted(format))
+	DEBUG_LOG(VIDEO, "Loading texture format 0x%X", format);
+
+	// FIXME: Hash all the mips seperately?
+
+	u32 mipWidth = width;
+	u32 mipHeight = height;
+	u32 level = 0;
+	while ((mipWidth > 1 || mipHeight > 1) && level < levels)
 	{
-		DEBUG_LOG(VIDEO, "Loading texture format 0x%X with tlut at 0x%.05X tlut-format %d",
-			format, tlutAddr, tlutFormat);
+		int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
+		int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
 
-		// FIXME: Are mipmapped palettized textures even supported?
+		u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
 
-		u32 mipWidth = width;
-		u32 mipHeight = height;
-		u32 level = 0;
-		while ((mipWidth > 0 && mipHeight > 0) && level < levels)
+		UINT srcRowPitch;
+		switch (format)
 		{
-			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
-			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
-
-			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
-			if (format == GX_TF_C14X2)
-			{
-				// 16-bit indices
-				DecodeC14X2Base(decodeTemp, src, actualWidth, actualHeight);
-				D3D::g_context->UpdateSubresource(m_ramTexture->GetTex(), level,
-					NULL, decodeTemp, 2*actualWidth, 2*actualWidth*actualHeight);
-			}
-			else if (format == GX_TF_C8)
-			{
-				// 8-bit indices
-				DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
-				D3D::g_context->UpdateSubresource(m_ramTexture->GetTex(), level,
-					NULL, decodeTemp, actualWidth, actualWidth*actualHeight);
-			}
-			else if (format == GX_TF_C4)
-			{
-				// 4-bit indices (expanded to 8 bits)
-				DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
-				D3D::g_context->UpdateSubresource(m_ramTexture->GetTex(), level,
-					NULL, decodeTemp, actualWidth, actualWidth*actualHeight);
-			}
-
-			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
-
-			mipWidth /= 2;
-			mipHeight /= 2;
-			++level;
-		}
-	}
-	else
-	{
-		DEBUG_LOG(VIDEO, "Loading texture format 0x%X", format);
-
-		// FIXME: Hash all the mips seperately?
-
-		u32 mipWidth = width;
-		u32 mipHeight = height;
-		u32 level = 0;
-		while ((mipWidth > 0 && mipHeight > 0) && level < levels)
-		{
-			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
-			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
-
-			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
+		case GX_TF_C4:
+			// 4-bit indices (expanded to 8 bits)
+			DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = actualWidth;
+			break;
+		case GX_TF_C8:
+			// 8-bit indices
+			DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = actualWidth;
+			break;
+		case GX_TF_C14X2:
+			// 16-bit indices
+			DecodeC14X2Base(decodeTemp, src, actualWidth, actualHeight);
+			srcRowPitch = 2*actualWidth;
+			break;
+		default:
+			// RGBA
 			TexDecoder_Decode(decodeTemp, src, actualWidth, actualHeight, format, NULL, tlutFormat, true);
-			D3D::g_context->UpdateSubresource(m_ramTexture->GetTex(), level, NULL,
-				decodeTemp, 4*actualWidth, 4*actualWidth*actualHeight);
-
-			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
-
-			mipWidth /= 2;
-			mipHeight /= 2;
-			++level;
+			srcRowPitch = 4*actualWidth;
+			break;
 		}
+
+		D3D::g_context->UpdateSubresource(m_ramStorage.tex->GetTex(), level,
+			NULL, decodeTemp, srcRowPitch, srcRowPitch*actualHeight);
+
+		src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
+		
+		mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
+		mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
+		++level;
 	}
 }
 
@@ -385,7 +347,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	if (!fakeTexture)
 		return false;
 
-	m_ramTexture.reset();
+	m_ramStorage.tex.reset();
 
 	m_curWidth = width;
 	m_curHeight = height;

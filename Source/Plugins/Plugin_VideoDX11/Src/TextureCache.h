@@ -53,8 +53,7 @@ private:
 	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
-	void CreateRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
+	void CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FORMAT dxFormat);
 
 	void ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
@@ -91,7 +90,11 @@ private:
 	// If format is paletted, this texture contains palette indices.
 	// If format is not paletted, this texture contains bindable data.
 	// If entry is from TCL, this texture is not used.
-	std::unique_ptr<D3DTexture2D> m_ramTexture;
+	struct
+	{
+		std::unique_ptr<D3DTexture2D> tex;
+		DXGI_FORMAT dxFormat;
+	} m_ramStorage;
 
 	// If loaded texture is paletted, this contains depalettized data.
 	// Otherwise, this is not used.

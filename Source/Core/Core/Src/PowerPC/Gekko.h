@@ -680,8 +680,12 @@ enum
 #define EXCEPTION_FPU_UNAVAILABLE       0x00000040
 #define EXCEPTION_PROGRAM				0x00000080
 
-inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
-inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}
+inline s32 SignExt16(s16 x) { return x; }
+inline s32 SignExt26(u32 x) {
+	struct { signed x : 26; } sext;
+	sext.x = x;
+	return sext.x;
+}
 
 #endif
 

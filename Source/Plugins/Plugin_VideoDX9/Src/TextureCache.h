@@ -73,8 +73,16 @@ private:
 	u32 m_curTlutFormat;
 	u64 m_curPaletteHash; // Hash of palette data in TMEM
 
-	D3DFORMAT m_curD3DFormat;
-	LPDIRECT3DTEXTURE9 m_ramTexture;
+	// If loaded texture comes from RAM, this holds it.
+	struct RamStorage
+	{
+		RamStorage()
+			: tex(NULL)
+		{ }
+
+		LPDIRECT3DTEXTURE9 tex;
+		D3DFORMAT d3dFormat;
+	} m_ramStorage;
 
 	// Currently-loaded palette (if any)
 	struct Palette

@@ -38,14 +38,14 @@ inline bool IsPaletted(u32 format) {
 }
 
 TCacheEntry::TCacheEntry()
-	: m_ramTexture(NULL), m_bindMe(NULL)
+	: m_bindMe(NULL)
 { }
 
 TCacheEntry::~TCacheEntry()
 {
 	SAFE_RELEASE(m_depalStorage.tex);
 	SAFE_RELEASE(m_palette.tex);
-	SAFE_RELEASE(m_ramTexture);
+	SAFE_RELEASE(m_ramStorage.tex);
 }
 
 void TCacheEntry::TeardownDeviceObjects()
@@ -60,14 +60,7 @@ static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 {
 	if (width == 0 || height == 0)
 		return 0;
-	unsigned int max = std::max(width, height);
-	unsigned int levels = 0;
-	while (max > 0)
-	{
-		++levels;
-		max /= 2;
-	}
-	return levels;
+	return floorLog2( std::max(width, height) ) + 1;
 }
 
 void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height,
@@ -129,9 +122,10 @@ void TCacheEntry::CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT 
 	INFO_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
 		width, height, levels);
 
-	SAFE_RELEASE(m_ramTexture);
-	m_ramTexture = D3D::CreateOnlyTexture2D(width, height, levels,
+	SAFE_RELEASE(m_ramStorage.tex);
+	m_ramStorage.tex = D3D::CreateOnlyTexture2D(width, height, levels,
 		d3dFormat == D3DFMT_A8P8 ? D3DFMT_A8L8 : d3dFormat);
+	m_ramStorage.d3dFormat = d3dFormat;
 }
 
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -177,7 +171,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 
 	// Do we need to create a new D3D texture?
-	bool recreateTexture = !m_ramTexture || dimsChanged || d3dFormat != m_curD3DFormat;
+	bool recreateTexture = !m_ramStorage.tex || dimsChanged || d3dFormat != m_ramStorage.d3dFormat;
 
 	if (recreateTexture)
 		CreateRamTexture(width, height, levels, d3dFormat);
@@ -210,7 +204,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 mipWidth = width;
 		u32 mipHeight = height;
 		u32 level = 0;
-		while ((mipWidth > 0 && mipHeight > 0) && level < levels)
+		while ((mipWidth > 1 || mipHeight > 1) && level < levels)
 		{
 			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
 			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
@@ -220,13 +214,13 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 				actualWidth, actualHeight, format, tlut, tlutFormat, false);
 
 			// Load decoded texture to graphics RAM
-			D3D::ReplaceTexture2D(m_ramTexture, decodeTemp, mipWidth, mipHeight,
+			D3D::ReplaceTexture2D(m_ramStorage.tex, decodeTemp, mipWidth, mipHeight,
 				actualWidth, d3dFormat, swapRB, level);
 
 			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
 
-			mipWidth /= 2;
-			mipHeight /= 2;
+			mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
+			mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
 			++level;
 		}
 	}
@@ -240,8 +234,8 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curPaletteHash = newPaletteHash;
 	m_curTlutFormat = tlutFormat;
 
-	m_curD3DFormat = d3dFormat;
-	m_loaded = m_ramTexture;
+	m_ramStorage.d3dFormat = d3dFormat;
+	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
 	// TODO: Depalettize RAM textures
 	m_loadedIsPaletted = false;
@@ -293,7 +287,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	if (!virtualized)
 		return false;
 
-	SAFE_RELEASE(m_ramTexture);
+	SAFE_RELEASE(m_ramStorage.tex);
 
 	m_curWidth = width;
 	m_curHeight = height;
@@ -369,26 +363,21 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 // TODO: Move this stuff into TextureDecoder or something
 
-static void DecodeIA8Palette(u32* dst, const u16* src, unsigned int numColors)
+// Decode to D3DFMT_A8L8
+static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
 {
 	for (unsigned int i = 0; i < numColors; ++i)
 	{
-		u8 intensity = src[i] & 0xFF;
-		u8 alpha = src[i] >> 8;
-		dst[i] = (alpha << 24) | (intensity << 16) | (intensity << 8) | intensity;
+		// FIXME: Do we need swap16?
+		dst[i] = src[i];
 	}
 }
 
-static void DecodeRGB565Palette(u32* dst, const u16* src, unsigned int numColors)
+// Decode to D3DFMT_R5G6B5
+static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
 {
 	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		u16 color = Common::swap16(src[i]);
-		u8 red8 = Convert5To8(color >> 11);
-		u8 green8 = Convert6To8((color >> 5) & 0x3F);
-		u8 blue8 = Convert5To8(color & 0x1F);
-		dst[i] = (0xFF << 24) | (red8 << 16) | (green8 << 8) | blue8;
-	}
+		dst[i] = Common::swap16(src[i]);
 }
 
 static inline u32 decode5A3(u16 val)
@@ -411,6 +400,7 @@ static inline u32 decode5A3(u16 val)
 	return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
+// Decode to D3DFMT_A8R8G8B8
 static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
 {
 	for (unsigned int i = 0; i < numColors; ++i)
@@ -423,8 +413,16 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	HRESULT hr;
 
-	// TODO: Do R5G6B5 format and others
-	D3DFORMAT d3dFormat = D3DFMT_A8R8G8B8;
+	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
+	switch (tlutFormat)
+	{
+	case GX_TL_IA8: d3dFormat = D3DFMT_A8L8; break;
+	case GX_TL_RGB565: d3dFormat = D3DFMT_R5G6B5; break;
+	case GX_TL_RGB5A3: d3dFormat = D3DFMT_A8R8G8B8; break;
+	default:
+		ERROR_LOG(VIDEO, "Invalid TLUT format");
+		return false;
+	}
 	UINT numColors = TexDecoder_GetNumColors(format);
 
 	bool recreatePaletteTex = !m_palette.tex || d3dFormat != m_palette.d3dFormat
@@ -460,8 +458,8 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 
 		switch (tlutFormat)
 		{
-		case GX_TL_IA8: DecodeIA8Palette((u32*)lock.pBits, tlut, numColors); break;
-		case GX_TL_RGB565: DecodeRGB565Palette((u32*)lock.pBits, tlut, numColors); break;
+		case GX_TL_IA8: DecodeIA8Palette((u16*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB565: DecodeRGB565Palette((u16*)lock.pBits, tlut, numColors); break;
 		case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)lock.pBits, tlut, numColors); break;
 		}
 

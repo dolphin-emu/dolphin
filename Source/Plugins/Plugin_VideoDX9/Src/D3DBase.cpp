@@ -468,6 +468,9 @@ const D3DCAPS9 &GetCaps()
 	return caps;
 }
 
+// FIXME: Should we simply require the device to support non-pow-2 textures?
+// I think we already require it anyway.
+
 // returns true if size was changed
 bool FixTextureSize(int& width, int& height)
 {
@@ -477,8 +480,8 @@ bool FixTextureSize(int& width, int& height)
 	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) && !(caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL))
 	{
 		// all texture dimensions need to be powers of two
-		width = (int)MakePow2((u32)width);
-		height = (int)MakePow2((u32)height);
+		width = (int)ceilPow2((u32)width);
+		height = (int)ceilPow2((u32)height);
 	}
 	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
 	{
