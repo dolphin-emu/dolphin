@@ -339,7 +339,8 @@ static const float UNPACK_R_TO_I_MATRIX[16] = {
 	1, 0, 0, 0
 };
 
-static const float UNPACK_RG_TO_IA_MATRIX[16] = {
+// FIXME: Is this backwards? I can't find a good way to test!
+static const float UNPACK_GR_TO_IA_MATRIX[16] = {
 	0, 1, 0, 0,
 	0, 1, 0, 0,
 	0, 1, 0, 0,
@@ -384,12 +385,12 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		case GX_TF_IA4:
 			DecodeIA4ToRG8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
-			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
 			break;
 		case GX_TF_IA8:
 			DecodeIA8ToRG8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
-			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
 			break;
 		case GX_TF_C4:
 			// 4-bit indices (expanded to 8 bits)
@@ -469,8 +470,9 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 		}
 	}
 
-	D3DTexture2D* fakeTexture = virt->FakeTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
-	if (!fakeTexture)
+	D3DTexture2D* virtTex = virt->Virtualize(ramAddr, width, height, levels,
+		format, tlutAddr, tlutFormat, m_unpackMatrix);
+	if (!virtTex)
 		return false;
 
 	m_ramStorage.tex.reset();
@@ -482,8 +484,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	m_curHash = newHash;
 
 	m_fromVirtCopy = true;
-	Matrix44::LoadIdentity(m_unpackMatrix);
-	m_loaded = fakeTexture;
+	m_loaded = virtTex;
 	m_loadedDirty = virt->IsDirty();
 	virt->ResetDirty();
 	return true;
@@ -704,6 +705,14 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
+	D3DTexture2D* efbTexture = (srcFormat == PIXELFMT_Z24) ?
+	// FIXME: Resolving EFB depth fails in anti-aliased mode.
+		FramebufferManager::GetResolvedEFBDepthTexture() :
+	// FIXME: Instead of resolving EFB, it would be better to pick out a
+	// single sample from each pixel. The game may break if it isn't
+	// expecting the blurred edges around multisampled shapes.
+		FramebufferManager::GetResolvedEFBColorTexture();
+
 	u8* dst = Memory::GetPointer(dstAddr);
 
 	u64 encodedHash = 0;
@@ -711,7 +720,7 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 	{
 		// Take the hash of the encoded data to detect if the game overwrites
 		// it.
-		size_t encodeSize = m_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		size_t encodeSize = m_encoder->Encode(dst, dstFormat, efbTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
 		if (encodeSize)
 		{
 			encodedHash = GetHash64(dst, encodeSize, encodeSize);
@@ -741,7 +750,7 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 
 		VirtualEFBCopy* virt = virtIt->second.get();
 
-		virt->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		virt->Update(dstAddr, dstFormat, efbTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
 		virt->SetHash(encodedHash);
 	}
 }

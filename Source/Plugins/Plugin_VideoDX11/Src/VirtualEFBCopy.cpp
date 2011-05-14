@@ -175,59 +175,61 @@ static const float RGB0_MATRIX[4*4] = {
 	0, 0, 0, 0
 };
 
-static const float RRRA_MATRIX[4*4] = {
+// FIXME: These don't need to be full 4x4 matrices. But the shader needs it.
+static const float PACK_RA_TO_RG_MATRIX[4*4] = {
 	1, 0, 0, 0,
-	1, 0, 0, 0,
-	1, 0, 0, 0,
-	0, 0, 0, 1
-};
-
-static const float AAAA_MATRIX[4*4] = {
 	0, 0, 0, 1,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_A_TO_R_MATRIX[4*4] = {
 	0, 0, 0, 1,
-	0, 0, 0, 1,
-	0, 0, 0, 1
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
-static const float RRRR_MATRIX[4*4] = {
+static const float PACK_R_TO_R_MATRIX[4*4] = {
 	1, 0, 0, 0,
-	1, 0, 0, 0,
-	1, 0, 0, 0,
-	1, 0, 0, 0
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
-static const float GGGG_MATRIX[4*4] = {
+static const float PACK_G_TO_R_MATRIX[4*4] = {
 	0, 1, 0, 0,
-	0, 1, 0, 0,
-	0, 1, 0, 0,
-	0, 1, 0, 0
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
-static const float BBBB_MATRIX[4*4] = {
+static const float PACK_B_TO_R_MATRIX[4*4] = {
 	0, 0, 1, 0,
-	0, 0, 1, 0,
-	0, 0, 1, 0,
-	0, 0, 1, 0
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
-static const float RRRG_MATRIX[4*4] = {
+// FIXME: Are these backwards?
+static const float PACK_RG_TO_RG_MATRIX[4*4] = {
 	1, 0, 0, 0,
-	1, 0, 0, 0,
-	1, 0, 0, 0,
-	0, 1, 0, 0
+	0, 1, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
-static const float GGGB_MATRIX[4*4] = {
+static const float PACK_GB_TO_RG_MATRIX[4*4] = {
 	0, 1, 0, 0,
-	0, 1, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 1, 0
+	0, 0, 1, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
 
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
-void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
+void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, D3DTexture2D* srcTex,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
@@ -243,29 +245,63 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
 	unsigned int newVirtualW = targetRect.GetWidth() / (scaleByHalf ? 2 : 1);
 	unsigned int newVirtualH = targetRect.GetHeight() / (scaleByHalf ? 2 : 1);
 
-	bool recreateFakeBase = !m_fakeBase || newVirtualW != m_virtualW || newVirtualH != m_virtualH;
-	
-	D3DTexture2D* efbTexture = (srcFormat == PIXELFMT_Z24) ?
-		FramebufferManager::GetEFBDepthTexture() :
-	// FIXME: Resolving EFB here will cause minor artifacts if the texture is
-	// interpreted with a palette. On DX10.1+ hardware, it would be better to
-	// copy into a multisampled fake-base, have the depalettizer work with
-	// multisampled textures, then resolve after depalettization.
-		FramebufferManager::GetResolvedEFBColorTexture();
-
-	if (recreateFakeBase)
+	const float* matrix;
+	const float* add;
+	DXGI_FORMAT dxFormat;
+	switch (dstFormat)
 	{
-		INFO_LOG(VIDEO, "Recreating fake base texture, size %dx%d", newVirtualW, newVirtualH);
-
-		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-			DXGI_FORMAT_R8G8B8A8_UNORM, newVirtualW, newVirtualH,
-			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
-
-		m_fakeBase.reset();
-		SharedPtr<ID3D11Texture2D> newFakeBase = CreateTexture2DShared(&t2dd, NULL);
-		m_fakeBase.reset(new D3DTexture2D(newFakeBase,
-			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
+	case EFB_COPY_R4:
+	case EFB_COPY_R8_1:
+	case EFB_COPY_R8:
+		matrix = PACK_R_TO_R_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+	case EFB_COPY_RA4:
+	case EFB_COPY_RA8:
+		matrix = PACK_RA_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8G8_UNORM;
+		break;
+	case EFB_COPY_RGB565:
+		matrix = RGB0_MATRIX;
+		add = A1_ADD;
+		dxFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case EFB_COPY_RGB5A3:
+	case EFB_COPY_RGBA8:
+		matrix = RGBA_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case EFB_COPY_A8:
+		matrix = PACK_A_TO_R_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+	case EFB_COPY_G8:
+		matrix = PACK_G_TO_R_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+	case EFB_COPY_B8:
+		matrix = PACK_B_TO_R_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+	case EFB_COPY_RG8:
+		matrix = PACK_RG_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8G8_UNORM;
+		break;
+	case EFB_COPY_GB8:
+		matrix = PACK_GB_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		dxFormat = DXGI_FORMAT_R8G8_UNORM;
+		break;
 	}
+
+	EnsureVirtualTexture(newVirtualW, newVirtualH, dxFormat);
 
 	if ((dstFormat == EFB_COPY_RGB5A3 || dstFormat == EFB_COPY_RGBA8) &&
 		srcFormat == PIXELFMT_RGBA6_Z24 && !isIntensity && !scaleByHalf)
@@ -278,69 +314,40 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
 		DEBUG_LOG(VIDEO, "Updating fake base with CopySubresourceRegion");
 
 		D3D11_BOX srcBox = CD3D11_BOX(targetRect.left, targetRect.top, 0, targetRect.right, targetRect.bottom, 1);
-		D3D::g_context->CopySubresourceRegion(m_fakeBase->GetTex(), 0, 0, 0, 0, efbTexture->GetTex(), 0, &srcBox);
+		D3D::g_context->CopySubresourceRegion(m_texture.tex->GetTex(), 0, 0, 0, 0, srcTex->GetTex(), 0, &srcBox);
 	}
 	else
 	{
-		const float* colorMatrix;
-		const float* colorAdd = ZERO_ADD;
-
-		switch (dstFormat)
-		{
-		case EFB_COPY_R4:
-		case EFB_COPY_R8_1:
-		case EFB_COPY_R8:
-			colorMatrix = RRRR_MATRIX;
-			break;
-		case EFB_COPY_RA4:
-		case EFB_COPY_RA8:
-			colorMatrix = RRRA_MATRIX;
-			break;
-		case EFB_COPY_RGB565:
-			colorMatrix = RGB0_MATRIX;
-			colorAdd = A1_ADD;
-			break;
-		case EFB_COPY_RGB5A3:
-		case EFB_COPY_RGBA8:
-			colorMatrix = RGBA_MATRIX;
-			break;
-		case EFB_COPY_A8:
-			colorMatrix = AAAA_MATRIX;
-			break;
-		case EFB_COPY_G8:
-			colorMatrix = GGGG_MATRIX;
-			break;
-		case EFB_COPY_B8:
-			colorMatrix = BBBB_MATRIX;
-			break;
-		case EFB_COPY_RG8:
-			colorMatrix = RRRG_MATRIX;
-			break;
-		case EFB_COPY_GB8:
-			colorMatrix = GGGB_MATRIX;
-			break;
-		default:
-			ERROR_LOG(VIDEO, "Couldn't fake this EFB copy format 0x%X", dstFormat);
-			m_fakeBase.reset();
-			return;
-		}
-
-		FakeEncodeShade(efbTexture, srcFormat, isIntensity, scaleByHalf,
+		VirtualizeShade(srcTex, srcFormat, isIntensity, scaleByHalf,
 			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
-			colorMatrix, colorAdd);
+			matrix, add);
 	}
 
 	// Fake base texture was created successfully
 	m_realW = newRealW;
 	m_realH = newRealH;
-	m_virtualW = newVirtualW;
-	m_virtualH = newVirtualH;
 	m_dstFormat = dstFormat;
 	m_dirty = true;
 }
 
-D3DTexture2D* VirtualEFBCopy::FakeTexture(u32 ramAddr, u32 width, u32 height,
-	u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat)
+// TODO: Move this stuff to a common place
+static const float UNPACK_R_TO_I_MATRIX[16] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0
+};
+
+// FIXME: Is this backwards?
+static const float UNPACK_RG_TO_IA_MATRIX[16] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	0, 1, 0, 0
+};
+
+D3DTexture2D* VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height,
+	u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat, Matrix44& unpackMatrix)
 {
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
 	// reinterpret or fall back to RAM if necessary
@@ -358,10 +365,48 @@ D3DTexture2D* VirtualEFBCopy::FakeTexture(u32 ramAddr, u32 width, u32 height,
 	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s at ram addr 0x%.08X",
 		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format], ramAddr);
 
-	return m_fakeBase.get();
+	switch (format)
+	{
+	case GX_TF_I4:
+	case GX_TF_I8:
+		Matrix44::Set(unpackMatrix, UNPACK_R_TO_I_MATRIX);
+		break;
+	case GX_TF_IA4:
+	case GX_TF_IA8:
+		Matrix44::Set(unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+		break;
+	default:
+		Matrix44::LoadIdentity(unpackMatrix);
+		break;
+	}
+
+	return m_texture.tex.get();
 }
 
-void VirtualEFBCopy::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcFormat,
+void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT dxFormat)
+{
+	bool recreate = !m_texture.tex ||
+		width != m_texture.width ||
+		height != m_texture.height ||
+		dxFormat != m_texture.dxFormat;
+	if (recreate)
+	{
+		INFO_LOG(VIDEO, "Recreating virtual texture, size %dx%d", width, height);
+
+		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height,
+			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
+
+		m_texture.tex.reset();
+		SharedPtr<ID3D11Texture2D> newFakeBase = CreateTexture2DShared(&t2dd, NULL);
+		m_texture.tex.reset(new D3DTexture2D(newFakeBase,
+			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
+		m_texture.width = width;
+		m_texture.height = height;
+		m_texture.dxFormat = dxFormat;
+	}
+}
+
+void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcFormat,
 	bool yuva, bool scale,
 	unsigned int posX, unsigned int posY,
 	unsigned int virtualW, unsigned int virtualH,
@@ -399,7 +444,7 @@ void VirtualEFBCopy::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcForma
 			Matrix44 yuvaMat;
 			Matrix44::Set(yuvaMat, YUVA_MATRIX);
 			Matrix44 combinedMat;
-			Matrix44::Multiply(yuvaMat, colorMat, combinedMat);
+			Matrix44::Multiply(colorMat, yuvaMat, combinedMat);
 
 			memcpy(params->Matrix, combinedMat.data, 4*4*sizeof(float));
 
@@ -431,7 +476,7 @@ void VirtualEFBCopy::FakeEncodeShade(D3DTexture2D* texSrc, unsigned int srcForma
 
 	// Re-encode with a different palette
 
-	D3D::g_context->OMSetRenderTargets(1, &m_fakeBase->GetRTV(), NULL);
+	D3D::g_context->OMSetRenderTargets(1, &m_texture.tex->GetRTV(), NULL);
 	D3D::g_context->PSSetConstantBuffers(0, 1, &paramsBuffer);
 	D3D::g_context->PSSetShaderResources(0, 1, &texSrc->GetSRV());
 

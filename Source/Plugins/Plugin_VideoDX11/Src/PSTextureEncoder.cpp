@@ -635,7 +635,7 @@ PSTextureEncoder::~PSTextureEncoder()
 	SAFE_RELEASE(m_outRTV);
 }
 
-size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
+size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
@@ -746,15 +746,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	
 		D3D::g_context->OMSetRenderTargets(1, &m_outRTV, NULL);
 
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
-			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
-		// FIXME: Instead of resolving EFB, it would be better to pick out a
-		// single sample from each pixel. The game may break if it isn't
-		// expecting the blurred edges around multisampled shapes.
-			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
-
 		D3D::g_context->PSSetConstantBuffers(0, 1, &m_encodeParams);
-		D3D::g_context->PSSetShaderResources(0, 1, &pEFB);
+		D3D::g_context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
 
 		// Encode!
 

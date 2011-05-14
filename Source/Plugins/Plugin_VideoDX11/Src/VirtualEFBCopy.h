@@ -50,13 +50,14 @@ public:
 
 	VirtualEFBCopy();
 
-	void Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+	void Update(u32 dstAddr, unsigned int dstFormat, D3DTexture2D* srcTex,
+		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
+		bool scaleByHalf);
 
-	// Returns NULL if texture could not be faked (caller should decode from
+	// Returns NULL if texture could not be virtualized (caller should decode from
 	// RAM instead)
-	D3DTexture2D* FakeTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
-		u32 format, u32 tlutAddr, u32 tlutFormat);
+	D3DTexture2D* Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, Matrix44& unpackMatrix);
 
 	unsigned int GetRealWidth() const { return m_realW; }
 	unsigned int GetRealHeight() const { return m_realH; }
@@ -69,7 +70,9 @@ public:
 
 private:
 
-	void FakeEncodeShade(D3DTexture2D* srcTex, unsigned int srcFormat,
+	void EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT dxFormat);
+
+	void VirtualizeShade(D3DTexture2D* srcTex, unsigned int srcFormat,
 		bool yuva, bool scale,
 		unsigned int posX, unsigned int posY,
 		unsigned int virtualW, unsigned int virtualH,
@@ -78,16 +81,19 @@ private:
 	// Properties of the "real" texture: width, height, hash of encoded data, etc.
 	unsigned int m_realW;
 	unsigned int m_realH;
-	unsigned int m_virtualW;
-	unsigned int m_virtualH;
 	unsigned int m_dstFormat;
+	bool m_dirty;
 
 	// This is not maintained by VirtualEFBCopy. It must be handled externally.
 	u64 m_hash;
 
-	// Fake base: Created and updated at the time of EFB copy
-	std::unique_ptr<D3DTexture2D> m_fakeBase;
-	bool m_dirty;
+	struct
+	{
+		std::unique_ptr<D3DTexture2D> tex;
+		UINT width;
+		UINT height;
+		DXGI_FORMAT dxFormat;
+	} m_texture;
 
 };
 
