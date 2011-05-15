@@ -101,7 +101,7 @@ wxString dump_frames_desc = wxTRANSLATE("Dump all rendered frames to an AVI file
 #if !defined WIN32 && defined HAVE_LIBAV
 wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
-wxString free_look_desc = wxTRANSLATE("[PARTIALLY BROKEN]\nEnable moving the camera arbitrarily\nUse WASD to move. R to reset the view.\n0/9 to move faster/slower.\nAdditionally the middle/right mouse button can be used to rotate the view.\n\nIf unsure, leave this unchecked.");
+wxString free_look_desc = wxTRANSLATE("This feature allows you to mess with the game's camera.\n\nHold the right mouse button and move the mouse to pan the camera around.  Hold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 doubles it (x2) and SHIFT+9 halves it (x0.5)).  Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
 wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
