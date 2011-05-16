@@ -234,7 +234,6 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curPaletteHash = newPaletteHash;
 	m_curTlutFormat = tlutFormat;
 
-	m_ramStorage.d3dFormat = d3dFormat;
 	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
 	// TODO: Depalettize RAM textures

@@ -64,6 +64,8 @@ enum TlutFormat
 	GX_TL_RGB5A3 = 0x2
 };
 
+extern const char* const TEX_FORMAT_NAMES[16];
+
 inline unsigned int TexDecoder_GetNumColors(unsigned int format)
 {
 	unsigned int result;

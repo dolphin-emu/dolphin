@@ -50,3 +50,8 @@ const unsigned int EFB_COPY_BLOCK_HEIGHTS[16] = {
 	4, // GB8
 	0, 0, 0 // Unknown formats
 };
+
+const char* const EFB_COPY_DST_FORMAT_NAMES[16] = {
+	"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
+	"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
+};

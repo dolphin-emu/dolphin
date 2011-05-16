@@ -128,9 +128,6 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 
 SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, bool depth)
 {
-	// There are 4 different combinations of scale and depth.
-	int key = (depth ? (1<<1) : 0) | (scale ? 1 : 0);
-
 	if (!m_shaderParams)
 	{
 		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(VirtCopyShaderParams_Padded),
@@ -139,7 +136,9 @@ SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, boo
 		if (!m_shaderParams)
 			ERROR_LOG(VIDEO, "Failed to create fake encode params buffer");
 	}
-
+	
+	// There are 4 different combinations of scale and depth.
+	int key = MakeKey(scale, depth);
 	if (!m_shaders[key])
 	{
 		D3D_SHADER_MACRO macros[] = {
@@ -352,18 +351,8 @@ D3DTexture2D* VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height,
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
 	// reinterpret or fall back to RAM if necessary
 
-	static const char* DST_FORMAT_NAMES[] = {
-		"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
-		"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
-	};
-
-	static const char* TEX_FORMAT_NAMES[] = {
-		"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x7",
-		"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
-	};
-
 	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s at ram addr 0x%.08X",
-		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format], ramAddr);
+		EFB_COPY_DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format], ramAddr);
 
 	switch (format)
 	{
@@ -419,7 +408,7 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	
 	DEBUG_LOG(VIDEO, "Doing fake encode shader");
 
-	static const float YUVA_MATRIX[16] = {
+	static const float YUVA_MATRIX[4*4] = {
 		0.257f, 0.504f, 0.098f, 0.f,
 		-0.148f, -0.291f, 0.439f, 0.f,
 		0.439f, -0.368f, -0.071f, 0.f,

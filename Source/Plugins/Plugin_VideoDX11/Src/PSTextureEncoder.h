@@ -46,13 +46,21 @@ private:
 	bool SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
 		bool isIntensity, bool scaleByHalf);
 
+	enum GeneratorType
+	{
+		Generator_R4,
+		Generator_R8,
+		Generator_RG4,
+		Generator_RG8,
+		Generator_RGB565,
+		Generator_RGB5A3,
+		Generator_RGBA8
+	};
+
 	typedef unsigned int ComboKey; // Key for a shader combination
 
-	ComboKey MakeComboKey(unsigned int dstFormat, bool isDepth,
-		bool scaleByHalf)
-	{
-		return (dstFormat << 2) | (isDepth ? (1<<1) : 0)
-			| (scaleByHalf ? (1<<0) : 0);
+	ComboKey MakeComboKey(GeneratorType gen, bool isDepth, bool scaleByHalf) {
+		return (gen << 2) | (isDepth ? (1<<1) : 0) | (scaleByHalf ? (1<<0) : 0);
 	}
 
 	typedef std::map<ComboKey, SharedPtr<ID3D11PixelShader> > ComboMap;
@@ -60,6 +68,8 @@ private:
 	ComboMap m_staticShaders;
 
 	SharedPtr<ID3D11PixelShader> m_useThisPS;
+	const float* m_useThisMatrix;
+	const float* m_useThisAdd;
 };
 
 }

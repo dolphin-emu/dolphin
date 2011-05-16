@@ -48,6 +48,10 @@ extern const char* texfmt[];
 extern const unsigned char sfont_map[];
 extern const unsigned char sfont_raw[][9*10];
 
+const char* const TEX_FORMAT_NAMES[16] = {
+	"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x7",
+	"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
+};
 
 // Gamecube/Wii texture decoder
 

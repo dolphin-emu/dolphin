@@ -185,7 +185,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 void TCacheEntry::CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FORMAT dxFormat)
 {
-	INFO_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
+	DEBUG_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
 		width, height, levels);
 	
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height, 1, levels);
@@ -513,7 +513,7 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 				DXGI_FORMAT_R8G8B8A8_UNORM, loadedDesc.Width, loadedDesc.Height, 1, loadedDesc.MipLevels,
 				D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
-			INFO_LOG(VIDEO, "Creating depal-storage of size %dx%d for texture at 0x%.08X",
+			DEBUG_LOG(VIDEO, "Creating depal-storage of size %dx%d for texture at 0x%.08X",
 				loadedDesc.Width, loadedDesc.Height, ramAddr);
 
 			m_depalStorage.tex.reset();

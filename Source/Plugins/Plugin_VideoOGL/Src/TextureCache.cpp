@@ -106,7 +106,7 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 		u32 mipWidth = width;
 		u32 mipHeight = height;
 		u32 level = 0;
-		while ((mipWidth > 0 && mipHeight > 0) && level < levels)
+		while ((mipWidth > 1 || mipHeight > 1) && level < levels)
 		{
 			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
 			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
@@ -167,9 +167,9 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
-
-			mipWidth /= 2;
-			mipHeight /= 2;
+			
+			mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
+			mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
 			++level;
 		}
 
