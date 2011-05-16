@@ -153,6 +153,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_TitleID(-1)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
+	, m_TIKSize(0)
 	, m_TIK(NULL)
 {
 	m_Valid = Initialize(_rName);
