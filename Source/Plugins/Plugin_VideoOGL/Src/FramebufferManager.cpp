@@ -304,6 +304,9 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 	// Texture map xfbSource->texture onto the main buffer
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+	// Use linear filtering.
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(sourcerc.left, sourcerc.bottom);

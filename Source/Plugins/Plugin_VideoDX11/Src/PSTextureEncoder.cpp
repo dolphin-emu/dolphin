@@ -487,7 +487,7 @@ PSTextureEncoder::~PSTextureEncoder()
 	SAFE_RELEASE(m_outRTV);
 }
 
-size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
+u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {

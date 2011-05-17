@@ -139,15 +139,6 @@ void VertexManager::vFlush()
 #endif
 
 	(void)GL_REPORT_ERROR();
-	
-	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
-	GL_REPORT_ERRORD();
-
-	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
-	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
@@ -260,6 +251,15 @@ void VertexManager::vFlush()
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	
+	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
+	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
+	GL_REPORT_ERRORD();
+
+	// setup the pointers
+	if (g_nativeVertexFmt)
+		g_nativeVertexFmt->SetupVertexPointers();
+	GL_REPORT_ERRORD();
 
 	Draw();
 

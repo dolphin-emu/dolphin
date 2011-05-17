@@ -32,7 +32,8 @@ namespace TextureConverter
 void Init();
 void Shutdown();
 
-void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+// Returns the size of the encoded data in bytes
+u32 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,

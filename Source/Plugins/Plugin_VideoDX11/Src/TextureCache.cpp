@@ -361,8 +361,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 
 	u32 mipWidth = width;
 	u32 mipHeight = height;
-	u32 level = 0;
-	while ((mipWidth > 1 || mipHeight > 1) && level < levels)
+	for (u32 level = 0; level < levels; ++level)
 	{
 		int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
 		int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
@@ -425,7 +424,6 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		
 		mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
 		mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
-		++level;
 	}
 }
 
@@ -720,7 +718,7 @@ void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat,
 	{
 		// Take the hash of the encoded data to detect if the game overwrites
 		// it.
-		size_t encodeSize = m_encoder->Encode(dst, dstFormat, efbTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
+		u32 encodeSize = m_encoder->Encode(dst, dstFormat, efbTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
 		if (encodeSize)
 		{
 			encodedHash = GetHash64(dst, encodeSize, encodeSize);

@@ -31,7 +31,7 @@ public:
 	virtual ~TextureEncoder() {}
 
 	// Returns size in bytes of encoded block of memory
-	virtual size_t Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
+	virtual u32 Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
 		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 		bool scaleByHalf) = 0;
 };

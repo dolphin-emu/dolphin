@@ -256,7 +256,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	
 }
 
-void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+u32 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
@@ -266,7 +266,7 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 	// Validate source rect size
 	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
-		return;
+		return 0;
 
 	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
 	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
@@ -293,7 +293,7 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	FRAGMENTSHADER& texconv_shader = GetOrCreateEncodingShader(dstFormat,
 		srcFormat == PIXELFMT_Z24, isIntensity);
 	if (texconv_shader.glprogid == 0)
-		return;
+		return 0;
 	
 	g_renderer->ResetAPIState();
 
@@ -332,6 +332,8 @@ void EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 
     GL_REPORT_ERRORD();
+
+	return totalCacheLines*32;
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)

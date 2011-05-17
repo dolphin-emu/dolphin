@@ -27,6 +27,7 @@
 #include "TextureConverter.h"
 #include "Tmem.h"
 #include "VertexShaderManager.h"
+#include "VirtualEFBCopy.h"
 
 namespace OGL
 {
@@ -48,15 +49,13 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
 }
 
 TCacheEntry::TCacheEntry()
-	: m_texture(0)
-{
-	glGenTextures(1, &m_texture);
-}
+	: m_ramTexture(0)
+{ }
 
 TCacheEntry::~TCacheEntry()
 {
-	glDeleteTextures(1, &m_texture);
-	m_texture = 0;
+	glDeleteTextures(1, &m_ramTexture);
+	m_ramTexture = 0;
 }
 
 inline bool IsPaletted(u32 format)
@@ -64,7 +63,68 @@ inline bool IsPaletted(u32 format)
 	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
 }
 
+// Compute the maximum number of mips a texture of given dims could have
+// Some games (Luigi's Mansion for example) try to use too many mip levels.
+static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
+{
+	if (width == 0 || height == 0)
+		return 0;
+	return floorLog2( std::max(width, height) ) + 1;
+}
+
 void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	m_loaded = 0;
+	m_loadedDirty = false;
+	m_loadedIsPaletted = false;
+	m_bindMe = 0;
+
+	// This is the earliest possible place to correct mip levels. Do so.
+	unsigned int maxLevels = ComputeMaxLevels(width, height);
+	levels = std::min(levels, maxLevels);
+
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+
+	m_bindMe = m_loaded;
+}
+
+void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	bool refreshFromRam = true;
+
+	// See if there is a virtual EFB copy available at this address
+	VirtualEFBCopyMap& virtCopyMap = ((TextureCache*)g_textureCache)->GetVirtCopyMap();
+	VirtualEFBCopyMap::iterator virtIt = virtCopyMap.find(ramAddr);
+
+	if (virtIt != virtCopyMap.end())
+	{
+		if (g_ActiveConfig.bEFBCopyVirtualEnable)
+		{
+			// Try to load from the virtual copy instead of RAM.
+			// FIXME: If copy fails to load, its memory region may have
+			// been deallocated by the game. We ought to delete copies that aren't
+			// being used.
+			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
+				tlutFormat, invalidated, virtIt->second.get()))
+				refreshFromRam = false;
+		}
+		else
+		{
+			// User must have turned off virtual copies mid-game. Delete any
+			// that are found.
+			// FIXME: Is it desirable to delete them as they are found instead
+			// of just deleting them all at once?
+			virtCopyMap.erase(virtIt);
+		}
+	}
+
+	if (refreshFromRam)
+		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+}
+
+void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
 	int blockW = TexDecoder_GetBlockWidthInTexels(format);
@@ -87,7 +147,7 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 	u64 newHash = m_curHash;
 
 	// TODO: Use a shader to depalettize textures, like the DX11 plugin
-	bool reloadTexture = dimsChanged || format != m_curFormat ||
+	bool reloadTexture = !m_ramTexture || dimsChanged || format != m_curFormat ||
 		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
 	if (reloadTexture || invalidated)
 	{
@@ -100,13 +160,15 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 
 	if (reloadTexture)
 	{
-		glBindTexture(GL_TEXTURE_2D, m_texture);
+		if (!m_ramTexture)
+			glGenTextures(1, &m_ramTexture);
+
+		glBindTexture(GL_TEXTURE_2D, m_ramTexture);
 		
 		// FIXME: Hash all the mips seperately?
 		u32 mipWidth = width;
 		u32 mipHeight = height;
-		u32 level = 0;
-		while ((mipWidth > 1 || mipHeight > 1) && level < levels)
+		for (u32 level = 0; level < levels; ++level)
 		{
 			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
 			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
@@ -170,7 +232,6 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 			
 			mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
 			mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
-			++level;
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -184,19 +245,124 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 
 	m_curPaletteHash = newPaletteHash;
 	m_curTlutFormat = tlutFormat;
+
+	m_loaded = m_ramTexture;
+	m_loadedDirty = reloadTexture;
+	// TODO: Use shader to depalettize RAM textures
+	m_loadedIsPaletted = false;
+}
+
+bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt)
+{
+	u64 newHash = m_curHash;
+
+	// If texture will be loaded to TMEM, make sure mem hash matches TCL hash.
+	// Otherwise, it's acceptable to just use the fake texture as is.
+	if (invalidated)
+	{
+		const u8* src = Memory::GetPointer(ramAddr);
+
+		if (g_ActiveConfig.bEFBCopyRAMEnable)
+		{
+			// We made a RAM copy, so check its hash for changes
+			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		}
+		else
+		{
+			// We must be doing virtual copies only, so look for canary data.
+			newHash = *(u64*)src;
+		}
+
+		if (newHash != virt->GetHash())
+		{
+			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
+			return false;
+		}
+	}
+
+	GLuint virtualized = virt->Virtualize(ramAddr, width, height, levels,
+		format, tlutAddr, tlutFormat, !g_ActiveConfig.bEFBCopyRAMEnable);
+	if (!virtualized)
+		return false;
+
+	m_curWidth = width;
+	m_curHeight = height;
+	m_curLevels = levels;
+	m_curFormat = format;
+	m_curHash = newHash;
+
+	m_loaded = virtualized;
+	m_loadedDirty = virt->IsDirty();
+	virt->ResetDirty();
+	m_loadedIsPaletted = IsPaletted(format);
+	return true;
+}
+
+TextureCache::TextureCache()
+	: m_virtCopyFramebuf(0)
+{
+	glGenFramebuffersEXT(1, &m_virtCopyFramebuf);
+}
+
+TextureCache::~TextureCache()
+{
+	glDeleteFramebuffersEXT(1, &m_virtCopyFramebuf);
+	m_virtCopyFramebuf = 0;
 }
 
 void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
-	// TODO: Support virtual EFB copies
+	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
+	// texture, which is invalid.
+	EFBRectangle correctSrc = srcRect;
+	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
+	GLuint srcTexture = (srcFormat == PIXELFMT_Z24)
+		? FramebufferManager::ResolveAndGetDepthTarget(correctSrc)
+		: FramebufferManager::ResolveAndGetRenderTarget(correctSrc);
+
+	u8* dst = Memory::GetPointer(dstAddr);
+
+	u64 encodedHash = 0;
 	if (g_ActiveConfig.bEFBCopyRAMEnable)
 	{
-		u8* dst = Memory::GetPointer(dstAddr);
-
-		TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
+		u32 encodeSize = TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
 			isIntensity, scaleByHalf);
+		if (encodeSize)
+		{
+			encodedHash = GetHash64(dst, encodeSize, encodeSize);
+			DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken: 0x%.016X", dstAddr, encodedHash);
+		}
+	}
+	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
+	{
+		static u64 canaryEgg = 0x79706F4342464500; // '\0EFBCopy'
+
+		// We aren't encoding to RAM but we are making a TCL, so put a piece of
+		// canary data in RAM to detect if the game overwrites it.
+		encodedHash = canaryEgg;
+		++canaryEgg;
+
+		// There will be at least 32 bytes that are safe to write here.
+		*(u64*)dst = encodedHash;
+	}
+
+	if (g_ActiveConfig.bEFBCopyVirtualEnable)
+	{
+		VirtualEFBCopyMap::iterator virtIt = m_virtCopyMap.find(dstAddr);
+		if (virtIt == m_virtCopyMap.end())
+		{
+			virtIt = m_virtCopyMap.insert(std::make_pair(dstAddr, new VirtualEFBCopy)).first;
+		}
+
+		VirtualEFBCopy* virt = virtIt->second.get();
+
+		virt->Update(dstAddr, dstFormat, srcTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
+		virt->SetHash(encodedHash);
 	}
 }
 

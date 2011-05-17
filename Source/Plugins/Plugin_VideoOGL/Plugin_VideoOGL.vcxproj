@@ -217,6 +217,7 @@
     <ClCompile Include="Src\TextureConverter.cpp" />
     <ClCompile Include="Src\VertexManager.cpp" />
     <ClCompile Include="Src\VertexShaderCache.cpp" />
+    <ClCompile Include="Src\VirtualEFBCopy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\FramebufferManager.h" />
@@ -233,6 +234,7 @@
     <ClInclude Include="Src\VertexManager.h" />
     <ClInclude Include="Src\VertexShaderCache.h" />
     <ClInclude Include="Src\VideoBackend.h" />
+    <ClInclude Include="Src\VirtualEFBCopy.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

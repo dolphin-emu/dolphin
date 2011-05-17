@@ -1032,6 +1032,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_TEXTURE_RECTANGLE_ARB);
 	}
+	
+	// Render to the real buffer now.
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 
 	// Update GLViewPort
 	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
@@ -1039,13 +1042,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
-
-	// Texture map s_xfbTexture onto the main buffer
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	// Use linear filtering.
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// We must call ApplyShader here even if no post proc is selected - it takes
 	// care of disabling it in that case. It returns false in case of no post processing.
@@ -1055,9 +1051,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if(g_ActiveConfig.bUseXFB)
 	{
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
+
+		// Use linear filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 		// draw each xfb source
-		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
@@ -1104,21 +1105,27 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			xfbSource->Draw(sourceRc, drawRc, 0, 0);
-
-			// We must call ApplyShader here even if no post proc is selected.
-			// It takes care of disabling it in that case. It returns false in
-			// case of no post processing.
-			if (applyShader)
-				PixelShaderCache::DisableShader();
 		}
+
+		// We must call ApplyShader here even if no post proc is selected.
+		// It takes care of disabling it in that case. It returns false in
+		// case of no post processing.
+		if (applyShader)
+			PixelShaderCache::DisableShader();
 	}
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
-		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+
+		// Use linear filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 		if (applyShader)
 		{
 			glBegin(GL_QUADS);
@@ -1156,10 +1163,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			glVertex2f( 1, -1);
 			glEnd();
 		}
-	}
 
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
 
 	// Save screenshot
 	if (s_bScreenshot)

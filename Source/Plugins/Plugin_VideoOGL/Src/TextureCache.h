@@ -21,10 +21,11 @@
 #include "TextureCacheBase.h"
 
 #include "GLUtil.h"
+#include "VirtualEFBCopy.h"
 
 namespace OGL
 {
-	
+
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
 
 class TCacheEntry : public TCacheEntryBase
@@ -35,7 +36,7 @@ public:
 	TCacheEntry();
 	~TCacheEntry();
 
-	GLuint GetTexture() { return m_texture; }
+	GLuint GetTexture() { return m_bindMe; }
 
 protected:
 
@@ -43,6 +44,15 @@ protected:
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 private:
+
+	void Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
 
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
@@ -55,18 +65,30 @@ private:
 	u64 m_curPaletteHash;
 	u32 m_curTlutFormat;
 
-	GLuint m_texture;
+	GLuint m_ramTexture;
+
+	GLuint m_loaded;
+	bool m_loadedDirty;
+	bool m_loadedIsPaletted;
+	GLuint m_bindMe;
 
 };
+
+typedef std::map<u32, std::unique_ptr<VirtualEFBCopy> > VirtualEFBCopyMap;
 
 class TextureCache : public TextureCacheBase
 {
 
 public:
 
+	TextureCache();
+	~TextureCache();
+
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
+	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
+	GLuint GetVirtCopyFramebuf() { return m_virtCopyFramebuf; }
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 
 protected:
@@ -74,6 +96,9 @@ protected:
 	TCacheEntry* CreateEntry();
 
 private:
+
+	VirtualEFBCopyMap m_virtCopyMap;
+	GLuint m_virtCopyFramebuf;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
 
