@@ -370,6 +370,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	default:
+		_uReturnValue = 0;
 		_dbg_assert_(DSPINTERFACE,0);
 		break;
 	}
@@ -580,15 +581,15 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_DMA_MMADDR_H:
-		g_arDMA.MMAddr = _iValue;
+		g_arDMA.MMAddr = _iValue & ~31;
 		break;
 
 	case AR_DMA_ARADDR_H:
-		g_arDMA.ARAddr = _iValue;
+		g_arDMA.ARAddr = _iValue & ~31;
 		break;
 
 	case AR_DMA_CNT_H:   
-		g_arDMA.Cnt.Hex = _iValue;
+		g_arDMA.Cnt.Hex = _iValue & ~31;
 		Do_ARAM_DMA();
 		break;
 
