@@ -491,7 +491,7 @@ void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
 }
 
 // TODO: Don't hardcode the size of the description area via line breaks
-#define DEFAULT_DESC_TEXT "Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n"
+#define DEFAULT_DESC_TEXT _("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
 void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
 {
 	// look up description text control and reset its label
@@ -500,7 +500,7 @@ void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
 	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
 	if (!descr_text) return;
 
-	descr_text->SetLabel(_(DEFAULT_DESC_TEXT));
+	descr_text->SetLabel(DEFAULT_DESC_TEXT);
 	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
 	ev.Skip();
 }
@@ -515,7 +515,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	page->SetSizerAndFit(sizer);
 
 	// Create description text
-	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, _(DEFAULT_DESC_TEXT));
+	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, DEFAULT_DESC_TEXT);
 	desc_text->Wrap(desc_sizer->GetSize().x - 20);
 	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
