@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-22 09:07-0500\n"
+"POT-Creation-Date: 2011-05-22 21:51-0500\n"
 "PO-Revision-Date: 2011-01-12 12:19+0000\n"
 "Last-Translator: Soren Jorvang\n"
 "Language-Team: \n"
@@ -3043,6 +3043,17 @@ msgstr ""
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:290
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:494
+msgid ""
+"Move the mouse pointer over an option to display a detailed description.\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:72

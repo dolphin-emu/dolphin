@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-22 09:07-0500\n"
+"POT-Creation-Date: 2011-05-22 21:51-0500\n"
 "PO-Revision-Date: 2011-04-18 23:43+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
@@ -3266,6 +3266,17 @@ msgstr "Motion Plus"
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:83
 msgid "Motor"
 msgstr "Μοτέρ"
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:494
+msgid ""
+"Move the mouse pointer over an option to display a detailed description.\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:72
 msgid "Multiply"
