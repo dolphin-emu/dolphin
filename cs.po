@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-05-22 21:51-0500\n"
-"PO-Revision-Date: 2011-04-18 07:27+0100\n"
+"PO-Revision-Date: 2011-05-23 11:03+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -288,7 +288,7 @@ msgstr "32 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:232
 msgid "3D Vision"
-msgstr ""
+msgstr "3D Vision"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:165
 msgid "8 bit"
@@ -386,7 +386,7 @@ msgstr "Zrychlení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 msgid "Accuracy:"
-msgstr ""
+msgstr "Přesnost:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
 msgid "Accurate VBeam emulation"
@@ -400,6 +400,10 @@ msgid ""
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
+"Přesně emulovat EFB kopie.\n"
+"Některé hry na tomto závisí pro určité grafické efekty nebo herní funkce.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -607,6 +611,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Umožní přepínání jistých možností pomocí horkých kláves 3, 4, 5, 6 a 7 "
+"uvnitř okna emulace.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:222
 msgid "Anisotropic Filtering:"
@@ -638,6 +646,9 @@ msgid ""
 "\n"
 "If unsure, select (off)."
 msgstr ""
+"Použít efekt následného zpracování po dokončení snímku.\n"
+"\n"
+" Pokud si nejste jisti, zvolte (vypnuto)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:327
 msgid "Arabic"
@@ -689,12 +700,11 @@ msgstr "Auto"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:192
 msgid "Auto (Multiple of 640x528)"
-msgstr ""
+msgstr "Auto (Násobek 640x528)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:192
-#, fuzzy
 msgid "Auto (Window Size)"
-msgstr "Velikost Okna:"
+msgstr "Auto (Velikost Okna)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 msgid ""
@@ -713,6 +723,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Automaticky vytvořit mipmapy, raději než dekódovat je z paměti.\n"
+"Trochu zlepší výkon, ale může způsobit malé chyby paměti.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -831,7 +845,6 @@ msgid "CPU Emulator Engine"
 msgstr "Jádro Emulátoru Procesoru"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:353
-#, fuzzy
 msgid "Cache Display Lists"
 msgstr "Ukládat předvyt. obj. do vyr. pam."
 
@@ -844,6 +857,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Vypočítat hodnoty hloubky 3D grafiky podle pixelu, raději než podle bodu.\n"
+"Na rozdíl od osvěltení pixelu (což je pouze vylepšen), výpočty hloubky podle "
+"pixelu jsou potřebné ke správné emulaci malého počtu her.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -853,6 +871,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Vypočítat osvětlení 3D grafiky podle pixelu, raději než podle bodu.\n"
+"Sníží rychlost emulace o nějaké procento (záleží na Vašem gracikém "
+"procesoru).\n"
+"Toto je většinou bezpečné vylepšení, ale může někdy způsobit problémy.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:977
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
@@ -903,7 +927,7 @@ msgstr "Caps Lock"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:328
 msgid "Catalan"
-msgstr ""
+msgstr "Katalánština"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
 msgid "Center"
@@ -1286,6 +1310,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Oříznout obraz z 4:3 na 5:4 nebo z 16:9 na 16:10.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
@@ -1379,7 +1406,6 @@ msgid "Debug"
 msgstr "Ladění"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:387
-#, fuzzy
 msgid "Debugging"
 msgstr "Ladění"
 
@@ -1427,9 +1453,8 @@ msgid "Delete the existing file '%s'?"
 msgstr "Vymazat existující soubor '%s'?"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:511
-#, fuzzy
 msgid "Description"
-msgstr "Možnosti Nahrávání"
+msgstr "Popis"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Detect"
@@ -1476,9 +1501,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:291
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:337
-#, fuzzy
 msgid "Disable"
-msgstr "Zakázat Mlhu"
+msgstr "Zakázat"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:355
 msgid "Disable Fog"
@@ -1489,9 +1513,8 @@ msgid "Disable Lighting"
 msgstr "Zakázat Osvětlení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:356
-#, fuzzy
 msgid "Disable Per-Pixel Depth"
-msgstr "Hloubka Pixelu"
+msgstr "Zakázat Hloubku Podle Pixelu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:385
 msgid "Disable Textures"
@@ -1505,6 +1528,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Zakázat jakoukolu emulaci XFB.\n"
+"Velmi zrychluje emulaci, ale způsobuje hodně chyb v mnoha hrách, které na "
+"nich závisejí (zvláště po domácku vyrobené aplikace).\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -1515,6 +1543,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zakázat emulaci EFB kopií.\n"
+"Tyto jsou často používány pro efekty následného zpracování nebo vykreslení "
+"do textur, takže když toto zaškrtnete, dostanete velké zrychléní, ale toto "
+"také skoro vždy způsobuje problémy.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
 msgid ""
@@ -1522,6 +1556,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zakázat texturování.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:545
 msgid "Disc"
@@ -1537,12 +1574,14 @@ msgid "Display"
 msgstr "Obraz"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
-#, fuzzy
 msgid ""
 "Display the inputs read by the emulator.\n"
 "\n"
 "If unsure, leave this unchecked."
-msgstr "Zobrazit vstupy čtené emulátorem."
+msgstr ""
+"Zobrazit vstupy čtené emulátorem.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:77
 msgid "Divide"
@@ -1662,14 +1701,19 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Vypsat všechny vykreslené snímky do souboru AVI v User/Dump/Frames/\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
-#, fuzzy
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/\n"
 "\n"
 "If unsure, leave this unchecked."
-msgstr "Vypíše textury hry do User/Dump/Textures/<id hry>/"
+msgstr ""
+"Vypíše dekódované textury hry do User/Dump/Textures/<id hry>/\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
@@ -1677,6 +1721,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Vypíše obsah EFP kopií do User/Dump/Textures/\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:333
@@ -1689,9 +1736,8 @@ msgid "E&xit"
 msgstr "O&dejít"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
-#, fuzzy
 msgid "EFB Copies"
-msgstr "EFB Regiony Kopie"
+msgstr "EFB Kopie"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:249
 #, c-format
@@ -1744,7 +1790,7 @@ msgstr "Efekt"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:283
 msgid "Embedded Frame Buffer"
-msgstr ""
+msgstr "Vnořená Vyr. Pamět Snímků"
 
 #: Source/Core/Core/Src/Core.cpp:173
 msgid "Emu Thread already running"
@@ -1758,6 +1804,11 @@ msgid ""
 "\n"
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
+"Přesně Emulovat XFB.\n"
+"Velmi zpomaluje emulaci a brání vykreslování ve vysokém rozlišení, ale je "
+"nutná k řádné emulaci jistého počtu her.\n"
+"\n"
+"Pokud si nejste jisti, zaškrtněte místo tohoto virtuální emulaci XFB."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
@@ -1768,6 +1819,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Emulovat XFB pomocí objektů textury grafického procesoru.\n"
+"Spraví mnoho her, které nefungují bez emulace EFB, aniž by byla tak pomalá "
+"jako opravdová emulace EFB. Nicméně stále může selhat v mnoha jiných hrách "
+"(zvláště po domácku vyrobené aplikace).\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:22
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:34
@@ -1795,6 +1852,12 @@ msgid ""
 "Requires fullscreen to work.\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zapnout 3D efekty pomocí stereoskpie použitím technologie Nvidia 3D Vision, "
+"pokud je podporována Vaším grafickým procesorem.\n"
+"Může způsobovat problémy.\n"
+"\n"
+"Pro fungování vyžaduje režim celé obrazovky.\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:110
 msgid "Enable AR Logging"
@@ -1813,7 +1876,6 @@ msgid "Enable Block Merging"
 msgstr "Zapnout Slučování Bloků"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
-#, fuzzy
 msgid "Enable Cache"
 msgstr "Povolit vyrovnávací paměť"
 
@@ -1867,7 +1929,6 @@ msgid "Enable Wireframe"
 msgstr "Povolit Drátěný Model"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:69
-#, fuzzy
 msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
@@ -1876,7 +1937,10 @@ msgid ""
 "If unsure, select 1x."
 msgstr ""
 "Povolí aniztropní filtrování.\n"
-"Zlepší obrazovou kvalitu textur, které jsou v zorných úhlech šikmé."
+"Zlepší obrazovou kvalitu textur, které jsou v zorných úhlech šikmé.\n"
+"Může způsobit problémy v malém počtu her.\n"
+"\n"
+"Pokud si nejste jisti, zvolte 1x."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
@@ -1926,6 +1990,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Kódovat výpisy snímků použitím kodeku FFV1.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
@@ -2041,9 +2108,8 @@ msgid "Extension"
 msgstr "Rozšíření"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:335
-#, fuzzy
 msgid "External Frame Buffer"
-msgstr "Extra Parametr"
+msgstr "Vnější Vyr. Paměť Snímků"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:60
 msgid "Extra Parameter"
@@ -2151,9 +2217,8 @@ msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:99
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:119
-#, fuzzy
 msgid "Failed to load bthprops.cpl"
-msgstr "Nelze nahrát hid.dll"
+msgstr "Nelze nahrát bthprops.cpl"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:83
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:92
@@ -2246,9 +2311,8 @@ msgid "Fast"
 msgstr "Rychlá"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:352
-#, fuzzy
 msgid "Fast Mipmaps"
-msgstr "Nahrát Původní Mipmapy"
+msgstr "Rychlé Mipmapy"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid "Fast version of the MMU.  Does not work for every game."
@@ -2325,24 +2389,22 @@ msgid "Force 4:3"
 msgstr "Vynutit 4:3"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:229
-#, fuzzy
 msgid "Force Texture Filtering"
-msgstr "Vynutit Filtrování"
+msgstr "Vynutit Filtrování Textur"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:75
-#, fuzzy
 msgid ""
 "Force texture filtering even if the emulated game explicitly disabled it.\n"
 "Improves texture quality slightly but causes glitches in some games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Vynutí bilineární filtrování textur i když ho hra výslovně zakázala.\n"
-"Zlepší kvalitu textur (zvláště pokud používáte vysoké vnitřní rozlišení), "
-"ale v některých hrách způsobuje chyby."
+"Vynutí filtrování textur i když ho emulovaná hra výslovně zakázala.\n"
+"Trochu zlepší kvalitu textur, ale v některých hrách způsobuje chyby.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:67
-#, fuzzy
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Causes graphical glitches is some games.\n"
@@ -2350,7 +2412,9 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Donutí hru vytvářet obraz v širokoúhlých rozlišeních.\n"
-"Nezapomeňte, že toto může způsobovat grafické chyby"
+"V některých hrách způsobuje grafické chyby\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2378,7 +2442,6 @@ msgid "Frame Advance"
 msgstr "Postup Snímkem"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
-#, fuzzy
 msgid "Frame Dumps use FFV1"
 msgstr "Uložení snímků použije FFV1"
 
@@ -2531,6 +2594,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Velmi zvýší kvalitu vytvářených textur použitím efektů vykreslení do "
+"textury.\n"
+"Zvýšením vnitřního rozlišení zlepší účinnek tohoto nastavení.\n"
+"Lehce snižuje výkon a možná způsobí chyby (i když je to nepravděpodobné).\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:337
 msgid "Greek"
@@ -2558,7 +2627,7 @@ msgstr "Byl zavolán HCI_CMD_INQUIRY, prosím ohlašte!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Hacks"
-msgstr ""
+msgstr "Hacky"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:134
 msgid "Header checksum failed"
@@ -2601,9 +2670,8 @@ msgid "Hide Mouse Cursor"
 msgstr "Skrýt kurzor myši"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:414
-#, fuzzy
 msgid "Hide Shader Errors"
-msgstr "Zobrazit Chyby Shadera"
+msgstr "Skrýt Chyby Shadera"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
 msgid ""
@@ -2707,9 +2775,8 @@ msgstr ""
 "měli byste také vypnout Přiškrcení Zvuku v DSP, aby to bylo účinné."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:286
-#, fuzzy
 msgid "Ignore Format Changes"
-msgstr "Emulovat změny formátů"
+msgstr "Ignorovat Změny Formátu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -2719,6 +2786,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Ignorovat všechny změny formátu EFB.\n"
+"Zlepší výkon v mnoha hrách, bez žádného negativního efektu. Přesto způsobuje "
+"grafické chyby v malém počtu jiných her.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
 msgid ""
@@ -2728,6 +2800,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Ignorovat všechny požadavky procesoru pro čtení a zápis do EFB.\n"
+"Zvýší výkon v některých hrách, ale může vypnout některé funkce související s "
+"hraním a grafické efekty.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:787
 msgid "Import Save"
@@ -2758,25 +2835,26 @@ msgstr ""
 "ale nemá správnou hlavičku\""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
-#, fuzzy
 msgid ""
 "Improves performance but causes glitches in most games which rely on proper "
 "fog emulation.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Zakáže mlhu. Zlepší výkon, ale způsobuje chyby v hrách, které závisejí na "
-"správné emulaci mlhy"
+"Zlepší výkon, ale způsobuje chyby ve většině her, které závisejí na správné "
+"emulaci mlhy.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:85
-#, fuzzy
 msgid ""
 "Improves performance but causes lighting to disappear in most games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Zakáže osvětlení. Zlepší výkon, ale způsobí, že osvětlení zmizí v hrách, "
-"které ho používají."
+"Zlepší výkon, ale způsobí, že ve většině her zmizí osvěltení.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
 msgid "In Game"
@@ -2864,9 +2942,8 @@ msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Vnitřní chyba LZO - lzo_init() selhalo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:199
-#, fuzzy
 msgid "Internal Resolution:"
-msgstr "Rozlišení Displeje v režimu Celé Obrazovky:"
+msgstr "Vnitřní Rozlišení:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:277
 msgid "Interpreter (VERY slow)"
@@ -3024,9 +3101,8 @@ msgid "Load"
 msgstr "Nahrát"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:397
-#, fuzzy
 msgid "Load Custom Textures"
-msgstr "Nahrát Textury s Vys. Roz."
+msgstr "Nahrát Vlastní Textury"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:204
 msgid "Load State Slot 1"
@@ -3065,9 +3141,8 @@ msgid "Load State..."
 msgstr "Nahrát Stav..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:219
-#, fuzzy
 msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii %d%c"
+msgstr "Nahrát Systémové Menu Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:215
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1384
@@ -3076,12 +3151,14 @@ msgid "Load Wii System Menu %d%c"
 msgstr "Nahrát Systémové Menu Wii %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/\n"
 "\n"
 "If unsure, leave this unchecked."
-msgstr "Načte textury vysokého rozlíšení z User/Load/Textures/<id hry>/"
+msgstr ""
+"Načte vlastní textury z User/Load/Textures/<id hry>/\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:49
 msgid "Load preset values from hack patterns available."
@@ -3241,6 +3318,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Změnit textury, aby zobrazovali formát, v kterém jsou zakódovány. Ve většině "
+"případů vyžaduje resetovaní emulace.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:113
 msgid "Monospaced font"
@@ -3265,6 +3346,13 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
+"Najeďte myší nad možnost k zobrazení podrobného popisu.\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:72
 msgid "Multiply"
@@ -3538,9 +3626,8 @@ msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: nelze otevřít zařízení %s"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:358
-#, fuzzy
 msgid "OpenCL Texture Decoder"
-msgstr "OpenMP Dekodér Textury"
+msgstr "OpenCL Dekodér Textury"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:359
 msgid "OpenMP Texture Decoder"
@@ -3575,7 +3662,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:361
 msgid "Other"
-msgstr ""
+msgstr "Jiné"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
 msgid ""
@@ -3644,9 +3731,8 @@ msgid "Pause"
 msgstr "Pozastavit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:228
-#, fuzzy
 msgid "Per-Pixel Lighting"
-msgstr "Osvětlení Pixelů"
+msgstr "Osvětlení Podle Pixelu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:343
 msgid "Perfect"
@@ -3740,9 +3826,8 @@ msgid "Portuguese (Brazilian)"
 msgstr "Portugalština (Brazilská)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:258
-#, fuzzy
 msgid "Post-Processing Effect:"
-msgstr "Shader Následného Zpracování:"
+msgstr "Efekt Následného Zpracování:"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -3859,7 +3944,6 @@ msgid "Red Right"
 msgstr "Červená vpravo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
 "This makes the rendered picture look less blocky.\n"
@@ -3868,7 +3952,10 @@ msgid ""
 "If unsure, select None."
 msgstr ""
 "Zmenší množství vyhlazování způsobené rastrovaním 3D obrazu.\n"
-"Tímto vypadá vykreslený obraz méně hranatý, ale také výrazně snižuje výkon."
+"Tímto vypadá vykreslený obraz méně hranatý.\n"
+"Výrazně snižuje rychlost emulace a nekdy způsobuje problémy.\n"
+"\n"
+"Pokud si nejste jisti, vyberte Žádný."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:907
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
@@ -3896,14 +3983,14 @@ msgid "Remove"
 msgstr "Odstranit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:84
-#, fuzzy
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
 "Vykreslí obraz jako drátěný model.\n"
-"Toto je užitečné pouze pro účely ladění."
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Render to Main Window"
@@ -4034,7 +4121,6 @@ msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Uložený stav filmu %s je poškozen, nahrávání filmu je zastaveno..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:227
-#, fuzzy
 msgid "Scaled EFB Copy"
 msgstr "EFB Kopie Změněné Velikosti"
 
@@ -4083,14 +4169,14 @@ msgid "Select a Wii WAD file to install"
 msgstr "Vyberte soubor Wii WAD k instalování"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:65
-#, fuzzy
 msgid ""
 "Select a hardware adapter to use.\n"
 "\n"
 "If unsure, use the first one."
 msgstr ""
 "Zvolte, který hardwarový adaptér se má použít.\n"
-"Jste-li na pochybách, použijte ten první"
+"\n"
+"Pokud si nejste jisti, použijte ten první."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:520
 msgid "Select a save file to import"
@@ -4121,7 +4207,6 @@ msgid "Select the state to save"
 msgstr "Vyberte stav k uložení"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:66
-#, fuzzy
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio\n"
@@ -4134,7 +4219,7 @@ msgstr ""
 "Vyberte, jaký poměr stran se má použít při vykreslování:\n"
 "Auto: Použít přirozený poměr (4:3)\n"
 "Vynutit 16:9: Roztáhne obraz na poměr 16:9.\n"
-"Vynutit 4:3: Roztáhne obraz na poměr:3.\n"
+"Vynutit 4:3: Roztáhne obraz na poměr4:3.\n"
 "Roztáhnout do okna: Roztáhne obraz do velikosti okna."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:114
@@ -4232,9 +4317,8 @@ msgid "Show Drives"
 msgstr "Zobrazit Disky"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:382
-#, fuzzy
 msgid "Show EFB Copy Regions"
-msgstr "EFB Regiony Kopie"
+msgstr "Zobrazit EFB Regiony Kopie"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:185
 msgid "Show FPS"
@@ -4285,9 +4369,8 @@ msgid "Show Regions"
 msgstr "Zobrazit Regiony"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:383
-#, fuzzy
 msgid "Show Statistics"
-msgstr "Různé Statistiky"
+msgstr "Zobrazit Statistiky"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:301
 msgid "Show Taiwan"
@@ -4346,6 +4429,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zobrazí počet snímků vykreslených za sekundu jako měřítko rychlosti "
+"emulace.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:119
 msgid "Show this help message"
@@ -4361,6 +4448,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zobrazit různé statistiky.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -4375,13 +4465,12 @@ msgid "Size"
 msgstr "Velikost"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:357
-#, fuzzy
 msgid "Skip Dest. Alpha Pass"
 msgstr "Vypnout Průchod Cíl. Průhl."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:302
 msgid "Skip EFB Access from CPU"
-msgstr ""
+msgstr "Přeskočit EFB Přístup z Procesoru"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:617
 msgid "Skip GC BIOS"
@@ -4394,6 +4483,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Přeskočit průchod cílové průhlednosti používaný ve většině her pro různé "
+"grafické efekty.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:111
 msgid ""
@@ -4404,6 +4497,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Lehce zrychlí kopie EFB do RAM obětováním přesnosti emulace.\n"
+"Někdy také zvýší kvalitu obrazu.\n"
+"Pokud se setkáváte s jykýmikoliv problémy, zkuste zvýšit přesnost textury, "
+"nebo tuto možnost vypnout.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:398
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:410
@@ -4466,6 +4565,14 @@ msgid ""
 "\n"
 "If unsure, select 640x528."
 msgstr ""
+"Určuje rozlišení, v kterém bude vykresleno. Vysoké rozlišení vlemi zvýší "
+"kvalitu obrazu, ale je také o dost náročnější na výkon a může způsobovat v "
+"některých hrách chyby.\n"
+"\"Násobek 640x528\" je o trochu pomalejěí než \"Velikost Okna\", ale také "
+"nezpůsobuje tolik problémů. Obecně řečeno, čím nižší je vnitřní rozlišení, "
+"tím lepší výkon bude.\n"
+"\n"
+"Pokud si nejste jisti, zvolte 640x528."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:144
 msgid "Specify a video backend"
@@ -4536,6 +4643,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Ukládat EFB kopie do objektů textury grafického procesoru.\n"
+"Toto není přesné, ale rp většinu her funguje dostatečně dobře a dává větší "
+"zrychlení než EFB do RAM.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:169
 msgid "Stretch to Window"
@@ -4602,14 +4714,12 @@ msgid "Texture"
 msgstr "Textura"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:309
-#, fuzzy
 msgid "Texture Cache"
-msgstr "Zahodit Vyrovnávací Paměť"
+msgstr "Vyrovnávací Paměť Textur"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
-#, fuzzy
 msgid "Texture Format Overlay"
-msgstr "Formát Textury"
+msgstr "Překryv Formátu Textury"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:226
 msgid "The WAD has been installed successfully"
@@ -4672,6 +4782,10 @@ msgid ""
 "\n"
 "If unsure, use the second-fastest value from the right."
 msgstr ""
+"Čím bezpečnější toto bude, tím bude méně pravděpodobné, že emulátoru budou "
+"chybět jakékoliv aktualizace textur z RAM.\n"
+"\n"
+"Pokud si nejste jisti, použijte druhou nejrychlejší hodnotu zprava."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
 msgid "The save you are trying to copy has an invalid file size"
@@ -4757,6 +4871,14 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Tato funkce Vám umožňuje si pohrát s herní kamerou.\n"
+"\n"
+"Podržte pravé tlačítko myši a pohybujte s ní pro změnu pohledu kamery. "
+"Podržte SHIFT a zmáčkněte jednu z kláves WASD, abyste kamerou pohli v určité "
+"vzdálenosti kroku (SHIFT+0 to znásobuje (x2) a SHIFT+9 dělí napůl (x0.5)). "
+"Stiskněte SHIFT+R k resetu kamery.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
 msgid ""
@@ -4956,6 +5078,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Použít více vláken k dekódování textur.\n"
+"Může vést ke zrychlení (zvláště u provesorů, která mají více než dvě "
+"jádra).\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
 msgid ""
@@ -4965,6 +5092,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Normálně pokud kompilace shadera selže, je zobrazena chybová zpráva.\n"
+"Nicméně, zaškrtnutím této možnosti tyto vyskakovací okna přeskočíte, což Vám "
+"umožní nepřerušované hraní.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:405
 msgid "Utility"
@@ -5020,6 +5152,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Čekat na vertikální mezery, aby bylo sníženo trhání.\n"
+"Snižuje výkon, pokud je rychlost emulace pod 100%.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:641
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
@@ -5277,6 +5413,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[NEFUNGUJE]\n"
+"Zvýrazní regiony, z kterých bylo EFB zkopírováno.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:90
 msgid "[Custom]"
@@ -5292,6 +5432,14 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[EXPERIMENTÁLNÍ]\n"
+"Usiluje o zrychlení emulace tím, že dekódování textury přenechá grafickému "
+"procesoru použitím struktury OpenCL.\n"
+"Nicméně v tuto dobu je známo, že způsobuje vady textur v různých hrách. Také "
+"je ve většině případů pomalejší, než normální dekódování textur přes "
+"procesor.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
@@ -5301,6 +5449,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[EXPERIMENTÁLNÍ]\n"
+"Trochu zrychlí emulaci ukládáním předvytvořených objektů do vyrovnávací "
+"paměti\n"
+"Může ale také způsobovat problémy\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:512
 msgid "^ ADD"
@@ -5340,7 +5494,7 @@ msgstr "s"
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format
 msgid "unknown cmd 0x%08x"
-msgstr "neznámy příkaz 0x%08x"
+msgstr "neznámý příkaz 0x%08x"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1032
 msgid "wxExecute returned -1 on application run!"
@@ -5361,6 +5515,21 @@ msgstr "| NEBO"
 #~ msgid "(Default)"
 #~ msgstr "(Výchozí)"
 
+#~ msgid "0.375x Native (240x198)"
+#~ msgstr "Původní 0.375x (240x198)"
+
+#~ msgid "0.5x Native (320x264)"
+#~ msgstr "Původní 0.5x (320x264)"
+
+#~ msgid "0.75x Native (480x396)"
+#~ msgstr "Původní 0.75x (480x396)"
+
+#~ msgid "1x Native (640x528)"
+#~ msgstr "Původní 1x (640x528)"
+
+#~ msgid "2x Native (1280x1056)"
+#~ msgstr "Původní 2x (1280x1056)"
+
 #~ msgid "32,000 Hz"
 #~ msgstr "32,000 Hz"
 
@@ -5369,6 +5538,9 @@ msgstr "| NEBO"
 
 #~ msgid "3D Vision (Requires Fullscreen)"
 #~ msgstr "3D Vision (Vyžaduje režim Celé Obrazovky)"
+
+#~ msgid "3x Native (1920x1584)"
+#~ msgstr "Původní 3x (1920x1584)"
 
 #~ msgid "48,000 Hz"
 #~ msgstr "48,000 Hz"
