@@ -137,6 +137,7 @@ private:
 		ID_DEFAULTISO,
 		ID_DVDROOT,
 		ID_APPLOADERPATH,
+		ID_NANDROOT,
 
 
 		ID_GRAPHIC_CB,
@@ -244,10 +245,11 @@ private:
 	wxButton* AddISOPath;
 	wxButton* RemoveISOPath;
 
-	// DefaultISO, DVD Root, Apploader
+	// DefaultISO, DVD Root, Apploader, NANDPath
 	wxFilePickerCtrl* DefaultISO;
 	wxDirPickerCtrl* DVDRoot;
 	wxFilePickerCtrl* ApploaderPath;
+	wxDirPickerCtrl* NANDRoot;
 
 	// Graphics
 	wxChoice* GraphicSelection;
@@ -301,6 +303,7 @@ private:
 	void DefaultISOChanged(wxFileDirPickerEvent& event);
 	void DVDRootChanged(wxFileDirPickerEvent& event);
 	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event));
+	void NANDRootChanged(wxFileDirPickerEvent& event);
 
 private:
 	DECLARE_EVENT_TABLE();

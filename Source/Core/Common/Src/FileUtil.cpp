@@ -620,7 +620,7 @@ std::string GetSysDirectory()
 
 // Returns a string with a Dolphin data dir or file in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-std::string &GetUserPath(const unsigned int DirIDX)
+std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 {
 	static std::string paths[NUM_PATH_INDICES];
 
@@ -638,8 +638,8 @@ std::string &GetUserPath(const unsigned int DirIDX)
 		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", paths[D_USER_IDX].c_str());
 
 		paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-		paths[D_WIIUSER_IDX]		= paths[D_USER_IDX] + WII_USER_DIR DIR_SEP;
 		paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
+		paths[D_WIIUSER_IDX]		= paths[D_WIIROOT_IDX] + DIR_SEP;
 		paths[D_CONFIG_IDX]			= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
 		paths[D_GAMECONFIG_IDX]		= paths[D_USER_IDX] + GAMECONFIG_DIR DIR_SEP;
 		paths[D_MAPS_IDX]			= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
@@ -657,7 +657,7 @@ std::string &GetUserPath(const unsigned int DirIDX)
 		paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
 		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		paths[D_WIISYSCONF_IDX]		= paths[D_USER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
 		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		paths[F_DSPCONFIG_IDX]		= paths[D_CONFIG_IDX] + DSP_CONFIG;
 		paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
@@ -667,6 +667,26 @@ std::string &GetUserPath(const unsigned int DirIDX)
 		paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
 		paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
 		paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+	}
+
+	if (!newPath.empty())
+	{
+		if(DirIDX != D_WIIROOT_IDX)
+			PanicAlert("trying to change user path other than wii root");
+
+		if (!File::IsDirectory(newPath))
+		{
+			WARN_LOG(COMMON, "Invalid path specified %s, wii user path will be set to default", newPath.c_str());
+			paths[D_WIIROOT_IDX] = paths[D_USER_IDX] + WII_USER_DIR;
+		}
+		else
+		{
+			paths[D_WIIROOT_IDX] = newPath;
+		}
+
+		paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
+		paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP; 
+		paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 	}
 	return paths[DirIDX];
 }

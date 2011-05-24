@@ -132,16 +132,28 @@ void SConfig::SaveSettings()
 	ini.Set("General", "LastFilename",	m_LastFilename);
 
 	// ISO folders
-	ini.Set("General", "GCMPathes",		(int)m_ISOFolder.size());
-
-	for (size_t i = 0; i < m_ISOFolder.size(); i++)
+	// clear removed folders
+	int oldPaths,
+		numPaths = (int)m_ISOFolder.size();
+	ini.Get("General", "GCMPathes", &oldPaths, 0);
+	for (int i = numPaths; i < oldPaths; i++)
 	{
 		TCHAR tmp[16];
-		sprintf(tmp, "GCMPath%i", (int)i);
+		sprintf(tmp, "GCMPath%i", i);
+		ini.DeleteKey("General", tmp);
+	}
+
+	ini.Set("General", "GCMPathes",		numPaths);
+
+	for (int i = 0; i < numPaths; i++)
+	{
+		TCHAR tmp[16];
+		sprintf(tmp, "GCMPath%i", i);
 		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
+	ini.Set("General", "NANDRoot",			m_NANDPath);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
@@ -263,6 +275,9 @@ void SConfig::LoadSettings()
 		}
 
 		ini.Get("General", "RecursiveGCMPaths",		&m_RecursiveISOFolder,							false);
+
+		ini.Get("General", "NANDRoot",		&m_NANDPath);
+		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 	}
 
 	{

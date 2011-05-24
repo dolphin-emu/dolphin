@@ -179,6 +179,7 @@ EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
 EVT_FILEPICKER_CHANGED(ID_APPLOADERPATH, CConfigMain::ApploaderPathChanged)
+EVT_DIRPICKER_CHANGED(ID_NANDROOT, CConfigMain::NANDRootChanged)
 
 
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
@@ -530,6 +531,7 @@ void CConfigMain::InitializeGUIValues()
 	DefaultISO->SetPath(wxString(startup_params.m_strDefaultGCM.c_str(), *wxConvCurrent));
 	DVDRoot->SetPath(wxString(startup_params.m_strDVDRoot.c_str(), *wxConvCurrent));
 	ApploaderPath->SetPath(wxString(startup_params.m_strApploader.c_str(), *wxConvCurrent));
+	NANDRoot->SetPath(wxString(SConfig::GetInstance().m_NANDPath.c_str(), *wxConvCurrent));
 
 	// video backend list
 	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
@@ -900,6 +902,7 @@ void CConfigMain::CreateGUIControls()
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format(wxT("|*.img|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+	NANDRoot = new wxDirPickerCtrl(PathsPage, ID_NANDROOT, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 
 	// Populate the settings
 	wxBoxSizer* sISOButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -921,6 +924,9 @@ void CConfigMain::CreateGUIControls()
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Apploader:")),
 			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Wii NAND Root:")),
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
 	sOtherPaths->AddGrowableCol(1);
 
 	// Populate the Paths page
@@ -1376,6 +1382,14 @@ void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = ApploaderPath->GetPath().mb_str();
 }
 
+void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
+{
+	std::string NANDPath =
+	SConfig::GetInstance().m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, std::string(NANDRoot->GetPath().mb_str()));
+	NANDRoot->SetPath(wxString(NANDPath.c_str(), *wxConvCurrent));
+	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
+	main_frame->UpdateWiiMenuChoice();
+}
 
 // GFX backend selection
 void CConfigMain::OnSelectionChanged(wxCommandEvent& ev)

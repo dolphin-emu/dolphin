@@ -177,6 +177,8 @@ public:
 	bool SaveToFile(const char* filename);
 	bool LoadFromFile(const char* filename);
 	bool Reload();
+	// This function is used when the NAND root is changed
+	void UpdateLocation();
 
 private:
 	bool LoadFromFileInternal(FILE *fh);

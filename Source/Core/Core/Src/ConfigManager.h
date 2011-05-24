@@ -43,6 +43,7 @@ struct SConfig : NonCopyable
 	bool m_RecursiveISOFolder;
 
 	SCoreStartupParameter m_LocalCoreStartupParameter;
+	std::string m_NANDPath;
 
 	std::string m_strMemoryCardA;
 	std::string m_strMemoryCardB;

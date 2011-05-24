@@ -47,6 +47,7 @@ bool SysConf::LoadFromFile(const char *filename)
 	// Basic check
 	if (!File::Exists(filename))
 	{
+		File::CreateFullPath(filename);
 		GenerateSysConf();
 		return true;
 	}
@@ -402,6 +403,19 @@ bool SysConf::Save()
 	if (!m_IsValid)
 		return false;
 	return SaveToFile(m_Filename.c_str());
+}
+
+void SysConf::UpdateLocation()
+{
+	// if the old Wii User dir had a sysconf file save any settings that have been changed to it
+	if (m_IsValid)
+		Save();
+
+	// Clear the old filename and set the default filename to the new user path 
+	// So that it can be generated if the file does not exist in the new location
+	m_Filename.clear();
+	m_FilenameDefault =  File::GetUserPath(F_WIISYSCONF_IDX);
+	Reload();
 }
 
 bool SysConf::Reload()
