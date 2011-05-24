@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-22 21:51-0500\n"
-"PO-Revision-Date: 2011-04-27 00:34+0100\n"
+"POT-Creation-Date: 2011-05-22 21:56-0500\n"
+"PO-Revision-Date: 2011-04-27 12:59+0100\n"
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -1610,7 +1610,7 @@ msgid ""
 "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
 "files..."
 msgstr ""
-"Dolphin no pudo encontrar ninguna ISO de GC/Wii. Haz clic doble aquí para "
+"Dolphin no pudo encontrar ninguna ISO de GC/Wii. Haz doble clic aquí para "
 "buscar..."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:216
@@ -3082,9 +3082,8 @@ msgid "Load State..."
 msgstr "Cargar estado..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:219
-#, fuzzy
 msgid "Load Wii System Menu"
-msgstr "Cargar Menú de sistema Wii %d %c"
+msgstr "Cargar Menú de sistema de Wii "
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:215
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1384
