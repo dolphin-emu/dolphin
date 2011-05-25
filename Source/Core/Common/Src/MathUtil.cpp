@@ -31,99 +31,86 @@ static const u32 default_sse_state = _mm_getcsr();
 namespace MathUtil
 {
 
-int ClassifyDouble(double dvalue)
+u32 ClassifyDouble(double dvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
 	IntDouble value;
 	value.d = dvalue;
-	// 5 bits (C, <, >, =, ?)
-	// easy cases first
-	if (value.i == 0) {
-		// positive zero
-		return 0x2;
-	} else if (value.i == 0x8000000000000000ULL) {
-		// negative zero
-	   return 0x12;
-	} else if (value.i == 0x7FF0000000000000ULL) {
-		// positive inf
-		return 0x5;
-	} else if (value.i == 0xFFF0000000000000ULL) {
-		// negative inf
-		return 0x9;
-	} else {
-		// OK let's dissect this thing.
-		int sign = value.i >> 63;
-		int exp = (int)((value.i >> 52) & 0x7FF);
-		if (exp >= 1 && exp <= 2046) {
-			// Nice normalized number.
-			if (sign) {
-				return 0x8; // negative
-			} else {
-				return 0x4; // positive
+	u64 sign = value.i & DOUBLE_SIGN;
+	u64 exp  = value.i & DOUBLE_EXP;
+	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP) 
+	{
+		// Nice normalized number.
+		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
+	}
+	else
+	{
+		u64 mantissa = value.i & DOUBLE_FRAC;
+		if (mantissa)
+		{
+			if (exp)
+			{
+				return PPC_FPCLASS_QNAN;
+			}
+			else
+			{
+				// Denormalized number.
+				return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
 			}
 		}
-		u64 mantissa = value.i & 0x000FFFFFFFFFFFFFULL;
-		if (exp == 0 && mantissa) {
-			// Denormalized number.
-			if (sign) {
-				return 0x18;
-			} else {
-				return 0x14;
-			}
-		} else if (exp == 0x7FF && mantissa /* && mantissa_top*/) {
-			return 0x11; // Quiet NAN
+		else if (exp)
+		{
+			//Infinite
+			return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+		}
+		else
+		{
+			//Zero
+			return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 		}
 	}
-	
-	return 0x4;
 }
 
-int ClassifyFloat(float fvalue)
+u32 ClassifyFloat(float fvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
 	IntFloat value;
 	value.f = fvalue;
-	// 5 bits (C, <, >, =, ?)
-	// easy cases first
-	if (value.i == 0) {
-		// positive zero
-		return 0x2;
-	} else if (value.i == 0x80000000) {
-		// negative zero
-	   return 0x12;
-	} else if (value.i == 0x7F800000) {
-		// positive inf
-		return 0x5;
-	} else if (value.i == 0xFF800000) {
-		// negative inf
-		return 0x9;
-	} else {
-		// OK let's dissect this thing.
-		int sign = value.i >> 31;
-		int exp = (int)((value.i >> 23) & 0xFF);
-		if (exp >= 1 && exp <= 254) {
-			// Nice normalized number.
-			if (sign) {
-				return 0x8; // negative
-			} else {
-				return 0x4; // positive
-			}
-		}
-		u64 mantissa = value.i & 0x007FFFFF;
-		if (exp == 0 && mantissa) {
-			// Denormalized number.
-			if (sign) {
-				return 0x18;
-			} else {
-				return 0x14;
-			}
-		} else if (exp == 0xFF && mantissa /* && mantissa_top*/) {
-			return 0x11; // Quiet NAN
-		}
+	u32 sign = value.i & FLOAT_SIGN;
+	u32 exp  = value.i & FLOAT_EXP;
+	if (exp > FLOAT_ZERO && exp < FLOAT_EXP) 
+	{
+		// Nice normalized number.
+		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
 	}
-	
-	return 0x4;
+	else
+	{
+		u32 mantissa = value.i & FLOAT_FRAC;
+		if (mantissa)
+		{
+			if (exp)
+			{
+				return PPC_FPCLASS_QNAN; // Quiet NAN
+			}
+			else
+			{
+				// Denormalized number.
+				return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;			
+			}
+		} 
+		else if (exp) 
+		{
+			// Infinite
+			return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+		} 
+		else 
+		{
+			//Zero
+			return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
+		}
+	}	
 }
+
 
 }  // namespace
 

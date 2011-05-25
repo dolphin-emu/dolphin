@@ -251,7 +251,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 }
 
 // TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(u32 val, int array)
+void LoadIndexedXF(u32 val, int refarray)
 {
     int index = val >> 16;
     int address = val & 0xFFF; // check mask
@@ -261,5 +261,5 @@ void LoadIndexedXF(u32 val, int array)
 	XFMemWritten(size, address);
 
     for (int i = 0; i < size; i++)
-		xfmem[address + i] = Memory::Read_U32(arraybases[array] + arraystrides[array] * index + i * 4);
+		xfmem[address + i] = Memory::Read_U32(arraybases[refarray] + arraystrides[refarray] * index + i * 4);
 }

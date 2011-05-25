@@ -29,12 +29,12 @@ namespace MathUtil
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
 	DOUBLE_EXP  = 0x7FF0000000000000ULL,
 	DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
-	DOUBLE_ZERO = 0x0000000000000000ULL,
+	DOUBLE_ZERO = 0x0000000000000000ULL;
 
-	FLOAT_SIGN = 0x80000000,
+static const u32 FLOAT_SIGN = 0x80000000,
 	FLOAT_EXP  = 0x7F800000,
 	FLOAT_FRAC = 0x007FFFFF,
-	FLOAT_ZERO = 0x00000000ULL;
+	FLOAT_ZERO = 0x00000000;
 
 union IntDouble {
 	double d;
@@ -99,9 +99,9 @@ enum PPCFpClass
 
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
-int ClassifyDouble(double dvalue);
+u32 ClassifyDouble(double dvalue);
 // More efficient float version.
-int ClassifyFloat(float fvalue);
+u32 ClassifyFloat(float fvalue);
 
 template<class T>
 struct Rectangle
@@ -147,50 +147,6 @@ struct Rectangle
 inline float pow2f(float x) {return x * x;}
 inline double pow2(double x) {return x * x;}
 
-// Power-of-two related functions
-// Ref: <http://graphics.stanford.edu/~seander/bithacks.html>
-
-// isPow2: Returns true if x is a power of 2 or if x is 0
-inline bool isPow2(u32 x) {
-	return (x & (x - 1)) == 0;
-}
-
-// ceilPow2: Returns the smallest power of 2 that is greater than or equal to x
-// Returns 0 if x is 0
-inline u32 ceilPow2(u32 x) {
-	--x;
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16; // Works for 32-bit numbers
-	++x;
-	return x;
-}
-
-// floorLog2: Returns the index of the most significant set bit in x where 0
-// is the index of the least significant bit
-// Returns -1 if x is 0
-#ifdef _MSC_VER
-// Visual C++ implementation
-inline unsigned int floorLog2(u32 x) {
-	unsigned long index;
-	if (!_BitScanReverse(&index, x))
-		return unsigned int(-1);
-	return index;
-}
-#else
-// Reference implementation
-inline unsigned int floorLog2(u32 x) {
-	unsigned int result = unsigned int(-1);
-	while (x > 0)
-	{
-		++result;
-		x >>= 1;
-	}
-	return result;
-}
-#endif
 
 /*
    There are two different flavors of float to int conversion:

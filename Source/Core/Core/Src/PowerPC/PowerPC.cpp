@@ -85,13 +85,8 @@ void DoState(PointerWrap &p)
 
 void ResetRegisters()
 {
-	for (int i = 0; i < 32; i++)
-	{
-		ppcState.gpr[i] = 0;
-		riPS0(i) = 0;
-		riPS1(i) = 0;
-	}
-
+	memset(ppcState.ps, 0, sizeof(ppcState.ps));
+	memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
 	memset(ppcState.spr, 0, sizeof(ppcState.spr));
 	/*
 	0x00080200 = lonestar 2.0
@@ -114,11 +109,7 @@ void ResetRegisters()
 	ppcState.pc = 0;
 	ppcState.npc = 0;
 	ppcState.Exceptions = 0;
-
-	for (int i = 0; i < 8; i++)
-	{
-		ppcState.cr_fast[i] = 0;
-	}
+	((u64*)(&ppcState.cr_fast[0]))[0] = 0;
 
 	TL = 0;
 	TU = 0;
