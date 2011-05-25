@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-22 21:51-0500\n"
-"PO-Revision-Date: 2011-04-18 18:55+0200\n"
+"POT-Creation-Date: 2011-05-22 21:56-0500\n"
+"PO-Revision-Date: 2011-05-24 19:48+0200\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -292,7 +292,7 @@ msgstr "32 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:232
 msgid "3D Vision"
-msgstr ""
+msgstr "3D Vision"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:165
 msgid "8 bit"
@@ -390,7 +390,7 @@ msgstr "Hızlandırma"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 msgid "Accuracy:"
-msgstr ""
+msgstr "Doğruluk:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
 msgid "Accurate VBeam emulation"
@@ -404,6 +404,11 @@ msgid ""
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
+"EFB kopyalarını doğru bir şekilde emüle eder. \n"
+"Bazı oyunlar oynama işlevselliği veya belirli görsel efektler için buna "
+"bağlıdır. \n"
+"\n"
+"Emin değilseniz, bunun yerine EFB'den dokuya kullanın."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -611,6 +616,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"3, 4, 5, 6 ve 7 tuşlarıyla emülasyon penceresinde belirli seçeneklere geçiş "
+"sağlar. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:222
 msgid "Anisotropic Filtering:"
@@ -642,6 +651,9 @@ msgid ""
 "\n"
 "If unsure, select (off)."
 msgstr ""
+"Bir kare bitişinde sonradan işleme etkisi uygula. \n"
+"\n"
+"Emin değilseniz, kapalı seçin."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:327
 msgid "Arabic"
@@ -694,12 +706,11 @@ msgstr "Otomatik"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:192
 msgid "Auto (Multiple of 640x528)"
-msgstr ""
+msgstr "Otomatik (640x528'in katları)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:192
-#, fuzzy
 msgid "Auto (Window Size)"
-msgstr "Pencere Boyutu:"
+msgstr "Otomatik (Pencere Boyutu)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:556
 msgid ""
@@ -719,6 +730,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Mipmapleri hafızadan dekode etmek yerine otomatik olarak yarat. \n"
+"Performansı artırır ama bazı küçük doku hatalarına neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -837,9 +852,8 @@ msgid "CPU Emulator Engine"
 msgstr "CPU Emülatör Motoru"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:353
-#, fuzzy
 msgid "Cache Display Lists"
-msgstr "Görüntü Liste Önbelleğine İzin Ver"
+msgstr "Görüntü Listelerini Önbellekle"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:74
 msgid ""
@@ -850,6 +864,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"3 Boyutlu görüntülerin derinlik değerlerini vertex yerine piksel başına "
+"hesapla. \n"
+"Piksel aydınlatmanın tersine (sadece bir donanım olan), oyunların çok azında "
+"piksel başına derinlik hesaplaması gereklidir.\n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -859,6 +879,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"3 Boyutlu görüntülerin aydınlatılmasını vertex yerine piksel başına "
+"hesaplar. \n"
+"Emülasyon hızını (işlemciye bağlı olarak) biraz düşürür. \n"
+"Bu genelde güvenli bir donanımdır, ama bazen sorunlara neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:977
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
@@ -909,7 +935,7 @@ msgstr "Büyük Harf Kilidi"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:328
 msgid "Catalan"
-msgstr ""
+msgstr "Katalanca"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
 msgid "Center"
@@ -1296,6 +1322,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Resmi 4:3'ten 5:4'e veya 16:9'dan 16:10'a kırpar. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
@@ -1390,7 +1419,6 @@ msgid "Debug"
 msgstr "Hata ayıklama"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:387
-#, fuzzy
 msgid "Debugging"
 msgstr "Hata ayıklama"
 
@@ -1438,9 +1466,8 @@ msgid "Delete the existing file '%s'?"
 msgstr "'%s' dosyasını silmek istediğinizden emin misiniz?"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:511
-#, fuzzy
 msgid "Description"
-msgstr "Çekim Seçenekleri"
+msgstr "Açıklama"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Detect"
@@ -1487,9 +1514,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:291
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:337
-#, fuzzy
 msgid "Disable"
-msgstr "Sisi İptal Et"
+msgstr "İptal et"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:355
 msgid "Disable Fog"
@@ -1500,9 +1526,8 @@ msgid "Disable Lighting"
 msgstr "Işıklandırmayı İptal Et"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:356
-#, fuzzy
 msgid "Disable Per-Pixel Depth"
-msgstr "Piksel Derinliği"
+msgstr "Piksel Derinliğini İptal Et"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:385
 msgid "Disable Textures"
@@ -1516,6 +1541,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Herhangi bir XFB emülasyonunu iptal et. \n"
+"Emülasyonu bayağı hızlandırır ama onlara dayanıklı oyunlarda (özellikle "
+"homebrew uygulamalarında) ağır hatalara neden olabilir.\n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -1526,6 +1556,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"EFB kopyalarının emülasyonunu iptal et. \n"
+"Bunlar genelde yorumlamadan dokuya olan efektlerin sonradan işlenmesinde "
+"kullanılır, bunun için de bu ayarı açmak çoğu zaman hataya neden olan büyük "
+"bir hızlanma sağlar. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
 msgid ""
@@ -1533,6 +1569,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Dokulandırmayı iptal et. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:545
 msgid "Disc"
@@ -1548,12 +1587,14 @@ msgid "Display"
 msgstr "Görüntü"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
-#, fuzzy
 msgid ""
 "Display the inputs read by the emulator.\n"
 "\n"
 "If unsure, leave this unchecked."
-msgstr "Emülatör tarafından okunan girişleri göster."
+msgstr ""
+"Emülatör tarafından okunan girişleri göster. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:77
 msgid "Divide"
@@ -1673,14 +1714,20 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Tüm yorumlanan kareleri User/Dump/Frames içerisine bir AVI dosyası olarak "
+"dök \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
-#, fuzzy
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/\n"
 "\n"
 "If unsure, leave this unchecked."
-msgstr "Oyun dokularını User/Dump/Textures/<oyun id'si>/ konumuna dök."
+msgstr ""
+"Çözülen oyun dokularını User/Dump/Textures/<oyun id'si>/ konumuna dök. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
@@ -1688,6 +1735,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"EFB kopyalarının içeriğini User/Dump/Textures içine dök \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:333
@@ -1700,9 +1750,8 @@ msgid "E&xit"
 msgstr "Çıkış (&x)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
-#, fuzzy
 msgid "EFB Copies"
-msgstr "EFB Ülke Kopyalama"
+msgstr "EFB Kopyaları"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:249
 #, c-format
@@ -1756,7 +1805,7 @@ msgstr "Etki"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:283
 msgid "Embedded Frame Buffer"
-msgstr ""
+msgstr "Gömülü Kare Tamponu"
 
 #: Source/Core/Core/Src/Core.cpp:173
 msgid "Emu Thread already running"
@@ -1770,6 +1819,11 @@ msgid ""
 "\n"
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
+"XFB'lerin doğruluğunu emüle et. \n"
+"Hızı bayağı düşürür ve yüksek çözünürlükte yorumlamayı engeller ama bazı "
+"oyunları düzgün çalıştırabilmek için gereklidir. \n"
+"\n"
+"Emin değilseniz, bunun yerine sanal XFB emülasyonunu seçin."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
@@ -1780,6 +1834,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"XFB'leri GPU doku nesneleriyle emüle et. \n"
+"XFB emülasyonu olmadan çalışmayan oyunların gerçek XFB emülasyonu kadar "
+"kasmadan çalıştırır. Ancak, yine de diğer birçok oyunda (özellikle homebrew "
+"uygulamalarında) başarısız olabilir. \n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:22
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:34
@@ -1807,6 +1867,12 @@ msgid ""
 "Requires fullscreen to work.\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"GPU'nuz tarafından desteklenen nVidia 3D Vision teknolojisini kullanarak "
+"stereoskopik 3D'yi açar. \n"
+"Bazı hatalara neden olabilir. \n"
+"\n"
+"Çalışmak için tam ekran gereklidir. \n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:110
 msgid "Enable AR Logging"
@@ -1825,7 +1891,6 @@ msgid "Enable Block Merging"
 msgstr "Blok Birleşimine İzin Ver"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
-#, fuzzy
 msgid "Enable Cache"
 msgstr "Önbelleğe izin ver"
 
@@ -1879,7 +1944,6 @@ msgid "Enable Wireframe"
 msgstr "Geniş Çerçeveye İzin Ver"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:69
-#, fuzzy
 msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
@@ -1888,7 +1952,10 @@ msgid ""
 "If unsure, select 1x."
 msgstr ""
 "Filtrelemeyi etkinleştirir. \n"
-"Görsel kaliteyi artırır."
+"Özellikle eğik açılı dokuların görsel kalitesini artırır. \n"
+"Çok az oyunda bazı hatalara neden olabilir. \n"
+"\n"
+"Emin değilseniz, 1x seçin."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
@@ -1937,6 +2004,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"FFV1 codec'ini kullanarak kare dökümlerini kodlar. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
@@ -2051,9 +2121,8 @@ msgid "Extension"
 msgstr "Uzantı"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:335
-#, fuzzy
 msgid "External Frame Buffer"
-msgstr "İlave Parametre"
+msgstr "Harici Kare Tamponu"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:60
 msgid "Extra Parameter"
@@ -2160,9 +2229,8 @@ msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:99
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:119
-#, fuzzy
 msgid "Failed to load bthprops.cpl"
-msgstr "hid.dll yükleme başarısız."
+msgstr "bthprops.cpl yüklenemedi."
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:83
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:92
@@ -2255,9 +2323,8 @@ msgid "Fast"
 msgstr "Hızlı"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:352
-#, fuzzy
 msgid "Fast Mipmaps"
-msgstr "Doğal Mipmap'leri Yükle"
+msgstr "Hızlı Mipmap'lar"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid "Fast version of the MMU.  Does not work for every game."
@@ -2334,24 +2401,22 @@ msgid "Force 4:3"
 msgstr "4:3 'e zorla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:229
-#, fuzzy
 msgid "Force Texture Filtering"
-msgstr "Filtreye Zorla"
+msgstr "Doku Filtrelemesine Zorla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:75
-#, fuzzy
 msgid ""
 "Force texture filtering even if the emulated game explicitly disabled it.\n"
 "Improves texture quality slightly but causes glitches in some games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Oyun kabul etmese de iki/üç çizgili filtreyi açar. \n"
-"Doku kalitesini artırır (özellikle yüksek çözünürlüklerde) ama bazı "
-"oyunlarda hatalara neden olabilir."
+"Oyun kabul etmese de doku filtresini açar. \n"
+"Doku kalitesini artırır ama bazı oyunlarda hatalara neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:67
-#, fuzzy
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Causes graphical glitches is some games.\n"
@@ -2359,7 +2424,9 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Oyunun görüntüsünü geniş ekrana uydurur. \n"
-"Bazı görüntü hatalarına neden olabilir."
+"Bazı oyunlarda görüntü hatalarına neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2387,7 +2454,6 @@ msgid "Frame Advance"
 msgstr "Gelişmiş Kareleme"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
-#, fuzzy
 msgid "Frame Dumps use FFV1"
 msgstr "Kare dökümünde FFV1 kullan"
 
@@ -2540,6 +2606,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Dokuya yorumlama efektlerinde kullanılan doku kalitesini bayağı artırır. \n"
+"Çözünürlüğü yükseltmek bu ayarın etkisini artırır. \n"
+"Performansı biraz azaltır ve büyük olasılıkla bazı hatalara neden olur. \n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:337
 msgid "Greek"
@@ -2567,7 +2638,7 @@ msgstr "HCI_CMD_INQUIRY çağrıldı, lütfen bildirin!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:279
 msgid "Hacks"
-msgstr ""
+msgstr "Hack'ler"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:134
 msgid "Header checksum failed"
@@ -2610,9 +2681,8 @@ msgid "Hide Mouse Cursor"
 msgstr "Fare İşaretçisini Gizle"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:414
-#, fuzzy
 msgid "Hide Shader Errors"
-msgstr "Gölgelendirici Hatalarını Göster"
+msgstr "Gölgelendirici Hatalarını Gizle"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
 msgid ""
@@ -2718,9 +2788,8 @@ msgstr ""
 "kılabilirsiniz."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:286
-#, fuzzy
 msgid "Ignore Format Changes"
-msgstr "Birim değişimini emüle et"
+msgstr "Birim değişimini yoksay"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -2730,6 +2799,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Herhangi bir EFB biçim değişikliğini yoksay. \n"
+"Herhangi bir olumsuz etki yaratmadan çoğu oyunda performansı artırır. Ama "
+"birkaç oyunda küçük görüntü sorunlarına neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
 msgid ""
@@ -2739,6 +2813,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"CPU'nun EFB'den okuma ve EFB'ye yazma isteklerini reddeder. \n"
+"Bazı oyunlarda performansı artırır ama bazı oyun özelliklerini ve görsel "
+"efektleri engelleyebilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:787
 msgid "Import Save"
@@ -2769,25 +2848,27 @@ msgstr ""
 "ama başlığı düzgün değil."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
-#, fuzzy
 msgid ""
 "Improves performance but causes glitches in most games which rely on proper "
 "fog emulation.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Sisi iptal eder. Performansı artırır ancak bazı oyunlarda hatalara neden "
-"olabilir."
+"Performansı artırır ancak sis emülasyonu gereken bazı oyunlarda hatalara "
+"neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakır."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:85
-#, fuzzy
 msgid ""
 "Improves performance but causes lighting to disappear in most games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Işıklandırmayı iptal eder. Performansı artırır ancak bazı oyunların karanlık "
-"kalmasına neden olabilir."
+"Performansı artırır ancak bazı oyunların karanlık kalmasına neden "
+"olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
 msgid "In Game"
@@ -2875,9 +2956,8 @@ msgid "Internal LZO Error - lzo_init() failed"
 msgstr "İç LZO Hatası - lzo_init() başarısız."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:199
-#, fuzzy
 msgid "Internal Resolution:"
-msgstr "Tam Ekran Çözünürlüğü:"
+msgstr "İç Çözünürlük:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:277
 msgid "Interpreter (VERY slow)"
@@ -3035,9 +3115,8 @@ msgid "Load"
 msgstr "Yükle"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:397
-#, fuzzy
 msgid "Load Custom Textures"
-msgstr "Yüksek Çözünürlüklü Dokuları Yükle"
+msgstr "Özel Dokuları Yükle"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:204
 msgid "Load State Slot 1"
@@ -3076,9 +3155,8 @@ msgid "Load State..."
 msgstr "Durumu Yükle..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:219
-#, fuzzy
 msgid "Load Wii System Menu"
-msgstr "Wii Sistem Menüsünü Yükle %d%c"
+msgstr "Wii Sistem Menüsünü Yükle"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:215
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1384
@@ -3087,14 +3165,14 @@ msgid "Load Wii System Menu %d%c"
 msgstr "Wii Sistem Menüsünü Yükle %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Yüksek çözünürlüklü dokuları User/Load/Textures/<oyun id'si>/ konumundan "
-"yükle"
+"Özel dokuları User/Load/Textures/<oyun id'si>/ konumundan yükle. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:49
 msgid "Load preset values from hack patterns available."
@@ -3220,7 +3298,7 @@ msgid ""
 "Would you like to copy the old file to this new location?\n"
 msgstr ""
 "Slot %c 'deki Hafıza Kartı dosya adı hatalı.\n"
-"Ülke belirlenemedi\n"
+"Bölge belirlenemedi\n"
 "\n"
 "Slot %c yolu bununla değişti: \n"
 "%s\n"
@@ -3254,6 +3332,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Dokuların kodlandığı biçimi göstermek için onları değiştirir. Çoğu zaman "
+"emülasyonu yeniden başlatmak gerekir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:113
 msgid "Monospaced font"
@@ -3278,6 +3360,13 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
+"Ayrıntılı açıklamalar için, fare imlecini seçeneklerin üzerine götürün. \n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:72
 msgid "Multiply"
@@ -3551,9 +3640,8 @@ msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: Sürücü %s açılamıyor"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:358
-#, fuzzy
 msgid "OpenCL Texture Decoder"
-msgstr "OpenMP Doku Çözücü"
+msgstr "OpenCL Doku Çözücü"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:359
 msgid "OpenMP Texture Decoder"
@@ -3588,7 +3676,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:361
 msgid "Other"
-msgstr ""
+msgstr "Diğer"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
 msgid ""
@@ -3658,9 +3746,8 @@ msgid "Pause"
 msgstr "Duraklat"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:228
-#, fuzzy
 msgid "Per-Pixel Lighting"
-msgstr "Piksel Aydınlatma"
+msgstr "Piksel Aydınlatması"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:343
 msgid "Perfect"
@@ -3754,9 +3841,8 @@ msgid "Portuguese (Brazilian)"
 msgstr "Portekizce (Brezilya)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:258
-#, fuzzy
 msgid "Post-Processing Effect:"
-msgstr "Geç İşleme Gölgelendirici:"
+msgstr "Sonradan İşleme Etkisi:"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -3873,7 +3959,6 @@ msgid "Red Right"
 msgstr "Kırmızı Sağ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics.\n"
 "This makes the rendered picture look less blocky.\n"
@@ -3882,7 +3967,10 @@ msgid ""
 "If unsure, select None."
 msgstr ""
 "3D Görüntü yüzünden oluşan bozulmayı azaltır. \n"
-"Görüntünün daha az bloklu görünmesini sağlar ama performansı çok düşürür."
+"Görüntünün daha az bloklu görünmesini sağlar ama performansı çok düşürür.\n"
+"Emülasyon hızını çok kötü düşürür ve bazen hatalara neden olur. \n"
+"\n"
+"Emin değilseniz, hiçbiri seçin."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:907
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
@@ -3910,14 +3998,14 @@ msgid "Remove"
 msgstr "Kaldır"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:84
-#, fuzzy
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
 "Ekranı geniş çerçeve olarak yorumla. \n"
-"Sadece hata ayıklamada kullanışlıdır."
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Render to Main Window"
@@ -4048,9 +4136,8 @@ msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Kayıtlı durum filmi %s bozuk, film çekimi duruyor..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:227
-#, fuzzy
 msgid "Scaled EFB Copy"
-msgstr "EFB Boyutlandırılmış Kopya"
+msgstr "Boyutlandırılmış EFB Kopyası"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:579
 msgid "Scanning for ISOs"
@@ -4097,14 +4184,14 @@ msgid "Select a Wii WAD file to install"
 msgstr "Kurmak için bir Wii WAD dosyası seçin"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:65
-#, fuzzy
 msgid ""
 "Select a hardware adapter to use.\n"
 "\n"
 "If unsure, use the first one."
 msgstr ""
 "Kullanmak için bir donanım adaptörü seçin. \n"
-"Şüphelenirseniz, ilkini kullanın"
+"\n"
+"Emin değilseniz, ilkini kullanın."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:520
 msgid "Select a save file to import"
@@ -4135,7 +4222,6 @@ msgid "Select the state to save"
 msgstr "Kaydetmek için durum seçin"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:66
-#, fuzzy
 msgid ""
 "Select what aspect ratio to use when rendering:\n"
 "Auto: Use the native aspect ratio\n"
@@ -4149,7 +4235,9 @@ msgstr ""
 "Otomatik: Doğal en-boy oranını kullanır (4:3)\n"
 "16:9'a Zorla: En-boy oranını 16:9 yapar. \n"
 "4:3'e Zorla: En-boy oranını 4:3 yapar. \n"
-"Pencereye göre: Görüntüyü pencereye göre yorumlar."
+"Pencereye göre: Görüntüyü pencereye göre yorumlar. \n"
+"\n"
+"Emin değilseniz, otomatik seçin."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:114
 msgid "Selected font"
@@ -4245,9 +4333,8 @@ msgid "Show Drives"
 msgstr "Aygıtları Göster"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:382
-#, fuzzy
 msgid "Show EFB Copy Regions"
-msgstr "EFB Ülke Kopyalama"
+msgstr "EFB Bölge Kopyalamasını Göster"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:185
 msgid "Show FPS"
@@ -4295,12 +4382,11 @@ msgstr "Platformları Göster"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:287
 msgid "Show Regions"
-msgstr "Ülkeleri Göster"
+msgstr "Bölgeleri Göster"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:383
-#, fuzzy
 msgid "Show Statistics"
-msgstr "Çeşitli İstatistikler"
+msgstr "İstatistikleri Göster"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:301
 msgid "Show Taiwan"
@@ -4359,6 +4445,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Emülasyon hızını ölçmek için 1 saniye içerisinde yorumlanan kare sayısını "
+"göster. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:119
 msgid "Show this help message"
@@ -4374,6 +4464,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Çeşitli istatistikler gösterir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -4388,13 +4481,12 @@ msgid "Size"
 msgstr "Boyut"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:357
-#, fuzzy
 msgid "Skip Dest. Alpha Pass"
-msgstr "Hedef Alpha Geçişini İptal Et"
+msgstr "Hedef Alpha Geçişini Atla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:302
 msgid "Skip EFB Access from CPU"
-msgstr ""
+msgstr "CPU'dan EFB erişimini atla"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:617
 msgid "Skip GC BIOS"
@@ -4407,6 +4499,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Çoğu oyunda çeşitli görsel efektler için hedef alfa geçişini atla. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:111
 msgid ""
@@ -4417,6 +4512,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Doğruluktan fedakarlık edip EFB'den RAM'a kopyalamayı biraz hızlandırır. \n"
+"Bazen görsel kaliteyi de artırır. \n"
+"Eğer herhangi bir sorun yaşıyorsanız,  doku önbelleği doğruluğunu artırmayı "
+"veya bu seçeneği iptal etmeyi deneyin. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:398
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:410
@@ -4479,6 +4580,14 @@ msgid ""
 "\n"
 "If unsure, select 640x528."
 msgstr ""
+"Yorumlamada kullanılan çözünürlüğü belirler. Yüksek bir çözünürlük görsel "
+"kaliteyi artırır ama performansın düşmesine ve bazı oyunlarda hatalara neden "
+"olabilir. \n"
+"\"Multiple of 640x528\" seçeneği, \"Window Size\" 'den daha yavaştır ama "
+"daha az hataya neden olur. Genel konuşursak, bu çözünürlük ne kadar az "
+"olursa, performans o kadar iyi olacaktır. \n"
+"\n"
+"Emin değilseniz, 640x528'i seçin."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:144
 msgid "Specify a video backend"
@@ -4549,6 +4658,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"EFB kopyalarını GPU doku nesnelerinde sakla. \n"
+"Pek doğru değildir, ama çoğu oyun için iyi çalışır ve EFB'den RAM'e "
+"seçeneğinden daha fazla hız verir. \n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:169
 msgid "Stretch to Window"
@@ -4615,14 +4729,12 @@ msgid "Texture"
 msgstr "Doku"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:309
-#, fuzzy
 msgid "Texture Cache"
-msgstr "Önbelleği Temizle"
+msgstr "Doku Önbelleği"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:384
-#, fuzzy
 msgid "Texture Format Overlay"
-msgstr "Doku Biçimi"
+msgstr "Doku Biçimi Kaplaması"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:226
 msgid "The WAD has been installed successfully"
@@ -4685,6 +4797,10 @@ msgid ""
 "\n"
 "If unsure, use the second-fastest value from the right."
 msgstr ""
+"Bunu ayarlamak daha güvenlidir, emülatörün RAM'den daha az doku güncellemesi "
+"kaçırmasını sağlar. \n"
+"\n"
+"Emin değilseniz, sağdaki 2. en hızlı değeri kullanın."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
 msgid "The save you are trying to copy has an invalid file size"
@@ -4769,6 +4885,14 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Bu özellik oyunun kamerasıyla dalga geçmenizi sağlar :) \n"
+"\n"
+"Sağ fare düğmesini basılı tutun ve fareyi gezdirerek kamerayı kendi "
+"etrafında döndürün. SHIFT tuşunu ve WASD tuşlarından birini kullanarak "
+"kamerayı hareket ettirin. (SHIFT+0 2 kat daha fazla hareket sağlar, SHIFT+9 "
+"bunu yarıya indirir.). Kamerayı sıfırlamak için SHIFT+R'ye basın.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
 msgid ""
@@ -4968,6 +5092,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Dokuları emüle etmek için birden fazla işlem birimi kullanın. \n"
+"(Özellikle iki veya daha fazla çekirdeği olan işlemcilerde) hızı artırır. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
 msgid ""
@@ -4977,6 +5105,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Shader derlemesi başarısız olursa, genelde bir hata mesajı gösterilir. \n"
+"Ancak oyunu bölmemesi için bu hataların gelmesini bu seçenekle "
+"engelleyebilirsiniz. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:405
 msgid "Utility"
@@ -5032,6 +5165,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Yırtılmayı önlemek için dikey boşlukları bekle. \n"
+"Emülasyon hızı %100'ün altındaysa yavaşlamaya neden olur. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:641
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
@@ -5249,7 +5386,7 @@ msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
 msgstr ""
-"GCM/ISO dosyanız hatalı gibi görünüyor (hatalı ülke). \n"
+"GCM/ISO dosyanız hatalı gibi görünüyor (hatalı bölge). \n"
 "PAL gibi davranılsın mı?"
 
 #: Source/Core/Common/Src/SysConf.cpp:57
@@ -5288,6 +5425,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[BOZUK] \n"
+"EFB'lerin kopyalandığı bölgeleri işaretle.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:90
 msgid "[Custom]"
@@ -5303,6 +5444,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[DENEYSEL]\n"
+"OpenCL kullanarak doku yorumlamasındaki yüklenmeyi azaltarak emülasyonu "
+"hızlandırır. \n"
+"Ancak, çeşitli oyunlarda doku bozulmalarına neden olabilmektedir. Ayrıca "
+"çoğu zaman CPU doku çözmesinden daha yavaştır. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
@@ -5312,6 +5460,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"[DENEYSEL]\n"
+"Görüntü listelerini önbelleğe alarak emülasyonu biraz hızlandırır. \n"
+"Bazı hatalara neden olabilir. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:512
 msgid "^ ADD"
