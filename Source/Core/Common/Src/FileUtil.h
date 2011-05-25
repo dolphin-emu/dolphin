@@ -30,8 +30,8 @@
 enum {
 	D_USER_IDX,
 	D_GCUSER_IDX,
-	D_WIIUSER_IDX,
 	D_WIIROOT_IDX,
+	D_WIIUSER_IDX,
 	D_CONFIG_IDX,
 	D_GAMECONFIG_IDX,
 	D_MAPS_IDX,
@@ -130,7 +130,7 @@ bool SetCurrentDir(const std::string &directory);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-std::string &GetUserPath(const unsigned int DirIDX);
+std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
 
 // Returns the path to where the sys file are
 std::string GetSysDirectory();

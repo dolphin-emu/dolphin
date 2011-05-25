@@ -53,7 +53,7 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 {
 	const int cdbSize = 0x01400000;
 	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU) + "cdb.vff";
-	if (File::GetSize(cdbPath) < cdbSize)
+	if ((int)File::GetSize(cdbPath) < cdbSize)
 	{
 		// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
 		// we create it here as it is faster ~3 minutes for me when sysmenu does it ~1 second created here

@@ -134,7 +134,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_STOP, GetMenuLabel(HK_STOP));
 	emulationMenu->Append(IDM_RESET, GetMenuLabel(HK_RESET));
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));	
+	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
 	emulationMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
@@ -192,7 +192,7 @@ void CFrame::CreateMenu()
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
-		g_pCodeWindow->CreateMenuOptions(pOptionsMenu);	
+		g_pCodeWindow->CreateMenuOptions(pOptionsMenu);
 	}
 	m_MenuBar->Append(pOptionsMenu, _("&Options"));
 
@@ -205,20 +205,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
 	toolsMenu->Append(IDM_MENU_INSTALLWAD, _("Install WAD"));
-
-	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
-	if (SysMenu_Loader.IsValid())
-	{
-		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
-		char sysmenuRegion = SysMenu_Loader.GetCountryChar();
-				
-		toolsMenu->Append(IDM_LOAD_WII_MENU, wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
-	}
-	else
-	{		
-		toolsMenu->Append(IDM_LOAD_WII_MENU, _("Load Wii System Menu"));
-		toolsMenu->Enable(IDM_LOAD_WII_MENU, false);
-	}
+	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU));
 
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
 
@@ -305,7 +292,7 @@ void CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
-	m_MenuBar->Append(viewMenu, _("&View"));	
+	m_MenuBar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
 
@@ -471,7 +458,7 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES,	_("Edit"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
 
 	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
-	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);	
+	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);
 
 	ToolBar->Realize();
 }
@@ -1374,19 +1361,30 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
 	if (titleID == TITLEID_SYSMENU)
 	{
-		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
-		if (SysMenu_Loader.IsValid())
-		{
-			int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
-			char sysmenuRegion = SysMenu_Loader.GetCountryChar();
+		UpdateWiiMenuChoice();
+	}
+}
 
-		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable();
-		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
-		}
-		else
-		{
-			GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(false);
-		}
+
+void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
+{
+	if (!WiiMenuItem)
+	{
+		WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
+	}
+
+	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+	if (SysMenu_Loader.IsValid())
+	{
+		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
+		char sysmenuRegion = SysMenu_Loader.GetCountryChar();
+		WiiMenuItem->Enable();
+		WiiMenuItem->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+	}
+	else
+	{
+		WiiMenuItem->Enable(false);
+		WiiMenuItem->SetItemLabel(_("Load Wii System Menu"));
 	}
 }
 
@@ -1602,7 +1600,7 @@ void CFrame::UpdateGUI()
 			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
 			{
 				if (m_ToolBar)
-					m_ToolBar->EnableTool(IDM_PLAY, true);					
+					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 			}
 			// Prepare to load last selected file, enable play button
@@ -1610,7 +1608,7 @@ void CFrame::UpdateGUI()
 			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 			{
 				if (m_ToolBar)
-					m_ToolBar->EnableTool(IDM_PLAY, true);					
+					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 			}
 			else
@@ -1635,7 +1633,7 @@ void CFrame::UpdateGUI()
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);				
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 			}
 		}
 	}

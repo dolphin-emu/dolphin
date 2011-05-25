@@ -98,7 +98,7 @@ wxString dump_frames_desc = wxTRANSLATE("Dump all rendered frames to an AVI file
 #if !defined WIN32 && defined HAVE_LIBAV
 wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
-wxString free_look_desc = wxTRANSLATE("[PARTIALLY BROKEN]\nEnable moving the camera arbitrarily\nUse WASD to move. R to reset the view.\n0/9 to move faster/slower.\nAdditionally the middle/right mouse button can be used to rotate the view.\n\nIf unsure, leave this unchecked.");
+wxString free_look_desc = wxTRANSLATE("This feature allows you to mess with the game's camera.\n\nHold the right mouse button and move the mouse to pan the camera around.  Hold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 doubles it (x2) and SHIFT+9 halves it (x0.5)).  Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
 wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
@@ -457,7 +457,7 @@ void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
 }
 
 // TODO: Don't hardcode the size of the description area via line breaks
-#define DEFAULT_DESC_TEXT "Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n"
+#define DEFAULT_DESC_TEXT _("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
 void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
 {
 	// look up description text control and reset its label
@@ -466,7 +466,7 @@ void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
 	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
 	if (!descr_text) return;
 
-	descr_text->SetLabel(_(DEFAULT_DESC_TEXT));
+	descr_text->SetLabel(DEFAULT_DESC_TEXT);
 	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
 	ev.Skip();
 }
@@ -481,7 +481,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	page->SetSizerAndFit(sizer);
 
 	// Create description text
-	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, _(DEFAULT_DESC_TEXT));
+	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, DEFAULT_DESC_TEXT);
 	desc_text->Wrap(desc_sizer->GetSize().x - 20);
 	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 

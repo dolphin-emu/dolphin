@@ -139,6 +139,7 @@ public:
 	bool RendererHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
+	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=NULL);
 	static void ConnectWiimote(int wm_idx, bool connect);
 
 	const CGameListCtrl *GetGameListCtrl() const;

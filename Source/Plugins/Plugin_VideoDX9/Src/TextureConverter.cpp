@@ -398,7 +398,8 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		(float)Renderer::GetTargetWidth(),
 		(float)Renderer::GetTargetHeight());
 	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false,Gamma);
+	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr,
+		dstWidth / 2, dstHeight, dstWidth * 2, false, false,Gamma);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	g_renderer->RestoreAPIState();
