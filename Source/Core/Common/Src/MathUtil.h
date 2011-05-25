@@ -29,12 +29,12 @@ namespace MathUtil
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
 	DOUBLE_EXP  = 0x7FF0000000000000ULL,
 	DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
-	DOUBLE_ZERO = 0x0000000000000000ULL,
+	DOUBLE_ZERO = 0x0000000000000000ULL;
 
-	FLOAT_SIGN = 0x80000000,
+static const u32 FLOAT_SIGN = 0x80000000,
 	FLOAT_EXP  = 0x7F800000,
 	FLOAT_FRAC = 0x007FFFFF,
-	FLOAT_ZERO = 0x00000000ULL;
+	FLOAT_ZERO = 0x00000000;
 
 union IntDouble {
 	double d;
@@ -99,9 +99,9 @@ enum PPCFpClass
 
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
-int ClassifyDouble(double dvalue);
+u32 ClassifyDouble(double dvalue);
 // More efficient float version.
-int ClassifyFloat(float fvalue);
+u32 ClassifyFloat(float fvalue);
 
 template<class T>
 struct Rectangle
