@@ -83,8 +83,6 @@ public:
 	static ID3D11Texture2D* GetEFBColorStagingBuffer() { return m_efb.color_staging_buf; }
 
 	static D3DTexture2D* GetEFBDepthTexture() { return m_efb.depth_tex.get(); }
-	static D3DTexture2D* GetEFBDepthReadTexture() { return m_efb.depth_read_texture.get(); }
-	static ID3D11Texture2D* GetEFBDepthStagingBuffer() { return m_efb.depth_staging_buf; }
 
 	static D3DTexture2D* GetResolvedEFBColorTexture();
 	static D3DTexture2D* GetResolvedEFBDepthTexture();
@@ -95,6 +93,8 @@ public:
 	{
 		std::swap(m_efb.color_temp_tex, m_efb.color_tex);
 	}
+
+	float ReadDepthAt(unsigned int x, unsigned int y);
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
@@ -108,15 +108,17 @@ private:
 		SharedPtr<ID3D11Texture2D> color_staging_buf;
 
 		std::unique_ptr<D3DTexture2D> depth_tex;
-		SharedPtr<ID3D11Texture2D> depth_staging_buf;
-		std::unique_ptr<D3DTexture2D> depth_read_texture;
+		std::unique_ptr<D3DTexture2D> depth_access_target;
+		SharedPtr<ID3D11Texture2D> depth_access_stage;
 
 		std::unique_ptr<D3DTexture2D> color_temp_tex;
 
 		std::unique_ptr<D3DTexture2D> resolved_color_tex;
 		std::unique_ptr<D3DTexture2D> resolved_depth_tex;
 	} m_efb;
-
+	
+	SharedPtr<ID3D11Buffer> m_depthAccessParams;
+	SharedPtr<ID3D11PixelShader> m_depthAccessShader;
 	XFBEncoder m_xfbEncoder;
 };
 

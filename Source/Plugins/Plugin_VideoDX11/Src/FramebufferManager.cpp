@@ -18,12 +18,14 @@
 #include "VideoConfig.h"
 
 #include "D3DBase.h"
+#include "D3DShader.h"
 #include "D3DUtil.h"
 #include "FramebufferManager.h"
+#include "GfxState.h"
+#include "HW/Memmap.h"
 #include "PixelShaderCache.h"
 #include "Render.h"
 #include "VertexShaderCache.h"
-#include "HW/Memmap.h"
 
 namespace DX11
 {
@@ -108,20 +110,22 @@ FramebufferManager::FramebufferManager()
 
 	// Render buffer for AccessEFB (depth data)
 	{
-	auto texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, D3D11_BIND_RENDER_TARGET);
+	auto texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1,
+		D3D11_BIND_RENDER_TARGET);
 	auto const buf = CreateTexture2DShared(&texdesc, NULL);
-	CHECK(buf, "create EFB depth read texture");
-	m_efb.depth_read_texture.reset(new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET));
-	D3D::SetDebugObjectName(m_efb.depth_read_texture->GetTex(), "EFB depth read texture (used in Renderer::AccessEFB)");
-	D3D::SetDebugObjectName(m_efb.depth_read_texture->GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
+	CHECK(buf, "create EFB depth access texture");
+	m_efb.depth_access_target.reset(new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET));
+	D3D::SetDebugObjectName(m_efb.depth_access_target->GetTex(), "EFB depth access texture");
+	D3D::SetDebugObjectName(m_efb.depth_access_target->GetRTV(), "EFB depth access texture render target view");
 	}
 
-	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture
+	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_access_target
 	{
-	auto texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-	m_efb.depth_staging_buf = CreateTexture2DShared(&texdesc, NULL);
-	CHECK(m_efb.depth_staging_buf, "create EFB depth staging buffer");
-	D3D::SetDebugObjectName(m_efb.depth_staging_buf, "EFB depth staging texture (used for Renderer::AccessEFB)");
+	auto texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, 0,
+		D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+	m_efb.depth_access_stage = CreateTexture2DShared(&texdesc, NULL);
+	CHECK(m_efb.depth_access_stage, "create EFB depth access staging buffer");
+	D3D::SetDebugObjectName(m_efb.depth_access_stage, "EFB depth access staging texture");
 	}
 
 	if (g_ActiveConfig.iMultisampleMode)
@@ -159,13 +163,110 @@ FramebufferManager::~FramebufferManager()
 	m_efb.color_staging_buf.reset();
 
 	m_efb.depth_tex.reset();
-	m_efb.depth_staging_buf.reset();
-	m_efb.depth_read_texture.reset();
+	m_efb.depth_access_target.reset();
+	m_efb.depth_access_stage.reset();
 
 	m_efb.color_temp_tex.reset();
 
 	m_efb.resolved_color_tex.reset();
 	m_efb.resolved_depth_tex.reset();
+}
+
+struct DepthAccessParams
+{
+	int ReadPos[2];
+};
+
+static const char DEPTH_ACCESS_PS[] =
+"// dolphin-emu depth access shader\n"
+
+"cbuffer cbParams : register(b0)\n" // Should match DepthAccessParams above
+"{\n"
+	"int2 ReadPos;\n"
+"}\n"
+
+// TODO: Support Texture2DMS depth texture (only possible in ps_4_1 or later)
+"Texture2D<float> EFBTexture;\n"
+
+"void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
+"{\n"
+	"float depth = EFBTexture.Load(int3(ReadPos, 0));\n"
+	"ocol0 = float4(depth, 0, 0, 1);\n"
+"}\n"
+;
+
+float FramebufferManager::ReadDepthAt(unsigned int x, unsigned int y)
+{
+	if (!m_depthAccessParams)
+	{
+		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC((sizeof(DepthAccessParams) + 15) & ~15,
+			D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		m_depthAccessParams = CreateBufferShared(&bd, NULL);
+	}
+
+	if (!m_depthAccessShader)
+	{
+		m_depthAccessShader = D3D::CompileAndCreatePixelShader(DEPTH_ACCESS_PS,
+			sizeof(DEPTH_ACCESS_PS));
+		if (!m_depthAccessShader)
+			ERROR_LOG(VIDEO, "Failed to compile depth access shader");
+	}
+	
+	D3D11_MAPPED_SUBRESOURCE map;
+	HRESULT hr = D3D::g_context->Map(m_depthAccessParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	if (SUCCEEDED(hr))
+	{
+		DepthAccessParams* params = (DepthAccessParams*)map.pData;
+		params->ReadPos[0] = x;
+		params->ReadPos[1] = y;
+
+		D3D::g_context->Unmap(m_depthAccessParams, 0);
+	}
+	else
+	{
+		ERROR_LOG(VIDEO, "Failed to write depth access shader params");
+		return 0.f;
+	}
+
+	// FIXME: This is broken when anti-aliasing is on.
+	D3DTexture2D* depthTex = GetResolvedEFBDepthTexture();
+
+	g_renderer->ResetAPIState();
+	D3D::stateman->Apply();
+
+	D3D::g_context->OMSetRenderTargets(1, &m_efb.depth_access_target->GetRTV(), NULL);
+
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
+	D3D::g_context->RSSetViewports(1, &vp);
+
+	D3D::g_context->PSSetConstantBuffers(0, 1, &m_depthAccessParams);
+	D3D::g_context->PSSetShaderResources(0, 1, &depthTex->GetSRV());
+
+	// Encode!
+	D3D::drawEncoderQuad(m_depthAccessShader);
+
+	D3D::g_context->OMSetRenderTargets(0, NULL, NULL);
+	D3D::g_context->CopyResource(m_efb.depth_access_stage, m_efb.depth_access_target->GetTex());
+	
+	IUnknown* nullDummy = NULL;
+	D3D::g_context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
+	D3D::g_context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
+
+	hr = D3D::g_context->Map(m_efb.depth_access_stage, 0, D3D11_MAP_READ, 0, &map);
+	float result = 0.f;
+	if (SUCCEEDED(hr))
+	{
+		result = *(const float*)map.pData;
+		D3D::g_context->Unmap(m_efb.depth_access_stage, 0);
+	}
+	else
+		ERROR_LOG(VIDEO, "Failed to read from depth access stage");
+
+	g_renderer->RestoreAPIState();
+	D3D::g_context->OMSetRenderTargets(1, &m_efb.color_tex->GetRTV(),
+		m_efb.depth_tex->GetDSV());
+
+	return result;
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)

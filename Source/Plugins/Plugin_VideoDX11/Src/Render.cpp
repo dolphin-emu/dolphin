@@ -547,49 +547,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	if (type == PEEK_Z)
 	{
-		ResetAPIState(); // Reset any game specific settings
-
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
-		D3D::g_context->RSSetViewports(1, &vp);
-		D3D::g_context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
-		D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
-		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
-								&RectToLock,
-								Renderer::GetTargetWidth(),
-								Renderer::GetTargetHeight(),
-								PixelShaderCache::GetDepthMatrixProgram(true),
-								VertexShaderCache::GetSimpleVertexShader(),
-								VertexShaderCache::GetSimpleInputLayout());
-
-		D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-		// copy to system memory
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
-		D3D::g_context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
-
-		RestoreAPIState(); // restore game state
-
-		// read the data from system memory
-		D3D::g_context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-
-		float val = *(float*)map.pData;
-		u32 ret = 0;
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
-		{
-			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
-		}
+		float depth = ((FramebufferManager*)g_framebuffer_manager)->ReadDepthAt(RectToLock.left, RectToLock.top);
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			return depth * 0xFFFF; // TODO: Convert to compressed Z format
 		else
-		{
-			ret = ((u32)(val * 0xffffff));
-		}
-		D3D::g_context->Unmap(read_tex, 0);
-
-		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
-		return ret;
+			return depth * 0xFFFFFF;
 	}
 	else if (type == PEEK_COLOR)
 	{
