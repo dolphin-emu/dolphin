@@ -120,6 +120,7 @@ struct SCoreStartupParameter
 	int SelectedLanguage;
 
 	bool bWii;
+	bool bDisableWiimoteSpeaker;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;

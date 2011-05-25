@@ -321,6 +321,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Wii Console
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Disable Wiimote Speaker"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
+
 	// Video
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
@@ -365,6 +368,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		sbWiiOverrides->ShowItems(false);
 		EnableProgressiveScan->Hide();
 		EnableWideScreen->Hide();
+		DisableWiimoteSpeaker->Hide();
 	}
 	else
 	{
@@ -375,6 +379,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
+	sbWiiOverrides->Add(DisableWiimoteSpeaker, 0, wxLEFT, 5);
 
 	wxStaticBoxSizer * const sbVideoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
@@ -889,6 +894,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Wii", "DisableWiimoteSpeaker", &bTemp))
+		DisableWiimoteSpeaker->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		DisableWiimoteSpeaker->Set3StateValue(wxCHK_UNDETERMINED);
+	
 	if (GameIni.Get("Video", "ZTPSpeedupHack", &bTemp))
 		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -976,6 +986,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Wii", "Widescreen");
 	else
 		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
+
+	if (DisableWiimoteSpeaker->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Wii", "DisableWiimoteSpeaker");
+	else
+		GameIni.Set("Wii", "DisableWiimoteSpeaker", DisableWiimoteSpeaker->Get3StateValue());
 
 	if (UseZTPSpeedupHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ZTPSpeedupHack");
