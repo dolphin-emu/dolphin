@@ -224,7 +224,7 @@ inline u64 CreateVMapId(u32 VATUSED)
 	for(int i = 0; i < 12; i++)
 	{
 		if(VATUSED & (1 << (i + 16)))
-			vmap_id  ^= (((u64)cached_arraybases[i]) ^ (((u64)arraystrides[i]) << i));
+			vmap_id  ^= (((u64)arraybases[i]) ^ (((u64)arraystrides[i]) << 32));
 	}
 	return vmap_id;
 }
@@ -353,21 +353,24 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				{
 					// load vertices (use computed vertex size from FifoCommandRunnable above)
 					u16 numVertices = DataReadU16();
-					result |= 1 << (cmd_byte & GX_VAT_MASK);
-					VertexLoaderManager::RunVertices(
-						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-						numVertices);
-					num_draw_call++;
-					const int tc[12] = {
-						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
-					};
-					for(int i = 0; i < 12; i++)
+					if(numVertices > 0)
 					{
-						if(tc[i] > 1)
+						result |= 1 << (cmd_byte & GX_VAT_MASK);
+						VertexLoaderManager::RunVertices(
+							cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+							(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+							numVertices);
+						num_draw_call++;
+						const int tc[12] = {
+							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
+						};
+						for(int i = 0; i < 12; i++)
 						{
-							result |= 1 << (i + 16);
+							if(tc[i] > 1)
+							{
+								result |= 1 << (i + 16);
+							}
 						}
 					}
 				}
@@ -536,43 +539,46 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				if (cmd_byte & 0x80)
 				{
 					// load vertices (use computed vertex size from FifoCommandRunnable above)
-
-					// Execute
+					
 					u16 numVertices = DataReadU16();
-					u8* StartAddress = VertexManager::s_pBaseBufferPointer;
-					VertexManager::Flush();
-					VertexLoaderManager::RunVertices(
-						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-						numVertices);
-					u8* EndAddress = VertexManager::s_pCurBufferPointer;
-					u32 Vdatasize = (u32)(EndAddress - StartAddress);
-					if (size > 0 && numVertices > 0)
+					if(numVertices > 0)
 					{
-					// Compile
-						ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
-						NewRegion->MustClean = true;
-						NewRegion->size = Vdatasize;
-						NewRegion->start_address = (u8*)new u8[Vdatasize]; 
-						NewRegion->hash = 0;					
-						dl->InsertRegion(NewRegion);
-						memcpy(NewRegion->start_address, StartAddress, Vdatasize);
-						emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
-						
-					}					
-					const int tc[12] = {
-						g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-						g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
-					};
-					for(int i = 0; i < 12; i++)
-					{
-						if(tc[i] > 1)
+						// Execute
+						u8* StartAddress = VertexManager::s_pBaseBufferPointer;
+						VertexManager::Flush();
+						VertexLoaderManager::RunVertices(
+							cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+							(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+							numVertices);
+						u8* EndAddress = VertexManager::s_pCurBufferPointer;
+						u32 Vdatasize = (u32)(EndAddress - StartAddress);
+						if (Vdatasize > 0)
 						{
-							u8* saddr = cached_arraybases[i];
-							int arraySize = arraystrides[i] * ((tc[i] == 2)? numVertices : ((numVertices < 1024)? 2 * numVertices : numVertices));
-							dl->InsertOverlapingRegion(saddr, arraySize);
+							// Compile
+							ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
+							NewRegion->MustClean = true;
+							NewRegion->size = Vdatasize;
+							NewRegion->start_address = (u8*)new u8[Vdatasize]; 
+							NewRegion->hash = 0;					
+							dl->InsertRegion(NewRegion);
+							memcpy(NewRegion->start_address, StartAddress, Vdatasize);
+							emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
+							const int tc[12] = {
+							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
+							};
+							for(int i = 0; i < 12; i++)
+							{
+								if(tc[i] > 1)
+								{
+									u8* saddr = cached_arraybases[i];
+									int arraySize = arraystrides[i] * ((tc[i] == 2)? numVertices : ((numVertices < 1024)? 2 * numVertices : numVertices));
+									dl->InsertOverlapingRegion(saddr, arraySize);
+								}
+							}
 						}
 					}
+					
 				}
 				else
 				{
@@ -635,7 +641,6 @@ void ProgressiveCleanup()
 			CachedDisplayList &entry = childiter->second;
 			int limit = 3600;
 			if (entry.frame_count < frameCount - limit) {
-				// entry.Destroy();
 				entry.ClearRegions();
 				ParentEntry.dl_map.erase(childiter++);  // (this is gcc standard!)
 			}
