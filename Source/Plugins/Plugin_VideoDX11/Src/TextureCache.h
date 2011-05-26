@@ -55,7 +55,7 @@ private:
 	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
-	void CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FORMAT dxFormat);
+	void CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height, UINT levels);
 
 	void ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
@@ -78,9 +78,6 @@ private:
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
 	// Attributes of the currently-loaded texture
-	u32 m_curWidth;
-	u32 m_curHeight;
-	u32 m_curLevels;
 	u32 m_curFormat;
 	u64 m_curHash;
 
@@ -96,6 +93,9 @@ private:
 	{
 		std::unique_ptr<D3DTexture2D> tex;
 		DXGI_FORMAT dxFormat;
+		UINT width;
+		UINT height;
+		UINT levels;
 	} m_ramStorage;
 
 	// If loaded texture is paletted, this contains depalettized data.
@@ -105,7 +105,7 @@ private:
 		std::unique_ptr<D3DTexture2D> tex;
 		UINT width;
 		UINT height;
-		UINT levels;
+		// FIXME: Can paletted textures have more than one level?
 	} m_depalStorage;
 
 	// If format is paletted, this contains the palette's RGBA data.

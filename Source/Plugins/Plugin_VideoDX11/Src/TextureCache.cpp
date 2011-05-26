@@ -126,8 +126,6 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 {
 	const u8* src = Memory::GetPointer(ramAddr);
 
-	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
-
 	DXGI_FORMAT dxFormat = DXGI_FORMAT_UNKNOWN;
 	switch (format)
 	{
@@ -152,10 +150,14 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 
 	// Should we create a new D3D texture?
-	bool recreateTexture = !m_ramStorage.tex || dimsChanged || dxFormat != m_ramStorage.dxFormat;
+	bool recreateTexture = !m_ramStorage.tex ||
+		dxFormat != m_ramStorage.dxFormat ||
+		width != m_ramStorage.width ||
+		height != m_ramStorage.height ||
+		levels != m_ramStorage.levels;
 
 	if (recreateTexture)
-		CreateRamTexture(width, height, levels, dxFormat);
+		CreateRamTexture(dxFormat, width, height, levels);
 
 	u64 newHash = m_curHash;
 
@@ -172,9 +174,6 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	if (reloadTexture)
 		ReloadRamTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
-	m_curWidth = width;
-	m_curHeight = height;
-	m_curLevels = levels;
 	m_curFormat = format;
 	m_curHash = newHash;
 
@@ -183,7 +182,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_loadedDirty = reloadTexture;
 }
 
-void TCacheEntry::CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FORMAT dxFormat)
+void TCacheEntry::CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height, UINT levels)
 {
 	DEBUG_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
 		width, height, levels);
@@ -194,6 +193,9 @@ void TCacheEntry::CreateRamTexture(UINT width, UINT height, UINT levels, DXGI_FO
 	SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
 	m_ramStorage.tex.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
 	m_ramStorage.dxFormat = dxFormat;
+	m_ramStorage.width = width;
+	m_ramStorage.height = height;
+	m_ramStorage.levels = levels;
 }
 
 // TODO: Move this stuff into TextureDecoder.cpp, use SSE versions
@@ -475,9 +477,6 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 
 	m_ramStorage.tex.reset();
 
-	m_curWidth = width;
-	m_curHeight = height;
-	m_curLevels = levels;
 	m_curFormat = format;
 	m_curHash = newHash;
 
@@ -500,8 +499,7 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 		bool recreateDepal = !m_depalStorage.tex ||
 			loadedDesc.Width != m_depalStorage.width ||
-			loadedDesc.Height != m_depalStorage.height ||
-			loadedDesc.MipLevels != m_depalStorage.levels;
+			loadedDesc.Height != m_depalStorage.height;
 
 		if (recreateDepal)
 		{
@@ -520,7 +518,6 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
 			m_depalStorage.width = t2dd.Width;
 			m_depalStorage.height = t2dd.Height;
-			m_depalStorage.levels = t2dd.MipLevels;
 		}
 
 		bool runDepalShader = recreateDepal || m_loadedDirty || paletteChanged;
