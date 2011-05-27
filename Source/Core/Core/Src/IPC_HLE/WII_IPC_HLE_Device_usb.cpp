@@ -106,13 +106,26 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
+/*
+  //things that do not get saved:
+
+	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
+
+	std::deque<SQueuedEvent> m_EventQueue;
+ */
+
 	p.Do(m_CtrlSetup);
 	p.Do(m_ACLSetup);
 	p.Do(m_HCIEndpoint);
 	p.Do(m_ACLEndpoint);
 	p.Do(m_last_ticks);
+	p.DoArray(m_PacketCount,4);
+	p.Do(m_ScanEnable);
 	m_acl_pool.DoState(p);
 
+	if (p.GetMode() == PointerWrap::MODE_READ) {
+	    m_EventQueue.clear();
+	}
 	if (p.GetMode() == PointerWrap::MODE_READ &&
 		SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
@@ -397,7 +410,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not "
 				"currently valid, queueing(%lu)...",
 				(unsigned long)m_EventQueue.size());
-			m_EventQueue.push(_event);
+			m_EventQueue.push_back(_event);
 			const SQueuedEvent& event = m_EventQueue.front();
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x "
 				"being written from queue(%lu) to %08x...",
@@ -409,14 +422,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 			// Send a reply to indicate HCI buffer is filled
 			WII_IPC_HLE_Interface::EnqReply(m_HCIEndpoint.m_address);
 			m_HCIEndpoint.Invalidate();
-			m_EventQueue.pop();
+			m_EventQueue.pop_front();
 		}
 	}
 	else
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, "
 			"queueing(%lu)...", (unsigned long)m_EventQueue.size());
-		m_EventQueue.push(_event);
+		m_EventQueue.push_back(_event);
 	}
 }
 
@@ -439,7 +452,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		// Send a reply to indicate HCI buffer is filled
 		WII_IPC_HLE_Interface::EnqReply(m_HCIEndpoint.m_address);
 		m_HCIEndpoint.Invalidate();
-		m_EventQueue.pop();
+		m_EventQueue.pop_front();
 		packet_transferred = true;
 	}
 

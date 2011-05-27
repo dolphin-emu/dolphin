@@ -25,6 +25,7 @@
 #include "FileSearch.h"
 #include "FileUtil.h"
 #include "NandPaths.h"
+#include "ChunkFile.h"
 
 #include "../VolumeHandler.h"
 
@@ -483,4 +484,97 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	}
 
 	return FS_RESULT_FATAL;
+}
+
+void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
+{
+	// handle /tmp
+
+	std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		File::DeleteDirRecursively(Path);
+		File::CreateDir(Path.c_str());
+
+		//now restore from the stream
+		while(1) {
+			char type;
+			p.Do(type);
+			if (!type)
+				break;
+			std::string filename;
+			p.Do(filename);
+			std::string name = Path + DIR_SEP + filename;
+			switch(type)
+			{
+			case 'd':
+			{
+				File::CreateDir(name.c_str());
+				break;
+			}
+			case 'f':
+			{
+				u32 size;
+				p.Do(size);
+
+				File::IOFile handle(name, "wb");
+				char buf[65536];
+				u32 count = size;
+				while(count > 65536) {
+					p.DoArray(&buf[0], 65536);
+					handle.WriteArray(&buf[0], 65536);
+					count -= 65536;
+				}
+				p.DoArray(&buf[0], count);
+				handle.WriteArray(&buf[0], count);
+				break;
+			}
+			}
+		}
+	}
+	else
+	{
+		//recurse through tmp and save dirs and files
+
+		File::FSTEntry parentEntry;
+		File::ScanDirectoryTree(Path, parentEntry);
+		std::deque<File::FSTEntry> todo;
+		todo.insert(todo.end(), parentEntry.children.begin(),
+			    parentEntry.children.end());
+
+		while(!todo.empty())
+		{
+			File::FSTEntry &entry = todo.front();
+			std::string name = entry.physicalName;
+			name.erase(0,Path.length()+1);
+			char type = entry.isDirectory?'d':'f';
+			p.Do(type);
+			p.Do(name);
+			if (entry.isDirectory)
+			{
+				todo.insert(todo.end(), entry.children.begin(),
+					    entry.children.end());
+			}
+			else
+			{
+				u32 size = entry.size;
+				p.Do(size);
+
+				File::IOFile handle(entry.physicalName, "rb");
+				char buf[65536];
+				u32 count = size;
+				while(count > 65536) {
+					handle.ReadArray(&buf[0], 65536);
+					p.DoArray(&buf[0], 65536);
+					count -= 65536;
+				}
+				handle.ReadArray(&buf[0], count);
+				p.DoArray(&buf[0], count);
+			}
+			todo.pop_front();
+		}
+
+		char type = 0;
+		p.Do(type);
+	}
 }

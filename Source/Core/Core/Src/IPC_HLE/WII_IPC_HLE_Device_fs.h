@@ -46,7 +46,9 @@ public:
     CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_fs();
 
-    virtual bool Open(u32 _CommandAddress, u32 _Mode);
+	virtual void DoState(PointerWrap& p);
+
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
 	virtual bool Close(u32 _CommandAddress, bool _bForce);
 
 	virtual bool IOCtl(u32 _CommandAddress);

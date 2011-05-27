@@ -65,7 +65,7 @@ static std::vector<u8> g_current_buffer;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 4;
+static const int STATE_VERSION = 5;
 
 struct StateHeader
 {

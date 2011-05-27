@@ -29,6 +29,7 @@
 
 #include <map>
 #include <vector>
+#include <deque>
 #include <string>
 
 #include "Common.h"
@@ -125,6 +126,18 @@ public:
 		Do(vec_size);
 		x.resize(vec_size);
 		DoArray(&x[0], vec_size);
+	}
+	
+	// Store deques.
+	template<class T>
+	void Do(std::deque<T> &x)
+	{
+		u32 deq_size = (u32)x.size();
+		Do(deq_size);
+		x.resize(deq_size);
+		u32 i;
+		for(i = 0; i < deq_size; i++)
+			DoVoid(&x[i],sizeof(T));
 	}
 	
 	// Store strings.
