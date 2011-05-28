@@ -87,7 +87,6 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 	, m_pFileHandle(NULL)
 	, m_FileLength(0)
 	, m_Mode(0)
-	, m_Seek(0)
 {
 	Common::ReadReplacements(replacements);
 }
@@ -104,10 +103,9 @@ bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 
 	m_FileLength = 0;
 	m_Mode = 0;
-	m_Seek = 0;
 
 	// Close always return 0 for success
-	if (!_bForce)
+	if (_CommandAddress && !_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
@@ -121,7 +119,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	// close the file handle if we get a reopen
 	m_pFileHandle.Close();
 	
-	const char* const Modes[] =
+	static const char* const Modes[] =
 	{
 		"Unk Mode",
 		"Read only",
@@ -326,20 +324,24 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
 void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 {
-	if (p.GetMode() == PointerWrap::MODE_WRITE)
-	{
-		m_Seek = (m_pFileHandle) ? (s32)m_pFileHandle.Tell() : 0;
-	}
+	bool have_file_handle = m_pFileHandle;
+	s32 seek = (have_file_handle) ? (s32)m_pFileHandle.Tell() : 0;
 
+	p.Do(have_file_handle);
 	p.Do(m_Mode);
-	p.Do(m_Seek);
+	p.Do(seek);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		if (m_Mode)
+		if (have_file_handle)
 		{
 			Open(0, m_Mode);
-			m_pFileHandle.Seek(m_Seek, SEEK_SET);
+			_dbg_assert_msg_(WII_IPC_HLE, m_pFileHandle, "bad filehandle");
 		}
+		else
+			Close(0, true);
 	}
+
+	if (have_file_handle)
+		m_pFileHandle.Seek(seek, SEEK_SET);
 }

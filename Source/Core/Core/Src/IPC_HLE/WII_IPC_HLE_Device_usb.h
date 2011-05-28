@@ -152,7 +152,7 @@ private:
 
 	SHCICommandMessage m_CtrlSetup;
 	CtrlBuffer m_HCIEndpoint;
-	std::queue<SQueuedEvent> m_EventQueue;
+	std::deque<SQueuedEvent> m_EventQueue;
 	
 	u32 m_ACLSetup;
 	CtrlBuffer m_ACLEndpoint;

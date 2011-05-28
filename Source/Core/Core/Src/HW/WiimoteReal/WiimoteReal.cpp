@@ -190,7 +190,7 @@ bool Wiimote::Write()
 	Report rpt;
 	bool audio_written = false;
 	
-	if (m_audio_reports.Pop(rpt))
+	if (m_audio_reports.Pop(rpt) && !Core::g_CoreStartupParameter.bDisableWiimoteSpeaker)
 	{
 		IOWrite(rpt.first, rpt.second);
 		delete[] rpt.first;

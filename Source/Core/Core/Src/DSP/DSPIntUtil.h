@@ -257,15 +257,11 @@ static inline void dsp_conditional_extend_accum(int reg)
 }
 
 // ---------------------------------------------------------------------------------------
-// --- prod
+// --- prod (40-bit)
 // ---------------------------------------------------------------------------------------
 
 static inline s64 dsp_get_long_prod()
 {
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
 	s64 val   = (s8)(u8)g_dsp.r.prod.h;
 	val <<= 32;
 	s64 low_prod  = g_dsp.r.prod.m;
@@ -292,16 +288,7 @@ static inline s64 dsp_get_long_prod_round_prodl()
 // in completely bizarre ways. Not needed to emulate them correctly for game ucodes.
 inline void dsp_set_long_prod(s64 val)
 {
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
-	g_dsp.r.prod.l = (u16)val;
-	val >>= 16;
-	g_dsp.r.prod.m = (u16)val;
-	val >>= 16;
-	g_dsp.r.prod.h = /*(s16)(s8)*/(u8)val;//todo: check expansion
-	g_dsp.r.prod.m2 = 0;
+	g_dsp.r.prod.val = val & 0x000000FFFFFFFFFFULL;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -310,31 +297,17 @@ inline void dsp_set_long_prod(s64 val)
 
 inline s64 dsp_get_long_acc(int reg)
 {
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
-	s64 high = (s64)(s8)g_dsp.r.ac[reg].h << 32;
-	u32 mid_low = ((u32)g_dsp.r.ac[reg].m << 16) | g_dsp.r.ac[reg].l;
-	return high | mid_low;
+	return ((s64)(g_dsp.r.ac[reg].val << 24) >> 24);
 }
 
 inline void dsp_set_long_acc(int _reg, s64 val)
 {
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
-	g_dsp.r.ac[_reg].l = (u16)val;
-	val >>= 16;
-	g_dsp.r.ac[_reg].m = (u16)val;
-	val >>= 16;
-	g_dsp.r.ac[_reg].h = (u16)(s16)(s8)(u8)val;
+	g_dsp.r.ac[_reg].val = (u64)val;
 }
 
 inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
 {
-	return ((s64)(s8)(val >> 32))<<32 | (u32)val;
+	return ((val << 24) >> 24);
 }
 
 inline s64 dsp_round_long_acc(s64 val)
@@ -349,17 +322,17 @@ inline s64 dsp_round_long_acc(s64 val)
 
 inline s16 dsp_get_acc_l(int _reg)
 {
-	return g_dsp.r.ac[_reg].l;
+	return (s16)g_dsp.r.ac[_reg].l;
 }
 
 inline s16 dsp_get_acc_m(int _reg)
 {
-	return g_dsp.r.ac[_reg].m;
+	return (s16)g_dsp.r.ac[_reg].m;
 }
 
 inline s16 dsp_get_acc_h(int _reg)
 {
-	return g_dsp.r.ac[_reg].h;
+	return (s16)g_dsp.r.ac[_reg].h;
 }
 
 inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
@@ -370,7 +343,6 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 	
 		if (acc != (s32)acc) 
 		{
-			//NOTICE_LOG(DSPLLE,"LIMIT: 0x%x", g_dsp.pc);
 			if (acc > 0)
 				return 0x7fff;
 			else 
@@ -389,11 +361,7 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 
 inline s32 dsp_get_long_acx(int _reg)
 {
-#if PROFILE
-	ProfilerAddDelta(g_dsp.err_pc, 1);
-#endif
-
-	return ((u32)g_dsp.r.ax[_reg].h << 16) | g_dsp.r.ax[_reg].l;
+	return (s32)(((u32)g_dsp.r.ax[_reg].h << 16) | g_dsp.r.ax[_reg].l);
 }
 
 inline s16 dsp_get_ax_l(int _reg)

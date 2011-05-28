@@ -59,7 +59,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bRenderWindowAutoSize(false),
   bFullscreen(false), bRenderToMain(false),
-  bProgressive(false),
+  bProgressive(false), bDisableWiimoteSpeaker(false),
   iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
@@ -99,6 +99,8 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
+
+	bDisableWiimoteSpeaker = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
