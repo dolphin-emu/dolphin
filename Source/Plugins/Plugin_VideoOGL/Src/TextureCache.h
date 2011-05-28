@@ -74,8 +74,6 @@ private:
 
 };
 
-typedef std::map<u32, std::unique_ptr<VirtualEFBCopy> > VirtualEFBCopyMap;
-
 class TextureCache : public TextureCacheBase
 {
 
@@ -94,10 +92,13 @@ public:
 protected:
 
 	TCacheEntry* CreateEntry();
+	VirtualEFBCopy* CreateVirtualEFBCopy();
+
+	u32 EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 private:
 
-	VirtualEFBCopyMap m_virtCopyMap;
 	GLuint m_virtCopyFramebuf;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);

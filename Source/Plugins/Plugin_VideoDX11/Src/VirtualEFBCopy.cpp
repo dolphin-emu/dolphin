@@ -157,7 +157,7 @@ SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, boo
 }
 
 VirtualEFBCopy::VirtualEFBCopy()
-	: m_hash(0), m_dirty(true)
+	: m_dirty(true)
 { }
 
 static const float RGBA_MATRIX[4*4] = {
@@ -228,10 +228,13 @@ static const float PACK_GB_TO_RG_MATRIX[4*4] = {
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
-void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, D3DTexture2D* srcTex,
-	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-	bool scaleByHalf)
+void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
+	D3DTexture2D* srcTex = (srcFormat == PIXELFMT_Z24)
+		? FramebufferManager::GetResolvedEFBDepthTexture()
+		: FramebufferManager::GetResolvedEFBColorTexture();
+
 	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
 	// texture, which is invalid.
 	EFBRectangle correctSrc = srcRect;

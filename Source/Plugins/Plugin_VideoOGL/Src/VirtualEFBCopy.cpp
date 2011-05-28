@@ -103,10 +103,13 @@ static const float GGGB_MATRIX[4*4] = {
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
-void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, GLuint srcTex,
-	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-	bool scaleByHalf)
+void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
+	GLuint srcTex = (srcFormat == PIXELFMT_Z24)
+		? FramebufferManager::ResolveAndGetDepthTarget(srcRect)
+		: FramebufferManager::ResolveAndGetRenderTarget(srcRect);
+
 	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
 	// texture, which is invalid.
 	EFBRectangle correctSrc = srcRect;

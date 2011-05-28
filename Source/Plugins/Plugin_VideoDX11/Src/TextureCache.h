@@ -121,17 +121,12 @@ private:
 
 };
 
-typedef std::map<u32, std::unique_ptr<VirtualEFBCopy> > VirtualEFBCopyMap;
-
 class TextureCache : public TextureCacheBase
 {
 
 public:
 
 	TextureCache();
-
-	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
@@ -142,12 +137,16 @@ public:
 protected:
 
 	TCacheEntry* CreateEntry();
+	VirtualEFBCopy* CreateVirtualEFBCopy();
+
+	// Returns the size of encoded data in bytes
+	u32 EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 private:
 
 	// FIXME: Should the EFB encoder be embedded in the texture cache class?
 	std::unique_ptr<TextureEncoder> m_encoder;
-	VirtualEFBCopyMap m_virtCopyMap;
 
 	VirtualCopyShaderManager m_virtShaderManager;
 	DepalettizeShader m_depalShader;

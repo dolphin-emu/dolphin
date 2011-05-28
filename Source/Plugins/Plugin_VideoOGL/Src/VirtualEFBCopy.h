@@ -18,31 +18,28 @@
 #ifndef _VIDEOOGL_VIRTUALEFBCOPY_H
 #define _VIDEOOGL_VIRTUALEFBCOPY_H
 
+#include "TextureCacheBase.h"
 #include "VideoCommon.h"
 #include "GLUtil.h"
 
 namespace OGL
 {
 
-class VirtualEFBCopy
+class VirtualEFBCopy : public VirtualEFBCopyBase
 {
 
 public:
 
 	~VirtualEFBCopy();
 
-	void Update(u32 dstAddr, unsigned int dstFormat, GLuint srcTex,
-		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-		bool scaleByHalf);
+	void Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 	
 	GLuint Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool force);
 
 	unsigned int GetRealWidth() const { return m_realW; }
 	unsigned int GetRealHeight() const { return m_realH; }
-
-	u64 GetHash() const { return m_hash; }
-	void SetHash(u64 hash) { m_hash = hash; }
 
 	bool IsDirty() const { return m_dirty; }
 	void ResetDirty() { m_dirty = false; }
@@ -62,9 +59,6 @@ private:
 	unsigned int m_realH;
 	unsigned int m_dstFormat;
 	bool m_dirty;
-
-	// This is not maintained by VirtualEFBCopy. It must be handled externally.
-	u64 m_hash;
 
 	struct Texture
 	{

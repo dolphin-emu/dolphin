@@ -41,14 +41,37 @@ protected:
 	virtual void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
 		u32 tlutAddr, u32 tlutFormat, bool invalidated) = 0;
 
-private:
-
 	u32 m_validation;
+
+};
+
+class VirtualEFBCopyBase
+{
+
+public:
+
+	VirtualEFBCopyBase()
+		: m_hash(0)
+	{ }
+	virtual ~VirtualEFBCopyBase() { }
+
+	virtual void Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
+
+	u64 GetHash() const { return m_hash; }
+	void SetHash(u64 hash) { m_hash = hash; }
+
+protected:
+	
+	// This is not maintained by VirtualEFBCopy. It must be handled externally.
+	u64 m_hash;
 
 };
 
 // Map main RAM addresses to textures decoded from those addresses
 typedef std::map<u32, std::unique_ptr<TCacheEntryBase> > TCacheMap;
+// Map main RAM addresses to EFB copies performed to those addresses
+typedef std::map<u32, std::unique_ptr<VirtualEFBCopyBase> > VirtualEFBCopyMap;
 
 class TextureCacheBase
 {
@@ -66,14 +89,20 @@ public:
 	TCacheEntryBase* LoadEntry(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat);
 
-	virtual void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
+	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 protected:
 
 	virtual TCacheEntryBase* CreateEntry() = 0;
+	virtual VirtualEFBCopyBase* CreateVirtualEFBCopy() = 0;
+
+	// Returns the size of encoded data in bytes
+	virtual u32 EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
 
 	TCacheMap m_map;
+	VirtualEFBCopyMap m_virtCopyMap;
 
 	// Validation: Increments each time tmem is invalidated. Each TCacheEntry
 	// has a validation number which gets compared with this.

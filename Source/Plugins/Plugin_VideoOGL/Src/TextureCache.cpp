@@ -107,7 +107,7 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// been deallocated by the game. We ought to delete copies that aren't
 			// being used.
 			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
-				tlutFormat, invalidated, virtIt->second.get()))
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
 				refreshFromRam = false;
 		}
 		else
@@ -313,62 +313,20 @@ TextureCache::~TextureCache()
 	m_virtCopyFramebuf = 0;
 }
 
-void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
-{
-	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
-	// texture, which is invalid.
-	EFBRectangle correctSrc = srcRect;
-	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
-
-	GLuint srcTexture = (srcFormat == PIXELFMT_Z24)
-		? FramebufferManager::ResolveAndGetDepthTarget(correctSrc)
-		: FramebufferManager::ResolveAndGetRenderTarget(correctSrc);
-
-	u8* dst = Memory::GetPointer(dstAddr);
-
-	u64 encodedHash = 0;
-	if (g_ActiveConfig.bEFBCopyRAMEnable)
-	{
-		u32 encodeSize = TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
-			isIntensity, scaleByHalf);
-		if (encodeSize)
-		{
-			encodedHash = GetHash64(dst, encodeSize, encodeSize);
-			DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken: 0x%.016X", dstAddr, encodedHash);
-		}
-	}
-	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
-	{
-		static u64 canaryEgg = 0x79706F4342464500; // '\0EFBCopy'
-
-		// We aren't encoding to RAM but we are making a TCL, so put a piece of
-		// canary data in RAM to detect if the game overwrites it.
-		encodedHash = canaryEgg;
-		++canaryEgg;
-
-		// There will be at least 32 bytes that are safe to write here.
-		*(u64*)dst = encodedHash;
-	}
-
-	if (g_ActiveConfig.bEFBCopyVirtualEnable)
-	{
-		VirtualEFBCopyMap::iterator virtIt = m_virtCopyMap.find(dstAddr);
-		if (virtIt == m_virtCopyMap.end())
-		{
-			virtIt = m_virtCopyMap.insert(std::make_pair(dstAddr, new VirtualEFBCopy)).first;
-		}
-
-		VirtualEFBCopy* virt = virtIt->second.get();
-
-		virt->Update(dstAddr, dstFormat, srcTexture, srcFormat, srcRect, isIntensity, scaleByHalf);
-		virt->SetHash(encodedHash);
-	}
-}
-
 TCacheEntry* TextureCache::CreateEntry()
 {
 	return new TCacheEntry;
+}
+
+VirtualEFBCopy* TextureCache::CreateVirtualEFBCopy()
+{
+	return new VirtualEFBCopy;
+}
+
+u32 TextureCache::EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+{
+	return TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 }

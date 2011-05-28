@@ -19,6 +19,7 @@
 
 #include "D3DTexture.h"
 #include "D3DUtil.h"
+#include "EFBCopy.h"
 #include "FramebufferManager.h"
 #include "Hash.h"
 #include "HW/Memmap.h"
@@ -100,7 +101,7 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// been deallocated by the game. We ought to delete copies that aren't
 			// being used.
 			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
-				tlutFormat, invalidated, virtIt->second.get()))
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
 				refreshFromRam = false;
 		}
 		else
@@ -480,51 +481,53 @@ void TextureCache::TeardownDeviceObjects()
 	}
 }
 
-void TextureCache::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
-{
-	u8* dst = Memory::GetPointer(dstAddr);
-
-	// TODO: Move some of this stuff into a backend-common place
-	u64 encodedHash = 0;
-	if (g_ActiveConfig.bEFBCopyRAMEnable)
-	{
-		encodedHash = TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect,
-			isIntensity, scaleByHalf);
-	}
-	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
-	{
-		static u64 canaryEgg = 0x79706F4342464500; // '\0EFBCopy'
-
-		// We aren't encoding to RAM but we are making a TCL, so put a piece of
-		// canary data in RAM to detect if the game overwrites it.
-		encodedHash = canaryEgg;
-		++canaryEgg;
-
-		// There will be at least 32 bytes that are safe to write here.
-		*(u64*)dst = encodedHash;
-	}
-
-	if (g_ActiveConfig.bEFBCopyVirtualEnable)
-	{
-		VirtualEFBCopyMap::iterator virtIt = m_virtCopyMap.find(dstAddr);
-		if (virtIt == m_virtCopyMap.end())
-		{
-			virtIt = m_virtCopyMap.insert(std::make_pair(dstAddr, new VirtualEFBCopy)).first;
-		}
-
-		VirtualEFBCopy* virtCopy = virtIt->second.get();
-
-		INFO_LOG(VIDEO, "Making virtual efb copy at 0x%.08X", dstAddr);
-
-		virtCopy->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		virtCopy->SetHash(encodedHash);
-	}
-}
-
 TCacheEntry* TextureCache::CreateEntry()
 {
 	return new TCacheEntry;
+}
+
+VirtualEFBCopy* TextureCache::CreateVirtualEFBCopy()
+{
+	return new VirtualEFBCopy;
+}
+
+u32 TextureCache::EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+{
+	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
+	// texture, which is invalid.
+	EFBRectangle correctSrc = srcRect;
+	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
+
+	// Validate source rect size
+	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
+		return 0;
+
+	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
+
+	// Round up source dims to multiple of block size
+	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
+	actualWidth = (actualWidth + blockW-1) & ~(blockW-1);
+	unsigned int actualHeight = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
+	actualHeight = (actualHeight + blockH-1) & ~(blockH-1);
+
+	unsigned int numBlocksX = actualWidth/blockW;
+	unsigned int numBlocksY = actualHeight/blockH;
+
+	unsigned int cacheLinesPerRow;
+	if (dstFormat == EFB_COPY_RGBA8) // RGBA takes two cache lines per block; all others take one
+		cacheLinesPerRow = numBlocksX*2;
+	else
+		cacheLinesPerRow = numBlocksX;
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= EFB_COPY_MAX_BYTES_PER_ROW, "cache lines per row sanity check");
+
+	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
+	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
+
+	TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+
+	return totalCacheLines*32;
 }
 
 }
