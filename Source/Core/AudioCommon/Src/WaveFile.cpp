@@ -63,7 +63,7 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 	Write(16);  // size of fmt block
 	Write(0x00020001); //two channels, uncompressed
 
-	const u32 sample_rate = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE ? HLESampleRate : 32000;
+	const u32 sample_rate = HLESampleRate;
 	Write(sample_rate);
 	Write(sample_rate * 2 * 2); //two channels, 16bit
 
