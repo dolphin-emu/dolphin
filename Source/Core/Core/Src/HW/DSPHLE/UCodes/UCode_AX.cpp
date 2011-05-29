@@ -454,3 +454,16 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	m_rMailHandler.PushMail(DSP_YIELD);
 	return true;
 }
+
+void CUCode_AX::DoState(PointerWrap &p)
+{
+	std::lock_guard<std::mutex> lk(m_csMix);
+
+	p.Do(_CRC);
+	p.Do(numPBaddr);
+	p.Do(m_addressPBs);
+	p.Do(PBaddr);
+	p.Do(m_UploadSetupInProgress);
+
+	m_rMailHandler.DoState(p);
+}

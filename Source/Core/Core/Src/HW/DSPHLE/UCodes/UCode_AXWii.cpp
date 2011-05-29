@@ -255,3 +255,15 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	m_rMailHandler.PushMail(DSP_YIELD); //its here in case there is a CMD fuckup
 	return true;
 }
+
+void CUCode_AXWii::DoState(PointerWrap &p)
+{
+	std::lock_guard<std::mutex> lk(m_csMix);
+
+	p.Do(_CRC);
+	p.Do(m_addressPBs);
+	p.Do(wiisportsHack);
+	p.Do(m_UploadSetupInProgress);
+
+	m_rMailHandler.DoState(p);
+}
