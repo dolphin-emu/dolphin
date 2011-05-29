@@ -55,12 +55,12 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 		u8 i = 0;
 		while (i < maxWM)
 		{
-			tmpBD.b[5] = BT_DINF[1 + (0xB+i * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)];
-			tmpBD.b[4] = BT_DINF[2 + (0xB+i * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)];
-			tmpBD.b[3] = BT_DINF[3 + (0xB+i * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)];
-			tmpBD.b[2] = BT_DINF[4 + (0xB+i * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)];
-			tmpBD.b[1] = BT_DINF[5 + (0xB+i * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)];
-			tmpBD.b[0] = BT_DINF[6 + (0xB+i * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)];
+			tmpBD.b[5] = BT_DINF[1 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)];
+			tmpBD.b[4] = BT_DINF[2 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)];
+			tmpBD.b[3] = BT_DINF[3 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)];
+			tmpBD.b[2] = BT_DINF[4 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)];
+			tmpBD.b[1] = BT_DINF[5 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)];
+			tmpBD.b[0] = BT_DINF[6 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)];
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
 			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
@@ -70,12 +70,12 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 		{
 			const char * wmName = "Nintendo RVL-CNT-01";
 			BT_DINF[0] = 4;
-			BT_DINF[1 + (0xB+i * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)] = tmpBD.b[5] = i;
-			BT_DINF[2 + (0xB+i * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)] = tmpBD.b[4] = 0x00;
-			BT_DINF[3 + (0xB+i * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)] = tmpBD.b[3] = 0x79;
-			BT_DINF[4 + (0xB+i * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)] = tmpBD.b[2] = 0x19;
-			BT_DINF[5 + (0xB+i * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)] = tmpBD.b[1] = 0x02;
-			BT_DINF[6 + (0xB+i * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)] = tmpBD.b[0] = 0x11;
+			BT_DINF[1 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)] = tmpBD.b[5] = i;
+			BT_DINF[2 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)] = tmpBD.b[4] = 0x00;
+			BT_DINF[3 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)] = tmpBD.b[3] = 0x79;
+			BT_DINF[4 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)] = tmpBD.b[2] = 0x19;
+			BT_DINF[5 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)] = tmpBD.b[1] = 0x02;
+			BT_DINF[6 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)] = tmpBD.b[0] = 0x11;
 			memcpy((BT_DINF+7 + (i * WIIMOTESIZE)), wmName, 20);
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
