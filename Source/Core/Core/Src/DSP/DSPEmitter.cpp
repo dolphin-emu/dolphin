@@ -66,15 +66,34 @@ DSPEmitter::~DSPEmitter()
 	FreeCodeSpace();
 }
 
-void DSPEmitter::ClearIRAM() {
-	// ClearCodeSpace();
+void DSPEmitter::ClearIRAM()
+{
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = 0;
 		blockSize[i] = 0;
+		unresolvedJumps[i].clear();
 	}
+	g_dsp.reset_dspjit_codespace = true;
 }
+
+void DSPEmitter::ClearIRAMandDSPJITCodespaceReset() 
+{
+	ResetCodePtr();
+	CompileDispatcher();
+	stubEntryPoint = CompileStub();
+
+	for(int i = 0x0000; i < 0x10000; i++)
+	{
+		blocks[i] = (DSPCompiledCode)stubEntryPoint;
+		blockLinks[i] = 0;
+		blockSize[i] = 0;
+		unresolvedJumps[i].clear();
+	}
+	g_dsp.reset_dspjit_codespace = false;
+}
+
 
 // Must go out of block if exception is detected
 void DSPEmitter::checkExceptions(u32 retval)
