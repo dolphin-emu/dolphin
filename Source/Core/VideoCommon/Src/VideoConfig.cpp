@@ -113,8 +113,6 @@ void VideoConfig::Load(const char *ini_file)
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 
-	VerifyValidity();
-	
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	bool bTmp;
@@ -173,8 +171,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video", "PH_ZNear", &sPhackvalue[0]);
 	iniFile.GetIfExists("Video", "PH_ZFar", &sPhackvalue[1]);
 	iniFile.GetIfExists("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
-
-	VerifyValidity();
 }
 
 void VideoConfig::VerifyValidity()
