@@ -117,7 +117,8 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 bool DSPEmitter::FlagsNeeded()
 {
-	if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR) 
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || 
+		(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))	
 		return true; 
 	else
 		return false;
