@@ -205,7 +205,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
 	toolsMenu->Append(IDM_MENU_INSTALLWAD, _("Install WAD"));
-	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU));
+	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, wxT("Dummy string to keep wxw happy")));
 
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
 
@@ -946,7 +946,7 @@ void CFrame::StartGame(const std::string& filename)
 #else
 		m_RenderParent->SetFocus();
 #endif
-
+		
 		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 				wxKeyEventHandler(CFrame::OnKeyDown),
 				(wxObject*)0, this);
@@ -971,6 +971,7 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
+				
 	}
 
 	wxEndBusyCursor();

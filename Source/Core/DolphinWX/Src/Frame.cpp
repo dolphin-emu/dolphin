@@ -992,9 +992,8 @@ void CFrame::OnMouse(wxMouseEvent& event)
 			X11Utils::SendButtonEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetButton(),
 					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
 	}
-#else
-	(void)event;
 #endif
+	event.Skip();
 }
 
 void CFrame::DoFullscreen(bool bF)
