@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 
+#include "ConfigManager.h"
 #include "VideoConfig.h"
 
 #include <wx/wx.h>
@@ -17,6 +18,11 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+
+#include "MsgHandler.h"
+#include "Frame.h"
+
+extern CFrame* main_frame;
 
 template <typename W>
 class BoolSetting : public W
@@ -69,8 +75,57 @@ public:
 	VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& ininame);
 
 protected:
-	void Event_Backend(wxCommandEvent &ev) { ev.Skip(); } // TODO: Query list of supported AA modes
+	void Event_Backend(wxCommandEvent &ev)
+	{
+		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
+		if (g_video_backend != new_backend)
+		{
+			bool do_switch = true;
+			if (strcmp(new_backend->GetName().c_str(), _trans("Software Renderer")) == 0)
+			{
+				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
+													_("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, wxGetActiveWindow()));
+			}
+
+			if (do_switch)
+			{
+				// TODO: Only reopen the dialog if the software backend is selected (make sure to reinitialize backend info)
+				// reopen the dialog
+				Close();
+
+				g_video_backend = new_backend;
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+
+				g_video_backend->ShowConfig(GetParent());
+			}
+			else
+			{
+				// Select current backend again
+				choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+			}
+		}
+
+		ev.Skip();
+	}
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
+
+	void Event_DisplayResolution(wxCommandEvent &ev)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+					choice_display_resolution->GetStringSelection().mb_str();
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		main_frame->m_XRRConfig->Update();
+#endif
+		ev.Skip();
+	}
+
+	void Event_ProgressiveScan(wxCommandEvent &ev)
+	{
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.GetInt();
+
+		ev.Skip();
+	}
 
 	void Event_Stc(wxCommandEvent &ev)
 	{
@@ -92,6 +147,7 @@ protected:
 			vconfig.sPostProcessingShader = ev.GetString().mb_str();
 		else
 			vconfig.sPostProcessingShader.clear();
+
 		ev.Skip();
 	}
 
@@ -109,6 +165,7 @@ protected:
 		pixel_lighting->Enable(vconfig.backend_info.bSupportsPixelLighting);
 
 		// 3D vision
+		_3d_vision->Enable(vconfig.backend_info.bSupports3DVision);
 		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 
 		// EFB copy
@@ -138,6 +195,8 @@ protected:
 	void Evt_LeaveControl(wxMouseEvent& ev);
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 
+	wxChoice* choice_backend;
+	wxChoice* choice_display_resolution;
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 

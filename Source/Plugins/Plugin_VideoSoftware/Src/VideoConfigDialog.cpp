@@ -19,6 +19,7 @@
 #include "VideoConfigDialog.h"
 
 #include "FileUtil.h"
+#include "Core.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
@@ -57,6 +58,30 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxGridSizer* const szr_rendering = new wxGridSizer(2, 5, 5);
 	group_rendering->Add(szr_rendering, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
+	// backend
+	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
+	wxChoice* const choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
+
+	std::vector<VideoBackend*>::const_iterator
+			it = g_available_video_backends.begin(),
+			itend = g_available_video_backends.end();
+	for (; it != itend; ++it)
+		choice_backend->AppendString(wxString::FromAscii((*it)->GetName().c_str()));
+
+	// TODO: How to get the translated plugin name?
+	choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+	_connect_macro_(choice_backend, VideoConfigDialog::Event_Backend, wxEVT_COMMAND_CHOICE_SELECTED, this);
+
+	szr_rendering->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
+	szr_rendering->Add(choice_backend, 1, 0, 0);
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		label_backend->Disable();
+		choice_backend->Disable();
+	}
+
+	// rasterizer
 	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Hardware rasterization"), wxT(""), vconfig.bHwRasterizer));
 	}
 

@@ -14,6 +14,7 @@
 #include <wx/spinctrl.h>
 
 #include "InputConfigDiag.h"
+#include "ConfigManager.h"
 
 class WiimoteConfigPage : public wxNotebookPage
 {
@@ -29,6 +30,40 @@ public:
 private:
 	const int	m_index;
 	unsigned int orig_source;
+};
+
+class WiimoteGeneralConfigPage : public wxPanel
+{
+public:
+	WiimoteGeneralConfigPage(wxWindow* const parent);
+
+	void OnSensorBarPos(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", event.GetInt());
+		event.Skip();
+	}
+	void OnSensorBarSensitivity(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", event.GetInt());
+		event.Skip();
+	}
+	void OnSpeakerVolume(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.SPKV", event.GetInt());
+		event.Skip();
+	}
+	void OnMotor(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", event.GetInt());
+		event.Skip();
+	}
+	void OnReconnectOnLoad(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.GetInt();
+		event.Skip();
+	}
+
+private:
 };
 
 class WiimoteConfigDiag : public wxDialog
@@ -50,6 +85,7 @@ private:
 
 	InputPlugin&	m_plugin;
 	wxNotebook*		m_pad_notebook;
+	std::vector<WiimoteConfigPage*> m_wiimote_config_pages;
 };
 
 
