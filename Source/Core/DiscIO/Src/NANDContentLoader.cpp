@@ -212,7 +212,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		}
 		else
 		{
-			SplitPath(TMDFileName, &m_Path, NULL, NULL);
+			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
 		}
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
