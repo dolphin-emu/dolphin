@@ -3,10 +3,13 @@
 #include "FileUtil.h"
 #include "TextureCacheBase.h"
 #include "Core.h"
+#include "Frame.h"
 
 #include <wx/intl.h>
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
+
+extern CFrame* main_frame;
 
 // template instantiation
 template class BoolSetting<wxCheckBox>;
@@ -598,6 +601,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	SetFocus();
 
 	UpdateWindowUI();
+}
+
+void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+		choice_display_resolution->GetStringSelection().mb_str();
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+	main_frame->m_XRRConfig->Update();
+#endif
+	ev.Skip();
 }
 
 SettingCheckBox* VideoConfigDiag::CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)

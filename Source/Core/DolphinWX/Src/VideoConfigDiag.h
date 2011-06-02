@@ -20,9 +20,6 @@
 #include <wx/spinctrl.h>
 
 #include "MsgHandler.h"
-#include "Frame.h"
-
-extern CFrame* main_frame;
 
 template <typename W>
 class BoolSetting : public W
@@ -109,15 +106,7 @@ protected:
 	}
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
-	void Event_DisplayResolution(wxCommandEvent &ev)
-	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
-					choice_display_resolution->GetStringSelection().mb_str();
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-		main_frame->m_XRRConfig->Update();
-#endif
-		ev.Skip();
-	}
+	void Event_DisplayResolution(wxCommandEvent &ev);
 
 	void Event_ProgressiveScan(wxCommandEvent &ev)
 	{

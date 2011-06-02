@@ -52,14 +52,14 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
-  SelectedLanguage(0), bWii(false),
+  SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
   bConfirmStop(false), bHideCursor(false), 
   bAutoHideCursor(false), bUsePanicHandlers(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bRenderWindowAutoSize(false),
   bFullscreen(false), bRenderToMain(false),
-  bProgressive(false), bDisableWiimoteSpeaker(false),
+  bProgressive(false),
   iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {

@@ -512,7 +512,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 
 		//now restore from the stream
 		while(1) {
-			char type;
+			char type = 0;
 			p.Do(type);
 			if (!type)
 				break;
@@ -528,7 +528,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			}
 			case 'f':
 			{
-				u32 size;
+				u32 size = 0;
 				p.Do(size);
 
 				File::IOFile handle(name, "wb");
