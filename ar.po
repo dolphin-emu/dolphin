@@ -1,3 +1,8 @@
+# Translation of dolphin-emu.pot to Arabic
+# Copyright (C) 2003-2011
+# This file is distributed under the same license as the dolphin-emu package.
+# mansoor, 2011
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"

@@ -1,11 +1,11 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Translation of dolphin-emu.pot to Hungarian
+# Copyright (C) 2003-2011
+# This file is distributed under the same license as the dolphin-emu package.
+# Delirious <delirious@freemail.hu>, 2011
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin\n"
+"Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-06-02 18:28-0500\n"
 "PO-Revision-Date: 2011-06-02 15:24+0100\n"
