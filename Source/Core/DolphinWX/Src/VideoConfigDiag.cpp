@@ -7,6 +7,10 @@
 
 #include <wx/intl.h>
 
+#ifdef __APPLE__
+#include <ApplicationServices/ApplicationServices.h>
+#endif
+
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 extern CFrame* main_frame;

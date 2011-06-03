@@ -39,10 +39,6 @@
 
 #include "VideoBackendBase.h"
 
-#ifdef __APPLE__
-#include <ApplicationServices/ApplicationServices.h>
-#endif
-
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
 extern CFrame* main_frame;
