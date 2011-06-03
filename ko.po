@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-02 18:28-0500\n"
+"POT-Creation-Date: 2011-06-02 20:04-0500\n"
 "PO-Revision-Date: 2011-05-23 19:41+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
@@ -586,8 +586,8 @@ msgstr "모든 GC/Wii 이미지들 (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일들 (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1444
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1445
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
 msgid "All Save States (sav, s##)"
 msgstr "모든 상태들 저장 (sav, s##)"
 
@@ -1607,7 +1607,7 @@ msgstr ""
 msgid "Divide"
 msgstr "나누기"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
 msgid "Do you want to stop the current emulation?"
 msgstr "현재 에뮬레이션을 중단하고 싶습니까?"
 
@@ -1636,12 +1636,12 @@ msgstr "돌핀 에뮬된 위모트 환경설정"
 msgid "Dolphin FIFO"
 msgstr "돌핀 FIFO"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1190
 msgid "Dolphin GCPad Configuration"
 msgstr "돌핀 GC패드 환경설정"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:729
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1128
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1129
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 동영상 (*.dtm)"
 
@@ -2425,6 +2425,11 @@ msgstr "강제 16:9"
 msgid "Force 4:3"
 msgstr "강제 4:3"
 
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
+#, fuzzy
+msgid "Force Console as NTSC-J"
+msgstr "콘솔을 NTSC-J로 설정"
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
 msgid "Force Texture Filtering"
 msgstr "강제 텍스처 필터링"
@@ -2452,6 +2457,13 @@ msgstr ""
 "일부 게임에서 그래픽 결함을 유발합니다.\n"
 "\n"
 "자신 없다면, 이것을 언체크로 두세요."
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
+msgid ""
+"Forces NTSC-J mode for using the Japanese ROM font.\n"
+"Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
+"setting when playing Japanese games."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2962,7 +2974,7 @@ msgstr ""
 "InstallExceptionHandler 호출됨, 하지만 이 플랫폼은 아직 그것을 지원하지 않습"
 "니다."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1348
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
 msgid "Installing WAD..."
 msgstr "WAD 설치하기..."
 
@@ -3195,11 +3207,11 @@ msgstr "슬롯8 상태 로드"
 msgid "Load State..."
 msgstr "상태 로드..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1387
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1388
 msgid "Load Wii System Menu"
 msgstr "Wii 시스템 메뉴 로드"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1382
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii 시스템 메뉴 %d %c 로드"
@@ -3796,8 +3808,8 @@ msgid "Paths"
 msgstr "경로"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1581
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1582
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1583
 msgid "Pause"
 msgstr "일시정지"
 
@@ -3815,8 +3827,8 @@ msgid "Perspective %d"
 msgstr "관점 %d"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:435
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1590
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1591
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1592
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 msgid "Play"
 msgstr " 실행  "
@@ -3841,7 +3853,7 @@ msgstr "재생 옵션"
 msgid "Players"
 msgstr "플레이어"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1038
 msgid "Please confirm..."
 msgstr "확인해주세요..."
 
@@ -4067,10 +4079,6 @@ msgstr ""
 msgid "Render to Main Window"
 msgstr "메인 윈도우에 렌더"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
-msgid "Required for using the Japanese ROM font."
-msgstr "일본 롬 폰트를 사용하기 위해서 요구됨."
-
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 msgid "Reset"
@@ -4227,11 +4235,11 @@ msgid "Select"
 msgstr "선택"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:727
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1126
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1127
 msgid "Select The Recording File"
 msgstr "기록 파일 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1336
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1337
 msgid "Select a Wii WAD file to install"
 msgstr "설치할 Wii WAD 파일 선택"
 
@@ -4257,15 +4265,15 @@ msgstr "유동적인 윈도우즈 선택"
 msgid "Select the file to load"
 msgstr "로드할 파일 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1293
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1294
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1442
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1443
 msgid "Select the state to load"
 msgstr "로드할 상태 선택"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 msgid "Select the state to save"
 msgstr "저장할 상태 선택"
 
@@ -4335,10 +4343,6 @@ msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사�
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
 msgstr "설정"
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
-msgid "Set Console as NTSC-J"
-msgstr "콘솔을 NTSC-J로 설정"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:991
 msgid "Set as &default ISO"
@@ -4845,7 +4849,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s 파일이 이미 열려 있었습니다, 파일 헤더는 기록되지 않을 것입니다."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:279
+#: Source/Core/Core/Src/Boot/Boot.cpp:281
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "당신이 기술한 파일 (%s)는 존재하지 않습니다"
@@ -5036,7 +5040,7 @@ msgstr "위"
 msgid "Traditional Chinese"
 msgstr "전통 중국어"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:373
+#: Source/Core/Core/Src/Boot/Boot.cpp:375
 msgid "Tried to load an unknown file type."
 msgstr "알려지지 않은 파일 타입을 로드시도했다."
 
@@ -5255,11 +5259,11 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:238
+#: Source/Core/Core/Src/Boot/Boot.cpp:240
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:288
+#: Source/Core/Core/Src/Boot/Boot.cpp:290
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 ELF 시작!"
 
@@ -5325,7 +5329,7 @@ msgstr "DVD 루트:"
 msgid "Wii Save Import"
 msgstr "Wii 저장 가져오기"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1295
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1296
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii 저장 파일들 (*.bin)|*.bin"
 
@@ -5383,7 +5387,7 @@ msgstr "윈도우즈 오른쪽"
 msgid "Word Wrap"
 msgstr "자동 줄바꿈"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1350
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1198
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1331
 msgid "Working..."
@@ -5968,6 +5972,9 @@ msgstr "| OR"
 
 #~ msgid "Rendering"
 #~ msgstr "렌더링"
+
+#~ msgid "Required for using the Japanese ROM font."
+#~ msgstr "일본 롬 폰트를 사용하기 위해서 요구됨."
 
 #~ msgid "Run"
 #~ msgstr "구동"

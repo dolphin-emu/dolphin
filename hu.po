@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-02 18:28-0500\n"
+"POT-Creation-Date: 2011-06-02 20:04-0500\n"
 "PO-Revision-Date: 2011-06-02 15:24+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
@@ -591,8 +591,8 @@ msgstr "Minden GC/Wii képfájl (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Minden Gamecube GCM fájl (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1444
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1445
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
 msgid "All Save States (sav, s##)"
 msgstr "Minden állásmentés (sav, s##)"
 
@@ -1622,7 +1622,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Megosztás"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
 msgid "Do you want to stop the current emulation?"
 msgstr "Le akarod állítani az éppen működő emulációt?"
 
@@ -1651,12 +1651,12 @@ msgstr "Dolphin emulált Wiimote beállítások"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1190
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GCPad beállítások"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:729
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1128
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1129
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS videók (*.dtm)"
 
@@ -2450,6 +2450,11 @@ msgstr "Kényszerített 16:9"
 msgid "Force 4:3"
 msgstr "Kényszerített 4:3"
 
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
+#, fuzzy
+msgid "Force Console as NTSC-J"
+msgstr "Konzol NTSC-J típusra állítása"
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
 msgid "Force Texture Filtering"
 msgstr "Textúra szűrés kényszerítése"
@@ -2478,6 +2483,13 @@ msgstr ""
 "Grafikai hibákat okozhat néhány játékban.\n"
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
+msgid ""
+"Forces NTSC-J mode for using the Japanese ROM font.\n"
+"Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
+"setting when playing Japanese games."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2993,7 +3005,7 @@ msgid ""
 msgstr ""
 "InstallExceptionHandler előidézve, de ez a platform még nem támogatja azt."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1348
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
 msgid "Installing WAD..."
 msgstr "WAD telepítése..."
 
@@ -3226,11 +3238,11 @@ msgstr "Állás betöltése a 8. helyről"
 msgid "Load State..."
 msgstr "Állás betöltése..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1387
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1388
 msgid "Load Wii System Menu"
 msgstr "Wii rendszer menü betöltése"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1382
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii rendszer menü betöltése %d%c"
@@ -3830,8 +3842,8 @@ msgid "Paths"
 msgstr "Mappák"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1581
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1582
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1583
 msgid "Pause"
 msgstr "Szünet"
 
@@ -3849,8 +3861,8 @@ msgid "Perspective %d"
 msgstr "%d perspektíva"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:435
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1590
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1591
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1592
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 msgid "Play"
 msgstr "Indítás"
@@ -3875,7 +3887,7 @@ msgstr "Visszajátszási lehetőségek"
 msgid "Players"
 msgstr "Játékosok"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1038
 msgid "Please confirm..."
 msgstr "Változtatás jóváhagyása..."
 
@@ -4103,10 +4115,6 @@ msgstr ""
 msgid "Render to Main Window"
 msgstr "Megjelenítés a főablakban"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
-msgid "Required for using the Japanese ROM font."
-msgstr "A japán ROM betűtípusok használatához szükséges."
-
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 msgid "Reset"
@@ -4263,11 +4271,11 @@ msgid "Select"
 msgstr "Választás"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:727
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1126
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1127
 msgid "Select The Recording File"
 msgstr "Válassz rögzítendő fájlt"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1336
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1337
 msgid "Select a Wii WAD file to install"
 msgstr "Válassz telepítendő Wii WAD fájlt"
 
@@ -4293,15 +4301,15 @@ msgstr "Válassz lebegő ablakokat"
 msgid "Select the file to load"
 msgstr "Betöltendő fájl kiválasztása"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1293
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1294
 msgid "Select the save file"
 msgstr "Válassz mentési fájlt"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1442
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1443
 msgid "Select the state to load"
 msgstr "Válassz betöltendő állásmentést"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 msgid "Select the state to save"
 msgstr "Válassz mentendő állást"
 
@@ -4372,10 +4380,6 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
 msgstr "Beáll."
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
-msgid "Set Console as NTSC-J"
-msgstr "Konzol NTSC-J típusra állítása"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:991
 msgid "Set as &default ISO"
@@ -4887,7 +4891,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s fáj már meg van nyitva, a fájl fejléce nem írható."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:279
+#: Source/Core/Core/Src/Boot/Boot.cpp:281
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "Az általad megadott (%s) fájl nem létezik"
@@ -5082,7 +5086,7 @@ msgstr "Fent"
 msgid "Traditional Chinese"
 msgstr "Hagyományos kínai"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:373
+#: Source/Core/Core/Src/Boot/Boot.cpp:375
 msgid "Tried to load an unknown file type."
 msgstr "Próbálkozás egy ismeretlen fájltípus betöltésével. "
 
@@ -5304,11 +5308,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Figyelem"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:238
+#: Source/Core/Core/Src/Boot/Boot.cpp:240
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Figyelem - DOL indítása nem megfelelő konzol módban!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:288
+#: Source/Core/Core/Src/Boot/Boot.cpp:290
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "Figyelem - ELF indítása nem megfelelő konzol módban!"
 
@@ -5374,7 +5378,7 @@ msgstr "DVD gyökér könyvtár:"
 msgid "Wii Save Import"
 msgstr "Wii mentés importálása"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1295
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1296
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii mentés fájlok (*.bin)|*.bin"
 
@@ -5432,7 +5436,7 @@ msgstr "Jobb Windows"
 msgid "Word Wrap"
 msgstr "Word Wrap"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1350
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1198
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1331
 msgid "Working..."
@@ -6022,6 +6026,9 @@ msgstr "| VAGY"
 
 #~ msgid "Rendering"
 #~ msgstr "Megjelenítés"
+
+#~ msgid "Required for using the Japanese ROM font."
+#~ msgstr "A japán ROM betűtípusok használatához szükséges."
 
 #~ msgid "Run"
 #~ msgstr "Futtatás"

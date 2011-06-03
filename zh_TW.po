@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-02 18:28-0500\n"
+"POT-Creation-Date: 2011-06-02 20:04-0500\n"
 "PO-Revision-Date: 2011-03-15 02:51+0800\n"
 "Last-Translator: khiav <khiav1118@yahoo.com.tw>\n"
 "Language-Team: khiav&yrbn <http://khiav.99k.org/>\n"
@@ -573,8 +573,8 @@ msgstr "所有 GC/Wii 映像檔 (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "所有 Gamecube GCM 檔案 (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1444
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1445
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
 msgid "All Save States (sav, s##)"
 msgstr "所有即時存檔 (sav, s##)"
 
@@ -1553,7 +1553,7 @@ msgstr "顯示控制器輸入狀態 (僅作用於錄製或播放影片時)。"
 msgid "Divide"
 msgstr "Divide"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
 msgid "Do you want to stop the current emulation?"
 msgstr "您要停止目前的模擬嗎？"
 
@@ -1583,12 +1583,12 @@ msgstr "Dolphin 模擬 Wiimote 設定"
 msgid "Dolphin FIFO"
 msgstr "Dolphin"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1190
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GC 控制器設定"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:729
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1128
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1129
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS 影片 (*.dtm)"
 
@@ -2332,6 +2332,11 @@ msgstr "強制 16:9"
 msgid "Force 4:3"
 msgstr "強制 4:3"
 
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
+#, fuzzy
+msgid "Force Console as NTSC-J"
+msgstr "設定主機為 NTSC-J"
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
 #, fuzzy
 msgid "Force Texture Filtering"
@@ -2358,6 +2363,13 @@ msgid ""
 msgstr ""
 "強制遊戲輸出寬螢幕解析度的影像。\n"
 "注意這可能導致圖形問題"
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
+msgid ""
+"Forces NTSC-J mode for using the Japanese ROM font.\n"
+"Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
+"setting when playing Japanese games."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2844,7 +2856,7 @@ msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr "調用 InstallExceptionHandler，但是這個平台尚未支援此功能。"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1348
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
 msgid "Installing WAD..."
 msgstr "正在安裝 WAD 至 Wii 選單..."
 
@@ -3079,12 +3091,12 @@ msgstr "讀取儲存格 8"
 msgid "Load State..."
 msgstr "讀取進度檔..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1387
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1388
 #, fuzzy
 msgid "Load Wii System Menu"
 msgstr "讀取 Wii 系統選單 (%d%c)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1382
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "讀取 Wii 系統選單 (%d%c)"
@@ -3669,8 +3681,8 @@ msgid "Paths"
 msgstr "路徑"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1581
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1582
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1583
 msgid "Pause"
 msgstr "暫停"
 
@@ -3689,8 +3701,8 @@ msgid "Perspective %d"
 msgstr "版式 %d"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:435
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1590
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1591
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1592
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 msgid "Play"
 msgstr "執行"
@@ -3716,7 +3728,7 @@ msgstr "選項"
 msgid "Players"
 msgstr "玩家"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1038
 msgid "Please confirm..."
 msgstr "請確認..."
 
@@ -3943,10 +3955,6 @@ msgstr ""
 msgid "Render to Main Window"
 msgstr "渲染至主視窗"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
-msgid "Required for using the Japanese ROM font."
-msgstr "使用日語 ROM 字型的遊戲需要。"
-
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 msgid "Reset"
@@ -4104,11 +4112,11 @@ msgid "Select"
 msgstr "選擇"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:727
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1126
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1127
 msgid "Select The Recording File"
 msgstr "選擇已錄製的檔案"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1336
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1337
 msgid "Select a Wii WAD file to install"
 msgstr "選擇要安裝的 Wii WAD"
 
@@ -4134,15 +4142,15 @@ msgstr "選擇浮動視窗"
 msgid "Select the file to load"
 msgstr "選擇要讀取的檔案"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1293
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1294
 msgid "Select the save file"
 msgstr "選擇存檔"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1442
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1443
 msgid "Select the state to load"
 msgstr "選擇要讀取的進度"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 msgid "Select the state to save"
 msgstr "選擇要儲存的進度"
 
@@ -4211,10 +4219,6 @@ msgstr "埠口 1 - 這是類似於網卡等裝置使用的埠口。"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
 msgstr "設定"
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
-msgid "Set Console as NTSC-J"
-msgstr "設定主機為 NTSC-J"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:991
 msgid "Set as &default ISO"
@@ -4696,7 +4700,7 @@ msgstr "檔案 %s 無法開啟進行寫入。請確認是否有別的程式正�
 msgid "The file %s was already open, the file header will not be written."
 msgstr "檔案 %s 已經開啟，檔頭無法被寫入。"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:279
+#: Source/Core/Core/Src/Boot/Boot.cpp:281
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "指定的檔案 (%s) 不存在"
@@ -4869,7 +4873,7 @@ msgstr "上方"
 msgid "Traditional Chinese"
 msgstr "Traditional Chinese"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:373
+#: Source/Core/Core/Src/Boot/Boot.cpp:375
 msgid "Tried to load an unknown file type."
 msgstr "已嘗試讀取從未知的檔案類型。"
 
@@ -5074,11 +5078,11 @@ msgstr ""
 msgid "Warning"
 msgstr "警告"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:238
+#: Source/Core/Core/Src/Boot/Boot.cpp:240
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "警告 - DOL 啟動於錯誤的主機模式！"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:288
+#: Source/Core/Core/Src/Boot/Boot.cpp:290
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "警告 - ELF 啟動於錯誤的主機模式！"
 
@@ -5144,7 +5148,7 @@ msgstr "DVD 根："
 msgid "Wii Save Import"
 msgstr "匯入 Wii 存檔"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1295
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1296
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii 存檔 (*.bin)|*.bin"
 
@@ -5202,7 +5206,7 @@ msgstr "視窗 右"
 msgid "Word Wrap"
 msgstr "自動換行"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1350
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1198
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1331
 msgid "Working..."
@@ -5733,6 +5737,9 @@ msgstr "| 或"
 
 #~ msgid "Rendering"
 #~ msgstr "渲染"
+
+#~ msgid "Required for using the Japanese ROM font."
+#~ msgstr "使用日語 ROM 字型的遊戲需要。"
 
 #~ msgid "Run"
 #~ msgstr "執行"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-02 18:28-0500\n"
+"POT-Creation-Date: 2011-06-02 20:04-0500\n"
 "PO-Revision-Date: 2011-05-24 20:42+0200\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
@@ -583,8 +583,8 @@ msgstr "Όλες οι εικόνες GC/Wii (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Όλα τα αρχεία Gamecube GCM (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1444
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1445
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
 msgid "All Save States (sav, s##)"
 msgstr "Όλα τα Σημεία Αποθήκευσης(sav, s##)"
 
@@ -1614,7 +1614,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Divide"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
 msgid "Do you want to stop the current emulation?"
 msgstr "Θέλετε να σταματήσετε την τρέχουσα εξομοίωση;"
 
@@ -1643,12 +1643,12 @@ msgstr "Ρυθμίσεις Εξοιμοιωμένου Dolphin Wiimote"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1190
 msgid "Dolphin GCPad Configuration"
 msgstr "Ρυθμίσεις Dolphin GCPad"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:729
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1128
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1129
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Ταινίες (*.dtm)"
 
@@ -2444,6 +2444,11 @@ msgstr "Επιβολή 16:9"
 msgid "Force 4:3"
 msgstr "Επιβολή 4:3"
 
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
+#, fuzzy
+msgid "Force Console as NTSC-J"
+msgstr "Ορισμός της κονσόλας ως NTSC-J"
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
 msgid "Force Texture Filtering"
 msgstr "Επιβολή Φιλτραρίσματος Υφών"
@@ -2472,6 +2477,13 @@ msgstr ""
 "Μπορεί να προκαλέσει προβλήματα στα γραφικά σε ορισμένα παιχνίδια.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
+msgid ""
+"Forces NTSC-J mode for using the Japanese ROM font.\n"
+"Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
+"setting when playing Japanese games."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2990,7 +3002,7 @@ msgstr ""
 "InstallExceptionHandler καλέστηκε, αλλά αυτή η πλατφόρμα δεν το υποστηρίζει "
 "ακόμα."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1348
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
 msgid "Installing WAD..."
 msgstr "Γίνεται εγκατάσταση WAD..."
 
@@ -3223,11 +3235,11 @@ msgstr "Φόρτωση Σημείου Αποθήκευσης 8"
 msgid "Load State..."
 msgstr "Φόρτωση Σημείου Αποθήκευσης..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1387
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1388
 msgid "Load Wii System Menu"
 msgstr "Φόρτωση Μενού Συστήματος Wii"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1382
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Φόρτωση Μενού Συστήματος Wii %d%c"
@@ -3828,8 +3840,8 @@ msgid "Paths"
 msgstr "Φάκελοι"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1581
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1582
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1583
 msgid "Pause"
 msgstr "Παύση"
 
@@ -3847,8 +3859,8 @@ msgid "Perspective %d"
 msgstr "Οπτική %d"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:435
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1590
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1591
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1592
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 msgid "Play"
 msgstr "Αναπαραγωγή"
@@ -3873,7 +3885,7 @@ msgstr "Ρυθμίσεις Αναπαραγωγής"
 msgid "Players"
 msgstr "Παίχτες"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1037
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1038
 msgid "Please confirm..."
 msgstr "Παρακαλώ επιβεβαιώστε..."
 
@@ -4101,10 +4113,6 @@ msgstr ""
 msgid "Render to Main Window"
 msgstr "Αναπαραγωγή στο Κεντρικό Παράθυρο"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
-msgid "Required for using the Japanese ROM font."
-msgstr "Απαιτείται για τη χρήση της Ιαπωνικής γραμματοσειράς ROM."
-
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 msgid "Reset"
@@ -4263,11 +4271,11 @@ msgid "Select"
 msgstr "Επιλογή"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:727
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1126
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1127
 msgid "Select The Recording File"
 msgstr "Επιλέξτε το Αρχείο Εγγραφής"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1336
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1337
 msgid "Select a Wii WAD file to install"
 msgstr "Επιλέξτε ένα Wii WAD αρχείο για εγκατάσταση"
 
@@ -4293,15 +4301,15 @@ msgstr "Επιλέξτε αιωρούμενα παράθυρα"
 msgid "Select the file to load"
 msgstr "Επιλέξτε το αρχείο για φόρτωση"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1293
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1294
 msgid "Select the save file"
 msgstr "Επιλέξτε αρχείο αποθήκευσης"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1442
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1443
 msgid "Select the state to load"
 msgstr "Επιλέξτε το σημείο φόρτωσης"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 msgid "Select the state to save"
 msgstr "Επιλέξτε το σημείο αποθήκευσης"
 
@@ -4374,10 +4382,6 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
 msgstr "Ορισμός"
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
-msgid "Set Console as NTSC-J"
-msgstr "Ορισμός της κονσόλας ως NTSC-J"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:991
 msgid "Set as &default ISO"
@@ -4892,7 +4896,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Το αρχείο %s ήταν ήδη ανοιχτό, η κεφαλίδα του αρχείου δε θα γραφεί."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:279
+#: Source/Core/Core/Src/Boot/Boot.cpp:281
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "Το αρχείο που επιλέξατε (%s) δεν υπάρχει"
@@ -5095,7 +5099,7 @@ msgstr "Κορυφή"
 msgid "Traditional Chinese"
 msgstr "Κινέζικα Παραδοσιακά "
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:373
+#: Source/Core/Core/Src/Boot/Boot.cpp:375
 msgid "Tried to load an unknown file type."
 msgstr "Προσπάθεια φόρτωσης ενός άγνωστου τύπου αρχείο."
 
@@ -5316,11 +5320,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Προειδοποίηση"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:238
+#: Source/Core/Core/Src/Boot/Boot.cpp:240
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Προειδοποίηση - εκκίνηση DOL σε λάθος λειτουργία κονσόλας!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:288
+#: Source/Core/Core/Src/Boot/Boot.cpp:290
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "Προειδοποίηση - εκκίνηση ELF σε λάθος λειτουργία κονσόλας!"
 
@@ -5388,7 +5392,7 @@ msgstr "Ρίζα DVD:"
 msgid "Wii Save Import"
 msgstr "Εισαγωγή Αποθήκευσης Wii"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1295
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1296
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Αρχεία αποθήκευσης Wii (*.bin)|*.bin"
 
@@ -5446,7 +5450,7 @@ msgstr "Windows Right"
 msgid "Word Wrap"
 msgstr "Αναδίπλωση Λέξεων"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1350
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1198
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1331
 msgid "Working..."
@@ -6077,6 +6081,9 @@ msgstr "| OR"
 
 #~ msgid "Rendering"
 #~ msgstr "Αναπαραγωγή"
+
+#~ msgid "Required for using the Japanese ROM font."
+#~ msgstr "Απαιτείται για τη χρήση της Ιαπωνικής γραμματοσειράς ROM."
 
 #, fuzzy
 #~ msgid "Run"
