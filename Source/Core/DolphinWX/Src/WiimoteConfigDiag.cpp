@@ -165,18 +165,12 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	}
 	m_pad_notebook->SetSelection(0);
 
-	wxButton* const ok_button = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition);
-	_connect_macro_(ok_button, WiimoteConfigDiag::Save, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition);
-	_connect_macro_(cancel_button, WiimoteConfigDiag::Cancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
-
-	wxSizer* const button_sizer = CreateButtonSizer(wxNO_DEFAULT);
-	button_sizer->Add(cancel_button, 0, wxALIGN_RIGHT | wxRIGHT, 5);
-	button_sizer->Add(ok_button, 0, wxALIGN_RIGHT);
+	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Save));
+	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Cancel));
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_pad_notebook, 1, wxEXPAND | wxALL, 5);
-	main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
+	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	SetSizerAndFit(main_sizer);
 

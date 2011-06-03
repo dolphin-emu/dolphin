@@ -36,7 +36,7 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxFrame(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+	: wxDialog(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize)
 {
 	::g_cheat_window = this;
 
@@ -131,13 +131,14 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Notebook_Main->AddPage(m_Tab_Log, _("Logging"));
 
 	// Button Strip
-	wxButton* const button_apply = new wxButton(panel, wxID_ANY, _("Apply"), wxDefaultPosition, wxDefaultSize);
+	wxButton* const button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
 	_connect_macro_(button_apply, wxCheatsWindow::OnEvent_ApplyChanges_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const button_close = new wxButton(panel, wxID_ANY, _("Close"), wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(button_close, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(button_apply, 1, wxRIGHT, 5);
-	sButtons->Add(button_close, 1, 0, 0);
+	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
+	_connect_macro_(button_cancel, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
+	sButtons->AddButton(button_apply);
+	sButtons->AddButton(button_cancel);
+	sButtons->Realize();
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook_Main, 1, wxEXPAND|wxALL, 5);
@@ -247,9 +248,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& ev)
 {
-	Destroy();
+	ev.Skip();
 }
 
 void wxCheatsWindow::Load_ARCodes()
@@ -311,7 +312,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 	}
 }
 
-void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
 	// Appply AR Code changes
 	for (size_t i = 0; i < indexList.size(); i++)
@@ -328,6 +329,8 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& WXUNUSED (event)
 		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
 		m_gameini.Save(m_gameini_path);
 	}
+
+	ev.Skip();
 }
 
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
@@ -563,16 +566,6 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
 	sizer_value_label->Add(checkbox_use_hex);
 
-	wxButton* const btn_ok = new wxButton(this, wxID_OK, _("OK"));
-	_connect_macro_(btn_ok, CreateCodeDialog::PressOK, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const btn_cancel = new wxButton(this, wxID_CANCEL, _("Cancel"));
-	_connect_macro_(btn_cancel, CreateCodeDialog::PressCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
-
-	// button sizer
-	wxSizer* const sizer_buttons = CreateButtonSizer(wxNO_DEFAULT);
-	sizer_buttons->Add(btn_ok, 0, wxRIGHT, 5);
-	sizer_buttons->Add(btn_cancel);
-
 	// main sizer
 	wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
 	sizer_main->Add(label_name, 0, wxALL, 5);
@@ -581,13 +574,15 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(textctrl_code, 0, wxALL, 5);
 	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
-	sizer_main->Add(sizer_buttons, 0, wxALL | wxALIGN_RIGHT, 5);
+	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
+	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressOK));
+	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressCancel));
 
 	SetSizerAndFit(sizer_main);
 	SetFocus();
 }
 
-void CreateCodeDialog::PressOK(wxCommandEvent&)
+void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 {
 	const wxString code_name = textctrl_name->GetValue();
 	if (code_name.empty())
@@ -628,10 +623,10 @@ void CreateCodeDialog::PressOK(wxCommandEvent&)
 	// refresh arcode list in other tab
 	::g_cheat_window->Load_ARCodes();
 
-	Destroy();
+	ev.Skip();
 }
 
-void CreateCodeDialog::PressCancel(wxCommandEvent&)
+void CreateCodeDialog::PressCancel(wxCommandEvent& ev)
 {
-	Destroy();
+	ev.Skip();
 }

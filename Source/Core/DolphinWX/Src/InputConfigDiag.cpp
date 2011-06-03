@@ -972,17 +972,11 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
 
-	wxButton* const close_button = new wxButton(this, wxID_OK, _("Save"));
-	_connect_macro_(close_button, InputConfigDialog::ClickSave, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const cancel_button = new wxButton(this, wxID_CANCEL, _("Cancel"));
-
-	wxSizer* btns = CreateButtonSizer(wxNO_DEFAULT);
-	btns->Add(cancel_button);
-	btns->Add(close_button);
+	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(InputConfigDialog::ClickSave));
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
-	szr->Add(btns, 0, wxEXPAND|wxALL, 5);
+	szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
 
 	SetSizerAndFit(szr);
 	Center();
