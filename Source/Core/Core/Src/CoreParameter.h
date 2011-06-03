@@ -101,7 +101,7 @@ struct SCoreStartupParameter
 	bool bDSPHLE;
 	bool bSkipIdle;
 	bool bNTSC;
-	bool bNTSCJ;
+	bool bForceNTSCJ;
 	bool bHLE_BS2;
 	bool bUseFastMem;
 	bool bLockThreads;

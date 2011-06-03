@@ -333,7 +333,7 @@ void CConfigMain::InitializeGUIValues()
 	// General - Advanced
 	CPUEngine->SetSelection(startup_params.iCPUCore);
 	LockThreads->SetValue(startup_params.bLockThreads);
-	_NTSCJ->SetValue(startup_params.bNTSCJ);
+	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
 	// Display - Interface
@@ -486,7 +486,7 @@ void CConfigMain::InitializeGUITooltips()
 	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."));
 
 	// General - Advanced
-	_NTSCJ->SetToolTip(_("Required for using the Japanese ROM font."));
+	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
@@ -545,7 +545,7 @@ void CConfigMain::CreateGUIControls()
 	// Core Settings - Advanced
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, _("Lock Threads to Cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Set Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the General settings
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
@@ -855,7 +855,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
 		break;
 	case ID_NTSCJ:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSCJ = _NTSCJ->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();
 		break;
 	}
 }
