@@ -78,15 +78,16 @@ protected:
 		if (g_video_backend != new_backend)
 		{
 			bool do_switch = true;
-			if (strcmp(new_backend->GetName().c_str(), _trans("Software Renderer")) == 0)
+			if (new_backend->GetName() == "Software Renderer")
 			{
 				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
-													_("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, wxGetActiveWindow()));
+							_("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, wxGetActiveWindow()));
 			}
 
 			if (do_switch)
 			{
-				// TODO: Only reopen the dialog if the software backend is selected (make sure to reinitialize backend info)
+				// TODO: Only reopen the dialog if the software backend is
+				// selected (make sure to reinitialize backend info)
 				// reopen the dialog
 				Close();
 
