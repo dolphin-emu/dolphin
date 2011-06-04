@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-06-03 23:36-0500\n"
-"PO-Revision-Date: 2011-05-23 19:41+0900\n"
+"PO-Revision-Date: 2011-06-04 11:45+0900\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: \n"
 "Language: Korean\n"
@@ -685,7 +685,7 @@ msgstr "오디오"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:631
 msgid "Audio Backend:"
-msgstr "오디오 처리기:"
+msgstr "오디오 백엔드:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
 msgid "AudioCommon: Error opening AO device.\n"
@@ -705,20 +705,18 @@ msgid "Auto (Window Size)"
 msgstr "자동 (윈도우 크기)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
-#, fuzzy
 msgid "Auto adjust Window Size"
-msgstr "자동 (윈도우 크기)"
+msgstr "윈도우 크기 자동 조정"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
-#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"에뮬레이터에서 읽혀진 입력들을 표시합니다.\n"
+"윈도우 크기를 내부 해상도로 자동 조정합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
 msgid ""
@@ -730,7 +728,7 @@ msgstr ""
 "메모리에서 밉맵들을 디코딩하는 대신에 자동적으로 생성합니다.\n"
 "성능향상을 조금 가져옵니다만 미약한 텍스처 결함이 발생할지도 모릅니다.\n"
 "\n"
-"자신 없다면, 이것을 체크상태로 두세요."
+"확신 없다면, 이것을 체크상태로 두세요."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -738,13 +736,12 @@ msgstr "뒤로"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:635
 msgid "Backend Settings"
-msgstr "처리기 설정"
+msgstr "백엔드 설정"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:62
-#, fuzzy
 msgid "Backend:"
-msgstr "오디오 처리기:"
+msgstr "백엔드:"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:299
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
@@ -820,7 +817,7 @@ msgstr "바운드 컨트롤들: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
 msgid "Broken"
-msgstr "고장난"
+msgstr "고장남"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 msgid "Browse"
@@ -872,7 +869,7 @@ msgstr ""
 "픽셀광원 명암(단지 향상)에서, 픽셀단위 깊이 계산들은 소수 게임들을 제대로 에"
 "뮬할 필요가 있습니다.\n"
 "\n"
-"자신 없다면, 이것을 체크상태로 두세요."
+"확신 없다면, 이것을 체크상태로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:88
 msgid ""
@@ -886,7 +883,7 @@ msgstr ""
 "일부 비율(GPU힘에 달림)로 에뮬레이션 속도를 감소시킵니다.\n"
 "이것은 보통 안전한 향상입니다, 하지만 때때로 이슈들을 유발할지도 모릅니다.\n"
 "\n"
-"자신 없다면, 언체크 상태로 두세요."
+"확신 없다면, 언체크 상태로 두세요."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:136
@@ -1007,9 +1004,8 @@ msgid "Choose a DVD root directory:"
 msgstr "DVD 루트 디렉토리 선택:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:759
-#, fuzzy
 msgid "Choose a NAND root directory:"
-msgstr "DVD 루트 디렉토리 선택:"
+msgstr "NAND 루트 디렉토리 선택:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
 msgid "Choose a default ISO:"
@@ -1140,7 +1136,6 @@ msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
-#, fuzzy
 msgid "Confirm on Stop"
 msgstr "중지시 확인"
 
@@ -1216,7 +1211,7 @@ msgstr "%s 를 생성할 수 없었습니다"
 #: Source/Core/AudioCommon/Src/AudioCommon.cpp:68
 #, c-format
 msgid "Could not initialize backend %s."
-msgstr "처리기 %s 를 초기화할 수 없었습니다"
+msgstr "백엔드 %s 를 초기화할 수 없었습니다"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:139
 #, c-format
@@ -1326,7 +1321,7 @@ msgid ""
 msgstr ""
 "그림을 4:3에서 5:4로 혹은 16:9에서 16:10으로 자릅니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
@@ -1375,7 +1370,6 @@ msgid "DSP LLE interpreter (slow)"
 msgstr "DSP LLE 인터프리터 (느림)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-#, fuzzy
 msgid "DSP LLE on Thread"
 msgstr "DSP LLE를 쓰레드상에"
 
@@ -1537,7 +1531,7 @@ msgstr "텍스처들 끔"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Disable Wiimote Speaker"
-msgstr ""
+msgstr "위모트 스피커 비활성"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
@@ -1551,7 +1545,7 @@ msgstr ""
 "에뮬레이션 속도가 많이 향상되지만 그것들에 의존하는 많은 게임들(특히 자가 어"
 "플들)에서 심각한 결함들을 유발합니다.\n"
 "\n"
-"자신 없다면, 이것을 체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
@@ -1565,7 +1559,7 @@ msgstr ""
 "\"EFB 복사\" 에뮬레이션을 비활성합니다.\n"
 "이들은 종종 후-처리나 텍스처로 렌더 효과들에 사용됩니다, 그래서 이 세팅을 체"
 "크하면 대단한 속도향상을 가져오지만 그것은 거의 항상 이슈들도 유발합니다.\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
 msgid ""
@@ -1575,7 +1569,7 @@ msgid ""
 msgstr ""
 "텍스처링을 비활성합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 둡니다."
+"확신 없다면, 이것을 언체크로 둡니다."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:550
 msgid "Disc"
@@ -1598,7 +1592,7 @@ msgid ""
 msgstr ""
 "에뮬레이터에서 읽혀진 입력들을 표시합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:77
 msgid "Divide"
@@ -1720,7 +1714,7 @@ msgid ""
 msgstr ""
 "모든 렌더된 프레임들을 User/Dump/Frames/안에 AVI 파일로 덤프합니다\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
 msgid ""
@@ -1730,7 +1724,7 @@ msgid ""
 msgstr ""
 "User/Dump/Textures/<game id>/ 에 디코드된 게임 텍스처들을 덤프합니다\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:114
 msgid ""
@@ -1740,7 +1734,7 @@ msgid ""
 msgstr ""
 "User/Dump/Textures/로 EFB 복사의 내용을 덤프합니다\n"
 "\n"
-"자신 없다면, 이것을 언체크로 둡니다."
+"확신 없다면, 이것을 언체크로 둡니다."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
@@ -1825,7 +1819,7 @@ msgstr ""
 "에뮬레이션이 많이 느려지고 고해상 렌더링을 막지만 다수의 게임들을 적절히 에뮬"
 "하기위해 필요합니다.\n"
 "\n"
-"자신 없다면, 대신에 \"가상 XFB 에뮬레이션\"을 체크하세요."
+"확신 없다면, 대신에 \"가상 XFB 에뮬레이션\"을 체크하세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:110
 msgid ""
@@ -1841,7 +1835,7 @@ msgstr ""
 "않는 많은 게임들을 고칩니다. 하지만, 여전히 많은 다른 게임들(특히 자가 어플)"
 "에서는 실패합니다.\n"
 "\n"
-"자신 없다면, 이것을 체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:22
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:34
@@ -1857,7 +1851,6 @@ msgid "Enable"
 msgstr "활성"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
-#, fuzzy
 msgid ""
 "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's "
 "supported by your GPU.\n"
@@ -1869,9 +1862,9 @@ msgstr ""
 "당신의 GPU에서 지원되면  엔비디아 3D 비전 기술을 사용한 입체영상을 통해 3D 효"
 "과들을 활성화합니다.\n"
 "아마도 이슈들을 일으킵니다.\n"
-"\n"
 "작동하려면 전체화면이 요구됩니다.\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"\n"
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:110
 msgid "Enable AR Logging"
@@ -1931,9 +1924,8 @@ msgid "Enable Progressive Scan"
 msgstr "프로그레시브 스캔 활성"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:713
-#, fuzzy
 msgid "Enable Screen Saver"
-msgstr "와이드스크린 활성"
+msgstr "스크린 세이버 활성"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Enable WideScreen"
@@ -1955,7 +1947,7 @@ msgstr ""
 "비스듬한 보기 각도들에 있는 텍스처들의 비주얼 품질을 향상시킨다.\n"
 "소수 게임에서 이슈들을 일으킬지도 모른다.\n"
 "\n"
-"자신 없다면, 1x를 선택하세요."
+"확신 없다면, 1x를 선택하세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
@@ -1975,6 +1967,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"전체 화면이 렌더링에 사용되길 원하면 이것을 활성화하세요.\n"
+"이것이 비활성화되면, 렌더 윈도우가 대신 생성될 것이빈다.\n"
+"\n"
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -1983,6 +1979,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"렌더를 위해 분리된 렌더 창이 아닌 메인 돌핀 창을 사용하려면 이것을 활성화하세"
+"요.\n"
+"\n"
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
 msgid ""
@@ -2012,6 +2012,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"에뮬된 소프트에서 지원되면 프로그레시브 스캔을 활성화합니다.\n"
+"대부분의 게임들은 이것에 대해 상관하지 않습니다.\n"
+"\n"
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid ""
@@ -2027,7 +2031,7 @@ msgid ""
 msgstr ""
 "FFV1 코덱을 사용하여 프레임 덤프들을 인코드합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 둡니다."
+"확신 없다면, 이것을 언체크로 둡니다."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "End"
@@ -2423,9 +2427,8 @@ msgid "Force 4:3"
 msgstr "강제 4:3"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
-#, fuzzy
 msgid "Force Console as NTSC-J"
-msgstr "콘솔을 NTSC-J로 설정"
+msgstr "콘솔을 NTSC-J로 강제시킴"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
 msgid "Force Texture Filtering"
@@ -2441,7 +2444,7 @@ msgstr ""
 "게임이 명백히 그것을 껐더라도 텍스처 필터링을 강제시킨다.\n"
 "텍스처 품질을 향상시킨다 하지만 일부 게임들에서는 결함들을 유발한다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:82
 msgid ""
@@ -2453,7 +2456,7 @@ msgstr ""
 "와이드스크린 해상도 그래픽을 출력하게 게임을 강제시킵니다.\n"
 "일부 게임에서 그래픽 결함을 유발합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:485
 msgid ""
@@ -2461,6 +2464,9 @@ msgid ""
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
 "setting when playing Japanese games."
 msgstr ""
+" 일본 롬 폰트를 사용하기 위해 NTSC-J 모드를 강제시킵니다.\n"
+"언체크로 두면, 돌핀 기본은 NTSC-U 이고 일본 게임들을 플레이할 때 자동적으로 "
+"이 세팅이 활성화됩니다."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2531,9 +2537,8 @@ msgid "FullScr"
 msgstr "전체화면"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:264
-#, fuzzy
 msgid "Fullscreen resolution:"
-msgstr "전체화면 표시 해상도:"
+msgstr "전체화면 해상도:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
 msgid "GCI File(*.gci)"
@@ -2606,9 +2611,8 @@ msgid "General"
 msgstr "일반"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:120
-#, fuzzy
 msgid "General Settings"
-msgstr "인터페이스 설정"
+msgstr "일반 설정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
@@ -2647,7 +2651,7 @@ msgstr ""
 "내부 해상도를 올리면 이 세팅의 효과를 향상시킬 것입니다.\n"
 "성능을 약간 감소시키고 아마도 이슈들(예상 밖이지만)을 유발합니다.\n"
 "\n"
-"자신 없다면, 이것을 체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 msgid "Greek"
@@ -2723,15 +2727,14 @@ msgid "Hide Shader Errors"
 msgstr "쉐이더 에러들 숨김"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
-#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"에뮬레이터에서 읽혀진 입력들을 표시합니다.\n"
+"에뮬레이션 윈도우 위에 마우스 커서가 있을 때 숨깁니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
 msgid "Home"
@@ -2846,7 +2849,7 @@ msgstr ""
 "네거티브 효과 없는 많은 게임들에서 성능을 향상시킵니다. 소수 다른 게임들에서 "
 "그래픽 결함을 유발하긴 합니다.\n"
 "\n"
-"자신 없다면, 이것을 체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
 msgid ""
@@ -2860,7 +2863,7 @@ msgstr ""
 "일부 게임들에서 성능을 향상시킵니다, 하지만 일부 게임플레이관련 특성들이나 그"
 "래픽 효과들이 비활성화 될지 모릅니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:787
 msgid "Import Save"
@@ -2899,7 +2902,7 @@ msgid ""
 msgstr ""
 "성능이 향상되지만 올바른 안개 에뮬레이션에 의존한 대부분의 게임에서 결함을 유"
 "발합니다.\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
 msgid ""
@@ -2909,7 +2912,7 @@ msgid ""
 msgstr ""
 "성능이 향상되지만 대부분의 게임에서 빛이 사라짐을 유발합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 msgid "In Game"
@@ -2976,9 +2979,8 @@ msgid "Installing WAD..."
 msgstr "WAD 설치하기..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:527
-#, fuzzy
 msgid "Interface"
-msgstr "인터페이스 설정"
+msgstr "인터페이스"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
 msgid "Interface Settings"
@@ -3158,7 +3160,7 @@ msgstr "보다 더 적은"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 msgid "Limit by FPS"
-msgstr ""
+msgstr "FPS로 제한"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:928
 msgid "Load"
@@ -3221,7 +3223,7 @@ msgid ""
 msgstr ""
 "User/Load/Textures/<game id>/ 에서 커스텀 텍스처들을 로드\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:49
 msgid "Load preset values from hack patterns available."
@@ -3236,7 +3238,6 @@ msgid "Local"
 msgstr "지역"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
-#, fuzzy
 msgid "Lock Threads to Cores"
 msgstr "코어에 쓰레드 잠그기"
 
@@ -3306,7 +3307,7 @@ msgstr "제작사:"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:82
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:85
 msgid "Max"
-msgstr ""
+msgstr "최대값"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:450
 msgid "Memcard already has a save for this title"
@@ -3369,9 +3370,8 @@ msgstr "마이크"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:81
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:84
-#, fuzzy
 msgid "Min"
-msgstr "마이크"
+msgstr "최소값"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:584
 msgid "Misc"
@@ -3396,7 +3396,7 @@ msgstr ""
 "인코딩되고 있는 포멧을 보여주기위해 텍스처들을 수정합니다. 대개의 경우 에뮬레"
 "이션 리셋이요구됩니다.\n"
 "\n"
-"자신 없다면 이것을 언체크로 두세요."
+"확신 없다면 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:113
 msgid "Monospaced font"
@@ -3438,6 +3438,8 @@ msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
 msgstr ""
+"위모트 스피커를 음소거합니다. 실제 위모트 상에서 랜덤 연결해제들을 고칩니다. "
+"에뮬된 위모트 상에서는 효과 없음."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
@@ -3735,7 +3737,7 @@ msgstr "파일 디렉토리안에 파일의 순서가 블럭 순서와 맞지 �
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:322
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:508
 msgid "Other"
-msgstr "다른 것"
+msgstr "다른 것들"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
 msgid ""
@@ -3987,9 +3989,8 @@ msgid "Reconnect Wiimote Confirm"
 msgstr "위모트 재연결 확인"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:77
-#, fuzzy
 msgid "Reconnect Wiimote on State Loading"
-msgstr "상태 로드 시 위모트 재연결"
+msgstr "상태 로딩시 위모트 재연결"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
@@ -4029,7 +4030,7 @@ msgstr ""
 "이것은 렌더된 그림이 덜 블럭져 보이게 합니다.\n"
 "심각하게 에뮬레이션 속도를 감속시키고 때때로 이슈들을 유발합니다.\n"
 "\n"
-"자신 없다면, 없음을 선택하세요."
+"확신 없다면, 없음을 선택하세요."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:907
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:432
@@ -4064,7 +4065,7 @@ msgid ""
 msgstr ""
 "와이어프레임으로 장면을 렌더합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:306
 msgid "Render to Main Window"
@@ -4288,7 +4289,7 @@ msgstr ""
 "강제 4:3: 그림을 4:3 종횡비로 늘림\n"
 "윈도우로 늘림: 그림을 윈도우 크기로 늘림\n"
 "\n"
-"자신 없다면, 자동을 선택하세요."
+"확신 없다면, 자동을 선택하세요."
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:114
 msgid "Selected font"
@@ -4303,6 +4304,12 @@ msgid ""
 "If unsure, use your desktop resolution.\n"
 "If still unsure, use the highest resolution which works for you."
 msgstr ""
+"전체화면 모드에서 사용될 화면표시 해상도를 선택하세요.\n"
+"이것은 내부 해상도보다 더 크거나 같아야합니다. 성능 영향은 무시해도 될 정도입"
+"니다.\n"
+"\n"
+"자신 없으면, 데스크탑 해상도를 사용하세요.\n"
+"여전히 자신 없으면, 작동하는 최고 해상도를 사용하세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -4313,6 +4320,12 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 9."
 msgstr ""
+"내부적으로 어떤 그래픽 API를 사용할지 선택하세요.\n"
+"Direct3D 9은 보통 가장 빠릅니다. OpenGL은 더 정확하긴 합니다. Dirct3D 11은 "
+"둘 사이 어딘가입니다.\n"
+"Direct3D 백엔드들은 윈도우즈 상에서만 사용할 수 있다는 것을 알아두세요.\n"
+"\n"
+"자신 없으면, Direct3D 9을 사용하세요."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:275
 msgid "Send"
@@ -4513,7 +4526,7 @@ msgid ""
 msgstr ""
 "에뮬레이션 속도의 측정으로 초당 렌더되는 프레임 수치를 보여줍니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:119
 msgid "Show this help message"
@@ -4531,7 +4544,7 @@ msgid ""
 msgstr ""
 "다양한 통계들을 보여줍니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -4546,9 +4559,8 @@ msgid "Size"
 msgstr "크기"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:652
-#, fuzzy
 msgid "Skip BIOS"
-msgstr "게임큐브 바이오스 스킵"
+msgstr "바이오스 스킵"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Skip Dest. Alpha Pass"
@@ -4568,7 +4580,7 @@ msgstr ""
 "다양한 그래픽 효과들을 위해 많은 게임들에서 사용되는 \"목표 알파 패스\"를 스"
 "킵합니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:126
 msgid ""
@@ -4584,7 +4596,7 @@ msgstr ""
 "때때로 비주얼 퀄리티도 향상시킵니다.\n"
 "어느 이슈를 겪는다면, 텍스처 캐쉬 정확도를 올려보거나 이 옵션을 끄세요.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:385
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:397
@@ -4615,6 +4627,9 @@ msgid ""
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
+"소프트웨어 렌더링은 다른 백엔드들 보다 상당히 느립니다.\n"
+"디버깅 목적으로만 유용합니다.\n"
+"소프트웨어 렌더링을 활성을 정말 원합니까? 자신 없으면, '아니오'를 선택하세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:619
 msgid "Sound Settings"
@@ -4623,7 +4638,7 @@ msgstr "사운드 설정"
 #: Source/Core/AudioCommon/Src/AudioCommon.cpp:70
 #, c-format
 msgid "Sound backend %s is not valid."
-msgstr "사운드 처리기 %s는 적합하지 않습니다."
+msgstr "사운드 백엔드 %s는 적합하지 않습니다."
 
 #: Source/Core/AudioCommon/Src/DSoundStream.cpp:59
 #, c-format
@@ -4662,11 +4677,11 @@ msgstr ""
 "을 냅니다. 일반적으로 말해서, 낮은 내부 해상도일 수록, 더 나은 성능이 나올 것"
 "입니다.\n"
 "\n"
-"자신 없다면, 640x528를 선택하세요."
+"확신 없다면, 640x528를 선택하세요."
 
 #: Source/Core/DolphinWX/Src/Main.cpp:144
 msgid "Specify a video backend"
-msgstr "비디오 처리기 명시"
+msgstr "비디오 백엔드 명시"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
 msgid "Speed up Disc Transfer Rate"
@@ -4728,7 +4743,7 @@ msgstr ""
 "GPU 텍스처 오브젝트안의 EFB 복사들을 담습니다.\n"
 "이것은 그렇게 정확하지는 않습니다. 하지만 대부분의 게임에서 충분히 잘 작동하"
 "고 \"램에 EFB\"를 넘는 대단한 속도향상을 줍니다.\n"
-"자신 없다면, 이것을 체크로 두세요."
+"확신 없다면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:283
 msgid "Stretch to Window"
@@ -4858,7 +4873,7 @@ msgstr "이른은 ',' 문자를 포함할 수 없습니다"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:141
 msgid "The resulting decrypted AR code doesn't contain any lines."
-msgstr ""
+msgstr "해독된 AR 코드 결과가 없습니다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
 msgid ""
@@ -4869,7 +4884,7 @@ msgid ""
 msgstr ""
 "이것을 안전하게 정할 수록, 에뮬레이터가 램으로 부터 텍스처 업데이트들을 덜 놓"
 "치는 경향이 있습니다.\n"
-"자신 없다면, 오른쪽에서 두번째-가장빠름을 사용하세요."
+"확신 없다면, 오른쪽에서 두번째-가장빠름을 사용하세요."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
 msgid "The save you are trying to copy has an invalid file size"
@@ -4945,7 +4960,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "이것은 Wii 메뉴와 일부 게임들에서 느려짐을 유발할 수 있다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Hold the right mouse button and move the mouse to pan the camera around. "
@@ -4955,14 +4969,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"이 특성은 당신이 게임의 카메라로 망치도록 허용합니다.\n"
+"이 특성은 당신이 게임의 카메라를 변경하도록 허용합니다.\n"
+"카메라 주위를 회전시키기려면 오른쪽 마우스 버튼을 누른 상태로 마우스를 움직이"
+"세요. 특정 스텝 거리로 카메라 이동을 하려면 쉬프트를 누른 상태로 WASD키들중"
+"에 하나를 누르세요 (쉬프트+0 은 더 빠른 이동이고 쉬프트+9은 더 느린 이동). 카"
+"메라를 리셋하려면 쉬프트+R을 누르세요.\n"
 "\n"
-"카메라 주위를 회전시키기위해 오른쪽 마우스 버튼을 누르고 마우스를 움직이세"
-"요. 특정 스탭 거리의 카메라 이동을 위해 쉬프트를 누르고 WASD키들중에 하나를 "
-"누르세요 (쉬프트+0 은 두배(x2) 쉬프트+9은 절반(x0.5)). 카메라 리셋하려면 쉬프"
-"트+R을 누르세요.\n"
-"\n"
-"자신 없다면. 이것을 언체크로 두세요."
+"확신 없다면. 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:502
 msgid ""
@@ -5090,6 +5103,9 @@ msgid ""
 "decrypted code.  Make sure you typed it correctly.\n"
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
+"입력된 AR 코드의 %lu 라인을 적합한 암호화되거나 해독된 코드로 분석할 수 없습"
+"니다. 올바로 타이핑했는지 확인하세요\n"
+"이 라인을 무시하고 분석을 계속하겠습니까?"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:402
 #, c-format
@@ -5153,9 +5169,8 @@ msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "EuRGB60 모드 (PAL60) 사용"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
-#, fuzzy
 msgid "Use Fullscreen"
-msgstr "전체화면(&F)"
+msgstr "전체화면 사용"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:562
 msgid "Use Hex"
@@ -5175,7 +5190,7 @@ msgstr ""
 "텍스처를 디코드하기 위해 멀티 쓰레드를 사용합니다.\n"
 "속도향상될 겁니다 (특히 듀얼코어 이상의 CPU들 상에서).\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:127
 msgid ""
@@ -5189,7 +5204,7 @@ msgstr ""
 "하지만, 누군가는 이 옵션 체크로 자유로운 게임플레이를 방해하는 팝업들을 스킵"
 "할 수 있습니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:552
 msgid "Utility"
@@ -5241,10 +5256,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"찢김을 줄이기위해 수직 블랭크를 기다립니다. \n"
+"갈라짐을 줄이기위해 수직 블랭크를 기다립니다. \n"
 "에뮬레이션 속도가 100% 이하라면 성능을 저하시킵니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.h:84
 #: Source/Core/DolphinWX/Src/Frame.cpp:641
@@ -5315,9 +5330,8 @@ msgid "Wii Console"
 msgstr "Wii 콘솔"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
-#, fuzzy
 msgid "Wii NAND Root:"
-msgstr "DVD 루트:"
+msgstr "Wii NAND 루트:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:202
 msgid "Wii Save Import"
@@ -5486,10 +5500,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"[고장난]\n"
+"[고장남]\n"
 "EFB 영역 하이라이트가 복사되었습니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:90
 msgid "[Custom]"
@@ -5511,7 +5525,7 @@ msgstr ""
 "하지만, 지금 당장은 다양한 게임에서 텍스처 결함을 유발하는 것으로 알려집니"
 "다. 또한 대부분의 경우에서 정규 CPU 텍스처 디코딩보다 느립니다.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:122
 msgid ""
@@ -5525,7 +5539,7 @@ msgstr ""
 "화면표시 목록을 캐쉬함으로 에뮬레이션을 약간 속도향상시킵니다.\n"
 "이슈들을 일으킬 수 있지만.\n"
 "\n"
-"자신 없다면, 이것을 언체크로 두세요."
+"확신 없다면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:512
 msgid "^ ADD"
