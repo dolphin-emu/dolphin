@@ -214,15 +214,15 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	else
 	{
 		//Apply Gamma Correction
-		WRITE(p, "texcol = pow(texcol,uv1.xxxx);\n");		
+		WRITE(p, "texcol = pow(texcol,uv1.xxxx);\n");
 	}
 
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
 	{
 		if(depthConversionType == DEPTH_CONVERSION_TYPE_NONE)
-			WRITE(p, "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n");		
+			WRITE(p, "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n");
 
-		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");		
+		WRITE(p, "ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n");
 	}
 	else
 		WRITE(p, "ocol0 = texcol;\n");
@@ -232,7 +232,7 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		PanicAlert("PixelShaderCache copy shader generator - buffer too small, canary has been eaten!");
 
 	setlocale(LC_NUMERIC, ""); // restore locale
-	return D3D::CompileAndCreatePixelShader(text, (int)strlen(text));	
+	return D3D::CompileAndCreatePixelShader(text, (int)strlen(text));
 }
 
 void PixelShaderCache::Init()
@@ -245,11 +245,11 @@ void PixelShaderCache::Init()
 							" in float4 incol0 : COLOR0){\n"
 							"ocol0 = incol0;\n"
 							"}\n");
-		s_ClearProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));	
+		s_ClearProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));
 	}
 
 	int shaderModel = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
 
 	// other screen copy/convert programs
 	for(int copyMatrixType = 0; copyMatrixType < NUM_COPY_TYPES; copyMatrixType++)
@@ -294,7 +294,7 @@ void PixelShaderCache::Clear()
 {
 	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
-	PixelShaders.clear(); 
+	PixelShaders.clear();
 
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 }
@@ -320,7 +320,7 @@ void PixelShaderCache::Shutdown()
 	if (s_rgba6_to_rgb8) s_rgba6_to_rgb8->Release();
 	s_rgba6_to_rgb8 = NULL;
 
-	
+
 	Clear();
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();
@@ -351,27 +351,27 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		iter->second.frameCount = frameCount;
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
-		
+
 		if (entry.shader) D3D::SetPixelShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 		return (entry.shader != NULL);
 	}
 
-	
-	
+
+
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components, ((D3D::caps.PixelShaderVersion >> 8) & 0xFF) < 3);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);
 	SETSTAT(stats.numUniquePixelShaders, unique_shaders.size());
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
 		static int counter = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		
+
 		SaveData(szTemp, code);
 	}
 #endif
@@ -384,7 +384,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 			PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 			static int counter = 0;
 			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);			
+			sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 			SaveData(szTemp, code);
 		}
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);

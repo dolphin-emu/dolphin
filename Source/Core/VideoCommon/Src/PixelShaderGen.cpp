@@ -147,8 +147,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	}
 
 	// yeah, well ....
-	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);	
-	
+	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);
+
 }
 
 //   old tev->pixelshader notes
@@ -158,7 +158,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 //   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current chan color
 //   according to GXTevColorArg table above
 //   output is given by .outreg
-//   tevtemp is set according to swapmodetables and 
+//   tevtemp is set according to swapmodetables and
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
@@ -189,7 +189,7 @@ static const char *tevKSelTableC[] = // KCSEL
 	I_KCOLORS"[1].rrr", // K1_R = 0x11
 	I_KCOLORS"[2].rrr", // K2_R = 0x12
 	I_KCOLORS"[3].rrr", // K3_R = 0x13
-	I_KCOLORS"[0].ggg", // K0_G = 0x14 
+	I_KCOLORS"[0].ggg", // K0_G = 0x14
 	I_KCOLORS"[1].ggg", // K1_G = 0x15
 	I_KCOLORS"[2].ggg", // K2_G = 0x16
 	I_KCOLORS"[3].ggg", // K3_G = 0x17
@@ -333,7 +333,7 @@ static const char *tevRasTable[] =
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
-static const char *alphaRef[2] = 
+static const char *alphaRef[2] =
 {
 	I_ALPHA"[0].r",
 	I_ALPHA"[0].g"
@@ -380,7 +380,7 @@ static void BuildSwapModeTable()
 	}
 }
 
-const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components, bool hlsl_sm_2_0 )
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -414,7 +414,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		WRITE(p, "sampler ");
 	}
-	
+
 	bool bfirst = true;
 	for (int i = 0; i < 8; ++i)
 	{
@@ -460,7 +460,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
 			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
-			ApiType == API_OPENGL ? "WPOS" : "VPOS");
+			ApiType == API_OPENGL ? "WPOS" : hlsl_sm_2_0 ? "POSITION" : "VPOS");
 	}
 	else
 	{
@@ -468,7 +468,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
 	}
-	
+
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
 	WRITE(p, "  in float4 colors_1 : COLOR1");
 
@@ -479,7 +479,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);		
+			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
 	}
 	else
 	{
@@ -527,25 +527,25 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float3 tevcoord;\n"
 			"  float2 wrappedcoord, tempcoord;\n"
 			"  float4 cc0, cc1, cc2, cprev,crastemp,ckonsttemp;\n\n");
-	
+
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGen.numTexGens < 7) 
+		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			WRITE(p,"float3 _norm0 = normalize(Normal.xyz);\n\n");
 			WRITE(p,"float3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
-		} 
-		else 
+		}
+		else
 		{
 			WRITE(p,"  float3 _norm0 = normalize(float3(uv4.w,uv5.w,uv6.w));\n\n");
 			WRITE(p,"float3 pos = float3(uv0.w,uv1.w,uv7.w);\n");
 		}
 
-		
+
 		WRITE(p, "float4 mat, lacc;\n"
 		"float3 ldir, h;\n"
 		"float dist, dist2, attn;\n");
-		
+
 		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
@@ -553,7 +553,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "clipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
 	else
 		WRITE(p, "float4 clipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
-	
+
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
 	{
@@ -569,7 +569,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				WRITE(p, "if (uv%d.z)", i);
 				WRITE(p, "	uv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
 			}
-			
+
 			WRITE(p, "uv%d.xy = uv%d.xy * "I_TEXDIMS"[%d].zw;\n", i, i, i);
 		}
 	}
@@ -625,7 +625,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	// emulation of unisgned 8 overflow when casting if needed
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-	
+
 	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
@@ -643,7 +643,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
 		{
-			
+
 			// the screen space depth value = far z + (clip z / clip w) * z range
 			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
 		}
@@ -731,7 +731,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"   %s.a + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
 	"   %s.a + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
 	"   %s.a + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
+	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
 	"   %s.a + ((%s.a >= (%s.a + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s.a + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 
@@ -757,9 +757,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
-			WRITE(p, "alphabump = indtex%d.%s %s;\n", 
-					bpmem.tevind[n].bt, 
-					tevIndAlphaSel[bpmem.tevind[n].bs], 
+			WRITE(p, "alphabump = indtex%d.%s %s;\n",
+					bpmem.tevind[n].bt,
+					tevIndAlphaSel[bpmem.tevind[n].bs],
 					tevIndAlphaScale[bpmem.tevind[n].fmt]);
 		}
 		// format
@@ -853,7 +853,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 	int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 
-	
+
 
 	bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
 	bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
@@ -870,14 +870,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		}
 	}
 
-	if(cc.a == TEVCOLORARG_CPREV 
-	|| cc.a == TEVCOLORARG_APREV 
-	|| cc.b == TEVCOLORARG_CPREV 
-	|| cc.b == TEVCOLORARG_APREV 
-	|| cc.c == TEVCOLORARG_CPREV 
-	|| cc.c == TEVCOLORARG_APREV 
-	|| ac.a == TEVALPHAARG_APREV 
-	|| ac.b == TEVALPHAARG_APREV 
+	if(cc.a == TEVCOLORARG_CPREV
+	|| cc.a == TEVCOLORARG_APREV
+	|| cc.b == TEVCOLORARG_CPREV
+	|| cc.b == TEVCOLORARG_APREV
+	|| cc.c == TEVCOLORARG_CPREV
+	|| cc.c == TEVCOLORARG_APREV
+	|| ac.a == TEVALPHAARG_APREV
+	|| ac.b == TEVALPHAARG_APREV
 	|| ac.c == TEVALPHAARG_APREV)
 	{
 		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
@@ -893,14 +893,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		RegisterStates[0].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C0 
-	|| cc.a == TEVCOLORARG_A0 
-	|| cc.b == TEVCOLORARG_C0 
-	|| cc.b == TEVCOLORARG_A0 
-	|| cc.c == TEVCOLORARG_C0 
-	|| cc.c == TEVCOLORARG_A0 
-	|| ac.a == TEVALPHAARG_A0 
-	|| ac.b == TEVALPHAARG_A0 
+	if(cc.a == TEVCOLORARG_C0
+	|| cc.a == TEVCOLORARG_A0
+	|| cc.b == TEVCOLORARG_C0
+	|| cc.b == TEVCOLORARG_A0
+	|| cc.c == TEVCOLORARG_C0
+	|| cc.c == TEVCOLORARG_A0
+	|| ac.a == TEVALPHAARG_A0
+	|| ac.b == TEVALPHAARG_A0
 	|| ac.c == TEVALPHAARG_A0)
 	{
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
@@ -916,14 +916,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		RegisterStates[1].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C1 
-	|| cc.a == TEVCOLORARG_A1 
-	|| cc.b == TEVCOLORARG_C1 
-	|| cc.b == TEVCOLORARG_A1 
-	|| cc.c == TEVCOLORARG_C1 
-	|| cc.c == TEVCOLORARG_A1 
-	|| ac.a == TEVALPHAARG_A1 
-	|| ac.b == TEVALPHAARG_A1 
+	if(cc.a == TEVCOLORARG_C1
+	|| cc.a == TEVCOLORARG_A1
+	|| cc.b == TEVCOLORARG_C1
+	|| cc.b == TEVCOLORARG_A1
+	|| cc.c == TEVCOLORARG_C1
+	|| cc.c == TEVCOLORARG_A1
+	|| ac.a == TEVALPHAARG_A1
+	|| ac.b == TEVALPHAARG_A1
 	|| ac.c == TEVALPHAARG_A1)
 	{
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
@@ -938,15 +938,15 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		}
 		RegisterStates[2].AuxStored = true;
 	}
-	
-	if(cc.a == TEVCOLORARG_C2 
-	|| cc.a == TEVCOLORARG_A2 
-	|| cc.b == TEVCOLORARG_C2 
-	|| cc.b == TEVCOLORARG_A2 
-	|| cc.c == TEVCOLORARG_C2 
-	|| cc.c == TEVCOLORARG_A2 
-	|| ac.a == TEVALPHAARG_A2 
-	|| ac.b == TEVALPHAARG_A2 
+
+	if(cc.a == TEVCOLORARG_C2
+	|| cc.a == TEVCOLORARG_A2
+	|| cc.b == TEVCOLORARG_C2
+	|| cc.b == TEVCOLORARG_A2
+	|| cc.c == TEVCOLORARG_C2
+	|| cc.c == TEVCOLORARG_A2
+	|| ac.a == TEVALPHAARG_A2
+	|| ac.b == TEVALPHAARG_A2
 	|| ac.c == TEVALPHAARG_A2)
 	{
 		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
@@ -991,9 +991,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			WRITE(p, "%s*(float3(1.0f, 1.0f, 1.0f)-%s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16]);
 		else
 			WRITE(p, "lerp(%s, %s, %s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-		
+
 		WRITE(p, "%s", tevBiasTable[cc.bias]);
-		
+
 		if (cc.shift > 0)
 			WRITE(p, ")");
 	}
@@ -1001,7 +1001,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
 		WRITE(p, TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				tevCInputTable[cc.d], 
+				tevCInputTable[cc.d],
 				tevCInputTable[cc.a + 16],
 				tevCInputTable[cc.b + 16],
 				tevCInputTable[cc.c + 16]);
@@ -1009,7 +1009,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.clamp)
 		WRITE(p, ")");
 	WRITE(p,";\n");
-	
+
 	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
 	RegisterStates[ac.dest].AuxStored = false;
 	// combine the alpha channel
@@ -1037,9 +1037,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			WRITE(p, "%s.a*(1.0f-%s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8]);
 		else
 			WRITE(p, "lerp(%s.a, %s.a, %s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-		
+
 		WRITE(p, "%s",tevBiasTable[ac.bias]);
-		
+
 		if (ac.shift>0)
 			WRITE(p, ")");
 
@@ -1048,10 +1048,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		//compare alpha combiner goes here
 		int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
-		WRITE(p, TEVCMPAlphaOPTable[cmp], 
-				tevAInputTable[ac.d], 
-				tevAInputTable[ac.a + 8], 
-				tevAInputTable[ac.b + 8], 
+		WRITE(p, TEVCMPAlphaOPTable[cmp],
+				tevAInputTable[ac.d],
+				tevAInputTable[ac.a + 8],
+				tevAInputTable[ac.b + 8],
 				tevAInputTable[ac.c + 8]);
 	}
 	if (ac.clamp)
@@ -1122,7 +1122,7 @@ static int AlphaPreTest()
 
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
-	
+
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0)
 	{
@@ -1134,9 +1134,9 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
-	
+
 	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
-	
+
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")){ocol0 = 0;%s%sdiscard;%s}\n",dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "ocol1 = 0;" : "",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
@@ -1159,7 +1159,7 @@ static void WriteFog(char *&p)
 {
 	if(bpmem.fog.c_proj_fsel.fsel == 0)return;//no Fog
 
-	if (bpmem.fog.c_proj_fsel.proj == 0) 
+	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
@@ -1171,7 +1171,7 @@ static void WriteFog(char *&p)
 		// ze = a*Zs	(here, no B_SHF)
 		WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
 	}
-	
+
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
 	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
@@ -1195,6 +1195,6 @@ static void WriteFog(char *&p)
 	}
 
 	WRITE(p, "  prev.rgb = lerp(prev.rgb,"I_FOG"[0].rgb,fog);\n");
-	
-	
+
+
 }
