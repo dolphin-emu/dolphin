@@ -106,7 +106,8 @@ class CSharedContent
 {
 public:
 
-	static CSharedContent& AccessInstance() { return m_Instance; }
+	static CSharedContent& AccessInstance();
+	static void UpdateLocation();
 
 	std::string GetFilenameFromSHA1(u8* _pHash);
 	std::string AddSharedContent(u8* _pHash);
@@ -129,14 +130,15 @@ private:
 	u32 lastID;
 	char contentMap[1024];
 	std::vector<SElement> m_Elements;
-	static CSharedContent m_Instance;
+	static CSharedContent *m_Instance;
 };
 
 class cUIDsys
 {
 public:
 
-	static cUIDsys& AccessInstance() { return m_Instance; }
+	static cUIDsys& AccessInstance();
+	static void UpdateLocation();
 
 	u32 GetUIDFromTitle(u64 _Title);
 	void AddTitle(u64 _Title);
@@ -158,7 +160,7 @@ private:
 	u32 lastUID;
 	char uidSys[1024];
 	std::vector<SElement> m_Elements;
-	static cUIDsys m_Instance;
+	static cUIDsys *m_Instance;
 };
 
 }

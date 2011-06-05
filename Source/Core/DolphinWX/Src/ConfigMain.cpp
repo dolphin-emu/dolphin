@@ -28,6 +28,7 @@
 #include "HW/DSPHLE/DSPHLE.h"
 #include "HW/DSPLLE/DSPLLE.h"
 #include "IPC_HLE/WII_IPC_HLE.h"
+#include "NANDContentLoader.h"
 
 #include "Globals.h" // Local
 #include "ConfigMain.h"
@@ -1202,6 +1203,8 @@ void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, std::string(NANDRoot->GetPath().mb_str()));
 	NANDRoot->SetPath(wxString(NANDPath.c_str(), *wxConvCurrent));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
+	DiscIO::cUIDsys::UpdateLocation();
+	DiscIO::CSharedContent::UpdateLocation();
 	main_frame->UpdateWiiMenuChoice();
 }
 
