@@ -80,7 +80,7 @@ void DSPEmitter::ClearIRAM()
 
 void DSPEmitter::ClearIRAMandDSPJITCodespaceReset() 
 {
-	ResetCodePtr();
+	ClearCodeSpace();
 	CompileDispatcher();
 	stubEntryPoint = CompileStub();
 

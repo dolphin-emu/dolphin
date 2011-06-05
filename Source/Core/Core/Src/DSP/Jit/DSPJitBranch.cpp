@@ -41,24 +41,19 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	case 0x0: // GE - Greater Equal
 	case 0x1: // L - Less
 		emitter.MOV(16, R(EDX), R(EAX));
-		emitter.SHR(16, R(EDX), Imm8(3)); //SR_SIGN flag
-		emitter.SHR(16, R(EAX), Imm8(1)); //SR_OVERFLOW flag
+		emitter.SHL(16, R(EDX), Imm8(2));
 		emitter.XOR(16, R(EAX), R(EDX));
-		emitter.TEST(16, R(EAX), Imm16(1));
+		emitter.TEST(16, R(EAX), Imm16(8));
 		break;
 	case 0x2: // G - Greater
 	case 0x3: // LE - Less Equal
 		emitter.MOV(16, R(EDX), R(EAX));
 		emitter.MOV(16, R(ECX), R(EAX));
-		emitter.SHR(16, R(EDX), Imm8(3)); //SR_SIGN flag
-		emitter.SHR(16, R(EAX), Imm8(1)); //SR_OVERFLOW flag
+		emitter.SHL(16, R(EDX), Imm8(2));
 		emitter.XOR(16, R(EAX), R(EDX));
-		emitter.NOT(16, R(EAX));
-		emitter.SHR(16, R(ECX), Imm8(2)); //SR_ARITH_ZERO 
-		emitter.NOT(16, R(ECX));
-		emitter.AND(16, R(EAX), R(ECX)); 
-		emitter.NOT(16, R(EAX));
-		emitter.TEST(16, R(EAX), Imm16(1));
+		emitter.SHL(16, R(ECX), Imm8(1));
+		emitter.OR(16, R(EAX), R(ECX));
+		emitter.TEST(16, R(EAX), Imm16(8));
 		break;
 	case 0x4: // NZ - Not Zero
 	case 0x5: // Z - Zero 
@@ -76,14 +71,13 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	case 0xb: // ?
 		emitter.MOV(16, R(EDX), R(EAX));
 		emitter.MOV(16, R(ECX), R(EAX));
-		emitter.SHR(16, R(EDX), Imm8(4)); //SR_OVER_S32 flag
-		emitter.SHR(16, R(EAX), Imm8(5)); //SR_TOP2BITS flag
+		emitter.SHR(16, R(EDX), Imm8(1));
 		emitter.OR(16, R(EAX), R(EDX));
-		emitter.SHR(16, R(ECX), Imm8(2)); //SR_ARITH_ZERO 
+		emitter.SHL(16, R(ECX), Imm8(2));
 		emitter.NOT(16, R(ECX));
 		emitter.AND(16, R(EAX), R(ECX)); 
 		emitter.NOT(16, R(EAX));
-		emitter.TEST(16, R(EAX), Imm16(1));
+		emitter.TEST(16, R(EAX), Imm16(0x10));
 		break;
 	case 0xc: // LNZ  - Logic Not Zero
 	case 0xd: // LZ - Logic Zero
