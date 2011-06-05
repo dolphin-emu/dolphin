@@ -1203,8 +1203,8 @@ void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, std::string(NANDRoot->GetPath().mb_str()));
 	NANDRoot->SetPath(wxString(NANDPath.c_str(), *wxConvCurrent));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
-	DiscIO::cUIDsys::UpdateLocation();
-	DiscIO::CSharedContent::UpdateLocation();
+	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
+	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	main_frame->UpdateWiiMenuChoice();
 }
 

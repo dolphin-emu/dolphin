@@ -22,6 +22,7 @@
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "FileUtil.h"
+#include "NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -278,6 +279,8 @@ void SConfig::LoadSettings()
 
 		ini.Get("General", "NANDRoot",		&m_NANDPath);
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
+		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
+		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	}
 
 	{

@@ -28,23 +28,18 @@
 
 namespace DiscIO
 {
-CSharedContent *CSharedContent::m_Instance = NULL;
-cUIDsys *cUIDsys::m_Instance = NULL;
+CSharedContent CSharedContent::m_Instance;
+cUIDsys cUIDsys::m_Instance;
 
-CSharedContent& CSharedContent::AccessInstance()
+
+CSharedContent::CSharedContent()
 {
-	if (!m_Instance) m_Instance = new CSharedContent;
-	return *m_Instance;
+	UpdateLocation();
 }
 
 void CSharedContent::UpdateLocation()
 {
-	delete m_Instance;
-	m_Instance = new CSharedContent;
-}
-
-CSharedContent::CSharedContent()
-{
+	m_Elements.clear();
 	lastID = 0;
 	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
@@ -58,10 +53,7 @@ CSharedContent::CSharedContent()
 }
 
 CSharedContent::~CSharedContent()
-{
-	delete m_Instance;
-	m_Instance = NULL;
-}
+{}
 
 std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
 {
@@ -409,23 +401,17 @@ void CNANDContentLoader::RemoveTitle() const
 	}
 }
 
-cUIDsys& cUIDsys::AccessInstance()
+cUIDsys::cUIDsys()
 {
-	if (!m_Instance) m_Instance = new cUIDsys;
-	return *m_Instance;
+	UpdateLocation();
 }
 
 void cUIDsys::UpdateLocation()
 {
-	delete m_Instance;
-	m_Instance = new cUIDsys;
-}
-
-cUIDsys::cUIDsys()
-{
-	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	m_Elements.clear();
 	lastUID = 0x00001000;
-
+	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	
 	File::IOFile pFile(uidSys, "rb");
 	SElement Element;
 	while (pFile.ReadArray(&Element, 1))
@@ -448,10 +434,7 @@ cUIDsys::cUIDsys()
 }
 
 cUIDsys::~cUIDsys()
-{
-	delete m_Instance;
-	m_Instance = NULL;
-}
+{}
 
 u32 cUIDsys::GetUIDFromTitle(u64 _Title)
 {
