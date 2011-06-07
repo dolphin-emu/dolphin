@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-06-03 23:36-0500\n"
-"PO-Revision-Date: 2011-06-02 15:24+0100\n"
+"PO-Revision-Date: 2011-06-04 14:29+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
 "Language: Hungarian\n"
@@ -233,7 +233,7 @@ msgstr "&Regiszterek"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:343
 msgid "&Reset"
-msgstr "&Nullázás"
+msgstr "&Alapra állítás"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:245
 msgid "&Sound"
@@ -711,18 +711,16 @@ msgid "Auto (Window Size)"
 msgstr "Automatikus (ablak méret)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
-#, fuzzy
 msgid "Auto adjust Window Size"
-msgstr "Automatikus (ablak méret)"
+msgstr "Ablak méret automatikus állítása"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
-#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Az emulátor által beolvasott bemenetek megjelenítése.\n"
+"Automatikusan a belső felbontásra állítja az ablak méretét.\n"
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
@@ -750,9 +748,8 @@ msgstr "Hang feldolgozó beállításai"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:62
-#, fuzzy
 msgid "Backend:"
-msgstr "Hang feldolgozó:"
+msgstr "Feldolgozó:"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:299
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
@@ -1018,9 +1015,8 @@ msgid "Choose a DVD root directory:"
 msgstr "Válassz DVD gyökér könyvtárat:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:759
-#, fuzzy
 msgid "Choose a NAND root directory:"
-msgstr "Válassz DVD gyökér könyvtárat:"
+msgstr "Válassz NAND gyökér könyvtárat:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
 msgid "Choose a default ISO:"
@@ -1152,7 +1148,6 @@ msgid "Confirm File Overwrite"
 msgstr "Fájl felülírás jóváhagyása"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
-#, fuzzy
 msgid "Confirm on Stop"
 msgstr "Kilépéskor megerősítés"
 
@@ -1386,7 +1381,6 @@ msgid "DSP LLE interpreter (slow)"
 msgstr "DSP LLE interpreter (lassú)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-#, fuzzy
 msgid "DSP LLE on Thread"
 msgstr "DSP LLE folyamatágon"
 
@@ -1548,7 +1542,7 @@ msgstr "Textúrák kikapcsolása"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Disable Wiimote Speaker"
-msgstr ""
+msgstr "Wiimote hangszóró kikapcsolása"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
@@ -1874,7 +1868,6 @@ msgid "Enable"
 msgstr "Használat"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
-#, fuzzy
 msgid ""
 "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's "
 "supported by your GPU.\n"
@@ -1886,8 +1879,8 @@ msgstr ""
 "A 3D-s effektusok megjelenítése sztereoszkópikus módon az Nvidia 3D Vision "
 "technológia használatával, ha támogatja a videókártya.\n"
 "Estleg hibákat okozhat.\n"
-"\n"
 "Működéséhez teljes képernyő szükséges.\n"
+"\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:110
@@ -1945,12 +1938,11 @@ msgstr "MMU használata"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:570
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "Enable Progressive Scan"
-msgstr "Progresszív kódolás használata"
+msgstr "Progresszív pásztázás használata"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:713
-#, fuzzy
 msgid "Enable Screen Saver"
-msgstr "Széleskijelző bekapcsolása"
+msgstr "Képernyővédő bekapcsolása"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Enable WideScreen"
@@ -1993,6 +1985,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Kapcsolbe be, ha a teljes képernyőt akarod használni a megjelenítéshez.\n"
+"Ha ez ki van kapcsolva, akkor az emuláció ablakban fog futni.\n"
+"\n"
+"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -2001,6 +1997,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Kapcsold be ha azt akarod, hogy inkább a Dolphin fő ablakában jelenjen meg "
+"az emuláció, mint sem egy különálló ablakban.\n"
+"\n"
+"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
 msgid ""
@@ -2031,6 +2031,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Bekapcsolja a progresszív pásztázást, ha az támogatott az emulált szoftver "
+"által.\n"
+"A legtöbb játék nem használja ezt.\n"
+"\n"
+"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid ""
@@ -2448,9 +2453,8 @@ msgid "Force 4:3"
 msgstr "Kényszerített 4:3"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
-#, fuzzy
 msgid "Force Console as NTSC-J"
-msgstr "Konzol NTSC-J típusra állítása"
+msgstr "Konzol kényszerítése NTSC-J típusra"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
 msgid "Force Texture Filtering"
@@ -2487,6 +2491,9 @@ msgid ""
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
 "setting when playing Japanese games."
 msgstr ""
+"Az NTSC-J működési módot kényszeríti japán ROM betűkészlet használatához.\n"
+"Hagyd kijelöletlenül, a Dolphin alapértelmezett az NTSC-U és automatikusan "
+"bekapcsolódik ez a beállítás japán játékok használatakor."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2557,9 +2564,8 @@ msgid "FullScr"
 msgstr "Teljes méret"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:264
-#, fuzzy
 msgid "Fullscreen resolution:"
-msgstr "Teljes nézet felbontása:"
+msgstr "Teljes kijelzős felbontás:"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:533
 msgid "GCI File(*.gci)"
@@ -2632,9 +2638,8 @@ msgid "General"
 msgstr "Általános"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:120
-#, fuzzy
 msgid "General Settings"
-msgstr "Felület beállítások"
+msgstr "Általános beállítások"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
@@ -2744,22 +2749,21 @@ msgstr "Elrejtés"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:305
 msgid "Hide Mouse Cursor"
-msgstr "Egér mutató elrejtése"
+msgstr "Egérmutató elrejtése"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:561
 msgid "Hide Shader Errors"
 msgstr "Árnyaló hibáinak elrejtése"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
-#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Az emulátor által beolvasott bemenetek megjelenítése.\n"
+"Elrejti az egérmutatót, ha az megjelenik az emulációs ablakban.\n"
 "\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
+"Ha bizonytalan vagy, hagyd kijelölve."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
 msgid "Home"
@@ -3007,9 +3011,8 @@ msgid "Installing WAD..."
 msgstr "WAD telepítése..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:527
-#, fuzzy
 msgid "Interface"
-msgstr "Felület beállítások"
+msgstr "Felhasználói felület"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
 msgid "Interface Settings"
@@ -3189,7 +3192,7 @@ msgstr "Kevesebb mint"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 msgid "Limit by FPS"
-msgstr ""
+msgstr "FPS alapú korlátozás"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:928
 msgid "Load"
@@ -3267,7 +3270,6 @@ msgid "Local"
 msgstr "Helyi"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
-#, fuzzy
 msgid "Lock Threads to Cores"
 msgstr "Folyamatágak magokhoz zárolása"
 
@@ -3337,7 +3339,7 @@ msgstr "Gyártó:"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:82
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:85
 msgid "Max"
-msgstr ""
+msgstr "Max"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:450
 msgid "Memcard already has a save for this title"
@@ -3400,9 +3402,8 @@ msgstr "Mikrofon"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:81
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:84
-#, fuzzy
 msgid "Min"
-msgstr "Mikrofon"
+msgstr "Min"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:584
 msgid "Misc"
@@ -3452,7 +3453,7 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
-"Húzd az egér mutatót egy opcióra a részletes leírás megjelenítéséhez.\n"
+"Húzd az egérmutatót egy opcióra a részletes leírás megjelenítéséhez.\n"
 "\n"
 "\n"
 "\n"
@@ -3469,6 +3470,8 @@ msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
 msgstr ""
+"Lenémítja a Wiimote hangszórót. Javítja a valódi Wiimote irányítók "
+"véletlenszerű lekapcsolódási hibáját. Nincs hatással az emulált irányítókra."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
@@ -4022,7 +4025,6 @@ msgid "Reconnect Wiimote Confirm"
 msgstr "Wiimote újracsatlakoztatás megerősítés"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:77
-#, fuzzy
 msgid "Reconnect Wiimote on State Loading"
 msgstr "Wiimote újracsatlakoztatása állás betöltéskor"
 
@@ -4109,7 +4111,7 @@ msgstr "Megjelenítés a főablakban"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 msgid "Reset"
-msgstr "Nullázás"
+msgstr "Alapra állítás"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Results"
@@ -4226,9 +4228,9 @@ msgid "Scaled EFB Copy"
 msgstr "Méretezett EFB másolat"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
-#, fuzzy, c-format
+#, c-format
 msgid "Scanning %s"
-msgstr "Keresés..."
+msgstr "Keresés %s"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:579
 msgid "Scanning for ISOs"
@@ -4339,6 +4341,12 @@ msgid ""
 "If unsure, use your desktop resolution.\n"
 "If still unsure, use the highest resolution which works for you."
 msgstr ""
+"A teljes kijelző estén használatos felbontást állítja be.\n"
+"Ennek mindig nagyobbnak, vagy azonosnak kell lennie a belső felbontással. "
+"Hatása a teljesítményre elhanyagolható.\n"
+"\n"
+"Ha bizonytalan vagy, használd az asztali felbontást.\n"
+"Ha továbbra is bizonytalan vagy, használd a legmagasabb működő felbontást."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -4349,6 +4357,13 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 9."
 msgstr ""
+"Kiválasztja melyik grafikus API legyen használva belsőleg.\n"
+"A Direct3D 9 többnyire a leggyorsabb. Az OpenGL azonban pontosabb. A "
+"Direct3D 11 valahol a kettő között van.\n"
+"Vedd figyelembe, hogy a Direct3D feldolgozók csak Windows esetén állnak "
+"rendelkezésre.\n"
+"\n"
+"Ha bizonytalan vagy, használd ezt: Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:275
 msgid "Send"
@@ -4586,9 +4601,8 @@ msgid "Size"
 msgstr "Méret"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:652
-#, fuzzy
 msgid "Skip BIOS"
-msgstr "GC BIOS kihagyása"
+msgstr "BIOS kihagyása"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Skip Dest. Alpha Pass"
@@ -4655,6 +4669,11 @@ msgid ""
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
+"A szoftveres képleképezés egy fontosságbeli sorrenden alapul és lassabb a "
+"feldolgozók használatánál.\n"
+"Csak hibakeresési célra hasznos.\n"
+"Biztosan be kívánod kapcsolni a szoftveres képleképezést? Ha bizonytalan "
+"vagy, válaszd ezt: 'Nem'."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:619
 msgid "Sound Settings"
@@ -4900,7 +4919,7 @@ msgstr "A név nem tartalmazhatja a ',' karaktert"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:141
 msgid "The resulting decrypted AR code doesn't contain any lines."
-msgstr ""
+msgstr "A kapott kódolatlan AR kód nem tartalmaz sorokat."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
 msgid ""
@@ -4988,7 +5007,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Ez lassulást okozhat a Wii menüben és néhány játékban."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Hold the right mouse button and move the mouse to pan the camera around. "
@@ -4999,9 +5017,8 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Ez a funkció lehetővé teszi a játék kamera szabad irányítását.\n"
-"\n"
 "Tartsd lenyomva a jobb egér gombot és mozgasd az egeret, hogy körbepásztázz "
-"a kamerával.  Tartsd lenyomva a SHIFT billentyűt és a WASD billentyűk "
+"a kamerával. Tartsd lenyomva a SHIFT billentyűt és a WASD billentyűk "
 "valamelyikével mozgasd a kamerát távolsági léptékenként (SHIFT+0 megduplázza "
 "(x2) és a SHIFT+9 megfelezi (x0.5)).  Nyomd le a SHIFT+R kombinációt a "
 "kamera alapértékre állításához.\n"
@@ -5136,6 +5153,9 @@ msgid ""
 "decrypted code.  Make sure you typed it correctly.\n"
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
+"A megadott AR kód %lu sorának érvényes kódolt, vagy kódolatlan kódként "
+"történő elemzése nem lehetséges.  Győződj meg róla, hogy helyesen írtad be.\n"
+"Szeretnéd átugrani ezt a sort és folytatni az elemzést?"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:402
 #, c-format
@@ -5200,9 +5220,8 @@ msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "EuRGB60 mód (PAL60) használata"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
-#, fuzzy
 msgid "Use Fullscreen"
-msgstr "&Teljes nézet"
+msgstr "Teljes nézet használata"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:562
 msgid "Use Hex"
@@ -5364,9 +5383,8 @@ msgid "Wii Console"
 msgstr "Wii konzol"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
-#, fuzzy
 msgid "Wii NAND Root:"
-msgstr "DVD gyökér könyvtár:"
+msgstr "Wii NAND gyökér könyvtár:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:202
 msgid "Wii Save Import"
