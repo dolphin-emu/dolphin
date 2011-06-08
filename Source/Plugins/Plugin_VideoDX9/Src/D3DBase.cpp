@@ -213,11 +213,11 @@ void Enumerate()
 		a.resolutions.clear();
 		D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
 		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
-		
+
 		// Add SuperSamples modes
 		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
 		a.aa_levels.push_back(AALevel("4x SSAA", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("9x SSAA", D3DMULTISAMPLE_NONE, 0));		
+		a.aa_levels.push_back(AALevel("9x SSAA", D3DMULTISAMPLE_NONE, 0));
 		//Add multisample modes
 		//disable them will they are not implemnted
 		/*
@@ -226,7 +226,7 @@ void Enumerate()
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
 			if (qlevels > 0)
 				a.aa_levels.push_back(AALevel("2x MSAA", D3DMULTISAMPLE_2_SAMPLES, 0));
-		
+
 		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
 			if (qlevels > 0)
@@ -268,7 +268,7 @@ void Enumerate()
 		// http://developer.amd.com/gpu_assets/Advanced%20DX9%20Capabilities%20for%20ATI%20Radeon%20Cards.pdf
 		a.supports_intz = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
-			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_INTZ); 
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_INTZ);
 		// Also check for RAWZ (nvidia only, but the only option to get Z24 textures on sub GF8800
 		a.supports_rawz = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
@@ -287,10 +287,10 @@ void Enumerate()
 		}
 		int numModes = D3D::D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
 		for (int m = 0; m < numModes; m++)
-		{	
+		{
 			D3DDISPLAYMODE mode;
 			D3D::D3D->EnumAdapterModes(i, D3DFMT_X8R8G8B8, m, &mode);
-			
+
 			int found = -1;
 			for (int x = 0; x < (int)a.resolutions.size(); x++)
 			{
@@ -303,7 +303,7 @@ void Enumerate()
 
 			Resolution temp;
 			Resolution &r = found==-1 ? temp : a.resolutions[found];
-			
+
 			sprintf(r.name, "%ix%i", mode.Width, mode.Height);
 			r.bitdepths.insert(mode.Format);
 			r.refreshes.insert(mode.RefreshRate);
@@ -404,16 +404,16 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 
 	InitPP(adapter, resolution, aa_mode, &d3dpp);
 
-	if (FAILED(D3D->CreateDevice( 
-		adapter, 
-		D3DDEVTYPE_HAL, 
+	if (FAILED(D3D->CreateDevice(
+		adapter,
+		D3DDEVTYPE_HAL,
 		wnd,
 		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE,  //doesn't seem to make a difference
 		&d3dpp, &dev)))
 	{
-		if (FAILED(D3D->CreateDevice( 
-			adapter, 
-			D3DDEVTYPE_HAL, 
+		if (FAILED(D3D->CreateDevice(
+			adapter,
+			D3DDEVTYPE_HAL,
 			wnd,
 			D3DCREATE_SOFTWARE_VERTEXPROCESSING,
 			&d3dpp, &dev)))
@@ -455,7 +455,7 @@ void Close()
 	if( back_buffer )
 		back_buffer->Release();
 	back_buffer = NULL;
-	
+
 	ULONG references = dev->Release();
 	if (references)
 		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);
@@ -522,14 +522,14 @@ D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
 
 const char *VertexShaderVersionString()
 {
-	static const char *versions[5] = {"ERROR", "vs_1_4", "vs_2_0", "vs_3_0", "vs_4_0"};
+	static const char *versions[5] = {"ERROR", "vs_1_4", "vs_2_a", "vs_3_0", "vs_4_0"};
 	int version = ((D3D::caps.VertexShaderVersion >> 8) & 0xFF);
 	return versions[std::min(4, version)];
 }
 
 const char *PixelShaderVersionString()
 {
-	static const char *versions[5] = {"ERROR", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
+	static const char *versions[5] = {"ERROR", "ps_1_4", "ps_2_a", "ps_3_0", "ps_4_0"};
 	int version = ((D3D::caps.PixelShaderVersion >> 8) & 0xFF);
 	return versions[std::min(4, version)];
 }
@@ -614,7 +614,7 @@ bool BeginFrame()
 		dev->BeginScene();
 		return true;
 	}
-	else 
+	else
 		return false;
 }
 
@@ -677,7 +677,7 @@ void RefreshRenderState(D3DRENDERSTATETYPE State)
 {
 	if(m_RenderStatesSet[State] && m_RenderStatesChanged[State])
 	{
-		D3D::dev->SetRenderState(State, m_RenderStates[State]);	
+		D3D::dev->SetRenderState(State, m_RenderStates[State]);
 		m_RenderStatesChanged[State] = false;
 	}
 }
