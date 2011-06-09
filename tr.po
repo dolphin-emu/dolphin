@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-06-03 23:36-0500\n"
-"PO-Revision-Date: 2011-05-24 19:48+0200\n"
+"PO-Revision-Date: 2011-06-08 21:53+0200\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -712,18 +712,16 @@ msgid "Auto (Window Size)"
 msgstr "Otomatik (Pencere Boyutu)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
-#, fuzzy
 msgid "Auto adjust Window Size"
-msgstr "Otomatik (Pencere Boyutu)"
+msgstr "Pencere Boyutunu Otomatik Ayarla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
-#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Emülatör tarafından okunan girişleri göster. \n"
+"Pencere boyutunu iç çözünürlüğünüze göre otomatik olarak ayarlar. \n"
 "\n"
 "Emin değilseniz, işaretsiz bırakın."
 
@@ -749,9 +747,8 @@ msgstr "Arka Uç Ayarları"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:62
-#, fuzzy
 msgid "Backend:"
-msgstr "Ses Arka Ucu:"
+msgstr "Arka Uç:"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:299
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:92
@@ -1016,9 +1013,8 @@ msgid "Choose a DVD root directory:"
 msgstr "DVD kök dizinini seçin:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:759
-#, fuzzy
 msgid "Choose a NAND root directory:"
-msgstr "DVD kök dizinini seçin:"
+msgstr "NAND kök dizinini seçin:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
 msgid "Choose a default ISO:"
@@ -1150,9 +1146,8 @@ msgid "Confirm File Overwrite"
 msgstr "Dosyanın Üzerine Yazmaya İzin Ver"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
-#, fuzzy
 msgid "Confirm on Stop"
-msgstr "Durdururken Onay İste"
+msgstr "Durdurma Onayı İste"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:67
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
@@ -1388,9 +1383,8 @@ msgid "DSP LLE interpreter (slow)"
 msgstr "DSP LLE Yorumlayıcı (Çok Yavaş)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
-#, fuzzy
 msgid "DSP LLE on Thread"
-msgstr "İşlem birimi üzerinde DSP LLE"
+msgstr "İşlem Birimi Üzerinde DSP LLE"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
 msgid "DSP LLE recompiler"
@@ -1550,7 +1544,7 @@ msgstr "Dokuları İptal Et"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Disable Wiimote Speaker"
-msgstr ""
+msgstr "WiiMote Hoparlörünü İptal Et"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
@@ -1874,7 +1868,6 @@ msgid "Enable"
 msgstr "İzin ver"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
-#, fuzzy
 msgid ""
 "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's "
 "supported by your GPU.\n"
@@ -1884,10 +1877,10 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "GPU'nuz tarafından desteklenen nVidia 3D Vision teknolojisini kullanarak "
-"stereoskopik 3D'yi açar. \n"
+"stereoskopik 3D efektleri açar. \n"
 "Bazı hatalara neden olabilir. \n"
+"Çalışması için tam ekran gereklidir.\n"
 "\n"
-"Çalışmak için tam ekran gereklidir. \n"
 "Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:110
@@ -1948,9 +1941,8 @@ msgid "Enable Progressive Scan"
 msgstr "Progresif Taramaya İzin Ver"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:713
-#, fuzzy
 msgid "Enable Screen Saver"
-msgstr "Geniş Ekrana İzin Ver"
+msgstr "Ekran Koruyucusuna İzin Ver"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Enable WideScreen"
@@ -1993,6 +1985,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Eğer yorumlama için ekranın tamamını kullanmak istiyorsanız, bunu "
+"etkinleştirin.\n"
+"Etkin değilse, tüm ekranı kullanmak yerine bir yorumlama penceresi "
+"oluşturulacaktır.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:79
 msgid ""
@@ -2001,6 +1999,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Eğer yorumlama için ayrı bir pencere yerine Dolphin ana penceresini "
+"kullanmak istiyorsanız, bunu etkinleştirin.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
 msgid ""
@@ -2030,6 +2032,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Eğer emüle edilen yazılım destekliyorsa, progresif taramayı etkinleştirir.\n"
+"Oyunların çoğu bunu umursamaz.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid ""
@@ -2443,9 +2449,8 @@ msgid "Force 4:3"
 msgstr "4:3 'e zorla"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
-#, fuzzy
 msgid "Force Console as NTSC-J"
-msgstr "Konsolu NTSC-J olarak ayarla"
+msgstr "Konsolu NTSC-J Olarak Zorla"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:404
 msgid "Force Texture Filtering"
@@ -2481,6 +2486,9 @@ msgid ""
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
 "setting when playing Japanese games."
 msgstr ""
+"Japon ROM yazılarını kullanabilmek için emülatörü NTSC-J moduna zorlar.\n"
+"İşaretsiz bırakırsanız, Dolphin varsayılan olarak NTSC-U'yu seçecektir ve "
+"Japon oyunlarını oynarken bu ayarı etkinleştirecektir."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:81
 msgid ""
@@ -2551,7 +2559,6 @@ msgid "FullScr"
 msgstr "Tam Ekran"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:264
-#, fuzzy
 msgid "Fullscreen resolution:"
 msgstr "Tam Ekran Çözünürlüğü:"
 
@@ -2626,9 +2633,8 @@ msgid "General"
 msgstr "Genel"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:120
-#, fuzzy
 msgid "General Settings"
-msgstr "Arabirim Ayarları"
+msgstr "Genel Ayarlar"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
@@ -2742,15 +2748,14 @@ msgid "Hide Shader Errors"
 msgstr "Gölgelendirici Hatalarını Gizle"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
-#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Emülatör tarafından okunan girişleri göster. \n"
+"Emülasyon penceresinin üzerine gelen fare imlecini gizler.\n"
 "\n"
-"Emin değilseniz, işaretsiz bırakın."
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:51
 msgid "Home"
@@ -2996,9 +3001,8 @@ msgid "Installing WAD..."
 msgstr "WAD kuruluyor..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:527
-#, fuzzy
 msgid "Interface"
-msgstr "Arabirim Ayarları"
+msgstr "Arabirim"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
 msgid "Interface Settings"
@@ -3178,7 +3182,7 @@ msgstr "Daha Az"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 msgid "Limit by FPS"
-msgstr ""
+msgstr "FPS Sınırlaması"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:928
 msgid "Load"
@@ -3256,9 +3260,8 @@ msgid "Local"
 msgstr "Yerel"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
-#, fuzzy
 msgid "Lock Threads to Cores"
-msgstr "İşlem birimlerini çekirdeklere kilitle"
+msgstr "İşlem Birimlerini Çekirdeklere Kilitle"
 
 #: Source/Core/DolphinWX/Src/LogWindow.h:51
 msgid "Log"
@@ -3326,7 +3329,7 @@ msgstr "Yapımcı:"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:82
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:85
 msgid "Max"
-msgstr ""
+msgstr "En fazla"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:450
 msgid "Memcard already has a save for this title"
@@ -3389,9 +3392,8 @@ msgstr "Mikrofon"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:81
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:84
-#, fuzzy
 msgid "Min"
-msgstr "Mikrofon"
+msgstr "En az"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:584
 msgid "Misc"
@@ -3458,6 +3460,8 @@ msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
 msgstr ""
+"WiiMote hoparlörünün sesini kapatır. Gerçek WiiMote'lardaki rastgele "
+"bağlantı kesilmelerini önler. Taklit WiiMote'ları etkilemez."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
@@ -4011,9 +4015,8 @@ msgid "Reconnect Wiimote Confirm"
 msgstr "Wiimote Tekrar Bağlama Onayı"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:77
-#, fuzzy
 msgid "Reconnect Wiimote on State Loading"
-msgstr "Durum yüklendiğinde Wiimote'u yeniden bağla"
+msgstr "Durum yüklemesinde Wiimote'u yeniden bağla"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:178
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
@@ -4214,9 +4217,9 @@ msgid "Scaled EFB Copy"
 msgstr "Boyutlandırılmış EFB Kopyası"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
-#, fuzzy, c-format
+#, c-format
 msgid "Scanning %s"
-msgstr "Taranıyor..."
+msgstr "Taranıyor %s"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:579
 msgid "Scanning for ISOs"
@@ -4327,6 +4330,12 @@ msgid ""
 "If unsure, use your desktop resolution.\n"
 "If still unsure, use the highest resolution which works for you."
 msgstr ""
+"Tam ekran modunda kullanılacak olan çözünürlüğü seçin.\n"
+"Bu değer iç çözünürlükten büyük veya iç çözünürlüğün katı olmalıdır. "
+"Performansa olan etkisi ihmal edilebilir düzeydedir.\n"
+"\n"
+"Emin değilseniz, masaüstü çözünürlüğünüzü seçin.\n"
+"Hala emin değilseniz, kullanabildiğiniz en yüksek çözünürlüğü seçin."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -4337,6 +4346,12 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 9."
 msgstr ""
+"Hangi görüntü API'sinin kullanılacağını seçer.\n"
+"DirectX 9 genelde en hızlı olanlarıdır. OpenGL doğruluğa önem verir. DirectX "
+"11 ikisinin arasıdır.\n"
+"Şunu unutmayın, DirectX 9 sadece Windows'da kullanılabilir.\n"
+"\n"
+"Emin değilseniz, DirectX 9 seçin."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:275
 msgid "Send"
@@ -4572,9 +4587,8 @@ msgid "Size"
 msgstr "Boyut"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:652
-#, fuzzy
 msgid "Skip BIOS"
-msgstr "GC BIOS'unu Atla"
+msgstr "BIOS'u Geç"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Skip Dest. Alpha Pass"
@@ -4640,6 +4654,10 @@ msgid ""
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
+"Yazılım yorumlaması, diğer arka uçlardan daha yavaştır.\n"
+"Sadece hata ayıklamada kullanışlıdır.\n"
+"Yazılım yorumlamasını açmayı gerçekten istiyor musunuz? Emin değilseniz, "
+"'Hayır' seçin."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:619
 msgid "Sound Settings"
@@ -4884,7 +4902,7 @@ msgstr "İsim ',' karakterini içeremez"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:141
 msgid "The resulting decrypted AR code doesn't contain any lines."
-msgstr ""
+msgstr "Ortaya çıkan şifresi çözülmüş AR kodu herhangi bir satır içermiyor."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
 msgid ""
@@ -4971,7 +4989,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Bu Wii Menüsünde ve bazı oyunlarda yavaşlamaya neden olabilir."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Hold the right mouse button and move the mouse to pan the camera around. "
@@ -4981,8 +4998,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Bu özellik oyunun kamerasıyla dalga geçmenizi sağlar :) \n"
-"\n"
+"Bu özellik oyunun kamerasını değiştirmenizi sağlar.\n"
 "Sağ fare düğmesini basılı tutun ve fareyi gezdirerek kamerayı kendi "
 "etrafında döndürün. SHIFT tuşunu ve WASD tuşlarından birini kullanarak "
 "kamerayı hareket ettirin. (SHIFT+0 2 kat daha fazla hareket sağlar, SHIFT+9 "
@@ -5117,6 +5133,9 @@ msgid ""
 "decrypted code.  Make sure you typed it correctly.\n"
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
+"Girilen AR kodunun %lu 'nci satırı geçerli bir şifreli veya şifresi çözülmüş "
+"kod olarak ayrıştırılamadı. Kodu doğru yazdığınızdan emin olun.\n"
+"Bu satırı yoksayıp ayrıştırmaya devam etmek istiyor musunuz?"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:402
 #, c-format
@@ -5179,9 +5198,8 @@ msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "EuRGB60 Modunu Kullan (PAL60)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:294
-#, fuzzy
 msgid "Use Fullscreen"
-msgstr "Tam Ekran (&F)"
+msgstr "Tam Ekran Kullan"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:562
 msgid "Use Hex"
@@ -5342,9 +5360,8 @@ msgid "Wii Console"
 msgstr "Wii Konsolu"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
-#, fuzzy
 msgid "Wii NAND Root:"
-msgstr "DVD Kök Dizini:"
+msgstr "Wii NAND Kök Dizini:"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:202
 msgid "Wii Save Import"
