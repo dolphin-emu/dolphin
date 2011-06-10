@@ -80,7 +80,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	{
 		WRITE(p,"uniform samplerRECT samp0 : register(s0);\n");
 	}
-	else if (ApiType == API_D3D9)
+	else if (ApiType & API_D3D9)
 	{
 		WRITE(p,"uniform sampler samp0 : register(s0);\n");
 	}
@@ -150,7 +150,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	{
 		WRITE(p,"uniform samplerRECT samp0 : register(s0);\n");
 	}
-	else if (ApiType == API_D3D9)
+	else if (ApiType & API_D3D9)
 	{
 		WRITE(p,"uniform sampler samp0 : register(s0);\n");
 	}
@@ -209,7 +209,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
 	const char* texSampleOpName;
-	if (ApiType == API_D3D9)
+	if (ApiType & API_D3D9)
 		texSampleOpName = "tex2D";
 	else if (ApiType == API_D3D11)
 		texSampleOpName = "tex0.Sample";

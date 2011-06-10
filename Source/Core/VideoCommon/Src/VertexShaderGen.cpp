@@ -112,7 +112,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 	
-	bool is_d3d = (api_type == API_D3D9 || api_type == API_D3D11);
+	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
 	u32 lightMask = 0;
 	if (xfregs.numChan.numColorChans > 0)
 		lightMask |= xfregs.color[0].GetFullLightMask() | xfregs.alpha[0].GetFullLightMask();
@@ -187,7 +187,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (api_type == API_D3D9)
+		if (api_type & API_D3D9)
 		{
 			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n");
 			WRITE(p, "int posmtx = indices.x;\n");
