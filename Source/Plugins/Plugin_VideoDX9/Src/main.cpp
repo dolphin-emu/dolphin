@@ -89,14 +89,15 @@ std::string VideoBackend::GetName()
 
 void InitBackendInfo()
 {
-	g_Config.backend_info.APIType = API_D3D9;
+	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	
-	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 }
 

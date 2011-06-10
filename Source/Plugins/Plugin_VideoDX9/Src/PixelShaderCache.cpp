@@ -360,7 +360,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	
 	
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_D3D9, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30, components);
 
 	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
 	unique_shaders.insert(code_hash);
