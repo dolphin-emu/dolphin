@@ -20,32 +20,47 @@
 
 #include "VideoCommon.h"
 
-#include "D3DUtil.h"
+struct ID3D11Texture2D;
+struct ID3D11RenderTargetView;
+struct ID3D11Buffer;
+struct ID3D11VertexShader;
+struct ID3D11PixelShader;
+struct ID3D11InputLayout;
+struct ID3D11BlendState;
+struct ID3D11DepthStencilState;
+struct ID3D11RasterizerState;
+struct ID3D11SamplerState;
 
 namespace DX11
 {
 
 class XFBEncoder
 {
+
 public:
+
 	XFBEncoder();
-	~XFBEncoder();
+
+	void Init();
+	void Shutdown();
 
 	void Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma);
 
 private:
-	SharedPtr<ID3D11Texture2D> m_out;
+
+	ID3D11Texture2D* m_out;
 	ID3D11RenderTargetView* m_outRTV;
-	SharedPtr<ID3D11Texture2D> m_outStage;
-	SharedPtr<ID3D11Buffer> m_encodeParams;
-	SharedPtr<ID3D11Buffer> m_quad;
-	SharedPtr<ID3D11VertexShader> m_vShader;
-	SharedPtr<ID3D11InputLayout> m_quadLayout;
-	SharedPtr<ID3D11PixelShader> m_pShader;
-	SharedPtr<ID3D11BlendState> m_xfbEncodeBlendState;
+	ID3D11Texture2D* m_outStage;
+	ID3D11Buffer* m_encodeParams;
+	ID3D11Buffer* m_quad;
+	ID3D11VertexShader* m_vShader;
+	ID3D11InputLayout* m_quadLayout;
+	ID3D11PixelShader* m_pShader;
+	ID3D11BlendState* m_xfbEncodeBlendState;
 	ID3D11DepthStencilState* m_xfbEncodeDepthState;
 	ID3D11RasterizerState* m_xfbEncodeRastState;
 	ID3D11SamplerState* m_efbSampler;
+
 };
 
 }

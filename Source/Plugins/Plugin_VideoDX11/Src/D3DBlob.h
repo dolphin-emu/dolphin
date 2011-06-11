@@ -15,45 +15,39 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VERTEXMANAGER_H
-#define _VERTEXMANAGER_H
+#pragma once
 
-#include "VertexManagerBase.h"
-#include "LineGeometryShader.h"
-#include "PointGeometryShader.h"
+#include "CommonTypes.h"
+
+struct ID3D10Blob;
 
 namespace DX11
 {
 
-class VertexManager : public ::VertexManager
+// use this class instead ID3D10Blob or ID3D11Blob whenever possible
+class D3DBlob
 {
 public:
-	VertexManager();
-	~VertexManager();
+	// memory will be copied into an own buffer
+	D3DBlob(unsigned int blob_size, const u8* init_data = NULL);
 
-	NativeVertexFormat* CreateNativeVertexFormat();
+	// d3dblob will be AddRef'd
+	D3DBlob(ID3D10Blob* d3dblob);
+
+	void AddRef();
+	unsigned int Release();
+
+	unsigned int Size();
+	u8* Data();
 
 private:
-	void CreateDeviceObjects();
-	void DestroyDeviceObjects();
-	void LoadBuffers();
-	void Draw(UINT stride);
-	// temp
-	void vFlush();
+	~D3DBlob();
 
-	UINT m_indexBufferCursor;
-	UINT m_vertexBufferCursor;
-	UINT m_vertexDrawOffset;
-	UINT m_triangleDrawIndex;
-	UINT m_lineDrawIndex;
-	UINT m_pointDrawIndex;
-	ID3D11Buffer* m_indexBuffer;
-	ID3D11Buffer* m_vertexBuffer;
+	unsigned int ref;
+	unsigned int size;
 
-	LineGeometryShader m_lineShader;
-	PointGeometryShader m_pointShader;
+	u8* data;
+	ID3D10Blob* blob;
 };
 
 }  // namespace
-
-#endif

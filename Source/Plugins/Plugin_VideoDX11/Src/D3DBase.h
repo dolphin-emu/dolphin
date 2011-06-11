@@ -17,34 +17,20 @@
 
 #pragma once
 
-#include <vector>
-
 #include <D3DX11.h>
 #include <D3Dcompiler.h>
-
-#include "D3DUtil.h"
 #include "Common.h"
+#include <vector>
 
 namespace DX11 
 {
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
-
-#define CHECK(cond, Message, ...) if (!(cond)) { \
-	PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
+#define SAFE_DELETE(x) { delete (x); (x) = NULL; }
+#define SAFE_DELETE_ARRAY(x) { delete[] (x); (x) = NULL; }
+#define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
 class D3DTexture2D;
-
-SharedPtr<ID3D11Texture2D> CreateTexture2DShared(
-	const D3D11_TEXTURE2D_DESC* pDesc, const D3D11_SUBRESOURCE_DATA* pInitialData);
-
-SharedPtr<ID3D11BlendState> CreateBlendStateShared(const D3D11_BLEND_DESC *pBlendStateDesc);
-
-SharedPtr<ID3D11InputLayout> CreateInputLayoutShared(const D3D11_INPUT_ELEMENT_DESC *pInputElementDescs,
-	UINT NumElements, const void *pShaderBytecodeWithInputSignature, SIZE_T BytecodeLength);
-
-SharedPtr<ID3D11Buffer> CreateBufferShared(const D3D11_BUFFER_DESC *pDesc,
-	const D3D11_SUBRESOURCE_DATA *pInitialData);
 
 namespace D3D
 {
@@ -64,10 +50,9 @@ DXGI_SAMPLE_DESC GetAAMode(int index);
 HRESULT Create(HWND wnd);
 void Close();
 
-extern SharedPtr<ID3D11Device> g_device;
-extern SharedPtr<ID3D11DeviceContext> g_context;
-extern SharedPtr<IDXGISwapChain> g_swapchain;
-
+extern ID3D11Device* device;
+extern ID3D11DeviceContext* context;
+extern IDXGISwapChain* swapchain;
 extern bool bFrameInProgress;
 
 void Reset();
@@ -77,7 +62,7 @@ void Present();
 
 unsigned int GetBackBufferWidth();
 unsigned int GetBackBufferHeight();
-D3DTexture2D* GetBackBuffer();
+D3DTexture2D* &GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
@@ -93,7 +78,6 @@ void SetDebugObjectName(T resource, const char* name)
 {
 	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
 		"resource must be convertible to ID3D11DeviceChild*");
-
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name), name);
 #endif
@@ -127,8 +111,6 @@ typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
 typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 extern D3D11CREATEDEVICE PD3D11CreateDevice;
-typedef HRESULT (WINAPI* D3D10CREATEBLOB)(SIZE_T NumBytes, LPD3D10BLOB *ppBuffer);
-extern D3D10CREATEBLOB PD3D10CreateBlob;
 
 typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;

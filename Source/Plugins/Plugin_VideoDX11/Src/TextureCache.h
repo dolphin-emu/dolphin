@@ -33,11 +33,12 @@ public:
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
-		std::unique_ptr<D3DTexture2D> const texture;
+		D3DTexture2D *const texture;
 
 		D3D11_USAGE usage;
 
-		TCacheEntry(std::unique_ptr<D3DTexture2D>&& _tex) : texture(std::move(_tex)) {}
+		TCacheEntry(D3DTexture2D *_tex) : texture(_tex) {}
+		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
@@ -55,6 +56,7 @@ private:
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
 
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
+	u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source) {return 0;};
 };
 
 }

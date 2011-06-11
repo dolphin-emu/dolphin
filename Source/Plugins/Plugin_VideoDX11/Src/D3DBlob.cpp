@@ -15,44 +15,55 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _LINEGEOMETRYSHADER_H
-#define _LINEGEOMETRYSHADER_H
-
-#include "VideoCommon.h"
-
-struct ID3D11Buffer;
-struct ID3D11GeometryShader;
+#include <d3d11.h>
+#include "D3DBlob.h"
 
 namespace DX11
 {
 
-// This class manages a collection of line geometry shaders, one for each
-// vertex format.
-class LineGeometryShader
+D3DBlob::D3DBlob(unsigned int blob_size, const u8* init_data) : ref(1), size(blob_size), blob(NULL)
 {
-
-public:
-
-	LineGeometryShader();
-
-	void Init();
-	void Shutdown();
-	// Returns true on success, false on failure
-	bool SetShader(u32 components, float lineWidth, float texOffset,
-		float vpWidth, float vpHeight, const bool* texOffsetEnable);
-
-private:
-
-	bool m_ready;
-
-	ID3D11Buffer* m_paramsBuffer;
-
-	typedef std::map<u32, ID3D11GeometryShader*> ComboMap;
-
-	ComboMap m_shaders;
-
-};
-
+	data = new u8[blob_size];
+	if (init_data) memcpy(data, init_data, size);
 }
 
-#endif
+D3DBlob::D3DBlob(ID3D10Blob* d3dblob) : ref(1)
+{
+	blob = d3dblob;
+	data = (u8*)blob->GetBufferPointer();
+	size = (unsigned int)blob->GetBufferSize();
+	d3dblob->AddRef();
+}
+
+D3DBlob::~D3DBlob()
+{
+	if (blob) blob->Release();
+	else delete[] data;
+}
+
+void D3DBlob::AddRef()
+{
+	++ref;
+}
+
+unsigned int D3DBlob::Release()
+{
+	if (--ref == 0)
+	{
+		delete this;
+		return 0;
+	}
+	return ref;
+}
+
+unsigned int D3DBlob::Size()
+{
+	return size;
+}
+
+u8* D3DBlob::Data()
+{
+	return data;
+}
+
+}  // namespace DX11

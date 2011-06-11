@@ -115,8 +115,9 @@ void InitBackendInfo()
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
 		{
 			char buf[32];
-			auto const modes = DX11::D3D::EnumAAModes(ad);
-			for (size_t i = 0; i < modes.size(); ++i)
+			std::vector<DXGI_SAMPLE_DESC> modes;
+			modes = DX11::D3D::EnumAAModes(ad);
+			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
 				if (i == 0) sprintf_s(buf, 32, "None");
 				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);

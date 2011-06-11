@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\D3DBase.cpp" />
+    <ClCompile Include="Src\D3DBlob.cpp" />
     <ClCompile Include="Src\D3DShader.cpp" />
     <ClCompile Include="Src\D3DTexture.cpp" />
     <ClCompile Include="Src\D3DUtil.cpp" />
@@ -219,6 +220,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\D3DBase.h" />
+    <ClInclude Include="Src\D3DBlob.h" />
     <ClInclude Include="Src\D3DShader.h" />
     <ClInclude Include="Src\D3DTexture.h" />
     <ClInclude Include="Src\D3DUtil.h" />

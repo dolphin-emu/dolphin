@@ -132,17 +132,37 @@ static const char POINT_GS_COMMON[] =
 ;
 
 PointGeometryShader::PointGeometryShader()
-	: m_ready(false)
+	: m_ready(false), m_paramsBuffer(NULL)
+{ }
+
+void PointGeometryShader::Init()
 {
+	m_ready = false;
+
+	HRESULT hr;
+
 	// Create constant buffer for uploading data to geometry shader
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(PointGSParams_Padded),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	m_paramsBuffer = CreateBufferShared(&bd, NULL);
-	CHECK(m_paramsBuffer, "create point geometry shader params buffer");
+	hr = D3D::device->CreateBuffer(&bd, NULL, &m_paramsBuffer);
+	CHECK(SUCCEEDED(hr), "create point geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "point geometry shader params buffer");
 
 	m_ready = true;
+}
+
+void PointGeometryShader::Shutdown()
+{
+	m_ready = false;
+
+	for (ComboMap::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it)
+	{
+		SAFE_RELEASE(it->second);
+	}
+	m_shaders.clear();
+
+	SAFE_RELEASE(m_paramsBuffer);
 }
 
 bool PointGeometryShader::SetShader(u32 components, float pointSize,
@@ -171,13 +191,12 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 			{ "NUM_TEXCOORDS", numTexCoordsStr.str().c_str() },
 			{ NULL, NULL }
 		};
-		
-		auto const newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
+		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Point geometry shader for components 0x%.08X failed to compile", components);
 			// Add dummy shader to prevent trying to compile again
-			m_shaders[components].reset();
+			m_shaders[components] = NULL;
 			return false;
 		}
 
@@ -189,27 +208,28 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 		if (shaderIt->second)
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
-			HRESULT hr = D3D::g_context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			HRESULT hr = D3D::context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 			if (SUCCEEDED(hr))
 			{
 				PointGSParams* params = (PointGSParams*)map.pData;
 				params->PointSize = pointSize;
+
 				params->TexOffset = texOffset;
 				params->VpWidth = vpWidth;
 				params->VpHeight = vpHeight;
 				for (int i = 0; i < 8; ++i)
 					params->TexOffsetEnable[i] = texOffsetEnable[i] ? 1.f : 0.f;
 
-				D3D::g_context->Unmap(m_paramsBuffer, 0);
+				D3D::context->Unmap(m_paramsBuffer, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "Failed to map point gs params buffer");
-			
+
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);
 
-			D3D::g_context->GSSetShader(shaderIt->second, NULL, 0);
-			D3D::g_context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
+			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
+			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
 
 			return true;
 		}

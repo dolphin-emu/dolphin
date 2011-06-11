@@ -57,16 +57,12 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
 {
 public:
-	template <typename F>
-	void operator()(const VERTEXSHADERUID& key, u32 value_size, F get_data) const
+	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
 	{
-		std::unique_ptr<u8[]> value(new u8[value_size]);
-		get_data(value.get());
-
-		VertexShaderCache::InsertByteCode(key, value.get(), value_size, false);
+		VertexShaderCache::InsertByteCode(key, value, value_size, false);
 	}
 };
 
@@ -152,9 +148,9 @@ void VertexShaderCache::Init()
 
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-
-	g_vs_disk_cache.OpenAndRead(cache_filename, VertexShaderCacheInserter());
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	VertexShaderCacheInserter inserter;
+	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 }
 
 void VertexShaderCache::Clear()

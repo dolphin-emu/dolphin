@@ -138,17 +138,37 @@ static const char LINE_GS_COMMON[] =
 ;
 
 LineGeometryShader::LineGeometryShader()
-	: m_ready(false)
+	: m_ready(false), m_paramsBuffer(NULL)
+{ }
+
+void LineGeometryShader::Init()
 {
+	m_ready = false;
+
+	HRESULT hr;
+
 	// Create constant buffer for uploading data to geometry shader
-	
+
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(LineGSParams_Padded),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	m_paramsBuffer = CreateBufferShared(&bd, NULL);
-	CHECK(m_paramsBuffer, "create line geometry shader params buffer");
+	hr = D3D::device->CreateBuffer(&bd, NULL, &m_paramsBuffer);
+	CHECK(SUCCEEDED(hr), "create line geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "line geometry shader params buffer");
 
 	m_ready = true;
+}
+
+void LineGeometryShader::Shutdown()
+{
+	m_ready = false;
+
+	for (ComboMap::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it)
+	{
+		SAFE_RELEASE(it->second);
+	}
+	m_shaders.clear();
+
+	SAFE_RELEASE(m_paramsBuffer);
 }
 
 bool LineGeometryShader::SetShader(u32 components, float lineWidth,
@@ -177,13 +197,12 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			{ "NUM_TEXCOORDS", numTexCoordsStr.str().c_str() },
 			{ NULL, NULL }
 		};
-
-		auto const newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
+		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components);
 			// Add dummy shader to prevent trying to compile again
-			m_shaders[components].reset();
+			m_shaders[components] = NULL;
 			return false;
 		}
 
@@ -195,18 +214,19 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		if (shaderIt->second)
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
-			HRESULT hr = D3D::g_context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			HRESULT hr = D3D::context->Map(m_paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 			if (SUCCEEDED(hr))
 			{
 				LineGSParams* params = (LineGSParams*)map.pData;
 				params->LineWidth = lineWidth;
+
 				params->TexOffset = texOffset;
 				params->VpWidth = vpWidth;
 				params->VpHeight = vpHeight;
 				for (int i = 0; i < 8; ++i)
 					params->TexOffsetEnable[i] = texOffsetEnable[i] ? 1.f : 0.f;
 
-				D3D::g_context->Unmap(m_paramsBuffer, 0);
+				D3D::context->Unmap(m_paramsBuffer, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "Failed to map line gs params buffer");
@@ -214,8 +234,8 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			DEBUG_LOG(VIDEO, "Line params: width %f, texOffset %f, vpWidth %f, vpHeight %f",
 				lineWidth, texOffset, vpWidth, vpHeight);
 
-			D3D::g_context->GSSetShader(shaderIt->second, NULL, 0);
-			D3D::g_context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
+			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
+			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
 
 			return true;
 		}
