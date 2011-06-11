@@ -163,7 +163,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 		m_pad_notebook->AddPage(wpage, wxString(_("Wiimote ")) + wxChar('1'+i));
 		m_wiimote_config_pages.push_back(wpage);
 	}
-	m_pad_notebook->SetSelection(0);
+	m_pad_notebook->SetSelection(1);
 
 	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Save));
 	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Cancel));
