@@ -159,7 +159,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					std::string FileName = name + ext;
 
 					// Decode entities of invalid file system characters so that
-					// games (such as HB:HBP) will be able to find what they expect.
+					// games (such as HP:HBP) will be able to find what they expect.
 					for (Common::replace_v::const_iterator it = replacements.begin(); it != replacements.end(); ++it)
 					{
 						for (size_t j = 0; (j = FileName.find(it->second, j)) != FileName.npos; ++j)

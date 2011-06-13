@@ -350,32 +350,33 @@ void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& W
 
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
-	search_results.clear();
-
 	const u8* const memptr = Memory::GetPointer(0);
 	if (NULL == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
+		return;
 	}
-	else
+
+	// Determine the user-selected data size for this search.
+	search_type_size =
+		size_radiobtn.rad_8->GetValue() +
+		(size_radiobtn.rad_16->GetValue() << 1) +
+		(size_radiobtn.rad_32->GetValue() << 2);
+
+	// Set up the search results efficiently to prevent automatic re-allocations.
+	search_results.clear();
+	search_results.reserve(Memory::RAM_SIZE / search_type_size);
+
+	// Enable the "Next Scan" button.
+	btnNextScan->Enable();
+
+	CheatSearchResult r;
+	// can I assume cheatable values will be aligned like this?
+	for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
 	{
-		// enable the next scan button
-		btnNextScan->Enable();
-
-		// determine the search data size
-		search_type_size =
-			size_radiobtn.rad_8->GetValue() +
-			(size_radiobtn.rad_16->GetValue() << 1) +
-			(size_radiobtn.rad_32->GetValue() << 2);
-
-		CheatSearchResult r;
-		// can I assume cheatable values will be aligned like this?
-		for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
-		{
-			r.address = addr;
-			memcpy(&r.old_value, memptr + addr, search_type_size);
-			search_results.push_back(r);
-		}
+		r.address = addr;
+		memcpy(&r.old_value, memptr + addr, search_type_size);
+		search_results.push_back(r);
 	}
 
 	UpdateCheatSearchResultsList();
@@ -387,99 +388,101 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	if (NULL == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
+		return;
 	}
-	else
+
+	std::vector<CheatSearchResult>::iterator
+		i = search_results.begin(),
+		e = search_results.end();
+
+	// Set up the sub-search results efficiently to prevent automatic re-allocations.
+	std::vector<CheatSearchResult> filtered_results;
+	filtered_results.reserve(search_results.size());
+
+
+	// determine the selected filter
+	// 1 : equal
+	// 2 : greater-than
+	// 4 : less-than
+
+	const int filters[] = {7, 6, 1, 2, 4};
+	int filter_mask = filters[search_type->GetSelection()];
+
+	if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
 	{
-		std::vector<CheatSearchResult>::iterator
-			i = search_results.begin(),
-			e = search_results.end();
-		std::vector<CheatSearchResult>	filtered_results;
-
-
-		// determine the selected filter
-		// 1 : equal
-		// 2 : greater-than
-		// 4 : less-than
-
-		const int filters[] = {7, 6, 1, 2, 4};
-		int filter_mask = filters[search_type->GetSelection()];
-
-		if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
+		for (; i!=e; ++i)
 		{
-			for (; i!=e; ++i)
-			{
-				// with big endian, can just use memcmp for ><= comparison
-				int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
-				if (cmp_result < 0)
-					cmp_result = 4;
-				else
-					cmp_result = cmp_result ? 2 : 1;
+			// with big endian, can just use memcmp for ><= comparison
+			int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
+			if (cmp_result < 0)
+				cmp_result = 4;
+			else
+				cmp_result = cmp_result ? 2 : 1;
 
-				if (cmp_result & filter_mask)
-				{
-					memcpy(&i->old_value, memptr + i->address, search_type_size);
-					filtered_results.push_back(*i);
-				}
+			if (cmp_result & filter_mask)
+			{
+				memcpy(&i->old_value, memptr + i->address, search_type_size);
+				filtered_results.push_back(*i);
 			}
 		}
-		else	// using user entered x value comparison
-		{
-			u32 user_x_val;
-
-			// parse the user entered x value
-			if (filter_mask != 7) // don't need the value for the "None" filter
-			{
-				unsigned long parsed_x_val = 0;
-				wxString x_val = textctrl_value_x->GetLabel();
-
-				if (!x_val.ToULong(&parsed_x_val, 0))
-				{
-					PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
-					return;
-				}
-
-				user_x_val = (u32)parsed_x_val;
-
-				// #ifdef LIL_ENDIAN :p
-				switch (search_type_size)
-				{
-				case 1 :
-					break;
-				case 2 :
-					*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
-					break;
-				case 4 :
-					user_x_val = Common::swap32(user_x_val);
-					break;
-				}
-				// #elseif BIG_ENDIAN
-				// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
-				// #endif
-			}
-
-			for (; i!=e; ++i)
-			{
-				// with big endian, can just use memcmp for ><= comparison
-				int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
-				if (cmp_result < 0)
-					cmp_result = 4;
-				else if (cmp_result)
-					cmp_result = 2;
-				else
-					cmp_result = 1;
-
-				if (cmp_result & filter_mask)
-				{
-					memcpy(&i->old_value, memptr + i->address, search_type_size);
-					filtered_results.push_back(*i);
-				}
-			}
-		}
-
-		search_results.swap(filtered_results);
-
-		UpdateCheatSearchResultsList();
 	}
+	else	// using user entered x value comparison
+	{
+		u32 user_x_val;
+
+		// parse the user entered x value
+		if (filter_mask != 7) // don't need the value for the "None" filter
+		{
+			unsigned long parsed_x_val = 0;
+			wxString x_val = textctrl_value_x->GetLabel();
+
+			if (!x_val.ToULong(&parsed_x_val, 0))
+			{
+				PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
+				return;
+			}
+
+			user_x_val = (u32)parsed_x_val;
+
+			// #ifdef LIL_ENDIAN :p
+			switch (search_type_size)
+			{
+			case 1 :
+				break;
+			case 2 :
+				*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
+				break;
+			case 4 :
+				user_x_val = Common::swap32(user_x_val);
+				break;
+			}
+			// #elseif BIG_ENDIAN
+			// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
+			// #endif
+		}
+
+		for (; i!=e; ++i)
+		{
+			// with big endian, can just use memcmp for ><= comparison
+			int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
+			if (cmp_result < 0)
+				cmp_result = 4;
+			else if (cmp_result)
+				cmp_result = 2;
+			else
+				cmp_result = 1;
+
+			if (cmp_result & filter_mask)
+			{
+				memcpy(&i->old_value, memptr + i->address, search_type_size);
+				filtered_results.push_back(*i);
+			}
+		}
+	}
+
+	search_results.swap(filtered_results);
+
+	UpdateCheatSearchResultsList();
 }
 
 void CheatSearchTab::ApplyFocus(wxCommandEvent&)
