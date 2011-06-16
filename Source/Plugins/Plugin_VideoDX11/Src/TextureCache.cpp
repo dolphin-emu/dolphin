@@ -208,12 +208,13 @@ void TCacheEntry::CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height
 	
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height, 1, levels);
 
-	m_ramStorage.tex->Release();
+	SAFE_RELEASE(m_ramStorage.tex);
 
 	ID3D11Texture2D* newRamTexture;
 	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &newRamTexture);
 	CHECK(SUCCEEDED(hr), "create ram texture");
 	m_ramStorage.tex = new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE);
+	newRamTexture->Release();
 
 	m_ramStorage.dxFormat = dxFormat;
 	m_ramStorage.width = width;
@@ -225,13 +226,13 @@ void TCacheEntry::CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height
 
 static void DecodeI4ToR8(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps8 = (width + 7) / 8;
+	u32 Wsteps8 = (width + 7) / 8;
 
-	for (int y = 0; y < height; y += 8)
+	for (u32 y = 0; y < height; y += 8)
 	{
-		for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
 		{
-			for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
+			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
 			{
 				for (int ix = 0; ix < 4; ix++)
 				{
@@ -246,13 +247,13 @@ static void DecodeI4ToR8(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeI8ToR8(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps8 = (width + 7) / 8;
+	u32 Wsteps8 = (width + 7) / 8;
 
-	for (int y = 0; y < height; y += 4)
+	for (u32 y = 0; y < height; y += 4)
 	{
-		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 		{
-			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 			{
 				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
 			}
@@ -262,15 +263,15 @@ static void DecodeI8ToR8(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps8 = (width + 7) / 8;
+	u32 Wsteps8 = (width + 7) / 8;
 
-	for (int y = 0; y < height; y += 4)
+	for (u32 y = 0; y < height; y += 4)
 	{
-		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 		{
-			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 			{
-				for (int ix = 0; ix < 8; ++ix)
+				for (u32 ix = 0; ix < 8; ++ix)
 				{
 					u8 val = src[8 * xStep + ix];
 					dst[((y + iy) * width + x + ix) * 2] = Convert4To8(val >> 4);
@@ -283,13 +284,13 @@ static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeIA8ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps4 = (width + 3) / 4;
+	u32 Wsteps4 = (width + 3) / 4;
 
-	for (int y = 0; y < height; y += 4)
+	for (u32 y = 0; y < height; y += 4)
 	{
-		for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+		for (u32 x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 		{
-			for (int iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
+			for (u32 iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
 			{
 				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 				u16 *s = (u16 *)(src + 8 * xStep);
@@ -303,15 +304,15 @@ static void DecodeIA8ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps8 = (width + 7) / 8;
+	u32 Wsteps8 = (width + 7) / 8;
 
-	for (int y = 0; y < height; y += 8)
+	for (u32 y = 0; y < height; y += 8)
 	{
-		for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
 		{
-			for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
+			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
 			{
-				for (int ix = 0; ix < 4; ix++)
+				for (u32 ix = 0; ix < 4; ix++)
 				{
 					int val = src[4 * xStep + ix];
 					dst[(y + iy) * width + x + ix * 2] = val >> 4;
@@ -324,13 +325,13 @@ static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps8 = (width + 7) / 8;
+	u32 Wsteps8 = (width + 7) / 8;
 
-	for (int y = 0; y < height; y += 4)
+	for (u32 y = 0; y < height; y += 4)
 	{
-		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 		{
-			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 			{
 				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
 			}
@@ -340,13 +341,13 @@ static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
 
 static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
 {
-	int Wsteps4 = (width + 3) / 4;
+	u32 Wsteps4 = (width + 3) / 4;
 
-	for (int y = 0; y < height; y += 4)
+	for (u32 y = 0; y < height; y += 4)
 	{
-		for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+		for (u32 x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 		{
-			for (int iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
+			for (u32 iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
 			{
 				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 				u16 *s = (u16 *)(src + 8 * xStep);
@@ -513,6 +514,8 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
+	HRESULT hr;
+
 	if (IsPaletted(format))
 	{
 		bool paletteChanged = RefreshTlut(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
@@ -535,12 +538,14 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 			DEBUG_LOG(VIDEO, "Creating depal-storage of size %dx%d for texture at 0x%.08X",
 				loadedDesc.Width, loadedDesc.Height, ramAddr);
 
-			m_depalStorage.tex->Release();
+			SAFE_RELEASE(m_depalStorage.tex);
 
 			ID3D11Texture2D* newDepal;
-			D3D::device->CreateTexture2D(&t2dd, NULL, &newDepal);
+			hr = D3D::device->CreateTexture2D(&t2dd, NULL, &newDepal);
+			CHECK(SUCCEEDED(hr), "create depalettized storage texture");
 			m_depalStorage.tex = new D3DTexture2D(newDepal,
 				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET));
+			newDepal->Release();
 
 			m_depalStorage.width = t2dd.Width;
 			m_depalStorage.height = t2dd.Height;
@@ -691,8 +696,6 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 	// Re-encode with a different palette
 
 	DepalettizeShader::BaseType baseType;
-
-	ID3D11PixelShader* depalettizeShader;
 	if (m_fromVirtCopy)
 	{
 		// If the base came from a TCL, it will have UNORM type

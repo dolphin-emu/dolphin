@@ -437,7 +437,7 @@ static const char EFB_ENCODE_PS[] =
 ;
 
 PSTextureEncoder::PSTextureEncoder()
-	: m_ready(false), m_outRTV(NULL)
+	: m_ready(false), m_out(NULL), m_outRTV(NULL), m_outStage(NULL), m_encodeParams(NULL)
 {
 	HRESULT hr;
 
@@ -486,7 +486,16 @@ PSTextureEncoder::PSTextureEncoder()
 
 PSTextureEncoder::~PSTextureEncoder()
 {
+	for (ComboMap::iterator it = m_staticShaders.begin();
+		it != m_staticShaders.end(); ++it)
+	{
+		SAFE_RELEASE(it->second);
+	}
+
+	SAFE_RELEASE(m_encodeParams);
+	SAFE_RELEASE(m_outStage);
 	SAFE_RELEASE(m_outRTV);
+	SAFE_RELEASE(m_out);
 }
 
 u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,

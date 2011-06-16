@@ -410,12 +410,14 @@ void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT d
 		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height,
 			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
-		m_texture.tex->Release();
+		SAFE_RELEASE(m_texture.tex);
 
 		ID3D11Texture2D* newFakeBase;
 		hr = D3D::device->CreateTexture2D(&t2dd, NULL, &newFakeBase);
+		CHECK(SUCCEEDED(hr), "create virtualized texture storage");
 		m_texture.tex = new D3DTexture2D(newFakeBase,
 			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET));
+		newFakeBase->Release();
 
 		m_texture.width = width;
 		m_texture.height = height;

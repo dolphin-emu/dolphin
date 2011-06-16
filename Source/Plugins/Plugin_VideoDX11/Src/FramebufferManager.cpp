@@ -32,7 +32,7 @@ namespace DX11 {
 
 static XFBEncoder s_xfbEncoder;
 
-FramebufferManager::Efb FramebufferManager::m_efb;
+FramebufferManager::Efb FramebufferManager::m_efb = { 0 };
 
 D3DTexture2D* &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
 ID3D11Texture2D* &FramebufferManager::GetEFBColorStagingBuffer() { return m_efb.color_staging_buf; }
@@ -62,6 +62,7 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 }
 
 FramebufferManager::FramebufferManager()
+	: m_depthAccessParams(NULL), m_depthAccessShader(NULL)
 {
 	unsigned int target_width = Renderer::GetTargetWidth();
 	unsigned int target_height = Renderer::GetTargetHeight();
@@ -154,6 +155,9 @@ FramebufferManager::FramebufferManager()
 
 FramebufferManager::~FramebufferManager()
 {
+	SAFE_RELEASE(m_depthAccessShader);
+	SAFE_RELEASE(m_depthAccessParams);
+
 	s_xfbEncoder.Shutdown();
 
 	SAFE_RELEASE(m_efb.color_tex);
