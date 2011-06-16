@@ -147,6 +147,7 @@ struct VideoConfig
 	int iAdapter;
 
 	// Static config per API
+	// TODO: Move this out of VideoConfig
 	struct
 	{
 		API_TYPE APIType;

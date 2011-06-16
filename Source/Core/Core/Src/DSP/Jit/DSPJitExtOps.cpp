@@ -728,35 +728,3 @@ void DSPEmitter::popExtValueToReg() {
 	}
 	storeIndex2 = -1;
 }
-
-// This function is being called in the main op after all input regs were read
-// and before it writes into any regs. This way we can always use bitwise or to
-// apply the ext command output, because if the main op didn't change the value
-// then 0 | ext output = ext output and if it did then bitwise or is still the
-// right thing to do
-//this is only needed as long as we do fallback for ext ops
-void DSPEmitter::zeroWriteBackLog(const UDSPInstruction opc)
-{
-	const DSPOPCTemplate *tinst = GetOpTemplate(opc);
-
-	// Call extended
-	if (!tinst->extended)
-	    return;
-
-	if ((opc >> 12) == 0x3) {
-		if (! extOpTable[opc & 0x7F]->jitFunc)
-		{
-			gpr.pushRegs();
-			ABI_CallFunction((void*)::zeroWriteBackLog);
-			gpr.popRegs();
-		}
-	} else {
-		if (! extOpTable[opc & 0xFF]->jitFunc)
-		{
-			gpr.pushRegs();
-			ABI_CallFunction((void*)::zeroWriteBackLog);
-			gpr.popRegs();
-		}
-	}
-	return;
-}

@@ -333,7 +333,8 @@ union UVIDTVStatus
 	// For BS2 HLE
 	void Preset(bool _bNTSC);
 
-	void Init();	
+	void Init();
+	void SetRegionReg(char region);
 	void DoState(PointerWrap &p);
 
 	void Read8(u8& _uReturnValue, const u32 _uAddress);
@@ -341,7 +342,7 @@ union UVIDTVStatus
 	void Read32(u32& _uReturnValue, const u32 _uAddress);
 				
 	void Write16(const u16 _uValue, const u32 _uAddress);
-	void Write32(const u32 _uValue, const u32 _uAddress);	
+	void Write32(const u32 _uValue, const u32 _uAddress);
 
 	// returns a pointer to the current visible xfb
 	u8* GetXFBPointerTop();

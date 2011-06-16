@@ -53,7 +53,7 @@ public:
 	u32 values[PIXELSHADERUID_MAX_VALUES];
 	u16 tevstages, indstages;
 
-	PIXELSHADERUID() 
+	PIXELSHADERUID()
 	{
 		memset(values, 0, PIXELSHADERUID_MAX_VALUES * 4);
 		tevstages = indstages = 0;
@@ -65,11 +65,11 @@ public:
 		indstages = r.indstages;
 		int N = GetNumValues();
 		_assert_(N <= PIXELSHADERUID_MAX_VALUES);
-		for (int i = 0; i < N; ++i) 
+		for (int i = 0; i < N; ++i)
 			values[i] = r.values[i];
 	}
 
-	int GetNumValues() const 
+	int GetNumValues() const
 	{
 		return tevstages + indstages + 4;
 	}
@@ -81,7 +81,7 @@ public:
 		else if (values[0] > _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) 
+		for (int i = 1; i < N; ++i)
 		{
 			if (values[i] < _Right.values[i])
 				return true;
@@ -96,7 +96,7 @@ public:
 		if (values[0] != _Right.values[0])
 			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) 
+		for (int i = 1; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;

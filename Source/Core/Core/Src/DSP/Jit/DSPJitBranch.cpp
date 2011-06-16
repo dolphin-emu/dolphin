@@ -33,33 +33,27 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		jitCode(opc,emitter);
 		return;
 	}
-	FixupBranch skipCode2;
-	emitter.dsp_op_read_reg(DSP_REG_SR, RAX);
-	DSPJitRegCache c2(emitter.gpr);
+
+	emitter.dsp_op_read_reg(DSP_REG_SR, EAX);
+
 	switch(cond)
 	{
 	case 0x0: // GE - Greater Equal
 	case 0x1: // L - Less
+		emitter.MOV(16, R(EDX), R(EAX));
+		emitter.SHL(16, R(EDX), Imm8(2));
+		emitter.XOR(16, R(EAX), R(EDX));
+		emitter.TEST(16, R(EAX), Imm16(8));
+		break;
 	case 0x2: // G - Greater
 	case 0x3: // LE - Less Equal
 		emitter.MOV(16, R(EDX), R(EAX));
-		emitter.SHR(16, R(EDX), Imm8(3)); //SR_SIGN flag
-		emitter.NOT(16, R(EDX));
-		emitter.SHR(16, R(EAX), Imm8(1)); //SR_OVERFLOW flag
-		emitter.NOT(16, R(EAX));
+		emitter.MOV(16, R(ECX), R(EAX));
+		emitter.SHL(16, R(EDX), Imm8(2));
 		emitter.XOR(16, R(EAX), R(EDX));
-		if (cond < 0x2) {
-			emitter.TEST(16, R(EAX), Imm16(1));
-			break;
-		}
-		c2 = emitter.gpr;
-		emitter.TEST(16, R(EAX), Imm16(1));
-
-		//LE: problem in here, half the tests fail
-		skipCode2 = emitter.J_CC(CC_NE, true);
-		//skipCode2 = emitter.J_CC((CCFlags)(CC_NE - (cond & 1)), true);
-		emitter.dsp_op_read_reg(DSP_REG_SR, RAX);
-		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
+		emitter.SHL(16, R(ECX), Imm8(1));
+		emitter.OR(16, R(EAX), R(ECX));
+		emitter.TEST(16, R(EAX), Imm16(8));
 		break;
 	case 0x4: // NZ - Not Zero
 	case 0x5: // Z - Zero 
@@ -75,29 +69,16 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		break;
 	case 0xa: // ?
 	case 0xb: // ?
-	{
-		//full of fail, both
-		emitter.TEST(16, R(EAX), Imm16(SR_OVER_S32 | SR_TOP2BITS));
-		FixupBranch skipArithZero = emitter.J_CC(CC_E);
-		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
-		FixupBranch setZero = emitter.J_CC(CC_NE);
-
-		emitter.MOV(16, R(EAX), Imm16(1));
-		FixupBranch toEnd = emitter.J();
-
-		emitter.SetJumpTarget(skipArithZero);
-		emitter.SetJumpTarget(setZero);
-		emitter.XOR(16, R(EAX), R(EAX));
-		emitter.SetJumpTarget(toEnd);
-		emitter.SETcc(CC_E, R(EAX));
-		emitter.TEST(8, R(EAX), R(EAX));
+		emitter.MOV(16, R(EDX), R(EAX));
+		emitter.MOV(16, R(ECX), R(EAX));
+		emitter.SHR(16, R(EDX), Imm8(1));
+		emitter.OR(16, R(EAX), R(EDX));
+		emitter.SHL(16, R(ECX), Imm8(2));
+		emitter.NOT(16, R(ECX));
+		emitter.AND(16, R(EAX), R(ECX)); 
+		emitter.NOT(16, R(EAX));
+		emitter.TEST(16, R(EAX), Imm16(0x10));
 		break;
-		//c2 = emitter.gpr;
-		//emitter.TEST(16, R(EAX), Imm16(SR_OVER_S32 | SR_TOP2BITS));
-		//skipCode2 = emitter.J_CC((CCFlags)(CC_E + (cond & 1)), true);
-		//emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
-		//break;
-	}
 	case 0xc: // LNZ  - Logic Not Zero
 	case 0xd: // LZ - Logic Zero
 		emitter.TEST(16, R(EAX), Imm16(SR_LOGIC_ZERO));
@@ -111,12 +92,6 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	jitCode(opc,emitter);
 	emitter.gpr.flushRegs(c1);
 	emitter.SetJumpTarget(skipCode);
-	if ((cond | 1) == 0x3) {// || (cond | 1) == 0xb)
-		emitter.gpr.flushRegs(c2);
-		emitter.SetJumpTarget(skipCode2);
-	} else {
-		c2.drop();
-	}
 }
 
 static void WriteBranchExit(DSPEmitter& emitter)

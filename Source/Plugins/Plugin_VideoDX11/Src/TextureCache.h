@@ -37,6 +37,7 @@ class TCacheEntry : public TCacheEntryBase
 public:
 
 	TCacheEntry();
+	~TCacheEntry();
 
 	D3DTexture2D* GetTexture() { return m_bindMe; }
 
@@ -89,9 +90,14 @@ private:
 	// If format is paletted, this texture contains palette indices.
 	// If format is not paletted, this texture contains bindable data.
 	// If entry is from TCL, this texture is not used.
-	struct
+	struct RAMStorage
 	{
-		std::unique_ptr<D3DTexture2D> tex;
+		RAMStorage()
+			: tex(NULL)
+		{ }
+		~RAMStorage();
+
+		D3DTexture2D* tex;
 		DXGI_FORMAT dxFormat;
 		UINT width;
 		UINT height;
@@ -100,17 +106,22 @@ private:
 
 	// If loaded texture is paletted, this contains depalettized data.
 	// Otherwise, this is not used.
-	struct
+	struct DepalStorage
 	{
-		std::unique_ptr<D3DTexture2D> tex;
+		DepalStorage()
+			: tex(NULL)
+		{ }
+		~DepalStorage();
+
+		D3DTexture2D* tex;
 		UINT width;
 		UINT height;
 		// FIXME: Can paletted textures have more than one level?
 	} m_depalStorage;
 
 	// If format is paletted, this contains the palette's RGBA data.
-	SharedPtr<ID3D11Buffer> m_palette;
-	SharedPtr<ID3D11ShaderResourceView> m_paletteSRV;
+	ID3D11Buffer* m_palette;
+	ID3D11ShaderResourceView* m_paletteSRV;
 	
 	bool m_fromVirtCopy;
 	D3DTexture2D* m_loaded;
@@ -127,6 +138,7 @@ class TextureCache : public TextureCacheBase
 public:
 
 	TextureCache();
+	~TextureCache();
 
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
@@ -146,7 +158,7 @@ protected:
 private:
 
 	// FIXME: Should the EFB encoder be embedded in the texture cache class?
-	std::unique_ptr<TextureEncoder> m_encoder;
+	TextureEncoder* m_encoder;
 
 	VirtualCopyShaderManager m_virtShaderManager;
 	DepalettizeShader m_depalShader;

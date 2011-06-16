@@ -82,6 +82,11 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		Default(inst); return;
 	}
 
+	// Causing problems for GC - Starfox Assault (invisible boss at the end of level 1)
+	if (inst.SUBOP5 == 21) {
+		Default(inst); return;
+	}	
+
 	if (inst.SUBOP5 == 26) {
 		// frsqrtex
 		int d = inst.FD;

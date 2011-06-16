@@ -38,6 +38,9 @@ public:
 		Unorm8
 	};
 
+	DepalettizeShader();
+	~DepalettizeShader();
+
 	// Depalettize from baseTex into dstTex using paletteSRV.
 	// dstTex should be a render-target with the same dimensions as baseTex.
 	// paletteSRV should be a view of an R8G8B8A8_UNORM buffer containing the
@@ -47,14 +50,14 @@ public:
 
 private:
 
-	SharedPtr<ID3D11PixelShader> GetShader(BaseType baseType);
+	ID3D11PixelShader* GetShader(BaseType baseType);
 	
 	// Depalettizing shader for uint indices
-	SharedPtr<ID3D11PixelShader> m_uintShader;
+	ID3D11PixelShader* m_uintShader;
 	// Depalettizing shader for 4-bit indices as normalized float
-	SharedPtr<ID3D11PixelShader> m_unorm4Shader;
+	ID3D11PixelShader* m_unorm4Shader;
 	// Depalettizing shader for 8-bit indices as normalized float
-	SharedPtr<ID3D11PixelShader> m_unorm8Shader;
+	ID3D11PixelShader* m_unorm8Shader;
 
 };
 

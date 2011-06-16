@@ -156,7 +156,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	}
 	else
 	{
-		WARN_LOG(WII_IPC_FILEIO, "FileIO: Open failed - File doesn't exist %s", m_Filename.c_str());
+		WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[_Mode], m_Filename.c_str());
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 

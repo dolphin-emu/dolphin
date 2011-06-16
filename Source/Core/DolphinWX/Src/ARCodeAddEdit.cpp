@@ -32,7 +32,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	ActionReplay::ARCode tempEntries;
 	wxString currentName = _("Insert name here..");
 
-	if (selection == -1)
+	if (selection == wxNOT_FOUND)
 	{
 		tempEntries.name = "";
 	}
@@ -79,58 +79,86 @@ void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 
 void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 {
-	std::vector<ActionReplay::AREntry> tempEntries;
-	std::vector<std::string> encryptedLine;
-	std::string cheatValues = std::string(EditCheatCode->GetValue().mb_str());
-	size_t line = 0;
+	std::vector<ActionReplay::AREntry> decryptedLines;
+	std::vector<std::string> encryptedLines;
 
-	// there's no newline, or newline is imcomplete, stop here.
-	while (line != std::string::npos)
+	// Split the entered cheat into lines.
+	std::vector<std::string> userInputLines;
+	SplitString(std::string(EditCheatCode->GetValue().mb_str()), '\n', userInputLines);
+
+	for (size_t i = 0;  i < userInputLines.size();  i++)
 	{
-		if (line > 0) line++;
-		std::vector<std::string> pieces;
-		std::string line_str = cheatValues.substr(line, cheatValues.find('\n', line) - line);
+		// Make sure to ignore unneeded whitespace characters.
+		std::string line_str = StripSpaces(userInputLines[i]);
 
+		if (line_str == "")
+			continue;
+
+		// Let's parse the current line.  Is it in encrypted or decrypted form?
+		std::vector<std::string> pieces;
 		SplitString(line_str, ' ', pieces);
-		
+
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
+			// Decrypted code line.
 			u32 addr = strtoul(pieces[0].c_str(), NULL, 16);
 			u32 value = strtoul(pieces[1].c_str(), NULL, 16);
-			// Decrypted code
-			tempEntries.push_back(ActionReplay::AREntry(addr, value));
+
+			decryptedLines.push_back(ActionReplay::AREntry(addr, value));
+			continue;
 		}
-		else
+		else if (pieces.size() == 1)
 		{
 			SplitString(line_str, '-', pieces);
-			
-			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
+
+			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
 			{
-				// Encrypted code
-				encryptedLine.push_back(pieces[0]+pieces[1]+pieces[2]);
+				// Encrypted code line.  We'll have to decode it later.
+				encryptedLines.push_back(pieces[0] + pieces[1] + pieces[2]);
+				continue;
 			}
 		}
-		
-		if ((line = cheatValues.find('\n', line)) == std::string::npos && encryptedLine.size())
+
+		// If the above-mentioned conditions weren't met, then something went wrong.
+		if (!PanicYesNoT("Unable to parse line %lu of the entered AR code as a valid "
+						"encrypted or decrypted code.  Make sure you typed it correctly.\n"
+						"Would you like to ignore this line and continue parsing?",  i + 1))
 		{
-			ActionReplay::DecryptARCode(encryptedLine, tempEntries);
+			return;
 		}
 	}
 
-	if (selection == -1)
+	// If the entered code was in encrypted form, we decode it here.
+	if (encryptedLines.size())
 	{
+		// TODO: what if both decrypted AND encrypted lines are entered into a single AR code?
+		ActionReplay::DecryptARCode(encryptedLines, decryptedLines);
+	}
+
+	// Codes with no lines appear to be deleted/hidden from the list.  Let's prevent that.
+	if (!decryptedLines.size())
+	{
+		PanicAlertT("The resulting decrypted AR code doesn't contain any lines.");
+		return;
+	}
+
+
+	if (selection == wxNOT_FOUND)
+	{
+		// Add a new AR cheat code.
 		ActionReplay::ARCode newCheat;
 
 		newCheat.name = std::string(EditCheatName->GetValue().mb_str());
-		newCheat.ops = tempEntries;
+		newCheat.ops = decryptedLines;
 		newCheat.active = true;
 
 		arCodes.push_back(newCheat);
 	}
 	else
 	{
+		// Update the currently-selected AR cheat code.
 		arCodes.at(selection).name = std::string(EditCheatName->GetValue().mb_str());
-		arCodes.at(selection).ops = tempEntries;
+		arCodes.at(selection).ops = decryptedLines;
 	}
 
 	AcceptAndClose();

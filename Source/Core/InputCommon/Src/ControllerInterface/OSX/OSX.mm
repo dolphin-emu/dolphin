@@ -137,8 +137,9 @@ static void DeviceMatching_callback(void* inContext,
 	void *inSender,
 	IOHIDDeviceRef inIOHIDDeviceRef)
 {
-	std::string name = [(NSString *)IOHIDDeviceGetProperty(inIOHIDDeviceRef,
-		CFSTR(kIOHIDProductKey)) UTF8String];
+	NSString *pName = (NSString *)
+		IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
+	std::string name = (pName != NULL) ? [pName UTF8String] : "Unknown device";
 
 	DeviceDebugPrint(inIOHIDDeviceRef);
 
@@ -154,7 +155,7 @@ static void DeviceMatching_callback(void* inContext,
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
 		devices->push_back(new Mouse(inIOHIDDeviceRef,
-			name, mouse_name_counts[name++]));
+			name, mouse_name_counts[name]++));
 #endif
 	else 
 		devices->push_back(new Joystick(inIOHIDDeviceRef,

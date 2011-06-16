@@ -40,6 +40,7 @@
 #include "VertexShaderCache.h"
 #include "Core.h"
 #include "OnFrame.h"
+#include "Television.h"
 #include "Host.h"
 
 namespace DX11
@@ -51,10 +52,12 @@ static u32 s_LastAA = 0;
 
 static u32 s_blendMode;
 
-SharedPtr<ID3D11Buffer> access_efb_cbuf;
-SharedPtr<ID3D11BlendState> clearblendstates[4];
+static Television s_television;
+
+ID3D11Buffer* access_efb_cbuf = NULL;
+ID3D11BlendState* clearblendstates[4] = {NULL};
 ID3D11DepthStencilState* cleardepthstates[3] = {NULL};
-SharedPtr<ID3D11BlendState> resetblendstate;
+ID3D11BlendState* resetblendstate = NULL;
 ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
 
@@ -214,6 +217,8 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
+	s_television.Init();
+
 	g_framebuffer_manager = new FramebufferManager;
 
 	HRESULT hr;
@@ -222,9 +227,9 @@ void SetupDeviceObjects()
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20*sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = colmat;
-	access_efb_cbuf = CreateBufferShared(&cbdesc, &data);
-	CHECK(access_efb_cbuf, "Create constant buffer for Renderer::AccessEFB");
-	D3D::SetDebugObjectName(access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
+	hr = D3D::device->CreateBuffer(&cbdesc, &data, &access_efb_cbuf);
+	CHECK(hr==S_OK, "Create constant buffer for Renderer::AccessEFB");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
 	ddesc.DepthEnable	  = FALSE;
@@ -233,50 +238,51 @@ void SetupDeviceObjects()
 	ddesc.StencilEnable	= FALSE;
 	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	hr = D3D::g_device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
 	ddesc.DepthEnable	  = TRUE;
-	hr = D3D::g_device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
-	hr = D3D::g_device->CreateDepthStencilState(&ddesc, &cleardepthstates[2]);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[2]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
-	D3D::SetDebugObjectName(cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
-	D3D::SetDebugObjectName(cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
-	D3D::SetDebugObjectName(cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
 	D3D11_BLEND_DESC blenddesc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
-	resetblendstate = CreateBlendStateShared(&blenddesc);
-	CHECK(resetblendstate, "Create blend state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName(resetblendstate, "blend state for Renderer::ResetAPIState");
+	hr = D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
 
 	clearblendstates[0] = resetblendstate;
+	resetblendstate->AddRef();
 
-	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED
-		| D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
-	clearblendstates[1] = CreateBlendStateShared(&blenddesc);
+	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED|D3D11_COLOR_WRITE_ENABLE_GREEN|D3D11_COLOR_WRITE_ENABLE_BLUE;
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[1]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
 	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	clearblendstates[2] = CreateBlendStateShared(&blenddesc);
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[2]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
 	blenddesc.RenderTarget[0].RenderTargetWriteMask = 0;
-	clearblendstates[3] = CreateBlendStateShared(&blenddesc);
-
-	CHECK(clearblendstates[1] && clearblendstates[2] && clearblendstates[3], "Create blend state for Renderer::ClearScreen");
+	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
 	ddesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 	ddesc.DepthEnable = FALSE;
-	hr = D3D::g_device->CreateDepthStencilState(&ddesc, &resetdepthstate);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName(resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
 
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
 	rastdesc.CullMode = D3D11_CULL_NONE;
 	rastdesc.DepthClipEnable = FALSE;
-	hr = D3D::g_device->CreateRasterizerState(&rastdesc, &resetraststate);
+	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
-	D3D::SetDebugObjectName(resetraststate, "rasterizer state for Renderer::ResetAPIState");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 }
 
 // Kill off all POOL_DEFAULT device objects.
@@ -284,17 +290,19 @@ void TeardownDeviceObjects()
 {
 	delete g_framebuffer_manager;
 
-	access_efb_cbuf.reset();
-
-	for (int i = 0; i != 4; ++i)
-		clearblendstates[i].reset();
-
+	SAFE_RELEASE(access_efb_cbuf);
+	SAFE_RELEASE(clearblendstates[0]);
+	SAFE_RELEASE(clearblendstates[1]);
+	SAFE_RELEASE(clearblendstates[2]);
+	SAFE_RELEASE(clearblendstates[3]);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);
 	SAFE_RELEASE(cleardepthstates[2]);
-	resetblendstate.reset();
+	SAFE_RELEASE(resetblendstate);
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
+
+	s_television.Shutdown();
 }
 
 Renderer::Renderer()
@@ -305,8 +313,6 @@ Renderer::Renderer()
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
 	D3D::Create(EmuWindow::GetWnd());
-
-	m_television.reset(new Television);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
@@ -361,20 +367,17 @@ Renderer::Renderer()
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	D3D::g_context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::g_context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
+	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f,
-						(float)s_target_width, (float)s_target_height);
-	D3D::g_context->RSSetViewports(1, &vp);
-	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_target_width, (float)s_target_height);
+	D3D::context->RSSetViewports(1, &vp);
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
 }
 
 Renderer::~Renderer()
 {
-	m_television.reset();
-
 	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Present();
@@ -464,15 +467,14 @@ bool Renderer::SetScissorRect()
 
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
-		D3D::g_context->RSSetScissorRects(1, rc.AsRECT());
+		D3D::context->RSSetScissorRects(1, rc.AsRECT());
 		return true;
 	}
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		*rc.AsRECT() = CD3D11_RECT(0, 0,
-									s_target_width, s_target_height);
-		D3D::g_context->RSSetScissorRects(1, rc.AsRECT());
+		*rc.AsRECT() = CD3D11_RECT(0.f, 0.f, s_target_width, s_target_height);
+		D3D::context->RSSetScissorRects(1, rc.AsRECT());
 		return false;
 	}
 }
@@ -558,14 +560,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// we can directly copy to system memory here
 		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::g_context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
 
 		// read the data from system memory
-		D3D::g_context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
+		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 		u32 ret = 0;
 		if(map.pData)
 			ret = *(u32*)map.pData;
-		D3D::g_context->Unmap(read_tex, 0);
+		D3D::context->Unmap(read_tex, 0);
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
@@ -595,7 +597,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
-		D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
 		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
 									- (float)RectToLock.top	* 2.f / (float)Renderer::GetTargetHeight() + 1.f,
 									  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
@@ -662,9 +664,11 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int X = intendedX;
 	if (X < 0)
 		X = 0;
+
 	int Y = intendedY;
 	if (Y < 0)
 		Y = 0;
+
 	int Wd = intendedWd;
 	if (X + Wd > GetTargetWidth())
 		Wd = GetTargetWidth() - X;
@@ -682,7 +686,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
@@ -702,7 +706,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(), 0.f, 1.f); 
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
@@ -732,18 +736,16 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	g_renderer->ResetAPIState();
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 
-	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), NULL);
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), NULL);
 	D3D::SetPointCopySampler();
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source,
-		g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
-		pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 	g_renderer->RestoreAPIState();
 
 	FramebufferManager::SwapReinterpretTexture();
-	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
 void SetSrcBlend(D3D11_BLEND val)
@@ -823,15 +825,15 @@ void Renderer::SetBlendMode(bool forceUpdate)
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
 {
 	// copy back buffer to system memory
+	ID3D11Texture2D* buftex;
 	D3D11_TEXTURE2D_DESC tex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-	auto const buftex = CreateTexture2DShared(&tex_desc, NULL);
-	if (!buftex)
-		PanicAlert("Failed to create screenshot buffer texture");
-	D3D::g_context->CopyResource(buftex, D3D::GetBackBuffer()->GetTex());
+	HRESULT hr = D3D::device->CreateTexture2D(&tex_desc, NULL, &buftex);
+	if (FAILED(hr)) PanicAlert("Failed to create screenshot buffer texture");
+	D3D::context->CopyResource(buftex, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 
 	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
-	D3D::g_context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
+	D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
 	for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
 	{
 		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
@@ -841,10 +843,12 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 			ptr += 4;
 		}
 	}
-	D3D::g_context->Unmap(buftex, 0);
+	D3D::context->Unmap(buftex, 0);
 
 	// ready to be saved
-	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::g_context, buftex, D3DX11_IFF_PNG, filename.c_str());
+	hr = PD3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, filename.c_str());
+	buftex->Release();
+
 	return SUCCEEDED(hr);
 }
 
@@ -875,9 +879,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_backbuffer_width, (float)s_backbuffer_height);
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	D3D::g_context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
+	D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
 
 	int X = dst_rect.left;
 	int Y = dst_rect.top;
@@ -893,8 +897,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
 	vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
-	D3D::g_context->RSSetViewports(1, &vp);
-	D3D::g_context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+	D3D::context->RSSetViewports(1, &vp);
+	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
@@ -902,10 +906,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
 	{
 		// TODO: Television should be used to render Virtual XFB mode as well.
-		m_television->Submit(xfbAddr, fbWidth, fbHeight);
-		m_television->Render();
+		s_television.Submit(xfbAddr, fbWidth, fbHeight);
+		s_television.Render();
 	}
-	else if (g_ActiveConfig.bUseXFB)
+	else if(g_ActiveConfig.bUseXFB)
 	{
 		const XFBSourceBase* xfbSource;
 
@@ -960,11 +964,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(),
-			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			PixelShaderCache::GetColorCopyProgram(false),
-			VertexShaderCache::GetSimpleVertexShader(),
-			VertexShaderCache::GetSimpleInputLayout(), Gamma);
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma);
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -1078,19 +1078,19 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		CalculateTargetSize();
 
-		D3D::g_context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 		
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
-		D3D::g_context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		D3D::g_context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 	}
 
 	// begin next frame
 	Renderer::RestoreAPIState();
 	D3D::BeginFrame();
-	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	VertexShaderManager::SetViewportChanged();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
@@ -1138,26 +1138,25 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		gx_state.blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	}
 
-	{
-	auto const blstate = CreateBlendStateShared(&gx_state.blenddc);
-	if (!blstate)
-		PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+	ID3D11BlendState* blstate;
+	hr = D3D::device->CreateBlendState(&gx_state.blenddc, &blstate);
+	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 	D3D::stateman->PushBlendState(blstate);
-	D3D::SetDebugObjectName(blstate, "blend state used to emulate the GX pipeline");
-	}
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)blstate, "blend state used to emulate the GX pipeline");
+	SAFE_RELEASE(blstate);
 
 	ID3D11DepthStencilState* depth_state;
-	hr = D3D::g_device->CreateDepthStencilState(&gx_state.depthdc, &depth_state);
-	if (SUCCEEDED(hr)) D3D::SetDebugObjectName(depth_state, "depth-stencil state used to emulate the GX pipeline");
+	hr = D3D::device->CreateDepthStencilState(&gx_state.depthdc, &depth_state);
+	if (SUCCEEDED(hr)) D3D::SetDebugObjectName((ID3D11DeviceChild*)depth_state, "depth-stencil state used to emulate the GX pipeline");
 	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
 	D3D::stateman->PushDepthState(depth_state);
 	SAFE_RELEASE(depth_state);
 
 	gx_state.rastdc.FillMode = (g_ActiveConfig.bWireFrame) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	ID3D11RasterizerState* raststate;
-	hr = D3D::g_device->CreateRasterizerState(&gx_state.rastdc, &raststate);
+	hr = D3D::device->CreateRasterizerState(&gx_state.rastdc, &raststate);
 	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName(raststate, "rasterizer state used to emulate the GX pipeline");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state used to emulate the GX pipeline");
 	D3D::stateman->PushRasterizerState(raststate);
 	SAFE_RELEASE(raststate);
 
@@ -1168,13 +1167,13 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		//if (shader_resources[stage])
 		{
 			if(g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
-			hr = D3D::g_device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
+			hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
 			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
-			else D3D::SetDebugObjectName(samplerstate[stage], "sampler state used to emulate the GX pipeline");
+			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");
 		}
 		// else samplerstate[stage] = NULL;
 	}
-	D3D::g_context->PSSetSamplers(0, 8, samplerstate);
+	D3D::context->PSSetSamplers(0, 8, samplerstate);
 	for (unsigned int stage = 0; stage < 8; stage++)
 		SAFE_RELEASE(samplerstate[stage]);
 
@@ -1187,17 +1186,17 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetLogicOpMode();
 	}
 
-	D3D::g_context->PSSetConstantBuffers(0, 1, &PixelShaderCache::GetConstantBuffer());
-	D3D::g_context->VSSetConstantBuffers(0, 1, &VertexShaderCache::GetConstantBuffer());
+	D3D::context->PSSetConstantBuffers(0, 1, &PixelShaderCache::GetConstantBuffer());
+	D3D::context->VSSetConstantBuffers(0, 1, &VertexShaderCache::GetConstantBuffer());
 
-	D3D::g_context->PSSetShader(PixelShaderCache::GetActiveShader(), NULL, 0);
-	D3D::g_context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
+	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), NULL, 0);
+	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
 }
 
 void Renderer::RestoreState()
 {
 	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
-	D3D::g_context->PSSetShaderResources(0, 8, shader_resources);
+	D3D::context->PSSetShaderResources(0, 8, shader_resources);
 
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
@@ -1210,9 +1209,9 @@ void Renderer::ApplyCullDisable()
 	rastDesc.CullMode = D3D11_CULL_NONE;
 
 	ID3D11RasterizerState* raststate;
-	HRESULT hr = D3D::g_device->CreateRasterizerState(&rastDesc, &raststate);
+	HRESULT hr = D3D::device->CreateRasterizerState(&rastDesc, &raststate);
 	if (FAILED(hr)) PanicAlert("Failed to create culling-disabled rasterizer state at %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName(raststate, "rasterizer state (culling disabled) used to emulate the GX pipeline");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state (culling disabled) used to emulate the GX pipeline");
 
 	D3D::stateman->PushRasterizerState(raststate);
 	SAFE_RELEASE(raststate);

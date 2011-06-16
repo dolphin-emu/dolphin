@@ -28,12 +28,18 @@
 
 namespace DiscIO
 {
-
 CSharedContent CSharedContent::m_Instance;
 cUIDsys cUIDsys::m_Instance;
 
+
 CSharedContent::CSharedContent()
 {
+	UpdateLocation();
+}
+
+void CSharedContent::UpdateLocation()
+{
+	m_Elements.clear();
 	lastID = 0;
 	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
@@ -212,7 +218,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		}
 		else
 		{
-			SplitPath(TMDFileName, &m_Path, NULL, NULL);
+			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
 		}
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
@@ -397,9 +403,15 @@ void CNANDContentLoader::RemoveTitle() const
 
 cUIDsys::cUIDsys()
 {
-	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
-	lastUID = 0x00001000;
+	UpdateLocation();
+}
 
+void cUIDsys::UpdateLocation()
+{
+	m_Elements.clear();
+	lastUID = 0x00001000;
+	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	
 	File::IOFile pFile(uidSys, "rb");
 	SElement Element;
 	while (pFile.ReadArray(&Element, 1))

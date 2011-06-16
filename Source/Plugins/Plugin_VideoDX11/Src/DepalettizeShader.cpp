@@ -25,6 +25,17 @@
 
 namespace DX11
 {
+
+DepalettizeShader::DepalettizeShader()
+	: m_uintShader(NULL), m_unorm4Shader(NULL), m_unorm8Shader(NULL)
+{ }
+
+DepalettizeShader::~DepalettizeShader()
+{
+	SAFE_RELEASE(m_unorm8Shader);
+	SAFE_RELEASE(m_unorm4Shader);
+	SAFE_RELEASE(m_uintShader);
+}
 	
 static const char DEPALETTIZE_SHADER[] =
 "// dolphin-emu depalettizing shader for DX11\n"
@@ -59,7 +70,7 @@ static const char DEPALETTIZE_SHADER[] =
 void DepalettizeShader::Depalettize(D3DTexture2D* dstTex, D3DTexture2D* baseTex,
 	BaseType baseType, ID3D11ShaderResourceView* paletteSRV)
 {
-	SharedPtr<ID3D11PixelShader> shader = GetShader(baseType);
+	ID3D11PixelShader* shader = GetShader(baseType);
 	if (!shader)
 	{
 		ERROR_LOG(VIDEO, "Failed to create depalettizer shader");
@@ -73,25 +84,25 @@ void DepalettizeShader::Depalettize(D3DTexture2D* dstTex, D3DTexture2D* baseTex,
 	dstTex->GetTex()->GetDesc(&dstDesc);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(dstDesc.Width), FLOAT(dstDesc.Height));
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 
-	D3D::g_context->OMSetRenderTargets(1, &dstTex->GetRTV(), NULL);
-	D3D::g_context->PSSetShaderResources(0, 1, &baseTex->GetSRV());
-	D3D::g_context->PSSetShaderResources(1, 1, &paletteSRV);
+	D3D::context->OMSetRenderTargets(1, &dstTex->GetRTV(), NULL);
+	D3D::context->PSSetShaderResources(0, 1, &baseTex->GetSRV());
+	D3D::context->PSSetShaderResources(1, 1, &paletteSRV);
 
 	D3D::drawEncoderQuad(shader);
 
 	ID3D11ShaderResourceView* nullDummy = NULL;
-	D3D::g_context->PSSetShaderResources(0, 1, &nullDummy);
-	D3D::g_context->PSSetShaderResources(1, 1, &nullDummy);
+	D3D::context->PSSetShaderResources(0, 1, &nullDummy);
+	D3D::context->PSSetShaderResources(1, 1, &nullDummy);
 
 	g_renderer->RestoreAPIState();
-	D3D::g_context->OMSetRenderTargets(1,
+	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-SharedPtr<ID3D11PixelShader> DepalettizeShader::GetShader(BaseType baseType)
+ID3D11PixelShader* DepalettizeShader::GetShader(BaseType baseType)
 {
 	switch (baseType)
 	{
@@ -134,7 +145,7 @@ SharedPtr<ID3D11PixelShader> DepalettizeShader::GetShader(BaseType baseType)
 
 	default:
 		_assert_msg_(VIDEO, 0, "Invalid depalettizer base type");
-		return SharedPtr<ID3D11PixelShader>();
+		return NULL;
 
 	}
 }

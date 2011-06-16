@@ -232,6 +232,7 @@ struct SDSP
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions
 	volatile bool external_interrupt_waiting;
+	bool reset_dspjit_codespace;
 
 	// DSP hardware stacks. They're mapped to a bunch of registers, such that writes
 	// to them push and reads pop.

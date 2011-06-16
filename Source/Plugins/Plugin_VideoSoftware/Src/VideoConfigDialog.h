@@ -22,6 +22,8 @@
 #include <string>
 
 #include "SWVideoConfig.h"
+#include "VideoBackendBase.h"
+#include "ConfigManager.h"
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
@@ -38,6 +40,22 @@ class VideoConfigDialog : public wxDialog
 public:
 	VideoConfigDialog(wxWindow* parent, const std::string &title, const std::string& ininame);
 	~VideoConfigDialog();
+
+	void Event_Backend(wxCommandEvent &ev)
+	{
+		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
+
+		if (g_video_backend != new_backend)
+		{
+			Close();
+
+			g_video_backend = new_backend;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+
+			g_video_backend->ShowConfig(GetParent());
+		}
+		ev.Skip();
+	}
 
 protected:
 	SWVideoConfig& vconfig;

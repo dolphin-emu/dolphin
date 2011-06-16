@@ -159,7 +159,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					std::string FileName = name + ext;
 
 					// Decode entities of invalid file system characters so that
-					// games (such as HB:HBP) will be able to find what they expect.
+					// games (such as HP:HBP) will be able to find what they expect.
 					for (Common::replace_v::const_iterator it = replacements.begin(); it != replacements.end(); ++it)
 					{
 						for (size_t j = 0; (j = FileName.find(it->second, j)) != FileName.npos; ++j)
@@ -190,20 +190,34 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			// this command sucks because it asks of the number of used 
 			// fsBlocks and inodes
 			// It should be correct, but don't count on it...
-			std::string path(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
+			const char *relativepath = (const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
+			std::string path(HLE_IPC_BuildFilename(relativepath, CommandBuffer.InBuffer[0].m_Size));
 			u32 fsBlocks = 0;
 			u32 iNodes = 0;
 
 			INFO_LOG(WII_IPC_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
 			if (File::IsDirectory(path))
 			{
-				File::FSTEntry parentDir;
-				iNodes = File::ScanDirectoryTree(path, parentDir);
+				// LPFaint99: After I found that setting the number of inodes to the number of children + 1 for the directory itself
+				// I decided to compare with sneek which has the following 2 special cases which are
+				// Copyright (C) 2009-2011  crediar http://code.google.com/p/sneek/
+				if ((memcmp(relativepath, "/title/00010001", 16 ) == 0 ) ||
+					(memcmp(relativepath, "/title/00010005", 16) == 0 ))
+				{
+					fsBlocks = 23; // size is size/0x4000
+					iNodes = 42; // empty folders return a FileCount of 1
+				}
+				else
+				{
+					File::FSTEntry parentDir;
+					// add one for the folder itself, allows some games to create their save files
+					// R8XE52 (Jurassic: The Hunted), STEETR (Tetris Party Deluxe) now create their saves with this change
+					iNodes = 1 + File::ScanDirectoryTree(path, parentDir);
 
-				u64 totalSize = ComputeTotalFileSize(parentDir); // "Real" size, to be converted to nand blocks
+					u64 totalSize = ComputeTotalFileSize(parentDir); // "Real" size, to be converted to nand blocks
 
-				fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
-
+					fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
+				}
 				ReturnValue = FS_RESULT_OK;
 
 				INFO_LOG(WII_IPC_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
@@ -498,7 +512,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 
 		//now restore from the stream
 		while(1) {
-			char type;
+			char type = 0;
 			p.Do(type);
 			if (!type)
 				break;
@@ -514,7 +528,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			}
 			case 'f':
 			{
-				u32 size;
+				u32 size = 0;
 				p.Do(size);
 
 				File::IOFile handle(name, "wb");

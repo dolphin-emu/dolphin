@@ -29,10 +29,13 @@ class VertexManager : public ::VertexManager
 {
 public:
 	VertexManager();
+	~VertexManager();
 
 	NativeVertexFormat* CreateNativeVertexFormat();
 
 private:
+	void CreateDeviceObjects();
+	void DestroyDeviceObjects();
 	void LoadBuffers();
 	void Draw(UINT stride);
 	// temp
@@ -44,10 +47,10 @@ private:
 	UINT m_triangleDrawIndex;
 	UINT m_lineDrawIndex;
 	UINT m_pointDrawIndex;
-	SharedPtr<ID3D11Buffer> m_indexBuffer;
-	SharedPtr<ID3D11Buffer> m_vertexBuffer;
+	ID3D11Buffer* m_indexBuffer;
+	ID3D11Buffer* m_vertexBuffer;
 
-	SharedPtr<ID3D11Buffer> m_unpackMatricesBuffer;
+	ID3D11Buffer* m_unpackMatricesBuffer;
 
 	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;

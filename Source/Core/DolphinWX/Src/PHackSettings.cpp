@@ -45,7 +45,7 @@ CPHackSettings::~CPHackSettings()
 void CPHackSettings::CreateGUIControls()
 {
 	wxStaticText *PHackChoiceText = new wxStaticText(this, wxID_ANY, _("Presets: "));
-	PHackChoice = new wxChoice(this, ID_PHACK_CHOICE, wxDefaultPosition, wxDefaultSize, wxArrayString(0, wxString("", *wxConvCurrent)));
+	PHackChoice = new wxChoice(this, ID_PHACK_CHOICE);
 	PHackChoice->SetToolTip(_("Load preset values from hack patterns available."));
 	wxStaticText *PHackZNearText = new wxStaticText(this, wxID_ANY, _("zNear Correction: "));
 	PHackZNear = new wxTextCtrl(this, ID_PHACK_ZNEAR);

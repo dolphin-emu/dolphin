@@ -35,6 +35,7 @@ public:
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
 	void Update(int cycles);
+	void DoState(PointerWrap &p);
 
 	// PBs
 	u8 numPBaddr;

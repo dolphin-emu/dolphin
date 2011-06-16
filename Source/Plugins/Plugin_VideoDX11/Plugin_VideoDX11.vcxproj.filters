@@ -6,6 +6,9 @@
     <ClCompile Include="Src\D3DBase.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
+    <ClCompile Include="Src\D3DBlob.cpp">
+      <Filter>D3D</Filter>
+    </ClCompile>
     <ClCompile Include="Src\D3DShader.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
@@ -70,6 +73,9 @@
       <Filter>D3D</Filter>
     </ClInclude>
     <ClInclude Include="Src\D3DBase.h">
+      <Filter>D3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\D3DBlob.h">
       <Filter>D3D</Filter>
     </ClInclude>
     <ClInclude Include="Src\D3DShader.h">

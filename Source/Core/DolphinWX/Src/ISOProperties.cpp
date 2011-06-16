@@ -555,14 +555,14 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 
 	wxSizer* sButtons = CreateButtonSizer(wxNO_DEFAULT);
-	sButtons->Prepend(EditConfig, 0, wxALL, 5);
-	sButtons->Add(new wxButton(this, wxID_OK, _("Close")), 0, wxALL, 5);
+	sButtons->Prepend(EditConfig);
+	sButtons->Add(new wxButton(this, wxID_OK, _("Close")));
 
 	// Add notebook and buttons to the dialog
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	sMain->Add(sButtons, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 	sMain->SetMinSize(wxSize(500, -1));
 
 	SetSizerAndFit(sMain);

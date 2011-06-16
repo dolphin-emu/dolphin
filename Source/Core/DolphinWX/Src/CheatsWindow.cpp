@@ -36,7 +36,7 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxFrame(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+	: wxDialog(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize)
 {
 	::g_cheat_window = this;
 
@@ -131,13 +131,14 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Notebook_Main->AddPage(m_Tab_Log, _("Logging"));
 
 	// Button Strip
-	wxButton* const button_apply = new wxButton(panel, wxID_ANY, _("Apply"), wxDefaultPosition, wxDefaultSize);
+	wxButton* const button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
 	_connect_macro_(button_apply, wxCheatsWindow::OnEvent_ApplyChanges_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const button_close = new wxButton(panel, wxID_ANY, _("Close"), wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(button_close, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(button_apply, 1, wxRIGHT, 5);
-	sButtons->Add(button_close, 1, 0, 0);
+	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
+	_connect_macro_(button_cancel, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
+	sButtons->AddButton(button_apply);
+	sButtons->AddButton(button_cancel);
+	sButtons->Realize();
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook_Main, 1, wxEXPAND|wxALL, 5);
@@ -247,9 +248,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& ev)
 {
-	Destroy();
+	ev.Skip();
 }
 
 void wxCheatsWindow::Load_ARCodes()
@@ -311,7 +312,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 	}
 }
 
-void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
 	// Appply AR Code changes
 	for (size_t i = 0; i < indexList.size(); i++)
@@ -328,6 +329,8 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& WXUNUSED (event)
 		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
 		m_gameini.Save(m_gameini_path);
 	}
+
+	ev.Skip();
 }
 
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
@@ -347,32 +350,33 @@ void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& W
 
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
-	search_results.clear();
-
 	const u8* const memptr = Memory::GetPointer(0);
 	if (NULL == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
+		return;
 	}
-	else
+
+	// Determine the user-selected data size for this search.
+	search_type_size =
+		size_radiobtn.rad_8->GetValue() +
+		(size_radiobtn.rad_16->GetValue() << 1) +
+		(size_radiobtn.rad_32->GetValue() << 2);
+
+	// Set up the search results efficiently to prevent automatic re-allocations.
+	search_results.clear();
+	search_results.reserve(Memory::RAM_SIZE / search_type_size);
+
+	// Enable the "Next Scan" button.
+	btnNextScan->Enable();
+
+	CheatSearchResult r;
+	// can I assume cheatable values will be aligned like this?
+	for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
 	{
-		// enable the next scan button
-		btnNextScan->Enable();
-
-		// determine the search data size
-		search_type_size =
-			size_radiobtn.rad_8->GetValue() +
-			(size_radiobtn.rad_16->GetValue() << 1) +
-			(size_radiobtn.rad_32->GetValue() << 2);
-
-		CheatSearchResult r;
-		// can I assume cheatable values will be aligned like this?
-		for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
-		{
-			r.address = addr;
-			memcpy(&r.old_value, memptr + addr, search_type_size);
-			search_results.push_back(r);
-		}
+		r.address = addr;
+		memcpy(&r.old_value, memptr + addr, search_type_size);
+		search_results.push_back(r);
 	}
 
 	UpdateCheatSearchResultsList();
@@ -384,99 +388,101 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	if (NULL == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
+		return;
 	}
-	else
+
+	std::vector<CheatSearchResult>::iterator
+		i = search_results.begin(),
+		e = search_results.end();
+
+	// Set up the sub-search results efficiently to prevent automatic re-allocations.
+	std::vector<CheatSearchResult> filtered_results;
+	filtered_results.reserve(search_results.size());
+
+
+	// determine the selected filter
+	// 1 : equal
+	// 2 : greater-than
+	// 4 : less-than
+
+	const int filters[] = {7, 6, 1, 2, 4};
+	int filter_mask = filters[search_type->GetSelection()];
+
+	if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
 	{
-		std::vector<CheatSearchResult>::iterator
-			i = search_results.begin(),
-			e = search_results.end();
-		std::vector<CheatSearchResult>	filtered_results;
-
-
-		// determine the selected filter
-		// 1 : equal
-		// 2 : greater-than
-		// 4 : less-than
-
-		const int filters[] = {7, 6, 1, 2, 4};
-		int filter_mask = filters[search_type->GetSelection()];
-
-		if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
+		for (; i!=e; ++i)
 		{
-			for (; i!=e; ++i)
-			{
-				// with big endian, can just use memcmp for ><= comparison
-				int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
-				if (cmp_result < 0)
-					cmp_result = 4;
-				else
-					cmp_result = cmp_result ? 2 : 1;
+			// with big endian, can just use memcmp for ><= comparison
+			int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
+			if (cmp_result < 0)
+				cmp_result = 4;
+			else
+				cmp_result = cmp_result ? 2 : 1;
 
-				if (cmp_result & filter_mask)
-				{
-					memcpy(&i->old_value, memptr + i->address, search_type_size);
-					filtered_results.push_back(*i);
-				}
+			if (cmp_result & filter_mask)
+			{
+				memcpy(&i->old_value, memptr + i->address, search_type_size);
+				filtered_results.push_back(*i);
 			}
 		}
-		else	// using user entered x value comparison
-		{
-			u32 user_x_val;
-
-			// parse the user entered x value
-			if (filter_mask != 7) // don't need the value for the "None" filter
-			{
-				unsigned long parsed_x_val = 0;
-				wxString x_val = textctrl_value_x->GetLabel();
-
-				if (!x_val.ToULong(&parsed_x_val, 0))
-				{
-					PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
-					return;
-				}
-
-				user_x_val = (u32)parsed_x_val;
-
-				// #ifdef LIL_ENDIAN :p
-				switch (search_type_size)
-				{
-				case 1 :
-					break;
-				case 2 :
-					*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
-					break;
-				case 4 :
-					user_x_val = Common::swap32(user_x_val);
-					break;
-				}
-				// #elseif BIG_ENDIAN
-				// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
-				// #endif
-			}
-
-			for (; i!=e; ++i)
-			{
-				// with big endian, can just use memcmp for ><= comparison
-				int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
-				if (cmp_result < 0)
-					cmp_result = 4;
-				else if (cmp_result)
-					cmp_result = 2;
-				else
-					cmp_result = 1;
-
-				if (cmp_result & filter_mask)
-				{
-					memcpy(&i->old_value, memptr + i->address, search_type_size);
-					filtered_results.push_back(*i);
-				}
-			}
-		}
-
-		search_results.swap(filtered_results);
-
-		UpdateCheatSearchResultsList();
 	}
+	else	// using user entered x value comparison
+	{
+		u32 user_x_val;
+
+		// parse the user entered x value
+		if (filter_mask != 7) // don't need the value for the "None" filter
+		{
+			unsigned long parsed_x_val = 0;
+			wxString x_val = textctrl_value_x->GetLabel();
+
+			if (!x_val.ToULong(&parsed_x_val, 0))
+			{
+				PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
+				return;
+			}
+
+			user_x_val = (u32)parsed_x_val;
+
+			// #ifdef LIL_ENDIAN :p
+			switch (search_type_size)
+			{
+			case 1 :
+				break;
+			case 2 :
+				*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
+				break;
+			case 4 :
+				user_x_val = Common::swap32(user_x_val);
+				break;
+			}
+			// #elseif BIG_ENDIAN
+			// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
+			// #endif
+		}
+
+		for (; i!=e; ++i)
+		{
+			// with big endian, can just use memcmp for ><= comparison
+			int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
+			if (cmp_result < 0)
+				cmp_result = 4;
+			else if (cmp_result)
+				cmp_result = 2;
+			else
+				cmp_result = 1;
+
+			if (cmp_result & filter_mask)
+			{
+				memcpy(&i->old_value, memptr + i->address, search_type_size);
+				filtered_results.push_back(*i);
+			}
+		}
+	}
+
+	search_results.swap(filtered_results);
+
+	UpdateCheatSearchResultsList();
 }
 
 void CheatSearchTab::ApplyFocus(wxCommandEvent&)
@@ -563,16 +569,6 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
 	sizer_value_label->Add(checkbox_use_hex);
 
-	wxButton* const btn_ok = new wxButton(this, wxID_OK, _("OK"));
-	_connect_macro_(btn_ok, CreateCodeDialog::PressOK, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	wxButton* const btn_cancel = new wxButton(this, wxID_CANCEL, _("Cancel"));
-	_connect_macro_(btn_cancel, CreateCodeDialog::PressCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
-
-	// button sizer
-	wxSizer* const sizer_buttons = CreateButtonSizer(wxNO_DEFAULT);
-	sizer_buttons->Add(btn_ok, 0, wxRIGHT, 5);
-	sizer_buttons->Add(btn_cancel);
-
 	// main sizer
 	wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
 	sizer_main->Add(label_name, 0, wxALL, 5);
@@ -581,13 +577,15 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(textctrl_code, 0, wxALL, 5);
 	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
-	sizer_main->Add(sizer_buttons, 0, wxALL | wxALIGN_RIGHT, 5);
+	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
+	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressOK));
+	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressCancel));
 
 	SetSizerAndFit(sizer_main);
 	SetFocus();
 }
 
-void CreateCodeDialog::PressOK(wxCommandEvent&)
+void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 {
 	const wxString code_name = textctrl_name->GetValue();
 	if (code_name.empty())
@@ -628,10 +626,10 @@ void CreateCodeDialog::PressOK(wxCommandEvent&)
 	// refresh arcode list in other tab
 	::g_cheat_window->Load_ARCodes();
 
-	Destroy();
+	ev.Skip();
 }
 
-void CreateCodeDialog::PressCancel(wxCommandEvent&)
+void CreateCodeDialog::PressCancel(wxCommandEvent& ev)
 {
-	Destroy();
+	ev.Skip();
 }

@@ -593,13 +593,9 @@ void CGameListCtrl::ScanForISOs()
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
-			wxString msg;
-			char tempstring[128];
-			sprintf(tempstring,"Scanning %s", FileName.c_str());
-			msg = wxString(tempstring, *wxConvCurrent);
-
-			// Update with the progress (i) and the message (msg)
-			bool Cont = dialog.Update(i, msg);
+			// Update with the progress (i) and the message
+			bool Cont = dialog.Update(i,
+					wxString::Format(_("Scanning %s"), wxString(FileName.c_str(), *wxConvCurrent).c_str()));
 			if (!Cont)
 				break;
 

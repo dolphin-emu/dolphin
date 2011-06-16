@@ -89,8 +89,9 @@ std::string VideoBackend::GetName()
 
 void InitBackendInfo()
 {
+	DX9::D3D::Init();
 	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
-	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);	
+	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
 	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bSupports3DVision = true;
@@ -99,13 +100,6 @@ void InitBackendInfo()
 	
 	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
-}
-
-void VideoBackend::ShowConfig(void* parent)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	DX9::D3D::Init();
-	InitBackendInfo();
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
@@ -124,12 +118,16 @@ void VideoBackend::ShowConfig(void* parent)
 	
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
-	
+
+	DX9::D3D::Shutdown();
+}
+
+void VideoBackend::ShowConfig(void* parent)
+{
+#if defined(HAVE_WX) && HAVE_WX
+	InitBackendInfo();
 	VideoConfigDiag diag((wxWindow*)parent, _trans("Direct3D9"), "gfx_dx9");
 	diag.ShowModal();
-
-	g_Config.backend_info.Adapters.clear();
-	DX9::D3D::Shutdown();
 #endif
 }
 
@@ -141,8 +139,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
-
-	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
+	g_Config.UpdateProjectionHack();
+	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));

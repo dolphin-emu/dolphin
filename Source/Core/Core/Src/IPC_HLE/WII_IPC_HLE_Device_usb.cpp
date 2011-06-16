@@ -46,17 +46,21 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	}
 	else
 	{
+		// BT_DINF first has num wiimotes at 0
+		// 10 potential wiimotes 0x46 each from 1 - 0x2be
+		// 4 currently connected wiimotes bt address only at 0x2bf-0x3d6 0x46 each
+		// verified by http://devkitpro.svn.sourceforge.net/viewvc/devkitpro?view=revision&revision=3013
 		maxWM = BT_DINF[0];
 		bdaddr_t tmpBD = BDADDR_ANY;
 		u8 i = 0;
 		while (i < maxWM)
 		{
-			tmpBD.b[5] = BT_DINF[1 + (i * WIIMOTESIZE)];
-			tmpBD.b[4] = BT_DINF[2 + (i * WIIMOTESIZE)];
-			tmpBD.b[3] = BT_DINF[3 + (i * WIIMOTESIZE)];
-			tmpBD.b[2] = BT_DINF[4 + (i * WIIMOTESIZE)];
-			tmpBD.b[1] = BT_DINF[5 + (i * WIIMOTESIZE)];
-			tmpBD.b[0] = BT_DINF[6 + (i * WIIMOTESIZE)];
+			tmpBD.b[5] = BT_DINF[1 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)];
+			tmpBD.b[4] = BT_DINF[2 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)];
+			tmpBD.b[3] = BT_DINF[3 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)];
+			tmpBD.b[2] = BT_DINF[4 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)];
+			tmpBD.b[1] = BT_DINF[5 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)];
+			tmpBD.b[0] = BT_DINF[6 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)];
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
 			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
@@ -66,24 +70,24 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 		{
 			const char * wmName = "Nintendo RVL-CNT-01";
 			BT_DINF[0] = 4;
-			BT_DINF[1 + (i * WIIMOTESIZE)] = tmpBD.b[5] = i;
-			BT_DINF[2 + (i * WIIMOTESIZE)] = tmpBD.b[4] = 0x00;
-			BT_DINF[3 + (i * WIIMOTESIZE)] = tmpBD.b[3] = 0x79;
-			BT_DINF[4 + (i * WIIMOTESIZE)] = tmpBD.b[2] = 0x19;
-			BT_DINF[5 + (i * WIIMOTESIZE)] = tmpBD.b[1] = 0x02;
-			BT_DINF[6 + (i * WIIMOTESIZE)] = tmpBD.b[0] = 0x11;
+			BT_DINF[1 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[1 + (i * WIIMOTESIZE)] = tmpBD.b[5] = i;
+			BT_DINF[2 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[2 + (i * WIIMOTESIZE)] = tmpBD.b[4] = 0x00;
+			BT_DINF[3 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[3 + (i * WIIMOTESIZE)] = tmpBD.b[3] = 0x79;
+			BT_DINF[4 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[4 + (i * WIIMOTESIZE)] = tmpBD.b[2] = 0x19;
+			BT_DINF[5 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[5 + (i * WIIMOTESIZE)] = tmpBD.b[1] = 0x02;
+			BT_DINF[6 + ((0xa+i) * WIIMOTESIZE)] = BT_DINF[6 + (i * WIIMOTESIZE)] = tmpBD.b[0] = 0x11;
 			memcpy((BT_DINF+7 + (i * WIIMOTESIZE)), wmName, 20);
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
 			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
-		if (BT_DINF[0] != maxWM)
-		{
-			// save now so that when games load sysconf file it includes the new wiimotes
-			if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", BT_DINF, BTDINFSIZE) || !SConfig::GetInstance().m_SYSCONF->Save())
-				PanicAlertT("Failed to write BT.DINF to SYSCONF");
-		}
+
+		// save now so that when games load sysconf file it includes the new wiimotes
+		// and the correct order for connected wiimotes
+		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", BT_DINF, BTDINFSIZE) || !SConfig::GetInstance().m_SYSCONF->Save())
+			PanicAlertT("Failed to write BT.DINF to SYSCONF");
+
 	}
 
 	// The BCM2045's btaddr:

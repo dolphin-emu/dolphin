@@ -601,6 +601,21 @@ std::string GetBundleDirectory()
 }
 #endif
 
+#ifdef _WIN32
+std::string &GetExeDirectory()
+{
+	static std::string DolphinPath;
+	if (DolphinPath.empty())
+	{
+		char Dolphin_exe_Path[2048];
+		GetModuleFileNameA(NULL, Dolphin_exe_Path, 2048);
+		DolphinPath = Dolphin_exe_Path;
+		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+	}
+	return DolphinPath;
+}
+#endif
+
 std::string GetSysDirectory()
 {
 	std::string sysDir;
@@ -628,6 +643,7 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 	if (paths[D_USER_IDX].empty())
 	{
 #ifdef _WIN32
+		// TODO: use GetExeDirectory() here instead of ROOT_DIR so that if the cwd is changed we still have the correct paths?
 		paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
 #else
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))

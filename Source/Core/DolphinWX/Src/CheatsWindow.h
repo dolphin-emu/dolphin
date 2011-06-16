@@ -101,7 +101,7 @@ protected:
 	void ApplyFocus(wxCommandEvent&);
 };
 
-class wxCheatsWindow : public wxFrame
+class wxCheatsWindow : public wxDialog
 {
 	friend class CreateCodeDialog;
 
@@ -115,9 +115,6 @@ class wxCheatsWindow : public wxFrame
 			u32 uiIndex;
 			size_t index;
 		};
-
-		// Event Table
-		//DECLARE_EVENT_TABLE();
 
 		// --- GUI Controls ---
 		wxNotebook *m_Notebook_Main;

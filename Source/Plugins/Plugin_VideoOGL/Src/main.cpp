@@ -135,12 +135,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
 	g_Config.backend_info.bSupportsPixelLighting = true;
-}
-
-void VideoBackend::ShowConfig(void *_hParent)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	InitBackendInfo();
 
 	// aamodes
 	const char* caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA"};
@@ -148,7 +142,12 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
+}
 
+void VideoBackend::ShowConfig(void *_hParent)
+{
+#if defined(HAVE_WX) && HAVE_WX
+	InitBackendInfo();
 	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
 	diag.ShowModal();
 #endif
@@ -162,9 +161,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
-
 	g_Config.UpdateProjectionHack();
-
+	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	if (!OpenGL_Create(window_handle))

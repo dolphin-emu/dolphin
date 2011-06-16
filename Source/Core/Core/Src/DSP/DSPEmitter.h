@@ -24,7 +24,7 @@
 #include "x64Emitter.h"
 #include "Jit/DSPJitRegCache.h"
 
-#define COMPILED_CODE_SIZE sizeof(void *) * 0x200000
+#define COMPILED_CODE_SIZE 2097152
 
 #define MAX_BLOCKS 0x10000
 
@@ -41,6 +41,7 @@ public:
 
 	void EmitInstruction(UDSPInstruction inst);
 	void ClearIRAM();
+	void ClearIRAMandDSPJITCodespaceReset();
 
 	void CompileDispatcher();
 	Block CompileStub();
@@ -81,7 +82,6 @@ public:
 	void popExtValueToReg();
 	void pushExtValueFromMem(u16 dreg, u16 sreg);
 	void pushExtValueFromMem2(u16 dreg, u16 sreg);
-	void zeroWriteBackLog(const UDSPInstruction opc);
 
 	// Ext commands
 	void l(const UDSPInstruction opc);

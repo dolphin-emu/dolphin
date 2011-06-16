@@ -30,8 +30,11 @@ class VirtualCopyShaderManager
 
 public:
 
-	SharedPtr<ID3D11PixelShader> GetShader(bool scale, bool depth);
-	SharedPtr<ID3D11Buffer> GetParams() { return m_shaderParams; }
+	VirtualCopyShaderManager();
+	~VirtualCopyShaderManager();
+
+	ID3D11PixelShader* GetShader(bool scale, bool depth);
+	ID3D11Buffer* GetParams() { return m_shaderParams; }
 
 private:
 	
@@ -39,8 +42,8 @@ private:
 		return (scale ? (1<<1) : 0) | (depth ? (1<<0) : 0);
 	}
 
-	SharedPtr<ID3D11PixelShader> m_shaders[4];
-	SharedPtr<ID3D11Buffer> m_shaderParams;
+	ID3D11PixelShader* m_shaders[4];
+	ID3D11Buffer* m_shaderParams;
 
 };
 
@@ -81,9 +84,14 @@ private:
 	unsigned int m_dstFormat;
 	bool m_dirty;
 
-	struct
+	struct Texture
 	{
-		std::unique_ptr<D3DTexture2D> tex;
+		Texture()
+			: tex(NULL)
+		{ }
+		~Texture();
+
+		D3DTexture2D* tex;
 		UINT width;
 		UINT height;
 		DXGI_FORMAT dxFormat;

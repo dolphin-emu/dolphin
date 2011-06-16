@@ -19,6 +19,7 @@
 #define _PSTEXTUREENCODER_H
 
 #include "TextureEncoder.h"
+
 #include "D3DUtil.h"
 
 namespace DX11
@@ -26,21 +27,24 @@ namespace DX11
 
 class PSTextureEncoder : public TextureEncoder
 {
+
 public:
+
 	PSTextureEncoder();
 	~PSTextureEncoder();
-
+	
 	u32 Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
 		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 		bool scaleByHalf);
 
 private:
+	
 	bool m_ready;
 
-	SharedPtr<ID3D11Texture2D> m_out;
+	ID3D11Texture2D* m_out;
 	ID3D11RenderTargetView* m_outRTV;
-	SharedPtr<ID3D11Texture2D> m_outStage;
-	SharedPtr<ID3D11Buffer> m_encodeParams;
+	ID3D11Texture2D* m_outStage;
+	ID3D11Buffer* m_encodeParams;
 
 	bool InitStaticMode();
 	bool SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
@@ -63,13 +67,14 @@ private:
 		return (gen << 2) | (isDepth ? (1<<1) : 0) | (scaleByHalf ? (1<<0) : 0);
 	}
 
-	typedef std::map<ComboKey, SharedPtr<ID3D11PixelShader> > ComboMap;
+	typedef std::map<ComboKey, ID3D11PixelShader*> ComboMap;
 
 	ComboMap m_staticShaders;
 
-	SharedPtr<ID3D11PixelShader> m_useThisPS;
+	ID3D11PixelShader* m_useThisPS;
 	const float* m_useThisMatrix;
 	const float* m_useThisAdd;
+
 };
 
 }

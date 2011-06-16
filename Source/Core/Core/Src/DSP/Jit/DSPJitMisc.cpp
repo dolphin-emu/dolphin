@@ -379,7 +379,6 @@ void DSPEmitter::lris(const UDSPInstruction opc)
 // an opcode extension but not do anything. At least according to duddie.
 void DSPEmitter::nx(const UDSPInstruction opc)
 {
-	zeroWriteBackLog(opc);
 }
 
 //----
@@ -479,7 +478,6 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 // but it's harder to know exactly what effect they have.
 void DSPEmitter::srbith(const UDSPInstruction opc)
 {
-	zeroWriteBackLog(opc);
 	switch ((opc >> 8) & 0xf)
 	{
 	// M0/M2 change the multiplier mode (it can multiply by 2 for free).

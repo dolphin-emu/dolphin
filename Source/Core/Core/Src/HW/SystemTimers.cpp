@@ -244,11 +244,12 @@ void Init()
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
-		// PS: When this period is tweaked, the FreqDividerMote
+		// PS: When this period is tweaked, the interval
 		// in WII_IPC_HLE_Device_usb.cpp should also be tweaked accordingly
 		// to guarantee WiiMote updates at a fixed 100Hz
+		int interval = SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableWiimoteSpeaker?1250:1500;
 		int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
-		IPC_HLE_PERIOD = GetTicksPerSecond() / (1500 * fields);
+		IPC_HLE_PERIOD = GetTicksPerSecond() / (interval * fields);
 	}
 	else
 	{

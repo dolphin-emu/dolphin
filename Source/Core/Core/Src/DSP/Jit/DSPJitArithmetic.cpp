@@ -957,7 +957,6 @@ void DSPEmitter::inc(const UDSPInstruction opc)
 	else
 	{
 		set_long_acc(dreg);
-		Update_SR_Register64_Carry(EAX, tmp1);//why is this still done?
 	}
 	gpr.putXReg(tmp1);
 #else

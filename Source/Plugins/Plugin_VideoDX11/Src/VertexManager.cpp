@@ -44,21 +44,23 @@ namespace DX11
 const UINT IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE*2 * 16;
 const UINT VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 
-VertexManager::VertexManager()
+void VertexManager::CreateDeviceObjects()
 {
+	HRESULT hr;
+
 	D3D11_BUFFER_DESC bufdesc = CD3D11_BUFFER_DESC(IBUFFER_SIZE,
 		D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-	m_indexBuffer = CreateBufferShared(&bufdesc, NULL);
-	CHECK(m_indexBuffer, "Failed to create index buffer.");
-	D3D::SetDebugObjectName(m_indexBuffer, "index buffer of VertexManager");
+	CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_indexBuffer)),
+		"Failed to create index buffer.");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_indexBuffer, "index buffer of VertexManager");
 
 	bufdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufdesc.ByteWidth = VBUFFER_SIZE;
 
-	m_vertexBuffer = CreateBufferShared(&bufdesc, NULL);
-	CHECK(m_vertexBuffer, "Failed to create vertex buffer.");
-	D3D::SetDebugObjectName(m_vertexBuffer, "vertex buffer of VertexManager");
+	CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_vertexBuffer)),
+		"Failed to create vertex buffer.");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vertexBuffer, "vertex buffer of VertexManager");
 
 	m_indexBufferCursor = 0;
 	m_vertexBufferCursor = 0;
@@ -68,12 +70,34 @@ VertexManager::VertexManager()
 	m_lineDrawIndex = 0;
 	m_pointDrawIndex = 0;
 
+	m_lineShader.Init();
+	m_pointShader.Init();
+
 	bufdesc = CD3D11_BUFFER_DESC(8*16*sizeof(float),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-	m_unpackMatricesBuffer = CreateBufferShared(&bufdesc, NULL);
-	CHECK(m_unpackMatricesBuffer, "Failed to create unpacking matrices buffer.");
+	hr = D3D::device->CreateBuffer(&bufdesc, NULL, &m_unpackMatricesBuffer);
+	CHECK(SUCCEEDED(hr), "create unpacking matrices buffer.");
 	D3D::SetDebugObjectName(m_unpackMatricesBuffer, "unpacking matrices buffer");
+}
+
+void VertexManager::DestroyDeviceObjects()
+{
+	m_pointShader.Shutdown();
+	m_lineShader.Shutdown();
+
+	SAFE_RELEASE(m_vertexBuffer);
+	SAFE_RELEASE(m_indexBuffer);
+}
+
+VertexManager::VertexManager()
+{
+	CreateDeviceObjects();
+}
+
+VertexManager::~VertexManager()
+{
+	DestroyDeviceObjects();
 }
 
 void VertexManager::LoadBuffers()
@@ -84,16 +108,16 @@ void VertexManager::LoadBuffers()
 	if (m_vertexBufferCursor + vSize >= VBUFFER_SIZE)
 	{
 		// Wrap around
-		D3D::g_context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		D3D::context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		m_vertexBufferCursor = 0;
 	}
 	else
 	{
 		// Append data
-		D3D::g_context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
+		D3D::context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
 	}
 	memcpy((u8*)map.pData + m_vertexBufferCursor, LocalVBuffer, vSize);
-	D3D::g_context->Unmap(m_vertexBuffer, 0);
+	D3D::context->Unmap(m_vertexBuffer, 0);
 	m_vertexDrawOffset = m_vertexBufferCursor;
 	m_vertexBufferCursor += vSize;
 
@@ -102,13 +126,13 @@ void VertexManager::LoadBuffers()
 	if (m_indexBufferCursor + iCount >= IBUFFER_SIZE/2)
 	{
 		// Wrap around
-		D3D::g_context->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		D3D::context->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		m_indexBufferCursor = 0;
 	}
 	else
 	{
 		// Append data
-		D3D::g_context->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
+		D3D::context->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
 	}
 	m_triangleDrawIndex = m_indexBufferCursor;
 	m_lineDrawIndex = m_triangleDrawIndex + IndexGenerator::GetTriangleindexLen();
@@ -116,7 +140,7 @@ void VertexManager::LoadBuffers()
 	memcpy((u16*)map.pData + m_triangleDrawIndex, TIBuffer, 2*IndexGenerator::GetTriangleindexLen());
 	memcpy((u16*)map.pData + m_lineDrawIndex, LIBuffer, 2*IndexGenerator::GetLineindexLen());
 	memcpy((u16*)map.pData + m_pointDrawIndex, PIBuffer, 2*IndexGenerator::GetPointindexLen());
-	D3D::g_context->Unmap(m_indexBuffer, 0);
+	D3D::context->Unmap(m_indexBuffer, 0);
 	m_indexBufferCursor += iCount;
 }
 
@@ -126,15 +150,15 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
-	D3D::g_context->PSSetConstantBuffers(1, 1, &m_unpackMatricesBuffer);
+	D3D::context->PSSetConstantBuffers(1, 1, &m_unpackMatricesBuffer);
 
-	D3D::g_context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
-	D3D::g_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
+	D3D::context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
-		D3D::g_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		D3D::g_context->DrawIndexed(IndexGenerator::GetTriangleindexLen(), m_triangleDrawIndex, 0);
+		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		D3D::context->DrawIndexed(IndexGenerator::GetTriangleindexLen(), m_triangleDrawIndex, 0);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	// Disable culling for lines and points
@@ -148,17 +172,18 @@ void VertexManager::Draw(UINT stride)
 		float vpHeight = -2.0f * xfregs.viewport.ht;
 
 		bool texOffsetEnable[8];
+
 		for (int i = 0; i < 8; ++i)
 			texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
 
 		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			D3D::g_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			D3D::g_context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_lineDrawIndex, 0);
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			D3D::context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_lineDrawIndex, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
-			D3D::g_context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(NULL, NULL, 0);
 		}
 	}
 	if (IndexGenerator::GetNumPoints() > 0)
@@ -169,24 +194,25 @@ void VertexManager::Draw(UINT stride)
 		float vpHeight = -2.0f * xfregs.viewport.ht;
 
 		bool texOffsetEnable[8];
+
 		for (int i = 0; i < 8; ++i)
 			texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
 
 		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			D3D::g_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-			D3D::g_context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_pointDrawIndex, 0);
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			D3D::context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_pointDrawIndex, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
-			D3D::g_context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(NULL, NULL, 0);
 		}
 	}
 	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
 
 	ID3D11Buffer* nullDummy = NULL;
-	D3D::g_context->PSSetConstantBuffers(1, 1, &nullDummy);
+	D3D::context->PSSetConstantBuffers(1, 1, &nullDummy);
 }
 
 void VertexManager::vFlush()
@@ -247,11 +273,11 @@ void VertexManager::vFlush()
 		else
 			bindThese[i] = NULL;
 	}
-	D3D::g_context->PSSetShaderResources(0, 8, bindThese);
+	D3D::context->PSSetShaderResources(0, 8, bindThese);
 
 	// Load texture unpacking matrices
 	D3D11_MAPPED_SUBRESOURCE map;
-	HRESULT hr = D3D::g_context->Map(m_unpackMatricesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	HRESULT hr = D3D::context->Map(m_unpackMatricesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 	if (SUCCEEDED(hr))
 	{
 		float* dst = (float*)map.pData;
@@ -262,7 +288,7 @@ void VertexManager::vFlush()
 				memcpy(&dst[i*16], texEntries[i]->GetUnpackMatrix().data, 16*sizeof(float));
 			}
 		}
-		D3D::g_context->Unmap(m_unpackMatricesBuffer, 0);
+		D3D::context->Unmap(m_unpackMatricesBuffer, 0);
 	}
 	else
 		ERROR_LOG(VIDEO, "Failed to map buffer for unpack matrices");
@@ -274,14 +300,14 @@ void VertexManager::vFlush()
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
 		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-	if (!PixelShaderCache::LoadShader(
+	if (!PixelShaderCache::SetShader(
 		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
 		g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
 	}
-	if (!VertexShaderCache::LoadShader(g_nativeVertexFmt->m_components))
+	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;

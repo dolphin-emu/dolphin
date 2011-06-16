@@ -19,7 +19,9 @@
 #define _POINTGEOMETRYSHADER_H
 
 #include "VideoCommon.h"
-#include "D3DUtil.h"
+
+struct ID3D11Buffer;
+struct ID3D11GeometryShader;
 
 namespace DX11
 {
@@ -28,21 +30,27 @@ namespace DX11
 // vertex format.
 class PointGeometryShader
 {
+
 public:
+
 	PointGeometryShader();
 
+	void Init();
+	void Shutdown();
 	// Returns true on success, false on failure
 	bool SetShader(u32 components, float pointSize, float texOffset,
 		float vpWidth, float vpHeight, const bool* texOffsetEnable);
 
 private:
+
 	bool m_ready;
 
-	SharedPtr<ID3D11Buffer> m_paramsBuffer;
+	ID3D11Buffer* m_paramsBuffer;
 
-	typedef std::map<u32, SharedPtr<ID3D11GeometryShader>> ComboMap;
+	typedef std::map<u32, ID3D11GeometryShader*> ComboMap;
 
 	ComboMap m_shaders;
+
 };
 
 }

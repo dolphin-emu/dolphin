@@ -36,8 +36,25 @@ namespace DX11
 {
 
 TCacheEntry::TCacheEntry()
-	: m_fromVirtCopy(false), m_loaded(NULL), m_depalettized(NULL), m_bindMe(NULL)
+	: m_palette(NULL), m_paletteSRV(NULL), m_fromVirtCopy(false), m_loaded(NULL),
+	m_depalettized(NULL), m_bindMe(NULL)
 { }
+
+TCacheEntry::~TCacheEntry()
+{
+	SAFE_RELEASE(m_paletteSRV);
+	SAFE_RELEASE(m_palette);
+}
+
+TCacheEntry::RAMStorage::~RAMStorage()
+{
+	SAFE_RELEASE(tex);
+}
+
+TCacheEntry::DepalStorage::~DepalStorage()
+{
+	SAFE_RELEASE(tex);
+}
 
 inline bool IsPaletted(u32 format)
 {
@@ -178,20 +195,26 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curHash = newHash;
 
 	m_fromVirtCopy = false;
-	m_loaded = m_ramStorage.tex.get();
+	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
 }
 
 void TCacheEntry::CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height, UINT levels)
 {
+	HRESULT hr;
+
 	DEBUG_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
 		width, height, levels);
 	
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height, 1, levels);
 
-	m_ramStorage.tex.reset();
-	SharedPtr<ID3D11Texture2D> newRamTexture = CreateTexture2DShared(&t2dd, NULL);
-	m_ramStorage.tex.reset(new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE));
+	m_ramStorage.tex->Release();
+
+	ID3D11Texture2D* newRamTexture;
+	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &newRamTexture);
+	CHECK(SUCCEEDED(hr), "create ram texture");
+	m_ramStorage.tex = new D3DTexture2D(newRamTexture, D3D11_BIND_SHADER_RESOURCE);
+
 	m_ramStorage.dxFormat = dxFormat;
 	m_ramStorage.width = width;
 	m_ramStorage.height = height;
@@ -419,7 +442,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			break;
 		}
 
-		D3D::g_context->UpdateSubresource(m_ramStorage.tex->GetTex(), level,
+		D3D::context->UpdateSubresource(m_ramStorage.tex->GetTex(), level,
 			NULL, decodeTemp, srcRowPitch, srcRowPitch*actualHeight);
 
 		src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
@@ -475,7 +498,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	if (!virtTex)
 		return false;
 
-	m_ramStorage.tex.reset();
+	SAFE_RELEASE(m_ramStorage.tex);
 
 	m_curFormat = format;
 	m_curHash = newHash;
@@ -512,10 +535,13 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 			DEBUG_LOG(VIDEO, "Creating depal-storage of size %dx%d for texture at 0x%.08X",
 				loadedDesc.Width, loadedDesc.Height, ramAddr);
 
-			m_depalStorage.tex.reset();
-			SharedPtr<ID3D11Texture2D> newDepal = CreateTexture2DShared(&t2dd, NULL);
-			m_depalStorage.tex.reset(new D3DTexture2D(newDepal,
-				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
+			m_depalStorage.tex->Release();
+
+			ID3D11Texture2D* newDepal;
+			D3D::device->CreateTexture2D(&t2dd, NULL, &newDepal);
+			m_depalStorage.tex = new D3DTexture2D(newDepal,
+				(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET));
+
 			m_depalStorage.width = t2dd.Width;
 			m_depalStorage.height = t2dd.Height;
 		}
@@ -524,7 +550,7 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 		if (runDepalShader)
 			DepalettizeShader(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
-		m_depalettized = m_depalStorage.tex.get();
+		m_depalettized = m_depalStorage.tex;
 	}
 	else
 	{
@@ -608,7 +634,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 			unsigned int numColors = TexDecoder_GetNumColors(format);
 
 			D3D11_MAPPED_SUBRESOURCE map = { 0 };
-			HRESULT hr = D3D::g_context->Map(m_palette, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			HRESULT hr = D3D::context->Map(m_palette, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 			if (SUCCEEDED(hr))
 			{
 				switch (tlutFormat)
@@ -617,7 +643,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 				case GX_TL_RGB565: DecodeRGB565Palette((u32*)map.pData, tlut, numColors); break;
 				case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)map.pData, tlut, numColors); break;
 				}
-				D3D::g_context->Unmap(m_palette, 0);
+				D3D::context->Unmap(m_palette, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "Failed to map palette buffer");
@@ -636,8 +662,10 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 void TCacheEntry::CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
-	m_paletteSRV.reset();
-	m_palette.reset();
+	HRESULT hr;
+
+	SAFE_RELEASE(m_paletteSRV);
+	SAFE_RELEASE(m_palette);
 
 	unsigned int numColors = TexDecoder_GetNumColors(format);
 
@@ -645,19 +673,14 @@ void TCacheEntry::CreatePaletteTexture(u32 ramAddr, u32 width, u32 height, u32 l
 		numColors*4, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
 		D3D11_CPU_ACCESS_WRITE);
 
-	ID3D11Buffer* newPalette = NULL;
-	HRESULT hr = D3D::g_device->CreateBuffer(&bd, NULL, &newPalette);
-	if (FAILED(hr))
-		ERROR_LOG(VIDEO, "Failed to create new palette buffer");
-	m_palette = SharedPtr<ID3D11Buffer>::FromPtr(newPalette);
+	hr = D3D::device->CreateBuffer(&bd, NULL, &m_palette);
+	CHECK(SUCCEEDED(hr), "create palette buffer");
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = CD3D11_SHADER_RESOURCE_VIEW_DESC(
 		D3D11_SRV_DIMENSION_BUFFER, DXGI_FORMAT_R8G8B8A8_UNORM, 0, numColors);
-	ID3D11ShaderResourceView* newPaletteSRV = NULL;
-	hr = D3D::g_device->CreateShaderResourceView(m_palette, &srvd, &newPaletteSRV);
-	if (FAILED(hr))
-		ERROR_LOG(VIDEO, "Failed to create new palette texture SRV");
-	m_paletteSRV = SharedPtr<ID3D11ShaderResourceView>::FromPtr(newPaletteSRV);
+
+	hr = D3D::device->CreateShaderResourceView(m_palette, &srvd, &m_paletteSRV);
+	CHECK(SUCCEEDED(hr), "create palette buffer srv");
 }
 
 void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -669,7 +692,7 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 
 	DepalettizeShader::BaseType baseType;
 
-	SharedPtr<ID3D11PixelShader> depalettizeShader;
+	ID3D11PixelShader* depalettizeShader;
 	if (m_fromVirtCopy)
 	{
 		// If the base came from a TCL, it will have UNORM type
@@ -688,12 +711,19 @@ void TCacheEntry::DepalettizeShader(u32 ramAddr, u32 width, u32 height, u32 leve
 		baseType = DepalettizeShader::Uint;
 
 	((TextureCache*)g_textureCache)->GetDepalShader().Depalettize(
-		m_depalStorage.tex.get(), m_loaded, baseType, m_paletteSRV);
+		m_depalStorage.tex, m_loaded, baseType, m_paletteSRV);
 }
 
 TextureCache::TextureCache()
+	: m_encoder(NULL)
 {
-	m_encoder.reset(new PSTextureEncoder);
+	m_encoder = new PSTextureEncoder;
+}
+
+TextureCache::~TextureCache()
+{
+	delete m_encoder;
+	m_encoder = NULL;
 }
 
 TCacheEntry* TextureCache::CreateEntry()

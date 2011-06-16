@@ -157,15 +157,21 @@ void Preset(bool _bNTSC)
 
 void Init()
 {
-	fields = Core::g_CoreStartupParameter.bVBeam?1:2;
+	fields = Core::g_CoreStartupParameter.bVBeam ? 1 : 2;
 
-	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bNTSCJ;
+	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
 
 	for (int i = 0; i < 4; i++)
 		m_InterruptRegister[i].Hex = 0;
 
 	m_DisplayControlRegister.Hex = 0;
 	UpdateParameters();
+}
+
+void SetRegionReg(char region)
+{
+	if (!Core::g_CoreStartupParameter.bForceNTSCJ)
+		m_DTVStatus.ntsc_j = region == 'J';
 }
 
 void Read8(u8& _uReturnValue, const u32 _iAddress)

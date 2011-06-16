@@ -439,21 +439,23 @@ static const char EFB_ENCODE_PS[] =
 PSTextureEncoder::PSTextureEncoder()
 	: m_ready(false), m_outRTV(NULL)
 {
+	HRESULT hr;
+
 	// Create output texture RGBA format
 
 	// This format allows us to generate one cache line in two pixels.
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 		DXGI_FORMAT_R32G32B32A32_UINT,
 		EFB_WIDTH, EFB_HEIGHT/4, 1, 1, D3D11_BIND_RENDER_TARGET);
-	m_out = CreateTexture2DShared(&t2dd, NULL);
-	CHECK(m_out, "create efb encode output texture");
+	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_out);
+	CHECK(SUCCEEDED(hr), "create efb encode output texture");
 	D3D::SetDebugObjectName(m_out, "efb encoder output texture");
 
 	// Create output render target view
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(m_out,
 		D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32G32B32A32_UINT);
-	HRESULT hr = D3D::g_device->CreateRenderTargetView(m_out, &rtvd, &m_outRTV);
+	hr = D3D::device->CreateRenderTargetView(m_out, &rtvd, &m_outRTV);
 	CHECK(SUCCEEDED(hr), "create efb encode output render target view");
 	D3D::SetDebugObjectName(m_outRTV, "efb encoder output rtv");
 
@@ -462,16 +464,16 @@ PSTextureEncoder::PSTextureEncoder()
 	t2dd.Usage = D3D11_USAGE_STAGING;
 	t2dd.BindFlags = 0;
 	t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	m_outStage = CreateTexture2DShared(&t2dd, NULL);
-	CHECK(m_outStage, "create efb encode output staging buffer");
+	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_outStage);
+	CHECK(SUCCEEDED(hr), "create efb encode output staging buffer");
 	D3D::SetDebugObjectName(m_outStage, "efb encoder output staging buffer");
 
 	// Create constant buffer for uploading data to shaders
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC((sizeof(EFBEncodeParams) + 15) & ~15,
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	m_encodeParams = CreateBufferShared(&bd, NULL);
-	CHECK(m_encodeParams, "create efb encode params buffer");
+	hr = D3D::device->CreateBuffer(&bd, NULL, &m_encodeParams);
+	CHECK(SUCCEEDED(hr), "create efb encode params buffer");
 	D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
 
 	// Create pixel shader
@@ -542,7 +544,7 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
 	{
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
-		D3D::g_context->RSSetViewports(1, &vp);
+		D3D::context->RSSetViewports(1, &vp);
 	
 		EFBRectangle fullSrcRect;
 		fullSrcRect.left = 0;
@@ -560,7 +562,7 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 		static const float YUV_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
 		
 		D3D11_MAPPED_SUBRESOURCE map;
-		hr = D3D::g_context->Map(m_encodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		hr = D3D::context->Map(m_encodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		if (SUCCEEDED(hr))
 		{
 			EFBEncodeParams* params = (EFBEncodeParams*)map.pData;
@@ -597,15 +599,15 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 
 			params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24) ? TRUE : FALSE;
 
-			D3D::g_context->Unmap(m_encodeParams, 0);
+			D3D::context->Unmap(m_encodeParams, 0);
 		}
 		else
 			ERROR_LOG(VIDEO, "Failed to map encode params buffer");
 	
-		D3D::g_context->OMSetRenderTargets(1, &m_outRTV, NULL);
+		D3D::context->OMSetRenderTargets(1, &m_outRTV, NULL);
 
-		D3D::g_context->PSSetConstantBuffers(0, 1, &m_encodeParams);
-		D3D::g_context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
+		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
+		D3D::context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
 
 		// Encode!
 
@@ -613,20 +615,20 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 
 		// Copy to staging buffer
 		
-		D3D::g_context->OMSetRenderTargets(0, NULL, NULL);
+		D3D::context->OMSetRenderTargets(0, NULL, NULL);
 
 		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow*2, numBlocksY, 1);
-		D3D::g_context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
+		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Clean up state
 	
 		IUnknown* nullDummy = NULL;
-		D3D::g_context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
-		D3D::g_context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
+		D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
+		D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
 
 		// Transfer staging buffer to GameCube/Wii RAM
 
-		hr = D3D::g_context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
+		hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
 		CHECK(SUCCEEDED(hr), "map staging buffer");
 
 		u8* src = (u8*)map.pData;
@@ -637,7 +639,7 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 			src += map.RowPitch;
 		}
 
-		D3D::g_context->Unmap(m_outStage, 0);
+		D3D::context->Unmap(m_outStage, 0);
 
 		encodeSize = bpmem.copyMipMapStrideChannels*32 * numBlocksY;
 	}
@@ -645,7 +647,8 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 	// Restore API
 
 	g_renderer->RestoreAPIState();
-	D3D::g_context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+	D3D::context->OMSetRenderTargets(1,
+		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	return encodeSize;
@@ -824,29 +827,29 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
+		D3DBlob* bytecode = NULL;
 		D3D_SHADER_MACRO macros[] = {
 			{ "IMP_FETCH", fetchFuncName },
 			{ "IMP_SCALEDFETCH", scaledFetchFuncName },
 			{ "IMP_GENERATOR", genFuncName },
 			{ NULL, NULL }
 		};
-
-		auto const bytecode = D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), macros);
-		if (!bytecode)
+		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
 		{
 			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d scaleByHalf %d failed to compile",
 				dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 			// Add dummy shader to map to prevent trying to compile over and
 			// over again
-			m_staticShaders[key].reset();
+			m_staticShaders[key] = NULL;
 			return false;
 		}
 
-		ID3D11PixelShader* newShader = nullptr;
-		HRESULT hr = D3D::g_device->CreatePixelShader(bytecode->GetBufferPointer(), bytecode->GetBufferSize(), NULL, &newShader);
+		ID3D11PixelShader* newShader;
+		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), NULL, &newShader);
 		CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
-		it = m_staticShaders.insert(std::make_pair(key, SharedPtr<ID3D11PixelShader>::FromPtr(newShader))).first;
+		it = m_staticShaders.insert(std::make_pair(key, newShader)).first;
+		bytecode->Release();
 	}
 
 	if (it != m_staticShaders.end())

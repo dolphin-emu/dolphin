@@ -32,9 +32,23 @@
 namespace DX11
 {
 
+VirtualCopyShaderManager::VirtualCopyShaderManager()
+	: m_shaderParams(NULL)
+{
+	for (int i = 0; i < 4; ++i)
+		m_shaders[i] = NULL;
+}
+
+VirtualCopyShaderManager::~VirtualCopyShaderManager()
+{
+	SAFE_RELEASE(m_shaderParams);
+	for (int i = 0; i < 4; ++i)
+		SAFE_RELEASE(m_shaders[i]);
+}
+
 struct VirtCopyShaderParams
 {
-	FLOAT Matrix[4][4];
+	FLOAT Matrix[4*4];
 	FLOAT Add[4];
 	FLOAT Pos[2]; // Top-left of source in texels
 	BOOL DisableAlpha; // If true, alpha will read as 1 from the source
@@ -126,15 +140,16 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 "}\n"
 ;
 
-SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, bool depth)
+ID3D11PixelShader* VirtualCopyShaderManager::GetShader(bool scale, bool depth)
 {
+	HRESULT hr;
+
 	if (!m_shaderParams)
 	{
 		D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(VirtCopyShaderParams_Padded),
 			D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		m_shaderParams = CreateBufferShared(&bd, NULL);
-		if (!m_shaderParams)
-			ERROR_LOG(VIDEO, "Failed to create fake encode params buffer");
+		hr = D3D::device->CreateBuffer(&bd, NULL, &m_shaderParams);
+		CHECK(SUCCEEDED(hr), "create virtual copy shader params buffer");
 	}
 	
 	// There are 4 different combinations of scale and depth.
@@ -159,6 +174,11 @@ SharedPtr<ID3D11PixelShader> VirtualCopyShaderManager::GetShader(bool scale, boo
 VirtualEFBCopy::VirtualEFBCopy()
 	: m_dirty(true)
 { }
+
+VirtualEFBCopy::Texture::~Texture()
+{
+	SAFE_RELEASE(tex);
+}
 
 static const float RGBA_MATRIX[4*4] = {
 	1, 0, 0, 0,
@@ -316,7 +336,7 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int sr
 		DEBUG_LOG(VIDEO, "Updating fake base with CopySubresourceRegion");
 
 		D3D11_BOX srcBox = CD3D11_BOX(targetRect.left, targetRect.top, 0, targetRect.right, targetRect.bottom, 1);
-		D3D::g_context->CopySubresourceRegion(m_texture.tex->GetTex(), 0, 0, 0, 0, srcTex->GetTex(), 0, &srcBox);
+		D3D::context->CopySubresourceRegion(m_texture.tex->GetTex(), 0, 0, 0, 0, srcTex->GetTex(), 0, &srcBox);
 	}
 	else
 	{
@@ -372,11 +392,13 @@ D3DTexture2D* VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height,
 		break;
 	}
 
-	return m_texture.tex.get();
+	return m_texture.tex;
 }
 
 void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT dxFormat)
 {
+	HRESULT hr;
+
 	bool recreate = !m_texture.tex ||
 		width != m_texture.width ||
 		height != m_texture.height ||
@@ -388,10 +410,13 @@ void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT d
 		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height,
 			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 
-		m_texture.tex.reset();
-		SharedPtr<ID3D11Texture2D> newFakeBase = CreateTexture2DShared(&t2dd, NULL);
-		m_texture.tex.reset(new D3DTexture2D(newFakeBase,
-			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET)));
+		m_texture.tex->Release();
+
+		ID3D11Texture2D* newFakeBase;
+		hr = D3D::device->CreateTexture2D(&t2dd, NULL, &newFakeBase);
+		m_texture.tex = new D3DTexture2D(newFakeBase,
+			(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET));
+
 		m_texture.width = width;
 		m_texture.height = height;
 		m_texture.dxFormat = dxFormat;
@@ -405,7 +430,7 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	const float* colorMatrix, const float* colorAdd)
 {
 	VirtualCopyShaderManager& virtShaderMan = ((TextureCache*)g_textureCache)->GetVirtShaderManager();
-	SharedPtr<ID3D11PixelShader> fakeEncode = virtShaderMan.GetShader(scale, srcFormat == PIXELFMT_Z24);
+	ID3D11PixelShader* fakeEncode = virtShaderMan.GetShader(scale, srcFormat == PIXELFMT_Z24);
 	if (!fakeEncode)
 		return;
 	
@@ -419,10 +444,10 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	};
 	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
 
-	SharedPtr<ID3D11Buffer> paramsBuffer = virtShaderMan.GetParams();
+	ID3D11Buffer* paramsBuffer = virtShaderMan.GetParams();
 
 	D3D11_MAPPED_SUBRESOURCE map;
-	HRESULT hr = D3D::g_context->Map(paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	HRESULT hr = D3D::context->Map(paramsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 	if (SUCCEEDED(hr))
 	{
 		VirtCopyShaderParams* params = (VirtCopyShaderParams*)map.pData;
@@ -453,7 +478,7 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 		params->Pos[0] = FLOAT(posX);
 		params->Pos[1] = FLOAT(posY);
 		params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
-		D3D::g_context->Unmap(paramsBuffer, 0);
+		D3D::context->Unmap(paramsBuffer, 0);
 	}
 	else
 		ERROR_LOG(VIDEO, "Failed to map fake-encode params buffer");
@@ -464,24 +489,24 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	D3D::stateman->Apply();
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(virtualW), FLOAT(virtualH));
-	D3D::g_context->RSSetViewports(1, &vp);
+	D3D::context->RSSetViewports(1, &vp);
 
 	// Re-encode with a different palette
 
-	D3D::g_context->OMSetRenderTargets(1, &m_texture.tex->GetRTV(), NULL);
-	D3D::g_context->PSSetConstantBuffers(0, 1, &paramsBuffer);
-	D3D::g_context->PSSetShaderResources(0, 1, &texSrc->GetSRV());
+	D3D::context->OMSetRenderTargets(1, &m_texture.tex->GetRTV(), NULL);
+	D3D::context->PSSetConstantBuffers(0, 1, &paramsBuffer);
+	D3D::context->PSSetShaderResources(0, 1, &texSrc->GetSRV());
 
 	D3D::drawEncoderQuad(fakeEncode);
 
 	IUnknown* nullDummy = NULL;
-	D3D::g_context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
-	D3D::g_context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
+	D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
+	D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
 	
 	// Restore API
 
 	g_renderer->RestoreAPIState();
-	D3D::g_context->OMSetRenderTargets(1,
+	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }

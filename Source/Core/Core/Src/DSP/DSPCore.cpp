@@ -274,6 +274,9 @@ int DSPCore_RunCycles(int cycles)
 		DSPCompiledCode pExecAddr = (DSPCompiledCode)dspjit->enterDispatcher;
 		pExecAddr();
 
+		if (g_dsp.reset_dspjit_codespace)
+			dspjit->ClearIRAMandDSPJITCodespaceReset();
+
 		return cyclesLeft;
 	}
 

@@ -110,6 +110,7 @@ public:
 
 	std::string GetFilenameFromSHA1(u8* _pHash);
 	std::string AddSharedContent(u8* _pHash);
+	void UpdateLocation();
 
 private:
 
@@ -141,6 +142,7 @@ public:
 	u32 GetUIDFromTitle(u64 _Title);
 	void AddTitle(u64 _Title);
 	void GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned = false);
+	void UpdateLocation();
 private:
 
 

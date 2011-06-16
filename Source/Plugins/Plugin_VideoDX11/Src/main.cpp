@@ -81,19 +81,6 @@ std::string VideoBackend::GetName()
 
 void InitBackendInfo()
 {
-	g_Config.backend_info.APIType = API_D3D11;
-	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
-	g_Config.backend_info.bSupports3DVision = false;
-	g_Config.backend_info.bSupportsDualSourceBlend = true;
-	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	g_Config.backend_info.bSupportsPixelLighting = true;
-}
-
-void VideoBackend::ShowConfig(void *_hParent)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	InitBackendInfo();
-
 	HRESULT hr = DX11::D3D::LoadDXGI();
 	if (SUCCEEDED(hr)) hr = DX11::D3D::LoadD3D();
 	if (FAILED(hr))
@@ -101,6 +88,13 @@ void VideoBackend::ShowConfig(void *_hParent)
 		DX11::D3D::UnloadDXGI();
 		return;
 	}
+
+	g_Config.backend_info.APIType = API_D3D11;
+	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bSupports3DVision = false;
+	g_Config.backend_info.bSupportsDualSourceBlend = true;
+	g_Config.backend_info.bSupportsFormatReinterpretation = true;
+	g_Config.backend_info.bSupportsPixelLighting = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -122,8 +116,9 @@ void VideoBackend::ShowConfig(void *_hParent)
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
 		{
 			char buf[32];
-			auto const modes = DX11::D3D::EnumAAModes(ad);
-			for (size_t i = 0; i < modes.size(); ++i)
+			std::vector<DXGI_SAMPLE_DESC> modes;
+			modes = DX11::D3D::EnumAAModes(ad);
+			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
 				if (i == 0) sprintf_s(buf, 32, "None");
 				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
@@ -141,12 +136,16 @@ void VideoBackend::ShowConfig(void *_hParent)
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
 
-	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
-	diag.ShowModal();
-
-	g_Config.backend_info.Adapters.clear();
 	DX11::D3D::UnloadDXGI();
 	DX11::D3D::UnloadD3D();
+}
+
+void VideoBackend::ShowConfig(void *_hParent)
+{
+#if defined(HAVE_WX) && HAVE_WX
+	InitBackendInfo();
+	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
+	diag.ShowModal();
 #endif
 }
 
@@ -158,7 +157,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini").c_str());
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
-	UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
+	g_Config.UpdateProjectionHack();
+	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
