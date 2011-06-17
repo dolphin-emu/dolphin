@@ -936,7 +936,7 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+#if defined(HAVE_X11) && HAVE_X11
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
@@ -971,7 +971,6 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
-				
 	}
 
 	wxEndBusyCursor();
@@ -1055,7 +1054,7 @@ void CFrame::DoStop()
 		BootManager::Stop();
 		wxEndBusyCursor();
 
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+#if defined(HAVE_X11) && HAVE_X11
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
