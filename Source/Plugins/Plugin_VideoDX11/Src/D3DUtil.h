@@ -68,6 +68,8 @@ namespace D3D
 
 	void drawEncoderQuad(ID3D11PixelShader* pShader,
 		ID3D11ClassInstance* const* ppClassInstances = NULL, UINT numClassInstances = 0);
+	void drawEncoderTexQuad(ID3D11PixelShader* pShader,
+		ID3D11ClassInstance* const* ppClassInstances = NULL, UINT numClassInstances = 0);
 
 	void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 						const D3D11_RECT* rSource,

@@ -271,7 +271,7 @@ static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 		{
 			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 			{
-				for (u32 ix = 0; ix < 8; ++ix)
+				for (int ix = 0; ix < 8; ++ix)
 				{
 					u8 val = src[8 * xStep + ix];
 					dst[((y + iy) * width + x + ix) * 2] = Convert4To8(val >> 4);
@@ -743,8 +743,8 @@ u32 TextureCache::EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int s
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	D3DTexture2D* srcTex = (srcFormat == PIXELFMT_Z24)
-		? FramebufferManager::GetResolvedEFBDepthTexture()
-		: FramebufferManager::GetResolvedEFBColorTexture();
+		? FramebufferManager::GetRealEFBDepthTexture()
+		: FramebufferManager::GetRealEFBColorTexture();
 
 	return m_encoder->Encode(dst, dstFormat, srcTex, srcFormat, srcRect,
 		isIntensity, scaleByHalf);

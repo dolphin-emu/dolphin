@@ -21,6 +21,7 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 #include "Debugger.h"
+#include "FramebufferManager.h"
 #include "IndexGenerator.h"
 #include "MainBase.h"
 #include "PixelShaderCache.h"
@@ -150,6 +151,11 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
+	// TODO: Only set color dirty if color write is on.
+	((FramebufferManager*)g_framebuffer_manager)->SetColorDirty();
+	// TODO: Only set depth dirty if depth write is on.
+	((FramebufferManager*)g_framebuffer_manager)->SetDepthDirty();
+
 	D3D::context->PSSetConstantBuffers(1, 1, &m_unpackMatricesBuffer);
 
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);

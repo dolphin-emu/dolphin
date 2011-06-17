@@ -34,15 +34,21 @@ struct EFBEncodeParams
 {
 	FLOAT Matrix[4*4];
 	FLOAT Add[4];
-	// Rectangle within EFBTexture containing the EFB (in texels)
-	FLOAT TexUL[2]; // Upper left
-	FLOAT TexLR[2]; // Lower right
 	FLOAT Pos[2]; // Upper left of source (in EFB pixels)
+	// TODO: Eliminate DisableAlpha and do its thing with Matrix and Add.
 	BOOL DisableAlpha; // If true, alpha will read as 1 from source
 };
 
 static const char EFB_ENCODE_PS[] =
 "// dolphin-emu EFB encoder pixel shader\n"
+
+"#ifndef DEPTH\n"
+"#error DEPTH should be defined to 1 or 0\n"
+"#endif\n"
+
+"#ifndef SCALE\n"
+"#error SCALE should be defined to 1 or 0\n"
+"#endif\n"
 
 // Input
 
@@ -52,14 +58,18 @@ static const char EFB_ENCODE_PS[] =
 	"{\n"
 		"float4x4 Matrix;\n"
 		"float4 Add;\n"
-		"float2 TexUL;\n"
-		"float2 TexLR;\n"
 		"float2 Pos;\n"
 		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
-"Texture2D EFBTexture : register(t0);\n"
+// EFBTexture is a 640x528 texture containing the "real" EFB
+"#if DEPTH\n"
+"Texture2D<float> EFBTexture : register(t0);\n"
+"#else\n"
+"Texture2D<float4> EFBTexture : register(t0);\n"
+"#endif\n"
+"sampler EFBSampler : register(s0);\n"
 
 // Constants
 
@@ -112,22 +122,15 @@ static const char EFB_ENCODE_PS[] =
 "float2 CalcTexCoord(float2 coord)\n"
 "{\n"
 	// Add 0.5,0.5 to sample from the center of the EFB pixel
-	"float2 efbCoord = coord + float2(0.5,0.5);\n"
-	"return lerp(Params.TexUL, Params.TexLR, efbCoord * INV_EFB_DIMS);\n"
+	"return (coord*INV_EFB_DIMS) + float2(0.5,0.5)*INV_EFB_DIMS;\n"
 "}\n"
 
-// Interface and classes for different source formats
+"#if DEPTH\n"
 
-"float4 Fetch_Color(float2 coord)\n"
+"float4 DepthToRGBA(float depth)\n"
 "{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"return EFBTexture.Load(int3(texCoord, 0));\n"
-"}\n"
-
-"float4 Fetch_Depth(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"uint depth24 = 0xFFFFFF * EFBTexture.Load(int3(texCoord, 0)).r;\n"
+	// Convert X8 Z24 to A8 R8 G8 B8
+	"uint depth24 = 0xFFFFFF * depth;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g
@@ -136,39 +139,48 @@ static const char EFB_ENCODE_PS[] =
 	"return bytes / 255.0;\n"
 "}\n"
 
-"#ifndef IMP_FETCH\n"
-"#error No Fetch specified\n"
-"#endif\n"
-
-// Interface and classes for different scale/filter settings (on or off)
-
-"float4 ScaledFetch_0(float2 coord)\n"
+"float4 Fetch(float2 coord)\n"
 "{\n"
-	"return IMP_FETCH(Params.Pos + coord);\n"
+"#if SCALE\n"
+	// FIXME: Should box filter be applied to depth like this?
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + 2*CalcTexCoord(coord);\n"
+	"float d0 = EFBTexture.Sample(EFBSampler, texCoord + float2(-0.5,-0.5) * INV_EFB_DIMS);\n"
+	"float d1 = EFBTexture.Sample(EFBSampler, texCoord + float2( 0.5,-0.5) * INV_EFB_DIMS);\n"
+	"float d2 = EFBTexture.Sample(EFBSampler, texCoord + float2(-0.5, 0.5) * INV_EFB_DIMS);\n"
+	"float d3 = EFBTexture.Sample(EFBSampler, texCoord + float2( 0.5, 0.5) * INV_EFB_DIMS);\n"
+	"float4 s0 = DepthToRGBA(d0);\n"
+	"float4 s1 = DepthToRGBA(d1);\n"
+	"float4 s2 = DepthToRGBA(d2);\n"
+	"float4 s3 = DepthToRGBA(d3);\n"
+	"return 0.25 * (s0 + s1 + s2 + s3);\n"
+"#else\n" // #if SCALE
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + CalcTexCoord(coord);\n"
+	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
+"#endif\n" // #if SCALE
 "}\n"
 
-"float4 ScaledFetch_1(float2 coord)\n"
+"#else\n" // #if DEPTH
+
+"float4 Fetch(float2 coord)\n"
 "{\n"
-	"float2 ul = Params.Pos + 2*coord;\n"
-	"float4 sample0 = IMP_FETCH(ul+float2(0,0));\n"
-	"float4 sample1 = IMP_FETCH(ul+float2(1,0));\n"
-	"float4 sample2 = IMP_FETCH(ul+float2(0,1));\n"
-	"float4 sample3 = IMP_FETCH(ul+float2(1,1));\n"
-	// Average all four samples together
-	// FIXME: Is this correct?
-	"return 0.25 * (sample0+sample1+sample2+sample3);\n"
+"#if SCALE\n"
+	// texCoord will be in the center of a quad of EFB pixels, so set the sampler
+	// to bilinear and it will have the same effect as a box filter.
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + 2*CalcTexCoord(coord);\n"
+"#else\n" // #if SCALE
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + CalcTexCoord(coord);\n"
+"#endif\n" // #if SCALE
+	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
 "}\n"
 
-"#ifndef IMP_SCALEDFETCH\n"
-"#error No ScaledFetch specified\n"
-"#endif\n"
+"#endif\n" // #if DEPTH
 
 // Main EFB-sampling function: performs all steps of fetching pixels, scaling,
 // and applying transforms
 
 "float SampleEFB_R(float2 coord)\n"
 "{\n"
-	"float4 sample = IMP_SCALEDFETCH(coord);\n"
+	"float4 sample = Fetch(coord);\n"
 	"if (Params.DisableAlpha)\n"
 		"sample.a = 1;\n"
 	"return (mul(sample, Params.Matrix) + Params.Add).r;\n"
@@ -176,7 +188,7 @@ static const char EFB_ENCODE_PS[] =
 
 "float2 SampleEFB_RG(float2 coord)\n"
 "{\n"
-	"float4 sample = IMP_SCALEDFETCH(coord);\n"
+	"float4 sample = Fetch(coord);\n"
 	"if (Params.DisableAlpha)\n"
 		"sample.a = 1;\n"
 	"return (mul(sample, Params.Matrix) + Params.Add).rg;\n"
@@ -184,24 +196,24 @@ static const char EFB_ENCODE_PS[] =
 
 "float4 SampleEFB_RGBA(float2 coord)\n"
 "{\n"
-	"float4 sample = IMP_SCALEDFETCH(coord);\n"
+	"float4 sample = Fetch(coord);\n"
 	"if (Params.DisableAlpha)\n"
 		"sample.a = 1;\n"
 	"return mul(sample, Params.Matrix) + Params.Add;\n"
 "}\n"
 
-// Interfaces and classes for different destination formats
+// Generators for different destination formats
 
-"uint4 Generate_R4(float2 cacheCoord)\n"
+"uint4 Generate_R4(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(8,8);\n"
-	"float2 subBlockUL = blockUL + float2(0, 4*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(8,8);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 4*(cacheCoord.x&1));\n"
 
 	"float sample[32];\n"
-	"for (uint y = 0; y < 4; ++y) {\n"
-		"for (uint x = 0; x < 8; ++x) {\n"
+	"[unroll] for (uint y = 0; y < 4; ++y) {\n"
+		"[unroll] for (uint x = 0; x < 8; ++x) {\n"
 			"sample[y*8+x] = SampleEFB_R(subBlockUL+float2(x,y));\n"
 		"}\n"
 	"}\n"
@@ -223,12 +235,12 @@ static const char EFB_ENCODE_PS[] =
 	"return uint4(dw[0], dw[1], dw[2], dw[3]);\n"
 "}\n"
 
-"uint4 Generate_R8(float2 cacheCoord)\n"
+"uint4 Generate_R8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
 	"float sample0 = SampleEFB_R(subBlockUL+float2(0,0));\n"
 	"float sample1 = SampleEFB_R(subBlockUL+float2(1,0));\n"
@@ -258,12 +270,12 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_RG4(float2 cacheCoord)\n"
+"uint4 Generate_RG4(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 	
 	"float2 sample0 = SampleEFB_RG(subBlockUL+float2(0,0));\n"
 	"float2 sample1 = SampleEFB_RG(subBlockUL+float2(1,0));\n"
@@ -310,12 +322,12 @@ static const char EFB_ENCODE_PS[] =
 	"return uint4(dw0, dw1, dw2, dw3);\n"
 "}\n"
 
-"uint4 Generate_RG8(float2 cacheCoord)\n"
+"uint4 Generate_RG8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
 	"float2 sample0 = SampleEFB_RG(subBlockUL+float2(0,0));\n"
 	"float2 sample1 = SampleEFB_RG(subBlockUL+float2(1,0));\n"
@@ -336,12 +348,12 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_RGB565(float2 cacheCoord)\n"
+"uint4 Generate_RGB565(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
 	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
@@ -360,12 +372,12 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_RGB5A3(float2 cacheCoord)\n"
+"uint4 Generate_RGB5A3(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
 	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
@@ -384,12 +396,12 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_RGBA8(float2 cacheCoord)\n"
+"uint4 Generate_RGBA8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(4,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(4,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
 	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
@@ -401,7 +413,7 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB_RGBA(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4;\n"
-	"if (cacheCoord.x % 4 < 2)\n"
+	"if ((cacheCoord.x & 3) < 2)\n"
 	"{\n"
 		// First cache line gets AR
 		"dw4 = UINT4_8888_BE(\n"
@@ -431,8 +443,7 @@ static const char EFB_ENCODE_PS[] =
 
 "void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position)\n"
 "{\n"
-	"float2 cacheCoord = floor(Pos.xy);\n"
-	"ocol0 = IMP_GENERATOR(cacheCoord);\n"
+	"ocol0 = IMP_GENERATOR(Pos.xy);\n"
 "}\n"
 ;
 
@@ -440,6 +451,10 @@ PSTextureEncoder::PSTextureEncoder()
 	: m_ready(false), m_out(NULL), m_outRTV(NULL), m_outStage(NULL), m_encodeParams(NULL)
 {
 	HRESULT hr;
+
+	FILE* outFile = fopen("EFBEncoder.hlsl", "w");
+	fwrite(EFB_ENCODE_PS, 1, sizeof(EFB_ENCODE_PS), outFile);
+	fclose(outFile);
 
 	// Create output texture RGBA format
 
@@ -538,10 +553,10 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
 	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
 
-	INFO_LOG(VIDEO, "Encoding dstFormat %s, intensity %d, scale %d",
+	DEBUG_LOG(VIDEO, "Encoding dstFormat %s, intensity %d, scale %d",
 		EFB_COPY_DST_FORMAT_NAMES[dstFormat], isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
-	size_t encodeSize = 0;
+	u32 encodeSize = 0;
 	
 	// Reset API
 
@@ -554,13 +569,6 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 	{
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::context->RSSetViewports(1, &vp);
-	
-		EFBRectangle fullSrcRect;
-		fullSrcRect.left = 0;
-		fullSrcRect.top = 0;
-		fullSrcRect.right = EFB_WIDTH;
-		fullSrcRect.bottom = EFB_HEIGHT;
-		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 
 		static const float YUVA_MATRIX[4*4] = {
 			0.257f, 0.504f, 0.098f, 0.f,
@@ -599,10 +607,6 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 				memcpy(params->Add, m_useThisAdd, 4*sizeof(float));
 			}
 
-			params->TexUL[0] = FLOAT(targetRect.left);
-			params->TexUL[1] = FLOAT(targetRect.top);
-			params->TexLR[0] = FLOAT(targetRect.right);
-			params->TexLR[1] = FLOAT(targetRect.bottom);
 			params->Pos[0] = FLOAT(correctSrc.left);
 			params->Pos[1] = FLOAT(correctSrc.top);
 
@@ -617,6 +621,10 @@ u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcT
 
 		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 		D3D::context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
+		if (scaleByHalf && srcFormat != PIXELFMT_Z24)
+			D3D::SetLinearCopySampler();
+		else
+			D3D::SetPointCopySampler();
 
 		// Encode!
 
@@ -829,17 +837,14 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	ComboMap::iterator it = m_staticShaders.find(key);
 	if (it == m_staticShaders.end())
 	{
-		const char* fetchFuncName = (srcFormat == PIXELFMT_Z24) ? "Fetch_Depth" : "Fetch_Color";
-		const char* scaledFetchFuncName = scaleByHalf ? "ScaledFetch_1" : "ScaledFetch_0";
-
 		INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d",
 			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
 		D3DBlob* bytecode = NULL;
 		D3D_SHADER_MACRO macros[] = {
-			{ "IMP_FETCH", fetchFuncName },
-			{ "IMP_SCALEDFETCH", scaledFetchFuncName },
+			{ "DEPTH", (srcFormat == PIXELFMT_Z24) ? "1" : "0" },
+			{ "SCALE", scaleByHalf ? "1" : "0" },
 			{ "IMP_GENERATOR", genFuncName },
 			{ NULL, NULL }
 		};

@@ -374,7 +374,7 @@ D3DTexture2D* VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height,
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
 	// reinterpret or fall back to RAM if necessary
 
-	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s at ram addr 0x%.08X",
+	DEBUG_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s at ram addr 0x%.08X",
 		EFB_COPY_DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format], ramAddr);
 
 	switch (format)
@@ -405,7 +405,7 @@ void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT d
 		dxFormat != m_texture.dxFormat;
 	if (recreate)
 	{
-		INFO_LOG(VIDEO, "Recreating virtual texture, size %dx%d", width, height);
+		DEBUG_LOG(VIDEO, "Recreating virtual texture, size %dx%d", width, height);
 
 		D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(dxFormat, width, height,
 			1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);

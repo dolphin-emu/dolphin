@@ -484,9 +484,28 @@ static const char ENCODER_VS[] =
 "}\n"
 ;
 
+static const char ENCODER_TEX_VS[] =
+"// dolphin-emu generic encoder vertex shader with tex coords\n"
+
+"struct VSOutput\n"
+"{\n"
+	"float4 Pos : SV_Position;\n"
+	"float2 Tex : TEXCOORD;\n"
+"};\n"
+
+"VSOutput main(in float2 Pos : POSITION)\n"
+"{\n"
+	"VSOutput result;\n"
+	"result.Pos = float4(Pos, 0, 1);\n"
+	"result.Tex = smoothstep(float2(-1,1), float2(1,-1), Pos);\n"
+	"return result;\n"
+"}\n"
+;
+
 static ID3D11Buffer* s_encoderQuad = NULL;
 static ID3D11InputLayout* s_encoderQuadLayout = NULL;
 static ID3D11VertexShader* s_encoderVShader = NULL;
+static ID3D11VertexShader* s_encoderTexVShader = NULL;
 
 void InitUtils()
 {
@@ -540,10 +559,14 @@ void InitUtils()
 	CHECK(SUCCEEDED(hr), "create encoder input layout");
 
 	blob->Release();
+
+	// Create vertex shader for encoder quads with texture coords
+	s_encoderTexVShader = D3D::CompileAndCreateVertexShader(ENCODER_TEX_VS, sizeof(ENCODER_TEX_VS));
 }
 
 void ShutdownUtils()
 {
+	SAFE_RELEASE(s_encoderTexVShader);
 	SAFE_RELEASE(s_encoderQuadLayout);
 	SAFE_RELEASE(s_encoderVShader);
 	SAFE_RELEASE(s_encoderQuad);
@@ -570,6 +593,26 @@ void drawEncoderQuad(ID3D11PixelShader* pShader,
 	// Set up state
 	D3D::context->PSSetShader(pShader, ppClassInstances, numClassInstances);
 	D3D::context->VSSetShader(s_encoderVShader, NULL, 0);
+	D3D::context->IASetInputLayout(s_encoderQuadLayout);
+	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	UINT stride = sizeof(EncoderQuadVertex);
+	UINT offset = 0;
+	D3D::context->IASetVertexBuffers(0, 1, &s_encoderQuad, &stride, &offset);
+
+	// Encode!
+	D3D::context->Draw(4, 0);
+
+	// Clean up state
+	D3D::context->VSSetShader(NULL, NULL, 0);
+	D3D::context->PSSetShader(NULL, NULL, 0);
+}
+
+void drawEncoderTexQuad(ID3D11PixelShader* pShader,
+	ID3D11ClassInstance* const* ppClassInstances, UINT numClassInstances)
+{
+	// Set up state
+	D3D::context->PSSetShader(pShader, ppClassInstances, numClassInstances);
+	D3D::context->VSSetShader(s_encoderTexVShader, NULL, 0);
 	D3D::context->IASetInputLayout(s_encoderQuadLayout);
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	UINT stride = sizeof(EncoderQuadVertex);

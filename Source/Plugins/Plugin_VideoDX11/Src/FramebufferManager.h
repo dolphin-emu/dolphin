@@ -75,22 +75,23 @@ public:
 	FramebufferManager();
 	~FramebufferManager();
 
-	static D3DTexture2D* &GetEFBColorTexture();
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
+	static D3DTexture2D* GetEFBColorTexture();
+	static D3DTexture2D* GetResolvedEFBColorTexture();
+	static D3DTexture2D* GetRealEFBColorTexture();
 
-	static D3DTexture2D* &GetEFBDepthTexture();
+	static D3DTexture2D* GetEFBDepthTexture();
+	static D3DTexture2D* GetResolvedEFBDepthTexture();
+	static D3DTexture2D* GetRealEFBDepthTexture();
 
-	static D3DTexture2D* &GetResolvedEFBColorTexture();
-	static D3DTexture2D* &GetResolvedEFBDepthTexture();
+	static D3DTexture2D* GetEFBColorTempTexture();
+	static void SwapReinterpretTexture();
 
-	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
-	static void SwapReinterpretTexture()
-	{
-		D3DTexture2D* swaptex = GetEFBColorTempTexture();
-		m_efb.color_temp_tex = GetEFBColorTexture();
-		m_efb.color_tex = swaptex;
-	}
+	void SetColorDirty() { ++m_colorTime; }
+	void SetDepthDirty() { ++m_depthTime; }
 
+	// Read color at EFB pixel x,y
+	u32 ReadColorAt(unsigned int x, unsigned int y);
+	// Read depth at EFB pixel x,y
 	float ReadDepthAt(unsigned int x, unsigned int y);
 
 private:
@@ -99,23 +100,28 @@ private:
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
 
-	static struct Efb
-	{
-		D3DTexture2D* color_tex;
-		ID3D11Texture2D* color_staging_buf;
+	D3DTexture2D* m_colorTex;
+	long m_colorTime;
+	D3DTexture2D* m_resolvedColorTex;
+	long m_resolvedColorTime;
+	D3DTexture2D* m_realColorTex;
+	long m_realColorTime;
+	ID3D11Texture2D* m_colorAccessStage;
+	long m_colorAccessTime;
 
-		D3DTexture2D* depth_tex;
-		D3DTexture2D* depth_access_target;
-		ID3D11Texture2D* depth_access_stage;
+	D3DTexture2D* m_depthTex;
+	long m_depthTime;
+	D3DTexture2D* m_resolvedDepthTex;
+	long m_resolvedDepthTime;
+	D3DTexture2D* m_realDepthTex;
+	long m_realDepthTime;
+	ID3D11Texture2D* m_depthAccessStage;
+	long m_depthAccessTime;
 
-		D3DTexture2D* color_temp_tex;
-
-		D3DTexture2D* resolved_color_tex;
-		D3DTexture2D* resolved_depth_tex;
-	} m_efb;
+	D3DTexture2D* m_colorTempTex;
 	
-	ID3D11Buffer* m_depthAccessParams;
-	ID3D11PixelShader* m_depthAccessShader;
+	ID3D11PixelShader* m_realColorShader;
+	ID3D11PixelShader* m_realDepthShader;
 };
 
 }  // namespace DX11
