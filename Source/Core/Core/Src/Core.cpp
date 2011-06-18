@@ -208,7 +208,11 @@ bool Init()
 void Stop()  // - Hammertime!
 {
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+	{
+		if (g_EmuThread.joinable())
+			g_EmuThread.join();
 		return;
+	}
 
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -346,6 +350,7 @@ void EmuThread()
 	if (!g_video_backend->Initialize(g_pWindowHandle))
 	{
 		PanicAlert("Failed to initialize video backend!");
+		Host_Message(WM_USER_STOP);
 		return;
 	}
 
@@ -357,6 +362,7 @@ void EmuThread()
 		HW::Shutdown();
 		g_video_backend->Shutdown();
 		PanicAlert("Failed to initialize DSP emulator!");
+		Host_Message(WM_USER_STOP);
 		return;
 	}
 

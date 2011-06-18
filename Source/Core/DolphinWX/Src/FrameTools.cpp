@@ -1021,7 +1021,8 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
+			m_RenderParent != NULL)
 	{
 #if defined __WXGTK__
 		wxMutexGuiLeave();
@@ -1466,32 +1467,41 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 {
-	State::LoadLastSaved();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::LoadLastSaved();
 }
 
 void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	State::UndoLoadState();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::UndoLoadState();
 }
 
 void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 {
-	State::UndoSaveState();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::UndoSaveState();
 }
 
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
-	int id = event.GetId();
-	int slot = id - IDM_LOADSLOT1 + 1;
-	State::Load(slot);
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		int id = event.GetId();
+		int slot = id - IDM_LOADSLOT1 + 1;
+		State::Load(slot);
+	}
 }
 
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
-	int id = event.GetId();
-	int slot = id - IDM_SAVESLOT1 + 1;
-	State::Save(slot);
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		int id = event.GetId();
+		int slot = id - IDM_SAVESLOT1 + 1;
+		State::Save(slot);
+	}
 }
 
 void CFrame::OnFrameSkip(wxCommandEvent& event)
