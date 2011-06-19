@@ -197,6 +197,7 @@ GLuint VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels
 	};
 	
 	// Only make these checks if there is a RAM copy to fall back on.
+	// TODO: When depal shaders are implemented, remove the IsPaletted check.
 	if (!force && (width != m_realW || height != m_realH || levels != 1 || IsPaletted(format)))
 	{
 		INFO_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");

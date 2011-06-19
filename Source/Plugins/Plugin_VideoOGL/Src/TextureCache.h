@@ -33,9 +33,6 @@ class TCacheEntry : public TCacheEntryBase
 
 public:
 
-	TCacheEntry();
-	~TCacheEntry();
-
 	GLuint GetTexture() { return m_bindMe; }
 
 protected:
@@ -54,6 +51,12 @@ private:
 	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
 
+	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if palette is dirty
+	bool RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat);
+
 	// Attributes of the currently-loaded texture
 	u32 m_curWidth;
 	u32 m_curHeight;
@@ -62,14 +65,48 @@ private:
 	u64 m_curHash;
 
 	// Attributes of currently-loaded palette (if any)
-	u64 m_curPaletteHash;
 	u32 m_curTlutFormat;
+	u64 m_curPaletteHash;
 
-	GLuint m_ramTexture;
+	// If loaded texture comes from RAM, this holds it.
+	struct RamStorage
+	{
+		RamStorage()
+			: tex(0)
+		{ }
+		~RamStorage();
+
+		GLuint tex;
+	} m_ramStorage;
+
+	// Currently-loaded palette (if any)
+	struct Palette
+	{
+		Palette()
+			: tex(0)
+		{ }
+		~Palette();
+
+		GLuint tex;
+	} m_palette;
+
+	// If loaded texture is paletted, this contains depalettized data.
+	// Otherwise, this is not used.
+	struct DepalStorage
+	{
+		DepalStorage()
+			: tex(0)
+		{ }
+		~DepalStorage();
+
+		GLuint tex;
+	} m_depalStorage;
 
 	GLuint m_loaded;
 	bool m_loadedDirty;
 	bool m_loadedIsPaletted;
+	GLuint m_depalettized;
+
 	GLuint m_bindMe;
 
 };

@@ -23,6 +23,7 @@
 #include "Hash.h"
 #include "HW/Memmap.h"
 #include "ImageWrite.h"
+#include "LookUpTables.h"
 #include "Render.h"
 #include "TextureConverter.h"
 #include "Tmem.h"
@@ -48,14 +49,22 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
     return SaveTGA(filename, width, height, &data[0]);
 }
 
-TCacheEntry::TCacheEntry()
-	: m_ramTexture(0)
-{ }
-
-TCacheEntry::~TCacheEntry()
+TCacheEntry::RamStorage::~RamStorage()
 {
-	glDeleteTextures(1, &m_ramTexture);
-	m_ramTexture = 0;
+	glDeleteTextures(1, &tex);
+	tex = 0;
+}
+
+TCacheEntry::Palette::~Palette()
+{
+	glDeleteTextures(1, &tex);
+	tex = 0;
+}
+
+TCacheEntry::DepalStorage::~DepalStorage()
+{
+	glDeleteTextures(1, &tex);
+	tex = 0;
 }
 
 inline bool IsPaletted(u32 format)
@@ -85,8 +94,9 @@ void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels
 	levels = std::min(levels, maxLevels);
 
 	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
-	m_bindMe = m_loaded;
+	m_bindMe = m_depalettized;
 }
 
 void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -147,7 +157,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u64 newHash = m_curHash;
 
 	// TODO: Use a shader to depalettize textures, like the DX11 plugin
-	bool reloadTexture = !m_ramTexture || dimsChanged || format != m_curFormat ||
+	bool reloadTexture = !m_ramStorage.tex || dimsChanged || format != m_curFormat ||
 		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
 	if (reloadTexture || invalidated)
 	{
@@ -160,10 +170,10 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 	if (reloadTexture)
 	{
-		if (!m_ramTexture)
-			glGenTextures(1, &m_ramTexture);
+		if (!m_ramStorage.tex)
+			glGenTextures(1, &m_ramStorage.tex);
 
-		glBindTexture(GL_TEXTURE_2D, m_ramTexture);
+		glBindTexture(GL_TEXTURE_2D, m_ramStorage.tex);
 		
 		// FIXME: Hash all the mips seperately?
 		u32 mipWidth = width;
@@ -246,7 +256,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curPaletteHash = newPaletteHash;
 	m_curTlutFormat = tlutFormat;
 
-	m_loaded = m_ramTexture;
+	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
 	// TODO: Use shader to depalettize RAM textures
 	m_loadedIsPaletted = false;
@@ -299,6 +309,135 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	virt->ResetDirty();
 	m_loadedIsPaletted = IsPaletted(format);
 	return true;
+}
+
+// TODO: Move this stuff into TextureDecoder or something
+
+static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		// FIXME: Do we need swap16?
+		dst[i] = src[i];
+	}
+}
+
+static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+		dst[i] = Common::swap16(src[i]);
+}
+
+static inline u32 decode5A3(u16 val)
+{
+	int r,g,b,a;
+	if ((val & 0x8000))
+	{
+		a = 0xFF;
+		r = Convert5To8((val >> 10) & 0x1F);
+		g = Convert5To8((val >> 5) & 0x1F);
+		b = Convert5To8(val & 0x1F);
+	}
+	else
+	{
+		a = Convert3To8((val >> 12) & 0x7);
+		r = Convert4To8((val >> 8) & 0xF);
+		g = Convert4To8((val >> 4) & 0xF);
+		b = Convert4To8(val & 0xF);
+	}
+	return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+// Decode to BGRA
+static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		dst[i] = decode5A3(Common::swap16(src[i]));
+	}
+}
+
+void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	if (m_loadedIsPaletted)
+	{
+		bool paletteDirty = RefreshPalette(format, tlutAddr, tlutFormat);
+
+		bool recreateDepal = !m_depalStorage.tex;
+
+		if (recreateDepal)
+			glGenTextures(1, &m_depalStorage.tex);
+
+		bool runDepalShader = recreateDepal || m_loadedDirty || paletteDirty;
+		if (runDepalShader)
+		{
+			// TODO: Implement
+		}
+
+		m_depalettized = m_depalStorage.tex;
+	}
+	else
+	{
+		m_depalettized = m_loaded;
+	}
+}
+
+bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	bool recreatePaletteTex = !m_palette.tex;
+
+	if (recreatePaletteTex)
+		glGenTextures(1, &m_palette.tex);
+
+	unsigned int numColors = TexDecoder_GetNumColors(format);
+
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+	u32 paletteSize = numColors*2;
+	u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+
+	bool reloadPalette = recreatePaletteTex || tlutFormat != m_curTlutFormat
+		|| newPaletteHash != m_curPaletteHash;
+	if (reloadPalette)
+	{
+		glBindTexture(GL_TEXTURE_1D, m_palette.tex);
+		
+		u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
+
+		GLint useInternalFormat;
+		GLenum useFormat;
+		GLenum useType;
+		switch (tlutFormat)
+		{
+		case GX_TL_IA8:
+			useInternalFormat = GL_LUMINANCE8_ALPHA8;
+			useFormat = GL_LUMINANCE_ALPHA;
+			useType = GL_UNSIGNED_BYTE;
+			DecodeIA8Palette((u16*)decodeTemp, tlut, numColors);
+			break;
+		case GX_TL_RGB565:
+			useInternalFormat = GL_RGB;
+			useFormat = GL_RGB;
+			useType = GL_UNSIGNED_SHORT_5_6_5;
+			DecodeRGB565Palette((u16*)decodeTemp, tlut, numColors);
+			break;
+		case GX_TL_RGB5A3:
+			useInternalFormat = 4;
+			useFormat = GL_BGRA;
+			useType = GL_UNSIGNED_BYTE;
+			DecodeRGB5A3Palette((u32*)decodeTemp, tlut, numColors);
+			break;
+		}
+
+		glTexImage1D(GL_TEXTURE_1D, 0, useInternalFormat, numColors, 0, useFormat, useType, decodeTemp);
+
+		glBindTexture(GL_TEXTURE_1D, 0);
+
+		m_curTlutFormat = tlutFormat;
+		m_curPaletteHash = newPaletteHash;
+	}
+
+	return reloadPalette;
 }
 
 TextureCache::TextureCache()
