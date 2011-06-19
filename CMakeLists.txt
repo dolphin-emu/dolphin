@@ -231,15 +231,6 @@ if(ENCODE_FRAMEDUMPS)
 	check_libav()
 endif()
 
-find_program(XDG_SCREENSAVER xdg-screensaver)
-if(XDG_SCREENSAVER)
-	message("xdg-screensaver found, enabling screensaver inhibition")
-	add_definitions(-DHAVE_XDG_SCREENSAVER=1)
-else()
-	message("xdg-screensaver not found, disabling screensaver inhibition")
-	add_definitions(-DHAVE_XDG_SCREENSAVER=0)
-endif()
-
 include(CheckCXXSourceRuns)
 set(CMAKE_REQUIRED_LIBRARIES portaudio)
 CHECK_CXX_SOURCE_RUNS(

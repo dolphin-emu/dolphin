@@ -216,7 +216,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	for (; it != itend; ++it)
 		choice_backend->AppendString(wxGetTranslation(wxString::FromAscii((*it)->GetName().c_str())));
 
-	// TODO: How to get the translated plugin name?
 	choice_backend->SetStringSelection(wxGetTranslation(wxString::FromAscii(g_video_backend->GetName().c_str())));
 	_connect_macro_(choice_backend, VideoConfigDiag::Event_Backend, wxEVT_COMMAND_CHOICE_SELECTED, this);
 

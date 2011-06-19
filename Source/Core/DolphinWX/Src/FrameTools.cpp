@@ -936,7 +936,7 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+#if defined(HAVE_X11) && HAVE_X11
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
@@ -971,7 +971,6 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
-				
 	}
 
 	wxEndBusyCursor();
@@ -1022,7 +1021,9 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	m_bGameLoading = false;
+	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
+			m_RenderParent != NULL)
 	{
 #if defined __WXGTK__
 		wxMutexGuiLeave();
@@ -1055,7 +1056,7 @@ void CFrame::DoStop()
 		BootManager::Stop();
 		wxEndBusyCursor();
 
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
+#if defined(HAVE_X11) && HAVE_X11
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
@@ -1093,8 +1094,6 @@ void CFrame::DoStop()
 			m_RenderFrame->Destroy();
 		m_RenderParent = NULL;
 
-		UpdateGUI();
-
 		// Clean framerate indications from the status bar.
 		GetStatusBar()->SetStatusText(wxT(" "), 0);
 
@@ -1113,6 +1112,7 @@ void CFrame::DoStop()
 
 		m_GameListCtrl->Enable();
 		m_GameListCtrl->Show();
+		UpdateGUI();
 	}
 }
 
@@ -1142,7 +1142,6 @@ void CFrame::DoRecordingSave()
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	m_bGameLoading = false;
 	DoStop();
 }
 
@@ -1467,32 +1466,41 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 {
-	State::LoadLastSaved();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::LoadLastSaved();
 }
 
 void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	State::UndoLoadState();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::UndoLoadState();
 }
 
 void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 {
-	State::UndoSaveState();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		State::UndoSaveState();
 }
 
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
-	int id = event.GetId();
-	int slot = id - IDM_LOADSLOT1 + 1;
-	State::Load(slot);
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		int id = event.GetId();
+		int slot = id - IDM_LOADSLOT1 + 1;
+		State::Load(slot);
+	}
 }
 
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
-	int id = event.GetId();
-	int slot = id - IDM_SAVESLOT1 + 1;
-	State::Save(slot);
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		int id = event.GetId();
+		int slot = id - IDM_SAVESLOT1 + 1;
+		State::Save(slot);
+	}
 }
 
 void CFrame::OnFrameSkip(wxCommandEvent& event)
@@ -1593,7 +1601,7 @@ void CFrame::UpdateGUI()
 		}
 	}
 	
-	if (!Initialized)
+	if (!Initialized && !m_bGameLoading)
 	{
 		if (m_GameListCtrl->IsEnabled())
 		{
@@ -1606,7 +1614,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty()
-			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+					&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
@@ -1621,24 +1629,21 @@ void CFrame::UpdateGUI()
 			}
 		}
 
-		if (m_GameListCtrl && !m_bGameLoading)
+		// Game has not started, show game list
+		if (!m_GameListCtrl->IsShown())
 		{
-			// Game has not started, show game list
-			if (!m_GameListCtrl->IsShown())
-			{
-				m_GameListCtrl->Enable();
-				m_GameListCtrl->Show();
-			}
-			// Game has been selected but not started, enable play button
-			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !m_bGameLoading)
-			{
-				if (m_ToolBar)
-					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-			}
+			m_GameListCtrl->Enable();
+			m_GameListCtrl->Show();
+		}
+		// Game has been selected but not started, enable play button
+		if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled())
+		{
+			if (m_ToolBar)
+				m_ToolBar->EnableTool(IDM_PLAY, true);
+			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 		}
 	}
-	else
+	else if (Initialized)
 	{
 		// Game has been loaded, enable the pause button
 		if (m_ToolBar)

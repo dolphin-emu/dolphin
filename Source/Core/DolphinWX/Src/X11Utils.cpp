@@ -17,13 +17,11 @@
 
 #include "X11Utils.h"
 
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
 #include <unistd.h>
 #include <spawn.h>
 #include <sys/wait.h>
 
 extern char **environ;
-#endif
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <string>
@@ -135,7 +133,6 @@ Display *XDisplayFromHandle(void *Handle)
 }
 #endif
 
-#if defined(HAVE_XDG_SCREENSAVER) && HAVE_XDG_SCREENSAVER
 void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 {
 	char id[11];
@@ -156,7 +153,6 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", (int)pid);
 	}
 }
-#endif
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)

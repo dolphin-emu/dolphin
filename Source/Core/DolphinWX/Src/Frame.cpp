@@ -983,7 +983,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 void CFrame::OnMouse(wxMouseEvent& event)
 {
 #if defined(HAVE_X11) && HAVE_X11
-	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if(event.Dragging())
 			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),

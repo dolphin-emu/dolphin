@@ -64,6 +64,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 wxCheatsWindow::~wxCheatsWindow()
 {
 	main_frame->g_CheatsWindow = NULL;
+	::g_cheat_window = NULL;
 }
 
 void wxCheatsWindow::Init_ChildControls()
@@ -135,6 +136,9 @@ void wxCheatsWindow::Init_ChildControls()
 	_connect_macro_(button_apply, wxCheatsWindow::OnEvent_ApplyChanges_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
 	_connect_macro_(button_cancel, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(wxCheatsWindow::OnEvent_Close), (wxObject*)0, this);
+
 	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
 	sButtons->AddButton(button_apply);
 	sButtons->AddButton(button_cancel);
@@ -248,9 +252,14 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& ev)
+void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
 {
-	ev.Skip();
+	Close();
+}
+
+void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
+{
+	Destroy();
 }
 
 void wxCheatsWindow::Load_ARCodes()
@@ -578,8 +587,10 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
 	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
+
 	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressOK));
 	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressCancel));
+	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(CreateCodeDialog::OnEvent_Close), (wxObject*)0, this);
 
 	SetSizerAndFit(sizer_main);
 	SetFocus();
@@ -626,10 +637,15 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	// refresh arcode list in other tab
 	::g_cheat_window->Load_ARCodes();
 
-	ev.Skip();
+	Close();
 }
 
 void CreateCodeDialog::PressCancel(wxCommandEvent& ev)
 {
-	ev.Skip();
+	Close();
+}
+
+void CreateCodeDialog::OnEvent_Close(wxCloseEvent& ev)
+{
+	Destroy();
 }

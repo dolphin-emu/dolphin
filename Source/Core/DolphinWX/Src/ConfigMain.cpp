@@ -912,13 +912,15 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
+		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
+		ac_Config.Update();
 		break;
 
 	default:
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
 		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
 		ac_Config.m_DumpAudio = DumpAudio->GetValue();
-		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
+
 		long int frequency;
 		FrequencySelection->GetStringSelection().ToLong(&frequency);
 		ac_Config.iFrequency = frequency;

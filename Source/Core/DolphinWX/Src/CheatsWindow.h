@@ -55,6 +55,7 @@ protected:
 
 	void PressOK(wxCommandEvent&);
 	void PressCancel(wxCommandEvent&);
+	void OnEvent_Close(wxCloseEvent& ev);
 };
 
 class CheatSearchTab : public wxPanel
@@ -151,6 +152,7 @@ class wxCheatsWindow : public wxDialog
 
 		// $ Close Button
 		void OnEvent_ButtonClose_Press(wxCommandEvent& event);
+		void OnEvent_Close(wxCloseEvent& ev);
 
 		// $ Cheats List
 		void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
