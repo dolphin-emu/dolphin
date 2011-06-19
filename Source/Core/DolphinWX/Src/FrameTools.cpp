@@ -1021,6 +1021,7 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
 			m_RenderParent != NULL)
 	{
@@ -1093,8 +1094,6 @@ void CFrame::DoStop()
 			m_RenderFrame->Destroy();
 		m_RenderParent = NULL;
 
-		UpdateGUI();
-
 		// Clean framerate indications from the status bar.
 		GetStatusBar()->SetStatusText(wxT(" "), 0);
 
@@ -1113,6 +1112,7 @@ void CFrame::DoStop()
 
 		m_GameListCtrl->Enable();
 		m_GameListCtrl->Show();
+		UpdateGUI();
 	}
 }
 
@@ -1142,7 +1142,6 @@ void CFrame::DoRecordingSave()
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	m_bGameLoading = false;
 	DoStop();
 }
 
@@ -1602,7 +1601,7 @@ void CFrame::UpdateGUI()
 		}
 	}
 	
-	if (!Initialized)
+	if (!Initialized && !m_bGameLoading)
 	{
 		if (m_GameListCtrl->IsEnabled())
 		{
@@ -1615,7 +1614,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty()
-			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+					&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
@@ -1630,24 +1629,21 @@ void CFrame::UpdateGUI()
 			}
 		}
 
-		if (m_GameListCtrl && !m_bGameLoading)
+		// Game has not started, show game list
+		if (!m_GameListCtrl->IsShown())
 		{
-			// Game has not started, show game list
-			if (!m_GameListCtrl->IsShown())
-			{
-				m_GameListCtrl->Enable();
-				m_GameListCtrl->Show();
-			}
-			// Game has been selected but not started, enable play button
-			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !m_bGameLoading)
-			{
-				if (m_ToolBar)
-					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-			}
+			m_GameListCtrl->Enable();
+			m_GameListCtrl->Show();
+		}
+		// Game has been selected but not started, enable play button
+		if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled())
+		{
+			if (m_ToolBar)
+				m_ToolBar->EnableTool(IDM_PLAY, true);
+			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 		}
 	}
-	else
+	else if (Initialized)
 	{
 		// Game has been loaded, enable the pause button
 		if (m_ToolBar)
