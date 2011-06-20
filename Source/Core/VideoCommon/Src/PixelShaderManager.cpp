@@ -85,43 +85,43 @@ void PixelShaderManager::Shutdown()
 
 void PixelShaderManager::SetConstants()
 {
-    for (int i = 0; i < 2; ++i) 
+    for (int i = 0; i < 2; ++i)
 	{
-        if (s_nColorsChanged[i]) 
+        if (s_nColorsChanged[i])
 		{
             int baseind = i ? C_KCOLORS : C_COLORS;
-            for (int j = 0; j < 4; ++j) 
+            for (int j = 0; j < 4; ++j)
 			{
-                if (s_nColorsChanged[i] & (1 << j)) 
+                if (s_nColorsChanged[i] & (1 << j))
                     SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
             }
             s_nColorsChanged[i] = 0;
         }
     }
 
-    if (s_nTexDimsChanged) 
+    if (s_nTexDimsChanged)
 	{
-        for (int i = 0; i < 8; ++i) 
+        for (int i = 0; i < 8; ++i)
 		{
-            if (s_nTexDimsChanged & (1<<i)) 
-				SetPSTextureDims(i);         
+            if (s_nTexDimsChanged & (1<<i))
+				SetPSTextureDims(i);
         }
         s_nTexDimsChanged = 0;
     }
 
-    if (s_bAlphaChanged) 
+    if (s_bAlphaChanged)
 	{
 		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
     }
 
-	if (s_bZTextureTypeChanged) 
-	{    
+	if (s_bZTextureTypeChanged)
+	{
         float ftemp[4];
-        switch (bpmem.ztex2.type) 
+        switch (bpmem.ztex2.type)
 		{
              case 0:
-                // 8 bits                
+                // 8 bits
                 ftemp[0] = 0; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 255.0f/16777215.0f;
                 break;
             case 1:
@@ -137,7 +137,7 @@ void PixelShaderManager::SetConstants()
 		s_bZTextureTypeChanged = false;
 	}
 
-	if (s_bZBiasChanged || s_bDepthRangeChanged) 
+	if (s_bZBiasChanged || s_bDepthRangeChanged)
 	{
         // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 		// [0] = width/2
@@ -153,14 +153,14 @@ void PixelShaderManager::SetConstants()
     }
 
     // indirect incoming texture scales
-    if (s_nIndTexScaleChanged) 
+    if (s_nIndTexScaleChanged)
 	{
 		// set as two sets of vec4s, each containing S and T of two ind stages.
         float f[8];
-        
-        if (s_nIndTexScaleChanged & 0x03) 
+
+        if (s_nIndTexScaleChanged & 0x03)
 		{
-            for (u32 i = 0; i < 2; ++i) 
+            for (u32 i = 0; i < 2; ++i)
 			{
                 f[2 * i] = bpmem.texscale[0].getScaleS(i & 1);
                 f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
@@ -174,18 +174,18 @@ void PixelShaderManager::SetConstants()
                 f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
-            }            
+            }
 			SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
         }
-       
+
         s_nIndTexScaleChanged = 0;
     }
 
-    if (s_nIndTexMtxChanged) 
+    if (s_nIndTexMtxChanged)
 	{
-        for (int i = 0; i < 3; ++i) 
+        for (int i = 0; i < 3; ++i)
 		{
-            if (s_nIndTexMtxChanged & (1 << i)) 
+            if (s_nIndTexMtxChanged & (1 << i))
 			{
                 int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
 					        ((u32)bpmem.indmtx[i].col1.s1 << 2) |
@@ -215,13 +215,13 @@ void PixelShaderManager::SetConstants()
         s_nIndTexMtxChanged = 0;
     }
 
-    if (s_bFogColorChanged) 
+    if (s_bFogColorChanged)
 	{
 		SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
 		s_bFogColorChanged = false;
     }
 
-    if (s_bFogParamChanged) 
+    if (s_bFogParamChanged)
 	{
 		if(!g_ActiveConfig.bDisableFog)
 		{
@@ -232,9 +232,8 @@ void PixelShaderManager::SetConstants()
 			SetPSConstant4f(C_FOG + 1, bpmem.fog.a.GetA(), b, bpmem.fog.c_proj_fsel.GetC(), b_shf);
 		}
 		else
-		{
 			SetPSConstant4f(C_FOG + 1, 0.0, 1.0, 0.0, 1.0);
-		}
+
         s_bFogParamChanged = false;
     }
 
@@ -253,7 +252,10 @@ void PixelShaderManager::SetConstants()
 			// they are the coeficients from the center to th e border of the screen
 			// so to simplify i use the hi coeficient as K in the shader taking 256 as the scale
 			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd)), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
-		}		
+		}
+		else
+			SetPSConstant4f(C_FOG + 2, 0.0f, 1.0f, 1.0f, 0.0f); // Need to update these values for older hardware that fails to divide by zero in shaders.
+
 		s_bFogRangeAdjustChanged = false;
 	}
 
@@ -377,7 +379,7 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
     if (lastTexDims[texmapid] != wh)
 	{
         lastTexDims[texmapid] = wh;
-		s_nTexDimsChanged |= 1 << texmapid;        
+		s_nTexDimsChanged |= 1 << texmapid;
     }
 }
 
