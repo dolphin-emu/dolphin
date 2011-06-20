@@ -197,6 +197,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Depalettizer.cpp" />
     <ClCompile Include="Src\FramebufferManager.cpp" />
     <ClCompile Include="Src\GLUtil.cpp" />
     <ClCompile Include="Src\main.cpp" />
@@ -220,6 +221,7 @@
     <ClCompile Include="Src\VirtualEFBCopy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Depalettizer.h" />
     <ClInclude Include="Src\FramebufferManager.h" />
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\GLUtil.h" />

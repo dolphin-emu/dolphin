@@ -21,6 +21,7 @@
 #include "TextureCacheBase.h"
 
 #include "GLUtil.h"
+#include "Depalettizer.h"
 #include "VirtualEFBCopy.h"
 
 namespace OGL
@@ -100,11 +101,15 @@ private:
 		~DepalStorage();
 
 		GLuint tex;
+		u32 width;
+		u32 height;
 	} m_depalStorage;
 
 	GLuint m_loaded;
 	bool m_loadedDirty;
 	bool m_loadedIsPaletted;
+	u32 m_loadedWidth;
+	u32 m_loadedHeight;
 	GLuint m_depalettized;
 
 	GLuint m_bindMe;
@@ -122,6 +127,7 @@ public:
 	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
+	Depalettizer& GetDepalettizer() { return m_depal; }
 	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
 	GLuint GetVirtCopyFramebuf() { return m_virtCopyFramebuf; }
 	u8* GetDecodeTemp() { return m_decodeTemp; }
@@ -136,6 +142,7 @@ protected:
 
 private:
 
+	Depalettizer m_depal;
 	GLuint m_virtCopyFramebuf;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);

@@ -190,21 +190,15 @@ GLuint VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels
 		"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
 		"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
 	};
-
-	static const char* TEX_FORMAT_NAMES[] = {
-		"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x7",
-		"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
-	};
 	
 	// Only make these checks if there is a RAM copy to fall back on.
-	// TODO: When depal shaders are implemented, remove the IsPaletted check.
-	if (!force && (width != m_realW || height != m_realH || levels != 1 || IsPaletted(format)))
+	if (!force && (width != m_realW || height != m_realH || levels != 1))
 	{
 		INFO_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");
 		return 0;
 	}
 	
-	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
+	DEBUG_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
 		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
 
 	return m_texture.tex;

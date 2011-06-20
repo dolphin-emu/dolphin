@@ -40,6 +40,8 @@ public:
 
 	unsigned int GetRealWidth() const { return m_realW; }
 	unsigned int GetRealHeight() const { return m_realH; }
+	unsigned int GetVirtWidth() const { return m_texture.width; }
+	unsigned int GetVirtHeight() const { return m_texture.height; }
 
 	bool IsDirty() const { return m_dirty; }
 	void ResetDirty() { m_dirty = false; }

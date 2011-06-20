@@ -260,6 +260,8 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_loadedDirty = reloadTexture;
 	// TODO: Use shader to depalettize RAM textures
 	m_loadedIsPaletted = false;
+	m_loadedWidth = width;
+	m_loadedHeight = height;
 }
 
 bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -308,6 +310,8 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	m_loadedDirty = virt->IsDirty();
 	virt->ResetDirty();
 	m_loadedIsPaletted = IsPaletted(format);
+	m_loadedWidth = virt->GetVirtWidth();
+	m_loadedHeight = virt->GetVirtHeight();
 	return true;
 }
 
@@ -345,7 +349,7 @@ static inline u32 decode5A3(u16 val)
 		g = Convert4To8((val >> 4) & 0xF);
 		b = Convert4To8(val & 0xF);
 	}
-	return (a << 24) | (r << 16) | (g << 8) | b;
+	return (a << 24) | (b << 16) | (g << 8) | r;
 }
 
 // Decode to BGRA
@@ -364,15 +368,35 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	{
 		bool paletteDirty = RefreshPalette(format, tlutAddr, tlutFormat);
 
-		bool recreateDepal = !m_depalStorage.tex;
+		bool recreateDepal = !m_depalStorage.tex ||
+			m_depalStorage.width != m_loadedWidth ||
+			m_depalStorage.height != m_loadedHeight;
 
 		if (recreateDepal)
-			glGenTextures(1, &m_depalStorage.tex);
+		{
+			if (!m_depalStorage.tex)
+				glGenTextures(1, &m_depalStorage.tex);
+
+			glBindTexture(GL_TEXTURE_2D, m_depalStorage.tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, 4, m_loadedWidth, m_loadedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			m_depalStorage.width = m_loadedWidth;
+			m_depalStorage.height = m_loadedHeight;
+		}
 
 		bool runDepalShader = recreateDepal || m_loadedDirty || paletteDirty;
 		if (runDepalShader)
 		{
-			// TODO: Implement
+			Depalettizer::BaseType baseType = Depalettizer::Unorm8;
+			// TODO: Support GX_TF_C14X2
+			if (format == GX_TF_C4)
+				baseType = Depalettizer::Unorm4;
+			else if (format == GX_TF_C8)
+				baseType = Depalettizer::Unorm8;
+
+			((TextureCache*)g_textureCache)->GetDepalettizer().Depalettize(
+				baseType, m_depalStorage.tex, m_loaded, m_loadedWidth, m_loadedHeight, m_palette.tex);
 		}
 
 		m_depalettized = m_depalStorage.tex;
@@ -410,20 +434,23 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 		switch (tlutFormat)
 		{
 		case GX_TL_IA8:
+			WARN_LOG(VIDEO, "Depal with IA8 palette");
 			useInternalFormat = GL_LUMINANCE8_ALPHA8;
 			useFormat = GL_LUMINANCE_ALPHA;
 			useType = GL_UNSIGNED_BYTE;
 			DecodeIA8Palette((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB565:
+			WARN_LOG(VIDEO, "Depal with RGB565 palette");
 			useInternalFormat = GL_RGB;
 			useFormat = GL_RGB;
 			useType = GL_UNSIGNED_SHORT_5_6_5;
 			DecodeRGB565Palette((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB5A3:
+			WARN_LOG(VIDEO, "Depal with RGB5A3 palette");
 			useInternalFormat = 4;
-			useFormat = GL_BGRA;
+			useFormat = GL_RGBA;
 			useType = GL_UNSIGNED_BYTE;
 			DecodeRGB5A3Palette((u32*)decodeTemp, tlut, numColors);
 			break;
