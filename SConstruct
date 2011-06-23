@@ -92,8 +92,6 @@ if not env.has_key('install') or env['install'] == 'local':
     if env['flavor'] == 'debug' or env['flavor'] == 'prof':
         env['prefix'] += '-' + env['flavor']
 
-env['svnrev'] = os.popen('svnversion -n .').read().split(':')[0]
-
 # OS X specifics
 if sys.platform == 'darwin':
     #ccld = ['-mmacosx-version-min=10.5.4']
@@ -123,7 +121,7 @@ if sys.platform == 'darwin':
 
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
-        dmg = env['prefix'] + '/Dolphin-r' + env['svnrev'] + '.dmg'
+        dmg = env['prefix'] + '/Dolphin-3.0' + '.dmg'
         env.Command(dmg, app, 'rm -f ' + dmg +
             ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
             ' && hdiutil internet-enable -yes ' + dmg)
@@ -237,7 +235,7 @@ else:
         else:
             print "Can't build prof without oprofile, disabling"
 
-    tarname = 'dolphin-' + env['svnrev']
+    tarname = 'dolphin-3.0'
     env['TARFLAGS'] = '-cj'
     env['TARSUFFIX'] = '.tar.bz2'
 

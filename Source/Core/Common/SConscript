@@ -4,17 +4,6 @@ Import('env')
 import os
 import sys
 
-def createVersion(env, target, source):
-        tmpstr = open(source[0].path, 'r').read().\
-		replace("$WCMODS?$WCREV$M:$WCREV$$", env['svnrev'])
-        outfile = open(target[0].path, 'w')
-        outfile.write(tmpstr + '\n')
-        outfile.close()
-
-Execute(Delete('Src/svnrev.h'))
-env.Command('Src/svnrev.h', 'Src/svnrev_template.h',
-	[Delete('${TARGET.srcpath}'), createVersion])
-
 files = [
 	'Src/ABI.cpp',
 	'Src/BreakPoints.cpp',

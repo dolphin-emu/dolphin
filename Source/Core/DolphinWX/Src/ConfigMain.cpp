@@ -49,27 +49,12 @@ static const wxLanguage langIds[] =
 {
 	wxLANGUAGE_DEFAULT,
 	wxLANGUAGE_ARABIC,
-	wxLANGUAGE_CATALAN,
-	wxLANGUAGE_CHINESE_SIMPLIFIED,
-	wxLANGUAGE_CHINESE_TRADITIONAL,
-	wxLANGUAGE_CZECH,
-	wxLANGUAGE_DANISH,
-	wxLANGUAGE_DUTCH,
 	wxLANGUAGE_ENGLISH,
 	wxLANGUAGE_FRENCH,
-	wxLANGUAGE_GERMAN,
 	wxLANGUAGE_GREEK,
-	wxLANGUAGE_HEBREW,
 	wxLANGUAGE_HUNGARIAN,
-	wxLANGUAGE_ITALIAN,
-	wxLANGUAGE_JAPANESE,
-	wxLANGUAGE_KOREAN,
-	wxLANGUAGE_NORWEGIAN_BOKMAL,
-	wxLANGUAGE_POLISH,
 	wxLANGUAGE_PORTUGUESE,
 	wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-	wxLANGUAGE_RUSSIAN,
-	wxLANGUAGE_SERBIAN,
 	wxLANGUAGE_SPANISH,
 	wxLANGUAGE_TURKISH,
 };
@@ -288,27 +273,12 @@ void CConfigMain::InitializeGUILists()
 	// keep these in sync with the langIds array at the beginning of this file
 	arrayStringFor_InterfaceLang.Add(_("<System>"));
 	arrayStringFor_InterfaceLang.Add(_("Arabic"));
-	arrayStringFor_InterfaceLang.Add(_("Catalan"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Simplified)"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Traditional)"));
-	arrayStringFor_InterfaceLang.Add(_("Czech"));
-	arrayStringFor_InterfaceLang.Add(_("Danish"));
-	arrayStringFor_InterfaceLang.Add(_("Dutch"));
 	arrayStringFor_InterfaceLang.Add(_("English"));
 	arrayStringFor_InterfaceLang.Add(_("French"));
-	arrayStringFor_InterfaceLang.Add(_("German"));
 	arrayStringFor_InterfaceLang.Add(_("Greek"));
-	arrayStringFor_InterfaceLang.Add(_("Hebrew"));
 	arrayStringFor_InterfaceLang.Add(_("Hungarian"));
-	arrayStringFor_InterfaceLang.Add(_("Italian"));
-	arrayStringFor_InterfaceLang.Add(_("Japanese"));
-	arrayStringFor_InterfaceLang.Add(_("Korean"));
-	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmaal"));
-	arrayStringFor_InterfaceLang.Add(_("Polish"));
 	arrayStringFor_InterfaceLang.Add(_("Portuguese"));
 	arrayStringFor_InterfaceLang.Add(_("Portuguese (Brazilian)"));
-	arrayStringFor_InterfaceLang.Add(_("Russian"));
-	arrayStringFor_InterfaceLang.Add(_("Serbian"));
 	arrayStringFor_InterfaceLang.Add(_("Spanish"));
 	arrayStringFor_InterfaceLang.Add(_("Turkish"));
 }

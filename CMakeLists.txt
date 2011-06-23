@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-set(DOLPHIN_IS_STABLE FALSE)
+set(DOLPHIN_IS_STABLE TRUE)
 
 # Set up paths
 set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
@@ -46,11 +46,6 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIAB
 	endif(MSVC)
 endfunction(enable_precompiled_headers)
 
-
-include(FindSubversion OPTIONAL) # for revision info
-if(Subversion_FOUND AND NOT DOLPHIN_WC_REVISION)
-	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
-endif()
 
 # Various compile flags
 add_definitions(-msse2)
@@ -406,8 +401,6 @@ endif(NOT DISABLE_WX)
 ########################################
 # Pre-build events: Define configuration variables and write svnrev header
 #
-file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
-	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
 
@@ -436,7 +429,7 @@ endif()
 # packaging information
 set(CPACK_PACKAGE_NAME "dolphin-emu")
 set(CPACK_PACKAGE_VENDOR "Dolphin Team")
-set(CPACK_PACKAGE_VERSION_MAJOR "2")
+set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
 
 if(DOLPHIN_IS_STABLE)
