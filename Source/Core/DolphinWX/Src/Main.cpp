@@ -207,8 +207,6 @@ bool DolphinApp::OnInit()
 #else
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
-	File::CopyDir(std::string(SHARED_USER_DIR CONFIG_DIR DIR_SEP),
-			File::GetUserPath(D_CONFIG_IDX));
 	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
 			File::GetUserPath(D_GAMECONFIG_IDX));
 	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP),
@@ -220,6 +218,8 @@ bool DolphinApp::OnInit()
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
 			File::GetUserPath(D_OPENCL_IDX));
 
+	if (!File::Exists(File::GetUserPath(D_CONFIG_IDX)))
+		File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
 		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
