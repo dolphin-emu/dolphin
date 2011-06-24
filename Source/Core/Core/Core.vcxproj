@@ -333,10 +333,10 @@
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\Movie.cpp" />
     <ClCompile Include="Src\NetPlay.cpp" />
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
-    <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
@@ -533,8 +533,8 @@
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h" />
     <ClInclude Include="Src\MemTools.h" />
+    <ClInclude Include="Src\Movie.h" />
     <ClInclude Include="Src\NetPlay.h" />
-    <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />

@@ -4,7 +4,7 @@
 #include "Wiimote.h"
 #include "WiimoteReal/WiimoteReal.h"
 #include "WiimoteEmu/WiimoteEmu.h"
-#include "OnFrame.h"
+#include "Movie.h"
 
 #include "ControllerInterface/ControllerInterface.h"
 
@@ -48,8 +48,8 @@ void Initialize(void* const hwnd)
 
 	WiimoteReal::Initialize();
 	
-	if (Frame::IsPlayingInput()) // reload Wiimotes with our settings
-		Frame::ChangeWiiPads();
+	if (Movie::IsPlayingInput()) // reload Wiimotes with our settings
+		Movie::ChangeWiiPads();
 }
 
 // __________________________________________________________________________________________________

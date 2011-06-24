@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "OnFrame.h"
+#include "Movie.h"
 
 #include "Core.h"
 #include "Thread.h"
@@ -41,7 +41,7 @@
 
 std::mutex cs_frameSkip;
 
-namespace Frame {
+namespace Movie {
 
 bool g_bFrameStep = false;
 bool g_bFrameStop = false;
@@ -64,6 +64,8 @@ bool g_bPolled = false;
 std::string tmpStateFilename = "dtm.sav";
 
 std::string g_InputDisplay[4];
+
+ManipFunction mfunc = NULL;
 
 std::string GetInputDisplay()
 {
@@ -451,13 +453,19 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
 		return;
 
-	memset(PadStatus, 0, sizeof(SPADStatus));
-
 	if (inputOffset + 8 > tmpLength)
 	{
 		EndPlayInput(!g_bReadOnly);
 		return;
 	}
+
+	// dtm files don't save the mic button or error bit. not sure if they're actually
+	// used, but better safe than sorry
+	bool m = PadStatus->MicButton;
+	signed char e = PadStatus->err;
+	memset(PadStatus, 0, sizeof(SPADStatus));
+	PadStatus->MicButton = m;
+	PadStatus->err = e;
 	
 	memcpy(&g_padState, &(tmpInput[inputOffset]), 8);
 	inputOffset += 8;
@@ -633,5 +641,16 @@ void SaveRecording(const char *filename)
 		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
 	else
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
+}
+
+void SetInputManip(ManipFunction func)
+{
+	mfunc = func;
+}
+
+void CallInputManip(SPADStatus *PadStatus, int controllerID)
+{
+	if (mfunc)
+		(*mfunc)(PadStatus, controllerID);
 }
 };

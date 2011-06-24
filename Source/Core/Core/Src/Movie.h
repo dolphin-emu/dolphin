@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __FRAME_H
-#define __FRAME_H
+#ifndef __MOVIE_H
+#define __MOVIE_H
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -24,9 +24,9 @@
 
 #include <string>
 
-// Per-(video )Frame actions
+// Per-(video )Movie actions
 
-namespace Frame {
+namespace Movie {
 
 // Enumerations and structs
 enum PlayMode {
@@ -125,6 +125,12 @@ void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 
 std::string GetInputDisplay();
+
+// Done this way to avoid mixing of core and gui code
+typedef void(*ManipFunction)(SPADStatus *, int);
+
+void SetInputManip(ManipFunction);
+void CallInputManip(SPADStatus *PadStatus, int controllerID);
 };
 
 #endif // __FRAME_H

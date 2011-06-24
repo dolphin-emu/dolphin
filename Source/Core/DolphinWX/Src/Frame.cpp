@@ -43,6 +43,7 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
+#include "Movie.h"
 
 #include "VideoBackendBase.h"
 
@@ -242,6 +243,7 @@ EVT_MENU(IDM_RECORD, CFrame::OnRecord)
 EVT_MENU(IDM_PLAYRECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORDEXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
+EVT_MENU(IDM_TASINPUT, CFrame::OnTASInput)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
@@ -404,6 +406,9 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
+
+	g_TASInputDlg = new TASInputDlg(this);
+	Movie::SetInputManip(TASManipFunction);
 
 	// Setup perspectives
 	if (g_pCodeWindow)
@@ -848,6 +853,12 @@ int GetCmdForHotkey(unsigned int key)
 		return IDM_SAVESLOT8;
 
 	return -1;
+}
+
+void TASManipFunction(SPADStatus *PadStatus, int controllerID)
+{
+	if (main_frame)
+		main_frame->g_TASInputDlg->GetValues(PadStatus, controllerID);
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)

@@ -8,7 +8,6 @@
     <ClCompile Include="Src\CoreRerecording.cpp" />
     <ClCompile Include="Src\CoreTiming.cpp" />
     <ClCompile Include="Src\MemTools.cpp" />
-    <ClCompile Include="Src\OnFrame.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\State.cpp" />
@@ -553,6 +552,7 @@
     <ClCompile Include="Src\FifoPlayer\FifoAnalyzer.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Movie.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -562,7 +562,6 @@
     <ClInclude Include="Src\CoreTiming.h" />
     <ClInclude Include="Src\Host.h" />
     <ClInclude Include="Src\MemTools.h" />
-    <ClInclude Include="Src\OnFrame.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\State.h" />
@@ -1027,6 +1026,7 @@
     <ClInclude Include="Src\FifoPlayer\FifoAnalyzer.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Movie.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

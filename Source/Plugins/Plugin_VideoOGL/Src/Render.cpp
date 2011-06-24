@@ -58,7 +58,7 @@
 #include "Fifo.h"
 #include "Debugger.h"
 #include "Core.h"
-#include "OnFrame.h"
+#include "Movie.h"
 #include "Host.h"
 
 #include "main.h" // Local
@@ -544,7 +544,7 @@ void Renderer::DrawDebugInfo()
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
 	if (g_ActiveConfig.bShowInputDisplay)
-		p+=sprintf(p, "%s", Frame::GetInputDisplay().c_str());
+		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
 
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
