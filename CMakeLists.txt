@@ -436,7 +436,7 @@ endif()
 # packaging information
 set(CPACK_PACKAGE_NAME "dolphin-emu")
 set(CPACK_PACKAGE_VENDOR "Dolphin Team")
-set(CPACK_PACKAGE_VERSION_MAJOR "2")
+set(CPACK_PACKAGE_VERSION_MAJOR "3")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
 
 if(DOLPHIN_IS_STABLE)
