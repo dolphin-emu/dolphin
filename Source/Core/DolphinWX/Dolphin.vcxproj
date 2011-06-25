@@ -274,6 +274,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Src\TASInputDlg.cpp" />
     <ClCompile Include="Src\UDPConfigDiag.cpp" />
     <ClCompile Include="Src\VideoConfigDiag.cpp" />
     <ClCompile Include="Src\WiimoteConfigDiag.cpp" />
@@ -320,6 +321,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\Debugger\RegisterView.h" />
     <ClInclude Include="Src\Debugger\RegisterWindow.h" />
     <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\TASInputDlg.h" />
     <ClInclude Include="Src\UDPConfigDiag.h" />
     <ClInclude Include="Src\VideoConfigDiag.h" />
     <ClInclude Include="Src\WiimoteConfigDiag.h" />

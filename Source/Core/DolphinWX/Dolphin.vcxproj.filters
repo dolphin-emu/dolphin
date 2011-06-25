@@ -132,6 +132,9 @@
     <ClCompile Include="Src\FifoPlayerDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Src\TASInputDlg.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Main.h" />
@@ -256,6 +259,9 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Src\FifoPlayerDlg.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\TASInputDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

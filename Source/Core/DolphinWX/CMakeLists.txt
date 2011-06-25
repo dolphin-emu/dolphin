@@ -53,6 +53,7 @@ if(wxWidgets_FOUND)
 				Src/NetWindow.cpp
 				Src/PHackSettings.cpp
 				Src/PatchAddEdit.cpp
+				Src/TASInputDlg.cpp
 				Src/UDPConfigDiag.cpp
 				Src/VideoConfigDiag.cpp
 				Src/WXInputBase.cpp

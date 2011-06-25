@@ -22,7 +22,7 @@
 #include "StringUtil.h"
 #include "Thread.h"
 #include "CoreTiming.h"
-#include "OnFrame.h"
+#include "Movie.h"
 #include "HW/Wiimote.h"
 #include "HW/DSP.h"
 #include "HW/HW.h"
@@ -235,9 +235,9 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 	
-	if ((Frame::IsRecordingInput() || Frame::IsPlayingInput()) && !Frame::IsRecordingInputFromSaveState())
-		Frame::SaveRecording((g_current_filename + ".dtm").c_str());
-	else if (!Frame::IsRecordingInput() && !Frame::IsPlayingInput())
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsRecordingInputFromSaveState())
+		Movie::SaveRecording((g_current_filename + ".dtm").c_str());
+	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 		File::Delete(g_current_filename + ".dtm");
 
 	Core::DisplayMessage("Saving State...", 1000);
@@ -345,9 +345,9 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
 	
 		if (File::Exists(g_current_filename + ".dtm"))
-			Frame::LoadInput((g_current_filename + ".dtm").c_str());
-		else if (!Frame::IsRecordingInputFromSaveState())
-			Frame::EndPlayInput(false);
+			Movie::LoadInput((g_current_filename + ".dtm").c_str());
+		else if (!Movie::IsRecordingInputFromSaveState())
+			Movie::EndPlayInput(false);
 	}
 
 	g_op_in_progress = false;

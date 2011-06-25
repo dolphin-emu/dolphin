@@ -27,7 +27,7 @@
 
 #include "GCPad.h"
 
-#include "../OnFrame.h"
+#include "../Movie.h"
 
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
@@ -128,6 +128,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	u32 netValues[2];
 	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))
@@ -137,22 +138,19 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		return true;
 	}
 
-	Frame::SetPolledDevice();
+	Movie::SetPolledDevice();
 
-	if(Frame::IsPlayingInput())
+	if(Movie::IsPlayingInput())
 	{
-		Frame::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
+		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 		if(!Core::g_CoreStartupParameter.bWii)
-			Frame::InputUpdate();
+			Movie::InputUpdate();
 	}
-	else 
+	else if(Movie::IsRecordingInput())
 	{
-		if(Frame::IsRecordingInput())
-		{
-			Frame::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
-			if(!Core::g_CoreStartupParameter.bWii)
-				Frame::InputUpdate();
-		}
+		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
+		if(!Core::g_CoreStartupParameter.bWii)
+			Movie::InputUpdate();
 	}
 
 	// Thankfully changing mode does not change the high bits ;)

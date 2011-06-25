@@ -56,7 +56,7 @@ Core::GetWindowHandle().
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
-#include "OnFrame.h"
+#include "Movie.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/DVDInterface.h"
@@ -72,6 +72,7 @@ Core::GetWindowHandle().
 #include "WiimoteConfigDiag.h"
 #include "InputConfigDiag.h"
 #include "HotkeyDlg.h"
+#include "TASInputDlg.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -140,6 +141,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
 	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
@@ -692,12 +694,17 @@ void CFrame::DoOpen(bool Boot)
 
 void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 {
-	Frame::SetReadOnly(event.IsChecked());
+	Movie::SetReadOnly(event.IsChecked());
+}
+
+void CFrame::OnTASInput(wxCommandEvent& event)
+{
+	g_TASInputDlg->Show(true);
 }
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
-	Frame::SetFrameStepping(event.IsChecked());
+	Movie::SetFrameStepping(event.IsChecked());
 }
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
@@ -717,7 +724,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 			controllers |= (1 << (i + 4));
 	}
 
-	if(Frame::BeginRecordingInput(controllers))
+	if(Movie::BeginRecordingInput(controllers))
 		BootGame(std::string(""));
 }
 
@@ -734,7 +741,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	if(path.IsEmpty())
 		return;
 
-	if(Frame::PlayInput(path.mb_str()))
+	if(Movie::PlayInput(path.mb_str()))
 		BootGame(std::string(""));
 }
 
@@ -1047,10 +1054,10 @@ void CFrame::DoStop()
 		}
 
 		// TODO: Show the author/description dialog here
-		if(Frame::IsRecordingInput())
+		if(Movie::IsRecordingInput())
 			DoRecordingSave();
-		if(Frame::IsPlayingInput() || Frame::IsRecordingInput())
-			Frame::EndPlayInput(false);
+		if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
+			Movie::EndPlayInput(false);
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
@@ -1134,7 +1141,7 @@ void CFrame::DoRecordingSave()
 	if(path.IsEmpty())
 		return;
 	
-	Frame::SaveRecording(path.mb_str());
+	Movie::SaveRecording(path.mb_str());
 	
 	if (!paused)
 		DoPause();
@@ -1507,7 +1514,7 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 {
 	int amount = event.GetId() - IDM_FRAMESKIP0;
 
-	Frame::SetFrameSkipping((unsigned int)amount);
+	Movie::SetFrameSkipping((unsigned int)amount);
 }
 
 
@@ -1544,9 +1551,9 @@ void CFrame::UpdateGUI()
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
-	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Frame::IsRecordingInput());
+	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
-	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Frame::IsRecordingInput());
+	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);

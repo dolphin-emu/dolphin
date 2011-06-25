@@ -37,7 +37,7 @@ inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } 
 
 #include "MatrixMath.h"
 
-#include "../../OnFrame.h"
+#include "../../Movie.h"
 
 namespace WiimoteEmu
 {
@@ -635,9 +635,9 @@ void Wiimote::Update()
 	// figure out what data we need
 	s8 rptf_size = MAX_PAYLOAD;
 
-	Frame::SetPolledDevice();
+	Movie::SetPolledDevice();
 
-	if (!Frame::IsPlayingInput() || !Frame::PlayWiimote(m_index, data, rptf_size))
+	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf_size))
 	{
 		const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 		rptf_size = rptf.size;
@@ -742,9 +742,9 @@ void Wiimote::Update()
 				}
 			}
 		}
-		if (Frame::IsRecordingInput())
+		if (Movie::IsRecordingInput())
 		{
-			Frame::RecordWiimote(m_index, data, rptf_size);
+			Movie::RecordWiimote(m_index, data, rptf_size);
 		}
 	}
 
