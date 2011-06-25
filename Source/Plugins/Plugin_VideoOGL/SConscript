@@ -5,6 +5,7 @@ import os
 import sys
 
 files = [
+	'Src/Depalettizer.cpp',
 	'Src/FramebufferManager.cpp',
 	'Src/GLUtil.cpp',
 	'Src/NativeVertexFormat.cpp',
@@ -16,6 +17,7 @@ files = [
 	'Src/TextureConverter.cpp',
 	'Src/VertexManager.cpp',
 	'Src/VertexShaderCache.cpp',
+	'Src/VirtualEFBCopy.cpp',
 	'Src/main.cpp',
 	]
 
