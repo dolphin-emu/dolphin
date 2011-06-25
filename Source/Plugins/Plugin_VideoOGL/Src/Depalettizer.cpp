@@ -157,6 +157,8 @@ void Depalettizer::Depalettize(BaseType baseType, GLuint dstTex, GLuint baseTex,
 
 	// Bind base texture to sampler 0
 	glActiveTexture(GL_TEXTURE0);
+	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	glDisable(GL_TEXTURE_1D);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, baseTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -164,6 +166,8 @@ void Depalettizer::Depalettize(BaseType baseType, GLuint dstTex, GLuint baseTex,
 
 	// Bind palette texture to sampler 1
 	glActiveTexture(GL_TEXTURE1);
+	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_1D);
 	glBindTexture(GL_TEXTURE_1D, paletteTex);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -190,6 +194,8 @@ void Depalettizer::Depalettize(BaseType baseType, GLuint dstTex, GLuint baseTex,
 	glDisable(GL_TEXTURE_2D);
 
 	glUseProgram(0);
+	
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
 
 	g_renderer->RestoreAPIState();
 
@@ -199,87 +205,65 @@ void Depalettizer::Depalettize(BaseType baseType, GLuint dstTex, GLuint baseTex,
 
 Depalettizer::DepalProgram* Depalettizer::GetProgram(BaseType type)
 {
-	// TODO: Clean up duplicate code
 	switch (type)
 	{
 	case Unorm4:
 		if (!m_unorm4Program.program)
 		{
-			const GLchar* fs[] = {
+			m_unorm4Program.Compile(
 				"#version 110\n"
-				"#define NUM_COLORS 16\n",
-				DEPALETTIZE_FS
-			};
-
-			GLuint shader = OpenGL_CreateShader(GL_FRAGMENT_SHADER, 2, fs);
-			if (!shader)
-			{
-				ERROR_LOG(VIDEO, "Failed to compile Unorm4 depalettizer");
-				return NULL;
-			}
-
-			m_unorm4Program.program = glCreateProgram();
-			glAttachShader(m_unorm4Program.program, shader);
-			if (!OpenGL_LinkProgram(m_unorm4Program.program))
-			{
-				glDeleteProgram(m_unorm4Program.program);
-				glDeleteShader(shader);
-				m_unorm4Program.program = 0;
-				ERROR_LOG(VIDEO, "Failed to link Unorm4 depalettizer");
-				return NULL;
-			}
-
-			// Shader is now embedded in the program
-			glDeleteShader(shader);
-
-			// Find uniform locations
-			m_unorm4Program.uBaseLoc = glGetUniformLocation(m_unorm4Program.program, "u_Base");
-			m_unorm4Program.uPaletteLoc = glGetUniformLocation(m_unorm4Program.program, "u_Palette");
-
-			GL_REPORT_ERROR();
+				"#define NUM_COLORS 16\n");
 		}
 		return &m_unorm4Program;
 	case Unorm8:
 		if (!m_unorm8Program.program)
 		{
-			const GLchar* fs[] = {
+			m_unorm8Program.Compile(
 				"#version 110\n"
-				"#define NUM_COLORS 256\n",
-				DEPALETTIZE_FS
-			};
-
-			GLuint shader = OpenGL_CreateShader(GL_FRAGMENT_SHADER, 2, fs);
-			if (!shader)
-			{
-				ERROR_LOG(VIDEO, "Failed to compile Unorm8 depalettizer");
-				return NULL;
-			}
-
-			m_unorm8Program.program = glCreateProgram();
-			glAttachShader(m_unorm8Program.program, shader);
-			if (!OpenGL_LinkProgram(m_unorm8Program.program))
-			{
-				glDeleteProgram(m_unorm8Program.program);
-				glDeleteShader(shader);
-				m_unorm8Program.program = 0;
-				ERROR_LOG(VIDEO, "Failed to link Unorm8 depalettizer");
-				return NULL;
-			}
-
-			// Shader is now embedded in the program
-			glDeleteShader(shader);
-
-			// Find uniform locations
-			m_unorm8Program.uBaseLoc = glGetUniformLocation(m_unorm8Program.program, "u_Base");
-			m_unorm8Program.uPaletteLoc = glGetUniformLocation(m_unorm8Program.program, "u_Palette");
-
-			GL_REPORT_ERROR();
+				"#define NUM_COLORS 256\n");
 		}
 		return &m_unorm8Program;
 	default:
 		_assert_msg_(VIDEO, 0, "Invalid depalettizer base type");
 		return NULL;
 	}
+}
+
+bool Depalettizer::DepalProgram::Compile(const GLchar* numColorsLine)
+{
+	const GLchar* fs[] = {
+		numColorsLine,
+		DEPALETTIZE_FS
+	};
+
+	GLuint shader = OpenGL_CreateShader(GL_FRAGMENT_SHADER, 2, fs);
+	if (!shader)
+	{
+		ERROR_LOG(VIDEO, "Failed to compile depalettizer");
+		return false;
+	}
+
+	program = glCreateProgram();
+	glAttachShader(program, shader);
+	if (!OpenGL_LinkProgram(program))
+	{
+		glDeleteProgram(program);
+		glDeleteShader(shader);
+		program = 0;
+		ERROR_LOG(VIDEO, "Failed to link depalettizer");
+		return false;
+	}
+
+	// Shader is now embedded in the program
+	glDeleteShader(shader);
+
+	// Find uniform locations
+	uBaseLoc = glGetUniformLocation(program, "u_Base");
+	uPaletteLoc = glGetUniformLocation(program, "u_Palette");
+
+	GL_REPORT_ERROR();
+
+	return true;
 }
 
 }

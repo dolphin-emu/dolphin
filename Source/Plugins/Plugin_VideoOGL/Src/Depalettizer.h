@@ -48,6 +48,8 @@ private:
 		{ }
 		~DepalProgram();
 
+		bool Compile(const GLchar* numColorsLine);
+
 		GLuint program;
 		GLuint uBaseLoc;
 		GLuint uPaletteLoc;

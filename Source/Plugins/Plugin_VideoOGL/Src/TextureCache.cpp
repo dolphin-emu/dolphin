@@ -134,6 +134,43 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
 }
 
+static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	u32 Wsteps8 = (width + 7) / 8;
+
+	for (u32 y = 0; y < height; y += 8)
+	{
+		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
+			{
+				for (u32 ix = 0; ix < 4; ix++)
+				{
+					int val = src[4 * xStep + ix];
+					dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
+					dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
+				}
+			}
+		}
+	}
+}
+
+static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	u32 Wsteps8 = (width + 7) / 8;
+
+	for (u32 y = 0; y < height; y += 4)
+	{
+		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			{
+				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
+			}
+		}
+	}
+}
+
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
@@ -145,27 +182,37 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	
 	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
 
-	// Do we need to refresh the palette?
-	u64 newPaletteHash = m_curPaletteHash;
-	if (IsPaletted(format))
-	{
-		u32 paletteSize = TexDecoder_GetPaletteSize(format);
-		newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
-		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016X", tlutAddr, newPaletteHash);
-	}
-		
 	u64 newHash = m_curHash;
 
-	// TODO: Use a shader to depalettize textures, like the DX11 plugin
-	bool reloadTexture = !m_ramStorage.tex || dimsChanged || format != m_curFormat ||
-		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
+	bool reloadTexture = !m_ramStorage.tex || dimsChanged || format != m_curFormat;
+	if (format == GX_TF_C4 || format == GX_TF_C8)
+	{
+		m_loadedIsPaletted = true;
+	}
+	else if (format == GX_TF_C14X2)
+	{
+		m_loadedIsPaletted = false;
+
+		// If format is C14X2, palette must be refreshed here. The GPU depalettizer
+		// does not support C14X2 yet.
+		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016llX", tlutAddr, newPaletteHash);
+
+		reloadTexture |= (newPaletteHash != m_curPaletteHash) || (tlutFormat != m_curTlutFormat);
+		m_curPaletteHash = newPaletteHash;
+		m_curTlutFormat = tlutFormat;
+	}
+	else
+		m_loadedIsPaletted = false;
+
 	if (reloadTexture || invalidated)
 	{
 		// FIXME: Only the top-level mip is hashed.
 		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 		newHash = GetHash64(src, sizeInBytes, sizeInBytes);
 		reloadTexture |= (newHash != m_curHash);
-		DEBUG_LOG(VIDEO, "Hash of texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		DEBUG_LOG(VIDEO, "Hash of texture at 0x%.08X was taken... 0x%.016llX", ramAddr, newHash);
 	}
 
 	if (reloadTexture)
@@ -184,49 +231,73 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
 
 			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
-			PC_TexFormat pcFormat = TexDecoder_Decode(decodeTemp, src,
-				actualWidth, actualHeight, format, tlut, tlutFormat, false);
+			
+			GLint useInternalFormat;
+			GLenum useFormat;
+			GLenum useType;
 
-			GLint useInternalFormat = 4;
-			GLenum useFormat = GL_RGBA;
-			GLenum useType = GL_UNSIGNED_BYTE;
-			switch (pcFormat)
+			if (format == GX_TF_C4)
 			{
-			case PC_TEX_FMT_BGRA32:
-				useInternalFormat = 4;
-				useFormat = GL_BGRA;
-				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_RGBA32:
-				useInternalFormat = 4;
-				useFormat = GL_RGBA;
-				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_I4_AS_I8:
+				DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
 				useInternalFormat = GL_INTENSITY4;
 				useFormat = GL_LUMINANCE;
 				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_IA4_AS_IA8:
-				useInternalFormat = GL_LUMINANCE4_ALPHA4;
-				useFormat = GL_LUMINANCE_ALPHA;
-				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_I8:
+			}
+			else if (format == GX_TF_C8)
+			{
+				DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
 				useInternalFormat = GL_INTENSITY8;
 				useFormat = GL_LUMINANCE;
 				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_IA8:
-				useInternalFormat = GL_LUMINANCE8_ALPHA8;
-				useFormat = GL_LUMINANCE_ALPHA;
-				useType = GL_UNSIGNED_BYTE;
-				break;
-			case PC_TEX_FMT_RGB565:
-				useInternalFormat = GL_RGB;
-				useFormat = GL_RGB;
-				useType = GL_UNSIGNED_SHORT_5_6_5;
-				break;
+			}
+			else
+			{
+				PC_TexFormat pcFormat = TexDecoder_Decode(decodeTemp, src,
+					actualWidth, actualHeight, format, tlut, tlutFormat, false);
+
+				switch (pcFormat)
+				{
+				case PC_TEX_FMT_BGRA32:
+					useInternalFormat = 4;
+					useFormat = GL_BGRA;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_RGBA32:
+					useInternalFormat = 4;
+					useFormat = GL_RGBA;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_I4_AS_I8:
+					useInternalFormat = GL_INTENSITY4;
+					useFormat = GL_LUMINANCE;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_IA4_AS_IA8:
+					useInternalFormat = GL_LUMINANCE4_ALPHA4;
+					useFormat = GL_LUMINANCE_ALPHA;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_I8:
+					useInternalFormat = GL_INTENSITY8;
+					useFormat = GL_LUMINANCE;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_IA8:
+					useInternalFormat = GL_LUMINANCE8_ALPHA8;
+					useFormat = GL_LUMINANCE_ALPHA;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				case PC_TEX_FMT_RGB565:
+					useInternalFormat = GL_RGB;
+					useFormat = GL_RGB;
+					useType = GL_UNSIGNED_SHORT_5_6_5;
+					break;
+				default:
+					useInternalFormat = 4;
+					useFormat = GL_RGBA;
+					useType = GL_UNSIGNED_BYTE;
+					break;
+				}
 			}
 
 			if (actualWidth != mipWidth)
@@ -253,13 +324,8 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curFormat = format;
 	m_curHash = newHash;
 
-	m_curPaletteHash = newPaletteHash;
-	m_curTlutFormat = tlutFormat;
-
 	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
-	// TODO: Use shader to depalettize RAM textures
-	m_loadedIsPaletted = false;
 	m_loadedWidth = width;
 	m_loadedHeight = height;
 }
@@ -280,7 +346,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 			// We made a RAM copy, so check its hash for changes
 			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
-			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016llX", ramAddr, newHash);
 		}
 		else
 		{
