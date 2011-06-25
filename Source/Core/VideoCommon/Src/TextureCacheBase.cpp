@@ -96,7 +96,7 @@ void TextureCacheBase::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned i
 	}
 	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
 	{
-		static u64 canaryEgg = 0x79706F4342464500; // '\0EFBCopy'
+		static u64 canaryEgg = 0x79706F4342464500LL; // '\0EFBCopy'
 
 		// We aren't encoding to RAM but we are making a TCL, so put a piece of
 		// canary data in RAM to detect if the game overwrites it.
