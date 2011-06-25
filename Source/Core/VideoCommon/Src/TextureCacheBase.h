@@ -18,6 +18,8 @@
 #ifndef _TEXTURECACHEBASE_H
 #define _TEXTURECACHEBASE_H
 
+#include <map>
+
 #include "VideoCommon.h"
 #include "TextureDecoder.h"
 
