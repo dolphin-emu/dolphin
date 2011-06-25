@@ -182,7 +182,7 @@ inline unsigned int floorLog2(u32 x) {
 #else
 // Reference implementation
 inline unsigned int floorLog2(u32 x) {
-	unsigned int result = unsigned int(-1);
+	unsigned int result = (unsigned int)(-1);
 	while (x > 0)
 	{
 		++result;
