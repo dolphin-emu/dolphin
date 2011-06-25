@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef _VIDEODX9_D3DSHADER_H
+#define _VIDEODX9_D3DSHADER_H
 
 #include "D3DBase.h"
 
@@ -29,11 +30,15 @@ namespace D3D
 
 	// The returned bytecode buffers should be delete[]-d.
 	bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecodelen);
-	bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen);
+	bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen,
+		const D3DXMACRO* pDefines = NULL);
 
 	// Utility functions
 	LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len);
-	LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, unsigned int len);
+	LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, unsigned int len,
+		const D3DXMACRO* pDefines = NULL);
 }
 
 }  // namespace DX9
+
+#endif

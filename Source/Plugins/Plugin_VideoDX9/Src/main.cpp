@@ -54,6 +54,7 @@
 #include "IniFile.h"
 #include "Core.h"
 #include "Host.h"
+#include "MemoryUtil.h"
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
@@ -168,7 +169,11 @@ void VideoBackend::Video_Prepare()
 
 	// internal interfaces
 	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
+	
+	// XXX: TextureCache must be aligned to 16 bytes for SSE support.
+	g_textureCache = (TextureCacheBase*)AllocateAlignedMemory(sizeof(TextureCache), 16);
+	new (g_textureCache) TextureCache;
+
 	g_vertex_manager = new VertexManager;
 	// VideoCommon
 	BPInit();
@@ -208,7 +213,12 @@ void VideoBackend::Shutdown()
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
 		delete g_vertex_manager;
-		delete g_texture_cache;
+		g_vertex_manager = NULL;
+
+		g_textureCache->~TextureCacheBase();
+		FreeAlignedMemory(g_textureCache);
+		g_textureCache = NULL;
+
 		delete g_renderer;
 		g_renderer = NULL;
 	}

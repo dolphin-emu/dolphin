@@ -15,52 +15,144 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TEXTURECACHE_H
-#define _TEXTURECACHE_H
-
-
-#include <map>
-
-#include "D3DBase.h"
-#include "VideoCommon.h"
-#include "BPMemory.h"
+#ifndef _VIDEODX9_TEXTURECACHE_H
+#define _VIDEODX9_TEXTURECACHE_H
 
 #include "TextureCacheBase.h"
 
+#include "D3DUtil.h"
+#include "VirtualEFBCopy.h"
+#include "DepalettizeShader.h"
+
 namespace DX9
 {
-
-class TextureCache : public ::TextureCache
+	
+class TCacheEntry : public TCacheEntryBase
 {
+
+public:
+
+	TCacheEntry();
+	~TCacheEntry();
+
+	void TeardownDeviceObjects();
+
+	LPDIRECT3DTEXTURE9 GetTexture() { return m_bindMe; }
+
+protected:
+
+	void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
 private:
-	struct TCacheEntry : TCacheEntryBase
+
+	void Load(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
+		u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	void CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT d3dFormat);
+
+	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels, u32 format,
+		u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
+
+	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if palette is dirty
+	bool RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Attributes of the currently-loaded texture
+	u32 m_curWidth;
+	u32 m_curHeight;
+	u32 m_curLevels;
+	u32 m_curFormat;
+	u64 m_curHash;
+	
+	u32 m_curTlutFormat;
+	u64 m_curPaletteHash; // Hash of palette data in TMEM
+
+	// If loaded texture comes from RAM, this holds it.
+	struct RamStorage
 	{
-		const LPDIRECT3DTEXTURE9 texture;
+		RamStorage()
+			: tex(NULL)
+		{ }
 
-		D3DFORMAT d3d_fmt;
-		bool swap_r_b;
+		LPDIRECT3DTEXTURE9 tex;
+		D3DFORMAT d3dFormat;
+	} m_ramStorage;
 
-		TCacheEntry(LPDIRECT3DTEXTURE9 _tex) : texture(_tex) {}
-		~TCacheEntry();
+	// Currently-loaded palette (if any)
+	struct Palette
+	{
+		Palette()
+			: tex(NULL)
+		{ }
 
-		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
+		LPDIRECT3DTEXTURE9 tex;
+		D3DFORMAT d3dFormat;
+		UINT numColors;
+	} m_palette;
 
-		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat);
+	// If loaded texture is paletted, this contains depalettized data.
+	// Otherwise, this is not used.
+	struct DepalStorage
+	{
+		DepalStorage()
+			: tex(NULL)
+		{ }
 
-		void Bind(unsigned int stage);
-		bool Save(const char filename[]);
-	};
+		LPDIRECT3DTEXTURE9 tex;
+		UINT width;
+		UINT height;
+		// FIXME: Can paletted textures have more than one mip level?
+	} m_depalStorage;
 
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
+	LPDIRECT3DTEXTURE9 m_loaded;
+	bool m_loadedDirty;
+	bool m_loadedIsPaletted;
+	LPDIRECT3DTEXTURE9 m_depalettized;
 
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
+	LPDIRECT3DTEXTURE9 m_bindMe;
+
+};
+
+class TextureCache : public TextureCacheBase
+{
+
+public:
+
+	// Call before resetting the swap chain
+	void TeardownDeviceObjects();
+
+	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
+	VirtualCopyShaderManager& GetVirtShaderManager() { return m_virtShaderManager; }
+	DepalettizeShader& GetDepalShader() { return m_depalShader; }
+
+	u8* GetDecodeTemp() { return m_decodeTemp; }
+
+protected:
+
+	TCacheEntry* CreateEntry();
+	VirtualEFBCopy* CreateVirtualEFBCopy();
+	
+	u32 EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+private:
+
+	VirtualCopyShaderManager m_virtShaderManager;
+	DepalettizeShader m_depalShader;
+
+	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
+
 };
 
 }
 
-#endif
+#endif // _VIDEODX9_TEXTURECACHE_H

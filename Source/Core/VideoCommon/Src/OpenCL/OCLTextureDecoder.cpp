@@ -274,7 +274,7 @@ void TexDecoder_OpenCL_Shutdown()
 	g_Inited = false;
 }
 
-PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt, bool rgba)
+PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, const u16* tlut, int tlutfmt, bool rgba)
 {
 	cl_int err;
 	sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];

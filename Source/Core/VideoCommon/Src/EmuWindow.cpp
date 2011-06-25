@@ -250,20 +250,23 @@ void OSDMenu(WPARAM wParam)
 		break;
 	case '5':
 		OSDChoice = 3;
-		// Toggle EFB copy
+		// Cycle through EFB Copy settings:
+		// RAM -> RAM+Virtual -> Disabled
 		if (!g_Config.bEFBCopyEnable)
 		{
 			g_Config.bEFBCopyEnable = true;
-			g_Config.bCopyEFBToTexture = false;
+			g_Config.bEFBCopyRAMEnable = true;
+			g_Config.bEFBCopyVirtualEnable = false;
 		}
-		else if (!g_Config.bCopyEFBToTexture)
+		else if (!g_Config.bEFBCopyVirtualEnable)
 		{
-			g_Config.bCopyEFBToTexture = true;
+			g_Config.bEFBCopyVirtualEnable = true;
 		}
 		else
 		{
 			g_Config.bEFBCopyEnable = false;
-			g_Config.bCopyEFBToTexture = false;
+			g_Config.bEFBCopyRAMEnable = false;
+			g_Config.bEFBCopyVirtualEnable = false;
 		}
 		break;
 	case '6':

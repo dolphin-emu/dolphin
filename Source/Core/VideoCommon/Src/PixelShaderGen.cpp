@@ -432,6 +432,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			bfirst = false;
 		}
 		WRITE(p, ";\n");
+
+		// DX11 does not natively support I and IA formats, so use matrices to
+		// unpack the R and RG data
+		WRITE(p, "cbuffer cbUnpack : register(b1)\n");
+		WRITE(p, "{\n");
+		WRITE(p, "  float4x4 Unpack[8];\n");
+		WRITE(p, "}\n");
 	}
 
 	WRITE(p, "\n");
@@ -1062,9 +1069,12 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	if (ApiType == API_D3D11)
-		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+	{
+		WRITE(p, "%s = mul(Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy), Unpack[%d]).%s;\n",
+			destination, texmap,texmap, texcoords, texmap, texmap, texswap);
+	}
 	else
-		WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s = tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =

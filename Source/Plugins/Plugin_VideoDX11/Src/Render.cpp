@@ -251,17 +251,7 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[2], "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
-	D3D11_BLEND_DESC blenddesc;
-	blenddesc.AlphaToCoverageEnable = FALSE;
-	blenddesc.IndependentBlendEnable = FALSE;
-	blenddesc.RenderTarget[0].BlendEnable = FALSE;
-	blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	blenddesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	D3D11_BLEND_DESC blenddesc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
 	hr = D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
 	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
@@ -281,17 +271,15 @@ void SetupDeviceObjects()
 	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
 	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
-	ddesc.DepthEnable	   = FALSE;
-	ddesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc		 = D3D11_COMPARISON_LESS;
-	ddesc.StencilEnable	 = FALSE;
-	ddesc.StencilReadMask   = D3D11_DEFAULT_STENCIL_READ_MASK;
-	ddesc.StencilWriteMask  = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	ddesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	ddesc.DepthEnable = FALSE;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
 
-	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
+	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	rastdesc.CullMode = D3D11_CULL_NONE;
+	rastdesc.DepthClipEnable = FALSE;
 	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
@@ -561,63 +549,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	if (type == PEEK_Z)
 	{
-		ResetAPIState(); // Reset any game specific settings
-
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
-		D3D::context->RSSetViewports(1, &vp);
-		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
-		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
-								&RectToLock,
-								Renderer::GetTargetWidth(),
-								Renderer::GetTargetHeight(),
-								PixelShaderCache::GetDepthMatrixProgram(true),
-								VertexShaderCache::GetSimpleVertexShader(),
-								VertexShaderCache::GetSimpleInputLayout());
-
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-		// copy to system memory
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
-
-		RestoreAPIState(); // restore game state
-
-		// read the data from system memory
-		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-
-		float val = *(float*)map.pData;
-		u32 ret = 0;
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
-		{
-			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
-		}
+		float depth = ((FramebufferManager*)g_framebuffer_manager)->ReadDepthAt(x, y);
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			return depth * 0xFFFF; // TODO: Convert to compressed Z format
 		else
-		{
-			ret = ((u32)(val * 0xffffff));
-		}
-		D3D::context->Unmap(read_tex, 0);
-
-		// TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
-		return ret;
+			return depth * 0xFFFFFF;
 	}
 	else if (type == PEEK_COLOR)
 	{
-		// we can directly copy to system memory here
-		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
-		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
-
-		// read the data from system memory
-		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-		u32 ret = 0;
-		if(map.pData)
-			ret = *(u32*)map.pData;
-		D3D::context->Unmap(read_tex, 0);
+		u32 ret = ((FramebufferManager*)g_framebuffer_manager)->ReadColorAt(x, y);
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode;
@@ -694,7 +634,6 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	// TODO: ceil, floor or just cast to int?
 	// TODO: Directly use the floats instead of rounding them?
 	int intendedX = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
 	int intendedY = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
@@ -1061,12 +1000,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
+	//TextureCache::Cleanup();
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
+	//if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+	//	g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	//	TextureCache::Invalidate(false);
 
 	// Enable any configuration changes
 	UpdateActiveConfig();

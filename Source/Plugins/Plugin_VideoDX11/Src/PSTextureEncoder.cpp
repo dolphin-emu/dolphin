@@ -17,86 +17,38 @@
 
 #include "PSTextureEncoder.h"
 
+#include "BPMemory.h"
 #include "D3DBase.h"
 #include "D3DShader.h"
-#include "GfxState.h"
-#include "BPMemory.h"
+#include "EFBCopy.h"
 #include "FramebufferManager.h"
-#include "Render.h"
+#include "GfxState.h"
 #include "HW/Memmap.h"
+#include "Render.h"
 #include "TextureCache.h"
-
-// "Static mode" will compile a new EFB encoder shader for every combination of
-// encoding configurations. It's compatible with Shader Model 4.
-
-// "Dynamic mode" will use the dynamic-linking feature of Shader Model 5. Only
-// one shader needs to be compiled.
-
-// Unfortunately, the June 2010 DirectX SDK includes a broken HLSL compiler
-// which cripples dynamic linking for us.
-// See <http://www.gamedev.net/topic/587232-dx11-dynamic-linking-compilation-warnings/>.
-// Dynamic mode is disabled for now. To enable it, uncomment the line below.
-
-//#define USE_DYNAMIC_MODE
-
-// FIXME: When Microsoft fixes their HLSL compiler, make Dolphin enable dynamic
-// mode on Shader Model 5-compatible cards.
 
 namespace DX11
 {
 	
-union EFBEncodeParams
+struct EFBEncodeParams
 {
-	struct
-	{
-		FLOAT NumHalfCacheLinesX;
-		FLOAT NumBlocksY;
-		FLOAT PosX;
-		FLOAT PosY;
-		FLOAT TexLeft;
-		FLOAT TexTop;
-		FLOAT TexRight;
-		FLOAT TexBottom;
-	};
-	// Constant buffers must be a multiple of 16 bytes in size.
-	u8 pad[32]; // Pad to the next multiple of 16 bytes
+	FLOAT Matrix[4*4];
+	FLOAT Add[4];
+	FLOAT Pos[2]; // Upper left of source (in EFB pixels)
+	// TODO: Eliminate DisableAlpha and do its thing with Matrix and Add.
+	BOOL DisableAlpha; // If true, alpha will read as 1 from source
 };
-
-static const char EFB_ENCODE_VS[] =
-"// dolphin-emu EFB encoder vertex shader\n"
-
-"cbuffer cbParams : register(b0)\n"
-"{\n"
-	"struct\n" // Should match EFBEncodeParams above
-	"{\n"
-		"float NumHalfCacheLinesX;\n"
-		"float NumBlocksY;\n"
-		"float PosX;\n" // Upper-left corner of source
-		"float PosY;\n"
-		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
-		"float TexTop;\n"
-		"float TexRight;\n"
-		"float TexBottom;\n"
-	"} Params;\n"
-"}\n"
-
-"struct Output\n"
-"{\n"
-	"float4 Pos : SV_Position;\n"
-	"float2 Coord : ENCODECOORD;\n"
-"};\n"
-
-"Output main(in float2 Pos : POSITION)\n"
-"{\n"
-	"Output result;\n"
-	"result.Pos = float4(2*Pos.x-1, -2*Pos.y+1, 0.0, 1.0);\n"
-	"result.Coord = Pos * float2(Params.NumHalfCacheLinesX, Params.NumBlocksY);\n"
-	"return result;\n"
-"}\n"
-;
 
 static const char EFB_ENCODE_PS[] =
 "// dolphin-emu EFB encoder pixel shader\n"
+
+"#ifndef DEPTH\n"
+"#error DEPTH should be defined to 1 or 0\n"
+"#endif\n"
+
+"#ifndef SCALE\n"
+"#error SCALE should be defined to 1 or 0\n"
+"#endif\n"
 
 // Input
 
@@ -104,27 +56,24 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"struct\n" // Should match EFBEncodeParams above
 	"{\n"
-		"float NumHalfCacheLinesX;\n"
-		"float NumBlocksY;\n"
-		"float PosX;\n" // Upper-left corner of source
-		"float PosY;\n"
-		"float TexLeft;\n" // Rectangle within EFBTexture representing the actual EFB (normalized)
-		"float TexTop;\n"
-		"float TexRight;\n"
-		"float TexBottom;\n"
+		"float4x4 Matrix;\n"
+		"float4 Add;\n"
+		"float2 Pos;\n"
+		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
-"Texture2D EFBTexture : register(t0);\n"
+// EFBTexture is a 640x528 texture containing the "real" EFB
+"#if DEPTH\n"
+"Texture2D<float> EFBTexture : register(t0);\n"
+"#else\n"
+"Texture2D<float4> EFBTexture : register(t0);\n"
+"#endif\n"
 "sampler EFBSampler : register(s0);\n"
 
 // Constants
 
 "static const float2 INV_EFB_DIMS = float2(1.0/640.0, 1.0/528.0);\n"
-
-// FIXME: Is this correct?
-"static const float3 INTENSITY_COEFFS = float3(0.257, 0.504, 0.098);\n"
-"static const float INTENSITY_ADD = 16.0/255.0;\n"
 
 // Utility functions
 
@@ -173,39 +122,15 @@ static const char EFB_ENCODE_PS[] =
 "float2 CalcTexCoord(float2 coord)\n"
 "{\n"
 	// Add 0.5,0.5 to sample from the center of the EFB pixel
-	"float2 efbCoord = coord + float2(0.5,0.5);\n"
-	"return lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), efbCoord * INV_EFB_DIMS);\n"
+	"return (coord*INV_EFB_DIMS) + float2(0.5,0.5)*INV_EFB_DIMS;\n"
 "}\n"
 
-// Interface and classes for different source formats
+"#if DEPTH\n"
 
-"float4 Fetch_0(float2 coord)\n"
+"float4 DepthToRGBA(float depth)\n"
 "{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
-	"result.a = 1.0;\n"
-	"return result;\n"
-"}\n"
-
-"float4 Fetch_1(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
-"}\n"
-
-"float4 Fetch_2(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
-	"result.a = 1.0;\n"
-	"return result;\n"
-"}\n"
-
-"float4 Fetch_3(float2 coord)\n"
-"{\n"
-	"float2 texCoord = CalcTexCoord(coord);\n"
-
-	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
+	// Convert X8 Z24 to A8 R8 G8 B8
+	"uint depth24 = 0xFFFFFF * depth;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g
@@ -214,321 +139,230 @@ static const char EFB_ENCODE_PS[] =
 	"return bytes / 255.0;\n"
 "}\n"
 
-"#ifdef DYNAMIC_MODE\n"
-"interface iFetch\n"
+"float4 Fetch(float2 coord)\n"
 "{\n"
-	"float4 Fetch(float2 coord);\n"
-"};\n"
-
-// Source format 0
-"class cFetch_0 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_0(coord); }\n"
-"};\n"
-
-
-// Source format 1
-"class cFetch_1 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_1(coord); }\n"
-"};\n"
-
-// Source format 2
-"class cFetch_2 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_2(coord); }\n"
-"};\n"
-
-// Source format 3
-"class cFetch_3 : iFetch\n"
-"{\n"
-	"float4 Fetch(float2 coord)\n"
-	"{ return Fetch_3(coord); }\n"
-"};\n"
-
-// Declare fetch interface; must be set by application
-"iFetch g_fetch;\n"
-"#define IMP_FETCH g_fetch.Fetch\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
-"#ifndef IMP_FETCH\n"
-"#error No Fetch specified\n"
-"#endif\n"
-
-// Interface and classes for different intensity settings (on or off)
-
-"float4 Intensity_0(float4 sample)\n"
-"{\n"
-	"return sample;\n"
+"#if SCALE\n"
+	// FIXME: Should box filter be applied to depth like this?
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + 2*CalcTexCoord(coord);\n"
+	"float d0 = EFBTexture.Sample(EFBSampler, texCoord + float2(-0.5,-0.5) * INV_EFB_DIMS);\n"
+	"float d1 = EFBTexture.Sample(EFBSampler, texCoord + float2( 0.5,-0.5) * INV_EFB_DIMS);\n"
+	"float d2 = EFBTexture.Sample(EFBSampler, texCoord + float2(-0.5, 0.5) * INV_EFB_DIMS);\n"
+	"float d3 = EFBTexture.Sample(EFBSampler, texCoord + float2( 0.5, 0.5) * INV_EFB_DIMS);\n"
+	"float4 s0 = DepthToRGBA(d0);\n"
+	"float4 s1 = DepthToRGBA(d1);\n"
+	"float4 s2 = DepthToRGBA(d2);\n"
+	"float4 s3 = DepthToRGBA(d3);\n"
+	"return 0.25 * (s0 + s1 + s2 + s3);\n"
+"#else\n" // #if SCALE
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + CalcTexCoord(coord);\n"
+	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
+"#endif\n" // #if SCALE
 "}\n"
 
-"float4 Intensity_1(float4 sample)\n"
+"#else\n" // #if DEPTH
+
+"float4 Fetch(float2 coord)\n"
 "{\n"
-	"sample.r = dot(INTENSITY_COEFFS, sample.rgb) + INTENSITY_ADD;\n"
-	// FIXME: Is this correct? What happens if you use one of the non-R
-	// formats with intensity on?
-	"sample = sample.rrrr;\n"
-	"return sample;\n"
+"#if SCALE\n"
+	// texCoord will be in the center of a quad of EFB pixels, so set the sampler
+	// to bilinear and it will have the same effect as a box filter.
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + 2*CalcTexCoord(coord);\n"
+"#else\n" // #if SCALE
+	"float2 texCoord = Params.Pos*INV_EFB_DIMS + CalcTexCoord(coord);\n"
+"#endif\n" // #if SCALE
+	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
 "}\n"
 
-"#ifdef DYNAMIC_MODE\n"
-"interface iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample);\n"
-"};\n"
-
-// Intensity off
-"class cIntensity_0 : iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample)\n"
-	"{ return Intensity_0(sample); }\n"
-"};\n"
-
-// Intensity on
-"class cIntensity_1 : iIntensity\n"
-"{\n"
-	"float4 Intensity(float4 sample)\n"
-	"{ return Intensity_1(sample); }\n"
-"};\n"
-
-// Declare intensity interface; must be set by application
-"iIntensity g_intensity;\n"
-"#define IMP_INTENSITY g_intensity.Intensity\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
-"#ifndef IMP_INTENSITY\n"
-"#error No Intensity specified\n"
-"#endif\n"
-
-
-// Interface and classes for different scale/filter settings (on or off)
-
-"float4 ScaledFetch_0(float2 coord)\n"
-"{\n"
-	"return IMP_FETCH(float2(Params.PosX,Params.PosY) + coord);\n"
-"}\n"
-
-"float4 ScaledFetch_1(float2 coord)\n"
-"{\n"
-	"float2 ul = float2(Params.PosX,Params.PosY) + 2*coord;\n"
-	"float4 sample0 = IMP_FETCH(ul+float2(0,0));\n"
-	"float4 sample1 = IMP_FETCH(ul+float2(1,0));\n"
-	"float4 sample2 = IMP_FETCH(ul+float2(0,1));\n"
-	"float4 sample3 = IMP_FETCH(ul+float2(1,1));\n"
-	// Average all four samples together
-	// FIXME: Is this correct?
-	"return 0.25 * (sample0+sample1+sample2+sample3);\n"
-"}\n"
-
-"#ifdef DYNAMIC_MODE\n"
-"interface iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord);\n"
-"};\n"
-
-// Scale off
-"class cScaledFetch_0 : iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord)\n"
-	"{ return ScaledFetch_0(coord); }\n"
-"};\n"
-
-// Scale on
-"class cScaledFetch_1 : iScaledFetch\n"
-"{\n"
-	"float4 ScaledFetch(float2 coord)\n"
-	"{ return ScaledFetch_1(coord); }\n"
-"};\n"
-
-// Declare scaled fetch interface; must be set by application code
-"iScaledFetch g_scaledFetch;\n"
-"#define IMP_SCALEDFETCH g_scaledFetch.ScaledFetch\n"
-
-"#endif\n" // #ifdef DYNAMIC_MODE
-
-"#ifndef IMP_SCALEDFETCH\n"
-"#error No ScaledFetch specified\n"
-"#endif\n"
+"#endif\n" // #if DEPTH
 
 // Main EFB-sampling function: performs all steps of fetching pixels, scaling,
-// applying intensity function
+// and applying transforms
 
-"float4 SampleEFB(float2 coord)\n"
+"float SampleEFB_R(float2 coord)\n"
 "{\n"
-	// FIXME: Does intensity happen before or after scaling? Or does
-	// it matter?
-	"float4 sample = IMP_SCALEDFETCH(coord);\n"
-	"return IMP_INTENSITY(sample);\n"
+	"float4 sample = Fetch(coord);\n"
+	"if (Params.DisableAlpha)\n"
+		"sample.a = 1;\n"
+	"return (mul(sample, Params.Matrix) + Params.Add).r;\n"
 "}\n"
 
-// Interfaces and classes for different destination formats
-
-"uint4 Generate_0(float2 cacheCoord)\n" // R4
+"float2 SampleEFB_RG(float2 coord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"float4 sample = Fetch(coord);\n"
+	"if (Params.DisableAlpha)\n"
+		"sample.a = 1;\n"
+	"return (mul(sample, Params.Matrix) + Params.Add).rg;\n"
+"}\n"
 
-	"float2 blockUL = blockCoord * float2(8,8);\n"
-	"float2 subBlockUL = blockUL + float2(0, 4*(cacheCoord.x%2));\n"
+"float4 SampleEFB_RGBA(float2 coord)\n"
+"{\n"
+	"float4 sample = Fetch(coord);\n"
+	"if (Params.DisableAlpha)\n"
+		"sample.a = 1;\n"
+	"return mul(sample, Params.Matrix) + Params.Add;\n"
+"}\n"
 
-	"float4 sample[32];\n"
-	"for (uint y = 0; y < 4; ++y) {\n"
-		"for (uint x = 0; x < 8; ++x) {\n"
-			"sample[y*8+x] = SampleEFB(subBlockUL+float2(x,y));\n"
+// Generators for different destination formats
+
+"uint4 Generate_R4(uint2 cacheCoord)\n"
+"{\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
+
+	"uint2 blockUL = blockCoord * uint2(8,8);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 4*(cacheCoord.x&1));\n"
+
+	"float sample[32];\n"
+	"[unroll] for (uint y = 0; y < 4; ++y) {\n"
+		"[unroll] for (uint x = 0; x < 8; ++x) {\n"
+			"sample[y*8+x] = SampleEFB_R(subBlockUL+float2(x,y));\n"
 		"}\n"
 	"}\n"
 		
 	"uint dw[4];\n"
 	"for (uint i = 0; i < 4; ++i) {\n"
 		"dw[i] = UINT_44444444_BE(\n"
-			"15*sample[8*i+0].r,\n"
-			"15*sample[8*i+1].r,\n"
-			"15*sample[8*i+2].r,\n"
-			"15*sample[8*i+3].r,\n"
-			"15*sample[8*i+4].r,\n"
-			"15*sample[8*i+5].r,\n"
-			"15*sample[8*i+6].r,\n"
-			"15*sample[8*i+7].r\n"
+			"15*sample[8*i+0],\n"
+			"15*sample[8*i+1],\n"
+			"15*sample[8*i+2],\n"
+			"15*sample[8*i+3],\n"
+			"15*sample[8*i+4],\n"
+			"15*sample[8*i+5],\n"
+			"15*sample[8*i+6],\n"
+			"15*sample[8*i+7]\n"
 			");\n"
 	"}\n"
 
 	"return uint4(dw[0], dw[1], dw[2], dw[3]);\n"
 "}\n"
 
-// FIXME: Untested
-"uint4 Generate_1(float2 cacheCoord)\n" // R8 (FIXME: Duplicate of R8 below?)
+"uint4 Generate_R8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
+	"float sample0 = SampleEFB_R(subBlockUL+float2(0,0));\n"
+	"float sample1 = SampleEFB_R(subBlockUL+float2(1,0));\n"
+	"float sample2 = SampleEFB_R(subBlockUL+float2(2,0));\n"
+	"float sample3 = SampleEFB_R(subBlockUL+float2(3,0));\n"
+	"float sample4 = SampleEFB_R(subBlockUL+float2(4,0));\n"
+	"float sample5 = SampleEFB_R(subBlockUL+float2(5,0));\n"
+	"float sample6 = SampleEFB_R(subBlockUL+float2(6,0));\n"
+	"float sample7 = SampleEFB_R(subBlockUL+float2(7,0));\n"
+	"float sample8 = SampleEFB_R(subBlockUL+float2(0,1));\n"
+	"float sample9 = SampleEFB_R(subBlockUL+float2(1,1));\n"
+	"float sampleA = SampleEFB_R(subBlockUL+float2(2,1));\n"
+	"float sampleB = SampleEFB_R(subBlockUL+float2(3,1));\n"
+	"float sampleC = SampleEFB_R(subBlockUL+float2(4,1));\n"
+	"float sampleD = SampleEFB_R(subBlockUL+float2(5,1));\n"
+	"float sampleE = SampleEFB_R(subBlockUL+float2(6,1));\n"
+	"float sampleF = SampleEFB_R(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"255*float4(sample0, sample4, sample8, sampleC),\n"
+		"255*float4(sample1, sample5, sample9, sampleD),\n"
+		"255*float4(sample2, sample6, sampleA, sampleE),\n"
+		"255*float4(sample3, sample7, sampleB, sampleF)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
 // FIXME: Untested
-"uint4 Generate_2(float2 cacheCoord)\n" // A4 R4
+"uint4 Generate_RG4(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(8,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 	
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
+	"float2 sample0 = SampleEFB_RG(subBlockUL+float2(0,0));\n"
+	"float2 sample1 = SampleEFB_RG(subBlockUL+float2(1,0));\n"
+	"float2 sample2 = SampleEFB_RG(subBlockUL+float2(2,0));\n"
+	"float2 sample3 = SampleEFB_RG(subBlockUL+float2(3,0));\n"
+	"float2 sample4 = SampleEFB_RG(subBlockUL+float2(4,0));\n"
+	"float2 sample5 = SampleEFB_RG(subBlockUL+float2(5,0));\n"
+	"float2 sample6 = SampleEFB_RG(subBlockUL+float2(6,0));\n"
+	"float2 sample7 = SampleEFB_RG(subBlockUL+float2(7,0));\n"
+	"float2 sample8 = SampleEFB_RG(subBlockUL+float2(0,1));\n"
+	"float2 sample9 = SampleEFB_RG(subBlockUL+float2(1,1));\n"
+	"float2 sampleA = SampleEFB_RG(subBlockUL+float2(2,1));\n"
+	"float2 sampleB = SampleEFB_RG(subBlockUL+float2(3,1));\n"
+	"float2 sampleC = SampleEFB_RG(subBlockUL+float2(4,1));\n"
+	"float2 sampleD = SampleEFB_RG(subBlockUL+float2(5,1));\n"
+	"float2 sampleE = SampleEFB_RG(subBlockUL+float2(6,1));\n"
+	"float2 sampleF = SampleEFB_RG(subBlockUL+float2(7,1));\n"
 
 	"uint dw0 = UINT_44444444_BE(\n"
-		"15*sample0.a, 15*sample0.r,\n"
-		"15*sample1.a, 15*sample1.r,\n"
-		"15*sample2.a, 15*sample2.r,\n"
-		"15*sample3.a, 15*sample3.r\n"
+		"15*sample0.r, 15*sample0.g,\n"
+		"15*sample1.r, 15*sample1.g,\n"
+		"15*sample2.r, 15*sample2.g,\n"
+		"15*sample3.r, 15*sample3.g\n"
 		");\n"
 	"uint dw1 = UINT_44444444_BE(\n"
-		"15*sample4.a, 15*sample4.r,\n"
-		"15*sample5.a, 15*sample5.r,\n"
-		"15*sample6.a, 15*sample6.r,\n"
-		"15*sample7.a, 15*sample7.r\n"
+		"15*sample4.r, 15*sample4.g,\n"
+		"15*sample5.r, 15*sample5.g,\n"
+		"15*sample6.r, 15*sample6.g,\n"
+		"15*sample7.r, 15*sample7.g\n"
 		");\n"
 	"uint dw2 = UINT_44444444_BE(\n"
-		"15*sample8.a, 15*sample8.r,\n"
-		"15*sample9.a, 15*sample9.r,\n"
-		"15*sampleA.a, 15*sampleA.r,\n"
-		"15*sampleB.a, 15*sampleB.r\n"
+		"15*sample8.r, 15*sample8.g,\n"
+		"15*sample9.r, 15*sample9.g,\n"
+		"15*sampleA.r, 15*sampleA.g,\n"
+		"15*sampleB.r, 15*sampleB.g\n"
 		");\n"
 	"uint dw3 = UINT_44444444_BE(\n"
-		"15*sampleC.a, 15*sampleC.r,\n"
-		"15*sampleD.a, 15*sampleD.r,\n"
-		"15*sampleE.a, 15*sampleE.r,\n"
-		"15*sampleF.a, 15*sampleF.r\n"
+		"15*sampleC.r, 15*sampleC.g,\n"
+		"15*sampleD.r, 15*sampleD.g,\n"
+		"15*sampleE.r, 15*sampleE.g,\n"
+		"15*sampleF.r, 15*sampleF.g\n"
 		");\n"
 	
 	"return uint4(dw0, dw1, dw2, dw3);\n"
 "}\n"
 
-// FIXME: Untested
-"uint4 Generate_3(float2 cacheCoord)\n" // A8 R8
+"uint4 Generate_RG8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float2 sample0 = SampleEFB_RG(subBlockUL+float2(0,0));\n"
+	"float2 sample1 = SampleEFB_RG(subBlockUL+float2(1,0));\n"
+	"float2 sample2 = SampleEFB_RG(subBlockUL+float2(2,0));\n"
+	"float2 sample3 = SampleEFB_RG(subBlockUL+float2(3,0));\n"
+	"float2 sample4 = SampleEFB_RG(subBlockUL+float2(0,1));\n"
+	"float2 sample5 = SampleEFB_RG(subBlockUL+float2(1,1));\n"
+	"float2 sample6 = SampleEFB_RG(subBlockUL+float2(2,1));\n"
+	"float2 sample7 = SampleEFB_RG(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
 		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
+		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r),\n"
+		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
 		");\n"
 	
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_4(float2 cacheCoord)\n" // R5 G6 B5
+"uint4 Generate_RGB565(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB_RGBA(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB_RGBA(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB_RGBA(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB_RGBA(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB_RGBA(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB_RGBA(subBlockUL+float2(3,1));\n"
 		
 	"uint dw0 = UINT_1616(EncodeRGB565(sample0), EncodeRGB565(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB565(sample2), EncodeRGB565(sample3));\n"
@@ -538,21 +372,21 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_5(float2 cacheCoord)\n" // 1 R5 G5 B5 or 0 A3 R4 G4 G4
+"uint4 Generate_RGB5A3(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(2,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB_RGBA(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB_RGBA(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB_RGBA(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB_RGBA(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB_RGBA(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB_RGBA(subBlockUL+float2(3,1));\n"
 		
 	"uint dw0 = UINT_1616(EncodeRGB5A3(sample0), EncodeRGB5A3(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB5A3(sample2), EncodeRGB5A3(sample3));\n"
@@ -562,24 +396,24 @@ static const char EFB_ENCODE_PS[] =
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
-"uint4 Generate_6(float2 cacheCoord)\n" // A8 R8 A8 R8 | G8 B8 G8 B8
+"uint4 Generate_RGBA8(uint2 cacheCoord)\n"
 "{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(4,1));\n"
+	"uint2 blockCoord = cacheCoord / uint2(4,1);\n"
 
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
+	"uint2 blockUL = blockCoord * uint2(4,4);\n"
+	"uint2 subBlockUL = blockUL + uint2(0, 2*(cacheCoord.x&1));\n"
 
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
+	"float4 sample0 = SampleEFB_RGBA(subBlockUL+float2(0,0));\n"
+	"float4 sample1 = SampleEFB_RGBA(subBlockUL+float2(1,0));\n"
+	"float4 sample2 = SampleEFB_RGBA(subBlockUL+float2(2,0));\n"
+	"float4 sample3 = SampleEFB_RGBA(subBlockUL+float2(3,0));\n"
+	"float4 sample4 = SampleEFB_RGBA(subBlockUL+float2(0,1));\n"
+	"float4 sample5 = SampleEFB_RGBA(subBlockUL+float2(1,1));\n"
+	"float4 sample6 = SampleEFB_RGBA(subBlockUL+float2(2,1));\n"
+	"float4 sample7 = SampleEFB_RGBA(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4;\n"
-	"if (cacheCoord.x % 4 < 2)\n"
+	"if ((cacheCoord.x & 3) < 2)\n"
 	"{\n"
 		// First cache line gets AR
 		"dw4 = UINT4_8888_BE(\n"
@@ -603,282 +437,24 @@ static const char EFB_ENCODE_PS[] =
 	"return dw4;\n"
 "}\n"
 
-"uint4 Generate_7(float2 cacheCoord)\n" // A8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-	
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample4.a, sample8.a, sampleC.a),\n"
-		"255*float4(sample1.a, sample5.a, sample9.a, sampleD.a),\n"
-		"255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
-		"255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"uint4 Generate_8(float2 cacheCoord)\n" // R8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-// FIXME: Untested
-"uint4 Generate_9(float2 cacheCoord)\n" // G8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
-		"255*float4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
-		"255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
-		"255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"uint4 Generate_A(float2 cacheCoord)\n" // B8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(8,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-	
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(4,0));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(5,0));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(6,0));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(7,0));\n"
-	"float4 sample8 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample9 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sampleA = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sampleB = SampleEFB(subBlockUL+float2(3,1));\n"
-	"float4 sampleC = SampleEFB(subBlockUL+float2(4,1));\n"
-	"float4 sampleD = SampleEFB(subBlockUL+float2(5,1));\n"
-	"float4 sampleE = SampleEFB(subBlockUL+float2(6,1));\n"
-	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample4.b, sample8.b, sampleC.b),\n"
-		"255*float4(sample1.b, sample5.b, sample9.b, sampleD.b),\n"
-		"255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
-		"255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"uint4 Generate_B(float2 cacheCoord)\n" // G8 R8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-// FIXME: Untested
-"uint4 Generate_C(float2 cacheCoord)\n" // B8 G8
-"{\n"
-	"float2 blockCoord = floor(cacheCoord / float2(2,1));\n"
-
-	"float2 blockUL = blockCoord * float2(4,4);\n"
-	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-
-	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
-	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
-	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
-	"float4 sample3 = SampleEFB(subBlockUL+float2(3,0));\n"
-	"float4 sample4 = SampleEFB(subBlockUL+float2(0,1));\n"
-	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
-	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
-	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
-
-	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
-		");\n"
-	
-	"return dw4;\n"
-"}\n"
-
-"#ifdef DYNAMIC_MODE\n"
-"interface iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord);\n"
-"};\n"
-
-"class cGenerator_4 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_4(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_5 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_5(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_6 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_6(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_8 : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_8(cacheCoord); }\n"
-"};\n"
-
-"class cGenerator_B : iGenerator\n"
-"{\n"
-	"uint4 Generate(float2 cacheCoord)\n"
-	"{ return Generate_B(cacheCoord); }\n"
-"};\n"
-
-// Declare generator interface; must be set by application
-"iGenerator g_generator;\n"
-"#define IMP_GENERATOR g_generator.Generate\n"
-
-"#endif\n"
-
 "#ifndef IMP_GENERATOR\n"
 "#error No generator specified\n"
 "#endif\n"
 
-"void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 fCacheCoord : ENCODECOORD)\n"
+"void main(out uint4 ocol0 : SV_Target, in float4 Pos : SV_Position)\n"
 "{\n"
-	"float2 cacheCoord = floor(fCacheCoord);\n"
-	"ocol0 = IMP_GENERATOR(cacheCoord);\n"
+	"ocol0 = IMP_GENERATOR(Pos.xy);\n"
 "}\n"
 ;
 
 PSTextureEncoder::PSTextureEncoder()
-	: m_ready(false), m_out(NULL), m_outRTV(NULL), m_outStage(NULL),
-	m_encodeParams(NULL),
-	m_quad(NULL), m_vShader(NULL), m_quadLayout(NULL),
-	m_efbEncodeBlendState(NULL), m_efbEncodeDepthState(NULL),
-	m_efbEncodeRastState(NULL), m_efbSampler(NULL),
-	m_dynamicShader(NULL), m_classLinkage(NULL)
+	: m_ready(false), m_out(NULL), m_outRTV(NULL), m_outStage(NULL), m_encodeParams(NULL)
 {
-	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
-	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
-}
-
-static const D3D11_INPUT_ELEMENT_DESC QUAD_LAYOUT_DESC[] = {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-};
-
-static const struct QuadVertex
-{
-	float posX;
-	float posY;
-} QUAD_VERTS[4] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
-
-void PSTextureEncoder::Init()
-{
-	m_ready = false;
-
 	HRESULT hr;
+
+	FILE* outFile = fopen("EFBEncoder.hlsl", "w");
+	fwrite(EFB_ENCODE_PS, 1, sizeof(EFB_ENCODE_PS), outFile);
+	fclose(outFile);
 
 	// Create output texture RGBA format
 
@@ -909,127 +485,35 @@ void PSTextureEncoder::Init()
 
 	// Create constant buffer for uploading data to shaders
 
-	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams),
-		D3D11_BIND_CONSTANT_BUFFER);
+	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC((sizeof(EFBEncodeParams) + 15) & ~15,
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	hr = D3D::device->CreateBuffer(&bd, NULL, &m_encodeParams);
 	CHECK(SUCCEEDED(hr), "create efb encode params buffer");
 	D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
 
-	// Create vertex quad
-
-	bd = CD3D11_BUFFER_DESC(sizeof(QUAD_VERTS), D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_IMMUTABLE);
-	D3D11_SUBRESOURCE_DATA srd = { QUAD_VERTS, 0, 0 };
-
-	hr = D3D::device->CreateBuffer(&bd, &srd, &m_quad);
-	CHECK(SUCCEEDED(hr), "create efb encode quad vertex buffer");
-	D3D::SetDebugObjectName(m_quad, "efb encoder quad vertex buffer");
-
-	// Create vertex shader
-
-	D3DBlob* bytecode = NULL;
-	if (!D3D::CompileVertexShader(EFB_ENCODE_VS, sizeof(EFB_ENCODE_VS), &bytecode))
-	{
-		ERROR_LOG(VIDEO, "EFB encode vertex shader failed to compile");
-		return;
-	}
-
-	hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(), NULL, &m_vShader);
-	CHECK(SUCCEEDED(hr), "create efb encode vertex shader");
-	D3D::SetDebugObjectName(m_vShader, "efb encoder vertex shader");
-
-	// Create input layout for vertex quad using bytecode from vertex shader
-
-	hr = D3D::device->CreateInputLayout(QUAD_LAYOUT_DESC,
-		sizeof(QUAD_LAYOUT_DESC)/sizeof(D3D11_INPUT_ELEMENT_DESC),
-		bytecode->Data(), bytecode->Size(), &m_quadLayout);
-	CHECK(SUCCEEDED(hr), "create efb encode quad vertex layout");
-	D3D::SetDebugObjectName(m_quadLayout, "efb encoder quad layout");
-
-	bytecode->Release();
-
 	// Create pixel shader
 
-#ifdef USE_DYNAMIC_MODE
-	if (!InitDynamicMode())
-#else
 	if (!InitStaticMode())
-#endif
 		return;
-
-	// Create blend state
-
-	D3D11_BLEND_DESC bld = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
-	hr = D3D::device->CreateBlendState(&bld, &m_efbEncodeBlendState);
-	CHECK(SUCCEEDED(hr), "create efb encode blend state");
-	D3D::SetDebugObjectName(m_efbEncodeBlendState, "efb encoder blend state");
-
-	// Create depth state
-
-	D3D11_DEPTH_STENCIL_DESC dsd = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	dsd.DepthEnable = FALSE;
-	hr = D3D::device->CreateDepthStencilState(&dsd, &m_efbEncodeDepthState);
-	CHECK(SUCCEEDED(hr), "create efb encode depth state");
-	D3D::SetDebugObjectName(m_efbEncodeDepthState, "efb encoder depth state");
-
-	// Create rasterizer state
-
-	D3D11_RASTERIZER_DESC rd = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-	rd.CullMode = D3D11_CULL_NONE;
-	rd.DepthClipEnable = FALSE;
-	hr = D3D::device->CreateRasterizerState(&rd, &m_efbEncodeRastState);
-	CHECK(SUCCEEDED(hr), "create efb encode rast state");
-	D3D::SetDebugObjectName(m_efbEncodeRastState, "efb encoder rast state");
-
-	// Create efb texture sampler
-
-	D3D11_SAMPLER_DESC sd = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	hr = D3D::device->CreateSamplerState(&sd, &m_efbSampler);
-	CHECK(SUCCEEDED(hr), "create efb encode texture sampler");
-	D3D::SetDebugObjectName(m_efbSampler, "efb encoder texture sampler");
 
 	m_ready = true;
 }
 
-void PSTextureEncoder::Shutdown()
+PSTextureEncoder::~PSTextureEncoder()
 {
-	m_ready = false;
-	
-	for (size_t i = 0; i < 4; ++i)
-		SAFE_RELEASE(m_fetchClass[i]);
-	for (size_t i = 0; i < 2; ++i)
-		SAFE_RELEASE(m_scaledFetchClass[i]);
-	for (size_t i = 0; i < 2; ++i)
-		SAFE_RELEASE(m_intensityClass[i]);
-	for (size_t i = 0; i < 16; ++i)
-		SAFE_RELEASE(m_generatorClass[i]);
-	m_linkageArray.clear();
-	
-	SAFE_RELEASE(m_classLinkage);
-	SAFE_RELEASE(m_dynamicShader);
-
 	for (ComboMap::iterator it = m_staticShaders.begin();
 		it != m_staticShaders.end(); ++it)
 	{
 		SAFE_RELEASE(it->second);
 	}
-	m_staticShaders.clear();
 
-	SAFE_RELEASE(m_efbSampler);
-	SAFE_RELEASE(m_efbEncodeRastState);
-	SAFE_RELEASE(m_efbEncodeDepthState);
-	SAFE_RELEASE(m_efbEncodeBlendState);
-	SAFE_RELEASE(m_quadLayout);
-	SAFE_RELEASE(m_vShader);
-	SAFE_RELEASE(m_quad);
 	SAFE_RELEASE(m_encodeParams);
 	SAFE_RELEASE(m_outStage);
 	SAFE_RELEASE(m_outRTV);
 	SAFE_RELEASE(m_out);
 }
 
-size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
+u32 PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat, D3DTexture2D* srcTex,
 	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
 	bool scaleByHalf)
 {
@@ -1047,8 +531,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 	HRESULT hr;
 
-	unsigned int blockW = BLOCK_WIDTHS[dstFormat];
-	unsigned int blockH = BLOCK_HEIGHTS[dstFormat];
+	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
 
 	// Round up source dims to multiple of block size
 	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
@@ -1060,83 +544,95 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	unsigned int numBlocksY = actualHeight/blockH;
 
 	unsigned int cacheLinesPerRow;
-	if (dstFormat == 0x6) // RGBA takes two cache lines per block; all others take one
+	if (dstFormat == EFB_COPY_RGBA8) // RGBA takes two cache lines per block; all others take one
 		cacheLinesPerRow = numBlocksX*2;
 	else
 		cacheLinesPerRow = numBlocksX;
-	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= MAX_BYTES_PER_BLOCK_ROW, "cache lines per row sanity check");
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= EFB_COPY_MAX_BYTES_PER_ROW, "cache lines per row sanity check");
 
 	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
-	_assert_msg_(VIDEO, totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
+	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
 
-	size_t encodeSize = 0;
+	DEBUG_LOG(VIDEO, "Encoding dstFormat %s, intensity %d, scale %d",
+		EFB_COPY_DST_FORMAT_NAMES[dstFormat], isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+
+	u32 encodeSize = 0;
 	
 	// Reset API
 
 	g_renderer->ResetAPIState();
+	D3D::stateman->Apply();
 
 	// Set up all the state for EFB encoding
 	
-#ifdef USE_DYNAMIC_MODE
-	if (SetDynamicShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
-#else
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
-#endif
 	{
-		D3D::context->VSSetShader(m_vShader, NULL, 0);
-
-		D3D::stateman->PushBlendState(m_efbEncodeBlendState);
-		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
-		D3D::stateman->PushRasterizerState(m_efbEncodeRastState);
-		D3D::stateman->Apply();
-	
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::context->RSSetViewports(1, &vp);
 
-		D3D::context->IASetInputLayout(m_quadLayout);
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		UINT stride = sizeof(QuadVertex);
-		UINT offset = 0;
-		D3D::context->IASetVertexBuffers(0, 1, &m_quad, &stride, &offset);
-	
-		EFBRectangle fullSrcRect;
-		fullSrcRect.left = 0;
-		fullSrcRect.top = 0;
-		fullSrcRect.right = EFB_WIDTH;
-		fullSrcRect.bottom = EFB_HEIGHT;
-		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
-	
-		EFBEncodeParams params = { 0 };
-		params.NumHalfCacheLinesX = FLOAT(cacheLinesPerRow*2);
-		params.NumBlocksY = FLOAT(numBlocksY);
-		params.PosX = FLOAT(correctSrc.left);
-		params.PosY = FLOAT(correctSrc.top);
-		params.TexLeft = float(targetRect.left) / g_renderer->GetTargetWidth();
-		params.TexTop = float(targetRect.top) / g_renderer->GetTargetHeight();
-		params.TexRight = float(targetRect.right) / g_renderer->GetTargetWidth();
-		params.TexBottom = float(targetRect.bottom) / g_renderer->GetTargetHeight();
-		D3D::context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
+		static const float YUVA_MATRIX[4*4] = {
+			0.257f, 0.504f, 0.098f, 0.f,
+			-0.148f, -0.291f, 0.439f, 0.f,
+			0.439f, -0.368f, -0.071f, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		};
+		static const float YUV_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
+		
+		D3D11_MAPPED_SUBRESOURCE map;
+		hr = D3D::context->Map(m_encodeParams, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		if (SUCCEEDED(hr))
+		{
+			EFBEncodeParams* params = (EFBEncodeParams*)map.pData;
+			
+			// Choose a pre-color matrix: Either RGBA or YUVA
+			if (isIntensity)
+			{
+				// Combine YUVA matrix with color matrix
+				Matrix44 colorMat;
+				Matrix44::Set(colorMat, m_useThisMatrix);
+				Matrix44 yuvaMat;
+				Matrix44::Set(yuvaMat, YUVA_MATRIX);
+				Matrix44 combinedMat;
+				Matrix44::Multiply(colorMat, yuvaMat, combinedMat);
+				
+				memcpy(params->Matrix, combinedMat.data, 4*4*sizeof(float));
 
-		D3D::context->VSSetConstantBuffers(0, 1, &m_encodeParams);
+				for (int i = 0; i < 3; ++i)
+					params->Add[i] = m_useThisAdd[i] + YUV_ADD[i];
+				params->Add[3] = m_useThisAdd[3];
+			}
+			else
+			{
+				memcpy(params->Matrix, m_useThisMatrix, 4*4*sizeof(float));
+				memcpy(params->Add, m_useThisAdd, 4*sizeof(float));
+			}
+
+			params->Pos[0] = FLOAT(correctSrc.left);
+			params->Pos[1] = FLOAT(correctSrc.top);
+
+			params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24) ? TRUE : FALSE;
+
+			D3D::context->Unmap(m_encodeParams, 0);
+		}
+		else
+			ERROR_LOG(VIDEO, "Failed to map encode params buffer");
 	
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, NULL);
 
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
-			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
-			// FIXME: Instead of resolving EFB, it would be better to pick out a
- 			// single sample from each pixel. The game may break if it isn't
- 			// expecting the blurred edges around multisampled shapes.
- 			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
-
 		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
-		D3D::context->PSSetShaderResources(0, 1, &pEFB);
-		D3D::context->PSSetSamplers(0, 1, &m_efbSampler);
+		D3D::context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
+		if (scaleByHalf && srcFormat != PIXELFMT_Z24)
+			D3D::SetLinearCopySampler();
+		else
+			D3D::SetPointCopySampler();
 
 		// Encode!
 
-		D3D::context->Draw(4, 0);
+		D3D::drawEncoderQuad(m_useThisPS, NULL, 0);
 
 		// Copy to staging buffer
+		
+		D3D::context->OMSetRenderTargets(0, NULL, NULL);
 
 		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow*2, numBlocksY, 1);
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
@@ -1144,25 +640,11 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		// Clean up state
 	
 		IUnknown* nullDummy = NULL;
-
-		D3D::context->PSSetSamplers(0, 1, (ID3D11SamplerState**)&nullDummy);
 		D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
 		D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-	
-		D3D::context->OMSetRenderTargets(0, NULL, NULL);
-
-		D3D::context->VSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-		
-		D3D::stateman->PopRasterizerState();
-		D3D::stateman->PopDepthState();
-		D3D::stateman->PopBlendState();
-
-		D3D::context->PSSetShader(NULL, NULL, 0);
-		D3D::context->VSSetShader(NULL, NULL, 0);
 
 		// Transfer staging buffer to GameCube/Wii RAM
 
-		D3D11_MAPPED_SUBRESOURCE map = { 0 };
 		hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
 		CHECK(SUCCEEDED(hr), "map staging buffer");
 
@@ -1195,68 +677,180 @@ bool PSTextureEncoder::InitStaticMode()
 	return true;
 }
 
-static const char* FETCH_FUNC_NAMES[4] = {
-	"Fetch_0", "Fetch_1", "Fetch_2", "Fetch_3"
+// TODO: Move these to a common place
+static const float RGBA_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
 };
 
-static const char* SCALEDFETCH_FUNC_NAMES[2] = {
-	"ScaledFetch_0", "ScaledFetch_1"
+static const float RGB0_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 0
 };
 
-static const char* INTENSITY_FUNC_NAMES[2] = {
-	"Intensity_0", "Intensity_1"
+// FIXME: These don't need to be full 4x4 matrices. But the shader needs it.
+static const float PACK_RA_TO_RG_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 0, 0, 1,
+	0, 0, 0, 0,
+	0, 0, 0, 0
 };
+
+static const float PACK_A_TO_R_MATRIX[4*4] = {
+	0, 0, 0, 1,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_R_TO_R_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_G_TO_R_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_B_TO_R_MATRIX[4*4] = {
+	0, 0, 1, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_GR_TO_RG_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	1, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float PACK_BG_TO_RG_MATRIX[4*4] = {
+	0, 0, 1, 0,
+	0, 1, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
+static const float A1_ADD[4] = { 0, 0, 0, 1 };
 
 bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
 	bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
-	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
-	size_t intensityNum = isIntensity ? 1 : 0;
-	size_t generatorNum = dstFormat;
+	GeneratorType gen;
+	const char* genFuncName;
+	const float* matrix;
+	const float* add;
+	switch (dstFormat)
+	{
+	case EFB_COPY_R4:
+		gen = Generator_R4;
+		genFuncName = "Generate_R4";
+		matrix = PACK_R_TO_R_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_R8_1:
+	case EFB_COPY_R8:
+		gen = Generator_R8;
+		genFuncName = "Generate_R8";
+		matrix = PACK_R_TO_R_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_RA4:
+		gen = Generator_RG4;
+		genFuncName = "Generate_RG4";
+		matrix = PACK_RA_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_RA8:
+		gen = Generator_RG8;
+		genFuncName = "Generate_RG8";
+		matrix = PACK_RA_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_RGB565:
+		gen = Generator_RGB565;
+		genFuncName = "Generate_RGB565";
+		matrix = RGB0_MATRIX;
+		add = A1_ADD;
+		break;
+	case EFB_COPY_RGB5A3:
+		gen = Generator_RGB5A3;
+		genFuncName = "Generate_RGB5A3";
+		matrix = RGBA_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_RGBA8:
+		gen = Generator_RGBA8;
+		genFuncName = "Generate_RGBA8";
+		matrix = RGBA_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_A8:
+		gen = Generator_R8;
+		genFuncName = "Generate_R8";
+		matrix = PACK_A_TO_R_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_G8:
+		gen = Generator_R8;
+		genFuncName = "Generate_R8";
+		matrix = PACK_G_TO_R_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_B8:
+		gen = Generator_R8;
+		genFuncName = "Generate_R8";
+		matrix = PACK_B_TO_R_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_RG8:
+		gen = Generator_RG8;
+		genFuncName = "Generate_RG8";
+		matrix = PACK_GR_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		break;
+	case EFB_COPY_GB8:
+		gen = Generator_RG8;
+		genFuncName = "Generate_RG8";
+		matrix = PACK_BG_TO_RG_MATRIX;
+		add = ZERO_ADD;
+		break;
+	default:
+		WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", dstFormat);
+		return false;
+	}
 
-	ComboKey key = MakeComboKey(dstFormat, srcFormat, isIntensity, scaleByHalf);
+	ComboKey key = MakeComboKey(gen, srcFormat == PIXELFMT_Z24, scaleByHalf);
 
 	ComboMap::iterator it = m_staticShaders.find(key);
 	if (it == m_staticShaders.end())
 	{
-		const char* generatorFuncName = NULL;
-		switch (generatorNum)
-		{
-		case 0x0: generatorFuncName = "Generate_0"; break;
-		case 0x1: generatorFuncName = "Generate_1"; break;
-		case 0x2: generatorFuncName = "Generate_2"; break;
-		case 0x3: generatorFuncName = "Generate_3"; break;
-		case 0x4: generatorFuncName = "Generate_4"; break;
-		case 0x5: generatorFuncName = "Generate_5"; break;
-		case 0x6: generatorFuncName = "Generate_6"; break;
-		case 0x7: generatorFuncName = "Generate_7"; break;
-		case 0x8: generatorFuncName = "Generate_8"; break;
-		case 0x9: generatorFuncName = "Generate_9"; break;
-		case 0xA: generatorFuncName = "Generate_A"; break;
-		case 0xB: generatorFuncName = "Generate_B"; break;
-		case 0xC: generatorFuncName = "Generate_C"; break;
-		default:
-			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
-			m_staticShaders[key] = NULL;
-			return false;
-		}
-
 		INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d",
 			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
 		D3DBlob* bytecode = NULL;
 		D3D_SHADER_MACRO macros[] = {
-			{ "IMP_FETCH", FETCH_FUNC_NAMES[fetchNum] },
-			{ "IMP_SCALEDFETCH", SCALEDFETCH_FUNC_NAMES[scaledFetchNum] },
-			{ "IMP_INTENSITY", INTENSITY_FUNC_NAMES[intensityNum] },
-			{ "IMP_GENERATOR", generatorFuncName },
+			{ "DEPTH", (srcFormat == PIXELFMT_Z24) ? "1" : "0" },
+			{ "SCALE", scaleByHalf ? "1" : "0" },
+			{ "IMP_GENERATOR", genFuncName },
 			{ NULL, NULL }
 		};
 		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
 		{
-			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d failed to compile",
+			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d scaleByHalf %d failed to compile",
 				dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 			// Add dummy shader to map to prevent trying to compile over and
 			// over again
@@ -1276,7 +870,9 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	{
 		if (it->second)
 		{
-			D3D::context->PSSetShader(it->second, NULL, 0);
+			m_useThisPS = it->second;
+			m_useThisMatrix = matrix;
+			m_useThisAdd = add;
 			return true;
 		}
 		else
@@ -1284,163 +880,6 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	}
 	else
 		return false;
-}
-
-bool PSTextureEncoder::InitDynamicMode()
-{
-	HRESULT hr;
-
-	D3D_SHADER_MACRO macros[] = {
-		{ "DYNAMIC_MODE", NULL },
-		{ NULL, NULL }
-	};
-
-	D3DBlob* bytecode = NULL;
-	if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
-	{
-		ERROR_LOG(VIDEO, "EFB encode pixel shader failed to compile");
-		return false;
-	}
-
-	hr = D3D::device->CreateClassLinkage(&m_classLinkage);
-	CHECK(SUCCEEDED(hr), "create efb encode class linkage");
-	D3D::SetDebugObjectName(m_classLinkage, "efb encoder class linkage");
-
-	hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), m_classLinkage, &m_dynamicShader);
-	CHECK(SUCCEEDED(hr), "create efb encode pixel shader");
-	D3D::SetDebugObjectName(m_dynamicShader, "efb encoder pixel shader");
-	
-	// Use D3DReflect
-
-	ID3D11ShaderReflection* reflect = NULL;
-	hr = PD3DReflect(bytecode->Data(), bytecode->Size(), IID_ID3D11ShaderReflection, (void**)&reflect);
-	CHECK(SUCCEEDED(hr), "reflect on efb encoder shader");
-
-	// Get number of slots and create dynamic linkage array
-
-	UINT numSlots = reflect->GetNumInterfaceSlots();
-	m_linkageArray.resize(numSlots, NULL);
-
-	// Get interface slots
-
-	ID3D11ShaderReflectionVariable* var = reflect->GetVariableByName("g_fetch");
-	m_fetchSlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_scaledFetch");
-	m_scaledFetchSlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_intensity");
-	m_intensitySlot = var->GetInterfaceSlot(0);
-
-	var = reflect->GetVariableByName("g_generator");
-	m_generatorSlot = var->GetInterfaceSlot(0);
-
-	INFO_LOG(VIDEO, "fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
-		m_fetchSlot, m_scaledFetchSlot, m_intensitySlot, m_generatorSlot);
-
-	// Class instances will be created at the time they are used
-
-	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
-	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
-	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
-
-	reflect->Release();
-	bytecode->Release();
-
-	return true;
-}
-
-static const char* FETCH_CLASS_NAMES[4] = {
-	"cFetch_0", "cFetch_1", "cFetch_2", "cFetch_3"
-};
-
-static const char* SCALEDFETCH_CLASS_NAMES[2] = {
-	"cScaledFetch_0", "cScaledFetch_1"
-};
-
-static const char* INTENSITY_CLASS_NAMES[2] = {
-	"cIntensity_0", "cIntensity_1"
-};
-
-bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
-	unsigned int srcFormat, bool isIntensity, bool scaleByHalf)
-{
-	size_t fetchNum = srcFormat;
-	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
-	size_t intensityNum = isIntensity ? 1 : 0;
-	size_t generatorNum = dstFormat;
-
-	// FIXME: Not all the possible generators are available as classes yet.
-	// When dynamic mode is usable, implement them.
-	const char* generatorName = NULL;
-	switch (generatorNum)
-	{
-	case 0x4: generatorName = "cGenerator_4"; break;
-	case 0x5: generatorName = "cGenerator_5"; break;
-	case 0x6: generatorName = "cGenerator_6"; break;
-	case 0x8: generatorName = "cGenerator_8"; break;
-	case 0xB: generatorName = "cGenerator_B"; break;
-	default:
-		WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
-		return false;
-	}
-
-	// Make sure class instances are available
-	if (!m_fetchClass[fetchNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			FETCH_CLASS_NAMES[fetchNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			FETCH_CLASS_NAMES[fetchNum], 0, 0, 0, 0, &m_fetchClass[fetchNum]);
-		CHECK(SUCCEEDED(hr), "create fetch class instance");
-	}
-	if (!m_scaledFetchClass[scaledFetchNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			SCALEDFETCH_CLASS_NAMES[scaledFetchNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			SCALEDFETCH_CLASS_NAMES[scaledFetchNum], 0, 0, 0, 0,
-			&m_scaledFetchClass[scaledFetchNum]);
-		CHECK(SUCCEEDED(hr), "create scaled fetch class instance");
-	}
-	if (!m_intensityClass[intensityNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			INTENSITY_CLASS_NAMES[intensityNum], dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			INTENSITY_CLASS_NAMES[intensityNum], 0, 0, 0, 0,
-			&m_intensityClass[intensityNum]);
-		CHECK(SUCCEEDED(hr), "create intensity class instance");
-	}
-	if (!m_generatorClass[generatorNum])
-	{
-		INFO_LOG(VIDEO, "Creating %s class instance for encoder 0x%X",
-			generatorName, dstFormat);
-		HRESULT hr = m_classLinkage->CreateClassInstance(
-			generatorName, 0, 0, 0, 0, &m_generatorClass[generatorNum]);
-		CHECK(SUCCEEDED(hr), "create generator class instance");
-	}
-
-	// Assemble dynamic linkage array
-	if (m_fetchSlot != UINT(-1))
-		m_linkageArray[m_fetchSlot] = m_fetchClass[fetchNum];
-	if (m_scaledFetchSlot != UINT(-1))
-		m_linkageArray[m_scaledFetchSlot] = m_scaledFetchClass[scaledFetchNum];
-	if (m_intensitySlot != UINT(-1))
-		m_linkageArray[m_intensitySlot] = m_intensityClass[intensityNum];
-	if (m_generatorSlot != UINT(-1))
-		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
-	
-	D3D::context->PSSetShader(m_dynamicShader,
-		m_linkageArray.empty() ? NULL : &m_linkageArray[0],
-		(UINT)m_linkageArray.size());
-
-	return true;
 }
 
 }

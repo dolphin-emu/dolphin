@@ -15,14 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PIXELSHADERCACHE_H_
-#define _PIXELSHADERCACHE_H_
+#ifndef _VIDEOOGL_PIXELSHADERCACHE_H
+#define _VIDEOOGL_PIXELSHADERCACHE_H
 
-#include <map>
-#include <string>
-
-#include "BPMemory.h"
 #include "PixelShaderGen.h"
+#include "GLUtil.h"
 
 namespace OGL
 {
@@ -88,4 +85,4 @@ public:
 
 }  // namespace OGL
 
-#endif // _PIXELSHADERCACHE_H_
+#endif // _VIDEOOGL_PIXELSHADERCACHE_H

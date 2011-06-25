@@ -15,210 +15,519 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <d3dx9.h>
+#include "TextureCache.h"
 
-#include "Globals.h"
-#include "Statistics.h"
-#include "MemoryUtil.h"
-#include "Hash.h"
-
-#include "CommonPaths.h"
-#include "FileUtil.h"
-
-#include "D3DBase.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
+#include "EFBCopy.h"
 #include "FramebufferManager.h"
-#include "PixelShaderCache.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
-
+#include "Hash.h"
+#include "HW/Memmap.h"
+#include "LookUpTables.h"
 #include "Render.h"
-
-#include "TextureDecoder.h"
-#include "TextureCache.h"
-#include "HiresTextures.h"
 #include "TextureConverter.h"
-#include "Debugger.h"
-
-extern int frameCount;
+#include "Tmem.h"
+#include "VideoConfig.h"
 
 namespace DX9
 {
 
-TextureCache::TCacheEntry::~TCacheEntry()
-{
-	texture->Release();
+#define SAFE_RELEASE(p) if (p) { (p)->Release(); (p) = NULL; }
+	
+inline bool IsPaletted(u32 format) {
+	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
 }
 
-void TextureCache::TCacheEntry::Bind(unsigned int stage)
+TCacheEntry::TCacheEntry()
+	: m_bindMe(NULL)
+{ }
+
+TCacheEntry::~TCacheEntry()
 {
-	D3D::SetTexture(stage, texture);
+	SAFE_RELEASE(m_depalStorage.tex);
+	SAFE_RELEASE(m_palette.tex);
+	SAFE_RELEASE(m_ramStorage.tex);
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+void TCacheEntry::TeardownDeviceObjects()
 {
-	return SUCCEEDED(PD3DXSaveTextureToFileA(filename, D3DXIFF_PNG, texture, 0));
+	SAFE_RELEASE(m_palette.tex);
+	SAFE_RELEASE(m_depalStorage.tex);
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+// Compute the maximum number of mips a texture of given dims could have
+// Some games (Luigi's Mansion for example) try to use too many mip levels.
+static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
 {
-	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
-	// D3D9 will automatically generate mip maps if necessary
+	if (width == 0 || height == 0)
+		return 0;
+	return floorLog2( std::max(width, height) ) + 1;
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect,
-	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-	const float *colmat)
+void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height,
+	u32 levels, u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
-	const LPDIRECT3DTEXTURE9 read_texture = (srcFormat == PIXELFMT_Z24) ?
-		FramebufferManager::GetEFBDepthTexture() :
-		FramebufferManager::GetEFBColorTexture();
+	m_loaded = NULL;
+	m_loadedDirty = false;
+	m_loadedIsPaletted = false;
+	m_depalettized = NULL;
+	m_bindMe = NULL;
+	
+	// This is the earliest possible place to correct mip levels. Do so.
+	unsigned int maxLevels = ComputeMaxLevels(width, height);
+	levels = std::min(levels, maxLevels);
 
-	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+	m_bindMe = m_depalettized;
+}
+
+void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	bool refreshFromRam = true;
+
+	// See if there is a virtual EFB copy available at this address
+	VirtualEFBCopyMap& virtCopyMap = ((TextureCache*)g_textureCache)->GetVirtCopyMap();
+	VirtualEFBCopyMap::iterator virtIt = virtCopyMap.find(ramAddr);
+
+	if (virtIt != virtCopyMap.end())
 	{
-		LPDIRECT3DSURFACE9 Rendersurf = NULL;
-		texture->GetSurfaceLevel(0, &Rendersurf);
-		D3D::dev->SetDepthStencilSurface(NULL);
-		D3D::dev->SetRenderTarget(0, Rendersurf);
-
-		D3DVIEWPORT9 vp;
-
-		// Stretch picture with increased internal resolution
-		vp.X = 0;
-		vp.Y = 0;
-		vp.Width  = virtualW;
-		vp.Height = virtualH;
-		vp.MinZ = 0.0f;
-		vp.MaxZ = 1.0f;
-		D3D::dev->SetViewport(&vp);
-		RECT destrect;
-		destrect.bottom = virtualH;
-		destrect.left = 0;
-		destrect.right = virtualW;
-		destrect.top = 0;
-
-		PixelShaderManager::SetColorMatrix(colmat); // set transformation
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
-		RECT sourcerect;
-		sourcerect.bottom = targetSource.bottom;
-		sourcerect.left = targetSource.left;
-		sourcerect.right = targetSource.right;
-		sourcerect.top = targetSource.top;
-
-		if (srcFormat == PIXELFMT_Z24)
+		if (g_ActiveConfig.bEFBCopyVirtualEnable)
 		{
-			if (scaleByHalf || g_ActiveConfig.iMultisampleMode)
-			{
-				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-			}
-			else
-			{
-				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-			}
+			// Try to load from the virtual copy instead of RAM.
+			// FIXME: If copy fails to load, its memory region may have
+			// been deallocated by the game. We ought to delete copies that aren't
+			// being used.
+			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
+				refreshFromRam = false;
 		}
 		else
 		{
-			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+			// User must have turned off virtual copies mid-game. Delete any
+			// that are found.
+			// FIXME: Is it desirable to delete them as they are found instead
+			// of just deleting them all at once?
+			virtCopyMap.erase(virtIt);
 		}
-
-		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
-		int SSAAMode = g_ActiveConfig.iMultisampleMode;
-
-		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
-			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			virtualW, virtualH,
-			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
-			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, (srcFormat == PIXELFMT_Z24) && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
-			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
-
-		Rendersurf->Release();
 	}
 
-	if (!g_ActiveConfig.bCopyEFBToTexture)
-	{
-		hash = TextureConverter::EncodeToRamFromTexture(
-			addr,
-			read_texture,
-			Renderer::GetTargetWidth(), 
-			Renderer::GetTargetHeight(),
-			srcFormat == PIXELFMT_Z24, 
-			isIntensity, 
-			dstFormat, 
-			scaleByHalf, 
-			srcRect);
-	}
-	
-	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-	D3D::SetTexture(0, NULL);
-	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+	if (refreshFromRam)
+		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt)
+void TCacheEntry::CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT d3dFormat)
 {
-	D3DFORMAT d3d_fmt;
-	bool swap_r_b = false;
+	INFO_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
+		width, height, levels);
 
-	switch (pcfmt)
+	SAFE_RELEASE(m_ramStorage.tex);
+	m_ramStorage.tex = D3D::CreateOnlyTexture2D(width, height, levels,
+		d3dFormat == D3DFMT_A8P8 ? D3DFMT_A8L8 : d3dFormat);
+	m_ramStorage.d3dFormat = d3dFormat;
+}
+
+void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	int blockW = TexDecoder_GetBlockWidthInTexels(format);
+	int blockH = TexDecoder_GetBlockHeightInTexels(format);
+
+	const u8* src = Memory::GetPointer(ramAddr);
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+
+	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
+
+	PC_TexFormat pcFormat = GetPC_TexFormat(format, tlutFormat);
+	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
+	bool swapRB = false;
+	switch (pcFormat)
 	{
 	case PC_TEX_FMT_BGRA32:
-		d3d_fmt = D3DFMT_A8R8G8B8;
+		d3dFormat = D3DFMT_A8R8G8B8;
 		break;
-
 	case PC_TEX_FMT_RGBA32:
-		d3d_fmt = D3DFMT_A8R8G8B8;
-		swap_r_b = true;
+		d3dFormat = D3DFMT_A8R8G8B8;
+		swapRB = true;
 		break;
-
-	case PC_TEX_FMT_RGB565:
-		d3d_fmt = D3DFMT_R5G6B5;
-		break;
-
-	case PC_TEX_FMT_IA4_AS_IA8:
-		d3d_fmt = D3DFMT_A8L8;
-		break;
-
-	case PC_TEX_FMT_I8:
 	case PC_TEX_FMT_I4_AS_I8:
-		// A hack which means the format is a packed
-		// 8-bit intensity texture. It is unpacked
-		// to A8L8 in D3DTexture.cpp
-		d3d_fmt = D3DFMT_A8P8;
+	case PC_TEX_FMT_I8:
+		d3dFormat = D3DFMT_A8P8; // Causes ReplaceTexture2D to convert from I8 to A8L8
 		break;
-
+	case PC_TEX_FMT_IA4_AS_IA8:
 	case PC_TEX_FMT_IA8:
-		d3d_fmt = D3DFMT_A8L8;
+		d3dFormat = D3DFMT_A8L8;
 		break;
-
+	case PC_TEX_FMT_RGB565:
+		d3dFormat = D3DFMT_R5G6B5;
+		break;
 	case PC_TEX_FMT_DXT1:
-		d3d_fmt = D3DFMT_DXT1;
+		d3dFormat = D3DFMT_DXT1;
 		break;
+	default:
+		ERROR_LOG(VIDEO, "Unknown PC format for texture format %d", format);
+		return;
 	}
 
-	TCacheEntry* entry = new TCacheEntry(D3D::CreateTexture2D(temp, width, height, expanded_width, d3d_fmt, swap_r_b, tex_levels));
-	entry->swap_r_b = swap_r_b;
-	entry->d3d_fmt = d3d_fmt;
+	// Do we need to create a new D3D texture?
+	bool recreateTexture = !m_ramStorage.tex || dimsChanged || d3dFormat != m_ramStorage.d3dFormat;
 
-	return entry;
+	if (recreateTexture)
+		CreateRamTexture(width, height, levels, d3dFormat);
+
+	// Do we need to refresh the palette?
+	u64 newPaletteHash = m_curPaletteHash;
+	if (IsPaletted(format))
+	{
+		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+	}
+
+	u64 newHash = m_curHash;
+
+	// TODO: Use a shader to depalettize textures, like the DX11 plugin
+	bool reloadTexture = recreateTexture || dimsChanged || format != m_curFormat ||
+		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
+	if (reloadTexture || invalidated)
+	{
+		// FIXME: Only the top-level mip is hashed.
+		// TODO: Support auto-generating mips
+		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+		newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+		reloadTexture |= (newHash != m_curHash);
+	}
+
+	if (reloadTexture)
+	{
+		// FIXME: Hash all the mips seperately?
+		u32 mipWidth = width;
+		u32 mipHeight = height;
+		for (u32 level = 0; level < levels; ++level)
+		{
+			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
+			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
+
+			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
+			PC_TexFormat pcFormat = TexDecoder_Decode(decodeTemp, src,
+				actualWidth, actualHeight, format, tlut, tlutFormat, false);
+
+			// Load decoded texture to graphics RAM
+			D3D::ReplaceTexture2D(m_ramStorage.tex, decodeTemp, mipWidth, mipHeight,
+				actualWidth, d3dFormat, swapRB, level);
+
+			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
+
+			mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
+			mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
+		}
+	}
+
+	m_curWidth = width;
+	m_curHeight = height;
+	m_curLevels = levels;
+	m_curFormat = format;
+	m_curHash = newHash;
+
+	m_curPaletteHash = newPaletteHash;
+	m_curTlutFormat = tlutFormat;
+
+	m_loaded = m_ramStorage.tex;
+	m_loadedDirty = reloadTexture;
+	// TODO: Depalettize RAM textures
+	m_loadedIsPaletted = false;
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
+bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt)
 {
-	LPDIRECT3DTEXTURE9 texture;
-	D3D::dev->CreateTexture(scaled_tex_w, scaled_tex_h, 1, D3DUSAGE_RENDERTARGET,
-		D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture, 0);
-	
-	return new TCacheEntry(texture);
+	if (g_ActiveConfig.bEFBCopyRAMEnable)
+	{
+		// Only make these checks if there is a RAM copy to fall back on.
+		if (width != virt->GetRealWidth() || height != virt->GetRealHeight() || levels != 1)
+		{
+			INFO_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");
+			return false;
+		}
+	}
+
+	u64 newHash = m_curHash;
+
+	// If texture will be loaded to TMEM, make sure mem hash matches TCL hash.
+	// Otherwise, it's acceptable to just use the fake texture as is.
+	if (invalidated)
+	{
+		const u8* src = Memory::GetPointer(ramAddr);
+
+		if (g_ActiveConfig.bEFBCopyRAMEnable)
+		{
+			// We made a RAM copy, so check its hash for changes
+			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		}
+		else
+		{
+			// We must be doing virtual copies only, so look for canary data.
+			newHash = *(u64*)src;
+		}
+
+		if (newHash != virt->GetHash())
+		{
+			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
+			return false;
+		}
+	}
+
+	LPDIRECT3DTEXTURE9 virtualized = virt->Virtualize(ramAddr, width, height, levels,
+		format, tlutAddr, tlutFormat, !g_ActiveConfig.bEFBCopyRAMEnable);
+	if (!virtualized)
+		return false;
+
+	SAFE_RELEASE(m_ramStorage.tex);
+
+	m_curWidth = width;
+	m_curHeight = height;
+	m_curLevels = levels;
+	m_curFormat = format;
+	m_curHash = newHash;
+
+	m_loaded = virtualized;
+	m_loadedDirty = virt->IsDirty();
+	virt->ResetDirty();
+	m_loadedIsPaletted = IsPaletted(format);
+	return true;
+}
+
+void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	if (m_loadedIsPaletted)
+	{
+		bool paletteDirty = RefreshPalette(format, tlutAddr, tlutFormat);
+
+		D3DSURFACE_DESC loadedDesc;
+		m_loaded->GetLevelDesc(0, &loadedDesc);
+
+		bool recreateDepal = !m_depalStorage.tex ||
+			loadedDesc.Width != m_depalStorage.width ||
+			loadedDesc.Height != m_depalStorage.height;
+
+		if (recreateDepal)
+		{
+			// Create depalettized texture storage
+
+			SAFE_RELEASE(m_depalStorage.tex);
+			HRESULT hr = D3D::dev->CreateTexture(loadedDesc.Width, loadedDesc.Height,
+				1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT,
+				&m_depalStorage.tex, NULL);
+			if (FAILED(hr))
+			{
+				ERROR_LOG(VIDEO, "Failed to create texture for depalettized image");
+				return;
+			}
+
+			m_depalStorage.width = loadedDesc.Width;
+			m_depalStorage.height = loadedDesc.Height;
+		}
+
+		bool runDepalShader = recreateDepal || m_loadedDirty || paletteDirty;
+		if (runDepalShader)
+		{
+			DepalettizeShader::BaseType baseType = DepalettizeShader::Unorm8;
+			// TODO: Support GX_TF_C14X2
+			if (format == GX_TF_C4)
+				baseType = DepalettizeShader::Unorm4;
+			else if (format == GX_TF_C8)
+				baseType = DepalettizeShader::Unorm8;
+
+			((TextureCache*)g_textureCache)->GetDepalShader().Depalettize(
+				m_depalStorage.tex, m_loaded, baseType, m_palette.tex);
+		}
+
+		m_depalettized = m_depalStorage.tex;
+	}
+	else
+	{
+		// XXX: Don't clear the palette here. Metroid Prime's thermal visor image
+		// is interpreted as I4 and then as C4 on every frame. We don't want to
+		// recreate these textures every time.
+		//SAFE_RELEASE(m_depalStorage.tex);
+		//SAFE_RELEASE(m_palette.tex);
+		m_depalettized = m_loaded;
+	}
+}
+
+// TODO: Move this stuff into TextureDecoder or something
+
+// Decode to D3DFMT_A8L8
+static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		// FIXME: Do we need swap16?
+		dst[i] = src[i];
+	}
+}
+
+// Decode to D3DFMT_R5G6B5
+static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+		dst[i] = Common::swap16(src[i]);
+}
+
+static inline u32 decode5A3(u16 val)
+{
+	int r,g,b,a;
+	if ((val & 0x8000))
+	{
+		a = 0xFF;
+		r = Convert5To8((val >> 10) & 0x1F);
+		g = Convert5To8((val >> 5) & 0x1F);
+		b = Convert5To8(val & 0x1F);
+	}
+	else
+	{
+		a = Convert3To8((val >> 12) & 0x7);
+		r = Convert4To8((val >> 8) & 0xF);
+		g = Convert4To8((val >> 4) & 0xF);
+		b = Convert4To8(val & 0xF);
+	}
+	return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+// Decode to D3DFMT_A8R8G8B8
+static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		dst[i] = decode5A3(Common::swap16(src[i]));
+	}
+}
+
+bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	HRESULT hr;
+
+	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
+	switch (tlutFormat)
+	{
+	case GX_TL_IA8: d3dFormat = D3DFMT_A8L8; break;
+	case GX_TL_RGB565: d3dFormat = D3DFMT_R5G6B5; break;
+	case GX_TL_RGB5A3: d3dFormat = D3DFMT_A8R8G8B8; break;
+	default:
+		ERROR_LOG(VIDEO, "Invalid TLUT format");
+		return false;
+	}
+	UINT numColors = TexDecoder_GetNumColors(format);
+
+	bool recreatePaletteTex = !m_palette.tex || d3dFormat != m_palette.d3dFormat
+		|| numColors != m_palette.numColors;
+	if (recreatePaletteTex)
+	{
+		SAFE_RELEASE(m_palette.tex);
+		hr = D3D::dev->CreateTexture(numColors, 1, 1, D3DUSAGE_DYNAMIC, d3dFormat,
+			D3DPOOL_DEFAULT, &m_palette.tex, NULL);
+		if (FAILED(hr)) {
+			ERROR_LOG(VIDEO, "Failed to create palette texture");
+			return false;
+		}
+
+		m_palette.d3dFormat = d3dFormat;
+		m_palette.numColors = numColors;
+	}
+
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+	u32 paletteSize = numColors*2;
+	u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+
+	bool reloadPalette = recreatePaletteTex ||
+		tlutFormat != m_curTlutFormat || newPaletteHash != m_curPaletteHash;
+	if (reloadPalette)
+	{
+		D3DLOCKED_RECT lock;
+		hr = m_palette.tex->LockRect(0, &lock, NULL, D3DLOCK_DISCARD);
+		if (FAILED(hr)) {
+			ERROR_LOG(VIDEO, "Failed to lock palette texture");
+			return false;
+		}
+
+		switch (tlutFormat)
+		{
+		case GX_TL_IA8: DecodeIA8Palette((u16*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB565: DecodeRGB565Palette((u16*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)lock.pBits, tlut, numColors); break;
+		}
+
+		m_palette.tex->UnlockRect(0);
+
+		m_curTlutFormat = tlutFormat;
+		m_curPaletteHash = newPaletteHash;
+	}
+
+	return reloadPalette;
+}
+
+void TextureCache::TeardownDeviceObjects()
+{
+	// When the window is resized, we have to release all D3DPOOL_DEFAULT
+	// resources. Virtual copies contain these, so they will all disappear.
+	// TODO: Can we store virtual copies in D3DPOOL_MANAGED resources?
+	m_virtCopyMap.clear();
+	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it) {
+		((TCacheEntry*)it->second.get())->TeardownDeviceObjects();
+	}
+}
+
+TCacheEntry* TextureCache::CreateEntry()
+{
+	return new TCacheEntry;
+}
+
+VirtualEFBCopy* TextureCache::CreateVirtualEFBCopy()
+{
+	return new VirtualEFBCopy;
+}
+
+u32 TextureCache::EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+{
+	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
+	// texture, which is invalid.
+	EFBRectangle correctSrc = srcRect;
+	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
+
+	// Validate source rect size
+	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
+		return 0;
+
+	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
+
+	// Round up source dims to multiple of block size
+	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
+	actualWidth = (actualWidth + blockW-1) & ~(blockW-1);
+	unsigned int actualHeight = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
+	actualHeight = (actualHeight + blockH-1) & ~(blockH-1);
+
+	unsigned int numBlocksX = actualWidth/blockW;
+	unsigned int numBlocksY = actualHeight/blockH;
+
+	unsigned int cacheLinesPerRow;
+	if (dstFormat == EFB_COPY_RGBA8) // RGBA takes two cache lines per block; all others take one
+		cacheLinesPerRow = numBlocksX*2;
+	else
+		cacheLinesPerRow = numBlocksX;
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= EFB_COPY_MAX_BYTES_PER_ROW, "cache lines per row sanity check");
+
+	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
+	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
+
+	TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+
+	return totalCacheLines*32;
 }
 
 }

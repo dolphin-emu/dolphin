@@ -853,7 +853,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 		Height *= -1;
 	}
 
-	// OpenGL does not require any viewport correct
+	// OpenGL does not require any viewport correction matrix
 	Matrix44::LoadIdentity(vpCorrection);
 
 	// Update the view port
@@ -1026,8 +1026,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Textured triangles are necessary because of post-processing shaders
 
 	// Disable all other stages
-	for (int i = 1; i < 8; ++i)
-		OGL::TextureCache::DisableStage(i);
+	for (int i = 0; i < 8; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
+	
+	// Render to the real buffer now.
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 
 	// Update GLViewPort
 	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
@@ -1035,13 +1042,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
-
-	// Texture map s_xfbTexture onto the main buffer
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	// Use linear filtering.
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// We must call ApplyShader here even if no post proc is selected - it takes
 	// care of disabling it in that case. It returns false in case of no post processing.
@@ -1051,9 +1051,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if(g_ActiveConfig.bUseXFB)
 	{
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
+
+		// Use linear filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 		// draw each xfb source
-		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
@@ -1100,21 +1105,27 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			xfbSource->Draw(sourceRc, drawRc, 0, 0);
-
-			// We must call ApplyShader here even if no post proc is selected.
-			// It takes care of disabling it in that case. It returns false in
-			// case of no post processing.
-			if (applyShader)
-				PixelShaderCache::DisableShader();
 		}
+
+		// We must call ApplyShader here even if no post proc is selected.
+		// It takes care of disabling it in that case. It returns false in
+		// case of no post processing.
+		if (applyShader)
+			PixelShaderCache::DisableShader();
 	}
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
-		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+
+		// Use linear filtering.
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 		if (applyShader)
 		{
 			glBegin(GL_QUADS);
@@ -1152,10 +1163,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			glVertex2f( 1, -1);
 			glEnd();
 		}
-	}
 
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	OGL::TextureCache::DisableStage(0);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+		glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	}
 
 	// Save screenshot
 	if (s_bScreenshot)
@@ -1370,7 +1381,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
+	//TextureCache::Cleanup();
 
 	frameCount++;
 
@@ -1392,12 +1403,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	g_Config.iSaveTargetId = 0;
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
+	//if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+	//	g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	//	TextureCache::Invalidate(false);
 
-	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
-		TextureCache::ClearRenderTargets();
+	//if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
+	//	TextureCache::ClearRenderTargets();
 
 	UpdateActiveConfig();
 

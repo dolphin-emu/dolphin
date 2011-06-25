@@ -242,7 +242,9 @@ void TeardownDeviceObjects()
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	delete g_framebuffer_manager;
 	D3D::font.Shutdown();
-	TextureCache::Invalidate(false);
+	if (g_textureCache)
+		((TextureCache*)g_textureCache)->TeardownDeviceObjects();
+	//TextureCache::Invalidate(false);
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();
@@ -725,7 +727,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
-
+	
 	// TODO: ceil, floor or just cast to int?
 	int intendedX = EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
 	int intendedY = EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
@@ -1162,12 +1164,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
+	//TextureCache::Cleanup();
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
+	//if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
+	//	g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	//	TextureCache::Invalidate(false);
 
 	// Enable any configuration changes
 	UpdateActiveConfig();

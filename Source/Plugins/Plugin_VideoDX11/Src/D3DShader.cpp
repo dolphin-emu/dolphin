@@ -228,10 +228,10 @@ ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
 }
 
 ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
-	unsigned int len)
+	unsigned int len, const D3D_SHADER_MACRO* pDefines)
 {
 	D3DBlob* blob = NULL;
-	CompilePixelShader(code, len, &blob);
+	CompilePixelShader(code, len, &blob, pDefines);
 	if (blob)
 	{
 		ID3D11PixelShader* p_shader = CreatePixelShaderFromByteCode(blob);

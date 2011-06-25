@@ -32,15 +32,14 @@ namespace TextureConverter
 void Init();
 void Shutdown();
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
-				 u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
+// Returns the size of the encoded data in bytes
+u32 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 					 u8* destAddr, int dstWidth, int dstHeight);
 
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture);
-
-u64 EncodeToRamFromTexture(u32 address, GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
 
 }
 

@@ -15,27 +15,28 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "FileUtil.h"
-
-#include "D3DBase.h"
-#include "Fifo.h"
-#include "Statistics.h"
 #include "VertexManager.h"
-#include "OpcodeDecoding.h"
-#include "IndexGenerator.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
-#include "PixelShaderManager.h"
-#include "PixelShaderCache.h"
-#include "NativeVertexFormat.h"
-#include "TextureCache.h"
-#include "main.h"
 
 #include "BPStructs.h"
-#include "XFStructs.h"
+#include "Common.h"
+#include "D3DBase.h"
 #include "Debugger.h"
+#include "Fifo.h"
+#include "FileUtil.h"
+#include "main.h"
+#include "NativeVertexFormat.h"
+#include "OpcodeDecoding.h"
+#include "IndexGenerator.h"
+#include "PixelShaderManager.h"
+#include "PixelShaderCache.h"
+#include "Statistics.h"
+#include "TextureCache.h"
+#include "Tmem.h"
+#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
 #include "VideoConfig.h"
+#include "XFStructs.h"
+
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -125,28 +126,48 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
+	LPDIRECT3DTEXTURE9 bindThese[8] = { 0 };
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
-			g_renderer->SetSamplerState(i & 3, i >> 2);
-			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
-				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
 
-			if (tentry)
-			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
-			}
+			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			u32 levels = (tex.texMode1[i&3].max_lod >> 4) + 1;
+			u32 format = tex.texImage0[i&3].format;
+			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
+			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
+
+			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
+				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+			if (entry)
+				bindThese[i] = entry->GetTexture();
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
 		}
+	}
+
+	// Bind and set samplers down here, because TextureCache::LoadEntry may
+	// clobber the render state.
+	for (int i = 0; i < 8; ++i)
+	{
+		if (usedtextures & (1 << i))
+		{
+			g_renderer->SetSamplerState(i & 3, i >> 2);
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+		
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			D3D::SetTexture(i, bindThese[i]);
+		}
+		else
+			D3D::SetTexture(i, NULL);
 	}
 
 	// set global constants

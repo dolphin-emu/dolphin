@@ -78,7 +78,6 @@ struct VideoConfig
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bUseNativeMips;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;
@@ -123,14 +122,13 @@ struct VideoConfig
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
 
-	bool bEFBCopyEnable;
-	bool bEFBCopyCacheEnable;
+	// EFB Copy options
+	bool bEFBCopyEnable; // Whether copies are enabled, period
+	bool bEFBCopyRAMEnable; // Original RAM copies
+	bool bEFBCopyVirtualEnable; // High-res lookaside copies
+
 	bool bEFBEmulateFormatChanges;
 	bool bOSDHotKey;
-	bool bCopyEFBToTexture;	
-	bool bCopyEFBScaled;
-	bool bSafeTextureCache;
-	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;

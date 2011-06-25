@@ -80,12 +80,8 @@ void SetColorMask(const BPCmd &bp)
 void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
-	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (g_ActiveConfig.bEFBCopyEnable)
-	{
-		TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
-			srcRect, isIntensity, scaleByHalf);
-	}
+		g_textureCache->EncodeEFB(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 /* Explanation of the magic behind ClearScreen:

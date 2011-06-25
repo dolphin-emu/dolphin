@@ -17,13 +17,6 @@
 
 #ifndef _TEXTUREDECODER_H
 #define _TEXTUREDECODER_H
-#include "Hash.h"
-enum 
-{
-    TMEM_SIZE = 1024*1024,
-    HALFTMEM_SIZE = 512*1024
-};
-extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 enum TextureFormat
 {
@@ -64,6 +57,28 @@ enum TextureFormat
     GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 
+enum TlutFormat
+{
+	GX_TL_IA8    = 0x0,
+	GX_TL_RGB565 = 0x1,
+	GX_TL_RGB5A3 = 0x2
+};
+
+extern const char* const TEX_FORMAT_NAMES[16];
+
+inline unsigned int TexDecoder_GetNumColors(unsigned int format)
+{
+	unsigned int result;
+	switch (format)
+	{
+	case GX_TF_C4: result = 16; break;
+	case GX_TF_C8: result = 256; break;
+	case GX_TF_C14X2: result = 16384; break;
+	default: result = 0; break;
+	}
+	return result;
+}
+
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);
@@ -83,9 +98,9 @@ enum PC_TexFormat
 	PC_TEX_FMT_DXT1,
 };
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly = false);
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u16* tlut, int tlutfmt,bool rgbaOnly = false);
 PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt);
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
+void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u16* tlut, int tlutfmt);
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 #endif

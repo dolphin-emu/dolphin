@@ -19,19 +19,21 @@
 // This kind of stuff would be a LOT nicer with OpenCL.
 
 #include "TextureConverter.h"
-#include "TextureConversionShader.h"
-#include "PixelShaderCache.h"
-#include "VertexShaderManager.h"
-#include "VertexShaderCache.h"
+
+#include "EFBCopy.h"
 #include "FramebufferManager.h"
-#include "Globals.h"
-#include "VideoConfig.h"
+#include "FileUtil.h"
+#include "Hash.h"
+#include "HW/Memmap.h"
 #include "ImageWrite.h"
+#include "Math.h"
+#include "PixelShaderCache.h"
 #include "Render.h"
 #include "TextureCache.h"
-#include "Math.h"
-#include "FileUtil.h"
-#include "HW/Memmap.h"
+#include "TextureConversionShader.h"
+#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
+#include "VideoConfig.h"
 
 namespace DX9
 {
@@ -53,8 +55,12 @@ static u32 WorkingBuffers = 0;
 static LPDIRECT3DPIXELSHADER9 s_rgbToYuyvProgram = NULL;
 static LPDIRECT3DPIXELSHADER9 s_yuyvToRgbProgram = NULL;
 
+inline u32 MakeEncoderKey(u32 dstFormat, bool isDepth, bool isIntensity) {
+	return (dstFormat << 2) | (isDepth ? (1<<1) : 0) | (isIntensity ? (1<<0) : 0);
+}
+
 // Not all slots are taken - but who cares.
-const u32 NUM_ENCODING_PROGRAMS = 64;
+const u32 NUM_ENCODING_PROGRAMS = 16*2*2;
 static LPDIRECT3DPIXELSHADER9 s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 static bool s_encodingProgramsFailed[NUM_ENCODING_PROGRAMS];
 
@@ -119,24 +125,22 @@ void CreateYuyvToRgbProgram()
 	delete [] FProgram;
 }
 
-LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
+LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 dstFormat, bool isDepth, bool isIntensity)
 {
-	if (format > NUM_ENCODING_PROGRAMS)
-	{
-		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		return s_encodingPrograms[0];
-	}
+	u32 key = MakeEncoderKey(dstFormat, isDepth, isIntensity);
+	_assert_msg_(VIDEO, key < NUM_ENCODING_PROGRAMS, "Bad encoder key");
 
-	if (!s_encodingPrograms[format])
+	if (!s_encodingPrograms[key])
 	{
-		if(s_encodingProgramsFailed[format])
+		if(s_encodingProgramsFailed[key])
 		{
 			// we already failed to create a shader for this format,
 			// so instead of re-trying and showing the same error message every frame, just return.
 			return NULL;
 		}
 
-		const char* shader = TextureConversionShader::GenerateEncodingShader(format,API_D3D9);
+		const char* shader = TextureConversionShader::GenerateEncodingShader(
+			dstFormat, isDepth, isIntensity, API_D3D9);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
@@ -147,13 +151,13 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 			SaveData(szTemp, shader);
 		}
 #endif
-		s_encodingPrograms[format] = D3D::CompileAndCreatePixelShader(shader, (int)strlen(shader));
-		if (!s_encodingPrograms[format]) {
+		s_encodingPrograms[key] = D3D::CompileAndCreatePixelShader(shader, (int)strlen(shader));
+		if (!s_encodingPrograms[key]) {
 			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
-			s_encodingProgramsFailed[format] = true;
+			s_encodingProgramsFailed[key] = true;
 		}
     }
-	return s_encodingPrograms[format];
+	return s_encodingPrograms[key];
 }
 
 void Init()
@@ -289,7 +293,6 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0), Gamma);
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then read back the results.
-	// TODO: make this less slow.
 	
 	hr = D3D::dev->GetRenderTargetData(Rendersurf,s_texConvReadSurface);
 
@@ -304,7 +307,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	{
 		for (int j = 0; j < srcRowsPerBlockRow; ++j)
 		{
-			memcpy(destAddr + j*dstWidth*4, Source, dstWidth*4);
+			memcpy(destAddr+j*dstWidth*4, Source, dstWidth*4);
 			Source += drect.Pitch;
 		}
 		destAddr += bpmem.copyMipMapStrideChannels*32;
@@ -313,154 +316,85 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	hr = s_texConvReadSurface->UnlockRect();
 }
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
-	u32 format = copyfmt;
+	// Clamp srcRect to 640x528. BPS: The Strike tries to encode an 800x600
+	// texture, which is invalid.
+	EFBRectangle correctSrc = srcRect;
+	correctSrc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
-	if (bFromZBuffer)
-	{
-		format |= _GX_TF_ZTF;
-		if (copyfmt == 11)
-			format = GX_TF_Z16;
-		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
-			format |= _GX_TF_CTF;
-	}
-	else
-		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
-			format |= _GX_TF_CTF;
-
-	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(format);
-	if (!texconv_shader)
-		return;
-
-	u8 *dest_ptr = Memory::GetPointer(address);
-
-	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture();
-	int width = (source.right - source.left) >> bScaleByHalf;
-	int height = (source.bottom - source.top) >> bScaleByHalf;
-
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
-
-	// Invalidate any existing texture covering this memory range.
-	// TODO - don't delete the texture if it already exists, just replace the contents.
-	TextureCache::InvalidateRange(address, size_in_bytes);
-	
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
-	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
-
-	// only copy on cache line boundaries
-	// extra pixels are copied but not displayed in the resulting texture
-	s32 expandedWidth = (width + blkW) & (~blkW);
-	s32 expandedHeight = (height + blkH) & (~blkH);
-
-	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	TextureConversionShader::SetShaderParameters(
-		(float)expandedWidth,
-		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)Renderer::EFBToScaledX(source.left),
-		(float)Renderer::EFBToScaledY(source.top),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride),
-		(float)Renderer::GetTargetWidth(),
-		(float)Renderer::GetTargetHeight());
-
-	TargetRectangle scaledSource;
-	scaledSource.top = 0;
-	scaledSource.bottom = expandedHeight;
-	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;
-	int cacheBytes = 32;
-    if ((format & 0x0f) == 6)
-        cacheBytes = 64;
-
-    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0,1.0f);
-	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
-	g_renderer->RestoreAPIState();
-}
-
-u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 SourceW, u32 SourceH, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
-{
-	u32 format = copyfmt;
-
-	if (bFromZBuffer)
-	{
-		format |= _GX_TF_ZTF;
-		if (copyfmt == 11)
-			format = GX_TF_Z16;
-		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
-			format |= _GX_TF_CTF;
-	}
-	else
-		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
-			format |= _GX_TF_CTF;
-
-	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(format);
-	if (!texconv_shader)
+	// Validate source rect size
+	if (correctSrc.GetWidth() <= 0 || correctSrc.GetHeight() <= 0)
 		return 0;
 
-	u8 *dest_ptr = Memory::GetPointer(address);
+	unsigned int blockW = EFB_COPY_BLOCK_WIDTHS[dstFormat];
+	unsigned int blockH = EFB_COPY_BLOCK_HEIGHTS[dstFormat];
 
-	int width = (source.right - source.left) >> bScaleByHalf;
-	int height = (source.bottom - source.top) >> bScaleByHalf;
+	// Round up source dims to multiple of block size
+	unsigned int actualWidth = correctSrc.GetWidth() / (scaleByHalf ? 2 : 1);
+	actualWidth = (actualWidth + blockW-1) & ~(blockW-1);
+	unsigned int actualHeight = correctSrc.GetHeight() / (scaleByHalf ? 2 : 1);
+	actualHeight = (actualHeight + blockH-1) & ~(blockH-1);
 
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+	unsigned int numBlocksX = actualWidth/blockW;
+	unsigned int numBlocksY = actualHeight/blockH;
 
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
-	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
+	unsigned int cacheLinesPerRow;
+	if (dstFormat == EFB_COPY_RGBA8) // RGBA takes two cache lines per block; all others take one
+		cacheLinesPerRow = numBlocksX*2;
+	else
+		cacheLinesPerRow = numBlocksX;
+	_assert_msg_(VIDEO, cacheLinesPerRow*32 <= EFB_COPY_MAX_BYTES_PER_ROW, "cache lines per row sanity check");
 
-	// only copy on cache line boundaries
-	// extra pixels are copied but not displayed in the resulting texture
-	s32 expandedWidth = (width + blkW) & (~blkW);
-	s32 expandedHeight = (height + blkH) & (~blkH);
+	unsigned int totalCacheLines = cacheLinesPerRow * numBlocksY;
+	_assert_msg_(VIDEO, totalCacheLines*32 <= EFB_COPY_MAX_BYTES, "total encode size sanity check");
 
-    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(
+		dstFormat, srcFormat == PIXELFMT_Z24, isIntensity);
+	if (!texconv_shader)
+		return 0;
+	
+	g_renderer->ResetAPIState();
+
+	LPDIRECT3DTEXTURE9 source_texture = (srcFormat == PIXELFMT_Z24)
+		? FramebufferManager::GetEFBDepthTexture()
+		: FramebufferManager::GetEFBColorTexture();
+
+	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
+
+	float sampleStride = scaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
-		(float)expandedWidth,
-		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)Renderer::EFBToScaledX(source.left),
-		(float)Renderer::EFBToScaledY(source.top),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride),
-		(float)SourceW,
-		(float)SourceH);
+		(float)targetRect.left / Renderer::GetTargetWidth(),
+		(float)targetRect.top / Renderer::GetTargetHeight(),
+		(float)targetRect.right / Renderer::GetTargetWidth(),
+		(float)targetRect.bottom / Renderer::GetTargetHeight(),
+		actualWidth, actualHeight);
+
+	u16 samples = TextureConversionShader::GetEncodedSampleCount(dstFormat);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
-	scaledSource.bottom = expandedHeight;
+	scaledSource.bottom = actualHeight;
 	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;
-	int cacheBytes = 32;
-    if ((format & 0x0f) == 6)
-        cacheBytes = 64;
+	scaledSource.right = actualWidth / samples;
+	
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dst,
+		actualWidth / samples, actualHeight, cacheLinesPerRow*32, true, scaleByHalf, 1.0f);
 
-    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0,1.0f);
-	u64 hash = GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-	if (g_ActiveConfig.bEFBCopyCacheEnable)
-	{
-		// If the texture in RAM is already in the texture cache, do not copy it again as it has not changed.
-		if (TextureCache::Find(address, hash))
-			return hash;
-	}
+	g_renderer->RestoreAPIState();
 
-	TextureCache::MakeRangeDynamic(address,size_in_bytes);
-	return hash;
+	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+
+	return GetHash64(dst, totalCacheLines*32, totalCacheLines*32);
 }
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight,float Gamma)
 {
 	TextureConversionShader::SetShaderParameters(
-		(float)dstWidth, 
-		(float)dstHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
-		1.0f,
+		0.f, 0.f,
+		1.f, 1.f,
 		(float)Renderer::GetTargetWidth(),
 		(float)Renderer::GetTargetHeight());
 	g_renderer->ResetAPIState();
@@ -515,16 +449,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		
-	TextureConversionShader::SetShaderParameters(
-		(float)srcFmtWidth, 
-		(float)srcHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
-		1.0f,
-		(float)srcFmtWidth,
-		(float)srcHeight);
+
+	// TODO: Implement
+	//TextureConversionShader::SetShaderParameters(
+	//	(float)srcFmtWidth, 
+	//	(float)srcHeight, 
+	//	0.0f , 
+	//	0.0f, 
+	//	1.0f, 
+	//	1.0f,
+	//	(float)srcFmtWidth,
+	//	(float)srcHeight);
 	D3D::drawShadedTexQuad(
 		s_srcTexture,
 		&sourcerect, 

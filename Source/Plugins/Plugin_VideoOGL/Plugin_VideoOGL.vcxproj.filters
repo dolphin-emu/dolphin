@@ -36,6 +36,12 @@
     <ClCompile Include="Src\VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\VirtualEFBCopy.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Depalettizer.cpp">
+      <Filter>GLUtil</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -71,6 +77,12 @@
     </ClInclude>
     <ClInclude Include="Src\VertexShaderCache.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\VirtualEFBCopy.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Depalettizer.h">
+      <Filter>GLUtil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

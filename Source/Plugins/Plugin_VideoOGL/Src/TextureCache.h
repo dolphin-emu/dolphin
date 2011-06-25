@@ -15,69 +15,140 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _TEXTUREMNGR_H_
-#define _TEXTUREMNGR_H_
-
-#include <map>
-
-#include "VideoCommon.h"
-#include "GLUtil.h"
-#include "BPStructs.h"
+#ifndef _VIDEOOGL_TEXTURECACHE_H
+#define _VIDEOOGL_TEXTURECACHE_H
 
 #include "TextureCacheBase.h"
+
+#include "GLUtil.h"
+#include "Depalettizer.h"
+#include "VirtualEFBCopy.h"
 
 namespace OGL
 {
 
-class TextureCache : public ::TextureCache
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+
+class TCacheEntry : public TCacheEntryBase
 {
+
 public:
-	static void DisableStage(unsigned int stage);
+
+	GLuint GetTexture() { return m_bindMe; }
+
+protected:
+
+	void RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
 
 private:
-	struct TCacheEntry : TCacheEntryBase
+
+	void Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	void LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated);
+
+	bool LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt);
+
+	void Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+		u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Returns true if palette is dirty
+	bool RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat);
+
+	// Attributes of the currently-loaded texture
+	u32 m_curWidth;
+	u32 m_curHeight;
+	u32 m_curLevels;
+	u32 m_curFormat;
+	u64 m_curHash;
+
+	// Attributes of currently-loaded palette (if any)
+	u32 m_curTlutFormat;
+	u64 m_curPaletteHash;
+
+	// If loaded texture comes from RAM, this holds it.
+	struct RamStorage
 	{
-		GLuint texture;
+		RamStorage()
+			: tex(0)
+		{ }
+		~RamStorage();
 
-		PC_TexFormat pcfmt;
+		GLuint tex;
+	} m_ramStorage;
 
-		int gl_format;
-		int gl_iformat;
-		int gl_type;
+	// Currently-loaded palette (if any)
+	struct Palette
+	{
+		Palette()
+			: tex(0)
+		{ }
+		~Palette();
 
-		bool bHaveMipMaps;
+		GLuint tex;
+	} m_palette;
 
-		//TexMode0 mode; // current filter and clamp modes that texture is set to
-		//TexMode1 mode1; // current filter and clamp modes that texture is set to
+	// If loaded texture is paletted, this contains depalettized data.
+	// Otherwise, this is not used.
+	struct DepalStorage
+	{
+		DepalStorage()
+			: tex(0)
+		{ }
+		~DepalStorage();
 
-		TCacheEntry();
-		~TCacheEntry();
+		GLuint tex;
+		u32 width;
+		u32 height;
+	} m_depalStorage;
 
-		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level, bool autogen_mips = false);
+	GLuint m_loaded;
+	bool m_loadedDirty;
+	bool m_loadedIsPaletted;
+	u32 m_loadedWidth;
+	u32 m_loadedHeight;
+	GLuint m_depalettized;
 
-		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat);
+	GLuint m_bindMe;
 
-		void Bind(unsigned int stage);
-		bool Save(const char filename[]);
-
-	private:
-		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
-	};
-
-	~TextureCache();
-
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
-
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
 };
 
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+class TextureCache : public TextureCacheBase
+{
+
+public:
+
+	TextureCache();
+	~TextureCache();
+
+	void EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+	Depalettizer& GetDepalettizer() { return m_depal; }
+	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
+	GLuint GetVirtCopyFramebuf() { return m_virtCopyFramebuf; }
+	u8* GetDecodeTemp() { return m_decodeTemp; }
+
+protected:
+
+	TCacheEntry* CreateEntry();
+	VirtualEFBCopy* CreateVirtualEFBCopy();
+
+	u32 EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+private:
+
+	Depalettizer m_depal;
+	GLuint m_virtCopyFramebuf;
+
+	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);
+
+};
 
 }
 
-#endif // _TEXTUREMNGR_H_
+#endif // _VIDEOOGL_TEXTURECACHE_H

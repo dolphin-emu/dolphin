@@ -29,7 +29,9 @@
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
+#include "TextureCacheBase.h"
 #include "Thread.h"
+#include "Tmem.h"
 
 using namespace BPFunctions;
 
@@ -126,6 +128,8 @@ void BPWritten(const BPCmd& bp)
 		}
 	}  // END ZTP SPEEDUP HACK
 	else FlushPipeline();
+
+	//FlushPipeline();
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
@@ -293,24 +297,19 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
 		{
-			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
-			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
-
-			u8 *ptr = 0;
-
+			u8 *ptr;
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
 				ptr = GetPointer(bpmem.tlutXferSrc << 5);
 			else
 				ptr = GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
 
-			if (ptr)
-				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
-			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+			// Writes to this register trigger a load
+			u32 tmemAddr = ((bp.newvalue & 0x3FF) << 9) + TMEM_HALF;
+			u32 size = (bp.newvalue & 0x1FFC00) >> 5;
+			DEBUG_LOG(VIDEO, "Loading tlut to 0x%.05X", tmemAddr);
+			LoadTmem(tmemAddr, ptr, size);
 
-			// TODO(ector) : kill all textures that use this palette
-			// Not sure if it's a good idea, though. For now, we hash texture palettes
 			break;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -426,6 +425,7 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
+		g_textureCache->Invalidate();
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format

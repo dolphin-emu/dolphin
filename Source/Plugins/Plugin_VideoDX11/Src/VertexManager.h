@@ -50,6 +50,8 @@ private:
 	ID3D11Buffer* m_indexBuffer;
 	ID3D11Buffer* m_vertexBuffer;
 
+	ID3D11Buffer* m_unpackMatricesBuffer;
+
 	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;
 };

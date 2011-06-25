@@ -116,20 +116,6 @@ protected:
 
 		ev.Skip();
 	}
-
-	void Event_Stc(wxCommandEvent &ev)
-	{
-		int samples[] = { 0, 512, 128 };
-		if (ev.GetInt() < 3)
-		{
-			vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
-			vconfig.bSafeTextureCache = true;
-		}
-		else vconfig.bSafeTextureCache = false;
-
-		ev.Skip();
-	}
-
 	void Event_PPShader(wxCommandEvent &ev)
 	{
 		const int sel = ev.GetInt();
@@ -159,9 +145,8 @@ protected:
 		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 
 		// EFB copy
-		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
+		efbcopy_virtual->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
-		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
 
 		// EFB format change emulation
 		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
@@ -194,9 +179,8 @@ protected:
 
 	SettingCheckBox* _3d_vision;
 
-	SettingRadioButton* efbcopy_texture;
-	SettingRadioButton* efbcopy_ram;
-	SettingCheckBox* cache_efb_copies;
+	SettingCheckBox* efbcopy_virtual;
+	SettingCheckBox* efbcopy_ram;
 	SettingCheckBox* emulate_efb_format_changes;
 
 	SettingRadioButton* virtual_xfb;

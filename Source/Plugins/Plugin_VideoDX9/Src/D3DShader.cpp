@@ -88,7 +88,8 @@ LPDIRECT3DPIXELSHADER9 CreatePixelShaderFromByteCode(const u8 *bytecode, int len
 }
 
 // code->bytecode
-bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen)
+bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen,
+	const D3DXMACRO* pDefines)
 {
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
@@ -96,7 +97,7 @@ bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodel
 	// Someone:
 	// For some reason, I had this kind of errors : "Shader uses texture addressing operations
 	// in a dependency chain that is too complex for the target shader model (ps_2_0) to handle."
-	HRESULT hr = PD3DXCompileShader(code, len, 0, 0, "main", D3D::PixelShaderVersionString(), 
+	HRESULT hr = PD3DXCompileShader(code, len, pDefines, 0, "main", D3D::PixelShaderVersionString(), 
 				 		           0, &shaderBuffer, &errorBuffer, 0);
 
 	if (FAILED(hr))
@@ -139,11 +140,12 @@ LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len)
 	return NULL;
 }
 
-LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char* code, unsigned int len)
+LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char* code, unsigned int len,
+	const D3DXMACRO* pDefines)
 {
 	u8 *bytecode;
 	int bytecodelen;
-	if (CompilePixelShader(code, len, &bytecode, &bytecodelen))
+	if (CompilePixelShader(code, len, &bytecode, &bytecodelen, pDefines))
 	{
 		LPDIRECT3DPIXELSHADER9 p_shader = CreatePixelShaderFromByteCode(bytecode, len);
 		delete [] bytecode;

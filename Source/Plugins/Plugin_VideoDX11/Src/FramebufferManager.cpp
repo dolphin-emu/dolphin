@@ -18,50 +18,219 @@
 #include "VideoConfig.h"
 
 #include "D3DBase.h"
+#include "D3DShader.h"
 #include "D3DUtil.h"
 #include "FramebufferManager.h"
+#include "GfxState.h"
+#include "HW/Memmap.h"
 #include "PixelShaderCache.h"
 #include "Render.h"
 #include "VertexShaderCache.h"
 #include "XFBEncoder.h"
-#include "HW/Memmap.h"
 
 namespace DX11 {
 
 static XFBEncoder s_xfbEncoder;
 
-FramebufferManager::Efb FramebufferManager::m_efb;
-
-D3DTexture2D* &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
-ID3D11Texture2D* &FramebufferManager::GetEFBColorStagingBuffer() { return m_efb.color_staging_buf; }
-
-D3DTexture2D* &FramebufferManager::GetEFBDepthTexture() { return m_efb.depth_tex; }
-D3DTexture2D* &FramebufferManager::GetEFBDepthReadTexture() { return m_efb.depth_read_texture; }
-ID3D11Texture2D* &FramebufferManager::GetEFBDepthStagingBuffer() { return m_efb.depth_staging_buf; }
-
-D3DTexture2D* &FramebufferManager::GetResolvedEFBColorTexture()
+D3DTexture2D* FramebufferManager::GetEFBColorTexture()
 {
-	if (g_ActiveConfig.iMultisampleMode)
-	{
-		D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), 0, m_efb.color_tex->GetTex(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-		return m_efb.resolved_color_tex;
-	}
-	else
-		return m_efb.color_tex;
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+	return pThis->m_colorTex;
 }
 
-D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
+D3DTexture2D* FramebufferManager::GetResolvedEFBColorTexture()
 {
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+
 	if (g_ActiveConfig.iMultisampleMode)
 	{
-		D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), 0, m_efb.color_tex->GetTex(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-		return m_efb.resolved_color_tex;
+		if (pThis->m_resolvedColorTime != pThis->m_colorTime)
+		{
+			D3D::context->ResolveSubresource(
+				pThis->m_resolvedColorTex->GetTex(), 0,
+				pThis->m_colorTex->GetTex(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+			pThis->m_resolvedColorTime = pThis->m_colorTime;
+		}
+		return pThis->m_resolvedColorTex;
 	}
 	else
-		return m_efb.depth_tex;
+	{
+		pThis->m_resolvedColorTime = pThis->m_colorTime;
+		return pThis->m_colorTex;
+	}
+}
+
+static const char REAL_COLOR_PS[] =
+"// dolphin-emu real color shader\n"
+
+"Texture2D<float4> EFBTexture : register(t0);\n"
+"sampler EFBSampler : register(s0);\n"
+
+"struct VSOutput\n"
+"{\n"
+	"float4 Pos : SV_Position;\n"
+	"float2 Tex : TEXCOORD;\n"
+"};\n"
+
+"void main(out float4 ocol0 : SV_Target, in VSOutput input)\n"
+"{\n"
+	"ocol0 = EFBTexture.Sample(EFBSampler, input.Tex);\n"
+"}\n"
+;
+
+D3DTexture2D* FramebufferManager::GetRealEFBColorTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+
+	if (pThis->m_realColorTime != pThis->m_colorTime)
+	{
+		if (!pThis->m_realColorShader)
+		{
+			pThis->m_realColorShader = D3D::CompileAndCreatePixelShader(
+				REAL_COLOR_PS, sizeof(REAL_COLOR_PS));
+			if (!pThis->m_realColorShader)
+			{
+				ERROR_LOG(VIDEO, "Failed to compile color access shader");
+				return NULL;
+			}
+		}
+
+		// FIXME: If EFB is multisampled, we should pick out one sample in the shader.
+		D3DTexture2D* srcTex = FramebufferManager::GetResolvedEFBColorTexture();
+
+		g_renderer->ResetAPIState();
+		D3D::stateman->Apply();
+
+		D3D::context->OMSetRenderTargets(1, &pThis->m_realColorTex->GetRTV(), NULL);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, float(EFB_WIDTH), float(EFB_HEIGHT));
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
+		D3D::SetPointCopySampler();
+
+		D3D::drawEncoderTexQuad(pThis->m_realColorShader);
+
+		ID3D11ShaderResourceView* nullDummy = NULL;
+		D3D::context->PSSetShaderResources(0, 1, &nullDummy);
+
+		g_renderer->RestoreAPIState();
+		D3D::context->OMSetRenderTargets(1, &pThis->m_colorTex->GetRTV(),
+			pThis->m_depthTex->GetDSV());
+
+		pThis->m_realColorTime = pThis->m_colorTime;
+	}
+
+	return pThis->m_realColorTex;
+}
+
+D3DTexture2D* FramebufferManager::GetEFBDepthTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+	return pThis->m_depthTex;
+}
+
+D3DTexture2D* FramebufferManager::GetResolvedEFBDepthTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+
+	// FIXME: Multisampled depth textures CANNOT be resolved. In DX10.1+, we
+	// should use a shader to extract one sample from the depth texture. In
+	// DX10.0, we can't even do that.
+	// DX10.0 needs a different solution. For example, we could output depth to
+	// a separate R32_FLOAT texture in the GX shaders.
+	pThis->m_resolvedDepthTime = pThis->m_depthTime;
+	return pThis->m_depthTex;
+}
+
+static const char REAL_DEPTH_PS[] =
+"// dolphin-emu real depth shader\n"
+
+// TODO: Support Texture2DMS depth texture (only possible in ps_4_1 or later)
+"Texture2D<float> EFBTexture : register(t0);\n"
+"sampler EFBSampler : register(s0);\n"
+
+"struct VSOutput\n"
+"{\n"
+	"float4 Pos : SV_Position;\n"
+	"float2 Tex : TEXCOORD;\n"
+"};\n"
+
+"void main(out float4 ocol0 : SV_Target, in VSOutput input)\n"
+"{\n"
+	"float depth = EFBTexture.Sample(EFBSampler, input.Tex);\n"
+	"ocol0 = float4(depth, 0, 0, 1);\n"
+"}\n"
+;
+
+D3DTexture2D* FramebufferManager::GetRealEFBDepthTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+
+	if (pThis->m_realDepthTime != pThis->m_depthTime)
+	{
+		if (!pThis->m_realDepthShader)
+		{
+			pThis->m_realDepthShader = D3D::CompileAndCreatePixelShader(
+				REAL_DEPTH_PS, sizeof(REAL_DEPTH_PS));
+			if (!pThis->m_realDepthShader)
+			{
+				ERROR_LOG(VIDEO, "Failed to compile depth access shader");
+				return NULL;
+			}
+		}
+
+		D3DTexture2D* srcTex = FramebufferManager::GetResolvedEFBDepthTexture();
+
+		g_renderer->ResetAPIState();
+		D3D::stateman->Apply();
+
+		D3D::context->OMSetRenderTargets(1, &pThis->m_realDepthTex->GetRTV(), NULL);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, float(EFB_WIDTH), float(EFB_HEIGHT));
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->PSSetShaderResources(0, 1, &srcTex->GetSRV());
+		D3D::SetPointCopySampler();
+
+		D3D::drawEncoderTexQuad(pThis->m_realDepthShader);
+
+		ID3D11ShaderResourceView* nullDummy = NULL;
+		D3D::context->PSSetShaderResources(0, 1, &nullDummy);
+
+		g_renderer->RestoreAPIState();
+		D3D::context->OMSetRenderTargets(1, &pThis->m_colorTex->GetRTV(),
+			pThis->m_depthTex->GetDSV());
+
+		pThis->m_realDepthTime = pThis->m_depthTime;
+	}
+
+	return pThis->m_realDepthTex;
+}
+
+D3DTexture2D* FramebufferManager::GetEFBColorTempTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+	return pThis->m_colorTempTex;
+}
+
+void FramebufferManager::SwapReinterpretTexture()
+{
+	FramebufferManager* pThis = (FramebufferManager*)g_framebuffer_manager;
+	std::swap(pThis->m_colorTempTex, pThis->m_colorTex);
 }
 
 FramebufferManager::FramebufferManager()
+	: m_colorTex(NULL), m_colorTime(1),
+	m_resolvedColorTex(NULL), m_resolvedColorTime(0),
+	m_realColorTex(NULL), m_realColorTime(0),
+	m_colorAccessStage(NULL), m_colorAccessTime(0),
+	m_depthTex(NULL), m_depthTime(1),
+	m_resolvedDepthTex(NULL), m_resolvedDepthTime(0),
+	m_realDepthTex(NULL), m_realDepthTime(0),
+	m_depthAccessStage(NULL), m_depthAccessTime(0),
+	m_colorTempTex(NULL),
+	m_realColorShader(NULL), m_realDepthShader(NULL)
 {
 	unsigned int target_width = Renderer::GetTargetWidth();
 	unsigned int target_height = Renderer::GetTargetHeight();
@@ -75,78 +244,98 @@ FramebufferManager::FramebufferManager()
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB color texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
-	m_efb.color_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1));
-	CHECK(m_efb.color_tex!=NULL, "create EFB color texture (size: %dx%d)", target_width, target_height);
+	m_colorTex = new D3DTexture2D(buf,
+		(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET),
+		DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1));
 	SAFE_RELEASE(buf);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetTex(), "EFB color texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetRTV(), "EFB color texture render target view");
+	D3D::SetDebugObjectName(m_colorTex->GetTex(), "EFB color texture");
+	D3D::SetDebugObjectName(m_colorTex->GetSRV(), "EFB color texture shader resource view");
+	D3D::SetDebugObjectName(m_colorTex->GetRTV(), "EFB color texture render target view");
 
 	// Temporary EFB color texture - used in ReinterpretPixelData
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
-	CHECK(hr==S_OK, "create EFB color temp texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
-	m_efb.color_temp_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM);
-	CHECK(m_efb.color_temp_tex!=NULL, "create EFB color temp texture (size: %dx%d)", target_width, target_height);
+	CHECK(SUCCEEDED(hr), "create EFB color temp texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+	m_colorTempTex = new D3DTexture2D(buf,
+		(D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET),
+		DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM);
 	SAFE_RELEASE(buf);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetTex(), "EFB color temp texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetSRV(), "EFB color temp texture shader resource view");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetRTV(), "EFB color temp texture render target view");
+	D3D::SetDebugObjectName(m_colorTempTex->GetTex(), "EFB color temp texture");
+	D3D::SetDebugObjectName(m_colorTempTex->GetSRV(), "EFB color temp texture shader resource view");
+	D3D::SetDebugObjectName(m_colorTempTex->GetRTV(), "EFB color temp texture render target view");
 
-	// AccessEFB - Sysmem buffer used to retrieve the pixel data from color_tex
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.color_staging_buf);
-	CHECK(hr==S_OK, "create EFB color staging buffer (hr=%#x)", hr);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
+	// Color texture for real EFB access and texture encoder
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, EFB_WIDTH, EFB_HEIGHT, 1, 1,
+		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
+	CHECK(SUCCEEDED(hr), "create real EFB color texture");
+	m_realColorTex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET));
+	SAFE_RELEASE(buf);
+	D3D::SetDebugObjectName(m_realColorTex->GetTex(), "EFB real color texture");
+	D3D::SetDebugObjectName(m_realColorTex->GetRTV(), "EFB real color texture rtv");
+	D3D::SetDebugObjectName(m_realColorTex->GetSRV(), "EFB real color texture srv");
+
+	// Stage for accessing real EFB color texture from CPU
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, EFB_WIDTH, EFB_HEIGHT, 1, 1,
+		0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_colorAccessStage);
+	CHECK(SUCCEEDED(hr), "create EFB color access staging buffer");
+	D3D::SetDebugObjectName(m_colorAccessStage, "EFB color access stage");
 
 	// EFB depth buffer - primary depth buffer
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, target_width, target_height, 1, 1, D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
-	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, DXGI_FORMAT_D24_UNORM_S8_UINT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
+	m_depthTex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, DXGI_FORMAT_D24_UNORM_S8_UINT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
 	SAFE_RELEASE(buf);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetTex(), "EFB depth texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetSRV(), "EFB depth texture shader resource view");
+	D3D::SetDebugObjectName(m_depthTex->GetTex(), "EFB depth texture");
+	D3D::SetDebugObjectName(m_depthTex->GetDSV(), "EFB depth texture depth stencil view");
+	D3D::SetDebugObjectName(m_depthTex->GetSRV(), "EFB depth texture shader resource view");
 
-	// Render buffer for AccessEFB (depth data)
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, D3D11_BIND_RENDER_TARGET);
+	// Depth texture for real EFB access and texture encoder
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, 1,
+		D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth read texture (hr=%#x)", hr);
-	m_efb.depth_read_texture = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
+	m_realDepthTex = new D3DTexture2D(buf,
+		(D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE));
 	SAFE_RELEASE(buf);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetTex(), "EFB depth read texture (used in Renderer::AccessEFB)");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
+	D3D::SetDebugObjectName(m_realDepthTex->GetTex(), "EFB real depth texture");
+	D3D::SetDebugObjectName(m_realDepthTex->GetRTV(), "EFB real depth texture rtv");
+	D3D::SetDebugObjectName(m_realDepthTex->GetSRV(), "EFB real depth texture srv");
 
-	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.depth_staging_buf);
-	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_staging_buf, "EFB depth staging texture (used for Renderer::AccessEFB)");
+	// Stage for accessing real EFB depth texture from CPU
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, 1,
+		0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_depthAccessStage);
+	CHECK(SUCCEEDED(hr), "create EFB depth access staging buffer");
+	D3D::SetDebugObjectName(m_depthAccessStage, "EFB depth access stage");
 
 	if (g_ActiveConfig.iMultisampleMode)
 	{
 		// Framebuffer resolve textures (color+depth)
-		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1);
+		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1,
+			D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1);
 		hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
-		m_efb.resolved_color_tex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM);
-		CHECK(m_efb.resolved_color_tex!=NULL, "create EFB color resolve texture (size: %dx%d)", target_width, target_height);
+		CHECK(SUCCEEDED(hr), "create EFB color resolve texture (size: %dx%d)", target_width, target_height);
+		m_resolvedColorTex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM);
 		SAFE_RELEASE(buf);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_color_tex->GetTex(), "EFB color resolve texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_color_tex->GetSRV(), "EFB color resolve texture shader resource view");
+		D3D::SetDebugObjectName(m_resolvedColorTex->GetTex(), "EFB color resolve texture");
+		D3D::SetDebugObjectName(m_resolvedColorTex->GetSRV(), "EFB color resolve texture shader resource view");
 
-		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE);
+		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, target_width, target_height, 1, 1,
+			D3D11_BIND_SHADER_RESOURCE);
 		hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
-		CHECK(hr==S_OK, "create EFB depth resolve texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
-		m_efb.resolved_depth_tex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+		CHECK(SUCCEEDED(hr), "create EFB depth resolve texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+		m_resolvedDepthTex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
 		SAFE_RELEASE(buf);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetTex(), "EFB depth resolve texture");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetSRV(), "EFB depth resolve texture shader resource view");
+		D3D::SetDebugObjectName(m_resolvedDepthTex->GetTex(), "EFB depth resolve texture");
+		D3D::SetDebugObjectName(m_resolvedDepthTex->GetSRV(), "EFB depth resolve texture shader resource view");
 	}
 	else
 	{
-		m_efb.resolved_color_tex = NULL;
-		m_efb.resolved_depth_tex = NULL;
+		m_resolvedColorTex = NULL;
+		m_resolvedDepthTex = NULL;
 	}
 
 	s_xfbEncoder.Init();
@@ -154,16 +343,79 @@ FramebufferManager::FramebufferManager()
 
 FramebufferManager::~FramebufferManager()
 {
+	SAFE_RELEASE(m_realDepthShader);
+	SAFE_RELEASE(m_realColorShader);
+
 	s_xfbEncoder.Shutdown();
 
-	SAFE_RELEASE(m_efb.color_tex);
-	SAFE_RELEASE(m_efb.color_temp_tex);
-	SAFE_RELEASE(m_efb.color_staging_buf);
-	SAFE_RELEASE(m_efb.resolved_color_tex);
-	SAFE_RELEASE(m_efb.depth_tex);
-	SAFE_RELEASE(m_efb.depth_staging_buf);
-	SAFE_RELEASE(m_efb.depth_read_texture);
-	SAFE_RELEASE(m_efb.resolved_depth_tex);
+	SAFE_RELEASE(m_colorTempTex);
+
+	SAFE_RELEASE(m_depthAccessStage);
+	SAFE_RELEASE(m_realDepthTex);
+	SAFE_RELEASE(m_resolvedDepthTex);
+	SAFE_RELEASE(m_depthTex);
+	SAFE_RELEASE(m_colorAccessStage);
+	SAFE_RELEASE(m_realColorTex);
+	SAFE_RELEASE(m_resolvedColorTex);
+	SAFE_RELEASE(m_colorTex);
+}
+
+u32 FramebufferManager::ReadColorAt(unsigned int x, unsigned int y)
+{
+	x = std::min(x, (unsigned int)EFB_WIDTH-1);
+	y = std::min(y, (unsigned int)EFB_HEIGHT-1);
+
+	if (m_colorAccessTime != m_colorTime)
+	{
+		D3DTexture2D* srcTex = FramebufferManager::GetRealEFBColorTexture();
+		D3D::context->CopyResource(m_colorAccessStage, srcTex->GetTex());
+		m_colorAccessTime = m_colorTime;
+	}
+
+	// TODO: Should we keep it mapped as long as the game needs it?
+	D3D11_MAPPED_SUBRESOURCE map;
+	HRESULT hr = D3D::context->Map(m_colorAccessStage, 0, D3D11_MAP_READ, 0, &map);
+	u32 result = 0;
+	if (SUCCEEDED(hr))
+	{
+		const u8* pData = (const u8*)map.pData;
+		// FIXME: Should we byteswap the result?
+		result = *(const u32*)&pData[map.RowPitch*y + 4*x];
+		D3D::context->Unmap(m_colorAccessStage, 0);
+	}
+	else
+		ERROR_LOG(VIDEO, "Failed to read from color access stage");
+
+	return result;
+}
+
+float FramebufferManager::ReadDepthAt(unsigned int x, unsigned int y)
+{
+	x = std::min(x, (unsigned int)EFB_WIDTH-1);
+	y = std::min(y, (unsigned int)EFB_HEIGHT-1);
+
+	if (m_depthAccessTime != m_depthTime)
+	{
+		D3DTexture2D* srcTex = FramebufferManager::GetRealEFBDepthTexture();
+		D3D::context->CopyResource(m_depthAccessStage, srcTex->GetTex());
+		m_depthAccessTime = m_depthTime;
+	}
+
+	// TODO: Should we keep it mapped as long as the game needs it?
+	D3D11_MAPPED_SUBRESOURCE map;
+	HRESULT hr = D3D::context->Map(m_depthAccessStage, 0, D3D11_MAP_READ, 0, &map);
+	float result = 0.f;
+	if (SUCCEEDED(hr))
+	{
+		const u8* pData = (const u8*)map.pData;
+		// FIXME: Should we byteswap the result?
+		result = *(const float*)&pData[map.RowPitch*y + 4*x];
+		D3D::context->Unmap(m_depthAccessStage, 0);
+	}
+	else
+		ERROR_LOG(VIDEO, "Failed to read from depth access stage");
+
+	return result;
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)

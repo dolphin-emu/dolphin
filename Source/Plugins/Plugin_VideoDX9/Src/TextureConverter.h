@@ -35,16 +35,14 @@ namespace TextureConverter
 void Init();
 void Shutdown();
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
-				 u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
+// Returns hash of encoded data
+u64 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 					 u8* destAddr, int dstWidth, int dstHeight,float Gamma);
 
 void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE9 destTexture);
-
-u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 SourceW, u32 SourceH, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
-
 
 }
 

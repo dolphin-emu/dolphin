@@ -93,6 +93,7 @@ void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Valu
 void RefreshTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type);
 void ChangeTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 
+// FIXME: What's the difference between SetSamplerState and ChangeSamplerState?
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type);
 void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);

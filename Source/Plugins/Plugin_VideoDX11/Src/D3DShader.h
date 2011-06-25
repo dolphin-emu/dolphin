@@ -46,7 +46,7 @@ namespace D3D
 	ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
 		unsigned int len, const D3D_SHADER_MACRO* pDefines = NULL);
 	ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
-		unsigned int len);
+		unsigned int len, const D3D_SHADER_MACRO* pDefines = NULL);
 
 	inline ID3D11VertexShader* CreateVertexShaderFromByteCode(D3DBlob* bytecode)
 	{ return CreateVertexShaderFromByteCode(bytecode->Data(), bytecode->Size()); }
@@ -59,8 +59,8 @@ namespace D3D
 	{ return CompileAndCreateVertexShader((const char*)code->Data(), code->Size()); }
 	inline ID3D11GeometryShader* CompileAndCreateGeometryShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = NULL)
 	{ return CompileAndCreateGeometryShader((const char*)code->Data(), code->Size(), pDefines); }
-	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code)
-	{ return CompileAndCreatePixelShader((const char*)code->Data(), code->Size()); }
+	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = NULL)
+	{ return CompileAndCreatePixelShader((const char*)code->Data(), code->Size(), pDefines); }
 }
 
 }  // namespace DX11

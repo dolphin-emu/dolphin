@@ -18,10 +18,8 @@
 #ifndef _VERTEXMANAGER_H
 #define _VERTEXMANAGER_H
 
-#include "CPMemory.h"
-#include "VertexLoader.h"
-
 #include "VertexManagerBase.h"
+#include "D3DBase.h"
 
 namespace DX9
 {

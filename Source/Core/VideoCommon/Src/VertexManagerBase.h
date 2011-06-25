@@ -2,6 +2,8 @@
 #ifndef _VERTEXMANAGERBASE_H
 #define _VERTEXMANAGERBASE_H
 
+#include "VideoCommon.h"
+
 class NativeVertexFormat;
 
 class VertexManager

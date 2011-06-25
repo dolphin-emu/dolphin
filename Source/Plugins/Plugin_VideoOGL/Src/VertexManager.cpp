@@ -15,39 +15,55 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#include "VertexManager.h"
 
 #include <fstream>
 #include <vector>
 
-#include "Fifo.h"
-
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "MemoryUtil.h"
-#include "Render.h"
-#include "ImageWrite.h"
 #include "BPMemory.h"
-#include "TextureCache.h"
+#include "Debugger.h"
+#include "Fifo.h"
+#include "FileUtil.h"
+#include "ImageWrite.h"
+#include "IndexGenerator.h"
+#include "main.h"
+#include "MemoryUtil.h"
+#include "OpcodeDecoding.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "Render.h"
+#include "Statistics.h"
+#include "TextureCache.h"
+#include "Tmem.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexShaderGen.h"
 #include "VertexLoader.h"
-#include "VertexManager.h"
-#include "IndexGenerator.h"
-#include "OpcodeDecoding.h"
-#include "FileUtil.h"
-#include "Debugger.h"
-
-#include "main.h"
+#include "VideoConfig.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace OGL
 {
+	
+static const GLint c_MinLinearFilter[8] = {
+	GL_NEAREST,
+	GL_NEAREST_MIPMAP_NEAREST,
+	GL_NEAREST_MIPMAP_LINEAR,
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_LINEAR_MIPMAP_NEAREST,
+	GL_LINEAR_MIPMAP_LINEAR,
+	GL_LINEAR,
+};
+
+static const GLint c_WrapSettings[4] = {
+	GL_CLAMP_TO_EDGE,
+	GL_REPEAT,
+	GL_MIRRORED_REPEAT,
+	GL_REPEAT,
+};
 
 //static GLint max_Index_size = 0;
 
@@ -123,15 +139,6 @@ void VertexManager::vFlush()
 #endif
 
 	(void)GL_REPORT_ERROR();
-	
-	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
-	GL_REPORT_ERRORD();
-
-	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
-	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
@@ -148,31 +155,61 @@ void VertexManager::vFlush()
 		if (usedtextures & (1 << i))
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
-			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
-				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+			const TexMode0& tm0 = tex.texMode0[i&3];
+			const TexMode1& tm1 = tex.texMode1[i&3];
 
-			if (tentry)
+			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			u32 levels = (tex.texMode1[i&3].max_lod >> 4) + 1;
+			u32 format = tex.texImage0[i&3].format;
+			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
+			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
+			
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
+				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+			if (entry)
 			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
-
-				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
+				GLuint texture = entry->GetTexture();
+				if (texture)
 				{
-					// save the textures
-					char strfile[255];
-					sprintf(strfile, "%stex%.3d_%d.tga",
-							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-					tentry->Save(strfile);
+					glEnable(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, texture);
+
+					// Set sampler parameters
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+						c_MinLinearFilter[tm0.min_filter]);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+						(tm0.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, tm1.min_lod >> 4);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tm1.max_lod >> 4);
+					glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS,
+						tm0.lod_bias / 32.0f);
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[tm0.wrap_s]);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[tm0.wrap_t]);
+
+					if (g_ActiveConfig.iMaxAnisotropy >= 1)
+						glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+							float(1 << g_ActiveConfig.iMaxAnisotropy));
+				}
+				else
+				{
+					glDisable(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, 0);
 				}
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+			{
+				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
+				glDisable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
 		}
 	}
 
@@ -214,6 +251,15 @@ void VertexManager::vFlush()
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	
+	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
+	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
+	GL_REPORT_ERRORD();
+
+	// setup the pointers
+	if (g_nativeVertexFmt)
+		g_nativeVertexFmt->SetupVertexPointers();
+	GL_REPORT_ERRORD();
 
 	Draw();
 

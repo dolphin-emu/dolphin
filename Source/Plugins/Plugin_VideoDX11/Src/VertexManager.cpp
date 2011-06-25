@@ -15,20 +15,23 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "D3DBase.h"
-#include "PixelShaderCache.h"
 #include "VertexManager.h"
-#include "VertexShaderCache.h"
 
 #include "BPMemory.h"
+#include "D3DBase.h"
+#include "D3DTexture.h"
 #include "Debugger.h"
+#include "FramebufferManager.h"
 #include "IndexGenerator.h"
 #include "MainBase.h"
+#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "RenderBase.h"
 #include "Render.h"
 #include "Statistics.h"
-#include "TextureCacheBase.h"
+#include "TextureCache.h"
+#include "Tmem.h"
+#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VideoConfig.h"
 
@@ -44,6 +47,8 @@ const UINT VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 
 void VertexManager::CreateDeviceObjects()
 {
+	HRESULT hr;
+
 	D3D11_BUFFER_DESC bufdesc = CD3D11_BUFFER_DESC(IBUFFER_SIZE,
 		D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
@@ -68,6 +73,13 @@ void VertexManager::CreateDeviceObjects()
 
 	m_lineShader.Init();
 	m_pointShader.Init();
+
+	bufdesc = CD3D11_BUFFER_DESC(8*16*sizeof(float),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+	hr = D3D::device->CreateBuffer(&bufdesc, NULL, &m_unpackMatricesBuffer);
+	CHECK(SUCCEEDED(hr), "create unpacking matrices buffer.");
+	D3D::SetDebugObjectName(m_unpackMatricesBuffer, "unpacking matrices buffer");
 }
 
 void VertexManager::DestroyDeviceObjects()
@@ -139,6 +151,13 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
+	// TODO: Only set color dirty if color write is on.
+	((FramebufferManager*)g_framebuffer_manager)->SetColorDirty();
+	// TODO: Only set depth dirty if depth write is on.
+	((FramebufferManager*)g_framebuffer_manager)->SetDepthDirty();
+
+	D3D::context->PSSetConstantBuffers(1, 1, &m_unpackMatricesBuffer);
+
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &m_vertexDrawOffset);
 	D3D::context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
@@ -197,6 +216,9 @@ void VertexManager::Draw(UINT stride)
 	}
 	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
+
+	ID3D11Buffer* nullDummy = NULL;
+	D3D::context->PSSetConstantBuffers(1, 1, &nullDummy);
 }
 
 void VertexManager::vFlush()
@@ -216,29 +238,66 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
+	TCacheEntry* texEntries[8] = { NULL };
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+
+			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			u32 levels = (tex.texMode1[i&3].max_lod >> 4) + 1;
+			u32 format = tex.texImage0[i&3].format;
+			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
+			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
+
+			texEntries[i] = (TCacheEntry*)g_textureCache->LoadEntry(
+				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+		}
+		else
+			texEntries[i] = NULL;
+	}
+
+	// Bind and set samplers down here, because TextureCache::LoadEntry may
+	// clobber the render state.
+	ID3D11ShaderResourceView* bindThese[8] = { NULL };
+	for (int i = 0; i < 8; ++i)
+	{
+		if (texEntries[i])
+		{
 			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
-			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
-				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+		
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
 
-			if (tentry)
-			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
-			}
-			else
-				ERROR_LOG(VIDEO, "error loading texture");
+			bindThese[i] = texEntries[i]->GetTexture()->GetSRV();
 		}
+		else
+			bindThese[i] = NULL;
 	}
+	D3D::context->PSSetShaderResources(0, 8, bindThese);
+
+	// Load texture unpacking matrices
+	D3D11_MAPPED_SUBRESOURCE map;
+	HRESULT hr = D3D::context->Map(m_unpackMatricesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	if (SUCCEEDED(hr))
+	{
+		float* dst = (float*)map.pData;
+		for (int i = 0; i < 8; ++i)
+		{
+			if (bindThese[i])
+			{
+				memcpy(&dst[i*16], texEntries[i]->GetUnpackMatrix().data, 16*sizeof(float));
+			}
+		}
+		D3D::context->Unmap(m_unpackMatricesBuffer, 0);
+	}
+	else
+		ERROR_LOG(VIDEO, "Failed to map buffer for unpack matrices");
 
 	// set global constants
 	VertexShaderManager::SetConstants();

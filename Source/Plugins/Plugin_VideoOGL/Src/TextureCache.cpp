@@ -15,65 +15,23 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <vector>
-#include <cmath>
-
-
-#include <fstream>
-#ifdef _WIN32
-#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
-#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
-#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
-#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
-#include <intrin.h>
-#undef _interlockedbittestandset
-#undef _interlockedbittestandreset
-#undef _interlockedbittestandset64
-#undef _interlockedbittestandreset64
-#endif
-
-#include "BPStructs.h"
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
-#include "Hash.h"
-#include "HiresTextures.h"
-#include "ImageWrite.h"
-#include "MemoryUtil.h"
-#include "PixelShaderCache.h"
-#include "PixelShaderManager.h"
-#include "Render.h"
-#include "Statistics.h"
-#include "StringUtil.h"
 #include "TextureCache.h"
+
+#include "BPMemory.h"
+#include "FramebufferManager.h"
+#include "GLUtil.h"
+#include "Hash.h"
+#include "HW/Memmap.h"
+#include "ImageWrite.h"
+#include "LookUpTables.h"
+#include "Render.h"
 #include "TextureConverter.h"
-#include "TextureDecoder.h"
+#include "Tmem.h"
 #include "VertexShaderManager.h"
-#include "VideoConfig.h"
+#include "VirtualEFBCopy.h"
 
 namespace OGL
 {
-
-static u32 s_TempFramebuffer = 0;
-
-static const GLint c_MinLinearFilter[8] = {
-	GL_NEAREST,
-	GL_NEAREST_MIPMAP_NEAREST,
-	GL_NEAREST_MIPMAP_LINEAR,
-	GL_NEAREST,
-	GL_LINEAR,
-	GL_LINEAR_MIPMAP_NEAREST,
-	GL_LINEAR_MIPMAP_LINEAR,
-	GL_LINEAR,
-};
-
-static const GLint c_WrapSettings[4] = {
-	GL_CLAMP_TO_EDGE,
-	GL_REPEAT,
-	GL_MIRRORED_REPEAT,
-	GL_REPEAT,
-};
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
 {
@@ -91,303 +49,450 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
     return SaveTGA(filename, width, height, &data[0]);
 }
 
-TextureCache::TCacheEntry::~TCacheEntry()
+TCacheEntry::RamStorage::~RamStorage()
 {
-	if (texture)
+	glDeleteTextures(1, &tex);
+	tex = 0;
+}
+
+TCacheEntry::Palette::~Palette()
+{
+	glDeleteTextures(1, &tex);
+	tex = 0;
+}
+
+TCacheEntry::DepalStorage::~DepalStorage()
+{
+	glDeleteTextures(1, &tex);
+	tex = 0;
+}
+
+inline bool IsPaletted(u32 format)
+{
+	return format == GX_TF_C4 || format == GX_TF_C8 || format == GX_TF_C14X2;
+}
+
+// Compute the maximum number of mips a texture of given dims could have
+// Some games (Luigi's Mansion for example) try to use too many mip levels.
+static unsigned int ComputeMaxLevels(unsigned int width, unsigned int height)
+{
+	if (width == 0 || height == 0)
+		return 0;
+	return floorLog2( std::max(width, height) ) + 1;
+}
+
+void TCacheEntry::RefreshInternal(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	m_loaded = 0;
+	m_loadedDirty = false;
+	m_loadedIsPaletted = false;
+	m_bindMe = 0;
+
+	// This is the earliest possible place to correct mip levels. Do so.
+	unsigned int maxLevels = ComputeMaxLevels(width, height);
+	levels = std::min(levels, maxLevels);
+
+	Load(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+	Depalettize(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
+
+	m_bindMe = m_depalettized;
+}
+
+void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	bool refreshFromRam = true;
+
+	// See if there is a virtual EFB copy available at this address
+	VirtualEFBCopyMap& virtCopyMap = ((TextureCache*)g_textureCache)->GetVirtCopyMap();
+	VirtualEFBCopyMap::iterator virtIt = virtCopyMap.find(ramAddr);
+
+	if (virtIt != virtCopyMap.end())
 	{
-		glDeleteTextures(1, &texture);
-		texture = 0;
-	}
-}
-
-TextureCache::TCacheEntry::TCacheEntry()
-{
-	glGenTextures(1, &texture);
-	GL_REPORT_ERRORD();
-}
-
-void TextureCache::TCacheEntry::Bind(unsigned int stage)
-{
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	GL_REPORT_ERRORD();
-
-	// TODO: is this already done somewhere else?
-	TexMode0 &tm0 = bpmem.tex[stage >> 2].texMode0[stage & 3];
-	TexMode1 &tm1 = bpmem.tex[stage >> 2].texMode1[stage & 3];
-	SetTextureParameters(tm0, tm1);
-}
-
-bool TextureCache::TCacheEntry::Save(const char filename[])
-{
-	// TODO: make ogl dump PNGs
-	std::string tga_filename(filename);
-	tga_filename.replace(tga_filename.size() - 3, 3, "tga");
-
-	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, realW, realH);
-}
-
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
-	unsigned int height, unsigned int expanded_width,
-	unsigned int tex_levels, PC_TexFormat pcfmt)
-{
-	int gl_format = 0,
-		gl_iformat = 0,
-		gl_type = 0;
-
-	if (pcfmt != PC_TEX_FMT_DXT1)
-	{
-		switch (pcfmt)
+		if (g_ActiveConfig.bEFBCopyVirtualEnable)
 		{
-		default:
-		case PC_TEX_FMT_NONE:
-			PanicAlert("Invalid PC texture format %i", pcfmt); 
-		case PC_TEX_FMT_BGRA32:
-			gl_format = GL_BGRA;
-			gl_iformat = 4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_RGBA32:
-			gl_format = GL_RGBA;
-			gl_iformat = 4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_I4_AS_I8:
-			gl_format = GL_LUMINANCE;
-			gl_iformat = GL_INTENSITY4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_IA4_AS_IA8:
-			gl_format = GL_LUMINANCE_ALPHA;
-			gl_iformat = GL_LUMINANCE4_ALPHA4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_I8:
-			gl_format = GL_LUMINANCE;
-			gl_iformat = GL_INTENSITY8;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_IA8:
-			gl_format = GL_LUMINANCE_ALPHA;
-			gl_iformat = GL_LUMINANCE8_ALPHA8;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_RGB565:
-			gl_format = GL_RGB;
-			gl_iformat = GL_RGB;
-			gl_type = GL_UNSIGNED_SHORT_5_6_5;
-			break;
-		}
-	}
-
-	TCacheEntry &entry = *new TCacheEntry;
-	entry.gl_format = gl_format;
-	entry.gl_iformat = gl_iformat;
-	entry.gl_type = gl_type;
-	entry.pcfmt = pcfmt;
-
-	entry.bHaveMipMaps = tex_levels != 1;
-
-	return &entry;
-}
-
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
-{
-	//glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	//GL_REPORT_ERRORD();
-
-	if (pcfmt != PC_TEX_FMT_DXT1)
-	{
-	    if (expanded_width != width)
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
-
-		if (bHaveMipMaps && autogen_mips)
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+			// Try to load from the virtual copy instead of RAM.
+			// FIXME: If copy fails to load, its memory region may have
+			// been deallocated by the game. We ought to delete copies that aren't
+			// being used.
+			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
+				refreshFromRam = false;
 		}
 		else
 		{
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+			// User must have turned off virtual copies mid-game. Delete any
+			// that are found.
+			// FIXME: Is it desirable to delete them as they are found instead
+			// of just deleting them all at once?
+			virtCopyMap.erase(virtIt);
+		}
+	}
+
+	if (refreshFromRam)
+		LoadFromRam(ramAddr, width, height, levels, format, tlutAddr, tlutFormat, invalidated);
+}
+
+void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
+{
+	int blockW = TexDecoder_GetBlockWidthInTexels(format);
+	int blockH = TexDecoder_GetBlockHeightInTexels(format);
+
+	const u8* src = Memory::GetPointer(ramAddr);
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+	
+	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
+
+	// Do we need to refresh the palette?
+	u64 newPaletteHash = m_curPaletteHash;
+	if (IsPaletted(format))
+	{
+		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016X", tlutAddr, newPaletteHash);
+	}
+		
+	u64 newHash = m_curHash;
+
+	// TODO: Use a shader to depalettize textures, like the DX11 plugin
+	bool reloadTexture = !m_ramStorage.tex || dimsChanged || format != m_curFormat ||
+		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
+	if (reloadTexture || invalidated)
+	{
+		// FIXME: Only the top-level mip is hashed.
+		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+		newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+		reloadTexture |= (newHash != m_curHash);
+		DEBUG_LOG(VIDEO, "Hash of texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+	}
+
+	if (reloadTexture)
+	{
+		if (!m_ramStorage.tex)
+			glGenTextures(1, &m_ramStorage.tex);
+
+		glBindTexture(GL_TEXTURE_2D, m_ramStorage.tex);
+		
+		// FIXME: Hash all the mips seperately?
+		u32 mipWidth = width;
+		u32 mipHeight = height;
+		for (u32 level = 0; level < levels; ++level)
+		{
+			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
+			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
+
+			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
+			PC_TexFormat pcFormat = TexDecoder_Decode(decodeTemp, src,
+				actualWidth, actualHeight, format, tlut, tlutFormat, false);
+
+			GLint useInternalFormat = 4;
+			GLenum useFormat = GL_RGBA;
+			GLenum useType = GL_UNSIGNED_BYTE;
+			switch (pcFormat)
+			{
+			case PC_TEX_FMT_BGRA32:
+				useInternalFormat = 4;
+				useFormat = GL_BGRA;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_RGBA32:
+				useInternalFormat = 4;
+				useFormat = GL_RGBA;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_I4_AS_I8:
+				useInternalFormat = GL_INTENSITY4;
+				useFormat = GL_LUMINANCE;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_IA4_AS_IA8:
+				useInternalFormat = GL_LUMINANCE4_ALPHA4;
+				useFormat = GL_LUMINANCE_ALPHA;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_I8:
+				useInternalFormat = GL_INTENSITY8;
+				useFormat = GL_LUMINANCE;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_IA8:
+				useInternalFormat = GL_LUMINANCE8_ALPHA8;
+				useFormat = GL_LUMINANCE_ALPHA;
+				useType = GL_UNSIGNED_BYTE;
+				break;
+			case PC_TEX_FMT_RGB565:
+				useInternalFormat = GL_RGB;
+				useFormat = GL_RGB;
+				useType = GL_UNSIGNED_SHORT_5_6_5;
+				break;
+			}
+
+			if (actualWidth != mipWidth)
+				glPixelStorei(GL_UNPACK_ROW_LENGTH, actualWidth);
+
+			glTexImage2D(GL_TEXTURE_2D, level, useInternalFormat, mipWidth, mipHeight, 0,
+				useFormat, useType, decodeTemp);
+
+			if (actualWidth != mipWidth)
+				glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
+			
+			mipWidth = (mipWidth > 1) ? mipWidth/2 : 1;
+			mipHeight = (mipHeight > 1) ? mipHeight/2 : 1;
 		}
 
-		if (expanded_width != width)
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	m_curWidth = width;
+	m_curHeight = height;
+	m_curLevels = levels;
+	m_curFormat = format;
+	m_curHash = newHash;
+
+	m_curPaletteHash = newPaletteHash;
+	m_curTlutFormat = tlutFormat;
+
+	m_loaded = m_ramStorage.tex;
+	m_loadedDirty = reloadTexture;
+	// TODO: Use shader to depalettize RAM textures
+	m_loadedIsPaletted = false;
+	m_loadedWidth = width;
+	m_loadedHeight = height;
+}
+
+bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated, VirtualEFBCopy* virt)
+{
+	u64 newHash = m_curHash;
+
+	// If texture will be loaded to TMEM, make sure mem hash matches TCL hash.
+	// Otherwise, it's acceptable to just use the fake texture as is.
+	if (invalidated)
+	{
+		const u8* src = Memory::GetPointer(ramAddr);
+
+		if (g_ActiveConfig.bEFBCopyRAMEnable)
+		{
+			// We made a RAM copy, so check its hash for changes
+			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		}
+		else
+		{
+			// We must be doing virtual copies only, so look for canary data.
+			newHash = *(u64*)src;
+		}
+
+		if (newHash != virt->GetHash())
+		{
+			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
+			return false;
+		}
+	}
+
+	GLuint virtualized = virt->Virtualize(ramAddr, width, height, levels,
+		format, tlutAddr, tlutFormat, !g_ActiveConfig.bEFBCopyRAMEnable);
+	if (!virtualized)
+		return false;
+
+	m_curWidth = width;
+	m_curHeight = height;
+	m_curLevels = levels;
+	m_curFormat = format;
+	m_curHash = newHash;
+
+	m_loaded = virtualized;
+	m_loadedDirty = virt->IsDirty();
+	virt->ResetDirty();
+	m_loadedIsPaletted = IsPaletted(format);
+	m_loadedWidth = virt->GetVirtWidth();
+	m_loadedHeight = virt->GetVirtHeight();
+	return true;
+}
+
+// TODO: Move this stuff into TextureDecoder or something
+
+static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+	{
+		// FIXME: Do we need swap16?
+		dst[i] = src[i];
+	}
+}
+
+static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
+{
+	for (unsigned int i = 0; i < numColors; ++i)
+		dst[i] = Common::swap16(src[i]);
+}
+
+static inline u32 decode5A3(u16 val)
+{
+	int r,g,b,a;
+	if ((val & 0x8000))
+	{
+		a = 0xFF;
+		r = Convert5To8((val >> 10) & 0x1F);
+		g = Convert5To8((val >> 5) & 0x1F);
+		b = Convert5To8(val & 0x1F);
 	}
 	else
 	{
-		PanicAlert("PC_TEX_FMT_DXT1 support disabled");
-		//glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-			//width, height, 0, expanded_width * expanded_height/2, temp);
+		a = Convert3To8((val >> 12) & 0x7);
+		r = Convert4To8((val >> 8) & 0xF);
+		g = Convert4To8((val >> 4) & 0xF);
+		b = Convert4To8(val & 0xF);
 	}
-	GL_REPORT_ERRORD();
+	return (a << 24) | (b << 16) | (g << 8) | r;
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
+// Decode to BGRA
+static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
 {
-	TCacheEntry *const entry = new TCacheEntry;
-	glBindTexture(GL_TEXTURE_2D, entry->texture);
-	GL_REPORT_ERRORD();
-
-	const GLenum
-		gl_format = GL_RGBA,
-		gl_iformat = 4,
-		gl_type = GL_UNSIGNED_BYTE;
-
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
-	
-	GL_REPORT_ERRORD();
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
+	for (unsigned int i = 0; i < numColors; ++i)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		GL_REPORT_ERRORD();
+		dst[i] = decode5A3(Common::swap16(src[i]));
 	}
-
-	return entry;
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect,
-	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-	const float *colmat)
+void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
+	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	// Make sure to resolve anything we need to read from.
-	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
-		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
-		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
-
-    GL_REPORT_ERRORD();
-
-	if (false == isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (m_loadedIsPaletted)
 	{
-		if (s_TempFramebuffer == 0)
-			glGenFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+		bool paletteDirty = RefreshPalette(format, tlutAddr, tlutFormat);
 
-		FramebufferManager::SetFramebuffer(s_TempFramebuffer);
-		// Bind texture to temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture, 0);
-		GL_REPORT_FBO_ERROR();
-		GL_REPORT_ERRORD();
+		bool recreateDepal = !m_depalStorage.tex ||
+			m_depalStorage.width != m_loadedWidth ||
+			m_depalStorage.height != m_loadedHeight;
 
-		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_RECTANGLE_ARB);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+		if (recreateDepal)
+		{
+			if (!m_depalStorage.tex)
+				glGenTextures(1, &m_depalStorage.tex);
 
-		glViewport(0, 0, virtualW, virtualH);
+			glBindTexture(GL_TEXTURE_2D, m_depalStorage.tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, 4, m_loadedWidth, m_loadedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-		PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
-		PixelShaderManager::SetColorMatrix(colmat); // set transformation
-		GL_REPORT_ERRORD();
+			m_depalStorage.width = m_loadedWidth;
+			m_depalStorage.height = m_loadedHeight;
+		}
 
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
+		bool runDepalShader = recreateDepal || m_loadedDirty || paletteDirty;
+		if (runDepalShader)
+		{
+			Depalettizer::BaseType baseType = Depalettizer::Unorm8;
+			// TODO: Support GX_TF_C14X2
+			if (format == GX_TF_C4)
+				baseType = Depalettizer::Unorm4;
+			else if (format == GX_TF_C8)
+				baseType = Depalettizer::Unorm8;
 
-		glBegin(GL_QUADS);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.top  ); glVertex2f(-1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.top  ); glVertex2f( 1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.bottom); glVertex2f( 1,  1);
-		glEnd();
+			((TextureCache*)g_textureCache)->GetDepalettizer().Depalettize(
+				baseType, m_depalStorage.tex, m_loaded, m_loadedWidth, m_loadedHeight, m_palette.tex);
+		}
 
-		GL_REPORT_ERRORD();
-
-		// Unbind texture from temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
-	}
-
-	if (false == g_ActiveConfig.bCopyEFBToTexture)
-	{
-		hash = TextureConverter::EncodeToRamFromTexture(
-			addr,
-			read_texture,
-			srcFormat == PIXELFMT_Z24, 
-			isIntensity, 
-			dstFormat, 
-			scaleByHalf, 
-			srcRect);
-	}
-
-    FramebufferManager::SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();
-    DisableStage(0);
-
-    GL_REPORT_ERRORD();
-
-    if (g_ActiveConfig.bDumpEFBTarget)
-    {
-		static int count = 0;
-		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++).c_str(), GL_TEXTURE_2D, texture, realW, realH);
-    }
-}
-
-void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
-{
-	// TODO: not used anywhere
-	TexMode0 mode = newmode;
-	//mode1 = newmode1;
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-
-	if (bHaveMipMaps) 
-	{
-		// TODO: not used anywhere
-		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-			mode.min_filter += 4; // take equivalent forced linear
-
-		int filt = newmode.min_filter;            
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias / 32.0f));
+		m_depalettized = m_depalStorage.tex;
 	}
 	else
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			(g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+	{
+		m_depalettized = m_loaded;
+	}
+}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
+bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
+{
+	bool recreatePaletteTex = !m_palette.tex;
 
-	if (g_Config.iMaxAnisotropy >= 1)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-			(float)(1 << g_ActiveConfig.iMaxAnisotropy));
+	if (recreatePaletteTex)
+		glGenTextures(1, &m_palette.tex);
+
+	unsigned int numColors = TexDecoder_GetNumColors(format);
+
+	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
+	u32 paletteSize = numColors*2;
+	u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+
+	bool reloadPalette = recreatePaletteTex || tlutFormat != m_curTlutFormat
+		|| newPaletteHash != m_curPaletteHash;
+	if (reloadPalette)
+	{
+		glBindTexture(GL_TEXTURE_1D, m_palette.tex);
+		
+		u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
+
+		GLint useInternalFormat;
+		GLenum useFormat;
+		GLenum useType;
+		switch (tlutFormat)
+		{
+		case GX_TL_IA8:
+			WARN_LOG(VIDEO, "Depal with IA8 palette");
+			useInternalFormat = GL_LUMINANCE8_ALPHA8;
+			useFormat = GL_LUMINANCE_ALPHA;
+			useType = GL_UNSIGNED_BYTE;
+			DecodeIA8Palette((u16*)decodeTemp, tlut, numColors);
+			break;
+		case GX_TL_RGB565:
+			WARN_LOG(VIDEO, "Depal with RGB565 palette");
+			useInternalFormat = GL_RGB;
+			useFormat = GL_RGB;
+			useType = GL_UNSIGNED_SHORT_5_6_5;
+			DecodeRGB565Palette((u16*)decodeTemp, tlut, numColors);
+			break;
+		case GX_TL_RGB5A3:
+			WARN_LOG(VIDEO, "Depal with RGB5A3 palette");
+			useInternalFormat = 4;
+			useFormat = GL_RGBA;
+			useType = GL_UNSIGNED_BYTE;
+			DecodeRGB5A3Palette((u32*)decodeTemp, tlut, numColors);
+			break;
+		}
+
+		glTexImage1D(GL_TEXTURE_1D, 0, useInternalFormat, numColors, 0, useFormat, useType, decodeTemp);
+
+		glBindTexture(GL_TEXTURE_1D, 0);
+
+		m_curTlutFormat = tlutFormat;
+		m_curPaletteHash = newPaletteHash;
+	}
+
+	return reloadPalette;
+}
+
+TextureCache::TextureCache()
+	: m_virtCopyFramebuf(0)
+{
+	glGenFramebuffersEXT(1, &m_virtCopyFramebuf);
 }
 
 TextureCache::~TextureCache()
 {
-    if (s_TempFramebuffer)
-	{
-        glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
-        s_TempFramebuffer = 0;
-    }
+	glDeleteFramebuffersEXT(1, &m_virtCopyFramebuf);
+	m_virtCopyFramebuf = 0;
 }
 
-void TextureCache::DisableStage(unsigned int stage)
+TCacheEntry* TextureCache::CreateEntry()
 {
-	glActiveTexture(GL_TEXTURE0 + stage);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	return new TCacheEntry;
+}
+
+VirtualEFBCopy* TextureCache::CreateVirtualEFBCopy()
+{
+	return new VirtualEFBCopy;
+}
+
+u32 TextureCache::EncodeEFBToRAM(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
+	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+{
+	return TextureConverter::EncodeToRam(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 }
 
 }

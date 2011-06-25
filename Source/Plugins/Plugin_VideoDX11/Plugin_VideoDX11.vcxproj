@@ -195,6 +195,7 @@
     <ClCompile Include="Src\D3DShader.cpp" />
     <ClCompile Include="Src\D3DTexture.cpp" />
     <ClCompile Include="Src\D3DUtil.cpp" />
+    <ClCompile Include="Src\DepalettizeShader.cpp" />
     <ClCompile Include="Src\FramebufferManager.cpp" />
     <ClCompile Include="Src\GfxState.cpp" />
     <ClCompile Include="Src\LineGeometryShader.cpp" />
@@ -216,6 +217,7 @@
     <ClCompile Include="Src\TextureCache.cpp" />
     <ClCompile Include="Src\VertexManager.cpp" />
     <ClCompile Include="Src\VertexShaderCache.cpp" />
+    <ClCompile Include="Src\VirtualEFBCopy.cpp" />
     <ClCompile Include="Src\XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -224,6 +226,7 @@
     <ClInclude Include="Src\D3DShader.h" />
     <ClInclude Include="Src\D3DTexture.h" />
     <ClInclude Include="Src\D3DUtil.h" />
+    <ClInclude Include="Src\DepalettizeShader.h" />
     <ClInclude Include="Src\FramebufferManager.h" />
     <ClInclude Include="Src\GfxState.h" />
     <ClInclude Include="Src\Globals.h" />
@@ -240,6 +243,7 @@
     <ClInclude Include="Src\VertexManager.h" />
     <ClInclude Include="Src\VertexShaderCache.h" />
     <ClInclude Include="Src\VideoBackend.h" />
+    <ClInclude Include="Src\VirtualEFBCopy.h" />
     <ClInclude Include="Src\XFBEncoder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
