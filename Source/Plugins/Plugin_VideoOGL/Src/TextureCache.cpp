@@ -434,21 +434,18 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 		switch (tlutFormat)
 		{
 		case GX_TL_IA8:
-			WARN_LOG(VIDEO, "Depal with IA8 palette");
 			useInternalFormat = GL_LUMINANCE8_ALPHA8;
 			useFormat = GL_LUMINANCE_ALPHA;
 			useType = GL_UNSIGNED_BYTE;
 			DecodeIA8Palette((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB565:
-			WARN_LOG(VIDEO, "Depal with RGB565 palette");
 			useInternalFormat = GL_RGB;
 			useFormat = GL_RGB;
 			useType = GL_UNSIGNED_SHORT_5_6_5;
 			DecodeRGB565Palette((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB5A3:
-			WARN_LOG(VIDEO, "Depal with RGB5A3 palette");
 			useInternalFormat = 4;
 			useFormat = GL_RGBA;
 			useType = GL_UNSIGNED_BYTE;
