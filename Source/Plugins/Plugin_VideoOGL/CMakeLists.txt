@@ -1,4 +1,5 @@
-set(SRCS	Src/FramebufferManager.cpp
+set(SRCS	Src/Depalettizer.cpp
+			Src/FramebufferManager.cpp
 			Src/GLUtil.cpp
 			Src/main.cpp
 			Src/NativeVertexFormat.cpp
@@ -9,7 +10,8 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp
 			Src/VertexShaderCache.cpp
-			Src/VertexManager.cpp)
+			Src/VertexManager.cpp
+			Src/VirtualEFBCopy.cpp)
 
 set(LIBS	videocommon
 			GLEW

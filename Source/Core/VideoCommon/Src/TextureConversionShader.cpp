@@ -17,6 +17,8 @@
 
 #include "TextureConversionShader.h"
 
+#include <cmath>
+
 #include "EFBCopy.h"
 #include "PixelShaderGen.h"
 #include "RenderBase.h"

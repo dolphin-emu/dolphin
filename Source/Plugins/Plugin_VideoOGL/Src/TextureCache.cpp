@@ -117,7 +117,7 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// been deallocated by the game. We ought to delete copies that aren't
 			// being used.
 			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
-				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second))
 				refreshFromRam = false;
 		}
 		else

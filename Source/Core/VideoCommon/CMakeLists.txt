@@ -5,6 +5,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/CommandProcessor.cpp
 			Src/DLCache.cpp
 			Src/Debugger.cpp
+			Src/EFBCopy.cpp
 			Src/Fifo.cpp
 			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
@@ -24,6 +25,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/TextureCacheBase.cpp
 			Src/TextureConversionShader.cpp
 			Src/TextureDecoder.cpp
+			Src/Tmem.cpp
 			Src/VertexLoader.cpp
 			Src/VertexLoaderManager.cpp
 			Src/VertexLoader_Color.cpp

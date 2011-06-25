@@ -182,15 +182,23 @@ void XEventThread()
 							break;
 						case XK_5:
 							OSDChoice = 3;
-							// Toggle EFB copy
-							if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+							// Cycle through EFB Copy settings:
+							// RAM -> RAM+Virtual -> Disabled
+							if (!g_Config.bEFBCopyEnable)
 							{
-								g_Config.bEFBCopyEnable ^= true;
-								g_Config.bCopyEFBToTexture = false;
+								g_Config.bEFBCopyEnable = true;
+								g_Config.bEFBCopyRAMEnable = true;
+								g_Config.bEFBCopyVirtualEnable = false;
+							}
+							else if (!g_Config.bEFBCopyVirtualEnable)
+							{
+								g_Config.bEFBCopyVirtualEnable = true;
 							}
 							else
 							{
-								g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+								g_Config.bEFBCopyEnable = false;
+								g_Config.bEFBCopyRAMEnable = false;
+								g_Config.bEFBCopyVirtualEnable = false;
 							}
 							break;
 						case XK_6:

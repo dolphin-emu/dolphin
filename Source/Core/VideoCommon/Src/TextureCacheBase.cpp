@@ -40,6 +40,21 @@ TextureCacheBase::TextureCacheBase()
 	: m_validation(1)
 { }
 
+TextureCacheBase::~TextureCacheBase()
+{
+	for (VirtualEFBCopyMap::iterator it = m_virtCopyMap.begin(); it != m_virtCopyMap.end(); ++it)
+	{
+		delete it->second;
+	}
+	m_virtCopyMap.clear();
+
+	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it)
+	{
+		delete it->second;
+	}
+	m_map.clear();
+}
+
 void TextureCacheBase::Invalidate()
 {
 	++m_validation;
@@ -59,7 +74,7 @@ TCacheEntryBase* TextureCacheBase::LoadEntry(u32 ramAddr,
 	it->second->Refresh(ramAddr, width, height, levels, format, tlutAddr,
 		tlutFormat, m_validation);
 
-	return it->second.get();
+	return it->second;
 }
 
 void TextureCacheBase::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
@@ -76,7 +91,7 @@ void TextureCacheBase::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned i
 		if (encodeSize)
 		{
 			encodedHash = GetHash64(dst, encodeSize, encodeSize);
-			DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016X", dstAddr, encodedHash);
+			DEBUG_LOG(VIDEO, "Hash of EFB copy at 0x%.08X was taken... 0x%.016llX", dstAddr, encodedHash);
 		}
 	}
 	else if (g_ActiveConfig.bEFBCopyVirtualEnable)
@@ -103,7 +118,7 @@ void TextureCacheBase::EncodeEFB(u32 dstAddr, unsigned int dstFormat, unsigned i
 			virtIt = m_virtCopyMap.insert(std::make_pair(dstAddr, virt)).first;
 		}
 		else
-			virt = virtIt->second.get();
+			virt = virtIt->second;
 
 		virt->Update(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 		virt->SetHash(encodedHash);

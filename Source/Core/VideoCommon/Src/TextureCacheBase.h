@@ -69,9 +69,9 @@ protected:
 };
 
 // Map main RAM addresses to textures decoded from those addresses
-typedef std::map<u32, std::unique_ptr<TCacheEntryBase> > TCacheMap;
+typedef std::map<u32, TCacheEntryBase*> TCacheMap;
 // Map main RAM addresses to EFB copies performed to those addresses
-typedef std::map<u32, std::unique_ptr<VirtualEFBCopyBase> > VirtualEFBCopyMap;
+typedef std::map<u32, VirtualEFBCopyBase*> VirtualEFBCopyMap;
 
 class TextureCacheBase
 {
@@ -79,7 +79,7 @@ class TextureCacheBase
 public:
 
 	TextureCacheBase();
-	virtual ~TextureCacheBase() { }
+	virtual ~TextureCacheBase();
 
 	// FIXME: Game can invalidate certain regions of the cache...this function
 	// just invalidates the whole thing.
