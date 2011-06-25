@@ -101,7 +101,7 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 			// been deallocated by the game. We ought to delete copies that aren't
 			// being used.
 			if (LoadFromVirtualCopy(ramAddr, width, height, levels, format, tlutAddr,
-				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second.get()))
+				tlutFormat, invalidated, (VirtualEFBCopy*)virtIt->second))
 				refreshFromRam = false;
 		}
 		else
@@ -477,7 +477,7 @@ void TextureCache::TeardownDeviceObjects()
 	// TODO: Can we store virtual copies in D3DPOOL_MANAGED resources?
 	m_virtCopyMap.clear();
 	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it) {
-		((TCacheEntry*)it->second.get())->TeardownDeviceObjects();
+		((TCacheEntry*)it->second)->TeardownDeviceObjects();
 	}
 }
 
