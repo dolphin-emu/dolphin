@@ -303,7 +303,6 @@ u32 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
 
-    float sampleStride = scaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
 		(float)targetRect.left, (float)targetRect.top,
 		(float)targetRect.right, (float)targetRect.bottom,

@@ -73,7 +73,7 @@ static GLuint OpenGL_CreateShader(GLenum type, GLsizei count, const GLchar** str
 		result = 0;
 	}
 
-	GL_REPORT_ERROR();
+	(void)GL_REPORT_ERROR();
 	return result;
 }
 
@@ -92,7 +92,7 @@ static bool OpenGL_LinkProgram(GLuint program)
 		result = false;
 	}
 
-	GL_REPORT_ERROR();
+	(void)GL_REPORT_ERROR();
 	return result;
 }
 
@@ -261,7 +261,7 @@ bool Depalettizer::DepalProgram::Compile(const GLchar* numColorsLine)
 	uBaseLoc = glGetUniformLocation(program, "u_Base");
 	uPaletteLoc = glGetUniformLocation(program, "u_Palette");
 
-	GL_REPORT_ERROR();
+	(void)GL_REPORT_ERROR();
 
 	return true;
 }

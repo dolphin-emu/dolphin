@@ -300,13 +300,13 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 				}
 			}
 
-			if (actualWidth != mipWidth)
+			if (actualWidth != (int)mipWidth)
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, actualWidth);
 
 			glTexImage2D(GL_TEXTURE_2D, level, useInternalFormat, mipWidth, mipHeight, 0,
 				useFormat, useType, decodeTemp);
 
-			if (actualWidth != mipWidth)
+			if (actualWidth != (int)mipWidth)
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 			src += TexDecoder_GetTextureSizeInBytes(mipWidth, mipHeight, format);
@@ -494,9 +494,9 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 		
 		u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
 
-		GLint useInternalFormat;
-		GLenum useFormat;
-		GLenum useType;
+		GLint useInternalFormat = GL_RGB;
+		GLenum useFormat = GL_RGB;
+		GLenum useType = GL_UNSIGNED_BYTE;
 		switch (tlutFormat)
 		{
 		case GX_TL_IA8:

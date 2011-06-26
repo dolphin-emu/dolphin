@@ -118,7 +118,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 
     TexMode0& tm0 = texUnit.texMode0[subTexmap];
     TexImage0& ti0 = texUnit.texImage0[subTexmap];
-    TexTLUT& texTlut = texUnit.texTlut[subTexmap];
+    //TexTLUT& texTlut = texUnit.texTlut[subTexmap];
 
     u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;    
     u8 *imageSrc = Memory::GetPointer(imageBase);
@@ -126,7 +126,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 	int imageWidth = ti0.width;
 	int imageHeight = ti0.height;
 
-	int tlutAddress = texTlut.tmem_offset << 9;
+	//int tlutAddress = texTlut.tmem_offset << 9;
 	
 	// reduce sample location and texture size to mip level
 	// move texture pointer to mip location
@@ -174,7 +174,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
         int imageTPlus1 = imageT + 1;
         int fractT = t & 0x7f;
 
-        u8 sampledTex[4];
+        u8 sampledTex[4] = {0, 0, 0, 0};
         u32 texel[4];
 
         WrapCoord(imageS, tm0.wrap_s, imageWidth);
