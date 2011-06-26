@@ -180,16 +180,14 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
 	}
 }
 
-//returns bytes
-int TexDecoder_GetPaletteSize(int format)
+unsigned int TexDecoder_GetNumColors(u32 format)
 {
 	switch (format)
 	{
-	case GX_TF_C4: return 16 * 2;
-	case GX_TF_C8: return 256 * 2;
-	case GX_TF_C14X2: return 16384 * 2;
-	default:
-		return 0;
+	case GX_TF_C4: return 16;
+	case GX_TF_C8: return 256;
+	case GX_TF_C14X2: return 16384;
+	default: return 0;
 	}
 }
 
@@ -257,7 +255,50 @@ static inline u32 decodeIA8Swapped(u16 val)
 	return i | (i<<8) | (i<<16) | (a<<24);
 }
 
+void TexDecoder_Swap16(u16* dst, const u16* src, unsigned int count)
+{
+	// TODO: SSE-accelerated version
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		dst[i] = Common::swap16(src[i]);
+	}
+}
 
+void TexDecoder_DecodeIA8ToRGBA(u32* dst, const u16* src, unsigned int count) // src is big-endian
+{
+	// TODO: SSE-accelerated version
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		dst[i] = decodeIA8Swapped(src[i]);
+	}
+}
+
+void TexDecoder_DecodeRGB565ToRGBA(u32* dst, const u16* src, unsigned int count) // src is big-endian
+{
+	// TODO: SSE-accelerated version
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		dst[i] = decode565RGBA( Common::swap16(src[i]) );
+	}
+}
+
+void TexDecoder_DecodeRGB5A3ToRGBA(u32* dst, const u16* src, unsigned int count) // src is big-endian
+{
+	// TODO: SSE-accelerated version
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		dst[i] = decode5A3RGBA( Common::swap16(src[i]) );
+	}
+}
+
+void TexDecoder_DecodeRGB5A3ToBGRA(u32* dst, const u16* src, unsigned int count) // src is big-endian
+{
+	// TODO: SSE-accelerated version
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		dst[i] = decode5A3( Common::swap16(src[i]) );
+	}
+}
 
 struct DXTBlock
 {

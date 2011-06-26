@@ -195,7 +195,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 		// If format is C14X2, palette must be refreshed here. The GPU depalettizer
 		// does not support C14X2 yet.
-		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
 		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
 		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016llX", tlutAddr, newPaletteHash);
 
@@ -381,52 +381,6 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 	return true;
 }
 
-// TODO: Move this stuff into TextureDecoder or something
-
-static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		// FIXME: Do we need swap16?
-		dst[i] = src[i];
-	}
-}
-
-static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-		dst[i] = Common::swap16(src[i]);
-}
-
-static inline u32 decode5A3(u16 val)
-{
-	int r,g,b,a;
-	if ((val & 0x8000))
-	{
-		a = 0xFF;
-		r = Convert5To8((val >> 10) & 0x1F);
-		g = Convert5To8((val >> 5) & 0x1F);
-		b = Convert5To8(val & 0x1F);
-	}
-	else
-	{
-		a = Convert3To8((val >> 12) & 0x7);
-		r = Convert4To8((val >> 8) & 0xF);
-		g = Convert4To8((val >> 4) & 0xF);
-		b = Convert4To8(val & 0xF);
-	}
-	return (a << 24) | (b << 16) | (g << 8) | r;
-}
-
-// Decode to BGRA
-static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		dst[i] = decode5A3(Common::swap16(src[i]));
-	}
-}
-
 void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
@@ -503,19 +457,20 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 			useInternalFormat = GL_LUMINANCE8_ALPHA8;
 			useFormat = GL_LUMINANCE_ALPHA;
 			useType = GL_UNSIGNED_BYTE;
-			DecodeIA8Palette((u16*)decodeTemp, tlut, numColors);
+			// FIXME: Need byteswapping?
+			memcpy(decodeTemp, tlut, 2*numColors);
 			break;
 		case GX_TL_RGB565:
 			useInternalFormat = GL_RGB;
 			useFormat = GL_RGB;
 			useType = GL_UNSIGNED_SHORT_5_6_5;
-			DecodeRGB565Palette((u16*)decodeTemp, tlut, numColors);
+			TexDecoder_Swap16((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB5A3:
 			useInternalFormat = 4;
 			useFormat = GL_RGBA;
 			useType = GL_UNSIGNED_BYTE;
-			DecodeRGB5A3Palette((u32*)decodeTemp, tlut, numColors);
+			TexDecoder_DecodeRGB5A3ToRGBA((u32*)decodeTemp, tlut, numColors);
 			break;
 		}
 

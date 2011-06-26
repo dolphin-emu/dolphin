@@ -569,56 +569,6 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 }
 
-static void DecodeIA8Palette(u32* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		u8 intensity = src[i] & 0xFF;
-		u8 alpha = src[i] >> 8;
-		dst[i] = (alpha << 24) | (intensity << 16) | (intensity << 8) | intensity;
-	}
-}
-
-static void DecodeRGB565Palette(u32* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		u16 color = Common::swap16(src[i]);
-		u8 red8 = Convert5To8(color >> 11);
-		u8 green8 = Convert6To8((color >> 5) & 0x3F);
-		u8 blue8 = Convert5To8(color & 0x1F);
-		dst[i] = (0xFF << 24) | (blue8 << 16) | (green8 << 8) | red8;
-	}
-}
-
-static inline u32 decode5A3(u16 val)
-{
-	int r,g,b,a;
-	if ((val & 0x8000))
-	{
-		a = 0xFF;
-		r = Convert5To8((val >> 10) & 0x1F);
-		g = Convert5To8((val >> 5) & 0x1F);
-		b = Convert5To8(val & 0x1F);
-	}
-	else
-	{
-		a = Convert3To8((val >> 12) & 0x7);
-		r = Convert4To8((val >> 8) & 0xF);
-		g = Convert4To8((val >> 4) & 0xF);
-		b = Convert4To8(val & 0xF);
-	}
-	return (a << 24) | (b << 16) | (g << 8) | r;
-}
-
-static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		dst[i] = decode5A3(Common::swap16(src[i]));
-	}
-}
-
 bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
 {
@@ -629,7 +579,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 			CreatePaletteTexture(ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 		const u16* tlut = (const u16*)&g_texMem[tlutAddr];
-		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
 		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
 		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016X", tlutAddr, newPaletteHash);
 
@@ -644,9 +594,9 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 			{
 				switch (tlutFormat)
 				{
-				case GX_TL_IA8: DecodeIA8Palette((u32*)map.pData, tlut, numColors); break;
-				case GX_TL_RGB565: DecodeRGB565Palette((u32*)map.pData, tlut, numColors); break;
-				case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_IA8: TexDecoder_DecodeIA8ToRGBA((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_RGB565: TexDecoder_DecodeRGB565ToRGBA((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_RGB5A3: TexDecoder_DecodeRGB5A3ToRGBA((u32*)map.pData, tlut, numColors); break;
 				}
 				D3D::context->Unmap(m_palette, 0);
 			}

@@ -66,24 +66,17 @@ enum TlutFormat
 
 extern const char* const TEX_FORMAT_NAMES[16];
 
-inline unsigned int TexDecoder_GetNumColors(unsigned int format)
-{
-	unsigned int result;
-	switch (format)
-	{
-	case GX_TF_C4: result = 16; break;
-	case GX_TF_C8: result = 256; break;
-	case GX_TF_C14X2: result = 16384; break;
-	default: result = 0; break;
-	}
-	return result;
-}
-
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);
 int TexDecoder_GetBlockHeightInTexels(u32 format);
-int TexDecoder_GetPaletteSize(int fmt);
+unsigned int TexDecoder_GetNumColors(u32 format);
+
+void TexDecoder_Swap16(u16* dst, const u16* src, unsigned int count);
+void TexDecoder_DecodeIA8ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void TexDecoder_DecodeRGB565ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void TexDecoder_DecodeRGB5A3ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void TexDecoder_DecodeRGB5A3ToBGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 
 enum PC_TexFormat
 {

@@ -181,7 +181,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u64 newPaletteHash = m_curPaletteHash;
 	if (IsPaletted(format))
 	{
-		u32 paletteSize = TexDecoder_GetPaletteSize(format);
+		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
 		newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
 	}
 
@@ -359,54 +359,6 @@ void TCacheEntry::Depalettize(u32 ramAddr, u32 width, u32 height, u32 levels,
 	}
 }
 
-// TODO: Move this stuff into TextureDecoder or something
-
-// Decode to D3DFMT_A8L8
-static void DecodeIA8Palette(u16* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		// FIXME: Do we need swap16?
-		dst[i] = src[i];
-	}
-}
-
-// Decode to D3DFMT_R5G6B5
-static void DecodeRGB565Palette(u16* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-		dst[i] = Common::swap16(src[i]);
-}
-
-static inline u32 decode5A3(u16 val)
-{
-	int r,g,b,a;
-	if ((val & 0x8000))
-	{
-		a = 0xFF;
-		r = Convert5To8((val >> 10) & 0x1F);
-		g = Convert5To8((val >> 5) & 0x1F);
-		b = Convert5To8(val & 0x1F);
-	}
-	else
-	{
-		a = Convert3To8((val >> 12) & 0x7);
-		r = Convert4To8((val >> 8) & 0xF);
-		g = Convert4To8((val >> 4) & 0xF);
-		b = Convert4To8(val & 0xF);
-	}
-	return (a << 24) | (r << 16) | (g << 8) | b;
-}
-
-// Decode to D3DFMT_A8R8G8B8
-static void DecodeRGB5A3Palette(u32* dst, const u16* src, unsigned int numColors)
-{
-	for (unsigned int i = 0; i < numColors; ++i)
-	{
-		dst[i] = decode5A3(Common::swap16(src[i]));
-	}
-}
-
 bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 {
 	HRESULT hr;
@@ -456,9 +408,9 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 
 		switch (tlutFormat)
 		{
-		case GX_TL_IA8: DecodeIA8Palette((u16*)lock.pBits, tlut, numColors); break;
-		case GX_TL_RGB565: DecodeRGB565Palette((u16*)lock.pBits, tlut, numColors); break;
-		case GX_TL_RGB5A3: DecodeRGB5A3Palette((u32*)lock.pBits, tlut, numColors); break;
+		case GX_TL_IA8: memcpy(lock.pBits, tlut, 2*numColors); break; // FIXME: Need byteswapping?
+		case GX_TL_RGB565: TexDecoder_Swap16((u16*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB5A3: TexDecoder_DecodeRGB5A3ToBGRA((u32*)lock.pBits, tlut, numColors); break;
 		}
 
 		m_palette.tex->UnlockRect(0);
