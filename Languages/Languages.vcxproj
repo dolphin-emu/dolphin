@@ -62,7 +62,6 @@
   <ItemGroup>
     <msgfmt Include="po/ar.po" />
     <msgfmt Include="po/cs.po" />
-    <msgfmt Include="po/da.po" />
     <msgfmt Include="po/de.po" />
     <msgfmt Include="po/el.po" />
     <msgfmt Include="po/en.po" />
@@ -87,7 +86,6 @@
   <ItemGroup>
     <None Include="po/ar.po" />
     <None Include="po/cs.po" />
-    <None Include="po/da.po" />
     <None Include="po/de.po" />
     <None Include="po/el.po" />
     <CustomBuild Include="po/en.po">
