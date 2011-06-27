@@ -594,9 +594,9 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 			{
 				switch (tlutFormat)
 				{
-				case GX_TL_IA8: TexDecoder_DecodeIA8ToRGBA((u32*)map.pData, tlut, numColors); break;
-				case GX_TL_RGB565: TexDecoder_DecodeRGB565ToRGBA((u32*)map.pData, tlut, numColors); break;
-				case GX_TL_RGB5A3: TexDecoder_DecodeRGB5A3ToRGBA((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_IA8: DecodeTlut_IA8_To_IIIA((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_RGB565: DecodeTlut_RGB565_To_RGBA((u32*)map.pData, tlut, numColors); break;
+				case GX_TL_RGB5A3: DecodeTlut_RGB5A3_To_RGBA((u32*)map.pData, tlut, numColors); break;
 				}
 				D3D::context->Unmap(m_palette, 0);
 			}

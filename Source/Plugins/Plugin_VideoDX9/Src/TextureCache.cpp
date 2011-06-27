@@ -409,8 +409,8 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 		switch (tlutFormat)
 		{
 		case GX_TL_IA8: memcpy(lock.pBits, tlut, 2*numColors); break; // FIXME: Need byteswapping?
-		case GX_TL_RGB565: TexDecoder_Swap16((u16*)lock.pBits, tlut, numColors); break;
-		case GX_TL_RGB5A3: TexDecoder_DecodeRGB5A3ToBGRA((u32*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB565: DecodeTlut_Swap16((u16*)lock.pBits, tlut, numColors); break;
+		case GX_TL_RGB5A3: DecodeTlut_RGB5A3_To_BGRA((u32*)lock.pBits, tlut, numColors); break;
 		}
 
 		m_palette.tex->UnlockRect(0);

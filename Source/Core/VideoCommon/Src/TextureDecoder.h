@@ -72,11 +72,11 @@ int TexDecoder_GetBlockWidthInTexels(u32 format);
 int TexDecoder_GetBlockHeightInTexels(u32 format);
 unsigned int TexDecoder_GetNumColors(u32 format);
 
-void TexDecoder_Swap16(u16* dst, const u16* src, unsigned int count);
-void TexDecoder_DecodeIA8ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
-void TexDecoder_DecodeRGB565ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
-void TexDecoder_DecodeRGB5A3ToRGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
-void TexDecoder_DecodeRGB5A3ToBGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void DecodeTlut_Swap16(u16* dst, const u16* src, unsigned int count);
+void DecodeTlut_IA8_To_IIIA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void DecodeTlut_RGB565_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void DecodeTlut_RGB5A3_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+void DecodeTlut_RGB5A3_To_BGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 
 enum PC_TexFormat
 {

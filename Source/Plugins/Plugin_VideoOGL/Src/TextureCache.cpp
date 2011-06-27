@@ -464,13 +464,13 @@ bool TCacheEntry::RefreshPalette(u32 format, u32 tlutAddr, u32 tlutFormat)
 			useInternalFormat = GL_RGB;
 			useFormat = GL_RGB;
 			useType = GL_UNSIGNED_SHORT_5_6_5;
-			TexDecoder_Swap16((u16*)decodeTemp, tlut, numColors);
+			DecodeTlut_Swap16((u16*)decodeTemp, tlut, numColors);
 			break;
 		case GX_TL_RGB5A3:
 			useInternalFormat = 4;
 			useFormat = GL_RGBA;
 			useType = GL_UNSIGNED_BYTE;
-			TexDecoder_DecodeRGB5A3ToRGBA((u32*)decodeTemp, tlut, numColors);
+			DecodeTlut_RGB5A3_To_RGBA((u32*)decodeTemp, tlut, numColors);
 			break;
 		}
 
