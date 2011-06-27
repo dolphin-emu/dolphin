@@ -42,15 +42,15 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	mainX = mainY = cX = cY = 128;
-	lTrig = rTrig = 0;
-
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticBoxSizer* const main_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Main Stick"));
 	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	wx_mainX_s->SetMinSize(wxSize(100,-1));
 	wx_mainX_t = new wxTextCtrl(this, ID_MAIN_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
 	wx_mainX_t->SetMaxLength(3);
 	wx_mainY_s = new wxSlider(this, ID_MAIN_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	wx_mainY_s->SetMinSize(wxSize(-1,100));
 	wx_mainY_t = new wxTextCtrl(this, ID_MAIN_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
 	wx_mainY_t->SetMaxLength(3);
 	main_box->Add(wx_mainX_s, 0, wxALIGN_TOP);
@@ -60,9 +60,11 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 
 	wxStaticBoxSizer* const c_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("C Stick"));
 	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	wx_cX_s->SetMinSize(wxSize(100,-1));
 	wx_cX_t = new wxTextCtrl(this, ID_C_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
 	wx_cX_t->SetMaxLength(3);
 	wx_cY_s = new wxSlider(this, ID_C_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	wx_cY_s->SetMinSize(wxSize(-1,100));
 	wx_cY_t = new wxTextCtrl(this, ID_C_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
 	wx_cY_t->SetMaxLength(3);
 	c_box->Add(wx_cX_s, 0, wxALIGN_TOP);
@@ -72,9 +74,11 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 
 	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
 	wx_l_s = new wxSlider(this, ID_L_SLIDER, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	wx_l_s->SetMinSize(wxSize(-1,100));
 	wx_l_t = new wxTextCtrl(this, ID_L_TEXT, wxT("0"), wxDefaultPosition, wxSize(40, 20));
 	wx_l_t->SetMaxLength(3);
 	wx_r_s = new wxSlider(this, ID_R_SLIDER, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	wx_r_s->SetMinSize(wxSize(-1,100));
 	wx_r_t = new wxTextCtrl(this, ID_R_TEXT, wxT("0"), wxDefaultPosition, wxSize(40, 20));
 	wx_r_t->SetMaxLength(3);
 	shoulder_box->Add(wx_l_s, 0, wxALIGN_CENTER_VERTICAL);
@@ -82,12 +86,58 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	shoulder_box->Add(wx_r_s, 0, wxALIGN_CENTER_VERTICAL);
 	shoulder_box->Add(wx_r_t, 0, wxALIGN_CENTER_VERTICAL);
 
+	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
+	wxGridSizer* const buttons_grid = new wxGridSizer(4);
+	wx_a_button = new wxCheckBox(this,ID_A,_T("A"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_b_button = new wxCheckBox(this,ID_B,_T("B"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_x_button = new wxCheckBox(this,ID_X,_T("X"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_y_button = new wxCheckBox(this,ID_Y,_T("Y"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_l_button = new wxCheckBox(this,ID_L,_T("L"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_r_button = new wxCheckBox(this,ID_R,_T("R"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_z_button = new wxCheckBox(this,ID_Z,_T("Z"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_start_button = new wxCheckBox(this,ID_START,_T("Start"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	buttons_grid->Add(wx_a_button,false);
+	buttons_grid->Add(wx_b_button,false);
+	buttons_grid->Add(wx_x_button,false);
+	buttons_grid->Add(wx_y_button,false);
+	buttons_grid->Add(wx_l_button,false);
+	buttons_grid->Add(wx_r_button,false);
+	buttons_grid->Add(wx_z_button,false);
+	buttons_grid->Add(wx_start_button,false);
+	buttons_grid->AddSpacer(5);
+
+	wxGridSizer* const buttons_dpad = new wxGridSizer(3);
+	wx_up_button = new wxCheckBox(this,ID_UP,_T("Up"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_right_button = new wxCheckBox(this,ID_RIGHT,_T("Right"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_down_button = new wxCheckBox(this,ID_DOWN,_T("Down"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	wx_left_button = new wxCheckBox(this,ID_LEFT,_T("Left"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(wx_up_button,false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(wx_left_button,false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(wx_right_button,false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(wx_down_button,false);
+	buttons_dpad->AddSpacer(20);
+	buttons_box->Add(buttons_grid);
+	buttons_box->Add(buttons_dpad);
+
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
+	top_box->AddSpacer(5);
 	top_box->Add(main_box);
+	top_box->AddSpacer(5);
 	top_box->Add(c_box);
+	top_box->AddSpacer(5);
+	bottom_box->AddSpacer(5);
+	bottom_box->Add(shoulder_box);
+	bottom_box->AddSpacer(5);
+	bottom_box->Add(buttons_box);
+	bottom_box->AddSpacer(5);
 	main_szr->Add(top_box);
-	main_szr->Add(shoulder_box);
+	main_szr->Add(bottom_box);
 	SetSizerAndFit(main_szr);
+	ResetValues();
 }
 
 void TASInputDlg::ResetValues()
@@ -108,11 +158,28 @@ void TASInputDlg::ResetValues()
 	wx_cY_t->SetValue(wxT("128"));
 	wx_l_t->SetValue(wxT("0"));
 	wx_r_t->SetValue(wxT("0"));
+	
+	wx_up_button->SetValue(false);
+	wx_down_button->SetValue(false);
+	wx_left_button->SetValue(false);
+	wx_right_button->SetValue(false);
+	wx_a_button->SetValue(false);
+	wx_b_button->SetValue(false);
+	wx_x_button->SetValue(false);
+	wx_y_button->SetValue(false);
+	wx_l_button->SetValue(false);
+	wx_r_button->SetValue(false);
+	wx_z_button->SetValue(false);
+	wx_start_button->SetValue(false);
 }
 
 void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 {
 	if (!IsShown())
+		return;
+
+	// TODO: implement support for more controllers
+	if (controllerID != 0)
 		return;
 
 	PadStatus->stickX = mainX;
@@ -121,6 +188,79 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	PadStatus->substickY = cY;
 	PadStatus->triggerLeft = lTrig;
 	PadStatus->triggerRight = rTrig;
+
+	if(wx_up_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_UP;
+	else
+		PadStatus->button &= ~PAD_BUTTON_UP;
+
+	if(wx_down_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_DOWN;
+	else
+		PadStatus->button &= ~PAD_BUTTON_DOWN;
+
+	if(wx_left_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_LEFT;
+	else
+		PadStatus->button &= ~PAD_BUTTON_LEFT;
+
+	if(wx_right_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_RIGHT;
+	else
+		PadStatus->button &= ~PAD_BUTTON_RIGHT;
+
+	if(wx_a_button->IsChecked())
+	{
+		PadStatus->button |= PAD_BUTTON_A;
+		PadStatus->analogA = 0xFF;
+	}
+	else
+	{
+		PadStatus->button &= ~PAD_BUTTON_A;
+		PadStatus->analogA = 0x00;
+	}
+
+	if(wx_b_button->IsChecked())
+	{
+		PadStatus->button |= PAD_BUTTON_B;
+		PadStatus->analogB = 0xFF;
+	}
+	else
+	{
+		PadStatus->button &= ~PAD_BUTTON_B;
+		PadStatus->analogB = 0x00;
+	}
+
+	if(wx_x_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_X;
+	else
+		PadStatus->button &= ~PAD_BUTTON_X;
+
+	if(wx_y_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_Y;
+	else
+		PadStatus->button &= ~PAD_BUTTON_Y;
+
+	if(wx_l_button->IsChecked())
+		PadStatus->button |= PAD_TRIGGER_L;
+	else
+		PadStatus->button &= ~PAD_TRIGGER_L;
+
+	if(wx_r_button->IsChecked())
+		PadStatus->button |= PAD_TRIGGER_R;
+	else
+		PadStatus->button &= ~PAD_TRIGGER_R;
+
+	if(wx_z_button->IsChecked())
+		PadStatus->button |= PAD_TRIGGER_Z;
+	else
+		PadStatus->button &= ~PAD_TRIGGER_Z;
+
+	if(wx_start_button->IsChecked())
+		PadStatus->button |= PAD_BUTTON_START;
+	else
+		PadStatus->button &= ~PAD_BUTTON_START;
+	
 }
 
 void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)

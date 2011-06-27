@@ -58,9 +58,22 @@ class TASInputDlg : public wxDialog
 			ID_R_SLIDER,
 			ID_R_TEXT,
 			ID_CLOSE,
+			ID_UP,
+			ID_DOWN,
+			ID_LEFT,
+			ID_RIGHT,
+			ID_A,
+			ID_B,
+			ID_X,
+			ID_Y,
+			ID_Z,
+			ID_L,
+			ID_R,
+			ID_START,
 		};
 
 		wxSlider *wx_mainX_s, *wx_mainY_s, *wx_cX_s, *wx_cY_s, *wx_l_s, *wx_r_s;
+		wxCheckBox *wx_up_button, *wx_down_button, *wx_left_button, *wx_right_button, *wx_a_button, *wx_b_button, *wx_x_button, *wx_y_button, *wx_l_button, *wx_r_button, *wx_z_button, *wx_start_button;
 		wxTextCtrl *wx_mainX_t, *wx_mainY_t, *wx_cX_t, *wx_cY_t, *wx_l_t, *wx_r_t;
 
 		DECLARE_EVENT_TABLE();
