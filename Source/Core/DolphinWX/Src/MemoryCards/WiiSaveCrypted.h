@@ -30,7 +30,7 @@
 class CWiiSaveCrypted
 {
 public:
-	CWiiSaveCrypted(const char* FileName, u64 title = 0);
+	CWiiSaveCrypted(const char* FileName, u64 TitleID = 0);
 	~CWiiSaveCrypted();
 	void ReadHDR();
 	void ReadBKHDR();
@@ -50,17 +50,24 @@ private:
 	u8 SD_IV[0x10];
 	std::vector<std::string> FilesList;
 		 
-	char pathData_bin[2048],
-		 pathSavedir[2048],
-		 pathBanner_bin[2048], //should always be FULL_WII_USER_DIR "title/%08x/%08x/data/"
-		 pathRawSave[2048],
-		_saveGameString[5];
+	char pathData_bin[2048];
+
+	std::string BannerFilePath,
+				WiiTitlePath;
 
 	u8  IV[0x10],
 		*_encryptedData,
 		*_data,
 		md5_file[16],
 		md5_calc[16];
+
+	struct _keys
+	{
+	u8	NG_priv[0x1E],
+		NG_sig[0x3C],
+		NG_id[4],
+		NG_key_id[4];
+	}keys;
 
 	u32 _bannerSize,
 		_numberOfFiles,
@@ -69,7 +76,7 @@ private:
 		_fileSize,
 		_roundedfileSize;
 
-	u64 _saveGameTitle;
+	u64 m_TitleID;
 
 	bool b_valid,
 		b_tryAgain;
