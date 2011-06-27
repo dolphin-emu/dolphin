@@ -78,6 +78,10 @@ void DecodeTlut_RGB565_To_RGBA(u32* dst, const u16* src, unsigned int count); //
 void DecodeTlut_RGB5A3_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 void DecodeTlut_RGB5A3_To_BGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 
+void DecodeTexture_RGBA8_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
+void DecodeTexture_CMPR_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
+void DecodeTexture_CMPR_To_BGRA(u32* dst, const u8* src, unsigned int width, unsigned int height);
+
 enum PC_TexFormat
 {
 	PC_TEX_FMT_NONE = 0,
