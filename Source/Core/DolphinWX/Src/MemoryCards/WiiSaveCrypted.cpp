@@ -32,6 +32,7 @@ const u8 SDKey[16] =	{0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
 						 0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
 const u8 MD5_BLANKER[0x10] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
 						0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
+const u32 NG_id = 0x0403AC68;
 
 CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
  : m_TitleID(TitleID)
@@ -64,33 +65,6 @@ CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
 		
 		if (getPaths(true))
 		{
-			memset(&keys, 0, sizeof(_keys));
-			std::string keysdir = File::GetSysDirectory() + "/Wii/";
-			std::string NG_id = keysdir + "NG-id";
-			std::string NG_key_id = keysdir + "NG-key-id";
-			std::string NG_priv = keysdir + "NG-priv";
-			std::string NG_sig = keysdir + "NG-sig";
-			if (!File::Exists(NG_id) || !File::Exists(NG_key_id) ||
-				!File::Exists(NG_priv) ||!File::Exists(NG_sig))
-			{
-				if (!AskYesNoT("Wii Private Keys not found, the exported save will only work with dolphin\n Continue?"))
-				{
-					PanicAlertT("Key files not found, save will not copy to wii\nPlace NG-id, NG-key-id, NG-priv, and NG-sig in the folder\n%s", keysdir.c_str());
-					return;
-				}
-			}
-			else
-			{
-				File::IOFile fp_key(NG_id, "rb");
-				fp_key.ReadBytes(keys.NG_id, 4);
-				fp_key.Open(NG_key_id, "rb");
-				fp_key.ReadBytes(keys.NG_key_id, 4);
-				fp_key.Open(NG_priv, "rb");
-				fp_key.ReadBytes(keys.NG_priv, 30);
-				fp_key.Open(NG_sig, "rb");
-				fp_key.ReadBytes(keys.NG_sig, 60);
-			}
-
 			do
 			{
 				b_valid = true;
@@ -242,7 +216,7 @@ void CWiiSaveCrypted::WriteBKHDR()
 	memset(&bkhdr, 0, BK_SZ);
 	bkhdr.size = Common::swap32(BK_LISTED_SZ);
 	bkhdr.magic = Common::swap32(BK_HDR_MAGIC);
-	bkhdr.NGid = *(u32*)(keys.NG_id);
+	bkhdr.NGid = NG_id;
 	bkhdr.numberOfFiles = Common::swap32(_numberOfFiles);
 	bkhdr.sizeOfFiles = Common::swap32(_sizeOfFiles);
 	bkhdr.totalSize = Common::swap32(_sizeOfFiles + FULL_CERT_SZ);
@@ -427,10 +401,20 @@ void CWiiSaveCrypted::do_sig()
 	char name[64];
 	u8 *data;
 	u32 data_size;
+	
+	u32 NG_key_id = 0x6AAB8C59;
+
+	u8 NG_priv[30] = { 0, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4, 0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E, 0x56, 0x67, 0x70,
+					0x57, 0x55, 0x27, 0x38, 0xA3, 0x26, 0xC5, 0x46, 0x16, 0xF7, 0x62, 0xC9, 0xED, 0x73, 0xF2};
+
+	u8 NG_sig[0x3C] = {0, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82, 0x88, 0x63, 0x81, 0x1C, 0x00,
+					0x71, 0x12, 0xED, 0xB7, 0xFD, 0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,
+					0x00, 0x71, 0x8D, 0x82, 0x41, 0xEE, 0x45, 0x11, 0xC7, 0x3B, 0xAC, 0x08, 0xB6, 0x83, 0xDC,
+					0x05, 0xB8, 0xA8, 0x90, 0x1F, 0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8};
 
 	sprintf(signer, "Root-CA00000001-MS00000002");
-	sprintf(name, "NG%08x", Common::swap32(keys.NG_id));
-	make_ec_cert(ng_cert, keys.NG_sig, signer, name, keys.NG_priv, Common::swap32(keys.NG_key_id));
+	sprintf(name, "NG%08x", NG_id);
+	make_ec_cert(ng_cert, NG_sig, signer, name, NG_priv, NG_key_id);
 
 
 	memset(ap_priv, 0, sizeof ap_priv);
@@ -438,12 +422,12 @@ void CWiiSaveCrypted::do_sig()
 
 	memset(ap_sig, 81, sizeof ap_sig);	// temp
 
-	sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", Common::swap32(keys.NG_id));
+	sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
 	sprintf(name, "AP%08x%08x", 1, 2);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
 	sha1(ap_cert + 0x80, 0x100, hash);
-	generate_ecdsa(ap_sig, ap_sig + 30, keys.NG_priv, hash);
+	generate_ecdsa(ap_sig, ap_sig + 30, NG_priv, hash);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
 	data_size = Common::swap32(bkhdr.sizeOfFiles)  + 0x80;

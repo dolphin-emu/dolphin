@@ -61,14 +61,6 @@ private:
 		md5_file[16],
 		md5_calc[16];
 
-	struct _keys
-	{
-	u8	NG_priv[0x1E],
-		NG_sig[0x3C],
-		NG_id[4],
-		NG_key_id[4];
-	}keys;
-
 	u32 _bannerSize,
 		_numberOfFiles,
 		_sizeOfFiles,
