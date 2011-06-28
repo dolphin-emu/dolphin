@@ -263,7 +263,7 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat,
 
 	if (recreateTexture)
 	{
-		INFO_LOG(VIDEO, "Creating new storage for virtual efb copy: size %dx%d",
+		DEBUG_LOG(VIDEO, "Creating new storage for virtual efb copy: size %dx%d",
 			newVirtualW, newVirtualH);
 
 		SAFE_RELEASE(m_texture);
@@ -344,19 +344,9 @@ LPDIRECT3DTEXTURE9 VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height
 {
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
 	// reinterpret or fall back to RAM if necessary
-
-	static const char* DST_FORMAT_NAMES[] = {
-		"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
-		"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
-	};
-
-	static const char* TEX_FORMAT_NAMES[] = {
-		"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x7",
-		"C4", "C8", "C14X2", "0xB", "0xC", "0xD", "CMPR", "0xF"
-	};
 	
-	INFO_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
-		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
+	DEBUG_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
+		EFB_COPY_DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
 
 	return m_texture;
 }
@@ -372,7 +362,7 @@ void VirtualEFBCopy::VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int src
 	if (!shader)
 		return;
 
-	INFO_LOG(VIDEO, "Doing efb virtual shader");
+	DEBUG_LOG(VIDEO, "Doing efb virtual shader");
 
 	g_renderer->ResetAPIState();
 

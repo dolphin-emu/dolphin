@@ -120,13 +120,50 @@ void TCacheEntry::Load(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 void TCacheEntry::CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT d3dFormat)
 {
-	INFO_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
+	DEBUG_LOG(VIDEO, "Creating texture RAM storage %dx%d, %d levels",
 		width, height, levels);
 
 	SAFE_RELEASE(m_ramStorage.tex);
 	m_ramStorage.tex = D3D::CreateOnlyTexture2D(width, height, levels,
 		d3dFormat == D3DFMT_A8P8 ? D3DFMT_A8L8 : d3dFormat);
 	m_ramStorage.d3dFormat = d3dFormat;
+}
+
+static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	u32 Wsteps8 = (width + 7) / 8;
+
+	for (u32 y = 0; y < height; y += 8)
+	{
+		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
+			{
+				for (u32 ix = 0; ix < 4; ix++)
+				{
+					int val = src[4 * xStep + ix];
+					dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
+					dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
+				}
+			}
+		}
+	}
+}
+
+static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
+{
+	u32 Wsteps8 = (width + 7) / 8;
+
+	for (u32 y = 0; y < height; y += 4)
+	{
+		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+		{
+			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+			{
+				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
+			}
+		}
+	}
 }
 
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -139,36 +176,46 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	const u16* tlut = (const u16*)&g_texMem[tlutAddr];
 
 	bool dimsChanged = width != m_curWidth || height != m_curHeight || levels != m_curLevels;
-
-	PC_TexFormat pcFormat = GetPC_TexFormat(format, tlutFormat);
+	
 	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
 	bool swapRB = false;
-	switch (pcFormat)
+	if (format == GX_TF_C4 || format == GX_TF_C8)
 	{
-	case PC_TEX_FMT_BGRA32:
-		d3dFormat = D3DFMT_A8R8G8B8;
-		break;
-	case PC_TEX_FMT_RGBA32:
-		d3dFormat = D3DFMT_A8R8G8B8;
-		swapRB = true;
-		break;
-	case PC_TEX_FMT_I4_AS_I8:
-	case PC_TEX_FMT_I8:
-		d3dFormat = D3DFMT_A8P8; // Causes ReplaceTexture2D to convert from I8 to A8L8
-		break;
-	case PC_TEX_FMT_IA4_AS_IA8:
-	case PC_TEX_FMT_IA8:
-		d3dFormat = D3DFMT_A8L8;
-		break;
-	case PC_TEX_FMT_RGB565:
-		d3dFormat = D3DFMT_R5G6B5;
-		break;
-	case PC_TEX_FMT_DXT1:
-		d3dFormat = D3DFMT_DXT1;
-		break;
-	default:
-		ERROR_LOG(VIDEO, "Unknown PC format for texture format %d", format);
-		return;
+		m_loadedIsPaletted = true;
+		d3dFormat = D3DFMT_L8;
+	}
+	else
+	{
+		m_loadedIsPaletted = false;
+
+		PC_TexFormat pcFormat = GetPC_TexFormat(format, tlutFormat);
+		switch (pcFormat)
+		{
+		case PC_TEX_FMT_BGRA32:
+			d3dFormat = D3DFMT_A8R8G8B8;
+			break;
+		case PC_TEX_FMT_RGBA32:
+			d3dFormat = D3DFMT_A8R8G8B8;
+			swapRB = true;
+			break;
+		case PC_TEX_FMT_I4_AS_I8:
+		case PC_TEX_FMT_I8:
+			d3dFormat = D3DFMT_A8P8; // Causes ReplaceTexture2D to convert from I8 to A8L8
+			break;
+		case PC_TEX_FMT_IA4_AS_IA8:
+		case PC_TEX_FMT_IA8:
+			d3dFormat = D3DFMT_A8L8;
+			break;
+		case PC_TEX_FMT_RGB565:
+			d3dFormat = D3DFMT_R5G6B5;
+			break;
+		case PC_TEX_FMT_DXT1:
+			d3dFormat = D3DFMT_DXT1;
+			break;
+		default:
+			ERROR_LOG(VIDEO, "Unknown PC format for texture format %d", format);
+			return;
+		}
 	}
 
 	// Do we need to create a new D3D texture?
@@ -177,19 +224,24 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	if (recreateTexture)
 		CreateRamTexture(width, height, levels, d3dFormat);
 
-	// Do we need to refresh the palette?
-	u64 newPaletteHash = m_curPaletteHash;
-	if (IsPaletted(format))
-	{
-		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
-		newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
-	}
-
 	u64 newHash = m_curHash;
 
 	// TODO: Use a shader to depalettize textures, like the DX11 plugin
-	bool reloadTexture = recreateTexture || dimsChanged || format != m_curFormat ||
-		newPaletteHash != m_curPaletteHash || tlutFormat != m_curTlutFormat;
+	bool reloadTexture = recreateTexture || dimsChanged || format != m_curFormat;
+
+	if (format == GX_TF_C14X2)
+	{
+		// If format is C14X2, palette must be refreshed here. The GPU depalettizer
+		// does not support C14X2 yet.
+		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
+		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
+		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016llX", tlutAddr, newPaletteHash);
+
+		reloadTexture |= (newPaletteHash != m_curPaletteHash) || (tlutFormat != m_curTlutFormat);
+		m_curPaletteHash = newPaletteHash;
+		m_curTlutFormat = tlutFormat;
+	}
+
 	if (reloadTexture || invalidated)
 	{
 		// FIXME: Only the top-level mip is hashed.
@@ -208,10 +260,22 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		{
 			int actualWidth = (mipWidth + blockW-1) & ~(blockW-1);
 			int actualHeight = (mipHeight + blockH-1) & ~(blockH-1);
-
+			
 			u8* decodeTemp = ((TextureCache*)g_textureCache)->GetDecodeTemp();
-			PC_TexFormat pcFormat = TexDecoder_Decode(decodeTemp, src,
-				actualWidth, actualHeight, format, tlut, tlutFormat, false);
+
+			if (format == GX_TF_C4)
+			{
+				DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
+			}
+			else if (format == GX_TF_C8)
+			{
+				DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
+			}
+			else
+			{
+				TexDecoder_Decode(decodeTemp, src,
+					actualWidth, actualHeight, format, tlut, tlutFormat, false);
+			}
 
 			// Load decoded texture to graphics RAM
 			D3D::ReplaceTexture2D(m_ramStorage.tex, decodeTemp, mipWidth, mipHeight,
@@ -230,13 +294,8 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	m_curFormat = format;
 	m_curHash = newHash;
 
-	m_curPaletteHash = newPaletteHash;
-	m_curTlutFormat = tlutFormat;
-
 	m_loaded = m_ramStorage.tex;
 	m_loadedDirty = reloadTexture;
-	// TODO: Depalettize RAM textures
-	m_loadedIsPaletted = false;
 }
 
 bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -247,7 +306,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 		// Only make these checks if there is a RAM copy to fall back on.
 		if (width != virt->GetRealWidth() || height != virt->GetRealHeight() || levels != 1)
 		{
-			INFO_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");
+			DEBUG_LOG(VIDEO, "Virtual EFB copy was incompatible; falling back to RAM");
 			return false;
 		}
 	}
@@ -275,7 +334,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 
 		if (newHash != virt->GetHash())
 		{
-			INFO_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
+			DEBUG_LOG(VIDEO, "EFB copy may have been modified since encoding; falling back to RAM");
 			return false;
 		}
 	}
