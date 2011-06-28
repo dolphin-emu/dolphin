@@ -150,22 +150,6 @@ static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 	}
 }
 
-static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-			{
-				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
-			}
-		}
-	}
-}
-
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
@@ -269,7 +253,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 			}
 			else if (format == GX_TF_C8)
 			{
-				DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
+				DecodeTexture_Copy8(decodeTemp, src, actualWidth, actualHeight);
 			}
 			else
 			{

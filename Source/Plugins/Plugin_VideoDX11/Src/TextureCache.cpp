@@ -245,22 +245,6 @@ static void DecodeI4ToR8(u8* dst, const u8* src, u32 width, u32 height)
 	}
 }
 
-static void DecodeI8ToR8(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-			{
-				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
-			}
-		}
-	}
-}
-
 static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 {
 	u32 Wsteps8 = (width + 7) / 8;
@@ -282,26 +266,6 @@ static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
 	}
 }
 
-static void DecodeIA8ToRG8(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps4 = (width + 3) / 4;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-		{
-			for (u32 iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
-			{
-				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-				u16 *s = (u16 *)(src + 8 * xStep);
-				// Don't bother doing swap16. The unpack matrix will take care of it.
-				for(int j = 0; j < 4; j++)
-					*ptr++ = *s++;
-			}
-		}
-	}
-}
-
 static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 {
 	u32 Wsteps8 = (width + 7) / 8;
@@ -318,41 +282,6 @@ static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
 					dst[(y + iy) * width + x + ix * 2] = val >> 4;
 					dst[(y + iy) * width + x + ix * 2 + 1] = val & 0xF;
 				}
-			}
-		}
-	}
-}
-
-static void DecodeC8Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-			{
-				((u64*)(dst + (y + iy) * width + x))[0] = ((const u64*)(src + 8 * xStep))[0];
-			}
-		}
-	}
-}
-
-static void DecodeC14X2Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps4 = (width + 3) / 4;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-		{
-			for (u32 iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
-			{
-				u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-				u16 *s = (u16 *)(src + 8 * xStep);
-				for(int j = 0; j < 4; j++)
-					*ptr++ = (Common::swap16(*s++) & 0x3FFF);
 			}
 		}
 	}
@@ -403,7 +332,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
 			break;
 		case GX_TF_I8:
-			DecodeI8ToR8(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Copy8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
 			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
 			break;
@@ -413,7 +342,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
 			break;
 		case GX_TF_IA8:
-			DecodeIA8ToRG8(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Copy16((u16*)decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
 			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
 			break;
@@ -425,13 +354,13 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			break;
 		case GX_TF_C8:
 			// 8-bit indices
-			DecodeC8Base(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Copy8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
 			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;
 		case GX_TF_C14X2:
 			// 16-bit indices
-			DecodeC14X2Base(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Swap16((u16*)decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
 			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;

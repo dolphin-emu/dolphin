@@ -78,6 +78,16 @@ void DecodeTlut_RGB565_To_RGBA(u32* dst, const u16* src, unsigned int count); //
 void DecodeTlut_RGB5A3_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 void DecodeTlut_RGB5A3_To_BGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 
+// DecodeTexture_Copy8: Convert 8x4 texel blocks to linear form
+void DecodeTexture_Copy8(u8* dst, const u8* src, unsigned int width, unsigned int height);
+// DecodeTexture_Copy16: Convert 4x4 texel blocks to linear form
+void DecodeTexture_Copy16(u16* dst, const u8* src, unsigned int width, unsigned int height);
+// DecodeTexture_Swap16: Convert 4x4 texel blocks to linear form and perform swap16 on each texel
+void DecodeTexture_Swap16(u16* dst, const u8* src, unsigned int width, unsigned int height);
+
+void DecodeTexture_RGB565_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
+void DecodeTexture_RGB5A3_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
+void DecodeTexture_RGB5A3_To_BGRA(u32* dst, const u8* src, unsigned int width, unsigned int height);
 void DecodeTexture_RGBA8_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
 void DecodeTexture_CMPR_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
 void DecodeTexture_CMPR_To_BGRA(u32* dst, const u8* src, unsigned int width, unsigned int height);
