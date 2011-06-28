@@ -556,9 +556,9 @@ static void DecodeTexture_RGBA8_To_RGBA_SSSE3(u32* dst, const u8* src, unsigned 
 	unsigned int yBlocks = height / 4;
 
 	#pragma omp parallel for
-	for (unsigned int yb = 0; yb < yBlocks; ++yb)
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
 	{
-		for (unsigned int xb = 0; xb < xBlocks; ++xb)
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
 		{
 			const u8* blockSrc = &src[64*yb*xBlocks + 64*xb];
 			u32* blockDst = &dst[4*yb*width + 4*xb];
@@ -596,9 +596,9 @@ static void DecodeTexture_RGBA8_To_RGBA_SSE2(u32* dst, const u8* src, unsigned i
 	// JSD optimized with SSE2 intrinsics
 	// Produces a ~68% speed improvement over reference C implementation.
 	#pragma omp parallel for
-	for (unsigned int yb = 0; yb < yBlocks; ++yb)
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
 	{
-		for (unsigned int xb = 0; xb < xBlocks; ++xb)
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
 		{
 			const u8* blockSrc = &src[64*yb*xBlocks + 64*xb];
 			u32* blockDst = &dst[4*yb*width + 4*xb];
@@ -703,17 +703,17 @@ static void DecodeTexture_RGBA8_To_RGBA_Ref(u32* dst, const u8* src, unsigned in
 	unsigned int yBlocks = height / 4;
 
 	#pragma omp parallel for
-	for (unsigned int yb = 0; yb < yBlocks; ++yb)
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
 	{
-		for (unsigned int xb = 0; xb < xBlocks; ++xb)
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
 		{
 			const u8* arSrc = &src[64*yb*xBlocks + 64*xb];
 			const u8* gbSrc = &arSrc[32];
 			u32* blockDst = &dst[4*yb*width + 4*xb];
-			for (unsigned int subY = 0; subY < 4; ++subY)
+			for (int subY = 0; subY < 4; ++subY)
 			{
 				u32* subDst = &blockDst[subY*width];
-				for (unsigned int subX = 0; subX < 4; ++subX)
+				for (int subX = 0; subX < 4; ++subX)
 				{
 					const u8* ar = &arSrc[8*subY + 2*subX];
 					const u8* gb = &gbSrc[8*subY + 2*subX];
@@ -747,9 +747,9 @@ static void DecodeTexture_RGBA8_To_BGRA_SSSE3(u32* dst, const u8* src, unsigned 
 	unsigned int yBlocks = height / 4;
 
 	#pragma omp parallel for
-	for (unsigned int yb = 0; yb < yBlocks; ++yb)
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
 	{
-		for (unsigned int xb = 0; xb < xBlocks; ++xb)
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
 		{
 			const u8* blockSrc = &src[64*yb*xBlocks + 64*xb];
 			u32* blockDst = &dst[4*yb*width + 4*xb];
@@ -795,17 +795,17 @@ static void DecodeTexture_RGBA8_To_BGRA_Ref(u32* dst, const u8* src, unsigned in
 	unsigned int yBlocks = height / 4;
 
 	#pragma omp parallel for
-	for (unsigned int yb = 0; yb < yBlocks; ++yb)
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
 	{
-		for (unsigned int xb = 0; xb < xBlocks; ++xb)
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
 		{
 			const u8* arSrc = &src[64*yb*xBlocks + 64*xb];
 			const u8* gbSrc = &arSrc[32];
 			u32* blockDst = &dst[4*yb*width + 4*xb];
-			for (unsigned int subY = 0; subY < 4; ++subY)
+			for (int subY = 0; subY < 4; ++subY)
 			{
 				u32* subDst = &blockDst[subY*width];
-				for (unsigned int subX = 0; subX < 4; ++subX)
+				for (int subX = 0; subX < 4; ++subX)
 				{
 					const u8* ar = &arSrc[8*subY + 2*subX];
 					const u8* gb = &gbSrc[8*subY + 2*subX];
@@ -1166,9 +1166,9 @@ static void DecodeTexture_CMPR_To_RGBA_SSE2(u32* dst, const u8* src, unsigned in
 	// The x64 compiled reference C code is faster than the x86 compiled reference C code, but the SSE2 is
 	// faster than both.
 	#pragma omp parallel for
-	for (unsigned int yt = 0; yt < yTiles; ++yt)
+	for (int yt = 0; yt < (int)yTiles; ++yt)
 	{
-		for (unsigned int xt = 0; xt < xTiles; ++xt)
+		for (int xt = 0; xt < (int)xTiles; ++xt)
 		{
 			// We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
 			// This is ideal because a single DXT block contains 2 RGBA colors when decoded from their 16-bit.
@@ -1191,9 +1191,9 @@ static void DecodeTexture_CMPR_To_RGBA_Ref(u32* dst, const u8* src, unsigned int
 	unsigned int yTiles = height / 8;
 	
 	#pragma omp parallel for
-	for (unsigned int yt = 0; yt < yTiles; ++yt)
+	for (int yt = 0; yt < (int)yTiles; ++yt)
 	{
-		for (unsigned int xt = 0; xt < xTiles; ++xt)
+		for (int xt = 0; xt < (int)xTiles; ++xt)
 		{
 			const CMPRBlock* tileSrc = (const CMPRBlock*)&src[32*xTiles*yt + 32*xt];
 			u32* tileDst = &dst[8*yt*width + 8*xt];
@@ -1225,9 +1225,9 @@ static void DecodeTexture_CMPR_To_BGRA_Ref(u32* dst, const u8* src, unsigned int
 	unsigned int yTiles = height / 8;
 	
 	#pragma omp parallel for
-	for (unsigned int yt = 0; yt < yTiles; ++yt)
+	for (int yt = 0; yt < (int)yTiles; ++yt)
 	{
-		for (unsigned int xt = 0; xt < xTiles; ++xt)
+		for (int xt = 0; xt < (int)xTiles; ++xt)
 		{
 			const CMPRBlock* tileSrc = (const CMPRBlock*)&src[32*xTiles*yt + 32*xt];
 			u32* tileDst = &dst[8*yt*width + 8*xt];
