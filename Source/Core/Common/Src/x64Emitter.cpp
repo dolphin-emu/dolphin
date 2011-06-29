@@ -224,6 +224,12 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 				mod = 1; //8-bit displacement
 			}
 		}
+		else if (scale >= SCALE_NOBASE_2 && scale <= SCALE_NOBASE_8)
+		{
+			SIB = true;
+			mod = 0;
+			_offsetOrBaseReg = 5;
+		}
 		else //if (scale != SCALE_ATREG)
 		{
 			if ((_offsetOrBaseReg & 7) == 4) //this would occupy the SIB encoding :(
@@ -275,11 +281,14 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		int ss;
 		switch (scale)
 		{
-		case 0: _offsetOrBaseReg = 4; ss = 0; break; //RSP 
-		case 1: ss = 0; break;
-		case 2: ss = 1; break;
-		case 4: ss = 2; break;
-		case 8: ss = 3; break;
+		case SCALE_NONE: _offsetOrBaseReg = 4; ss = 0; break; //RSP 
+		case SCALE_1: ss = 0; break;
+		case SCALE_2: ss = 1; break;
+		case SCALE_4: ss = 2; break;
+		case SCALE_8: ss = 3; break;
+		case SCALE_NOBASE_2: ss = 1; break;
+		case SCALE_NOBASE_4: ss = 2; break;
+		case SCALE_NOBASE_8: ss = 3; break;
 		case SCALE_ATREG: ss = 0; break;
 		default: _assert_msg_(DYNA_REC, 0, "Invalid scale for SIB byte"); ss = 0; break;
 		}
@@ -290,7 +299,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	{
 		emit->Write8((u8)(s8)(s32)offset);
 	}
-	else if (mod == 2) //32-bit disp
+	else if (mod == 2 || (scale >= SCALE_NOBASE_2 && scale <= SCALE_NOBASE_8)) //32-bit disp
 	{
 		emit->Write32((u32)offset);
 	}

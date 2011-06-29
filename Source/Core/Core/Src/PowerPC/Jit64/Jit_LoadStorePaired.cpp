@@ -110,23 +110,22 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	MOVZX(32, 8, EDX, R(AL));
 	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!
 #ifdef _M_IX86
-	int addr_shift = 2;
+	int addr_scale = SCALE_4;
 #else
-	int addr_shift = 3;
+	int addr_scale = SCALE_8;
 #endif
-	SHL(32, R(EDX), Imm8(addr_shift));
 	if (inst.W) {
 		// One value
 		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
 		ABI_AlignStack(0);
-		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.singleStoreQuantized));
+		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.singleStoreQuantized));
 		ABI_RestoreStack(0);
 	} else {
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
 		ABI_AlignStack(0);
-		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
+		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedStoreQuantized));
 		ABI_RestoreStack(0);
 	}
 	gpr.UnlockAll();
@@ -169,14 +168,13 @@ void Jit64::psq_l(UGeckoInstruction inst)
 		MOV(32, gpr.R(inst.RA), R(ECX));
 	MOVZX(32, 16, EAX, M(((char *)&GQR(inst.I)) + 2));
 	MOVZX(32, 8, EDX, R(AL));
-	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
 #ifdef _M_IX86
-	SHL(32, R(EDX), Imm8(2));
+	int addr_scale = SCALE_4;
 #else
-	SHL(32, R(EDX), Imm8(3));
+	int addr_scale = SCALE_8;
 #endif
 	ABI_AlignStack(0);
-	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedLoadQuantized));
+	CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedLoadQuantized));
 	ABI_RestoreStack(0);
 
 //	MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access

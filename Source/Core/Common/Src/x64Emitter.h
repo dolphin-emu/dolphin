@@ -83,6 +83,10 @@ enum
 	SCALE_4 = 4,
 	SCALE_8 = 8,
 	SCALE_ATREG = 16,
+	//SCALE_NOBASE_1 is not supported and can be replaced with SCALE_ATREG
+	SCALE_NOBASE_2 = 34,
+	SCALE_NOBASE_4 = 36,
+	SCALE_NOBASE_8 = 40,
 	SCALE_RIP = 0xFF,
 	SCALE_IMM8  = 0xF0,
 	SCALE_IMM16 = 0xF1,
@@ -175,6 +179,12 @@ inline OpArg MDisp(X64Reg value, int offset) {
 }
 inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset) {
 	return OpArg(offset, scale, base, scaled);
+}
+inline OpArg MScaled(X64Reg scaled, int scale, int offset) {
+	if (scale == SCALE_1)
+		return OpArg(offset, SCALE_ATREG, scaled);
+	else
+		return OpArg(offset, scale | 0x20, INVALID_REG, scaled);
 }
 inline OpArg MRegSum(X64Reg base, X64Reg offset) {
 	return MComplex(base, offset, 1, 0);
