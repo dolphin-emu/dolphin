@@ -222,72 +222,7 @@ void TCacheEntry::CreateRamTexture(DXGI_FORMAT dxFormat, UINT width, UINT height
 	m_ramStorage.levels = levels;
 }
 
-// TODO: Move this stuff into TextureDecoder.cpp, use SSE versions
-
-static void DecodeI4ToR8(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 8)
-	{
-		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
-			{
-				for (int ix = 0; ix < 4; ix++)
-				{
-					int val = src[4 * xStep + ix];
-					dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
-					dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
-				}
-			}
-		}
-	}
-}
-
-static void DecodeIA4ToRG8(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 4)
-	{
-		for (u32 x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-			{
-				for (int ix = 0; ix < 8; ++ix)
-				{
-					u8 val = src[8 * xStep + ix];
-					dst[((y + iy) * width + x + ix) * 2] = Convert4To8(val >> 4);
-					dst[((y + iy) * width + (x + ix)) * 2 + 1] = Convert4To8(val & 0xF);
-				}
-			}
-		}
-	}
-}
-
-static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 8)
-	{
-		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
-			{
-				for (u32 ix = 0; ix < 4; ix++)
-				{
-					int val = src[4 * xStep + ix];
-					dst[(y + iy) * width + x + ix * 2] = val >> 4;
-					dst[(y + iy) * width + x + ix * 2 + 1] = val & 0xF;
-				}
-			}
-		}
-	}
-}
-
-static const float UNPACK_R_TO_I_MATRIX[16] = {
+static const float UNPACK_R_TO_I_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	1, 0, 0, 0,
@@ -295,11 +230,11 @@ static const float UNPACK_R_TO_I_MATRIX[16] = {
 };
 
 // FIXME: Is this backwards? I can't find a good way to test!
-static const float UNPACK_GR_TO_IA_MATRIX[16] = {
-	0, 1, 0, 0,
-	0, 1, 0, 0,
-	0, 1, 0, 0,
-	1, 0, 0, 0
+static const float UNPACK_RG_TO_IA_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	0, 1, 0, 0
 };
 
 void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
@@ -327,7 +262,7 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		switch (format)
 		{
 		case GX_TF_I4:
-			DecodeI4ToR8(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Scale4To8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
 			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
 			break;
@@ -337,18 +272,18 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 			Matrix44::Set(m_unpackMatrix, UNPACK_R_TO_I_MATRIX);
 			break;
 		case GX_TF_IA4:
-			DecodeIA4ToRG8(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_IA4_To_L8A8((u16*)decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
-			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
+			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
 			break;
 		case GX_TF_IA8:
 			DecodeTexture_Copy16((u16*)decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
-			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
+			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
 			break;
 		case GX_TF_C4:
 			// 4-bit indices (expanded to 8 bits)
-			DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
+			DecodeTexture_Copy4To8(decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = actualWidth;
 			Matrix44::LoadIdentity(m_unpackMatrix);
 			break;

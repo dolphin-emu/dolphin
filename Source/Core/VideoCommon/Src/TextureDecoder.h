@@ -76,14 +76,22 @@ void DecodeTlut_Swap16(u16* dst, const u16* src, unsigned int count);
 void DecodeTlut_IA8_To_IIIA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 void DecodeTlut_RGB565_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 void DecodeTlut_RGB5A3_To_RGBA(u32* dst, const u16* src, unsigned int count); // src is big-endian
+// BGRA: Each texel appears as B G R A in memory, so this is compatible with D3DFMT_A8R8G8B8.
 void DecodeTlut_RGB5A3_To_BGRA(u32* dst, const u16* src, unsigned int count); // src is big-endian
 
+// DecodeTexture_Copy4To8: Convert 8x8 texel blocks to linear form, zero-extending 4-bit texels to 8 bits
+void DecodeTexture_Copy4To8(u8* dst, const u8* src, unsigned int width, unsigned int height);
+// DecodeTexture_Scale4To8: Convert 8x8 texel blocks to linear form, scaling 4-bit texels to 8 bits
+void DecodeTexture_Scale4To8(u8* dst, const u8* src, unsigned int width, unsigned int height);
 // DecodeTexture_Copy8: Convert 8x4 texel blocks to linear form
 void DecodeTexture_Copy8(u8* dst, const u8* src, unsigned int width, unsigned int height);
 // DecodeTexture_Copy16: Convert 4x4 texel blocks to linear form
 void DecodeTexture_Copy16(u16* dst, const u8* src, unsigned int width, unsigned int height);
 // DecodeTexture_Swap16: Convert 4x4 texel blocks to linear form and perform swap16 on each texel
 void DecodeTexture_Swap16(u16* dst, const u8* src, unsigned int width, unsigned int height);
+
+// L8A8: Each texel appears as L A in memory, so this is compatible with D3DFMT_A8L8.
+void DecodeTexture_IA4_To_L8A8(u16* dst, const u8* src, unsigned int width, unsigned int height);
 
 void DecodeTexture_RGB565_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);
 void DecodeTexture_RGB5A3_To_RGBA(u32* dst, const u8* src, unsigned int width, unsigned int height);

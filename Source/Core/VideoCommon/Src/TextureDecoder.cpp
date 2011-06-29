@@ -475,18 +475,6 @@ static inline void DepalC14X2_RGB565_To_RGBA(u32* dst, const u16* src, const u16
 	}
 }
 
-// Needs more speed.
-inline void decodebytesIA4(u16 *dst, const u8 *src)
-{
-	for (int x = 0; x < 8; x++)
-	{
-		const u8 val = src[x];
-		u8 a = Convert4To8(val >> 4);
-		u8 l = Convert4To8(val & 0xF);
-		dst[x] = (a << 8) | l;
-	}
-}
-
 inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 {
 	for (int x = 0; x < 8; x++)
@@ -505,6 +493,68 @@ inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 // of 16 in the aligned case.
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
+
+void DecodeTexture_Copy4To8(u8* dst, const u8* src, unsigned int width, unsigned int height)
+{
+	_assert_msg_(VIDEO, width % 8 == 0 && height % 8 == 0,
+		"DecodeTexture_Copy4To8 must be called with rounded dimensions.");
+
+	unsigned int xBlocks = width / 8;
+	unsigned int yBlocks = height / 8;
+
+	// TODO: SSE-accelerated version
+	#pragma omp parallel for
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
+	{
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
+		{
+			u8* blockDst = &dst[8*yb*width + 8*xb];
+			const u8* blockSrc = &src[32*yb*xBlocks + 32*xb];
+			for (int subY = 0; subY < 8; ++subY)
+			{
+				u8* rowDst = &blockDst[subY*width];
+				const u8* rowSrc = &blockSrc[4*subY];
+				for (int subX = 0; subX < 4; ++subX)
+				{
+					u8 t = rowSrc[subX];
+					rowDst[2*subX+0] = t >> 4;
+					rowDst[2*subX+1] = t & 0xF;
+				}
+			}
+		}
+	}
+}
+
+void DecodeTexture_Scale4To8(u8* dst, const u8* src, unsigned int width, unsigned int height)
+{
+	_assert_msg_(VIDEO, width % 8 == 0 && height % 8 == 0,
+		"DecodeTexture_Scale4To8 must be called with rounded dimensions.");
+
+	unsigned int xBlocks = width / 8;
+	unsigned int yBlocks = height / 8;
+
+	// TODO: SSE-accelerated version
+	#pragma omp parallel for
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
+	{
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
+		{
+			u8* blockDst = &dst[8*yb*width + 8*xb];
+			const u8* blockSrc = &src[32*yb*xBlocks + 32*xb];
+			for (int subY = 0; subY < 8; ++subY)
+			{
+				u8* rowDst = &blockDst[subY*width];
+				const u8* rowSrc = &blockSrc[4*subY];
+				for (int subX = 0; subX < 4; ++subX)
+				{
+					u8 t = rowSrc[subX];
+					rowDst[2*subX+0] = Convert4To8(t >> 4);
+					rowDst[2*subX+1] = Convert4To8(t & 0xF);
+				}
+			}
+		}
+	}
+}
 
 void DecodeTexture_Copy8(u8* dst, const u8* src, unsigned int width, unsigned int height)
 {
@@ -584,6 +634,38 @@ void DecodeTexture_Swap16(u16* dst, const u8* src, unsigned int width, unsigned 
 
 	// TODO: SSE-accelerated version
 	DecodeTexture_Swap16_Ref(dst, src, width, height);
+}
+
+void DecodeTexture_IA4_To_L8A8(u16* dst, const u8* src, unsigned int width, unsigned int height)
+{
+	_assert_msg_(VIDEO, width % 8 == 0 && height % 4 == 0,
+		"DecodeTexture_IA4_To_L8A8 must be called with rounded dimensions.");
+	
+	unsigned int xBlocks = width / 8;
+	unsigned int yBlocks = height / 4;
+
+	// TODO: SSE-accelerated version
+	#pragma omp parallel for
+	for (int yb = 0; yb < (int)yBlocks; ++yb)
+	{
+		for (int xb = 0; xb < (int)xBlocks; ++xb)
+		{
+			u16* blockDst = &dst[4*yb*width + 8*xb];
+			const u8* blockSrc = &src[32*yb*xBlocks + 32*xb];
+			for (int subY = 0; subY < 4; ++subY)
+			{
+				u16* rowDst = &blockDst[subY*width];
+				const u8* rowSrc = &blockSrc[8*subY];
+				for (int subX = 0; subX < 8; ++subX)
+				{
+					u8 t = rowSrc[subX];
+					u8 a = Convert4To8(t >> 4);
+					u8 l = Convert4To8(t & 0xF);
+					rowDst[subX] = (a << 8) | l;
+				}
+			}
+		}
+	}
 }
 
 static void DecodeTexture_RGB565_To_RGBA_SSE2(u32* dst, const u8* src, unsigned int width, unsigned int height)
@@ -1809,19 +1891,8 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_I4:
-		{
-			#pragma omp parallel for
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
-						for (int ix = 0; ix < 4; ix++)
-						{
-							u8 val = src[4 * xStep + ix];
-							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
-							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
-						}
-		}
-	   return PC_TEX_FMT_I4_AS_I8;
+		DecodeTexture_Scale4To8(dst, src, width, height);
+		return PC_TEX_FMT_I4_AS_I8;
 	case GX_TF_I8:  // speed critical
 		DecodeTexture_Copy8(dst, src, width, height);
 		return PC_TEX_FMT_I8;
@@ -1858,13 +1929,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
 	case GX_TF_IA4:
-		{
-			#pragma omp parallel for
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesIA4((u16*)dst + (y + iy) * width + x, src + 8 * xStep);
-		}
+		DecodeTexture_IA4_To_L8A8((u16*)dst, src, width, height);
 		return PC_TEX_FMT_IA4_AS_IA8;
 	case GX_TF_IA8:
 		DecodeTexture_Swap16((u16*)dst, src, width, height);

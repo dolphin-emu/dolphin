@@ -129,27 +129,6 @@ void TCacheEntry::CreateRamTexture(u32 width, u32 height, u32 levels, D3DFORMAT 
 	m_ramStorage.d3dFormat = d3dFormat;
 }
 
-static void DecodeC4Base(u8* dst, const u8* src, u32 width, u32 height)
-{
-	u32 Wsteps8 = (width + 7) / 8;
-
-	for (u32 y = 0; y < height; y += 8)
-	{
-		for (u32 x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-		{
-			for (u32 iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
-			{
-				for (u32 ix = 0; ix < 4; ix++)
-				{
-					int val = src[4 * xStep + ix];
-					dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
-					dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
-				}
-			}
-		}
-	}
-}
-
 void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat, bool invalidated)
 {
@@ -249,7 +228,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 
 			if (format == GX_TF_C4)
 			{
-				DecodeC4Base(decodeTemp, src, actualWidth, actualHeight);
+				DecodeTexture_Scale4To8(decodeTemp, src, actualWidth, actualHeight);
 			}
 			else if (format == GX_TF_C8)
 			{
