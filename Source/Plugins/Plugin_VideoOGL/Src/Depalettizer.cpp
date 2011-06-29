@@ -111,8 +111,8 @@ static const char DEPALETTIZE_FS[] =
 "void main()\n"
 "{\n"
 	"float sample = texture2D(u_Base, gl_TexCoord[0].xy).r;\n"
-	"float index = floor(sample * (NUM_COLORS-1));\n"
-	"gl_FragColor = texture1D(u_Palette, (index + 0.5) / NUM_COLORS);\n"
+	"float index = floor(sample * float(NUM_COLORS-1));\n"
+	"gl_FragColor = texture1D(u_Palette, (index + 0.5) / float(NUM_COLORS));\n"
 "}\n"
 ;
 
