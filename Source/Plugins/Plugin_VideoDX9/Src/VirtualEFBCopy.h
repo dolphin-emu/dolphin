@@ -73,8 +73,7 @@ public:
 private:
 
 	void VirtualizeShade(LPDIRECT3DTEXTURE9 texSrc, unsigned int srcFormat,
-		bool yuva, bool scale,
-		const EFBRectangle& srcRect,
+		bool scale, const EFBRectangle& srcRect,
 		unsigned int virtualW, unsigned int virtualH,
 		const float* colorMatrix, const float* colorAdd);
 	

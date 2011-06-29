@@ -73,8 +73,7 @@ private:
 	void EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT dxFormat);
 
 	void VirtualizeShade(D3DTexture2D* srcTex, unsigned int srcFormat,
-		bool yuva, bool scale,
-		unsigned int posX, unsigned int posY,
+		bool scale, unsigned int posX, unsigned int posY,
 		unsigned int virtualW, unsigned int virtualH,
 		const float* colorMatrix, const float* colorAdd);
 

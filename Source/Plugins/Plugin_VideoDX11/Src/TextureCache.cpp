@@ -185,7 +185,7 @@ void TCacheEntry::LoadFromRam(u32 ramAddr, u32 width, u32 height, u32 levels,
 		u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 		newHash = GetHash64(src, sizeInBytes, sizeInBytes);
 		reloadTexture |= (newHash != m_curHash);
-		DEBUG_LOG(VIDEO, "Hash of texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+		DEBUG_LOG(VIDEO, "Hash of texture at 0x%.08X was taken... 0x%.016llX", ramAddr, newHash);
 	}
 
 	if (reloadTexture)
@@ -408,7 +408,7 @@ bool TCacheEntry::LoadFromVirtualCopy(u32 ramAddr, u32 width, u32 height, u32 le
 			// We made a RAM copy, so check its hash for changes
 			u32 sizeInBytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 			newHash = GetHash64(src, sizeInBytes, sizeInBytes);
-			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016X", ramAddr, newHash);
+			DEBUG_LOG(VIDEO, "Hash of TCL'ed texture at 0x%.08X was taken... 0x%.016llX", ramAddr, newHash);
 		}
 		else
 		{
@@ -510,7 +510,7 @@ bool TCacheEntry::RefreshTlut(u32 ramAddr, u32 width, u32 height, u32 levels,
 		const u16* tlut = (const u16*)&g_texMem[tlutAddr];
 		u32 paletteSize = 2*TexDecoder_GetNumColors(format);
 		u64 newPaletteHash = GetHash64((const u8*)tlut, paletteSize, paletteSize);
-		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016X", tlutAddr, newPaletteHash);
+		DEBUG_LOG(VIDEO, "Hash of tlut at 0x%.05X was taken... 0x%.016llX", tlutAddr, newPaletteHash);
 
 		bool reloadPalette = recreatePaletteTex || tlutFormat != m_curTlutFormat || newPaletteHash != m_curPaletteHash;
 		if (reloadPalette)

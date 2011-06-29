@@ -51,7 +51,6 @@ struct VirtCopyShaderParams
 	FLOAT Matrix[4*4];
 	FLOAT Add[4];
 	FLOAT Pos[2]; // Top-left of source in texels
-	BOOL DisableAlpha; // If true, alpha will read as 1 from the source
 };
 
 union VirtCopyShaderParams_Padded
@@ -71,7 +70,6 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 		"float4x4 Matrix;\n"
 		"float4 Add;\n"
 		"float2 Pos;\n"
-		"bool DisableAlpha;\n"
 	"} Params;\n"
 "}\n"
 
@@ -134,8 +132,6 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 "void main(out float4 ocol0 : SV_Target, in float4 pos : SV_Position)\n"
 "{\n"
 	"float4 pixel = ScaledFetch(pos.xy);\n"
-	"if (Params.DisableAlpha)\n"
-		"pixel.a = 1;\n"
 	"ocol0 = mul(pixel, Params.Matrix) + Params.Add;\n"
 "}\n"
 ;
@@ -180,11 +176,21 @@ VirtualEFBCopy::Texture::~Texture()
 	SAFE_RELEASE(tex);
 }
 
+// FIXME: Most of these don't need to be full 4x4 matrices, but the shader needs it.
+
+// Four-component matrices
+
 static const float RGBA_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	0, 1, 0, 0,
 	0, 0, 1, 0,
 	0, 0, 0, 1
+};
+static const float YUVA_MATRIX[4*4] = {
+	 0.257f,  0.504f,  0.098f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f,
+	    0.f,     0.f,     0.f, 1.f
 };
 
 static const float RGB0_MATRIX[4*4] = {
@@ -193,60 +199,129 @@ static const float RGB0_MATRIX[4*4] = {
 	0, 0, 1, 0,
 	0, 0, 0, 0
 };
+static const float YUV0_MATRIX[4*4] = {
+	 0.257f,  0.504f,  0.098f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f,
+	    0.f,     0.f,     0.f, 0.f
+};
 
-// FIXME: These don't need to be full 4x4 matrices. But the shader needs it.
-static const float PACK_RA_TO_RG_MATRIX[4*4] = {
+static const float ZERO_MATRIX[4*4] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+// Two-component matrices
+
+// FIXME: Should RA be switched to AR?
+static const float RA_TO_RG_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	0, 0, 0, 1,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
+static const float YA_TO_RG_MATRIX[4*4] = {
+	0.257f, 0.504f, 0.098f, 0.f,
+	   0.f,    0.f,    0.f, 1.f,
+	   0.f,    0.f,    0.f, 0.f,
+	   0.f,    0.f,    0.f, 0.f,
+};
 
-static const float PACK_A_TO_R_MATRIX[4*4] = {
+// FIXME: Should RG be switched to GR?
+static const float RG_TO_RG_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+static const float YU_TO_RG_MATRIX[4*4] = {
+	 0.257f,  0.504f, 0.098f, 0.f,
+	-0.148f, -0.291f, 0.439f, 0.f,
+	    0.f,     0.f,    0.f, 0.f,
+	    0.f,     0.f,    0.f, 0.f,
+};
+
+// FIXME: Should GB be switched to BG?
+static const float GB_TO_RG_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+static const float UV_TO_RG_MATRIX[4*4] = {
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f,
+	    0.f,     0.f,     0.f, 0.f,
+	    0.f,     0.f,     0.f, 0.f,
+};
+
+// One-component matrices
+
+static const float A_TO_R_MATRIX[4*4] = {
 	0, 0, 0, 1,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
 
-static const float PACK_R_TO_R_MATRIX[4*4] = {
+static const float R_TO_R_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
+static const float Y_TO_R_MATRIX[4*4] = {
+	0.257f, 0.504f, 0.098f, 0.f,
+	   0.f,    0.f,    0.f, 0.f,
+	   0.f,    0.f,    0.f, 0.f,
+	   0.f,    0.f,    0.f, 0.f,
+};
 
-static const float PACK_G_TO_R_MATRIX[4*4] = {
+static const float G_TO_R_MATRIX[4*4] = {
 	0, 1, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
+static const float U_TO_R_MATRIX[4*4] = {
+	-0.148f, -0.291f,  0.439f, 0.f,
+	    0.f,     0.f,     0.f, 0.f,
+	    0.f,     0.f,     0.f, 0.f,
+	    0.f,     0.f,     0.f, 0.f,
+};
 
-static const float PACK_B_TO_R_MATRIX[4*4] = {
+static const float B_TO_R_MATRIX[4*4] = {
 	0, 0, 1, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-
-// FIXME: Are these backwards?
-static const float PACK_RG_TO_RG_MATRIX[4*4] = {
-	1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0, 0
+static const float V_TO_R_MATRIX[4*4] = {
+	0.439f, -0.368f, -0.071f, 0.f,
+	   0.f,     0.f,     0.f, 0.f,
+	   0.f,     0.f,     0.f, 0.f,
+	   0.f,     0.f,     0.f, 0.f,
 };
 
-static const float PACK_GB_TO_RG_MATRIX[4*4] = {
-	0, 1, 0, 0,
-	0, 0, 1, 0,
-	0, 0, 0, 0,
-	0, 0, 0, 0
-};
+// Adds
 
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
+static const float R1_ADD[4] = { 1, 0, 0, 0 };
+static const float G1_ADD[4] = { 0, 1, 0, 0 };
+
+static const float YUV0_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f, 0.f };
+static const float YUV1_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f, 1.f };
+
+static const float Y000_ADD[4] = { 16.f/255.f, 0.f, 0.f, 0.f };
+static const float U000_ADD[4] = { 128.f/255.f, 0.f, 0.f, 0.f };
+static const float V000_ADD[4] = { 128.f/255.f, 0.f, 0.f, 0.f };
+
+static const float Y100_ADD[4] = { 16.f/255.f, 1.f, 0.f, 0.f };
+static const float YU00_ADD[4] = { 16.f/255.f, 128.f/255.f, 0.f, 0.f };
+static const float UV00_ADD[4] = { 128.f/255.f, 128.f/255.f, 0.f, 0.f };
 
 void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
@@ -267,6 +342,8 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int sr
 	unsigned int newVirtualW = targetRect.GetWidth() / (scaleByHalf ? 2 : 1);
 	unsigned int newVirtualH = targetRect.GetHeight() / (scaleByHalf ? 2 : 1);
 
+	bool disableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
+
 	const float* matrix;
 	const float* add;
 	DXGI_FORMAT dxFormat;
@@ -275,50 +352,90 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int sr
 	case EFB_COPY_R4:
 	case EFB_COPY_R8_1:
 	case EFB_COPY_R8:
-		matrix = PACK_R_TO_R_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = Y_TO_R_MATRIX;
+			add = Y000_ADD;
+		} else {
+			matrix = R_TO_R_MATRIX;
+			add = ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8_UNORM;
 		break;
 	case EFB_COPY_RA4:
 	case EFB_COPY_RA8:
-		matrix = PACK_RA_TO_RG_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = disableAlpha ? Y_TO_R_MATRIX : YA_TO_RG_MATRIX;
+			add = disableAlpha ? Y100_ADD : Y000_ADD;
+		} else {
+			matrix = disableAlpha ? R_TO_R_MATRIX : RA_TO_RG_MATRIX;
+			add = disableAlpha ? G1_ADD : ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8G8_UNORM;
 		break;
 	case EFB_COPY_RGB565:
-		matrix = RGB0_MATRIX;
-		add = A1_ADD;
+		if (isIntensity) {
+			matrix = YUV0_MATRIX;
+			add = YUV1_ADD;
+		} else {
+			matrix = RGB0_MATRIX;
+			add = A1_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
 	case EFB_COPY_RGB5A3:
 	case EFB_COPY_RGBA8:
-		matrix = RGBA_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = disableAlpha ? YUV0_MATRIX : YUVA_MATRIX;
+			add = disableAlpha ? YUV1_ADD : YUV0_ADD;
+		} else {
+			matrix = disableAlpha ? RGB0_MATRIX : RGBA_MATRIX;
+			add = disableAlpha ? A1_ADD : ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
 	case EFB_COPY_A8:
-		matrix = PACK_A_TO_R_MATRIX;
-		add = ZERO_ADD;
+		matrix = disableAlpha ? ZERO_MATRIX : A_TO_R_MATRIX;
+		add = disableAlpha ? R1_ADD : ZERO_ADD;
 		dxFormat = DXGI_FORMAT_R8_UNORM;
 		break;
 	case EFB_COPY_G8:
-		matrix = PACK_G_TO_R_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = U_TO_R_MATRIX;
+			add = U000_ADD;
+		} else {
+			matrix = G_TO_R_MATRIX;
+			add = ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8_UNORM;
 		break;
 	case EFB_COPY_B8:
-		matrix = PACK_B_TO_R_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = V_TO_R_MATRIX;
+			add = V000_ADD;
+		} else {
+			matrix = B_TO_R_MATRIX;
+			add = ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8_UNORM;
 		break;
 	case EFB_COPY_RG8:
-		matrix = PACK_RG_TO_RG_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = YU_TO_RG_MATRIX;
+			add = YU00_ADD;
+		} else {
+			matrix = RG_TO_RG_MATRIX;
+			add = ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8G8_UNORM;
 		break;
 	case EFB_COPY_GB8:
-		matrix = PACK_GB_TO_RG_MATRIX;
-		add = ZERO_ADD;
+		if (isIntensity) {
+			matrix = UV_TO_RG_MATRIX;
+			add = UV00_ADD;
+		} else {
+			matrix = GB_TO_RG_MATRIX;
+			add = ZERO_ADD;
+		}
 		dxFormat = DXGI_FORMAT_R8G8_UNORM;
 		break;
 	}
@@ -340,7 +457,7 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int sr
 	}
 	else
 	{
-		VirtualizeShade(srcTex, srcFormat, isIntensity, scaleByHalf,
+		VirtualizeShade(srcTex, srcFormat, scaleByHalf,
 			targetRect.left, targetRect.top, newVirtualW, newVirtualH,
 			matrix, add);
 	}
@@ -426,8 +543,7 @@ void VirtualEFBCopy::EnsureVirtualTexture(UINT width, UINT height, DXGI_FORMAT d
 }
 
 void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcFormat,
-	bool yuva, bool scale,
-	unsigned int posX, unsigned int posY,
+	bool scale, unsigned int posX, unsigned int posY,
 	unsigned int virtualW, unsigned int virtualH,
 	const float* colorMatrix, const float* colorAdd)
 {
@@ -438,14 +554,6 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	
 	DEBUG_LOG(VIDEO, "Doing fake encode shader");
 
-	static const float YUVA_MATRIX[4*4] = {
-		0.257f, 0.504f, 0.098f, 0.f,
-		-0.148f, -0.291f, 0.439f, 0.f,
-		0.439f, -0.368f, -0.071f, 0.f,
-		0.f, 0.f, 0.f, 1.f
-	};
-	static const float YUV_ADD[3] = { 16.f/255.f, 128.f/255.f, 128.f/255.f };
-
 	ID3D11Buffer* paramsBuffer = virtShaderMan.GetParams();
 
 	D3D11_MAPPED_SUBRESOURCE map;
@@ -454,32 +562,12 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	{
 		VirtCopyShaderParams* params = (VirtCopyShaderParams*)map.pData;
 
-		// Choose a pre-color matrix: Either RGBA or YUVA
-		if (yuva)
-		{
-			// Combine YUVA matrix with color matrix
-			Matrix44 colorMat;
-			Matrix44::Set(colorMat, colorMatrix);
-			Matrix44 yuvaMat;
-			Matrix44::Set(yuvaMat, YUVA_MATRIX);
-			Matrix44 combinedMat;
-			Matrix44::Multiply(colorMat, yuvaMat, combinedMat);
-
-			memcpy(params->Matrix, combinedMat.data, 4*4*sizeof(float));
-
-			for (int i = 0; i < 3; ++i)
-				params->Add[i] = colorAdd[i] + YUV_ADD[i];
-			params->Add[3] = colorAdd[3];
-		}
-		else
-		{
-			memcpy(params->Matrix, colorMatrix, 4*4*sizeof(float));
-			memcpy(params->Add, colorAdd, 4*sizeof(float));
-		}
+		memcpy(params->Matrix, colorMatrix, 4*4*sizeof(float));
+		memcpy(params->Add, colorAdd, 4*sizeof(float));
 
 		params->Pos[0] = FLOAT(posX);
 		params->Pos[1] = FLOAT(posY);
-		params->DisableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
+
 		D3D::context->Unmap(paramsBuffer, 0);
 	}
 	else
@@ -493,7 +581,7 @@ void VirtualEFBCopy::VirtualizeShade(D3DTexture2D* texSrc, unsigned int srcForma
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(virtualW), FLOAT(virtualH));
 	D3D::context->RSSetViewports(1, &vp);
 
-	// Re-encode with a different palette
+	// Perform virtual shade
 
 	D3D::context->OMSetRenderTargets(1, &m_texture.tex->GetRTV(), NULL);
 	D3D::context->PSSetConstantBuffers(0, 1, &paramsBuffer);

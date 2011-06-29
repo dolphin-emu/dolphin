@@ -43,6 +43,12 @@ static const float RGBA_MATRIX[4*4] = {
 	0, 0, 1, 0,
 	0, 0, 0, 1
 };
+static const float YUVA_MATRIX[4*4] = {
+	 0.257f,  0.504f,  0.098f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f,
+	    0.f,     0.f,     0.f, 1.f
+};
 
 static const float RGB0_MATRIX[4*4] = {
 	1, 0, 0, 0,
@@ -50,12 +56,45 @@ static const float RGB0_MATRIX[4*4] = {
 	0, 0, 1, 0,
 	0, 0, 0, 0
 };
+static const float YUV0_MATRIX[4*4] = {
+	 0.257f,  0.504f,  0.098f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f,
+	    0.f,     0.f,     0.f, 0.f
+};
 
+static const float ZERO_MATRIX[4*4] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0
+};
+
+// FIXME: Should this be AAAR?
 static const float RRRA_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	0, 0, 0, 1
+};
+static const float YYYA_MATRIX[4*4] = {
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	   0.f,    0.f,    0.f, 1.f
+};
+
+static const float RRR0_MATRIX[4*4] = {
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	1, 0, 0, 0,
+	0, 0, 0, 0
+};
+static const float YYY0_MATRIX[4*4] = {
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	   0.f,    0.f,    0.f, 0.f
 };
 
 static const float AAAA_MATRIX[4*4] = {
@@ -71,12 +110,24 @@ static const float RRRR_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	1, 0, 0, 0
 };
+static const float YYYY_MATRIX[4*4] = {
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f,
+	0.257f, 0.504f, 0.098f, 0.f
+};
 
 static const float GGGG_MATRIX[4*4] = {
 	0, 1, 0, 0,
 	0, 1, 0, 0,
 	0, 1, 0, 0,
 	0, 1, 0, 0
+};
+static const float UUUU_MATRIX[4*4] = {
+	-0.148f, -0.291f, 0.439f, 0.f,
+	-0.148f, -0.291f, 0.439f, 0.f,
+	-0.148f, -0.291f, 0.439f, 0.f,
+	-0.148f, -0.291f, 0.439f, 0.f
 };
 
 static const float BBBB_MATRIX[4*4] = {
@@ -85,23 +136,54 @@ static const float BBBB_MATRIX[4*4] = {
 	0, 0, 1, 0,
 	0, 0, 1, 0
 };
+static const float VVVV_MATRIX[4*4] = {
+	0.439f, -0.368f, -0.071f, 0.f,
+	0.439f, -0.368f, -0.071f, 0.f,
+	0.439f, -0.368f, -0.071f, 0.f,
+	0.439f, -0.368f, -0.071f, 0.f
+};
 
+// FIXME: Should this be GGGR?
 static const float RRRG_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	0, 1, 0, 0
 };
+static const float YYYU_MATRIX[4*4] = {
+	 0.257f,  0.504f, 0.098f, 0.f,
+	 0.257f,  0.504f, 0.098f, 0.f,
+	 0.257f,  0.504f, 0.098f, 0.f,
+	-0.148f, -0.291f, 0.439f, 0.f
+};
 
+// FIXME: Should this be BBBG?
 static const float GGGB_MATRIX[4*4] = {
 	0, 1, 0, 0,
 	0, 1, 0, 0,
 	0, 1, 0, 0,
 	0, 0, 1, 0
 };
+static const float UUUV_MATRIX[4*4] = {
+	-0.148f, -0.291f,  0.439f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	-0.148f, -0.291f,  0.439f, 0.f,
+	 0.439f, -0.368f, -0.071f, 0.f
+};
 
 static const float ZERO_ADD[4] = { 0, 0, 0, 0 };
 static const float A1_ADD[4] = { 0, 0, 0, 1 };
+static const float ALL_ONE_ADD[4] = { 1, 1, 1, 1 };
+static const float YUV0_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f, 0.f };
+static const float YUV1_ADD[4] = { 16.f/255.f, 128.f/255.f, 128.f/255.f, 1.f };
+
+static const float YYY1_ADD[4] = { 16.f/255.f, 16.f/255.f, 16.f/255.f, 1.f };
+static const float YYYU_ADD[4] = { 16.f/255.f, 16.f/255.f, 16.f/255.f, 128.f/255.f };
+static const float UUUV_ADD[4] = { 128.f/255.f, 128.f/255.f, 128.f/255.f, 128.f/255.f };
+
+static const float YYYY_ADD[4] = { 16.f/255.f, 16.f/255.f, 16.f/255.f, 16.f/255.f };
+static const float UUUU_ADD[4] = { 128.f/255.f, 128.f/255.f, 128.f/255.f, 128.f/255.f };
+static const float VVVV_ADD[4] = { 128.f/255.f, 128.f/255.f, 128.f/255.f, 128.f/255.f };
 
 void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
@@ -125,41 +207,91 @@ void VirtualEFBCopy::Update(u32 dstAddr, unsigned int dstFormat, unsigned int sr
 	EnsureVirtualTexture(newVirtualW, newVirtualH);
 
 	const float* colorMatrix;
-	const float* colorAdd = ZERO_ADD;
+	const float* colorAdd;
+
+	bool disableAlpha = (srcFormat != PIXELFMT_RGBA6_Z24);
 
 	switch (dstFormat)
 	{
 	case EFB_COPY_R4:
 	case EFB_COPY_R8_1:
 	case EFB_COPY_R8:
-		colorMatrix = RRRR_MATRIX;
+		if (isIntensity) {
+			colorMatrix = YYYY_MATRIX;
+			colorAdd = YYYY_ADD;
+		} else {
+			colorMatrix = RRRR_MATRIX;
+			colorAdd = ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_RA4:
 	case EFB_COPY_RA8:
-		colorMatrix = RRRA_MATRIX;
+		if (isIntensity) {
+			colorMatrix = disableAlpha ? YYY0_MATRIX : YYYA_MATRIX;
+			colorAdd = disableAlpha ? YYY1_ADD : YUV0_ADD;
+		} else {
+			colorMatrix = disableAlpha ? RRR0_MATRIX : RRRA_MATRIX;
+			colorAdd = disableAlpha ? A1_ADD : ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_RGB565:
-		colorMatrix = RGB0_MATRIX;
-		colorAdd = A1_ADD;
+		if (isIntensity) {
+			colorMatrix = YUV0_MATRIX;
+			colorAdd = YUV1_ADD;
+		} else {
+			colorMatrix = RGB0_MATRIX;
+			colorAdd = A1_ADD;
+		}
 		break;
 	case EFB_COPY_RGB5A3:
 	case EFB_COPY_RGBA8:
-		colorMatrix = RGBA_MATRIX;
+		if (isIntensity) {
+			colorMatrix = disableAlpha ? YUV0_MATRIX : YUVA_MATRIX;
+			colorAdd = disableAlpha ? YUV1_ADD : YUV0_ADD;
+		} else {
+			colorMatrix = disableAlpha ? RGB0_MATRIX : RGBA_MATRIX;
+			colorAdd = disableAlpha ? A1_ADD : ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_A8:
-		colorMatrix = AAAA_MATRIX;
+		colorMatrix = disableAlpha ? ZERO_MATRIX : AAAA_MATRIX;
+		colorAdd = disableAlpha ? ALL_ONE_ADD : ZERO_ADD;
 		break;
 	case EFB_COPY_G8:
-		colorMatrix = GGGG_MATRIX;
+		if (isIntensity) {
+			colorMatrix = UUUU_MATRIX;
+			colorAdd = UUUU_ADD;
+		} else {
+			colorMatrix = GGGG_MATRIX;
+			colorAdd = ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_B8:
-		colorMatrix = BBBB_MATRIX;
+		if (isIntensity) {
+			colorMatrix = VVVV_MATRIX;
+			colorAdd = VVVV_ADD;
+		} else {
+			colorMatrix = BBBB_MATRIX;
+			colorAdd = ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_RG8:
-		colorMatrix = RRRG_MATRIX;
+		if (isIntensity) {
+			colorMatrix = YYYU_MATRIX;
+			colorAdd = YYYU_ADD;
+		} else {
+			colorMatrix = RRRG_MATRIX;
+			colorAdd = ZERO_ADD;
+		}
 		break;
 	case EFB_COPY_GB8:
-		colorMatrix = GGGB_MATRIX;
+		if (isIntensity) {
+			colorMatrix = UUUV_MATRIX;
+			colorAdd = UUUV_ADD;
+		} else {
+			colorMatrix = GGGB_MATRIX;
+			colorAdd = ZERO_ADD;
+		}
 		break;
 	default:
 		ERROR_LOG(VIDEO, "Couldn't fake this EFB copy format 0x%X", dstFormat);
@@ -185,11 +317,6 @@ GLuint VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels
 {
 	// FIXME: Check if encoded dstFormat and texture format are compatible,
 	// reinterpret or fall back to RAM if necessary
-
-	static const char* DST_FORMAT_NAMES[] = {
-		"R4", "R8_1", "RA4", "RA8", "RGB565", "RGB5A3", "RGBA8", "A8",
-		"R8", "G8", "B8", "RG8", "GB8", "0xD", "0xE", "0xF"
-	};
 	
 	// Only make these checks if there is a RAM copy to fall back on.
 	if (!force && (width != m_realW || height != m_realH || levels != 1))
@@ -199,7 +326,7 @@ GLuint VirtualEFBCopy::Virtualize(u32 ramAddr, u32 width, u32 height, u32 levels
 	}
 	
 	DEBUG_LOG(VIDEO, "Interpreting dstFormat %s as tex format %s",
-		DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
+		EFB_COPY_DST_FORMAT_NAMES[m_dstFormat], TEX_FORMAT_NAMES[format]);
 
 	return m_texture.tex;
 }
