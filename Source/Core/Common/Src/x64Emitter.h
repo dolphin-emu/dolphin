@@ -184,7 +184,7 @@ inline OpArg MScaled(X64Reg scaled, int scale, int offset) {
 	if (scale == SCALE_1)
 		return OpArg(offset, SCALE_ATREG, scaled);
 	else
-		return OpArg(offset, scale | 0x20, INVALID_REG, scaled);
+		return OpArg(offset, scale | 0x20, RAX, scaled);
 }
 inline OpArg MRegSum(X64Reg base, X64Reg offset) {
 	return MComplex(base, offset, 1, 0);
