@@ -48,11 +48,10 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	case 0x2: // G - Greater
 	case 0x3: // LE - Less Equal
 		emitter.MOV(16, R(EDX), R(EAX));
-		emitter.MOV(16, R(ECX), R(EAX));
 		emitter.SHL(16, R(EDX), Imm8(2));
 		emitter.XOR(16, R(EAX), R(EDX));
-		emitter.SHL(16, R(ECX), Imm8(1));
-		emitter.OR(16, R(EAX), R(ECX));
+		emitter.SHR(16, R(EDX), Imm8(1));
+		emitter.OR(16, R(EAX), R(EDX));
 		emitter.TEST(16, R(EAX), Imm16(8));
 		break;
 	case 0x4: // NZ - Not Zero
@@ -70,12 +69,11 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 	case 0xa: // ?
 	case 0xb: // ?
 		emitter.MOV(16, R(EDX), R(EAX));
-		emitter.MOV(16, R(ECX), R(EAX));
 		emitter.SHR(16, R(EDX), Imm8(1));
 		emitter.OR(16, R(EAX), R(EDX));
-		emitter.SHL(16, R(ECX), Imm8(2));
-		emitter.NOT(16, R(ECX));
-		emitter.AND(16, R(EAX), R(ECX)); 
+		emitter.SHL(16, R(EDX), Imm8(3));
+		emitter.NOT(16, R(EDX));
+		emitter.AND(16, R(EAX), R(EDX)); 
 		emitter.NOT(16, R(EAX));
 		emitter.TEST(16, R(EAX), Imm16(0x10));
 		break;

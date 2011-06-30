@@ -56,24 +56,28 @@ void DSPEmitter::multiply()
 // Clobbers RDX
 void DSPEmitter::multiply_add()
 {
+#ifdef _M_X64
 //	s64 prod = dsp_get_long_prod() + dsp_get_multiply_prod(a, b, sign);
 	multiply();
 	MOV(64, R(RDX), R(RAX));
 	get_long_prod();
 	ADD(64, R(RAX), R(RDX));
 //	return prod;
+#endif
 }
 
 // Returns s64 in RAX
 // Clobbers RDX
 void DSPEmitter::multiply_sub()
 {
+#ifdef _M_X64
 //	s64 prod = dsp_get_long_prod() - dsp_get_multiply_prod(a, b, sign);
 	multiply();
 	MOV(64, R(RDX), R(RAX));
 	get_long_prod();
 	SUB(64, R(RAX), R(RDX));
 //	return prod;
+#endif
 }
 
 // Only MULX family instructions have unsigned/mixed support.
@@ -82,6 +86,7 @@ void DSPEmitter::multiply_sub()
 // Returns s64 in RAX
 void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 {
+#ifdef _M_X64
 //	s64 result;
 
 //	if ((axh0==0) && (axh1==0))
@@ -153,6 +158,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 	SetJumpTarget(noMult2);
 	gpr.putReg(DSP_REG_SR, false);
 //	return prod;
+#endif
 }
 
 //----
@@ -168,17 +174,9 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 // direct use of prod regs by AX/AXWII (look @that part of ucode).
 void DSPEmitter::clrp(const UDSPInstruction opc)
 {
-#ifdef _M_X64
-//	g_dsp.r[DSP_REG_PRODL] = 0x0000;
-//	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
-//	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
-//	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
 	//64bit move to memory does not work. use 2 32bits
 	MOV(32, M(((u32*)&g_dsp.r.prod.val)+0), Imm32(0xfff00000U));
 	MOV(32, M(((u32*)&g_dsp.r.prod.val)+1), Imm32(0x001000ffU));
-#else
-	Default(opc);
-#endif
 }
 
 // TSTPROD
