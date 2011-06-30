@@ -233,6 +233,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
 					bNTSC = true;
+					Region = USA_DIR; 
 					break;
 				
 				case DiscIO::IVolume::COUNTRY_TAIWAN:
@@ -240,6 +241,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					// TODO: Should these have their own Region Dir?
 				case DiscIO::IVolume::COUNTRY_JAPAN:
 					bNTSC = true;
+					Region = JAP_DIR;
 					break;
 				
 				case DiscIO::IVolume::COUNTRY_EUROPE:
@@ -247,15 +249,16 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
+					Region = EUR_DIR; 
 					break;
 				
 				default:
 					bNTSC = false;
+					Region = EUR_DIR;
 						break;
 				}
 
 				bWii = true;
-				Region = EUR_DIR;
 				m_BootType = BOOT_WII_NAND;
 
 				if (pVolume)
