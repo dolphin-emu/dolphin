@@ -229,13 +229,20 @@ static const float UNPACK_R_TO_I_MATRIX[4*4] = {
 	1, 0, 0, 0
 };
 
-// FIXME: Is this backwards? I can't find a good way to test!
 static const float UNPACK_RG_TO_IA_MATRIX[4*4] = {
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	1, 0, 0, 0,
 	0, 1, 0, 0
 };
+
+static const float UNPACK_GR_TO_IA_MATRIX[4*4] = {
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	0, 1, 0, 0,
+	1, 0, 0, 0
+};
+
 
 void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 levels,
 	u32 format, u32 tlutAddr, u32 tlutFormat)
@@ -279,7 +286,8 @@ void TCacheEntry::ReloadRamTexture(u32 ramAddr, u32 width, u32 height, u32 level
 		case GX_TF_IA8:
 			DecodeTexture_Copy16((u16*)decodeTemp, src, actualWidth, actualHeight);
 			srcRowPitch = 2*actualWidth;
-			Matrix44::Set(m_unpackMatrix, UNPACK_RG_TO_IA_MATRIX);
+			// Texels appear in memory as A L, so swap R and G
+			Matrix44::Set(m_unpackMatrix, UNPACK_GR_TO_IA_MATRIX);
 			break;
 		case GX_TF_C4:
 			// 4-bit indices (expanded to 8 bits)
