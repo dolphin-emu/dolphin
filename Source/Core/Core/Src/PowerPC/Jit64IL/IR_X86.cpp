@@ -1308,15 +1308,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
-			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
 #ifdef _M_IX86
-			Jit->SHL(32, R(EDX), Imm8(2));
+			int addr_scale = SCALE_4;
 #else
-			Jit->SHL(32, R(EDX), Imm8(3));
+			int addr_scale = SCALE_8;
 #endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
 			Jit->ABI_AlignStack(0);
-			Jit->CALLptr(MDisp(EDX, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->ABI_RestoreStack(0);
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
@@ -1409,16 +1408,15 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			u32 quantreg = *I >> 24;
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
 #ifdef _M_IX86
-			Jit->SHL(32, R(EDX), Imm8(2));
+			int addr_scale = SCALE_4;
 #else
-			Jit->SHL(32, R(EDX), Imm8(3));
+			int addr_scale = SCALE_8;
 #endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
 			Jit->ABI_AlignStack(0);
-			Jit->CALLptr(MDisp(EDX, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			Jit->ABI_RestoreStack(0);
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
