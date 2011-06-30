@@ -609,12 +609,22 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
+#ifdef _M_IX86
 		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 		else
 			MOV(32, M((jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+#else
+		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
+			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK)));
+		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK)));
+		else
+			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK)));
+		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
+#endif
 
 		WriteExceptionExit();
 	}

@@ -1894,6 +1894,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
+#ifdef _M_IX86
 			if (InstLoc & JIT_ICACHE_VMEM_BIT)
 				Jit->MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (InstLoc & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 			else if (InstLoc & JIT_ICACHE_EXRAM_BIT)
@@ -1901,6 +1902,15 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			else
 				Jit->MOV(32, M((jit->GetBlockCache()->GetICache() + (InstLoc & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 
+#else
+			if (InstLoc & JIT_ICACHE_VMEM_BIT)
+				Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheVMEM() + (InstLoc & JIT_ICACHE_MASK)));
+			else if (InstLoc & JIT_ICACHE_EXRAM_BIT)
+				Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheEx() + (InstLoc & JIT_ICACHEEX_MASK)));
+			else
+				Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICache() + (InstLoc & JIT_ICACHE_MASK)));
+			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
+#endif
 			Jit->WriteExceptionExit();
 			break;
 		}
