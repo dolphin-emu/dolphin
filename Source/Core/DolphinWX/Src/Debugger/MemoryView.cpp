@@ -205,17 +205,24 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
 	wxFont hFont(_T("Courier"));
-	
+	hFont.SetFamily(wxFONTFAMILY_TELETYPE);
+
+	wxCoord w,h;
+	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&hFont);
+	if (h > rowHeight)
+	    rowHeight = h;
+	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&DebuggerFont);
+	if (h > rowHeight)
+	    rowHeight = h;
+
 	if (viewAsType==VIEWAS_HEX)
-	{
-		hFont.SetFamily(wxFONTFAMILY_TELETYPE);
 		dc.SetFont(hFont);
-	}
 	else
 		dc.SetFont(DebuggerFont);
 
-	int fontSize = viewAsType == VIEWAS_HEX ? hFont.GetPointSize() : DebuggerFont.GetPointSize();
-	int textPlacement = 77;
+	dc.GetTextExtent(_T("W"),&w,&h);
+	int fontSize = w;
+	int textPlacement = 11 * fontSize;
 	struct branch
 	{
 		int src, dst, srcAddr;
@@ -356,7 +363,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			if (viewAsType != VIEWAS_HEX)
 				dc.DrawText(wxString::FromAscii(dis), textPlacement + fontSize*(8 + 8), rowY1);
 			else
-				dc.DrawText(wxString::FromAscii(dis), textPlacement +  8+16, rowY1);
+				dc.DrawText(wxString::FromAscii(dis), textPlacement, rowY1);
 
 			if (desc[0] == 0)
 				strcpy(desc, debugger->getDescription(address).c_str());

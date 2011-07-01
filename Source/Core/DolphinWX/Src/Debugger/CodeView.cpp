@@ -361,6 +361,15 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 	dc.SetFont(DebuggerFont);
 
+	wxCoord w,h;
+	dc.GetTextExtent(_T("0WJyq"),&w,&h);
+
+	if (h > rowHeight)
+	    rowHeight = h;
+
+	dc.GetTextExtent(_T("W"),&w,&h);
+	int charWidth = w;
+
 	struct branch
 	{
 		int src, dst, srcAddr;
@@ -480,7 +489,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					dc.SetTextForeground(_T("#000000"));
 				}
 
-				dc.DrawText(wxString::FromAscii(dis2), 140, rowY1);
+				dc.DrawText(wxString::FromAscii(dis2), 18*charWidth, rowY1);
 				// ------------
 			}
 
@@ -490,7 +499,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				dc.SetTextForeground(_T("#8000FF")); // purple
 
-			dc.DrawText(wxString::FromAscii(dis), plain ? 25 : 80, rowY1);
+			dc.DrawText(wxString::FromAscii(dis), plain ? 3*charWidth : 10*charWidth, rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -504,7 +513,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 				if (strlen(desc))
 				{
-					dc.DrawText(wxString::FromAscii(desc), 270, rowY1);
+					dc.DrawText(wxString::FromAscii(desc), 38 * charWidth, rowY1);
 				}
 			}
 
@@ -525,7 +534,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	
 	for (int i = 0; i < numBranches; i++)
 	{
-	    int x = 370 + (branches[i].srcAddr % 9) * 8;
+	    int x = 46 * charWidth + (branches[i].srcAddr % 9) * 8;
 	    _MoveTo(x-2, branches[i].src);
 
 		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
