@@ -30,9 +30,9 @@
 extern NativeVertexFormat *g_nativeVertexFmt;
 
 GFXDebuggerBase *g_pdebugger = NULL;
-volatile bool GFXDebuggerPauseFlag = false;
-volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE;
-volatile int GFXDebuggerEventToPauseCount = 0;
+volatile bool GFXDebuggerPauseFlag = false; // if true, the GFX thread will be spin locked until it's false again
+volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE; // Event which will trigger spin locking the GFX thread
+volatile int GFXDebuggerEventToPauseCount = 0; // Number of events to wait for until GFX thread will be paused
 
 void GFXDebuggerUpdateScreen()
 {
@@ -62,6 +62,7 @@ void GFXDebuggerUpdateScreen()
 	}*/
 }
 
+// GFX thread
 void GFXDebuggerCheckAndPause(bool update)
 {
 	if (GFXDebuggerPauseFlag)
@@ -78,6 +79,7 @@ void GFXDebuggerCheckAndPause(bool update)
 	}
 }
 
+// GFX thread
 void GFXDebuggerToPause(bool update)
 {
 	GFXDebuggerToPauseAtNext = NOT_PAUSE;
@@ -97,7 +99,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	sprintf(filename, "%sdump_ps.txt", path);
 
 	std::string output;
-	bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	if (!useDstAlpha)
 	{
 		output = "Destination alpha disabled:\n";

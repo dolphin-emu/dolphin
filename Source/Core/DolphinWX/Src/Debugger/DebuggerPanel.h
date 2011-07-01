@@ -44,6 +44,8 @@ public:
 	bool bSaveShaders;
 
 	void OnPause();
+
+	// Called from GFX thread once the GFXDebuggerPauseFlag spin lock has finished
 	void OnContinue();
 
 private:
@@ -89,11 +91,17 @@ private:
 	void CreateGUIControls();
 
 	void GeneralSettings(wxCommandEvent& event);
+
+	// These set GFXDebuggerPauseFlag to true (either immediately or once the specified event has occured)
 	void OnPauseButton(wxCommandEvent& event);
 	void OnPauseAtNextButton(wxCommandEvent& event);
+
 	void OnPauseAtNextFrameButton(wxCommandEvent& event);
 	void OnDumpButton(wxCommandEvent& event);
+
+	// sets GFXDebuggerPauseFlag to false
 	void OnContButton(wxCommandEvent& event);
+
 	void OnUpdateScreenButton(wxCommandEvent& event);
 	void OnClearScreenButton(wxCommandEvent& event);
 	void OnClearTextureCacheButton(wxCommandEvent& event);
