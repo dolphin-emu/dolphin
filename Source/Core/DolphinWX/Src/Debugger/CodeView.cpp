@@ -489,7 +489,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					dc.SetTextForeground(_T("#000000"));
 				}
 
-				dc.DrawText(wxString::FromAscii(dis2), 17 + 16*charWidth, rowY1);
+				dc.DrawText(wxString::FromAscii(dis2), 17 + 17*charWidth, rowY1);
 				// ------------
 			}
 
@@ -499,7 +499,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				dc.SetTextForeground(_T("#8000FF")); // purple
 
-			dc.DrawText(wxString::FromAscii(dis), 17 + (plain ? 1*charWidth : 8*charWidth), rowY1);
+			dc.DrawText(wxString::FromAscii(dis), 17 + (plain ? 1*charWidth : 9*charWidth), rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -513,7 +513,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 				if (strlen(desc))
 				{
-					dc.DrawText(wxString::FromAscii(desc), 17 + 36 * charWidth, rowY1);
+					dc.DrawText(wxString::FromAscii(desc), 17 + 35 * charWidth, rowY1);
 				}
 			}
 
@@ -534,7 +534,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	
 	for (int i = 0; i < numBranches; i++)
 	{
-	    int x = 17 + 44 * charWidth + (branches[i].srcAddr % 9) * 8;
+	    int x = 17 + 49 * charWidth + (branches[i].srcAddr % 9) * 8;
 	    _MoveTo(x-2, branches[i].src);
 
 		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
