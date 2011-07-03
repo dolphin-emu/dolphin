@@ -25,6 +25,38 @@
 namespace OGL
 {
 
+class VirtualCopyProgramManager
+{
+
+public:
+
+	struct Program
+	{
+		Program();
+		~Program();
+
+		bool Compile(bool scale, bool depth);
+
+		GLuint program;
+
+		GLuint uMatrixLoc;
+		GLuint uAddLoc;
+		GLuint uSourceRectLoc;
+		GLuint uEFBSamplerLoc;
+	};
+
+	const Program& GetProgram(bool scale, bool depth);
+
+private:
+
+	inline int MakeKey(bool scale, bool depth) {
+		return (scale ? (1<<1) : 0) | (depth ? (1<<0) : 0);
+	}
+
+	Program m_programs[4];
+
+};
+
 class VirtualEFBCopy : public VirtualEFBCopyBase
 {
 

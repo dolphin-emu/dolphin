@@ -306,7 +306,7 @@ u32 EncodeToRam(u8* dst, unsigned int dstFormat, unsigned int srcFormat,
 	TextureConversionShader::SetShaderParameters(
 		(float)targetRect.left, (float)targetRect.top,
 		(float)targetRect.right, (float)targetRect.bottom,
-		actualWidth, actualHeight);
+		(float)actualWidth, (float)actualHeight);
 
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(dstFormat);
 

@@ -28,6 +28,158 @@
 namespace OGL
 {
 
+static const char VIRTUAL_EFB_COPY_FS[] =
+"// dolphin-emu GLSL virtual efb copy fragment shader\n"
+
+// DEPTH should be 1 on, 0 off
+"#ifndef DEPTH\n"
+"#error DEPTH not defined.\n"
+"#endif\n"
+
+// SCALE should be 1 on, 0 off
+"#ifndef SCALE\n"
+"#error SCALE not defined.\n"
+"#endif\n"
+
+// Uniforms
+// u_Matrix: Color matrix
+"uniform mat4x4 u_Matrix;\n"
+// u_Add: Color add
+"uniform vec4 u_Add;\n"
+// u_SourceRect: left, top, right, bottom of source rectangle in texture coordinates
+"uniform vec4 u_SourceRect;\n"
+
+// Samplers
+"uniform sampler2DRect u_EFBSampler;\n"
+
+"#if DEPTH\n"
+"vec4 Fetch(vec2 coord)\n"
+"{\n"
+	// GLSL doesn't have strict floating-point precision requirements. This is a
+	// careful way of translating Z24 to R8 G8 B8.
+	// Ref: <http://www.horde3d.org/forums/viewtopic.php?f=1&t=569>
+	// Ref: <http://code.google.com/p/dolphin-emu/source/detail?r=6217>
+	"float depth = 255.99998474121094 * texture2DRect(u_EFBSampler, coord).r;\n"
+	"vec4 result = depth.rrrr;\n"
+
+	"result.a = floor(result.a);\n" // bits 31..24
+
+	"result.rgb -= result.a;\n"
+	"result.rgb *= 256.0;\n"
+	"result.r = floor(result.r);\n" // bits 23..16
+
+	"result.gb -= result.r;\n"
+	"result.gb *= 256.0;\n"
+	"result.g = floor(result.g);\n" // bits 15..8
+
+	"result.b -= result.g;\n"
+	"result.b *= 256.0;\n"
+	"result.b = floor(result.b);\n" // bits 7..0
+
+	"result = vec4(result.arg / 255.0, 1.0);\n"
+	"return result;\n"
+"}\n"
+"#else\n"
+"vec4 Fetch(vec2 coord)\n"
+"{\n"
+	"return texture2DRect(u_EFBSampler, coord);\n"
+"}\n"
+"#endif\n" // #if DEPTH
+
+"#if SCALE\n"
+"vec4 ScaledFetch(vec2 coord)\n"
+"{\n"
+	// coord is in the center of a 2x2 square of texels. Sample from the center
+	// of these texels and average them.
+	"vec4 s0 = Fetch(coord + vec2(-0.5,-0.5));\n"
+	"vec4 s1 = Fetch(coord + vec2( 0.5,-0.5));\n"
+	"vec4 s2 = Fetch(coord + vec2(-0.5, 0.5));\n"
+	"vec4 s3 = Fetch(coord + vec2( 0.5, 0.5));\n"
+	// Box filter
+	"return 0.25 * (s0 + s1 + s2 + s3);\n"
+"}\n"
+"#else\n"
+"vec4 ScaledFetch(vec2 coord)\n"
+"{\n"
+	"return Fetch(coord);\n"
+"}\n"
+"#endif\n" // #if SCALE
+
+// Main entry point
+"void main()\n"
+"{\n"
+	"vec2 coord = mix(u_SourceRect.xy, u_SourceRect.zw, gl_TexCoord[0].xy);\n"
+	"vec4 pixel = ScaledFetch(coord);\n"
+	"gl_FragColor = mul(pixel, u_Matrix) + u_Add;\n"
+"}\n"
+;
+
+VirtualCopyProgramManager::Program::Program()
+	: program(0)
+{ }
+
+VirtualCopyProgramManager::Program::~Program()
+{
+	glDeleteProgram(program);
+	program = 0;
+}
+
+bool VirtualCopyProgramManager::Program::Compile(bool scale, bool depth)
+{
+	const GLchar* fs[] = {
+		"#version 110\n",
+		depth ? "#define DEPTH 1\n" : "#define DEPTH 0\n",
+		scale ? "#define SCALE 1\n" : "#define SCALE 0\n",
+		VIRTUAL_EFB_COPY_FS
+	};
+
+	GLuint shader = OpenGL_CreateShader(GL_FRAGMENT_SHADER, sizeof(fs)/sizeof(const GLchar*), fs);
+	if (!shader)
+	{
+		ERROR_LOG(VIDEO, "Failed to compile virtual copy shader");
+		return false;
+	}
+
+	program = glCreateProgram();
+	glAttachShader(program, shader);
+	if (!OpenGL_LinkProgram(program))
+	{
+		glDeleteProgram(program);
+		glDeleteShader(shader);
+		program = 0;
+		ERROR_LOG(VIDEO, "Failed to link virtual copy shader");
+		return false;
+	}
+
+	// Shader is now embedded in the program
+	glDeleteShader(shader);
+
+	// Find uniform locations
+	uMatrixLoc = glGetUniformLocation(program, "u_Matrix");
+	uAddLoc = glGetUniformLocation(program, "u_Add");
+	uSourceRectLoc = glGetUniformLocation(program, "u_SourceRect");
+	uEFBSamplerLoc = glGetUniformLocation(program, "u_EFBSampler");
+
+	(void)GL_REPORT_ERROR();
+
+	return true;
+}
+
+const VirtualCopyProgramManager::Program&
+VirtualCopyProgramManager::GetProgram(bool scale, bool depth)
+{
+	int key = MakeKey(scale, depth);
+	if (!m_programs[key].program)
+	{
+		INFO_LOG(VIDEO, "Compiling virtual efb copy program scale %d, depth %d",
+			scale ? 1 : 0, depth ? 1 : 0);
+
+		m_programs[key].Compile(scale, depth);
+	}
+
+	return m_programs[key];
+}
+
 VirtualEFBCopy::~VirtualEFBCopy()
 {
 	glDeleteTextures(1, &m_texture.tex);
@@ -357,67 +509,64 @@ void VirtualEFBCopy::VirtualizeShade(GLuint texSrc, unsigned int srcFormat,
 	unsigned int virtualW, unsigned int virtualH,
 	const float* colorMatrix, const float* colorAdd)
 {
-	float colMat[28] = { 0 };
-	float* colMatAdd = &colMat[16];
-	float* colMatMask = &colMat[20];
-
-	colMatMask[0] = colMatMask[1] = colMatMask[2] = colMatMask[3] = 255.f;
-	colMatMask[4] = colMatMask[5] = colMatMask[6] = colMatMask[7] = 1.f / 255.f;
-
-	memcpy(colMat, colorMatrix, 4*4*sizeof(float));
-	memcpy(colMatAdd, colorAdd, 4*sizeof(float));
+	VirtualCopyProgramManager& programMan = ((TextureCache*)g_textureCache)->GetVirtProgramManager();
+	const VirtualCopyProgramManager::Program& program = programMan.GetProgram(scale, srcFormat == PIXELFMT_Z24);
+	if (!program.program)
+		return;
 
 	g_renderer->ResetAPIState();
-	
-	GLuint virtCopyFramebuf = ((TextureCache*)g_textureCache)->GetVirtCopyFramebuf();
-	FramebufferManager::SetFramebuffer(virtCopyFramebuf);
-	glBindTexture(GL_TEXTURE_2D, m_texture.tex);
+
+	// Bind destination texture to framebuffer
+	GLuint fbo = ((TextureCache*)g_textureCache)->GetVirtCopyFramebuf();
+	FramebufferManager::SetFramebuffer(fbo);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_texture.tex, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-
 	GL_REPORT_FBO_ERROR();
 
+	// Bind fragment program and uniforms
+	glUseProgram(program.program);
+
+	glUniformMatrix4fv(program.uMatrixLoc, 1, GL_FALSE, colorMatrix);
+	glUniform4fv(program.uAddLoc, 1, colorAdd);
+
+	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
+	GLfloat uSourceRect[4] = {
+		GLfloat(targetRect.left),
+		GLfloat(targetRect.top),
+		GLfloat(targetRect.right),
+		GLfloat(targetRect.bottom)
+	};
+	glUniform4fv(program.uSourceRectLoc, 1, uSourceRect);
+
+	glUniform1i(program.uEFBSamplerLoc, 0); // Set u_EFBSampler to sampler 0
+
+	// Bind texSrc to sampler 0
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texSrc);
-
-	if (scale)
-	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
-	else
-	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glViewport(0, 0, virtualW, virtualH);
 
-	PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24)
-		? PixelShaderCache::GetDepthMatrixProgram()
-		: PixelShaderCache::GetColorMatrixProgram());
-	PixelShaderManager::SetColorMatrix(colMat);
-	GL_REPORT_ERRORD();
+	// Encode!
+	OpenGL_DrawEncoderQuad();
 
-	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
+	// Clean-up
 
-	glBegin(GL_QUADS);
-	glTexCoord2f((GLfloat)targetRect.left,  (GLfloat)targetRect.bottom); glVertex2f(-1,  1);
-	glTexCoord2f((GLfloat)targetRect.left,  (GLfloat)targetRect.top  ); glVertex2f(-1, -1);
-	glTexCoord2f((GLfloat)targetRect.right, (GLfloat)targetRect.top  ); glVertex2f( 1, -1);
-	glTexCoord2f((GLfloat)targetRect.right, (GLfloat)targetRect.bottom); glVertex2f( 1,  1);
-	glEnd();
-	
-	g_renderer->RestoreAPIState();
-
-	FramebufferManager::SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 
-    GL_REPORT_ERRORD();
+	glUseProgram(0);
+
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
+
+	g_renderer->RestoreAPIState();
+	
+	FramebufferManager::SetFramebuffer(0);
+	VertexShaderManager::SetViewportChanged();
 }
 
 }

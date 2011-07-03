@@ -96,6 +96,15 @@ u32 OpenGL_GetBackbufferHeight();
 // Set things
 void OpenGL_SetWindowText(const char *text);
 
+// GLSL shaders
+GLuint OpenGL_CreateShader(GLenum type, GLsizei count, const GLchar** string);
+bool OpenGL_LinkProgram(GLuint program);
+void OpenGL_PrintShaderInfoLog(GLuint shader);
+void OpenGL_PrintProgramInfoLog(GLuint program);
+
+// Drawing
+void OpenGL_DrawEncoderQuad(); // Draw a quad that fills the viewport
+
 // Error reporting - use the convenient macros.
 void OpenGL_ReportARBProgramError();
 GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);

@@ -129,6 +129,7 @@ public:
 
 	Depalettizer& GetDepalettizer() { return m_depal; }
 	VirtualEFBCopyMap& GetVirtCopyMap() { return m_virtCopyMap; }
+	VirtualCopyProgramManager& GetVirtProgramManager() { return m_virtProgramMan; }
 	GLuint GetVirtCopyFramebuf() { return m_virtCopyFramebuf; }
 	u8* GetDecodeTemp() { return m_decodeTemp; }
 
@@ -143,6 +144,7 @@ protected:
 private:
 
 	Depalettizer m_depal;
+	VirtualCopyProgramManager m_virtProgramMan;
 	GLuint m_virtCopyFramebuf;
 
 	GC_ALIGNED16(u8 m_decodeTemp[1024*1024*4]);

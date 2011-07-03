@@ -74,10 +74,6 @@ public:
 	static FRAGMENTSHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
-	static GLuint GetColorMatrixProgram();
-
-    static GLuint GetDepthMatrixProgram();
-
 	static void SetCurrentShader(GLuint Shader);
 
 	static void DisableShader();

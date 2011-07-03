@@ -24,78 +24,6 @@
 namespace OGL
 {
 
-static void OpenGL_PrintShaderInfoLog(GLuint shader)
-{
-	GLsizei length = 0;
-
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-	if (length > 0)
-	{
-		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetShaderInfoLog(shader, length, &charsWritten, infoLog);
-		WARN_LOG(VIDEO, "Shader info log:\n%s", infoLog);
-		delete[] infoLog;
-	}
-}
-
-static void OpenGL_PrintProgramInfoLog(GLuint program)
-{
-	GLsizei length = 0;
-
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-	if (length > 0)
-	{
-		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetProgramInfoLog(program, length, &charsWritten, infoLog);
-		WARN_LOG(VIDEO, "Program info log:\n%s", infoLog);
-		delete[] infoLog;
-	}
-}
-
-static GLuint OpenGL_CreateShader(GLenum type, GLsizei count, const GLchar** string)
-{
-	GLuint result = glCreateShader(type);
-
-	glShaderSource(result, count, string, NULL);
-	glCompileShader(result);
-	OpenGL_PrintShaderInfoLog(result);
-
-	GLint compileStatus;
-	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
-	if (compileStatus != GL_TRUE)
-	{
-		// Compile failed
-		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
-		// Don't try to use this shader
-		glDeleteShader(result);
-		result = 0;
-	}
-
-	(void)GL_REPORT_ERROR();
-	return result;
-}
-
-static bool OpenGL_LinkProgram(GLuint program)
-{
-	bool result = true;
-	glLinkProgram(program);
-	OpenGL_PrintProgramInfoLog(program);
-
-	GLint linkStatus;
-	glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
-	if (linkStatus != GL_TRUE)
-	{
-		// Link failed
-		ERROR_LOG(VIDEO, "Program link failed; see info log");
-		result = false;
-	}
-
-	(void)GL_REPORT_ERROR();
-	return result;
-}
-
 static const char DEPALETTIZE_FS[] =
 "//dolphin-emu GLSL depalettizer shader\n"
 
@@ -176,12 +104,7 @@ void Depalettizer::Depalettize(BaseType baseType, GLuint dstTex, GLuint baseTex,
 	glViewport(0, 0, width, height);
 
 	// Depalettize!
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.f, 1.f); glVertex2f(-1.f,  1.f); // Upper left
-	glTexCoord2f(0.f, 0.f); glVertex2f(-1.f, -1.f); // Lower left
-	glTexCoord2f(1.f, 0.f); glVertex2f( 1.f, -1.f); // Lower right
-	glTexCoord2f(1.f, 1.f); glVertex2f( 1.f,  1.f); // Upper right
-	glEnd();
+	OpenGL_DrawEncoderQuad();
 
 	// Clean up
 

@@ -37,6 +37,16 @@ static const UINT C_HALFTEXEL_LOC = 6;
 static const char VIRTUAL_EFB_COPY_PS[] =
 "// dolphin-emu DX9 virtual efb copy pixel shader\n"
 
+// DEPTH should be 1 on, 0 off
+"#ifndef DEPTH\n"
+"#error DEPTH not defined.\n"
+"#endif\n"
+
+// SCALE should be 1 on, 0 off
+"#ifndef SCALE\n"
+"#error SCALE not defined.\n"
+"#endif\n"
+
 // Constants
 // c_Matrix: Color matrix
 "uniform float4x4 c_Matrix : register(c0);\n"
@@ -49,16 +59,6 @@ static const char VIRTUAL_EFB_COPY_PS[] =
 
 // Samplers
 "uniform sampler s_EFBTexture : register(s0);\n"
-
-// DEPTH should be 1 on, 0 off
-"#ifndef DEPTH\n"
-"#error DEPTH not defined.\n"
-"#endif\n"
-
-// SCALE should be 1 on, 0 off
-"#ifndef SCALE\n"
-"#error SCALE not defined.\n"
-"#endif\n"
 
 "#if DEPTH\n"
 "float4 Fetch(float2 coord)\n"
