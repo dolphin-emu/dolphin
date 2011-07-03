@@ -553,11 +553,12 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_TEV_REGISTER_H+4:
 		case BPMEM_TEV_REGISTER_L+6: // Reg 4
 		case BPMEM_TEV_REGISTER_H+6:
-			if (bp.address & 1)  // only run this code for the _H! is this right? what if L is set independently?
+			// some games only send the _L part, so always update
 			{
 				// don't compare with changes!
 				int num = (bp.address >> 1) & 0x3;
 				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
+				//is .low.type used for anything in the real HW?
 			}
 			break;
 
