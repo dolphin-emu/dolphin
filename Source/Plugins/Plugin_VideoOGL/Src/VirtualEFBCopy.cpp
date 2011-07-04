@@ -60,7 +60,7 @@ static const char VIRTUAL_EFB_COPY_FS[] =
 	// Ref: <http://www.horde3d.org/forums/viewtopic.php?f=1&t=569>
 	// Ref: <http://code.google.com/p/dolphin-emu/source/detail?r=6217>
 	"float depth = 255.99998474121094 * texture2DRect(u_EFBSampler, coord).r;\n"
-	"vec4 result = depth.rrrr;\n"
+	"vec4 result = depth * vec4(1,1,1,1);\n"
 
 	"result.a = floor(result.a);\n" // bits 31..24
 
@@ -110,7 +110,7 @@ static const char VIRTUAL_EFB_COPY_FS[] =
 "{\n"
 	"vec2 coord = mix(u_SourceRect.xy, u_SourceRect.zw, gl_TexCoord[0].xy);\n"
 	"vec4 pixel = ScaledFetch(coord);\n"
-	"gl_FragColor = mul(pixel, u_Matrix) + u_Add;\n"
+	"gl_FragColor = pixel * u_Matrix + u_Add;\n"
 "}\n"
 ;
 
@@ -127,7 +127,8 @@ VirtualCopyProgramManager::Program::~Program()
 bool VirtualCopyProgramManager::Program::Compile(bool scale, bool depth)
 {
 	const GLchar* fs[] = {
-		"#version 110\n",
+		"#version 120\n",
+		"#extension GL_ARB_texture_rectangle : enable\n",
 		depth ? "#define DEPTH 1\n" : "#define DEPTH 0\n",
 		scale ? "#define SCALE 1\n" : "#define SCALE 0\n",
 		VIRTUAL_EFB_COPY_FS
