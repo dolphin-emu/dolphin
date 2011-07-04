@@ -34,7 +34,7 @@ public:
 	static void SetConstants(); // sets pixel shader constants
 
 	// constant management, should be called after memory is committed
-	static void SetColorChanged(int type, int index);
+	static void SetColorChanged(int type, int index, bool high);
 	static void SetAlpha(const AlphaFunc& alpha);
 	static void SetDestAlpha(const ConstantAlpha& alpha);
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);

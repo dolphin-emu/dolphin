@@ -340,17 +340,20 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 
 // This one is high in profiles (0.5%). TODO: Move conversion out, only store the raw color value
 // and update it when the shader constant is set, only.
-void PixelShaderManager::SetColorChanged(int type, int num)
+void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
-    int r = bpmem.tevregs[num].low.a;
-	int a = bpmem.tevregs[num].low.b;
-    int b = bpmem.tevregs[num].high.a;
-	int g = bpmem.tevregs[num].high.b;
     float *pf = &lastRGBAfull[type][num][0];
-    pf[0] = (float)r * (1.0f / 255.0f);
-    pf[1] = (float)g * (1.0f / 255.0f);
-    pf[2] = (float)b * (1.0f / 255.0f);
-    pf[3] = (float)a * (1.0f / 255.0f);
+	if (!high) {
+		int r = bpmem.tevregs[num].low.a;
+		int a = bpmem.tevregs[num].low.b;
+		pf[0] = (float)r * (1.0f / 255.0f);
+		pf[3] = (float)a * (1.0f / 255.0f);
+	} else {
+		int b = bpmem.tevregs[num].high.a;
+		int g = bpmem.tevregs[num].high.b;
+		pf[1] = (float)g * (1.0f / 255.0f);
+		pf[2] = (float)b * (1.0f / 255.0f);
+	}
     s_nColorsChanged[type] |= 1 << num;
     PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }
