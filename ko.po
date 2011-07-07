@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-23 23:38+0900\n"
-"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"PO-Revision-Date: 2011-07-07 10:24+0900\n"
+"Last-Translator: \n"
 "Language-Team: \n"
 "Language: Korean\n"
 "MIME-Version: 1.0\n"
@@ -390,7 +390,6 @@ msgid "Accurate VBeam emulation"
 msgstr "정확한 VBeam 에뮬레이션"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -399,9 +398,9 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "정확하게 EFB 복사를 에뮬합니다.\n"
-"일부 게임들의 그래픽 효과나 게임플레이 기능이 이것에 의존합니다.\n"
+"일부 게임들은 그래픽 효과나 게임플레이 기능을 이것에 의존합니다.\n"
 "\n"
-"확신 없으면, 대신 \"EFB를 텍스처로\"를 체크하세요."
+"확신 없으면, 이것을 체크로 두세요"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -831,9 +830,8 @@ msgid "Buttons"
 msgstr "버튼"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
-msgstr "C-스틱"
+msgstr "C 스틱"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
@@ -2605,7 +2603,6 @@ msgid "Greater Than"
 msgstr "보다 큰"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2615,7 +2612,6 @@ msgid ""
 msgstr ""
 "\"텍스처에 렌더\"를 사용하여 생성된 텍스쳐들의 질을 엄청나게 향상시킵니다.\n"
 "내부 해상도를 올리면 이 세팅의 효과를 향상시킬 것입니다.\n"
-"성능을 약간 감소시키고 아마도 이슈들(예상 밖이지만)을 유발합니다.\n"
 "\n"
 "확신 없다면, 이것을 체크로 두세요."
 
@@ -4325,9 +4321,8 @@ msgid "Short Name:"
 msgstr "단축 이름:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "버튼"
+msgstr "숄더 버튼"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4690,9 +4685,8 @@ msgstr "타이완"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "입력"
+msgstr "TAS 입력"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"

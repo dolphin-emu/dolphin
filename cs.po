@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-04 07:28+0100\n"
+"PO-Revision-Date: 2011-07-03 10:48+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -389,7 +389,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Precizní emulace VBeam"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -400,7 +399,7 @@ msgstr ""
 "Přesně emulovat EFB kopie.\n"
 "Některé hry na tomto závisí pro určité grafické efekty nebo herní funkce.\n"
 "\n"
-"Pokud si nejste jisti, nechejte toto odškrtnuté."
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -832,9 +831,8 @@ msgid "Buttons"
 msgstr "Tlačítka"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
-msgstr "Kr-Stick"
+msgstr "Kr Stick"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
@@ -2615,7 +2613,6 @@ msgid "Greater Than"
 msgstr "Větší než"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2625,8 +2622,7 @@ msgid ""
 msgstr ""
 "Velmi zvýší kvalitu vytvářených textur použitím efektů vykreslení do "
 "textury.\n"
-"Zvýšením vnitřního rozlišení zlepší účinnek tohoto nastavení.\n"
-"Lehce snižuje výkon a možná způsobí chyby (i když je to nepravděpodobné).\n"
+"Zvýšení vnitřního rozlišení zlepší účinnek tohoto nastavení.\n"
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
@@ -4337,9 +4333,8 @@ msgid "Short Name:"
 msgstr "Krátké Jméno:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Tlačítka"
+msgstr "Zadní Tlačítka"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4705,9 +4700,8 @@ msgstr "TCHAJ-WAN"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "Vstup"
+msgstr "TAS Vstup"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"

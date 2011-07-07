@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-04 13:36+0200\n"
+"PO-Revision-Date: 2011-07-06 22:40-0500\n"
 "Last-Translator: Link_to_the_past <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
 "Language: Greek\n"
@@ -395,7 +395,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Ακριβής VBeam εξομοίωση"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -407,7 +406,7 @@ msgstr ""
 "Κάποια παιχνίδια βασίζονται σε αυτό για ορισμένα εφέ γραφικών ή λειτουργίες "
 "του gameplay.\n"
 "\n"
-"Αν δεν είστε σίγουροι, επιλέξτε EFB Αντίγραφα σε Υφή."
+"Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -831,9 +830,8 @@ msgid "Buttons"
 msgstr "Κουμπιά"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
-msgstr "Stick Κάμερας"
+msgstr "Stick Κάμερας "
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
@@ -1234,6 +1232,10 @@ msgid ""
 "Could not set pads. The player left or the game is currently running!\n"
 "(setting pads while the game is running is not yet supported)"
 msgstr ""
+"Αδυναμία καθορισμού χειριστηρίων. Ο παίκτης εγκατέλειψε ή το παιχνίδι "
+"τρέχει!\n"
+"(ο καθορισμός των χειριστηρίων ενώ το παιχνίδι τρέχει δεν υποστηρίζεται προς "
+"το παρόν)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:118
 #, c-format
@@ -2628,7 +2630,6 @@ msgid "Greater Than"
 msgstr "Μεγαλύτερο από"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2638,9 +2639,7 @@ msgid ""
 msgstr ""
 "Βελτιώνει πολύ την ποιότητα των υφών που παράγονται χρησιμοποιώντας render "
 "to texture εφέ.\n"
-"Αύξηση της εσωτερικής ανάλυσης θα βελτιώσει το εφέ αυτής της ρύθμισης.\n"
-"Μειώνει ελαφρά τις επιδόσεις και είναι πιθανό να προκαλέσει προβλήματα (αν "
-"και είναι ελάχιστα πιθανό).\n"
+"Μία αύξηση της εσωτερικής ανάλυσης θα βελτιώσει το εφέ αυτής της ρύθμισης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -4367,9 +4366,8 @@ msgid "Short Name:"
 msgstr "Σύντομο Όνομα:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Κουμπιά"
+msgstr "Κουμπιά Shoulder"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4737,9 +4735,8 @@ msgstr "ΤΑΪΒΑΝ"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "Είσοδος"
+msgstr "TAS Είσοδος"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
@@ -5717,8 +5714,9 @@ msgstr "| OR"
 #~ msgid "DSound"
 #~ msgstr "&Ήχος"
 
+#, fuzzy
 #~ msgid "Danish"
-#~ msgstr "Δανέζικα"
+#~ msgstr "Ισπανικά"
 
 #~ msgid ""
 #~ "Disable texturing.\n"
@@ -5790,10 +5788,11 @@ msgstr "| OR"
 
 #, fuzzy
 #~ msgid "Enable CPU Access"
-#~ msgstr "Ενεργοποίηση Cache"
+#~ msgstr "Ενεργοποίηση Cheat"
 
+#, fuzzy
 #~ msgid "Enable Cache"
-#~ msgstr "Ενεργοποίηση Cache"
+#~ msgstr "Ενεργοποίηση Cheat"
 
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Ενεργοποίηση Αντιγραφή στον EFB"
@@ -6194,11 +6193,13 @@ msgstr "| OR"
 #~ "\n"
 #~ "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
+#, fuzzy
 #~ msgid "Texture"
-#~ msgstr "Υφή"
+#~ msgstr "Εξαγωγή Υφών"
 
+#, fuzzy
 #~ msgid "Texture Cache"
-#~ msgstr "Cache Υφών"
+#~ msgstr "Καθαρισμός Cache"
 
 #~ msgid "The file "
 #~ msgstr "Το αρχείο "

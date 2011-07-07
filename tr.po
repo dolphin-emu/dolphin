@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-08 21:53+0200\n"
+"PO-Revision-Date: 2011-07-06 22:39-0500\n"
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
 "Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
 "Language: Turkish\n"
@@ -393,7 +393,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Doğru VBeam Emülasyonu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -402,10 +401,10 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "EFB kopyalarını doğru bir şekilde emüle eder. \n"
-"Bazı oyunlar oynama işlevselliği veya belirli görsel efektler için buna "
-"bağlıdır. \n"
+"Bazı oyunlar işlevsellik veya belirli görsel efektler için buna ihtiyaç "
+"duyar. \n"
 "\n"
-"Emin değilseniz, bunun yerine EFB'den dokuya kullanın."
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -838,7 +837,6 @@ msgid "Buttons"
 msgstr "Düğmeler"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
 msgstr "C Çubuğu"
 
@@ -2627,7 +2625,6 @@ msgid "Greater Than"
 msgstr "Daha Büyük"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2636,8 +2633,7 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "Dokuya yorumlama efektlerinde kullanılan doku kalitesini bayağı artırır. \n"
-"Çözünürlüğü yükseltmek bu ayarın etkisini artırır. \n"
-"Performansı biraz azaltır ve büyük olasılıkla bazı hatalara neden olur. \n"
+"İç çözünürlüğü yükseltmek bu ayarın etkisini artırır. \n"
 "\n"
 "Emin değilseniz, işaretli bırakın."
 
@@ -4351,9 +4347,8 @@ msgid "Short Name:"
 msgstr "Kısa İsim:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Düğmeler"
+msgstr "Shoulder Düğmeleri"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4717,9 +4712,8 @@ msgstr "TAYVAN"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "Giriş"
+msgstr "TAS Girişi"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
