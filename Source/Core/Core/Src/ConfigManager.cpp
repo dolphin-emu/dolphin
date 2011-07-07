@@ -162,8 +162,8 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
 	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
 	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
-	ini.Set("Interface", "MainWindowPosX",		m_LocalCoreStartupParameter.iPosX);
-	ini.Set("Interface", "MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
+	ini.Set("Interface", "MainWindowPosX",		(m_LocalCoreStartupParameter.iPosX == -32000) ? 0 : m_LocalCoreStartupParameter.iPosX); // TODO - HAX
+	ini.Set("Interface", "MainWindowPosY",		(m_LocalCoreStartupParameter.iPosY == -32000) ? 0 : m_LocalCoreStartupParameter.iPosY); // TODO - HAX
 	ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
 	ini.Set("Interface", "MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
 	ini.Set("Interface", "Language",			m_InterfaceLanguage);
