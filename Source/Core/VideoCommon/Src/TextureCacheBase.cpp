@@ -42,17 +42,22 @@ TextureCacheBase::TextureCacheBase()
 
 TextureCacheBase::~TextureCacheBase()
 {
-	for (VirtualEFBCopyMap::iterator it = m_virtCopyMap.begin(); it != m_virtCopyMap.end(); ++it)
-	{
-		delete it->second;
-	}
-	m_virtCopyMap.clear();
+	ClearVirtualCopies();
 
 	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it)
 	{
 		delete it->second;
 	}
 	m_map.clear();
+}
+
+void TextureCacheBase::ClearVirtualCopies()
+{
+	for (VirtualEFBCopyMap::iterator it = m_virtCopyMap.begin(); it != m_virtCopyMap.end(); ++it)
+	{
+		delete it->second;
+	}
+	m_virtCopyMap.clear();
 }
 
 void TextureCacheBase::Invalidate()

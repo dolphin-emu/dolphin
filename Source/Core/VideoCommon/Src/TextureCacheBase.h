@@ -83,6 +83,8 @@ public:
 	TextureCacheBase();
 	virtual ~TextureCacheBase();
 
+	void ClearVirtualCopies();
+
 	// FIXME: Game can invalidate certain regions of the cache...this function
 	// just invalidates the whole thing.
 	void Invalidate();

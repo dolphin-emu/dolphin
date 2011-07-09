@@ -449,7 +449,7 @@ void TextureCache::TeardownDeviceObjects()
 	// When the window is resized, we have to release all D3DPOOL_DEFAULT
 	// resources. Virtual copies contain these, so they will all disappear.
 	// TODO: Can we store virtual copies in D3DPOOL_MANAGED resources?
-	m_virtCopyMap.clear();
+	ClearVirtualCopies();
 	for (TCacheMap::iterator it = m_map.begin(); it != m_map.end(); ++it) {
 		((TCacheEntry*)it->second)->TeardownDeviceObjects();
 	}
