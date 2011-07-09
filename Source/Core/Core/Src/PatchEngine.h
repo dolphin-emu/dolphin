@@ -53,6 +53,27 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 void LoadPatches(const char *gameID);
 void ApplyFramePatches();
 void ApplyARPatches();
+
+inline int GetPatchTypeCharLength(PatchType type)
+{
+	int size = 8;
+	switch (type)
+	{
+	case PatchEngine::PATCH_8BIT:
+		size = 2;
+		break;
+
+	case PatchEngine::PATCH_16BIT:
+		size = 4;
+		break;
+
+	case PatchEngine::PATCH_32BIT:
+		size = 8;
+		break;
+	}
+	return size;
+}
+
 }  // namespace
 
 #endif //_PATCHENGINE_H

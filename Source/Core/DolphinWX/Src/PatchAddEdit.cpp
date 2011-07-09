@@ -71,7 +71,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	EditPatchType->SetSelection((int)tempEntries.at(0).type);
 	wxStaticText* EditPatchValueText = new wxStaticText(this, ID_EDITPATCH_VALUE_TEXT, _("Value:"));
 	EditPatchValue = new wxTextCtrl(this, ID_EDITPATCH_VALUE);
-	EditPatchValue->SetValue(wxString::Format(wxT("%08X"), tempEntries.at(0).value));
+	EditPatchValue->SetValue(wxString::Format(wxT("%0*X"), PatchEngine::GetPatchTypeCharLength(tempEntries.at(0).type), tempEntries.at(0).value));
 	wxButton *EntryAdd = new wxButton(this, ID_ENTRY_ADD, _("Add"));
 	EntryRemove = new wxButton(this, ID_ENTRY_REMOVE, _("Remove"));
 	if ((int)tempEntries.size() <= 1)
@@ -105,7 +105,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 
 void CPatchAddEdit::ChangeEntry(wxSpinEvent& event)
 {
-	SaveEntryData(itCurEntry);
+	if (!UpdateTempEntryData(itCurEntry))
+		return;
 	
 	itCurEntry = tempEntries.end() - event.GetPosition() - 1;
 	currentItem = (int)tempEntries.size() - event.GetPosition();
@@ -114,7 +115,8 @@ void CPatchAddEdit::ChangeEntry(wxSpinEvent& event)
 
 void CPatchAddEdit::SavePatchData(wxCommandEvent& event)
 {
-	SaveEntryData(itCurEntry);
+	if (!UpdateTempEntryData(itCurEntry))
+		return;
 
 	if (selection == -1)
 	{
@@ -141,7 +143,8 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 	{
 	case ID_ENTRY_ADD:
 		{
-			SaveEntryData(itCurEntry);
+			if (!UpdateTempEntryData(itCurEntry))
+				break;
 
 			PatchEngine::PatchEntry peEmptyEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
 			++itCurEntry;
@@ -188,16 +191,38 @@ void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
 									  (int)tempEntries.size()));
 	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), pE.address));
 	EditPatchType->SetSelection(pE.type);
-	EditPatchValue->SetValue(wxString::Format(wxT("%08X"), pE.value));
+	EditPatchValue->SetValue(wxString::Format(wxT("%0*X"),
+		PatchEngine::GetPatchTypeCharLength(pE.type), pE.value));
 }
 
-void CPatchAddEdit::SaveEntryData(std::vector<PatchEngine::PatchEntry>::iterator iterEntry)
+bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::iterator iterEntry)
 {
 	unsigned long value;
+	bool parsed_ok = true;
 
 	if (EditPatchOffset->GetValue().ToULong(&value, 16))
 		(*iterEntry).address = value;
-	(*iterEntry).type = (PatchEngine::PatchType) EditPatchType->GetSelection();
+	else
+		parsed_ok = false;
+
+	PatchEngine::PatchType tempType = 
+	(*iterEntry).type = (PatchEngine::PatchType)EditPatchType->GetSelection();
+
 	if (EditPatchValue->GetValue().ToULong(&value, 16))
+	{
 		(*iterEntry).value = value;
+		if (tempType == PatchEngine::PATCH_8BIT && value > 0xff)
+			parsed_ok = false;
+		else if (tempType == PatchEngine::PATCH_16BIT && value > 0xffff)
+			parsed_ok = false;
+	}
+	else
+		parsed_ok = false;
+
+	if (!parsed_ok)
+	{
+		PanicAlertT("Unable to create patch from given values.\nEntry not modified.");
+	}
+
+	return parsed_ok;
 }

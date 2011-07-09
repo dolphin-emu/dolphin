@@ -59,6 +59,7 @@ std::vector<std::string> discList;
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
 	std::vector<std::string> lines;
+
 	if (!ini.GetLines(section, lines))
 		return;
 
@@ -67,12 +68,14 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
 		std::string line = *iter;
+
 		if (line.size())
 		{
 			if (line[0] == '+' || line[0] == '$')
 			{
 				// Take care of the previous code
-				if (currentPatch.name.size()) patches.push_back(currentPatch);
+				if (currentPatch.name.size())
+					patches.push_back(currentPatch);
 				currentPatch.entries.clear();
 
 				// Set active and name
@@ -85,12 +88,15 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 			}
 
 			std::string::size_type loc = line.find_first_of('=', 0);
+
 			if (loc != std::string::npos)
 				line[loc] = ':';
 
 			std::vector<std::string> items;
 			SplitString(line, ':', items);
-			if (items.size() >= 3) {
+
+			if (items.size() >= 3)
+			{
 				PatchEntry pE;
 				bool success = true;
 				success &= TryParse(items[0], &pE.address);
@@ -103,7 +109,9 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 			}
 		}
 	}
-	if (currentPatch.name.size()) patches.push_back(currentPatch);
+
+	if (currentPatch.name.size() && currentPatch.entries.size())
+		patches.push_back(currentPatch);
 }
     
 static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini) {

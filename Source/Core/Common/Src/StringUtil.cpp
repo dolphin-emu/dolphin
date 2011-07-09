@@ -130,6 +130,9 @@ bool TryParse(const std::string &str, u32 *const output)
 	if (!endptr || *endptr)
 		return false;
 
+	if (value == ULONG_MAX && errno == ERANGE)
+		return false;
+
 	*output = value;
 	return true;
 }
