@@ -150,14 +150,13 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
+	// Load textures
+	GLuint bindThese[8] = { 0 };
 	for (int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
-			glActiveTexture(GL_TEXTURE0 + i);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
-			const TexMode0& tm0 = tex.texMode0[i&3];
-			const TexMode1& tm1 = tex.texMode1[i&3];
 
 			u32 ramAddr = tex.texImage3[i&3].image_base << 5;
 			u32 width = tex.texImage0[i&3].width+1;
@@ -167,49 +166,65 @@ void VertexManager::vFlush()
 			u32 tlutAddr = (tex.texTlut[i&3].tmem_offset << 9) + TMEM_HALF;
 			u32 tlutFormat = tex.texTlut[i&3].tlut_format;
 			
-			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
-
 			TCacheEntry* entry = (TCacheEntry*)g_textureCache->LoadEntry(
 				ramAddr, width, height, levels, format, tlutAddr, tlutFormat);
 
 			if (entry)
 			{
-				GLuint texture = entry->GetTexture();
-				if (texture)
-				{
-					glEnable(GL_TEXTURE_2D);
-					glBindTexture(GL_TEXTURE_2D, texture);
-
-					// Set sampler parameters
-
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-						c_MinLinearFilter[tm0.min_filter]);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-						(tm0.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, tm1.min_lod >> 4);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tm1.max_lod >> 4);
-					glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS,
-						tm0.lod_bias / 32.0f);
-
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[tm0.wrap_s]);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[tm0.wrap_t]);
-
-					if (g_ActiveConfig.iMaxAnisotropy >= 1)
-						glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-							float(1 << g_ActiveConfig.iMaxAnisotropy));
-				}
-				else
-				{
-					glDisable(GL_TEXTURE_2D);
-					glBindTexture(GL_TEXTURE_2D, 0);
-				}
+				bindThese[i] = entry->GetTexture();
 			}
 			else
 			{
 				ERROR_LOG(VIDEO, "Error loading texture from 0x%.08X", ramAddr);
-				glDisable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, 0);
+				bindThese[i] = 0;
 			}
+		}
+		else
+		{
+			bindThese[i] = 0;
+		}
+	}
+	
+	// Bind textures and configure samplers
+	for (int i = 0; i < 8; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0+i);
+		if (bindThese[i])
+		{
+			const FourTexUnits &tex = bpmem.tex[i >> 2];
+			const TexMode0& tm0 = tex.texMode0[i&3];
+			const TexMode1& tm1 = tex.texMode1[i&3];
+
+			u32 width = tex.texImage0[i&3].width+1;
+			u32 height = tex.texImage0[i&3].height+1;
+
+			PixelShaderManager::SetTexDims(i, width, height, 0, 0);
+
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, bindThese[i]);
+
+			// Set sampler parameters
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+				c_MinLinearFilter[tm0.min_filter]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+				(tm0.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, tm1.min_lod >> 4);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tm1.max_lod >> 4);
+			glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS,
+				tm0.lod_bias / 32.0f);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[tm0.wrap_s]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[tm0.wrap_t]);
+
+			if (g_ActiveConfig.iMaxAnisotropy >= 1)
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+					float(1 << g_ActiveConfig.iMaxAnisotropy));
+		}
+		else
+		{
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDisable(GL_TEXTURE_2D);
 		}
 	}
 
@@ -260,6 +275,8 @@ void VertexManager::vFlush()
 	if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
+
+	// Draw!
 
 	Draw();
 
