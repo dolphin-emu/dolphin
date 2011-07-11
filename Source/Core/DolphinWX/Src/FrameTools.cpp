@@ -715,6 +715,12 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 {
 	int controllers = 0;
+	
+	if (Movie::IsReadOnly())
+	{
+		PanicAlertT("Cannot record movies in read-only mode.");
+		return;
+	}
 
 	for (int i = 0; i < 4; i++) {
 		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)

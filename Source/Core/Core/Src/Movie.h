@@ -87,7 +87,11 @@ struct DTMHeader {
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
     u8  padBackend[16];		// UTF-8 representation of the input backend
 
-    u8  reserved[127];		// Make heading 256 bytes, just because we can
+	// only used in read-only savestates
+	u64 frameStart;         // Offset to resume playback on
+	u64 totalFrameCount;    // Total frames, same as normal dtm's frameCount
+
+    u8  reserved[111];		// Make heading 256 bytes, just because we can
 };
 #pragma pack(pop)
 
@@ -100,11 +104,12 @@ bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsPlayingInput();
+bool IsReadOnly();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 void ChangePads(bool instantly = false);
-void ChangeWiiPads();
+void ChangeWiiPads(bool instantly = false);
 
 void SetFrameStepping(bool bEnabled);
 void SetFrameStopping(bool bEnabled);

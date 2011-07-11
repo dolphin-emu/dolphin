@@ -18,6 +18,7 @@
 #include "Movie.h"
 
 #include "Core.h"
+#include "ConfigManager.h"
 #include "Thread.h"
 #include "FileUtil.h"
 #include "PowerPC/PowerPC.h"
@@ -25,15 +26,6 @@
 #include "HW/Wiimote.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "VideoBackendBase.h"
-
-#ifdef WIN32
-#include <io.h> //_chsize_s
-#include <fcntl.h>
-#include <share.h>
-#include <sys/stat.h>
-#else
-#include <unistd.h> //truncate
-#endif
 #include "State.h"
 
 // large enough for just over 24 hours of single-player recording
@@ -166,6 +158,11 @@ bool IsPlayingInput()
 	return (g_playMode == MODE_PLAYING);
 }
 
+bool IsReadOnly()
+{
+	return g_bReadOnly;
+}
+
 bool IsUsingPad(int controller)
 {
 	return ((g_numPads & (1 << controller)) != 0);
@@ -178,18 +175,37 @@ bool IsUsingWiimote(int wiimote)
 
 void ChangePads(bool instantly)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		for (int i = 0; i < 4; i++)
-			if (instantly) // Changes from savestates need to be instantaneous
-				SerialInterface::AddDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
-			else
-				SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
-	}
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		return;
+
+	int controllers = 0;
+
+	for (int i = 0; i < 4; i++)
+		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+			controllers |= (1 << i);
+
+	if (instantly && (g_numPads & 0x0F) == controllers)
+		return;
+
+	for (int i = 0; i < 4; i++)
+		if (instantly) // Changes from savestates need to be instantaneous
+			SerialInterface::AddDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+		else
+			SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
 }
 
-void ChangeWiiPads()
+void ChangeWiiPads(bool instantly)
 {
+	int controllers = 0;
+
+	for (int i = 0; i < 4; i++)
+		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+			controllers |= (1 << i);
+
+	// This is important for Wiimotes, because they can desync easily if they get re-activated
+	if (instantly && (g_numPads >> 4) == controllers)
+		return;
+
 	for (int i = 0; i < 4; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
@@ -213,9 +229,7 @@ bool BeginRecordingInput(int controllers)
 	
 	g_numPads = controllers;
 	
-	g_frameCounter = 0;
-	g_lagCounter = 0;
-	g_InputCounter = 0;
+	g_frameCounter = g_lagCounter = g_InputCounter = 0;
 	g_rerecords = 0;
 	g_playMode = MODE_RECORDING;
 	inputOffset = 0;
@@ -415,14 +429,15 @@ void LoadInput(const char *filename)
 		EndPlayInput(false);
 		return;
 	}
-	
-	tmpHeader.numRerecords++;
+
+	if (!g_bReadOnly)
+		tmpHeader.numRerecords++;
 	
 	t_record.Seek(0, SEEK_SET);
 	t_record.WriteArray(&tmpHeader, 1);
 	
 	g_frameCounter = tmpHeader.frameCount;
-	g_totalFrameCount = tmpHeader.frameCount;
+	g_totalFrameCount = (tmpHeader.totalFrameCount ? tmpHeader.totalFrameCount : tmpHeader.frameCount);
 	g_InputCounter = tmpHeader.InputCount;
 
 	g_numPads = tmpHeader.numControllers;
@@ -430,20 +445,27 @@ void LoadInput(const char *filename)
 	ChangePads(true);
 
 	if (Core::g_CoreStartupParameter.bWii)
-		ChangeWiiPads();
+		ChangeWiiPads(true);
 
 	inputOffset = t_record.GetSize() - 256;
 	delete tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
 	t_record.ReadArray(tmpInput, inputOffset);
-
 	t_record.Close();
-	
 	g_rerecords = tmpHeader.numRerecords;
-	
-	Core::DisplayMessage("Resuming movie recording", 2000);
-	
-	g_playMode = MODE_RECORDING;
+
+	if (g_bReadOnly)
+	{
+		tmpLength = inputOffset;
+		inputOffset = tmpHeader.frameStart;
+		Core::DisplayMessage("Resuming movie playback", 2000);
+		g_playMode = MODE_PLAYING;
+	}
+	else
+	{
+		Core::DisplayMessage("Resuming movie recording", 2000);
+		g_playMode = MODE_RECORDING;
+	}
 }
 
 void PlayController(SPADStatus *PadStatus, int controllerID)
@@ -599,36 +621,41 @@ void SaveRecording(const char *filename)
 {
 	File::IOFile save_record(filename, "wb");
 	
-	// NOTE: Eventually this will not happen in
-	// read-only mode, but we need a way for the save state to
-	// store the current point in the file first.
-	// if (!g_bReadOnly)
+	// Create the real header now and write it
+	DTMHeader header;
+	memset(&header, 0, sizeof(DTMHeader));
+	
+	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
+	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
+	header.bWii = Core::g_CoreStartupParameter.bWii;
+	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
+	
+	header.bFromSaveState = g_bRecordingFromSaveState;
+	header.frameCount = g_frameCounter;
+	header.lagCount = g_lagCounter; 
+	header.numRerecords = g_rerecords;
+	header.InputCount = g_InputCounter;
+	
+	// TODO
+	header.uniqueID = 0; 
+	// header.author;
+	// header.videoBackend; 
+	// header.audioEmulator;
+	
+	if (g_bReadOnly)
 	{
-		// Create the real header now and write it
-		DTMHeader header;
-		memset(&header, 0, sizeof(DTMHeader));
-		
-		header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-		strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
-		header.bWii = Core::g_CoreStartupParameter.bWii;
-		header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
-		
-		header.bFromSaveState = g_bRecordingFromSaveState;
-		header.frameCount = g_frameCounter;
-		header.lagCount = g_lagCounter; 
-		header.numRerecords = g_rerecords;
-		header.InputCount = g_InputCounter;
-		
-		// TODO
-		header.uniqueID = 0; 
-		// header.author;
-		// header.videoBackend; 
-		// header.audioEmulator;
-		
-		save_record.WriteArray(&header, 1);
+		header.frameStart = inputOffset;
+		header.totalFrameCount = g_totalFrameCount;
 	}
+	
+	save_record.WriteArray(&header, 1);
 
-	bool success = save_record.WriteArray(tmpInput, inputOffset);
+	bool success;
+
+	if (g_bReadOnly)
+		success = save_record.WriteArray(tmpInput, tmpLength);
+	else
+		success = save_record.WriteArray(tmpInput, inputOffset);
 
 	if (success && g_bRecordingFromSaveState)
 	{
