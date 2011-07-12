@@ -113,7 +113,6 @@ int et_AI;
 int et_AudioDMA;
 int et_DSP;
 int et_IPC_HLE;
-int et_FakeGPWD;	// DC watchdog hack
 int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
 
 // These are badly educated guesses
@@ -244,11 +243,12 @@ void Init()
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
-		// PS: When this period is tweaked, the interval
-		// in WII_IPC_HLE_Device_usb.cpp should also be tweaked accordingly
-		// to guarantee WiiMote updates at a fixed 100Hz
-		int interval = SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableWiimoteSpeaker?1250:1500;
-		int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
+
+		// FIXME: does Wiimote Speaker support really require a different interval? (issue 4608)
+		const int interval = SConfig::GetInstance().m_LocalCoreStartupParameter.
+				bDisableWiimoteSpeaker ? 1250 : 1500;
+		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
+				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (interval * fields);
 	}
 	else

@@ -182,10 +182,24 @@ private:
 		{
 			_dbg_assert_msg_(WII_IPC_WIIMOTE,
 				size < m_acl_pkt_size, "acl packet too large for pool");
+
+			const int next_write_ptr = (m_write_ptr + 1) % m_acl_pkts_num;
+			if (next_write_ptr == m_read_ptr)
+			{
+				// Many simultaneous exchanges of ACL packets tend to cause the
+				// 10-packet limit to be exceeded.  Typically, this occurs when
+				// many emulated Wiimotes are requesting connections at once.
+				// See issue 4608 for more info.
+				ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue is full - current packet will be "
+						"dropped! (m_write_ptr(%d) was about to overlap m_read_ptr(%d))",
+						m_write_ptr, m_read_ptr);
+				return;
+			}
+
 			memcpy(m_pool + m_acl_pkt_size * m_write_ptr, data, size);
 			m_info[m_write_ptr].size = size;
 			m_info[m_write_ptr].conn_handle = conn_handle;
-			m_write_ptr = (m_write_ptr + 1) % m_acl_pkts_num;
+			m_write_ptr = next_write_ptr;
 		}
 
 		void WriteToEndpoint(CtrlBuffer& endpoint);
