@@ -864,7 +864,7 @@ void TASManipFunction(SPADStatus *PadStatus, int controllerID)
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			RendererHasFocus())
+			(RendererHasFocus() || g_TASInputDlg->HasFocus()))
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen

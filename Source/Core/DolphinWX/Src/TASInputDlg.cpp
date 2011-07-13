@@ -368,3 +368,8 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 		ResetValues();
 	}
 }
+
+bool TASInputDlg::HasFocus()
+{
+	return (wxWindow::FindFocus() == this || wxWindow::FindFocus()->GetParent() == this);
+}

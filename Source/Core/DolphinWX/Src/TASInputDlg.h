@@ -39,6 +39,7 @@ class TASInputDlg : public wxDialog
 		void UpdateFromText(wxCommandEvent& event);
 		void ResetValues();
 		void GetValues(SPADStatus *PadStatus, int controllerID);
+		bool HasFocus();
 
 	private:
 		u8 mainX, mainY, cX, cY, lTrig, rTrig;
