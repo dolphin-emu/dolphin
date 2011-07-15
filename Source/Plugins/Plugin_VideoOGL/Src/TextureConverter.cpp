@@ -78,7 +78,7 @@ void CreateRgbToYuyvProgram()
 	"}\n";
 
 	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
-		PanicAlertT("Failed to create RGB to YUYV fragment program\nReport this issue.");
+		ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
 }
 
 void CreateYuyvToRgbProgram()
@@ -104,7 +104,7 @@ void CreateYuyvToRgbProgram()
 	"}\n";
 
 	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
-		PanicAlertT("Failed to create YUYV to RGB fragment program\nReport this issue.");
+		ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
 }
 
 FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)

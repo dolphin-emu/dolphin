@@ -58,12 +58,14 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	static std::string info_caption;
 	static std::string warn_caption;
 	static std::string ques_caption;
+	static std::string crit_caption;
 
 	if (!info_caption.length())
 	{
 		info_caption = str_translator(_trans("Information"));
 		ques_caption = str_translator(_trans("Question"));
 		warn_caption = str_translator(_trans("Warning"));
+		crit_caption = str_translator(_trans("Critical"));
 	}
 
 	switch(Style)
@@ -77,6 +79,9 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 		case WARNING:
 			caption = warn_caption;
 			break;
+		case CRITICAL:
+			caption = crit_caption;
+			break;
 	}
 
 	va_list args;
@@ -87,7 +92,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
 	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-	if (msg_handler && (AlertEnabled || Style == QUESTION))
+	if (msg_handler && (AlertEnabled || Style == QUESTION || Style == CRITICAL))
 		return msg_handler(caption.c_str(), buffer, yes_no, Style);
 
 	return true;

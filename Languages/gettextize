@@ -6,8 +6,8 @@ CPP_FILE_LIST=$(find $SRCDIR \( -name '*.cpp' -o -name '*.h' -o -name '*.c' \) \
 	-a ! -path '*Debug*')
 xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT	\
 	--keyword=PanicAlertT --keyword=PanicYesNoT --keyword=AskYesNoT --keyword=_trans	\
-	--add-comments=i18n -p ./Languages/po -o dolphin-emu.pot $CPP_FILE_LIST				\
-	--package-name="Dolphin Emu"
+	--keyword=CriticalAlertT --add-comments=i18n -p ./Languages/po -o dolphin-emu.pot	\
+	$CPP_FILE_LIST --package-name="Dolphin Emu"
 
 POTFILE=./Languages/po/dolphin-emu.pot
 PO_FILES=$(find ./Languages/po -name '*.po')

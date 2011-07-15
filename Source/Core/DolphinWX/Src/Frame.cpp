@@ -642,9 +642,13 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 #ifdef __WXGTK__
 	case IDM_PANIC:
-		bPanicResult = (wxYES == wxMessageBox(event.GetString(), 
-					_("Warning"), event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
-		panic_event.Set();
+		{
+			wxString caption = event.GetString().BeforeFirst(':');
+			wxString text = event.GetString().AfterFirst(':');
+			bPanicResult = (wxYES == wxMessageBox(text, 
+						caption, event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
+			panic_event.Set();
+		}
 		break;
 #endif
 

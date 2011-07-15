@@ -416,7 +416,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(wxString::FromUTF8(text));
+		event.SetString(wxString::FromUTF8(caption) + wxT(":") + wxString::FromUTF8(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();

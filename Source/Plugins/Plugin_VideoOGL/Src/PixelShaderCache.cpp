@@ -255,25 +255,32 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
 
 	// handle errors
-	if (!cgIsProgram(tempprog)) {
-			cgDestroyProgram(tempprog);
-			ERROR_LOG(VIDEO, "Failed to compile ps %s:", cgGetLastListing(g_cgcontext));
-			ERROR_LOG(VIDEO, "%s", pstrprogram);
-			return false;
+	if (!cgIsProgram(tempprog))
+	{
+		cgDestroyProgram(tempprog);
+		if (g_ActiveConfig.bShowShaderErrors)
+		{
+			std::string message = cgGetLastListing(g_cgcontext);
+			message += "\n\n";
+			message += pstrprogram;
+			CriticalAlertT("Failed to compile ps %s", message.c_str());
+		}
+		return false;
 	}
 
 	// handle warnings
 	if (cgGetError() != CG_NO_ERROR)
 	{
-			WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
-			WARN_LOG(VIDEO, "%s", pstrprogram);
+		WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
+		WARN_LOG(VIDEO, "%s", pstrprogram);
 	}
 
 	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
 	// It SHOULD not have any nasty side effects though - but you never know...
 	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
 	char *plocal = strstr(pcompiledprog, "program.local");
-	while (plocal != NULL) {
+	while (plocal != NULL)
+	{
 		const char *penv = "  program.env";
 		memcpy(plocal, penv, 13);
 		plocal = strstr(plocal+13, "program.local");
