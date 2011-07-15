@@ -49,11 +49,13 @@ void SetEnableAlert(bool enable);
 	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__) 
 	#define PanicYesNo(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__) 
 	#define AskYesNo(format, ...) MsgAlert(true, QUESTION, format, __VA_ARGS__) 
+	#define CriticalAlert(format, ...) MsgAlert(false, CRITICAL, format, __VA_ARGS__) 
 	// Use these macros (that do the same thing) if the message should be translated.
 	#define SuccessAlertT(format, ...) MsgAlert(false, INFORMATION, format, __VA_ARGS__) 
 	#define PanicAlertT(format, ...) MsgAlert(false, WARNING, format, __VA_ARGS__) 
 	#define PanicYesNoT(format, ...) MsgAlert(true, WARNING, format, __VA_ARGS__) 
 	#define AskYesNoT(format, ...) MsgAlert(true, QUESTION, format, __VA_ARGS__) 
+	#define CriticalAlertT(format, ...) MsgAlert(false, CRITICAL, format, __VA_ARGS__) 
 #else
 	#define SuccessAlert(format, ...) MsgAlert(false, INFORMATION, format, ##__VA_ARGS__) 
 	#define PanicAlert(format, ...) MsgAlert(false, WARNING, format, ##__VA_ARGS__) 
@@ -73,10 +75,12 @@ void SetEnableAlert(bool enable);
 	#define PanicAlert(format, ...) ;
 	#define PanicYesNo(format, ...) ;
 	#define AskYesNo(format, ...) ;
+	#define CriticalAlert(format, ...) ;
 	#define SuccessAlertT(format, ...) ;
 	#define PanicAlertT(format, ...) ;
 	#define PanicYesNoT(format, ...) ;
 	#define AskYesNoT(format, ...) ;
+	#define CriticalAlertT(format, ...) ;
 #endif
 
 #endif // _MSGHANDLER_H_
