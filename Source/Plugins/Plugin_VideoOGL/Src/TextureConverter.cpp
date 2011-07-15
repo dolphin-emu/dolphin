@@ -65,7 +65,7 @@ void CreateRgbToYuyvProgram()
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"		
+	"{\n"
 	"  float2 uv1 = float2(uv0.x + 1.0f, uv0.y);\n"
 	"  float3 c0 = texRECT(samp0, uv0).rgb;\n"
 	"  float3 c1 = texRECT(samp0, uv1).rgb;\n"
@@ -73,13 +73,12 @@ void CreateRgbToYuyvProgram()
 	"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
 	"  float3 v_const = float3(0.439f,-0.368f,-0.071f);\n"
 	"  float4 const3 = float4(0.0625f,0.5f,0.0625f,0.5f);\n"
-	"  float3 c01 = (c0 + c1) * 0.5f;\n"  
-	"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"	  	
+	"  float3 c01 = (c0 + c1) * 0.5f;\n"
+	"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 	"}\n";
 
-	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram)) {
-        ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
-    }
+	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
+		PanicAlertT("Failed to create RGB to YUYV fragment program\nReport this issue.");
 }
 
 void CreateYuyvToRgbProgram()
@@ -89,7 +88,7 @@ void CreateYuyvToRgbProgram()
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"		
+	"{\n"
 	"  float4 c0 = texRECT(samp0, uv0).rgba;\n"
 
 	"  float f = step(0.5, frac(uv0.x));\n"
@@ -98,15 +97,14 @@ void CreateYuyvToRgbProgram()
 	"  float uComp = c0.g - 0.5f;\n"
 	"  float vComp = c0.a - 0.5f;\n"
 
-    "  ocol0 = float4(yComp + (1.596f * vComp),\n"
+	"  ocol0 = float4(yComp + (1.596f * vComp),\n"
 	"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
 	"                 yComp + (2.018f * uComp),\n"
 	"                 1.0f);\n"
 	"}\n";
 
-	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram)) {
-        ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
-    }
+	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
+		PanicAlertT("Failed to create YUYV to RGB fragment program\nReport this issue.");
 }
 
 FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
@@ -122,7 +120,8 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format,API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
+		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
+		{
 			static int counter = 0;
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
@@ -160,7 +159,7 @@ void Init()
 
 void Shutdown()
 {
-	glDeleteTextures(1, &s_srcTexture);	
+	glDeleteTextures(1, &s_srcTexture);
 	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
 
@@ -176,18 +175,19 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
-				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
+				            u8* destAddr, int dstWidth, int dstHeight, int readStride,
+						   	bool toTexture, bool linearFilter)
 {
 
-	
+
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);	
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
 	GL_REPORT_ERRORD();
-	
+
 	for (int i = 1; i < 8; ++i)
 		TextureCache::DisableStage(i);
 
@@ -215,11 +215,11 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	// Draw...
 	glBegin(GL_QUADS);
-    glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
+	glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
 	glTexCoord2f((float)sourceRc.left, (float)sourceRc.bottom);  glVertex2f(-1,1);
-    glTexCoord2f((float)sourceRc.right, (float)sourceRc.bottom); glVertex2f(1,1);
-    glTexCoord2f((float)sourceRc.right, (float)sourceRc.top);    glVertex2f(1,-1);
-    glEnd();
+	glTexCoord2f((float)sourceRc.right, (float)sourceRc.bottom); glVertex2f(1,1);
+	glTexCoord2f((float)sourceRc.right, (float)sourceRc.top);    glVertex2f(1,-1);
+	glEnd();
 	GL_REPORT_ERRORD();
 
 	// .. and then read back the results.
@@ -247,7 +247,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 
 	GL_REPORT_ERRORD();
-	
+
 }
 
 void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
@@ -314,7 +314,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
 	FramebufferManager::SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();
+	VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
@@ -399,11 +399,11 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	g_renderer->ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();
+	VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 }
 
 
@@ -424,7 +424,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
 
 	GL_REPORT_FBO_ERROR();
@@ -441,11 +441,13 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// TODO: make this less slow.  (How?)
 	if((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
+				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 	}
 	else
-	{	
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+	{
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
+				0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 		s_srcTextureWidth = (GLsizei)srcFmtWidth;
 		s_srcTextureHeight = (GLsizei)srcHeight;
 	}
@@ -453,15 +455,15 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glViewport(0, 0, srcWidth, srcHeight);
 
 	PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
-	
+
 	GL_REPORT_ERRORD();
 
-    glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 	glTexCoord2f((float)srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
 	glTexCoord2f((float)srcFmtWidth, 0); glVertex2f(1,1);
 	glTexCoord2f(0, 0); glVertex2f(-1,1);
 	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
-    glEnd();	
+	glEnd();
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
@@ -473,7 +475,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	FramebufferManager::SetFramebuffer(0);
 
 	g_renderer->RestoreAPIState();
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 }
 
 }  // namespace
