@@ -219,8 +219,10 @@ void XRRConfiguration::Update()
 	char *output_name = NULL;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
 			std::string::npos)
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-				"%ux%u", &fullWidth, &fullHeight);
+	{
+		fullWidth = fb_width;
+		fullHeight = fb_height;
+	}
 	else
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
 				"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
