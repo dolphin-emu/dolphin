@@ -148,6 +148,7 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 std::string MemUsage()
 {
 #ifdef _WIN32
+#pragma comment(lib, "psapi")
 	DWORD processID = GetCurrentProcessId();
 	HANDLE hProcess;
 	PROCESS_MEMORY_COUNTERS pmc;

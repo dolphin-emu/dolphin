@@ -204,14 +204,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="SConscript" />
     <None Include="Testdata\dsp_test.bin" />
     <None Include="Testdata\dsp_test.S" />
     <None Include="Testdata\hermes.bin" />
     <None Include="Testdata\hermes.s" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\DSPTool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Common\Common.vcxproj">
+      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Core\Core.vcxproj">
+      <Project>{8c60e805-0da5-4e25-8f84-038db504bb0d}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
