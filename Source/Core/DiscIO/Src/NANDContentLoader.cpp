@@ -212,14 +212,12 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	else
 	{
 		std::string TMDFileName(m_Path);
+
 		if (File::IsDirectory(TMDFileName))
-		{
 			TMDFileName += "title.tmd";
-		}
 		else
-		{
 			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
-		}
+
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
@@ -282,9 +280,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			strcpy(szFilename, Filename.c_str());
 		}
 		else
-		{
 			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
-		}
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 
@@ -294,7 +290,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			const u64 ContentSize = File::GetSize(szFilename);
 			rContent.m_pData = new u8[(u32)ContentSize];
 
-			_dbg_assert_msg_(BOOT, rContent.m_Size==ContentSize, "TMDLoader: Filesize doesnt fit (%s %i)... prolly you have a bad dump", szFilename, i);
+			_dbg_assert_msg_(BOOT, rContent.m_Size==ContentSize, "TMDLoader: Incorrect filesize (%s %i).  Your NAND dump may be corrupt.", szFilename, i);
 
 			pFile.ReadBytes(rContent.m_pData, (size_t)ContentSize);
 		} 

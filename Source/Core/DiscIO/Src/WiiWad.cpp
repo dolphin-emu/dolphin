@@ -46,7 +46,7 @@ private:
 WiiWAD::WiiWAD(const std::string& _rName)
 {
     DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-    if (pReader == NULL)
+    if (pReader == NULL || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
 		return;

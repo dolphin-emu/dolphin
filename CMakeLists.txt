@@ -414,6 +414,12 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
+# Optional Targets
+# TODO: Add DSPSpy and TestSuite.
+option(DSPTOOL "Build dsptool" OFF)
+option(UNITTESTS "Build unitests" OFF)
+
+########################################
 # Start compiling our code
 #
 add_subdirectory(Source)
