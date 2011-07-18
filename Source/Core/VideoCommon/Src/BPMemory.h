@@ -592,7 +592,7 @@ union LPSize
         u32 pointsize : 8; // in 1/6th pixels
         u32 lineoff : 3;
         u32 pointoff : 3;
-        u32 lineaspect : 1;
+        u32 lineaspect : 1; // interlacing: adjust for pixels having AR of 1/2
         u32 padding : 1;
     };
     u32 hex;
@@ -729,7 +729,7 @@ struct FogParams
 
 union ZMode
 {
-    struct 
+    struct
     {
         u32 testenable		: 1;
         u32 func			: 3;
@@ -740,12 +740,32 @@ union ZMode
 
 union ConstantAlpha
 {
-    struct 
+    struct
     {
         u32 alpha : 8;
         u32 enable : 1;
     };
     u32 hex;
+};
+
+union FieldMode
+{
+	struct
+	{
+		u32 texLOD : 1; // adjust vert tex LOD computation to account for interlacing
+	};
+	u32 hex;
+};
+
+union FieldMask
+{
+	struct
+	{
+		// If bit is not set, do not write field to EFB
+		u32 odd : 1;
+		u32 even : 1;
+	};
+	u32 hex;
 };
 
 #define PIXELFMT_RGB8_Z24 0
@@ -910,7 +930,7 @@ struct BPMemory
     BlendMode blendmode; //41
     ConstantAlpha dstalpha;  //42
     PE_CONTROL zcontrol; //43 GXSetZCompLoc, GXPixModeSync
-    u32 fieldmask; //44
+    FieldMask fieldmask; //44
     u32 drawdone;  //45, bit1=1 if end of list
     u32 unknown5;  //46 clock?
     u32 petoken; //47
@@ -936,7 +956,7 @@ struct BPMemory
     u32 tlutXferDest; //65
     u32 texinvalidate;//66
     u32 metric; //67
-    u32 fieldmode;//68
+    FieldMode fieldmode;//68
     u32 unknown10[7];//69-6F
     u32 unknown11[16];//70-7F
     FourTexUnits tex[2]; //80-bf

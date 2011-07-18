@@ -239,6 +239,30 @@ void SetTextureMode(const BPCmd &bp)
 void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO
+	switch (bp.address)
+	{
+	case BPMEM_FIELDMODE:
+		{
+			// SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
+			// just before this cmd
+			const char *action[] = { "don't adjust", "adjust" };
+			DEBUG_LOG(VIDEO, "BPMEM_FIELDMODE texLOD:%s lineaspect:%s",
+				action[bpmem.fieldmode.texLOD],
+				action[bpmem.lineptwidth.lineaspect]);
+		}
+		break;
+	case BPMEM_FIELDMASK:
+		{
+			// Determines if fields will be written to EFB (always computed)
+			const char *action[] = { "skip", "write" };
+			DEBUG_LOG(VIDEO, "BPMEM_FIELDMASK even:%s odd:%s",
+				action[bpmem.fieldmask.even], action[bpmem.fieldmask.odd]);
+		}
+		break;
+	default:
+		ERROR_LOG(VIDEO, "SetInterlacingMode default");
+		break;
+	}
 }
 
 };
