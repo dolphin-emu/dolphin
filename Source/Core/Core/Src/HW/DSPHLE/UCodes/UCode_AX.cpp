@@ -27,17 +27,16 @@
 #include "UCode_AX.h"
 #include "UCode_AX_Voice.h"
 
-CUCode_AX::CUCode_AX(DSPHLE *dsp_hle)
+CUCode_AX::CUCode_AX(DSPHLE *dsp_hle, u32 l_CRC)
 	: IUCode(dsp_hle)
 	, m_addressPBs(0xFFFFFFFF)
+	, _CRC(l_CRC)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(DSP_INIT);
 
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
-
-	mptHack = _CRC == 0x3389a79e;
 }
 
 CUCode_AX::~CUCode_AX()
@@ -174,11 +173,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			if (!ReadPB(blockAddr, PB))
 				break;
 
-			if (!mptHack)
-			{		
-				ProcessUpdates(PB);
+			ProcessUpdates(PB);
+
+			if (_CRC != 0x3389a79e)
 				VoiceHacks(PB);
-			}
+
 			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
 
 			if (!WritePB(blockAddr, PB))

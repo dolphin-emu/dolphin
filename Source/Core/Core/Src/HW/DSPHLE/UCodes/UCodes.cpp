@@ -57,7 +57,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 	case 0x3389a79e: // MP1/MP2 Wii (Metroid Prime Trilogy)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
-		return new CUCode_AX(dsp_hle);
+		return new CUCode_AX(dsp_hle, _CRC);
 
 	case 0x6ba3b3ea: // IPL - PAL
 	case 0x24b22038: // IPL - NTSC/NTSC-JAP
@@ -101,7 +101,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 		else
 		{
 			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", _CRC);
-			return new CUCode_AX(dsp_hle);
+			return new CUCode_AX(dsp_hle, _CRC);
 		}
 	}
 

@@ -29,7 +29,7 @@ enum
 class CUCode_AX	: public IUCode
 {
 public:
-	CUCode_AX(DSPHLE *dsp_hle);
+	CUCode_AX(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_AX();
 
 	void HandleMail(u32 _uMail);
@@ -42,7 +42,6 @@ public:
 	u32 PBaddr[8]; //2 needed for MP2
 	u32 m_addressPBs;
 	u32 _CRC;
-	bool mptHack;
 
 private:
 	enum
