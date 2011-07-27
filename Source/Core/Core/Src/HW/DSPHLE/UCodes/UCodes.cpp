@@ -55,6 +55,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
 					 // Zelda:OOT, Tony hawk, viewtiful joe
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
+	case 0x3389a79e: // MP1/MP2 Wii (Metroid Prime Trilogy)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
 		return new CUCode_AX(dsp_hle);
 

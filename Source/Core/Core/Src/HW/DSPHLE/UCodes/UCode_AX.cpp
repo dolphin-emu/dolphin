@@ -36,6 +36,8 @@ CUCode_AX::CUCode_AX(DSPHLE *dsp_hle)
 
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
+
+	mptHack = _CRC == 0x3389a79e;
 }
 
 CUCode_AX::~CUCode_AX()
@@ -172,8 +174,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			if (!ReadPB(blockAddr, PB))
 				break;
 
-			ProcessUpdates(PB);
-			VoiceHacks(PB);
+			if (!mptHack)
+			{		
+				ProcessUpdates(PB);
+				VoiceHacks(PB);
+			}
 			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
 
 			if (!WritePB(blockAddr, PB))
