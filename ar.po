@@ -1,14 +1,9 @@
-# Translation of dolphin-emu.pot to Arabic
-# Copyright (C) 2003-2011
-# This file is distributed under the same license as the dolphin-emu package.
-# mansoor, 2011
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-07 15:57+0300\n"
+"PO-Revision-Date: 2011-07-20 13:33+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
@@ -79,6 +74,9 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio will be garbled."
 msgstr ""
+"%s لديه التجزئة غير صحيحة.\n"
+"تريد أن تتوقف الآن لإصلاح المشكلة?\n"
+"سيتم تشويش الصوت \"لا\", إذا قمت باختيار."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:360
 #, c-format
@@ -391,6 +389,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"تحاكي بدقة الصادرات للنسخ.\n"
+"بعض الألعاب تعتمد على هذا بالنسبة للتأثيرات رسومية معينة أو وظائف اللعب.\n"
+"\n"
+"إذا لم تكن متأكدا اترك هذا التحقق."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -672,7 +674,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Automatically adjusts the window size to your internal resolution.\n"
+"تتكيف تلقائيا مع حجم إطار الدقة الداخلية الخاصة بك.\n"
 "\n"
 "إذا لم تكن متأكدا اترك هذا غير محددة."
 
@@ -792,7 +794,6 @@ msgid "Buttons"
 msgstr "أزرار"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
 msgstr "العصا الأيمن "
 
@@ -1202,6 +1203,10 @@ msgid ""
 "Are you running Dolphin from a CD/DVD, or is the save file maybe write "
 "protected?"
 msgstr ""
+"لا يمكن كتابة ملف بطاقة الذكرة %s.\n"
+"\n"
+"Are you running Dolphin from a CD/DVD, or is the save file maybe write "
+"protected?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1044
 msgid "Couldn't find open command for extension 'ini'!"
@@ -1486,8 +1491,8 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "Disable any XFB emulation.\n"
-"Speeds up emulation a lot but causes heavy glitches in many games which rely "
-"on them (especially homebrew applications).\n"
+"يسرع مضاهاة الكثير ولكن يسبب اخطاء كبيرة في العديد من الألعاب التي تعتمد "
+"عليها.\n"
 "\n"
 "إذا لم تكن متأكدا اترك هذا التحقق."
 
@@ -2526,7 +2531,6 @@ msgid "Greater Than"
 msgstr "أكبر من"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2534,13 +2538,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Greatly increases quality of textures generated using render to texture "
-"effects.\n"
-"Raising the internal resolution will improve the effect of this setting.\n"
-"Slightly decreases performance and possibly causes issues (although "
-"unlikely).\n"
+"يزيد بشكل كبير جودة تجعل القوام تم إنشاؤها باستخدام إلى الملمس الآثار.\n"
+"سيتم زيادة الدقة الداخلي بتحسين أثر هذا الإعداد.\n"
 "\n"
-"إذا لم تكن متأكدا اترك هذا التحقق."
+"إذا لم تكن متأكدا، اترك هذا التحقق."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 msgid "Greek"
@@ -2642,7 +2643,7 @@ msgstr "Hungarian"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:22
 msgid "Hybrid Wiimote"
-msgstr ""
+msgstr "ويموت هجين"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:523
 #, c-format
@@ -2787,7 +2788,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 msgid "In Game"
-msgstr "في لعبة"
+msgstr "في اللعبة"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:592
 msgid "In-Game"
@@ -3282,90 +3283,92 @@ msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
 msgstr ""
+"كتم صوت الويموت بإصلاح الانقطاع العشوائي على الويموت الحقيقي. أي تأثير على "
+"الويموت يحتذى به."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
 msgid "NP Add"
-msgstr ""
+msgstr "أضف"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:121
 msgid "NP Begin"
-msgstr ""
+msgstr "بدء"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Decimal"
-msgstr ""
+msgstr "عشري"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:123
 msgid "NP Delete"
-msgstr ""
+msgstr "حذف"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:130
 msgid "NP Divide"
-msgstr ""
+msgstr "انقسام"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:117
 msgid "NP Down"
-msgstr ""
+msgstr "أسفل"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:120
 msgid "NP End"
-msgstr ""
+msgstr "نهاية"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:108
 msgid "NP Enter"
-msgstr ""
+msgstr "دخول"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:124
 msgid "NP Equal"
-msgstr ""
+msgstr "متساوية"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:113
 msgid "NP Home"
-msgstr ""
+msgstr "منزل"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:122
 msgid "NP Insert"
-msgstr ""
+msgstr "أدخل"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:114
 msgid "NP Left"
-msgstr ""
+msgstr "اليسار"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:125
 msgid "NP Multiply"
-msgstr ""
+msgstr "ضرب"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:119
 msgid "NP Page Down"
-msgstr ""
+msgstr "صفحة لأسفل"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:118
 msgid "NP Page Up"
-msgstr ""
+msgstr "صفحة لأ أعلى"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:116
 msgid "NP Right"
-msgstr ""
+msgstr "اليمين"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:127
 msgid "NP Separator"
-msgstr ""
+msgstr "الفاصل"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:106
 msgid "NP Space"
-msgstr ""
+msgstr "مساحة"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:128
 msgid "NP Subtract"
-msgstr ""
+msgstr "طرح"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:107
 msgid "NP Tab"
-msgstr ""
+msgstr "التبويب"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:115
 msgid "NP Up"
-msgstr ""
+msgstr "فوق"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
@@ -3770,7 +3773,7 @@ msgstr "خصائص"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:296
 msgid "Purge Cache"
-msgstr "إزالة الكاش"
+msgstr "إزالة التخزين المؤقت"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:65
 msgid "Question"
@@ -4128,6 +4131,12 @@ msgid ""
 "If unsure, use your desktop resolution.\n"
 "If still unsure, use the highest resolution which works for you."
 msgstr ""
+"تحديد دقة العرض المستخدمة في وضع ملء الشاشة.\n"
+"هذا ينبغي أن يكون دائما أكبر من أو يساوي الدقة الداخلية التأثير على أداء لا "
+"يكاد يذكر.\n"
+"\n"
+"إذا لم تكن متأكدا، استخدم دقة سطح المكتب.\n"
+"إذا لم تكن متأكدا من ذلك ، استخدم أعلى دقة."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
@@ -4138,10 +4147,10 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 9."
 msgstr ""
-"Selects what graphics API to use internally.\n"
-"Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
-"Direct3D 11 is somewhere between the two.\n"
-"Note that the Direct3D backends are only available on Windows.\n"
+"حدد الجرافيك لاستخدام داخليا.\n"
+"ديركت 9 هو عادة أسرع واحد. اوبن جل هو أكثر دقة على الرغم من. ديركت 11 هو في "
+"مكان ما بين الاثنين.\n"
+"تتوفر فقط على ويندوز Direct3D علما بأن.\n"
 "\n"
 "Direct3D إذا لم تكن متأكدا استخدام ."
 
@@ -4201,9 +4210,8 @@ msgid "Short Name:"
 msgstr "الاسم المختصر :"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "أزرار"
+msgstr "أزرار الكتف"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4565,9 +4573,8 @@ msgstr "تايوان"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "معلومات"
+msgstr "الإدخال"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
@@ -4732,10 +4739,10 @@ msgid ""
 msgstr ""
 "هذه الميزة تسمح لك التحكم في الكاميرا داخل  اللعبة.\n"
 "\n"
-"اضغط زر الفأرة الأيمن وتحريك الماوس لتحريك الكاميرا في جميع أنحاء.  Hold "
+"اضغط زر الفأرة الأيمن وتحريك الماوس لتحريك الكاميرا في جميع أنحاء. Hold "
 "SHIFT and press one of the WASD keys to move the camera by a certain step "
-"distance (SHIFT+0 doubles it (x2) and SHIFT+9 halves it (x0.5)).  SHIFT+R "
-"اضغط لإعادة الكاميرا.\n"
+"distance (SHIFT+0 to move faster and SHIFT+9 to move slower).  SHIFT+R اضغط "
+"لإعادة الكاميرا.\n"
 "\n"
 "إذا لم تكن متأكدا اترك هذا غير محددة."
 

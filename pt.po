@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-02 22:50-0500\n"
-"PO-Revision-Date: 2011-06-05 02:41-0000\n"
+"PO-Revision-Date: 2011-07-23 15:53-0000\n"
 "Last-Translator: Zilaan <nunogomesrebelo@hotmail.com>\n"
 "Language-Team: Zilaan <nunogomesrebelo@hotmail.com>\n"
 "Language: Portuguese\n"
@@ -393,7 +393,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Emulação VBeam precisa"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -405,7 +404,7 @@ msgstr ""
 "Alguns jogos dependem disto para certos efeitos gráficos ou funcionalidades "
 "de jogo.\n"
 "\n"
-"Em caso de dúvida, active EFB para textura como alternativa."
+"Em caso de dúvida, mantenha esta opção activada."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -841,9 +840,8 @@ msgid "Buttons"
 msgstr "Botões"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
-msgstr "C-Stick"
+msgstr "C Stick"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:74
 msgid "C-Stick"
@@ -2637,7 +2635,6 @@ msgid "Greater Than"
 msgstr "Maior Que"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2648,8 +2645,6 @@ msgstr ""
 "Aumenta bastante a qualidade das texturas geradas utilizando os efeitos de "
 "renderização para textura .\n"
 "Aumentar a resolução interna vai melhorar o efeito desta definição.\n"
-"Diminui ligeiramente o desempenho e possívelmente provoca falhas (apesar de "
-"ser improvável).\n"
 "\n"
 "Em caso de dúvida, mantenha esta opção activada."
 
@@ -4367,9 +4362,8 @@ msgid "Short Name:"
 msgstr "Abreviatura:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Botões"
+msgstr "Botões Shoulder"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4735,9 +4729,8 @@ msgstr "TAIWAN"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "Entrada"
+msgstr "Entrada TAS"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
