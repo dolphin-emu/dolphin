@@ -143,7 +143,6 @@ struct VideoConfig
 	
 	//currently unused:
 	int iCompileDLsLevel;
-	bool bShowShaderErrors;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;

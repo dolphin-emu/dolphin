@@ -33,10 +33,8 @@ LPDIRECT3DVERTEXSHADER9 CreateVertexShaderFromByteCode(const u8 *bytecode, int l
 	LPDIRECT3DVERTEXSHADER9 v_shader;
 	HRESULT hr = D3D::dev->CreateVertexShader((DWORD *)bytecode, &v_shader);
 	if (FAILED(hr))
-	{
-		PanicAlert("CreateVertexShaderFromByteCode failed from %p (size %d) at %s %d\n", bytecode, len, __FILE__, __LINE__);
-		v_shader = NULL;
-	}
+		return NULL;
+
 	return v_shader;
 }
 
@@ -49,17 +47,22 @@ bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecode
 						           0, &shaderBuffer, &errorBuffer, 0);
 	if (FAILED(hr))
 	{
-		//compilation error
-		if (g_ActiveConfig.bShowShaderErrors) {
-			std::string hello = (char*)errorBuffer->GetBufferPointer();
-			hello += "\n\n";
-			hello += code;
-			MessageBoxA(0, hello.c_str(), "Error compiling vertex shader", MB_ICONERROR);
-		}
-		*bytecode = 0;
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_vs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << code;
+		file.close();
+
+		PanicAlert("Failed to compile vertex shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
+						szTemp,
+						D3D::VertexShaderVersionString(),
+						(char*)errorBuffer->GetBufferPointer());
+
+		*bytecode = NULL;
 		*bytecodelen = 0;
 	}
-	else if (SUCCEEDED(hr))
+	else
 	{
 		*bytecodelen = shaderBuffer->GetBufferSize();
 		*bytecode = new u8[*bytecodelen];
@@ -80,10 +83,8 @@ LPDIRECT3DPIXELSHADER9 CreatePixelShaderFromByteCode(const u8 *bytecode, int len
 	LPDIRECT3DPIXELSHADER9 p_shader;
 	HRESULT hr = D3D::dev->CreatePixelShader((DWORD *)bytecode, &p_shader);
 	if (FAILED(hr))
-	{
-		PanicAlert("CreatePixelShaderFromByteCode failed at %s %d\n", __FILE__, __LINE__);
-		p_shader = NULL;
-	}
+		return NULL;
+
 	return p_shader;
 }
 
@@ -101,16 +102,22 @@ bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodel
 
 	if (FAILED(hr))
 	{
-		if (g_ActiveConfig.bShowShaderErrors) {
-			std::string hello = (char*)errorBuffer->GetBufferPointer();
-			hello += "\n\n";
-			hello += code;
-			MessageBoxA(0, hello.c_str(), "Error compiling pixel shader", MB_ICONERROR);
-		}
-		*bytecode = 0;
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << code;
+		file.close();
+
+		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
+						szTemp,
+						D3D::PixelShaderVersionString(),
+						(char*)errorBuffer->GetBufferPointer());
+
+		*bytecode = NULL;
 		*bytecodelen = 0;
 	}
-	else if (SUCCEEDED(hr))
+	else
 	{
 		*bytecodelen = shaderBuffer->GetBufferSize();
 		*bytecode = new u8[*bytecodelen];
@@ -135,7 +142,6 @@ LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len)
 		delete [] bytecode;
 		return v_shader;
 	}
-	PanicAlert("Failed to compile and create vertex shader from %p (size %d) at %s %d\n", code, len, __FILE__, __LINE__);
 	return NULL;
 }
 
@@ -149,7 +155,6 @@ LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char* code, unsigned in
 		delete [] bytecode;
 		return p_shader;
 	}
-	PanicAlert("Failed to compile and create pixel shader, %s %d\n", __FILE__, __LINE__);
 	return NULL;
 }
 

@@ -38,7 +38,6 @@ namespace OGL
 {
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
-bool VertexShaderCache::s_displayCompileAlert;
 GLuint VertexShaderCache::CurrentShader;
 bool VertexShaderCache::ShaderEnabled;
 
@@ -52,8 +51,6 @@ void VertexShaderCache::Init()
 	ShaderEnabled = true;
 	CurrentShader = 0;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
-
-	s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);		
 	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") != NULL) s_nMaxVertexInstructions = 4096;
@@ -114,7 +111,6 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 #endif
 
 	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-		ERROR_LOG(VIDEO, "failed to create vertex shader");
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}
@@ -140,10 +136,18 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
 	if (!cgIsProgram(tempprog)) {
-        if (s_displayCompileAlert) {
-            PanicAlert("Failed to create vertex shader");
-            s_displayCompileAlert = false;
-        }
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_vs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << pstrprogram;
+		file.close();
+
+		PanicAlert("Failed to compile vertex shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+						szTemp,
+						g_cgfProf,
+						cgGetLastListing(g_cgcontext));
+
         cgDestroyProgram(tempprog);
 		ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, "%s", pstrprogram);

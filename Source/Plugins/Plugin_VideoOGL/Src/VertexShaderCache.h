@@ -55,8 +55,6 @@ class VertexShaderCache
 
 	static VSCache vshaders;
 
-    static bool s_displayCompileAlert;
-	
 	static GLuint CurrentShader;
 	static bool ShaderEnabled;
 

@@ -34,10 +34,8 @@ ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigne
 	ID3D11VertexShader* v_shader;
 	HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, NULL, &v_shader);
 	if (FAILED(hr))
-	{
-		PanicAlert("CreateVertexShaderFromByteCode failed from %p (size %d) at %s %d\n", bytecode, len, __FILE__, __LINE__);
-		v_shader = NULL;
-	}
+		return NULL;
+
 	return v_shader;
 }
 
@@ -63,15 +61,17 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 
 	if (FAILED(hr))
 	{
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			std::string msg = (char*)errorBuffer->GetBufferPointer();
-			msg += "\n\n";
-			msg += D3D::VertexShaderVersionString();
-			msg += "\n\n";
-			msg += code;
-			MessageBoxA(0, msg.c_str(), "Error compiling vertex shader", MB_ICONERROR);
-		}
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_vs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << code;
+		file.close();
+
+		PanicAlert("Failed to compile vertex shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
+						szTemp,
+						D3D::VertexShaderVersionString(),
+						(char*)errorBuffer->GetBufferPointer());
 
 		*blob = NULL;
 		errorBuffer->Release();
@@ -90,10 +90,8 @@ ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, uns
 	ID3D11GeometryShader* g_shader;
 	HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, NULL, &g_shader);
 	if (FAILED(hr))
-	{
-		PanicAlert("CreateGeometryShaderFromByteCode failed from %p (size %d) at %s %d\n", bytecode, len, __FILE__, __LINE__);
-		g_shader = NULL;
-	}
+		return NULL;
+
 	return g_shader;
 }
 
@@ -120,15 +118,17 @@ bool CompileGeometryShader(const char* code, unsigned int len, D3DBlob** blob,
 
 	if (FAILED(hr))
 	{
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			std::string msg = (char*)errorBuffer->GetBufferPointer();
-			msg += "\n\n";
-			msg += D3D::GeometryShaderVersionString();
-			msg += "\n\n";
-			msg += code;
-			MessageBoxA(0, msg.c_str(), "Error compiling geometry shader", MB_ICONERROR);
-		}
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_gs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << code;
+		file.close();
+
+		PanicAlert("Failed to compile geometry shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
+						szTemp,
+						D3D::GeometryShaderVersionString(),
+						(char*)errorBuffer->GetBufferPointer());
 
 		*blob = NULL;
 		errorBuffer->Release();
@@ -177,15 +177,17 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob,
 
 	if (FAILED(hr))
 	{
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			std::string msg = (char*)errorBuffer->GetBufferPointer();
-			msg += "\n\n";
-			msg += D3D::PixelShaderVersionString();
-			msg += "\n\n";
-			msg += code;
-			MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
-		}
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << code;
+		file.close();
+
+		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
+						szTemp,
+						D3D::PixelShaderVersionString(),
+						(char*)errorBuffer->GetBufferPointer());
 
 		*blob = NULL;
 		errorBuffer->Release();
@@ -209,7 +211,6 @@ ID3D11VertexShader* CompileAndCreateVertexShader(const char* code,
 		blob->Release();
 		return v_shader;
 	}
-	PanicAlert("Failed to compile and create vertex shader from %p (size %d) at %s %d\n", code, len, __FILE__, __LINE__);
 	return NULL;
 }
 
@@ -223,7 +224,6 @@ ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
 		blob->Release();
 		return g_shader;
 	}
-	PanicAlert("Failed to compile and create geometry shader from %p (size %d) at %s %d\n", code, len, __FILE__, __LINE__);
 	return NULL;
 }
 
@@ -238,7 +238,6 @@ ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
 		blob->Release();
 		return p_shader;
 	}
-	PanicAlert("Failed to compile and create pixel shader, %s %d\n", __FILE__, __LINE__);
 	return NULL;
 }
 

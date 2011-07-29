@@ -557,7 +557,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_misc = new wxGridSizer(2, 5, 5);
 
-	szr_misc->Add(CreateCheckBox(page_advanced, _("Hide Shader Errors"), wxGetTranslation(shader_errors_desc), vconfig.bShowShaderErrors, true));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_desc), vconfig.bShowInputDisplay));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Enable Hotkeys"), wxGetTranslation(hotkeys_desc), vconfig.bOSDHotKey));

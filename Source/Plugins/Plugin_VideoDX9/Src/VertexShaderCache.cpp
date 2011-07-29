@@ -209,10 +209,6 @@ bool VertexShaderCache::SetShader(u32 components)
 	int bytecodelen;
 	if (!D3D::CompileVertexShader(code, (int)strlen(code), &bytecode, &bytecodelen))
 	{
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
-		}
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}

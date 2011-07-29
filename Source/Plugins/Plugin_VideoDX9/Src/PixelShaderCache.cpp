@@ -375,14 +375,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	u8 *bytecode = 0;
 	int bytecodelen = 0;
 	if (!D3D::CompilePixelShader(code, (int)strlen(code), &bytecode, &bytecodelen)) {
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
-			static int counter = 0;
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-			SaveData(szTemp, code);
-		}
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}

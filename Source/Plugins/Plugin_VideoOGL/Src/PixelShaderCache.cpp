@@ -223,13 +223,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	}
 #endif
 
-	//	printf("Compiling pixel shader. size = %i\n", strlen(code));
 	if (!code || !CompilePixelShader(newentry.shader, code)) {
-		ERROR_LOG(VIDEO, "failed to create pixel shader");
-		static int counter = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);			
-		SaveData(szTemp, code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}
@@ -258,13 +252,19 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	if (!cgIsProgram(tempprog))
 	{
 		cgDestroyProgram(tempprog);
-		if (g_ActiveConfig.bShowShaderErrors)
-		{
-			std::string message = cgGetLastListing(g_cgcontext);
-			message += "\n\n";
-			message += pstrprogram;
-			CriticalAlertT("Failed to compile ps %s", message.c_str());
-		}
+
+		static int num_failures = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+		std::ofstream file(szTemp);
+		file << pstrprogram;
+		file.close();
+
+		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+						szTemp,
+						g_cgfProf,
+						cgGetLastListing(g_cgcontext));
+
 		return false;
 	}
 
