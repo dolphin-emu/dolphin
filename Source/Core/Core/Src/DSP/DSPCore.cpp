@@ -78,12 +78,21 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 {
 	static const u32 hash[] = { 0x66f334fe, 0xf3b93527 };
+	static const u32 hash_mini[] = { 0x9c8f593c, 0x10000001 };
 	static const int size[] = { DSP_IROM_BYTE_SIZE, DSP_COEF_BYTE_SIZE };
 	const u16 *data[] = { g_dsp.irom, g_dsp.coef };
+	u32 h = 0;
+	u8 count = 0;
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (HashAdler32((u8*)data[i], size[i]) != hash[i])
+		h = HashAdler32((u8*)data[i], size[i]);
+
+		if (h == hash_mini[i])
+		{
+			count++;
+		}
+		else if (h != hash[i])
 		{
 			if (AskYesNoT("%s has an incorrect hash.\n"
 				"Would you like to stop now to fix the problem?\n"
@@ -91,6 +100,12 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 				(i == 0) ? irom_filename : coef_filename))
 				return false;
 		}
+	}
+
+	if (count == 2)
+	{
+		PanicAlertT("You are using free dsp roms made by Dolphin Team.\n"
+					"Only Zelda ucode games will work correctly with them.\n");
 	}
 
 	return true;
