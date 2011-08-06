@@ -307,4 +307,25 @@ private:
 
 	// Debugging
 	void LOG_LinkKey(const u8* _pLinkKey);
+
+#pragma pack(push,1)
+#define CONF_PAD_MAX_REGISTERED 10
+#define CONF_PAD_MAX_ACTIVE 4
+	
+	struct _conf_pad_device
+	{
+		u8 bdaddr[6];
+		char name[0x40];
+	};
+
+	struct _conf_pads
+	{
+		u8 num_registered;
+		_conf_pad_device registered[CONF_PAD_MAX_REGISTERED];
+		_conf_pad_device active[CONF_PAD_MAX_ACTIVE];
+		_conf_pad_device balance_board;
+		u8 unknown[0x45];
+	};
+#pragma pack(pop)
+
 };
