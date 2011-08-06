@@ -15,27 +15,29 @@
 
 #include "InputConfigDiag.h"
 #include "ConfigManager.h"
+#include <HW/Wiimote.h>
 
-class WiimoteConfigPage : public wxNotebookPage
+#include <map>
+
+class WiimoteConfigDiag : public wxDialog
 {
 public:
-	WiimoteConfigPage(wxWindow* const parent, const int index);
+	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
+
+#ifdef _WIN32
+	void PairUpRealWiimotes(wxCommandEvent& event);
+#endif
+	void RefreshRealWiimotes(wxCommandEvent& event);
+
 
 	void SelectSource(wxCommandEvent& event);
 	void UpdateWiimoteStatus();
 	void RevertSource();
 
-	wxStaticText*	connected_wiimotes_txt;
 
-private:
-	const int	m_index;
-	unsigned int orig_source;
-};
-
-class WiimoteGeneralConfigPage : public wxPanel
-{
-public:
-	WiimoteGeneralConfigPage(wxWindow* const parent);
+	void ConfigEmulatedWiimote(wxCommandEvent& event);
+	void Save(wxCommandEvent& event);
+	void UpdateGUI();
 
 	void OnSensorBarPos(wxCommandEvent& event)
 	{
@@ -64,28 +66,18 @@ public:
 	}
 
 private:
-};
-
-class WiimoteConfigDiag : public wxDialog
-{
-public:
-	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
-
-#ifdef _WIN32
-	void PairUpRealWiimotes(wxCommandEvent& event);
-#endif
-	void RefreshRealWiimotes(wxCommandEvent& event);
-	
-	void ConfigEmulatedWiimote(wxCommandEvent& event);
-	void Save(wxCommandEvent& event);
-	void UpdateGUI();
-
-private:
 	void Cancel(wxCommandEvent& event);
 
 	InputPlugin&	m_plugin;
 	wxNotebook*		m_pad_notebook;
-	std::vector<WiimoteConfigPage*> m_wiimote_config_pages;
+
+	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
+	unsigned int m_orig_wiimote_sources[4];
+
+	wxButton* wiimote_configure_bt[4];
+	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
+
+	wxStaticText*	connected_wiimotes_txt;
 };
 
 

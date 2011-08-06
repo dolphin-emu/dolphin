@@ -9,66 +9,86 @@
 const wxString& ConnectedWiimotesString()
 {
 	static wxString str;
-	str.Printf(_("Connected to %i Wiimotes"), WiimoteReal::Initialize());
+	str.Printf(_("%i connected"), WiimoteReal::Initialize());
 	return str;
 }
 
-WiimoteConfigPage::WiimoteConfigPage(wxWindow* const parent, const int index)
-	: wxNotebookPage(parent, -1, wxDefaultPosition, wxDefaultSize)
-	, m_index(index), orig_source(g_wiimote_sources[index])
+WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
+	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
+	, m_plugin(plugin)
 {
-	// input source
-	const wxString src_choices[] = { _("None"),
+	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
+
+
+	// "Wiimotes" controls
+	wxStaticText* wiimote_label[4];
+	wxChoice* wiimote_source_ch[4];
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		wxString str;
+		str.Printf(_("Wiimote %i"), i + 1);
+
+		const wxString src_choices[] = { _("None"),
 		_("Emulated Wiimote"), _("Real Wiimote"), _("Hybrid Wiimote") };
 
-	wxChoice* const input_src_choice = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
-		sizeof(src_choices)/sizeof(*src_choices), src_choices);
-	input_src_choice->Select(g_wiimote_sources[m_index]);
-	_connect_macro_(input_src_choice, WiimoteConfigPage::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		// reserve four ids, so that we can calculate the index from the ids lateron
+		// Stupid wx 2.8 doesn't support reserving sequential IDs, so we need to do that more complicated..
+		int source_ctrl_id =  wxWindow::NewControlId();
+		m_wiimote_index_from_ctrl_id.insert(std::pair<wxWindowID, unsigned int>(source_ctrl_id, i));
 
-	wxStaticBoxSizer* const input_src_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Input Source"));
-	input_src_sizer->Add(input_src_choice, 1, wxEXPAND | wxALL, 5);
+		int config_bt_id = wxWindow::NewControlId();
+		m_wiimote_index_from_conf_bt_id.insert(std::pair<wxWindowID, unsigned int>(config_bt_id, i));
 
-	// emulated wiimote
-	wxButton* const configure_wiimote_emu_btn = new wxButton(this, -1, _("Configure"));
-	wxStaticBoxSizer* const wiimote_emu_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Emulated Wiimote"));
-	wiimote_emu_sizer->Add(configure_wiimote_emu_btn, 1, wxEXPAND | wxALL, 5);
-	_connect_macro_(configure_wiimote_emu_btn, WiimoteConfigDiag::ConfigEmulatedWiimote, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
+		wiimote_label[i] = new wxStaticText(this, wxID_ANY, str);
+		wiimote_source_ch[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, sizeof(src_choices)/sizeof(*src_choices), src_choices);
+		_connect_macro_(wiimote_source_ch[i], WiimoteConfigDiag::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"));
+		_connect_macro_(wiimote_configure_bt[i], WiimoteConfigDiag::ConfigEmulatedWiimote, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	// real wiimote
+		m_orig_wiimote_sources[i] = g_wiimote_sources[i];
+		wiimote_source_ch[i]->Select(m_orig_wiimote_sources[i]);
+		if (m_orig_wiimote_sources[i] != WIIMOTE_SRC_EMU && m_orig_wiimote_sources[i] != WIIMOTE_SRC_HYBRID)
+			wiimote_configure_bt[i]->Disable();
+	}
+
+
+	// "Wiimotes" layout
+	wxStaticBoxSizer* const wiimote_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Wiimotes"));
+	wxFlexGridSizer* const wiimote_sizer = new wxFlexGridSizer(3, 5, 5);
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		wiimote_sizer->Add(wiimote_label[i], 0, wxALIGN_CENTER_VERTICAL);
+		wiimote_sizer->Add(wiimote_source_ch[i], 0, wxALIGN_CENTER_VERTICAL);
+		wiimote_sizer->Add(wiimote_configure_bt[i]);
+	}
+	wiimote_group->Add(wiimote_sizer, 1, wxEXPAND, 5 );
+
+
+	// "Real wiimotes" controls
 	connected_wiimotes_txt = new wxStaticText(this, -1, ConnectedWiimotesString());
 
 	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"), wxDefaultPosition);
-	_connect_macro_(refresh_btn, WiimoteConfigDiag::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
+	_connect_macro_(refresh_btn, WiimoteConfigDiag::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-	wxStaticBoxSizer* const wiimote_real_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimote"));
-	wiimote_real_sizer->AddStretchSpacer(1);
-	wiimote_real_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER | wxBOTTOM | wxLEFT | wxRIGHT, 5);
 #ifdef _WIN32
 	wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
-	_connect_macro_(pairup_btn, WiimoteConfigDiag::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, parent->GetParent());
-	wiimote_real_sizer->Add(pairup_btn, 0, wxALIGN_CENTER | wxBOTTOM, 5);
+	_connect_macro_(pairup_btn, WiimoteConfigDiag::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
 #endif
-	wiimote_real_sizer->Add(refresh_btn, 0, wxALIGN_CENTER, 5);
-	wiimote_real_sizer->AddStretchSpacer(1);
 
-	// sizers
-	wxBoxSizer* const left_sizer = new wxBoxSizer(wxVERTICAL);
-	left_sizer->Add(input_src_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-	left_sizer->Add(wiimote_emu_sizer, 0, wxEXPAND, 0);
 
-	wxBoxSizer* const main_sizer = new wxBoxSizer(wxHORIZONTAL);
-	main_sizer->Add(left_sizer, 1, wxLEFT | wxTOP | wxBOTTOM | wxEXPAND, 5);
-	main_sizer->Add(wiimote_real_sizer, 1, wxALL | wxEXPAND, 5);
+	// "Real wiimotes" layout
+	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Real Wiimotes"));
+	wxFlexGridSizer* const real_wiimotes_sizer = new wxFlexGridSizer(3, 5, 5);
+	real_wiimotes_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER_VERTICAL);
+#ifdef _WIN32
+	real_wiimotes_sizer->Add(pairup_btn);
+#endif
+	real_wiimotes_sizer->Add(refresh_btn);
+	real_wiimotes_group->Add(real_wiimotes_sizer, 1, wxALL, 5);
 
-	SetSizerAndFit(main_sizer);
-	Layout();
-}
 
-WiimoteGeneralConfigPage::WiimoteGeneralConfigPage(wxWindow* const parent)
-	: wxPanel(parent, -1, wxDefaultPosition)
-
-{
+	// "General Settings" controls
 	const wxString str[] = { _("Bottom"), _("Top") };
 	wxChoice* const WiiSensBarPos = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2, str);
 	wxSlider* const WiiSensBarSens = new wxSlider(this, wxID_ANY, 0, 0, 4, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
@@ -84,9 +104,12 @@ WiimoteGeneralConfigPage::WiimoteGeneralConfigPage(wxWindow* const parent)
 	wxStaticText* const WiimoteSpkVolumeMinText = new wxStaticText(this, wxID_ANY, _("Min"));
 	wxStaticText* const WiimoteSpkVolumeMaxText = new wxStaticText(this, wxID_ANY, _("Max"));
 
+	// With some GTK themes, no minimum size will be applied - so do this manually here
 	WiiSensBarSens->SetMinSize(wxSize(100,-1));
 	WiimoteSpkVolume->SetMinSize(wxSize(100,-1));
 
+
+	// Disable some controls when emulation is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		WiiSensBarPos->Disable();
@@ -102,92 +125,74 @@ WiimoteGeneralConfigPage::WiimoteGeneralConfigPage(wxWindow* const parent)
 		WiimoteSpkVolumeMaxText->Disable();
 	}
 
+
+	// "General Settings" initialization
 	WiiSensBarPos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
 	WiiSensBarSens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
 	WiimoteSpkVolume->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.SPKV"));
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
 	WiimoteReconnectOnLoad->SetValue(SConfig::GetInstance().m_WiimoteReconnectOnLoad);
 
+	_connect_macro_(WiiSensBarPos, WiimoteConfigDiag::OnSensorBarPos, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	_connect_macro_(WiiSensBarSens, WiimoteConfigDiag::OnSensorBarSensitivity, wxEVT_COMMAND_SLIDER_UPDATED, this);
+	_connect_macro_(WiimoteSpkVolume, WiimoteConfigDiag::OnSpeakerVolume, wxEVT_COMMAND_SLIDER_UPDATED, this);
+	_connect_macro_(WiimoteMotor, WiimoteConfigDiag::OnMotor, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(WiimoteReconnectOnLoad, WiimoteConfigDiag::OnReconnectOnLoad, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 
-	_connect_macro_(WiiSensBarPos, WiimoteGeneralConfigPage::OnSensorBarPos, wxEVT_COMMAND_CHOICE_SELECTED, this);
-	_connect_macro_(WiiSensBarSens, WiimoteGeneralConfigPage::OnSensorBarSensitivity, wxEVT_COMMAND_SLIDER_UPDATED, this);
-	_connect_macro_(WiimoteSpkVolume, WiimoteGeneralConfigPage::OnSpeakerVolume, wxEVT_COMMAND_SLIDER_UPDATED, this);
-	_connect_macro_(WiimoteMotor, WiimoteGeneralConfigPage::OnMotor, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(WiimoteReconnectOnLoad, WiimoteGeneralConfigPage::OnReconnectOnLoad, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 
-
-	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
+	// "General Settings" layout
 	wxStaticBoxSizer* const general_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("General Settings"));
 	wxFlexGridSizer* const choice_sizer = new wxFlexGridSizer(2, 5, 5);
 
 	wxBoxSizer* const sensbarsens_sizer = new wxBoxSizer(wxHORIZONTAL);
-	sensbarsens_sizer->Add(WiiSensBarSensMinText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	sensbarsens_sizer->Add(WiiSensBarSensMinText, 0, wxALIGN_CENTER_VERTICAL);
 	sensbarsens_sizer->Add(WiiSensBarSens);
-	sensbarsens_sizer->Add(WiiSensBarSensMaxText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	sensbarsens_sizer->Add(WiiSensBarSensMaxText, 0, wxALIGN_CENTER_VERTICAL);
 
 	wxBoxSizer* const spkvol_sizer = new wxBoxSizer(wxHORIZONTAL);
-	spkvol_sizer->Add(WiimoteSpkVolumeMinText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	spkvol_sizer->Add(WiimoteSpkVolumeMinText, 0, wxALIGN_CENTER_VERTICAL);
 	spkvol_sizer->Add(WiimoteSpkVolume);
-	spkvol_sizer->Add(WiimoteSpkVolumeMaxText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	spkvol_sizer->Add(WiimoteSpkVolumeMaxText, 0, wxALIGN_CENTER_VERTICAL);
 
-	choice_sizer->Add(WiiSensBarPosText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	choice_sizer->Add(WiiSensBarPosText, 0, wxALIGN_CENTER_VERTICAL);
 	choice_sizer->Add(WiiSensBarPos);
-	choice_sizer->Add(WiiSensBarSensText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	choice_sizer->Add(WiiSensBarSensText, 0, wxALIGN_CENTER_VERTICAL);
 	choice_sizer->Add(sensbarsens_sizer);
-	choice_sizer->Add(WiimoteSpkVolumeText, 1, wxALIGN_CENTER_VERTICAL, 0);
+	choice_sizer->Add(WiimoteSpkVolumeText, 0, wxALIGN_CENTER_VERTICAL);
 	choice_sizer->Add(spkvol_sizer);
 
-
-	wxGridSizer* const wiimote_sizer = new wxGridSizer(1, 5, 5);
-	wiimote_sizer->Add(WiimoteMotor);
-	wiimote_sizer->Add(WiimoteReconnectOnLoad);
+	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
+	general_wiimote_sizer->Add(WiimoteMotor);
+	general_wiimote_sizer->Add(WiimoteReconnectOnLoad);
 
 	general_sizer->Add(choice_sizer);
-	general_sizer->Add(wiimote_sizer);
+	general_sizer->Add(general_wiimote_sizer);
 
-	main_sizer->Add(general_sizer, 0, wxEXPAND | wxALL, 5);
-	main_sizer->AddStretchSpacer();
-	SetSizerAndFit(main_sizer);
-	Layout();
-}
 
-WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
-	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
-	, m_plugin(plugin)
-{
-	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
-	m_pad_notebook->AddPage(new WiimoteGeneralConfigPage(m_pad_notebook), wxString(_("General")));
-	for (unsigned int i = 0; i < 4; ++i)
-	{
-		WiimoteConfigPage* const wpage = new WiimoteConfigPage(m_pad_notebook, i);
-		m_pad_notebook->AddPage(wpage, wxString(_("Wiimote ")) + wxChar('1'+i));
-		m_wiimote_config_pages.push_back(wpage);
-	}
-	m_pad_notebook->SetSelection(1);
+	// Dialog layout
+	main_sizer->Add(wiimote_group, 0, wxEXPAND | wxALL, 5);
+	main_sizer->Add(real_wiimotes_group, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	main_sizer->Add(general_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Save));
 	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Cancel));
 
-	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->Add(m_pad_notebook, 1, wxEXPAND | wxALL, 5);
-	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-
 	SetSizerAndFit(main_sizer);
-
 	Center();
 }
 
-void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent&)
+
+void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 {
-	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_plugin, _trans("Dolphin Emulated Wiimote Configuration"), m_pad_notebook->GetSelection()-1);
+	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_plugin, _trans("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
 	m_emu_config_diag->ShowModal();
 	m_emu_config_diag->Destroy();
 }
 
 void WiimoteConfigDiag::UpdateGUI()
 {
-	for (std::vector<WiimoteConfigPage*>::iterator it = m_wiimote_config_pages.begin(); it != m_wiimote_config_pages.end(); ++it)
-		(*it)->connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
+	connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
 }
 
 #ifdef _WIN32
@@ -197,8 +202,7 @@ void WiimoteConfigDiag::PairUpRealWiimotes(wxCommandEvent&)
 
 	if (paired > 0)
 	{
-		// Will this message be anoying?
-		//PanicAlertT("Paired %d wiimotes.", paired);
+		// TODO: Maybe add a label of newly paired up wiimotes?
 		WiimoteReal::Refresh();
 		UpdateGUI();
 	}
@@ -214,30 +218,39 @@ void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 	UpdateGUI();
 }
 
-void WiimoteConfigPage::SelectSource(wxCommandEvent& event)
+void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 {
 	// This needs to be changed now in order for refresh to work right.
 	// Revert if the dialog is canceled.
-	g_wiimote_sources[m_index] = event.GetInt();
+	int index = m_wiimote_index_from_ctrl_id[event.GetId()];
+	g_wiimote_sources[index] = event.GetInt();
+	if (g_wiimote_sources[index] != WIIMOTE_SRC_EMU && g_wiimote_sources[index] != WIIMOTE_SRC_HYBRID)
+		wiimote_configure_bt[index]->Disable();
+	else
+		wiimote_configure_bt[index]->Enable();
 }
 
-void WiimoteConfigPage::UpdateWiimoteStatus()
+void WiimoteConfigDiag::UpdateWiimoteStatus()
 {
-	if (orig_source != g_wiimote_sources[m_index])
+	for (int index = 0; index < 4; ++index)
 	{
-		// Disconnect first, otherwise the new source doesn't seem to work
-		CFrame::ConnectWiimote(m_index, false);
-		// Connect wiimotes
-		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-			CFrame::ConnectWiimote(m_index, true);
-		else if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && WiimoteReal::g_wiimotes[m_index])
-			CFrame::ConnectWiimote(m_index, WiimoteReal::g_wiimotes[m_index]->IsConnected());
+		if (m_orig_wiimote_sources[index] != g_wiimote_sources[index])
+		{
+			// Disconnect first, otherwise the new source doesn't seem to work
+			CFrame::ConnectWiimote(index, false);
+			// Connect wiimotes
+			if (WIIMOTE_SRC_EMU & g_wiimote_sources[index])
+				CFrame::ConnectWiimote(index, true);
+			else if (WIIMOTE_SRC_REAL & g_wiimote_sources[index] && WiimoteReal::g_wiimotes[index])
+				CFrame::ConnectWiimote(index, WiimoteReal::g_wiimotes[index]->IsConnected());
+		}
 	}
 }
 
-void WiimoteConfigPage::RevertSource()
+void WiimoteConfigDiag::RevertSource()
 {
-	g_wiimote_sources[m_index] = orig_source;
+	for (int i = 0; i < 4; ++i)
+		g_wiimote_sources[i] = m_orig_wiimote_sources[i];
 }
 
 void WiimoteConfigDiag::Save(wxCommandEvent& event)
@@ -255,8 +268,7 @@ void WiimoteConfigDiag::Save(wxCommandEvent& event)
 
 		sec.Set("Source", (int)g_wiimote_sources[i]);
 	}
-	for (std::vector<WiimoteConfigPage*>::iterator it = m_wiimote_config_pages.begin(); it != m_wiimote_config_pages.end(); ++it)
-		(*it)->UpdateWiimoteStatus();
+	UpdateWiimoteStatus();
 
 	inifile.Save(ini_filename);
 
@@ -265,8 +277,6 @@ void WiimoteConfigDiag::Save(wxCommandEvent& event)
 
 void WiimoteConfigDiag::Cancel(wxCommandEvent& event)
 {
-	for (std::vector<WiimoteConfigPage*>::iterator it = m_wiimote_config_pages.begin(); it != m_wiimote_config_pages.end(); ++it)
-		(*it)->RevertSource();
-
+	RevertSource();
 	event.Skip();
 }
