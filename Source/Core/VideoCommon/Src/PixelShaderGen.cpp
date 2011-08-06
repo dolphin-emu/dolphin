@@ -523,10 +523,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	WRITE(p, "  float4 c0 = "I_COLORS"[1], c1 = "I_COLORS"[2], c2 = "I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
-			"  float4 alphabump=0;\n"
-			"  float3 tevcoord;\n"
-			"  float2 wrappedcoord, tempcoord;\n"
-			"  float4 cc0, cc1, cc2, cprev,crastemp,ckonsttemp;\n\n");
+			"  float4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
+			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
