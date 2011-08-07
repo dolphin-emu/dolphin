@@ -37,7 +37,7 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 #include "Main.h"
-#include "MemoryCards\GCMemcard.h"
+#include "MemoryCards/GCMemcard.h"
 #include "VideoBackendBase.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
