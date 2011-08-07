@@ -606,7 +606,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
-	if (memoryCard[card]->fail) return false;
+	if (!memoryCard[card]->IsValid()) return false;
 
 	int j;
 

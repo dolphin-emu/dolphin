@@ -71,11 +71,14 @@ class GCMemcard
 {
 private:
 	friend class CMemcardManagerDebug;
-	File::IOFile mcdFile;
+	bool m_valid;
+	std::string m_fileName;
 
 	u32 maxBlock;
 	u32 mc_data_size;
 	u8* mc_data;
+
+	u16 m_sizeMb;
 
 #pragma pack(push,1)
 	struct OSTime {
@@ -164,12 +167,12 @@ private:
 	} bat,bat_backup;
 #pragma pack(pop)
 
+	u32 ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile);
+
 public:
-	bool fail;
 
-	GCMemcard(const char* fileName);
-
-	bool IsOpen();
+	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);
+	bool IsValid() { return m_valid; }
 	bool IsAsciiEncoding();
 	bool Save();
 	bool Format(bool sjis = false, bool New = true, int slot = 0, u16 SizeMb = MemCard2043Mb, bool hdrOnly = false);
@@ -227,10 +230,7 @@ public:
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sizeof remove
 	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
-private:
-	u32 ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile);
 
-public:
 	// delete a file from the directory
 	u32 RemoveFile(u8 index);
 

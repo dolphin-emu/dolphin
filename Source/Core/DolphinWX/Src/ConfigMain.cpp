@@ -37,7 +37,7 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 #include "Main.h"
-
+#include "MemoryCards\GCMemcard.h"
 #include "VideoBackendBase.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
@@ -1008,6 +1008,17 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 
 	if (!filename.empty())
 	{
+		if (File::Exists(filename))
+		{
+			GCMemcard memorycard(filename.c_str());
+			if (!memorycard.IsValid())
+			{
+				PanicAlertT("Cannot use that file as a memory card.\n%s\n" \
+							"is not a valid gamecube memory card file", filename.c_str());
+				return;
+			}
+		}
+
 		// also check that the path isn't used for the other memcard...
 		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
 			: SConfig::GetInstance().m_strMemoryCardA) != 0)
@@ -1025,7 +1036,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		}
 		else
 		{
-			PanicAlertT("Cannot use that file as a memory card.\n"
+			PanicAlertT("Cannot use that file as a memory card.\n" \
 					"Are you trying to use the same file in both slots?");
 		}
 	}

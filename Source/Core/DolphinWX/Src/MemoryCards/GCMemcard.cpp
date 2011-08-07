@@ -61,25 +61,20 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 	}
 }
 
-GCMemcard::GCMemcard(const char *filename)
+GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis) : m_valid(false), m_fileName(filename)
 { 
-	mcdFile.Open(filename, "r+b");
-	fail = false;
-	if (!mcdFile)
+	File::IOFile mcdFile(m_fileName, "r+b");
+	if (!mcdFile.IsOpen())
 	{
-		if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
+		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
 		{
-			fail = true;
 			return;
 		}
-		mcdFile.Open(filename, "wb");
-		if (!mcdFile)
+		Format(forceCreation ? sjis : !AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
+		if (!mcdFile.Open(m_fileName, "r+b"))
 		{
-			fail = true;
 			return;
 		}
-		Format(!AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
-		mcdFile.Open(filename, "r+b");
 	}
 	else
 	{
@@ -88,41 +83,73 @@ GCMemcard::GCMemcard(const char *filename)
 		SplitPath(filename, NULL, NULL, &fileType);
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
-			fail = true;
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
-	}
+		u32 size = mcdFile.GetSize();
+		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
+		{
+			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, size);
+			return;
+		}
+		if (size % BLOCK_SIZE)
+		{
+			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, size);
+				return;
+		}
 
+		m_sizeMb = (size/BLOCK_SIZE) / MBIT_TO_BLOCKS;
+		switch (m_sizeMb)
+		{
+			case MemCard59Mb:
+			case MemCard123Mb:
+			case MemCard251Mb:
+			case Memcard507Mb:
+			case MemCard1019Mb:
+			case MemCard2043Mb:
+				break;
+			default:
+				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, size);
+				return;
+		}
+	}
+	
+	
 	mcdFile.Seek(0, SEEK_SET);
-	fail = true;
 	if (!mcdFile.ReadBytes(&hdr, BLOCK_SIZE))
 	{
 		PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
 		return;
 	}
-	else if (!mcdFile.ReadBytes(&dir, BLOCK_SIZE))
+	if (m_sizeMb != BE16(hdr.SizeMb))
+	{
+		PanicAlertT("Memorycard filesize does not match the header size");
+		return;
+	}
+
+	if (!mcdFile.ReadBytes(&dir, BLOCK_SIZE))
 	{
 		PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
 		return;
 	}
-	else if (!mcdFile.ReadBytes(&dir_backup, BLOCK_SIZE))
+
+	if (!mcdFile.ReadBytes(&dir_backup, BLOCK_SIZE))
 	{
 		PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
 		return;
 	}
-	else if (!mcdFile.ReadBytes(&bat, BLOCK_SIZE))
+
+	if (!mcdFile.ReadBytes(&bat, BLOCK_SIZE))
 	{
 		PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
 		return;
 	}
-	else if (!mcdFile.ReadBytes(&bat_backup, BLOCK_SIZE))
+
+	if (!mcdFile.ReadBytes(&bat_backup, BLOCK_SIZE))
 	{
 		PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
 		return;
 	}
-	else
-		fail = false;
 
 	u32 csums = TestChecksums();
 	
@@ -130,7 +157,6 @@ GCMemcard::GCMemcard(const char *filename)
 	{
 		// header checksum error!
 		// invalid files do not always get here
-		fail = true;
 		PanicAlertT("Header checksum failed");
 		return;
 	}
@@ -140,7 +166,6 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums & 0x4)
 		{
 			// backup is also wrong!
-			fail = true;
 			PanicAlertT("Directory checksum failed\n and Directory backup checksum failed");
 			return;
 		}
@@ -160,7 +185,6 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums & 0x10)
 		{
 			// backup is also wrong!
-			fail = true;
 			PanicAlertT("Block Allocation Table checksum failed");
 			return;
 		}
@@ -184,37 +208,21 @@ GCMemcard::GCMemcard(const char *filename)
 	}
 
 	mcdFile.Seek(0xa000, SEEK_SET);
-
-	u16 sizeMb = BE16(hdr.SizeMb);
-	switch (sizeMb)
+	
+	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
+	mc_data_size = (maxBlock - MC_FST_BLOCKS) * BLOCK_SIZE;
+	mc_data = new u8[mc_data_size];
+	
+	if (mcdFile.ReadBytes(mc_data, mc_data_size))
 	{
-	case MemCard59Mb:
-	case MemCard123Mb:
-	case MemCard251Mb:
-	case Memcard507Mb:
-	case MemCard1019Mb:
-	case MemCard2043Mb:
+		m_valid = true;
+	}
+	else
 	{
-		maxBlock = (u32)sizeMb * MBIT_TO_BLOCKS;
-		mc_data_size = (maxBlock - MC_FST_BLOCKS) * BLOCK_SIZE;
-		mc_data = new u8[mc_data_size];
-
-		if (!mcdFile.ReadBytes(mc_data, mc_data_size))
-		{
-			fail = true;
-			PanicAlertT("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
-		}
-		break;
+		PanicAlertT("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
 	}
-	default:
-		fail = true;
-		PanicAlertT("Memcard failed to load\n Card size is invalid (%04X)", sizeMb);
-	}
-}
 
-bool GCMemcard::IsOpen()
-{
-	return mcdFile.IsOpen();
+	mcdFile.Close();
 }
 
 bool GCMemcard::IsAsciiEncoding()
@@ -224,6 +232,7 @@ bool GCMemcard::IsAsciiEncoding()
 
 bool GCMemcard::Save()
 {
+	File::IOFile mcdFile(m_fileName, "wb");
 	mcdFile.Seek(0, SEEK_SET);
 
 	mcdFile.WriteBytes(&hdr, BLOCK_SIZE);
@@ -232,8 +241,8 @@ bool GCMemcard::Save()
 	mcdFile.WriteBytes(&bat, BLOCK_SIZE);
 	mcdFile.WriteBytes(&bat_backup, BLOCK_SIZE);
 	mcdFile.WriteBytes(mc_data, mc_data_size);
-	
-	return mcdFile.IsGood();
+
+	return mcdFile.Close();
 }
 
 void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
@@ -257,9 +266,6 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 
 u32  GCMemcard::TestChecksums()
 {
-	if (!mcdFile)
-		return 0xFFFFFFFF;
-
 	u16 csum1=0,
 		csum2=0;
 
@@ -290,7 +296,7 @@ u32  GCMemcard::TestChecksums()
 
 bool GCMemcard::FixChecksums()
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	u16 csum1=0,
@@ -331,7 +337,7 @@ bool GCMemcard::FixChecksums()
 
 u8 GCMemcard::GetNumFiles()
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return 0;
 
 	u8 j = 0;
@@ -345,7 +351,7 @@ u8 GCMemcard::GetNumFiles()
 
 u16 GCMemcard::GetFreeBlocks()
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return 0;
 
 	return BE16(bat.FreeBlocks);
@@ -353,7 +359,7 @@ u16 GCMemcard::GetFreeBlocks()
 
 u8 GCMemcard::TitlePresent(DEntry d)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return DIRLEN;
 
 	u8 i = 0;
@@ -374,7 +380,7 @@ u8 GCMemcard::TitlePresent(DEntry d)
 
 bool GCMemcard::DEntry_GameCode(u8 index, char *buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	memcpy(buffer, dir.Dir[index].Gamecode, 4);
@@ -384,7 +390,7 @@ bool GCMemcard::DEntry_GameCode(u8 index, char *buffer)
 
 bool GCMemcard::DEntry_Markercode(u8 index, char *buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	memcpy(buffer, dir.Dir[index].Markercode, 2);
@@ -393,7 +399,7 @@ bool GCMemcard::DEntry_Markercode(u8 index, char *buffer)
 }
 bool GCMemcard::DEntry_BIFlags(u8 index, char *buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	int x = dir.Dir[index].BIFlags;
@@ -408,7 +414,7 @@ bool GCMemcard::DEntry_BIFlags(u8 index, char *buffer)
 
 bool GCMemcard::DEntry_FileName(u8 index, char *buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	memcpy (buffer, (const char*)dir.Dir[index].Filename, DENTRY_STRLEN);
@@ -428,7 +434,7 @@ u32 GCMemcard::DEntry_ImageOffset(u8 index)
 
 bool GCMemcard::DEntry_IconFmt(u8 index, char *buffer)
 {
-	if (!mcdFile) return false;
+	if (!m_valid) return false;
 
 	int x = dir.Dir[index].IconFmt[0];
 	for(int i = 0; i < 16; i++)
@@ -449,7 +455,7 @@ u16 GCMemcard::DEntry_AnimSpeed(u8 index)
 
 bool GCMemcard::DEntry_Permissions(u8 index, char *fn)
 {
-	if (!mcdFile) return false;
+	if (!m_valid) return false;
 	fn[0] = (dir.Dir[index].Permissions & 16) ? 'x' : 'M';
 	fn[1] = (dir.Dir[index].Permissions &  8) ? 'x' : 'C';
 	fn[2] = (dir.Dir[index].Permissions &  4) ? 'P' : 'x';
@@ -464,7 +470,7 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index)
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return 0xFFFF;
 
 	u16 block = BE16(dir.Dir[index].FirstBlock);
@@ -474,7 +480,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index)
 
 u16 GCMemcard::DEntry_BlockCount(u8 index)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return 0xFFFF;
 
 	u16 blocks = BE16(dir.Dir[index].BlockCount);
@@ -489,7 +495,7 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index)
 
 bool GCMemcard::DEntry_Comment1(u8 index, char* buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
@@ -506,7 +512,7 @@ bool GCMemcard::DEntry_Comment1(u8 index, char* buffer)
 
 bool GCMemcard::DEntry_Comment2(u8 index, char* buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
@@ -524,7 +530,7 @@ bool GCMemcard::DEntry_Comment2(u8 index, char* buffer)
 
 bool GCMemcard::DEntry_Copy(u8 index, GCMemcard::DEntry& info)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	info = dir.Dir[index];
@@ -533,7 +539,7 @@ bool GCMemcard::DEntry_Copy(u8 index, GCMemcard::DEntry& info)
 
 u32 GCMemcard::DEntry_GetSaveData(u8 index, u8* dest, bool old)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return NOMEMCARD;
 
 	u16 block = DEntry_FirstBlock(index);
@@ -572,7 +578,7 @@ u32 GCMemcard::DEntry_GetSaveData(u8 index, u8* dest, bool old)
 
 u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return NOMEMCARD;
 
 	if (GetNumFiles() >= DIRLEN)
@@ -674,7 +680,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 
 u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return NOMEMCARD;
 
 	//error checking
@@ -757,7 +763,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 
 u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return NOMEMCARD;
 
 	DEntry tempDEntry;
@@ -784,7 +790,7 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 
 u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 {
-	if (outputFile.empty() && !mcdFile)
+	if (outputFile.empty() && !m_valid)
 		return OPENFAIL;
 
 	File::IOFile gci(inputFile, "rb");
@@ -1013,7 +1019,7 @@ void GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
 
 bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return false;
 
 	int flags = dir.Dir[index].BIFlags;
@@ -1054,7 +1060,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 
 u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 {
-	if (!mcdFile)
+	if (!m_valid)
 		return 0;
 
 	// To ensure only one type of icon is used
