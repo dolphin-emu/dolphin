@@ -5,8 +5,9 @@ var outfile		= "./Src/svnrev.h";
 var svncmd		= "SubWCRev ../../.. ./Src/svnrev_template.h " + outfile;
 var svntestcmd	= "SubWCRev ../../..";
 var hgcmd		= "hg svn info";
+var gitcmd      = "git.cmd rev-parse HEAD";
 
-var SVN = 1, HG = 2;
+var SVN = 1, HG = 2, git = 3;
 var file_rev = 0, cur_rev = 0, cur_cms = 0;
 
 function RunCmdGetMatch(cmd, regex)
@@ -32,14 +33,14 @@ function RunCmdGetMatch(cmd, regex)
 	return 0;
 }
 
-if (oFS.FileExists(outfile))
+try
 {
-	// file exists, read the value of SVN_REV_STR
-	file_rev	= oFS.OpenTextFile(outfile).ReadLine().match(/\d+/);
+	// read the value of SVN_REV_STR
+	file_rev = oFS.OpenTextFile(outfile).ReadLine().match(/\d+/);
 }
-else
+catch (e)
 {
-	// file doesn't exist, create it
+	// file doesn't exist or string not found, (re)create it
 	oFS.CreateTextFile(outfile);
 }
 
@@ -49,14 +50,21 @@ if (cur_rev)
 	cur_cms = SVN;
 else
 {
-	// SubWCRev failed, so use hg
+	// SubWCRev failed, try hg
 	cur_rev = RunCmdGetMatch(hgcmd, /Revision.*?(\d+)/);
 	if (cur_rev)
 		cur_cms = HG;
 	else
 	{
-		WScript.Echo("Neither SVN or Hg revision info found!");
-		WScript.Quit(1);
+		// hg failed, try git
+	   cur_rev = RunCmdGetMatch(gitcmd, /(.*)/);
+	   if (cur_rev)
+		   cur_cms = git;
+	   else
+	   {
+		   WScript.Echo("Trying to get SVN, Hg, and git info all failed");
+		   WScript.Quit(1);
+	   }
 	}
 }
 

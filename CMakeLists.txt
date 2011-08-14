@@ -46,10 +46,13 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIAB
 	endif(MSVC)
 endfunction(enable_precompiled_headers)
 
-
-include(FindSubversion OPTIONAL) # for revision info
-if(Subversion_FOUND AND NOT DOLPHIN_WC_REVISION)
-	Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} DOLPHIN) # defines DOLPHIN_WC_REVISION
+# for revision info
+include(FindGit OPTIONAL)
+if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
+	# defines DOLPHIN_WC_REVISION
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+	OUTPUT_VARIABLE DOLPHIN_WC_REVISION
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
 # Various compile flags

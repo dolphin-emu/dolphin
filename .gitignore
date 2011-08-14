@@ -1,0 +1,37 @@
+
+#ignore thumbnails created by windows
+Thumbs.db
+#Ignore files built by Visual Studio
+*.obj
+*.exe
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+[Dd]ebug*/
+*.lib
+*.sbr
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est[Rr]esult*
+Binary/Win32
+Binary/x64
+Source/Core/Common/Src/svnrev.h
+*.opensdf
+*.sdf
+[Bb]uild
+
+*.ipch
