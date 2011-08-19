@@ -171,6 +171,7 @@ void DMainWindow::CreateMenus()
 	connect(gcpadSettingsAct, SIGNAL(triggered()), this, SLOT(OnGCPadSettings()));
 	connect(wiimoteSettingsAct, SIGNAL(triggered()), this, SLOT(OnWiimoteSettings()));
 
+	connect(reportIssueAct, SIGNAL(triggered()), this, SLOT(OnReportIssue()));
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(OnAbout()));
 
 

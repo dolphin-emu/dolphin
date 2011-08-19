@@ -3,6 +3,7 @@ set(SRCS	Src/ConfigAudio.cpp
 			Src/ConfigMain.cpp
 			Src/ConfigPad.cpp
 			Src/ConfigWiimote.cpp
+			Src/IssueReporter.cpp
 			Src/GameList.cpp
 			Src/ISOFile.cpp
 			Src/LogWindow.cpp
@@ -34,6 +35,7 @@ qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/ConfigAudio.h
 								Src/ConfigMain.h
 								Src/ConfigPad.h
 								Src/ConfigWiimote.h
+								Src/IssueReporter.h
 								Src/GameList.h
 								Src/LogWindow.h
 								Src/MainWindow.h

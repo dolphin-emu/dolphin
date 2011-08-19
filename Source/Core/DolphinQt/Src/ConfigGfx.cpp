@@ -20,5 +20,7 @@ void DConfigGfx::Reset()
 
 void DConfigGfx::Apply()
 {
-
+	// TODO: Children can be found via findChild()!
+	
+	// TODO: Instead: QDialog::accept?
 }

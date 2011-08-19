@@ -38,6 +38,7 @@ private slots:
 	void OnShowLogSettings(bool show);
 	void OnHideMenu(bool hide);
 
+	void OnReportIssue();
 	void OnAbout();
 
 	void OnLogWindowClosed();
