@@ -27,6 +27,8 @@ DMainWindow::DMainWindow() : logWindow(NULL)
 	setWindowTitle("Dolphin");
 	show();
 
+	connect(gameList, SIGNAL(DoubleClicked()), this, SLOT(OnStartPause()));
+
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
 
 	gameList->ScanForIsos();

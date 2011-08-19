@@ -373,3 +373,8 @@ void DGameList::OnIsoScanFinished(void* dialogptr)
 {
 	delete (QProgressDialog*)dialogptr;
 }
+
+void DGameList::mouseDoubleClickEvent(QMouseEvent* )
+{
+	emit DoubleClicked();
+}

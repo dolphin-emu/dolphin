@@ -61,7 +61,12 @@ public:
 	GameListItem* GetSelectedISO();
 
 private:
+	void mouseDoubleClickEvent (QMouseEvent*);
+
 	DAbstractGameList abstrGameList;
 
 	QStandardItemModel* sourceModel;
+
+signals:
+	void DoubleClicked();
 };
