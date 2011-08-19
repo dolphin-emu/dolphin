@@ -37,6 +37,14 @@ DMainWindow::~DMainWindow()
 
 }
 
+void DMainWindow::closeEvent(QCloseEvent* ev)
+{
+	// Save UI configuration
+	SConfig::GetInstance().m_InterfaceLogWindow = logWindow->isVisible();
+	SConfig::GetInstance().m_InterfaceLogConfigWindow = logSettings->isVisible();
+	SConfig::GetInstance().SaveSettings();
+}
+
 void DMainWindow::CreateMenus()
 {
 	// File

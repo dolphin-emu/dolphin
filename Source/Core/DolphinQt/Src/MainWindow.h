@@ -52,6 +52,8 @@ private:
 
 	void DoStop() {}
 
+	void closeEvent(QCloseEvent*);
+
 	DGameList* gameList;
 
 	QAction* showLogManAct;
