@@ -60,7 +60,8 @@ private:
 	// Stores gameList and ISO scanning progress bar OR render widget
 	DLayoutWidgetV* centralLayout;
 
-	DGameList* gameList;
+//	DGameList* gameList;
+	DGameTable* gameList;
 
 	QAction* showLogManAct;
 	QAction* showLogSettingsAct;

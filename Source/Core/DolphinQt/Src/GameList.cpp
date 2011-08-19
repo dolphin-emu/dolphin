@@ -185,8 +185,8 @@ void DAbstractGameList::Rescan()
 					items.push_back(ISOFile);
 			}
 		}
-		progressBar->SetVisible(false);
 	}
+	progressBar->SetVisible(false);
 
 	if (SConfig::GetInstance().m_ListDrives)
 	{
@@ -204,7 +204,6 @@ void DAbstractGameList::Rescan()
 	std::sort(items.begin(), items.end());
 }
 
-
 DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 {
 	sourceModel = new QStandardItemModel(this);
@@ -218,12 +217,6 @@ DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 DGameList::~DGameList()
 {
 
-}
-
-void DGameList::ScanForIsos()
-{
-	abstrGameList.Rescan();
-	RebuildList();
 }
 
 QString NiceSizeFormat(s64 _size)
@@ -247,7 +240,7 @@ QString NiceSizeFormat(s64 _size)
     return NiceString;
 }
 
-void DGameList::RebuildList()
+void DGameList::RefreshView()
 {
 	std::vector<GameListItem>& items = abstrGameList.getItems();
 
@@ -303,18 +296,133 @@ void DGameList::RebuildList()
 	sourceModel->setHorizontalHeaderLabels(columnTitles);
 
 	for (int i = 0; i < sourceModel->columnCount(); ++i)
-	resizeColumnToContents(i);
+		resizeColumnToContents(i);
+}
+
+void DGameList::ScanForIsos()
+{
+	abstrGameList.Rescan();
+	RefreshView();
 }
 
 GameListItem* DGameList::GetSelectedISO()
 {
-	QModelIndexList indexList = selectedIndexes();
-	if (indexList.size() == 0) return NULL;
-	else return &(abstrGameList.getItems()[indexList[0].row()]);
+	// Usually, one would just use QTreeView::selectedIndices(), but there is a bug in the open source editions
+	// of the QT SDK for Windows which causes a failed assertion.
+	// Thus, we just loop through the whole game list and check for each item if it's the selected one.
+	for (int i = 0; i < model()->rowCount(rootIndex()); ++i)
+	{
+		QModelIndex index = model()->index(i, 0, rootIndex());
+		if (selectionModel()->isSelected(index))
+			return &(abstrGameList.getItems()[i]);
+	}
+	return NULL;
 }
 
 void DGameList::mouseDoubleClickEvent(QMouseEvent* event)
 {
-	if (event->buttons() & Qt::LeftButton)
-		emit DoubleLeftClicked();
+	// TODO: Do the same when enter is pressed!
+	// TODO: Meh, use signal QAbstractItemView::doubleClicked() instead...
+	emit StartGame();
+}
+
+
+DGameTable::DGameTable(DAbstractProgressBar* progBar) : abstrGameList(progBar), num_columns(5)
+{
+	sourceModel = new QStandardItemModel(this);
+	setModel(sourceModel);
+	setAlternatingRowColors(true);
+	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	horizontalHeader()->setVisible(false);
+	verticalHeader()->setVisible(false);
+	setSelectionMode(QAbstractItemView::SingleSelection);
+	setGridStyle(Qt::NoPen);
+}
+
+DGameTable::~DGameTable()
+{
+
+}
+
+void DGameTable::RefreshView()
+{
+	// TODO: There's still some problems if you scroll away from a cell and back to it => banner won't get redrawn
+	std::vector<GameListItem>& items = abstrGameList.getItems();
+
+	// Use 146 if there are no columns, yet, and the actual column width otherwise
+	num_columns = size().width() / qMax(146, columnWidth(0));
+
+	sourceModel->clear();
+	sourceModel->setRowCount(qMax<int>(0, items.size()-1) / num_columns + 1);
+	sourceModel->setColumnCount(num_columns);
+
+	for (int i = 0; i < (int)items.size(); ++i)
+	{
+		QStandardItem* item = new QStandardItem;
+		if(!items[i].GetImage().empty())
+		{
+			u8* src = &(items[i].GetImage()[0]);
+			QMap<u8*,QPixmap>::iterator it = pixmap_cache.find(src);
+			if (it == pixmap_cache.end())
+				it = pixmap_cache.insert(src, QPixmap::fromImage(QImage(src, 96, 32, QImage::Format_RGB888)).scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+			item->setData(QVariant::fromValue(it.value()), Qt::DecorationRole);
+		}
+		else
+		{
+			QMap<u8*,QPixmap>::iterator it = pixmap_cache.find((u8*)no_banner_png);
+			if (it == pixmap_cache.end())
+			{
+				QPixmap banner;
+				banner.loadFromData(no_banner_png, sizeof(no_banner_png));
+				banner = banner.scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+				it = pixmap_cache.insert((u8*)no_banner_png, banner);
+			}
+			item->setData(QVariant::fromValue(it.value()), Qt::DecorationRole);
+		}
+		item->setSizeHint(QSize(146, 50));
+		sourceModel->setItem(i / num_columns, i % num_columns, item);
+	}
+	// TODO: Set the background colors of the remaining cells to the background color
+
+	resizeColumnsToContents();
+	resizeRowsToContents();
+}
+
+void DGameTable::ScanForIsos()
+{
+	abstrGameList.Rescan();
+	RefreshView();
+}
+
+GameListItem* DGameTable::GetSelectedISO()
+{
+	// Usually, one would just use QTreeView::selectedIndices(), but there is a bug in the open source editions
+	// of the QT SDK for Windows which causes a failed assertion.
+	// Thus, we just loop through the whole game list and check for each item if it's the selected one.
+	for (int i = 0; i < abstrGameList.getItems().size(); ++i)
+	{
+		QModelIndex index = model()->index(i / num_columns, i % num_columns, rootIndex());
+		if (selectionModel()->isSelected(index))
+			return &(abstrGameList.getItems()[i]);
+	}
+	return NULL;
+}
+
+void DGameTable::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	// TODO: Do the same when enter is pressed!
+	// TODO: Meh, use signal QAbstractItemView::doubleClicked() instead...
+	if (GetSelectedISO() != NULL)
+		emit StartGame();
+}
+
+void DGameTable::resizeEvent(QResizeEvent* event)
+{
+	// Dynamically adjust the number of columns so that the central area is always filled
+	if (num_columns > 1)
+		if (event->size().width() < columnViewportPosition(num_columns-1) + columnWidth(0) - columnViewportPosition(0))
+			RefreshView();
+
+	if (event->size().width() > columnViewportPosition(num_columns-1) + 2*columnWidth(0) - columnViewportPosition(0))
+		RefreshView();
 }

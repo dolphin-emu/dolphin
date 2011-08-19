@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QStandardItemModel>
+#include <QTableView>
 #include <QTreeView>
 #include "ISOFile.h"
 
@@ -20,7 +21,7 @@ class DAbstractGameList
 {
 public:
 	DAbstractGameList(DAbstractProgressBar* progBar) : progressBar(progBar) {};
-	~DAbstractGameList() {};
+	virtual ~DAbstractGameList() {};
 
 	enum
 	{
@@ -49,23 +50,51 @@ class DGameList : public QTreeView
 
 public:
 	DGameList(DAbstractProgressBar* progressBar);
-	~DGameList();
-
-public:
-	void RebuildList();
-
-	GameListItem* GetSelectedISO();
+	virtual ~DGameList();
 
 	void ScanForIsos();
+	GameListItem* GetSelectedISO();
+
+protected:
+	void RefreshView();
 
 private:
-
-	void mouseDoubleClickEvent (QMouseEvent*);
-
-	DAbstractGameList abstrGameList;
+	void mouseDoubleClickEvent(QMouseEvent*);
 
 	QStandardItemModel* sourceModel;
 
+	DAbstractGameList abstrGameList;
+
 signals:
-	void DoubleLeftClicked();
+	void StartGame();
+};
+
+class DGameTable : public QTableView
+{
+	Q_OBJECT
+
+public:
+	DGameTable(DAbstractProgressBar* progressBar);
+	virtual ~DGameTable();
+
+	void ScanForIsos();
+	GameListItem* GetSelectedISO();
+
+protected:
+	void RefreshView();
+	void resizeEvent(QResizeEvent*);
+
+private:
+	void mouseDoubleClickEvent(QMouseEvent*);
+
+	QStandardItemModel* sourceModel;
+
+	DAbstractGameList abstrGameList;
+
+	unsigned int num_columns;
+
+	QMap<u8*,QPixmap> pixmap_cache;
+
+signals:
+	void StartGame();
 };

@@ -28,9 +28,12 @@ DMainWindow::DMainWindow(int x, int y, int w, int h) : logWindow(NULL), renderWi
 {
 	Resources::Init();
 
+	// TODO: Add an option to switch between those two ;)
 	centralLayout = new DLayoutWidgetV();
 	DGameListProgressBar* progBar = new DGameListProgressBar;
-	gameList = new DGameList(progBar);
+	progBar->SetVisible(false);
+//	gameList = new DGameList(progBar);
+	gameList = new DGameTable(progBar);
 	centralLayout->addWidget(gameList);
 	centralLayout->addWidget(progBar);
 	setCentralWidget(centralLayout);
@@ -48,7 +51,7 @@ DMainWindow::DMainWindow(int x, int y, int w, int h) : logWindow(NULL), renderWi
 	setMinimumSize(400, 300);
 	show();
 
-	connect(gameList, SIGNAL(DoubleLeftClicked()), this, SLOT(OnStartPause()));
+	connect(gameList, SIGNAL(StartGame()), this, SLOT(OnStartPause()));
 	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
 
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
