@@ -48,10 +48,20 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 	setWindowTitle("Dolphin");
 
 	QSettings ui_settings("Dolphin Team", "Dolphin");
-	QByteArray geometry = ui_settings.value("MainGeometry").toByteArray();
-	if (geometry.size()) restoreGeometry(geometry);
-	else resize(600, 400);
-	restoreState(ui_settings.value("MainState").toByteArray());
+	if (false == restoreGeometry(ui_settings.value("main/geometry").toByteArray()))
+	{
+		// TODO: Test this on multi-monitor setups
+		// 55% of the window contents are in the upper screen half, 45% in the lower half
+		QDesktopWidget* desktop = ((QApplication*)QApplication::instance())->desktop();
+		QRect screenRect = desktop->screenGeometry(this);
+		int x, y, w, h;
+		w = screenRect.width() * 2 / 3;
+		h = screenRect.height() / 2;
+		x = (screenRect.x() + screenRect.width()) / 2 - w / 2;
+		y = (screenRect.y() + screenRect.height()) / 2 - h * 55 / 100;
+		setGeometry(x, y, w, h);
+	}
+	restoreState(ui_settings.value("main/state").toByteArray());
 	setMinimumSize(400, 300);
 	show();
 
@@ -83,8 +93,8 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 	SConfig::GetInstance().SaveSettings();
 
 	QSettings ui_settings("Dolphin Team", "Dolphin");
-	ui_settings.setValue("MainGeometry", saveGeometry());
-	ui_settings.setValue("MainState", saveState());
+	ui_settings.setValue("main/geometry", saveGeometry());
+	ui_settings.setValue("main/state", saveState());
 
 	QWidget::closeEvent(ev);
 }
