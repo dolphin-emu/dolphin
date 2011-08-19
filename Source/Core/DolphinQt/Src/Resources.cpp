@@ -49,8 +49,6 @@ void Resources::Init()
 {
 	instance = new Resources;
 
-	instance->dolphin.loadFromData(dolphin_ico32x32, sizeof(dolphin_ico32x32));
-
 	instance->regions.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	instance->regions[DiscIO::IVolume::COUNTRY_EUROPE].loadFromData(flag_europe_png, sizeof(flag_europe_png));
 	instance->regions[DiscIO::IVolume::COUNTRY_FRANCE].loadFromData(flag_france_png, sizeof(flag_france_png));
@@ -76,26 +74,24 @@ void Resources::Init()
 	instance->ratings[4].loadFromData(rating4_png, sizeof(rating4_png));
 	instance->ratings[5].loadFromData(rating5_png, sizeof(rating5_png));
 
-	instance->toolbar.resize(NUM_TOOLBAR_ICONS);
-	instance->toolbar[TOOLBAR_OPEN].loadFromData(toolbar_file_open_png, sizeof(toolbar_file_open_png));
-	instance->toolbar[TOOLBAR_REFRESH].loadFromData(toolbar_refresh_png, sizeof(toolbar_refresh_png));
-	instance->toolbar[TOOLBAR_BROWSE].loadFromData(toolbar_browse_png, sizeof(toolbar_browse_png));
-	instance->toolbar[TOOLBAR_PLAY].loadFromData(toolbar_play_png, sizeof(toolbar_play_png));
-	instance->toolbar[TOOLBAR_STOP].loadFromData(toolbar_stop_png, sizeof(toolbar_stop_png));
-	instance->toolbar[TOOLBAR_FULLSCREEN].loadFromData(toolbar_fullscreen_png, sizeof(toolbar_fullscreen_png));
-	instance->toolbar[TOOLBAR_SCREENSHOT].loadFromData(toolbar_fullscreen_png, sizeof(toolbar_fullscreen_png));
-	instance->toolbar[TOOLBAR_CONFIGURE].loadFromData(toolbar_plugin_options_png, sizeof(toolbar_plugin_options_png));
-	instance->toolbar[TOOLBAR_PLUGIN_GFX].loadFromData(toolbar_plugin_gfx_png, sizeof(toolbar_plugin_gfx_png));
-	instance->toolbar[TOOLBAR_PLUGIN_DSP].loadFromData(toolbar_plugin_dsp_png, sizeof(toolbar_plugin_dsp_png));
-	instance->toolbar[TOOLBAR_PLUGIN_GCPAD].loadFromData(toolbar_plugin_pad_png, sizeof(toolbar_plugin_pad_png));
-	instance->toolbar[TOOLBAR_PLUGIN_WIIMOTE].loadFromData(toolbar_plugin_wiimote_png, sizeof(toolbar_plugin_wiimote_png));
-	instance->toolbar[TOOLBAR_HELP].loadFromData(toolbar_help_png, sizeof(toolbar_help_png));
-	instance->toolbar[TOOLBAR_PAUSE].loadFromData(toolbar_pause_png, sizeof(toolbar_pause_png));
-}
-
-QPixmap& Resources::GetDolphinIcon()
-{
-	return instance->dolphin;
+	instance->pixmaps.resize(NUM_ICONS);
+	instance->pixmaps[TOOLBAR_OPEN].loadFromData(toolbar_file_open_png, sizeof(toolbar_file_open_png));
+	instance->pixmaps[TOOLBAR_REFRESH].loadFromData(toolbar_refresh_png, sizeof(toolbar_refresh_png));
+	instance->pixmaps[TOOLBAR_BROWSE].loadFromData(toolbar_browse_png, sizeof(toolbar_browse_png));
+	instance->pixmaps[TOOLBAR_PLAY].loadFromData(toolbar_play_png, sizeof(toolbar_play_png));
+	instance->pixmaps[TOOLBAR_STOP].loadFromData(toolbar_stop_png, sizeof(toolbar_stop_png));
+	instance->pixmaps[TOOLBAR_FULLSCREEN].loadFromData(toolbar_fullscreen_png, sizeof(toolbar_fullscreen_png));
+	instance->pixmaps[TOOLBAR_SCREENSHOT].loadFromData(toolbar_fullscreen_png, sizeof(toolbar_fullscreen_png));
+	instance->pixmaps[TOOLBAR_CONFIGURE].loadFromData(toolbar_plugin_options_png, sizeof(toolbar_plugin_options_png));
+	instance->pixmaps[TOOLBAR_PLUGIN_GFX].loadFromData(toolbar_plugin_gfx_png, sizeof(toolbar_plugin_gfx_png));
+	instance->pixmaps[TOOLBAR_PLUGIN_DSP].loadFromData(toolbar_plugin_dsp_png, sizeof(toolbar_plugin_dsp_png));
+	instance->pixmaps[TOOLBAR_PLUGIN_GCPAD].loadFromData(toolbar_plugin_pad_png, sizeof(toolbar_plugin_pad_png));
+	instance->pixmaps[TOOLBAR_PLUGIN_WIIMOTE].loadFromData(toolbar_plugin_wiimote_png, sizeof(toolbar_plugin_wiimote_png));
+	instance->pixmaps[TOOLBAR_HELP].loadFromData(toolbar_help_png, sizeof(toolbar_help_png));
+	instance->pixmaps[TOOLBAR_PAUSE].loadFromData(toolbar_pause_png, sizeof(toolbar_pause_png));
+	// TODO: instance->toolbar[MEMCARD];
+	// TODO: instance->toolbar[HOTKEYS];
+	instance->pixmaps[DOLPHIN_LOGO].loadFromData(dolphin_ico32x32, sizeof(dolphin_ico32x32));
 }
 
 QPixmap& Resources::GetRegionPixmap(DiscIO::IVolume::ECountry region)
@@ -115,8 +111,13 @@ QPixmap& Resources::GetRatingPixmap(int rating)
 	return instance->ratings[rating];
 }
 
-QPixmap& Resources::GetToolbarPixmap(int id)
+QPixmap& Resources::GetPixmap(int id)
 {
-	if (id >= instance->toolbar.size()) return instance->toolbar[0];
-	return instance->toolbar[id];
+	if (id >= instance->pixmaps.size()) return instance->pixmaps[0];
+	return instance->pixmaps[id];
+}
+
+QIcon Resources::GetIcon(int id)
+{
+	return QIcon(GetPixmap(id));
 }

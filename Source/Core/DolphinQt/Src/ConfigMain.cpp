@@ -104,23 +104,23 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 
 	// List view
 	QListWidgetItem* generalConfigButton = new QListWidgetItem;
-	generalConfigButton->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_CONFIGURE)));
+	generalConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE));
 	generalConfigButton->setText(tr("General"));
 
 	QListWidgetItem* graphicsConfigButton = new QListWidgetItem;
-	graphicsConfigButton->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GFX)));
+	graphicsConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GFX));
 	graphicsConfigButton->setText(tr("Graphics"));
 
 	QListWidgetItem* soundConfigButton = new QListWidgetItem;
-	soundConfigButton->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_DSP)));
+	soundConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_DSP));
 	soundConfigButton->setText(tr("Audio"));
 
 	QListWidgetItem* padConfigButton = new QListWidgetItem;
-	padConfigButton->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GCPAD)));
+	padConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GCPAD));
 	padConfigButton->setText(tr("GC Pad"));
 
 	QListWidgetItem* wiimoteConfigButton = new QListWidgetItem;
-	wiimoteConfigButton->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_WIIMOTE)));
+	wiimoteConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_WIIMOTE));
 	wiimoteConfigButton->setText(tr("Wiimote"));
 
 	menusView = new QListWidget;

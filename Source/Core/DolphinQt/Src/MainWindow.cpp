@@ -44,7 +44,7 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 	CreateDockWidgets();
 	// TODO: read settings
 
-	setWindowIcon(QIcon(Resources::GetDolphinIcon()));
+	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
 	setWindowTitle("Dolphin");
 
 	QSettings ui_settings("Dolphin Team", "Dolphin");
@@ -113,17 +113,17 @@ void DMainWindow::CreateMenus()
 
 	// Options
 	QMenu* optionsMenu = menuBar()->addMenu(tr("&Options"));
-	QAction* configureAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_CONFIGURE)), tr("&General Settings ..."));
-	QAction* hotkeyAct = optionsMenu->addAction(tr("&Hotkeys"));
+	QAction* configureAct = optionsMenu->addAction(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE), tr("&General Settings ..."));
+	QAction* hotkeyAct = optionsMenu->addAction(Resources::GetIcon(Resources::HOTKEYS), tr("&Hotkeys"));
 	optionsMenu->addSeparator();
-	QAction* gfxSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GFX)), tr("&Graphics settings ..."));
-	QAction* soundSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_DSP)), tr("&Sound settings ..."));
-	QAction* gcpadSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GCPAD)), tr("&Controller settings ..."));
-	QAction* wiimoteSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_WIIMOTE)), tr("&Wiimote settings ..."));
+	QAction* gfxSettingsAct = optionsMenu->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GFX), tr("&Graphics Settings ..."));
+	QAction* soundSettingsAct = optionsMenu->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_DSP), tr("&Sound Settings ..."));
+	QAction* gcpadSettingsAct = optionsMenu->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GCPAD), tr("&Controller Settings ..."));
+	QAction* wiimoteSettingsAct = optionsMenu->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_WIIMOTE), tr("&Wiimote Settings ..."));
 
 	// Tools
 	QMenu* toolsMenu = menuBar()->addMenu(tr("Tools"));
-	QAction* memcardsAct = toolsMenu->addAction(tr("Memory Cards ..."));
+	QAction* memcardsAct = toolsMenu->addAction(Resources::GetIcon(Resources::MEMCARD), tr("Memory Cards ..."));
 	QAction* wiisavesAct = toolsMenu->addAction(tr("Import Wii Save Games ..."));
 	toolsMenu->addSeparator();
 	QAction* installWadAct = toolsMenu->addAction(tr("Install WAD ..."));
@@ -133,24 +133,44 @@ void DMainWindow::CreateMenus()
 
 	// View
 	QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
-	showLogManAct = viewMenu->addAction(tr("Show &log manager"));
+	showLogManAct = viewMenu->addAction(tr("Show &Log Manager"));
 	showLogManAct->setCheckable(true);
 	showLogManAct->setChecked(SConfig::GetInstance().m_InterfaceLogWindow);
-	showLogSettingsAct = viewMenu->addAction(tr("Show log &settings"));
+	showLogSettingsAct = viewMenu->addAction(tr("Show Log &Settings"));
 	showLogSettingsAct->setCheckable(true);
 	showLogSettingsAct->setChecked(SConfig::GetInstance().m_InterfaceLogConfigWindow);
 	viewMenu->addSeparator();
-	QAction* hideMenuAct = viewMenu->addAction(tr("Hide menu"));
+	QAction* hideMenuAct = viewMenu->addAction(tr("Hide Menu"));
 	hideMenuAct->setCheckable(true);
 	hideMenuAct->setChecked(false); // TODO: Read this from config
+	viewMenu->addSeparator();
+
+	QMenu* gameListLayoutMenu = viewMenu->addMenu(tr("Game List Layout"));
+	QAction* gameListAsListAct = gameListLayoutMenu->addAction(tr("List")); // TODO: Naming?
+	gameListAsListAct->setCheckable(true);
+	QAction* gameListAsGridAct = gameListLayoutMenu->addAction(tr("Grid"));
+	gameListAsGridAct->setCheckable(true);
+	QActionGroup* gameListLayoutGroup = new QActionGroup(this);
+	gameListLayoutGroup->addAction(gameListAsListAct);
+	gameListLayoutGroup->addAction(gameListAsGridAct);
+	gameListAsListAct->setChecked(true);
+
+	QAction* expertModeAct = viewMenu->addAction(tr("Expert Mode"));
 
 	// Help
 	QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
 	QAction* websiteAct = helpMenu->addAction(tr("Dolphin Homepage ..."));
 	QAction* reportIssueAct = helpMenu->addAction(tr("Report an issue ..."));
 	helpMenu->addSeparator();
-	QAction* aboutAct = helpMenu->addAction(tr("About ..."));
+	QAction* aboutAct = helpMenu->addAction(Resources::GetIcon(Resources::DOLPHIN_LOGO), tr("About ..."));
 
+	if (1/*expertModeEnabled*/)
+	{
+		installWadAct->setVisible(false);
+
+		showLogManAct->setVisible(false);
+		showLogSettingsAct->setVisible(false);
+	}
 
 	// Events
 	connect(loadIsoAct, SIGNAL(triggered()), this, SLOT(OnLoadIso()));
@@ -186,22 +206,20 @@ void DMainWindow::CreateToolBars()
 
 	QAction* openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
 	QAction* refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
-//	QAction* browseAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DirIcon), tr("Browse"));
 	toolBar->addSeparator();
 
 	playAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("Play"));
 	stopAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaStop), tr("Stop"));
-//	QAction* fscrAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_FULLSCREEN)), tr("FullScr"));
-//	QAction* scrshotAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_SCREENSHOT)), tr("ScrShot"));
 	toolBar->addSeparator();
 
-	QAction* configAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_CONFIGURE)), tr("Config"));
-	QAction* gfxAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GFX)), tr("Graphics"));
-	QAction* soundAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_DSP)), tr("Sound"));
-	QAction* padAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GCPAD)), tr("GC Pad"));
-	QAction* wiimoteAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_WIIMOTE)), tr("Wiimote"));
+	QAction* configAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_CONFIGURE), tr("Config"));
+	QAction* gfxAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GFX), tr("Graphics"));
+	QAction* soundAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_DSP), tr("Sound"));
+	QAction* padAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GCPAD), tr("GC Pad"));
+	QAction* wiimoteAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_WIIMOTE), tr("Wiimote"));
 
 
+	connect(openAction, SIGNAL(triggered()), this, SLOT(OnLoadIso()));
 	connect(refreshAction, SIGNAL(triggered()), this, SLOT(OnRefreshList()));
 	connect(playAction, SIGNAL(triggered()), this, SLOT(OnStartPause()));
 	connect(stopAction, SIGNAL(triggered()), this, SLOT(OnStop()));

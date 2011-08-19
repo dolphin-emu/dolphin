@@ -7,11 +7,11 @@ class Resources
 public:
 	static void Init();
 
-	static QPixmap& GetDolphinIcon();
 	static QPixmap& GetPlatformPixmap(int console);
 	static QPixmap& GetRegionPixmap(DiscIO::IVolume::ECountry region);
 	static QPixmap& GetRatingPixmap(int rating);
-	static QPixmap& GetToolbarPixmap(int id);
+	static QPixmap& GetPixmap(int id);
+	static QIcon GetIcon(int id);
 
 	enum
 	{
@@ -29,7 +29,10 @@ public:
 		TOOLBAR_PLUGIN_WIIMOTE,
 		TOOLBAR_HELP,
 		TOOLBAR_PAUSE,
-		NUM_TOOLBAR_ICONS
+		MEMCARD,
+		HOTKEYS,
+		DOLPHIN_LOGO,
+		NUM_ICONS
 	};
 
 private:
@@ -40,6 +43,5 @@ private:
 	QVector<QPixmap> platforms;
 	QVector<QPixmap> regions;
 	QVector<QPixmap> ratings;
-	QVector<QPixmap> toolbar;
-	QPixmap dolphin;
+	QVector<QPixmap> pixmaps;
 };
