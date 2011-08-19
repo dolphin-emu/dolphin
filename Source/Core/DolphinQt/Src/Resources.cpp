@@ -30,6 +30,7 @@
 #include "../resources/toolbar_plugin_wiimote.c"
 #include "../resources/toolbar_refresh.c"
 #include "../resources/toolbar_stop.c"
+#include "../resources/no_banner.cpp"
 
 #include "Volume.h"
 
@@ -92,6 +93,7 @@ void Resources::Init()
 	// TODO: instance->toolbar[MEMCARD];
 	// TODO: instance->toolbar[HOTKEYS];
 	instance->pixmaps[DOLPHIN_LOGO].loadFromData(dolphin_ico32x32, sizeof(dolphin_ico32x32));
+	instance->pixmaps[BANNER_MISSING].loadFromData(no_banner_png, sizeof(no_banner_png));
 }
 
 QPixmap& Resources::GetRegionPixmap(DiscIO::IVolume::ECountry region)

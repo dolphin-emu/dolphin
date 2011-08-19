@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QMainWindow>
-#include "GameList.h"
 #include "RenderWindow.h"
 #include "Util.h"
 
@@ -10,6 +9,7 @@
 #include <Core.h>
 class DLogWindow;
 class DLogSettingsDock;
+class DGameBrowser;
 class DMainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -37,6 +37,8 @@ private slots:
 	void OnShowLogMan(bool show);
 	void OnShowLogSettings(bool show);
 	void OnHideMenu(bool hide);
+	void OnSwitchToGameList();
+	void OnSwitchToGameGrid();
 
 	void OnReportIssue();
 	void OnAbout();
@@ -62,8 +64,7 @@ private:
 	// Stores gameList and ISO scanning progress bar OR render widget
 	DLayoutWidgetV* centralLayout;
 
-//	DGameList* gameList;
-	DGameTable* gameList;
+	DGameBrowser* gameBrowser;
 
 	QAction* showLogManAct;
 	QAction* showLogSettingsAct;

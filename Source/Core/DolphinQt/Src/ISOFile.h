@@ -42,7 +42,7 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
-	std::vector<u8>& GetImage() { return m_Image; }
+	const std::vector<u8>& GetImage() const { return m_Image; }
 
 	void DoState(PointerWrap &p);
 

@@ -58,8 +58,8 @@ void DMainWindow::StartGame(const std::string& filename)
 std::string DMainWindow::RequestBootFilename()
 {
 	// If a game is already selected, just return the filename
-	if (gameList->GetSelectedISO() != NULL)
-		return gameList->GetSelectedISO()->GetFileName();
+	if (gameBrowser->GetSelectedISO() != NULL)
+		return gameBrowser->GetSelectedISO()->GetFileName();
 
 	// Otherwise, try the default ISO and then the previously booted ISO
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -204,8 +204,8 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	stopAction->setEnabled(is_running || is_paused);
 
 	// Game list
-	gameList->setEnabled(is_not_initialized);
-	gameList->setVisible(is_not_initialized);
+	gameBrowser->setEnabled(is_not_initialized);
+	gameBrowser->setVisible(is_not_initialized);
 
 	// TODO: Update menu items
 }
@@ -221,7 +221,7 @@ void DMainWindow::OnRefreshList()
 {
 	// TODO: Make the progress bar stay enabled
 	setEnabled(false);
-	gameList->ScanForIsos();
+	gameBrowser->ScanForIsos();
 	setEnabled(true);
 }
 
@@ -256,6 +256,16 @@ void DMainWindow::OnShowLogSettings(bool show)
 void DMainWindow::OnHideMenu(bool hide)
 {
 	menuBar()->setVisible(!hide);
+}
+
+void DMainWindow::OnSwitchToGameList()
+{
+	gameBrowser->SetStyle(DGameBrowser::Style_List);
+}
+
+void DMainWindow::OnSwitchToGameGrid()
+{
+	gameBrowser->SetStyle(DGameBrowser::Style_Grid);
 }
 
 void DMainWindow::OnAbout()

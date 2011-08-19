@@ -9,10 +9,7 @@
 #include "CDUtils.h"
 #include "IniFile.h"
 
-#include "Thread.h"//remove
 
-// TODO: Remove this
-#include "../resources/no_banner.cpp"//remove
 // TODO: Clean this up!
 static int currentColumn = 0;
 bool operator < (const GameListItem &one, const GameListItem &other)
@@ -42,10 +39,10 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 
 	switch(currentColumn)
 	{
-		case DAbstractGameList::COLUMN_TITLE:
+		case AbstractGameBrowser::COLUMN_TITLE:
 				return 0 > strcasecmp(one.GetName(indexOne).c_str(),
 								other.GetName(indexOther).c_str());
-		case DAbstractGameList::COLUMN_NOTES:
+		case AbstractGameBrowser::COLUMN_NOTES:
 			{
 				// On Gamecube we show the company string, while it's empty on
 				// other platforms, so we show the description instead
@@ -57,11 +54,11 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 					other.GetCompany() : other.GetDescription(indexOther);
 				return 0 > strcasecmp(cmp1.c_str(), cmp2.c_str());
 			}
-		case DAbstractGameList::COLUMN_COUNTRY:
+		case AbstractGameBrowser::COLUMN_COUNTRY:
 			return (one.GetCountry() < other.GetCountry());
-		case DAbstractGameList::COLUMN_SIZE:
+		case AbstractGameBrowser::COLUMN_SIZE:
 			return (one.GetFileSize() < other.GetFileSize());
-		case DAbstractGameList::COLUMN_PLATFORM:
+		case AbstractGameBrowser::COLUMN_PLATFORM:
 			return (one.GetPlatform() < other.GetPlatform());
 		default:
 			return 0 > strcasecmp(one.GetName(indexOne).c_str(),
@@ -69,7 +66,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	}
 }
 
-void DAbstractGameList::Rescan()
+void AbstractGameBrowser::Rescan()
 {
 	items.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
@@ -116,19 +113,17 @@ void DAbstractGameList::Rescan()
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
 
-	progressBar->SetLabel("Scanning...");
-	progressBar->SetRange(0, rFilenames.size());
-	progressBar->SetVisible(true);
-
 	if (rFilenames.size() > 0)
 	{
+		progressBar->SetRange(0, rFilenames.size());
+		progressBar->SetVisible(true);
+
 		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
-			progressBar->SetLabel("Scanning " + FileName);
-			progressBar->SetValue(i);
+			progressBar->SetValue(i, rFilenames[i]);
 			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{
@@ -185,8 +180,8 @@ void DAbstractGameList::Rescan()
 					items.push_back(ISOFile);
 			}
 		}
+		progressBar->SetVisible(false);
 	}
-	progressBar->SetVisible(false);
 
 	if (SConfig::GetInstance().m_ListDrives)
 	{
@@ -204,7 +199,7 @@ void DAbstractGameList::Rescan()
 	std::sort(items.begin(), items.end());
 }
 
-DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
+DGameList::DGameList(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser)
 {
 	sourceModel = new QStandardItemModel(this);
 	setModel(sourceModel);
@@ -214,7 +209,7 @@ DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 	setUniformRowHeights(true);
 
 	// TODO: Is activated the correct signal?
-	connect(this, SIGNAL(activated(QModelIndex)), this, SLOT(OnItemActivated(QModelIndex)));
+	connect(this, SIGNAL(activated(const QModelIndex&)), this, SLOT(OnItemActivated(const QModelIndex&)));
 }
 
 DGameList::~DGameList()
@@ -245,7 +240,7 @@ QString NiceSizeFormat(s64 _size)
 
 void DGameList::RefreshView()
 {
-	std::vector<GameListItem>& items = abstrGameList.getItems();
+	const std::vector<GameListItem>& items = abstrGameBrowser.getItems();
 
 	sourceModel->clear();
 	sourceModel->setRowCount(items.size());
@@ -253,35 +248,26 @@ void DGameList::RefreshView()
 	// TODO: Remove those /2 hacks, which are required because the source pixmaps use too much blank space
 	for (int i = 0; i < (int)items.size(); ++i)
 	{
-		QStandardItem* item = new QStandardItem;
-		item->setData(QVariant::fromValue(Resources::GetPlatformPixmap(items[i].GetPlatform())),Qt::DecorationRole);
-		item->setSizeHint(Resources::GetPlatformPixmap(items[i].GetPlatform()).size()/2);
-		sourceModel->setItem(i, 0, item);
+		QStandardItem* platformItem = new QStandardItem;
+		platformItem->setData(QVariant::fromValue(Resources::GetPlatformPixmap(items[i].GetPlatform())),Qt::DecorationRole);
+		platformItem->setSizeHint(Resources::GetPlatformPixmap(items[i].GetPlatform()).size()/2);
+		sourceModel->setItem(i, 0, platformItem);
 
-		if(!items[i].GetImage().empty())
-		{
-			QStandardItem* item = new QStandardItem;
-			item->setData(QVariant::fromValue(QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888))), Qt::DecorationRole);
-			item->setSizeHint(QSize(96, 34));
-			sourceModel->setItem(i, 1, item);
-		}
-		else
-		{
-			QPixmap banner;
-			banner.loadFromData(no_banner_png, sizeof(no_banner_png));
+		QPixmap bannerPixmap = (items[i].GetImage().empty()) ?
+								Resources::GetPixmap(Resources::BANNER_MISSING) :
+								QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888));
+		QStandardItem* bannerItem = new QStandardItem;
+		bannerItem->setData(QVariant::fromValue(bannerPixmap), Qt::DecorationRole);
+		bannerItem->setSizeHint(QSize(96, 34));
+		sourceModel->setItem(i, 1, bannerItem);
 
-			QStandardItem* item = new QStandardItem;
-			item->setData(QVariant::fromValue(banner), Qt::DecorationRole);
-			item->setSizeHint(QSize(96, 34));
-			sourceModel->setItem(i, 1, item);
-		}
 		sourceModel->setItem(i, 2, new QStandardItem(items[i].GetName(0).c_str()));
 		sourceModel->setItem(i, 3, new QStandardItem(items[i].GetDescription(0).c_str()));
 
-		QStandardItem* item4 = new QStandardItem;
-		item4->setData(QVariant::fromValue(Resources::GetRegionPixmap(items[i].GetCountry())), Qt::DecorationRole);
-		item4->setSizeHint(Resources::GetRegionPixmap(items[i].GetCountry()).size()/3);
-		sourceModel->setItem(i, 4, item4);
+		QStandardItem* regionItem = new QStandardItem;
+		regionItem->setData(QVariant::fromValue(Resources::GetRegionPixmap(items[i].GetCountry())), Qt::DecorationRole);
+		regionItem->setSizeHint(Resources::GetRegionPixmap(items[i].GetCountry()).size()/3);
+		sourceModel->setItem(i, 4, regionItem);
 
 		sourceModel->setItem(i, 5, new QStandardItem(NiceSizeFormat(items[i].GetFileSize())));
 
@@ -289,10 +275,10 @@ void DGameList::RefreshView()
 		IniFile ini;
 		ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (items[i].GetUniqueID()) + ".ini").c_str());
 		ini.Get("EmuState", "EmulationStateId", &state);
-		QStandardItem* item6 = new QStandardItem;
-		item6->setData(QVariant::fromValue(Resources::GetRatingPixmap(state)), Qt::DecorationRole);
-		item6->setSizeHint(Resources::GetRatingPixmap(state).size()*0.6f);
-		sourceModel->setItem(i, 6, item6);
+		QStandardItem* ratingItem = new QStandardItem;
+		ratingItem->setData(QVariant::fromValue(Resources::GetRatingPixmap(state)), Qt::DecorationRole);
+		ratingItem->setSizeHint(Resources::GetRatingPixmap(state).size()*0.6f);
+		sourceModel->setItem(i, 6, ratingItem);
 	}
 	QStringList columnTitles;
 	columnTitles << tr("Platform") << tr("Banner") << tr("Title") << tr("Notes") << tr("Region") << tr("Size") << tr("State");
@@ -302,13 +288,7 @@ void DGameList::RefreshView()
 		resizeColumnToContents(i);
 }
 
-void DGameList::ScanForIsos()
-{
-	abstrGameList.Rescan();
-	RefreshView();
-}
-
-GameListItem* DGameList::GetSelectedISO()
+GameListItem const* DGameList::GetSelectedISO() const
 {
 	// Usually, one would just use QTreeView::selectedIndices(), but there is a bug in the open source editions
 	// of the QT SDK for Windows which causes a failed assertion.
@@ -317,7 +297,7 @@ GameListItem* DGameList::GetSelectedISO()
 	{
 		QModelIndex index = model()->index(i, 0, rootIndex());
 		if (selectionModel()->isSelected(index))
-			return &(abstrGameList.getItems()[i]);
+			return &(abstrGameBrowser.getItems()[i]);
 	}
 	return NULL;
 }
@@ -325,12 +305,12 @@ GameListItem* DGameList::GetSelectedISO()
 void DGameList::OnItemActivated(const QModelIndex& index)
 {
 	// TODO: Untested
-	if (index.row() < (int)abstrGameList.getItems().size())
+	if (index.row() < (int)abstrGameBrowser.getItems().size())
 		emit StartGame();
 }
 
 
-DGameTable::DGameTable(DAbstractProgressBar* progBar) : abstrGameList(progBar), num_columns(5)
+DGameTable::DGameTable(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser), num_columns(5)
 {
 	sourceModel = new QStandardItemModel(this);
 	setModel(sourceModel);
@@ -353,7 +333,7 @@ DGameTable::~DGameTable()
 void DGameTable::RefreshView()
 {
 	// TODO: There's still some problems if you scroll away from a cell and back to it => banner won't get redrawn
-	std::vector<GameListItem>& items = abstrGameList.getItems();
+	const std::vector<GameListItem>& items = abstrGameBrowser.getItems();
 
 	// Use 146 if there are no columns, yet, and the actual column width otherwise
 	num_columns = viewport()->width() / qMax(146, columnWidth(0));
@@ -367,23 +347,17 @@ void DGameTable::RefreshView()
 		QStandardItem* item = new QStandardItem;
 		if(!items[i].GetImage().empty())
 		{
-			u8* src = &(items[i].GetImage()[0]);
-			QMap<u8*,QPixmap>::iterator it = pixmap_cache.find(src);
+			u8 const* src = &(items[i].GetImage()[0]);
+			QMap<u8 const*,QPixmap>::iterator it = pixmap_cache.find(src);
 			if (it == pixmap_cache.end())
 				it = pixmap_cache.insert(src, QPixmap::fromImage(QImage(src, 96, 32, QImage::Format_RGB888)).scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 			item->setData(QVariant::fromValue(it.value()), Qt::DecorationRole);
 		}
 		else
 		{
-			QMap<u8*,QPixmap>::iterator it = pixmap_cache.find((u8*)no_banner_png);
-			if (it == pixmap_cache.end())
-			{
-				QPixmap banner;
-				banner.loadFromData(no_banner_png, sizeof(no_banner_png));
-				banner = banner.scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-				it = pixmap_cache.insert((u8*)no_banner_png, banner);
-			}
-			item->setData(QVariant::fromValue(it.value()), Qt::DecorationRole);
+			QPixmap banner = Resources::GetPixmap(Resources::BANNER_MISSING);
+			banner = banner.scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+			item->setData(QVariant::fromValue(banner), Qt::DecorationRole);
 		}
 		item->setSizeHint(QSize(146, 50));
 		sourceModel->setItem(i / num_columns, i % num_columns, item);
@@ -394,22 +368,16 @@ void DGameTable::RefreshView()
 	resizeRowsToContents();
 }
 
-void DGameTable::ScanForIsos()
-{
-	abstrGameList.Rescan();
-	RefreshView();
-}
-
-GameListItem* DGameTable::GetSelectedISO()
+GameListItem const* DGameTable::GetSelectedISO() const
 {
 	// Usually, one would just use QTreeView::selectedIndices(), but there is a bug in the open source editions
 	// of the QT SDK for Windows which causes a failed assertion.
 	// Thus, we just loop through the whole game list and check for each item if it's the selected one.
-	for (unsigned int i = 0; i < abstrGameList.getItems().size(); ++i)
+	for (unsigned int i = 0; i < abstrGameBrowser.getItems().size(); ++i)
 	{
 		QModelIndex index = model()->index(i / num_columns, i % num_columns, rootIndex());
 		if (selectionModel()->isSelected(index))
-			return &(abstrGameList.getItems()[i]);
+			return &(abstrGameBrowser.getItems()[i]);
 	}
 	return NULL;
 }
@@ -417,7 +385,7 @@ GameListItem* DGameTable::GetSelectedISO()
 void DGameTable::OnItemActivated(const QModelIndex& index)
 {
 	// TODO: Do the same when enter is pressed!
-	if (index.row() * num_columns + index.column() < abstrGameList.getItems().size())
+	if (index.row() * num_columns + index.column() < abstrGameBrowser.getItems().size())
 		emit StartGame();
 }
 
@@ -430,4 +398,63 @@ void DGameTable::resizeEvent(QResizeEvent* event)
 
 	if (event->size().width() > columnViewportPosition(num_columns-1) + 2*columnWidth(0) - columnViewportPosition(0))
 		RefreshView();
+}
+
+class DGameListProgressBar : public QProgressBar, public AbstractProgressBar
+{
+public:
+	DGameListProgressBar(QWidget* parent = NULL) : QProgressBar(parent) {}
+	virtual ~DGameListProgressBar() {}
+
+	void SetValue(int value, std::string FileName) { setValue(value); setFormat(tr("Scanning ") + QString::fromStdString(FileName)); }
+	void SetRange(int min, int max) { setRange(min, max); }
+	void SetVisible(bool visible) { setVisible(visible); }
+};
+
+DGameBrowser::DGameBrowser(Style initialStyle, QWidget* parent) : QWidget(parent), progBar(new DGameListProgressBar), abstrGameBrowser(progBar), gameBrowser(NULL), style(initialStyle)
+{
+	progBar->SetVisible(false);
+
+	mainLayout = new QGridLayout;
+	mainLayout->addWidget(progBar, 1, 0);
+
+	SetStyle(style);
+
+	setLayout(mainLayout);
+}
+
+DGameBrowser::~DGameBrowser()
+{
+
+}
+
+GameListItem const* DGameBrowser::GetSelectedISO() const
+{
+	return gameBrowser->GetSelectedISO();
+}
+
+void DGameBrowser::ScanForIsos()
+{
+	abstrGameBrowser.Rescan();
+	gameBrowser->RefreshView();
+}
+
+void DGameBrowser::SetStyle(Style layout)
+{
+	if (style == layout && gameBrowser) return;
+	style = layout;
+
+	if (gameBrowser) dynamic_cast<QWidget*>(gameBrowser)->close();
+	if (layout == Style_List) gameBrowser = new DGameList(abstrGameBrowser);
+	else if (layout == Style_Grid) gameBrowser = new DGameTable(abstrGameBrowser);
+
+	gameBrowser->RefreshView();
+	connect(dynamic_cast<QObject*>(gameBrowser), SIGNAL(StartGame()), this, SIGNAL(StartGame()));
+
+	mainLayout->addWidget(dynamic_cast<QWidget*>(gameBrowser), 0, 0);
+}
+
+DGameBrowser::Style DGameBrowser::GetStyle()
+{
+	return style;
 }

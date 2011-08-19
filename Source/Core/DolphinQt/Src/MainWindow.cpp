@@ -10,32 +10,14 @@
 #include "ConfigManager.h"
 #include "Core.h"
 
-// TODO: Move this somewhere else...
-class DGameListProgressBar : public QProgressBar, public DAbstractProgressBar
-{
-public:
-	DGameListProgressBar(QWidget* parent = NULL) : QProgressBar(parent) {}
-	virtual ~DGameListProgressBar() {}
-
-	void SetValue(int value) { setValue(value); }
-	void SetRange(int min, int max) { setRange(min, max); }
-	void SetLabel(std::string str) { setFormat(QString::fromStdString(str)); } // TODO: Get translation for this one!
-	void SetVisible(bool visible) { setVisible(visible); }
-};
-
-
 DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
 {
 	Resources::Init();
 
-	// TODO: Add an option to switch between those two ;)
-	centralLayout = new DLayoutWidgetV();
-	DGameListProgressBar* progBar = new DGameListProgressBar;
-	progBar->SetVisible(false);
-//	gameList = new DGameList(progBar);
-	gameList = new DGameTable(progBar);
-	centralLayout->addWidget(gameList);
-	centralLayout->addWidget(progBar);
+	QSettings ui_settings("Dolphin Team", "Dolphin");
+	centralLayout = new DLayoutWidgetV;
+	DGameBrowser::Style gameBrowserStyle = (DGameBrowser::Style)ui_settings.value("gameList/layout", DGameBrowser::Style_Grid).toInt();
+	centralLayout->addWidget(gameBrowser = new DGameBrowser(gameBrowserStyle));
 	setCentralWidget(centralLayout);
 
 	CreateMenus();
@@ -47,7 +29,6 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
 	setWindowTitle("Dolphin");
 
-	QSettings ui_settings("Dolphin Team", "Dolphin");
 	if (false == restoreGeometry(ui_settings.value("main/geometry").toByteArray()))
 	{
 		// TODO: Test this on multi-monitor setups
@@ -67,7 +48,7 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 
 	// idea: On first start, show a configuration wizard? ;)
 
-	connect(gameList, SIGNAL(StartGame()), this, SLOT(OnStartPause()));
+	connect(gameBrowser, SIGNAL(StartGame()), this, SLOT(OnStartPause()));
 	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
 
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
@@ -95,6 +76,7 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 	QSettings ui_settings("Dolphin Team", "Dolphin");
 	ui_settings.setValue("main/geometry", saveGeometry());
 	ui_settings.setValue("main/state", saveState());
+	ui_settings.setValue("gameList/Layout", gameBrowser->GetStyle());
 
 	QWidget::closeEvent(ev);
 }
@@ -155,15 +137,16 @@ void DMainWindow::CreateMenus()
 	hideMenuAct->setChecked(false); // TODO: Read this from config
 	viewMenu->addSeparator();
 
-	QMenu* gameListLayoutMenu = viewMenu->addMenu(tr("Game List Layout"));
-	QAction* gameListAsListAct = gameListLayoutMenu->addAction(tr("List")); // TODO: Naming?
-	gameListAsListAct->setCheckable(true);
-	QAction* gameListAsGridAct = gameListLayoutMenu->addAction(tr("Grid"));
-	gameListAsGridAct->setCheckable(true);
-	QActionGroup* gameListLayoutGroup = new QActionGroup(this);
-	gameListLayoutGroup->addAction(gameListAsListAct);
-	gameListLayoutGroup->addAction(gameListAsGridAct);
-	gameListAsListAct->setChecked(true);
+	QMenu* gameBrowserStyleMenu = viewMenu->addMenu(tr("Game Browser Style"));
+	QAction* gameBrowserAsListAct = gameBrowserStyleMenu->addAction(tr("List"));
+	QAction* gameBrowserAsGridAct = gameBrowserStyleMenu->addAction(tr("Grid"));
+	gameBrowserAsListAct->setCheckable(true);
+	gameBrowserAsGridAct->setCheckable(true);
+	gameBrowserAsListAct->setChecked(gameBrowser->GetStyle() == DGameBrowser::Style_List);
+	gameBrowserAsGridAct->setChecked(gameBrowser->GetStyle() == DGameBrowser::Style_Grid);
+	QActionGroup* gameBrowserStyleGroup = new QActionGroup(this);
+	gameBrowserStyleGroup->addAction(gameBrowserAsListAct);
+	gameBrowserStyleGroup ->addAction(gameBrowserAsGridAct);
 
 	QAction* expertModeAct = viewMenu->addAction(tr("Expert Mode"));
 
@@ -193,6 +176,8 @@ void DMainWindow::CreateMenus()
 	connect(showLogManAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogMan(bool)));
 	connect(showLogSettingsAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogSettings(bool)));
 	connect(hideMenuAct, SIGNAL(toggled(bool)), this, SLOT(OnHideMenu(bool)));
+	connect(gameBrowserAsListAct, SIGNAL(triggered()), this, SLOT(OnSwitchToGameList()));
+	connect(gameBrowserAsGridAct, SIGNAL(triggered()), this, SLOT(OnSwitchToGameGrid()));
 
 	connect(configureAct, SIGNAL(triggered()), this, SLOT(OnConfigure()));
 	connect(hotkeyAct, SIGNAL(triggered()), this, SLOT(OnConfigureHotkeys()));

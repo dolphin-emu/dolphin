@@ -32,6 +32,7 @@ public:
 		MEMCARD,
 		HOTKEYS,
 		DOLPHIN_LOGO,
+		BANNER_MISSING,
 		NUM_ICONS
 	};
 

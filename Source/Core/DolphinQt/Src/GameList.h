@@ -5,84 +5,105 @@
 #include <QTreeView>
 #include "ISOFile.h"
 
-class DAbstractProgressBar
+class QGridLayout;
+class AbstractProgressBar
 {
 public:
-	DAbstractProgressBar() {}
-	virtual ~DAbstractProgressBar() {}
-
-	virtual void SetValue(int value) = 0;
+	virtual void SetValue(int value, std::string FileName) = 0;
 	virtual void SetRange(int min, int max) = 0;
-	virtual void SetLabel(std::string str) = 0;
 	virtual void SetVisible(bool visible) = 0;
 };
 
-class DAbstractGameList
+class AbstractGameBrowser
 {
 public:
-	DAbstractGameList(DAbstractProgressBar* progBar) : progressBar(progBar) {};
-	virtual ~DAbstractGameList() {};
+	AbstractGameBrowser(AbstractProgressBar* progBar) : progressBar(progBar) {};
+	virtual ~AbstractGameBrowser() {};
 
-	enum
-	{
-		COLUMN_PLATFORM = 0,
-		COLUMN_BANNER,
-		COLUMN_TITLE,
-		COLUMN_NOTES,
-		COLUMN_COUNTRY,
-		COLUMN_SIZE,
-		COLUMN_EMULATION_STATE,
-		NUM_COLUMNS
-	};
+	enum { COLUMN_PLATFORM = 0, COLUMN_BANNER, COLUMN_TITLE, COLUMN_NOTES,
+			COLUMN_COUNTRY, COLUMN_SIZE, COLUMN_EMULATION_STATE, NUM_COLUMNS };
 
 	void Rescan();
 
-	std::vector<GameListItem>& getItems() { return items; }
+	const std::vector<GameListItem>& getItems() const { return items; }
 
 private:
 	std::vector<GameListItem> items;
-	DAbstractProgressBar* progressBar;
+	AbstractProgressBar* progressBar;
 };
 
 // TODO: Add a game list which acts like a file explorer
 
-class DGameList : public QTreeView
+class DGameListProgressBar;
+class GameBrowserImpl
+{
+public:
+	virtual GameListItem const* GetSelectedISO() const = 0;
+	virtual void RefreshView() = 0;
+};
+
+class DGameBrowser : public QWidget
 {
 	Q_OBJECT
 
 public:
-	DGameList(DAbstractProgressBar* progressBar);
-	virtual ~DGameList();
+	typedef enum { Style_List, Style_Grid } Style;
 
+	DGameBrowser(Style initialStyle, QWidget* parent = NULL);
+	~DGameBrowser();
+
+	Style GetStyle();
+	void SetStyle(Style layout);
 	void ScanForIsos();
-	GameListItem* GetSelectedISO();
-
-protected:
-	void RefreshView();
+	GameListItem const* GetSelectedISO() const;
 
 private:
-	void OnItemActivated(const QModelIndex&);
+	DGameListProgressBar* progBar;
+	AbstractGameBrowser abstrGameBrowser;
+	GameBrowserImpl* gameBrowser;
+	Style style;
 
-	QStandardItemModel* sourceModel;
-
-	DAbstractGameList abstrGameList;
+	QGridLayout* mainLayout;
 
 signals:
 	void StartGame();
 };
 
-class DGameTable : public QTableView
+// TODO: These should be in a private header
+class DGameList : public QTreeView, public GameBrowserImpl
 {
 	Q_OBJECT
 
 public:
-	DGameTable(DAbstractProgressBar* progressBar);
+	DGameList(const AbstractGameBrowser& abstrGameList);
+	virtual ~DGameList();
+
+	GameListItem const* GetSelectedISO() const;
+	void RefreshView();
+
+private slots:
+	void OnItemActivated(const QModelIndex&);
+
+private:
+	QStandardItemModel* sourceModel;
+	const AbstractGameBrowser& abstrGameBrowser;
+
+signals:
+	void StartGame();
+};
+
+class DGameTable : public QTableView, public GameBrowserImpl
+{
+	Q_OBJECT
+
+public:
+	DGameTable(const AbstractGameBrowser& abstrGameList);
 	virtual ~DGameTable();
 
 	void ScanForIsos();
-	GameListItem* GetSelectedISO();
+	GameListItem const* GetSelectedISO() const;
 
-public slots:
+private slots:
 	void OnItemActivated(const QModelIndex&);
 
 protected:
@@ -90,13 +111,12 @@ protected:
 	void resizeEvent(QResizeEvent*);
 
 private:
+	const AbstractGameBrowser& abstrGameBrowser;
+
 	QStandardItemModel* sourceModel;
-
-	DAbstractGameList abstrGameList;
-
 	unsigned int num_columns;
 
-	QMap<u8*,QPixmap> pixmap_cache;
+	QMap<u8 const*,QPixmap> pixmap_cache; // needed, since resizing will lag too much without caching
 
 signals:
 	void StartGame();
