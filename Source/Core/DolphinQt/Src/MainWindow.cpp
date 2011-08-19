@@ -176,7 +176,7 @@ void DMainWindow::CreateToolBars()
 
 void DMainWindow::CreateStatusBar()
 {
-	statusBar()->showMessage(tr("Ready"));
+//	statusBar()->showMessage(tr("Ready"));
 }
 
 void DMainWindow::CreateDockWidgets()
