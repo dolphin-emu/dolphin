@@ -14,8 +14,6 @@ DMainWindow* mainWindow = NULL;
 
 int main(int argc, char* argv[])
 {
-	QApplication app(argc, argv);
-
 	// TODO: Add command line options:
 	// help, debugger, logger, load file, exit on emulation stop, chose video backend, DSP LLE/HLE
 
@@ -94,33 +92,13 @@ int main(int argc, char* argv[])
 
 	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
-	// create main window
-	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
-    int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
-    int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
-    int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
-
-    // The following is not needed with X11, where window managers
-    // do not allow windows to be created off the desktop.
-#ifdef _WIN32
-    // Out of desktop check
-    HWND hDesktop = GetDesktopWindow();
-    RECT rc;
-    GetWindowRect(hDesktop, &rc);
-    if (rc.right < x + w || rc.bottom < y + h)
-        /*x = y = wxDefaultCoord;*/
-#elif defined __APPLE__
-    if (y < 1)
-        /*y = wxDefaultCoord;*/
-#endif
-
 	// TODO?
 /*#if defined HAVE_X11 && HAVE_X11
     XInitThreads();
 #endif */
 
-
-	mainWindow = new DMainWindow(x, y, w, h);
+	QApplication app(argc, argv);
+	mainWindow = new DMainWindow();
 	// TODO: Title => svn_rev_str
 	// TODO: UseLogger
 	return app.exec();
@@ -166,7 +144,14 @@ void Host_RefreshDSPDebuggerWindow()
 
 void Host_RequestRenderWindowSize(int w, int h)
 {
-	mainWindow->GetRenderWindow()->resize(w, h);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		// Make sure to resize the actual client area
+		// TODO: Might not work properly, yet.
+		QSize sizediff = mainWindow->size() - mainWindow->GetRenderWindow()->size();
+		mainWindow->resize(w + sizediff.width(), h + sizediff.height());
+	}
+	else mainWindow->GetRenderWindow()->resize(w, h);
 }
 
 // TODO: Rename this to GetRenderClientSize

@@ -350,7 +350,7 @@ void DGameTable::RefreshView()
 	std::vector<GameListItem>& items = abstrGameList.getItems();
 
 	// Use 146 if there are no columns, yet, and the actual column width otherwise
-	num_columns = size().width() / qMax(146, columnWidth(0));
+	num_columns = viewport()->width() / qMax(146, columnWidth(0));
 
 	sourceModel->clear();
 	sourceModel->setRowCount(qMax<int>(0, items.size()-1) / num_columns + 1);
@@ -399,7 +399,7 @@ GameListItem* DGameTable::GetSelectedISO()
 	// Usually, one would just use QTreeView::selectedIndices(), but there is a bug in the open source editions
 	// of the QT SDK for Windows which causes a failed assertion.
 	// Thus, we just loop through the whole game list and check for each item if it's the selected one.
-	for (int i = 0; i < abstrGameList.getItems().size(); ++i)
+	for (unsigned int i = 0; i < abstrGameList.getItems().size(); ++i)
 	{
 		QModelIndex index = model()->index(i / num_columns, i % num_columns, rootIndex());
 		if (selectionModel()->isSelected(index))

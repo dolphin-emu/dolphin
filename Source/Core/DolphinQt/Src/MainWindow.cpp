@@ -24,7 +24,7 @@ public:
 };
 
 
-DMainWindow::DMainWindow(int x, int y, int w, int h) : logWindow(NULL), renderWindow(NULL), is_stopping(false)
+DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
 {
 	Resources::Init();
 
@@ -46,8 +46,12 @@ DMainWindow::DMainWindow(int x, int y, int w, int h) : logWindow(NULL), renderWi
 
 	setWindowIcon(QIcon(Resources::GetDolphinIcon()));
 	setWindowTitle("Dolphin");
-	move(x, y);
-	resize(w, h);
+
+	QSettings ui_settings("Dolphin Team", "Dolphin");
+	QByteArray geometry = ui_settings.value("MainGeometry").toByteArray();
+	if (geometry.size()) restoreGeometry(geometry);
+	else resize(600, 400);
+	restoreState(ui_settings.value("MainState").toByteArray());
 	setMinimumSize(400, 300);
 	show();
 
@@ -75,6 +79,10 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 	SConfig::GetInstance().m_InterfaceLogWindow = logWindow->isVisible();
 	SConfig::GetInstance().m_InterfaceLogConfigWindow = logSettings->isVisible();
 	SConfig::GetInstance().SaveSettings();
+
+	QSettings ui_settings("Dolphin Team", "Dolphin");
+	ui_settings.setValue("MainGeometry", saveGeometry());
+	ui_settings.setValue("MainState", saveState());
 
 	QWidget::closeEvent(ev);
 }
