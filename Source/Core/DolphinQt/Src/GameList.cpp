@@ -254,39 +254,39 @@ QStandardItem* QStandardItemFromPixmap(QPixmap pixmap)
 	return item;
 }
 
-class DImageCell : public QAbstractItemDelegate
+// TODO: Get the actual size from the index data
+class DIconItemDelegate : public QAbstractItemDelegate
 {
 public:
-	DImageCell(QPixmap _pixmap, QObject* parent = NULL) : QAbstractItemDelegate(parent), pixmap(_pixmap)
+	DIconItemDelegate(QPixmap pm, QObject* parent = NULL) : QAbstractItemDelegate(parent)
 	{
-
+		size = pm.size();
 	}
 
 	void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 	{
+		// TODO: Filling background isn't using native style
         QPalette::ColorGroup cg = (option.state & QStyle::State_Enabled) ?
             (option.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive : QPalette::Disabled;
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.color(cg, QPalette::Highlight));
+
+		QIcon icon = index.data(0).value<QIcon>();
+		QPixmap pixmap = icon.pixmap(size, (option.state == QStyle::State_MouseOver) ? QIcon::Selected
+                                                : QIcon::Normal);
+		painter->translate(1, 1);
 		painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
-
- //       drawFocus(painter, option, option.rect.adjusted(0, 0, -1, -1)); // since we draw the grid ourselves
-
-    QPen pen = painter->pen();
-    painter->setPen(option.palette.color(QPalette::Mid));
-    painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
-    painter->drawLine(option.rect.topRight(), option.rect.bottomRight());
-    painter->setPen(pen);
+		painter->translate(-1, -1);
 	}
 
 	QSize sizeHint(const QStyleOptionViewItem &option,
                                  const QModelIndex &index) const
 	{
-		return pixmap.size();
+		return size + QSize(2, 2);
 	}
-
+	
 private:
-	QPixmap pixmap;
+	QSize size;
 };
 
 void DGameList::RebuildList()
@@ -296,28 +296,40 @@ void DGameList::RebuildList()
 	sourceModel->clear();
 	sourceModel->setRowCount(items.size());
 
-// Experimental custom item delegate which paints a QImage
-//QPixmap pm = QPixmap::fromImage(QImage(items[0].GetImage(), 96, 32, QImage::Format_RGB888));
-//setItemDelegateForColumn(0, new DImageCell(pm));
+	// custom item delegate which paints a QImage
+	QPixmap pm = QPixmap::fromImage(QImage(items[0].GetImage(), 96, 32, QImage::Format_RGB888));
+	setItemDelegateForColumn(0, new DIconItemDelegate(pm));
+	setItemDelegateForColumn(1, new DIconItemDelegate(pm));
+	setItemDelegateForColumn(4, new DIconItemDelegate(pm));
+	setItemDelegateForColumn(6, new DIconItemDelegate(pm));
 
 	for (int i = 0; i < (int)items.size(); ++i)
 	{
-		sourceModel->setItem(i, 0, QStandardItemFromPixmap(Resources::GetPlatformPixmap(items[i].GetPlatform())));
+		QStandardItem* item = new QStandardItem;
+		item->setData(QVariant::fromValue(QIcon(Resources::GetPlatformPixmap(items[i].GetPlatform()))), 0);
+		sourceModel->setItem(i, 0, item);
 
 		if(items[i].GetImage())
 		{
-			sourceModel->setItem(i, 1, QStandardItemFromPixmap(QPixmap::fromImage(QImage(items[i].GetImage(), 96, 32, QImage::Format_RGB888))));
+			QStandardItem* item = new QStandardItem;
+			item->setData(QVariant::fromValue(QIcon(QPixmap::fromImage(QImage(items[i].GetImage(), 96, 32, QImage::Format_RGB888)))), 0);
+			sourceModel->setItem(i, 1, item);
 		}
 		else
 		{
 			QPixmap banner;
 			banner.loadFromData(no_banner_png, sizeof(no_banner_png));
-			sourceModel->setItem(i, 1, QStandardItemFromPixmap(banner));
+
+			QStandardItem* item = new QStandardItem;
+			item->setData(QVariant::fromValue(QIcon(banner)), 0);
+			sourceModel->setItem(i, 1, item);
 		}
 		sourceModel->setItem(i, 2, new QStandardItem(items[i].GetName(0).c_str()));
 		sourceModel->setItem(i, 3, new QStandardItem(items[i].GetDescription(0).c_str()));
 
-		sourceModel->setItem(i, 4, QStandardItemFromPixmap(Resources::GetRegionPixmap(items[i].GetCountry())));
+		QStandardItem* item4 = new QStandardItem;
+		item4->setData(QVariant::fromValue(QIcon(Resources::GetRegionPixmap(items[i].GetCountry()))), 0);
+		sourceModel->setItem(i, 4, item4);
 
 		sourceModel->setItem(i, 5, new QStandardItem(NiceSizeFormat(items[i].GetFileSize())));
 
@@ -325,7 +337,9 @@ void DGameList::RebuildList()
 		IniFile ini;
 		ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (items[i].GetUniqueID()) + ".ini").c_str());
 		ini.Get("EmuState", "EmulationStateId", &state);
-		sourceModel->setItem(i, 6, QStandardItemFromPixmap(Resources::GetRatingPixmap(state)));
+		QStandardItem* item6 = new QStandardItem;
+		item6->setData(QVariant::fromValue(QIcon(Resources::GetRatingPixmap(state))), 0);
+		sourceModel->setItem(i, 6, item6);
 	}
 	QStringList columnTitles;
 	columnTitles << tr("Platform") << tr("Banner") << tr("Title") << tr("Notes") << tr("Region") << tr("Size") << tr("State");
