@@ -203,6 +203,9 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 
 	stopAction->setEnabled(is_running || is_paused);
 
+	openAction->setEnabled(is_not_initialized);
+	refreshAction->setEnabled(is_not_initialized);
+
 	// Game list
 	gameBrowser->setEnabled(is_not_initialized);
 	gameBrowser->setVisible(is_not_initialized);
@@ -212,9 +215,8 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 
 void DMainWindow::OnLoadIso()
 {
-	QString selection = QFileDialog::getOpenFileName(this, tr("Select an ISO"));
-	if(selection.length()) QMessageBox::information(this, tr("Notice"), selection, QMessageBox::Ok);
-	// TODO?
+	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("All GC/Wii Files (elf, dol, gcm, iso, ciso, gcz, wad)(*.elf, *.dol, *.gcm, *.iso, *.ciso, *.gcz, *.wad);;All Files (*)"));
+	if(selection.length()) StartGame(selection.toStdString());
 }
 
 void DMainWindow::OnRefreshList()

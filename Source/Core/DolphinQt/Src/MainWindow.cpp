@@ -199,8 +199,8 @@ void DMainWindow::CreateToolBars()
 	toolBar->setIconSize(QSize(24, 24));
 	toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
-	QAction* openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
-	QAction* refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
+	openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
+	refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
 	toolBar->addSeparator();
 
 	playAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("Play"));

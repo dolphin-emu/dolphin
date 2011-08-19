@@ -61,21 +61,24 @@ private:
 
 	void closeEvent(QCloseEvent*);
 
-	// Stores gameList and ISO scanning progress bar OR render widget
-	DLayoutWidgetV* centralLayout;
-
+	// Widgets
 	DGameBrowser* gameBrowser;
-
-	QAction* showLogManAct;
-	QAction* showLogSettingsAct;
+	DLayoutWidgetV* centralLayout; // Stores gameBrowser OR render widget
 
 	DLogWindow* logWindow;
 	DLogSettingsDock* logSettings;
 
+	QWidget* renderWindow;
+
+	// Actions
+	QAction* openAction;
+	QAction* refreshAction;
+
 	QAction* playAction;
 	QAction* stopAction;
 
-	QWidget* renderWindow;
+	QAction* showLogManAct;
+	QAction* showLogSettingsAct;
 
 	// Emulation stopping closes the render window; closing the render window also stops emulation
 	// Thus, in order to prevent endless loops, we need this variable.
