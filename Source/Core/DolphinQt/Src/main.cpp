@@ -154,7 +154,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-	return (void*)(mainWindow->GetRenderWindow()->effectiveWinId());
+	return (void*)(mainWindow->GetRenderWindow()->winId());
 }
 
 bool Host_GetKeyState(int)
