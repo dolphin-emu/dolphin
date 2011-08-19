@@ -3,6 +3,7 @@ set(SRCS	Src/GameList.cpp
 			Src/LogWindow.cpp
 			Src/main.cpp
 			Src/MainWindow.cpp
+			Src/MainWindowEvents.cpp
 			Src/Resources.cpp
 			Src/Util.cpp)
 

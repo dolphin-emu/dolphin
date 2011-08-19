@@ -5,6 +5,7 @@
 
 // TODO: remove
 #include <QtGui>
+#include <Core.h>
 class DLogWindow;
 class DMainWindow : public QMainWindow
 {
@@ -34,20 +35,29 @@ private slots:
 
 	void OnLogWindowClosed();
 
+	void OnCoreStateChanged(Core::EState state);
+
 private:
 	void CreateMenus();
 	void CreateToolBars();
 	void CreateStatusBar();
 	void CreateDockWidgets();
 
-	void BootGame(const std::string& filename);
 	void StartGame(const std::string& filename);
+	std::string RequestBootFilename();
+	void DoStartPause();
 
 	void DoStop() {}
 
-	DGameList *gameList;
+	DGameList* gameList;
 
 	QAction* showLogManAct;
 
-	DLogWindow *logWindow;
+	DLogWindow* logWindow;
+
+	QAction* playAction;
+	QAction* stopAction;
+
+signals:
+	void CoreStateChanged(Core::EState state);
 };

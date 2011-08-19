@@ -28,6 +28,8 @@ DMainWindow::DMainWindow() : logWindow(NULL)
 	setWindowTitle("Dolphin");
 	show();
 
+	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
+
 	gameList->ScanForIsos();
 }
 
@@ -38,6 +40,7 @@ DMainWindow::~DMainWindow()
 
 void DMainWindow::CreateMenus()
 {
+	// File
 	QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 	QAction* loadIsoAct = fileMenu->addAction(tr("&Load ISO..."));
 	fileMenu->addSeparator();
@@ -45,10 +48,12 @@ void DMainWindow::CreateMenus()
 	fileMenu->addSeparator();
 	QAction* exitAct = fileMenu->addAction(tr("&Exit"));
 
+	// Emulation
 	QMenu* emuMenu = menuBar()->addMenu(tr("&Emulation"));
 	QAction* pauseAct = emuMenu->addAction(tr("&Start/Pause"));
 	QAction* stopAct = emuMenu->addAction(tr("&Stop"));
 
+	// Options
 	QMenu* optionsMenu = menuBar()->addMenu(tr("&Options"));
 	QAction* configureAct = optionsMenu->addAction(tr("Configure"));
 	optionsMenu->addSeparator();
@@ -57,6 +62,7 @@ void DMainWindow::CreateMenus()
 	QAction* gcpadSettingsAct = optionsMenu->addAction(tr("Controller settings"));
 	QAction* wiimoteSettingsAct = optionsMenu->addAction(tr("Wiimote settings"));
 
+	// View
 	QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
 	showLogManAct = viewMenu->addAction(tr("Show &log manager"));
 	showLogManAct->setCheckable(true);
@@ -66,9 +72,12 @@ void DMainWindow::CreateMenus()
 	hideMenuAct->setCheckable(true);
 	hideMenuAct->setChecked(false); // TODO: Read this from config
 
+	// Help
 	QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
 	QAction* aboutAct = helpMenu->addAction(tr("About..."));
 
+
+	// Events
 	connect(loadIsoAct, SIGNAL(triggered()), this, SLOT(OnLoadIso()));
 	connect(refreshListAct, SIGNAL(triggered()), this, SLOT(OnRefreshList()));
 	connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
@@ -86,6 +95,9 @@ void DMainWindow::CreateMenus()
 	connect(wiimoteSettingsAct, SIGNAL(triggered()), this, SLOT(OnWiimoteSettings()));
 
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(OnAbout()));
+
+
+	connect(this, SIGNAL(CoreStateChanged(Core::EState)), this, SLOT(OnCoreStateChanged(Core::EState)));
 }
 
 void DMainWindow::CreateToolBars()
@@ -99,8 +111,8 @@ void DMainWindow::CreateToolBars()
 	QAction* browseAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_BROWSE)), tr("Browse"));
 	toolBar->addSeparator();
 
-	QAction* playAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)), tr("Play"));
-	QAction* stopAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_STOP)), tr("Stop"));
+	playAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)), tr("Play"));
+	stopAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_STOP)), tr("Stop"));
 	QAction* fscrAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_FULLSCREEN)), tr("FullScr"));
 	QAction* scrshotAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_SCREENSHOT)), tr("ScrShot"));
 	toolBar->addSeparator();
@@ -127,179 +139,4 @@ void DMainWindow::CreateDockWidgets()
 
 	addDockWidget(Qt::RightDockWidgetArea, logWindow);
 	logWindow->setVisible(SConfig::GetInstance().m_InterfaceLogWindow);
-}
-
-void DMainWindow::BootGame(const std::string& filename)
-{
-    std::string bootfile = filename;
-    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-    if (Core::GetState() != Core::CORE_UNINITIALIZED)
-        return;
-
-    // Start filename if non empty.
-    // Start the selected ISO, or try one of the saved paths.
-    // If all that fails, ask to add a dir and don't boot
-    if (bootfile.empty())
-    {
-        if (gameList->GetSelectedISO() != NULL)
-        {
-            if (gameList->GetSelectedISO()->IsValid())
-                bootfile = gameList->GetSelectedISO()->GetFileName();
-        }
-        else if (!StartUp.m_strDefaultGCM.empty()
-                &&  File::Exists(StartUp.m_strDefaultGCM.c_str()))
-            bootfile = StartUp.m_strDefaultGCM;
-        else
-        {
-            if (!SConfig::GetInstance().m_LastFilename.empty()
-                    && File::Exists((SConfig::GetInstance().m_LastFilename.c_str())))
-                bootfile = SConfig::GetInstance().m_LastFilename;
-            else
-            {
-//                m_GameListCtrl->BrowseForDirectory();
-                return;
-            }
-        }
-    }
-    if (!bootfile.empty())
-        StartGame(bootfile);
-}
-
-void DMainWindow::StartGame(const std::string& filename)
-{
-	// TODO: Disable play toolbar action, replace with pause
-	gameList->setVisible(false);
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-	{
-//		m_RenderParent = m_Panel;
-//		m_RenderFrame = this;
-	}
-	else
-	{
-/*		wxPoint position(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
-		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);*/
-
-		// TODO: Create render window at position with size, title Dolphin
-		// TODO: Connect close to OnRenderParentClose
-		// TODO: render window should be dockable into the main window => render to main window
-	}
-	if (!BootManager::BootCore(filename))
-	{
-		QMessageBox(QMessageBox::Critical, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok, this);
-		// Destroy the renderer frame when not rendering to main
-/*		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			m_RenderFrame->Destroy();
-		m_RenderParent = NULL;
-		UpdateGUI();*/
-	}
-//	else
-	{
-		// TODO: Disable screensaver!
-
-		// TODO: Fullscreen
-		//DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
-
-		// TODO: Set focus to render window
-	}
-}
-
-void DMainWindow::OnStartPause()
-{
-	if (gameList->GetSelectedISO() == NULL)
-	{
-		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-		std::string filename;
-
-		if (!StartUp.m_strDefaultGCM.empty() && File::Exists(StartUp.m_strDefaultGCM.c_str()))
-			filename = StartUp.m_strDefaultGCM;
-		else
-		{
-			if (!SConfig::GetInstance().m_LastFilename.empty() && File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
-				filename = SConfig::GetInstance().m_LastFilename;
-			else
-			{
-				// TODO
-//				m_GameListCtrl->BrowseForDirectory();
-				return;
-			}
-		}
-		if (!filename.empty())
-			StartGame(filename);
-	}
-	else
-	{
-		StartGame(gameList->GetSelectedISO()->GetFileName());
-	}
-}
-
-void DMainWindow::OnLoadIso()
-{
-	QString selection = QFileDialog::getOpenFileName(this, tr("Select an ISO"));
-	if(selection.length()) QMessageBox::information(this, tr("Notice"), selection, QMessageBox::Ok);
-}
-
-void DMainWindow::OnRefreshList()
-{
-	gameList->ScanForIsos();
-}
-
-void DMainWindow::OnShowLogMan(bool show)
-{
-	if (show)
-	{
-		logWindow->setVisible(true);
-		SConfig::GetInstance().m_InterfaceLogWindow = true;
-	}
-	else if (logWindow)
-	{
-		logWindow->setVisible(false);
-		SConfig::GetInstance().m_InterfaceLogWindow = false;
-	}
-}
-
-void DMainWindow::OnHideMenu(bool hide)
-{
-	menuBar()->setVisible(!hide);
-}
-
-void DMainWindow::OnAbout()
-{
-	QMessageBox::about(this, tr("About Dolphin"),
-						tr(	"Dolphin SVN revision %1\n"
-							"Copyright (c) 2003-2010+ Dolphin Team\n"
-							"\n"
-							"Dolphin is a Gamecube/Wii emulator, which was\n"
-							"originally written by F|RES and ector.\n"
-							"Today Dolphin is an open source project with many\n"
-							"contributors, too many to list.\n"
-							"If interested, just go check out the project page at\n"
-							"http://code.google.com/p/dolphin-emu/ .\n"
-							"\n"
-							"Special thanks to Bushing, Costis, CrowTRobo,\n"
-							"Marcan, Segher, Titanik, or9 and Hotquik for their\n"
-							"reverse engineering and docs/demos.\n"
-							"\n"
-							"Big thanks to Gilles Mouchard whose Microlib PPC\n"
-							"emulator gave our development a kickstart.\n"
-							"\n"
-							"Thanks to Frank Wille for his PowerPC disassembler,\n"
-							"which or9 and we modified to include Gekko specifics.\n"
-							"\n"
-							"Thanks to hcs/destop for their GC ADPCM decoder.\n"
-							"\n"
-							"We are not affiliated with Nintendo in any way.\n"
-							"Gamecube and Wii are trademarks of Nintendo.\n"
-							"The emulator is for educational purposes only\n"
-							"and should not be used to play games you do\n"
-							"not legally own.").arg(svn_rev_str));
-}
-
-void DMainWindow::OnLogWindowClosed()
-{
-	// this calls OnShowLogMan(false)
-	showLogManAct->setChecked(false);
 }
