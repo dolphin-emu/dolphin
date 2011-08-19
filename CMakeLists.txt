@@ -364,7 +364,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_subdirectory(Externals/CLRun)
 endif()
 
-option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
+option(DISABLE_WX "Disable wxWidgets (use Qt4 or CLI interface)" OFF)
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
@@ -405,6 +405,20 @@ if(NOT DISABLE_WX)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
 
+
+option(DISABLE_QT4 "Disable Qt4 (use wxWidgets or CLI interface)" ON)
+if(NOT DISABLE_QT4 AND DISABLE_WX)
+	include(FindQt4)
+	find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL OPTIONAL)
+
+	if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND QT_QTOPENGL_FOUND)
+		include(${QT_USE_FILE})
+	else()
+		message("Qt4 libraries not found, using CLI interface")
+	endif()
+elseif(NOT DISABLE_QT4 AND NOT DISABLE_WX)
+	message("Can't build Qt4 and wxWidgets GUI at the same time")
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write svnrev header
