@@ -221,10 +221,17 @@ void DMainWindow::OnLoadIso()
 
 void DMainWindow::OnRefreshList()
 {
-	// TODO: Make the progress bar stay enabled
-	setEnabled(false);
+	// Disable all child widgets except the progress bar (gameBrowser will take care of disabling the game list)
+	for (QObjectList::const_iterator it = children().begin(); it != children().end(); ++it)
+		if ((*it)->isWidgetType() && *it != centralLayout)
+			dynamic_cast<QWidget*>(*it)->setEnabled(false);
+
 	gameBrowser->ScanForIsos();
-	setEnabled(true);
+
+	// Re-enable child widgets
+	for (QObjectList::const_iterator it = children().begin(); it != children().end(); ++it)
+		if ((*it)->isWidgetType() && *it != centralLayout)
+			dynamic_cast<QWidget*>(*it)->setEnabled(true);
 }
 
 void DMainWindow::OnShowLogMan(bool show)

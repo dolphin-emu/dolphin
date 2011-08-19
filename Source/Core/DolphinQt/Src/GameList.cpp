@@ -435,8 +435,10 @@ GameListItem const* DGameBrowser::GetSelectedISO() const
 
 void DGameBrowser::ScanForIsos()
 {
+	dynamic_cast<QWidget*>(gameBrowser)->setEnabled(false);
 	abstrGameBrowser.Rescan();
 	gameBrowser->RefreshView();
+	dynamic_cast<QWidget*>(gameBrowser)->setEnabled(true);
 }
 
 void DGameBrowser::SetStyle(Style layout)
