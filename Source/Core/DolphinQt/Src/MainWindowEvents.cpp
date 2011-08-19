@@ -222,7 +222,10 @@ void DMainWindow::OnLoadIso()
 
 void DMainWindow::OnRefreshList()
 {
+	// TODO: Make the progress bar stay enabled
+	setEnabled(false);
 	gameList->ScanForIsos();
+	setEnabled(true);
 }
 
 void DMainWindow::OnShowLogMan(bool show)

@@ -4,22 +4,22 @@
 #include <QTreeView>
 #include "ISOFile.h"
 
-#include "GameList.h"
-
-class ProgressDialogCallbackClass
+class DAbstractProgressBar
 {
 public:
-	ProgressDialogCallbackClass() {}
-	~ProgressDialogCallbackClass() {}
-	virtual void* OnIsoScanStarted(int numItems) { return  NULL; };
-	virtual void OnIsoScanProgress(void* dialogptr, int item, std::string nowScanning) {};
-	virtual void OnIsoScanFinished(void* dialogptr) {};
+	DAbstractProgressBar() {}
+	virtual ~DAbstractProgressBar() {}
+
+	virtual void SetValue(int value) = 0;
+	virtual void SetRange(int min, int max) = 0;
+	virtual void SetLabel(std::string str) = 0;
+	virtual void SetVisible(bool visible) = 0;
 };
 
 class DAbstractGameList
 {
 public:
-	DAbstractGameList() {};
+	DAbstractGameList(DAbstractProgressBar* progBar) : progressBar(progBar) {};
 	~DAbstractGameList() {};
 
 	enum
@@ -34,33 +34,32 @@ public:
 		NUM_COLUMNS
 	};
 
-	void Rescan(ProgressDialogCallbackClass* callback);
+	void Rescan();
 
 	std::vector<GameListItem>& getItems() { return items; }
 
 private:
 	std::vector<GameListItem> items;
+	DAbstractProgressBar* progressBar;
 };
 
-class DGameList : public QTreeView, ProgressDialogCallbackClass
+class DGameList : public QTreeView
 {
 	Q_OBJECT
 
 public:
-	DGameList();
+	DGameList(DAbstractProgressBar* progressBar);
 	~DGameList();
 
 public:
-	void* OnIsoScanStarted(int numItems);
-	void OnIsoScanProgress(void* dialogptr, int item, std::string nowScanning);
-	void OnIsoScanFinished(void* dialogptr);
-
-	void ScanForIsos();
 	void RebuildList();
 
 	GameListItem* GetSelectedISO();
 
+	void ScanForIsos();
+
 private:
+
 	void mouseDoubleClickEvent (QMouseEvent*);
 
 	DAbstractGameList abstrGameList;

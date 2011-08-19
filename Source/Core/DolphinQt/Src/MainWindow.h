@@ -71,4 +71,5 @@ private:
 
 signals:
 	void CoreStateChanged(Core::EState state);
+	void StartIsoScanning();
 };

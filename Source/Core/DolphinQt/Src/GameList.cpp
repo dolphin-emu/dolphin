@@ -69,7 +69,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	}
 }
 
-void DAbstractGameList::Rescan(ProgressDialogCallbackClass* callback)
+void DAbstractGameList::Rescan()
 {
 	items.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
@@ -116,7 +116,9 @@ void DAbstractGameList::Rescan(ProgressDialogCallbackClass* callback)
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
 
-	void* dialog = callback->OnIsoScanStarted(rFilenames.size());
+	progressBar->SetLabel("Scanning...");
+	progressBar->SetRange(0, rFilenames.size());
+	progressBar->SetVisible(true);
 
 	if (rFilenames.size() > 0)
 	{
@@ -125,8 +127,8 @@ void DAbstractGameList::Rescan(ProgressDialogCallbackClass* callback)
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
-			callback->OnIsoScanProgress(dialog, i, FileName);
-
+			progressBar->SetLabel("Scanning " + FileName);
+			progressBar->SetValue(i);
 			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{
@@ -183,7 +185,7 @@ void DAbstractGameList::Rescan(ProgressDialogCallbackClass* callback)
 					items.push_back(ISOFile);
 			}
 		}
-		callback->OnIsoScanFinished(dialog);
+		progressBar->SetVisible(false);
 	}
 
 	if (SConfig::GetInstance().m_ListDrives)
@@ -203,7 +205,7 @@ void DAbstractGameList::Rescan(ProgressDialogCallbackClass* callback)
 }
 
 
-DGameList::DGameList()
+DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 {
 	sourceModel = new QStandardItemModel(5, 7, this);
 	setModel(sourceModel);
@@ -220,7 +222,7 @@ DGameList::~DGameList()
 
 void DGameList::ScanForIsos()
 {
-	abstrGameList.Rescan(this);
+	abstrGameList.Rescan();
 	RebuildList();
 }
 
@@ -354,24 +356,6 @@ GameListItem* DGameList::GetSelectedISO()
 	QModelIndexList indexList = selectedIndexes();
 	if (indexList.size() == 0) return NULL;
 	else return &(abstrGameList.getItems()[indexList[0].row()]);
-}
-
-void* DGameList::OnIsoScanStarted(int numItems)
-{
-	QProgressDialog* dialog = new QProgressDialog(tr("Scanning..."), QString(), 0, numItems, this);
-	dialog->show();
-	return (void*)dialog;
-}
-
-void DGameList::OnIsoScanProgress(void* dialogptr, int item, std::string nowScanning)
-{
-	((QProgressDialog*)dialogptr)->setValue(item);
-	((QProgressDialog*)dialogptr)->setLabelText(tr("Scanning %1").arg(nowScanning.c_str()));
-}
-
-void DGameList::OnIsoScanFinished(void* dialogptr)
-{
-	delete (QProgressDialog*)dialogptr;
 }
 
 void DGameList::mouseDoubleClickEvent(QMouseEvent* )

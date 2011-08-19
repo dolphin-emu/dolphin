@@ -3,19 +3,37 @@
 #include "MainWindow.h"
 #include "LogWindow.h"
 #include "Resources.h"
+#include "Util.h"
 
 #include "BootManager.h"
 #include "Common.h"
 #include "ConfigManager.h"
 #include "Core.h"
 
+// TODO: Move this somewhere else...
+class DGameListProgressBar : public QProgressBar, public DAbstractProgressBar
+{
+public:
+	DGameListProgressBar(QWidget* parent = NULL) : QProgressBar(parent) {}
+	virtual ~DGameListProgressBar() {}
+
+	void SetValue(int value) { setValue(value); }
+	void SetRange(int min, int max) { setRange(min, max); }
+	void SetLabel(std::string str) { setFormat(QString::fromStdString(str)); } // TODO: Get translation for this one!
+	void SetVisible(bool visible) { setVisible(visible); }
+};
+
 
 DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL)
 {
 	Resources::Init();
 
-	gameList = new DGameList;
-	setCentralWidget(gameList);
+	DLayoutWidgetV* gameListLayout = new DLayoutWidgetV();
+	DGameListProgressBar* progBar = new DGameListProgressBar;
+	gameList = new DGameList(progBar);
+	gameListLayout->addWidget(gameList);
+	gameListLayout->addWidget(progBar);
+	setCentralWidget(gameListLayout);
 
 	CreateMenus();
 	CreateToolBars();
@@ -28,10 +46,10 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL)
 	show();
 
 	connect(gameList, SIGNAL(DoubleClicked()), this, SLOT(OnStartPause()));
+	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
 
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
-
-	gameList->ScanForIsos();
+	emit StartIsoScanning();
 }
 
 DMainWindow::~DMainWindow()
@@ -141,6 +159,7 @@ void DMainWindow::CreateToolBars()
 	QAction* wiimoteAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_WIIMOTE)), tr("Wiimote"));
 
 
+	connect(refreshAction, SIGNAL(triggered()), this, SLOT(OnRefreshList()));
 	connect(playAction, SIGNAL(triggered()), this, SLOT(OnStartPause()));
 	connect(stopAction, SIGNAL(triggered()), this, SLOT(OnStop()));
 }
