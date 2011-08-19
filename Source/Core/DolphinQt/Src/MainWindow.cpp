@@ -24,7 +24,6 @@ DMainWindow::DMainWindow() : logWindow(NULL)
 	// TODO: read settings
 
 	setWindowIcon(QIcon(Resources::GetDolphinIcon()));
-	resize(800, 600);
 	setWindowTitle("Dolphin");
 	show();
 
@@ -67,6 +66,9 @@ void DMainWindow::CreateMenus()
 	showLogManAct = viewMenu->addAction(tr("Show &log manager"));
 	showLogManAct->setCheckable(true);
 	showLogManAct->setChecked(SConfig::GetInstance().m_InterfaceLogWindow);
+	showLogSettingsAct = viewMenu->addAction(tr("Show log &settings"));
+	showLogSettingsAct->setCheckable(true);
+	showLogSettingsAct->setChecked(SConfig::GetInstance().m_InterfaceLogConfigWindow);
 	viewMenu->addSeparator();
 	QAction* hideMenuAct = viewMenu->addAction(tr("Hide menu"));
 	hideMenuAct->setCheckable(true);
@@ -86,6 +88,7 @@ void DMainWindow::CreateMenus()
 	connect(stopAct, SIGNAL(triggered()), this, SLOT(OnStop()));
 
 	connect(showLogManAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogMan(bool)));
+	connect(showLogSettingsAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogSettings(bool)));
 	connect(hideMenuAct, SIGNAL(toggled(bool)), this, SLOT(OnHideMenu(bool)));
 
 	connect(configureAct, SIGNAL(triggered()), this, SLOT(OnConfigure()));
@@ -134,9 +137,16 @@ void DMainWindow::CreateStatusBar()
 
 void DMainWindow::CreateDockWidgets()
 {
-	logWindow = new DLogWindow(tr("Logging"), this);
+	logWindow = new DLogWindow(this);
 	connect(logWindow, SIGNAL(Closed()), this, SLOT(OnLogWindowClosed()));
+
+	logSettings = new DLogSettingsDock(this);
+	connect(logSettings, SIGNAL(Closed()), this, SLOT(OnLogSettingsWindowClosed()));
+
 
 	addDockWidget(Qt::RightDockWidgetArea, logWindow);
 	logWindow->setVisible(SConfig::GetInstance().m_InterfaceLogWindow);
+
+	addDockWidget(Qt::RightDockWidgetArea, logSettings);
+	logSettings->setVisible(SConfig::GetInstance().m_InterfaceLogConfigWindow);
 }

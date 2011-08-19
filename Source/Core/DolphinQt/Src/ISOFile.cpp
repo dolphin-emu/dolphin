@@ -46,8 +46,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_FileSize(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
-	, m_pImage(NULL)
-	, m_ImageSize(0)
 {
 	if (LoadFromCache())
 	{
@@ -99,15 +97,13 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						pBannerLoader->GetDescription(m_Description);
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
-							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
-							//use malloc(), since wxImage::Create below calls free() afterwards.
-							m_pImage = (u8*)malloc(m_ImageSize);
+							m_Image.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
 
 							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
 							{
-								m_pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
-								m_pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
-								m_pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
+								m_Image[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
+								m_Image[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
+								m_Image[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
 							}
 						}
 					}
@@ -122,7 +118,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			// If not Gamecube, create a cache file only if we have an image.
 			// Wii isos create their images after you have generated the first savegame
-			if (m_Platform == GAMECUBE_DISC || m_pImage)
+			if (m_Platform == GAMECUBE_DISC || !m_Image.empty())
 				SaveToCache();
 		}
 	}
@@ -159,7 +155,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_VolumeSize);
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
-	p.DoBuffer(&m_pImage, m_ImageSize);
+	p.Do(m_Image);
 	p.Do(m_Platform);
 }
 
@@ -214,7 +210,7 @@ const std::string GameListItem::GetWiiFSPath() const
 			Iso->GetTitleID((u8*)&Title);
 			Title = Common::swap64(Title);
 
-			sprintf(Path, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX), (u32)(Title>>32), (u32)Title);
+			sprintf(Path, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(Title>>32), (u32)Title);
 
 			if (!File::Exists(Path))
 				File::CreateFullPath(Path);

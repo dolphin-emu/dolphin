@@ -297,7 +297,7 @@ void DGameList::RebuildList()
 	sourceModel->setRowCount(items.size());
 
 	// custom item delegate which paints a QImage
-	QPixmap pm = QPixmap::fromImage(QImage(items[0].GetImage(), 96, 32, QImage::Format_RGB888));
+	QPixmap pm = QPixmap::fromImage(QImage(&(items[0].GetImage()[0]), 96, 32, QImage::Format_RGB888));
 	setItemDelegateForColumn(0, new DIconItemDelegate(pm));
 	setItemDelegateForColumn(1, new DIconItemDelegate(pm));
 	setItemDelegateForColumn(4, new DIconItemDelegate(pm));
@@ -309,10 +309,10 @@ void DGameList::RebuildList()
 		item->setData(QVariant::fromValue(QIcon(Resources::GetPlatformPixmap(items[i].GetPlatform()))), 0);
 		sourceModel->setItem(i, 0, item);
 
-		if(items[i].GetImage())
+		if(!items[i].GetImage().empty())
 		{
 			QStandardItem* item = new QStandardItem;
-			item->setData(QVariant::fromValue(QIcon(QPixmap::fromImage(QImage(items[i].GetImage(), 96, 32, QImage::Format_RGB888)))), 0);
+			item->setData(QVariant::fromValue(QIcon(QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888)))), 0);
 			sourceModel->setItem(i, 1, item);
 		}
 		else

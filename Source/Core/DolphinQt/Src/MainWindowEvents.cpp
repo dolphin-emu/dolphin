@@ -171,6 +171,20 @@ void DMainWindow::OnShowLogMan(bool show)
 	}
 }
 
+void DMainWindow::OnShowLogSettings(bool show)
+{
+	if (show)
+	{
+		logSettings->setVisible(true);
+		SConfig::GetInstance().m_InterfaceLogConfigWindow = true;
+	}
+	else if (logSettings)
+	{
+		logSettings->setVisible(false);
+		SConfig::GetInstance().m_InterfaceLogConfigWindow= false;
+	}
+}
+
 void DMainWindow::OnHideMenu(bool hide)
 {
 	menuBar()->setVisible(!hide);
@@ -212,4 +226,10 @@ void DMainWindow::OnLogWindowClosed()
 {
 	// this calls OnShowLogMan(false)
 	showLogManAct->setChecked(false);
+}
+
+void DMainWindow::OnLogSettingsWindowClosed()
+{
+	// this calls OnShowLogMan(false)
+	showLogSettingsAct->setChecked(false);
 }

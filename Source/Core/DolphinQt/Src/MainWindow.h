@@ -7,6 +7,7 @@
 #include <QtGui>
 #include <Core.h>
 class DLogWindow;
+class DLogSettingsDock;
 class DMainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -29,11 +30,13 @@ private slots:
 	void OnWiimoteSettings() {};
 
 	void OnShowLogMan(bool show);
+	void OnShowLogSettings(bool show);
 	void OnHideMenu(bool hide);
 
 	void OnAbout();
 
 	void OnLogWindowClosed();
+	void OnLogSettingsWindowClosed();
 
 	void OnCoreStateChanged(Core::EState state);
 
@@ -52,8 +55,10 @@ private:
 	DGameList* gameList;
 
 	QAction* showLogManAct;
+	QAction* showLogSettingsAct;
 
 	DLogWindow* logWindow;
+	DLogSettingsDock* logSettings;
 
 	QAction* playAction;
 	QAction* stopAction;

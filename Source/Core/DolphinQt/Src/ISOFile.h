@@ -42,8 +42,7 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
-	u8* GetImage() { return m_pImage; }
-	u32 GetImageSize() { return m_ImageSize; }
+	std::vector<u8> GetImage() { return m_Image; }
 
 	void DoState(PointerWrap &p);
 
@@ -71,8 +70,7 @@ private:
 
 	bool m_Valid;
 	bool m_BlobCompressed;
-	u8* m_pImage;
-	u32 m_ImageSize;
+	std::vector<u8> m_Image;
 
 	bool LoadFromCache();
 	void SaveToCache();

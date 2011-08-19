@@ -26,17 +26,12 @@ private:
 	QStandardItemModel* model;
 };
 
-DLogWindow::DLogWindow(const QString & title, QWidget * parent, Qt::WindowFlags flags) : QDockWidget(title, parent, flags)
+DLogSettingsDock::DLogSettingsDock(QWidget * parent, Qt::WindowFlags flags)
+		: QDockWidget(tr("Log Settings"), parent, flags)
+		, enableAllChannels(true)
 {
-	// Create widgets
-	logManager = LogManager::GetInstance();
+	LogManager* logManager = LogManager::GetInstance();
 
-	QComboBox* fontBox = new QComboBox;
-	QStringList fontList;
-	fontList << tr("Default font") << tr("Monospaced font") << tr("Selected font");
-	fontBox->addItems(fontList);
-
-	QCheckBox* wordWrapCB = new QCheckBox(tr("Word wrap"));
 	QCheckBox* writeToFileCB = new QCheckBox(tr("Write to file"));
 	QCheckBox* writeToConsoleCB = new QCheckBox(tr("Write to console"));
 	QCheckBox* writeToWindowCB = new QCheckBox(tr("Write to window ->"));
@@ -49,10 +44,10 @@ DLogWindow::DLogWindow(const QString & title, QWidget * parent, Qt::WindowFlags 
 	logLevelsRadio[0]->setChecked(true);
 
 	QPushButton* toggleAllButton = new QPushButton(tr("Toggle all"));
-	QPushButton* clearButton = new QPushButton(tr("Clear"));
+	connect(toggleAllButton, SIGNAL(clicked()), this, SLOT(OnToggleChannels()));
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		logChannels.push_back(new QCheckBox(QString(logManager->getFullName( (LogTypes::LOG_TYPE)i ))));
+		logChannels.push_back(new QCheckBox(QString(logManager->GetFullName( (LogTypes::LOG_TYPE)i ))));
 
 	// Create left layout
 	DLayoutWidgetV* leftLayout = new DLayoutWidgetV;
@@ -64,21 +59,16 @@ DLogWindow::DLogWindow(const QString & title, QWidget * parent, Qt::WindowFlags 
 	leftLayout->addWidget(verbosityGroup);
 
 	DGroupBoxV* optionsGroup = new DGroupBoxV(tr("Options"));
-	optionsGroup->addWidget(fontBox);
-	optionsGroup->addWidget(wordWrapCB);
 	optionsGroup->addWidget(writeToFileCB);
 	optionsGroup->addWidget(writeToConsoleCB);
 	optionsGroup->addWidget(writeToWindowCB);
 	leftLayout->addWidget(optionsGroup);
 
-	QHBoxLayout* buttonLayout = new QHBoxLayout;
-	buttonLayout->addWidget(toggleAllButton);
-	buttonLayout->addWidget(clearButton);
-	leftLayout->addLayout(buttonLayout);
+	leftLayout->addWidget(toggleAllButton);
 
 	QScrollArea* channelArea = new QScrollArea;
 	QTreeView* channelList = new QTreeView;
-	QStandardItemModel* channelModel = new QStandardItemModel;
+	channelModel = new QStandardItemModel;
 	channelModel->setRowCount(LogTypes::NUMBER_OF_LOGS);
 	channelList->setRootIsDecorated(false);
 	channelList->setAlternatingRowColors(true);
@@ -87,7 +77,8 @@ DLogWindow::DLogWindow(const QString & title, QWidget * parent, Qt::WindowFlags 
 	channelList->setHeaderHidden(true);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
-		QStandardItem* item = new QStandardItem(QString(logManager->getFullName( (LogTypes::LOG_TYPE)i))); // TODO: tr?
+		// TODO: Scrollarea doesn't fit this widget, yet...
+		QStandardItem* item = new QStandardItem(QString(logManager->GetFullName( (LogTypes::LOG_TYPE)i))); // TODO: tr?
 		item->setCheckable(true);
 		channelModel->setItem(i, item);
 	}
@@ -96,24 +87,76 @@ DLogWindow::DLogWindow(const QString & title, QWidget * parent, Qt::WindowFlags 
 	channelList->setModel(channelModel);
 	channelArea->setWidget(channelList);
 	leftLayout->addWidget(channelArea);
+	setWidget(leftLayout);
+}
 
-	// Create right layout
+DLogSettingsDock::~DLogSettingsDock()
+{
+
+}
+
+void DLogSettingsDock::OnToggleChannels()
+{
+	// if no channels are selected, but enableAllChannels is false, force enableAllChannels to true (and vice versa)
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		if (channelModel->item(i)->checkState() != (enableAllChannels ? Qt::Checked : Qt::Unchecked))
+		{
+			break;
+		}
+		else if (i == LogTypes::NUMBER_OF_LOGS-1)
+		{
+			enableAllChannels = !enableAllChannels;
+		}
+	}
+
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+		channelModel->item(i)->setCheckState(enableAllChannels ? Qt::Checked : Qt::Unchecked);
+
+	enableAllChannels = !enableAllChannels;
+}
+
+void DLogSettingsDock::closeEvent(QCloseEvent* event)
+{
+	emit Closed();
+}
+
+DLogWindow::DLogWindow(QWidget * parent, Qt::WindowFlags flags)
+		: QDockWidget(tr("Logging"), parent, flags)
+{
+	LogManager* logManager = LogManager::GetInstance();
+
+	// Top layout widgets
+	QComboBox* fontBox = new QComboBox;
+	QStringList fontList;
+	fontList << tr("Default font") << tr("Monospaced font") << tr("Selected font");
+	fontBox->addItems(fontList);
+
+	QCheckBox* wordWrapCB = new QCheckBox(tr("Word wrap"));
+	QPushButton* clearButton = new QPushButton(tr("Clear"));
+
+	// Bottom layout widget
 	logEdit = new QPlainTextEdit;
 	logEdit->setReadOnly(true);
 	logEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-	// Create top layout
+	// Create layouts
 	DLayoutWidgetH* topLayout = new DLayoutWidgetH;
-	topLayout->addWidget(leftLayout);
-	topLayout->addWidget(logEdit);
-	setWidget(topLayout);
+	topLayout->addWidget(clearButton);
+	topLayout->addWidget(fontBox);
+	topLayout->addWidget(wordWrapCB);
+
+	DLayoutWidgetV* layout = new DLayoutWidgetV;
+	layout->addWidget(topLayout);
+	layout->addWidget(logEdit);
+	setWidget(layout);
 
 	// setup other stuff
 	// TODO: Check if logging is actually enabled
 	// TODO: Some messages get dropped in the beginning
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		logManager->addListener((LogTypes::LOG_TYPE)i, this);
+		logManager->AddListener((LogTypes::LOG_TYPE)i, this);
 	}
 }
 
@@ -124,7 +167,8 @@ DLogWindow::~DLogWindow()
 
 void DLogWindow::Log(LogTypes::LOG_LEVELS, const char *msg)
 {
-	logEdit->appendPlainText(QString(msg));
+	// TODO: For some reason, this line makes the emulator crash after a few log messages..
+	// logEdit->appendPlainText(QString(msg));
 }
 
 void DLogWindow::closeEvent(QCloseEvent* event)
