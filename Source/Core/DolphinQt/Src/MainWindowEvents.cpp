@@ -195,9 +195,9 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	// Tool bar
 	playAction->setEnabled(is_not_initialized || is_running || is_paused);
 	if (is_running)
-		playAction->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PAUSE)));
+		playAction->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
 	else if (is_paused || is_not_initialized)
-		playAction->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)));
+		playAction->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
 	stopAction->setEnabled(is_running || is_paused);
 

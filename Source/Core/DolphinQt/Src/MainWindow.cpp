@@ -151,13 +151,13 @@ void DMainWindow::CreateToolBars()
 	toolBar->setIconSize(QSize(24, 24));
 	toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
-	QAction* openAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_OPEN)), tr("Open"));
-	QAction* refreshAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_REFRESH)), tr("Refresh"));
-	QAction* browseAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_BROWSE)), tr("Browse"));
+	QAction* openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
+	QAction* refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
+	QAction* browseAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DirIcon), tr("Browse"));
 	toolBar->addSeparator();
 
-	playAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)), tr("Play"));
-	stopAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_STOP)), tr("Stop"));
+	playAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("Play"));
+	stopAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaStop), tr("Stop"));
 	QAction* fscrAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_FULLSCREEN)), tr("FullScr"));
 	QAction* scrshotAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_SCREENSHOT)), tr("ScrShot"));
 	toolBar->addSeparator();
