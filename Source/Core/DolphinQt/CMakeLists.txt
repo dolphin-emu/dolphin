@@ -1,18 +1,20 @@
-set(SRCS	Src/ConfigAudio.cpp
-			Src/ConfigGfx.cpp
-			Src/ConfigMain.cpp
-			Src/ConfigPad.cpp
-			Src/ConfigWiimote.cpp
-			Src/IssueReporter.cpp
+include_directories(BEFORE Src/Util Src/Config)
+
+set(SRCS	Src/Config/ConfigAudio.cpp
+			Src/Config/ConfigGfx.cpp
+			Src/Config/ConfigMain.cpp
+			Src/Config/ConfigPad.cpp
+			Src/Config/ConfigWiimote.cpp
+			Src/Util/Util.cpp
+			Src/Util/Resources.cpp
 			Src/GameList.cpp
 			Src/ISOFile.cpp
+			Src/IssueReporter.cpp
 			Src/LogWindow.cpp
 			Src/main.cpp
 			Src/MainWindow.cpp
 			Src/MainWindowEvents.cpp
-			Src/RenderWindow.cpp
-			Src/Resources.cpp
-			Src/Util.cpp)
+			Src/RenderWindow.cpp)
 
 set(LIBS	core
 			lzo2
@@ -30,11 +32,11 @@ set(LIBS	core
 
 set(EXEGUI dolphin-emu-qt4)
 
-qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/ConfigAudio.h
-								Src/ConfigGfx.h
-								Src/ConfigMain.h
-								Src/ConfigPad.h
-								Src/ConfigWiimote.h
+qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/Config/ConfigAudio.h
+								Src/Config/ConfigGfx.h
+								Src/Config/ConfigMain.h
+								Src/Config/ConfigPad.h
+								Src/Config/ConfigWiimote.h
 								Src/IssueReporter.h
 								Src/GameList.h
 								Src/LogWindow.h
