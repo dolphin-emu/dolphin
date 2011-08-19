@@ -94,6 +94,58 @@ void DMainWindow::DoStartPause()
     }
 }
 
+void DMainWindow::DoStop()
+{
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)// || m_RenderParent != NULL)
+	{
+		// Ask for confirmation in case the user accidentally clicked Stop / Escape
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+		{
+			int ret = QMessageBox::question(this, tr("Please confirm..."), tr("Do you want to stop the current emulation?"), QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+			if (ret == QMessageBox::No)
+				return;
+		}
+
+		// TODO: Movie stuff
+		// TODO: Show the author/description dialog here
+		/*if(Movie::IsRecordingInput())
+			DoRecordingSave();
+		if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
+			Movie::EndPlayInput(false);*/
+
+		// TODO: Show busy cursor
+		BootManager::Stop();
+		// TODO: Hide busy cursor again
+
+		// TODO: Allow screensaver again
+		// TODO: Restore original window title
+
+		// TODO: Destroy render window (unless rendering to main)
+
+		// TODO: Show cursor again if it was hidden before (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+
+		// TODO: Return from fullscreen if necessary (DoFullscreen in the wx code)
+
+		// TODO:
+		// If batch mode was specified on the command-line, exit now.
+		//if (m_bBatchMode)
+		//	Close(true);
+
+		// TODO:
+        // If using auto size with render to main, reset the application size.
+/*        if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+                SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
+            SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
+                    SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);*/
+
+		gameList->setEnabled(true);
+		gameList->setVisible(true);
+
+		emit CoreStateChanged(Core::CORE_UNINITIALIZED);
+	}
+}
+
 void DMainWindow::OnStartPause()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -127,6 +179,11 @@ void DMainWindow::OnStartPause()
 	}
 }
 
+void DMainWindow::OnStop()
+{
+	DoStop();
+}
+
 void DMainWindow::OnCoreStateChanged(Core::EState state)
 {
 	bool is_not_initialized = state == Core::CORE_UNINITIALIZED;
@@ -137,7 +194,7 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	playAction->setEnabled(is_not_initialized || is_running || is_paused);
 	if (is_running)
 		playAction->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PAUSE)));
-	else if (is_paused)
+	else if (is_paused || is_not_initialized)
 		playAction->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)));
 
 	stopAction->setEnabled(is_running || is_paused);

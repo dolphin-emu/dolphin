@@ -21,7 +21,7 @@ private slots:
 	void OnRefreshList();
 
 	void OnStartPause();
-	void OnStop() {};
+	void OnStop();
 
 	void OnConfigure() {};
 	void OnGfxSettings() {};
@@ -49,8 +49,7 @@ private:
 	void StartGame(const std::string& filename);
 	std::string RequestBootFilename();
 	void DoStartPause();
-
-	void DoStop() {}
+	void DoStop();
 
 	void closeEvent(QCloseEvent*);
 

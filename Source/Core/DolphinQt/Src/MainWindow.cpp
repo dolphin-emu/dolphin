@@ -39,6 +39,8 @@ DMainWindow::~DMainWindow()
 
 void DMainWindow::closeEvent(QCloseEvent* ev)
 {
+	DoStop();
+
 	// Save UI configuration
 	SConfig::GetInstance().m_InterfaceLogWindow = logWindow->isVisible();
 	SConfig::GetInstance().m_InterfaceLogConfigWindow = logSettings->isVisible();
@@ -136,6 +138,7 @@ void DMainWindow::CreateToolBars()
 
 
 	connect(playAction, SIGNAL(triggered()), this, SLOT(OnStartPause()));
+	connect(stopAction, SIGNAL(triggered()), this, SLOT(OnStop()));
 }
 
 void DMainWindow::CreateStatusBar()
