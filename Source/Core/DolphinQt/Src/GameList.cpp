@@ -349,11 +349,11 @@ void DGameList::RebuildList()
 	resizeColumnToContents(i);
 }
 
-QString DGameList::GetSelectedFilename()
+GameListItem* DGameList::GetSelectedISO()
 {
 	QModelIndexList indexList = selectedIndexes();
-	if (indexList.size() == 0) return QString();
-	else return QString(abstrGameList.getItems()[indexList[0].	row()].GetFileName().c_str());
+	if (indexList.size() == 0) return NULL;
+	else return &(abstrGameList.getItems()[indexList[0].row()]);
 }
 
 void* DGameList::OnIsoScanStarted(int numItems)

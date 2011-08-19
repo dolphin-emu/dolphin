@@ -142,12 +142,12 @@ void DMainWindow::BootGame(const std::string& filename)
     // If all that fails, ask to add a dir and don't boot
     if (bootfile.empty())
     {
-/*        if (m_GameListCtrl->GetSelectedISO() != NULL)
+        if (gameList->GetSelectedISO() != NULL)
         {
-            if (m_GameListCtrl->GetSelectedISO()->IsValid())
-                bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
+            if (gameList->GetSelectedISO()->IsValid())
+                bootfile = gameList->GetSelectedISO()->GetFileName();
         }
-        else */if (!StartUp.m_strDefaultGCM.empty()
+        else if (!StartUp.m_strDefaultGCM.empty()
                 &&  File::Exists(StartUp.m_strDefaultGCM.c_str()))
             bootfile = StartUp.m_strDefaultGCM;
         else
@@ -189,6 +189,7 @@ void DMainWindow::StartGame(const std::string& filename)
 	}
 	if (!BootManager::BootCore(filename))
 	{
+		QMessageBox(QMessageBox::Critical, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok, this);
 		// Destroy the renderer frame when not rendering to main
 /*		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
@@ -208,7 +209,7 @@ void DMainWindow::StartGame(const std::string& filename)
 
 void DMainWindow::OnStartPause()
 {
-	if (gameList->GetSelectedFilename().length() == 0)
+	if (gameList->GetSelectedISO() == NULL)
 	{
 		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 		std::string filename;
@@ -231,7 +232,7 @@ void DMainWindow::OnStartPause()
 	}
 	else
 	{
-		StartGame(gameList->GetSelectedFilename().toStdString());
+		StartGame(gameList->GetSelectedISO()->GetFileName());
 	}
 }
 

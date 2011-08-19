@@ -169,9 +169,12 @@ void Host_RequestRenderWindowSize(int, int)
 {
 
 }
-void Host_GetRenderWindowSize(int&, int&, int&, int&)
+void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
-
+	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
+	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
+	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
+	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
 }
 
 void Host_ConnectWiimote(int, bool)
@@ -181,7 +184,7 @@ void Host_ConnectWiimote(int, bool)
 
 void Host_Message(int Id)
 {
-
+	// TODO: Handle IDM_UPDATEGUI, IDM_UPDATESTATUSBAR, IDM_UPDATETITLE, WM_USER_CREATE, IDM_WINDOWSIZEREQUEST, IDM_PANIC(?), IDM_KEYSTATE(?), WM_USER_STOP
 }
 
 void Host_UpdateMainFrame()
@@ -227,6 +230,7 @@ void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
 
 bool Host_RendererHasFocus()
 {
+	// TODO!
 	return false;
 }
 
@@ -243,6 +247,7 @@ void Host_UpdateStatusBar(const char* _pText, int Filed = 0)
 
 void Host_SysMessage(const char *fmt, ...)
 {
+	// TODO
 }
 
 void Host_SetWiiMoteConnectionState(int _State)

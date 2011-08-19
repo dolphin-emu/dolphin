@@ -58,7 +58,7 @@ public:
 	void ScanForIsos();
 	void RebuildList();
 
-	QString GetSelectedFilename();
+	GameListItem* GetSelectedISO();
 
 private:
 	DAbstractGameList abstrGameList;
