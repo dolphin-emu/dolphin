@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-08-10 08:30-0500\n"
-"PO-Revision-Date: 2011-07-03 10:48+0100\n"
+"PO-Revision-Date: 2011-08-10 20:37+0100\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -57,9 +57,9 @@ msgid "%d Hz"
 msgstr "%d Hz"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:12
-#, fuzzy, c-format
+#, c-format
 msgid "%i connected"
-msgstr "Nepřipojen"
+msgstr "Připojeno %i"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -73,22 +73,22 @@ msgid "%s failed to be scrubbed. Probably the image is corrupt."
 msgstr "%s nelze vyčistit. Obraz je pravděpodobně poškozen."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:97
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
-"Nelze načíst pam. kartu\n"
-"Neplatná velikost karty (%04x)"
+"%s nelze načíst jako paměťovou kartu\n"
+"Soubor karty je neplatný (0x%x bajtů)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:112
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
 msgstr ""
-"Nelze načíst pam. kartu\n"
-"Neplatná velikost karty (%04x)"
+"%s nelze načíst jako paměťovou kartu\n"
+"Velikost karty je neplatná (0x%x bajtů)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:92
 #, c-format
@@ -96,6 +96,9 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
+"%s nelze načíst jako paměťovou kartu\n"
+"soubor není dostatečně velký, aby byl platným souborem paměťové karty (0x%x "
+"bajtů)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
 #, c-format
@@ -920,21 +923,22 @@ msgstr "Nelze otevřít %s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:721
 msgid "Cannot record movies in read-only mode."
-msgstr ""
+msgstr "V režimu pouze pro čtení nelze nahrávát filmy."
 
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
 msgstr "Nelze odhlásit události, když jsou očekávány"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1016
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
 "%s\n"
 "is not a valid gamecube memory card file"
 msgstr ""
 "Nelze použít tento soubor jako paměťovou kartu.\n"
-"Snažíte se použít stejný soubor v obou slotech?"
+"%s\n"
+"není platný soubor paměťové karty gamecube"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1039
 msgid ""
@@ -1340,7 +1344,7 @@ msgstr "Tvůrce:"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:68
 msgid "Critical"
-msgstr ""
+msgstr "Kritické"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
 msgid "Crop"
@@ -3354,7 +3358,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:126
 msgid "Memorycard filesize does not match the header size"
-msgstr ""
+msgstr "Velikost paměťové karty se neshoduje s velikosti hlavičky"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:47
 msgid "Menu"
@@ -3973,9 +3977,8 @@ msgid "Real Wiimote"
 msgstr "Opravdový Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:81
-#, fuzzy
 msgid "Real Wiimotes"
-msgstr "Opravdový Wiimote"
+msgstr "Opravdové Wiimoty"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:163
 msgid "Reconnect Wiimote Confirm"
@@ -5039,6 +5042,8 @@ msgid ""
 "Unable to create patch from given values.\n"
 "Entry not modified."
 msgstr ""
+"Ze zadaných hodnot nelze vytvořit záplatu.\n"
+"Záznam není změněn."
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:123
 #, c-format
@@ -5295,9 +5300,9 @@ msgid "Wiimote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:30
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i"
-msgstr "Wiimote "
+msgstr "Wiimote %i"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:162
 #, c-format
@@ -5325,9 +5330,8 @@ msgid "Wiimote settings"
 msgstr "Wiimote nastavení"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:57
-#, fuzzy
 msgid "Wiimotes"
-msgstr "Wiimote"
+msgstr "Wiimoty"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:131
 msgid "Windows Left"
@@ -5387,6 +5391,8 @@ msgid ""
 "You are using free dsp roms made by Dolphin Team.\n"
 "Only Zelda ucode games will work correctly with them.\n"
 msgstr ""
+"Používáte volné romy dsp vytvořené Týmem Doplhin.\n"
+"Správně s nimi bude fungovat pouze Zelda ucode.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:72
 msgid "You can't close panes that have pages in them."
@@ -5761,6 +5767,9 @@ msgstr "| NEBO"
 
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Chyba při otevírání souboru %s pro nahrávání"
+
+#~ msgid "Failed to compile ps %s"
+#~ msgstr "Nelze zkompilovat ps %s"
 
 #~ msgid ""
 #~ "Failed to load DSP ROM:\n"

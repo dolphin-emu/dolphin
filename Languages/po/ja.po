@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-08-10 08:30-0500\n"
-"PO-Revision-Date: 2011-06-05 00:30+0900\n"
+"PO-Revision-Date: 2011-08-19 08:37-0500\n"
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -18,7 +18,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
-msgstr "(該当が多すぎて表示不可)"
+msgstr "(該当数が多すぎます)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:257
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:485
@@ -57,9 +57,9 @@ msgid "%d Hz"
 msgstr "%d Hz"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:12
-#, fuzzy, c-format
+#, c-format
 msgid "%i connected"
-msgstr "未接続"
+msgstr "接続数 %i 個"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -73,22 +73,22 @@ msgid "%s failed to be scrubbed. Probably the image is corrupt."
 msgstr "%s のスクラビングに失敗しました。おそらく壊れています。"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:97
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
-"メモリーカードの読み込みに失敗\n"
-" 不正なカード容量です (%04X)"
+"%s メモリーカードの読み込みに失敗\n"
+" 不正なカード容量です (0x%x バイト)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:112
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
 msgstr ""
-"メモリーカードの読み込みに失敗\n"
-" 不正なカード容量です (%04X)"
+"%s メモリーカードの読み込みに失敗\n"
+" 不正なカード容量です (0x%x バイト)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:92
 #, c-format
@@ -96,6 +96,9 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
+"%s をメモリーカードファイルとして読み込めませんでした \n"
+"このファイルのサイズは小さすぎます。正しいファイルではありません (0x%x バイ"
+"ト)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
 #, c-format
@@ -121,7 +124,7 @@ msgstr "%s は0バイトのファイルです"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:159
 #, c-format
 msgid "%s is already compressed! Cannot compress it further."
-msgstr "%s は圧縮済みです！これ以上圧縮することは出来ません"
+msgstr "%s は圧縮済みです！これ以上圧縮することはできません。"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:345
 #, c-format
@@ -418,7 +421,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Accurate VBeam emulation"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -429,7 +431,7 @@ msgstr ""
 "より正確なEFBコピーエミュレーションを行います。\n"
 "いくつかのゲームの画面効果やゲームプレイ性はこの機能に依っています。\n"
 "\n"
-"よく分からなければ、【Texture】を選択したままにしておいてください。"
+"よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -455,6 +457,7 @@ msgstr ""
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
 msgstr ""
+"Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Add Code (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:756
 #, c-format
@@ -462,6 +465,8 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
 "(%s)"
 msgstr ""
+"Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Fill and Slide "
+"(%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:549
 #, c-format
@@ -469,6 +474,8 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
 "Fill (%s)"
 msgstr ""
+"Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Ram Write And "
+"Fill (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:609
 #, c-format
@@ -476,11 +483,13 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
 "Pointer (%s)"
 msgstr ""
+"Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Write To "
+"Pointer (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:803
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
-msgstr ""
+msgstr "Action Replay エラー: 不正な値 (%08x) in Memory Copy (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:684
 #, c-format
@@ -497,22 +506,22 @@ msgstr "エラー: 無効なコード ライン： %s"
 #: Source/Core/Core/Src/ActionReplay.cpp:873
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
-msgstr ""
+msgstr "Action Replay: 条件付きコード: 不正なサイズ %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:946
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
-msgstr ""
+msgstr "Action Replay: 不正な種類の通常コード %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:897
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
-msgstr ""
+msgstr "Action Replay: 通常コード %i: 不正なサブタイプ %08x (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:839
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
-msgstr ""
+msgstr "Action Replay: 通常コード 0: 不正なサブタイプ %08x (%s)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:245
 msgid "Adapter:"
@@ -556,7 +565,7 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"zFarパラメータに指定値を追加します\n"
+"zFarパラメータに指定した値を追加します\n"
 "浮動小数点数値の入力には2通りの表現が可能で、\n"
 "例えば''200''と''0.0002''は同じ値として解釈されます\n"
 "有効値： (0->+/-Integer) もしくは (0->+/-FP[6 digits of precision])\n"
@@ -574,7 +583,7 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"zNearパラメータに指定値を追加します\n"
+"zNearパラメータに指定した値を追加します\n"
 "浮動小数点数値の入力には2通りの表現が可能で、\n"
 "例えば''200''と''0.0002''は同じ値として解釈されます\n"
 "有効値： (0->+/-Integer) もしくは (0->+/-FP[6 digits of precision])\n"
@@ -649,7 +658,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:311
 msgid "Apploader unable to load from file"
-msgstr ""
+msgstr "Apploader ファイルから読み込むことができません"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:777
 msgid "Apploader:"
@@ -684,11 +693,11 @@ msgid ""
 "They will be gone forever!"
 msgstr ""
 "これら複数のタイトルの実体ファイルを削除しますか？\n"
-"元に戻すことは出来ません！"
+"元に戻すことはできません！"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1112
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
-msgstr "このタイトルの実体ファイルを削除しますか？元に戻すことは出来ません！"
+msgstr "このタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:280
@@ -821,7 +830,7 @@ msgstr "下部"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:242
 #, c-format
 msgid "Bound Controls: %lu"
-msgstr ""
+msgstr "コマンド数: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
 msgid "Broken"
@@ -854,7 +863,6 @@ msgid "Buttons"
 msgstr "ボタン"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:61
-#, fuzzy
 msgid "C Stick"
 msgstr "C-スティック"
 
@@ -914,28 +922,29 @@ msgstr "%s を開くことができません"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:721
 msgid "Cannot record movies in read-only mode."
-msgstr ""
+msgstr "読み込み専用設定のため録画不可"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
 msgstr "Cannot unregister events with events pending"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1016
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
 "%s\n"
 "is not a valid gamecube memory card file"
 msgstr ""
 "そのファイルはメモリーカードデータとして使用できません\n"
-"両方のスロットで同じファイルを使用しようとしていませんか？"
+"%s\n"
+"これは不正なメモリーカードデータです"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1039
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
 msgstr ""
-"そのファイルはメモリーカードデータとして使用できません\n"
+"そのファイルはメモリーカードデータとして使用できません。\n"
 "両方のスロットで同じファイルを使用しようとしていませんか？"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1858
@@ -964,8 +973,9 @@ msgid "Catalan"
 msgstr "カタルーニャ語"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
+#, fuzzy
 msgid "Center"
-msgstr ""
+msgstr "Center"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:562
 msgid "Change"
@@ -1040,7 +1050,7 @@ msgstr "NANDのあるルートフォルダを選択"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
 msgid "Choose a default ISO:"
-msgstr "デフォルトとして設定するタイトルを選択"
+msgstr "ディスクチャンネルに表示するタイトルを選択"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1163
 msgid "Choose a directory to add"
@@ -1055,13 +1065,12 @@ msgid "Choose a memory card:"
 msgstr "メモリーカードを選択"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:755
-#, fuzzy
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
 msgstr ""
-"apploaderとして使用するファイルを選択： (applies to discs constructed from "
-"directories only)"
+"apploaderとして使用するファイルを選択：(フォルダからのみ構築されたディスクに"
+"適用されます)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:764
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:803
@@ -1239,7 +1248,7 @@ msgstr "%s を作成することができませんでした"
 #: Source/Core/AudioCommon/Src/AudioCommon.cpp:68
 #, c-format
 msgid "Could not initialize backend %s."
-msgstr "%s ：バックエンドを初期化できませんでした。"
+msgstr "Could not initialize backend %s."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:139
 #, c-format
@@ -1255,7 +1264,7 @@ msgstr ""
 #: Source/Core/Core/Src/CoreParameter.cpp:294
 #, c-format
 msgid "Could not recognize ISO file %s"
-msgstr "ISOファイル %s を認識できませんでした。"
+msgstr "ISOファイル %s を認識できませんでした"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:576
 #, c-format
@@ -1338,7 +1347,7 @@ msgstr "制作者： "
 
 #: Source/Core/Common/Src/MsgHandler.cpp:68
 msgid "Critical"
-msgstr ""
+msgstr "致命的なエラー"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
 msgid "Crop"
@@ -1362,7 +1371,7 @@ msgstr "クロスフェーダー"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:676
 #, c-format
 msgid "Current dir changed from %s to %s after wxFileSelector!"
-msgstr ""
+msgstr "カレントフォルダは wxFileSelector の後に %s から %s に変更されました！"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Custom Projection Hack"
@@ -1499,10 +1508,13 @@ msgstr "検出"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:230
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:325
+#, fuzzy
 msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
 msgstr ""
+"Detected attempt to read more data from the DVD than fit inside the out "
+"buffer. Clamp."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:131
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:902
@@ -1531,6 +1543,8 @@ msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
 msgstr ""
+"ディレクトリのチェックサムに失敗\n"
+"ディレクトリバックアップのチェックサムにも失敗"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:450
@@ -1674,8 +1688,8 @@ msgid ""
 "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
 "files..."
 msgstr ""
-"リストに何もありません。この文章をダブルクリックして GC/Wii/WAD ファイルのあ"
-"るフォルダを選択してください。"
+"リストに何もありません。この文章をダブルクリックして GC/Wii のISOファイルまた"
+"はWADファイルのあるフォルダを選択してください。"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:307
 msgid ""
@@ -1777,6 +1791,9 @@ msgid ""
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
+"エラー：少なくとも %d.%d 以上のバージョンのTAP-Win32ドライバが必要です。最近"
+"Dolphinのバージョンを更新した場合は、ドライバを認識させるためにWindowsの再起"
+"動が必要になるかもしれません。"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:162
 msgid "EUROPE"
@@ -2241,7 +2258,7 @@ msgstr "Listenに失敗！"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
 msgid "Failed to download codes."
-msgstr "Failed to download codes."
+msgstr "見つかりません"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:824
 #, c-format
@@ -2385,7 +2402,7 @@ msgid ""
 "File could not be opened\n"
 "or does not have a valid extension"
 msgstr ""
-"ファイルを開くことが出来ませんでした\n"
+"ファイルを開くことができませんでした\n"
 "もしくは有効な拡張子ではありません"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:86
@@ -2416,7 +2433,7 @@ msgstr "構造"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1037
 msgid "Filetype 'ini' is unknown! Will not open!"
-msgstr " 'ini' は不明な拡張子です。開くことが出来ません！"
+msgstr " 'ini' は不明な拡張子です。開くことができません！"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:629
 msgid "First Block"
@@ -2545,7 +2562,7 @@ msgstr "開始"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 msgid "FullScr"
-msgstr "フルスクリーン表示"
+msgstr "全画面表示"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:259
 msgid "Fullscreen resolution:"
@@ -2634,6 +2651,7 @@ msgstr "ドイツ語"
 #, c-format
 msgid "GetARCode: Index is greater than ar code list size %lu"
 msgstr ""
+"GetARCode: インデックスのサイズがコードリストのサイズを上回っています %lu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:443
 msgid "Graphics"
@@ -2648,7 +2666,6 @@ msgid "Greater Than"
 msgstr "より大きい"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render-to-texture "
 "effects.\n"
@@ -2659,8 +2676,6 @@ msgstr ""
 "テクスチャエフェクトを表示するために作成されたテクスチャの品質を 著しく向上さ"
 "せます。\n"
 "特に高解像度出力時に効果が大きく出ます。\n"
-"これは若干の動作速度の低下を招き、まず起こりませんが描画バグの 原因にもなりま"
-"す。\n"
 "\n"
 "よく分からなければ、チェックを外さないでください。"
 
@@ -2702,7 +2717,7 @@ msgstr "ヘブライ語"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:312
 msgid "Height"
-msgstr ""
+msgstr "範囲(縦)"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:61
 msgid "Help"
@@ -3345,10 +3360,16 @@ msgid ""
 "%s\n"
 "Would you like to copy the old file to this new location?\n"
 msgstr ""
+"スロット%c 内のメモリーカードのファイル名に問題があります\n"
+"リージョンが規定されていません\n"
+"\n"
+"スロット%c の場所が以下に変更されました\n"
+"%s\n"
+"この場所に古いファイルをコピーしますか？\n"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:126
 msgid "Memorycard filesize does not match the header size"
-msgstr ""
+msgstr "メモリカードのファイルサイズが、ヘッダのサイズに一致していません"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:47
 msgid "Menu"
@@ -3356,7 +3377,7 @@ msgstr "メニュー"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
 msgid "Mic"
-msgstr ""
+msgstr "マイク"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:101
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
@@ -3702,11 +3723,11 @@ msgstr "OpenMP Texture Decoder"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:124
 msgid "Opens the debugger"
-msgstr ""
+msgstr "デバッガを開く"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:129
 msgid "Opens the logger"
-msgstr ""
+msgstr "ログ画面を開く"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:298
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:91
@@ -3817,7 +3838,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1613
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 msgid "Play"
-msgstr "ゲーム開始"
+msgstr "開始"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
 msgid "Play Recording"
@@ -3968,7 +3989,6 @@ msgid "Real Wiimote"
 msgstr "実機Wii リモコンを接続"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:81
-#, fuzzy
 msgid "Real Wiimotes"
 msgstr "実機Wii リモコンを接続"
 
@@ -4163,9 +4183,9 @@ msgid "Save decompressed GCM/ISO"
 msgstr "解凍するタイトルの保存先を選択"
 
 #: Source/Core/Core/Src/Movie.cpp:428
-#, c-format
+#, fuzzy, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
-msgstr ""
+msgstr "Savestate movie %s の破損を確認しました。録画を中止しています..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
 #, c-format
@@ -4182,7 +4202,7 @@ msgstr "確認中..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 msgid "ScrShot"
-msgstr "スクリーンショット"
+msgstr "画面を撮影"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:103
 msgid "Scroll Lock"
@@ -4331,7 +4351,7 @@ msgstr "適用"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:987
 msgid "Set as &default ISO"
-msgstr "既定のタイトルとして設定(&D)"
+msgstr "Wiiメニューに表示(&D)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
 #, c-format
@@ -4342,6 +4362,8 @@ msgstr "メモリーカード%cを既定として設定"
 #, c-format
 msgid "SetARCode_IsActive: Index is greater than ar code list size %lu"
 msgstr ""
+"SetARCode_IsActive: インデックスのサイズがコードリストのサイズを上回っていま"
+"す %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:335
 msgid "Settings..."
@@ -4360,9 +4382,8 @@ msgid "Short Name:"
 msgstr "通称"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:75
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "ボタン"
+msgstr "LRアナログ"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:230
 msgid "Show &Console"
@@ -4450,7 +4471,7 @@ msgstr "アメリカ合衆国"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:272
 msgid "Show Wad"
-msgstr "WAD"
+msgstr "WAD(Wii ウェア)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:268
 msgid "Show Wii"
@@ -4726,9 +4747,8 @@ msgstr "台湾"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "TAS Input"
-msgstr "入力"
+msgstr "TAS Input"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
@@ -4793,7 +4813,7 @@ msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
 "opened by another program."
 msgstr ""
-"ファイル %s に書き込むことが出来ませんでした。他のプログラムによって使用され"
+"ファイル %s に書き込むことができませんでした。他のプログラムによって使用され"
 "ていないか確認してください。"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:44
@@ -4805,7 +4825,7 @@ msgstr ""
 #: Source/Core/Core/Src/Boot/Boot.cpp:281
 #, c-format
 msgid "The file you specified (%s) does not exist"
-msgstr ""
+msgstr "指定したファイル (%s) は存在しません"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:627
 msgid "The name can not be empty"
@@ -4817,7 +4837,7 @@ msgstr "',' を含む名前は使用できません"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:141
 msgid "The resulting decrypted AR code doesn't contain any lines."
-msgstr ""
+msgstr "復号化しましたが、このコードには一つも行が含まれていません。"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
 msgid "The save you are trying to copy has an invalid file size"
@@ -4868,7 +4888,8 @@ msgstr "テーマの選択に誤りがあります"
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
-msgstr "00000001/00000002のチケットが必要です。おそらく不完全なNANDダンプです"
+msgstr ""
+"00000001/00000002のチケットが必要です。おそらく不完全なNANDダンプです。"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:304
 msgid ""
@@ -4879,8 +4900,7 @@ msgstr ""
 "ます\n"
 "例) ここで「Enable Dual Core」のチェックを外しておくと\n"
 "　　 本体設定でデュアルコア処理を有効化している場合でも、このゲームのみシング"
-"ルコア動作が可能\n"
-"注) 四角のチェックのものはDolphinの設定に準拠"
+"ルコア動作が可能"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:356
 msgid ""
@@ -4888,7 +4908,7 @@ msgid ""
 "Replay itself."
 msgstr ""
 "このアクションリプレイシミュレータは、アクションリプレイそのものを変更する"
-"コードはサポートしていません"
+"コードはサポートしていません。"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:509
 msgid "This could cause slow down in Wii Menu and some games."
@@ -4997,13 +5017,15 @@ msgstr "トリガー"
 
 #: Source/Core/Common/Src/SysConf.h:92 Source/Core/Common/Src/SysConf.h:115
 msgid "Trying to read from invalid SYSCONF"
-msgstr ""
+msgstr "Trying to read from invalid SYSCONF"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:43
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wiimote bt ids are not available"
 msgstr ""
+"Trying to read from invalid SYSCONF\n"
+"Wiimote bt ids are not available"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
 msgid "Turkish"
@@ -5039,6 +5061,8 @@ msgid ""
 "Unable to create patch from given values.\n"
 "Entry not modified."
 msgstr ""
+"この値ではパッチを作成できません。\n"
+"入力された値が不正です。"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:123
 #, c-format
@@ -5047,6 +5071,9 @@ msgid ""
 "decrypted code.  Make sure you typed it correctly.\n"
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
+"暗号化または復号化コードとして入力された内の行 %lu を解析できません。内容を確"
+"認して下さい。\n"
+"この行を無視して解析を続けますか？"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:404
 #, c-format
@@ -5077,9 +5104,9 @@ msgid "Unknown message received with id : %d"
 msgstr "次のIDから不明なメッセージを受信 : %d"
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:504
-#, c-format
+#, fuzzy, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
-msgstr ""
+msgstr "Unknown message with id:%d received from player:%d Kicking player!"
 
 #: Source/Core/Core/Src/HW/Memmap.cpp:633
 #, c-format
@@ -5261,7 +5288,7 @@ msgstr "疑似ワイドスクリーン化"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:311
 msgid "Width"
-msgstr ""
+msgstr "範囲(横)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
 msgid "Wii"
@@ -5285,7 +5312,7 @@ msgstr "Wiiセーブデータ (*.bin)|*.bin"
 
 #: Source/Core/DiscIO/Src/WiiWad.cpp:81
 msgid "WiiWAD: Could not read from file"
-msgstr "WiiWAD: ファイルからの読み込みが出来ませんでした"
+msgstr "WiiWAD: ファイルからの読み込みができませんでした"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:446
 #: Source/Core/Core/Src/HW/Wiimote.cpp:16
@@ -5293,9 +5320,9 @@ msgid "Wiimote"
 msgstr "入力(Wii)"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:30
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i"
-msgstr "Wii リモコン"
+msgstr "Wii リモコン %i"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:162
 #, c-format
@@ -5323,9 +5350,8 @@ msgid "Wiimote settings"
 msgstr "Wii リモコンの設定を行います"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:57
-#, fuzzy
 msgid "Wiimotes"
-msgstr "入力(Wii)"
+msgstr "デバイス設定"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:131
 msgid "Windows Left"
@@ -5385,6 +5411,8 @@ msgid ""
 "You are using free dsp roms made by Dolphin Team.\n"
 "Only Zelda ucode games will work correctly with them.\n"
 msgstr ""
+"Dolphinチーム開発のフリーDSPロムを使用します。\n"
+"このDSPはZelda ucode型タイトルのみ正常に動作します。\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:72
 msgid "You can't close panes that have pages in them."
@@ -5440,7 +5468,7 @@ msgstr "03コードはサポートされていません"
 #: Source/Core/Core/Src/ActionReplay.cpp:410
 #, c-format
 msgid "Zero code unknown to dolphin: %08x"
-msgstr ""
+msgstr "Zero code unknown to dolphin: %08x"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:440
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:464
@@ -5525,6 +5553,7 @@ msgstr "iCacheJIT: Reading Opcode from %x. Please report."
 #, c-format
 msgid "not a wii save or read failure for file header size %x"
 msgstr ""
+"Wii のセーブデータではないか、ヘッダサイズが %x であるため読み取りに失敗 "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
