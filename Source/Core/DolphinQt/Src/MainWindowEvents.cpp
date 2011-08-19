@@ -16,14 +16,16 @@ void DMainWindow::StartGame(const std::string& filename)
 
 	renderWindow = new DRenderWindow;
 	renderWindow->setWindowTitle(tr("Dolphin")); // TODO: Other window title..
-	renderWindow->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
-	renderWindow->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
-						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+
+	// TODO: When rendering to main, this won't resize the parent window..
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// TODO: render window should be dockable into the main window? => render to main window
 		connect(renderWindow, SIGNAL(Closed()), this, SLOT(OnStop()));
+		renderWindow->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+		renderWindow->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
+							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		renderWindow->show();
 	}
 	else

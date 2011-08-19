@@ -207,7 +207,7 @@ void DAbstractGameList::Rescan()
 
 DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 {
-	sourceModel = new QStandardItemModel(5, 7, this);
+	sourceModel = new QStandardItemModel(this);
 	setModel(sourceModel);
 	setRootIsDecorated(false);
 	setAlternatingRowColors(true);
@@ -247,50 +247,6 @@ QString NiceSizeFormat(s64 _size)
     return NiceString;
 }
 
-QStandardItem* QStandardItemFromPixmap(QPixmap pixmap)
-{
-	QStandardItem* item = new QStandardItem;
-	item->setBackground(QBrush(pixmap));
-	item->setSelectable(false);
-	item->setSizeHint(pixmap.size());
-	return item;
-}
-
-// TODO: Get the actual size from the index data
-class DIconItemDelegate : public QAbstractItemDelegate
-{
-public:
-	DIconItemDelegate(QPixmap pm, QObject* parent = NULL) : QAbstractItemDelegate(parent)
-	{
-		size = pm.size();
-	}
-
-	void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-	{
-		// TODO: Filling background isn't using native style
-        QPalette::ColorGroup cg = (option.state & QStyle::State_Enabled) ?
-            (option.state & QStyle::State_Active) ? QPalette::Normal : QPalette::Inactive : QPalette::Disabled;
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, option.palette.color(cg, QPalette::Highlight));
-
-		QIcon icon = index.data(0).value<QIcon>();
-		QPixmap pixmap = icon.pixmap(size, (option.state == QStyle::State_MouseOver) ? QIcon::Selected
-                                                : QIcon::Normal);
-		painter->translate(1, 1);
-		painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
-		painter->translate(-1, -1);
-	}
-
-	QSize sizeHint(const QStyleOptionViewItem &option,
-                                 const QModelIndex &index) const
-	{
-		return size + QSize(2, 2);
-	}
-	
-private:
-	QSize size;
-};
-
 void DGameList::RebuildList()
 {
 	std::vector<GameListItem>& items = abstrGameList.getItems();
@@ -298,23 +254,19 @@ void DGameList::RebuildList()
 	sourceModel->clear();
 	sourceModel->setRowCount(items.size());
 
-	// custom item delegate which paints a QImage
-	QPixmap pm = QPixmap::fromImage(QImage(&(items[0].GetImage()[0]), 96, 32, QImage::Format_RGB888));
-	setItemDelegateForColumn(0, new DIconItemDelegate(pm));
-	setItemDelegateForColumn(1, new DIconItemDelegate(pm));
-	setItemDelegateForColumn(4, new DIconItemDelegate(pm));
-	setItemDelegateForColumn(6, new DIconItemDelegate(pm));
-
+	// TODO: Remove those /2 hacks, which are required because the source pixmaps use too much blank space
 	for (int i = 0; i < (int)items.size(); ++i)
 	{
 		QStandardItem* item = new QStandardItem;
-		item->setData(QVariant::fromValue(QIcon(Resources::GetPlatformPixmap(items[i].GetPlatform()))), 0);
+		item->setData(QVariant::fromValue(Resources::GetPlatformPixmap(items[i].GetPlatform())),Qt::DecorationRole);
+		item->setSizeHint(Resources::GetPlatformPixmap(items[i].GetPlatform()).size()/2);
 		sourceModel->setItem(i, 0, item);
 
 		if(!items[i].GetImage().empty())
 		{
 			QStandardItem* item = new QStandardItem;
-			item->setData(QVariant::fromValue(QIcon(QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888)))), 0);
+			item->setData(QVariant::fromValue(QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888))), Qt::DecorationRole);
+			item->setSizeHint(QSize(96, 34));
 			sourceModel->setItem(i, 1, item);
 		}
 		else
@@ -323,14 +275,16 @@ void DGameList::RebuildList()
 			banner.loadFromData(no_banner_png, sizeof(no_banner_png));
 
 			QStandardItem* item = new QStandardItem;
-			item->setData(QVariant::fromValue(QIcon(banner)), 0);
+			item->setData(QVariant::fromValue(banner), Qt::DecorationRole);
+			item->setSizeHint(QSize(96, 34));
 			sourceModel->setItem(i, 1, item);
 		}
 		sourceModel->setItem(i, 2, new QStandardItem(items[i].GetName(0).c_str()));
 		sourceModel->setItem(i, 3, new QStandardItem(items[i].GetDescription(0).c_str()));
 
 		QStandardItem* item4 = new QStandardItem;
-		item4->setData(QVariant::fromValue(QIcon(Resources::GetRegionPixmap(items[i].GetCountry()))), 0);
+		item4->setData(QVariant::fromValue(Resources::GetRegionPixmap(items[i].GetCountry())), Qt::DecorationRole);
+		item4->setSizeHint(Resources::GetRegionPixmap(items[i].GetCountry()).size()/3);
 		sourceModel->setItem(i, 4, item4);
 
 		sourceModel->setItem(i, 5, new QStandardItem(NiceSizeFormat(items[i].GetFileSize())));
@@ -340,7 +294,8 @@ void DGameList::RebuildList()
 		ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (items[i].GetUniqueID()) + ".ini").c_str());
 		ini.Get("EmuState", "EmulationStateId", &state);
 		QStandardItem* item6 = new QStandardItem;
-		item6->setData(QVariant::fromValue(QIcon(Resources::GetRatingPixmap(state))), 0);
+		item6->setData(QVariant::fromValue(Resources::GetRatingPixmap(state)), Qt::DecorationRole);
+		item6->setSizeHint(Resources::GetRatingPixmap(state).size()*0.6f);
 		sourceModel->setItem(i, 6, item6);
 	}
 	QStringList columnTitles;
@@ -358,7 +313,8 @@ GameListItem* DGameList::GetSelectedISO()
 	else return &(abstrGameList.getItems()[indexList[0].row()]);
 }
 
-void DGameList::mouseDoubleClickEvent(QMouseEvent* )
+void DGameList::mouseDoubleClickEvent(QMouseEvent* event)
 {
-	emit DoubleClicked();
+	if (event->buttons() & Qt::LeftButton)
+		emit DoubleLeftClicked();
 }

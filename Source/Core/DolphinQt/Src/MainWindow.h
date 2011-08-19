@@ -15,7 +15,7 @@ class DMainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	DMainWindow();
+	DMainWindow(int x, int y, int w, int h);
 	~DMainWindow();
 
 	QWidget* GetRenderWindow() const { return renderWindow; }

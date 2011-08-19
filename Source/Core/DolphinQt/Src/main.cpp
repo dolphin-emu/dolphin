@@ -120,12 +120,9 @@ int main(int argc, char* argv[])
 #endif */
 
 
-	mainWindow = new DMainWindow;
-	mainWindow->move(x, y);
-	mainWindow->resize(w, h);
+	mainWindow = new DMainWindow(x, y, w, h);
 	// TODO: Title => svn_rev_str
 	// TODO: UseLogger
-	mainWindow->setMinimumSize(400, 300);
 	return app.exec();
 
 	// TODO: On exit:

@@ -24,7 +24,7 @@ public:
 };
 
 
-DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
+DMainWindow::DMainWindow(int x, int y, int w, int h) : logWindow(NULL), renderWindow(NULL), is_stopping(false)
 {
 	Resources::Init();
 
@@ -43,9 +43,12 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 
 	setWindowIcon(QIcon(Resources::GetDolphinIcon()));
 	setWindowTitle("Dolphin");
+	move(x, y);
+	resize(w, h);
+	setMinimumSize(400, 300);
 	show();
 
-	connect(gameList, SIGNAL(DoubleClicked()), this, SLOT(OnStartPause()));
+	connect(gameList, SIGNAL(DoubleLeftClicked()), this, SLOT(OnStartPause()));
 	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
 
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
@@ -62,6 +65,10 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 	DoStop();
 
 	// Save UI configuration
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = x();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = y();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = width();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = height();
 	SConfig::GetInstance().m_InterfaceLogWindow = logWindow->isVisible();
 	SConfig::GetInstance().m_InterfaceLogConfigWindow = logSettings->isVisible();
 	SConfig::GetInstance().SaveSettings();

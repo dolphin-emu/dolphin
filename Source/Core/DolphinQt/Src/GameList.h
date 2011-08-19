@@ -67,5 +67,5 @@ private:
 	QStandardItemModel* sourceModel;
 
 signals:
-	void DoubleClicked();
+	void DoubleLeftClicked();
 };
