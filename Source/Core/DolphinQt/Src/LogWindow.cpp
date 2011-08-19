@@ -118,7 +118,9 @@ void DLogSettingsDock::OnToggleChannels()
 
 void DLogSettingsDock::closeEvent(QCloseEvent* event)
 {
+	// TODO: Handle this differently, since we need to keep the window open if the "really stop emulation?" question was answered with "no"
 	emit Closed();
+	QWidget::closeEvent(event);
 }
 
 DLogWindow::DLogWindow(QWidget * parent, Qt::WindowFlags flags)
@@ -174,4 +176,5 @@ void DLogWindow::Log(LogTypes::LOG_LEVELS, const char *msg)
 void DLogWindow::closeEvent(QCloseEvent* event)
 {
 	emit Closed();
+	QWidget::closeEvent(event);
 }

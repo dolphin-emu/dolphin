@@ -13,7 +13,6 @@
 void DMainWindow::StartGame(const std::string& filename)
 {
 	// TODO: Disable play toolbar action, replace with pause
-	gameList->setVisible(false);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
@@ -22,23 +21,26 @@ void DMainWindow::StartGame(const std::string& filename)
 	}
 	else
 	{
-/*		wxPoint position(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
-		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);*/
+		// TODO: The window should be closed on emulation stop again..
+		renderWindow = new DRenderWindow;
+		renderWindow->setWindowTitle(tr("Dolphin")); // TODO: Other window title..
+		renderWindow->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+		renderWindow->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
+							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		renderWindow->show();
 
-		// TODO: Create render window at position with size, title Dolphin
-		// TODO: Connect close to OnRenderParentClose
-		// TODO: render window should be dockable into the main window => render to main window
+		connect(renderWindow, SIGNAL(Closed()), this, SLOT(OnStop()));
+
+		// TODO: render window should be dockable into the main window? => render to main window
 	}
 	if (!BootManager::BootCore(filename))
 	{
 		QMessageBox(QMessageBox::Critical, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok, this);
 		// Destroy the renderer frame when not rendering to main
-/*		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			m_RenderFrame->Destroy();
-		m_RenderParent = NULL;
-		UpdateGUI();*/
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			renderWindow->close(); // TODO: .. meh, this will conflict with the code above, endless loop and stuff
+		renderWindow = NULL;
 	}
 	else
 	{
@@ -47,7 +49,7 @@ void DMainWindow::StartGame(const std::string& filename)
 		// TODO: Fullscreen
 		//DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
-		// TODO: Set focus to render window
+		renderWindow->setFocus();
 		emit CoreStateChanged(Core::CORE_RUN);
 	}
 }
@@ -79,18 +81,19 @@ void DMainWindow::DoStartPause()
     {
         Core::SetState(Core::CORE_PAUSE);
 		emit CoreStateChanged(Core::CORE_PAUSE);
-		// TODO:
-//		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-//			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+
+		// TODO: This doesn't work, yet
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			renderWindow->setCursor(Qt::BlankCursor);
     }
     else
     {
         Core::SetState(Core::CORE_RUN);
 		emit CoreStateChanged(Core::CORE_RUN);
-		// TODO:
-//        if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-//                RendererHasFocus())
-//            m_RenderParent->SetCursor(wxCURSOR_BLANK);
+
+		// TODO: This doesn't work, yet
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			renderWindow->setCursor(Qt::BlankCursor);
     }
 }
 
@@ -139,10 +142,14 @@ void DMainWindow::DoStop()
             SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
                     SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);*/
 
-		gameList->setEnabled(true);
-		gameList->setVisible(true);
-
 		emit CoreStateChanged(Core::CORE_UNINITIALIZED);
+
+		// TODO: Meh, this potentially fucks up things..
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		{
+			renderWindow->close();
+			renderWindow = NULL;
+		}
 	}
 }
 
@@ -198,6 +205,10 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 		playAction->setIcon(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLAY)));
 
 	stopAction->setEnabled(is_running || is_paused);
+
+	// Game list
+	gameList->setEnabled(is_not_initialized);
+	gameList->setVisible(is_not_initialized);
 
 	// TODO: Update menu items
 }

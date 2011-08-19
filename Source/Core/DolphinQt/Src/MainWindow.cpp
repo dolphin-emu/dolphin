@@ -10,7 +10,7 @@
 #include "Core.h"
 
 
-DMainWindow::DMainWindow() : logWindow(NULL)
+DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL)
 {
 	Resources::Init();
 
@@ -47,6 +47,8 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 	SConfig::GetInstance().m_InterfaceLogWindow = logWindow->isVisible();
 	SConfig::GetInstance().m_InterfaceLogConfigWindow = logSettings->isVisible();
 	SConfig::GetInstance().SaveSettings();
+
+	QWidget::closeEvent(ev);
 }
 
 void DMainWindow::CreateMenus()

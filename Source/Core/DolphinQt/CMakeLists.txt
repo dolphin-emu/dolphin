@@ -4,6 +4,7 @@ set(SRCS	Src/GameList.cpp
 			Src/main.cpp
 			Src/MainWindow.cpp
 			Src/MainWindowEvents.cpp
+			Src/RenderWindow.cpp
 			Src/Resources.cpp
 			Src/Util.cpp)
 
@@ -25,7 +26,8 @@ set(EXEGUI dolphin-emu-qt4)
 
 qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/GameList.h
 								Src/LogWindow.h
-								Src/MainWindow.h)
+								Src/MainWindow.h
+								Src/RenderWindow.h)
 
 add_executable(${EXEGUI} ${SRCS} ${MOC_SRCS})
 target_link_libraries(${EXEGUI} ${LIBS} ${QT_LIBRARIES})

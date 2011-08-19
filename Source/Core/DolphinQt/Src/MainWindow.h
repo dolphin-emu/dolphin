@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include "GameList.h"
+#include "RenderWindow.h"
 
 // TODO: remove
 #include <QtGui>
@@ -15,6 +16,8 @@ class DMainWindow : public QMainWindow
 public:
 	DMainWindow();
 	~DMainWindow();
+
+	DRenderWindow* GetRenderWindow() const { return renderWindow; }
 
 private slots:
 	void OnLoadIso();
@@ -63,6 +66,8 @@ private:
 
 	QAction* playAction;
 	QAction* stopAction;
+
+	DRenderWindow* renderWindow;
 
 signals:
 	void CoreStateChanged(Core::EState state);

@@ -10,6 +10,8 @@
 
 #include "VideoBackendBase.h"
 
+DMainWindow* mainWindow = NULL;
+
 int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
@@ -118,12 +120,12 @@ int main(int argc, char* argv[])
 #endif */
 
 
-	DMainWindow window;
-	window.move(x, y);
-	window.resize(w, h);
+	mainWindow = new DMainWindow;
+	mainWindow->move(x, y);
+	mainWindow->resize(w, h);
 	// TODO: Title => svn_rev_str
 	// TODO: UseLogger
-	window.setMinimumSize(400, 300);
+	mainWindow->setMinimumSize(400, 300);
 	return app.exec();
 
 	// TODO: On exit:
@@ -152,7 +154,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-	return NULL;
+	return (void*)(mainWindow->GetRenderWindow()->effectiveWinId());
 }
 
 bool Host_GetKeyState(int)
@@ -165,16 +167,19 @@ void Host_RefreshDSPDebuggerWindow()
 
 }
 
-void Host_RequestRenderWindowSize(int, int)
+void Host_RequestRenderWindowSize(int w, int h)
 {
-
+	mainWindow->GetRenderWindow()->resize(w, h);
 }
+
+// TODO: Rename this to GetRenderClientSize
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
-	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
+	// TODO: Make it more clear what this is supposed to return.. i.e. wxw always sets x=y=0
+	x = 0;
+	y = 0;
+	width = mainWindow->GetRenderWindow()->width();
+	height = mainWindow->GetRenderWindow()->height();
 }
 
 void Host_ConnectWiimote(int, bool)
@@ -221,10 +226,6 @@ void Host_ShowJitResults(unsigned int address)
 }
 
 void Host_SetDebugMode(bool enable)
-{
-}
-
-void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
 {
 }
 
