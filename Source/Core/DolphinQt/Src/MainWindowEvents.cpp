@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "LogWindow.h"
 #include "Resources.h"
+#include "ConfigMain.h"
 
 #include "BootManager.h"
 #include "Common.h"
@@ -298,4 +299,34 @@ void DMainWindow::OnLogSettingsWindowClosed()
 {
 	// this calls OnShowLogMan(false)
 	showLogSettingsAct->setChecked(false);
+}
+
+void DMainWindow::OnConfigure()
+{
+	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_General, this);
+	dialog->show();
+}
+
+void DMainWindow::OnGfxSettings()
+{
+	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Graphics, this);
+	dialog->show();
+}
+
+void DMainWindow::OnSoundSettings()
+{
+	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Sound, this);
+	dialog->show();
+}
+
+void DMainWindow::OnGCPadSettings()
+{
+	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_GCPad, this);
+	dialog->show();
+}
+
+void DMainWindow::OnWiimoteSettings()
+{
+	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Wiimote, this);
+	dialog->show();
 }

@@ -44,6 +44,8 @@ private:
 	DAbstractProgressBar* progressBar;
 };
 
+// TODO: Add a game list which acts like a file explorer
+
 class DGameList : public QTreeView
 {
 	Q_OBJECT

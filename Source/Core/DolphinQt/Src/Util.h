@@ -12,7 +12,7 @@ template<class Layout>
 class DGroupBox : public QGroupBox
 {
 public:
-	DGroupBox(const QString& title, QWidget* parent = NULL)
+	DGroupBox(const QString& title, QWidget* parent = NULL) : QGroupBox(title, parent)
 	{
 		layout = new Layout;
 		setLayout(layout);

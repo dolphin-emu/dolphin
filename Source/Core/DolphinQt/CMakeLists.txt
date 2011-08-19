@@ -1,4 +1,6 @@
-set(SRCS	Src/GameList.cpp
+set(SRCS	Src/ConfigMain.cpp
+			Src/ConfigPad.cpp
+			Src/GameList.cpp
 			Src/ISOFile.cpp
 			Src/LogWindow.cpp
 			Src/main.cpp
@@ -24,7 +26,9 @@ set(LIBS	core
 
 set(EXEGUI dolphin-emu-qt4)
 
-qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/GameList.h
+qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/ConfigMain.h
+								Src/ConfigPad.h
+								Src/GameList.h
 								Src/LogWindow.h
 								Src/MainWindow.h
 								Src/RenderWindow.h)

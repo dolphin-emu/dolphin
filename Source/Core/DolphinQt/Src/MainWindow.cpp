@@ -55,6 +55,8 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 	setMinimumSize(400, 300);
 	show();
 
+	// idea: On first start, show a configuration wizard? ;)
+
 	connect(gameList, SIGNAL(StartGame()), this, SLOT(OnStartPause()));
 	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
 
@@ -92,6 +94,7 @@ void DMainWindow::CreateMenus()
 	// File
 	QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 	QAction* loadIsoAct = fileMenu->addAction(tr("&Load ISO..."));
+	QAction* browseAct = fileMenu->addAction(tr("&Browse..."));
 	fileMenu->addSeparator();
 	QAction* refreshListAct = fileMenu->addAction(tr("&Refresh list"));
 	fileMenu->addSeparator();
@@ -104,12 +107,13 @@ void DMainWindow::CreateMenus()
 
 	// Options
 	QMenu* optionsMenu = menuBar()->addMenu(tr("&Options"));
-	QAction* configureAct = optionsMenu->addAction(tr("Configure"));
+	QAction* configureAct = optionsMenu->addAction(tr("&General Settings"));
+	QAction* hotkeyAct = optionsMenu->addAction(tr("&Hotkeys"));
 	optionsMenu->addSeparator();
-	QAction* gfxSettingsAct = optionsMenu->addAction(tr("Graphics settings"));
-	QAction* soundSettingsAct = optionsMenu->addAction(tr("Sound settings"));
-	QAction* gcpadSettingsAct = optionsMenu->addAction(tr("Controller settings"));
-	QAction* wiimoteSettingsAct = optionsMenu->addAction(tr("Wiimote settings"));
+	QAction* gfxSettingsAct = optionsMenu->addAction(tr("&Graphics settings"));
+	QAction* soundSettingsAct = optionsMenu->addAction(tr("&Sound settings"));
+	QAction* gcpadSettingsAct = optionsMenu->addAction(tr("&Controller settings"));
+	QAction* wiimoteSettingsAct = optionsMenu->addAction(tr("&Wiimote settings"));
 
 	// View
 	QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
@@ -142,6 +146,7 @@ void DMainWindow::CreateMenus()
 	connect(hideMenuAct, SIGNAL(toggled(bool)), this, SLOT(OnHideMenu(bool)));
 
 	connect(configureAct, SIGNAL(triggered()), this, SLOT(OnConfigure()));
+	connect(hotkeyAct, SIGNAL(triggered()), this, SLOT(OnConfigureHotkeys()));
 	connect(gfxSettingsAct, SIGNAL(triggered()), this, SLOT(OnGfxSettings()));
 	connect(soundSettingsAct, SIGNAL(triggered()), this, SLOT(OnSoundSettings()));
 	connect(gcpadSettingsAct, SIGNAL(triggered()), this, SLOT(OnGCPadSettings()));
@@ -161,13 +166,13 @@ void DMainWindow::CreateToolBars()
 
 	QAction* openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
 	QAction* refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
-	QAction* browseAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DirIcon), tr("Browse"));
+//	QAction* browseAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DirIcon), tr("Browse"));
 	toolBar->addSeparator();
 
 	playAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("Play"));
 	stopAction = toolBar->addAction(style()->standardIcon(QStyle::SP_MediaStop), tr("Stop"));
-	QAction* fscrAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_FULLSCREEN)), tr("FullScr"));
-	QAction* scrshotAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_SCREENSHOT)), tr("ScrShot"));
+//	QAction* fscrAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_FULLSCREEN)), tr("FullScr"));
+//	QAction* scrshotAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_SCREENSHOT)), tr("ScrShot"));
 	toolBar->addSeparator();
 
 	QAction* configAction = toolBar->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_CONFIGURE)), tr("Config"));
@@ -180,6 +185,15 @@ void DMainWindow::CreateToolBars()
 	connect(refreshAction, SIGNAL(triggered()), this, SLOT(OnRefreshList()));
 	connect(playAction, SIGNAL(triggered()), this, SLOT(OnStartPause()));
 	connect(stopAction, SIGNAL(triggered()), this, SLOT(OnStop()));
+
+	// TODO: Fullscreen
+	// TODO: Screenshot
+
+	connect(configAction, SIGNAL(triggered()), this, SLOT(OnConfigure()));
+	connect(gfxAction, SIGNAL(triggered()), this, SLOT(OnGfxSettings()));
+	connect(soundAction, SIGNAL(triggered()), this, SLOT(OnSoundSettings()));
+	connect(padAction, SIGNAL(triggered()), this, SLOT(OnGCPadSettings()));
+	connect(wiimoteAction, SIGNAL(triggered()), this, SLOT(OnWiimoteSettings()));
 }
 
 void DMainWindow::CreateStatusBar()

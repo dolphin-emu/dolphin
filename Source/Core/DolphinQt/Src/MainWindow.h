@@ -27,11 +27,12 @@ private slots:
 	void OnStartPause();
 	void OnStop();
 
-	void OnConfigure() {};
-	void OnGfxSettings() {};
-	void OnSoundSettings() {};
-	void OnGCPadSettings() {};
-	void OnWiimoteSettings() {};
+	void OnConfigure();
+	void OnConfigureHotkeys() {};
+	void OnGfxSettings();
+	void OnSoundSettings();
+	void OnGCPadSettings();
+	void OnWiimoteSettings();
 
 	void OnShowLogMan(bool show);
 	void OnShowLogSettings(bool show);
