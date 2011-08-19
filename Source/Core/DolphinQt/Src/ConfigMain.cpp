@@ -10,7 +10,10 @@
 #include <QStackedWidget>
 
 #include "ConfigMain.h"
+#include "ConfigAudio.h"
+#include "ConfigGfx.h"
 #include "ConfigPad.h"
+#include "ConfigWiimote.h"
 #include "Util.h"
 #include "Resources.h"
 
@@ -94,26 +97,6 @@ void DConfigMainGeneralTab::Apply()
 	Startup.bRenderToMain = cbRenderToMain->isChecked();
 }
 
-DConfigMainSoundTab::DConfigMainSoundTab(QWidget* parent): QWidget(parent)
-{
-
-}
-
-DConfigMainSoundTab::~DConfigMainSoundTab()
-{
-
-}
-
-void DConfigMainSoundTab::Reset()
-{
-
-}
-
-void DConfigMainSoundTab::Apply()
-{
-
-}
-
 DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* parent) : QDialog(parent)
 {
 	setModal(true);
@@ -157,20 +140,24 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 
 
 	// Configuration widgets
-	DConfigMainGeneralTab* generalTab = new DConfigMainGeneralTab;
-	DConfigMainSoundTab* audioTab = new DConfigMainSoundTab;
+	DConfigMainGeneralTab* generalWidget = new DConfigMainGeneralTab;
+	DConfigGfx* gfxWidget = new DConfigGfx;
+	DConfigAudio* audioWidget = new DConfigAudio;
 	DConfigPadWidget* padWidget = new DConfigPadWidget;
+	DConfigWiimote* wiimoteWidget = new DConfigWiimote;
 
-	connect(this, SIGNAL(Apply()), generalTab, SLOT(Apply()));
-	connect(this, SIGNAL(Apply()), audioTab, SLOT(Apply()));
+	connect(this, SIGNAL(Apply()), generalWidget, SLOT(Apply()));
+	connect(this, SIGNAL(Apply()), gfxWidget, SLOT(Apply()));
+	connect(this, SIGNAL(Apply()), audioWidget, SLOT(Apply()));
 	connect(this, SIGNAL(Apply()), padWidget, SLOT(Apply()));
+	connect(this, SIGNAL(Apply()), wiimoteWidget, SLOT(Apply()));
 
 	stackWidget = new QStackedWidget;
-	stackWidget->addWidget(generalTab);
-	stackWidget->addWidget(new QWidget); // TODO
-	stackWidget->addWidget(audioTab);
+	stackWidget->addWidget(generalWidget);
+	stackWidget->addWidget(gfxWidget);
+	stackWidget->addWidget(audioWidget);
 	stackWidget->addWidget(padWidget);
-	stackWidget->addWidget(new QWidget); // TODO
+	stackWidget->addWidget(wiimoteWidget);
 	stackWidget->setCurrentIndex(initialConfigItem);
 
 	connect(menusView, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)),

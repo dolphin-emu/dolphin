@@ -93,27 +93,43 @@ void DMainWindow::CreateMenus()
 {
 	// File
 	QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
-	QAction* loadIsoAct = fileMenu->addAction(tr("&Load ISO..."));
-	QAction* browseAct = fileMenu->addAction(tr("&Browse..."));
+	QAction* loadIsoAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load ISO ..."));
+	QAction* browseAct = fileMenu->addAction(tr("&Browse for ISOs ..."));
 	fileMenu->addSeparator();
-	QAction* refreshListAct = fileMenu->addAction(tr("&Refresh list"));
+	QAction* refreshListAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("&Refresh list"));
 	fileMenu->addSeparator();
-	QAction* exitAct = fileMenu->addAction(tr("&Exit"));
+	QAction* exitAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_DialogCloseButton), tr("&Exit")); // TODO: Other icon
 
 	// Emulation
 	QMenu* emuMenu = menuBar()->addMenu(tr("&Emulation"));
-	QAction* pauseAct = emuMenu->addAction(tr("&Start/Pause"));
-	QAction* stopAct = emuMenu->addAction(tr("&Stop"));
+	QAction* pauseAct = emuMenu->addAction(style()->standardIcon(QStyle::SP_MediaPlay), tr("&Start/Pause"));
+	QAction* stopAct = emuMenu->addAction(style()->standardIcon(QStyle::SP_MediaStop), tr("&Stop"));
+	emuMenu->addSeparator();
+	QAction* fullscreenAct = emuMenu->addAction(tr("Toggle &Fullscreen"));
+	emuMenu->addSeparator();
+	QMenu* savestateMenu = emuMenu->addMenu(tr("Save State"));
+	QMenu* loadstateMenu = emuMenu->addMenu(tr("Load State"));
+	// TODO: Add state menu items .. rather than slots, we should keep a list of recently saved/loaded state files
 
 	// Options
 	QMenu* optionsMenu = menuBar()->addMenu(tr("&Options"));
-	QAction* configureAct = optionsMenu->addAction(tr("&General Settings"));
+	QAction* configureAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_CONFIGURE)), tr("&General Settings ..."));
 	QAction* hotkeyAct = optionsMenu->addAction(tr("&Hotkeys"));
 	optionsMenu->addSeparator();
-	QAction* gfxSettingsAct = optionsMenu->addAction(tr("&Graphics settings"));
-	QAction* soundSettingsAct = optionsMenu->addAction(tr("&Sound settings"));
-	QAction* gcpadSettingsAct = optionsMenu->addAction(tr("&Controller settings"));
-	QAction* wiimoteSettingsAct = optionsMenu->addAction(tr("&Wiimote settings"));
+	QAction* gfxSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GFX)), tr("&Graphics settings ..."));
+	QAction* soundSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_DSP)), tr("&Sound settings ..."));
+	QAction* gcpadSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_GCPAD)), tr("&Controller settings ..."));
+	QAction* wiimoteSettingsAct = optionsMenu->addAction(QIcon(Resources::GetToolbarPixmap(Resources::TOOLBAR_PLUGIN_WIIMOTE)), tr("&Wiimote settings ..."));
+
+	// Tools
+	QMenu* toolsMenu = menuBar()->addMenu(tr("Tools"));
+	QAction* memcardsAct = toolsMenu->addAction(tr("Memory Cards ..."));
+	QAction* wiisavesAct = toolsMenu->addAction(tr("Import Wii Save Games ..."));
+	toolsMenu->addSeparator();
+	QAction* installWadAct = toolsMenu->addAction(tr("Install WAD ..."));
+	QAction* loadWiiAct = toolsMenu->addAction(tr("Load Wii Menu"));
+	toolsMenu->addSeparator();
+	QAction* cheatsAct = toolsMenu->addAction(tr("Cheats ..."));
 
 	// View
 	QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
@@ -130,7 +146,10 @@ void DMainWindow::CreateMenus()
 
 	// Help
 	QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
-	QAction* aboutAct = helpMenu->addAction(tr("About..."));
+	QAction* websiteAct = helpMenu->addAction(tr("Dolphin Homepage ..."));
+	QAction* reportIssueAct = helpMenu->addAction(tr("Report an issue ..."));
+	helpMenu->addSeparator();
+	QAction* aboutAct = helpMenu->addAction(tr("About ..."));
 
 
 	// Events
@@ -160,7 +179,7 @@ void DMainWindow::CreateMenus()
 
 void DMainWindow::CreateToolBars()
 {
-	QToolBar* toolBar = addToolBar(tr("File"));
+	QToolBar* toolBar = addToolBar(tr("Main Toolbar"));
 	toolBar->setIconSize(QSize(24, 24));
 	toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 

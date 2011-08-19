@@ -37,28 +37,6 @@ private:
 	QCheckBox* cbRenderToMain;
 };
 
-class DConfigMainSoundTab : public QWidget
-{
-	Q_OBJECT
-
-public:
-	DConfigMainSoundTab(QWidget* parent = NULL);
-	virtual ~DConfigMainSoundTab();
-
-public slots:
-	void Reset();
-	void Apply();
-
-private:
-	QButtonGroup* rbDSPEngine;
-	QComboBox* chBackend;
-	QComboBox* chSamplingRate;
-	QCheckBox* cbEnableDTK;
-	QCheckBox* cbRecordAudio;
-	QCheckBox* cbLLEOnThread;
-	QDiag* dgVolume;
-};
-
 class DConfigDialog : public QDialog
 {
 	Q_OBJECT

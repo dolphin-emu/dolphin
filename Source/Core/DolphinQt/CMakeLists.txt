@@ -1,5 +1,8 @@
-set(SRCS	Src/ConfigMain.cpp
+set(SRCS	Src/ConfigAudio.cpp
+			Src/ConfigGfx.cpp
+			Src/ConfigMain.cpp
 			Src/ConfigPad.cpp
+			Src/ConfigWiimote.cpp
 			Src/GameList.cpp
 			Src/ISOFile.cpp
 			Src/LogWindow.cpp
@@ -26,8 +29,11 @@ set(LIBS	core
 
 set(EXEGUI dolphin-emu-qt4)
 
-qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/ConfigMain.h
+qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/ConfigAudio.h
+								Src/ConfigGfx.h
+								Src/ConfigMain.h
 								Src/ConfigPad.h
+								Src/ConfigWiimote.h
 								Src/GameList.h
 								Src/LogWindow.h
 								Src/MainWindow.h
