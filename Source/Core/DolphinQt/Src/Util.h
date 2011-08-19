@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <QLayout>
-class QGroupBox;
+#include <QGroupBox>
 class QHBoxLayout;
 class QString;
 class QVBoxLayout;

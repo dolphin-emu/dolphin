@@ -24,16 +24,16 @@ public:
 };
 
 
-DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL)
+DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
 {
 	Resources::Init();
 
-	DLayoutWidgetV* gameListLayout = new DLayoutWidgetV();
+	centralLayout = new DLayoutWidgetV();
 	DGameListProgressBar* progBar = new DGameListProgressBar;
 	gameList = new DGameList(progBar);
-	gameListLayout->addWidget(gameList);
-	gameListLayout->addWidget(progBar);
-	setCentralWidget(gameListLayout);
+	centralLayout->addWidget(gameList);
+	centralLayout->addWidget(progBar);
+	setCentralWidget(centralLayout);
 
 	CreateMenus();
 	CreateToolBars();

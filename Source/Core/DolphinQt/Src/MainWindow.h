@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include "GameList.h"
 #include "RenderWindow.h"
+#include "Util.h"
 
 // TODO: remove
 #include <QtGui>
@@ -17,7 +18,7 @@ public:
 	DMainWindow();
 	~DMainWindow();
 
-	DRenderWindow* GetRenderWindow() const { return renderWindow; }
+	QWidget* GetRenderWindow() const { return renderWindow; }
 
 private slots:
 	void OnLoadIso();
@@ -56,6 +57,9 @@ private:
 
 	void closeEvent(QCloseEvent*);
 
+	// Stores gameList and ISO scanning progress bar OR render widget
+	DLayoutWidgetV* centralLayout;
+
 	DGameList* gameList;
 
 	QAction* showLogManAct;
@@ -67,7 +71,11 @@ private:
 	QAction* playAction;
 	QAction* stopAction;
 
-	DRenderWindow* renderWindow;
+	QWidget* renderWindow;
+
+	// Emulation stopping closes the render window; closing the render window also stops emulation
+	// Thus, in order to prevent endless loops, we need this variable.
+	bool is_stopping;
 
 signals:
 	void CoreStateChanged(Core::EState state);

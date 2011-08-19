@@ -14,26 +14,23 @@ void DMainWindow::StartGame(const std::string& filename)
 {
 	// TODO: Disable play toolbar action, replace with pause
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	renderWindow = new DRenderWindow;
+	renderWindow->setWindowTitle(tr("Dolphin")); // TODO: Other window title..
+	renderWindow->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+	renderWindow->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
+						SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
-//		m_RenderParent = m_Panel;
-//		m_RenderFrame = this;
+		// TODO: render window should be dockable into the main window? => render to main window
+		connect(renderWindow, SIGNAL(Closed()), this, SLOT(OnStop()));
+		renderWindow->show();
 	}
 	else
 	{
-		// TODO: The window should be closed on emulation stop again..
-		renderWindow = new DRenderWindow;
-		renderWindow->setWindowTitle(tr("Dolphin")); // TODO: Other window title..
-		renderWindow->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
-		renderWindow->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
-							SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-		renderWindow->show();
-
-		connect(renderWindow, SIGNAL(Closed()), this, SLOT(OnStop()));
-
-		// TODO: render window should be dockable into the main window? => render to main window
+		centralLayout->addWidget(renderWindow);
 	}
+
 	if (!BootManager::BootCore(filename))
 	{
 		QMessageBox(QMessageBox::Critical, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok, this);
@@ -99,8 +96,9 @@ void DMainWindow::DoStartPause()
 
 void DMainWindow::DoStop()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)// || m_RenderParent != NULL)
+	if (Core::GetState() != Core::CORE_UNINITIALIZED && !is_stopping)
 	{
+		is_stopping = true;
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
@@ -124,7 +122,8 @@ void DMainWindow::DoStop()
 		// TODO: Allow screensaver again
 		// TODO: Restore original window title
 
-		// TODO: Destroy render window (unless rendering to main)
+		renderWindow->close();
+		renderWindow = NULL;
 
 		// TODO: Show cursor again if it was hidden before (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 
@@ -143,14 +142,8 @@ void DMainWindow::DoStop()
                     SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);*/
 
 		emit CoreStateChanged(Core::CORE_UNINITIALIZED);
-
-		// TODO: Meh, this potentially fucks up things..
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		{
-			renderWindow->close();
-			renderWindow = NULL;
-		}
 	}
+	is_stopping = false;
 }
 
 void DMainWindow::OnStartPause()
