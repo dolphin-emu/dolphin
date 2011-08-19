@@ -61,7 +61,7 @@ protected:
 	void RefreshView();
 
 private:
-	void mouseDoubleClickEvent(QMouseEvent*);
+	void OnItemActivated(const QModelIndex&);
 
 	QStandardItemModel* sourceModel;
 
@@ -82,13 +82,14 @@ public:
 	void ScanForIsos();
 	GameListItem* GetSelectedISO();
 
+public slots:
+	void OnItemActivated(const QModelIndex&);
+
 protected:
 	void RefreshView();
 	void resizeEvent(QResizeEvent*);
 
 private:
-	void mouseDoubleClickEvent(QMouseEvent*);
-
 	QStandardItemModel* sourceModel;
 
 	DAbstractGameList abstrGameList;

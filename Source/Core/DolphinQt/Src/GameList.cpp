@@ -212,6 +212,9 @@ DGameList::DGameList(DAbstractProgressBar* progBar) : abstrGameList(progBar)
 	setAlternatingRowColors(true);
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setUniformRowHeights(true);
+
+	// TODO: Is activated the correct signal?
+	connect(this, SIGNAL(activated(QModelIndex)), this, SLOT(OnItemActivated(QModelIndex)));
 }
 
 DGameList::~DGameList()
@@ -319,11 +322,11 @@ GameListItem* DGameList::GetSelectedISO()
 	return NULL;
 }
 
-void DGameList::mouseDoubleClickEvent(QMouseEvent* event)
+void DGameList::OnItemActivated(const QModelIndex& index)
 {
-	// TODO: Do the same when enter is pressed!
-	// TODO: Meh, use signal QAbstractItemView::doubleClicked() instead...
-	emit StartGame();
+	// TODO: Untested
+	if (index.row() < (int)abstrGameList.getItems().size())
+		emit StartGame();
 }
 
 
@@ -337,6 +340,9 @@ DGameTable::DGameTable(DAbstractProgressBar* progBar) : abstrGameList(progBar), 
 	verticalHeader()->setVisible(false);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	setGridStyle(Qt::NoPen);
+
+	// TODO: Is activated the correct signal?
+	connect(this, SIGNAL(activated(QModelIndex)), this, SLOT(OnItemActivated(QModelIndex)));
 }
 
 DGameTable::~DGameTable()
@@ -408,11 +414,10 @@ GameListItem* DGameTable::GetSelectedISO()
 	return NULL;
 }
 
-void DGameTable::mouseDoubleClickEvent(QMouseEvent* event)
+void DGameTable::OnItemActivated(const QModelIndex& index)
 {
 	// TODO: Do the same when enter is pressed!
-	// TODO: Meh, use signal QAbstractItemView::doubleClicked() instead...
-	if (GetSelectedISO() != NULL)
+	if (index.row() * num_columns + index.column() < abstrGameList.getItems().size())
 		emit StartGame();
 }
 
