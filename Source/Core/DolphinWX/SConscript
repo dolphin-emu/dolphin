@@ -113,7 +113,7 @@ elif sys.platform == 'darwin':
 		CFBundleIdentifier = 'com.dolphin-emulator.dolphin',
 		CFBundleLocalizations = languages,
 		CFBundlePackageType = 'APPL',
-		CFBundleShortVersionString = '0',
+		CFBundleShortVersionString = env['svnrev'],
 		CFBundleVersion = '3.0',
 		LSMinimumSystemVersion = '10.5.4',
 		LSRequiresCarbon = True,

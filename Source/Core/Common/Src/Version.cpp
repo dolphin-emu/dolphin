@@ -19,11 +19,11 @@
 #include "svnrev.h"
 
 #ifdef _DEBUG
-const char *svn_rev_str = "Dolphin Debug " SVN_REV_STR;
+const char *svn_rev_str = "Dolphin Debug r" SVN_REV_STR;
 #elif defined DEBUGFAST
-const char *svn_rev_str = "Dolphin Debugfast " SVN_REV_STR;
+const char *svn_rev_str = "Dolphin Debugfast r" SVN_REV_STR;
 #else
-const char *svn_rev_str = "Dolphin " SVN_REV_STR;
+const char *svn_rev_str = "Dolphin r" SVN_REV_STR;
 #endif   
 
 #ifdef _M_X64
