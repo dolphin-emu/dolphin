@@ -417,7 +417,7 @@ endif(NOT DISABLE_WX)
 ########################################
 # Pre-build events: Define configuration variables and write svnrev header
 #
-if(SCM_BRANCH_STR EQUAL "master")
+if(DOLPHIN_WC_BRANCH STREQUAL "master")
 	set(DOLPHIN_WC_IS_MASTER "1")
 else()
 	set(DOLPHIN_WC_IS_MASTER "0")
