@@ -1,0 +1,109 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba;
+
+  //Change this number to increase the pixel size.
+  int pixelSize = 3;
+
+  float red   = 0.0;
+  float green = 0.0;
+  float blue  = 0.0;
+  int  val = uv0[0];
+  int val2 = uv0[1];
+
+  val = val % pixelSize;
+  val2 = val2  % pixelSize;
+
+ if(val == 0 && val2 == 0  ){
+		 if (c0.r < 0.1 && c0.r >= 0)
+			red = 0.1;
+		 if (c0.r < 0.20 && c0.r >= 0.1)
+			red = 0.20;
+		 if (c0.r <0.40 && c0.r >= 0.20)
+			red = 0.40;
+		 if (c0.r <0.60 && c0.r >= 0.40)
+			red = 0.60;
+		 if (c0.r <0.80 && c0.r >= 0.60)
+			red = 0.80;
+		 if (c0.r >= 0.80)
+			red = 1;
+
+		 if (c0.b < 0.1 && c0.b >= 0)
+			blue = 0.1;
+		 if (c0.b < 0.20 && c0.b >= 0.1)
+			blue = 0.20;
+		 if (c0.b <0.40 && c0.b >= 0.20)
+			blue = 0.40;
+		 if (c0.b <0.60 && c0.b >= 0.40)
+			blue = 0.60;
+		 if (c0.b <0.80 && c0.b >= 0.60)
+			blue = 0.80;
+		 if (c0.b >= 0.80)
+			blue = 1;
+
+
+		 if (c0.g < 0.1 && c0.g >= 0)
+			green = 0.1;
+		 if (c0.g < 0.20 && c0.g >= 0.1)
+			green = 0.20;
+		 if (c0.g <0.40 && c0.g >= 0.20)
+			green = 0.40;
+		 if (c0.g <0.60 && c0.g >= 0.40)
+			green = 0.60;
+		 if (c0.g <0.80 && c0.g >= 0.60)
+			green = 0.80;
+		 if (c0.g >= 0.80)
+			green = 1;
+
+}
+else{
+float4 c1 = texRECT(samp0, uv0-float2(val, val2)).rgba;
+		
+		if (c1.r < 0.1 && c1.r >= 0)
+			red = 0.1;
+		 if (c1.r < 0.20 && c1.r >= 0.1)
+			red = 0.20;
+		 if (c1.r <0.40 && c1.r >= 0.20)
+			red = 0.40;
+		 if (c1.r <0.60 && c1.r >= 0.40)
+			red = 0.60;
+		 if (c1.r <0.80 && c1.r >= 0.60)
+			red = 0.80;
+		 if (c1.r >= 0.80)
+			red = 1;
+
+		 if (c1.b < 0.1 && c1.b >= 0)
+			blue = 0.1;
+		 if (c1.b < 0.20 && c1.b >= 0.1)
+			blue = 0.20;
+		 if (c1.b <0.40 && c1.b >= 0.20)
+			blue = 0.40;
+		 if (c1.b <0.60 && c1.b >= 0.40)
+			blue = 0.60;
+		 if (c1.b <0.80 && c1.b >= 0.60)
+			blue = 0.80;
+		 if (c1.b >= 0.80)
+			blue = 1;
+
+
+		 if (c1.g < 0.1 && c1.g >= 0)
+			green = 0.1;
+		 if (c1.g < 0.20 && c1.g >= 0.1)
+			green = 0.20;
+		 if (c1.g <0.40 && c1.g >= 0.20)
+			green = 0.40;
+		 if (c1.g <0.60 && c1.g >= 0.40)
+			green = 0.60;
+		 if (c1.g <0.80 && c1.g >= 0.60)
+			green = 0.80;
+		 if (c1.g >= 0.80)
+			green = 1;
+			
+}
+
+
+  
+  ocol0 = float4(red, green, blue, c0.a);
+}

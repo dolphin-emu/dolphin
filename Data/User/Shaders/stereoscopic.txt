@@ -1,0 +1,27 @@
+// Omega's 3D Stereoscopic filtering
+// TODO: Need depth info!
+
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba; // Source Color
+  float sep = 5;
+  float red   = c0.r;
+  float green = c0.g;
+  float blue  = c0.b;
+ 
+  
+  // Left Eye (Red)
+  float4 c1 = texRECT(samp0, uv0 + float2(sep,0)).rgba;
+  red = max(c0.r, c1.r);
+
+  // Right Eye (Cyan)
+  float4 c2 = texRECT(samp0, uv0 + float2(-sep,0)).rgba;
+  float cyan = (c2.g + c2.b) / 2;
+  green = max(c0.g, cyan);
+  blue = max(c0.b, cyan);
+
+  
+  ocol0 = float4(red, green, blue, c0.a);
+}

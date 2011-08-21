@@ -1,0 +1,21 @@
+uniform samplerRECT samp0 : register(s0);
+
+inline float bound(float color)
+{
+  if (color < 0.35)
+  {
+	if (color < 0.25)
+	{
+		return color;
+	}
+	return 0.5;
+  }
+return 1.0;
+}
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0 + float2(0,0)).rgba;
+  ocol0 = float4(bound(c0.r), bound(c0.g), bound(c0.b), c0.a);
+}
+
