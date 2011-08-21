@@ -37,9 +37,13 @@ find_path(SFML_INCLUDE_DIR SFML/Config.hpp
           ${SFMLDIR}
           $ENV{SFMLDIR})
 
-# check the version number
+
+# will be set to false if one of the required modules is not found
+set(SFML_FOUND TRUE)
 set(SFML_VERSION_OK TRUE)
-if(SFML_FIND_VERSION AND SFML_INCLUDE_DIR)
+
+# check the version number
+if(SFML_FIND_VERSION AND SFML_INCLUDE_DIR AND NOT (SFML_INCLUDE_DIR STREQUAL "SFML_INCLUDE_DIR-NOTFOUND"))
     # extract the major and minor version numbers from SFML/Config.hpp
     FILE(READ "${SFML_INCLUDE_DIR}/SFML/Config.hpp" SFML_CONFIG_HPP_CONTENTS)
     STRING(REGEX MATCH ".*#define SFML_VERSION_MAJOR ([0-9]+).*#define SFML_VERSION_MINOR ([0-9]+).*" SFML_CONFIG_HPP_CONTENTS "${SFML_CONFIG_HPP_CONTENTS}")
@@ -64,10 +68,12 @@ if(SFML_FIND_VERSION AND SFML_INCLUDE_DIR)
             set(SFML_VERSION_MINOR x)
         endif()
     endif()
+elseif(SFML_INCLUDE_DIR STREQUAL "SFML_INCLUDE_DIR-NOTFOUND")
+    set(SFML_FOUND FALSE)
+    set(FIND_SFML_MISSING "${FIND_SFML_MISSING} SFML_INCLUDE_DIR")
 endif()
 
 # find the requested modules
-set(SFML_FOUND TRUE) # will be set to false if one of the required modules is not found
 set(FIND_SFML_LIB_PATHS ~/Library/Frameworks
                         /Library/Frameworks
                         /usr/local
