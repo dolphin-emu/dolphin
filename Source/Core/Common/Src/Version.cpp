@@ -16,15 +16,21 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "svnrev.h"
+#include "scmrev.h"
 
 #ifdef _DEBUG
-const char *svn_rev_str = "Dolphin Debug r" SVN_REV_STR;
+	#define BUILD_TYPE_STR "Debug "
 #elif defined DEBUGFAST
-const char *svn_rev_str = "Dolphin Debugfast r" SVN_REV_STR;
+	#define BUILD_TYPE_STR "DebugFast "
 #else
-const char *svn_rev_str = "Dolphin r" SVN_REV_STR;
-#endif   
+	#define BUILD_TYPE_STR ""
+#endif
+
+const char *scm_rev_str = "Dolphin "
+#if !SCM_IS_MASTER
+	"[" SCM_BRANCH_STR "] "
+#endif
+	BUILD_TYPE_STR SCM_DESC_STR;
 
 #ifdef _M_X64
 #define NP_ARCH "x64"
@@ -33,9 +39,9 @@ const char *svn_rev_str = "Dolphin r" SVN_REV_STR;
 #endif
 
 #ifdef _WIN32
-const char *netplay_dolphin_ver = SVN_REV_STR " W" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " W" NP_ARCH;
 #elif __APPLE__
-const char *netplay_dolphin_ver = SVN_REV_STR " M" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " M" NP_ARCH;
 #else
-const char *netplay_dolphin_ver = SVN_REV_STR " L" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " L" NP_ARCH;
 #endif

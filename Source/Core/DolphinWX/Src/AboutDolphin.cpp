@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "AboutDolphin.h"
 #include "../resources/dolphin_logo.cpp"
+#include "scmrev.h"
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
@@ -29,8 +30,12 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	wxStaticBitmap* const sbDolphinLogo = new wxStaticBitmap(this, wxID_ANY,
 			wxBitmap(iDolphinLogo));
 
-	std::string Text = std::string(svn_rev_str) + "\n"
+	std::string Text = "Dolphin " SCM_DESC_STR "\n"
 		"Copyright (c) 2003-2011+ Dolphin Team\n"
+		"\n"
+		"Branch: " SCM_BRANCH_STR "\n"
+		"Revision: " SCM_REV_STR "\n"
+		"Date: " __DATE__ " @ " __TIME__ "\n"
 		"\n"
 		"Dolphin is a Gamecube/Wii emulator, which was\n"
 		"originally written by F|RES and ector.\n"

@@ -608,7 +608,7 @@ void VideoThrottle()
 		// This is our final "frame counter" string
 		std::string SMessage = StringFromFormat("%s | %s",
 			SSettings.c_str(), SFPS.c_str());
-		std::string TMessage = StringFromFormat("%s | ", svn_rev_str) +
+		std::string TMessage = StringFromFormat("%s | ", scm_rev_str) +
 			SMessage;
 
 		// Show message
@@ -617,7 +617,7 @@ void VideoThrottle()
 		if (_CoreParameter.bRenderToMain &&
 			SConfig::GetInstance().m_InterfaceStatusbar) {
 			Host_UpdateStatusBar(SMessage.c_str());
-			Host_UpdateTitle(svn_rev_str);
+			Host_UpdateTitle(scm_rev_str);
 		} else
 			Host_UpdateTitle(TMessage.c_str());
 		

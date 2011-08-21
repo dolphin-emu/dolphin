@@ -26,7 +26,7 @@
 #include <string.h>
 
 // SVN version number
-extern const char *svn_rev_str;
+extern const char *scm_rev_str;
 extern const char *netplay_dolphin_ver;
 
 // Force enable logging in the right modes. For some reason, something had changed
