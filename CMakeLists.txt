@@ -315,7 +315,7 @@ set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)
 set(SFML_FIND_VERSION_MINOR 5)
 include(FindSFML OPTIONAL)
-if(SFML_FOUND AND (SFML_VERSION_MAJOR EQUAL 1))
+if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
        message("Using shared SFML")
 else()
        message("Shared SFML < 2.0 not found, falling back to the static library")
