@@ -415,7 +415,7 @@ endif(NOT DISABLE_WX)
 
 
 ########################################
-# Pre-build events: Define configuration variables and write svnrev header
+# Pre-build events: Define configuration variables and write SCM info header
 #
 if(DOLPHIN_WC_BRANCH STREQUAL "master")
 	set(DOLPHIN_WC_IS_MASTER "1")
@@ -428,7 +428,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
 	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
-#	"#define BUILD_TYPE_STR \"" ${CMAKE_BUILD_TYPE} "\"\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
