@@ -44,12 +44,11 @@ function GetFirstStdOutLine(cmd)
 	}
 }
 
-function GetRevFromFile(f)
+function GetFileContents(f)
 {
 	try
 	{
-		// read the current hash
-		return oFS.OpenTextFile(f).ReadAll().match(/SCM_REV_STR\s+"([0-9a-f]+)/)[1];
+		return oFS.OpenTextFile(f).ReadAll();
 	}
 	catch (e)
 	{
@@ -76,7 +75,7 @@ var out_contents =
 	"#define SCM_IS_MASTER " + isMaster + "\n";
 
 // check if file needs updating
-if (revision == GetRevFromFile(outfile))
+if (out_contents == GetFileContents(outfile))
 {
 	WScript.Echo(outfile + " doesn't need updating (already at " + revision + ")");
 }
