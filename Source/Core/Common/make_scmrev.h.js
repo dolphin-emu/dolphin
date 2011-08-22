@@ -58,6 +58,9 @@ var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
 var isMaster	= 0
 
+// remove hash from description
+describe = describe.replace(/-g\w+/, '');
+
 if (branch == "master")
 	isMaster = 1
 
@@ -70,11 +73,11 @@ var out_contents =
 // check if file needs updating
 if (out_contents == GetFileContents(outfile))
 {
-	WScript.Echo(outfile + " current at " + revision);
+	WScript.Echo(outfile + " current at " + describe);
 }
 else
 {
 	// needs updating - writeout current info
 	oFS.CreateTextFile(outfile, true).Write(out_contents);
-	WScript.Echo(outfile + " updated to " + revision);
+	WScript.Echo(outfile + " updated to " + describe);
 }

@@ -13,6 +13,9 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">dummy</Outputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\scmrev.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{69F00340-5C3D-449F-9A80-958435C6CF06}</ProjectGuid>
     <RootNamespace>SVNRevGen</RootNamespace>
