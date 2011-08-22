@@ -35,7 +35,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		"\n"
 		"Branch: " SCM_BRANCH_STR "\n"
 		"Revision: " SCM_REV_STR "\n"
-		"Date: " __DATE__ " @ " __TIME__ "\n"
+		"Compiled: " __DATE__ " @ " __TIME__ "\n"
 		"\n"
 		"Dolphin is a Gamecube/Wii emulator, which was\n"
 		"originally written by F|RES and ector.\n"

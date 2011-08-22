@@ -29,9 +29,8 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 Binary/Win32
 Binary/x64
-Source/Core/Common/Src/svnrev.h
+Source/Core/Common/Src/scmrev.h
 *.opensdf
 *.sdf
 [Bb]uild
-
 *.ipch
