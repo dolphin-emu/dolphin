@@ -7,19 +7,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="make_svnrev.h.js">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cscript /nologo /E:JScript "make_svnrev.h.js"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Updating svnrev.h</Message>
+    <CustomBuild Include="make_scmrev.h.js">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cscript /nologo /E:JScript "make_scmrev.h.js"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Updating scmrev.h</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">dummy</Outputs>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Src\svnrev.h" />
-    <ClInclude Include="Src\svnrev_template.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{69F00340-5C3D-449F-9A80-958435C6CF06}</ProjectGuid>
     <RootNamespace>SVNRevGen</RootNamespace>
+    <ProjectName>SCMRevGen</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">

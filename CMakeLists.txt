@@ -49,9 +49,17 @@ endfunction(enable_precompiled_headers)
 # for revision info
 include(FindGit OPTIONAL)
 if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
-	# defines DOLPHIN_WC_REVISION
+# defines DOLPHIN_WC_REVISION
 	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
 	OUTPUT_VARIABLE DOLPHIN_WC_REVISION
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+# defines DOLPHIN_WC_DESCRIBE
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} describe --always --dirty
+	OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+# defines DOLPHIN_WC_BRANCH
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+	OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
@@ -410,10 +418,20 @@ endif(NOT DISABLE_WX)
 
 
 ########################################
-# Pre-build events: Define configuration variables and write svnrev header
+# Pre-build events: Define configuration variables and write SCM info header
 #
-file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
-	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
+if(DOLPHIN_WC_BRANCH STREQUAL "master")
+	set(DOLPHIN_WC_IS_MASTER "1")
+else()
+	set(DOLPHIN_WC_IS_MASTER "0")
+endif()
+
+file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
+	"#define SCM_REV_STR \"" ${DOLPHIN_WC_REVISION} "\"\n"
+	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
+	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
+	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
+	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
 

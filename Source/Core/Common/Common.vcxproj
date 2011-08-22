@@ -259,8 +259,6 @@
     <ClInclude Include="Src\StdMutex.h" />
     <ClInclude Include="Src\StdThread.h" />
     <ClInclude Include="Src\StringUtil.h" />
-    <ClInclude Include="Src\svnrev.h" />
-    <ClInclude Include="Src\svnrev_template.h" />
     <ClInclude Include="Src\SymbolDB.h" />
     <ClInclude Include="Src\SysConf.h" />
     <ClInclude Include="Src\Thread.h" />

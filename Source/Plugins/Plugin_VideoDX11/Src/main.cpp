@@ -69,7 +69,7 @@ unsigned int VideoBackend::PeekMessages()
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
-	sprintf_s(temp, sizeof temp, "%s | DX11 | %s", svn_rev_str, text);
+	sprintf_s(temp, sizeof temp, "%s | DX11 | %s", scm_rev_str, text);
 	SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 

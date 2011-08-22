@@ -294,13 +294,13 @@ int main(int argc, char* argv[])
 			help = 1;
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", svn_rev_str);
+			fprintf(stderr, "%s\n", scm_rev_str);
 			return 1;
 		}
 	}
 
 	if (help == 1 || argc == optind) {
-		fprintf(stderr, "%s\n\n", svn_rev_str);
+		fprintf(stderr, "%s\n\n", scm_rev_str);
 		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec	Load the specified file\n");
