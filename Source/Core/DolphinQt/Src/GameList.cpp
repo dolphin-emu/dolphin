@@ -406,7 +406,7 @@ public:
 	DGameListProgressBar(QWidget* parent = NULL) : QProgressBar(parent) {}
 	virtual ~DGameListProgressBar() {}
 
-	void SetValue(int value, std::string FileName) { setValue(value); setFormat(tr("Scanning ") + QString::fromStdString(FileName)); }
+	void SetValue(int value, std::string FileName) { setValue(value); setFormat(tr("Scanning ") + QString(FileName.c_str())); }
 	void SetRange(int min, int max) { setRange(min, max); }
 	void SetVisible(bool visible) { setVisible(visible); }
 };
