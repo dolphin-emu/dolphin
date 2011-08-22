@@ -191,6 +191,8 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 
 bool CNANDContentLoader::Initialize(const std::string& _rName)
 {
+	if (_rName.empty())
+		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
 	u8* pDataApp = NULL;
@@ -221,7 +223,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
-			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+			DEBUG_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
 					  TMDFileName.c_str());
 			return false;
 		}
