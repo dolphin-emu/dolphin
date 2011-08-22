@@ -211,7 +211,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// Don't do anything if the log is unselected
 			if (LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 			{
-				const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
+				const char *pFilename = NULL;
+				if (m_pFileSystem)
+					pFilename = m_pFileSystem->GetFileName(DVDAddress);
 				if (pFilename != NULL)
 				{
 					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%llx) - (DVDAddr: 0x%llx, Size: 0x%x)",
@@ -233,7 +235,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 			if (!VolumeHandler::ReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
-				PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+				PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
 			}
 		}
 		break;
@@ -325,10 +327,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				PanicAlertT("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 				Size = _BufferOutSize;
 			}
-
-			if (!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
+			if(!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
-				PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+				PanicAlertT("DVDLowUnencryptedRead - Fatal Error: failed to read from volume");
 			}
 		}
 		break;
@@ -348,7 +349,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
     case DVDLowSeek:
 		{
 			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
-			const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
+			const char *pFilename = NULL;
+			if (m_pFileSystem)
+				pFilename = m_pFileSystem->GetFileName(DVDAddress);
 			if (pFilename != NULL)
 			{
 				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%llx) - (DVDAddr: 0x%llx)",
