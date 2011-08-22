@@ -268,6 +268,8 @@ void VertexManager::vFlush()
 #endif
 	g_Config.iSaveTargetId++;
 
+	ClearEFBCache();
+
 	GL_REPORT_ERRORD();
 }
 
