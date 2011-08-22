@@ -8,26 +8,20 @@ var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 
 function GetGitExe()
 {
-	var gitexe = "git.cmd";
-	try
-	{
-		wshShell.Exec(gitexe);
-	}
-	catch (e)
+	for (var gitexe in {"git.cmd":1, "git":1})
 	{
 		try
 		{
-			gitexe = "git";
 			wshShell.Exec(gitexe);
+			return gitexe;
 		}
 		catch (e)
-		{
-			WScript.Echo("Cannot find git or git.cmd, check your PATH:\n" +
-				wshShell.ExpandEnvironmentStrings("%PATH%"));
-			WScript.Quit(1);
-		}
+		{}
 	}
-	return gitexe;
+
+	WScript.Echo("Cannot find git or git.cmd, check your PATH:\n" +
+		wshShell.ExpandEnvironmentStrings("%PATH%"));
+	WScript.Quit(1);
 }
 
 function GetFirstStdOutLine(cmd)
@@ -52,9 +46,8 @@ function GetFileContents(f)
 	}
 	catch (e)
 	{
-		// file doesn't exist or string not found, (re)create it
-		oFS.CreateTextFile(f);
-		return 0;
+		// file doesn't exist
+		return "";
 	}
 }
 
@@ -77,11 +70,11 @@ var out_contents =
 // check if file needs updating
 if (out_contents == GetFileContents(outfile))
 {
-	WScript.Echo(outfile + " doesn't need updating (already at " + revision + ")");
+	WScript.Echo(outfile + " current at " + revision);
 }
 else
 {
 	// needs updating - writeout current info
 	oFS.CreateTextFile(outfile, true).Write(out_contents);
-	WScript.Echo(outfile + " updated (" + revision + ")");
+	WScript.Echo(outfile + " updated to " + revision);
 }
