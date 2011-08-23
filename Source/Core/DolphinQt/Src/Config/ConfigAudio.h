@@ -11,7 +11,6 @@ class DConfigAudio : public QWidget
 
 public:
 	DConfigAudio(QWidget* parent = NULL);
-	virtual ~DConfigAudio();
 
 public slots:
 	void Reset();

@@ -5,11 +5,6 @@ DConfigWiimote::DConfigWiimote(QWidget* parent): QWidget(parent)
 
 }
 
-DConfigWiimote::~DConfigWiimote()
-{
-
-}
-
 void DConfigWiimote::Reset()
 {
 

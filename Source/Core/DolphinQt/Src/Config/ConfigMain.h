@@ -1,17 +1,47 @@
 #pragma once
 
-#include <QTabWidget>
 #include <QDialog>
+#include <QTabWidget>
+#include <QMap>
+#include <QVector>
 
+class QButtonGroup;
 class QCheckBox;
 class QComboBox;
-class QButtonGroup;
-class QPushButton;
-class QSlider;
 class QDiag;
-class QListWidgetItem;
-class QStackedWidget;
 class QListWidget;
+class QListWidgetItem;
+class QPushButton;
+class QRadioButton;
+class QSlider;
+class QStackedWidget;
+
+// keeps track of initial button state and resets it on request.
+// also can notify other widgets when a control's value was changed
+class DControlStateManager : public QObject
+{
+	Q_OBJECT
+
+public:
+	DConfigControlManager(QObject* parent);
+
+	void RegisterControl(QCheckBox* control, bool checked);
+	void RegisterControl(QRadioButton* control, bool checked);
+	void RegisterControl(QComboBox* control, int choice);
+	void RegisterControl(QComboBox* control, const QString& choice);
+
+public slots:
+	void OnReset();
+
+private:
+	QMap<QCheckBox*, bool> checkbox_states;
+	QMap<QRadioButton*, bool> radiobutton_states;
+	QMap<QComboBox*, int> combobox_states_int;
+	QMap<QComboBox*, QString> combobox_states_string;
+
+signals:
+	void settingChanged(); // TODO!
+};
 
 class DConfigMainGeneralTab : public QWidget
 {
@@ -19,7 +49,6 @@ class DConfigMainGeneralTab : public QWidget
 
 public:
     DConfigMainGeneralTab(QWidget* parent = NULL);
-    virtual ~DConfigMainGeneralTab();
 
 public slots:
 	void Reset();
@@ -35,6 +64,8 @@ private:
 
 	QCheckBox* cbConfirmOnStop;
 	QCheckBox* cbRenderToMain;
+
+	DConfigControlManager* ctrlManager;
 };
 
 class DConfigDialog : public QDialog
@@ -52,10 +83,10 @@ public:
 	};
 
 	DConfigDialog(InitialConfigItem initialConfigItem, QWidget* parent = NULL);
-    virtual ~DConfigDialog();
 
 public slots:
 	void switchPage(QListWidgetItem*,QListWidgetItem*);
+	void OnReset();
 	void OnApply();
 	void OnOk();
 
@@ -67,4 +98,5 @@ private:
 
 signals:
 	void Apply();
+	void Reset();
 };

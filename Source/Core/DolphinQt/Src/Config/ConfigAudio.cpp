@@ -5,11 +5,6 @@ DConfigAudio::DConfigAudio(QWidget* parent) : QWidget(parent)
 
 }
 
-DConfigAudio::~DConfigAudio()
-{
-
-}
-
 void DConfigAudio::Reset()
 {
 

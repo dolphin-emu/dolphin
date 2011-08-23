@@ -19,6 +19,51 @@
 
 #include "ConfigManager.h"
 
+DConfigControlManager::DConfigControlManager(QObject* parent) : QObject(parent)
+{
+}
+
+void DConfigControlManager::RegisterControl(QCheckBox* control, bool checked)
+{
+	checkbox_states.insert(control, checked);
+	control->setChecked(checked);
+}
+
+void DConfigControlManager::RegisterControl(QRadioButton* control, bool checked)
+{
+	radiobutton_states.insert(control, checked);
+	control->setChecked(checked);
+}
+
+void DConfigControlManager::RegisterControl(QComboBox* control, int choice)
+{
+	combobox_states_int.insert(control, choice);
+	control->setCurrentIndex(choice);
+}
+
+void DConfigControlManager::RegisterControl(QComboBox* control, const QString& choice)
+{
+	combobox_states_string.insert(control, choice);
+	control->setCurrentIndex(control->findText(choice)); // TODO: Make sure the text is valid
+}
+
+
+void DConfigControlManager::OnReset()
+{
+	for (QMap<QCheckBox*,bool>::iterator cb = checkbox_states.begin(); cb != checkbox_states.end(); ++cb)
+		cb.key()->setChecked(cb.value());
+
+	for (QMap<QRadioButton*,bool>::iterator rb = radiobutton_states.begin(); rb != radiobutton_states.end(); ++rb)
+		rb.key()->setChecked(rb.value());
+
+	for (QMap<QComboBox*,int>::iterator cb = combobox_states_int.begin(); cb != combobox_states_int.end(); ++cb)
+		cb.key()->setCurrentIndex(cb.value());
+
+	for (QMap<QComboBox*,QString>::iterator cb = combobox_states_string.begin(); cb != combobox_states_string.end(); ++cb)
+		cb.key()->setCurrentIndex(cb.key()->findText(cb.value())); // TODO: Make sure the text is valid
+}
+
+
 DConfigMainGeneralTab::DConfigMainGeneralTab(QWidget* parent): QWidget(parent)
 {
 	// Widgets
@@ -61,26 +106,28 @@ DConfigMainGeneralTab::DConfigMainGeneralTab(QWidget* parent): QWidget(parent)
 	mainLayout->addWidget(interfaceBox);
 	setLayout(mainLayout);
 
-	Reset();
-}
 
-DConfigMainGeneralTab::~DConfigMainGeneralTab()
-{
+	// Initial values
+	SCoreStartupParameter& Startup = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	ctrlManager = new DConfigControlManager(this);
 
+	ctrlManager->RegisterControl(cbDualCore, Startup.bCPUThread);
+	ctrlManager->RegisterControl(cbIdleSkipping, Startup.bSkipIdle);
+	ctrlManager->RegisterControl(cbCheats, Startup.bEnableCheats);
+
+	ctrlManager->RegisterControl(chFramelimit, 0); // TODO: Correct value..
+
+	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(0)), (Startup.iCPUCore == 0));
+	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(1)), (Startup.iCPUCore == 1));
+	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(2)), (Startup.iCPUCore == 2));
+
+	ctrlManager->RegisterControl(cbConfirmOnStop, Startup.bConfirmStop);
+	ctrlManager->RegisterControl(cbRenderToMain, Startup.bRenderToMain);
 }
 
 void DConfigMainGeneralTab::Reset()
 {
-	SCoreStartupParameter& Startup = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	cbDualCore->setChecked(Startup.bCPUThread);
-	cbIdleSkipping->setChecked(Startup.bSkipIdle);
-	cbCheats->setChecked(Startup.bEnableCheats);
-	// TODO: Reset framelimit
-
-	rbCPUEngine->button(Startup.iCPUCore)->setChecked(true);
-
-	cbConfirmOnStop->setChecked(Startup.bConfirmStop);
-	cbRenderToMain->setChecked(Startup.bRenderToMain);
+	ctrlManager->OnReset();
 }
 
 void DConfigMainGeneralTab::Apply()
@@ -151,6 +198,11 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	connect(this, SIGNAL(Apply()), audioWidget, SLOT(Apply()));
 	connect(this, SIGNAL(Apply()), padWidget, SLOT(Apply()));
 	connect(this, SIGNAL(Apply()), wiimoteWidget, SLOT(Apply()));
+	connect(this, SIGNAL(Reset()), generalWidget, SLOT(Reset()));
+	connect(this, SIGNAL(Reset()), gfxWidget, SLOT(Reset()));
+	connect(this, SIGNAL(Reset()), audioWidget, SLOT(Reset()));
+	connect(this, SIGNAL(Reset()), padWidget, SLOT(Reset()));
+	connect(this, SIGNAL(Reset()), wiimoteWidget, SLOT(Reset()));
 
 	stackWidget = new QStackedWidget;
 	stackWidget->addWidget(generalWidget);
@@ -169,6 +221,8 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	connect(buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(OnOk()));
 	connect(buttons->button(QDialogButtonBox::Cancel), SIGNAL(clicked()), this, SLOT(close()));
 	connect(buttons->button(QDialogButtonBox::Apply), SIGNAL(clicked()), this, SLOT(OnApply()));
+	connect(buttons->button(QDialogButtonBox::Reset), SIGNAL(clicked()), this, SLOT(OnReset()));
+	// TODO: Gray out Reset and Apply buttons until a setting was changed
 
 	QBoxLayout* mainLayout = new QVBoxLayout;
 	QBoxLayout* topLayout = new QHBoxLayout;
@@ -178,11 +232,6 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	mainLayout->addWidget(buttons);
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	setLayout(mainLayout);
-}
-
-DConfigDialog::~DConfigDialog()
-{
-
 }
 
 void DConfigDialog::switchPage(QListWidgetItem* cur, QListWidgetItem* prev)
@@ -201,6 +250,11 @@ void DConfigDialog::OnOk()
 void DConfigDialog::OnApply()
 {
 	emit Apply();
+}
+
+void DConfigDialog::OnReset()
+{
+	emit Reset();
 }
 
 void DConfigDialog::closeEvent(QCloseEvent* ev)

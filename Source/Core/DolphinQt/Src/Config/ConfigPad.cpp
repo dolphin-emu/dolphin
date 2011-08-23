@@ -5,11 +5,6 @@ DConfigPadWidget::DConfigPadWidget(QWidget* parent) : QTabWidget(parent)
 
 }
 
-DConfigPadWidget::~DConfigPadWidget()
-{
-
-}
-
 void DConfigPadWidget::Reset()
 {
 
