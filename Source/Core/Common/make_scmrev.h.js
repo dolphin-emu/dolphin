@@ -3,7 +3,7 @@ var oFS				= new ActiveXObject("Scripting.FileSystemObject");
 
 var outfile			= "./Src/scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
-var cmd_describe	= " describe --always --dirty";
+var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 
 function GetGitExe()
@@ -56,13 +56,10 @@ var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
-var isMaster	= 0
+var isMaster    = +("master" == branch);
 
 // remove hash from description
-describe = describe.replace(/-g\w+/, '');
-
-if (branch == "master")
-	isMaster = 1
+describe = describe.replace(/-[^-]+(-dirty)?$/, '$1');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
