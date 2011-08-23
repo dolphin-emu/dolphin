@@ -29,8 +29,11 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 Binary/Win32
 Binary/x64
+Binary/Darwin*
 Source/Core/Common/Src/scmrev.h
 *.opensdf
 *.sdf
 [Bb]uild
 *.ipch
+.sconsign.dblite
+Externals/scons-local/*

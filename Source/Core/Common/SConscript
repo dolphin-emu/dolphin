@@ -4,16 +4,16 @@ Import('env')
 import os
 import sys
 
-def createVersion(env, target, source):
-        tmpstr = open(source[0].path, 'r').read().\
-		replace("$WCMODS?$WCREV$M:$WCREV$$", env['svnrev'])
-        outfile = open(target[0].path, 'w')
-        outfile.write(tmpstr + '\n')
-        outfile.close()
+out_contents =\
+	'#define SCM_REV_STR "' + env['gitrev'] + '"\n' +\
+	'#define SCM_DESC_STR "' + env['gitdesc'] + '"\n' +\
+	'#define SCM_BRANCH_STR "' + env['gitbranch'] + '"\n' +\
+	'#define SCM_IS_MASTER ' + ('1' if env['gitbranch'] == 'master' else '0') + '\n\n'
 
-Execute(Delete('Src/svnrev.h'))
-env.Command('Src/svnrev.h', 'Src/svnrev_template.h',
-	[Delete('${TARGET.srcpath}'), createVersion])
+Execute(Delete('Src/scmrev.h'))
+outfile = open('Src/scmrev.h', 'w')
+outfile.write(out_contents)
+outfile.close()
 
 files = [
 	'Src/ABI.cpp',
