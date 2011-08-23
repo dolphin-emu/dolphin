@@ -1,6 +1,7 @@
 include_directories(BEFORE Src/Util Src/Config)
 
 set(SRCS	Src/Config/ConfigAudio.cpp
+			Src/Config/ConfigGeneral.cpp
 			Src/Config/ConfigGfx.cpp
 			Src/Config/ConfigMain.cpp
 			Src/Config/ConfigPad.cpp
@@ -33,10 +34,12 @@ set(LIBS	core
 set(EXEGUI dolphin-emu-qt4)
 
 qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/Config/ConfigAudio.h
+								Src/Config/ConfigGeneral.h
 								Src/Config/ConfigGfx.h
 								Src/Config/ConfigMain.h
 								Src/Config/ConfigPad.h
 								Src/Config/ConfigWiimote.h
+								Src/Util/Util.h
 								Src/IssueReporter.h
 								Src/GameList.h
 								Src/LogWindow.h

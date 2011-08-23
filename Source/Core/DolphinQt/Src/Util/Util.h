@@ -3,10 +3,14 @@
 #include <QWidget>
 #include <QLayout>
 #include <QGroupBox>
+#include <QMap>
+
+class QCheckBox;
+class QComboBox;
 class QHBoxLayout;
 class QString;
+class QRadioButton;
 class QVBoxLayout;
-class QWidget;
 
 template<class Layout>
 class DGroupBox : public QGroupBox
@@ -34,6 +38,7 @@ private:
 };
 typedef DGroupBox<QHBoxLayout> DGroupBoxH;
 typedef DGroupBox<QVBoxLayout> DGroupBoxV;
+
 
 
 template<class Layout>
@@ -65,3 +70,33 @@ private:
 };
 typedef DLayoutWidget<QHBoxLayout> DLayoutWidgetH;
 typedef DLayoutWidget<QVBoxLayout> DLayoutWidgetV;
+
+
+
+// keeps track of initial button state and resets it on request.
+// also can notify other widgets when a control's value was changed
+class DControlStateManager : public QObject
+{
+	Q_OBJECT
+
+public:
+	DControlStateManager(QObject* parent);
+
+	void RegisterControl(QCheckBox* control, bool checked);
+	void RegisterControl(QRadioButton* control, bool checked);
+	void RegisterControl(QComboBox* control, int choice);
+	void RegisterControl(QComboBox* control, const QString& choice);
+
+public slots:
+	void OnReset();
+
+private:
+	QMap<QCheckBox*, bool> checkbox_states;
+	QMap<QRadioButton*, bool> radiobutton_states;
+	QMap<QComboBox*, int> combobox_states_int;
+	QMap<QComboBox*, QString> combobox_states_string;
+
+signals:
+	void settingChanged(); // TODO!
+};
+
