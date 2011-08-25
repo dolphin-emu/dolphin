@@ -209,10 +209,12 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 
 	// Called when a screensaver wants to show up while this window is active
 	case WM_SYSCOMMAND:
+	
 		switch (wParam) 
 		{
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			break;
 		default:
 			return DefWindowProc(hWnd, iMsg, wParam, lParam);
