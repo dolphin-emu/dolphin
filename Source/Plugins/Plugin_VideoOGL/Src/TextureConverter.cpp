@@ -213,13 +213,24 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	PixelShaderCache::SetCurrentShader(shader.glprogid);
 
-	// Draw...
-	glBegin(GL_QUADS);
-	glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
-	glTexCoord2f((float)sourceRc.left, (float)sourceRc.bottom);  glVertex2f(-1,1);
-	glTexCoord2f((float)sourceRc.right, (float)sourceRc.bottom); glVertex2f(1,1);
-	glTexCoord2f((float)sourceRc.right, (float)sourceRc.top);    glVertex2f(1,-1);
-	glEnd();
+	GL_REPORT_ERRORD();
+
+	GLfloat tex1[] = {
+		(float)sourceRc.left, (float)sourceRc.top,
+		(float)sourceRc.left, (float)sourceRc.bottom,
+		(float)sourceRc.right, (float)sourceRc.bottom,
+		(float)sourceRc.right, (float)sourceRc.top
+	};
+	GLfloat vtx1[] = {
+		-1, -1,  1,
+		-1, 1, 1,
+		1, 1, 1,
+		1, -1, 1
+	};
+	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
 	GL_REPORT_ERRORD();
 
 	// .. and then read back the results.
@@ -458,12 +469,23 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	GL_REPORT_ERRORD();
 
-	glBegin(GL_QUADS);
-	glTexCoord2f((float)srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
-	glTexCoord2f((float)srcFmtWidth, 0); glVertex2f(1,1);
-	glTexCoord2f(0, 0); glVertex2f(-1,1);
-	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
-	glEnd();
+	GLfloat tex1[] = {
+		(float)srcFmtWidth, (float)srcHeight,
+		(float)srcFmtWidth, 0,
+		0, 0,
+		0, (float)srcHeight
+	};
+	GLfloat vtx1[] = {
+		1, -1,  1,
+		1, 1, 1,
+		-1, 1, 1,
+		-1, -1, 1
+	};
+	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	GL_REPORT_ERRORD();
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
