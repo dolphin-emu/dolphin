@@ -305,23 +305,30 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(sourcerc.left, sourcerc.bottom);
+	GLfloat vtx1[] = {
+		drawrc.left, drawrc.bottom, 1,
+		drawrc.left, drawrc.top, 1,
+		drawrc.right, drawrc.top, 1,
+		drawrc.right, drawrc.bottom, 1
+	};
+	GLfloat tex1[] = { // For TEXTURE0
+		sourcerc.left, sourcerc.bottom,
+		sourcerc.left, sourcerc.top,
+		sourcerc.right, sourcerc.top,
+		sourcerc.right, sourcerc.bottom
+	};
+	
+	glClientActiveTexture(GL_TEXTURE0);
+	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+
+	// Is this correct?
 	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-	glVertex2f(drawrc.left, drawrc.bottom);
-
-	glTexCoord2f(sourcerc.left, sourcerc.top);
 	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-	glVertex2f(drawrc.left, drawrc.top);
-
-	glTexCoord2f(sourcerc.right, sourcerc.top);
 	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-	glVertex2f(drawrc.right, drawrc.top);
-
-	glTexCoord2f(sourcerc.right, sourcerc.bottom);
 	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
-	glVertex2f(drawrc.right, drawrc.bottom);
-	glEnd();
+	
+	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	GL_REPORT_ERRORD();
 }
