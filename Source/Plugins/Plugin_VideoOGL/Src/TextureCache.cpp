@@ -302,12 +302,24 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 
-		glBegin(GL_QUADS);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.top  ); glVertex2f(-1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.top  ); glVertex2f( 1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.bottom); glVertex2f( 1,  1);
-		glEnd();
+		GL_REPORT_ERRORD();
+
+		GLfloat tex1[] = {
+			(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
+			(GLfloat)targetSource.left, (GLfloat)targetSource.top,
+			(GLfloat)targetSource.right, (GLfloat)targetSource.top,
+			(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+		};
+		GLfloat vtx1[] = {
+			-1, 1,  1,
+			-1, -1, 1,
+			1, -1, 1,
+			1, 1, 1
+		};
+		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+		glVertexPointer(3, GL_FLOAT, 0, vtx1);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
 
 		GL_REPORT_ERRORD();
 
