@@ -888,16 +888,39 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 	glDepthRange(0.0, (float)(z & 0xFFFFFF) / float(0xFFFFFF));
 
-	glColor4f((float)((color >> 16) & 0xFF) / 255.0f,
-				(float)((color >> 8) & 0xFF) / 255.0f,
-				(float)(color & 0xFF) / 255.0f,
-				(float)((color >> 24) & 0xFF) / 255.0f);
-	glBegin(GL_QUADS);
-	glVertex3f(-1.f, -1.f, 1.f);
-	glVertex3f(-1.f,  1.f, 1.f);
-	glVertex3f( 1.f,  1.f, 1.f);
-	glVertex3f( 1.f, -1.f, 1.f);
-	glEnd();
+	GLfloat vtx1[] = {
+		-1, -1,  1,
+		-1, 1, 1,
+		1, 1, 1,
+		1, -1, 1
+	};
+	GLfloat col1[] = { // This looks terrible
+		(float)((color >> 16) & 0xFF) / 255.0f,
+		(float)((color >> 8) & 0xFF) / 255.0f,
+		(float)(color & 0xFF) / 255.0f,
+		(float)((color >> 24) & 0xFF) / 255.0f,
+
+		(float)((color >> 16) & 0xFF) / 255.0f,
+		(float)((color >> 8) & 0xFF) / 255.0f,
+		(float)(color & 0xFF) / 255.0f,
+		(float)((color >> 24) & 0xFF) / 255.0f,
+
+		(float)((color >> 16) & 0xFF) / 255.0f,
+		(float)((color >> 8) & 0xFF) / 255.0f,
+		(float)(color & 0xFF) / 255.0f,
+		(float)((color >> 24) & 0xFF) / 255.0f,
+
+		(float)((color >> 16) & 0xFF) / 255.0f,
+		(float)((color >> 8) & 0xFF) / 255.0f,
+		(float)(color & 0xFF) / 255.0f,
+		(float)((color >> 24) & 0xFF) / 255.0f
+	};
+	glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS); // Only need this to not overwrite the GL_COLOR_ARRAY state
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(4, GL_FLOAT, 0 ,col1);
+	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glPopClientAttrib();
 
 	RestoreAPIState();
 }
@@ -1115,43 +1138,35 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+
+		GLfloat vtx1[] = {
+			-1, -1, 1,
+			-1, 1, 1,
+			1, 1, 1,
+			1, -1, 1
+		};
+		GLfloat tex1[] = { // For TEXTURE0
+			targetRc.left, targetRc.bottom,
+			targetRc.left, targetRc.top,
+			targetRc.right, targetRc.top,
+			targetRc.right, targetRc.bottom
+		};
+		
+		glClientActiveTexture(GL_TEXTURE0);
+		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+
 		if (applyShader)
 		{
-			glBegin(GL_QUADS);
-			glTexCoord2f(targetRc.left, targetRc.bottom);
 			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-			glVertex2f(-1, -1);
-
-			glTexCoord2f(targetRc.left, targetRc.top);
 			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-			glVertex2f(-1,  1);
-
-			glTexCoord2f(targetRc.right, targetRc.top);
 			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-			glVertex2f( 1,  1);
-
-			glTexCoord2f(targetRc.right, targetRc.bottom);
 			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
-			glVertex2f( 1, -1);
-			glEnd();
+		}
+		
+		glVertexPointer(3, GL_FLOAT, 0, vtx1);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		if(applyShader)
 			PixelShaderCache::DisableShader();
-		}
-		else
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2f(targetRc.left, targetRc.bottom);
-			glVertex2f(-1, -1);
-
-			glTexCoord2f(targetRc.left, targetRc.top);
-			glVertex2f(-1, 1);
-
-			glTexCoord2f(targetRc.right, targetRc.top);
-			glVertex2f( 1, 1);
-
-			glTexCoord2f(targetRc.right, targetRc.bottom);
-			glVertex2f( 1, -1);
-			glEnd();
-		}
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
