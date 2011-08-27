@@ -25,6 +25,7 @@
 #include "VideoBackendBase.h"
 #include "Core.h"
 #include "Host.h"
+#include "ConfigManager.h"
 
 namespace EmuWindow
 {
