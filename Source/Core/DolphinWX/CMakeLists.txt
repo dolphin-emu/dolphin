@@ -9,6 +9,9 @@ set(LIBS	core
 			sfml-network
 			SDL
 			GL
+			avcodec
+			avformat
+			swscale
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
 

@@ -463,7 +463,7 @@ if(GETTEXT_FOUND AND NOT DISABLE_WX)
 	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po) 
 	GETTEXT_CREATE_TRANSLATIONS(Languages/po/dolphin-emu.pot ALL ${LINGUAS})
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND (NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD"))
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
 
